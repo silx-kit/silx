@@ -52,6 +52,7 @@ class ColormapMesh3D(Geometry):
     uniform mat4 matrix;
     uniform mat4 transformMat;
     //uniform mat3 matrixInvTranspose;
+    uniform vec3 dataScale;
 
     varying vec4 vCameraPosition;
     varying vec3 vPosition;
@@ -63,6 +64,7 @@ class ColormapMesh3D(Geometry):
         vCameraPosition = transformMat * vec4(position, 1.0);
         //vNormal = matrixInvTranspose * normalize(normal);
         vPosition = position;
+        vTexCoords = dataScale * position;
         vNormal = normal;
         gl_Position = matrix * vec4(position, 1.0);
     }
@@ -71,9 +73,9 @@ class ColormapMesh3D(Geometry):
     varying vec4 vCameraPosition;
     varying vec3 vPosition;
     varying vec3 vNormal;
+    varying vec3 vTexCoords;
     uniform sampler3D data;
     uniform float alpha;
-    uniform vec3 dataScale;
 
     $colormapDecl
 
@@ -82,7 +84,7 @@ class ColormapMesh3D(Geometry):
 
     void main(void)
     {
-        float value = texture3D(data, vPosition * dataScale).r;
+        float value = texture3D(data, vTexCoords).r;
         vec4 color = $colormapCall(value);
         color.a = alpha;
 
@@ -276,8 +278,20 @@ class CutPlane(PlaneInGroup):
 
     def prepareGL2(self, ctx):
         if self.isValid:
+
+            contourVertices = self.contourVertices
+
+            if (self.interpolation == 'nearest' and
+                    contourVertices is not None and len(contourVertices)):
+                # Avoid cut plane co-linear with array bin edges
+                for index, normal in enumerate(((1., 0., 0.), (0., 1., 0.), (0., 0., 1.))):
+                    if (numpy.all(numpy.equal(self.plane.normal, normal)) and
+                            int(self.plane.point[index]) == self.plane.point[index]):
+                        contourVertices += self.plane.normal * 0.01  # Add an offset
+                        break
+
             if self._mesh is None and self._data is not None:
-                self._mesh = ColormapMesh3D(self.contourVertices,
+                self._mesh = ColormapMesh3D(contourVertices,
                                             normal=self.plane.normal,
                                             data=self._data,
                                             copy=False,
@@ -288,13 +302,13 @@ class CutPlane(PlaneInGroup):
                 self._children.insert(0, self._mesh)
 
             if self._mesh is not None:
-                if (self.contourVertices is None or
-                        len(self.contourVertices) == 0):
+                if (contourVertices is None or
+                        len(contourVertices) == 0):
                     self._mesh.visible = False
                 else:
                     self._mesh.visible = True
                     self._mesh.setAttribute('normal', self.plane.normal)
-                    self._mesh.setAttribute('position', self.contourVertices)
+                    self._mesh.setAttribute('position', contourVertices)
 
         super(CutPlane, self).prepareGL2(ctx)
 
