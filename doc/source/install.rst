@@ -164,7 +164,7 @@ command prompt::
 Using pip
 +++++++++
 
-Configure your PATHÂ environment variable to include the pip installation
+Configure your PATH environment variable to include the pip installation
 directory, the same way as described for Python.
 
 The pip installation directory will likely be ``C:\Python35\Scripts\``.
@@ -223,7 +223,7 @@ Wheels are available for *h5py* on Mac OS X, so you can install it with::
 
 If at the time of your installation a new version of *h5py* has been released but
 the corresponding Mac OS X wheel is not ready, you should install the latest version including
-a wheel:Â ``pip install h5py==2.6.0``
+a wheel: ``pip install h5py==2.6.0``
 
 A PyQt5 wheel is now available for Python 3.5 on Mac OS X: https://pypi.python.org/simple/pyqt5/.
 Download it and install it with::
