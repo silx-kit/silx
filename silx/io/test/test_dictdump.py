@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "24/05/2016"
+__date__ = "10/02/2017"
 
 from collections import OrderedDict
 import numpy
@@ -42,7 +42,8 @@ except ImportError:
 from collections import defaultdict
 
 from ..configdict import ConfigDict
-from ..dictdump import dicttoh5, dicttojson, dicttoini, dump, load
+from ..dictdump import dicttoh5, dicttojson, dicttoini, dump
+from ..dictdump import h5todict, load
 
 
 def tree():
@@ -91,6 +92,28 @@ class TestDictToH5(unittest.TestCase):
         self.assertAlmostEqual(
                 min(ddict["city attributes"]["Europe"]["France"]["Grenoble"]["coordinates"]),
                 5.7196)
+
+
+@unittest.skipIf(h5py_missing, "Could not import h5py")
+class TestH5ToDict(unittest.TestCase):
+    def setUp(self):
+        self.tempdir = tempfile.mkdtemp()
+        self.h5_fname = os.path.join(self.tempdir, "cityattrs.h5")
+        dicttoh5(city_attrs, self.h5_fname)
+
+    def tearDown(self):
+        os.unlink(self.h5_fname)
+        os.rmdir(self.tempdir)
+
+    def testExcludeNames(self):
+        ddict = h5todict(self.h5_fname, path="/Europe/France",
+                         exclude_names=["ourcoing", "inhab", "toto"])
+        self.assertNotIn("Tourcoing", ddict)
+        self.assertIn("Grenoble", ddict)
+
+        self.assertNotIn("inhabitants", ddict["Grenoble"])
+        self.assertIn("coordinates", ddict["Grenoble"])
+        self.assertIn("area", ddict["Grenoble"])
 
 
 class TestDictToJson(unittest.TestCase):
@@ -217,6 +240,8 @@ def suite():
         unittest.defaultTestLoader.loadTestsFromTestCase(TestDictToH5))
     test_suite.addTest(
         unittest.defaultTestLoader.loadTestsFromTestCase(TestDictToJson))
+    test_suite.addTest(
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestH5ToDict))
     return test_suite
 
 

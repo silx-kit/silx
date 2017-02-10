@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -44,7 +44,7 @@ from .configdict import ConfigDict
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "10/02/2017"
 
 logger = logging.getLogger(__name__)
 
@@ -175,8 +175,17 @@ def dicttoh5(treedict, h5file, h5path='/',
         h5f.close()
 
 
-def h5todict(h5file, path="/"):
-    """Read HDF5 file and return a nested dictionary with the complete file
+def _name_contains_string_in_list(name, strlist):
+    if strlist is None:
+        return False
+    for filter_str in strlist:
+        if filter_str in name:
+            return True
+    return False
+
+
+def h5todict(h5file, path="/", exclude_names=None):
+    """Read a HDF5 file and return a nested dictionary with the complete file
     structure and all data.
 
     .. note:: This function requires `h5py <http://www.h5py.org/>`_ to be
@@ -190,7 +199,11 @@ def h5todict(h5file, path="/"):
         data types is converted to a numpy array of strings.
 
     :param h5file: File name or :class:`h5py.File` object
-    :return: dict
+    :param str path: Name of HDF5 group to use as dictionary root level,
+        to read only a sub-group in the file
+    :param list[str] exclude_names: Groups and datasets whose name contains
+        a string in this list will be ignored. Default is None (ignore nothing)
+    :return: Nested dictionary
     """
     if h5py_missing:
         raise h5py_import_error
@@ -202,12 +215,20 @@ def h5todict(h5file, path="/"):
 
     ddict = {}
     for key in h5f[path]:
-
+        if _name_contains_string_in_list(key, exclude_names):
+            continue
         if isinstance(h5f[path + "/" + key], h5py.Group):
-            ddict[key] = h5todict(h5f, path + "/" + key)
+            ddict[key] = h5todict(h5f,
+                                  path + "/" + key,
+                                  exclude_names=exclude_names)
         else:
             # Convert HDF5 dataset to numpy array
             ddict[key] = h5f[path + "/" + key][...]
+
+    if not isinstance(h5file, h5py.File):
+        # close file, if we opened it
+        h5f.close()
+
     return ddict
 
 
