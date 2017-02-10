@@ -1,6 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+#
+# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,30 +21,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# ############################################################################*/
+# ###########################################################################*/
 
-__authors__ = ["H. Payno"]
-__license__ = "MIT"
-__date__ = "25/01/2017"
-
-import os.path
-import numpy
-from numpy.distutils.misc_util import Configuration
-
-def configuration(parent_package='', top_path=None):
-    config = Configuration('filter', parent_package, top_path)
-
-    # =====================================
-    # median tools
-    # =====================================
-    config.add_extension('mediantools',
-                         sources=["mediantools.c", 'medianfilter.c'],
-                         language='c')    
-
-    return config
-
-
-if __name__ == "__main__":
-    from numpy.distutils.core import setup
-
-    setup(configuration=configuration)
+# pyx
+cdef extern from "median_filter.hpp":
+    cdef extern void median_filter[T](const T* i_data, T* o_data, const unsigned int kernel_width, const unsigned int x, const unsigned int y, const unsigned int image_width, const unsigned int image_height) nogil;

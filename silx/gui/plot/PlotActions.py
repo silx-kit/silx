@@ -77,7 +77,7 @@ from ._utils import applyZoomToPlot as _applyZoomToPlot
 from silx.third_party.EdfFile import EdfFile
 from silx.third_party.TiffIO import TiffIO
 from silx.math.histogram import Histogramnd
-from silx.image.filter import median
+from silx.math import medianfilter
 
 from silx.io.utils import save1D, savespec
 
@@ -1344,6 +1344,7 @@ class MedianFilter1DAction(MedianFilterAction):
 
     def _getFiltredImage(self, kernelWidth, conditionnal):
         assert(self.plot is not None)
+        # TODO 1D should be the same
         return median.medfilt1d(self._originalImage,
                                 kernelWidth,
                                 conditionnal )
@@ -1359,9 +1360,13 @@ class MedianFilter2DAction(MedianFilterAction):
 
     def _getFiltredImage(self, kernelWidth, conditionnal):
         assert(self.plot is not None)
-        return median.medfilt2d(self._originalImage,
-                                kernelWidth,
-                                conditionnal )
+        # TODO : deal with output directly into python
+        out = numpy.zeros(self._originalImage.shape, dtype=self._originalImage.dtype)
+        medianfilter.median_filter(self._originalImage,
+                                   out,
+                                   (kernelWidth, kernelWidth),
+                                   conditionnal )
+        return out
 
 
 class MedianFilterDialog(qt.QDialog):
@@ -1395,7 +1400,7 @@ class MedianFilterDialog(qt.QDialog):
 
     def _filterOptionChanged(self):
         """Call back used when the filter values are changed"""
-        if self.value()%2 == 0:
+        if self._filterWidth.value()%2 == 0:
             logging.warning('median filter only accept odd values')
         else:
             self.sigFilterOptChanged.emit(self._filterWidth.value(), self._filterOption.isChecked())

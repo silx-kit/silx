@@ -80,6 +80,17 @@ def configuration(parent_package='', top_path=None):
                          include_dirs=[mc_dir, numpy.get_include()],
                          language='c++')
 
+    # =====================================
+    # median filter
+    # =====================================
+    medfilt_dir = 'medianfilter'
+    medfilt_src = [os.path.join(medfilt_dir, srcf)
+                   for srcf in ['medianfilter.pyx']]
+    medfilt_inc = [os.path.join(medfilt_dir, 'include')]                   
+    config.add_extension('medianfilter',
+                         sources=medfilt_src,
+                         include_dirs=[medfilt_src, medfilt_inc],
+                         language='c++')
     return config
 
 

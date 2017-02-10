@@ -34,7 +34,7 @@ from .test_histogramnd_vs_np import suite as test_histo_vs_np
 from .test_HistogramndLut_nominal import suite as test_histolut_nominal
 from ..fit.test import suite as test_fit_suite
 from .test_marchingcubes import suite as test_marchingcubes_suite
-
+from .test_medianfilter import suite as test_medianfilter_suite
 
 def suite():
     test_suite = unittest.TestSuite()
@@ -44,4 +44,5 @@ def suite():
     test_suite.addTest(test_fit_suite())
     test_suite.addTest(test_histolut_nominal())
     test_suite.addTest(test_marchingcubes_suite())
+    test_suite.addTest(test_medianfilter_suite())
     return test_suite

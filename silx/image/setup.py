@@ -39,7 +39,6 @@ def configuration(parent_package='', top_path=None):
                          sources=["shapes.pyx"],
                          language='c')
     config.add_subpackage('sift')
-    config.add_subpackage('filter')
 
     return config
 
