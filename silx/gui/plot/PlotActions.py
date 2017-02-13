@@ -1324,14 +1324,19 @@ class MedianFilterAction(PlotAction):
             return
 
         self.plot.sigActiveImageChanged.disconnect( self._updateActiveImage)
-        filtredImage = self._getFiltredImage(kernelWidth, conditionnal)
+        filtredImage = self._computeFiltredImage(kernelWidth, conditionnal)
         self.plot.addImage(data=filtredImage,
                            legend=self._originalImage,
                            replace=True)
         self.plot.sigActiveImageChanged.connect( self._updateActiveImage)
 
-    def _getFiltredImage(self, kernelWidth, conditionnal):
+    def _computeFiltredImage(self, kernelWidth, conditionnal):
         raise NotImplemented('MedianFilterAction is a an abstract class')
+
+    def getFilteredImage(self):
+        """
+        :return: the image with the median filter apply on"""
+        return self._filtredImage
 
 
 class MedianFilter1DAction(MedianFilterAction):
@@ -1342,12 +1347,11 @@ class MedianFilter1DAction(MedianFilterAction):
                         plot,
                         parent=parent)
 
-    def _getFiltredImage(self, kernelWidth, conditionnal):
+    def _computeFiltredImage(self, kernelWidth, conditionnal):
         assert(self.plot is not None)
-        # TODO 1D should be the same
-        return median.medfilt1d(self._originalImage,
-                                kernelWidth,
-                                conditionnal )
+        return median.median_filter(self._originalImage,
+                                    kernelWidth,
+                                    conditionnal )
 
 
 class MedianFilter2DAction(MedianFilterAction):
@@ -1358,15 +1362,11 @@ class MedianFilter2DAction(MedianFilterAction):
                         plot,
                         parent=parent)
 
-    def _getFiltredImage(self, kernelWidth, conditionnal):
+    def _computeFiltredImage(self, kernelWidth, conditionnal):
         assert(self.plot is not None)
-        # TODO : deal with output directly into python
-        out = numpy.zeros(self._originalImage.shape, dtype=self._originalImage.dtype)
-        medianfilter.median_filter(self._originalImage,
-                                   out,
-                                   (kernelWidth, kernelWidth),
-                                   conditionnal )
-        return out
+        return medianfilter.median_filter(self._originalImage,
+                                          (kernelWidth, kernelWidth),
+                                          conditionnal )
 
 
 class MedianFilterDialog(qt.QDialog):
