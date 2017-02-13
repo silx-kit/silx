@@ -23,6 +23,16 @@
 #
 # ###########################################################################*/
 
+from libcpp cimport bool
+
 # pyx
 cdef extern from "median_filter.hpp":
-    cdef extern void median_filter[T](const T* i_data, T* o_data, const unsigned int kernel_width, const unsigned int x, const unsigned int y, const unsigned int image_width, const unsigned int image_height) nogil;
+    cdef extern void median_filter[T](const T* input, 
+                                      T* output,
+                                      int* kernel_dim,
+                                      int* image_dim,
+                                      int x_pixel_range_min,
+                                      int x_pixel_range_max,
+                                      int y_pixel_range_min,
+                                      int y_pixel_range_max,
+                                      bool conditioannal) nogil;
