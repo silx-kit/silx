@@ -28,7 +28,7 @@
 #ifndef MEDIAN_FILTER
 #define MEDIAN_FILTER
 
-#include <quick_select.hpp>
+#include <kth_smallest.hpp>
 #include <vector>
 #include <assert.h>
 
