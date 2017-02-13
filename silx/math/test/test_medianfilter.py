@@ -32,6 +32,7 @@ import numpy
 import tempfile
 import os
 from  silx.math import medianfilter
+from silx.test.utils import ParametricTestCase
 
 import logging
 _logger = logging.getLogger(__name__)
@@ -120,40 +121,21 @@ class TestConditionnal2DFilter(unittest.TestCase):
         self.assertTrue(numpy.array_equal(dataOut[1:8, 1:8], dataIn[1:8, 1:8]))
         self.assertTrue(dataOut[9, 9] == 89)
 
-class Test2DFilterInputTypes(unittest.TestCase):
+
+class Test2DFilterInputTypes(ParametricTestCase):
     """Test that all needed types have their implementation of the median filter
     """
 
-    def testFloat(self):
-        try:
-            data = numpy.random.rand(10, 10).astype(dtype=numpy.float32)
+    def testTypes(self):
+        for testType in [numpy.float32, numpy.float64, numpy.int16, numpy.uint16,
+            numpy.int32, numpy.int64, numpy.uint64]:
+
+
+            data = numpy.random.rand(10, 10).astype(dtype=testType)
             out = medianfilter.median_filter(input_buffer=data,
                                              kernel_dim=(3, 3),
                                              conditionnal=False)
-            self.assertTrue(True)
-        except :
-            self.assertTrue(False)
-
-    def testDouble(self):
-        try:
-            data = numpy.random.rand(10, 10).astype(dtype=numpy.float64)
-            out = medianfilter.median_filter(input_buffer=data,
-                                             kernel_dim=(3, 3),
-                                             conditionnal=False)
-            self.assertTrue(True)
-        except:
-            self.assertTrue(False)
-
-    def testInt(self):
-        try:
-            data = numpy.random.rand(10, 10).astype(dtype=numpy.int32)
-            out = medianfilter.median_filter(input_buffer=data,
-                                             kernel_dim=(3, 3),
-                                             conditionnal=False)
-            self.assertTrue(True)
-        except:
-            self.assertTrue(False)
-
+            self.assertTrue(out.dtype.type is testType)
 
 
 class Test1DFilter(unittest.TestCase):
