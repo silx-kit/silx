@@ -49,8 +49,9 @@ def median_filter(input_buffer, kernel_dim, bool conditionnal, int nthread=4):
 
     :param numpy.ndarray input_buffer: the array for which we want to apply 
         the median filter
-    :param kernel_dim: the dimension of the kernel. For 1D should be an int, 
-        for 2D should be a tuple or a list of (kernel_width, kernel_height)
+    :param kernel_dim: the dimension of the kernel.
+    :type kernel_dim: For 1D should be an int for 2D should be a tuple or 
+        a list of (kernel_width, kernel_height)
     :param bool conditionnal: True if we want to apply a conditionnal median 
         filtering.
     :param int nthread: the number of threads we want to lauch to solve the 
