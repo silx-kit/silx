@@ -36,8 +36,8 @@ from  silx.math import medianfilter
 import logging
 _logger = logging.getLogger(__name__)
 
-class TestFilterValues(unittest.TestCase):
-    """TODO"""
+class Test2DFilter(unittest.TestCase):
+    """Some unit tests for the median filter"""
 
     def testFilter3(self):
         """Simple test of a three by three kernel median filter"""
@@ -104,7 +104,7 @@ class TestFilterValues(unittest.TestCase):
         self.assertTrue(numpy.array_equal(dataOut1Thr, dataOut4Thr))
         self.assertTrue(numpy.array_equal(dataOut1Thr, dataOut8Thr))
 
-class TestConditionnalFilterValues(unittest.TestCase):
+class TestConditionnal2DFilter(unittest.TestCase):
     """Test that the conditionnal filter apply correctly"""
 
     def testFilter3(self):
@@ -120,7 +120,7 @@ class TestConditionnalFilterValues(unittest.TestCase):
         self.assertTrue(numpy.array_equal(dataOut[1:8, 1:8], dataIn[1:8, 1:8]))
         self.assertTrue(dataOut[9, 9] == 89)
 
-class TestFilterInputTypes(unittest.TestCase):
+class Test2DFilterInputTypes(unittest.TestCase):
     """Test that all needed types have their implementation of the median filter
     """
 
@@ -154,10 +154,28 @@ class TestFilterInputTypes(unittest.TestCase):
         except:
             self.assertTrue(False)
 
+
+
+class Test1DFilter(unittest.TestCase):
+    """Some unit tests for the median filter"""
+
+    def testFilter3(self):
+        """Simple test of a three by three kernel median filter"""
+        dataIn = numpy.arange(100, dtype=numpy.int32)
+
+        dataOut = medianfilter.median_filter(input_buffer=dataIn,
+                                             kernel_dim=5,
+                                             conditionnal=False)
+        # for now if pair number of value we are taking the higher one
+        self.assertTrue(dataOut[0] == 1)
+        self.assertTrue(dataOut[9] == 9)
+        self.assertTrue(dataOut[99] == 98)
+
+
 def suite():
     test_suite = unittest.TestSuite()
-    test = [TestFilterValues, TestFilterInputTypes, TestConditionnalFilterValues]
-    for test in test:
+    for test in [Test2DFilter, TestConditionnal2DFilter, Test2DFilterInputTypes, 
+        Test1DFilter]:
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(test))
     return test_suite
