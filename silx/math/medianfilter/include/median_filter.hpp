@@ -33,6 +33,8 @@
 #include <assert.h>
 
 
+// Browse all pixels in the range of (pixel_x_min, pixel_y_min) to 
+// (pixel_x_min, pixel_y_max)
 template<typename T>
 void median_filter(
     const T* input, 
@@ -44,8 +46,6 @@ void median_filter(
     int y_pixel_range_min,
     int y_pixel_range_max,
     bool conditioannal){
-    // Browse all pixels in the range of (pixel_x_min, pixel_y_min) to 
-    // (pixel_x_min, pixel_y_max)
     
     assert(kernel_dim[0] > 0);
     assert(kernel_dim[1] > 0);
