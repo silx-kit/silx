@@ -31,7 +31,7 @@ import unittest
 import numpy
 import tempfile
 import os
-import medianfilter
+from  silx.math import medianfilter
 
 import logging
 _logger = logging.getLogger(__name__)
@@ -42,9 +42,8 @@ class TestFilterValues(unittest.TestCase):
     def testFilter3(self):
         dataIn = numpy.arange(100, dtype=numpy.int32)
         dataIn = dataIn.reshape((10,10))
-        dataOut = numpy.zeros(dataIn.shape, dtype=numpy.int32)
 
-        medianfilter.median_filter(dataIn, dataOut, (3, 3), conditionnal=False)
+        dataOut = medianfilter.median_filter(dataIn, kernel_dim=(3, 3), conditionnal=False)
         # for now if pair number of value we are taking the higher one
         self.assertTrue(dataOut[0, 0] == 1)
         self.assertTrue(dataOut[9, 0] == 81)
@@ -58,9 +57,8 @@ class TestFilterValues(unittest.TestCase):
     def testFilterWidthOne(self):
         dataIn = numpy.arange(100, dtype=numpy.int32)
         dataIn = dataIn.reshape((10,10))
-        dataOut = numpy.zeros(dataIn.shape, dtype=numpy.int32)
 
-        medianfilter.median_filter(dataIn, dataOut, (1, 1), conditionnal=False)
+        dataOut = medianfilter.median_filter(dataIn, kernel_dim=(1, 1), conditionnal=False)
 
         self.assertTrue(numpy.array_equal(dataIn, dataOut))
 
@@ -68,21 +66,20 @@ class TestFilterValues(unittest.TestCase):
         dataIn = numpy.arange(100, dtype=numpy.int32)
         dataIn = dataIn.reshape((10,10))
         dataInCopy = dataIn.copy()
-        dataOut = numpy.zeros(dataIn.shape, dtype=numpy.int32)
 
-        medianfilter.median_filter(dataIn, dataOut, (3, 3), conditionnal=False)
+        dataOut = medianfilter.median_filter(dataIn, kernel_dim=(3, 3), conditionnal=False)
         self.assertTrue(numpy.array_equal(dataIn, dataInCopy))
 
     def testThreads(self):
         dataIn = numpy.random.rand(100, 100)
-        dataOut1Thr = numpy.zeros(dataIn.shape, dtype=numpy.float64)
-        dataOut2Thr = numpy.zeros(dataIn.shape, dtype=numpy.float64)
-        dataOut4Thr = numpy.zeros(dataIn.shape, dtype=numpy.float64)
-        dataOut8Thr = numpy.zeros(dataIn.shape, dtype=numpy.float64)
-        medianfilter.median_filter(dataIn, dataOut1Thr, (3, 3), conditionnal=False, nthread=1)
-        medianfilter.median_filter(dataIn, dataOut2Thr, (3, 3), conditionnal=False, nthread=2)
-        medianfilter.median_filter(dataIn, dataOut4Thr, (3, 3), conditionnal=False, nthread=4)
-        medianfilter.median_filter(dataIn, dataOut8Thr, (3, 3), conditionnal=False, nthread=8)
+        numpy.zeros(dataIn.shape, dtype=numpy.float64)
+        numpy.zeros(dataIn.shape, dtype=numpy.float64)
+        numpy.zeros(dataIn.shape, dtype=numpy.float64)
+        numpy.zeros(dataIn.shape, dtype=numpy.float64)
+        dataOut1Thr = medianfilter.median_filter(dataIn, kernel_dim=(3, 3), conditionnal=False, nthread=1)
+        dataOut2Thr = medianfilter.median_filter(dataIn, kernel_dim=(3, 3), conditionnal=False, nthread=2)
+        dataOut4Thr = medianfilter.median_filter(dataIn, kernel_dim=(3, 3), conditionnal=False, nthread=4)
+        dataOut8Thr = medianfilter.median_filter(dataIn, kernel_dim=(3, 3), conditionnal=False, nthread=8)
 
         self.assertTrue(numpy.array_equal(dataOut1Thr, dataOut2Thr))
         self.assertTrue(numpy.array_equal(dataOut1Thr, dataOut4Thr))
@@ -94,9 +91,8 @@ class TestConditionnalFilterValues(unittest.TestCase):
     def testFilter3(self):
         dataIn = numpy.arange(100, dtype=numpy.int32)
         dataIn = dataIn.reshape((10,10))
-        dataOut = numpy.zeros(dataIn.shape, dtype=numpy.int32)
 
-        medianfilter.median_filter(dataIn, dataOut, (3, 3), conditionnal=True)
+        dataOut = medianfilter.median_filter(dataIn, kernel_dim=(3, 3), conditionnal=True)
         # for now if pair number of value we are taking the lower one
         self.assertTrue(dataOut[0, 0] == 1)
         self.assertTrue(dataOut[0, 1] == 1)
@@ -110,8 +106,7 @@ class TestFilterInputTypes(unittest.TestCase):
     def testFloat(self):
         try:
             data = numpy.random.rand(10, 10).astype(dtype=numpy.float32)
-            out = numpy.zeros(data.shape, dtype=numpy.float32)
-            medianfilter.median_filter(data, out, (3, 3), conditionnal=False)
+            out = medianfilter.median_filter(data, kernel_dim=(3, 3), conditionnal=False)
             self.assertTrue(True)
         except :
             self.assertTrue(False)
@@ -119,8 +114,7 @@ class TestFilterInputTypes(unittest.TestCase):
     def testDouble(self):
         try:
             data = numpy.random.rand(10, 10).astype(dtype=numpy.float64)
-            out = numpy.zeros(data.shape, dtype=numpy.float64)
-            medianfilter.median_filter(data, out, (3, 3), conditionnal=False)
+            out = medianfilter.median_filter(data, kernel_dim=(3, 3), conditionnal=False)
             self.assertTrue(True)
         except:
             self.assertTrue(False)
@@ -128,8 +122,7 @@ class TestFilterInputTypes(unittest.TestCase):
     def testInt(self):
         try:
             data = numpy.random.rand(10, 10).astype(dtype=numpy.int32)
-            out = numpy.zeros(data.shape, dtype=numpy.int32)
-            medianfilter.median_filter(data, out, (3, 3), conditionnal=False)
+            out = medianfilter.median_filter(data, kernel_dim=(3, 3), conditionnal=False)
             self.assertTrue(True)
         except:
             self.assertTrue(False)

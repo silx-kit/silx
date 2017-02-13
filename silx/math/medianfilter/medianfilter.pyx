@@ -7,19 +7,22 @@ cdef Py_ssize_t size = 10
 from libcpp cimport bool
 
 # TODO : add more types ?
-def median_filter(input_buffer, output_buffer, window_dim, bool conditionnal, int nthread=8):
+def median_filter(input_buffer, kernel_dim, bool conditionnal, int nthread=8):
+    output_buffer = numpy.zeros(input_buffer.shape, dtype=input_buffer.dtype)
     check(input_buffer, output_buffer)
 
     ranges = numpy.array([ int(input_buffer.shape[0] * x / nthread) for x in range(nthread+1) ], dtype=numpy.int32)
 
     if input_buffer.dtype == numpy.float64:
-        _median_filter_float64(input_buffer, output_buffer, window_dim[0], window_dim[1], ranges, conditionnal)
+        _median_filter_float64(input_buffer, output_buffer, kernel_dim[0], kernel_dim[1], ranges, conditionnal)
     elif input_buffer.dtype == numpy.float32:
-        _median_filter_float32(input_buffer, output_buffer, window_dim[0], window_dim[1], ranges, conditionnal)
+        _median_filter_float32(input_buffer, output_buffer, kernel_dim[0], kernel_dim[1], ranges, conditionnal)
     elif input_buffer.dtype == numpy.int32:
-        _median_filter_int32(input_buffer, output_buffer, window_dim[0], window_dim[1], ranges, conditionnal)
+        _median_filter_int32(input_buffer, output_buffer, kernel_dim[0], kernel_dim[1], ranges, conditionnal)
     else:
         raise ValueError("%s type is not managed by the median filter"%input_buffer.dtype)
+
+    return output_buffer
 
 def check(input_buffer, output_buffer):
     if (input_buffer.flags['C_CONTIGUOUS'] is False):
