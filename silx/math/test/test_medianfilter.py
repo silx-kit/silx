@@ -49,13 +49,13 @@ class Test2DFilter(unittest.TestCase):
                                kernel_dim=(3, 3),
                                conditionnal=False)
         
-        self.assertTrue(dataOut[0, 0] == 1)
-        self.assertTrue(dataOut[9, 0] == 81)
-        self.assertTrue(dataOut[9, 9] == 89)
-        self.assertTrue(dataOut[0, 9] == 9)
+        self.assertTrue(dataOut[0, 0] == 10)
+        self.assertTrue(dataOut[9, 0] == 90)
+        self.assertTrue(dataOut[9, 9] == 98)
+        self.assertTrue(dataOut[0, 9] == 18)
 
-        self.assertTrue(dataOut[0, 4] == 5)
-        self.assertTrue(dataOut[9, 4] == 85)
+        self.assertTrue(dataOut[0, 4] == 13)
+        self.assertTrue(dataOut[9, 4] == 93)
         self.assertTrue(dataOut[4, 4] == 44)
 
     def testFilterWidthOne(self):
@@ -116,10 +116,26 @@ class TestConditionnal2DFilter(unittest.TestCase):
                                kernel_dim=(3, 3),
                                conditionnal=True)
         
-        self.assertTrue(dataOut[0, 0] == 1)
+        self.assertTrue(dataOut[0, 0] == 10)
         self.assertTrue(dataOut[0, 1] == 1)
         self.assertTrue(numpy.array_equal(dataOut[1:8, 1:8], dataIn[1:8, 1:8]))
-        self.assertTrue(dataOut[9, 9] == 89)
+        self.assertTrue(dataOut[9, 9] == 98)
+
+    def testFilterMinimumMaximum(self):
+        dataIn = numpy.zeros(10, dtype=numpy.int16)
+        dataIn[0:2] = 1
+
+        dataOut = medianfilter(input_buffer=dataIn,
+                               kernel_dim=5,
+                               conditionnal=True)
+        self.assertTrue(dataOut[0] == 1)
+        self.assertTrue(dataOut[3] == 0)
+
+        dataIn[4:10] = 1
+        dataOut = medianfilter(input_buffer=dataIn,
+                               kernel_dim=9,
+                               conditionnal=True)
+        self.assertTrue(numpy.array_equal(dataOut, dataIn))
 
 
 class Test2DFilterInputTypes(ParametricTestCase):
