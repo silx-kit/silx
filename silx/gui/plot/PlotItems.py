@@ -39,6 +39,7 @@ import numpy
 
 from . import Colors
 
+from ...third_party.six import string_types
 from ...utils.weakref import WeakList
 
 
@@ -370,15 +371,25 @@ class ColorMixIn(object):
         """
         return self._color
 
-    def _setColor(self, color):
+    def _setColor(self, color, copy=True):
         """Set item color
 
         :param color: color(s) to be used
         :type color: str ("#RRGGBB") or (npoints, 4) unsigned byte array or
                      one of the predefined color names defined in Colors.py
+        :param bool copy: True (Default) to get a copy,
+                         False to use internal representation (do not modify!)
         """
-        self._color = Colors.rgba(color)
-
+        if isinstance(color, string_types):
+            self._color = Colors.rgba(color)
+        else:
+            color = numpy.array(color, copy=copy)
+            # TODO more checks
+            if color.ndim == 1:  # Single RGBA color
+                assert color.size == 4
+            else:  # Array of colors
+                assert color.ndim == 2
+            self._color = color
 
 class YAxisMixIn(object):
     """Mix-in class for item with yaxis"""
