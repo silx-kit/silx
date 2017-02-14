@@ -458,7 +458,9 @@ class Curve(Base, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn):
 
     def __getitem__(self, item):
         """Compatibility with PyMca and silx <= 0.4.0"""
-        if item == 0:
+        if isinstance(item, slice):
+            return [self[index] for index in range(*item.indices(5))]
+        elif item == 0:
             return self.getXData(copy=False)
         elif item == 1:
             return self.getYData(copy=False)
@@ -576,8 +578,7 @@ class Curve(Base, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn):
 
         if (xPositive, yPositive) not in self._boundsCache:
             # TODO bounds do not take error bars into account (as in silx Plot)
-            x, y, xerror, yerror = self.getData(
-                copy=False, displayed=True)
+            x, y, xerror, yerror = self.getData( copy=False, displayed=True)
             self._boundsCache[(xPositive, yPositive)] = (
                 numpy.nanmin(x),
                 numpy.nanmax(x),
@@ -665,7 +666,7 @@ class Curve(Base, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn):
         if xerror is not None:
             xerror = numpy.array(xerror, copy=copy)
         if yerror is not None:
-            yerror = numpy.array(xerror, copy=copy)
+            yerror = numpy.array(yerror, copy=copy)
         # TODO checks on xerror, yerror
         self._x, self._y = x, y
         self._xerror, self._yerror = xerror, yerror
@@ -810,7 +811,9 @@ class Image(Base, LabelsMixIn, DraggableMixIn, ColormapMixIn):
 
     def __getitem__(self, item):
         """Compatibility with PyMca and silx <= 0.4.0"""
-        if item == 0:
+        if isinstance(item, slice):
+            return [self[index] for index in range(*item.indices(5))]
+        elif item == 0:
             return self.getData(copy=False)
         elif item == 1:
             return self.getLegend()
@@ -850,7 +853,14 @@ class Image(Base, LabelsMixIn, DraggableMixIn, ColormapMixIn):
         ymin, ymax = origin[1], origin[1] + height * scale[1]
         if ymin > ymax:
             ymin, ymax = ymax, ymin
-        return xmin, xmax, ymin, ymax
+
+        plot = self.getPlot()
+        if (plot is not None and
+                (plot.isXAxisLogarithmic() and xmin <= 0.) or
+                (plot.isYAxisLogarithmic() and ymin <= 0)):
+            return None
+        else:
+            return xmin, xmax, ymin, ymax
 
     def getData(self, copy=True):
         """Returns the image data

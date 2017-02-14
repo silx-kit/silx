@@ -866,6 +866,7 @@ class Plot(object):
 
         if self.isXAxisLogarithmic() or self.isYAxisLogarithmic():
             _logger.info('Hide image while axes has log scale.')
+            image._setVisible(False)
 
         if (image.getData(copy=False) is not None and
                 not self.isXAxisLogarithmic() and
@@ -1286,11 +1287,10 @@ class Plot(object):
                                 # Reset active curve
                                 self.setActiveCurve(None)
 
-                        handle = self._backendContent.get((legend, aKind), None)
+                        handle = self._backendContent.pop((legend, aKind), None)
                         if handle is not None:
                             self._backend.remove(handle)
                             self._setDirtyPlot()
-                        del self._content[(legend, aKind)]
 
                         if (aKind == 'curve' and
                                 not self.getAllCurves(just_legend=True,
@@ -1997,6 +1997,10 @@ class Plot(object):
             return
         self._logX = bool(flag)
 
+        # Hide image if log scale
+        for image in self.getAllImages():
+            image._setVisible(not self._logX and not self._logY)
+
         if self._logX:  # Switch to log scale
             # Loop over a duplicated list as dict is modified during the loop
             for legend, type_ in list(self._backendContent):
@@ -2035,6 +2039,10 @@ class Plot(object):
         if bool(flag) == self._logY:
             return
         self._logY = bool(flag)
+
+        # Hide image if log scale
+        for image in self.getAllImages():
+            image._setVisible(not self._logX and not self._logY)
 
         if self._logY:  # Switch to log scale
             # Loop over a duplicated list as dict is modifyed during the loop
