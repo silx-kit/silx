@@ -42,7 +42,7 @@ ctypedef unsigned long uint64
 ctypedef unsigned int uint32
 ctypedef unsigned short uint16
 
-def median_filter(input_buffer, kernel_dim, bool conditionnal, int nthread=4):
+def medianfilter(input_buffer, kernel_dim, bool conditionnal, int nthread=1):
     """function computing the medianfilter of the given input_buffer.
     Behavior at boundaries : the algoithm is reducing the size of the 
     window/kernel for pixels at boundaries ( There is no mirroring )
@@ -136,7 +136,9 @@ def check(input_buffer, output_buffer):
         raise ValueError('input buffer and output_buffer must be of the same dimension and same dimension')
 
 ######### implementations of the include/median_filter.hpp function ############
-
+@cython.cdivision(True)
+@cython.boundscheck(False)
+@cython.wraparound(False)
 def _median_filter_float32(
       cnumpy.ndarray[cnumpy.float32_t, ndim=2, mode='c'] input_buffer not None, 
       cnumpy.ndarray[cnumpy.float32_t, ndim=2, mode='c'] output_buffer not None,
@@ -160,8 +162,11 @@ def _median_filter_float32(
                                                ranges[x+1]-1,
                                                0,
                                                image_dim[1]-1,
-                                               conditionnal);            
+                                               conditionnal);
 
+@cython.cdivision(True)
+@cython.boundscheck(False)
+@cython.wraparound(False)
 def _median_filter_float64(
       cnumpy.ndarray[cnumpy.float64_t, ndim=2, mode='c'] input_buffer not None, 
       cnumpy.ndarray[cnumpy.float64_t, ndim=2, mode='c'] output_buffer not None,
@@ -187,6 +192,9 @@ def _median_filter_float64(
                                                 image_dim[1]-1,
                                                 conditionnal);
 
+@cython.cdivision(True)
+@cython.boundscheck(False)
+@cython.wraparound(False)
 def _median_filter_int64(
       cnumpy.ndarray[cnumpy.int64_t, ndim=2, mode='c'] input_buffer not None, 
       cnumpy.ndarray[cnumpy.int64_t, ndim=2, mode='c'] output_buffer not None,
@@ -211,7 +219,9 @@ def _median_filter_int64(
                                                 0,
                                                 image_dim[1]-1,
                                                 conditionnal);
-
+@cython.cdivision(True)
+@cython.boundscheck(False)
+@cython.wraparound(False)
 def _median_filter_uint64(
       cnumpy.ndarray[cnumpy.uint64_t, ndim=2, mode='c'] input_buffer not None, 
       cnumpy.ndarray[cnumpy.uint64_t, ndim=2, mode='c'] output_buffer not None,
@@ -235,8 +245,11 @@ def _median_filter_uint64(
                                                 ranges[x+1]-1,
                                                 0,
                                                 image_dim[1]-1,
-                                                conditionnal);        
+                                                conditionnal);
 
+@cython.cdivision(True)
+@cython.boundscheck(False)
+@cython.wraparound(False)
 def _median_filter_int32(
       cnumpy.ndarray[cnumpy.int32_t, ndim=2, mode='c'] input_buffer not None, 
       cnumpy.ndarray[cnumpy.int32_t, ndim=2, mode='c'] output_buffer not None,
@@ -262,6 +275,9 @@ def _median_filter_int32(
                                              image_dim[1]-1,
                                              conditionnal);
 
+@cython.cdivision(True)
+@cython.boundscheck(False)
+@cython.wraparound(False)
 def _median_filter_uint32(
       cnumpy.ndarray[cnumpy.uint32_t, ndim=2, mode='c'] input_buffer not None, 
       cnumpy.ndarray[cnumpy.uint32_t, ndim=2, mode='c'] output_buffer not None,
@@ -287,6 +303,9 @@ def _median_filter_uint32(
                                                 image_dim[1]-1,
                                                 conditionnal);
 
+@cython.cdivision(True)
+@cython.boundscheck(False)
+@cython.wraparound(False)
 def _median_filter_int16(
       cnumpy.ndarray[cnumpy.int16_t, ndim=2, mode='c'] input_buffer not None, 
       cnumpy.ndarray[cnumpy.int16_t, ndim=2, mode='c'] output_buffer not None,
@@ -310,8 +329,11 @@ def _median_filter_int16(
                                                ranges[x+1]-1,
                                                0,
                                                image_dim[1]-1,
-                                               conditionnal);      
+                                               conditionnal);
 
+@cython.cdivision(True)
+@cython.boundscheck(False)
+@cython.wraparound(False)
 def _median_filter_uint16(
       cnumpy.ndarray[cnumpy.uint16_t, ndim=2, mode='c'] input_buffer not None, 
       cnumpy.ndarray[cnumpy.uint16_t, ndim=2, mode='c'] output_buffer not None,
