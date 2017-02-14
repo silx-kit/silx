@@ -48,7 +48,7 @@ class Test2DFilter(unittest.TestCase):
         dataOut = medianfilter.median_filter(input_buffer=dataIn,
                                              kernel_dim=(3, 3),
                                              conditionnal=False)
-        # for now if pair number of value we are taking the higher one
+        
         self.assertTrue(dataOut[0, 0] == 1)
         self.assertTrue(dataOut[9, 0] == 81)
         self.assertTrue(dataOut[9, 9] == 89)
@@ -115,7 +115,7 @@ class TestConditionnal2DFilter(unittest.TestCase):
         dataOut = medianfilter.median_filter(input_buffer=dataIn,
                                              kernel_dim=(3, 3),
                                              conditionnal=True)
-        # for now if pair number of value we are taking the lower one
+        
         self.assertTrue(dataOut[0, 0] == 1)
         self.assertTrue(dataOut[0, 1] == 1)
         self.assertTrue(numpy.array_equal(dataOut[1:8, 1:8], dataIn[1:8, 1:8]))
@@ -148,7 +148,7 @@ class Test1DFilter(unittest.TestCase):
         dataOut = medianfilter.median_filter(input_buffer=dataIn,
                                              kernel_dim=5,
                                              conditionnal=False)
-        # for now if pair number of value we are taking the higher one
+        
         self.assertTrue(dataOut[0] == 1)
         self.assertTrue(dataOut[9] == 9)
         self.assertTrue(dataOut[99] == 98)
