@@ -36,6 +36,7 @@ def configuration(parent_package='', top_path=None):
     config = Configuration('math', parent_package, top_path)
     config.add_subpackage('test')
     config.add_subpackage('fit')
+    config.add_subpackage('medianfilter')
 
     # =====================================
     # histogramnd
