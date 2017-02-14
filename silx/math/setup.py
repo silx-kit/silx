@@ -32,7 +32,6 @@ import numpy
 
 from numpy.distutils.misc_util import Configuration
 
-
 def configuration(parent_package='', top_path=None):
     config = Configuration('math', parent_package, top_path)
     config.add_subpackage('test')
@@ -86,11 +85,15 @@ def configuration(parent_package='', top_path=None):
     medfilt_dir = 'medianfilter'
     medfilt_src = [os.path.join(medfilt_dir, srcf)
                    for srcf in ['medianfilter.pyx']]
-    medfilt_inc = [os.path.join(medfilt_dir, 'include')]                   
+    medfilt_inc = [os.path.join(medfilt_dir, 'include')]
+    extra_link_args = ['-fopenmp'] if os.environ["WITH_OPENMP"] else []
+    extra_compile_args = ["-fopenmp"] if os.environ["WITH_OPENMP"] else []
     config.add_extension('medianfilter',
                          sources=medfilt_src,
                          include_dirs=[medfilt_src, medfilt_inc],
-                         language='c++')
+                         language='c++',
+                         extra_link_args=extra_link_args,
+                         extra_compile_args=extra_compile_args)
     return config
 
 
