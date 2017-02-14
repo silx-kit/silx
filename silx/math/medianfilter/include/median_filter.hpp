@@ -28,10 +28,49 @@
 #ifndef MEDIAN_FILTER
 #define MEDIAN_FILTER
 
-#include <kth_smallest.hpp>
 #include <vector>
 #include <assert.h>
 
+
+// Simple function browsing a vector and registring the min and max values
+// and if those values are unique or not
+template<typename T>
+void getMinMax(std::vector<const T*>& v, T& min, T&max,
+    bool& minUnique, bool& maxUnique){
+    minUnique = true;
+    maxUnique = true;
+    // init min and max values
+    typename std::vector<const T*>::const_iterator it = v.begin();
+    if (v.size() == 0){
+        raise(SIGINT);
+    }else{
+        min = max = *(*it);
+    }
+    it++;
+
+    // Browse all the vector
+    while(it!=v.end()){
+        // check if repeated (should always be before min/max setting)
+        if(*(*it) == max) maxUnique = false;
+        if(*(*it) == min) minUnique = false;
+
+        if(*(*it) > max) {
+            max = *(*it);
+            maxUnique = true;
+        }
+        if(*(*it) < min){
+            min = *(*it);
+            minUnique = true;
+        }
+        it++;
+    }
+}
+
+template<typename T>
+const T* median(std::vector<const T*>& v) {
+    std::nth_element(v.begin(), v.begin() + v.size()/2, v.end());
+    return v[v.size()/2];
+}
 
 // Browse all pixels in the range of (pixel_x_min, pixel_y_min) to 
 // (pixel_x_min, pixel_y_max)
@@ -91,14 +130,18 @@ void median_filter(
             if (conditioannal == true){
                 T min = 0;
                 T max = 0;
-                getMinMax(window_values, min, max);
-                if ((*currentPixelValue == max) || (*currentPixelValue == min)){
-                    output[image_dim[0]*pixel_y + pixel_x] = *(medianwirth<T>(window_values));
+                bool minUnique, maxUnique;
+                getMinMax(window_values, min, max, minUnique, maxUnique);
+                // In conditionnal point we are only setting the value to the pixel
+                // if the value is the min or max and unique
+                if (((*currentPixelValue == max) && maxUnique ) ||
+                    ((*currentPixelValue == min) && minUnique )){
+                    output[image_dim[0]*pixel_y + pixel_x] = *(median<T>(window_values));
                 }else{
                     output[image_dim[0]*pixel_y + pixel_x] = *currentPixelValue;
                 }
             }else{
-                output[image_dim[0]*pixel_y + pixel_x] = *(medianwirth<T>(window_values));
+                output[image_dim[0]*pixel_y + pixel_x] = *(median<T>(window_values));
             }
         }
     }
