@@ -631,11 +631,11 @@ class PlotWindow(PlotWidget):
         """
         return self.fitAction
 
-    def getMedianFilter1D(self):
+    def getMedianFilter1DAction(self):
         """Return the action toggling the 1D median filter"""
         return self._medianFilter1DAction
 
-    def getMedianFilter2D(self):
+    def getMedianFilter2DAction(self):
         """Return the action toggling the 2D median filter"""
         return self._medianFilter2DAction
 
