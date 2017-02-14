@@ -40,6 +40,7 @@ import numpy
 from . import Colors
 
 from ...third_party.six import string_types
+from ...utils.decorators import deprecated
 from ...utils.weakref import WeakList
 
 
@@ -467,6 +468,7 @@ class Curve(Base, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn):
         # key is (isXPositiveFilter, isYPositiveFilter)
         self._boundsCache = {}
 
+    @deprecated
     def __getitem__(self, item):
         """Compatibility with PyMca and silx <= 0.4.0"""
         if isinstance(item, slice):
@@ -820,6 +822,7 @@ class Image(Base, LabelsMixIn, DraggableMixIn, ColormapMixIn):
         self._origin = (0., 0.)
         self._scale = (1., 1.)
 
+    @deprecated
     def __getitem__(self, item):
         """Compatibility with PyMca and silx <= 0.4.0"""
         if isinstance(item, slice):
