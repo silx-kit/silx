@@ -197,7 +197,7 @@ __license__ = "MIT"
 __date__ = "16/02/2017"
 
 
-from collections import Sequence, OrderedDict, namedtuple
+from collections import OrderedDict, namedtuple
 import logging
 
 import numpy
@@ -208,6 +208,8 @@ from . import Colors
 from . import PlotInteraction
 from . import PlotEvents
 from . import _utils
+
+from . import PlotItems
 
 
 _logger = logging.getLogger(__name__)
@@ -292,10 +294,9 @@ class Plot(object):
         self.setCallback()  # set _callback
 
         # Items handling
-        self._curves = OrderedDict()
-        self._hiddenCurves = set()
+        self._content = OrderedDict()
+        self._backendContent = OrderedDict()
 
-        self._images = OrderedDict()
         self._markers = OrderedDict()
         self._items = OrderedDict()
 
@@ -303,14 +304,12 @@ class Plot(object):
 
         # line types
         self._styleList = ['-', '--', '-.', ':']
-
         self._colorIndex = 0
         self._styleIndex = 0
 
         self._activeCurveHandling = True
-        self._activeCurve = None
         self._activeCurveColor = "#000000"
-        self._activeImage = None
+        self._activeLegend = {'curve': None, 'image': None}
 
         # default properties
         self._cursorConfiguration = None
@@ -326,6 +325,8 @@ class Plot(object):
         # Store currently displayed labels
         # Current label can differ from input one with active curve handling
         self._currentLabels = {'x': '', 'y': '', 'yright': ''}
+
+        self._graphTitle = ''
 
         self.setGraphTitle()
         self.setGraphXLabel()
@@ -396,41 +397,20 @@ class Plot(object):
         xMin = yMinLeft = yMinRight = float('nan')
         xMax = yMaxLeft = yMaxRight = float('nan')
 
-        for _curve, info in self._curves.items():
-            if _curve not in self._hiddenCurves:
-                # using numpy's separate min and max is faster than
-                # a pure python minmax.
-                if info['xmin'] is not None:
-                    xMin = numpy.nanmin([xMin, info['xmin']])
-                if info['xmax'] is not None:
-                    xMax = numpy.nanmax([xMax, info['xmax']])
-
-                if info['params']['yaxis'] == 'left':
-                    if info['ymin'] is not None:
-                        yMinLeft = numpy.nanmin([yMinLeft, info['ymin']])
-                    if info['ymax'] is not None:
-                        yMaxLeft = numpy.nanmax([yMaxLeft, info['ymax']])
-                else:
-                    if info['ymin'] is not None:
-                        yMinRight = numpy.nanmin([yMinRight, info['ymin']])
-                    if info['ymax'] is not None:
-                        yMaxRight = numpy.nanmax([yMaxRight, info['ymax']])
-
-        if not self.isXAxisLogarithmic() and not self.isYAxisLogarithmic():
-            for _image, info in self._images.items():
-                if info['data'] is not None:
-                    height, width = info['data'].shape[:2]
-                    params = info['params']
-                    origin = params['origin']
-                    scale = params['scale']
-                    # Taking care of scale might be < 0
-                    xCoords = [origin[0], origin[0] + width * scale[0]]
-                    xMin = numpy.nanmin([xMin] + xCoords)
-                    xMax = numpy.nanmax([xMax] + xCoords)
-                    # Taking care of scale might be < 0
-                    yCoords = [origin[1], origin[1] + height * scale[1]]
-                    yMinLeft = numpy.nanmin([yMinLeft] + yCoords)
-                    yMaxLeft = numpy.nanmax([yMaxLeft] + yCoords)
+        for item in self._content.values():
+            if item.isVisible():
+                bounds = item.getBounds()
+                if bounds is not None:
+                    xMin = numpy.nanmin([xMin, bounds[0]])
+                    xMax = numpy.nanmax([xMax, bounds[1]])
+                    # Take care of right axis
+                    if (isinstance(item, PlotItems.YAxisMixIn) and
+                            item.getYAxis() == 'right'):
+                        yMinRight = numpy.nanmin([yMinRight, bounds[2]])
+                        yMaxRight = numpy.nanmax([yMaxRight, bounds[3]])
+                    else:
+                        yMinLeft = numpy.nanmin([yMinLeft, bounds[2]])
+                        yMaxLeft = numpy.nanmax([yMaxLeft, bounds[3]])
 
         lGetRange = (lambda x, y:
                      None if numpy.isnan(x) and numpy.isnan(y) else (x, y))
@@ -552,14 +532,7 @@ class Plot(object):
 
         :returns: The key string identify this curve
         """
-        # Take care of input parameters: check/conversion, default value
-
-        if histogram is not None and histogram not in ('left', 'right', 'center'):
-            raise ValueError(
-                "histogram parameter unable to mange value %s." +
-                "Supported values are " +
-                "None, 'left', 'right' and 'center'." %histogram)
-
+        # Deprecation warnings
         if replot is not None:
             _logger.warning(
                 'addCurve deprecated replot argument, use resetzoom instead')
@@ -568,108 +541,83 @@ class Plot(object):
         if kw:
             _logger.warning('addCurve: deprecated extra arguments')
 
-        legend = "Unnamed curve 1.1" if legend is None else str(legend)
+        legend = 'Unnamed curve 1.1' if legend is None else str(legend)
 
-        # Check/Convert input arguments
-
-        # Convert to arrays (not forcing type) in order to avoid
-        # problems at unexpected places: missing min or max attributes, problem
-        # when using numpy.nonzero on lists, ...
-        x = numpy.asarray(x)
-        y = numpy.asarray(y)
-
-        # TODO check color
-
-        assert symbol in ('o', '.', ',', '+', 'x', 'd', 's', '', None)
-
-        assert linestyle in ('', ' ', '-', '--', '-.', ':', None)
-
-        if xlabel is not None:
-            xlabel = str(xlabel)
-
-        if ylabel is not None:
-            ylabel = str(ylabel)
-
-        assert yaxis in (None, 'left', 'right')
-
-        # TODO check xerror, yerror
-
-        if xerror is not None:
-            xerror = numpy.asarray(xerror)
-
-        if yerror is not None:
-            yerror = numpy.asarray(yerror)
-
-        if z is not None:
-            z = int(z)
-
-        if selectable is not None:
-            selectable = bool(selectable)
-
-        if fill is not None:
-            fill = bool(fill)
-
-        # Store all params with defaults in a dict to treat them at once
-        params = {
-            'info': info, 'color': color,
-            'symbol': symbol, 'linewidth': linewidth, 'linestyle': linestyle,
-            'xlabel': xlabel, 'ylabel': ylabel, 'yaxis': yaxis,
-            'xerror': xerror, 'yerror': yerror, 'z': z,
-            'selectable': selectable, 'fill': fill, 'histogram': histogram
-        }
-
-        # Check if curve is previously active
+        # Check if curve was previously active
         wasActive = self.getActiveCurve(just_legend=True) == legend
 
-        # First, try to get defaults from existing curve with same name
-        previousCurve = self._curves.get(legend, None)
-        if previousCurve is not None:
-            defaults = previousCurve['params']
-
-        else:  # If no existing curve use default values
+        # Retrieve previous curve or create a default one
+        curve = self._content.get((legend, 'curve'), None)
+        if curve is None:
+            # No previous curve, create a default one and add it to the plot
+            curve = PlotItems.Curve(self, legend)
+            # Set default color, linestyle and symbol
             default_color, default_linestyle = self._getColorAndStyle()
-            defaults = {
-                'info': None, 'color': default_color,
-                'symbol': self._defaultPlotPoints,
-                'linewidth': 1,
-                'linestyle': default_linestyle,
-                'xlabel': None, 'ylabel': None, 'yaxis': 'left',
-                'xerror': None, 'yerror': None, 'z': 1,
-                'selectable': True, 'fill': False, 'histogram': None
-            }
+            curve._setColor(default_color)
+            curve._setLineStyle(default_linestyle)
+            curve._setSymbol(self._defaultPlotPoints)
+            self._content[(legend, 'curve')] = curve
 
-        # If a parameter is not given as argument, use its default value
-        for key in defaults:
-            if params[key] is None:
-                params[key] = defaults[key]
+        # Override previous/default values with provided ones
+        curve._setInfo(info)
+        if color is not None:
+            curve._setColor(color)
+        if symbol is not None:
+            curve._setSymbol(symbol)
+        if linewidth is not None:
+            curve._setLineWidth(linewidth)
+        if linestyle is not None:
+            curve._setLineStyle(linestyle)
+        if xlabel is not None:
+            curve._setXLabel(xlabel)
+        if ylabel is not None:
+            curve._setYLabel(ylabel)
+        if yaxis is not None:
+            curve._setYAxis(yaxis)
+        if z is not None:
+            curve._setZLayer(z)
+        if selectable is not None:
+            curve._setSelectable(selectable)
+        if fill is not None:
+            curve._setFill(fill)
+        if histogram is not None:
+            curve._setHistogramType(histogram)
+
+        # Set curve data
+        # If errors not provided, reuse previous ones
+        # TODO: Issue if size of data change but not that of errors
+        if xerror is None:
+            xerror = curve.getXErrorData(copy=False)
+        if yerror is None:
+            yerror = curve.getYErrorData(copy=False)
+
+        curve._setData(x, y, xerror, yerror)
 
         # Add: replace, filter data, add
 
         # This must be done after getting params from existing curve
         if replace:
             self.remove(kind='curve')
+            self._content[(legend, 'curve')] = curve
         else:
-            # Remove previous curve from backend
-            # but not from _curves and hiddenCurves to keep its place
+            # Remove previous curve from backend but not from _content
+            # to keep its place
             # This is a subset of self.remove(legend, kind='curve')
-            if legend in self._curves:
-                handle = self._curves[legend]['handle']
-                if handle is not None:
-                    self._backend.remove(handle)
-                    self._curves[legend]['handle'] = None
-                    self._setDirtyPlot()
+            handle = self._backendContent.pop((legend, 'curve'), None)
+            if handle is not None:
+                self._backend.remove(handle)
+                self._setDirtyPlot()
 
         # Filter-out values <= 0
-        xFiltered, yFiltered, xerror, yerror = self._logFilterData(
-            x, y, params['xerror'], params['yerror'],
-            self.isXAxisLogarithmic(), self.isYAxisLogarithmic())
+        xFiltered, yFiltered, xerror, yerror = curve.getData(
+            copy=False, displayed=True)
 
-        if len(xFiltered) and not self.isCurveHidden(legend):
+        if len(xFiltered) and curve.isVisible():
             # if we want to plot an histogram
-            if params['histogram'] in ('left', 'right', 'center'):
+            if curve.getHistogramType() in ('left', 'right', 'center'):
                 assert len(x) in (len(y), len(y)+1)
-                assert params['histogram'] in (None, 'left', 'right', 'center')
 
+                # TODO move this in Curve/Histogram class and avoid histo if
                 xFiltered, yFiltered = self._getHistogramValue(xFiltered,
                                                                yFiltered,
                                                                histogramType=histogram)
@@ -677,45 +625,31 @@ class Plot(object):
                     info = "xerror and yerror won't be displayed for histogram display"
                     _logger.warning(info)
                 handle = self._backend.addCurve(xFiltered, yFiltered, legend,
-                                                    color=params['color'],
-                                                    symbol=params['symbol'],
-                                                    linestyle=params['linestyle'],
-                                                    linewidth=params['linewidth'],
-                                                    yaxis=params['yaxis'],
+                                                    color=curve.getColor(),
+                                                    symbol=curve.getSymbol(),
+                                                    linestyle=curve.getLineStyle(),
+                                                    linewidth=curve.getLineWidth(),
+                                                    yaxis=curve.getYAxis(),
                                                     xerror=None,
-                                                    yerror=None,
-                                                    z=params['z'],
-                                                    selectable=params['selectable'],
-                                                    fill=params['fill'])
+                                                    yerror=None,           
+                                                    z=curve.getZLayer(),
+                                                    selectable=curve.isSelectable(),
+                                                    fill=curve.isFill())
             else:
                 handle = self._backend.addCurve(xFiltered, yFiltered, legend,
-                                                color=params['color'],
-                                                symbol=params['symbol'],
-                                                linestyle=params['linestyle'],
-                                                linewidth=params['linewidth'],
-                                                yaxis=params['yaxis'],
+                                                color=curve.getColor(),
+                                                symbol=curve.getSymbol(),
+                                                linestyle=curve.getLineStyle(),
+                                                linewidth=curve.getLineWidth(),
+                                                yaxis=curve.getYAxis(),
                                                 xerror=xerror,
                                                 yerror=yerror,
-                                                z=params['z'],
-                                                selectable=params['selectable'],
-                                                fill=params['fill'])
+                                                z=curve.getZLayer(),
+                                                selectable=curve.isSelectable(),
+                                                fill=curve.isFill())
             self._setDirtyPlot()
 
-            # caching the min and max values for the getDataRange method.
-            xMin = numpy.nanmin(xFiltered)
-            xMax = numpy.nanmax(xFiltered)
-            yMin = numpy.nanmin(yFiltered)
-            yMax = numpy.nanmax(yFiltered)
-
-        else:
-            # The curve has no points or is hidden
-            handle = None
-            xMin, xMax, yMin, yMax = None, None, None, None
-
-        self._curves[legend] = {
-            'handle': handle, 'x': x, 'y': y, 'params': params,
-            'xmin': xMin, 'xmax': xMax, 'ymin': yMin, 'ymax': yMax
-        }
+            self._backendContent[(legend, 'curve')] = handle
 
         self._invalidateDataRange()
 
@@ -806,7 +740,7 @@ class Plot(object):
     def addImage(self, data, legend=None, info=None,
                  replace=True, replot=None,
                  xScale=None, yScale=None, z=None,
-                 selectable=False, draggable=False,
+                 selectable=None, draggable=None,
                  colormap=None, pixmap=None,
                  xlabel=None, ylabel=None,
                  origin=None, scale=None,
@@ -858,8 +792,7 @@ class Plot(object):
         :param bool resetzoom: True (the default) to reset the zoom.
         :returns: The key string identify this image
         """
-        # Take care of input parameters: check/conversion, default value
-
+        # Deprecation warnings
         if xScale is not None or yScale is not None:
             _logger.warning(
                 'addImage deprecated xScale and yScale arguments,'
@@ -883,112 +816,78 @@ class Plot(object):
 
         legend = "Unnamed Image 1.1" if legend is None else str(legend)
 
-        # Check/Convert input arguments
-        data = numpy.asarray(data)
-
-        if origin is not None:
-            if isinstance(origin, Sequence):
-                origin = float(origin[0]), float(origin[1])
-            else:  # single value origin
-                origin = float(origin), float(origin)
-
-        if scale is not None:
-            if isinstance(scale, Sequence):
-                scale = float(scale[0]), float(scale[1])
-            else:  # single value scale
-                scale = float(scale), float(scale)
-
-        if z is not None:
-            z = int(z)
-
-        if selectable is not None:
-            selectable = bool(selectable)
-
-        if draggable is not None:
-            draggable = bool(draggable)
-
-        if pixmap is not None:
-            pixmap = numpy.asarray(pixmap)
-
-        if xlabel is not None:
-            xlabel = str(xlabel)
-
-        if ylabel is not None:
-            ylabel = str(ylabel)
-
-        # Store all params with defaults in a dict to treat them at once
-        params = {
-            'info': info, 'origin': origin, 'scale': scale, 'z': z,
-            'selectable': selectable, 'draggable': draggable,
-            'colormap': colormap,
-            'xlabel': xlabel, 'ylabel': ylabel
-        }
-
-        # First, try to get defaults from existing curve with same name
-        previousImage = self._images.get(legend, None)
-        if previousImage is not None:
-            defaults = previousImage['params']
-
-        else:  # If no existing image use default values
-            defaults = {
-                'info': None, 'origin': (0., 0.), 'scale': (1., 1.), 'z': 0,
-                'selectable': False, 'draggable': False,
-                'colormap': self.getDefaultColormap(),
-                'xlabel': None, 'ylabel': None
-            }
-
-        # If a parameter is not given as argument, use its default value
-        for key in defaults:
-            if params[key] is None:
-                params[key] = defaults[key]
-
-        # Check if curve is previously active
+        # Check if image was previously active
         wasActive = self.getActiveImage(just_legend=True) == legend
+
+        # Retrieve previous image or create a default one
+        image = self._content.get((legend, 'image'), None)
+        if image is None:
+            # No previous image, create a default one and add it to the plot
+            image = PlotItems.Image(self, legend)
+            image._setColormap(self.getDefaultColormap())
+            self._content[(legend, 'image')] = image
+
+        # Override previous/default values with provided ones
+        image._setInfo(info)
+        if origin is not None:
+            image._setOrigin(origin)
+        if scale is not None:
+            image._setScale(scale)
+        if z is not None:
+            image._setZLayer(z)
+        if selectable is not None:
+            image._setSelectable(selectable)
+        if draggable is not None:
+            image._setDraggable(draggable)
+        if colormap is not None:
+            image._setColormap(colormap)
+        if xlabel is not None:
+            image._setXLabel(xlabel)
+        if ylabel is not None:
+            image._setYLabel(ylabel)
+        if pixmap is not None:
+            pass # TODO handle it in PlotItem.Image
+
+        image._setData(data)
 
         # Add: replace, filter data, add
 
         if replace:
             self.remove(kind='image')
+            self._content[(legend, 'image')] = image
         else:
             # Remove previous image from backend
-            # but not from _images to keep its place
+            # but not from _content to keep its place
             # This is a subset of self.remove(legend, kind='image')
-            if legend in self._images:
-                handle = self._images[legend]['handle']
-                if handle is not None:
-                    self._backend.remove(handle)
-                    self._images[legend]['handle'] = None
-                    self._setDirtyPlot()
+            handle = self._backendContent.pop((legend, 'image'), None)
+            if handle is not None:
+                self._backend.remove(handle)
+                self._setDirtyPlot()
 
         if self.isXAxisLogarithmic() or self.isYAxisLogarithmic():
             _logger.info('Hide image while axes has log scale.')
 
-        if (data is not None and not self.isXAxisLogarithmic() and
+        if (image.getData(copy=False) is not None and
+                not self.isXAxisLogarithmic() and
                 not self.isYAxisLogarithmic()):
-            if pixmap is not None:
-                dataToSend = pixmap
+            if image.getPixmap(copy=False) is not None:
+                dataToSend = image.getPixmap(copy=False)
             else:
-                dataToSend = data
+                dataToSend = image.getData(copy=False)
 
-            handle = self._backend.addImage(dataToSend, legend=legend,
-                                            origin=params['origin'],
-                                            scale=params['scale'],
-                                            z=params['z'],
-                                            selectable=params['selectable'],
-                                            draggable=params['draggable'],
-                                            colormap=params['colormap'])
+            handle = self._backend.addImage(dataToSend,
+                                            legend=image.getLegend(),
+                                            origin=image.getOrigin(),
+                                            scale=image.getScale(),
+                                            z=image.getZLayer(),
+                                            selectable=image.isSelectable(),
+                                            draggable=image.isDraggable(),
+                                            colormap=image.getColormap())
             self._setDirtyPlot()
-        else:
-            handle = None  # data is None or log scale
 
-        self._images[legend] = {
-            'handle': handle,
-            'data': data,
-            'pixmap': pixmap,
-            'params': params
-        }
+            self._backendContent[(legend, 'image')] = handle
 
-        if len(self._images) == 1 or wasActive:
+        if len(self.getAllImages()) == 1 or wasActive:
             self.setActiveImage(legend)
 
         self._invalidateDataRange()
@@ -1277,7 +1176,8 @@ class Plot(object):
         :param str legend: The legend key identifying the curve
         :return: True if the associated curve is hidden, False otherwise
         """
-        return legend in self._hiddenCurves
+        curve = self._content.get((legend, 'curve'), None)
+        return curve is not None and not curve.isVisible()
 
     def hideCurve(self, legend, flag=True, replot=None):
         """Show/Hide the curve associated to legend.
@@ -1290,22 +1190,25 @@ class Plot(object):
         if replot is not None:
             _logger.warning('hideCurve deprecated replot parameter')
 
-        if legend not in self._curves:
+        curve = self._content.get((legend, 'curve'), None)
+        if curve is None:
             _logger.warning('Curve not in plot: %s', legend)
             return
 
+        handle = self._backendContent.get((legend, 'curve'), None)
+
         if flag:
-            handle = self._curves[legend]['handle']
+            curve._setVisible(False)
             if handle is not None:
                 self._backend.remove(handle)
-                self._curves[legend]['handle'] = None
-
-            self._hiddenCurves.add(legend)
         else:
-            self._hiddenCurves.discard(legend)
-            curve = self._curves[legend]
-            self.addCurve(curve['x'], curve['y'], legend, resetzoom=False,
-                          **curve['params'])
+            curve._setVisible(True)
+            # TODO improve this way of updating the curve
+            self.addCurve(curve.getXData(copy=False),
+                          curve.getYData(copy=False),
+                          legend,
+                          info=curve.getInfo(),
+                          resetzoom=False)
 
         self._invalidateDataRange()
         self._setDirtyPlot()
@@ -1345,19 +1248,15 @@ class Plot(object):
             # Clear each given kind
             for aKind in kind:
                 if aKind == 'curve':
-                    # Copy as _curves gets changed
-                    for legend in list(self._curves):
+                    for legend in self.getAllCurves(just_legend=True,
+                                                    withhidden=True):
                         self.remove(legend, kind='curve')
-                    self._curves = OrderedDict()
-                    self._hiddenCurves = set()
                     self._colorIndex = 0
                     self._styleIndex = 0
 
                 elif aKind == 'image':
-                    # Copy as _images gets changed
-                    for legend in list(self._images):
+                    for legend in self.getAllImages(just_legend=True):
                         self.remove(legend, kind='image')
-                    self._images = OrderedDict()
 
                 elif aKind == 'item':
                     # Copy as _items gets changed
@@ -1376,43 +1275,32 @@ class Plot(object):
         else:  # This is removing a single element
             # Remove each given kind
             for aKind in kind:
-                if aKind == 'curve':
-                    self._hiddenCurves.discard(legend)
+                if aKind in ('curve', 'image'):
+                    if (legend, aKind) in self._content:
+                        if aKind == 'curve':
+                            if self.getActiveCurve(just_legend=True) == legend:
+                                # Reset active curve
+                                self.setActiveCurve(None)
+                        elif aKind == 'image':
+                            if self.getActiveCurve(just_legend=True) == legend:
+                                # Reset active curve
+                                self.setActiveCurve(None)
 
-                    if legend in self._curves:
-                        if self.getActiveCurve(just_legend=True) == legend:
-                            # Reset active curve
-                            self.setActiveCurve(None)
-
-                        handle = self._curves[legend]['handle']
+                        handle = self._backendContent.get((legend, aKind), None)
                         if handle is not None:
                             self._backend.remove(handle)
                             self._setDirtyPlot()
-                        del self._curves[legend]
+                        del self._content[(legend, aKind)]
 
-                        if not self._curves:
+                        if (aKind == 'curve' and
+                                not self.getAllCurves(just_legend=True,
+                                                      withhidden=True)):
                             self._colorIndex = 0
                             self._styleIndex = 0
 
                         self._invalidateDataRange()
                         self.notify('contentChanged', action='remove',
-                                    kind='curve', legend=legend)
-
-                elif aKind == 'image':
-                    if legend in self._images:
-                        if self.getActiveImage(just_legend=True) == legend:
-                            # Reset active image
-                            self.setActiveImage(None)
-
-                        handle = self._images[legend]['handle']
-                        if handle is not None:
-                            self._backend.remove(handle)
-                            self._setDirtyPlot()
-                        del self._images[legend]
-
-                        self._invalidateDataRange()
-                        self.notify('contentChanged', action='remove',
-                                    kind='image', legend=legend)
+                                    kind=aKind, legend=legend)
 
                 elif aKind == 'item':
                     item = self._items.pop(legend, None)
@@ -1627,24 +1515,14 @@ class Plot(object):
         if not self.isActiveCurveHandling():
             return None
 
-        if self._activeCurve not in self._curves:
-            self._activeCurve = None
-
-        if self._activeCurve is None:
-            return None
-
-        if just_legend:
-            return self._activeCurve
-        else:
-            curve = self._curves[self._activeCurve]
-            return (curve['x'], curve['y'], self._activeCurve,
-                    curve['params']['info'] or {}, curve['params'])
+        return self._getActiveItem(kind='curve', just_legend=just_legend)
 
     def setActiveCurve(self, legend, replot=None):
         """Make the curve associated to legend the active curve.
 
-        :param str legend: The legend associated to the curve
-                           or None to have no active curve.
+        :param legend: The legend associated to the curve
+                       or None to have no active curve.
+        :type legend: str or None
         """
         if replot is not None:
             _logger.warning('setActiveCurve deprecated replot parameter')
@@ -1652,59 +1530,7 @@ class Plot(object):
         if not self.isActiveCurveHandling():
             return
 
-        xLabel = self._defaultLabels['x']
-        yLabel = self._defaultLabels['y']
-        yRightLabel = self._defaultLabels['yright']
-
-        oldActiveCurveLegend = self.getActiveCurve(just_legend=True)
-        if oldActiveCurveLegend:  # Reset previous active curve
-            handle = self._curves[oldActiveCurveLegend]['handle']
-            if handle is not None:
-                self._backend.setActiveCurve(handle, False)
-
-        if legend is None:
-            self._activeCurve = None
-        else:
-            legend = str(legend)
-            if legend not in self._curves:
-                _logger.warning("This curve does not exist: %s", legend)
-                self._activeCurve = None
-            else:
-                self._activeCurve = legend
-
-                handle = self._curves[self._activeCurve]['handle']
-                if handle is not None:
-                    self._backend.setActiveCurve(handle, True,
-                                                 self.getActiveCurveColor())
-
-                curveParams = self._curves[self._activeCurve]['params']
-
-                if curveParams['xlabel'] is not None:
-                    xLabel = curveParams['xlabel']
-                if curveParams['ylabel'] is not None:
-                    if curveParams['yaxis'] == 'left':
-                        yLabel = curveParams['ylabel']
-                    else:
-                        yRightLabel = curveParams['ylabel']
-
-        # Store current labels and update plot
-        self._currentLabels['x'] = xLabel
-        self._currentLabels['y'] = yLabel
-        self._currentLabels['yright'] = yRightLabel
-
-        self._backend.setGraphXLabel(xLabel)
-        self._backend.setGraphYLabel(yLabel, axis='left')
-        self._backend.setGraphYLabel(yRightLabel, axis='right')
-
-        self._setDirtyPlot()
-
-        if oldActiveCurveLegend is not None or self._activeCurve is not None:
-            self.notify('activeCurveChanged',
-                        updated=oldActiveCurveLegend != self._activeCurve,
-                        previous=oldActiveCurveLegend,
-                        legend=self._activeCurve)
-
-        return self._activeCurve
+        return self._setActiveItem(kind='curve', legend=legend)
 
     def getActiveImage(self, just_legend=False):
         """Returns the currently active image.
@@ -1723,19 +1549,7 @@ class Plot(object):
         :return: legend of active image or [data, legend, info, pixmap, params]
         :rtype: str or list
         """
-        if self._activeImage not in self._images:
-            self._activeImage = None
-
-        if just_legend:
-            return self._activeImage
-
-        if self._activeImage is None:
-            return None
-        else:
-            image = self._images[self._activeImage]
-            return (image['data'], self._activeImage,
-                    image['params']['info'] or {}, image['pixmap'],
-                    image['params'])
+        return self._getActiveItem(kind='image', just_legend=just_legend)
 
     def setActiveImage(self, legend, replot=None):
         """Make the image associated to legend the active image.
@@ -1746,43 +1560,106 @@ class Plot(object):
         if replot is not None:
             _logger.warning('setActiveImage deprecated replot parameter')
 
+        return self._setActiveItem(kind='image', legend=legend)
+
+    def _getActiveItem(self, kind, just_legend=False):
+        """Return the currently active item of that kind if any
+
+        :param str kind: Type of item: 'curve' or 'image'
+        :param bool just_legend: True to get the legend,
+                                 False (default) to get the item
+        :return: legend or item or None if no active item
+        """
+        assert kind in ('curve', 'image')
+
+        if self._activeLegend[kind] is None:
+            return None
+
+        if (self._activeLegend[kind], kind) not in self._content:
+            self._activeLegend[kind] = None
+            return None
+
+        if just_legend:
+            return self._activeLegend[kind]
+        else:
+            return self._content[(self._activeLegend[kind], kind)]
+
+    def _setActiveItem(self, kind, legend):
+        """Make the curve associated to legend the active curve.
+
+        :param str kind: Type of item: 'curve' or 'image'
+        :param str legend: The legend associated to the curve
+                           or None to have no active curve.
+        """
+        assert kind in ('curve', 'image')
+
         xLabel = self._defaultLabels['x']
         yLabel = self._defaultLabels['y']
+        yRightLabel = self._defaultLabels['yright']
 
-        oldActiveImageLegend = self.getActiveImage(just_legend=True)
+        oldActiveItem = self._getActiveItem(kind=kind)
+
+        # Curve specific: Reset highlight of previous active curve
+        if kind == 'curve' and oldActiveItem is not None:
+            oldActiveItem._setHighlighted(False)
+            handle = self._backendContent.get(
+                (oldActiveItem.getLegend(), 'curve'), None)
+            if handle is not None:
+                self._backend.setActiveCurve(handle, False)
 
         if legend is None:
-            self._activeImage = None
+            self._activeLegend[kind] = None
         else:
             legend = str(legend)
-            if legend not in self._images:
-                _logger.warning(
-                    "setActiveImage: This image does not exist: %s", legend)
-                self._activeImage = None
+            item = self._content.get((legend, kind), None)
+            if item is None:
+                _logger.warning("This %s does not exist: %s", kind, legend)
+                self._activeLegend[kind] = None
             else:
-                self._activeImage = legend
+                self._activeLegend[kind] = legend
 
-                imageParams = self._images[self._activeImage]['params']
+                # Curve specific: handle highlight
+                if kind == 'curve':
+                    item._setHighlighted(True)
 
-                if imageParams['xlabel'] is not None:
-                    xLabel = imageParams['xlabel']
-                if imageParams['ylabel'] is not None:
-                    yLabel = imageParams['ylabel']
+                    handle = self._backendContent.get((legend, 'curve'), None)
+                    if handle is not None:
+                        self._backend.setActiveCurve(
+                            handle, True, self.getActiveCurveColor())
+
+                if item.getXLabel() is not None:
+                    xLabel = item.getXLabel()
+                if item.getYLabel() is not None:
+                    if (isinstance(item, PlotItems.YAxisMixIn) and
+                            item.getYAxis() == 'right'):
+                        yRightLabel = item.getYLabel()
+                    else:
+                        yLabel = item.getYLabel()
 
         # Store current labels and update plot
         self._currentLabels['x'] = xLabel
         self._currentLabels['y'] = yLabel
+        self._currentLabels['yright'] = yRightLabel
 
         self._backend.setGraphXLabel(xLabel)
         self._backend.setGraphYLabel(yLabel, axis='left')
+        self._backend.setGraphYLabel(yRightLabel, axis='right')
 
-        if oldActiveImageLegend is not None or self._activeImage is not None:
-            self.notify('activeImageChanged',
-                        updated=oldActiveImageLegend != self._activeImage,
-                        previous=oldActiveImageLegend,
-                        legend=self._activeImage)
+        self._setDirtyPlot()
 
-        return self._activeImage
+        activeLegend = self._activeLegend[kind]
+        if oldActiveItem is not None or activeLegend is not None:
+            if oldActiveItem is None:
+                oldActiveLegend = None
+            else:
+                oldActiveLegend = oldActiveItem.getLegend()
+            self.notify(
+                'active' + kind[0].upper() + kind[1:] + 'Changed',
+                updated=oldActiveLegend != activeLegend,
+                previous=oldActiveLegend,
+                legend=activeLegend)
+
+        return activeLegend
 
     # Getters
 
@@ -1791,43 +1668,25 @@ class Plot(object):
 
         It returns an empty list in case of not having any curve.
 
-        If just_legend is False, it returns a list of the form:
-            [[xvalues0, yvalues0, legend0, info0, params0],
-             [xvalues1, yvalues1, legend1, info1, params1],
-             [...],
-             [xvaluesn, yvaluesn, legendn, infon, paramsn]]
-        If just_legend is True, it returns a list of the form:
-            [legend0, legend1, ..., legendn]
-
-        Warning: Returned values MUST not be modified.
-        Make a copy if you need to modify them.
+        If just_legend is False, it returns a list of the objects
+        describing the curves
+        If just_legend is True, it returns a list of the legends.
 
         :param bool just_legend: True to get the legend of the curves,
                                  False (the default) to get the curves' data
                                  and info.
         :param bool withhidden: False (default) to skip hidden curves.
-        :return: list of legends or list of [x, y, legend, info, params]
-        :rtype: list of str or list of list
+        :return: list of legends or list of curve objects
+        :rtype: list of str or list of objects
         """
-        output = []
-        for key in self._curves:
-            if not withhidden and self.isCurveHidden(key):
-                continue
-            if just_legend:
-                output.append(key)
-            else:
-                curve = self._curves[key]
-                output.append((curve['x'], curve['y'], key,
-                               curve['params']['info'] or {}, curve['params']))
-        return output
+        return self._getItems(kind='curve',
+                              just_legend=just_legend,
+                              withhidden=withhidden)
 
     def getCurve(self, legend=None):
-        """Get the data and info of a specific curve.
+        """Get the object describing a specific curve.
 
         It returns None in case no matching curve is found.
-
-        Warning: Returned values MUST not be modified.
-        Make a copy if you need to modify them.
 
         :param str legend:
             The legend identifying the curve.
@@ -1835,83 +1694,82 @@ class Plot(object):
             or if there is no active curve, the latest updated curve that is
             not hidden.
             is returned if there are curves in the plot.
-        :return: None or list [x, y, legend, info, parameters]
+        :return: None or object
         """
-        if legend is None:
-            legend = self.getActiveCurve(just_legend=True)
-            if legend is None and self._curves:
-                # There is no active curve, but there is some curves:
-                # get one that is not hidden
-                for curveLegend in reversed(list(self._curves.keys())):
-                    if curveLegend not in self._hiddenCurves:
-                        legend = curveLegend
-                        break
-
-        if legend is not None and legend in self._curves:
-            curve = self._curves[legend]
-            return (curve['x'], curve['y'], legend,
-                    curve['params']['info'] or {}, curve['params'])
-        else:
-            return None
+        return self._getItem(kind='curve', legend=legend)
 
     def getAllImages(self, just_legend=False):
-        """Returns all images legend or info and data.
+        """Returns all images legend or objects.
 
         It returns an empty list in case of not having any image.
 
-        If just_legend is False, it returns a list of the form:
-            [[data0, legend0, info0, pixmap0, params0],
-             [data1, legend1, info1, pixmap1, params1],
-             ...,
-             [datan, legendn, infon, pixmapn, paramsn]]
-        If just_legend is True, it returns a list of the form:
-            [legend0, legend1, ..., legendn]
-
-        Warning: Returned values MUST not be modified.
-        Make a copy if you need to modify them.
+        If just_legend is False, it returns a list of objects
+        describing the images.
+        If just_legend is True, it returns a list of legends.
 
         :param bool just_legend: True to get the legend of the images,
                                  False (the default) to get the images' data
                                  and info.
-        :return: list of legends or list of
-            [image, legend, info, pixmap, info, params]
-        :rtype: list of str or list of list
+        :return: list of legends or list of image objects
+        :rtype: list of str or list of objects
         """
-        output = []
-        for key in self._images:
-            if just_legend:
-                output.append(key)
-            else:
-                image = self._images[key]
-                output.append((image['data'], key, image['params']['info'] or {},
-                    image['pixmap'], image['params']))
-        return output
+        return self._getItems(kind='image',
+                              just_legend=just_legend,
+                              withhidden=True)
 
     def getImage(self, legend=None):
-        """Get the data and info of a specific image.
+        """Get the object describing a specific image.
 
         It returns None in case no matching image is found.
-
-        Warning: Returned values MUST not be modified.
-        Make a copy if you need to modify them.
 
         :param str legend:
             The legend identifying the image.
             If not provided or None (the default), the active image is returned
             or if there is no active image, the latest updated image
             is returned if there are images in the plot.
-        :return: None or list [image, legend, info, pixmap, params]
+        :return: None or object
         """
-        if legend is None:
-            legend = self.getActiveImage(just_legend=True)
-            if legend is None and self._images:
-                # There is no active image, but there is some images: get one
-                legend = list(self._images.keys())[-1]
+        return self._getItem(kind='image', legend=legend)
 
-        if legend is not None and legend in self._images:
-            image = self._images[legend]
-            return (image['data'], legend, image['params']['info'] or {},
-                    image['pixmap'], image['params'])
+    def _getItems(self, kind, just_legend=False, withhidden=False):
+        """Retrieve all items of a kind in the plot
+
+        :param str kind: Type of item: 'curve' or 'image'
+        :param bool just_legend: True to get the legend of the curves,
+                                 False (the default) to get the curves' data
+                                 and info.
+        :param bool withhidden: False (default) to skip hidden curves.
+        :return: list of legends or item objects
+        """
+        assert kind in ('curve', 'image')
+        output = []
+        for (legend, type_), item in self._content.items():
+            if type_ == kind and (withhidden or item.isVisible()):
+                output.append(legend if just_legend else item)
+        return output
+
+    def _getItem(self, kind, legend=None):
+        """Get an item from the plot: either an image or a curve.
+
+        Returns None if no match found
+
+        :param str kind: Type of item: 'curve' or 'image'
+        :param str legend: Legend of the item or
+                           None to get active or last item
+        :return: Object describing the item or None
+        """
+        assert kind in ('image', 'curve')
+
+        if legend is None:
+            legend = self._getActiveItem(kind=kind, just_legend=True)
+            if legend is None:
+                items = self._getItems(
+                    kind=kind, just_legend=False, withhidden=False)
+                if items:  # Take last item
+                    legend = items[-1].getLegend()
+
+        if legend is not None and (legend, kind) in self._content:
+            return self._content[(legend, kind)]
         else:
             return None
 
@@ -1971,8 +1829,8 @@ class Plot(object):
     def setGraphYLimits(self, ymin, ymax, axis='left', replot=None):
         """Set the graph Y limits.
 
-        :param float xmin: minimum bottom axis value
-        :param float xmax: maximum bottom axis value
+        :param float ymin: minimum bottom axis value
+        :param float ymax: maximum bottom axis value
         :param str axis: The axis for which to get the limits:
                          Either 'left' or 'right'
         """
@@ -2140,16 +1998,11 @@ class Plot(object):
         self._logX = bool(flag)
 
         if self._logX:  # Switch to log scale
-            for image in self._images.values():
-                if image['handle'] is not None:
-                    self._backend.remove(image['handle'])
-                    image['handle'] = None
-
-            for curve in self._curves.values():
-                handle = curve['handle']
-                if handle is not None:
+            # Loop over a duplicated list as dict is modified during the loop
+            for legend, type_ in list(self._backendContent):
+                if type_ in ('curve', 'image'):
+                    handle = self._backendContent.pop((legend, type_))
                     self._backend.remove(handle)
-                    curve['handle'] = None
 
             # matplotlib 1.5 crashes if the log set is made before
             # the call to self._update()
@@ -2184,16 +2037,11 @@ class Plot(object):
         self._logY = bool(flag)
 
         if self._logY:  # Switch to log scale
-            for image in self._images.values():
-                if image['handle'] is not None:
-                    self._backend.remove(image['handle'])
-                    image['handle'] = None
-
-            for curve in self._curves.values():
-                handle = curve['handle']
-                if handle is not None:
+            # Loop over a duplicated list as dict is modifyed during the loop
+            for legend, type_ in list(self._backendContent):
+                if type_ in ('curve', 'image'):
+                    handle = self._backendContent.pop((legend, type_))
                     self._backend.remove(handle)
-                    curve['handle'] = None
 
             # matplotlib 1.5 crashes if the log set is made before
             # the call to self._update()
@@ -2297,10 +2145,11 @@ class Plot(object):
         self._defaultPlotPoints = 'o' if flag else ''
 
         # Reset symbol of all curves
-        for curve in self._curves.values():
-            curve['params']['symbol'] = self._defaultPlotPoints
+        curves = self.getAllCurves(just_legend=False, withhidden=True)
 
-        if self._curves:
+        if curves:
+            for curve in curves:
+                curve._setSymbol(self._defaultPlotPoints)
             self._update()
             self._setDirtyPlot()
 
@@ -2316,11 +2165,14 @@ class Plot(object):
         """
         self._plotLines = bool(flag)
 
-        # Reset linestyle of all curves
-        for curve in self._curves.values():
-            curve['params']['linestyle'] = '-' if self._plotLines else ' '
+        linestyle = '-' if self._plotLines else ' '
 
-        if self._curves:
+        # Reset linestyle of all curves
+        curves = self.getAllCurves(withhidden=True)
+
+        if curves:
+            for curve in curves:
+                curve._setLineStyle(linestyle)
             self._update()
             self._setDirtyPlot()
 
@@ -2544,111 +2396,35 @@ class Plot(object):
 
     # Internal
 
-    @staticmethod
-    def _logFilterError(value, error):
-        """Filter/convert error values if they go <= 0.
-
-        Replace error leading to negative values by nan
-
-        :param numpy.ndarray value: 1D array of values
-        :param numpy.ndarray error:
-            Array of errors: scalar, N, Nx1 or 2xN or None.
-        :return: Filtered error so error bars are never negative
-        """
-        if error is not None:
-            # Convert Nx1 to N
-            if error.ndim == 2 and error.shape[1] == 1 and len(value) != 1:
-                error = numpy.ravel(error)
-
-            # Supports error being scalar, N or 2xN array
-            errorClipped = (value - numpy.atleast_2d(error)[0]) <= 0
-
-            if numpy.any(errorClipped):  # Need filtering
-
-                # expand errorbars to 2xN
-                if error.size == 1:  # Scalar
-                    error = numpy.full(
-                        (2, len(value)), error, dtype=numpy.float)
-
-                elif error.ndim == 1:  # N array
-                    newError = numpy.empty((2, len(value)),
-                                            dtype=numpy.float)
-                    newError[0, :] = error
-                    newError[1, :] = error
-                    error = newError
-
-                elif error.size == 2 * len(value):  # 2xN array
-                    error = numpy.array(
-                        error, copy=True, dtype=numpy.float)
-
-                else:
-                    _logger.error("Unhandled error array")
-                    return error
-
-                error[0, errorClipped] = numpy.nan
-
-        return error
-
-
-    def _logFilterData(self, x, y, xerror, yerror, xLog, yLog):
-        """Filter out values with x or y <= 0 on log axes
-
-        All arrays are expected to have the same length.
-
-        :param x: The x coords.
-        :param y: The y coords.
-        :param xerror: The addCuve xerror arg (None or numpy array).
-        :param yerror: The addCuve yerror arg (None or numpy array).
-        :param bool xLog: True to filter arrays according to X coords.
-        :param bool yLog: True to filter arrays according to Y coords.
-        :return: The filter arrays or unchanged object if
-        :rtype: (x, y, xerror, yerror)
-        """
-        if xLog or yLog:
-            xclipped = (x <= 0) if xLog else False
-            yclipped = (y <= 0) if yLog else False
-            clipped = numpy.logical_or(xclipped, yclipped)
-
-            if numpy.any(clipped):
-                # copy to keep original array and convert to float
-                x = numpy.array(x, copy=True, dtype=numpy.float)
-                x[clipped] = numpy.nan
-                y = numpy.array(y, copy=True, dtype=numpy.float)
-                y[clipped] = numpy.nan
-
-                if xLog and xerror is not None:
-                    xerror = self._logFilterError(x, xerror)
-
-                if yLog and yerror is not None:
-                    yerror = self._logFilterError(y, yerror)
-
-        return x, y, xerror, yerror
-
     def _update(self):
         _logger.debug("_update called")
 
         # curves
-        activeCurve = self.getActiveCurve(just_legend=True)
-        curves = list(self._curves)
-        for legend in curves:
-            curve = self._curves[legend]
-            self.addCurve(curve['x'], curve['y'], legend, resetzoom=False,
-                          **curve['params'])
+        activeCurve = self.getActiveCurve(just_legend=False)
+        curves = self.getAllCurves(withhidden=True)
+        for curve in curves:
+            # TODO improve way of updating curve...
+            self.addCurve(curve.getXData(copy=False),
+                          curve.getYData(copy=False),
+                          curve.getLegend(),
+                          info=curve.getInfo(),
+                          resetzoom=False)
 
-        if len(curves):
-            if activeCurve not in curves:
-                activeCurve = None
-        else:
+        if activeCurve not in curves:
             activeCurve = None
-        self.setActiveCurve(activeCurve)
+        self.setActiveCurve(
+            None if activeCurve is None else activeCurve.getLegend())
 
         # images
         if not self.isXAxisLogarithmic() and not self.isYAxisLogarithmic():
-            for legend in list(self._images):  # Copy has images is changed
-                image = self._images[legend]
-                self.addImage(image['data'], legend,
-                              replace=False, resetzoom=False,
-                              pixmap=image['pixmap'], **image['params'])
+            for image in self.getAllImages(just_legend=False):
+                # TODO improve update of images
+                self.addImage(image.getData(copy=False),
+                              image.getLegend(),
+                              info=image.getInfo(),
+                              replace=False,
+                              resetzoom=False,
+                              pixmap=image.getPixmap(copy=False))
 
     # Coord conversion
 
@@ -2732,7 +2508,8 @@ class Plot(object):
                      picked markers. If None (default), do not filter markers.
         """
         if test is None:
-            test = lambda marker: True
+            def test(marker):
+                return True
 
         markers = self._backend.pickItems(x, y)
         markers = [item for item in markers if item['kind'] == 'marker']
@@ -2789,7 +2566,8 @@ class Plot(object):
                      picked items. If None (default), do not filter items.
         """
         if test is None:
-            test = lambda item: True
+            def test(item):
+                return True
 
         items = self._backend.pickItems(x, y)
         items = [item for item in items if item['kind'] in ['curve', 'image']]
@@ -2797,20 +2575,16 @@ class Plot(object):
         for item in reversed(items):
             kind, legend = item['kind'], item['legend']
             if kind == 'curve':
-                curve = self._curves.get(legend, None)
+                curve = self._content.get((legend, kind), None)
                 if curve is not None:
-                    params = curve['params'].copy()  # shallow copy
-                    if test(params):
-                        params['legend'] = legend
-                        return kind, params, item['xdata'], item['ydata']
+                    if test(curve):
+                        return kind, curve, item['xdata'], item['ydata']
 
             elif kind == 'image':
-                image = self._images.get(legend, None)
+                image = self._content.get((legend, kind), None)
                 if image is not None:
-                    params = image['params'].copy()  # shallow copy
-                    if test(params):
-                        params['legend'] = legend
-                        return kind, params, None
+                    if test(image):
+                        return kind, image, None
 
             else:
                 _logger.warning('Unsupported kind: %s', kind)
@@ -2827,12 +2601,16 @@ class Plot(object):
         :param float dy: The Y offset to apply to the image in data coords.
         """
         # TODO: poor implementation, better to do move image in backend...
-        image = self._images[legend]
-        params = image['params'].copy()
-        params['origin'] = params['origin'][0] + dx, params['origin'][1] + dy
-        self.addImage(image['data'], legend,
-                      replace=False, resetzoom=False,
-                      pixmap=image['pixmap'], **params)
+        image = self.getImage(legend)
+        origin = image.getOrigin()
+        origin = origin[0] + dx, origin[1] + dy
+        self.addImage(image.getData(copy=False),
+                      image.getLegend(),
+                      info=image.getInfo(),
+                      replace=False,
+                      resetzoom=False,
+                      pixmap=image.getPixmap(copy=False),
+                      origin=origin)
 
     # User event handling #
 

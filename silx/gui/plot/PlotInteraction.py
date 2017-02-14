@@ -1092,7 +1092,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
 
             else:
                 picked = self.plot._pickImageOrCurve(
-                    x, y, lambda item: item['selectable'])
+                    x, y, lambda item: item.isSelectable())
 
                 if picked is None:
                     pass
@@ -1104,7 +1104,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                     assert dataPos is not None
 
                     eventDict = prepareCurveSignal('left',
-                                                   curve['legend'],
+                                                   curve.getLegend(),
                                                    'curve',
                                                    picked[2], picked[3],
                                                    dataPos[0], dataPos[1],
@@ -1118,13 +1118,13 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                     assert dataPos is not None
 
                     # Get corresponding coordinate in image
-                    column = int((dataPos[0] - image['origin'][0]) /
-                                 float(image['scale'][0]))
-                    row = int((dataPos[1] - image['origin'][1]) /
-                              float(image['scale'][1]))
+                    origin = image.getOrigin()
+                    scale = image.getScale()
+                    column = int((dataPos[0] - origin[0]) / float(scale[0]))
+                    row = int((dataPos[1] - origin[1]) / float(scale[1]))
 
                     eventDict = prepareImageSignal('left',
-                                                   image['legend'],
+                                                   image.getLegend(),
                                                    'image',
                                                    column, row,
                                                    dataPos[0], dataPos[1],
@@ -1178,14 +1178,15 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
             picked = self.plot._pickImageOrCurve(
                 x,
                 y,
-                lambda item: item.get('draggable', False))
+                lambda item:
+                    hasattr(item, 'isDraggable') and item.isDraggable())
             if picked is None:
                 self.imageLegend = None
                 self.plot.setGraphCursorShape()
                 return False
             else:
                 assert picked[0] == 'image'  # For now only drag images
-                self.imageLegend = picked[1]['legend']
+                self.imageLegend = picked[1].getLegend()
         return True
 
     def drag(self, x, y):
