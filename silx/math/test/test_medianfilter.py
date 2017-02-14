@@ -23,7 +23,7 @@
 # ############################################################################*/
 """Tests of the median filter"""
 
-__authors__ = ["T. Vincent"]
+__authors__ = ["H. Payno"]
 __license__ = "MIT"
 __date__ = "10/02/2017"
 
@@ -31,7 +31,7 @@ import unittest
 import numpy
 import tempfile
 import os
-from  silx.math import medianfilter
+from  silx.math.medianfilter import medianfilter
 from silx.test.utils import ParametricTestCase
 
 import logging
@@ -45,9 +45,9 @@ class Test2DFilter(unittest.TestCase):
         dataIn = numpy.arange(100, dtype=numpy.int32)
         dataIn = dataIn.reshape((10,10))
 
-        dataOut = medianfilter.median_filter(input_buffer=dataIn,
-                                             kernel_dim=(3, 3),
-                                             conditionnal=False)
+        dataOut = medianfilter(input_buffer=dataIn,
+                               kernel_dim=(3, 3),
+                               conditionnal=False)
         
         self.assertTrue(dataOut[0, 0] == 1)
         self.assertTrue(dataOut[9, 0] == 81)
@@ -63,9 +63,9 @@ class Test2DFilter(unittest.TestCase):
         dataIn = numpy.arange(100, dtype=numpy.int32)
         dataIn = dataIn.reshape((10,10))
 
-        dataOut = medianfilter.median_filter(input_buffer=dataIn,
-                                             kernel_dim=(1, 1),
-                                             conditionnal=False)
+        dataOut = medianfilter(input_buffer=dataIn,
+                               kernel_dim=(1, 1),
+                               conditionnal=False)
 
         self.assertTrue(numpy.array_equal(dataIn, dataOut))
 
@@ -75,31 +75,31 @@ class Test2DFilter(unittest.TestCase):
         dataIn = dataIn.reshape((10,10))
         dataInCopy = dataIn.copy()
 
-        dataOut = medianfilter.median_filter(input_buffer=dataIn,
-                                             kernel_dim=(3, 3),
-                                             conditionnal=False)
+        dataOut = medianfilter(input_buffer=dataIn,
+                               kernel_dim=(3, 3),
+                               conditionnal=False)
         self.assertTrue(numpy.array_equal(dataIn, dataInCopy))
 
     def testThreads(self):
         """Make sure the result doesn't depends on the number of threads used"""
         dataIn = numpy.random.rand(100, 100)
 
-        dataOut1Thr = medianfilter.median_filter(input_buffer=dataIn,
-                                                 kernel_dim=(3, 3),
-                                                 conditionnal=False,
-                                                 nthread=1)
-        dataOut2Thr = medianfilter.median_filter(input_buffer=dataIn,
-                                                 kernel_dim=(3, 3),
-                                                 conditionnal=False,
-                                                 nthread=2)
-        dataOut4Thr = medianfilter.median_filter(input_buffer=dataIn,
-                                                 kernel_dim=(3, 3),
-                                                 conditionnal=False,
-                                                 nthread=4)
-        dataOut8Thr = medianfilter.median_filter(input_buffer=dataIn,
-                                                 kernel_dim=(3, 3),
-                                                 conditionnal=False,
-                                                 nthread=8)
+        dataOut1Thr = medianfilter(input_buffer=dataIn,
+                                   kernel_dim=(3, 3),
+                                   conditionnal=False,
+                                   nthread=1)
+        dataOut2Thr = medianfilter(input_buffer=dataIn,
+                                   kernel_dim=(3, 3),
+                                   conditionnal=False,
+                                   nthread=2)
+        dataOut4Thr = medianfilter(input_buffer=dataIn,
+                                   kernel_dim=(3, 3),
+                                   conditionnal=False,
+                                   nthread=4)
+        dataOut8Thr = medianfilter(input_buffer=dataIn,
+                                   kernel_dim=(3, 3),
+                                   conditionnal=False,
+                                   nthread=8)
 
         self.assertTrue(numpy.array_equal(dataOut1Thr, dataOut2Thr))
         self.assertTrue(numpy.array_equal(dataOut1Thr, dataOut4Thr))
@@ -112,9 +112,9 @@ class TestConditionnal2DFilter(unittest.TestCase):
         dataIn = numpy.arange(100, dtype=numpy.int32)
         dataIn = dataIn.reshape((10,10))
 
-        dataOut = medianfilter.median_filter(input_buffer=dataIn,
-                                             kernel_dim=(3, 3),
-                                             conditionnal=True)
+        dataOut = medianfilter(input_buffer=dataIn,
+                               kernel_dim=(3, 3),
+                               conditionnal=True)
         
         self.assertTrue(dataOut[0, 0] == 1)
         self.assertTrue(dataOut[0, 1] == 1)
@@ -132,9 +132,9 @@ class Test2DFilterInputTypes(ParametricTestCase):
 
 
             data = numpy.random.rand(10, 10).astype(dtype=testType)
-            out = medianfilter.median_filter(input_buffer=data,
-                                             kernel_dim=(3, 3),
-                                             conditionnal=False)
+            out = medianfilter(input_buffer=data,
+                               kernel_dim=(3, 3),
+                               conditionnal=False)
             self.assertTrue(out.dtype.type is testType)
 
 
@@ -145,9 +145,9 @@ class Test1DFilter(unittest.TestCase):
         """Simple test of a three by three kernel median filter"""
         dataIn = numpy.arange(100, dtype=numpy.int32)
 
-        dataOut = medianfilter.median_filter(input_buffer=dataIn,
-                                             kernel_dim=5,
-                                             conditionnal=False)
+        dataOut = medianfilter(input_buffer=dataIn,
+                               kernel_dim=5,
+                               conditionnal=False)
         
         self.assertTrue(dataOut[0] == 1)
         self.assertTrue(dataOut[9] == 9)

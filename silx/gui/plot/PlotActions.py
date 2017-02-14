@@ -77,7 +77,8 @@ from ._utils import applyZoomToPlot as _applyZoomToPlot
 from silx.third_party.EdfFile import EdfFile
 from silx.third_party.TiffIO import TiffIO
 from silx.math.histogram import Histogramnd
-from silx.math import medianfilter
+from silx.math.medianfilter import medianfilter
+from silx.gui.widgets.MedianFilterDialog import MedianFilterDialog
 
 from silx.io.utils import save1D, savespec
 
@@ -1349,7 +1350,7 @@ class MedianFilter1DAction(MedianFilterAction):
 
     def _computeFiltredImage(self, kernelWidth, conditionnal):
         assert(self.plot is not None)
-        return median.median_filter(self._originalImage,
+        return medianfilter(self._originalImage,
                                     kernelWidth,
                                     conditionnal )
 
@@ -1364,44 +1365,6 @@ class MedianFilter2DAction(MedianFilterAction):
 
     def _computeFiltredImage(self, kernelWidth, conditionnal):
         assert(self.plot is not None)
-        return medianfilter.median_filter(self._originalImage,
+        return medianfilter(self._originalImage,
                                           (kernelWidth, kernelWidth),
                                           conditionnal )
-
-
-class MedianFilterDialog(qt.QDialog):
-    """QDialog window featuring a :class:`BackgroundWidget`"""
-    sigFilterOptChanged = qt.Signal(int, bool)
-
-    def __init__(self, parent=None):
-        qt.QDialog.__init__(self, parent)
-
-        self.setWindowTitle("Median filter options")
-        self.mainLayout = qt.QHBoxLayout(self)
-        self.setLayout(self.mainLayout)
-
-        # filter width GUI
-        self.mainLayout.addWidget(qt.QLabel('filter width:', parent = self))
-        self._filterWidth = qt.QSpinBox(parent=self)
-        self._filterWidth.setMinimum(1)
-        self._filterWidth.setValue(1)
-        self._filterWidth.setSingleStep(2);
-        widthTooltip = """radius width of the pixel including in the filter
-                        for each pixel"""
-        self._filterWidth.setToolTip(widthTooltip)
-        self._filterWidth.valueChanged.connect(self._filterOptionChanged)
-        self.mainLayout.addWidget(self._filterWidth)
-
-        # filter option GUI
-        self._filterOption = qt.QCheckBox('Conditionnal', parent=self)
-        conditionnalTooltip = """if check, implement a conditionnal filter"""
-        self._filterOption.stateChanged.connect(self._filterOptionChanged)
-        self.mainLayout.addWidget(self._filterOption)
-
-    def _filterOptionChanged(self):
-        """Call back used when the filter values are changed"""
-        if self._filterWidth.value()%2 == 0:
-            logging.warning('median filter only accept odd values')
-        else:
-            self.sigFilterOptChanged.emit(self._filterWidth.value(), self._filterOption.isChecked())
-
