@@ -31,6 +31,7 @@
 #include <vector>
 #include <assert.h>
 #include <algorithm>
+#include <signal.h>
 
 // Simple function browsing a vector and registring the min and max values
 // and if those values are unique or not
