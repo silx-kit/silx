@@ -67,9 +67,15 @@ void getMinMax(std::vector<const T*>& v, T& min, T&max,
     }
 }
 
+
+template<typename T>
+bool cmp(const T* a, const T* b){
+    return *a < *b;
+}
+
 template<typename T>
 const T* median(std::vector<const T*>& v) {
-    std::nth_element(v.begin(), v.begin() + v.size()/2, v.end());
+    std::nth_element(v.begin(), v.begin() + v.size()/2, v.end(), cmp<T>);
     return v[v.size()/2];
 }
 
