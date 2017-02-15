@@ -38,7 +38,7 @@ be user defined, or by default are loaded from
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "24/01/2017"
+__date__ = "15/02/2017"
 
 import logging
 import sys
@@ -89,15 +89,19 @@ class FitWidget(qt.QWidget):
     The results are displayed in a table.
     """
     sigFitWidgetSignal = qt.Signal(object)
-    """This signal is emitted when:
-
-        - estimation is complete
-        - fit is complete
-
+    """This signal is emitted by the estimation and fit methods.
     It carries a dictionary with two items:
 
-        - *event*: *EstimateFinished* or *FitFinished*
-        - *data*: fit result (see documentation for
+        - *event*: one of the following strings
+
+            - *EstimateStarted*,
+            - *FitStarted*
+            - *EstimateFinished*,
+            - *FitFinished*
+            - *EstimateFailed*
+            - *FitFailed*
+
+        - *data*: None, or fit/estimate results (see documentation for
           :attr:`silx.math.fit.fitmanager.FitManager.fit_results`)
     """
 
@@ -470,14 +474,24 @@ class FitWidget(qt.QWidget):
     def estimate(self):
         """Run parameter estimation function then emit
         :attr:`sigFitWidgetSignal` with a dictionary containing a status
-        message *'EstimateFinished'* and a list of fit parameters estimations
+        message and a list of fit parameters estimations
         in the format defined in
         :attr:`silx.math.fit.fitmanager.FitManager.fit_results`
+
+        The emitted dictionary has an *"event"* key that can have
+        following values:
+
+            - *'EstimateStarted'*
+            - *'EstimateFailed'*
+            - *'EstimateFinished'*
         """
         try:
             theory_name = self.fitmanager.selectedtheory
             estimation_function = self.fitmanager.theories[theory_name].estimate
             if estimation_function is not None:
+                ddict = {'event': 'EstimateStarted',
+                         'data': None}
+                self._emitSignal(ddict)
                 self.fitmanager.estimate(callback=self.fitStatus)
             else:
                 msg = qt.QMessageBox(self)
@@ -515,13 +529,22 @@ class FitWidget(qt.QWidget):
 
     def startFit(self):
         """Run fit, then emit :attr:`sigFitWidgetSignal` with a dictionary
-        containing a status
-        message *'FitFinished'* and a list of fit parameters results
-        in the format defined in
+        containing a status message and a list of fit
+        parameters results in the format defined in
         :attr:`silx.math.fit.fitmanager.FitManager.fit_results`
+
+        The emitted dictionary has an *"event"* key that can have
+        following values:
+
+            - *'FitStarted'*
+            - *'FitFailed'*
+            - *'FitFinished'*
         """
         self.fitmanager.fit_results = self.guiParameters.getFitResults()
         try:
+            ddict = {'event': 'FitStarted',
+                     'data': None}
+            self._emitSignal(ddict)
             self.fitmanager.runfit(callback=self.fitStatus)
         except:  # noqa (we want to catch and report all errors)
             msg = qt.QMessageBox(self)
