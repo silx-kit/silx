@@ -198,6 +198,7 @@ __date__ = "16/02/2017"
 
 
 from collections import OrderedDict, namedtuple
+import itertools
 import logging
 
 import numpy
@@ -297,7 +298,6 @@ class Plot(object):
         self._content = OrderedDict()
         self._backendContent = OrderedDict()
 
-        self._markers = OrderedDict()
         self._items = OrderedDict()
 
         self._dataRange = False
@@ -546,8 +546,20 @@ class Plot(object):
         # Check if curve was previously active
         wasActive = self.getActiveCurve(just_legend=True) == legend
 
-        # Retrieve previous curve or create a default one
-        curve = self._content.get((legend, 'curve'), None)
+        curve = self.getCurve(legend)
+
+        if replace:
+            self.remove(kind='curve')
+            self._content[(legend, 'curve')] = curve
+        else:
+            # Remove previous curve from backend but not from _content
+            # to keep its place
+            # This is a subset of self.remove(legend, kind='curve')
+            handle = self._backendContent.pop((legend, 'curve'), None)
+            if handle is not None:
+                self._backend.remove(handle)
+                self._setDirtyPlot()
+
         if curve is None:
             # No previous curve, create a default one and add it to the plot
             curve = PlotItems.Curve(self, legend)
@@ -592,21 +604,6 @@ class Plot(object):
             yerror = curve.getYErrorData(copy=False)
 
         curve._setData(x, y, xerror, yerror)
-
-        # Add: replace, filter data, add
-
-        # This must be done after getting params from existing curve
-        if replace:
-            self.remove(kind='curve')
-            self._content[(legend, 'curve')] = curve
-        else:
-            # Remove previous curve from backend but not from _content
-            # to keep its place
-            # This is a subset of self.remove(legend, kind='curve')
-            handle = self._backendContent.pop((legend, 'curve'), None)
-            if handle is not None:
-                self._backend.remove(handle)
-                self._setDirtyPlot()
 
         # Filter-out values <= 0
         xFiltered, yFiltered, xerror, yerror = curve.getData(
@@ -819,8 +816,20 @@ class Plot(object):
         # Check if image was previously active
         wasActive = self.getActiveImage(just_legend=True) == legend
 
-        # Retrieve previous image or create a default one
-        image = self._content.get((legend, 'image'), None)
+        image = self.getImage(legend)
+
+        if replace:
+            self.remove(kind='image')
+            self._content[(legend, 'image')] = image
+        else:
+            # Remove previous image from backend
+            # but not from _content to keep its place
+            # This is a subset of self.remove(legend, kind='image')
+            handle = self._backendContent.pop((legend, 'image'), None)
+            if handle is not None:
+                self._backend.remove(handle)
+                self._setDirtyPlot()
+
         if image is None:
             # No previous image, create a default one and add it to the plot
             image = PlotItems.Image(self, legend)
@@ -845,24 +854,8 @@ class Plot(object):
             image._setXLabel(xlabel)
         if ylabel is not None:
             image._setYLabel(ylabel)
-        if pixmap is not None:
-            pass # TODO handle it in PlotItem.Image
 
-        image._setData(data)
-
-        # Add: replace, filter data, add
-
-        if replace:
-            self.remove(kind='image')
-            self._content[(legend, 'image')] = image
-        else:
-            # Remove previous image from backend
-            # but not from _content to keep its place
-            # This is a subset of self.remove(legend, kind='image')
-            handle = self._backendContent.pop((legend, 'image'), None)
-            if handle is not None:
-                self._backend.remove(handle)
-                self._setDirtyPlot()
+        image._setData(data, pixmap)
 
         if self.isXAxisLogarithmic() or self.isYAxisLogarithmic():
             _logger.info('Hide image while axes has log scale.')
@@ -1117,52 +1110,80 @@ class Plot(object):
 
         See :meth:`addMarker` for argument documentation.
         """
-        if legend is None:
-            legend = "Unnamed Marker 0"
-            i = 1
-            while legend in self._markers:
-                legend = "Unnamed Marker %d" % i
-                i += 1
+        assert (x, y) != (None, None)
 
-        if color is None:
-            color = self.colorDict['black']
-        elif color in self.colorDict:
-            color = self.colorDict[color]
+        if legend is None:  # Find an unused legend
+            markerLegends = self._getAllMarkers(just_legend=True)
+            for index in itertools.count():
+                legend = "Unnamed Marker %d" % index
+                if legend not in markerLegends:
+                    break  # Keep this legend
+        legend = str(legend)
 
-        if constraint is not None and not callable(constraint):
-            # Then it must be a string
-            if hasattr(constraint, 'lower'):
-                if constraint.lower().startswith('h'):
-                    constraint = lambda xData, yData: (xData, y)
-                elif constraint.lower().startswith('v'):
-                    constraint = lambda xData, yData: (x, yData)
-                else:
-                    raise ValueError(
-                        "Unsupported constraint name: %s" % constraint)
-            else:
-                raise ValueError("Unsupported constraint")
+        if x is None:
+            markerClass = PlotItems.YMarker
+        elif y is None:
+            markerClass = PlotItems.XMarker
+        else:
+            markerClass = PlotItems.Marker
 
-        # Apply constraint to provided position
-        if draggable and constraint is not None:
-            x, y = constraint(x, y)
+        # Retrieve previous marker or create a default one
+        marker = self._getMarker(legend)
 
-        if legend in self._markers:
-            self.remove(legend, kind='marker')
+        if marker is None:
+            # No previous marker, create one
+            marker = markerClass(self, legend)
+            self._content[(legend, 'marker')] = marker
+        elif not isinstance(marker, markerClass):
+            _logger.warning(
+                'Adding marker with same legend but different type, replace it')
+            self.remove(legend=legend, kind='marker')
+            marker = markerClass(self, legend)
+            self._content[(legend, 'marker')] = marker
+        else:
+            # Remove previous marker from backend
+            # but not from _content to keep its place
+            # This is a subset of self.remove(legend, kind='marker')
+            handle = self._backendContent.pop((legend, 'marker'), None)
+            if handle is not None:
+                self._backend.remove(handle)
+                self._setDirtyPlot()
 
-        handle = self._backend.addMarker(
-            x=x, y=y, legend=legend, text=text, color=color,
-            selectable=selectable, draggable=draggable,
-            symbol=symbol, constraint=constraint,
-            overlay=draggable)
+        if text is not None:
+            marker._setText(text)
+        if color is not None:
+            marker._setColor(color)
+        if selectable is not None:
+            marker._setSelectable(selectable)
+        if draggable is not None:
+            marker._setDraggable(draggable)
+        if symbol is not None:
+            marker._setSymbol(symbol)
 
-        self._markers[legend] = {'handle': handle, 'params': {
-            'x': x, 'y': y,
-            'text': text, 'color': color,
-            'selectable': selectable, 'draggable': draggable,
-            'symbol': symbol, 'constraint': constraint}
-        }
+        # TODO to improve, but this ensure constraint is applied
+        marker._setPosition(x, y)
+        if constraint is not None:
+            marker._setConstraint(constraint)
+        marker._setPosition(x, y)
 
-        self._setDirtyPlot(overlayOnly=draggable)
+        if isinstance(marker, PlotItems.Marker):
+            symbol = marker.getSymbol()
+        else:
+            symbol = None
+
+        self._backendContent[(legend, 'marker')] = self._backend.addMarker(
+            x=marker.getXPosition(),
+            y=marker.getYPosition(),
+            legend=marker.getLegend(),
+            text=marker.getText(),
+            color=marker.getFloatColor(),
+            selectable=marker.isSelectable(),
+            draggable=marker.isDraggable(),
+            symbol=symbol,
+            constraint=marker.getConstraint(),
+            overlay=marker.isDraggable())
+
+        self._setDirtyPlot(overlayOnly=marker.isDraggable())
 
         self.notify(
             'contentChanged', action='add', kind='marker', legend=legend)
@@ -1248,16 +1269,10 @@ class Plot(object):
         if legend is None:  # This is a clear
             # Clear each given kind
             for aKind in kind:
-                if aKind == 'curve':
-                    for legend in self.getAllCurves(just_legend=True,
-                                                    withhidden=True):
-                        self.remove(legend, kind='curve')
-                    self._colorIndex = 0
-                    self._styleIndex = 0
-
-                elif aKind == 'image':
-                    for legend in self.getAllImages(just_legend=True):
-                        self.remove(legend, kind='image')
+                if aKind in ('curve', 'image', 'marker'):
+                    for legend in self._getItems(
+                            kind=aKind, just_legend=True, withhidden=True):
+                        self.remove(legend=legend, kind=aKind)
 
                 elif aKind == 'item':
                     # Copy as _items gets changed
@@ -1265,11 +1280,6 @@ class Plot(object):
                         self.remove(legend, kind='item')
                     self._items = OrderedDict()
 
-                elif aKind == 'marker':
-                    # Copy as _markers gets changed
-                    for legend in list(self._markers):
-                        self.remove(legend, kind='marker')
-                    self._markers = OrderedDict()
                 else:
                     _logger.warning('remove: Unhandled item kind %s', aKind)
 
@@ -1277,15 +1287,13 @@ class Plot(object):
             # Remove each given kind
             for aKind in kind:
                 if aKind in ('curve', 'image'):
-                    if (legend, aKind) in self._content:
-                        if aKind == 'curve':
-                            if self.getActiveCurve(just_legend=True) == legend:
-                                # Reset active curve
-                                self.setActiveCurve(None)
-                        elif aKind == 'image':
-                            if self.getActiveCurve(just_legend=True) == legend:
-                                # Reset active curve
-                                self.setActiveCurve(None)
+                    item = self._getItem(aKind, legend)
+                    if item is not None:
+                        if self._getActiveItem(aKind) == item:
+                            # Reset active item
+                            self._setActiveItem(aKind, None)
+
+                        self._content.pop((legend, aKind), None)
 
                         handle = self._backendContent.pop((legend, aKind), None)
                         if handle is not None:
@@ -1313,15 +1321,16 @@ class Plot(object):
                                     kind='item', legend=legend)
 
                 elif aKind == 'marker':
-                    marker = self._markers.pop(legend, None)
+                    marker = self._content.pop((legend, aKind), None)
                     if marker is not None:
-                        if marker['handle'] is not None:
-                            self._backend.remove(marker['handle'])
+                        handle = self._backendContent.pop((legend, aKind), None)
+                        if handle is not None:
+                            self._backend.remove(handle)
                             self._setDirtyPlot(
-                                overlayOnly=marker['params']['draggable'])
+                                overlayOnly=marker.isDraggable())
 
                         self.notify('contentChanged', action='remove',
-                                    kind='marker', legend=legend)
+                                    kind=aKind, legend=legend)
 
                 else:
                     _logger.warning('remove: Unhandled item kind %s', aKind)
@@ -1708,8 +1717,8 @@ class Plot(object):
         If just_legend is True, it returns a list of legends.
 
         :param bool just_legend: True to get the legend of the images,
-                                 False (the default) to get the images' data
-                                 and info.
+                                 False (the default) to get the images'
+                                 object.
         :return: list of legends or list of image objects
         :rtype: list of str or list of objects
         """
@@ -1741,7 +1750,7 @@ class Plot(object):
         :param bool withhidden: False (default) to skip hidden curves.
         :return: list of legends or item objects
         """
-        assert kind in ('curve', 'image')
+        assert kind in ('curve', 'image', 'marker')
         output = []
         for (legend, type_), item in self._content.items():
             if type_ == kind and (withhidden or item.isVisible()):
@@ -1758,20 +1767,19 @@ class Plot(object):
                            None to get active or last item
         :return: Object describing the item or None
         """
-        assert kind in ('image', 'curve')
+        assert kind in ('image', 'curve', 'marker')
 
-        if legend is None:
-            legend = self._getActiveItem(kind=kind, just_legend=True)
-            if legend is None:
-                items = self._getItems(
-                    kind=kind, just_legend=False, withhidden=False)
-                if items:  # Take last item
-                    legend = items[-1].getLegend()
-
-        if legend is not None and (legend, kind) in self._content:
-            return self._content[(legend, kind)]
+        if legend is not None:
+            return self._content.get((legend, kind), None)
         else:
-            return None
+            if kind in ('curve', 'image'):
+                item = self._getActiveItem(kind=kind)
+                if item is not None:  # Return active item if available
+                    return item
+            # Return last visible item if any
+            items = self._getItems(
+                kind=kind, just_legend=False, withhidden=False)
+            return items[-1] if items else None
 
     # Limits
 
@@ -2520,14 +2528,12 @@ class Plot(object):
                 return True
 
         markers = self._backend.pickItems(x, y)
-        markers = [item for item in markers if item['kind'] == 'marker']
+        legends = [m['legend'] for m in markers if m['kind'] == 'marker']
 
-        for item in reversed(markers):
-            legend = item['legend']
-            params = self._getMarker(legend)
-            if params is not None and test(params):
-                params['legend'] = legend
-                return params
+        for legend in reversed(legends):
+            marker = self._getMarker(legend)
+            if marker is not None and test(marker):
+                return marker
         return None
 
     def _moveMarker(self, legend, x, y):
@@ -2539,37 +2545,38 @@ class Plot(object):
         :param float x: The new X position of the marker in data coordinates.
         :param float y: The new Y position of the marker in data coordinates.
         """
-        params = self._getMarker(legend)
-        if params is not None:
-            if params['x'] is not None:
-                params['x'] = x
-            if params['y'] is not None:
-                params['y'] = y
-            self._addMarker(**params)
+        marker = self._getMarker(legend)
+        if marker is not None:
+            marker._setPosition(x, y)
+            self._addMarker(marker)  # TODO better update handling
 
-    def _getMarker(self, legend):
-        """Get the parameters of a marker
+    def _getAllMarkers(self, just_legend=False):
+        """Returns all markers' legend or objects
+
+        :param bool just_legend: True to get the legend of the markers,
+                                 False (the default) to get marker objects.
+        :return: list of legend of list of marker objects
+        :rtype: list of str or list of marker objects
+        """
+        return self._getItems(
+            kind='marker', just_legend=just_legend, withhidden=True)
+
+    def _getMarker(self, legend=None):
+        """Get the object describing a specific marker.
+
+        It returns None in case no matching marker is found
 
         :param str legend: The legend of the marker to retrieve
-        :return: A copy of the parameters the marker has been created with
-        :rtype: dict or None if marker does not exist
+        :rtype: None of marker object
         """
-        marker = self._markers.get(legend, None)
-        if marker is None:
-            return None
-        else:
-            # Return a shallow copy
-            params = marker['params'].copy()
-            params['legend'] = legend
-            return params
+        return self._getItem(kind='marker', legend=legend)
 
     def _pickImageOrCurve(self, x, y, test=None):
         """Pick an image or a curve at the given position.
 
         To use for interaction implementation.
 
-        :param float x: X position in pixels.
-        :param float y: Y position in pixels.
+        :param float x: X position in pixelsparam float y: Y position in pixels.
         :param test: A callable to call for each picked item to filter
                      picked items. If None (default), do not filter items.
         """
@@ -2583,16 +2590,14 @@ class Plot(object):
         for item in reversed(items):
             kind, legend = item['kind'], item['legend']
             if kind == 'curve':
-                curve = self._content.get((legend, kind), None)
-                if curve is not None:
-                    if test(curve):
-                        return kind, curve, item['xdata'], item['ydata']
+                curve = self.getCurve(legend)
+                if curve is not None and test(curve):
+                    return kind, curve, item['xdata'], item['ydata']
 
             elif kind == 'image':
-                image = self._content.get((legend, kind), None)
-                if image is not None:
-                    if test(image):
-                        return kind, image, None
+                image = self.getImage(legend)
+                if image is not None and test(image):
+                    return kind, image, None
 
             else:
                 _logger.warning('Unsupported kind: %s', kind)

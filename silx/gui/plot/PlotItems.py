@@ -258,7 +258,6 @@ class DraggableMixIn(object):
 
     def __init__(self):
         self._draggable = False
-        self._constraint = None
 
     def isDraggable(self):
         """Returns true if image is draggable
@@ -273,26 +272,6 @@ class DraggableMixIn(object):
         :param bool draggable:
         """
         self._draggable = bool(draggable)
-
-    def getConstraint(self):
-        """Returns the dragging constraint of this item"""
-        return self._constraint
-
-    def _setConstraint(self, constraint):
-        """
-
-        :param callable constraint:
-        :param constraint: A function filtering item displacement by
-                           dragging operations or None for no filter.
-                           This function is called each time the item is
-                           moved.
-                           This is only used if isDraggable returns True.
-        :type constraint: None or a callable that takes the coordinates of
-                          the current cursor position in the plot as input
-                          and that returns the filtered coordinates.
-        """
-        assert callable(constraint)
-        self._constraint = constraint
 
 
 class ColormapMixIn(object):
@@ -371,6 +350,13 @@ class ColorMixIn(object):
         :rtype: 4-tuple of int in [0, 255]
         """
         return self._color
+
+    def getFloatColor(self):
+        """Returns the RGBA color of the item
+
+        :rtype: 4-tuple of float in [0, 1]
+        """
+        return numpy.array(self._color, dtype='float32') / 255.
 
     def _setColor(self, color, copy=True):
         """Set item color
@@ -468,7 +454,7 @@ class Curve(Base, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn):
         # key is (isXPositiveFilter, isYPositiveFilter)
         self._boundsCache = {}
 
-    @deprecated
+    #@deprecated
     def __getitem__(self, item):
         """Compatibility with PyMca and silx <= 0.4.0"""
         if isinstance(item, slice):
@@ -822,7 +808,7 @@ class Image(Base, LabelsMixIn, DraggableMixIn, ColormapMixIn):
         self._origin = (0., 0.)
         self._scale = (1., 1.)
 
-    @deprecated
+    #@deprecated
     def __getitem__(self, item):
         """Compatibility with PyMca and silx <= 0.4.0"""
         if isinstance(item, slice):
@@ -1028,12 +1014,18 @@ class Scatter(Base, ColormapMixIn, SymbolMixIn):
 class _BaseMarker(Base, DraggableMixIn, ColorMixIn):
     """Base class for markers"""
 
+    _DEFAULT_COLOR = (0, 0, 0, 255)
+    """Default color of the markers"""
+
     def __init__(self, plot, legend=None):
         Base.__init__(self, plot, legend)
         DraggableMixIn.__init__(self)
         ColorMixIn.__init__(self)
 
         self._text = ''
+        self._x = None
+        self._y = None
+        self._constraint = self._defaultConstraint
 
     def getText(self):
         """Returns marker text.
@@ -1049,6 +1041,65 @@ class _BaseMarker(Base, DraggableMixIn, ColorMixIn):
         """
         self._text = str(text)
 
+    def getXPosition(self):
+        """Returns the X position of the marker line in data coordinates
+
+        :rtype: float or None
+        """
+        return self._x
+
+    def getYPosition(self):
+        """Returns the Y position of the marker line in data coordinates
+
+        :rtype: float or None
+        """
+        return self._y
+
+    def getPosition(self):
+        """Returns the (x, y) position of the marker in data coordinates
+
+        :rtype: 2-tuple of float or None
+        """
+        return self._x, self._y
+
+    def _setPosition(self, x, y):
+        """Set marker position in data coordinates
+
+        Constraint are applied if any.
+
+        :param float x: X coordinates in data frame
+        :param float y: Y coordinates in data frame
+        """
+        x, y = self.getConstraint()(x, y)
+        self._x, self._y = float(x), float(y)
+
+    def getConstraint(self):
+        """Returns the dragging constraint of this item"""
+        return self._constraint
+
+    def _setConstraint(self, constraint):
+        """
+
+        :param callable constraint:
+        :param constraint: A function filtering item displacement by
+                           dragging operations or None for no filter.
+                           This function is called each time the item is
+                           moved.
+                           This is only used if isDraggable returns True.
+        :type constraint: None or a callable that takes the coordinates of
+                          the current cursor position in the plot as input
+                          and that returns the filtered coordinates.
+        """
+        if constraint is None:
+            constraint = self._defaultConstraint
+        assert callable(constraint)
+        self._constraint = constraint
+
+    @staticmethod
+    def _defaultConstraint(*args):
+        """Default constraint no doing anything"""
+        return args
+
 
 class Marker(_BaseMarker, SymbolMixIn):
     """Description of a marker"""
@@ -1060,22 +1111,8 @@ class Marker(_BaseMarker, SymbolMixIn):
         _BaseMarker.__init__(self, plot, legend)
         SymbolMixIn.__init__(self)
 
-        self._position = 0., 0.
-
-    def getPosition(self):
-        """Returns the (x, y) position of the marker in data coordinates
-
-        :rtype: 2-tuple of float
-        """
-        return self._position
-
-    def _setPosition(self, x, y):
-        """Set marker position in data coordinates
-
-        :param float x: X coordinates in data frame
-        :param float y: Y coordinates in data frame
-        """
-        self._position = float(x), float(y)
+        self._x = 0.
+        self._y = 0.
 
     def _setConstraint(self, constraint):
         """Set the constraint function of the marker drag.
@@ -1093,10 +1130,10 @@ class Marker(_BaseMarker, SymbolMixIn):
         super(Marker, self)._setConstraint(constraint)
 
     def _horizontalConstraint(self, _, y):
-        return self.getPosition()[0], y
+        return self.getXPosition(), y
 
     def _verticalConstraint(self, x, _):
-        return x, self.getPosition()[1]
+        return x, self.getYPosition()
 
 
 class XMarker(_BaseMarker):
@@ -1106,18 +1143,15 @@ class XMarker(_BaseMarker):
         _BaseMarker.__init__(self, plot, legend)
         self._x = 0.
 
-    def getXPosition(self):
-        """Returns the X position of the marker line in data coordinates
-
-        :rtype: float
-        """
-        return self._x
-
-    def _setXPosition(self, x):
+    def _setPosition(self, x, y):
         """Set marker line position in data coordinates
 
+        Constraint are applied if any.
+
         :param float x: X coordinates in data frame
+        :param float y: Y coordinates in data frame
         """
+        x, _ = self.getConstraint()(x, y)
         self._x = float(x)
 
 
@@ -1128,16 +1162,13 @@ class YMarker(_BaseMarker):
         _BaseMarker.__init__(self, plot, legend)
         self._y = 0.
 
-    def getYPosition(self):
-        """Returns the Y position of the marker line in data coordinates
-
-        :rtype: float
-        """
-        return self._y
-
-    def _setYPosition(self, y):
+    def _setPosition(self, x, y):
         """Set marker line position in data coordinates
 
+        Constraint are applied if any.
+
+        :param float x: X coordinates in data frame
         :param float y: Y coordinates in data frame
         """
+        _, y = self.getConstraint()(x, y)
         self._y = float(y)
