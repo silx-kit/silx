@@ -58,6 +58,22 @@ class Test2DFilter(unittest.TestCase):
         self.assertTrue(dataOut[9, 4] == 93)
         self.assertTrue(dataOut[4, 4] == 44)
 
+
+        dataIn = numpy.array([0, -1, 1,
+                              12, 6, -2,
+                              100, 4, 12],
+                             dtype=numpy.int16)
+        dataIn = dataIn.reshape((3, 3))
+        dataOut = medianfilter(input_buffer=dataIn,
+                               kernel_dim=(3, 3),
+                               conditionnal=False)
+        self.assertTrue(dataOut.shape == dataIn.shape)
+        self.assertTrue(dataOut[1, 1] == 4)
+        self.assertTrue(dataOut[0, 0] == 6)
+        self.assertTrue(dataOut[0, 1] == 1)
+        self.assertTrue(dataOut[1, 0] == 6)
+
+
     def testFilterWidthOne(self):
         """Make sure a filter of one by one give the same result as the input"""
         dataIn = numpy.arange(100, dtype=numpy.int32)
