@@ -51,7 +51,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "26/01/2017"
+__date__ = "15/02/2017"
 
 
 from collections import OrderedDict
@@ -1093,7 +1093,7 @@ def _getOneCurve(plt, mode="unique"):
 
 class FitAction(PlotAction):
     """QAction to open a :class:`FitWidget` and set its data to the
-    active curve if any, or to the first curve..
+    active curve if any, or to the first curve.
 
     :param plot: :class:`.PlotWidget` instance on which to operate
     :param parent: See :class:`QAction`
@@ -1158,9 +1158,9 @@ class FitAction(PlotAction):
                                "Fit <%s>" % self.legend,
                                xlabel=self.xlabel, ylabel=self.ylabel,
                                resetzoom=False)
-        if ddict["event"] == "EstimateFailed":
+        if ddict["event"] in ["EstimateStarted", "EstimateFailed"]:
             self.plot.removeCurve("Estimated <%s>" % self.legend)
-        if ddict["event"] == "FitFailed":
+        if ddict["event"] in ["FitStarted", "FitFailed"]:
             self.plot.removeCurve("Fit <%s>" % self.legend)
 
 
