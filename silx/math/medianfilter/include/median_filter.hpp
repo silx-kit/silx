@@ -36,10 +36,7 @@
 // Simple function browsing a vector and registring the min and max values
 // and if those values are unique or not
 template<typename T>
-void getMinMax(std::vector<const T*>& v, T& min, T&max,
-    bool& minUnique, bool& maxUnique){
-    minUnique = true;
-    maxUnique = true;
+void getMinMax(std::vector<const T*>& v, T& min, T&max){
     // init min and max values
     typename std::vector<const T*>::const_iterator it = v.begin();
     if (v.size() == 0){
@@ -52,17 +49,9 @@ void getMinMax(std::vector<const T*>& v, T& min, T&max,
     // Browse all the vector
     while(it!=v.end()){
         // check if repeated (should always be before min/max setting)
-        if(*(*it) == max) maxUnique = false;
-        if(*(*it) == min) minUnique = false;
+        if(*(*it) > max) max = *(*it);
+        if(*(*it) < min) min = *(*it);
 
-        if(*(*it) > max) {
-            max = *(*it);
-            maxUnique = true;
-        }
-        if(*(*it) < min){
-            min = *(*it);
-            minUnique = true;
-        }
         it++;
     }
 }
@@ -137,12 +126,10 @@ void median_filter(
             if (conditioannal == true){
                 T min = 0;
                 T max = 0;
-                bool minUnique, maxUnique;
-                getMinMax(window_values, min, max, minUnique, maxUnique);
+                getMinMax(window_values, min, max);
                 // In conditionnal point we are only setting the value to the pixel
                 // if the value is the min or max and unique
-                if (((*currentPixelValue == max) && maxUnique ) ||
-                    ((*currentPixelValue == min) && minUnique )){
+                if ((*currentPixelValue == max) || (*currentPixelValue == min)){
                     output[image_dim[0]*pixel_y + pixel_x] = *(median<T>(window_values));
                 }else{
                     output[image_dim[0]*pixel_y + pixel_x] = *currentPixelValue;

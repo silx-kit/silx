@@ -137,23 +137,6 @@ class TestConditionnal2DFilter(unittest.TestCase):
         self.assertTrue(numpy.array_equal(dataOut[1:8, 1:8], dataIn[1:8, 1:8]))
         self.assertTrue(dataOut[9, 9] == 98)
 
-    def testFilterMinimumMaximum(self):
-        dataIn = numpy.zeros(10, dtype=numpy.int16)
-        dataIn[0:2] = 1
-
-        dataOut = medianfilter(input_buffer=dataIn,
-                               kernel_dim=5,
-                               conditionnal=True)
-        self.assertTrue(dataOut[0] == 1)
-        self.assertTrue(dataOut[3] == 0)
-
-        dataIn[4:10] = 1
-        dataOut = medianfilter(input_buffer=dataIn,
-                               kernel_dim=9,
-                               conditionnal=True)
-        self.assertTrue(numpy.array_equal(dataOut, dataIn))
-
-
 class Test2DFilterInputTypes(ParametricTestCase):
     """Test that all needed types have their implementation of the median filter
     """
