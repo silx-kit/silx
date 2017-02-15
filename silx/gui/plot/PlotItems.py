@@ -406,11 +406,31 @@ class YAxisMixIn(object):
         self._yaxis = yaxis
 
 
+class FillMixIn(object):
+    """Mix-in class for item with fill"""
+
+    def __init__(self):
+        self._fill = False
+
+    def isFill(self):
+        """Returns whether the item is filled or not.
+
+        :rtype: bool
+        """
+        return self._fill
+
+    def _setFill(self, fill):
+        """Set whether to fill the item or not.
+
+        :param bool fill:
+        """
+        self._fill = bool(fill)
+
+
 # Items #######################################################################
 
 
-# TODO curves do not support multiple colors....
-class Curve(Base, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn):
+class Curve(Base, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn):
     """Description of a curve"""
 
     _DEFAULT_Z_LAYER = 1
@@ -434,6 +454,7 @@ class Curve(Base, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn):
         SymbolMixIn.__init__(self)
         ColorMixIn.__init__(self)
         YAxisMixIn.__init__(self)
+        FillMixIn.__init__(self)
         self._x = ()
         self._y = ()
         self._xerror = None
@@ -441,7 +462,6 @@ class Curve(Base, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn):
 
         self._linewidth = self._DEFAULT_LINEWIDTH
         self._linestyle = self._DEFAULT_LINESTYLE
-        self._fill = False
         self._histogram = None
 
         self._highlightColor = self._DEFAULT_HIGHLIGHT_COLOR
@@ -756,20 +776,6 @@ class Curve(Base, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn):
         if style is None:
             style = self._DEFAULT_LINESTYLE
         self._linestyle = style
-
-    def isFill(self):
-        """Returns whether the curve is filled or not.
-
-        :rtype: bool
-        """
-        return self._fill
-
-    def _setFill(self, fill):
-        """Set whether to fill the curve or not.
-
-        :param bool fill:
-        """
-        self._fill = bool(fill)
 
     # TODO make a separate class for histograms?
     def getHistogramType(self):
@@ -1172,3 +1178,64 @@ class YMarker(_BaseMarker):
         """
         _, y = self.getConstraint()(x, y)
         self._y = float(y)
+
+
+# TODO probably make one class for each kind of shape
+# TODO check fill:polygon/polyline + fill = duplicated
+class Shape(Base, ColorMixIn, FillMixIn):
+    """Description of a shape item"""
+
+    def __init__(self, plot, legend=None):
+        Base.__init__(self, plot, legend)
+        ColorMixIn.__init__(self)
+        FillMixIn.__init__(self)
+        self._overlay = False
+        self._type = 'polygon'
+        self._points = ()
+
+    def isOverlay(self):
+        """Return true if shape is drawn as an overlay
+
+        :rtype: bool
+        """
+        return self._overlay
+
+    def _setOverlay(self, overlay):
+        """Set the overlay state of the shape
+
+        :param overlay:
+        """
+        self._overlay = overlay
+
+    def getType(self):
+        """Returns the type of shape to draw.
+
+        One of: 'hline', 'polygon', 'rectangle', 'vline', 'polyline'
+
+        :rtype: str
+        """
+        return self._type
+
+    def _setType(self, type_):
+        assert type_ in ('hline', 'polygon', 'rectangle', 'vline', 'polyline')
+        self._type = type_
+
+    def getPoints(self, copy=True):
+        """Get the control points of the shape.
+
+        :param bool copy: True (Default) to get a copy,
+                         False to use internal representation (do not modify!)
+        :return: Array of point coordinates
+        :rtype: numpy.ndarray with 2 dimensions
+        """
+        return numpy.array(self._points, copy=copy)
+
+    def _setPoints(self, points, copy=True):
+        """Set the point coordinates
+
+        :param numpy.ndarray points: Array of point coordinates
+        :param bool copy: True (Default) to get a copy,
+                         False to use internal representation (do not modify!)
+        :return:
+        """
+        self._points = numpy.array(points, copy=copy)

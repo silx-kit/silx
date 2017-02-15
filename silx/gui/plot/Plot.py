@@ -298,8 +298,6 @@ class Plot(object):
         self._content = OrderedDict()
         self._backendContent = OrderedDict()
 
-        self._items = OrderedDict()
-
         self._dataRange = False
 
         # line types
@@ -940,12 +938,27 @@ class Plot(object):
         else:
             self.remove(legend, kind='item')
 
-        handle = self._backend.addItem(xdata, ydata, legend=legend,
-                                       shape=shape, color=color,
-                                       fill=fill, overlay=overlay, z=z)
-        self._setDirtyPlot(overlayOnly=overlay)
+        item = PlotItems.Shape(self, legend=legend)
+        item._setInfo(info)
+        item._setType(shape)
+        item._setColor(color)
+        item._setFill(fill)
+        item._setOverlay(overlay)
+        item._setZLayer(z)
+        item._setPoints(numpy.array((xdata, ydata), copy=True).T)
 
-        self._items[legend] = {'handle': handle, 'overlay': overlay}
+        self._content[(legend, 'item')] = item
+
+        self._backendContent[(legend, 'item')] = self._backend.addItem(
+            xdata,
+            ydata,
+            legend=item.getLegend(),
+            shape=item.getType(),
+            color=item.getColor(),
+            fill=item.isFill(),
+            overlay=item.isOverlay(),
+            z=item.getZLayer())
+        self._setDirtyPlot(overlayOnly=item.isOverlay())
 
         self.notify('contentChanged', action='add', kind='item', legend=legend)
 
@@ -1266,22 +1279,15 @@ class Plot(object):
         if kind in self.ITEM_KINDS:  # Kind is a str, make it a tuple
             kind = (kind,)
 
+        for aKind in kind:
+            assert aKind in self.ITEM_KINDS
+
         if legend is None:  # This is a clear
             # Clear each given kind
             for aKind in kind:
-                if aKind in ('curve', 'image', 'marker'):
-                    for legend in self._getItems(
-                            kind=aKind, just_legend=True, withhidden=True):
-                        self.remove(legend=legend, kind=aKind)
-
-                elif aKind == 'item':
-                    # Copy as _items gets changed
-                    for legend in list(self._items):
-                        self.remove(legend, kind='item')
-                    self._items = OrderedDict()
-
-                else:
-                    _logger.warning('remove: Unhandled item kind %s', aKind)
+                for legend in self._getItems(
+                        kind=aKind, just_legend=True, withhidden=True):
+                    self.remove(legend=legend, kind=aKind)
 
         else:  # This is removing a single element
             # Remove each given kind
@@ -1310,24 +1316,17 @@ class Plot(object):
                         self.notify('contentChanged', action='remove',
                                     kind=aKind, legend=legend)
 
-                elif aKind == 'item':
-                    item = self._items.pop(legend, None)
+                elif aKind in ('marker', 'item'):
+                    item = self._content.pop((legend, aKind), None)
                     if item is not None:
-                        if item['handle'] is not None:
-                            self._backend.remove(item['handle'])
-                            self._setDirtyPlot(overlayOnly=item['overlay'])
-
-                        self.notify('contentChanged', action='remove',
-                                    kind='item', legend=legend)
-
-                elif aKind == 'marker':
-                    marker = self._content.pop((legend, aKind), None)
-                    if marker is not None:
                         handle = self._backendContent.pop((legend, aKind), None)
                         if handle is not None:
                             self._backend.remove(handle)
-                            self._setDirtyPlot(
-                                overlayOnly=marker.isDraggable())
+                            if aKind == 'item':
+                                overlay = item.isOverlay()
+                            else: # aKind == 'marker'
+                                overlay = item.isDraggable()
+                            self._setDirtyPlot(overlayOnly=overlay)
 
                         self.notify('contentChanged', action='remove',
                                     kind=aKind, legend=legend)
@@ -1750,7 +1749,7 @@ class Plot(object):
         :param bool withhidden: False (default) to skip hidden curves.
         :return: list of legends or item objects
         """
-        assert kind in ('curve', 'image', 'marker')
+        assert kind in self.ITEM_KINDS
         output = []
         for (legend, type_), item in self._content.items():
             if type_ == kind and (withhidden or item.isVisible()):
@@ -1767,7 +1766,7 @@ class Plot(object):
                            None to get active or last item
         :return: Object describing the item or None
         """
-        assert kind in ('image', 'curve', 'marker')
+        assert kind in self.ITEM_KINDS
 
         if legend is not None:
             return self._content.get((legend, kind), None)
