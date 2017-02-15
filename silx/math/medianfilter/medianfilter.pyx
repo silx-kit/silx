@@ -42,7 +42,7 @@ ctypedef unsigned long uint64
 ctypedef unsigned int uint32
 ctypedef unsigned short uint16
 
-def medianfilter(input_buffer, kernel_dim, bool conditionnal, int nthread=1):
+def medianfilter(input_buffer, kernel_dim, bool conditionnal, int nthread=4):
     """function computing the medianfilter of the given input_buffer.
     Behavior at boundaries : the algoithm is reducing the size of the 
     window/kernel for pixels at boundaries ( There is no mirroring )
