@@ -109,7 +109,7 @@ void median_filter(
             int ymin = std::max(0, pixel_y-halfKernel_y);
             int ymax = std::min(image_dim[1]-1, pixel_y+halfKernel_y);
 
-            // make a set to order the values
+            // vector containing all the pixels in the neighbourhood
             std::vector<const T*> window_values;
 
             for(int win_x = xmin; win_x <= xmax; win_x++)
