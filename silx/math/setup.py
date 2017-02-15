@@ -31,6 +31,8 @@ import os.path
 import numpy
 
 from numpy.distutils.misc_util import Configuration
+
+
 def configuration(parent_package='', top_path=None):
     config = Configuration('math', parent_package, top_path)
     config.add_subpackage('test')
