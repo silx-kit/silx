@@ -1274,6 +1274,8 @@ class PixelIntensitiesHistoAction(PlotAction):
             self._plotHistogram = Plot1D()
             self._plotHistogram.setWindowTitle('Image Intensity Histogram')
             self._plotHistogram.installEventFilter(self)
+            self._plotHistogram.setGraphXLabel("Value")
+            self._plotHistogram.setGraphYLabel("Count")
 
         return self._plotHistogram
 
