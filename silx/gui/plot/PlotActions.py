@@ -51,7 +51,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "15/02/2017"
+__date__ = "16/02/2017"
 
 
 from collections import OrderedDict
@@ -1221,27 +1221,29 @@ class PixelIntensitiesHistoAction(PlotAction):
             if image.ndim == 3:  # RGB(A) images
                 _logger.info('Converting current image from RGB(A) to grayscale\
                     in order to compute the intensity distribution')
-                image = image[:,:,0]*0.299 + image[:,:,1]*0.587 + \
-                        image[:,:,2]*0.114
+                image = (image[:, :, 0] * 0.299 +
+                         image[:, :, 1] * 0.587 +
+                         image[:, :, 2] * 0.114)
 
             xmin = numpy.nanmin(image)
             xmax = numpy.nanmax(image)
             nbins = min(1024, int(numpy.sqrt(image.size)))
             data_range = xmin, xmax
-            
+
             # bad hack: get 256 bins in the case we have a B&W
-            if numpy.issubdtype(image.dtype, numpy.integer) and nbins>(xmax-xmin):
-                nbins = xmax-xmin
+            if numpy.issubdtype(image.dtype, numpy.integer):
+                if nbins > xmax - xmin:
+                    nbins = xmax - xmin
 
             nbins = max(2, nbins)
 
             data = image.ravel().astype(numpy.float32)
-            self._histo, w_histo, edges = Histogramnd(data,
+            self._histo, _w_histo, edges = Histogramnd(data,
                                                 n_bins=nbins,
                                                 histo_range=data_range)
             assert(len(edges) == 1)
-            x=numpy.arange(nbins)*(xmax-xmin)/nbins + xmin
-            y=self._histo
+            x = numpy.arange(nbins) * (xmax - xmin) / nbins + xmin
+            y = self._histo
             self.getHistogramPlotWidget().addCurve(
                 x=x,
                 y=y,
@@ -1252,7 +1254,7 @@ class PixelIntensitiesHistoAction(PlotAction):
             self.getHistogramPlotWidget().setActiveCurve(None)
 
     def eventFilter(self, qobject, event):
-        """Observe when the close event is emitted then 
+        """Observe when the close event is emitted then
         simply uncheck the action button
 
         :param qobject: the object observe
