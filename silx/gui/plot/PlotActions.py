@@ -1238,10 +1238,9 @@ class PixelIntensitiesHistoAction(PlotAction):
             nbins = max(2, nbins)
 
             data = image.ravel().astype(numpy.float32)
-            self._histo, _w_histo, edges = Histogramnd(data,
-                                                n_bins=nbins,
-                                                histo_range=data_range)
-            assert(len(edges) == 1)
+            hostogram = Histogramnd(data, n_bins=nbins, histo_range=data_range)
+            assert(len(hostogram.edges) == 1)
+            self._histo = hostogram.histo
             x = numpy.arange(nbins) * (xmax - xmin) / nbins + xmin
             y = self._histo
             self.getHistogramPlotWidget().addCurve(
