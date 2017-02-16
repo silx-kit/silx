@@ -860,7 +860,8 @@ class CurvesROIDockWidget(qt.QDockWidget):
         xmax, ymax = None, None
 
         for curve in curves:
-            x, y = curve[0:2]
+            x = curve.getXData(copy=False)
+            y = curve.getYData(copy=False)
             if xmin is None:
                 xmin = x.min()
             else:

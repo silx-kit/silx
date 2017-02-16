@@ -1189,7 +1189,7 @@ class Plot(object):
             y=marker.getYPosition(),
             legend=marker.getLegend(),
             text=marker.getText(),
-            color=marker.getFloatColor(),
+            color=marker.getColor(),
             selectable=marker.isSelectable(),
             draggable=marker.isDraggable(),
             symbol=symbol,
@@ -1230,10 +1230,9 @@ class Plot(object):
             _logger.warning('Curve not in plot: %s', legend)
             return
 
-        handle = self._backendContent.get((legend, 'curve'), None)
-
         if flag:
             curve._setVisible(False)
+            handle = self._backendContent.pop((legend, 'curve'), None)
             if handle is not None:
                 self._backend.remove(handle)
         else:
@@ -2547,7 +2546,20 @@ class Plot(object):
         marker = self._getMarker(legend)
         if marker is not None:
             marker._setPosition(x, y)
-            self._addMarker(marker)  # TODO better update handling
+            if isinstance(marker, PlotItems.Marker):
+                symbol = marker.getSymbol()
+            else:
+                symbol = None
+            self._addMarker(
+                x=marker.getXPosition(),
+                y=marker.getYPosition(),
+                legend=marker.getLegend(),
+                text=marker.getText(),
+                color=marker.getColor(),
+                selectable=marker.isSelectable(),
+                draggable=marker.isDraggable(),
+                symbol=symbol,
+                constraint=marker.getConstraint())
 
     def _getAllMarkers(self, just_legend=False):
         """Returns all markers' legend or objects

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -966,9 +966,24 @@ class LegendsDockWidget(qt.QDockWidget):
         :param str oldLegend: The legend of the curve to be change
         :param str newLegend: The new legend of the curve
         """
-        x, y, _legend, _info, params = self.plot.getCurve(oldLegend)[0:5]
+        curve = self.plot.getCurve(oldLegend)
         self.plot.remove(oldLegend, kind='curve')
-        self.plot.addCurve(x, y, legend=newLegend, resetzoom=False, **params)
+        self.plot.addCurve(curve.getXData(copy=False),
+                           curve.getYData(copy=False),
+                           legend=newLegend,
+                           info=curve.getInfo(),
+                           color=curve.getColor(),
+                           symbol=curve.getSymbol(),
+                           linewidth=curve.getLineWidth(),
+                           linestyle=curve.getLineStyle(),
+                           xlabel=curve.getXLabel(),
+                           ylabel=curve.getYLabel(),
+                           xerror=curve.getXErrorData(copy=False),
+                           yerror=curve.getYErrorData(copy=False),
+                           z=curve.getZLayer(),
+                           selectable=curve.isSelectable(),
+                           fill=curve.isFill(),
+                           resetzoom=False)
 
     def _legendSignalHandler(self, ddict):
         """Handles events from the LegendListView signal"""
@@ -1027,19 +1042,21 @@ class LegendsDockWidget(qt.QDockWidget):
         """Sync the LegendSelector widget displayed info with the plot.
         """
         legendList = []
-        curves = self.plot.getAllCurves(withhidden=True)
-        for x, y, legend, _info, params in curves:
+        for curve in self.plot.getAllCurves(withhidden=True):
+            x = curve.getXData(copy=True)
+            y = curve.getYData(copy=True)
+            legend = curve.getLegend()
             # Use active color if curve is active
             if legend == self.plot.getActiveCurve(just_legend=True):
-                color = self.plot.getActiveCurveColor()
+                color = qt.QColor(self.plot.getActiveCurveColor())
             else:
-                color = params['color']
+                color = qt.QColor.fromRgbF(*curve.getColor())
 
             curveInfo = {
-                'color': qt.QColor(color),
-                'linewidth': params['linewidth'],
-                'linestyle': params['linestyle'],
-                'symbol': params['symbol'],
+                'color': color,
+                'linewidth': curve.getLineWidth(),
+                'linestyle': curve.getLineStyle(),
+                'symbol': curve.getSymbol(),
                 'selected': not self.plot.isCurveHidden(legend)}
             legendList.append((legend, curveInfo))
 

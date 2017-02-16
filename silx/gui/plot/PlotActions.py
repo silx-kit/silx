@@ -372,9 +372,9 @@ class ColormapAction(PlotAction):
 
         else:
             # Set dialog from active image
-            colormap = image[4]['colormap']
+            colormap = image.getColormap()
 
-            data = image[0]
+            data = image.getData(copy=False)
 
             goodData = data[numpy.isfinite(data)]
             if goodData.size > 0:
@@ -410,13 +410,12 @@ class ColormapAction(PlotAction):
         image = self.plot.getActiveImage()
         if image is not None:
             # Update image: This do not preserve pixmap
-            params = image[4].copy()
-            params['colormap'] = colormap
-            self.plot.addImage(image[0],
-                               legend=image[1],
+            self.plot.addImage(image.getData(copy=False),
+                               legend=image.getLegend(),
+                               info=image.getInfo(),
+                               colormap=colormap,
                                replace=False,
-                               resetzoom=False,
-                               **params)
+                               resetzoom=False)
 
 
 class KeepAspectRatioAction(PlotAction):
@@ -627,15 +626,17 @@ class SaveAction(PlotAction):
             fmt, csvdelim, autoheader = ("", "", False)
 
         # If curve has no associated label, get the default from the plot
-        xlabel = curve[4]['xlabel']
+        xlabel = curve.getXLabel()
         if xlabel is None:
             xlabel = self.plot.getGraphXLabel()
-        ylabel = curve[4]['ylabel']
+        ylabel = curve.getYLabel()
         if ylabel is None:
             ylabel = self.plot.getGraphYLabel()
 
         try:
-            save1D(filename, curve[0], curve[1],
+            save1D(filename,
+                   curve.getXData(copy=False),
+                   curve.getYData(copy=False),
                    xlabel, [ylabel],
                    fmt=fmt, csvdelim=csvdelim,
                    autoheader=autoheader)
@@ -664,8 +665,11 @@ class SaveAction(PlotAction):
         curve = curves[0]
         scanno = 1
         try:
-            specfile = savespec(filename, curve[0], curve[1],
-                                curve[4]['xlabel'], curve[4]['ylabel'],
+            specfile = savespec(filename,
+                                curve.getXData(copy=False),
+                                curve.getYData(copy=False),
+                                curve.getXLabel(),
+                                curve.getYLabel(),
                                 fmt="%.7g", scan_number=1, mode="w",
                                 write_file_header=True,
                                 close_file=False)
@@ -676,8 +680,11 @@ class SaveAction(PlotAction):
         for curve in curves[1:]:
             try:
                 scanno += 1
-                specfile = savespec(specfile, curve[0], curve[1],
-                                    curve[4]['xlabel'], curve[4]['ylabel'],
+                specfile = savespec(specfile,
+                                    curve.getXData(copy=False),
+                                    curve.getYData(copy=False),
+                                    curve.getXLabel(),
+                                    curve.getYLabel(),
                                     fmt="%.7g", scan_number=scanno, mode="w",
                                     write_file_header=False,
                                     close_file=False)
@@ -705,7 +712,7 @@ class SaveAction(PlotAction):
                 self.plot, "No Data", "No image to be saved")
             return False
 
-        data = image[0]
+        data = image.getData(copy=False)
 
         # TODO Use silx.io for writing files
         if nameFilter == self.IMAGE_FILTER_EDF:
@@ -755,7 +762,7 @@ class SaveAction(PlotAction):
         elif nameFilter in (self.IMAGE_FILTER_RGB_PNG,
                             self.IMAGE_FILTER_RGB_TIFF):
             # Apply colormap to data
-            colormap = image[4]['colormap']
+            colormap = image.getColormap()
             scalarMappable = Colors.getMPLScalarMappable(colormap, data)
             rgbaImage = scalarMappable.to_rgba(data, bytes=True)
 
@@ -1112,7 +1119,9 @@ class FitAction(PlotAction):
             return
         self.xlabel = self.plot.getGraphXLabel()
         self.ylabel = self.plot.getGraphYLabel()
-        self.x, self.y, self.legend = curve[0:3]
+        self.x = curve.getXData(copy=False)
+        self.y = curve.getYData(copy=False)
+        self.legend = curve.getLegend()
         self.xmin, self.xmax = self.plot.getGraphXLimits()
 
         # open a window with a FitWidget

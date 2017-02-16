@@ -473,18 +473,15 @@ class StackView(qt.QMainWindow):
         return self.__transposed_view, params
 
     def getActiveImage(self, just_legend=False):
-        """Returns the currently active image.
+        """Returns the currently active image object.
 
         It returns None in case of not having an active image.
-
-        Default output has the form: [data, legend, info, pixmap, params]
-        where params is a dictionary containing image parameters.
 
         :param bool just_legend: True to get the legend of the image,
             False (the default) to get the image data and info.
             Note: :class:`StackView` uses the same legend for all frames.
-        :return: legend or [data, legend, info, pixmap, params]
-        :rtype: str or list
+        :return: legend or image object
+        :rtype: str or list or None
         """
         return self._plot.getActiveImage(just_legend=just_legend)
 

@@ -1210,7 +1210,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
     def endDrag(self, startPos, endPos):
         if self.markerLegend is not None:
             marker = self.plot._getMarker(self.markerLegend)
-            posData = marker.getPosition()
+            posData = list(marker.getPosition())
             if posData[0] is None:
                 posData[0] = [0, 1]
             if posData[1] is None:

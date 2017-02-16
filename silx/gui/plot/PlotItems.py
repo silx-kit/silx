@@ -347,16 +347,9 @@ class ColorMixIn(object):
     def getColor(self):
         """Returns the RGBA color of the item
 
-        :rtype: 4-tuple of int in [0, 255]
-        """
-        return self._color
-
-    def getFloatColor(self):
-        """Returns the RGBA color of the item
-
         :rtype: 4-tuple of float in [0, 1]
         """
-        return numpy.array(self._color, dtype='float32') / 255.
+        return self._color
 
     def _setColor(self, color, copy=True):
         """Set item color
@@ -373,7 +366,7 @@ class ColorMixIn(object):
             color = numpy.array(color, copy=copy)
             # TODO more checks
             if color.ndim == 1:  # Single RGBA color
-                assert color.size == 4
+                color = Colors.rgba(color)
             else:  # Array of colors
                 assert color.ndim == 2
             self._color = color

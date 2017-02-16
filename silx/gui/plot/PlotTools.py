@@ -160,8 +160,9 @@ class PositionInfo(qt.QWidget):
 
                 activeCurve = self.plot.getActiveCurve()
                 if activeCurve:
-                    xData, yData, _legend, _info, params = activeCurve[0:5]
-                    if params['symbol']:  # Only handled if symbols on curve
+                    xData = activeCurve.getXData(copy=False)
+                    yData = activeCurve.getYData(copy=False)
+                    if activeCurve.getSymbol():  # Only handled if symbols on curve
                         closestIndex = numpy.argmin(
                             pow(xData - x, 2) + pow(yData - y, 2))
 
@@ -169,7 +170,7 @@ class PositionInfo(qt.QWidget):
                         yClosest = yData[closestIndex]
 
                         closestInPixels = self.plot.dataToPixel(
-                            xClosest, yClosest, axis=params['yaxis'])
+                            xClosest, yClosest, axis=activeCurve.getYAxis())
                         if closestInPixels is not None:
                             xClosest, yClosest = closestInPixels
                             xPixel, yPixel = event['xpixel'], event['ypixel']
