@@ -346,10 +346,10 @@ class ProfileToolBar(qt.QToolBar):
 
     def __init__(self, parent=None, plot=None, profileWindow=None,
                  title='Profile Selection'):
-        super(ProfileToolBar, self).__init__(title, parent)
         assert plot is not None
         self.plot = plot
-
+        super(ProfileToolBar, self).__init__(title, parent)
+        
         self._overlayColor = None
         self._defaultOverlayColor = 'red'  # update when active image change
 
