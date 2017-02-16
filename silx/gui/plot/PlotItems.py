@@ -338,7 +338,7 @@ class SymbolMixIn(object):
 class ColorMixIn(object):
     """Mix-in class for item with color"""
 
-    _DEFAULT_COLOR = (0, 0, 0, 255)
+    _DEFAULT_COLOR = (0., 0., 0., 1.)
     """Default color of the item"""
 
     def __init__(self):
@@ -1013,7 +1013,7 @@ class Scatter(Base, ColormapMixIn, SymbolMixIn):
 class _BaseMarker(Base, DraggableMixIn, ColorMixIn):
     """Base class for markers"""
 
-    _DEFAULT_COLOR = (0, 0, 0, 255)
+    _DEFAULT_COLOR = (0., 0., 0., 1.)
     """Default color of the markers"""
 
     def __init__(self, plot, legend=None):

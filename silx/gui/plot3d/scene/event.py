@@ -56,7 +56,7 @@ class Notifier(object):
         if listener not in self._listeners:
             self._listeners.append(listener)
         else:
-            _logger.warn('Ignoring addition of an already registered listener')
+            _logger.warning('Ignoring addition of an already registered listener')
 
     def removeListener(self, listener):
         """Remove a previously registered listener.
