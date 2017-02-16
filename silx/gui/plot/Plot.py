@@ -682,7 +682,7 @@ class Plot(object):
                                                     linewidth=params['linewidth'],
                                                     yaxis=params['yaxis'],
                                                     xerror=None,
-                                                    yerror=None,           
+                                                    yerror=None,
                                                     z=params['z'],
                                                     selectable=params['selectable'],
                                                     fill=params['fill'])
