@@ -194,7 +194,7 @@ setting the interactive mode.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "18/10/2016"
+__date__ = "16/02/2017"
 
 
 from collections import Sequence, OrderedDict, namedtuple
@@ -673,8 +673,9 @@ class Plot(object):
                 xFiltered, yFiltered = self._getHistogramValue(xFiltered,
                                                                yFiltered,
                                                                histogramType=histogram)
-                info = "xerror and yerror won't be displayed for histogram display"
-                _logger.warning(info)
+                if params['xerror'] is not None or params['yerror'] is not None:
+                    info = "xerror and yerror won't be displayed for histogram display"
+                    _logger.warning(info)
                 handle = self._backend.addCurve(xFiltered, yFiltered, legend,
                                                     color=params['color'],
                                                     symbol=params['symbol'],
