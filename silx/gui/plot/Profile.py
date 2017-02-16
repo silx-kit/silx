@@ -346,10 +346,10 @@ class ProfileToolBar(qt.QToolBar):
 
     def __init__(self, parent=None, plot=None, profileWindow=None,
                  title='Profile Selection'):
-        super(ProfileToolBar, self).__init__(title, parent)
         assert plot is not None
         self.plot = plot
-
+        super(ProfileToolBar, self).__init__(title, parent)
+        
         self._overlayColor = None
         self._defaultOverlayColor = 'red'  # update when active image change
 
@@ -358,7 +358,7 @@ class ProfileToolBar(qt.QToolBar):
         if profileWindow is None:
             # Import here to avoid cyclic import
             from .PlotWindow import Plot1D  # noqa
-            self.profileWindow = Plot1D()
+            self.profileWindow = Plot1D(self)
             self._ownProfileWindow = True
         else:
             self.profileWindow = profileWindow
@@ -447,8 +447,9 @@ class ProfileToolBar(qt.QToolBar):
         :param qobject: the object observe
         :param event: the event received by qobject
         """
-        if event.type() in (qt.QEvent.Close, qt.QEvent.Hide):
-            self.clearProfile()
+        if hasattr(self, "plot"):
+            if event.type() in (qt.QEvent.Close, qt.QEvent.Hide):
+                self.clearProfile()
 
         return qt.QToolBar.eventFilter(self, qobject, event)
 
@@ -741,6 +742,8 @@ class Profile3DToolBar(ProfileToolBar):
         :param qobject: the observed object
         :param event: the event received by qobject
         """
+        if not hasattr(self, "plot"):
+            return False  # allow further processing of event by following filters
         if event.type() in (qt.QEvent.Close, qt.QEvent.Hide):
             # when the container widget is closed/hidden, clear the profile
             if qobject is self.ndProfileWindow:
