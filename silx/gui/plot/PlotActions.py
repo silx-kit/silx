@@ -1253,6 +1253,9 @@ class PixelIntensitiesHistoAction(PlotAction):
                 histogram='center')
             plot.setActiveCurve(None)
 
+            colormap = self.plot.getDefaultColormap()
+            plot.setXAxisLogarithmic(colormap["normalization"] == "log")
+
     def eventFilter(self, qobject, event):
         """Observe when the close event is emitted then
         simply uncheck the action button
