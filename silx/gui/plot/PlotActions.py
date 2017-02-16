@@ -1243,14 +1243,15 @@ class PixelIntensitiesHistoAction(PlotAction):
             self._histo = hostogram.histo
             x = numpy.arange(nbins) * (xmax - xmin) / nbins + xmin
             y = self._histo
-            self.getHistogramPlotWidget().addCurve(
+            plot = self.getHistogramPlotWidget()
+            plot.addCurve(
                 x=x,
                 y=y,
                 legend='pixel intensity',
                 fill=True,
                 color='red',
                 histogram='center')
-            self.getHistogramPlotWidget().setActiveCurve(None)
+            plot.setActiveCurve(None)
 
     def eventFilter(self, qobject, event):
         """Observe when the close event is emitted then
