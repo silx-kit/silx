@@ -743,7 +743,7 @@ class Profile3DToolBar(ProfileToolBar):
         :param event: the event received by qobject
         """
         if not hasattr(self, "plot"):
-            return
+            return False  # allow further processing of event by following filters
         if event.type() in (qt.QEvent.Close, qt.QEvent.Hide):
             # when the container widget is closed/hidden, clear the profile
             if qobject is self.ndProfileWindow:
