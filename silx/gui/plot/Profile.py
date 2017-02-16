@@ -440,6 +440,9 @@ class ProfileToolBar(qt.QToolBar):
 
         # will manage the close event
         self.profileWindow.installEventFilter(self)
+        
+    def __del__(self):
+        self.profileWindow.removeEventFilter(self)
 
     def eventFilter(self, qobject, event):
         """Observe when the close event is emitted to clear the profile
