@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -41,10 +41,13 @@ else:
     h5py_missing = False
 
 from .configdict import ConfigDict
+from .utils import is_group, is_file
+
+from silx.io import open as h5open
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "10/02/2017"
 
 logger = logging.getLogger(__name__)
 
@@ -175,9 +178,34 @@ def dicttoh5(treedict, h5file, h5path='/',
         h5f.close()
 
 
-def h5todict(h5file, path="/"):
-    """Read HDF5 file and return a nested dictionary with the complete file
+def _name_contains_string_in_list(name, strlist):
+    if strlist is None:
+        return False
+    for filter_str in strlist:
+        if filter_str in name:
+            return True
+    return False
+
+
+def h5todict(h5file, path="/", exclude_names=None):
+    """Read a HDF5 file and return a nested dictionary with the complete file
     structure and all data.
+
+    Example of usage::
+
+        from silx.io.dictdump import h5todict
+
+        # initialize dict with file header and scan header
+        header94 = h5todict("oleg.dat",
+                            "/94.1/instrument/specfile")
+        # add positioners subdict
+        header94["positioners"] = h5todict("oleg.dat",
+                                           "/94.1/instrument/positioners")
+        # add scan data without mca data
+        header94["detector data"] = h5todict("oleg.dat",
+                                             "/94.1/measurement",
+                                             exclude_names="mca_")
+
 
     .. note:: This function requires `h5py <http://www.h5py.org/>`_ to be
         installed.
@@ -189,25 +217,38 @@ def h5todict(h5file, path="/"):
         scalars). In some cases, you may find that a list of heterogeneous
         data types is converted to a numpy array of strings.
 
-    :param h5file: File name or :class:`h5py.File` object
-    :return: dict
+    :param h5file: File name or :class:`h5py.File` object or spech5 file or
+        fabioh5 file.
+    :param str path: Name of HDF5 group to use as dictionary root level,
+        to read only a sub-group in the file
+    :param list[str] exclude_names: Groups and datasets whose name contains
+        a string in this list will be ignored. Default is None (ignore nothing)
+    :return: Nested dictionary
     """
     if h5py_missing:
         raise h5py_import_error
 
-    if not isinstance(h5file, h5py.File):
-        h5f = h5py.File(h5file, "r")
+    if not is_file(h5file):
+        h5f = h5open(h5file)
     else:
         h5f = h5file
 
     ddict = {}
     for key in h5f[path]:
-
-        if isinstance(h5f[path + "/" + key], h5py.Group):
-            ddict[key] = h5todict(h5f, path + "/" + key)
+        if _name_contains_string_in_list(key, exclude_names):
+            continue
+        if is_group(h5f[path + "/" + key]):
+            ddict[key] = h5todict(h5f,
+                                  path + "/" + key,
+                                  exclude_names=exclude_names)
         else:
             # Convert HDF5 dataset to numpy array
             ddict[key] = h5f[path + "/" + key][...]
+
+    if not is_file(h5file):
+        # close file, if we opened it
+        h5f.close()
+
     return ddict
 
 
