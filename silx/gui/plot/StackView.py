@@ -407,9 +407,21 @@ class StackView(qt.QMainWindow):
         :return: 3D stack and parameters.
         :rtype: (numpy.ndarray, dict)
         """
-        if self.getActiveImage() is None:
+        image = self.getActiveImage()
+        if image is None:
             return None
-        _img, _legend, _info, _pixmap, params = self.getActiveImage()
+
+        params = {
+            'info': image.getInfo(),
+            'origin': image.getOrigin(),
+            'scale': image.getScale(),
+            'z': image.getZLayer(),
+            'selectable': image.isSelectable(),
+            'draggable': image.isDraggable(),
+            'colormap': image.getColormap(),
+            'xlabel': image.getXLabel(),
+            'ylabel': image.getYLabel(),
+        }
         if returnNumpyArray or copy:
             return numpy.array(self._stack, copy=copy), params
 
@@ -441,9 +453,21 @@ class StackView(qt.QMainWindow):
         :return: 3D stack and parameters.
         :rtype: (numpy.ndarray, dict)
         """
-        if self.getActiveImage() is None:
+        image = self.getActiveImage()
+        if image is None:
             return None
-        _img, _legend, _info, _pixmap, params = self.getActiveImage()
+
+        params = {
+            'info': image.getInfo(),
+            'origin': image.getOrigin(),
+            'scale': image.getScale(),
+            'z': image.getZLayer(),
+            'selectable': image.isSelectable(),
+            'draggable': image.isDraggable(),
+            'colormap': image.getColormap(),
+            'xlabel': image.getXLabel(),
+            'ylabel': image.getYLabel(),
+        }
         if returnNumpyArray or copy:
             return numpy.array(self.__transposed_view, copy=copy), params
         return self.__transposed_view, params
@@ -666,10 +690,13 @@ class StackView(qt.QMainWindow):
         # Refresh image with new colormap
         activeImage = self._plot.getActiveImage()
         if activeImage is not None:
-            data, legend, info, _pixmap = activeImage[0:4]
-            self._plot.addImage(data, legend=legend, info=info,
-                                colormap=self.getColormap(),
-                                resetzoom=False)
+            self._plot.addImage(
+                activeImage.getData(copy=False),
+                legend=activeImage.getLegend(),
+                info=activeImage.getInfo(),
+                pixmap=activeImage.getPixmap(copy=False),
+                colormap=self.getColormap(),
+                resetzoom=False)
 
     def isKeepDataAspectRatio(self):
         """Returns whether the plot is keeping data aspect ratio or not."""

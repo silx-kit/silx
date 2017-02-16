@@ -474,7 +474,7 @@ class Curve(Base, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn):
         # key is (isXPositiveFilter, isYPositiveFilter)
         self._boundsCache = {}
 
-    #@deprecated
+    @deprecated
     def __getitem__(self, item):
         """Compatibility with PyMca and silx <= 0.4.0"""
         if isinstance(item, slice):
@@ -814,7 +814,7 @@ class Image(Base, LabelsMixIn, DraggableMixIn, ColormapMixIn):
         self._origin = (0., 0.)
         self._scale = (1., 1.)
 
-    #@deprecated
+    @deprecated
     def __getitem__(self, item):
         """Compatibility with PyMca and silx <= 0.4.0"""
         if isinstance(item, slice):

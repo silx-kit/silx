@@ -145,15 +145,17 @@ def _alignedPartialProfile(data, rowRange, colRange, axis):
     return profile
 
 
-def createProfile(roiInfo, currentData, params, lineWidth):
+def createProfile(roiInfo, currentData, origin, scale, lineWidth):
     """Create the profile line for the the given image.
 
     :param roiInfo: information about the ROI: start point, end point and
         type ("X", "Y", "D")
     :param numpy.ndarray currentData: the 2D image or the 3D stack of images
         on which we compute the profile.
-    :param dict params: parameters of the plot, such as origin, scale
-        and colormap
+    :param origin: (ox, oy) the offset from origin
+    :type origin: 2-tuple of float
+    :param scale: (sx, sy) the scale to use
+    :type scale: 2-tuple of float
     :param int lineWidth: width of the profile line
     :return: `profile, area, profileName, xLabel`, where:
         - profile is a 2D array of the profiles of the stack of images.
@@ -168,8 +170,7 @@ def createProfile(roiInfo, currentData, params, lineWidth):
 
     :rtype: tuple(ndarray, (ndarray, ndarray), str, str)
     """
-    if currentData is None or params is None or\
-        roiInfo is None or lineWidth is None:
+    if currentData is None or roiInfo is None or lineWidth is None:
         raise ValueError("createProfile called with invalide arguments")
 
     # force 3D data (stack of images)
@@ -177,8 +178,6 @@ def createProfile(roiInfo, currentData, params, lineWidth):
         currentData3D = currentData.reshape((1,) + currentData.shape)
     elif len(currentData.shape) == 3:
         currentData3D = currentData
-
-    origin, scale = params['origin'], params['scale']
 
     roiWidth = max(1, lineWidth)
     roiStart, roiEnd, lineProjectionMode = roiInfo
@@ -326,7 +325,6 @@ class ProfileToolBar(qt.QToolBar):
 
     >>> from silx.gui.plot import PlotWindow
     >>> from silx.gui.plot.Profile import ProfileToolBar
-    >>> from silx.gui import qt
 
     >>> plot = PlotWindow()  # Create a PlotWindow
     >>> toolBar = ProfileToolBar(plot=plot)  # Create a profile toolbar
@@ -464,7 +462,7 @@ class ProfileToolBar(qt.QToolBar):
             activeImage = self.plot.getActiveImage()
             if activeImage is not None:
                 self._defaultOverlayColor = cursorColorForColormap(
-                        activeImage[4]['colormap']['name'])
+                        activeImage.getColormap()['name'])
 
             self.updateProfile()
 
@@ -559,8 +557,8 @@ class ProfileToolBar(qt.QToolBar):
 
         This uses the current active image of the plot and the current ROI.
         """
-        imageData = self.plot.getActiveImage()
-        if imageData is None:
+        image = self.plot.getActiveImage()
+        if image is None:
             return
 
         # Clean previous profile area, and previous curve
@@ -570,26 +568,33 @@ class ProfileToolBar(qt.QToolBar):
         self.profileWindow.setGraphXLabel('X')
         self.profileWindow.setGraphYLabel('Y')
 
-        self._createProfile(currentData=imageData[0], params=imageData[4])
+        self._createProfile(currentData=image.getData(copy=False),
+                            origin=image.getOrigin(),
+                            scale=image.getScale(),
+                            colormap=image.getColormap(),
+                            z=image.getZLayer())
 
-    def _createProfile(self, currentData, params):
+    def _createProfile(self, currentData, origin, scale, colormap, z):
         """Create the profile line for the the given image.
 
         :param numpy.ndarray currentData: the image or the stack of images
             on which we compute the profile
-        :param params: parameters of the plot, such as origin, scale
-            and colormap
+        :param origin: (ox, oy) the offset from origin
+        :type origin: 2-tuple of float
+        :param scale: (sx, sy) the scale to use
+        :type scale: 2-tuple of float
+        :param dict colormap: The colormap to use
+        :param int z: The z layer of the image
         """
-        assert ('colormap' in params and 'z' in params)
         if self._roiInfo is None:
             return
 
         profile, area, profileName, xLabel = createProfile(
-                roiInfo=self._roiInfo,
-                currentData=currentData,
-                params=params,
-                lineWidth=self.lineWidthSpinBox.value())
-        colorMap = params['colormap']
+            roiInfo=self._roiInfo,
+            currentData=currentData,
+            origin=origin,
+            scale=scale,
+            lineWidth=self.lineWidthSpinBox.value())
 
         self.profileWindow.setGraphTitle(profileName)
 
@@ -599,7 +604,7 @@ class ProfileToolBar(qt.QToolBar):
                                         legend=profileName,
                                         xlabel=xLabel,
                                         ylabel="Frame index (depth)",
-                                        colormap=colorMap)
+                                        colormap=colormap)
         else:
             coords = numpy.arange(len(profile[0]), dtype=numpy.float32)
             self.profileWindow.addCurve(coords, profile[0],
@@ -611,7 +616,7 @@ class ProfileToolBar(qt.QToolBar):
                           legend=self._POLYGON_LEGEND,
                           color=self.overlayColor,
                           shape='polygon', fill=True,
-                          replace=False, z=params['z'] + 1)
+                          replace=False, z=z + 1)
 
         self._showProfileWindow()
 
@@ -628,7 +633,7 @@ class ProfileToolBar(qt.QToolBar):
 
             profileWindowWidth = self.profileWindow.frameGeometry().width()
             if (profileWindowWidth < spaceOnRightSide or
-                        spaceOnRightSide > spaceOnLeftSide):
+                    spaceOnRightSide > spaceOnLeftSide):
                 # Place profile on the right
                 self.profileWindow.move(winGeom.right(), winGeom.top())
             else:
@@ -655,10 +660,8 @@ class Profile3DAction(PlotAction):
     def __init__(self, plot, parent=None):
         # Uses two images for checked/unchecked states
         self._states = {
-            1: (icons.getQIcon('profile1D'),
-                    "Compute 1D profile"),
-            2: (icons.getQIcon('profile2D'),
-                   "Compute 2D profile")
+            1: (icons.getQIcon('profile1D'), "Compute 1D profile"),
+            2: (icons.getQIcon('profile2D'), "Compute 2D profile")
         }
 
         icon, tooltip = self._states[True]
@@ -822,7 +825,10 @@ class Profile3DToolBar(ProfileToolBar):
             self.profileWindow.setGraphYLabel('Y')
 
             self._createProfile(currentData=stackData[0],
-                                params=stackData[1])
+                                origin=stackData[1]['origin'],
+                                scale=stackData[1]['scale'],
+                                colormap=stackData[1]['colormap'],
+                                z=stackData[1]['z'])
         else:
             raise ValueError("Can't compute profile for data in %s" %
                              str(self._profileDimension))

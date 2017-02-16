@@ -1217,7 +1217,7 @@ class PixelIntensitiesHistoAction(PlotAction):
         activeImage = self.plot.getActiveImage()
 
         if activeImage is not None:
-            image = activeImage[0]
+            image = activeImage.getData(copy=False)
             if image.ndim == 3:  # RGB(A) images
                 _logger.info('Converting current image from RGB(A) to grayscale\
                     in order to compute the intensity distribution')

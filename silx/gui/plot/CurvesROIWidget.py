@@ -792,7 +792,9 @@ class CurvesROIDockWidget(qt.QDockWidget):
             xproc = None
             self.roiWidget.setHeader()
         else:
-            x, y, legend = activeCurve[0:3]
+            x = activeCurve.getXData(copy=False)
+            y = activeCurve.getYData(copy=False)
+            legend = activeCurve.getLegend()
             idx = numpy.argsort(x, kind='mergesort')
             xproc = numpy.take(x, idx)
             self.roiWidget.setHeader('ROIs of %s' % legend)
