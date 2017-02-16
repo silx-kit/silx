@@ -1013,27 +1013,33 @@ class LegendsDockWidget(qt.QDockWidget):
 
         elif ddict['event'] in ["mapToRight", "mapToLeft"]:
             legend = ddict['legend']
-            x, y, legend, _info, params = self.plot.getCurve(legend)[0:5]
-            params = params.copy()
-            if ddict['event'] == "mapToRight":
-                params['yaxis'] = "right"
-            else:
-                params['yaxis'] = "left"
-            self.plot.addCurve(x, y, legend=legend, **params)
+            curve = self.plot.getCurve(legend)
+            yaxis = 'right' if ddict['event'] == 'mapToRight' else 'left'
+            self.plot.addCurve(x=curve.getXData(copy=False),
+                               y=curve.getYData(copy=False),
+                               legend=curve.getLegend(),
+                               info=curve.getInfo(),
+                               yaxis=yaxis)
 
         elif ddict['event'] == "togglePoints":
             legend = ddict['legend']
-            x, y, legend, _info, params = self.plot.getCurve(legend)[0:5]
-            params = params.copy()
-            params['symbol'] = ddict['symbol'] if ddict['points'] else ''
-            self.plot.addCurve(x, y, legend=legend, resetzoom=False, **params)
+            curve = self.plot.getCurve(legend)
+            symbol = ddict['symbol'] if ddict['points'] else ''
+            self.plot.addCurve(x=curve.getXData(copy=False),
+                               y=curve.getYData(copy=False),
+                               legend=curve.getLegend(),
+                               info=curve.getInfo(),
+                               symbol=symbol)
 
         elif ddict['event'] == "toggleLine":
             legend = ddict['legend']
-            x, y, legend, _info, params = self.plot.getCurve(legend)[0:5]
-            params = params.copy()
-            params['linestyle'] = ddict['linestyle'] if ddict['line'] else ''
-            self.plot.addCurve(x, y, legend=legend, resetzoom=False, **params)
+            curve = self.plot.getCurve(legend)
+            linestyle = ddict['linestyle'] if ddict['line'] else ''
+            self.plot.addCurve(x=curve.getXData(copy=False),
+                               y=curve.getYData(copy=False),
+                               legend=curve.getLegend(),
+                               info=curve.getInfo(),
+                               linestyle=linestyle)
 
         else:
             _logger.debug("unhandled event %s", str(ddict['event']))
