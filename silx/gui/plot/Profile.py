@@ -358,7 +358,7 @@ class ProfileToolBar(qt.QToolBar):
         if profileWindow is None:
             # Import here to avoid cyclic import
             from .PlotWindow import Plot1D  # noqa
-            self.profileWindow = Plot1D()
+            self.profileWindow = Plot1D(self)
             self._ownProfileWindow = True
         else:
             self.profileWindow = profileWindow
@@ -440,9 +440,6 @@ class ProfileToolBar(qt.QToolBar):
 
         # will manage the close event
         self.profileWindow.installEventFilter(self)
-        
-    def __del__(self):
-        self.profileWindow.removeEventFilter(self)
 
     def eventFilter(self, qobject, event):
         """Observe when the close event is emitted to clear the profile
