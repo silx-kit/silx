@@ -44,87 +44,9 @@ from . import Colors
 
 from ...third_party.six import string_types
 from ...utils.decorators import deprecated
-from ...utils.weakref import WeakList
 
 
 _logger = logging.getLogger(__name__)
-
-
-# Ideas:
-# - asDict method
-# - copy instance
-# - separate data and style: each item has a getData and a getStyle methods?
-#   so style can be reused...
-# - setters for each objects
-# - events for modification
-# - add bounding box to items
-# - item: hline, vline, polyline, polygon, rectangle...
-
-
-class _Signal(object):
-    """Event source providing PyQt-like signal API.
-
-    This is a simple event system providing a replacement for Qt signals
-    when PyQt dependency is not desired.
-
-    Limitation: Do not support connection type, always synchronous.
-
-    Usage:
-
-    >>> class Test(object):
-    ...     def __init__(self):
-    ...         self.sigTest = _Signal(int)  # Create the event source
-    ...     def sendEvent(self, value):
-    ...         self.sigTest.emit(int(value))  # Emit an event
-
-    >>> test = Test()
-    >>> def listener(value): print(value)
-    >>> test.sigTest.connect(listener)  # Register a listener
-    >>> test.sendEvent(1)
-    1
-
-    :param types: List of types the signal is providing to callback
-                  This is used to check emitted arguments
-                  If not provided, no check is performed
-    """
-
-    def __init__(self, *types):
-        self._types = types
-        self._slots = WeakList()
-
-    def connect(self, slot):
-        """Connect this event source to a listener
-
-        :param callable slot: The listener
-        """
-        if slot not in self._slots:
-            self._slots.append(slot)
-        else:
-            _logger.warning(
-                'Ignoring addition of an already registered listener')
-
-    def disconnect(self, slot):
-        """Disconnect a connected listener
-
-        :param callable slot: The listener
-        """
-        try:
-            self._slots.remove(slot)
-        except ValueError:
-            _logger.warning(
-                'Trying to remove a listener that is not registered')
-
-    def emit(self, *args):
-        """Emit an event
-
-        :param args: Argument to provide to listeners
-        """
-        if self._types:
-            assert len(args) == len(self._types)
-            for arg, type_ in zip(args, self._types):
-                assert isinstance(arg, type_)
-        for slot in self._slots:
-            slot(*args)
 
 
 class Base(object):
@@ -774,7 +696,7 @@ class Curve(Base, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn):
             style = self._DEFAULT_LINESTYLE
         self._linestyle = style
 
-    # TODO make a separate class for histograms?
+    # TODO make a separate class for histograms
     def getHistogramType(self):
         """Histogram curve rendering style.
 
@@ -945,71 +867,6 @@ class Image(Base, LabelsMixIn, DraggableMixIn, ColormapMixIn):
         else:  # single value scale
             scale = float(scale), float(scale)
         self._scale = scale
-
-
-class Scatter(Base, ColormapMixIn, SymbolMixIn):
-    """Description of a scatter plot"""
-
-    # TODO add toRgba method
-
-    _DEFAULT_SYMBOL = 'o'
-    """Default symbol of the scatter plots"""
-
-    def __init__(self, plot, legend=None):
-        Base.__init__(self, plot, legend)
-        ColormapMixIn.__init__(self)
-        SymbolMixIn.__init__(self)
-        self._x = ()
-        self._y = ()
-        self._value = ()
-
-    def getXData(self, copy=True):
-        """Returns the x coordinates of the data points
-
-        :param copy: True (Default) to get a copy,
-                     False to use internal representation (do not modify!)
-        :rtype: numpy.ndarray
-        """
-        return numpy.array(self._x, copy=copy)
-
-    def getYData(self, copy=True):
-        """Returns the y coordinates of the data points
-
-        :param copy: True (Default) to get a copy,
-                     False to use internal representation (do not modify!)
-        :rtype: numpy.ndarray
-        """
-        return numpy.array(self._y, copy=copy)
-
-    def getValueData(self, copy=True):
-        """Returns the value of the data points
-
-        :param copy: True (Default) to get a copy,
-                     False to use internal representation (do not modify!)
-        :rtype: numpy.ndarray
-        """
-        return numpy.array(self._value, copy=copy)
-
-    def getData(self, copy=True):
-        """Returns the x, y coordinates and the value of the data points
-
-        :param copy: True (Default) to get a copy,
-                     False to use internal representation (do not modify!)
-        :returns: (x, y, value)
-        :rtype: 3-tuple of numpy.ndarray
-        """
-        x = self.getXData(copy)
-        y = self.getYData(copy)
-        value = self.getValueData(copy)
-        return x, y, value
-
-    def _setData(self, x, y, value, copy=True):
-        x = numpy.array(x, copy=copy)
-        y = numpy.array(y, copy=copy)
-        value = numpy.array(value, copy=copy)
-        assert x.ndim == y.ndim == value.ndim == 1
-        assert len(x) == len(y) == len(value)
-        self._x, self._y, self._value = x, y, value
 
 
 # Markers ####################################################################
