@@ -1049,8 +1049,6 @@ class LegendsDockWidget(qt.QDockWidget):
         """
         legendList = []
         for curve in self.plot.getAllCurves(withhidden=True):
-            x = curve.getXData(copy=True)
-            y = curve.getYData(copy=True)
             legend = curve.getLegend()
             # Use active color if curve is active
             if legend == self.plot.getActiveCurve(just_legend=True):

@@ -620,16 +620,16 @@ class Plot(object):
                     info = "xerror and yerror won't be displayed for histogram display"
                     _logger.warning(info)
                 handle = self._backend.addCurve(xFiltered, yFiltered, legend,
-                                                    color=curve.getColor(),
-                                                    symbol=curve.getSymbol(),
-                                                    linestyle=curve.getLineStyle(),
-                                                    linewidth=curve.getLineWidth(),
-                                                    yaxis=curve.getYAxis(),
-                                                    xerror=None,
-                                                    yerror=None,           
-                                                    z=curve.getZLayer(),
-                                                    selectable=curve.isSelectable(),
-                                                    fill=curve.isFill())
+                                                color=curve.getColor(),
+                                                symbol=curve.getSymbol(),
+                                                linestyle=curve.getLineStyle(),
+                                                linewidth=curve.getLineWidth(),
+                                                yaxis=curve.getYAxis(),
+                                                xerror=None,
+                                                yerror=None,
+                                                z=curve.getZLayer(),
+                                                selectable=curve.isSelectable(),
+                                                fill=curve.isFill())
             else:
                 handle = self._backend.addCurve(xFiltered, yFiltered, legend,
                                                 color=curve.getColor(),
@@ -680,20 +680,20 @@ class Plot(object):
         # for now we consider that the spaces between xs are constant
         edges = x.copy()
         if histogramType is 'left':
-            width=1
-            if len(x) >1:
-                width=x[1]-x[0]
-            edges=numpy.append(x[0]-width, edges)
+            width = 1
+            if len(x) > 1:
+                width = x[1]-x[0]
+            edges = numpy.append(x[0]-width, edges)
         if histogramType is 'center':
             edges = Plot._computeEdges(edges, 'right')
-            widths = (edges[1:]-edges[0:-1]) /2.0
+            widths = (edges[1:]-edges[0:-1]) / 2.0
             widths = numpy.append(widths, widths[-1])
             edges = edges - widths
         if histogramType is 'right':
-            width=1
-            if len(x) >1:
-                width=x[-1]-x[-2]
-            edges=numpy.append(edges, x[-1]+width)
+            width = 1
+            if len(x) > 1:
+                width = x[-1]-x[-2]
+            edges = numpy.append(edges, x[-1]+width)
 
         return edges
 
@@ -704,32 +704,32 @@ class Plot(object):
         :param x: the x value of the curve to transform in an histogram
         :param y: the y value of the curve to transform in an histogram
         :param histogramType: the type of histogram we wan't to generate.
-             This define the way to center the histogram values compared to the 
+             This define the way to center the histogram values compared to the
              curve value. Possible values can be::
 
              - 'left'
              - 'right'
              - 'center'
 
-        :return: a tuple(x, y) which are the value of the histogram to be 
+        :return: a tuple(x, y) which are the value of the histogram to be
              displayed as a curve
         """
         assert(histogramType in ['left', 'right', 'center'])
         if len(x) == len(y)+1:
-            edges=x
+            edges = x
         else:
-            edges=Plot._computeEdges(x, histogramType)
-        assert(len(edges)>1)
-        
-        resx=numpy.empty((len(edges)-1)*2, dtype=edges.dtype)
-        resy=numpy.empty((len(edges)-1)*2, dtype=edges.dtype)
+            edges = Plot._computeEdges(x, histogramType)
+        assert(len(edges) > 1)
+
+        resx = numpy.empty((len(edges)-1)*2, dtype=edges.dtype)
+        resy = numpy.empty((len(edges)-1)*2, dtype=edges.dtype)
         # duplicate x and y values with a small shift to get the stairs effect
         resx[:-1:2] = edges[:-1]
         resx[1::2] = edges[1:]
         resy[:-1:2] = y
         resy[1::2] = y
 
-        assert(len(resx)==len(resy))
+        assert(len(resx) == len(resy))
         return resx, resy
 
     def addImage(self, data, legend=None, info=None,
@@ -1323,7 +1323,7 @@ class Plot(object):
                             self._backend.remove(handle)
                             if aKind == 'item':
                                 overlay = item.isOverlay()
-                            else: # aKind == 'marker'
+                            else:  # aKind == 'marker'
                                 overlay = item.isDraggable()
                             self._setDirtyPlot(overlayOnly=overlay)
 

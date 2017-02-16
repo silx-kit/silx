@@ -265,9 +265,9 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth):
                 bilinear = BilinearImage(currentData3D[slice_idx, :, :])
 
                 profile.append(bilinear.profile_line(
-                                        (startPt[0] - 0.5, startPt[1] - 0.5),
-                                        (endPt[0] - 0.5, endPt[1] - 0.5),
-                                        roiWidth))
+                    (startPt[0] - 0.5, startPt[1] - 0.5),
+                    (endPt[0] - 0.5, endPt[1] - 0.5),
+                    roiWidth))
             profile = numpy.array(profile)
 
             # Extend ROI with half a pixel on each end, and
@@ -364,42 +364,42 @@ class ProfileToolBar(qt.QToolBar):
 
         # Actions
         self.browseAction = qt.QAction(
-                icons.getQIcon('normal'),
-                'Browsing Mode', None)
+            icons.getQIcon('normal'),
+            'Browsing Mode', None)
         self.browseAction.setToolTip(
-                'Enables zooming interaction mode')
+            'Enables zooming interaction mode')
         self.browseAction.setCheckable(True)
         self.browseAction.triggered[bool].connect(self._browseActionTriggered)
 
         self.hLineAction = qt.QAction(
-                icons.getQIcon('shape-horizontal'),
-                'Horizontal Profile Mode', None)
+            icons.getQIcon('shape-horizontal'),
+            'Horizontal Profile Mode', None)
         self.hLineAction.setToolTip(
-                'Enables horizontal profile selection mode')
+            'Enables horizontal profile selection mode')
         self.hLineAction.setCheckable(True)
         self.hLineAction.toggled[bool].connect(self._hLineActionToggled)
 
         self.vLineAction = qt.QAction(
-                icons.getQIcon('shape-vertical'),
-                'Vertical Profile Mode', None)
+            icons.getQIcon('shape-vertical'),
+            'Vertical Profile Mode', None)
         self.vLineAction.setToolTip(
-                'Enables vertical profile selection mode')
+            'Enables vertical profile selection mode')
         self.vLineAction.setCheckable(True)
         self.vLineAction.toggled[bool].connect(self._vLineActionToggled)
 
         self.lineAction = qt.QAction(
-                icons.getQIcon('shape-diagonal'),
-                'Free Line Profile Mode', None)
+            icons.getQIcon('shape-diagonal'),
+            'Free Line Profile Mode', None)
         self.lineAction.setToolTip(
-                'Enables line profile selection mode')
+            'Enables line profile selection mode')
         self.lineAction.setCheckable(True)
         self.lineAction.toggled[bool].connect(self._lineActionToggled)
 
         self.clearAction = qt.QAction(
-                icons.getQIcon('image'),
-                'Clear Profile', None)
+            icons.getQIcon('image'),
+            'Clear Profile', None)
         self.clearAction.setToolTip(
-                'Clear the profile Region of interest')
+            'Clear the profile Region of interest')
         self.clearAction.setCheckable(False)
         self.clearAction.triggered.connect(self.clearProfile)
 
@@ -425,16 +425,16 @@ class ProfileToolBar(qt.QToolBar):
         self.lineWidthSpinBox.setRange(0, 1000)
         self.lineWidthSpinBox.setValue(1)
         self.lineWidthSpinBox.valueChanged[int].connect(
-                self._lineWidthSpinBoxValueChangedSlot)
+            self._lineWidthSpinBoxValueChangedSlot)
         self.addWidget(self.lineWidthSpinBox)
 
         self.plot.sigInteractiveModeChanged.connect(
-                self._interactiveModeChanged)
+            self._interactiveModeChanged)
 
         # Enable toolbar only if there is an active image
         self.setEnabled(self.plot.getActiveImage(just_legend=True) is not None)
         self.plot.sigActiveImageChanged.connect(
-                self._activeImageChanged)
+            self._activeImageChanged)
 
         # will manage the close event
         self.profileWindow.installEventFilter(self)
@@ -462,7 +462,7 @@ class ProfileToolBar(qt.QToolBar):
             activeImage = self.plot.getActiveImage()
             if activeImage is not None:
                 self._defaultOverlayColor = cursorColorForColormap(
-                        activeImage.getColormap()['name'])
+                    activeImage.getColormap()['name'])
 
             self.updateProfile()
 
@@ -639,7 +639,7 @@ class ProfileToolBar(qt.QToolBar):
             else:
                 # Not enough place on the right, place profile on the left
                 self.profileWindow.move(
-                        max(0, winGeom.left() - profileWindowWidth), winGeom.top())
+                    max(0, winGeom.left() - profileWindowWidth), winGeom.top())
 
         self.profileWindow.show()
 
@@ -666,13 +666,13 @@ class Profile3DAction(PlotAction):
 
         icon, tooltip = self._states[True]
         super(Profile3DAction, self).__init__(
-                plot=plot,
-                icon=icon,
-                text='Profile',
-                tooltip=tooltip,
-                triggered=self.__compute3DProfile,
-                checkable=False,
-                parent=parent)
+            plot=plot,
+            icon=icon,
+            text='Profile',
+            tooltip=tooltip,
+            triggered=self.__compute3DProfile,
+            checkable=False,
+            parent=parent)
 
     def __compute3DProfile(self, profileDimension):
         """Callback when the QAction is activated

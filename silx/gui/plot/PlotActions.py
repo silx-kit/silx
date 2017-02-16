@@ -1132,11 +1132,11 @@ class FitAction(PlotAction):
             from ..fit.FitWidget import FitWidget
             self.fit_widget = FitWidget(parent=self.fit_window)
             self.fit_window.setCentralWidget(
-                    self.fit_widget)
+                self.fit_widget)
             self.fit_widget.guibuttons.DismissButton.clicked.connect(
-                    self.fit_window.close)
+                self.fit_window.close)
             self.fit_widget.sigFitWidgetSignal.connect(
-                    self.handle_signal)
+                self.handle_signal)
             self.fit_window.show()
         else:
             if self.fit_window.isHidden():
@@ -1147,8 +1147,8 @@ class FitAction(PlotAction):
         self.fit_widget.setData(self.x, self.y,
                                 xmin=self.xmin, xmax=self.xmax)
         self.fit_window.setWindowTitle(
-                "Fitting " + self.legend +
-                " on x range %f-%f" % (self.xmin, self.xmax))
+            "Fitting " + self.legend +
+            " on x range %f-%f" % (self.xmin, self.xmax))
 
     def handle_signal(self, ddict):
         x_fit = self.x[self.xmin <= self.x]

@@ -371,6 +371,7 @@ class ColorMixIn(object):
                 assert color.ndim == 2
             self._color = color
 
+
 class YAxisMixIn(object):
     """Mix-in class for item with yaxis"""
 
@@ -590,7 +591,7 @@ class Curve(Base, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn):
 
         if (xPositive, yPositive) not in self._boundsCache:
             # TODO bounds do not take error bars into account (as in silx Plot)
-            x, y, xerror, yerror = self.getData( copy=False, displayed=True)
+            x, y, xerror, yerror = self.getData(copy=False, displayed=True)
             self._boundsCache[(xPositive, yPositive)] = (
                 numpy.nanmin(x),
                 numpy.nanmax(x),

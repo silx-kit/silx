@@ -262,7 +262,7 @@ class StackView(qt.QMainWindow):
         else:
             if perspective > 2 or perspective < 0:
                 raise ValueError(
-                        "Perspective must be 0, 1 or 2, not %s" % perspective)
+                    "Perspective must be 0, 1 or 2, not %s" % perspective)
 
             self._perspective = perspective
             self.__createTransposedView()
@@ -666,7 +666,7 @@ class StackView(qt.QMainWindow):
             elif autoscale and isinstance(self._stack, h5py.Dataset):
                 # h5py dataset has no min()/max() methods
                 raise RuntimeError(
-                        "Cannot auto-scale colormap for a h5py dataset")
+                    "Cannot auto-scale colormap for a h5py dataset")
             else:
                 autoscale = autoscale
             self.__autoscaleCmap = autoscale
@@ -779,7 +779,7 @@ class PlanesWidget(qt.QWidget):
         self.qcbAxisSelection.addItem(icons.getQIcon("cube-left"),
                                       'Dim0-Dim1')
         self.qcbAxisSelection.currentIndexChanged[int].connect(
-                self.__planeSelectionChanged)
+            self.__planeSelectionChanged)
 
         layout0.addWidget(self.qcbAxisSelection)
 

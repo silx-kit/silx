@@ -29,7 +29,7 @@ This widget is meant to work with :class:`PlotWindow`.
 ROI are defined by :
 
 - A name (`ROI` column)
-- A type. The type is the label of the x axis. 
+- A type. The type is the label of the x axis.
   This can be used to apply or not some ROI to a curve and do some post processing.
 - The x coordinate of the left limit (`from` column)
 - The x coordinate of the right limit (`to` column)

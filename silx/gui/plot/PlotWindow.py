@@ -281,7 +281,7 @@ class PlotWindow(PlotWidget):
                 parent=self)
             self._introduceNewDockWidget(self._consoleDockWidget)
             self._consoleDockWidget.visibilityChanged.connect(
-                    self.getConsoleAction().setChecked)
+                self.getConsoleAction().setChecked)
 
         self._consoleDockWidget.setVisible(is_checked)
 

@@ -474,15 +474,16 @@ class TestPlotGetCurveImage(unittest.TestCase):
         self.assertEqual(images[0].getLegend(), '1')
         self.assertEqual(images[1].getLegend(), '2')
 
+
 class TestPlotHistogram(unittest.TestCase):
     """Basic tests for histogram."""
 
     def testPlotCurveColorFloat(self):
-        x=numpy.array([0, 1, 2])
-        x2=numpy.array([0, 1, 2, 3])
-        x3=numpy.array([-1, 0, 1, 2])
-        x4=numpy.array([-0.5, 0.5, 1.5, 2.5])
-        y=numpy.array([3, 2, 5])
+        x = numpy.array([0, 1, 2])
+        x2 = numpy.array([0, 1, 2, 3])
+        x3 = numpy.array([-1, 0, 1, 2])
+        x4 = numpy.array([-0.5, 0.5, 1.5, 2.5])
+        y = numpy.array([3, 2, 5])
 
         # testing x values for right
         xHisto, yHisto = Plot._getHistogramValue(x, y, 'right')
@@ -515,7 +516,7 @@ class TestPlotHistogram(unittest.TestCase):
 def suite():
     test_suite = unittest.TestSuite()
     for TestClass in (TestPlot, TestPlotRanges, TestPlotGetCurveImage,
-      TestPlotHistogram):
+                      TestPlotHistogram):
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(TestClass))
     return test_suite
