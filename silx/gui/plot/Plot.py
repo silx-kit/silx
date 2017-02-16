@@ -1507,17 +1507,13 @@ class Plot(object):
         """Return the currently active curve.
 
         It returns None in case of not having an active curve.
-        Default output has the form: [x, y, legend, info, params]
-        where params is a dictionary containing curve parameters.
-
-        Warning: Returned values MUST not be modified.
-        Make a copy if you need to modify them.
 
         :param bool just_legend: True to get the legend of the curve,
                                  False (the default) to get the curve data
                                  and info.
-        :return: legend of the active curve or [x, y, legend, info, params]
-        :rtype: str or list
+        :return: Active curve's legend or corresponding
+                 :class:`.PlotItems.Curve`
+        :rtype: str or :class:`.PlotItems.Curve` or None
         """
         if not self.isActiveCurveHandling():
             return None
@@ -1544,17 +1540,12 @@ class Plot(object):
 
         It returns None in case of not having an active image.
 
-        Default output has the form: [data, legend, info, pixmap, params]
-        where params is a dictionary containing image parameters.
-
-        Warning: Returned values MUST not be modified.
-        Make a copy if you need to modify them.
-
         :param bool just_legend: True to get the legend of the image,
                                  False (the default) to get the image data
                                  and info.
-        :return: legend of active image or [data, legend, info, pixmap, params]
-        :rtype: str or list
+        :return: Active image's legend or corresponding
+                 :class:`.PlotItems.Image`
+        :rtype: str or :class:`.PlotItems.Image` or None
         """
         return self._getActiveItem(kind='image', just_legend=just_legend)
 
@@ -1675,16 +1666,16 @@ class Plot(object):
 
         It returns an empty list in case of not having any curve.
 
-        If just_legend is False, it returns a list of the objects
-        describing the curves
-        If just_legend is True, it returns a list of the legends.
+        If just_legend is False, it returns a list of :class:`PlotItems.Curve`
+        objects describing the curves.
+        If just_legend is True, it returns a list of curves' legend.
 
         :param bool just_legend: True to get the legend of the curves,
                                  False (the default) to get the curves' data
                                  and info.
         :param bool withhidden: False (default) to skip hidden curves.
-        :return: list of legends or list of curve objects
-        :rtype: list of str or list of objects
+        :return: list of curves' legend or :class:`.PlotItems.Curve`
+        :rtype: list of str or list of :class:`.PlotItems.Curve`
         """
         return self._getItems(kind='curve',
                               just_legend=just_legend,
@@ -1699,9 +1690,8 @@ class Plot(object):
             The legend identifying the curve.
             If not provided or None (the default), the active curve is returned
             or if there is no active curve, the latest updated curve that is
-            not hidden.
-            is returned if there are curves in the plot.
-        :return: None or object
+            not hidden is returned if there are curves in the plot.
+        :return: None or :class:`.PlotItems.Curve` object
         """
         return self._getItem(kind='curve', legend=legend)
 
@@ -1710,15 +1700,15 @@ class Plot(object):
 
         It returns an empty list in case of not having any image.
 
-        If just_legend is False, it returns a list of objects
-        describing the images.
+        If just_legend is False, it returns a list of :class:`PlotItems.Image`
+        objects describing the images.
         If just_legend is True, it returns a list of legends.
 
         :param bool just_legend: True to get the legend of the images,
                                  False (the default) to get the images'
                                  object.
-        :return: list of legends or list of image objects
-        :rtype: list of str or list of objects
+        :return: list of images' legend or :class:`.PlotItems.Image`
+        :rtype: list of str or list of :class:`.PlotItems.Image`
         """
         return self._getItems(kind='image',
                               just_legend=just_legend,
@@ -1734,7 +1724,7 @@ class Plot(object):
             If not provided or None (the default), the active image is returned
             or if there is no active image, the latest updated image
             is returned if there are images in the plot.
-        :return: None or object
+        :return: None or :class:`.PlotItems.Image` object
         """
         return self._getItem(kind='image', legend=legend)
 

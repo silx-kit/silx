@@ -22,7 +22,10 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides classes that describes Plot content.
+"""This module provides classes that describes :class:`.Plot` content.
+
+Instances of those classes are returned by :class:`.Plot` methods that give
+access to its content such as :meth:`.Plot.getCurve`, :meth:`.Plot.getImage`.
 """
 
 __authors__ = ["T. Vincent"]
