@@ -615,7 +615,7 @@ class Plot(object):
             'symbol': symbol, 'linewidth': linewidth, 'linestyle': linestyle,
             'xlabel': xlabel, 'ylabel': ylabel, 'yaxis': yaxis,
             'xerror': xerror, 'yerror': yerror, 'z': z,
-            'selectable': selectable, 'fill': fill
+            'selectable': selectable, 'fill': fill, 'histogram': histogram
         }
 
         # Check if curve is previously active
@@ -635,7 +635,7 @@ class Plot(object):
                 'linestyle': default_linestyle,
                 'xlabel': None, 'ylabel': None, 'yaxis': 'left',
                 'xerror': None, 'yerror': None, 'z': 1,
-                'selectable': True, 'fill': False
+                'selectable': True, 'fill': False, 'histogram': None
             }
 
         # If a parameter is not given as argument, use its default value
@@ -666,9 +666,9 @@ class Plot(object):
 
         if len(xFiltered) and not self.isCurveHidden(legend):
             # if we want to plot an histogram
-            if histogram in ('left', 'right', 'center'):
+            if params['histogram'] in ('left', 'right', 'center'):
                 assert len(x) in (len(y), len(y)+1)
-                assert histogram in (None, 'left', 'right', 'center')
+                assert params['histogram'] in (None, 'left', 'right', 'center')
 
                 xFiltered, yFiltered = self._getHistogramValue(xFiltered,
                                                                yFiltered,
