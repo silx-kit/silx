@@ -106,7 +106,7 @@ class PlotAction(qt.QAction):
             # Try with icon as a string and load corresponding icon
             icon = icons.getQIcon(icon)
 
-        super(PlotAction, self).__init__(icon, text, None)
+        super(PlotAction, self).__init__(icon, text, parent)
 
         if tooltip is not None:
             self.setToolTip(tooltip)
