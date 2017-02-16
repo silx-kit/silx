@@ -1271,7 +1271,8 @@ class PixelIntensitiesHistoAction(PlotAction):
         """
         from silx.gui.plot.PlotWindow import Plot1D
         if self._plotHistogram is None:
-            self._plotHistogram = Plot1D()
+            self._plotHistogram = Plot1D(parent=self.plot)
+            self._plotHistogram.setWindowFlags(qt.Qt.Window)
             self._plotHistogram.setWindowTitle('Image Intensity Histogram')
             self._plotHistogram.installEventFilter(self)
             self._plotHistogram.setGraphXLabel("Value")
