@@ -28,7 +28,7 @@ and stacks of images"""
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel", "H. Payno"]
 __license__ = "MIT"
-__date__ = "11/01/2017"
+__date__ = "17/02/2017"
 
 
 import numpy
@@ -271,7 +271,6 @@ def createProfile(roiInfo, currentData, params, lineWidth):
                                         roiWidth))
             profile = numpy.array(profile)
 
-
             # Extend ROI with half a pixel on each end, and
             # Convert back to plot coords (x, y)
             length = numpy.sqrt((endPt[0] - startPt[0]) ** 2 +
@@ -447,6 +446,9 @@ class ProfileToolBar(qt.QToolBar):
         :param qobject: the object observe
         :param event: the event received by qobject
         """
+        # FIXME: on close, on some qt version, the object looks to be
+        # half-released, this check avoid to access to invadite objects
+        # see https://github.com/silx-kit/silx/issues/628
         if hasattr(self, "plot"):
             if event.type() in (qt.QEvent.Close, qt.QEvent.Hide):
                 self.clearProfile()
@@ -742,6 +744,9 @@ class Profile3DToolBar(ProfileToolBar):
         :param qobject: the observed object
         :param event: the event received by qobject
         """
+        # FIXME: on close, on some qt version, the object looks to be
+        # half-released, this check avoid to access to invadite objects
+        # see https://github.com/silx-kit/silx/issues/628
         if not hasattr(self, "plot"):
             return False  # allow further processing of event by following filters
         if event.type() in (qt.QEvent.Close, qt.QEvent.Hide):
