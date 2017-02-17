@@ -28,10 +28,10 @@ and stacks of images"""
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel", "H. Payno"]
 __license__ = "MIT"
-__date__ = "11/01/2017"
+__date__ = "17/02/2017"
 
 
-import numpy 
+import numpy
 
 from silx.image.bilinear import BilinearImage
 
@@ -133,7 +133,7 @@ def _alignedPartialProfile(data, rowRange, colRange, axis):
     colEnd = min(max(0, colRange[1]), width)
 
     imgProfile = numpy.mean(data[:, rowStart:rowEnd, colStart:colEnd],
-                            axis=axis+1, dtype=numpy.float32)
+                            axis=axis + 1, dtype=numpy.float32)
 
     # Profile including out of bound area
     profile = numpy.zeros((nimages, profileLength), dtype=numpy.float32)
@@ -170,7 +170,7 @@ def createProfile(roiInfo, currentData, params, lineWidth):
     """
     if currentData is None or params is None or\
         roiInfo is None or lineWidth is None:
-        return
+        raise ValueError("createProfile called with invalide arguments")
 
     # force 3D data (stack of images)
     if len(currentData.shape) == 2:
@@ -271,7 +271,6 @@ def createProfile(roiInfo, currentData, params, lineWidth):
                                         roiWidth))
             profile = numpy.array(profile)
 
-
             # Extend ROI with half a pixel on each end, and
             # Convert back to plot coords (x, y)
             length = numpy.sqrt((endPt[0] - startPt[0]) ** 2 +
@@ -358,7 +357,8 @@ class ProfileToolBar(qt.QToolBar):
         if profileWindow is None:
             # Import here to avoid cyclic import
             from .PlotWindow import Plot1D  # noqa
-            self.profileWindow = Plot1D()
+            self.profileWindow = Plot1D(self)
+            self.profileWindow.setWindowFlags(qt.Qt.Window)
             self._ownProfileWindow = True
         else:
             self.profileWindow = profileWindow
@@ -447,8 +447,12 @@ class ProfileToolBar(qt.QToolBar):
         :param qobject: the object observe
         :param event: the event received by qobject
         """
-        if event.type() in (qt.QEvent.Close, qt.QEvent.Hide):
-            self.clearProfile()
+        # FIXME: on close, on some qt version, the object looks to be
+        # half-released, this check avoid to access to invadite objects
+        # see https://github.com/silx-kit/silx/issues/628
+        if hasattr(self, "plot"):
+            if event.type() in (qt.QEvent.Close, qt.QEvent.Hide):
+                self.clearProfile()
 
         return qt.QToolBar.eventFilter(self, qobject, event)
 
@@ -741,6 +745,11 @@ class Profile3DToolBar(ProfileToolBar):
         :param qobject: the observed object
         :param event: the event received by qobject
         """
+        # FIXME: on close, on some qt version, the object looks to be
+        # half-released, this check avoid to access to invadite objects
+        # see https://github.com/silx-kit/silx/issues/628
+        if not hasattr(self, "plot"):
+            return False  # allow further processing of event by following filters
         if event.type() in (qt.QEvent.Close, qt.QEvent.Hide):
             # when the container widget is closed/hidden, clear the profile
             if qobject is self.ndProfileWindow:
@@ -751,7 +760,6 @@ class Profile3DToolBar(ProfileToolBar):
             elif (qobject is self._profileWindow1D and self._profileWindow2D.isHidden() or
                   qobject is self._profileWindow2D and self._profileWindow1D.isHidden()):
                     self.ndProfileWindow.hide()
-
 
         return qt.QToolBar.eventFilter(self, qobject, event)
 
