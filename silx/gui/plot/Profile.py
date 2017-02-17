@@ -170,7 +170,7 @@ def createProfile(roiInfo, currentData, params, lineWidth):
     """
     if currentData is None or params is None or\
         roiInfo is None or lineWidth is None:
-        return
+        raise ValueError("createProfile called with invalide arguments")
 
     # force 3D data (stack of images)
     if len(currentData.shape) == 2:
