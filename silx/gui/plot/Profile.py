@@ -31,7 +31,7 @@ __license__ = "MIT"
 __date__ = "11/01/2017"
 
 
-import numpy 
+import numpy
 
 from silx.image.bilinear import BilinearImage
 
@@ -133,7 +133,7 @@ def _alignedPartialProfile(data, rowRange, colRange, axis):
     colEnd = min(max(0, colRange[1]), width)
 
     imgProfile = numpy.mean(data[:, rowStart:rowEnd, colStart:colEnd],
-                            axis=axis+1, dtype=numpy.float32)
+                            axis=axis + 1, dtype=numpy.float32)
 
     # Profile including out of bound area
     profile = numpy.zeros((nimages, profileLength), dtype=numpy.float32)
@@ -754,7 +754,6 @@ class Profile3DToolBar(ProfileToolBar):
             elif (qobject is self._profileWindow1D and self._profileWindow2D.isHidden() or
                   qobject is self._profileWindow2D and self._profileWindow1D.isHidden()):
                     self.ndProfileWindow.hide()
-
 
         return qt.QToolBar.eventFilter(self, qobject, event)
 
