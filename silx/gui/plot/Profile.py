@@ -358,6 +358,7 @@ class ProfileToolBar(qt.QToolBar):
             # Import here to avoid cyclic import
             from .PlotWindow import Plot1D  # noqa
             self.profileWindow = Plot1D(self)
+            self.profileWindow.setWindowFlags(qt.Qt.Window)
             self._ownProfileWindow = True
         else:
             self.profileWindow = profileWindow
