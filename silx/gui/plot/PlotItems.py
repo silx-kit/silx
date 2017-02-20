@@ -49,7 +49,7 @@ from ...utils.decorators import deprecated
 _logger = logging.getLogger(__name__)
 
 
-class Base(object):
+class Item(object):
     """Description of an item of the plot"""
 
     _DEFAULT_Z_LAYER = 0
@@ -349,7 +349,7 @@ class FillMixIn(object):
 # Items #######################################################################
 
 
-class Curve(Base, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn):
+class Curve(Item, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn):
     """Description of a curve"""
 
     _DEFAULT_Z_LAYER = 1
@@ -368,7 +368,7 @@ class Curve(Base, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn):
     """Default highlight color of the item"""
 
     def __init__(self, plot, legend=None):
-        Base.__init__(self, plot, legend)
+        Item.__init__(self, plot, legend)
         LabelsMixIn.__init__(self)
         SymbolMixIn.__init__(self)
         ColorMixIn.__init__(self)
@@ -716,13 +716,13 @@ class Curve(Base, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn):
         self._histogram = histogram
 
 
-class Image(Base, LabelsMixIn, DraggableMixIn, ColormapMixIn):
+class Image(Item, LabelsMixIn, DraggableMixIn, ColormapMixIn):
     """Description of an image"""
 
     # TODO method to get image of data converted to RGBA with current colormap
 
     def __init__(self, plot, legend=None):
-        Base.__init__(self, plot, legend)
+        Item.__init__(self, plot, legend)
         LabelsMixIn.__init__(self)
         DraggableMixIn.__init__(self)
         ColormapMixIn.__init__(self)
@@ -871,14 +871,14 @@ class Image(Base, LabelsMixIn, DraggableMixIn, ColormapMixIn):
 
 # Markers ####################################################################
 
-class _BaseMarker(Base, DraggableMixIn, ColorMixIn):
+class _BaseMarker(Item, DraggableMixIn, ColorMixIn):
     """Base class for markers"""
 
     _DEFAULT_COLOR = (0., 0., 0., 1.)
     """Default color of the markers"""
 
     def __init__(self, plot, legend=None):
-        Base.__init__(self, plot, legend)
+        Item.__init__(self, plot, legend)
         DraggableMixIn.__init__(self)
         ColorMixIn.__init__(self)
 
@@ -1036,11 +1036,11 @@ class YMarker(_BaseMarker):
 
 # TODO probably make one class for each kind of shape
 # TODO check fill:polygon/polyline + fill = duplicated
-class Shape(Base, ColorMixIn, FillMixIn):
+class Shape(Item, ColorMixIn, FillMixIn):
     """Description of a shape item"""
 
     def __init__(self, plot, legend=None):
-        Base.__init__(self, plot, legend)
+        Item.__init__(self, plot, legend)
         ColorMixIn.__init__(self)
         FillMixIn.__init__(self)
         self._overlay = False
