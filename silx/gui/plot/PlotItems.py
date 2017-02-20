@@ -131,11 +131,11 @@ class Item(object):
     def _setSelectable(self, selectable):
         self._selectable = bool(selectable)
 
-    def getZLayer(self):
+    def getZValue(self):
         """Returns the layer on which to draw this item (int)"""
         return self._z
 
-    def _setZLayer(self, z):
+    def _setZValue(self, z):
         self._z = int(z) if z is not None else self._DEFAULT_Z_LAYER
 
     def getInfo(self, copy=True):
@@ -430,7 +430,7 @@ class Curve(Item, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn):
                 'yaxis': self.getYAxis(),
                 'xerror': self.getXErrorData(copy=False),
                 'yerror': self.getYErrorData(copy=False),
-                'z': self.getZLayer(),
+                'z': self.getZValue(),
                 'selectable': self.isSelectable(),
                 'fill': self.isFill()
             }
@@ -763,7 +763,7 @@ class Image(Item, LabelsMixIn, DraggableMixIn, ColormapMixIn):
                 'info': self.getInfo(),
                 'origin': self.getOrigin(),
                 'scale': self.getScale(),
-                'z': self.getZLayer(),
+                'z': self.getZValue(),
                 'selectable': self.isSelectable(),
                 'draggable': self.isDraggable(),
                 'colormap': self.getColormap(),

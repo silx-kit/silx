@@ -980,7 +980,7 @@ class LegendsDockWidget(qt.QDockWidget):
                            ylabel=curve.getYLabel(),
                            xerror=curve.getXErrorData(copy=False),
                            yerror=curve.getYErrorData(copy=False),
-                           z=curve.getZLayer(),
+                           z=curve.getZValue(),
                            selectable=curve.isSelectable(),
                            fill=curve.isFill(),
                            resetzoom=False)

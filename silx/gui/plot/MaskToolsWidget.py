@@ -874,7 +874,7 @@ class MaskToolsWidget(qt.QWidget):
 
             self._origin = activeImage.getOrigin()
             self._scale = activeImage.getScale()
-            self._z = activeImage.getZLayer() + 1
+            self._z = activeImage.getZValue() + 1
             self._data = activeImage.getData(copy=False)
             if self._data.shape != self.getSelectionMask(copy=False).shape:
                 # Image has not the same size, remove mask and stop listening
@@ -909,7 +909,7 @@ class MaskToolsWidget(qt.QWidget):
 
             self._origin = activeImage.getOrigin()
             self._scale = activeImage.getScale()
-            self._z = activeImage.getZLayer() + 1
+            self._z = activeImage.getZValue() + 1
             self._data = activeImage.getData(copy=False)
             if self._data.shape != self.getSelectionMask(copy=False).shape:
                 self._mask.reset(self._data.shape)

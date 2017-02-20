@@ -587,7 +587,7 @@ class Plot(object):
         if yaxis is not None:
             curve._setYAxis(yaxis)
         if z is not None:
-            curve._setZLayer(z)
+            curve._setZValue(z)
         if selectable is not None:
             curve._setSelectable(selectable)
         if fill is not None:
@@ -629,7 +629,7 @@ class Plot(object):
                                                 yaxis=curve.getYAxis(),
                                                 xerror=None,
                                                 yerror=None,
-                                                z=curve.getZLayer(),
+                                                z=curve.getZValue(),
                                                 selectable=curve.isSelectable(),
                                                 fill=curve.isFill())
             else:
@@ -641,7 +641,7 @@ class Plot(object):
                                                 yaxis=curve.getYAxis(),
                                                 xerror=xerror,
                                                 yerror=yerror,
-                                                z=curve.getZLayer(),
+                                                z=curve.getZValue(),
                                                 selectable=curve.isSelectable(),
                                                 fill=curve.isFill())
             self._setDirtyPlot()
@@ -845,7 +845,7 @@ class Plot(object):
         if scale is not None:
             image._setScale(scale)
         if z is not None:
-            image._setZLayer(z)
+            image._setZValue(z)
         if selectable is not None:
             image._setSelectable(selectable)
         if draggable is not None:
@@ -875,7 +875,7 @@ class Plot(object):
                                             legend=image.getLegend(),
                                             origin=image.getOrigin(),
                                             scale=image.getScale(),
-                                            z=image.getZLayer(),
+                                            z=image.getZValue(),
                                             selectable=image.isSelectable(),
                                             draggable=image.isDraggable(),
                                             colormap=image.getColormap())
@@ -950,7 +950,7 @@ class Plot(object):
         item._setColor(color)
         item._setFill(fill)
         item._setOverlay(overlay)
-        item._setZLayer(z)
+        item._setZValue(z)
         item._setPoints(numpy.array((xdata, ydata), copy=True).T)
 
         self._content[(legend, 'item')] = item
@@ -963,7 +963,7 @@ class Plot(object):
             color=item.getColor(),
             fill=item.isFill(),
             overlay=item.isOverlay(),
-            z=item.getZLayer())
+            z=item.getZValue())
         self._setDirtyPlot(overlayOnly=item.isOverlay())
 
         self.notify('contentChanged', action='add', kind='item', legend=legend)

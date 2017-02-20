@@ -572,7 +572,7 @@ class ProfileToolBar(qt.QToolBar):
                             origin=image.getOrigin(),
                             scale=image.getScale(),
                             colormap=image.getColormap(),
-                            z=image.getZLayer())
+                            z=image.getZValue())
 
     def _createProfile(self, currentData, origin, scale, colormap, z):
         """Create the profile line for the the given image.
