@@ -1251,7 +1251,6 @@ class PixelIntensitiesHistoAction(PlotAction):
                 fill=True,
                 color='red',
                 histogram='center')
-            plot.setActiveCurve(None)
 
             colormap = self.plot.getDefaultColormap()
             plot.setXAxisLogarithmic(colormap["normalization"] == "log")
