@@ -181,7 +181,7 @@ from .specfile import SpecFile
 
 __authors__ = ["P. Knobel", "D. Naudet"]
 __license__ = "MIT"
-__date__ = "13/01/2017"
+__date__ = "06/02/2017"
 
 logging.basicConfig()
 logger1 = logging.getLogger(__name__)
@@ -748,7 +748,8 @@ class SpecH5Dataset(object):
     def __getattribute__(self, item):
         if item in ["value", "name", "parent", "file", "attrs",
                     "shape", "dtype", "size", "h5py_class",
-                    "chunks", "compression", "compression_opts"]:
+                    "chunks", "compression", "compression_opts",
+                    "target"]:
             return object.__getattribute__(self, item)
 
         if hasattr(self.value, item):
@@ -893,11 +894,25 @@ class SpecH5Dataset(object):
 
 class SpecH5LinkToDataset(SpecH5Dataset):
     """Special :class:`SpecH5Dataset` representing a link to a dataset. It
-    works exactly like a regular dataset, but :meth:`SpecH5Group.visit`
+    works like a regular dataset, but :meth:`SpecH5Group.visit`
     and :meth:`SpecH5Group.visititems` methods will recognize that it is
     a link and will ignore it.
+
+    A special attribute contains the name of the target dataset:
+    :attr:`target`
     """
-    pass
+    def __init__(self, value, name, file_, parent, target):
+        """
+        :param value: Actual dataset value
+        :param name: Dataset full name (posix path format, starting with ``/``)
+        :type name: str
+        :param file_: Parent :class:`SpecH5`
+        :param parent: Parent :class:`SpecH5Group` which contains this dataset
+        :param str target: Name of linked dataset
+        """
+        SpecH5Dataset.__init__(self, value, name, file_, parent)
+        self.target = target
+        """Name of the target dataset"""
 
 
 def _dataset_builder(name, specfileh5, parent_group):
@@ -1074,8 +1089,12 @@ def _link_to_dataset_builder(name, specfileh5, parent_group):
     if array_like is None:
         raise KeyError("Name " + name + " does not match any known dataset.")
 
+    target = name.replace("measurement", "instrument")
+    target = target.replace("info/", "")
+
     return SpecH5LinkToDataset(array_like, name,
-                               file_=specfileh5, parent=parent_group)
+                               file_=specfileh5, parent=parent_group,
+                               target=target)
 
 
 def _demultiplex_mca(scan, analyser_index):
@@ -1276,7 +1295,8 @@ class SpecH5Group(object):
         elif is_dataset(full_key):
             return _dataset_builder(full_key, self.file, self)
         elif is_link_to_group(full_key):
-            return SpecH5LinkToGroup(full_key, self.file)
+            link_target = full_key.replace("measurement", "instrument").rstrip("/")[:-4]
+            return SpecH5LinkToGroup(full_key, self.file, link_target)
         elif is_link_to_dataset(full_key):
             return _link_to_dataset_builder(full_key, self.file, self)
         else:
@@ -1347,7 +1367,7 @@ class SpecH5Group(object):
         if instrument_pattern.match(self.name):
             return static_items["scan/instrument"] + mca_list
 
-    def visit(self, func):
+    def visit(self, func, follow_links=False):
         """Recursively visit all names in this group and subgroups.
 
         :param func: Callable (function, method or callable object)
@@ -1375,25 +1395,26 @@ class SpecH5Group(object):
         for member_name in self.keys():
             member = self[member_name]
             ret = None
-            if not is_link_to_dataset(member.name) and\
-               not is_link_to_group(member.name):
+            if (not is_link_to_dataset(member.name) and
+                    not is_link_to_group(member.name)) or follow_links:
                 ret = func(member.name)
             if ret is not None:
                 return ret
             # recurse into subgroups
-            if isinstance(self[member_name], SpecH5Group) and\
-               not isinstance(self[member_name], SpecH5LinkToGroup):
-                self[member_name].visit(func)
+            if isinstance(member, SpecH5Group):
+                if not isinstance(member, SpecH5LinkToGroup) or follow_links:
+                    self[member_name].visit(func, follow_links)
 
-    def visititems(self, func):
+    def visititems(self, func, follow_links=False):
         """Recursively visit names and objects in this group.
 
         :param func: Callable (function, method or callable object)
         :type func: function
 
         You supply a callable (function, method or callable object); it
-        will be called exactly once for each link in this group and every
-        group below it. Your callable must conform to the signature:
+        will be called exactly once for each
+        member in this group and every group below it. Your callable must
+        conform to the signature:
 
             ``func(<member name>, <object>) => <None or return value>``
 
@@ -1417,31 +1438,44 @@ class SpecH5Group(object):
         for member_name in self.keys():
             member = self[member_name]
             ret = None
-            if not is_link_to_dataset(member.name):
+            if (not is_link_to_dataset(member.name) and
+                    not is_link_to_group(member.name)) or follow_links:
                 ret = func(member.name, member)
             if ret is not None:
                 return ret
             # recurse into subgroups
-            if isinstance(self[member_name], SpecH5Group) and\
-               not isinstance(self[member_name], SpecH5LinkToGroup):
-                self[member_name].visititems(func)
+            if isinstance(self[member_name], SpecH5Group):
+                if not isinstance(self[member_name], SpecH5LinkToGroup) or follow_links:
+                    self[member_name].visititems(func, follow_links)
 
 
 class SpecH5LinkToGroup(SpecH5Group):
     """Special :class:`SpecH5Group` representing a link to a group.
 
-    It works exactly like a regular group but :meth:`SpecH5Group.visit`
+    It works like a regular group but :meth:`SpecH5Group.visit`
     and :meth:`SpecH5Group.visititems` methods will recognize it as a
     link and will ignore it.
+
+    An additional attribute indicates the name of the target group:
+    :attr:`target`
     """
+    def __init__(self, name, specfileh5, target):
+        SpecH5Group.__init__(self, name, specfileh5)
+        self.target = target
+        """Name of the target group."""
+
     def keys(self):
         """:return: List of all names of members attached to the target group
         """
         # we only have a single type of link to a group:
         # /1.1/measurement/mca_0/info/ -> /1.1/instrument/mca_0/
         if measurement_mca_info_pattern.match(self.name):
-            link_target = self.name.replace("measurement", "instrument").rstrip("/")[:-4]
-            return SpecH5Group(link_target, self.file).keys()
+            # link_target = self.name.replace("measurement", "instrument").rstrip("/")[:-4]
+            # return SpecH5Group(link_target, self.file).keys()
+            return SpecH5Group(self.target, self.file).keys()
+        else:
+            raise NameError("Unknown link to SpecH5Group: "
+                            "%s -> %s" % (self.name, self.target))
 
 
 class SpecH5(SpecH5Group):
