@@ -1268,7 +1268,9 @@ class PixelIntensitiesHistoAction(PlotAction):
         return PlotAction.eventFilter(self, qobject, event)
 
     def getHistogramPlotWidget(self):
-        """Return the PlotWidget showing the histogram of the pixel intensities
+        """Create the plot histogram if needed, otherwise create it
+        
+        :return: the PlotWidget showing the histogram of the pixel intensities
         """
         from silx.gui.plot.PlotWindow import Plot1D
         if self._plotHistogram is None:
@@ -1279,7 +1281,9 @@ class PixelIntensitiesHistoAction(PlotAction):
         return self._plotHistogram
 
     def getHistogram(self):
-        """Return the histogram displayed in the HistogramPlotWiget
+        """Return the last computed histogram
+
+        :return: the histogram displayed in the HistogramPlotWiget
         """
         return self._histo
 
@@ -1342,6 +1346,9 @@ class MedianFilterAction(PlotAction):
 
 class MedianFilter1DAction(MedianFilterAction):
     """Define the MedianFilterAction for 1D
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`
     """
     def __init__(self, plot, parent=None):
         MedianFilterAction.__init__(self,
@@ -1357,6 +1364,9 @@ class MedianFilter1DAction(MedianFilterAction):
 
 class MedianFilter2DAction(MedianFilterAction):
     """Define the MedianFilterAction for 2D
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`
     """
     def __init__(self, plot, parent=None):
         MedianFilterAction.__init__(self,
