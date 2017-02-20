@@ -560,7 +560,9 @@ class Plot(object):
 
         if curve is None:
             # No previous curve, create a default one and add it to the plot
-            curve = PlotItems.Curve(self, legend)
+            curve = PlotItems.Curve()
+            curve._setPlot(self)
+            curve._setLegend(legend)
             # Set default color, linestyle and symbol
             default_color, default_linestyle = self._getColorAndStyle()
             curve._setColor(default_color)
@@ -830,7 +832,9 @@ class Plot(object):
 
         if image is None:
             # No previous image, create a default one and add it to the plot
-            image = PlotItems.Image(self, legend)
+            image = PlotItems.Image()
+            image._setPlot(self)
+            image._setLegend(legend)
             image._setColormap(self.getDefaultColormap())
             self._content[(legend, 'image')] = image
 
@@ -938,7 +942,9 @@ class Plot(object):
         else:
             self.remove(legend, kind='item')
 
-        item = PlotItems.Shape(self, legend=legend)
+        item = PlotItems.Shape()
+        item._setPlot(self)
+        item._setLegend(legend)
         item._setInfo(info)
         item._setType(shape)
         item._setColor(color)
@@ -1145,13 +1151,17 @@ class Plot(object):
 
         if marker is None:
             # No previous marker, create one
-            marker = markerClass(self, legend)
+            marker = markerClass()
+            marker._setPlot(self)
+            marker._setLegend(legend)
             self._content[(legend, 'marker')] = marker
         elif not isinstance(marker, markerClass):
             _logger.warning(
                 'Adding marker with same legend but different type, replace it')
             self.remove(legend=legend, kind='marker')
-            marker = markerClass(self, legend)
+            marker = markerClass()
+            marker._setPlot(self)
+            marker._setLegend(legend)
             self._content[(legend, 'marker')] = marker
         else:
             # Remove previous marker from backend

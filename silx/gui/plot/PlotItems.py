@@ -61,11 +61,10 @@ class Item(object):
     _DEFAULT_SELECTABLE = False
     """Default selectable state of items"""
 
-    def __init__(self, plot, legend=None):
-        self._plot = weakref.ref(plot)
+    def __init__(self):
+        self._plotRef = None
         self._visible = True
-        legend = str(legend) if legend is not None else self._DEFAULT_LEGEND
-        self._legend = legend
+        self._legend = self._DEFAULT_LEGEND
         self._selectable = self._DEFAULT_SELECTABLE
         self._z = self._DEFAULT_Z_LAYER
         self._info = None
@@ -77,7 +76,19 @@ class Item(object):
 
         :rtype: Plot or None
         """
-        return self._plot()
+        return None if self._plotRef is None else self._plotRef()
+
+    def _setPlot(self, plot):
+        """Set the plot this item belongs to.
+
+        WARNING: This should only be called from the Plot.
+
+        :param Plot plot: The Plot instance.
+        """
+        if plot is not None and self._plotRef is not None:
+            raise RuntimeError('Trying to add a node at two places.')
+            # Alternative: remove it from previous children list
+        self._plotRef = None if plot is None else weakref.ref(plot)
 
     def getBounds(self):  # TODO return a Bounds object rather than a tuple
         """Returns the bounding box of this item in data coordinates
@@ -367,8 +378,8 @@ class Curve(Item, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn):
     _DEFAULT_HIGHLIGHT_COLOR = (0, 0, 0, 255)
     """Default highlight color of the item"""
 
-    def __init__(self, plot, legend=None):
-        Item.__init__(self, plot, legend)
+    def __init__(self):
+        Item.__init__(self)
         LabelsMixIn.__init__(self)
         SymbolMixIn.__init__(self)
         ColorMixIn.__init__(self)
@@ -721,8 +732,8 @@ class Image(Item, LabelsMixIn, DraggableMixIn, ColormapMixIn):
 
     # TODO method to get image of data converted to RGBA with current colormap
 
-    def __init__(self, plot, legend=None):
-        Item.__init__(self, plot, legend)
+    def __init__(self):
+        Item.__init__(self)
         LabelsMixIn.__init__(self)
         DraggableMixIn.__init__(self)
         ColormapMixIn.__init__(self)
@@ -877,8 +888,8 @@ class _BaseMarker(Item, DraggableMixIn, ColorMixIn):
     _DEFAULT_COLOR = (0., 0., 0., 1.)
     """Default color of the markers"""
 
-    def __init__(self, plot, legend=None):
-        Item.__init__(self, plot, legend)
+    def __init__(self):
+        Item.__init__(self)
         DraggableMixIn.__init__(self)
         ColorMixIn.__init__(self)
 
@@ -967,8 +978,8 @@ class Marker(_BaseMarker, SymbolMixIn):
     _DEFAULT_SYMBOL = '+'
     """Default symbol of the marker"""
 
-    def __init__(self, plot, legend=None):
-        _BaseMarker.__init__(self, plot, legend)
+    def __init__(self):
+        _BaseMarker.__init__(self)
         SymbolMixIn.__init__(self)
 
         self._x = 0.
@@ -999,8 +1010,8 @@ class Marker(_BaseMarker, SymbolMixIn):
 class XMarker(_BaseMarker):
     """Description of a marker"""
 
-    def __init__(self, plot, legend=None):
-        _BaseMarker.__init__(self, plot, legend)
+    def __init__(self):
+        _BaseMarker.__init__(self)
         self._x = 0.
 
     def _setPosition(self, x, y):
@@ -1018,8 +1029,8 @@ class XMarker(_BaseMarker):
 class YMarker(_BaseMarker):
     """Description of a marker"""
 
-    def __init__(self, plot, legend=None):
-        _BaseMarker.__init__(self, plot, legend)
+    def __init__(self):
+        _BaseMarker.__init__(self)
         self._y = 0.
 
     def _setPosition(self, x, y):
@@ -1039,8 +1050,8 @@ class YMarker(_BaseMarker):
 class Shape(Item, ColorMixIn, FillMixIn):
     """Description of a shape item"""
 
-    def __init__(self, plot, legend=None):
-        Item.__init__(self, plot, legend)
+    def __init__(self):
+        Item.__init__(self)
         ColorMixIn.__init__(self)
         FillMixIn.__init__(self)
         self._overlay = False
