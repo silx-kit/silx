@@ -618,7 +618,8 @@ class Plot(object):
                 xFiltered, yFiltered = self._getHistogramValue(xFiltered,
                                                                yFiltered,
                                                                histogramType=histogram)
-                if params['xerror'] is not None or params['yerror'] is not None:
+                if (curve.getXErrorData(copy=False) is not None or
+                        curve.getYErrorData(copy=False) is not None):
                     info = "xerror and yerror won't be displayed for histogram display"
                     _logger.warning(info)
                 handle = self._backend.addCurve(xFiltered, yFiltered, legend,
