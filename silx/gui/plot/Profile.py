@@ -320,8 +320,7 @@ class ProfileToolBar(qt.QToolBar):
 
     Attributes:
 
-    - plot: Associated :class:`PlotWindow`.
-    - profileWindow: Associated :class:`PlotWindow` displaying the profile.
+    - plot: Associated :class:`PlotWindow` on which the profile line is drawn.
     - actionGroup: :class:`QActionGroup` of available actions.
 
     To run the following sample code, a QApplication must be initialized.
@@ -337,7 +336,7 @@ class ProfileToolBar(qt.QToolBar):
     >>> plot.show()  # To display the PlotWindow with the profile toolbar
 
     :param plot: :class:`PlotWindow` instance on which to operate.
-    :param profileWindow: :class:`ProfileScanWidget` instance where to
+    :param profileWindow: Plot widget instance where to
                           display the profile curve or None to create one.
     :param str title: See :class:`QToolBar`.
     :param parent: See :class:`QToolBar`.
@@ -357,14 +356,13 @@ class ProfileToolBar(qt.QToolBar):
 
         self._roiInfo = None  # Store start and end points and type of ROI
 
-        self._profileMainWindow = profileWindow
+        self._profileWindow = profileWindow
+        self._profileMainWindow = None
         """Plot widget in which the profile curve is plotted.
         """
 
-        self._ownProfileWindow = False
-        if profileWindow is None:
+        if self._profileWindow is None:
             self._profileMainWindow = ProfileMainWindow(self)
-            self._ownProfileWindow = True
 
         # Actions
         self.browseAction = qt.QAction(
@@ -440,8 +438,9 @@ class ProfileToolBar(qt.QToolBar):
         self.plot.sigActiveImageChanged.connect(
                 self._activeImageChanged)
 
-        # will manage the close event
-        self.getProfileMainWindow().installEventFilter(self)
+        # listen to the profile window events to clear profile line on hide
+        if self.getProfileMainWindow() is not None:
+            self.getProfileMainWindow().installEventFilter(self)
 
     @property
     @deprecated
@@ -451,10 +450,16 @@ class ProfileToolBar(qt.QToolBar):
     def getProfilePlot(self):
         """Return plot widget in which the profile curve is plotted.
         """
-        return self.getProfileMainWindow().getPlot()
+        if self.getProfileMainWindow() is not None:
+            return self.getProfileMainWindow().getPlot()
+
+        # in case the user provided a custom plot for profiles
+        return self._profileWindow
 
     def getProfileMainWindow(self):
         """Return window containing the profile curve widget.
+        This can return *None* if a custom profile plot window was
+        specified in the constructor.
         """
         return self._profileMainWindow
 
@@ -529,7 +534,8 @@ class ProfileToolBar(qt.QToolBar):
         if checked:
             self.clearProfile()
             self.plot.setInteractiveMode('zoom', source=self)
-            self.getProfileMainWindow().hide()
+            if self.getProfileMainWindow() is not None:
+                self.getProfileMainWindow().hide()
 
     def _plotWindowSlot(self, event):
         """Listen to Plot to handle drawing events to refresh ROI and profile.
@@ -633,11 +639,11 @@ class ProfileToolBar(qt.QToolBar):
         self._showProfileMainWindow()
 
     def _showProfileMainWindow(self):
-        """If profile window was created in this widget,
-        it tries to avoid overlapping this widget when shown
+        """If profile window was created by this toolbar,
+        try to avoid overlapping with the toolbar's parent window.
         """
         profileMainWindow = self.getProfileMainWindow()
-        if self._ownProfileWindow and not profileMainWindow:
+        if profileMainWindow is not None:
             winGeom = self.window().frameGeometry()
             qapp = qt.QApplication.instance()
             screenGeom = qapp.desktop().availableGeometry(self)
@@ -655,12 +661,17 @@ class ProfileToolBar(qt.QToolBar):
                 profileMainWindow.move(
                         max(0, winGeom.left() - profileWindowWidth), winGeom.top())
 
-        profileMainWindow.show()
+            profileMainWindow.show()
+        else:
+            self.getProfilePlot().show()
 
     def hideProfileWindow(self):
         """Hide profile window.
         """
-        self.getProfileMainWindow().hide()
+        # this method is currently only used by StackView when the perspective
+        # is changed
+        if self.getProfileMainWindow() is not None:
+            self.getProfileMainWindow().hide()
 
 
 class Profile3DAction(PlotAction):
@@ -708,6 +719,7 @@ class Profile3DToolBar(ProfileToolBar):
         :param str title: See :class:`QToolBar`.
         :param parent: See :class:`QToolBar`.
         """
+        # TODO: add param profileWindow (specify the plot used for profiles)
         super(Profile3DToolBar, self).__init__(parent=parent, plot=plot,
                                                title=title)
 
@@ -723,7 +735,8 @@ class Profile3DToolBar(ProfileToolBar):
         self._setProfileDimensions(self._profileDimensions)
 
         # connect to remove the profile line (manage close event)
-        self.getProfileMainWindow().installEventFilter(self)
+        if self.getProfileMainWindow() is not None:
+            self.getProfileMainWindow().installEventFilter(self)
 
     def eventFilter(self, qobject, event):
         """Observe the show and hide events of the widgets related to
@@ -750,6 +763,7 @@ class Profile3DToolBar(ProfileToolBar):
 
         :param int dimensions: Number of dimensions of the profile data
         """
+        # fixme this assumes that we created _profileMainWindow
         self._profileDimensions = dimensions
         self.getProfileMainWindow().setProfileDimensions(dimensions)
         self.updateProfile()
