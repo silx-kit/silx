@@ -53,13 +53,6 @@ import numpy
 
 from .. import qt
 
-import matplotlib
-import matplotlib.ticker
-from ._matplotlib import FigureCanvasQTAgg
-
-from .Colors import getMPLColormap
-
-
 _logger = logging.getLogger(__name__)
 
 
@@ -85,24 +78,20 @@ class ColorbarWidget(qt.QWidget):
 
         self._label = ''  # Text label to display
 
-        self._fig = matplotlib.figure.Figure()
-        self._fig.set_facecolor("w")
-
-        self._canvas = FigureCanvasQTAgg(self._fig)
-
         super(ColorbarWidget, self).__init__(parent)
         self.setFixedWidth(150)
         layout = qt.QVBoxLayout()
-        layout.addWidget(self._canvas)
         self.setLayout(layout)
+        self.layout().addWidget(qt.QLabel('min', self))
+        self.layout().addWidget(qt.QLabel('max', self))
 
         self._plot = plot
         if self._plot is not None:
             self._plot.sigActiveImageChanged.connect(self._activeImageChanged)
             self._activeImageChanged(
                 None, self._plot.getActiveImage(just_legend=True))
-            self._plot.sigSetDefaultColormap.connect(
-                self._defaultColormapChanged)
+            # self._plot.sigSetDefaultColormap.connect(
+            #     self._defaultColormapChanged)
 
     def getColormap(self):
         """Return the colormap displayed in the colorbar as a dict.
@@ -125,33 +114,28 @@ class ColorbarWidget(qt.QWidget):
         :type colors: numpy.ndarray
         """
         if name is None and colors is None:
-            self._fig.clear()
             self.colorbar = None
             self._colormap = None
-            self._canvas.draw()
             return
 
         if normalization == 'linear':
-            norm = matplotlib.colors.Normalize(vmin=vmin, vmax=vmax)
+            pass
         elif normalization == 'log':
             if vmin <= 0 or vmax <= 0:
                 _logger.warning(
                     'Log colormap with bound <= 0: changing bounds.')
                 vmin, vmax = 1., 10.
-            norm = matplotlib.colors.LogNorm(vmin=vmin, vmax=vmax)
+            pass
         else:
             raise ValueError('Wrong normalization %s' % normalization)
 
-        self._fig.clear()
-        ax = self._fig.add_axes((0.03, 0.15, 0.3, 0.75))
-        self.colorbar = matplotlib.colorbar.ColorbarBase(
-            ax, cmap=getMPLColormap(name), norm=norm, orientation='vertical')
+        self.colorbar = None # TODO : get colormap
+        return
         self.colorbar.set_label(self._label)
         if normalization == 'linear':
             formatter = matplotlib.ticker.FormatStrFormatter('%.4g')
             self.colorbar.formatter = formatter
             self.colorbar.update_ticks()
-        self._canvas.draw()
 
         self._colormap = {'name': name,
                           'normalization': normalization,
@@ -172,7 +156,6 @@ class ColorbarWidget(qt.QWidget):
         self._label = str(label)
         if self.colorbar is not None:
             self.colorbar.set_label(self._label)
-            self._canvas.draw()
 
     def _activeImageChanged(self, previous, legend):
         """Handle plot active curve changed"""
