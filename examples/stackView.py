@@ -32,9 +32,7 @@ from silx.gui import qt
 # from silx.gui.plot import StackView
 from silx.gui.plot.StackView import StackViewMainWindow
 
-
 app = qt.QApplication(sys.argv[1:])
-sys.excepthook = qt.exceptionHandler
     
 # synthetic data, stack of 100 images of size 200x300
 mystack = numpy.fromfunction(
@@ -51,4 +49,3 @@ sv.setLabels(["1st dim (0-99)", "2nd dim (0-199)",
 sv.show()
 
 app.exec_()
-sys.excepthook = sys.__excepthook__

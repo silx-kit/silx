@@ -715,4 +715,4 @@ class Plot2D(PlotWindow):
 
         :return: :class:`Plot1D`
         """
-        return self.profile.profileWindow
+        return self.profile.getProfileWindow()
