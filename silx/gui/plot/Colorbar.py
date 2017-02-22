@@ -49,9 +49,11 @@ __date__ = "18/10/2016"
 
 import logging
 import numpy
+from silx.gui.plot import PlotWidget
 
 
 from .. import qt
+from silx.gui.plot import Colors
 
 _logger = logging.getLogger(__name__)
 
@@ -73,25 +75,82 @@ class ColorbarWidget(qt.QWidget):
     """
 
     def __init__(self, parent=None, plot=None):
-        self.colorbar = None  # matplotlib colorbar
-        self._colormap = None  # PlotWidget compatible colormap
+        super(ColorbarWidget, self).__init__(parent)
+        self._plot = plot
+        self.setContentsMargins(0, 0, 0, 0);
+        self.setEnabled(False)
+
+        self.colorbar = None  # matplotlib colorbar this will be an object
 
         self._label = ''  # Text label to display
 
-        super(ColorbarWidget, self).__init__(parent)
         self.setFixedWidth(150)
         layout = qt.QVBoxLayout()
         self.setLayout(layout)
-        self.layout().addWidget(qt.QLabel('min', self))
-        self.layout().addWidget(qt.QLabel('max', self))
+        self.layout().addWidget(self.__buildMainColorMap())
 
-        self._plot = plot
         if self._plot is not None:
             self._plot.sigActiveImageChanged.connect(self._activeImageChanged)
             self._activeImageChanged(
                 None, self._plot.getActiveImage(just_legend=True))
             # self._plot.sigSetDefaultColormap.connect(
             #     self._defaultColormapChanged)
+
+
+    def __buildMainColorMap(self):
+        widget = qt.QWidget(self)
+        widget.setLayout(qt.QVBoxLayout())
+
+        widget.layout().addWidget(self.__buildMin())
+        widget.layout().addWidget(self.__buildGradationAndLegend())
+        widget.layout().addWidget(self.__buildMax())
+
+        return widget
+        
+    def __buildMin(self):
+        widget = qt.QWidget(self)
+        widget.setLayout(qt.QHBoxLayout())
+        self._minLabel = qt.QLabel('min', widget)
+        widget.layout().addWidget(self._minLabel)
+        # self._lowBoundary = qt.QLineEdit('', parent=widget)
+        # self._lowBoundaryValidator = qt.QDoubleValidator(self._lowBoundary)
+        # self._lowBoundary.setValidator(self._lowBoundaryValidator)
+        # TODO : update min and max boundary according to the type of data and min/max values         
+        # widget.layout().addWidget(self._lowBoundary)
+        widget.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Preferred)
+        widget.setContentsMargins(0, 0, 0, 0);
+        # TODO : reduce margin at least
+        return widget
+
+    def __buildMax(self):
+        widget = qt.QWidget(self)
+        widget.setLayout(qt.QHBoxLayout())
+        self._maxLabel = qt.QLabel('max', widget)
+        widget.layout().addWidget(self._maxLabel)
+        # self._highBoundary = qt.QLineEdit('', parent=widget)
+        # self._highBoundaryValidator = qt.QDoubleValidator(self._highBoundary)
+        # self._highBoundary.setValidator(self._highBoundaryValidator)
+        # TODO : update min and max boundary according to the type of data and min/max values         
+        # widget.layout().addWidget(self._highBoundary)
+        widget.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Preferred)
+        widget.setContentsMargins(0, 0, 0, 0);
+        # TODO : reduce margin at least
+        return widget
+
+    def __buildGradationAndLegend(self):
+        widget = qt.QWidget(self)
+        widget.setLayout(qt.QHBoxLayout())
+        # create gradation
+        self._gradation = GradationV2(parent=widget, colormap=self._plot.getDefaultColormap())
+        widget.layout().addWidget(self._gradation)
+
+        # create legend# TODO : center this
+        self.legend = VerticalLegend('test 1 2 3 4 5 6 7 8', self)
+        widget.layout().addWidget(self.legend)
+
+        widget.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Preferred)
+        widget.setContentsMargins(0, 0, 0, 0);
+        return widget
 
     def getColormap(self):
         """Return the colormap displayed in the colorbar as a dict.
@@ -113,6 +172,7 @@ class ColorbarWidget(qt.QWidget):
         :param colors: Array of RGB(A) colors to use as colormap
         :type colors: numpy.ndarray
         """
+        print('colormap setted')
         if name is None and colors is None:
             self.colorbar = None
             self._colormap = None
@@ -130,12 +190,12 @@ class ColorbarWidget(qt.QWidget):
             raise ValueError('Wrong normalization %s' % normalization)
 
         self.colorbar = None # TODO : get colormap
-        return
-        self.colorbar.set_label(self._label)
-        if normalization == 'linear':
-            formatter = matplotlib.ticker.FormatStrFormatter('%.4g')
-            self.colorbar.formatter = formatter
-            self.colorbar.update_ticks()
+
+        self.legend.setText(self._label)
+        # if normalization == 'linear':
+        #     formatter = matplotlib.ticker.FormatStrFormatter('%.4g')
+        #     self.colorbar.formatter = formatter
+        #     self.colorbar.update_ticks()
 
         self._colormap = {'name': name,
                           'normalization': normalization,
@@ -143,6 +203,15 @@ class ColorbarWidget(qt.QWidget):
                           'vmin': vmin,
                           'vmax': vmax,
                           'colors': colors}
+
+        self.setMinVal(vmin)
+        self.setMaxVal(vmax)
+
+    def setMinVal(self, val):
+        self._minLabel.setText(str(val))
+
+    def setMaxVal(self, val):
+        self._maxLabel.setText(str(val))
 
     def getLabel(self):
         """Return the label of the colorbar (str)"""
@@ -208,3 +277,89 @@ class ColorbarWidget(qt.QWidget):
                          vmin=vmin,
                          vmax=vmax,
                          colors=cmap.get('colors', None))
+
+
+class VerticalLegend(qt.QLabel):
+    """Display vertically the given text"""
+    def __init__(self, text, parent=None):
+        qt.QLabel.__init__(self, text, parent)
+
+    def paintEvent(self, event ):
+        painter = qt.QPainter(self)
+        painter.setFont(self.font())
+
+        painter.translate(0, self.sizeHint().height())
+        painter.rotate(270)
+        painter.drawText(qt.QRect(qt.QPoint(0,0),
+                                  self.sizeHint()),
+                         qt.Qt.AlignHCenter,self.text())
+
+
+    def sizeHint(self):
+        s = qt.QLabel.sizeHint(self)
+        # return qt.QSize(self.rect().bottom(), self.rect().right())
+        return qt.QSize(self.rect().right(), self.rect().bottom())
+
+class Gradation(qt.QWidget):
+
+    def __init__(self, colormap, parent=None, backend=None):
+        qt.QWidget.__init__(self, parent)
+        self.setLayout(qt.QVBoxLayout())
+        self.colorMap = MyColorMap(colormap)
+
+        self.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
+        # self.setContentsMargins(0, 0, 0, 0);
+        self.xs = numpy.arange(0, 256, 1)
+        self.xs = self.xs.reshape(self.xs.shape[0], 1)
+        self._display = PlotWidget(parent=self)
+        self._display.addImage(self.xs)
+        
+        self.layout().addWidget(self._display)
+        # self._display.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
+        # TODO : issue : if not in, plot won't display
+        self.layout().addWidget(qt.QLabel('test', parent=self))
+
+
+class GradationV2(qt.QWidget):
+
+    def __init__(self, colormap, parent=None, backend=None):
+        qt.QWidget.__init__(self, parent)
+        self.setLayout(qt.QVBoxLayout())
+        self.colorMap = MyColorMap(colormap)
+
+        self.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
+
+    def paintEvent(self, event):
+        
+        qt.QWidget.paintEvent(self, event)
+
+        painter = qt.QPainter(self)
+        gradient = qt.QLinearGradient(0, 0, 0, self.rect().height());
+        for pt in numpy.arange(0, 256):
+            position = pt/256.0
+            gradient.setColorAt( position, self.colorMap.getColor(position))
+
+        painter.setBrush(gradient)
+        painter.drawRect(self.rect())
+
+
+class MyColorMap(object):
+    def __init__(self, colormap):
+        self.name = colormap['name']
+        self.normalization = colormap['normalization']
+        self.autoscale = colormap['autoscale']
+        self.vmin = colormap['vmin']
+        self.vmax = colormap['vmax']
+
+        # for now only deal with matplotlib colorbar
+        from silx.gui.plot import Colors
+        cmap = Colors.getMPLColormap(self.name)
+        print(type(cmap))
+        # res = matplotlib.colors.LinearSegmentedColormap('blue', cmap, 256)
+        import matplotlib.cm
+        norm = matplotlib.colors.Normalize(0, 255)
+        self.scalarMappable = matplotlib.cm.ScalarMappable(norm=norm, cmap=cmap)
+
+    def getColor(self, val):
+        color = self.scalarMappable.to_rgba(val*255)
+        return qt.QColor(color[0]*255, color[1]*255, color[2]*255)
