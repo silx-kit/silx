@@ -357,8 +357,16 @@ class ProfileToolBar(qt.QToolBar):
         self._roiInfo = None  # Store start and end points and type of ROI
 
         self._profileWindow = profileWindow
+        """User provided plot widget in which the profile curve is plotted.
+        None if no custom profile plot was provided."""
+
         self._profileMainWindow = None
-        """Plot widget in which the profile curve is plotted.
+        """Main window providing 2 profile plot widgets for 1D or 2D profiles.
+        The window provides two public methods
+            - :meth:`setProfileDimensions`
+            - :meth:`getPlot`: return handle on the actual plot widget
+              currently being used
+        None if the user specified a custom profile plot window.
         """
 
         if self._profileWindow is None:
@@ -438,9 +446,9 @@ class ProfileToolBar(qt.QToolBar):
         self.plot.sigActiveImageChanged.connect(
                 self._activeImageChanged)
 
-        # listen to the profile window events to clear profile line on hide
+        # listen to the profile window signals to clear profile polygon on close
         if self.getProfileMainWindow() is not None:
-            self.getProfileMainWindow().installEventFilter(self)
+            self.getProfileMainWindow().sigClose.connect(self.clearProfile)
 
     @property
     @deprecated
@@ -448,7 +456,8 @@ class ProfileToolBar(qt.QToolBar):
         return self.getProfilePlot()
 
     def getProfilePlot(self):
-        """Return plot widget in which the profile curve is plotted.
+        """Return plot widget in which the profile curve or the
+        profile image is plotted.
         """
         if self.getProfileMainWindow() is not None:
             return self.getProfileMainWindow().getPlot()
@@ -462,21 +471,6 @@ class ProfileToolBar(qt.QToolBar):
         specified in the constructor.
         """
         return self._profileMainWindow
-
-    def eventFilter(self, qobject, event):
-        """Observe when the close event is emitted to clear the profile
-
-        :param qobject: the object observe
-        :param event: the event received by qobject
-        """
-        # FIXME: on close, on some qt version, the object looks to be
-        # half-released, this check avoid to access to invadite objects
-        # see https://github.com/silx-kit/silx/issues/628
-        if hasattr(self, "plot"):
-            if event.type() in (qt.QEvent.Close, qt.QEvent.Hide):
-                self.clearProfile()
-
-        return qt.QToolBar.eventFilter(self, qobject, event)
 
     def _activeImageChanged(self, previous, legend):
         """Handle active image change: toggle enabled toolbar, update curve"""
@@ -733,29 +727,6 @@ class Profile3DToolBar(ProfileToolBar):
         # create the 3D toolbar
         self._profileDimensions = 2
         self._setProfileDimensions(self._profileDimensions)
-
-        # connect to remove the profile line (manage close event)
-        if self.getProfileMainWindow() is not None:
-            self.getProfileMainWindow().installEventFilter(self)
-
-    def eventFilter(self, qobject, event):
-        """Observe the show and hide events of the widgets related to
-        the profile plot (a container widget, a Plot1D and a Plot2D)
-
-        :param qobject: the observed object
-        :param event: the event received by qobject
-        """
-        # FIXME: on close, on some qt version, the object looks to be
-        # half-released, this check prevents accessing invalid objects
-        # see https://github.com/silx-kit/silx/issues/628
-        if not hasattr(self, "plot"):
-            return False  # allow further processing of event by following filters
-        if event.type() in (qt.QEvent.Close, qt.QEvent.Hide):
-            # when the container widget is closed/hidden, clear the profile
-            if qobject is self.getProfileMainWindow():
-                self.clearProfile()
-
-        return qt.QToolBar.eventFilter(self, qobject, event)
 
     def _setProfileDimensions(self, dimensions):
         """Set the dimension in which we want to compute the profile.

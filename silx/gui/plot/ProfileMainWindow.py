@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,11 +34,18 @@ __date__ = "21/02/2017"
 
 class ProfileMainWindow(qt.QMainWindow):
     """QMainWindow providing 2 plot widgets specialized in
-    1D and 2D plotting. Only one of the plots is visible at any given time.
+    1D and 2D plotting, with different toolbars.
+    Only one of the plots is visible at any given time.
     """
     sigProfileDimensionsChanged = qt.Signal(int)
     """This signal is emitted when :meth:`setProfileDimensions` is called.
-    It carries the number of dimensions for the profile data (1 or 2)"""
+    It carries the number of dimensions for the profile data (1 or 2).
+    It can be used to be notified that the profile plot widget has changed.
+    """
+
+    sigClose = qt.Signal()
+    """Emitted by :meth:`closeEvent` (e.g. when the window is closed
+    through the window manager's close icon)."""
 
     def __init__(self, parent=None):
         qt.QMainWindow.__init__(self, parent=parent)
@@ -87,3 +94,7 @@ class ProfileMainWindow(qt.QMainWindow):
             return self._plot2D
         else:
             return self._plot1D
+
+    def closeEvent(self, qCloseEvent):
+        self.sigClose.emit()
+        qCloseEvent.accept()
