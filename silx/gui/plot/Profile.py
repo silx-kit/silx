@@ -748,8 +748,8 @@ class Profile3DToolBar(ProfileToolBar):
         if self._profileDimensions == 1:
             super(Profile3DToolBar, self).updateProfile()
         elif self._profileDimensions == 2:
-            stackData = self.plot.getStack(copy=False,
-                                           returnNumpyArray=True)
+            stackData = self.plot.getCurrentView(copy=False,
+                                                 returnNumpyArray=True)
             if stackData is None:
                 return
             self.plot.remove(self._POLYGON_LEGEND, kind='item')
