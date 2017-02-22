@@ -669,42 +669,6 @@ class ProfileToolBar(qt.QToolBar):
             self.getProfileMainWindow().hide()
 
 
-class Profile3DAction(PlotAction):
-    """PlotAction that emits a signal when checked, to notify
-
-    :param plot: :class:`.PlotWidget` instance on which to operate.
-    :param parent: See :class:`QAction`.
-    """
-    sigProfileDimensionChanged = qt.Signal(int)
-
-    def __init__(self, plot, parent=None):
-        # Uses two images for checked/unchecked states
-        self._states = {
-            1: (icons.getQIcon('profile1D'),
-                    "Compute 1D profile"),
-            2: (icons.getQIcon('profile2D'),
-                   "Compute 2D profile")
-        }
-
-        icon, tooltip = self._states[True]
-        super(Profile3DAction, self).__init__(
-                plot=plot,
-                icon=icon,
-                text='Profile',
-                tooltip=tooltip,
-                triggered=self.__compute3DProfile,
-                checkable=False,
-                parent=parent)
-
-    def __compute3DProfile(self, profileDimension):
-        """Callback when the QAction is activated
-        """
-        icon, tooltip = self._states[profileDimension]
-        self.setIcon(icon)
-        self.setToolTip(tooltip)
-        self.sigProfileDimensionChanged.emit(profileDimension)
-
-
 class Profile3DToolBar(ProfileToolBar):
     def __init__(self, parent=None, plot=None, title='Profile Selection'):
         """QToolBar providing profile tools for an image or a stack of images.
@@ -723,21 +687,21 @@ class Profile3DToolBar(ProfileToolBar):
         self.profile3dAction.computeProfileIn2D()
         self.profile3dAction.setVisible(True)
         self.addWidget(self.profile3dAction)
-        self.profile3dAction.sigDimensionChanged.connect(self._setProfileDimensions)
+        self.profile3dAction.sigDimensionChanged.connect(self._setProfileType)
 
         # create the 3D toolbar
-        self._profileDimensions = 2
-        self._setProfileDimensions(self._profileDimensions)
+        self._profileType = None
+        self._setProfileType(2)
 
-    def _setProfileDimensions(self, dimensions):
-        """Set the dimension in which we want to compute the profile.
-        Valid values are 1 and 2.
+    def _setProfileType(self, dimensions):
+        """Set the profile type: "1D" for a curve (profile on a single image)
+        or "2D" for an image (profile on a stack of images).
 
-        :param int dimensions: Number of dimensions of the profile data
+        :param int dimensions: 1 for a "1D" profile or 2 for a "2D" profile
         """
         # fixme this assumes that we created _profileMainWindow
-        self._profileDimensions = dimensions
-        self.getProfileMainWindow().setProfileDimensions(dimensions)
+        self._profileType = "1D" if dimensions == 1 else "2D"
+        self.getProfileMainWindow().setProfileType(self._profileType)
         self.updateProfile()
 
     def updateProfile(self):
@@ -746,9 +710,9 @@ class Profile3DToolBar(ProfileToolBar):
 
         In 1D profile mode, use the regular parent method.
         """
-        if self._profileDimensions == 1:
+        if self._profileType == "1D":
             super(Profile3DToolBar, self).updateProfile()
-        elif self._profileDimensions == 2:
+        elif self._profileType == "2D":
             stackData = self.plot.getCurrentView(copy=False,
                                                  returnNumpyArray=True)
             if stackData is None:
@@ -762,4 +726,5 @@ class Profile3DToolBar(ProfileToolBar):
             self._createProfile(currentData=stackData[0],
                                 params=stackData[1])
         else:
-            raise ValueError("Profile dimensions must be 1 or 2")
+            raise ValueError(
+                    "Profile type must be 1D or 2D, not %s" % self._profileType)

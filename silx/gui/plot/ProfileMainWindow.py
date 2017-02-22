@@ -55,42 +55,41 @@ class ProfileMainWindow(qt.QMainWindow):
         self._plot1D = None
         self._plot2D = None
         # by default, profile is assumed to be a 1D curve
-        self._profileDimensions = 1
-        self.setProfileDimensions(1)
+        self._profileType = None
+        self.setProfileType("1D")
 
-    def setProfileDimensions(self, dimensions):
+    def setProfileType(self, profileType):
         """Set which profile plot widget (1D or 2D) is to be used
 
-        :param int dimensions: Number of dimensions for profile data
-            (1 dimension for a curve, 2  dimensions for an image)
+        :param str profileType: Type of profile data,
+            "1D" for a curve or "2D" for an image
         """
         # import here to avoid circular import
         from .PlotWindow import Plot1D, Plot2D      # noqa
-        self._profileDimensions = dimensions
+        self._profileType = profileType
 
-        if self._profileDimensions == 1:
+        if self._profileType == "1D":
             if self._plot2D is not None:
                 self._plot2D.setParent(None)   # necessary to avoid widget destruction
             if self._plot1D is None:
                 self._plot1D = Plot1D()
             self.setCentralWidget(self._plot1D)
-        elif self._profileDimensions == 2:
+        elif self._profileType == "2D":
             if self._plot1D is not None:
                 self._plot1D.setParent(None)   # necessary to avoid widget destruction
             if self._plot2D is None:
                 self._plot2D = Plot2D()
             self.setCentralWidget(self._plot2D)
         else:
-            raise ValueError("Profile dimensions must be 1 or 2")
+            raise ValueError("Profile type must be '1D' or '2D'")
 
-        self.sigProfileDimensionsChanged.emit(dimensions)
+        self.sigProfileDimensionsChanged.emit(profileType)
 
     def getPlot(self):
         """Return the profile plot widget which is currently in use.
         This can be the 2D profile plot or the 1D profile plot.
         """
-        assert self._profileDimensions in [1, 2]
-        if self._profileDimensions == 2:
+        if self._profileType == "2D":
             return self._plot2D
         else:
             return self._plot1D
