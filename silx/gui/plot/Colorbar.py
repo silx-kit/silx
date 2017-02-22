@@ -112,11 +112,6 @@ class ColorbarWidget(qt.QWidget):
         widget.setLayout(qt.QHBoxLayout())
         self._minLabel = qt.QLabel('min', widget)
         widget.layout().addWidget(self._minLabel)
-        # self._lowBoundary = qt.QLineEdit('', parent=widget)
-        # self._lowBoundaryValidator = qt.QDoubleValidator(self._lowBoundary)
-        # self._lowBoundary.setValidator(self._lowBoundaryValidator)
-        # TODO : update min and max boundary according to the type of data and min/max values         
-        # widget.layout().addWidget(self._lowBoundary)
         widget.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Preferred)
         widget.setContentsMargins(0, 0, 0, 0);
         # TODO : reduce margin at least
@@ -127,11 +122,6 @@ class ColorbarWidget(qt.QWidget):
         widget.setLayout(qt.QHBoxLayout())
         self._maxLabel = qt.QLabel('max', widget)
         widget.layout().addWidget(self._maxLabel)
-        # self._highBoundary = qt.QLineEdit('', parent=widget)
-        # self._highBoundaryValidator = qt.QDoubleValidator(self._highBoundary)
-        # self._highBoundary.setValidator(self._highBoundaryValidator)
-        # TODO : update min and max boundary according to the type of data and min/max values         
-        # widget.layout().addWidget(self._highBoundary)
         widget.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Preferred)
         widget.setContentsMargins(0, 0, 0, 0);
         # TODO : reduce margin at least
