@@ -28,7 +28,7 @@ and stacks of images"""
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel", "H. Payno"]
 __license__ = "MIT"
-__date__ = "17/02/2017"
+__date__ = "21/02/2017"
 
 
 import numpy
@@ -40,6 +40,9 @@ from .. import qt
 from .Colors import cursorColorForColormap
 from .PlotActions import PlotAction
 from .PlotToolButtons import ProfileToolButton
+from .ProfileMainWindow import ProfileMainWindow
+
+from silx.utils.decorators import deprecated
 
 
 def _alignedFullProfile(data, origin, scale, position, roiWidth, axis):
@@ -317,8 +320,7 @@ class ProfileToolBar(qt.QToolBar):
 
     Attributes:
 
-    - plot: Associated :class:`PlotWindow`.
-    - profileWindow: Associated :class:`PlotWindow` displaying the profile.
+    - plot: Associated :class:`PlotWindow` on which the profile line is drawn.
     - actionGroup: :class:`QActionGroup` of available actions.
 
     To run the following sample code, a QApplication must be initialized.
@@ -334,7 +336,7 @@ class ProfileToolBar(qt.QToolBar):
     >>> plot.show()  # To display the PlotWindow with the profile toolbar
 
     :param plot: :class:`PlotWindow` instance on which to operate.
-    :param profileWindow: :class:`ProfileScanWidget` instance where to
+    :param profileWindow: Plot widget instance where to
                           display the profile curve or None to create one.
     :param str title: See :class:`QToolBar`.
     :param parent: See :class:`QToolBar`.
@@ -354,15 +356,21 @@ class ProfileToolBar(qt.QToolBar):
 
         self._roiInfo = None  # Store start and end points and type of ROI
 
-        if profileWindow is None:
-            # Import here to avoid cyclic import
-            from .PlotWindow import Plot1D  # noqa
-            self.profileWindow = Plot1D(self)
-            self.profileWindow.setWindowFlags(qt.Qt.Window)
-            self._ownProfileWindow = True
-        else:
-            self.profileWindow = profileWindow
-            self._ownProfileWindow = False
+        self._profileWindow = profileWindow
+        """User provided plot widget in which the profile curve is plotted.
+        None if no custom profile plot was provided."""
+
+        self._profileMainWindow = None
+        """Main window providing 2 profile plot widgets for 1D or 2D profiles.
+        The window provides two public methods
+            - :meth:`setProfileDimensions`
+            - :meth:`getPlot`: return handle on the actual plot widget
+              currently being used
+        None if the user specified a custom profile plot window.
+        """
+
+        if self._profileWindow is None:
+            self._profileMainWindow = ProfileMainWindow(self)
 
         # Actions
         self.browseAction = qt.QAction(
@@ -438,23 +446,31 @@ class ProfileToolBar(qt.QToolBar):
         self.plot.sigActiveImageChanged.connect(
                 self._activeImageChanged)
 
-        # will manage the close event
-        self.profileWindow.installEventFilter(self)
+        # listen to the profile window signals to clear profile polygon on close
+        if self.getProfileMainWindow() is not None:
+            self.getProfileMainWindow().sigClose.connect(self.clearProfile)
 
-    def eventFilter(self, qobject, event):
-        """Observe when the close event is emitted to clear the profile
+    @property
+    @deprecated
+    def profileWindow(self):
+        return self.getProfilePlot()
 
-        :param qobject: the object observe
-        :param event: the event received by qobject
+    def getProfilePlot(self):
+        """Return plot widget in which the profile curve or the
+        profile image is plotted.
         """
-        # FIXME: on close, on some qt version, the object looks to be
-        # half-released, this check avoid to access to invadite objects
-        # see https://github.com/silx-kit/silx/issues/628
-        if hasattr(self, "plot"):
-            if event.type() in (qt.QEvent.Close, qt.QEvent.Hide):
-                self.clearProfile()
+        if self.getProfileMainWindow() is not None:
+            return self.getProfileMainWindow().getPlot()
 
-        return qt.QToolBar.eventFilter(self, qobject, event)
+        # in case the user provided a custom plot for profiles
+        return self._profileWindow
+
+    def getProfileMainWindow(self):
+        """Return window containing the profile curve widget.
+        This can return *None* if a custom profile plot window was
+        specified in the constructor.
+        """
+        return self._profileMainWindow
 
     def _activeImageChanged(self, previous, legend):
         """Handle active image change: toggle enabled toolbar, update curve"""
@@ -512,7 +528,8 @@ class ProfileToolBar(qt.QToolBar):
         if checked:
             self.clearProfile()
             self.plot.setInteractiveMode('zoom', source=self)
-            self.profileWindow.hide()
+            if self.getProfileMainWindow() is not None:
+                self.getProfileMainWindow().hide()
 
     def _plotWindowSlot(self, event):
         """Listen to Plot to handle drawing events to refresh ROI and profile.
@@ -565,10 +582,10 @@ class ProfileToolBar(qt.QToolBar):
 
         # Clean previous profile area, and previous curve
         self.plot.remove(self._POLYGON_LEGEND, kind='item')
-        self.profileWindow.clear()
-        self.profileWindow.setGraphTitle('')
-        self.profileWindow.setGraphXLabel('X')
-        self.profileWindow.setGraphYLabel('Y')
+        self.getProfilePlot().clear()
+        self.getProfilePlot().setGraphTitle('')
+        self.getProfilePlot().setGraphXLabel('X')
+        self.getProfilePlot().setGraphYLabel('Y')
 
         self._createProfile(currentData=imageData[0], params=imageData[4])
 
@@ -591,21 +608,22 @@ class ProfileToolBar(qt.QToolBar):
                 lineWidth=self.lineWidthSpinBox.value())
         colorMap = params['colormap']
 
-        self.profileWindow.setGraphTitle(profileName)
+        self.getProfilePlot().setGraphTitle(profileName)
 
         dataIs3D = len(currentData.shape) > 2
         if dataIs3D:
-            self.profileWindow.addImage(profile,
-                                        legend=profileName,
-                                        xlabel=xLabel,
-                                        ylabel="Frame index (depth)",
-                                        colormap=colorMap)
+            self.getProfilePlot().addImage(profile,
+                                           legend=profileName,
+                                           xlabel=xLabel,
+                                           ylabel="Frame index (depth)",
+                                           colormap=colorMap)
         else:
             coords = numpy.arange(len(profile[0]), dtype=numpy.float32)
-            self.profileWindow.addCurve(coords, profile[0],
-                                        legend=profileName,
-                                        xlabel=xLabel,
-                                        color=self.overlayColor)
+            self.getProfilePlot().addCurve(coords,
+                                           profile[0],
+                                           legend=profileName,
+                                           xlabel=xLabel,
+                                           color=self.overlayColor)
 
         self.plot.addItem(area[0], area[1],
                           legend=self._POLYGON_LEGEND,
@@ -613,12 +631,14 @@ class ProfileToolBar(qt.QToolBar):
                           shape='polygon', fill=True,
                           replace=False, z=params['z'] + 1)
 
-        self._showProfileWindow()
+        self._showProfileMainWindow()
 
-    def _showProfileWindow(self):
-        """If profile window was created in this widget,
-        it tries to avoid overlapping this widget when shown"""
-        if self._ownProfileWindow and not self.profileWindow.isVisible():
+    def _showProfileMainWindow(self):
+        """If profile window was created by this toolbar,
+        try to avoid overlapping with the toolbar's parent window.
+        """
+        profileMainWindow = self.getProfileMainWindow()
+        if profileMainWindow is not None:
             winGeom = self.window().frameGeometry()
             qapp = qt.QApplication.instance()
             screenGeom = qapp.desktop().availableGeometry(self)
@@ -626,58 +646,27 @@ class ProfileToolBar(qt.QToolBar):
             spaceOnLeftSide = winGeom.left()
             spaceOnRightSide = screenGeom.width() - winGeom.right()
 
-            profileWindowWidth = self.profileWindow.frameGeometry().width()
+            profileWindowWidth = profileMainWindow.frameGeometry().width()
             if (profileWindowWidth < spaceOnRightSide or
                         spaceOnRightSide > spaceOnLeftSide):
                 # Place profile on the right
-                self.profileWindow.move(winGeom.right(), winGeom.top())
+                profileMainWindow.move(winGeom.right(), winGeom.top())
             else:
                 # Not enough place on the right, place profile on the left
-                self.profileWindow.move(
+                profileMainWindow.move(
                         max(0, winGeom.left() - profileWindowWidth), winGeom.top())
 
-        self.profileWindow.show()
+            profileMainWindow.show()
+        else:
+            self.getProfilePlot().show()
 
     def hideProfileWindow(self):
         """Hide profile window.
         """
-        self.profileWindow.hide()
-
-
-class Profile3DAction(PlotAction):
-    """PlotAction that emits a signal when checked, to notify
-
-    :param plot: :class:`.PlotWidget` instance on which to operate.
-    :param parent: See :class:`QAction`.
-    """
-    sigProfileDimensionChanged = qt.Signal(int)
-
-    def __init__(self, plot, parent=None):
-        # Uses two images for checked/unchecked states
-        self._states = {
-            1: (icons.getQIcon('profile1D'),
-                    "Compute 1D profile"),
-            2: (icons.getQIcon('profile2D'),
-                   "Compute 2D profile")
-        }
-
-        icon, tooltip = self._states[True]
-        super(Profile3DAction, self).__init__(
-                plot=plot,
-                icon=icon,
-                text='Profile',
-                tooltip=tooltip,
-                triggered=self.__compute3DProfile,
-                checkable=False,
-                parent=parent)
-
-    def __compute3DProfile(self, profileDimension):
-        """Callback when the QAction is activated
-        """
-        icon, tooltip = self._states[profileDimension]
-        self.setIcon(icon)
-        self.setToolTip(tooltip)
-        self.sigProfileDimensionChanged.emit(profileDimension)
+        # this method is currently only used by StackView when the perspective
+        # is changed
+        if self.getProfileMainWindow() is not None:
+            self.getProfileMainWindow().hide()
 
 
 class Profile3DToolBar(ProfileToolBar):
@@ -689,118 +678,31 @@ class Profile3DToolBar(ProfileToolBar):
         :param str title: See :class:`QToolBar`.
         :param parent: See :class:`QToolBar`.
         """
-        from .PlotWindow import Plot1D, Plot2D      # noqa
+        # TODO: add param profileWindow (specify the plot used for profiles)
         super(Profile3DToolBar, self).__init__(parent=parent, plot=plot,
                                                title=title)
-        # create the main widget
-        self.ndProfileWindow = qt.QWidget()
-        self.ndProfileWindow.setWindowTitle('Profile window')
-        self.ndProfileWindow.setLayout(qt.QVBoxLayout())
-        self._profileWindow1D = Plot1D(parent=self.ndProfileWindow)
-        self._profileWindow2D = Plot2D(parent=self.ndProfileWindow)
-        self.ndProfileWindow.layout().addWidget(self._profileWindow1D)
-        self.ndProfileWindow.layout().addWidget(self._profileWindow2D)
-        # create the 3D toolbar
-        self.__create3DProfileAction()
-
-        # connect to remove the profile line (manage close event)
-        self.ndProfileWindow.installEventFilter(self)
-
-        # filter hide event when received (manage show and hide event)
-        self._profileWindow1D.installEventFilter(self)
-        self._profileWindow2D.installEventFilter(self)
-
-    def __create3DProfileAction(self):
-        """Initialize the Profile3DAction action
-        """
 
         self.profile3dAction = ProfileToolButton(
             parent=self, plot=self.plot)
-
-        # initial profile dimension is 3D
         self.profile3dAction.computeProfileIn2D()
-        self._profileDimension = 2
-        self._profileWindow1D.hide()
-        self._profileWindow2D.hide()
-
         self.profile3dAction.setVisible(True)
         self.addWidget(self.profile3dAction)
+        self.profile3dAction.sigDimensionChanged.connect(self._setProfileType)
 
-        self.profile3dAction.sigDimensionChanged.connect(self._setProfileDimension)
-        self._setProfileDimension(self._profileDimension)
+        # create the 3D toolbar
+        self._profileType = None
+        self._setProfileType(2)
 
-    def _browseActionTriggered(self, checked):
-        """Handle browse action mode triggered by user.
-        This is overloaded from :class:`ProfileToolBar` to hide
-        :attr:`ndProfileWindow` instead of :attr:`profileWindow`."""
-        if checked:
-            self.clearProfile()
-            self.plot.setInteractiveMode('zoom', source=self)
-            self.ndProfileWindow.hide()
+    def _setProfileType(self, dimensions):
+        """Set the profile type: "1D" for a curve (profile on a single image)
+        or "2D" for an image (profile on a stack of images).
 
-    def eventFilter(self, qobject, event):
-        """Observe the show and hide events of the widgets related to
-        the profile plot (a container widget, a Plot1D and a Plot2D)
-
-        :param qobject: the observed object
-        :param event: the event received by qobject
+        :param int dimensions: 1 for a "1D" profile or 2 for a "2D" profile
         """
-        # FIXME: on close, on some qt version, the object looks to be
-        # half-released, this check avoid to access to invadite objects
-        # see https://github.com/silx-kit/silx/issues/628
-        if not hasattr(self, "plot"):
-            return False  # allow further processing of event by following filters
-        if event.type() in (qt.QEvent.Close, qt.QEvent.Hide):
-            # when the container widget is closed/hidden, clear the profile
-            if qobject is self.ndProfileWindow:
-                self.clearProfile()
-
-            # else if both the plot windows are closed/hidden,
-            # make sure the container widget is hidden as well
-            elif (qobject is self._profileWindow1D and self._profileWindow2D.isHidden() or
-                  qobject is self._profileWindow2D and self._profileWindow1D.isHidden()):
-                    self.ndProfileWindow.hide()
-
-        return qt.QToolBar.eventFilter(self, qobject, event)
-
-    def setChildVisibility(self):
-        if self._profileDimension is 1:
-            self._profileWindow1D.setVisible(True)
-            self._profileWindow2D.setVisible(False)
-        elif self._profileDimension is 2:
-            self._profileWindow1D.setVisible(False)
-            self._profileWindow2D.setVisible(True)
-
-    def _setProfileDimension(self, dimension):
-        """Set the dimension in which we want to compute the profile.
-        Valid values are 1 and 2 for now
-
-        :param int dimension: dimension of the profile
-        """
-        self._setActiveProfileWindow(dimension)
-        profileIsVisible = self.ndProfileWindow.isVisible()
-        if dimension is 2:
-            if profileIsVisible:
-                self._profileWindow1D.hide()
-                self._profileWindow2D.show()
-        elif dimension is 1:
-            if profileIsVisible:
-                self._profileWindow2D.hide()
-                self._profileWindow1D.show()
+        # fixme this assumes that we created _profileMainWindow
+        self._profileType = "1D" if dimensions == 1 else "2D"
+        self.getProfileMainWindow().setProfileType(self._profileType)
         self.updateProfile()
-
-    def _setActiveProfileWindow(self, dimension):
-        """Set the active profile window depending on the dimension of
-        the profile
-
-        :param int dimension: dimension of the profile"""
-        self._profileDimension = dimension
-        if dimension is 2:
-            self.profileWindow = self._profileWindow2D
-        elif dimension is 1:
-            self.profileWindow = self._profileWindow1D
-        else:
-            self.profileWindow = None
 
     def updateProfile(self):
         """Method overloaded from :class:`ProfileToolBar`,
@@ -808,50 +710,21 @@ class Profile3DToolBar(ProfileToolBar):
 
         In 1D profile mode, use the regular parent method.
         """
-        if self._profileDimension is 1:
+        if self._profileType == "1D":
             super(Profile3DToolBar, self).updateProfile()
-        elif self._profileDimension is 2:
-            stackData = self.plot.getStack(copy=False,
-                                           returnNumpyArray=True)
+        elif self._profileType == "2D":
+            stackData = self.plot.getCurrentView(copy=False,
+                                                 returnNumpyArray=True)
             if stackData is None:
                 return
             self.plot.remove(self._POLYGON_LEGEND, kind='item')
-            self.profileWindow.clear()
-            self.profileWindow.setGraphTitle('')
-            self.profileWindow.setGraphXLabel('X')
-            self.profileWindow.setGraphYLabel('Y')
+            self.getProfilePlot().clear()
+            self.getProfilePlot().setGraphTitle('')
+            self.getProfilePlot().setGraphXLabel('X')
+            self.getProfilePlot().setGraphYLabel('Y')
 
             self._createProfile(currentData=stackData[0],
                                 params=stackData[1])
         else:
-            raise ValueError("Can't compute profile for data in %s" %
-                             str(self._profileDimension))
-
-    def _showProfileWindow(self):
-        """If profile window was created in this widget,
-        it tries to avoid overlapping this widget when shown
-        In Profile3DToolBar we have a widget grouping profile windows for 1D and 2D.
-        So we also have to manage this one
-        """
-        self.setChildVisibility()
-        self.ndProfileWindow.show()
-        super(Profile3DToolBar, self)._showProfileWindow()
-
-    def hideProfileWindow(self):
-        """Hide container window for profile windows.
-        """
-        self.ndProfileWindow.hide()
-
-    def getProfileWindow1D(self):
-        """Plot window used to display 1D profile curve.
-
-        :return: :class:`Plot1D`
-        """
-        return self._profileWindow1D
-
-    def getProfileWindow2D(self):
-        """Plot window used to display 2D profile image.
-
-        :return: :class:`Plot2D`
-        """
-        return self._profileWindow2D
+            raise ValueError(
+                    "Profile type must be 1D or 2D, not %s" % self._profileType)

@@ -215,9 +215,11 @@ class StackView(qt.QMainWindow):
         central_widget.setLayout(layout)
         self.setCentralWidget(central_widget)
 
-        # clear profile lines when the profile changes (plane browsed changed)
+        # clear profile lines when the perspective changes (plane browsed changed)
         self.__planeSelection.sigPlaneSelectionChanged.connect(
-            self._plot.profile.hideProfileWindow)
+            self._plot.profile.getProfilePlot().clear)
+        self.__planeSelection.sigPlaneSelectionChanged.connect(
+            self._plot.profile.clearProfile)
 
     def setOptionVisible(self, isVisible):
         """
