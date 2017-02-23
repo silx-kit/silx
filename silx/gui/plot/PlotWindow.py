@@ -710,9 +710,13 @@ class Plot2D(PlotWindow):
         """
         return self.profile
 
+    @deprecated   # since silx 0.5
     def getProfileWindow(self):
-        """Plot window used to display profile curve.
+        return self.getProfilePlot()
+
+    def getProfilePlot(self):
+        """Return plot window used to display profile curve.
 
         :return: :class:`Plot1D`
         """
-        return self.profile.getProfileWindow()
+        return self.profile.getProfilePlot()
