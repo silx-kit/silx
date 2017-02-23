@@ -307,17 +307,19 @@ class VerticalLegend(qt.QLabel):
         painter = qt.QPainter(self)
         painter.setFont(self.font())
 
-        painter.translate(0, self.sizeHint().height())
+        painter.translate(0, self.rect().height())
         painter.rotate(270)
-        painter.drawText(qt.QRect(qt.QPoint(0,0),
-                                  self.sizeHint()),
+        newRect = qt.QRect(0, 0, self.rect().height(), self.rect().width())
+        # painter.drawText(self.rect(),
+        painter.drawText(newRect,
                          qt.Qt.AlignHCenter,self.text())
 
+        fm = qt.QFontMetrics(self.font())
+        preferedHeight = fm.width(self.text())
+        preferedWidth = fm.height()
+        self.setFixedWidth(preferedWidth)
+        self.setMinimumHeight(preferedHeight)
 
-    def sizeHint(self):
-        s = qt.QLabel.sizeHint(self)
-        # return qt.QSize(self.rect().bottom(), self.rect().right())
-        return qt.QSize(self.rect().right(), self.rect().bottom())
 
 class Gradation(qt.QWidget):
 
