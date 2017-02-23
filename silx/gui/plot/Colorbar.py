@@ -38,7 +38,7 @@ To run the following sample code, a QApplication must be initialized.
 >>> plot.show()
 
 >>> colorbar = ColorbarWidget(plot=plot)  # Associate the colorbar with it
->>> colorbar.setLabel('Colormap')
+>>> colorbar._setLabel('Colormap')
 >>> colorbar.show()
 """
 
@@ -83,11 +83,14 @@ class ColorbarWidget(qt.QWidget):
         self.colorbar = None  # matplotlib colorbar this will be an object
 
         self._label = ''  # Text label to display
+        self.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Expanding)
 
-        self.setFixedWidth(150)
+        # self.setFixedWidth(100)
         layout = qt.QVBoxLayout()
         self.setLayout(layout)
         self.layout().addWidget(self.__buildMainColorMap())
+        self.layout().addWidget(self.__buildAutoscale())
+        self.layout().addWidget(self.__buildNorm())
 
         if self._plot is not None:
             self._plot.sigActiveImageChanged.connect(self._activeImageChanged)
@@ -106,6 +109,22 @@ class ColorbarWidget(qt.QWidget):
         widget.layout().addWidget(self.__buildMax())
 
         return widget
+
+    def __buildNorm(self):
+        group = qt.QGroupBox('Normalization', parent=self)
+        group.setLayout(qt.QHBoxLayout())
+
+        self._linearNorm = qt.QRadioButton('linear', group)
+        group.layout().addWidget(self._linearNorm)
+
+        self._logNorm = qt.QRadioButton('log', group)
+        group.layout().addWidget(self._logNorm)
+
+        return group
+
+    def __buildAutoscale(self):
+        self._autoscaleCB = qt.QCheckBox('autoscale', parent=self)
+        return self._autoscaleCB
         
     def __buildMin(self):
         widget = qt.QWidget(self)
@@ -152,7 +171,7 @@ class ColorbarWidget(qt.QWidget):
         return self._colormap.copy()
 
     def setColormap(self, name, normalization='linear',
-                    vmin=0., vmax=1., colors=None):
+                    vmin=0., vmax=1., colors=None, autoscale=False):
         """Set the colormap to display in the colorbar.
 
         :param str name: The name of the colormap or None
@@ -162,15 +181,15 @@ class ColorbarWidget(qt.QWidget):
         :param colors: Array of RGB(A) colors to use as colormap
         :type colors: numpy.ndarray
         """
-        print('colormap setted')
         if name is None and colors is None:
             self.colorbar = None
             self._colormap = None
             return
 
         if normalization == 'linear':
-            pass
+            self._setLinearNorm()
         elif normalization == 'log':
+            self._setLogNorm()
             if vmin <= 0 or vmax <= 0:
                 _logger.warning(
                     'Log colormap with bound <= 0: changing bounds.')
@@ -179,7 +198,8 @@ class ColorbarWidget(qt.QWidget):
         else:
             raise ValueError('Wrong normalization %s' % normalization)
 
-        self.colorbar = None # TODO : get colormap
+        self.colorbar = None # TODO : get colorma
+        self._setAutoscale(autoscale)
 
         self.legend.setText(self._label)
         # if normalization == 'linear':
@@ -189,25 +209,34 @@ class ColorbarWidget(qt.QWidget):
 
         self._colormap = {'name': name,
                           'normalization': normalization,
-                          'autoscale': False,
+                          'autoscale': autoscale,
                           'vmin': vmin,
                           'vmax': vmax,
                           'colors': colors}
 
-        self.setMinVal(vmin)
-        self.setMaxVal(vmax)
+        self._setMinVal(vmin)
+        self._setMaxVal(vmax)
 
-    def setMinVal(self, val):
+    def _setMinVal(self, val):
         self._minLabel.setText(str(val))
 
-    def setMaxVal(self, val):
+    def _setMaxVal(self, val):
         self._maxLabel.setText(str(val))
 
     def getLabel(self):
         """Return the label of the colorbar (str)"""
         return self._label
 
-    def setLabel(self, label):
+    def _setLogNorm(self):
+        self._logNorm.setChecked(True)
+
+    def _setLinearNorm(self):
+        self._linearNorm.setChecked(True)
+
+    def _setAutoscale(self, b):
+        self._autoscaleCB.setChecked(b)
+
+    def _setLabel(self, label):
         """Set the label displayed along the colorbar
 
         :param str label: The label
