@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,10 +24,9 @@
 # ###########################################################################*/
 """Basic tests for Profile"""
 
-__authors__ = ["T. Vincent"]
+__authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "05/12/2016"
-
+__date__ = "23/02/2017"
 
 import numpy
 import unittest
@@ -36,7 +35,8 @@ from silx.test.utils import ParametricTestCase
 from silx.gui.test.utils import (
     TestCaseQt, getQToolButtonFromAction)
 from silx.gui import qt
-from silx.gui.plot import PlotWindow, Profile
+from silx.gui.plot import PlotWindow, Plot1D, Plot2D, Profile
+from silx.gui.plot.StackView import StackView
 
 
 # Makes sure a QApplication exists
@@ -129,10 +129,51 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
                 self.plot.clear()
 
 
+class TestGetProfilePlot(TestCaseQt):
+
+    def testProfile1D(self):
+        plot = Plot2D()
+        plot.show()
+        self.qWaitForWindowExposed(plot)
+        plot.addImage([[0, 1], [2, 3]])
+        self.assertIsInstance(plot.getProfileToolbar().getProfileMainWindow(),
+                              qt.QMainWindow)
+        self.assertIsInstance(plot.getProfilePlot(),
+                              Plot1D)
+        plot.setAttribute(qt.Qt.WA_DeleteOnClose)
+        plot.close()
+        del plot
+
+    def testProfile2D(self):
+        """Test that the profile plot associated to a stack view is either a
+        Plot1D or a plot 2D instance."""
+        plot = StackView()
+        plot.show()
+        self.qWaitForWindowExposed(plot)
+
+        plot.setStack(numpy.array([[[0, 1], [2, 3]],
+                                   [[4, 5], [6, 7]]]))
+
+        self.assertIsInstance(plot.getProfileToolbar().getProfileMainWindow(),
+                              qt.QMainWindow)
+
+        # plot.getProfileToolbar().profile3dAction.computeProfileIn2D()  # default
+
+        self.assertIsInstance(plot.getProfileToolbar().getProfilePlot(),
+                              Plot2D)
+        plot.getProfileToolbar().profile3dAction.computeProfileIn1D()
+        self.assertIsInstance(plot.getProfileToolbar().getProfilePlot(),
+                              Plot1D)
+
+        plot.setAttribute(qt.Qt.WA_DeleteOnClose)
+        plot.close()
+        del plot
+
+
 def suite():
     test_suite = unittest.TestSuite()
     # test_suite.addTest(positionInfoTestSuite)
-    for testClass in (TestProfileToolBar,):
+    for testClass in (TestProfileToolBar, TestGetProfilePlot):
         test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(
             testClass))
     return test_suite
