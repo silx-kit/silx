@@ -205,7 +205,7 @@ class DataView(object):
         :param data: Data to display
         :type data: numpy.ndarray or h5py.Dataset
         :param DataInfo info: Pre-computed information on the data
-        :rtpye: list[str]
+        :rtype: list[str]
         """
         return []
 
@@ -692,7 +692,7 @@ class _RawView(CompositeDataView):
     """View displaying data as raw data.
 
     This implementation use a 2d-array view, or a record array view, or a
-    raw tetx output.
+    raw text output.
     """
 
     def __init__(self, parent):
@@ -927,10 +927,10 @@ class DataViewer(qt.QFrame):
             - `EMPTY_MODE`: display nothing
             - `PLOT1D_MODE`: display the data as a curve
             - `PLOT2D_MODE`: display the data as an image
-            - `PLOT3D_MODE`: display the data as an image
+            - `PLOT3D_MODE`: display the data as an isosurface
             - `RAW_MODE`: display the data as a table
-            - `STACK_MODE`: display the data as an image
-            - `HDF5_MODE`: display the data as an image
+            - `STACK_MODE`: display the data as a stack of images
+            - `HDF5_MODE`: display the data as a table
         """
         try:
             view = self.getViewFromModeId(modeId)
