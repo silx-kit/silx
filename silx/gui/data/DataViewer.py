@@ -35,6 +35,7 @@ import numpy
 import numbers
 import logging
 import silx.io
+from silx.io import nxdata
 from silx.gui import icons
 from silx.gui import qt
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
@@ -69,11 +70,15 @@ class DataInfo(object):
         self.interpretation = None
         self.isNumeric = False
         self.isRecord = False
+        self.isNXdata = False
         self.shape = tuple()
         self.dim = 0
 
         if data is None:
             return
+
+        if silx.io.is_group(data) and nxdata.is_valid(data):
+            self.isNXdata = True
 
         if isinstance(data, numpy.ndarray):
             self.isArray = True
@@ -84,18 +89,25 @@ class DataInfo(object):
 
         if silx.io.is_dataset(data):
             self.interpretation = data.attrs.get("interpretation", None)
+        elif self.isNXdata:
+            self.interpretation = nxdata.get_interpretation(data)
         else:
             self.interpretation = None
 
         if hasattr(data, "dtype"):
             self.isNumeric = numpy.issubdtype(data.dtype, numpy.number)
             self.isRecord = data.dtype.fields is not None
+        elif self.isNXdata:
+            self.isNumeric = numpy.issubdtype(nxdata.get_signal(data).dtype,
+                                              numpy.number)
         else:
             self.isNumeric = isinstance(data, numbers.Number)
             self.isRecord = False
 
         if hasattr(data, "shape"):
             self.shape = data.shape
+        elif self.isNXdata:
+            self.shape = nxdata.get_signal(data).shape
         else:
             self.shape = tuple()
         self.dim = len(self.shape)
