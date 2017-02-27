@@ -26,10 +26,16 @@
 :class:`silx.gui.data.DataViewer.DataViewer`
 """
 import logging
-from silx.io import nxdata
+import numpy
 
+# scatter plot handling
+import matplotlib.cm
+import matplotlib.colors
+from silx.gui.plot.MPLColormap import viridis
+
+from silx.io import nxdata
 from silx.gui import icons
-from .DataViewer import DataView, CompositeDataView
+from silx.gui.data.DataViews import DataView, CompositeDataView
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
@@ -125,8 +131,128 @@ class NXdata1dView(DataView):
                                 xlabel=x_label, ylabel=signal_name,
                                 legend_prefix="NXdata spectrum ")
 
+        self.getWidget().setGraphTitle("NXdata group " + group_name)
+
     def getDataPriority(self, data, info):
         if info.isNXdata and nxdata.signal_is_1D(data):
+            return 100
+        return DataView.UNSUPPORTED
+
+
+def image_axes_are_regular(x_axis, y_axis):
+    """Return True if both x_axis and y_axis are regularly spaced arrays
+
+    :param x_axis: 1D numpy array
+    :param y_axis: 1D numpy array
+    """
+    delta_x = x_axis[1:] - x_axis[:-1]
+    bool_x = delta_x == delta_x[0]
+    if False in bool_x:
+        return False
+
+    delta_y = y_axis[1:] - y_axis[:-1]
+    bool_y = delta_y == delta_x[0]
+    if False in bool_y:
+        return False
+    return True
+
+
+def get_origin_scale(axis):
+    """Assuming axis is a regularly spaced 1D array,
+    return a tuple (origin, scale) where:
+        - origin = axis[0]
+        - scale = axis[1] - axis[0]
+    :param axis: 1D numpy array
+    :return: Tuple (axis[0], axis[1] - axis[0])
+    """
+    return axis[0], axis[1] - axis[0]
+
+
+# fixme: use addScatter when available
+def _applyColormap(values,
+                   colormap=viridis,
+                   minVal=None,
+                   maxVal=None,):
+    """Compute RGBA array of shape (n, 4) from a 1D array of length n.
+
+    :param values: 1D array of values
+    :param colormap: colormap to be used
+    """
+    if minVal is None:
+        minVal = values.min()
+    if maxVal is None:
+        maxVal = values.max()
+
+    sm = matplotlib.cm.ScalarMappable(
+            norm=matplotlib.colors.Normalize(vmin=minVal, vmax=maxVal),
+            cmap=colormap)
+    colors = sm.to_rgba(values)
+
+    return colors
+
+
+class NXdata2dView(DataView):
+    def __init__(self, parent):
+        DataView.__init__(self, parent)
+
+    def createWidget(self, parent):
+        from silx.gui.plot import Plot2D
+        widget = Plot2D(parent)
+        return widget
+
+    def axesNames(self, data, info):
+        return []
+
+    def clear(self):
+        self.getWidget().clear()
+
+    def setData(self, data):
+        signal = nxdata.get_signal(data)
+        signal_name = data.attrs["signal"]
+        group_name = data.name
+        y_axis, x_axis = nxdata.get_axes(data)[-2:]
+        y_label, x_label = nxdata.get_axes_names(data)[-2:]
+
+        if len(signal.shape) == 2:
+            is_regular_image = False
+            if x_axis is None and y_axis is None:
+                is_regular_image = True
+                origin = (0, 0)
+                scale = (1., 1.)
+            elif image_axes_are_regular(x_axis, y_axis):
+                is_regular_image = True
+                xorigin, xscale = get_origin_scale(x_axis)
+                yorigin, yscale = get_origin_scale(y_axis)
+                origin = (xorigin, yorigin)
+                scale = (xscale, yscale)
+            if is_regular_image:
+                # single regular image
+                legend = "NXdata image " + group_name
+                self.getWidget().addImage(signal, legend=legend,
+                                          xlabel=x_label, ylabel=signal_name,
+                                          origin=origin, scale=scale)
+            else:
+                # TODO: use addScatter
+                scatterx, scattery = numpy.meshgrid(x_axis, y_axis)
+                rgbacolor = _applyColormap(numpy.ravel(signal))
+                numpy.ravel(signal)
+                self.getWidget().addCurve(
+                        numpy.ravel(scatterx), numpy.ravel(scattery),
+                        color=rgbacolor, symbol="o", linestyle="")
+
+        # TODO:
+        # else:
+        #     # array of curves (spectra)
+        #     assert x_axis.shape == signal.shape[-1:]
+        #     _recursive_addcurve(plot=self.getWidget(),
+        #                         x=x_axis, signal=signal,
+        #                         xlabel=x_label, ylabel=signal_name,
+        #                         legend_prefix="NXdata spectrum ")
+
+        self.getWidget().setGraphTitle("NXdata group " + group_name)
+
+    def getDataPriority(self, data, info):
+        if info.isNXdata and nxdata.signal_is_2D(data):
             return 100
         return DataView.UNSUPPORTED
 
@@ -134,7 +260,6 @@ class NXdata1dView(DataView):
 class NXdataView(CompositeDataView):
     """Composite view displaying NXdata groups using the most adequate
     widget depending on the dimensionality."""
-    # TODO: normalizeData,
     def __init__(self, parent):
         super(NXdataView, self).__init__(
             parent=parent,
@@ -142,28 +267,5 @@ class NXdataView(CompositeDataView):
             label="NXdata",
             icon=icons.getQIcon("view-hdf5"))
 
-        # TODO self.addView(_NXdata1dView(parent)
-
-    # def createWidget(self, parent):
-    #     return qt.QStackedWidget()
-    #
-    # def clear(self):
-    #     # TODO
-    #     pass
-    #
-    # def setData(self, data):
-    #     """
-    #
-    #     :param data: ``h5py.Group`` with an attribute ``NX_class = NXdata``
-    #         following the NeXus specification for NXdata.
-    #     """
-    #     pass  # TODO
-
-    def axesNames(self, data, info):
-        return []
-
-    def getDataPriority(self, data, info):
-        if nxdata.is_valid(data):
-            return 100
-        else:
-            return DataView.UNSUPPORTED
+        self.addView(NXdata1dView(parent))
+        self.addView(NXdata2dView(parent))
