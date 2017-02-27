@@ -45,6 +45,34 @@ __date__ = "22/02/2017"
 _logger = logging.getLogger(__name__)
 
 
+class NXdataScalarView(DataView):
+    def __init__(self, parent):
+        DataView.__init__(self, parent)
+
+    def createWidget(self, parent):
+        from silx.gui.data.ArrayTableWidget import ArrayTableWidget
+        widget = ArrayTableWidget(parent)
+        #widget.displayAxesSelector(False)
+        return widget
+
+    def axesNames(self, data, info):
+        return ["col", "row"]
+
+    def clear(self):
+        self.getWidget().setArrayData(numpy.array([[]]))
+
+    def setData(self, data):
+        data = self.normalizeData(data)
+        signal = nxdata.get_signal(data)
+        self.getWidget().setArrayData(signal)
+
+    def getDataPriority(self, data, info):
+        data = self.normalizeData(data)
+        if info.isNXdata and nxdata.signal_is_0D(data):
+            return 100
+        return DataView.UNSUPPORTED
+
+
 def _recursive_addcurve(plot, x, signal, xlabel=None, ylabel=None,
                         legend_prefix="NXdata spectrum ",
                         index=tuple()):
@@ -89,7 +117,7 @@ def _recursive_addcurve(plot, x, signal, xlabel=None, ylabel=None,
                                 index + (i, ))
 
 
-class NXdata1dView(DataView):
+class NXdataCurveView(DataView):
     def __init__(self, parent):
         DataView.__init__(self, parent)
 
@@ -114,8 +142,12 @@ class NXdata1dView(DataView):
         x_axis = nxdata.get_axes(data)[-1]
         x_label = nxdata.get_axes_names(data)[-1]
 
+        self.getWidget().setGraphTitle("NXdata group " + group_name)
+        self.getWidget().setGraphXLabel(x_label if x_label is not None else "X")
+        self.getWidget().setGraphYLabel(signal_name)
+
         if x_axis is None:
-            x_axis = range(signal_len)
+            x_axis = numpy.arange(signal_len)
 
         if len(signal.shape) == 1:
             # single curve
@@ -132,8 +164,6 @@ class NXdata1dView(DataView):
                                 xlabel=x_label, ylabel=signal_name,
                                 legend_prefix="NXdata spectrum ")
 
-        self.getWidget().setGraphTitle("NXdata group " + group_name)
-
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
         if info.isNXdata and nxdata.signal_is_1D(data):
@@ -148,13 +178,10 @@ def image_axes_are_regular(x_axis, y_axis):
     :param y_axis: 1D numpy array
     """
     delta_x = x_axis[1:] - x_axis[:-1]
-    bool_x = delta_x == delta_x[0]
-    if False in bool_x:
+    if not numpy.isclose(delta_x, delta_x[0]).all():
         return False
-
     delta_y = y_axis[1:] - y_axis[:-1]
-    bool_y = delta_y == delta_x[0]
-    if False in bool_y:
+    if not numpy.isclose(delta_y, delta_y[0]).all():
         return False
     return True
 
@@ -216,6 +243,10 @@ class NXdata2dView(DataView):
         y_axis, x_axis = nxdata.get_axes(data)[-2:]
         y_label, x_label = nxdata.get_axes_names(data)[-2:]
 
+        self.getWidget().setGraphTitle("NXdata group " + group_name)
+        self.getWidget().setGraphXLabel(x_label if x_label is not None else "X")
+        self.getWidget().setGraphYLabel(y_label if y_label is not None else "Y")
+
         if len(signal.shape) == 2:
             is_regular_image = False
             if x_axis is None and y_axis is None:
@@ -252,7 +283,6 @@ class NXdata2dView(DataView):
         #                         xlabel=x_label, ylabel=signal_name,
         #                         legend_prefix="NXdata spectrum ")
 
-        self.getWidget().setGraphTitle("NXdata group " + group_name)
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
@@ -271,5 +301,6 @@ class NXdataView(CompositeDataView):
             label="NXdata",
             icon=icons.getQIcon("view-hdf5"))
 
-        self.addView(NXdata1dView(parent))
+        self.addView(NXdataScalarView(parent))
+        self.addView(NXdataCurveView(parent))
         self.addView(NXdata2dView(parent))
