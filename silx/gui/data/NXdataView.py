@@ -106,6 +106,7 @@ class NXdata1dView(DataView):
         self.getWidget().clear()
 
     def setData(self, data):
+        data = self.normalizeData(data)
         signal = nxdata.get_signal(data)
         signal_name = data.attrs["signal"]
         signal_len = signal.shape[-1]
@@ -134,6 +135,7 @@ class NXdata1dView(DataView):
         self.getWidget().setGraphTitle("NXdata group " + group_name)
 
     def getDataPriority(self, data, info):
+        data = self.normalizeData(data)
         if info.isNXdata and nxdata.signal_is_1D(data):
             return 100
         return DataView.UNSUPPORTED
@@ -207,6 +209,7 @@ class NXdata2dView(DataView):
         self.getWidget().clear()
 
     def setData(self, data):
+        data = self.normalizeData(data)
         signal = nxdata.get_signal(data)
         signal_name = data.attrs["signal"]
         group_name = data.name
@@ -252,6 +255,7 @@ class NXdata2dView(DataView):
         self.getWidget().setGraphTitle("NXdata group " + group_name)
 
     def getDataPriority(self, data, info):
+        data = self.normalizeData(data)
         if info.isNXdata and nxdata.signal_is_2D(data):
             return 100
         return DataView.UNSUPPORTED

@@ -271,10 +271,10 @@ def get_hdf5_with_nxdata():
     g0d0.attrs["signal"] = "scalar"
     g0d0.create_dataset("scalar", data=10)
 
-    g0d1 = g0d.create_group("1D_scalars")
+    g0d1 = g0d.create_group("2D_scalars")
     g0d1.attrs["NX_class"] = "NXdata"
     g0d1.attrs["signal"] = "scalars"
-    ds = g0d1.create_dataset("scalars", data=numpy.arange(10))
+    ds = g0d1.create_dataset("scalars", data=numpy.arange(3*10).reshape((3, 10)))
     ds.attrs["interpretation"] = "scalar"
 
     # SPECTRA
@@ -282,39 +282,54 @@ def get_hdf5_with_nxdata():
 
     g1d0 = g1d.create_group("1D_spectrum")
     g1d0.attrs["NX_class"] = "NXdata"
-    g1d0.attrs["signal"] = "spectrum"
-    g1d0.create_dataset("spectrum", data=numpy.arange(10))
+    g1d0.attrs["signal"] = "count"
+    g1d0.attrs["axes"] = "energy"
+    g1d0.create_dataset("count", data=numpy.arange(10))
+    g1d0.create_dataset("energy", data=5+10*numpy.arange(10))
 
     g1d1 = g1d.create_group("2D_spectra")
     g1d1.attrs["NX_class"] = "NXdata"
-    g1d1.attrs["signal"] = "spectra"
-    ds = g1d1.create_dataset("spectra", data=numpy.arange(3*10).reshape((3, 10)))
+    g1d1.attrs["signal"] = "counts"
+    ds = g1d1.create_dataset("counts", data=numpy.arange(3*10).reshape((3, 10)))
     ds.attrs["interpretation"] = "spectrum"
 
     g1d2 = g1d.create_group("4D_spectra")
     g1d2.attrs["NX_class"] = "NXdata"
-    g1d2.attrs["signal"] = "spectra"
-    ds = g1d2.create_dataset("spectra", data=numpy.arange(2*2*3*10).reshape((2, 2, 3, 10)))
+    g1d2.attrs["signal"] = "counts"
+    g1d2.attrs["axes"] = "energy",
+    ds = g1d2.create_dataset("counts", data=numpy.arange(2*2*3*10).reshape((2, 2, 3, 10)))
     ds.attrs["interpretation"] = "spectrum"
+    g1d2.create_dataset("energy", data=5+10*numpy.arange(10))
 
     # IMAGES
     g2d = h5.create_group("images")
 
-    g2d0 = g2d.create_group("2D_image")
+    g2d0 = g2d.create_group("2D_regular_image")
     g2d0.attrs["NX_class"] = "NXdata"
     g2d0.attrs["signal"] = "image"
+    g2d0.attrs["axes"] = "ycalib", "xcalib"
     g2d0.create_dataset("image", data=numpy.arange(4*6).reshape((4, 6)))
+    g2d0.create_dataset("ycalib", data=5+10*numpy.arange(4))
+    g2d0.create_dataset("xcalib", data=0.5+0.02*numpy.arange(6))
 
-    g2d1 = g2d.create_group("3D_images")
+    g2d1 = g2d.create_group("2D_irregular_data")
     g2d1.attrs["NX_class"] = "NXdata"
-    g2d1.attrs["signal"] = "images"
-    ds = g2d1.create_dataset("images", data=numpy.arange(2*4*6).reshape((2, 4, 6)))
-    ds.attrs["interpretation"] = "image"
+    g2d1.attrs["signal"] = "data"
+    g2d1.attrs["axes"] = "ycalib", "xcalib"
+    g2d1.create_dataset("data", data=numpy.arange(4*6).reshape((4, 6)))
+    g2d1.create_dataset("ycalib", data=5+10*numpy.arange(4)**2)
+    g2d1.create_dataset("xcalib", data=0.5+0.02*numpy.arange(6)**3)
 
-    g2d2 = g2d.create_group("5D_images")
+    g2d2 = g2d.create_group("3D_images")
     g2d2.attrs["NX_class"] = "NXdata"
     g2d2.attrs["signal"] = "images"
-    ds = g2d2.create_dataset("images", data=numpy.arange(2*2*2*4*6).reshape((2, 2, 2, 4, 6)))
+    ds = g2d2.create_dataset("images", data=numpy.arange(2*4*6).reshape((2, 4, 6)))
+    ds.attrs["interpretation"] = "image"
+
+    g2d3 = g2d.create_group("5D_images")
+    g2d3.attrs["NX_class"] = "NXdata"
+    g2d3.attrs["signal"] = "images"
+    ds = g2d3.create_dataset("images", data=numpy.arange(2*2*2*4*6).reshape((2, 2, 2, 4, 6)))
     ds.attrs["interpretation"] = "image"
 
     h5.close()

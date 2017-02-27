@@ -147,7 +147,7 @@ def validate_NXdata(f):
             group = args[0]
         if not is_valid(group):
             raise TypeError("group is not a valid NXdata class")
-        return f(group)
+        return f(*args, **kwargs)
     return wrapper
 
 
