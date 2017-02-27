@@ -97,7 +97,9 @@ def is_valid(group):   # noqa
         # case of less axes than dimensions: number of axes must match
         # dimensionality defined by @interpretation
         if ndim > len(axes):
-            interpretation = get_interpretation(group)
+            interpretation = group[signal_name].attrs.get("interpretation", None)
+            if interpretation is None:
+                interpretation = group.attrs.get("interpretation", None)
             if interpretation is None:
                 NXdata_warning("No @interpretation and wrong" +
                                " number of @axes defined.")
