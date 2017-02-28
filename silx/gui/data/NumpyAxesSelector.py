@@ -221,6 +221,7 @@ class NumpyAxesSelector(qt.QWidget):
 
         self.__data = None
         self.__selectedData = None
+        self.__selection = tuple()
         self.__axis = []
         self.__axisNames = []
         self.__customAxisNames = set([])
@@ -383,6 +384,7 @@ class NumpyAxesSelector(qt.QWidget):
         if self.__data is None:
             if self.__selectedData is not None:
                 self.__selectedData = None
+                self.__selection = tuple()
                 self.selectionChanged.emit()
             return
 
@@ -396,10 +398,11 @@ class NumpyAxesSelector(qt.QWidget):
                 selection.append(slice(None))
                 axisNames.append(name)
 
+        self.__selection = tuple(selection)
         # get a view with few fixed dimensions
         # with a h5py dataset, it create a copy
         # TODO we can reuse the same memory in case of a copy
-        view = self.__data[tuple(selection)]
+        view = self.__data[self.__selection]
 
         # order axis as expected
         source = []
@@ -428,3 +431,10 @@ class NumpyAxesSelector(qt.QWidget):
         :rtype: numpy.ndarray
         """
         return self.__selectedData
+
+    def selection(self):
+        """Returns the selection tuple used to slice the data.
+
+        :rtype: tuple
+        """
+        return self.__selection
