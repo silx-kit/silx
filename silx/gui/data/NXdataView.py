@@ -34,8 +34,11 @@ import matplotlib.colors
 from silx.gui.plot.MPLColormap import viridis
 
 from silx.io import nxdata
-from silx.gui import icons
+from silx.gui import qt, icons
 from silx.gui.data.DataViews import DataView, CompositeDataView
+from silx.gui.data.ArrayTableWidget import ArrayTableWidget
+from silx.gui.plot import Plot1D, Plot2D
+from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
@@ -50,7 +53,6 @@ class NXdataScalarView(DataView):
         DataView.__init__(self, parent)
 
     def createWidget(self, parent):
-        from silx.gui.data.ArrayTableWidget import ArrayTableWidget
         widget = ArrayTableWidget(parent)
         #widget.displayAxesSelector(False)
         return widget
@@ -59,12 +61,14 @@ class NXdataScalarView(DataView):
         return ["col", "row"]
 
     def clear(self):
-        self.getWidget().setArrayData(numpy.array([[]]))
+        self.getWidget().setArrayData(numpy.array([[]]),
+                                      labels=True)
 
     def setData(self, data):
         data = self.normalizeData(data)
         signal = nxdata.get_signal(data)
-        self.getWidget().setArrayData(signal)
+        self.getWidget().setArrayData(signal,
+                                      labels=True)
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
@@ -73,48 +77,95 @@ class NXdataScalarView(DataView):
         return DataView.UNSUPPORTED
 
 
-def _recursive_addcurve(plot, x, signal, xlabel=None, ylabel=None,
-                        legend_prefix="NXdata spectrum ",
-                        index=tuple()):
-    """Plot all curves in an array with an arbitrary number of dimensions (n).
-    The last dimension of signal represents the sample number and must have
-    the same length as the 1-D array x.
-    All previous dimensions of the signal array represent the (n-1) dimensional
-    index of the curves.
-    The legend is the legend_prefix concatenated with the index (e.g.
-    "NXdata spectrum (511, 1023)")
-
-    Example::
-
-        import numpy
-        x = numpy.arange(10)
-
-        signal = numpy.zeros((5, 10, 10))
-        for i in range(signal.shape[0]):
-            for j in range(signal.shape[1]):
-                signal[i, j] = i*10 + x*j
-
-        from silx.gui import qt
-        from silx.gui.plot import Plot1D
-        app = qt.QApplication([])
-        plot = Plot1D()
-
-        _recursive_addcurve(plot, x, signal,
-                            legend_prefix="a*10 + b*x with (a, b)=")
-
-        plot.show()
-        app.exec_()
-
+class ArrayCurvePlot(qt.QWidget):
     """
-    if len(index) == len(signal.shape) - 1:
-        y = signal[index]
-        plot.addCurve(x=x, y=y, xlabel=xlabel, ylabel=ylabel,
-                      legend=legend_prefix + str(index))
-    else:
-        for i in range(signal.shape[len(index)]):
-            _recursive_addcurve(plot, x, signal, xlabel, ylabel,
-                                legend_prefix,
-                                index + (i, ))
+    Widget for plotting a curve from a multi-dimensional signal array
+    and a 1D axes array.
+
+    The signal array can have an arbitrary number of dimensions, the only
+    limitation being that the last dimension must have the same length as
+    the axis array.
+    """
+    def __init__(self, parent=None):
+        """
+
+        :param parent: Parent QWidget
+        """
+        super(ArrayCurvePlot, self).__init__(parent)
+
+        self.__signal = None
+        self.__signal_name = None
+        self.__axis = None
+        self.__axis_name = None
+
+        self._plot = Plot1D(self)
+        self._selector = NumpyAxesSelector(self)
+        self._addButton = qt.QPushButton("Add curve", self)
+        self._addButton.clicked.connect(self._addCurve)
+        self._replaceButton = qt.QPushButton("Replace curves", self)
+        self._replaceButton.clicked.connect(self._replaceCurve)
+        self._clearButton = qt.QPushButton("Clear plot", self)
+        self._clearButton.clicked.connect(self.clear)
+
+        layout = qt.QGridLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(self._plot,  0, 0, 1, 3)
+        layout.addWidget(self._selector, 1, 0, 1, 3)
+        layout.addWidget(self._addButton, 2, 0)
+        layout.addWidget(self._replaceButton, 2, 1)
+        layout.addWidget(self._clearButton, 2, 2)
+
+        self.setLayout(layout)
+
+    def setCurveData(self, signal, axis=None,
+                     ylabel=None, xlabel=None,
+                     title=None):
+        """
+
+        :param signal: n-D dataset, whose last dimension is used as the
+            curve's y values.
+        :param axis: 1-D dataset used as the curve's x values. If provided,
+            its lengths must be equal to the length of the last dimension of
+            ``signal``.
+        :param ylabel: Label for Y axis
+        :param xlabel: Label for X axis
+        :param title: Graph title
+        """
+        self.__signal = signal
+        self.__signal_name = ylabel
+        self.__axis = axis
+        self.__axis_name = xlabel
+
+        self._selector.setData(signal)
+        self._selector.setAxisNames([ylabel or "Y"])
+
+        self._plot.setGraphTitle(title or "")
+        self._plot.setGraphXLabel(self.__axis_name or "X")
+        self._plot.setGraphYLabel(self.__signal_name or "Y")
+        self._addCurve()
+
+    def _addCurve(self, replace=False):
+        y = self._selector.selectedData()
+        x = self.__axis
+        if x is None:
+            x = numpy.arange(len(y))
+        legend = self.__signal_name + "["
+        for sl in self._selector.selection():
+            if sl == slice(None):
+                legend += ":, "
+            else:
+                legend += str(sl) + ", "
+        legend = legend[:-2] + "]"
+        self._plot.addCurve(x, y, legend=legend,
+                            xlabel=self.__axis_name,
+                            ylabel=self.__signal_name,
+                            resetzoom=True, replace=replace)
+
+    def _replaceCurve(self):
+        self._addCurve(replace=True)
+
+    def clear(self):
+        self._plot.clear()
 
 
 class NXdataCurveView(DataView):
@@ -122,12 +173,11 @@ class NXdataCurveView(DataView):
         DataView.__init__(self, parent)
 
     def createWidget(self, parent):
-        from silx.gui.plot import Plot1D
-        widget = Plot1D(parent)
+        widget = ArrayCurvePlot(parent)
         return widget
 
     def axesNames(self, data, info):
-        # used by axis selector widget in Hdf5Viewer
+        # disabled (used by default axis selector widget in Hdf5Viewer)
         return []
 
     def clear(self):
@@ -137,32 +187,13 @@ class NXdataCurveView(DataView):
         data = self.normalizeData(data)
         signal = nxdata.get_signal(data)
         signal_name = data.attrs["signal"]
-        signal_len = signal.shape[-1]
         group_name = data.name
         x_axis = nxdata.get_axes(data)[-1]
         x_label = nxdata.get_axes_names(data)[-1]
 
-        self.getWidget().setGraphTitle("NXdata group " + group_name)
-        self.getWidget().setGraphXLabel(x_label if x_label is not None else "X")
-        self.getWidget().setGraphYLabel(signal_name)
-
-        if x_axis is None:
-            x_axis = numpy.arange(signal_len)
-
-        if len(signal.shape) == 1:
-            # single curve
-            assert x_axis.shape == signal.shape
-            legend = "NXdata curve " + group_name
-            self.getWidget().addCurve(legend=legend,
-                                      x=x_axis, y=signal,
-                                      xlabel=x_label, ylabel=signal_name)
-        else:
-            # array of curves (spectra)
-            assert x_axis.shape == signal.shape[-1:]
-            _recursive_addcurve(plot=self.getWidget(),
-                                x=x_axis, signal=signal,
-                                xlabel=x_label, ylabel=signal_name,
-                                legend_prefix="NXdata spectrum ")
+        self.getWidget().setCurveData(signal, x_axis,
+                                      ylabel=signal_name, xlabel=x_label,
+                                      title="NXdata group " + group_name)
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
