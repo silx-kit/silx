@@ -32,12 +32,13 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "27/01/2017"
 
-from silx.gui import qt
+import functools
 import os.path
+import logging
+from silx.gui import qt
 import silx.io
 from .TextFormatter import TextFormatter
 import silx.gui.hdf5
-import logging
 
 _logger = logging.getLogger(__name__)
 
@@ -230,12 +231,14 @@ class Hdf5TableModel(qt.QAbstractTableModel):
                 self.__properties.append(_Property("compression", lambda x: "True (see filters)"))
             for index in range(dcpl.get_nfilters()):
                 name = "filters[%d]" % index
-                self.__properties.append(_Property(name, lambda x: self.__get_filter_info(x, index)))
+                callback = lambda index, x: self.__get_filter_info(x, index)
+                self.__properties.append(_Property(name, functools.partial(callback, index)))
 
         if hasattr(obj, "attrs"):
             for key in sorted(obj.attrs.keys()):
                 name = "attrs[%s]" % key
-                self.__properties.append(_Property(name, lambda x: self.__formatter.toString(x.attrs[key])))
+                callback = lambda key, x: self.__formatter.toString(x.attrs[key])
+                self.__properties.append(_Property(name, functools.partial(callback, key)))
 
     def __get_filter_info(self, dataset, filterIndex):
         """Get a tuple of readable info from dataset filters
