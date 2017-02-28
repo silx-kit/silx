@@ -237,15 +237,17 @@ class ArrayImagePlot(qt.QWidget):
         self.__y_axis_name = None
 
         self._plot = Plot2D(self)
-        self._plot.setDefaultColormap(
+        self._plot.setDefaultColormap(    # FIXME
                 {"name": "viridis",
                  "normalization": "linear",
                  "autoscale": True})
+        self._legend = qt.QLabel(self)
         self._selector = NumpyAxesSelector(self)
-        self.__selector_is_connected = False  # connected after setImageData
+        self.__selector_is_connected = False
 
         layout = qt.QVBoxLayout()
         layout.addWidget(self._plot)
+        layout.addWidget(self._legend)
         layout.addWidget(self._selector)
 
         self.setLayout(layout)
@@ -369,6 +371,7 @@ class ArrayImagePlot(qt.QWidget):
             else:
                 legend += str(sl) + ", "
         legend = legend[:-2] + "]"
+        self._legend.setText("Displayed data: " + legend)
 
         if is_regular_image:
             # single regular image
@@ -377,7 +380,7 @@ class ArrayImagePlot(qt.QWidget):
                                 ylabel=self.__y_axis_name,
                                 origin=origin, scale=scale)
         else:
-            # TODO: use addScatter
+            # FIXME: use addScatter
             scatterx, scattery = numpy.meshgrid(x_axis, y_axis)
             rgbacolor = self._applyColormap(numpy.ravel(img))
             self._plot.addCurve(

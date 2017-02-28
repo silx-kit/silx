@@ -280,20 +280,37 @@ def get_axes_names(group):
     "." in that position in the *@axes* array), `None` is inserted in the
     output list in its position.
 
+    .. note::
+
+        If an axis dataset has a "long_name" attribute, it will be used as
+        the axis name. Else, the name of the dataset will be used.
 
     :param group: h5py-like Group following the NeXus *NXdata* specification.
     :rtype: list[str or None]
     """
-    axes_names = group.attrs.get("axes")
-    if isinstance(axes_names, str):
-         axes_names = [axes_names]
+    axes_dataset_names = group.attrs.get("axes")
+    if isinstance(axes_dataset_names, str):
+        axes_dataset_names = [axes_dataset_names]
 
     ndims = len(get_signal(group).shape)
-    if axes_names is None:
-        axes_names = [None] * ndims
+    if axes_dataset_names is None:
+        axes_dataset_names = [None] * ndims
+
+    axes_names = []
+    # check if axis dataset defines @long_name
+    for i, dsname in enumerate(axes_dataset_names):
+        if dsname is None:
+            axes_names.append(None)
+        elif "long_name" in group[dsname].attrs:
+            axes_names.append(group[dsname].attrs["long_name"])
+        else:
+            axes_names.append(dsname)
+
     if len(axes_names) == ndims:
         return axes_names
 
+    # @axes may only define 1 or 2 axes if @interpretation=spectrum/image.
+    # Use the existing names for the last few dims, and prepend with Nones.
     interpretation = get_interpretation(group)
     assert len(axes_names) == INTERPDIM[interpretation]
     all_dimensions_names = [None] * (ndims - INTERPDIM[interpretation])
@@ -358,20 +375,21 @@ def signal_is_2D(group):
     return False
 
 
-@validate_NXdata
-def signal_is_3D(group):
-    """Return True if NXdata signal dataset is 3-D and *@interpretation*
-    is not one of *["spectrum", "scalar", "image"]*, or if the dataset has
-    more than 3 dimensions and has *@interpretation="vertex"*.
-
-    :param group: h5py-like Group following the NeXus *NXdata* specification.
-    :return: Boolean
-    """
-    ndim = len(get_signal(group).shape)
-    interp = get_interpretation(group)
-
-    if ndim == 3 and interp not in ["spectrum", "scalar", "image"]:
-        return True
-    if ndim > 3 and get_interpretation(group) == "vertex":
-        return True
-    return False
+# Currently unsupported + need to check the meaning of @interpretation="vertex"
+# @validate_NXdata
+# def signal_is_3D(group):
+#     """Return True if NXdata signal dataset is 3-D and *@interpretation*
+#     is not one of *["spectrum", "scalar", "image"]*, or if the dataset has
+#     more than 3 dimensions and has *@interpretation="vertex"*.
+#
+#     :param group: h5py-like Group following the NeXus *NXdata* specification.
+#     :return: Boolean
+#     """
+#     ndim = len(get_signal(group).shape)
+#     interp = get_interpretation(group)
+#
+#     if ndim == 3 and interp not in ["spectrum", "scalar", "image"]:
+#         return True
+#     if ndim > 3 and get_interpretation(group) == "vertex":
+#         return True
+#     return False
