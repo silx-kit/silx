@@ -861,21 +861,21 @@ class MaskToolsWidget(qt.QWidget):
         removed, otherwise it is adjusted to origin, scale and z.
         """
         activeImage = self.plot.getActiveImage()
-        if activeImage is None or activeImage[1] == self._maskName:
+        if activeImage is None or activeImage.getLegend() == self._maskName:
             # No active image or active image is the mask...
             self.plot.sigActiveImageChanged.disconnect(
                 self._activeImageChangedAfterCare)
         else:
-            colormap = activeImage[4]['colormap']
+            colormap = activeImage.getColormap()
             self._defaultOverlayColor = rgba(cursorColorForColormap(colormap['name']))
             self._setMaskColors(self.levelSpinBox.value(),
                                 self.transparencySlider.value() /
                                 self.transparencySlider.maximum())
 
-            self._origin = activeImage[4]['origin']
-            self._scale = activeImage[4]['scale']
-            self._z = activeImage[4]['z'] + 1
-            self._data = activeImage[0]
+            self._origin = activeImage.getOrigin()
+            self._scale = activeImage.getScale()
+            self._z = activeImage.getZValue() + 1
+            self._data = activeImage.getData(copy=False)
             if self._data.shape != self.getSelectionMask(copy=False).shape:
                 # Image has not the same size, remove mask and stop listening
                 if self.plot.getImage(self._maskName):
@@ -890,7 +890,7 @@ class MaskToolsWidget(qt.QWidget):
     def _activeImageChanged(self, *args):
         """Update widget and mask according to active image changes"""
         activeImage = self.plot.getActiveImage()
-        if activeImage is None or activeImage[1] == self._maskName:
+        if activeImage is None or activeImage.getLegend() == self._maskName:
             # No active image or active image is the mask...
             self.setEnabled(False)
 
@@ -901,16 +901,16 @@ class MaskToolsWidget(qt.QWidget):
         else:  # There is an active image
             self.setEnabled(True)
 
-            colormap = activeImage[4]['colormap']
+            colormap = activeImage.getColormap()
             self._defaultOverlayColor = rgba(cursorColorForColormap(colormap['name']))
             self._setMaskColors(self.levelSpinBox.value(),
                                 self.transparencySlider.value() /
                                 self.transparencySlider.maximum())
 
-            self._origin = activeImage[4]['origin']
-            self._scale = activeImage[4]['scale']
-            self._z = activeImage[4]['z'] + 1
-            self._data = activeImage[0]
+            self._origin = activeImage.getOrigin()
+            self._scale = activeImage.getScale()
+            self._z = activeImage.getZValue() + 1
+            self._data = activeImage.getData(copy=False)
             if self._data.shape != self.getSelectionMask(copy=False).shape:
                 self._mask.reset(self._data.shape)
                 self._mask.commit()
@@ -1405,12 +1405,13 @@ class MaskToolsWidget(qt.QWidget):
     def _loadRangeFromColormapTriggered(self):
         """Set range from active image colormap range"""
         activeImage = self.plot.getActiveImage()
-        if activeImage is not None and activeImage[1] != self._maskName:
+        if (activeImage is not None and
+                activeImage.getLegend() != self._maskName):
             # Update thresholds according to colormap
-            colormap = activeImage[4]['colormap']
+            colormap = activeImage.getColormap()
             if colormap['autoscale']:
-                min_ = numpy.nanmin(activeImage[0])
-                max_ = numpy.nanmax(activeImage[0])
+                min_ = numpy.nanmin(activeImage.getData(copy=False))
+                max_ = numpy.nanmax(activeImage.getData(copy=False))
             else:
                 min_, max_ = colormap['vmin'], colormap['vmax']
             self.minLineEdit.setText(str(min_))

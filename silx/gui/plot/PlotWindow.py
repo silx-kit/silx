@@ -281,7 +281,7 @@ class PlotWindow(PlotWidget):
                 parent=self)
             self._introduceNewDockWidget(self._consoleDockWidget)
             self._consoleDockWidget.visibilityChanged.connect(
-                    self.getConsoleAction().setChecked)
+                self.getConsoleAction().setChecked)
 
         self._consoleDockWidget.setVisible(is_checked)
 
@@ -690,17 +690,17 @@ class Plot2D(PlotWindow):
         valueZ = - float('inf')
 
         for image in self.getAllImages():
-            data, params = image[0], image[4]
-            if params['z'] >= valueZ:  # This image is over the previous one
-                ox, oy = params['origin']
-                sx, sy = params['scale']
+            data = image.getData(copy=False)
+            if image.getZValue() >= valueZ:  # This image is over the previous one
+                ox, oy = image.getOrigin()
+                sx, sy = image.getScale()
                 row, col = (y - oy) / sy, (x - ox) / sx
                 if row >= 0 and col >= 0:
                     # Test positive before cast otherwise issue with int(-0.5) = 0
                     row, col = int(row), int(col)
                     if (row < data.shape[0] and col < data.shape[1]):
                         value = data[row, col]
-                        valueZ = params['z']
+                        valueZ = image.getZValue()
         return value
 
     def getProfileToolbar(self):

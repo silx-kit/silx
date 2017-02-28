@@ -35,6 +35,7 @@ import time
 import weakref
 
 from . import Colors
+from . import PlotItems
 from .Interaction import (ClickOrDrag, LEFT_BTN, RIGHT_BTN,
                           State, StateMachine)
 from .PlotEvents import (prepareCurveSignal, prepareDrawingSignal,
@@ -1004,10 +1005,10 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                 dataPos = self.machine.plot.pixelToData(x, y)
                 assert dataPos is not None
                 eventDict = prepareHoverSignal(
-                    marker['legend'], 'marker',
+                    marker.getLegend(), 'marker',
                     dataPos, (x, y),
-                    marker['draggable'],
-                    marker['selectable'])
+                    marker.isDraggable(),
+                    marker.isSelectable())
                 self.machine.plot.notify(**eventDict)
 
             if marker != self._hoverMarker:
@@ -1016,15 +1017,15 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                 if marker is None:
                     self.machine.plot.setGraphCursorShape()
 
-                elif marker['draggable']:
-                    if marker['x'] is None:
+                elif marker.isDraggable():
+                    if isinstance(marker, PlotItems.YMarker):
                         self.machine.plot.setGraphCursorShape(CURSOR_SIZE_VER)
-                    elif marker['y'] is None:
+                    elif isinstance(marker, PlotItems.XMarker):
                         self.machine.plot.setGraphCursorShape(CURSOR_SIZE_HOR)
                     else:
                         self.machine.plot.setGraphCursorShape(CURSOR_SIZE_ALL)
 
-                elif marker['selectable']:
+                elif marker.isSelectable():
                     self.machine.plot.setGraphCursorShape(CURSOR_POINTING)
 
             return True
@@ -1072,9 +1073,9 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
 
         if btn == LEFT_BTN:
             marker = self.plot._pickMarker(
-                x, y, lambda marker: marker['selectable'])
+                x, y, lambda marker: marker.isSelectable())
             if marker is not None:
-                xData, yData = marker['x'], marker['y']
+                xData, yData = marker.getPosition()
                 if xData is None:
                     xData = [0, 1]
                 if yData is None:
@@ -1082,17 +1083,17 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
 
                 eventDict = prepareMarkerSignal('markerClicked',
                                                 'left',
-                                                marker['legend'],
+                                                marker.getLegend(),
                                                 'marker',
-                                                marker['draggable'],
-                                                marker['selectable'],
+                                                marker.isDraggable(),
+                                                marker.isSelectable(),
                                                 (xData, yData),
                                                 (x, y), None)
                 return eventDict
 
             else:
                 picked = self.plot._pickImageOrCurve(
-                    x, y, lambda item: item['selectable'])
+                    x, y, lambda item: item.isSelectable())
 
                 if picked is None:
                     pass
@@ -1104,7 +1105,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                     assert dataPos is not None
 
                     eventDict = prepareCurveSignal('left',
-                                                   curve['legend'],
+                                                   curve.getLegend(),
                                                    'curve',
                                                    picked[2], picked[3],
                                                    dataPos[0], dataPos[1],
@@ -1118,13 +1119,13 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                     assert dataPos is not None
 
                     # Get corresponding coordinate in image
-                    column = int((dataPos[0] - image['origin'][0]) /
-                                 float(image['scale'][0]))
-                    row = int((dataPos[1] - image['origin'][1]) /
-                              float(image['scale'][1]))
+                    origin = image.getOrigin()
+                    scale = image.getScale()
+                    column = int((dataPos[0] - origin[0]) / float(scale[0]))
+                    row = int((dataPos[1] - origin[1]) / float(scale[1]))
 
                     eventDict = prepareImageSignal('left',
-                                                   image['legend'],
+                                                   image.getLegend(),
                                                    'image',
                                                    column, row,
                                                    dataPos[0], dataPos[1],
@@ -1136,7 +1137,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
     def _signalMarkerMovingEvent(self, eventType, marker, x, y):
         assert marker is not None
 
-        xData, yData = marker['x'], marker['y']
+        xData, yData = marker.getPosition()
         if xData is None:
             xData = [0, 1]
         if yData is None:
@@ -1147,10 +1148,10 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
 
         eventDict = prepareMarkerSignal(eventType,
                                         'left',
-                                        marker['legend'],
+                                        marker.getLegend(),
                                         'marker',
-                                        marker['draggable'],
-                                        marker['selectable'],
+                                        marker.isDraggable(),
+                                        marker.isSelectable(),
                                         (xData, yData),
                                         (x, y),
                                         posDataCursor)
@@ -1169,23 +1170,24 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
         self.imageLegend = None
         self.markerLegend = None
         marker = self.plot._pickMarker(
-            x, y, lambda marker: marker['draggable'])
+            x, y, lambda marker: marker.isDraggable())
 
         if marker is not None:
-            self.markerLegend = marker['legend']
+            self.markerLegend = marker.getLegend()
             self._signalMarkerMovingEvent('markerMoving', marker, x, y)
         else:
             picked = self.plot._pickImageOrCurve(
                 x,
                 y,
-                lambda item: item.get('draggable', False))
+                lambda item:
+                    hasattr(item, 'isDraggable') and item.isDraggable())
             if picked is None:
                 self.imageLegend = None
                 self.plot.setGraphCursorShape()
                 return False
             else:
                 assert picked[0] == 'image'  # For now only drag images
-                self.imageLegend = picked[1]['legend']
+                self.imageLegend = picked[1].getLegend()
         return True
 
     def drag(self, x, y):
@@ -1194,10 +1196,6 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
         xData, yData = dataPos
 
         if self.markerLegend is not None:
-            marker = self.plot._getMarker(self.markerLegend)
-            if marker['constraint'] is not None:
-                xData, yData = marker['constraint'](xData, yData)
-
             self.plot._moveMarker(self.markerLegend, xData, yData)
 
             self._signalMarkerMovingEvent(
@@ -1212,7 +1210,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
     def endDrag(self, startPos, endPos):
         if self.markerLegend is not None:
             marker = self.plot._getMarker(self.markerLegend)
-            posData = [marker['x'], marker['y']]
+            posData = list(marker.getPosition())
             if posData[0] is None:
                 posData[0] = [0, 1]
             if posData[1] is None:
@@ -1221,10 +1219,10 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
             eventDict = prepareMarkerSignal(
                 'markerMoved',
                 'left',
-                marker['legend'],
+                marker.getLegend(),
                 'marker',
-                marker['draggable'],
-                marker['selectable'],
+                marker.isDraggable(),
+                marker.isSelectable(),
                 posData)
             self.plot.notify(**eventDict)
 

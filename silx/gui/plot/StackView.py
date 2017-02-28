@@ -264,7 +264,7 @@ class StackView(qt.QMainWindow):
         else:
             if perspective > 2 or perspective < 0:
                 raise ValueError(
-                        "Perspective must be 0, 1 or 2, not %s" % perspective)
+                    "Perspective must be 0, 1 or 2, not %s" % perspective)
 
             self._perspective = perspective
             self.__createTransposedView()
@@ -409,9 +409,21 @@ class StackView(qt.QMainWindow):
         :return: 3D stack and parameters.
         :rtype: (numpy.ndarray, dict)
         """
-        if self.getActiveImage() is None:
+        image = self.getActiveImage()
+        if image is None:
             return None
-        _img, _legend, _info, _pixmap, params = self.getActiveImage()
+
+        params = {
+            'info': image.getInfo(),
+            'origin': image.getOrigin(),
+            'scale': image.getScale(),
+            'z': image.getZValue(),
+            'selectable': image.isSelectable(),
+            'draggable': image.isDraggable(),
+            'colormap': image.getColormap(),
+            'xlabel': image.getXLabel(),
+            'ylabel': image.getYLabel(),
+        }
         if returnNumpyArray or copy:
             return numpy.array(self._stack, copy=copy), params
 
@@ -443,26 +455,35 @@ class StackView(qt.QMainWindow):
         :return: 3D stack and parameters.
         :rtype: (numpy.ndarray, dict)
         """
-        if self.getActiveImage() is None:
+        image = self.getActiveImage()
+        if image is None:
             return None
-        _img, _legend, _info, _pixmap, params = self.getActiveImage()
+
+        params = {
+            'info': image.getInfo(),
+            'origin': image.getOrigin(),
+            'scale': image.getScale(),
+            'z': image.getZValue(),
+            'selectable': image.isSelectable(),
+            'draggable': image.isDraggable(),
+            'colormap': image.getColormap(),
+            'xlabel': image.getXLabel(),
+            'ylabel': image.getYLabel(),
+        }
         if returnNumpyArray or copy:
             return numpy.array(self.__transposed_view, copy=copy), params
         return self.__transposed_view, params
 
     def getActiveImage(self, just_legend=False):
-        """Returns the currently active image.
+        """Returns the currently active image object.
 
         It returns None in case of not having an active image.
-
-        Default output has the form: [data, legend, info, pixmap, params]
-        where params is a dictionary containing image parameters.
 
         :param bool just_legend: True to get the legend of the image,
             False (the default) to get the image data and info.
             Note: :class:`StackView` uses the same legend for all frames.
-        :return: legend or [data, legend, info, pixmap, params]
-        :rtype: str or list
+        :return: legend or image object
+        :rtype: str or list or None
         """
         return self._plot.getActiveImage(just_legend=just_legend)
 
@@ -647,7 +668,7 @@ class StackView(qt.QMainWindow):
             elif autoscale and isinstance(self._stack, h5py.Dataset):
                 # h5py dataset has no min()/max() methods
                 raise RuntimeError(
-                        "Cannot auto-scale colormap for a h5py dataset")
+                    "Cannot auto-scale colormap for a h5py dataset")
             else:
                 autoscale = autoscale
             self.__autoscaleCmap = autoscale
@@ -668,10 +689,13 @@ class StackView(qt.QMainWindow):
         # Refresh image with new colormap
         activeImage = self._plot.getActiveImage()
         if activeImage is not None:
-            data, legend, info, _pixmap = activeImage[0:4]
-            self._plot.addImage(data, legend=legend, info=info,
-                                colormap=self.getColormap(),
-                                resetzoom=False)
+            self._plot.addImage(
+                activeImage.getData(copy=False),
+                legend=activeImage.getLegend(),
+                info=activeImage.getInfo(),
+                pixmap=activeImage.getPixmap(copy=False),
+                colormap=self.getColormap(),
+                resetzoom=False)
 
     def isKeepDataAspectRatio(self):
         """Returns whether the plot is keeping data aspect ratio or not."""
@@ -757,7 +781,7 @@ class PlanesWidget(qt.QWidget):
         self.qcbAxisSelection.addItem(icons.getQIcon("cube-left"),
                                       'Dim0-Dim1')
         self.qcbAxisSelection.currentIndexChanged[int].connect(
-                self.__planeSelectionChanged)
+            self.__planeSelectionChanged)
 
         layout0.addWidget(self.qcbAxisSelection)
 

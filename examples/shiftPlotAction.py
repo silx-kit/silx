@@ -62,14 +62,18 @@ class ShiftUpAction(PlotAction):
         # which is a reference to the PlotWindow
         activeCurve = self.plot.getActiveCurve()
 
-        if activeCurve is not None:
+        if activeCurve is None:
+            qt.QMessageBox.information(self.plot,
+                                       'Shift Curve',
+                                       'Please select a curve.')
+        else:
             # Unpack curve data.
-            # Each curve is represented by a tuple of 5 variables:
-            #  - x and y are the array of abscissa and ordinate values
-            #  - legend is a unique text identifying a curve
-            #  - info and params are dictionaries of additional data
-            #    (user defined, curve style and color...)
-            x0, y0, legend, info, _params = activeCurve
+            # Each curve is represented by an object with method to access:
+            # the curve data, its legend, associated information and curve style
+            x0 = activeCurve.getXData()
+            y0 = activeCurve.getYData()
+            legend = activeCurve.getLegend()
+            info = activeCurve.getInfo()
 
             # Add 1 to all values in the y array
             # and assign the result to a new array y1

@@ -399,21 +399,21 @@ class TestPlotGetCurveImage(unittest.TestCase):
 
         # Active curve
         active = plot.getActiveCurve()
-        self.assertEqual(active[2], 'curve 0')  # Test curve legend
+        self.assertEqual(active.getLegend(), 'curve 0')
         curve = plot.getCurve()
-        self.assertEqual(curve[2], 'curve 0')  # Test curve legend
+        self.assertEqual(curve.getLegend(), 'curve 0')
 
         # No active curve and curves
         plot.setActiveCurveHandling(False)
         active = plot.getActiveCurve()
         self.assertIsNone(active)  # No active curve
         curve = plot.getCurve()
-        self.assertEqual(curve[2], 'curve 2')  # Last added curve
+        self.assertEqual(curve.getLegend(), 'curve 2')  # Last added curve
 
         # Last curve hidden
         plot.hideCurve('curve 2', True)
         curve = plot.getCurve()
-        self.assertEqual(curve[2], 'curve 1')  # Last added curve
+        self.assertEqual(curve.getLegend(), 'curve 1')  # Last added curve
 
         # All curves hidden
         plot.hideCurve('curve 1', True)
@@ -435,9 +435,9 @@ class TestPlotGetCurveImage(unittest.TestCase):
 
         # Active image
         active = plot.getActiveImage()
-        self.assertEqual(active[1], 'image 0')  # Test image legend
+        self.assertEqual(active.getLegend(), 'image 0')
         image = plot.getImage()
-        self.assertEqual(image[1], 'image 0')  # Test image legend
+        self.assertEqual(image.getLegend(), 'image 0')
 
         # No active image
         plot.addImage(((0, 1), (2, 3)), legend='image 2', replace=False)
@@ -445,14 +445,14 @@ class TestPlotGetCurveImage(unittest.TestCase):
         active = plot.getActiveImage()
         self.assertIsNone(active)
         image = plot.getImage()
-        self.assertEqual(image[1], 'image 2')  # Test image legend
+        self.assertEqual(image.getLegend(), 'image 2')
 
         # Active image
         plot.setActiveImage('image 1')
         active = plot.getActiveImage()
-        self.assertEqual(active[1], 'image 1')
+        self.assertEqual(active.getLegend(), 'image 1')
         image = plot.getImage()
-        self.assertEqual(image[1], 'image 1')  # Test image legend
+        self.assertEqual(image.getLegend(), 'image 1')
 
     def testGetAllImages(self):
         """Plot.getAllImages test"""
@@ -471,18 +471,19 @@ class TestPlotGetCurveImage(unittest.TestCase):
         self.assertEqual(list(images), ['1', '2'])
         images = plot.getAllImages(just_legend=False)
         self.assertEqual(len(images), 2)
-        self.assertEqual(images[0][1], '1')
-        self.assertEqual(images[1][1], '2')
+        self.assertEqual(images[0].getLegend(), '1')
+        self.assertEqual(images[1].getLegend(), '2')
+
 
 class TestPlotHistogram(unittest.TestCase):
     """Basic tests for histogram."""
 
     def testPlotCurveColorFloat(self):
-        x=numpy.array([0, 1, 2])
-        x2=numpy.array([0, 1, 2, 3])
-        x3=numpy.array([-1, 0, 1, 2])
-        x4=numpy.array([-0.5, 0.5, 1.5, 2.5])
-        y=numpy.array([3, 2, 5])
+        x = numpy.array([0, 1, 2])
+        x2 = numpy.array([0, 1, 2, 3])
+        x3 = numpy.array([-1, 0, 1, 2])
+        x4 = numpy.array([-0.5, 0.5, 1.5, 2.5])
+        y = numpy.array([3, 2, 5])
 
         # testing x values for right
         xHisto, yHisto = Plot._getHistogramValue(x, y, 'right')
@@ -515,7 +516,7 @@ class TestPlotHistogram(unittest.TestCase):
 def suite():
     test_suite = unittest.TestSuite()
     for TestClass in (TestPlot, TestPlotRanges, TestPlotGetCurveImage,
-      TestPlotHistogram):
+                      TestPlotHistogram):
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(TestClass))
     return test_suite

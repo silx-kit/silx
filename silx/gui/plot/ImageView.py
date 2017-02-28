@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -367,8 +367,9 @@ class ImageView(PlotWindow):
             wasUpdatingLimits = self._updatingLimits
             self._updatingLimits = True
 
-            data, _legend, _info, _pixmap, params = activeImage[0:5]
-            origin, scale = params['origin'], params['scale']
+            data = activeImage.getData(copy=False)
+            origin = activeImage.getOrigin()
+            scale = activeImage.getScale()
             height, width = data.shape
 
             xMin, xMax = self.getGraphXLimits()
@@ -478,12 +479,12 @@ class ImageView(PlotWindow):
         if eventDict['event'] == 'mouseMoved':
             activeImage = self.getActiveImage()
             if activeImage is not None:
-                data = activeImage[0]
+                data = activeImage.getData(copy=False)
                 height, width = data.shape
 
                 # Get corresponding coordinate in image
-                origin = activeImage[4]['origin']
-                scale = activeImage[4]['scale']
+                origin = activeImage.getOrigin()
+                scale = activeImage.getScale()
                 if (eventDict['x'] >= origin[0] and
                         eventDict['y'] >= origin[1]):
                     x = int((eventDict['x'] - origin[0]) / scale[0])
@@ -521,8 +522,8 @@ class ImageView(PlotWindow):
             if self._cache is not None:
                 activeImage = self.getActiveImage()
                 if activeImage is not None:
-                    params = activeImage[4]
-                    xOrigin, xScale = params['origin'][0], params['scale'][0]
+                    xOrigin = activeImage.getOrigin()[0]
+                    xScale = activeImage.getScale()[0]
 
                     minValue = xOrigin + xScale * self._cache['dataXMin']
 
@@ -547,8 +548,8 @@ class ImageView(PlotWindow):
             if self._cache is not None:
                 activeImage = self.getActiveImage()
                 if activeImage is not None:
-                    params = activeImage[4]
-                    yOrigin, yScale = params['origin'][1], params['scale'][1]
+                    yOrigin = activeImage.getOrigin()[1]
+                    yScale = activeImage.getScale()[1]
 
                     minValue = yOrigin + yScale * self._cache['dataYMin']
 
@@ -721,9 +722,10 @@ class ImageView(PlotWindow):
 
         activeImage = self.getActiveImage()
         if activeImage is not None:  # Refresh image with new colormap
-            data, legend, info, _pixmap = activeImage
-
-            self.addImage(data, legend=legend, info=info,
+            self.addImage(activeImage.getData(copy=False),
+                          legend=activeImage.getLegend(),
+                          info=activeImage.getInfo(),
+                          pixmap=activeImage.getPixmap(),
                           colormap=self.getColormap(),
                           replace=False)
 
