@@ -277,6 +277,12 @@ def get_hdf5_with_nxdata():
     ds = g0d1.create_dataset("scalars", data=numpy.arange(3*10).reshape((3, 10)))
     ds.attrs["interpretation"] = "scalar"
 
+    g0d1 = g0d.create_group("4D_scalars")
+    g0d1.attrs["NX_class"] = "NXdata"
+    g0d1.attrs["signal"] = "scalars"
+    ds = g0d1.create_dataset("scalars", data=numpy.arange(2*2*3*10).reshape((2, 2, 3, 10)))
+    ds.attrs["interpretation"] = "scalar"
+
     # SPECTRA
     g1d = h5.create_group("spectra")
 
