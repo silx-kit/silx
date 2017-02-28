@@ -305,7 +305,11 @@ def get_hdf5_with_nxdata():
     g1d2.attrs["axes"] = "energy",
     ds = g1d2.create_dataset("counts", data=numpy.arange(2*2*3*10).reshape((2, 2, 3, 10)))
     ds.attrs["interpretation"] = "spectrum"
-    g1d2.create_dataset("energy", data=5+10*numpy.arange(10))
+    ds = g1d2.create_dataset("energy", data=5+10*numpy.arange(15),
+                             shuffle=True, compression="gzip")
+    ds.attrs["long_name"] = "Calibrated energy"
+    ds.attrs["first_good"] = 3
+    ds.attrs["last_good"] = 12
 
     # IMAGES
     g2d = h5.create_group("images")

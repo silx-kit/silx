@@ -128,7 +128,13 @@ def is_valid(group):   # noqa
                 NXdata_warning("Axis %s is not a 1D dataset" % axis)
                 return False
 
-            if len(group[axis]) not in group[signal_name].shape:
+            if "first_good" in group[axis].attrs or "last_good" in group[axis].attrs:
+                fg_idx = group[axis].attrs.get("first_good", 0)
+                lg_idx = group[axis].attrs.get("last_good", len(group[axis]) - 1)
+                axis_len = lg_idx + 1 - fg_idx
+            else:
+                axis_len = len(group[axis])
+            if axis_len not in group[signal_name].shape:
                 # TODO: test the len() vs the specific dimension this axes applies to
                 NXdata_warning(
                         "Axis %s number of elements does not " % axis +
@@ -229,11 +235,17 @@ def get_axes(group):
         of an *@interpretation* (*spectrum* or *image*) attribute in the
         *signal* dataset.
 
+    .. note::
+
+        If an axis dataset defines attributes @first_good or @last_good,
+        the output will be a numpy array resulting from slicing that
+        axis to keep only the good index range: axis[first_good:last_good + 1]
+
     :param group: h5py-like Group following the NeXus *NXdata* specification.
     :return: List of datasets whose names are specified in the *axes*
         attribute of *group*, sorted in the order in which they should be
         applied to the corresponding dimension of the signal dataset.
-    :rtype: list[Dataset or None]
+    :rtype: list[Dataset or 1D array or None]
     """
     ndims = len(get_signal(group).shape)
     axes_names = group.attrs.get("axes")
@@ -245,7 +257,7 @@ def get_axes(group):
         axes_names = [axes_names]
 
     if len(axes_names) == ndims:
-        # axes is a list of strings, one axis per dim is explicitely defined
+        # axes is a list of strings, one axis per dim is explicitly defined
         axes = [None] * ndims
         for i, axis_n in enumerate(axes_names):
             if axis_n != ".":
@@ -254,18 +266,26 @@ def get_axes(group):
                 except KeyError:
                     raise KeyError(
                             "No dataset matching axis name " + axis_n)
-        return axes
-
-    # case of @interpretation attribute defined: we expect 1, 2 or 3 axes
-    # corresponding to the 1, 2, or 3 last dimensions of the signal
-    interpretation = get_interpretation(group)
-    assert len(axes_names) == INTERPDIM[interpretation]
-    axes = [None] * (ndims - INTERPDIM[interpretation])
-    for axis_n in axes_names:
-        if axis_n != ".":
-            axes.append(group[axis_n])
-        else:
-            axes.append(None)
+    else:
+        # case of @interpretation attribute defined: we expect 1, 2 or 3 axes
+        # corresponding to the 1, 2, or 3 last dimensions of the signal
+        interpretation = get_interpretation(group)
+        assert len(axes_names) == INTERPDIM[interpretation]
+        axes = [None] * (ndims - INTERPDIM[interpretation])
+        for axis_n in axes_names:
+            if axis_n != ".":
+                axes.append(group[axis_n])
+            else:
+                axes.append(None)
+    # keep only good range of axis data
+    for i, axis in enumerate(axes):
+        if axis is None:
+            continue
+        if "first_good" not in axis.attrs and "last_good" not in axis.attrs:
+            continue
+        fg_idx = axis.attrs.get("first_good") or 0
+        lg_idx = axis.attrs.get("last_good") or (len(axis) - 1)
+        axes[i] = axis[fg_idx:lg_idx + 1]
     return axes
 
 
