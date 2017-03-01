@@ -311,70 +311,111 @@ def get_axes(group):
 
 
 @validate_NXdata
-def get_axes_names(group):
-    """Return a list of axes names in a NXdata group.
+def get_axes_dataset_names(group):
+    """Return a list of axes datasest names in a NXdata group.
 
-    If an axis dataset applies to several dimensions of the signal, it
-    will be repeated in the list.
+    If an axis dataset applies to several dimensions of the signal, its
+    name will be repeated in the list.
 
     If a dimension of the signal has no dimension scale (i.e. there is a
     "." in that position in the *@axes* array), `None` is inserted in the
     output list in its position.
+    """
+    axes_dataset_names = group.attrs.get("axes")
+    if axes_dataset_names is None:
+       axes_dataset_names = get_signal(group).attrs.get("axes")
 
-    .. note::
+    ndims = len(get_signal(group).shape)
+    if axes_dataset_names is None:
+        return [None] * ndims
 
-        If an axis dataset has a "long_name" attribute, it will be used as
-        the axis name. Else, the name of the dataset will be used.
+    if isinstance(axes_dataset_names, str):
+        axes_dataset_names = [axes_dataset_names]
+
+    if len(axes_dataset_names) != ndims:
+        # @axes may only define 1 or 2 axes if @interpretation=spectrum/image.
+        # Use the existing names for the last few dims, and prepend with Nones.
+        interpretation = get_interpretation(group)
+        assert len(axes_dataset_names) == INTERPDIM[interpretation]
+        all_dimensions_names = [None] * (ndims - INTERPDIM[interpretation])
+        for axis_name in axes_dataset_names:
+            if axis_name == ".":
+                all_dimensions_names.append(None)
+            else:
+                all_dimensions_names.append(axis_name)
+        return all_dimensions_names
+
+    for i, axis_name in enumerate(axes_dataset_names):
+        if axis_name == ".":
+            axes_dataset_names[i] = None
+    return axes_dataset_names
+
+
+@validate_NXdata
+def get_axes_names(group):
+    """Return a list of axes names in a NXdata group.
+
+    This method is similar to :meth:`get_axes_dataset_names` except that
+    if an axis dataset has a "@long_name" attribute, it will be returned
+    instead of the dataset name.
 
     :param group: h5py-like Group following the NeXus *NXdata* specification.
     :rtype: list[str or None]
     """
-    axes_dataset_names = group.attrs.get("axes")
-    if isinstance(axes_dataset_names, str):
-        axes_dataset_names = [axes_dataset_names]
-
-    ndims = len(get_signal(group).shape)
-    if axes_dataset_names is None:
-        axes_dataset_names = [None] * ndims
+    axes_dataset_names = get_axes_dataset_names(group)
 
     axes_names = []
     # check if axis dataset defines @long_name
     for i, dsname in enumerate(axes_dataset_names):
-        if dsname is None:
-            axes_names.append(None)
-        elif "long_name" in group[dsname].attrs:
+        if dsname is not None and "long_name" in group[dsname].attrs:
             axes_names.append(group[dsname].attrs["long_name"])
         else:
             axes_names.append(dsname)
-
-    if len(axes_names) == ndims:
-        return axes_names
-
-    # @axes may only define 1 or 2 axes if @interpretation=spectrum/image.
-    # Use the existing names for the last few dims, and prepend with Nones.
-    interpretation = get_interpretation(group)
-    assert len(axes_names) == INTERPDIM[interpretation]
-    all_dimensions_names = [None] * (ndims - INTERPDIM[interpretation])
-    for axis_name in axes_names:
-        if axis_name == ".":
-            all_dimensions_names.append(None)
-        else:
-            all_dimensions_names.append(axis_name)
-    return all_dimensions_names
+    return axes_names
 
 
 @validate_NXdata
 def get_axis_errors(group, axis_name):
     """
 
+    :param Group group: h5py-like group complying with the NeXus
+        *NXdata* specification.
     :param str axis_name: Name of axis dataset. This dataset **must exist**.
     :return: Dataset with axis errors, or none
     :raise: KeyError if group does not contain a dataset named axis_name
     """
+    if axis_name not in group:
+        # tolerate axis_name given as @long_name
+        for item in group:
+            long_name = group[item].attrs.get("long_name")
+            if long_name is not None and long_name == axis_name:
+                axis_name = item
+                break
+
+    if axis_name not in group:
+        raise KeyError("group does not contain a dataset named '%s'" % axis_name)
+
+    # case of axisname_errors dataset present
     errors_name = axis_name + "_errors"
     if errors_name in group and is_dataset(group[errors_name]):
         return group[errors_name]
-    # TODO: alternative signal.attrs["uncertainties"] -> list of names
+    # case of uncertainties dataset name provided in @uncertainties
+    uncertainties_names = group.attrs.get("uncertainties")
+    if uncertainties_names is None:
+        uncertainties_names = get_signal(group).attrs.get("uncertainties")
+    if isinstance(uncertainties_names, str):
+        uncertainties_names = [uncertainties_names]
+    if uncertainties_names is not None:
+        # take the uncertainty with the same index as the axis in @axes
+        axes_ds_names = group.attrs.get("axes")
+        if axes_ds_names is None:
+            axes_ds_names = get_signal(group).attrs.get("axes")
+        if isinstance(axes_ds_names, str):
+            axes_ds_names = [axes_ds_names]
+        if axis_name not in axes_ds_names:
+            raise KeyError("group attr @axes does not mention a dataset " +
+                           "named '%s'" % axis_name)
+        return uncertainties_names[axes_ds_names.index(axis_name)]
     return None
 
 
