@@ -419,7 +419,6 @@ def get_axis_errors(group, axis_name):
     return None
 
 
-@validate_NXdata
 def signal_is_0D(group):
     """Return True if NXdata signal dataset is 0-D or if
     *@interpretation="scalar"*
@@ -427,66 +426,72 @@ def signal_is_0D(group):
     :param group: h5py-like Group following the NeXus *NXdata* specification.
     :return: Boolean
     """
-    ndim = len(get_signal(group).shape)
-
-    if ndim == 0:
-        return True
-    if get_interpretation(group) == "scalar":
-        return True
-    return False
+    return len(get_signal(group).shape) == 0
 
 
-@validate_NXdata
 def signal_is_1D(group):
-    """Return True if NXdata signal dataset is 1-D and *@interpretation*
-    is not *"scalar"*,  or if the dataset has more than 1 dimension
-    and has *@interpretation="spectrum"*
+    """Return True if NXdata signal dataset is 1-D
 
     :param group: h5py-like Group following the NeXus *NXdata* specification.
     :return: Boolean
     """
-    ndim = len(get_signal(group).shape)
+    return len(get_signal(group).shape) == 1
 
-    if ndim == 1 and get_interpretation(group) != "scalar":
-        return True
-    if ndim > 1 and get_interpretation(group) == "spectrum":
-        return True
-    return False
+
+def signal_is_2D(group):
+    """Return True if NXdata signal dataset is 2-D
+
+    :param group: h5py-like Group following the NeXus *NXdata* specification.
+    :return: Boolean
+    """
+    return len(get_signal(group).shape) == 2
+
+
+def signal_is_3D(group):
+    """Return True if NXdata signal dataset is 3-D
+
+    :param group: h5py-like Group following the NeXus *NXdata* specification.
+    :return: Boolean
+    """
+    return len(get_signal(group).shape) == 3
 
 
 @validate_NXdata
-def signal_is_2D(group):
-    """Return True if NXdata signal dataset is 2-D and *@interpretation*
-    is not *"spectrum"* and not *"scalar"*, or if the dataset has more than
-    2 dimensions and has *@interpretation="image"*
+def signal_is_scalar(group):
+    """Return True if  *@interpretation="scalar"*
 
     :param group: h5py-like Group following the NeXus *NXdata* specification.
     :return: Boolean
     """
-    ndim = len(get_signal(group).shape)
-
-    if ndim == 2 and get_interpretation(group) not in ["spectrum", "scalar"]:
-        return True
-    if ndim > 2 and get_interpretation(group) == "image":
-        return True
-    return False
+    # misspelled word "scaler" is used on NeXus website
+    return get_interpretation(group) in ["scalar", "scaler"]
 
 
-# Currently unsupported + need to check the meaning of @interpretation="vertex"
-# @validate_NXdata
-# def signal_is_3D(group):
-#     """Return True if NXdata signal dataset is 3-D and *@interpretation*
-#     is not one of *["spectrum", "scalar", "image"]*, or if the dataset has
-#     more than 3 dimensions and has *@interpretation="vertex"*.
-#
-#     :param group: h5py-like Group following the NeXus *NXdata* specification.
-#     :return: Boolean
-#     """
-#     ndim = len(get_signal(group).shape)
-#     interp = get_interpretation(group)
-#
-#     if ndim == 3 and interp not in ["spectrum", "scalar", "image"]:
-#         return True
-#     if ndim > 3 and get_interpretation(group) == "vertex":
-#         return True
-#     return False
+@validate_NXdata
+def signal_is_spectrum(group):
+    """Return True if *@interpretation="spectrum"*
+
+    :param group: h5py-like Group following the NeXus *NXdata* specification.
+    :return: Boolean
+    """
+    return get_interpretation(group) == "spectrum"
+
+
+@validate_NXdata
+def signal_is_spectrum(group):
+    """Return True if *@interpretation="spectrum"*
+
+    :param group: h5py-like Group following the NeXus *NXdata* specification.
+    :return: Boolean
+    """
+    return get_interpretation(group) == "image"
+
+
+@validate_NXdata
+def signal_is_vertex(group):
+    """Return True if *@interpretation="vertex"*
+
+    :param group: h5py-like Group following the NeXus *NXdata* specification.
+    :return: Boolean
+    """
+    return get_interpretation(group) == "vertex"
