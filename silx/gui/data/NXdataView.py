@@ -100,8 +100,10 @@ class ArrayCurvePlot(qt.QWidget):
 
         self.__signal = None
         self.__signal_name = None
+        self.__signal_errors = None
         self.__axis = None
         self.__axis_name = None
+        self.__axis_errors = None
 
         self._plot = Plot1D(self)
         self._selector = NumpyAxesSelector(self)
@@ -123,6 +125,7 @@ class ArrayCurvePlot(qt.QWidget):
         self.setLayout(layout)
 
     def setCurveData(self, signal, axis=None,
+                     yerror= None, xerror=None,
                      ylabel=None, xlabel=None,
                      title=None):
         """
@@ -138,8 +141,10 @@ class ArrayCurvePlot(qt.QWidget):
         """
         self.__signal = signal
         self.__signal_name = ylabel
+        self.__signal_errors = yerror
         self.__axis = axis
         self.__axis_name = xlabel
+        self.__axis_errors = xerror
 
         self._selector.setData(signal)
         self._selector.setAxisNames([ylabel or "Y"])
@@ -164,6 +169,8 @@ class ArrayCurvePlot(qt.QWidget):
         self._plot.addCurve(x, y, legend=legend,
                             xlabel=self.__axis_name,
                             ylabel=self.__signal_name,
+                            xerror=self.__axis_errors,
+                            yerror=self.__signal_errors[self._selector.selection()],
                             resetzoom=True, replace=replace)
 
     def _replaceCurve(self):
@@ -192,12 +199,20 @@ class NXdataCurveView(DataView):
         data = self.normalizeData(data)
         signal = nxdata.get_signal(data)
         signal_name = data.attrs["signal"]
+        signal_errors = nxdata.get_signal_errors(data)
         group_name = data.name
         x_axis = nxdata.get_axes(data)[-1]
         x_label = nxdata.get_axes_names(data)[-1]
+        if x_label is not None:
+            x_errors = nxdata.get_axis_errors(
+                    data,
+                    x_label)
+        else:
+            x_errors = None
 
         self.getWidget().setCurveData(signal, x_axis,
                                       ylabel=signal_name, xlabel=x_label,
+                                      yerror=signal_errors, xerror=x_errors,
                                       title="NXdata group " + group_name)
 
     def getDataPriority(self, data, info):
@@ -441,7 +456,7 @@ class NXdataView(CompositeDataView):
             parent=parent,
             # modeId=DataViewer.NXDATA_MODE,
             label="NXdata",
-            icon=icons.getQIcon("view-hdf5"))
+            icon=icons.getQIcon("view-hdf5"))  # FIXME
 
         self.addView(NXdataScalarView(parent))
         self.addView(NXdataCurveView(parent))

@@ -137,28 +137,34 @@ def is_valid(group):   # noqa
                 NXdata_warning("Axis %s is not a 1D dataset" % axis_name)
                 return False
 
-            if "first_good" in group[axis_name].attrs or "last_good" in group[axis_name].attrs:
-                fg_idx = group[axis_name].attrs.get("first_good", 0)
-                lg_idx = group[axis_name].attrs.get("last_good", len(group[axis_name]) - 1)
-                axis_len = lg_idx + 1 - fg_idx
-            else:
-                axis_len = len(group[axis_name])
+            fg_idx = group[axis_name].attrs.get("first_good", 0)
+            lg_idx = group[axis_name].attrs.get("last_good", len(group[axis_name]) - 1)
+            axis_len = lg_idx + 1 - fg_idx
+
             if axis_len not in group[signal_name].shape:
                 # TODO: test the len() vs the specific dimension this axes applies to
                 NXdata_warning(
                         "Axis %s number of elements does not " % axis_name +
                         "correspond to the length of any signal dimension.")
                 return False
+
             # Test individual uncertainties
             errors_name = axis_name + "_errors"
             if errors_name not in group and uncertainties_names is not None:
                 errors_name = uncertainties_names[i]
                 if errors_name in group:
-                    if group[errors_name].shape != group[axis_name]:
+                    if group[errors_name].shape != group[axis_name].shape:
                         NXdata_warning(
                             "Errors '%s' does not have the same " % errors_name +
-                            "shape as axis '%s'." % axis_name)
-                    return False
+                            "dimensions as axis '%s'." % axis_name)
+                        return False
+
+    # test dimensions of errors associated with signal
+    if "errors" in group and is_dataset(group["errors"]):
+        if group["errors"].shape != group[signal_name].shape:
+            NXdata_warning("Dataset containing standard deviations must " +
+                           "have the same dimensions as the signal.")
+            return False
     return True
 
 
@@ -362,6 +368,10 @@ class NXdata(object):
     def get_axis_errors(self, axis_name):
         """Return errors (uncertainties) associated with an axis.
 
+        If the axis has attributes @first_good or @last_good, the output
+        is trimmed accordingly (a numpy array will be returned rather than a
+        dataset).
+
         :param str axis_name: Name of axis dataset. This dataset **must exist**.
         :return: Dataset with axis errors, or None
         :raise: KeyError if this group does not contain a dataset named axis_name
@@ -377,10 +387,18 @@ class NXdata(object):
         if axis_name not in self.group:
             raise KeyError("group does not contain a dataset named '%s'" % axis_name)
 
+        len_axis = len(self.group[axis_name])
+
+        fg_idx = self.group[axis_name].attrs.get("first_good", 0)
+        lg_idx = self.group[axis_name].attrs.get("last_good", len_axis - 1)
+
         # case of axisname_errors dataset present
         errors_name = axis_name + "_errors"
         if errors_name in self.group and is_dataset(self.group[errors_name]):
-            return self.group[errors_name]
+            if fg_idx != 0 or lg_idx != (len_axis-1):
+                return self.group[errors_name][fg_idx:lg_idx + 1]
+            else:
+                return self.group[errors_name]
         # case of uncertainties dataset name provided in @uncertainties
         uncertainties_names = self.group.attrs.get("uncertainties")
         if uncertainties_names is None:
@@ -394,11 +412,28 @@ class NXdata(object):
                 axes_ds_names = self.signal.attrs.get("axes")
             if isinstance(axes_ds_names, str):
                 axes_ds_names = [axes_ds_names]
+            elif not isinstance(axes_ds_names, list):
+                # transform numpy.ndarray(dtype('S21')) into list(str)
+                axes_ds_names = map(str, axes_ds_names)
             if axis_name not in axes_ds_names:
                 raise KeyError("group attr @axes does not mention a dataset " +
                                "named '%s'" % axis_name)
-            return uncertainties_names[axes_ds_names.index(axis_name)]
+            errors = self.group[uncertainties_names[list(axes_ds_names).index(axis_name)]]
+            if fg_idx == 0 and lg_idx == (len_axis-1):
+                return errors      # dataset
+            else:
+                return errors[fg_idx:lg_idx + 1]    # numpy array
         return None
+
+    @property
+    def errors(self):
+        """Return errors (uncertainties) associated with the signal values.
+
+        :return: Dataset with errors, or None
+        """
+        if "errors" not in self.group:
+            return None
+        return self.group["errors"]
 
 
 def get_signal(group):
@@ -455,7 +490,7 @@ def get_axes_names(group):
 
 
 def get_axis_errors(group, axis_name):
-    """
+    """See :meth:`NXdata.get_axis_errors`
 
     :param Group group: h5py-like group complying with the NeXus
         *NXdata* specification.
@@ -464,6 +499,16 @@ def get_axis_errors(group, axis_name):
     :raise: KeyError if group does not contain a dataset named axis_name
     """
     return NXdata(group).get_axis_errors(axis_name)
+
+
+def get_signal_errors(group):
+    """See :attr:`NXdata.errors`
+
+    :param Group group: h5py-like group complying with the NeXus
+        *NXdata* specification.
+    :return: Dataset with standard deviations associated with signal values
+    """
+    return NXdata(group).errors
 
 
 def signal_is_0D(group):
