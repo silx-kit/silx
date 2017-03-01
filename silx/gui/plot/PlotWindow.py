@@ -368,7 +368,7 @@ class PlotWindow(PlotWidget):
 
     # getters for dock widgets
     @property
-    @deprecated
+    @deprecated(replacement="getLegendsDockWidget()", since_version="0.4.0")
     def legendsDockWidget(self):
         return self.getLegendsDockWidget()
 
@@ -381,7 +381,7 @@ class PlotWindow(PlotWidget):
         return self._legendsDockWidget
 
     @property
-    @deprecated
+    @deprecated(replacement="getCurvesRoiDockWidget()", since_version="0.4.0")
     def curvesROIDockWidget(self):
         return self.getCurvesRoiDockWidget()
 
@@ -395,7 +395,7 @@ class PlotWindow(PlotWidget):
         return self._curvesROIDockWidget
 
     @property
-    @deprecated
+    @deprecated(replacement="getMaskToolsDockWidget()", since_version="0.4.0")
     def maskToolsDockWidget(self):
         return self.getMaskToolsDockWidget()
 
@@ -410,7 +410,7 @@ class PlotWindow(PlotWidget):
 
     # getters for actions
     @property
-    @deprecated
+    @deprecated(replacement="getConsoleAction()", since_version="0.4.0")
     def consoleAction(self):
         return self.getConsoleAction()
 
@@ -434,7 +434,7 @@ class PlotWindow(PlotWidget):
         return self._consoleAction
 
     @property
-    @deprecated
+    @deprecated(replacement="getCrosshairAction()", since_version="0.4.0")
     def crosshairAction(self):
         return self.getCrosshairAction()
 
@@ -448,7 +448,7 @@ class PlotWindow(PlotWidget):
         return self._crosshairAction
 
     @property
-    @deprecated
+    @deprecated(replacement="getMaskAction()", since_version="0.4.0")
     def maskAction(self):
         return self.getMaskAction()
 
@@ -460,7 +460,8 @@ class PlotWindow(PlotWidget):
         return self.getMaskToolsDockWidget().toggleViewAction()
 
     @property
-    @deprecated
+    @deprecated(replacement="getPanWithArrowKeysAction()",
+                since_version="0.4.0")
     def panWithArrowKeysAction(self):
         return self.getPanWithArrowKeysAction()
 
@@ -474,7 +475,7 @@ class PlotWindow(PlotWidget):
         return self._panWithArrowKeysAction
 
     @property
-    @deprecated
+    @deprecated(replacement="getRoiAction()", since_version="0.4.0")
     def roiAction(self):
         return self.getRoiAction()
 
@@ -710,7 +711,7 @@ class Plot2D(PlotWindow):
         """
         return self.profile
 
-    @deprecated   # since silx 0.5
+    @deprecated(replacement="getProfilePlot", since_version="0.5.0")
     def getProfileWindow(self):
         return self.getProfilePlot()
 
