@@ -35,14 +35,11 @@ from .utils import is_dataset, is_group
 _logger = logging.getLogger(__name__)
 
 
-# TODO: tests (need to create a valid NXdata sample)
-
-
 INTERPDIM = {"scalar": 0,
              "spectrum": 1,
              "image": 2,
              # "rgba-image": 3, "hsla-image": 3, "cmyk-image": 3, # TODO
-             "vertex": 3,}
+             "vertex": 3}
 """Number of data dimensions associated to each possible @interpretation
 attribute.
 """
@@ -165,258 +162,308 @@ def is_valid(group):   # noqa
     return True
 
 
-def validate_NXdata(f):
-    """Wrapper for functions taking a NXdata group as the first argument
-    or as a keyword argument named *group*.
-    The NXdata group is validated prior to applying the wrapped function,
-    and a *TypeError* is raised if it is not valid."""
-    def wrapper(*args, **kwargs):
-        group = kwargs.get("group", None)
-        if group is None:
-            group = args[0]
-        if not is_valid(group):
-            raise TypeError("group is not a valid NXdata class")
-        return f(*args, **kwargs)
-    return wrapper
-
-
-@validate_NXdata
-def get_signal(group):
-    """Return the signal dataset in a NXdata group.
+class NXdata(object):
+    """
 
     :param group: h5py-like group following the NeXus *NXdata* specification.
-    :return: Dataset whose name is specified in the *signal* attribute
-        of *group*.
-    :rtype: Dataset
     """
-    return group[group.attrs["signal"]]
+    def __init__(self, group):
+        if not is_valid(group):
+            raise TypeError("group is not a valid NXdata class")
+        super(NXdata, self).__init__()
+
+        self.group = group
+        """h5py-like group object compliant with NeXus NXdata specification.
+        """
+
+        self.signal = self.group[self.group.attrs["signal"]]
+        """Signal dataset in this NXdata group.
+        """
+
+        self._axes = None
+
+        self.axes_names = []
+        """List of axes names in a NXdata group.
+
+        This attribute is similar to :attr:`axes_dataset_names` except that
+        if an axis dataset has a "@long_name" attribute, it will be used
+        instead of the dataset name.
+        """
+        # check if axis dataset defines @long_name
+        for i, dsname in enumerate(self.axes_dataset_names):
+            if dsname is not None and "long_name" in self.group[dsname].attrs:
+                self.axes_names.append(self.group[dsname].attrs["long_name"])
+            else:
+                self.axes_names.append(dsname)
+
+        self.signal_is_0D = len(self.signal.shape) == 0
+        self.signal_is_1D = len(self.signal.shape) == 1
+        self.signal_is_2D = len(self.signal.shape) == 2
+        self.signal_is_3D = len(self.signal.shape) == 3
+
+        # misspelled word "scaler" is used on NeXus website
+        self.signal_is_scalar = self.interpretation in ["scalar", "scaler"]
+        self.signal_is_spectrum = self.interpretation == "spectrum"
+        self.signal_is_image = self.interpretation == "image"
+        self.signal_is_vertex = self.interpretation == "vertex"
+
+    @property
+    def interpretation(self):
+        """*@interpretation* attribute associated with the *signal*
+        dataset of the NXdata group. ``None`` if no interpretation
+        attribute is present.
+
+        The *interpretation* attribute provides information about the last
+        dimensions of the signal. The allowed values are:
+             - *"scalar"*: 0-D data to be plotted
+             - *"spectrum"*: 1-D data to be plotted
+             - *"image"*: 2-D data to be plotted
+             - *"vertex"*: 3-D data to be plotted
+
+        For example, a 3-D signal with interpretation *"spectrum"* should be
+        considered to be a 2-D array of 1-D data. A 3-D signal with
+        interpretation *"image"* should be interpreted as a 1-D array (a list)
+        of 2-D images. An n-D array with interpretation *"image"* should be
+        interpreted as an (n-2)-D array of images.
+
+        A warning message is logged if the returned interpretation is not one
+        of the allowed values, but no error is raised and the unknown
+        interpretation is returned anyway.
+        """
+        allowed_interpretations = [None, "scalar", "spectrum", "image",
+                                   # "rgba-image", "hsla-image", "cmyk-image"  # TODO
+                                   "vertex"]
+
+        interpretation = self.signal.attrs.get("interpretation", None)
+        if interpretation is None:
+            interpretation = self.group.attrs.get("interpretation", None)
+
+        if interpretation not in allowed_interpretations:
+            _logger.warning("Interpretation %s is not valid." % interpretation +
+                            " Valid values: " + ", ".join(allowed_interpretations))
+        return interpretation
+
+    @property
+    def axes(self):
+        """List of the axes datasets.
+
+        The list has as many elements as there are dimensions in the
+        signal dataset.
+
+        If an axis dataset applies to several dimensions of the signal, it
+        will be repeated in the list.
+
+        If a dimension of the signal has no dimension scale (i.e. there is a
+        "." in that position in the *@axes* array), `None` is inserted in the
+        output list in its position.
+
+        .. note::
+
+            In theory, the *@axes* attribute defines as many entries as there
+            are dimensions in the signal. In such a case, there is no ambiguity.
+            If this is not the case, this implementation relies on the existence
+            of an *@interpretation* (*spectrum* or *image*) attribute in the
+            *signal* dataset.
+
+        .. note::
+
+            If an axis dataset defines attributes @first_good or @last_good,
+            the output will be a numpy array resulting from slicing that
+            axis to keep only the good index range: axis[first_good:last_good + 1]
+
+        :rtype: list[Dataset or 1D array or None]
+        """
+        if self._axes is not None:
+            # use cache
+            return self._axes
+        ndims = len(self.signal.shape)
+        axes_names = self.group.attrs.get("axes")
+
+        if axes_names is None:
+            self._axes = [None for _i in range(ndims)]
+            return self._axes
+
+        if isinstance(axes_names, str):
+            axes_names = [axes_names]
+
+        if len(axes_names) == ndims:
+            # axes is a list of strings, one axis per dim is explicitly defined
+            axes = [None] * ndims
+            for i, axis_n in enumerate(axes_names):
+                if axis_n != ".":
+                    try:
+                        axes[i] = self.group[axis_n]
+                    except KeyError:
+                        raise KeyError(
+                                "No dataset matching axis name " + axis_n)
+        else:
+            # case of @interpretation attribute defined: we expect 1, 2 or 3 axes
+            # corresponding to the 1, 2, or 3 last dimensions of the signal
+            interpretation = get_interpretation(self.group)
+            assert len(axes_names) == INTERPDIM[interpretation]
+            axes = [None] * (ndims - INTERPDIM[interpretation])
+            for axis_n in axes_names:
+                if axis_n != ".":
+                    axes.append(self.group[axis_n])
+                else:
+                    axes.append(None)
+        # keep only good range of axis data
+        for i, axis in enumerate(axes):
+            if axis is None:
+                continue
+            if "first_good" not in axis.attrs and "last_good" not in axis.attrs:
+                continue
+            fg_idx = axis.attrs.get("first_good") or 0
+            lg_idx = axis.attrs.get("last_good") or (len(axis) - 1)
+            axes[i] = axis[fg_idx:lg_idx + 1]
+
+        self._axes = axes
+        return self._axes
+
+    @property
+    def axes_dataset_names(self):
+        """See :attr:`NXdata.axes_dataset_names`
+
+        If an axis dataset applies to several dimensions of the signal, its
+        name will be repeated in the list.
+
+        If a dimension of the signal has no dimension scale (i.e. there is a
+        "." in that position in the *@axes* array), `None` is inserted in the
+        output list in its position.
+        """
+        axes_dataset_names = self.group.attrs.get("axes")
+        if axes_dataset_names is None:
+           axes_dataset_names = self.signal.attrs.get("axes")
+
+        ndims = len(self.signal.shape)
+        if axes_dataset_names is None:
+            return [None] * ndims
+
+        if isinstance(axes_dataset_names, str):
+            axes_dataset_names = [axes_dataset_names]
+
+        if len(axes_dataset_names) != ndims:
+            # @axes may only define 1 or 2 axes if @interpretation=spectrum/image.
+            # Use the existing names for the last few dims, and prepend with Nones.
+            assert len(axes_dataset_names) == INTERPDIM[self.interpretation]
+            all_dimensions_names = [None] * (ndims - INTERPDIM[self.interpretation])
+            for axis_name in axes_dataset_names:
+                if axis_name == ".":
+                    all_dimensions_names.append(None)
+                else:
+                    all_dimensions_names.append(axis_name)
+            return all_dimensions_names
+
+        for i, axis_name in enumerate(axes_dataset_names):
+            if axis_name == ".":
+                axes_dataset_names[i] = None
+        return axes_dataset_names
+
+    def get_axis_errors(self, axis_name):
+        """Return errors (uncertainties) associated with an axis.
+
+        :param str axis_name: Name of axis dataset. This dataset **must exist**.
+        :return: Dataset with axis errors, or None
+        :raise: KeyError if this group does not contain a dataset named axis_name
+        """
+        if axis_name not in self.group:
+            # tolerate axis_name given as @long_name
+            for item in self.group:
+                long_name = self.group[item].attrs.get("long_name")
+                if long_name is not None and long_name == axis_name:
+                    axis_name = item
+                    break
+
+        if axis_name not in self.group:
+            raise KeyError("group does not contain a dataset named '%s'" % axis_name)
+
+        # case of axisname_errors dataset present
+        errors_name = axis_name + "_errors"
+        if errors_name in self.group and is_dataset(self.group[errors_name]):
+            return self.group[errors_name]
+        # case of uncertainties dataset name provided in @uncertainties
+        uncertainties_names = self.group.attrs.get("uncertainties")
+        if uncertainties_names is None:
+            uncertainties_names = self.signal.attrs.get("uncertainties")
+        if isinstance(uncertainties_names, str):
+            uncertainties_names = [uncertainties_names]
+        if uncertainties_names is not None:
+            # take the uncertainty with the same index as the axis in @axes
+            axes_ds_names = self.group.attrs.get("axes")
+            if axes_ds_names is None:
+                axes_ds_names = self.signal.attrs.get("axes")
+            if isinstance(axes_ds_names, str):
+                axes_ds_names = [axes_ds_names]
+            if axis_name not in axes_ds_names:
+                raise KeyError("group attr @axes does not mention a dataset " +
+                               "named '%s'" % axis_name)
+            return uncertainties_names[axes_ds_names.index(axis_name)]
+        return None
 
 
-@validate_NXdata
+def get_signal(group):
+    """See :attr:`NXdata.signal`
+
+    :param group: h5py-like Group following the NeXus *NXdata* specification.
+    :return: Dataset whose name is specified in the *signal* attribute
+            of *group*.
+    """
+    return NXdata(group).signal
+
+
 def get_interpretation(group):
-    """Return the *@interpretation* attribute associated with the *signal*
-    dataset of an NXdata group. ``None`` is returned if no interpretation
-    attribute is found.
-
-    The *interpretation* attribute provides information about the last
-    dimensions of the signal. The allowed values are:
-         - *"scalar"*: 0-D data to be plotted
-         - *"spectrum"*: 1-D data to be plotted
-         - *"image"*: 2-D data to be plotted
-         - *"vertex"*: 3-D data to be plotted
-
-    For example, a 3-D signal with interpretation *"spectrum"* should be
-    considered to be a 2-D array of 1-D data. A 3-D signal with
-    interpretation *"image"* should be interpreted as a 1-D array (a list)
-    of 2-D images. An n-D array with interpretation *"image"* should be
-    interpreted as an (n-2)-D array of images.
-
-    A warning message is logged if the returned interpretation is not one
-    of the allowed values, but no error is raised and the unknown
-    interpretation is returned anyway.
+    """See :attr:`NXdata.interpretation`
 
     :param group: h5py-like Group following the NeXus *NXdata* specification.
     :return: Interpretation attribute associated with the *signal* dataset
-        or with the NXdata group itself.
-    :rtype: str or None
+            or with the NXdata group itself.
+    :rtype: str
     """
-    allowed_interpretations = [None, "scalar", "spectrum", "image",
-                               # "rgba-image", "hsla-image", "cmyk-image"  # TODO
-                               "vertex"]
-
-    interpretation = get_signal(group).attrs.get("interpretation", None)
-    if interpretation is None:
-        interpretation = group.attrs.get("interpretation", None)
-
-    if interpretation not in allowed_interpretations:
-        _logger.warning("Interpretation %s is not valid." % interpretation +
-                        " Valid values: " + ", ".join(allowed_interpretations))
-    return interpretation
+    return NXdata(group).interpretation
 
 
-@validate_NXdata
 def get_axes(group):
-    """Return a list of the axes datasets in a NXdata group.
-
-    The output list has as many elements as there are dimensions in the
-    signal dataset.
-
-    If an axis dataset applies to several dimensions of the signal, it
-    will be repeated in the list.
-
-    If a dimension of the signal has no dimension scale (i.e. there is a
-    "." in that position in the *@axes* array), `None` is inserted in the
-    output list in its position.
-
-    .. note::
-
-        In theory, the *@axes* attribute defines as many entries as there
-        are dimensions in the signal. In such a case, there is no ambiguity.
-        If this is not the case, this implementation relies on the existence
-        of an *@interpretation* (*spectrum* or *image*) attribute in the
-        *signal* dataset.
-
-    .. note::
-
-        If an axis dataset defines attributes @first_good or @last_good,
-        the output will be a numpy array resulting from slicing that
-        axis to keep only the good index range: axis[first_good:last_good + 1]
+    """See :attr:`NXdata.axes`
 
     :param group: h5py-like Group following the NeXus *NXdata* specification.
     :return: List of datasets whose names are specified in the *axes*
-        attribute of *group*, sorted in the order in which they should be
-        applied to the corresponding dimension of the signal dataset.
+            attribute of *group*, sorted in the order in which they should be
+            applied to the corresponding dimension of the signal dataset.
     :rtype: list[Dataset or 1D array or None]
     """
-    ndims = len(get_signal(group).shape)
-    axes_names = group.attrs.get("axes")
-
-    if axes_names is None:
-        return [None for _i in range(ndims)]
-
-    if isinstance(axes_names, str):
-        axes_names = [axes_names]
-
-    if len(axes_names) == ndims:
-        # axes is a list of strings, one axis per dim is explicitly defined
-        axes = [None] * ndims
-        for i, axis_n in enumerate(axes_names):
-            if axis_n != ".":
-                try:
-                    axes[i] = group[axis_n]
-                except KeyError:
-                    raise KeyError(
-                            "No dataset matching axis name " + axis_n)
-    else:
-        # case of @interpretation attribute defined: we expect 1, 2 or 3 axes
-        # corresponding to the 1, 2, or 3 last dimensions of the signal
-        interpretation = get_interpretation(group)
-        assert len(axes_names) == INTERPDIM[interpretation]
-        axes = [None] * (ndims - INTERPDIM[interpretation])
-        for axis_n in axes_names:
-            if axis_n != ".":
-                axes.append(group[axis_n])
-            else:
-                axes.append(None)
-    # keep only good range of axis data
-    for i, axis in enumerate(axes):
-        if axis is None:
-            continue
-        if "first_good" not in axis.attrs and "last_good" not in axis.attrs:
-            continue
-        fg_idx = axis.attrs.get("first_good") or 0
-        lg_idx = axis.attrs.get("last_good") or (len(axis) - 1)
-        axes[i] = axis[fg_idx:lg_idx + 1]
-    return axes
+    return NXdata(group).axes
 
 
-@validate_NXdata
 def get_axes_dataset_names(group):
-    """Return a list of axes datasest names in a NXdata group.
+    """See :attr:`NXdata.axes_dataset_names`
 
-    If an axis dataset applies to several dimensions of the signal, its
-    name will be repeated in the list.
-
-    If a dimension of the signal has no dimension scale (i.e. there is a
-    "." in that position in the *@axes* array), `None` is inserted in the
-    output list in its position.
+    :param group: h5py-like Group following the NeXus *NXdata* specification.
+    :return: List of axis dataset names, in the order in which they should
+        be applied to the signal's dimensions.
+    :rtype: list[str or None]
     """
-    axes_dataset_names = group.attrs.get("axes")
-    if axes_dataset_names is None:
-       axes_dataset_names = get_signal(group).attrs.get("axes")
-
-    ndims = len(get_signal(group).shape)
-    if axes_dataset_names is None:
-        return [None] * ndims
-
-    if isinstance(axes_dataset_names, str):
-        axes_dataset_names = [axes_dataset_names]
-
-    if len(axes_dataset_names) != ndims:
-        # @axes may only define 1 or 2 axes if @interpretation=spectrum/image.
-        # Use the existing names for the last few dims, and prepend with Nones.
-        interpretation = get_interpretation(group)
-        assert len(axes_dataset_names) == INTERPDIM[interpretation]
-        all_dimensions_names = [None] * (ndims - INTERPDIM[interpretation])
-        for axis_name in axes_dataset_names:
-            if axis_name == ".":
-                all_dimensions_names.append(None)
-            else:
-                all_dimensions_names.append(axis_name)
-        return all_dimensions_names
-
-    for i, axis_name in enumerate(axes_dataset_names):
-        if axis_name == ".":
-            axes_dataset_names[i] = None
-    return axes_dataset_names
+    return NXdata(group).axes_dataset_names
 
 
-@validate_NXdata
 def get_axes_names(group):
-    """Return a list of axes names in a NXdata group.
-
-    This method is similar to :meth:`get_axes_dataset_names` except that
-    if an axis dataset has a "@long_name" attribute, it will be returned
-    instead of the dataset name.
+    """See :attr:`NXdata.axes_names`
 
     :param group: h5py-like Group following the NeXus *NXdata* specification.
     :rtype: list[str or None]
     """
-    axes_dataset_names = get_axes_dataset_names(group)
-
-    axes_names = []
-    # check if axis dataset defines @long_name
-    for i, dsname in enumerate(axes_dataset_names):
-        if dsname is not None and "long_name" in group[dsname].attrs:
-            axes_names.append(group[dsname].attrs["long_name"])
-        else:
-            axes_names.append(dsname)
-    return axes_names
+    return NXdata(group).axes_names
 
 
-@validate_NXdata
 def get_axis_errors(group, axis_name):
     """
 
     :param Group group: h5py-like group complying with the NeXus
         *NXdata* specification.
     :param str axis_name: Name of axis dataset. This dataset **must exist**.
-    :return: Dataset with axis errors, or none
+    :return: Dataset with axis errors, or None
     :raise: KeyError if group does not contain a dataset named axis_name
     """
-    if axis_name not in group:
-        # tolerate axis_name given as @long_name
-        for item in group:
-            long_name = group[item].attrs.get("long_name")
-            if long_name is not None and long_name == axis_name:
-                axis_name = item
-                break
-
-    if axis_name not in group:
-        raise KeyError("group does not contain a dataset named '%s'" % axis_name)
-
-    # case of axisname_errors dataset present
-    errors_name = axis_name + "_errors"
-    if errors_name in group and is_dataset(group[errors_name]):
-        return group[errors_name]
-    # case of uncertainties dataset name provided in @uncertainties
-    uncertainties_names = group.attrs.get("uncertainties")
-    if uncertainties_names is None:
-        uncertainties_names = get_signal(group).attrs.get("uncertainties")
-    if isinstance(uncertainties_names, str):
-        uncertainties_names = [uncertainties_names]
-    if uncertainties_names is not None:
-        # take the uncertainty with the same index as the axis in @axes
-        axes_ds_names = group.attrs.get("axes")
-        if axes_ds_names is None:
-            axes_ds_names = get_signal(group).attrs.get("axes")
-        if isinstance(axes_ds_names, str):
-            axes_ds_names = [axes_ds_names]
-        if axis_name not in axes_ds_names:
-            raise KeyError("group attr @axes does not mention a dataset " +
-                           "named '%s'" % axis_name)
-        return uncertainties_names[axes_ds_names.index(axis_name)]
-    return None
+    return NXdata(group).get_axis_errors(axis_name)
 
 
 def signal_is_0D(group):
@@ -426,7 +473,7 @@ def signal_is_0D(group):
     :param group: h5py-like Group following the NeXus *NXdata* specification.
     :return: Boolean
     """
-    return len(get_signal(group).shape) == 0
+    return NXdata(group).signal_is_0D
 
 
 def signal_is_1D(group):
@@ -435,7 +482,7 @@ def signal_is_1D(group):
     :param group: h5py-like Group following the NeXus *NXdata* specification.
     :return: Boolean
     """
-    return len(get_signal(group).shape) == 1
+    return NXdata(group).signal_is_1D
 
 
 def signal_is_2D(group):
@@ -444,7 +491,7 @@ def signal_is_2D(group):
     :param group: h5py-like Group following the NeXus *NXdata* specification.
     :return: Boolean
     """
-    return len(get_signal(group).shape) == 2
+    return NXdata(group).signal_is_2D
 
 
 def signal_is_3D(group):
@@ -453,45 +500,40 @@ def signal_is_3D(group):
     :param group: h5py-like Group following the NeXus *NXdata* specification.
     :return: Boolean
     """
-    return len(get_signal(group).shape) == 3
+    return NXdata(group).signal_is_3D
 
 
-@validate_NXdata
 def signal_is_scalar(group):
     """Return True if  *@interpretation="scalar"*
 
     :param group: h5py-like Group following the NeXus *NXdata* specification.
     :return: Boolean
     """
-    # misspelled word "scaler" is used on NeXus website
-    return get_interpretation(group) in ["scalar", "scaler"]
+    return NXdata(group).signal_is_scalar
 
 
-@validate_NXdata
 def signal_is_spectrum(group):
     """Return True if *@interpretation="spectrum"*
 
     :param group: h5py-like Group following the NeXus *NXdata* specification.
     :return: Boolean
     """
-    return get_interpretation(group) == "spectrum"
+    return NXdata(group).signal_is_spectrum
 
 
-@validate_NXdata
-def signal_is_spectrum(group):
+def signal_is_image(group):
     """Return True if *@interpretation="spectrum"*
 
     :param group: h5py-like Group following the NeXus *NXdata* specification.
     :return: Boolean
     """
-    return get_interpretation(group) == "image"
+    return NXdata(group).signal_is_image
 
 
-@validate_NXdata
 def signal_is_vertex(group):
     """Return True if *@interpretation="vertex"*
 
     :param group: h5py-like Group following the NeXus *NXdata* specification.
     :return: Boolean
     """
-    return get_interpretation(group) == "vertex"
+    return NXdata(group).signal_is_vertex
