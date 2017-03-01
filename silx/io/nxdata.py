@@ -83,20 +83,20 @@ def is_valid(group):   # noqa
     ndim = len(group[signal_name].shape)
 
     if "axes" in group.attrs:
-        axes = group.attrs.get("axes")
-        if isinstance(axes, str):
-            axes = [axes]
+        axes_names = group.attrs.get("axes")
+        if isinstance(axes_names, str):
+            axes_names = [axes_names]
 
-        if ndim < len(axes):
+        if ndim < len(axes_names):
             NXdata_warning(
                     "More @axes defined than there are " +
                     "signal dimensions: " +
-                    "%d axes, %d dimensions." % (len(axes), ndim))
+                    "%d axes, %d dimensions." % (len(axes_names), ndim))
             return False
 
         # case of less axes than dimensions: number of axes must match
         # dimensionality defined by @interpretation
-        if ndim > len(axes):
+        if ndim > len(axes_names):
             interpretation = group[signal_name].attrs.get("interpretation", None)
             if interpretation is None:
                 interpretation = group.attrs.get("interpretation", None)
@@ -110,37 +110,58 @@ def is_valid(group):   # noqa
                                " for data with wrong number of defined @axes.")
                 return False
 
-            if len(axes) != INTERPDIM[interpretation]:
+            if len(axes_names) != INTERPDIM[interpretation]:
                 NXdata_warning(
                         "%d-D signal with @interpretation=%s " % (ndim, interpretation) +
                         "must define %d or %d axes." % (ndim, INTERPDIM[interpretation]))
                 return False
 
-        # Axes dataset must exist and be 1D (?)
-        for axis in axes:
-            if axis == ".":
-                continue
-            if axis not in group or not is_dataset(group[axis]):
-                NXdata_warning("Could not find axis dataset '%s'" % axis)
-                return False
-            if len(group[axis].shape) != 1:
-                # FIXME: is this a valid constraint?
-                NXdata_warning("Axis %s is not a 1D dataset" % axis)
+        # Test consistency of @uncertainties
+        uncertainties_names = group.attrs.get("uncertainties")
+        if uncertainties_names is None:
+            uncertainties_names = group[signal_name].attrs.get("uncertainties")
+        if isinstance(uncertainties_names, str):
+            uncertainties_names = [uncertainties_names]
+        if uncertainties_names is not None:
+            if len(uncertainties_names) != len(axes_names):
+                NXdata_warning("@uncertainties does not define the same " +
+                               "number of fields than @axes")
                 return False
 
-            if "first_good" in group[axis].attrs or "last_good" in group[axis].attrs:
-                fg_idx = group[axis].attrs.get("first_good", 0)
-                lg_idx = group[axis].attrs.get("last_good", len(group[axis]) - 1)
+        # Test individual axes
+        for i, axis_name in enumerate(axes_names):
+            if axis_name == ".":
+                continue
+            if axis_name not in group or not is_dataset(group[axis_name]):
+                NXdata_warning("Could not find axis dataset '%s'" % axis_name)
+                return False
+            if len(group[axis_name].shape) != 1:
+                # FIXME: is this a valid constraint?
+                NXdata_warning("Axis %s is not a 1D dataset" % axis_name)
+                return False
+
+            if "first_good" in group[axis_name].attrs or "last_good" in group[axis_name].attrs:
+                fg_idx = group[axis_name].attrs.get("first_good", 0)
+                lg_idx = group[axis_name].attrs.get("last_good", len(group[axis_name]) - 1)
                 axis_len = lg_idx + 1 - fg_idx
             else:
-                axis_len = len(group[axis])
+                axis_len = len(group[axis_name])
             if axis_len not in group[signal_name].shape:
                 # TODO: test the len() vs the specific dimension this axes applies to
                 NXdata_warning(
-                        "Axis %s number of elements does not " % axis +
+                        "Axis %s number of elements does not " % axis_name +
                         "correspond to the length of any signal dimension.")
                 return False
-
+            # Test individual uncertainties
+            errors_name = axis_name + "_errors"
+            if errors_name not in group and uncertainties_names is not None:
+                errors_name = uncertainties_names[i]
+                if errors_name in group:
+                    if group[errors_name].shape != group[axis_name]:
+                        NXdata_warning(
+                            "Errors '%s' does not have the same " % errors_name +
+                            "shape as axis '%s'." % axis_name)
+                    return False
     return True
 
 
@@ -340,6 +361,21 @@ def get_axes_names(group):
         else:
             all_dimensions_names.append(axis_name)
     return all_dimensions_names
+
+
+@validate_NXdata
+def get_axis_errors(group, axis_name):
+    """
+
+    :param str axis_name: Name of axis dataset. This dataset **must exist**.
+    :return: Dataset with axis errors, or none
+    :raise: KeyError if group does not contain a dataset named axis_name
+    """
+    errors_name = axis_name + "_errors"
+    if errors_name in group and is_dataset(group[errors_name]):
+        return group[errors_name]
+    # TODO: alternative signal.attrs["uncertainties"] -> list of names
+    return None
 
 
 @validate_NXdata
