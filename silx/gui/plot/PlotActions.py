@@ -77,6 +77,8 @@ from ._utils import applyZoomToPlot as _applyZoomToPlot
 from silx.third_party.EdfFile import EdfFile
 from silx.third_party.TiffIO import TiffIO
 from silx.math.histogram import Histogramnd
+from silx.math.medianfilter import medianfilter
+from silx.gui.widgets.MedianFilterDialog import MedianFilterDialog
 
 from silx.io.utils import save1D, savespec
 
@@ -1279,7 +1281,9 @@ class PixelIntensitiesHistoAction(PlotAction):
         return PlotAction.eventFilter(self, qobject, event)
 
     def getHistogramPlotWidget(self):
-        """Return the PlotWidget showing the histogram of the pixel intensities
+        """Create the plot histogram if needed, otherwise create it
+        
+        :return: the PlotWidget showing the histogram of the pixel intensities
         """
         from silx.gui.plot.PlotWindow import Plot1D
         if self._plotHistogram is None:
@@ -1293,6 +1297,100 @@ class PixelIntensitiesHistoAction(PlotAction):
         return self._plotHistogram
 
     def getHistogram(self):
-        """Return the histogram displayed in the HistogramPlotWiget
+        """Return the last computed histogram
+
+        :return: the histogram displayed in the HistogramPlotWiget
         """
         return self._histo
+
+class MedianFilterAction(PlotAction):
+    """QAction to plot the pixels intensities diagram
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
+
+    def __init__(self, plot, parent=None):
+        PlotAction.__init__(self,
+                            plot,
+                            icon='median-filter',
+                            text='median filter',
+                            tooltip='Apply a median filter on the image',
+                            triggered=self._triggered,
+                            parent=parent)
+        self._originalImage = None
+        self._filtredImage = None
+        self._popup = MedianFilterDialog(parent=None)
+        self._popup.sigFilterOptChanged.connect(self._updateFilter)
+        self.plot.sigActiveImageChanged.connect( self._updateActiveImage)
+        self._updateActiveImage()
+
+    def _triggered(self, checked):
+        """Update the plot of the histogram visibility status
+
+        :param bool checked: status  of the action button
+        """
+        self._popup.show()
+
+    def _updateActiveImage(self):
+        """Set _activeImageLegend and _originalImage from the active image"""
+        self._activeImageLegend = self.plot.getActiveImage(just_legend=True)
+        if self._activeImageLegend is None:
+            self._originalImage = None
+        else:
+            self._originalImage = self.plot.getImage(self._activeImageLegend)[0]
+
+    def _updateFilter(self, kernelWidth, conditionnal=False):
+        if self._originalImage is None:
+            return
+
+        self.plot.sigActiveImageChanged.disconnect( self._updateActiveImage)
+        filtredImage = self._computeFiltredImage(kernelWidth, conditionnal)
+        self.plot.addImage(data=filtredImage,
+                           legend=self._originalImage,
+                           replace=True)
+        self.plot.sigActiveImageChanged.connect( self._updateActiveImage)
+
+    def _computeFiltredImage(self, kernelWidth, conditionnal):
+        raise NotImplemented('MedianFilterAction is a an abstract class')
+
+    def getFilteredImage(self):
+        """
+        :return: the image with the median filter apply on"""
+        return self._filtredImage
+
+
+class MedianFilter1DAction(MedianFilterAction):
+    """Define the MedianFilterAction for 1D
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
+    def __init__(self, plot, parent=None):
+        MedianFilterAction.__init__(self,
+                        plot,
+                        parent=parent)
+
+    def _computeFiltredImage(self, kernelWidth, conditionnal):
+        assert(self.plot is not None)
+        return medianfilter(self._originalImage,
+                                    kernelWidth,
+                                    conditionnal )
+
+
+class MedianFilter2DAction(MedianFilterAction):
+    """Define the MedianFilterAction for 2D
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
+    def __init__(self, plot, parent=None):
+        MedianFilterAction.__init__(self,
+                        plot,
+                        parent=parent)
+
+    def _computeFiltredImage(self, kernelWidth, conditionnal):
+        assert(self.plot is not None)
+        return medianfilter(self._originalImage,
+                                          (kernelWidth, kernelWidth),
+                                          conditionnal )

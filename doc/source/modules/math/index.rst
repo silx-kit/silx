@@ -9,3 +9,4 @@
 
    fit/index.rst
    histogram.rst
+   medianfilter.rst
