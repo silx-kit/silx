@@ -39,8 +39,8 @@ INTERPDIM = {"scalar": 0,
              "spectrum": 1,
              "image": 2,
              # "rgba-image": 3, "hsla-image": 3, "cmyk-image": 3, # TODO
-             "vertex": 3}
-"""Number of data dimensions associated to each possible @interpretation
+             "vertex": 1}  # 3D scatter: 1D signal + 3 axes (x, y, z) of same legth
+"""Number of signal dimensions associated to each possible @interpretation
 attribute.
 """
 
@@ -126,27 +126,50 @@ def is_valid(group):   # noqa
                 return False
 
         # Test individual axes
+        is_scatter = True   # true if all axes have the same size as the signal
+        signal_size = 1
+        for dim in group[signal_name].shape:
+            signal_size *= dim
         for i, axis_name in enumerate(axes_names):
             if axis_name == ".":
                 continue
             if axis_name not in group or not is_dataset(group[axis_name]):
                 NXdata_warning("Could not find axis dataset '%s'" % axis_name)
                 return False
+
+            axis_size = 1
+            for dim in group[axis_name].shape:
+                axis_size *= dim
+
             if len(group[axis_name].shape) != 1:
-                # FIXME: is this a valid constraint?
-                NXdata_warning("Axis %s is not a 1D dataset" % axis_name)
-                return False
+                # too me, it makes only sense to have a n-D axis if it's total
+                # size is exactly the signal's size (weird n-d scatter)
+                if axis_size != signal_size:
+                    NXdata_warning("Axis %s is not a 1D dataset" % axis_name +
+                                   " and its shape does not match the signal's shape")
+                    return False
+                axis_len = axis_size
+            else:
+                # for a  1-d axis,
+                fg_idx = group[axis_name].attrs.get("first_good", 0)
+                lg_idx = group[axis_name].attrs.get("last_good", len(group[axis_name]) - 1)
+                axis_len = lg_idx + 1 - fg_idx
 
-            fg_idx = group[axis_name].attrs.get("first_good", 0)
-            lg_idx = group[axis_name].attrs.get("last_good", len(group[axis_name]) - 1)
-            axis_len = lg_idx + 1 - fg_idx
-
-            if axis_len not in group[signal_name].shape:
-                # TODO: test the len() vs the specific dimension this axes applies to
-                NXdata_warning(
-                        "Axis %s number of elements does not " % axis_name +
-                        "correspond to the length of any signal dimension.")
-                return False
+            if axis_len != signal_size:
+                if axis_len not in group[signal_name].shape:
+                    NXdata_warning(
+                            "Axis %s number of elements does not " % axis_name +
+                            "correspond to the length of any signal dimension" +
+                            " and this does not seem to be a scatter plot.")
+                    return False
+                is_scatter = False
+            else:
+                if not is_scatter:
+                    NXdata_warning(
+                            "Axis %s number of elements is equal " % axis_name +
+                            "to the length of the signal, but this does not seem" +
+                            " to be a scatter (other axes have different sizes)")
+                    return False
 
             # Test individual uncertainties
             errors_name = axis_name + "_errors"
@@ -212,6 +235,18 @@ class NXdata(object):
         self.signal_is_spectrum = self.interpretation == "spectrum"
         self.signal_is_image = self.interpretation == "image"
         self.signal_is_vertex = self.interpretation == "vertex"
+
+        self.is_scatter = True  # For 1D data, it can also be a curve
+        sigsize = 1
+        for dim in self.signal.shape:
+            sigsize *= dim
+        for axis in self.axes:
+            if axis is None:
+                continue
+            axis_size = 1
+            for dim in axis.shape:
+                axis_size *= dim
+            self.is_scatter = self.is_scatter and (axis_size == sigsize)
 
     @property
     def interpretation(self):
@@ -582,3 +617,13 @@ def signal_is_vertex(group):
     :return: Boolean
     """
     return NXdata(group).signal_is_vertex
+
+
+def is_scatter(group):
+    """Return True this NXdata is a scatter, i.e. if all
+    axes haves the same size as the signal.
+
+    :param group: h5py-like Group following the NeXus *NXdata* specification.
+    :return: Boolean
+    """
+    return NXdata(group).is_scatter
