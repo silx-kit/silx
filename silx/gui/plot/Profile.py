@@ -449,7 +449,7 @@ class ProfileToolBar(qt.QToolBar):
             self.getProfileMainWindow().sigClose.connect(self.clearProfile)
 
     @property
-    @deprecated
+    @deprecated(replacement="getProfilePlot", since_version="0.5.0")
     def profileWindow(self):
         return self.getProfilePlot()
 
