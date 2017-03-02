@@ -166,11 +166,15 @@ class ArrayCurvePlot(qt.QWidget):
             else:
                 legend += str(sl) + ", "
         legend = legend[:-2] + "]"
+        if self.__signal_errors is not None:
+            y_errors = self.__signal_errors[self._selector.selection()]
+        else:
+            y_errors = None
         self._plot.addCurve(x, y, legend=legend,
                             xlabel=self.__axis_name,
                             ylabel=self.__signal_name,
                             xerror=self.__axis_errors,
-                            yerror=self.__signal_errors[self._selector.selection()],
+                            yerror=y_errors,
                             resetzoom=True, replace=replace)
 
     def _replaceCurve(self):
