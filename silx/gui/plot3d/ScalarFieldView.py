@@ -262,7 +262,6 @@ class Isosurface(qt.QObject):
                                          normals=normals,
                                          mode='triangles',
                                          indices=indices)
-                mesh.culling = 'back'
                 self._group.children = [mesh]
 
 
@@ -398,6 +397,12 @@ class CutPlane(qt.QObject):
     This signal provides the new colormap.
     """
 
+    sigInterpolationChanged = qt.Signal(str)
+    """Signal emitted when the cut plane interpolation has changed
+
+    This signal provides the new interpolation mode.
+    """
+
     def __init__(self, sfView):
         super(CutPlane, self).__init__(parent=sfView)
 
@@ -524,6 +529,27 @@ class CutPlane(qt.QObject):
         :return: An object containing the 2D data slice and information
         """
         return _CutPlaneImage(self)
+
+    # Interpolation
+
+    def getInterpolation(self):
+        """Returns the interpolation used to display to cut plane.
+
+        :return: 'nearest' or 'linear'
+        :rtype: str
+        """
+        return self._plane.interpolation
+
+    def setInterpolation(self, interpolation):
+        """Set the interpolation used to display to cut plane
+
+        The default interpolation is 'linear'
+
+        :param str interpolation: 'nearest' or 'linear'
+        """
+        if interpolation != self.getInterpolation():
+            self._plane.interpolation = interpolation
+            self.sigInterpolationChanged.emit(interpolation)
 
     # Colormap
 
@@ -988,7 +1014,7 @@ class ScalarFieldView(Plot3DWindow):
             self._planeAction.setChecked(True)
         elif mode == 'camera':
             self.getPlot3DWidget().eventHandler = interaction.CameraControl(
-                self.getPlot3DWidget().viewport, orbitAroundOrigin=True,
+                self.getPlot3DWidget().viewport, orbitAroundCenter=False,
                 mode='position', scaleTransform=sceneScale,
                 selectCB=None)
             self._cameraAction.setChecked(True)

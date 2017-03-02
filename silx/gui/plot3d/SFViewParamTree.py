@@ -453,7 +453,7 @@ class IsoSurfaceRootItem(SubjectItem):
         self.setCheckState((visible and qt.Qt.Checked) or qt.Qt.Unchecked)
 
         nameItem = qt.QStandardItem('Level')
-        sliderItem = IsoSufaceLevelSlider(self.subject)
+        sliderItem = IsoSurfaceLevelSlider(self.subject)
         self.appendRow([nameItem, sliderItem])
 
         nameItem = qt.QStandardItem('Color')
@@ -525,6 +525,7 @@ class _IsoLevelSlider(qt.QSlider):
         self.sliderReleased.connect(self.__sliderReleased)
 
         self.subject.sigLevelChanged.connect(self.setLevel)
+        self.subject.parent().sigDataChanged.connect(self.__dataChanged)
 
     def setLevel(self, level):
         """Set slider from iso-surface level"""
@@ -532,9 +533,14 @@ class _IsoLevelSlider(qt.QSlider):
 
         if dataRange is not None and None not in dataRange:
             width = dataRange[1] - dataRange[0]
-            sliderWidth = self.maximum() - self.minimum()
-            sliderPosition = sliderWidth * (level - dataRange[0]) / width
-            self.setValue(sliderPosition)
+            if width > 0:
+                sliderWidth = self.maximum() - self.minimum()
+                sliderPosition = sliderWidth * (level - dataRange[0]) / width
+                self.setValue(sliderPosition)
+
+    def __dataChanged(self):
+        """Handles data update to refresh slider range if needed"""
+        self.setLevel(self.subject.getLevel())
 
     def __sliderReleased(self):
         value = self.value()
@@ -545,7 +551,7 @@ class _IsoLevelSlider(qt.QSlider):
         self.subject.setLevel(level)
 
 
-class IsoSufaceLevelSlider(IsoSurfaceLevelItem):
+class IsoSurfaceLevelSlider(IsoSurfaceLevelItem):
     """
     Isosurface level item with a slider editor.
     """
@@ -981,6 +987,35 @@ class PlaneOrientationItem(SubjectItem):
         return True
 
 
+class PlaneInterpolationItem(SubjectItem):
+    """Toggle cut plane interpolation method: nearest or linear.
+
+    Item is checkable
+    """
+
+    def _init(self):
+        interpolation = self.subject.getCutPlanes()[0].getInterpolation()
+        self.setCheckable(True)
+        self.setCheckState(
+            qt.Qt.Checked if interpolation == 'linear' else qt.Qt.Unchecked)
+        self.setData(self._pullData(), role=qt.Qt.DisplayRole, pushData=False)
+
+    def getSignals(self):
+        return [self.subject.getCutPlanes()[0].sigInterpolationChanged]
+
+    def leftClicked(self):
+        checked = self.checkState() == qt.Qt.Checked
+        self._setInterpolation('linear' if checked else 'nearest')
+
+    def _pullData(self):
+        interpolation = self.subject.getCutPlanes()[0].getInterpolation()
+        self._setInterpolation(interpolation)
+        return interpolation[0].upper() + interpolation[1:]
+
+    def _setInterpolation(self, interpolation):
+        self.subject.getCutPlanes()[0].setInterpolation(interpolation)
+
+
 class PlaneColormapItem(ColormapBase):
     """
     colormap name item.
@@ -1032,6 +1067,7 @@ class PlaneAutoScaleItem(ColormapBase):
         self.setCheckable(True)
         self.setCheckState((colorMap.isAutoscale() and qt.Qt.Checked)
                            or qt.Qt.Unchecked)
+        self.setData(self._pullData(), role=qt.Qt.DisplayRole, pushData=False)
 
     def leftClicked(self):
         checked = (self.checkState() == qt.Qt.Checked)
@@ -1126,6 +1162,11 @@ class PlaneGroup(SubjectItem):
         nameItem = qt.QStandardItem('Orientation')
         nameItem.setEditable(False)
         valueItem = PlaneOrientationItem(self.subject)
+        self.appendRow([nameItem, valueItem])
+
+        nameItem = qt.QStandardItem('Interpolation')
+        nameItem.setEditable(False)
+        valueItem = PlaneInterpolationItem(self.subject)
         self.appendRow([nameItem, valueItem])
 
         nameItem = qt.QStandardItem('Autoscale')

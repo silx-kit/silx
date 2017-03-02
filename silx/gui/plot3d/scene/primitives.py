@@ -1643,18 +1643,38 @@ class GroupDepthOffset(core.Group):
 
     def _renderGL2WithDepthRange(self, ctx):
         # gl.glDepthFunc(gl.GL_LESS)
-        for child in self.children:
-            gl.glColorMask(gl.GL_FALSE, gl.GL_FALSE, gl.GL_FALSE, gl.GL_FALSE)
-            gl.glDepthMask(gl.GL_TRUE)
-            gl.glDepthRange(self._epsilon, 1.)
+        with gl.enabled(gl.GL_CULL_FACE):
+            gl.glCullFace(gl.GL_BACK)
+            for child in self.children:
+                gl.glColorMask(
+                    gl.GL_FALSE, gl.GL_FALSE, gl.GL_FALSE, gl.GL_FALSE)
+                gl.glDepthMask(gl.GL_TRUE)
+                gl.glDepthRange(self._epsilon, 1.)
 
-            child.render(ctx)
+                child.render(ctx)
 
-            gl.glColorMask(gl.GL_TRUE, gl.GL_TRUE, gl.GL_TRUE, gl.GL_TRUE)
-            gl.glDepthMask(gl.GL_FALSE)
-            gl.glDepthRange(0., 1. - self._epsilon)
+                gl.glColorMask(
+                    gl.GL_TRUE, gl.GL_TRUE, gl.GL_TRUE, gl.GL_TRUE)
+                gl.glDepthMask(gl.GL_FALSE)
+                gl.glDepthRange(0., 1. - self._epsilon)
 
-            child.render(ctx)
+                child.render(ctx)
+
+            gl.glCullFace(gl.GL_FRONT)
+            for child in reversed(self.children):
+                gl.glColorMask(
+                    gl.GL_FALSE, gl.GL_FALSE, gl.GL_FALSE, gl.GL_FALSE)
+                gl.glDepthMask(gl.GL_TRUE)
+                gl.glDepthRange(self._epsilon, 1.)
+
+                child.render(ctx)
+
+                gl.glColorMask(
+                    gl.GL_TRUE, gl.GL_TRUE, gl.GL_TRUE, gl.GL_TRUE)
+                gl.glDepthMask(gl.GL_FALSE)
+                gl.glDepthRange(0., 1. - self._epsilon)
+
+                child.render(ctx)
 
         gl.glDepthMask(gl.GL_TRUE)
         gl.glDepthRange(0., 1.)

@@ -51,8 +51,8 @@ class Texture(object):
     :param shape: If data is None, shape of the texture
     :type shape: 2 or 3-tuple of int (height, width) or (depth, height, width)
     :param int texUnit: The texture unit to use
-    :param minFilter: OpenGL texture minimization filter
-    :param magFilter: OpenGL texture magnification filter
+    :param minFilter: OpenGL texture minimization filter (default: GL_NEAREST)
+    :param magFilter: OpenGL texture magnification filter (default: GL_LINEAR)
     :param wrap: Texture wrap mode for dimensions: (t, s) or (r, t, s)
                  If a single value is provided, it used for all dimensions.
     :type wrap: OpenGL wrap mode or 2 or 3-tuple of wrap mode
@@ -85,14 +85,11 @@ class Texture(object):
         self._name = gl.glGenTextures(1)
         self.bind(self.texUnit)
 
-        if minFilter is not None:
-            gl.glTexParameter(self.target,
-                              gl.GL_TEXTURE_MIN_FILTER,
-                              minFilter)
-        if magFilter is not None:
-            gl.glTexParameter(self.target,
-                              gl.GL_TEXTURE_MAG_FILTER,
-                              magFilter)
+        self._minFilter = None
+        self.minFilter = minFilter if minFilter is not None else gl.GL_NEAREST
+
+        self._magFilter = None
+        self.magFilter = magFilter if magFilter is not None else gl.GL_LINEAR
 
         if wrap is not None:
             if not isinstance(wrap, collections.Iterable):
@@ -192,6 +189,34 @@ class Texture(object):
         else:
             raise RuntimeError(
                 "No OpenGL texture resource, discard has already been called")
+
+    @property
+    def minFilter(self):
+        """Minifying function parameter (GL_TEXTURE_MIN_FILTER)"""
+        return self._minFilter
+
+    @minFilter.setter
+    def minFilter(self, minFilter):
+        if minFilter != self.minFilter:
+            self._minFilter = minFilter
+            self.bind()
+            gl.glTexParameter(self.target,
+                              gl.GL_TEXTURE_MIN_FILTER,
+                              self.minFilter)
+
+    @property
+    def magFilter(self):
+        """Magnification function parameter (GL_TEXTURE_MAG_FILTER)"""
+        return self._magFilter
+
+    @magFilter.setter
+    def magFilter(self, magFilter):
+        if magFilter != self.magFilter:
+            self._magFilter = magFilter
+            self.bind()
+            gl.glTexParameter(self.target,
+                              gl.GL_TEXTURE_MAG_FILTER,
+                              self.magFilter)
 
     def discard(self):
         """Delete associated OpenGL texture"""

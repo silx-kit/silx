@@ -52,6 +52,7 @@ class ColormapMesh3D(Geometry):
     uniform mat4 matrix;
     uniform mat4 transformMat;
     //uniform mat3 matrixInvTranspose;
+    uniform vec3 dataScale;
 
     varying vec4 vCameraPosition;
     varying vec3 vPosition;
@@ -63,6 +64,7 @@ class ColormapMesh3D(Geometry):
         vCameraPosition = transformMat * vec4(position, 1.0);
         //vNormal = matrixInvTranspose * normalize(normal);
         vPosition = position;
+        vTexCoords = dataScale * position;
         vNormal = normal;
         gl_Position = matrix * vec4(position, 1.0);
     }
@@ -71,9 +73,9 @@ class ColormapMesh3D(Geometry):
     varying vec4 vCameraPosition;
     varying vec3 vPosition;
     varying vec3 vNormal;
+    varying vec3 vTexCoords;
     uniform sampler3D data;
     uniform float alpha;
-    uniform vec3 dataScale;
 
     $colormapDecl
 
@@ -82,7 +84,7 @@ class ColormapMesh3D(Geometry):
 
     void main(void)
     {
-        float value = texture3D(data, vPosition * dataScale).r;
+        float value = texture3D(data, vTexCoords).r;
         vec4 color = $colormapCall(value);
         color.a = alpha;
 
@@ -100,6 +102,7 @@ class ColormapMesh3D(Geometry):
         self._data = data
         self._texture = None
         self._update_texture = True
+        self._update_texture_filter = False
         self._alpha = 1.
         self._colormap = colormap or Colormap()  # Default colormap
         self._colormap.addListener(self._cmapChanged)
@@ -129,8 +132,8 @@ class ColormapMesh3D(Geometry):
     def interpolation(self, interpolation):
         assert interpolation in ('linear', 'nearest')
         self._interpolation = interpolation
-        # TODO improve, now reload texture to change filter parameters
-        self._update_texture = True
+        self._update_texture_filter = True
+        self.notify()
 
     @property
     def alpha(self):
@@ -160,11 +163,22 @@ class ColormapMesh3D(Geometry):
             else:
                 filter_ = gl.GL_LINEAR
             self._update_texture = False
+            self._update_texture_filter = False
             self._texture = glutils.Texture(
                 gl.GL_R32F, self._data, gl.GL_RED,
                 minFilter=filter_,
                 magFilter=filter_,
                 wrap=gl.GL_CLAMP_TO_EDGE)
+
+        if self._update_texture_filter:
+            self._update_texture_filter = False
+            if self.interpolation == 'nearest':
+                filter_ = gl.GL_NEAREST
+            else:
+                filter_ = gl.GL_LINEAR
+            self._texture.minFilter = filter_
+            self._texture.magFilter = filter_
+
         super(ColormapMesh3D, self).prepareGL2(ctx)
 
     def renderGL2(self, ctx):
@@ -214,6 +228,7 @@ class CutPlane(PlaneInGroup):
         self._data = None
         self._mesh = None
         self._alpha = 1.
+        self._interpolation = 'linear'
         self._colormap = Colormap()
         super(CutPlane, self).__init__(point, normal)
 
@@ -248,26 +263,52 @@ class CutPlane(PlaneInGroup):
     def colormap(self):
         return self._colormap
 
+    @property
+    def interpolation(self):
+        """The texture interpolation mode: 'linear' (default) or 'nearest'"""
+        return self._interpolation
+
+    @interpolation.setter
+    def interpolation(self, interpolation):
+        assert interpolation in ('nearest', 'linear')
+        if interpolation != self.interpolation:
+            self._interpolation = interpolation
+            if self._mesh is not None:
+                self._mesh.interpolation = interpolation
+
     def prepareGL2(self, ctx):
         if self.isValid:
+
+            contourVertices = self.contourVertices
+
+            if (self.interpolation == 'nearest' and
+                    contourVertices is not None and len(contourVertices)):
+                # Avoid cut plane co-linear with array bin edges
+                for index, normal in enumerate(((1., 0., 0.), (0., 1., 0.), (0., 0., 1.))):
+                    if (numpy.all(numpy.equal(self.plane.normal, normal)) and
+                            int(self.plane.point[index]) == self.plane.point[index]):
+                        contourVertices += self.plane.normal * 0.01  # Add an offset
+                        break
+
             if self._mesh is None and self._data is not None:
-                self._mesh = ColormapMesh3D(self.contourVertices,
+                self._mesh = ColormapMesh3D(contourVertices,
                                             normal=self.plane.normal,
                                             data=self._data,
                                             copy=False,
                                             mode='fan',
                                             colormap=self.colormap)
                 self._mesh.alpha = self._alpha
+                self._interpolation = self.interpolation
                 self._children.insert(0, self._mesh)
 
             if self._mesh is not None:
-                if (self.contourVertices is None or
-                        len(self.contourVertices) == 0):
+                if (contourVertices is None or
+                        len(contourVertices) == 0):
                     self._mesh.visible = False
                 else:
                     self._mesh.visible = True
                     self._mesh.setAttribute('normal', self.plane.normal)
-                    self._mesh.setAttribute('position', self.contourVertices)
+                    self._mesh.setAttribute('position', contourVertices)
 
         super(CutPlane, self).prepareGL2(ctx)
 

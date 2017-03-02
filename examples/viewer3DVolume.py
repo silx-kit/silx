@@ -47,10 +47,16 @@ from silx.gui import qt
 from silx.gui.plot3d.ScalarFieldView import ScalarFieldView
 from silx.gui.plot3d import SFViewParamTree
 
-
 logging.basicConfig()
 
 _logger = logging.getLogger(__name__)
+
+
+try:
+    import h5py
+except ImportError:
+    _logger.warning('h5py is not installed: HDF5 not supported')
+    h5py = None
 
 
 def load(filename):
@@ -65,9 +71,7 @@ def load(filename):
     if not os.path.isfile(filename.split('::')[0]):
         raise IOError('No input file: %s' % filename)
 
-    if '.h5' in filename.lower():
-        import h5py
-
+    if h5py is not None and h5py.is_hdf5(filename.split('::')[0]):
         if '::' not in filename:
             raise ValueError(
                 'HDF5 path not provided: Use <filename>::<path> format')
@@ -84,11 +88,11 @@ def load(filename):
 
             data = numpy.array(data, order='C', dtype='float32')
 
-    elif filename.lower().endswith('.npy'):
-        data = numpy.load(filename)
-
-    else:
-        raise IOError('Unsupported file format: %s' % filename)
+    else:  # Try with numpy
+        try:
+            data = numpy.load(filename)
+        except IOError:
+            raise IOError('Unsupported file format: %s' % filename)
 
     if data.ndim != 3:
         raise RuntimeError(

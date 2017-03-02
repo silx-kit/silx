@@ -130,9 +130,9 @@ class ClickOrDrag(StateMachine):
 class CameraRotate(ClickOrDrag):
     """Camera rotation using an arcball-like interaction."""
 
-    def __init__(self, viewport, orbitAroundOrigin=True, button=RIGHT_BTN):
+    def __init__(self, viewport, orbitAroundCenter=True, button=RIGHT_BTN):
         self._viewport = viewport
-        self._orbitAroundOrigin = orbitAroundOrigin
+        self._orbitAroundCenter = orbitAroundCenter
         self._reset()
         super(CameraRotate, self).__init__(button)
 
@@ -144,23 +144,20 @@ class CameraRotate(ClickOrDrag):
         pass  # No interaction yet
 
     def beginDrag(self, x, y):
-        if self._orbitAroundOrigin:
-            bounds = self._viewport.scene.bounds(transformed=True)
-            center = 0.5 * (bounds[0] + bounds[1])
-            self._center = transform.Translate(*center)
-        else:
-            # TODO find a better position?
-            # Using picked position if any
-            ndcz = self._viewport._pickNdcZGL(x, y)
-            if ndcz == 1.:
-                # Hit the far plane, change to center of scene
-                self._center = transform.Translate(0., 0., 0.)
-            else:
-                center = self._viewport._getXZYGL(x, y)  # Can return None
-                if center is not None:
-                    center = transform.Translate(*center)
-                self._center = center
+        centerPos = None
+        if not self._orbitAroundCenter:
+            # Try to use picked object position as center of rotation
+            ndcZ = self._viewport._pickNdcZGL(x, y)
+            if ndcZ != 1.:
+                # Hit an object, use picked point as center
+                centerPos = self._viewport._getXZYGL(x, y)  # Can return None
 
+        if centerPos is None:
+            # Not using picked position, use scene center
+            bounds = self._viewport.scene.bounds(transformed=True)
+            centerPos = 0.5 * (bounds[0] + bounds[1])
+
+        self._center = transform.Translate(*centerPos)
         self._origin = x, y
         self._startExtrinsic = self._viewport.camera.extrinsic.copy()
 
@@ -215,27 +212,24 @@ class CameraSelectPan(ClickOrDrag):
     def __init__(self, viewport, button=LEFT_BTN, selectCB=None):
         self._viewport = viewport
         self._selectCB = selectCB
-        self._lastPos = None
         self._lastPosNdc = None
         super(CameraSelectPan, self).__init__(button)
 
     def click(self, x, y):
         if self._selectCB is not None:
-            ndcz = self._viewport._pickNdcZGL(x, y)
+            ndcZ = self._viewport._pickNdcZGL(x, y)
             position = self._viewport._getXZYGL(x, y)
             # This assume no object lie on the far plane
             # Alternative, change the depth range so that far is < 1
-            if ndcz != 1. and position is not None:
-                self._selectCB((x, y, ndcz), position)
+            if ndcZ != 1. and position is not None:
+                self._selectCB((x, y, ndcZ), position)
 
     def beginDrag(self, x, y):
         ndc = self._viewport.windowToNdc(x, y)
-        ndcz = self._viewport._pickNdcZGL(x, y)
-        # ndcz is the panning plane
-        if ndc is not None and ndcz is not None:
-            if ndcz == 1.:  # Hit the far plane, change panning plane
-                ndcz = 0.5  # TODO find a better guess...
-            self._lastPosNdc = numpy.array((ndc[0], ndc[1], ndcz, 1.),
+        ndcZ = self._viewport._pickNdcZGL(x, y)
+        # ndcZ is the panning plane
+        if ndc is not None and ndcZ is not None:
+            self._lastPosNdc = numpy.array((ndc[0], ndc[1], ndcZ, 1.),
                                            dtype=numpy.float32)
         else:
             self._lastPosNdc = None
@@ -244,21 +238,21 @@ class CameraSelectPan(ClickOrDrag):
         if self._lastPosNdc is not None:
             ndc = self._viewport.windowToNdc(x, y)
             if ndc is not None:
-                ndcpos = numpy.array((ndc[0], ndc[1], self._lastPosNdc[2], 1.),
+                ndcPos = numpy.array((ndc[0], ndc[1], self._lastPosNdc[2], 1.),
                                      dtype=numpy.float32)
 
                 # Convert last and current NDC positions to scene coords
-                scenepos = self._viewport.camera.transformPoint(
-                    ndcpos, direct=False, perspectiveDivide=True)
-                lastscenepos = self._viewport.camera.transformPoint(
+                scenePos = self._viewport.camera.transformPoint(
+                    ndcPos, direct=False, perspectiveDivide=True)
+                lastScenePos = self._viewport.camera.transformPoint(
                     self._lastPosNdc, direct=False, perspectiveDivide=True)
 
                 # Get translation in scene coords
-                translation = scenepos[:3] - lastscenepos[:3]
+                translation = scenePos[:3] - lastScenePos[:3]
                 self._viewport.camera.extrinsic.position -= translation
 
                 # Store for next drag
-                self._lastPosNdc = ndcpos
+                self._lastPosNdc = ndcPos
 
     def endDrag(self, x, y):
         self._lastPosNdc = None
@@ -449,12 +443,12 @@ class FocusManager(StateMachine):
 class CameraControl(FocusManager):
     """Combine wheel, selectPan and rotate state machine."""
     def __init__(self, viewport,
-                 orbitAroundOrigin=True,
+                 orbitAroundCenter=False,
                  mode='center', scaleTransform=None,
                  selectCB=None):
         handlers = (CameraWheel(viewport, mode, scaleTransform),
                     CameraSelectPan(viewport, LEFT_BTN, selectCB),
-                    CameraRotate(viewport, orbitAroundOrigin, RIGHT_BTN))
+                    CameraRotate(viewport, orbitAroundCenter, RIGHT_BTN))
         super(CameraControl, self).__init__(handlers)
 
 
@@ -578,53 +572,60 @@ class PlanePan(ClickOrDrag):
         self._plane = plane
         self._viewport = viewport
         self._beginPlanePoint = None
-        self._beginPosInScene = None
+        self._beginPos = None
+        self._dragNdcZ = 0.
         super(PlanePan, self).__init__(button)
 
     def click(self, x, y):
         pass
 
-    def _windowToScene(self, x, y, ndcZ=0.):
-        ndc = self._viewport.windowToNdc(x, y)
-        if ndc is None:
-            return None
-        else:
-            ndc = numpy.array((ndc[0], ndc[1], ndcZ, 1.), dtype=numpy.float32)
-            campos = self._viewport.camera.intrinsic.transformPoint(
-                ndc, direct=False, perspectiveDivide=True)
-            scenepos = self._viewport.camera.extrinsic.transformPoint(
-                campos, direct=False)
-            return scenepos
-
     def beginDrag(self, x, y):
+        ndc = self._viewport.windowToNdc(x, y)
+        ndcZ = self._viewport._pickNdcZGL(x, y)
+        # ndcZ is the panning plane
+        if ndc is not None and ndcZ is not None:
+            ndcPos = numpy.array((ndc[0], ndc[1], ndcZ, 1.),
+                                 dtype=numpy.float32)
+            scenePos = self._viewport.camera.transformPoint(
+                ndcPos, direct=False, perspectiveDivide=True)
+            self._beginPos = self._plane.objectToSceneTransform.transformPoint(
+                scenePos, direct=False)
+            self._dragNdcZ = ndcZ
+        else:
+            self._beginPos = None
+            self._dragNdcZ = 0.
+
         self._beginPlanePoint = self._plane.plane.point
-        self._beginPosInScene = self._windowToScene(x, y, 0.)
-        assert self._beginPosInScene is not None
 
     def drag(self, x, y):
-        scenePos = self._windowToScene(x, y, 0.)
+        if self._beginPos is not None:
+            ndc = self._viewport.windowToNdc(x, y)
+            if ndc is not None:
+                ndcPos = numpy.array((ndc[0], ndc[1], self._dragNdcZ, 1.),
+                                     dtype=numpy.float32)
 
-        if scenePos is not None:
-            sceneDelta = scenePos - self._beginPosInScene
+                # Convert last and current NDC positions to scene coords
+                scenePos = self._viewport.camera.transformPoint(
+                    ndcPos, direct=False, perspectiveDivide=True)
+                curPos = self._plane.objectToSceneTransform.transformPoint(
+                    scenePos, direct=False)
 
-            # Convert delta to object space
-            deltaObject = self._plane.objectToSceneTransform.transformDir(
-                sceneDelta, direct=False)
+                # Get translation in scene coords
+                translation = curPos[:3] - self._beginPos[:3]
 
-            newPoint = self._beginPlanePoint + deltaObject
+                newPoint = self._beginPlanePoint + translation
 
-            # Keep plane point in bounds
-            bounds = self._plane.parent.bounds(dataBounds=True)
-            if bounds is not None:
-                newPoint = numpy.clip(
-                    newPoint, a_min=bounds[0], a_max=bounds[1])
+                # Keep plane point in bounds
+                bounds = self._plane.parent.bounds(dataBounds=True)
+                if bounds is not None:
+                    newPoint = numpy.clip(
+                        newPoint, a_min=bounds[0], a_max=bounds[1])
 
-                # Only update plane if it is in some bounds
-                self._plane.plane.point = newPoint
+                    # Only update plane if it is in some bounds
+                    self._plane.plane.point = newPoint
 
     def endDrag(self, x, y):
         self._beginPlanePoint = None
-        self._beginPosInScene = None
 
 
 # PlaneControl ################################################################
@@ -646,6 +647,6 @@ class PanPlaneRotateCameraControl(FocusManager):
         handlers = (CameraWheel(viewport, mode, scaleTransform),
                     PlanePan(viewport, plane, LEFT_BTN),
                     CameraRotate(viewport,
-                                 orbitAroundOrigin=True,
+                                 orbitAroundCenter=False,
                                  button=RIGHT_BTN))
         super(PanPlaneRotateCameraControl, self).__init__(handlers)
