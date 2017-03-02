@@ -181,6 +181,13 @@ class _Axis(qt.QWidget):
         """
         self.valueChanged.emit(value)
 
+    def setNamedAxisSelectorVisibility(self, visible):
+        """Hide or show the named axis combobox.
+
+        :param visible: boolean
+        """
+        self.__axes.setVisible(visible)
+
 
 class NumpyAxesSelector(qt.QWidget):
     """Widget to select a view from a numpy array.
@@ -225,6 +232,7 @@ class NumpyAxesSelector(qt.QWidget):
         self.__axis = []
         self.__axisNames = []
         self.__customAxisNames = set([])
+        self.__namedAxesVisibility = True
         layout = qt.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
@@ -297,6 +305,7 @@ class NumpyAxesSelector(qt.QWidget):
                 # this weak method was expected to be able to delete sub widget
                 callback = functools.partial(silx.utils.weakref.WeakMethodProxy(self.__axisNameChanged), axis)
                 axis.axisNameChanged.connect(callback)
+                axis.setNamedAxisSelectorVisibility(self.__namedAxesVisibility)
                 self.layout().addWidget(axis)
                 self.__axis.append(axis)
         self.__normalizeAxisGeometry()
@@ -438,3 +447,13 @@ class NumpyAxesSelector(qt.QWidget):
         :rtype: tuple
         """
         return self.__selection
+
+    def setNamedAxesSelectorVisibility(self, visible):
+        """Show or hide the combo-boxes allowing to map the plot axes
+        to the data dimension.
+
+        :param visible: Boolean
+        """
+        self.__namedAxesVisibility = visible
+        for axis in self.__axis:
+            axis.setNamedAxisSelectorVisibility(visible)

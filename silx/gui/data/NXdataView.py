@@ -107,20 +107,24 @@ class ArrayCurvePlot(qt.QWidget):
 
         self._plot = Plot1D(self)
         self._selector = NumpyAxesSelector(self)
+        self._selector.setNamedAxesSelectorVisibility(False)
         self._addButton = qt.QPushButton("Add curve", self)
         self._addButton.clicked.connect(self._addCurve)
         self._replaceButton = qt.QPushButton("Replace curves", self)
         self._replaceButton.clicked.connect(self._replaceCurve)
         self._clearButton = qt.QPushButton("Clear plot", self)
         self._clearButton.clicked.connect(self.clear)
+        self._addAllButton = qt.QPushButton("Add all curves (!!)", self)
+        self._addAllButton.clicked.connect(self._addAllCurves)
 
         layout = qt.QGridLayout()
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self._plot,  0, 0, 1, 3)
-        layout.addWidget(self._selector, 1, 0, 1, 3)
+        layout.addWidget(self._plot,  0, 0, 1, 4)
+        layout.addWidget(self._selector, 1, 0, 1, 4)
         layout.addWidget(self._addButton, 2, 0)
         layout.addWidget(self._replaceButton, 2, 1)
-        layout.addWidget(self._clearButton, 2, 2)
+        layout.addWidget(self._addAllButton, 2, 2)
+        layout.addWidget(self._clearButton, 2, 3)
 
         self.setLayout(layout)
 
@@ -182,6 +186,35 @@ class ArrayCurvePlot(qt.QWidget):
 
     def clear(self):
         self._plot.clear()
+
+    def _addAllCurves(self):
+        self.clear()
+        curve_len = self.__signal.shape[-1]
+        all_curves = numpy.reshape(self.__signal,
+                                   (-1, curve_len))
+        x = self.__axis if self.__axis is not None else numpy.arange(curve_len)
+        for i in range(all_curves.shape[0]):
+            y = all_curves[i]
+
+            if len(self.__signal.shape) > 1:
+                nD_index = numpy.unravel_index(i, self.__signal.shape[:-1])
+            else:
+                nD_index = tuple()
+
+            legend = self.__signal_name + "["
+            for j in nD_index:
+                legend += "%d, " % j
+                legend += ":]"
+            if self.__signal_errors is not None:
+                y_errors = self.__signal_errors[nD_index + (slice(None), )]
+            else:
+                y_errors = None
+            self._plot.addCurve(x, y, legend=legend,
+                                xlabel=self.__axis_name,
+                                ylabel=self.__signal_name,
+                                xerror=self.__axis_errors,
+                                yerror=y_errors,
+                                resetzoom=True)
 
 
 class NXdataCurveView(DataView):
