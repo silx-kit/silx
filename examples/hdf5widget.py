@@ -330,9 +330,9 @@ def get_hdf5_with_nxdata():
     g2d1.attrs["NX_class"] = "NXdata"
     g2d1.attrs["signal"] = "data"
     g2d1.attrs["axes"] = "ycalib", "xcalib"
-    g2d1.create_dataset("data", data=numpy.arange(4*6).reshape((4, 6)))
-    g2d1.create_dataset("ycalib", data=5+10*numpy.arange(4)**2)
-    g2d1.create_dataset("xcalib", data=0.5+0.02*numpy.arange(6)**3)
+    g2d1.create_dataset("data", data=numpy.arange(64*128).reshape((64, 128)))
+    g2d1.create_dataset("ycalib", data=numpy.arange(64) + numpy.random.rand(64))
+    g2d1.create_dataset("xcalib", data=numpy.arange(128) + 2.5 * numpy.random.rand(128))
 
     g2d2 = g2d.create_group("3D_images")
     g2d2.attrs["NX_class"] = "NXdata"
