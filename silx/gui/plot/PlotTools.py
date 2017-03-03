@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "16/12/2016"
+__date__ = "03/03/2017"
 
 
 import logging
@@ -181,7 +181,8 @@ class PositionInfo(qt.QWidget):
                                 styleSheet = "color: rgb(0, 0, 0);"
 
                                 # if close enough, wrap to data point coords
-                                x, y = xClosest, yClosest
+                                x, y = self.plot.pixelToData(
+                                        xClosest, yClosest, axis=activeCurve.getYAxis())
 
             for label, name, func in self._fields:
                 label.setStyleSheet(styleSheet)
