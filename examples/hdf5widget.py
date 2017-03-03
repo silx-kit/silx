@@ -367,7 +367,9 @@ def get_hdf5_with_nxdata():
     gd1.attrs["axes"] = "x", "y"
     gd1.create_dataset("values", data=3.14*numpy.random.rand(128))
     gd1.create_dataset("y", data=numpy.random.rand(128))
+    gd1.create_dataset("y_errors", data=0.02*numpy.random.rand(128))
     gd1.create_dataset("x", data=numpy.random.rand(128))
+    gd1.create_dataset("x_errors", data=0.02*numpy.random.rand(128))
 
     # gd2 = g.create_group("x_y_z_value_scatter")
     # gd2.attrs["NX_class"] = "NXdata"

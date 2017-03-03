@@ -127,26 +127,17 @@ class ArrayCurvePlot(qt.QWidget):
         self.__axis_errors = None
         self.__values = None
 
+        self.__first_curve_added = False
+
         self._plot = Plot1D(self)
         self._selector = NumpyAxesSelector(self)
         self._selector.setNamedAxesSelectorVisibility(False)
-        self._addButton = qt.QPushButton("Add curve", self)
-        self._addButton.clicked.connect(self._addCurve)
-        self._replaceButton = qt.QPushButton("Replace curves", self)
-        self._replaceButton.clicked.connect(self._replaceCurve)
-        self._clearButton = qt.QPushButton("Clear plot", self)
-        self._clearButton.clicked.connect(self.clear)
-        self._addAllButton = qt.QPushButton("Add all curves (!!)", self)
-        self._addAllButton.clicked.connect(self._addAllCurves)
+        self.__selector_is_connected = False
 
         layout = qt.QGridLayout()
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self._plot,  0, 0, 1, 4)
-        layout.addWidget(self._selector, 1, 0, 1, 4)
-        layout.addWidget(self._addButton, 2, 0)
-        layout.addWidget(self._replaceButton, 2, 1)
-        layout.addWidget(self._addAllButton, 2, 2)
-        layout.addWidget(self._clearButton, 2, 3)
+        layout.addWidget(self._plot,  0, 0)
+        layout.addWidget(self._selector, 1, 0)
 
         self.setLayout(layout)
 
@@ -180,13 +171,20 @@ class ArrayCurvePlot(qt.QWidget):
         self.__axis_errors = xerror
         self.__values = values
 
+        if self.__selector_is_connected:
+            self._selector.selectionChanged.disconnect(self._replaceCurve)
+            self.__selector_is_connected = False
         self._selector.setData(y)
         self._selector.setAxisNames([ylabel or "Y"])
 
         self._plot.setGraphTitle(title or "")
         self._plot.setGraphXLabel(self.__axis_name or "X")
         self._plot.setGraphYLabel(self.__signal_name or "Y")
-        self._addCurve()
+        self._replaceCurve()
+
+        if not self.__selector_is_connected:
+            self._selector.selectionChanged.connect(self._replaceCurve)
+            self.__selector_is_connected = True
 
     def _addCurve(self, replace=False):
         y = self._selector.selectedData()
