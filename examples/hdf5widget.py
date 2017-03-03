@@ -304,7 +304,7 @@ def get_hdf5_with_nxdata():
     g1d2 = g1d.create_group("4D_spectra")
     g1d2.attrs["NX_class"] = "NXdata"
     g1d2.attrs["signal"] = "counts"
-    g1d2.attrs["axes"] = "energy",
+    g1d2.attrs["axes"] = b"energy",
     ds = g1d2.create_dataset("counts", data=numpy.arange(2*2*3*10).reshape((2, 2, 3, 10)))
     ds.attrs["interpretation"] = "spectrum"
     ds = g1d2.create_dataset("errors", data=4.5*numpy.random.rand(2, 2, 3, 10))
@@ -321,7 +321,7 @@ def get_hdf5_with_nxdata():
     g2d0 = g2d.create_group("2D_regular_image")
     g2d0.attrs["NX_class"] = "NXdata"
     g2d0.attrs["signal"] = "image"
-    g2d0.attrs["axes"] = "rows_calib", "columns_coordinates"
+    g2d0.attrs["axes"] = b"rows_calib", b"columns_coordinates"
     g2d0.create_dataset("image", data=numpy.arange(4*6).reshape((4, 6)))
     ds = g2d0.create_dataset("rows_calib", data=(10, 5))
     ds.attrs["long_name"] = "Calibrated Y"
@@ -330,7 +330,7 @@ def get_hdf5_with_nxdata():
     g2d1 = g2d.create_group("2D_irregular_data")
     g2d1.attrs["NX_class"] = "NXdata"
     g2d1.attrs["signal"] = "data"
-    g2d1.attrs["axes"] = "rows_coordinates", "columns_coordinates"
+    g2d1.attrs["axes"] = b"rows_coordinates", b"columns_coordinates"
     g2d1.create_dataset("data", data=numpy.arange(64*128).reshape((64, 128)))
     g2d1.create_dataset("rows_coordinates", data=numpy.arange(64) + numpy.random.rand(64))
     g2d1.create_dataset("columns_coordinates", data=numpy.arange(128) + 2.5 * numpy.random.rand(128))
@@ -344,7 +344,7 @@ def get_hdf5_with_nxdata():
     g2d3 = g2d.create_group("5D_images")
     g2d3.attrs["NX_class"] = "NXdata"
     g2d3.attrs["signal"] = "images"
-    g2d3.attrs["axes"] = "rows_coordinates", "columns_coordinates"
+    g2d3.attrs["axes"] = b"rows_coordinates", b"columns_coordinates"
     ds = g2d3.create_dataset("images", data=numpy.arange(2*2*2*4*6).reshape((2, 2, 2, 4, 6)))
     ds.attrs["interpretation"] = "image"
     g2d3.create_dataset("rows_coordinates", data=5+10*numpy.arange(4))
@@ -365,7 +365,7 @@ def get_hdf5_with_nxdata():
     gd1 = g.create_group("x_y_value_scatter")
     gd1.attrs["NX_class"] = "NXdata"
     gd1.attrs["signal"] = "values"
-    gd1.attrs["axes"] = "x", "y"
+    gd1.attrs["axes"] = b"x", b"y"
     gd1.create_dataset("values", data=3.14*numpy.random.rand(128))
     gd1.create_dataset("y", data=numpy.random.rand(128))
     gd1.create_dataset("y_errors", data=0.02*numpy.random.rand(128))
