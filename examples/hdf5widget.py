@@ -290,7 +290,7 @@ def get_hdf5_with_nxdata():
     g1d0.attrs["NX_class"] = "NXdata"
     g1d0.attrs["signal"] = "count"
     g1d0.attrs["axes"] = "energy_calib"
-    g1d0.attrs["uncertainties"] = "energy_errors",
+    g1d0.attrs["uncertainties"] = b"energy_errors",
     g1d0.create_dataset("count", data=numpy.arange(10))
     g1d0.create_dataset("energy_calib", data=(10, 5))     # 10 * idx + 5
     g1d0.create_dataset("energy_errors", data=3.14*numpy.random.rand(10))

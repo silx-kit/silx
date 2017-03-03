@@ -242,7 +242,7 @@ class NXdata(object):
                 self.axes_names.append(dsname)
 
         # excludes scatters
-        self.signal_is_1D = self.signal_is_1D and len(self.axes) <= 1  # excludes scatters
+        self.signal_is_1D = self.signal_is_1D and len(self.axes) <= 1  # excludes n-D scatters
 
     @property
     def interpretation(self):
@@ -388,7 +388,7 @@ class NXdata(object):
 
         if len(axes_dataset_names) != ndims:
             if self.is_scatter and ndims == 1:
-                return axes_dataset_names
+                return list(axes_dataset_names)
             # @axes may only define 1 or 2 axes if @interpretation=spectrum/image.
             # Use the existing names for the last few dims, and prepend with Nones.
             assert len(axes_dataset_names) == INTERPDIM[self.interpretation]
@@ -397,7 +397,7 @@ class NXdata(object):
                 all_dimensions_names.append(axis_name)
             return all_dimensions_names
 
-        return axes_dataset_names
+        return list(axes_dataset_names)
 
     def get_axis_errors(self, axis_name):
         """Return errors (uncertainties) associated with an axis.
