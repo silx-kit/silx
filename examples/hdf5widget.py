@@ -289,9 +289,10 @@ def get_hdf5_with_nxdata():
     g1d0 = g1d.create_group("1D_spectrum")
     g1d0.attrs["NX_class"] = "NXdata"
     g1d0.attrs["signal"] = "count"
-    g1d0.attrs["axes"] = "energy"
+    g1d0.attrs["axes"] = "energy_calib"
+    g1d0.attrs["uncertainties"] = "energy_errors",
     g1d0.create_dataset("count", data=numpy.arange(10))
-    g1d0.create_dataset("energy", data=5+10*numpy.arange(10))
+    g1d0.create_dataset("energy_calib", data=(10, 5))     # 10 * idx + 5
     g1d0.create_dataset("energy_errors", data=3.14*numpy.random.rand(10))
 
     g1d1 = g1d.create_group("2D_spectra")
@@ -304,7 +305,6 @@ def get_hdf5_with_nxdata():
     g1d2.attrs["NX_class"] = "NXdata"
     g1d2.attrs["signal"] = "counts"
     g1d2.attrs["axes"] = "energy",
-    g1d2.attrs["uncertainties"] = "nrj_errs",
     ds = g1d2.create_dataset("counts", data=numpy.arange(2*2*3*10).reshape((2, 2, 3, 10)))
     ds.attrs["interpretation"] = "spectrum"
     ds = g1d2.create_dataset("errors", data=4.5*numpy.random.rand(2, 2, 3, 10))
@@ -313,7 +313,7 @@ def get_hdf5_with_nxdata():
     ds.attrs["long_name"] = "Calibrated energy"
     ds.attrs["first_good"] = 3
     ds.attrs["last_good"] = 12
-    g1d2.create_dataset("nrj_errs", data=10*numpy.random.rand(15))
+    g1d2.create_dataset("energy_errors", data=10*numpy.random.rand(15))
 
     # IMAGES
     g2d = h5.create_group("images")
@@ -321,9 +321,10 @@ def get_hdf5_with_nxdata():
     g2d0 = g2d.create_group("2D_regular_image")
     g2d0.attrs["NX_class"] = "NXdata"
     g2d0.attrs["signal"] = "image"
-    g2d0.attrs["axes"] = "rows_coordinates", "columns_coordinates"
+    g2d0.attrs["axes"] = "rows_calib", "columns_coordinates"
     g2d0.create_dataset("image", data=numpy.arange(4*6).reshape((4, 6)))
-    g2d0.create_dataset("rows_coordinates", data=5+10*numpy.arange(4))
+    ds = g2d0.create_dataset("rows_calib", data=(10, 5))
+    ds.attrs["long_name"] = "Calibrated Y"
     g2d0.create_dataset("columns_coordinates", data=0.5+0.02*numpy.arange(6))
 
     g2d1 = g2d.create_group("2D_irregular_data")
@@ -370,15 +371,6 @@ def get_hdf5_with_nxdata():
     gd1.create_dataset("y_errors", data=0.02*numpy.random.rand(128))
     gd1.create_dataset("x", data=numpy.random.rand(128))
     gd1.create_dataset("x_errors", data=0.02*numpy.random.rand(128))
-
-    # gd2 = g.create_group("x_y_z_value_scatter")
-    # gd2.attrs["NX_class"] = "NXdata"
-    # gd2.attrs["signal"] = "values"
-    # gd2.attrs["axes"] = "x", "y", "z"
-    # gd2.create_dataset("values", data=3.14*numpy.random.rand(128))
-    # gd2.create_dataset("y", data=numpy.random.rand(128))
-    # gd2.create_dataset("x", data=numpy.random.rand(128))
-    # gd2.create_dataset("z", data=numpy.random.rand(128))
 
     h5.close()
 

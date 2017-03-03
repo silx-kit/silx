@@ -54,12 +54,17 @@ def NXdata_warning(msg):
     _logger.warning("NXdata warning: " + msg)
 
 
-def is_valid(group):   # noqa
+def is_valid_NXdata(group):   # noqa
     """Check if a h5py group is a **valid** NX_data group.
 
-    Warning messages are logged to troubleshoot malformed NXdata groups.
+    If the group does not have attribute *@NX_class=NXdata*, this function
+    simply returns *False*.
+
+    Else, warning messages are logged to troubleshoot malformed NXdata groups
+    prior to returning *False*.
 
     :param group: h5py-like group
+    :return: True if this NXdata group is valid.
     :raise TypeError: if group is not a h5py group, a spech5 group,
         or a fabioh5 group
     """
@@ -84,13 +89,13 @@ def is_valid(group):   # noqa
         if isinstance(axes_names, str):
             axes_names = [axes_names]
 
-        if 1 < ndim < len(axes_names):   # ndim = 1 could be a scatter
+        if 1 < ndim < len(axes_names):
+            # ndim = 1 and several axes could be a scatter
             NXdata_warning(
                     "More @axes defined than there are " +
                     "signal dimensions: " +
                     "%d axes, %d dimensions." % (len(axes_names), ndim))
             return False
-
 
         # case of less axes than dimensions: number of axes must match
         # dimensionality defined by @interpretation
@@ -99,8 +104,8 @@ def is_valid(group):   # noqa
             if interpretation is None:
                 interpretation = group.attrs.get("interpretation", None)
             if interpretation is None:
-                NXdata_warning("No @interpretation and wrong" +
-                               " number of @axes defined.")
+                NXdata_warning("No @interpretation and not enough" +
+                               " @axes defined.")
                 return False
 
             if interpretation not in INTERPDIM:
@@ -131,6 +136,7 @@ def is_valid(group):   # noqa
         signal_size = 1
         for dim in group[signal_name].shape:
             signal_size *= dim
+        polynomial_axes_names = []
         for i, axis_name in enumerate(axes_names):
             if axis_name == ".":
                 continue
@@ -157,12 +163,15 @@ def is_valid(group):   # noqa
                 axis_len = lg_idx + 1 - fg_idx
 
             if axis_len != signal_size:
-                if axis_len not in group[signal_name].shape:
+                if axis_len not in group[signal_name].shape + (1, 2):
                     NXdata_warning(
                             "Axis %s number of elements does not " % axis_name +
-                            "correspond to the length of any signal dimension" +
+                            "correspond to the length of any signal dimension,"
+                            " it does not appear to be a constant or a linear calibration," +
                             " and this does not seem to be a scatter plot.")
                     return False
+                elif axis_len in (1, 2):
+                    polynomial_axes_names.append(axis_name)
                 is_scatter = False
             else:
                 if not is_scatter:
@@ -176,7 +185,7 @@ def is_valid(group):   # noqa
             errors_name = axis_name + "_errors"
             if errors_name not in group and uncertainties_names is not None:
                 errors_name = uncertainties_names[i]
-                if errors_name in group:
+                if errors_name in group and axis_name not in polynomial_axes_names:
                     if group[errors_name].shape != group[axis_name].shape:
                         NXdata_warning(
                             "Errors '%s' does not have the same " % errors_name +
@@ -198,7 +207,7 @@ class NXdata(object):
     :param group: h5py-like group following the NeXus *NXdata* specification.
     """
     def __init__(self, group):
-        if not is_valid(group):
+        if not is_valid_NXdata(group):
             raise TypeError("group is not a valid NXdata class")
         super(NXdata, self).__init__()
 

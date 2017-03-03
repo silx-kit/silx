@@ -191,6 +191,12 @@ class ArrayCurvePlot(qt.QWidget):
         x = self.__axis
         if x is None:
             x = numpy.arange(len(y))
+        elif numpy.isscalar(x) or len(x) == 1:
+            # constant axis
+            x = x * numpy.ones_like(y)
+        elif len(x) == 2 and len(y) != 2:
+            # linear calibration a*x + b
+            x = x[0] * numpy.arange(len(y)) + x[1]
         legend = self.__signal_name + "["
         for sl in self._selector.selection():
             if sl == slice(None):
@@ -495,9 +501,22 @@ class ArrayImagePlot(qt.QWidget):
             scale = (1., 1.)
         else:
             if x_axis is None:
+                # no calibration
                 x_axis = numpy.arange(img.shape[-1])
+            elif numpy.isscalar(x_axis) or len(x_axis) == 1:
+                # constant axis
+                x_axis = x_axis * numpy.ones((img.shape[-1], ))
+            elif len(x_axis) == 2:
+                # linear calibration
+                x_axis = x_axis[0] * numpy.arange(img.shape[-1]) + x_axis[1]
+
             if y_axis is None:
                 y_axis = numpy.arange(img.shape[-2])
+            elif numpy.isscalar(y_axis) or len(y_axis) == 1:
+                y_axis = y_axis * numpy.ones((img.shape[-2], ))
+            elif len(y_axis) == 2:
+                y_axis = y_axis[0] * numpy.arange(img.shape[-2]) + y_axis[1]
+
             if self._image_axes_are_regular(x_axis, y_axis):
                 is_regular_image = True
                 xorigin, xscale = self._get_origin_scale(x_axis)

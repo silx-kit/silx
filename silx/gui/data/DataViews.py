@@ -84,7 +84,7 @@ class DataInfo(object):
         if data is None:
             return
 
-        if silx.io.is_group(data) and nxdata.is_valid(data):
+        if silx.io.is_group(data) and nxdata.is_valid_NXdata(data):
             self.isNXdata = True
 
         if isinstance(data, numpy.ndarray):
