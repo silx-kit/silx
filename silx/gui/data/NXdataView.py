@@ -94,7 +94,8 @@ class NXdataScalarView(DataView):
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
         if info.isNXdata and (
-                    nxdata.signal_is_0D(data) or nxdata.signal_is_scalar(data)):
+                    nxdata.signal_is_0D(data) or
+                    nxdata.get_interpretation(data) in ["scalar", "scaler"]):
             return 100
         return DataView.UNSUPPORTED
 
@@ -315,9 +316,10 @@ class NXdataCurveView(DataView):
         if info.isNXdata:
             if nxdata.is_x_y_value_scatter(data) or nxdata.is_unsupported_scatter(data):
                 return DataView.UNSUPPORTED
-            if nxdata.signal_is_1D(data) and not nxdata.signal_is_scalar(data):
+            if nxdata.signal_is_1D(data) and \
+                    not nxdata.get_interpretation(data) in ["scalar", "scaler"]:
                 return 100
-            if nxdata.signal_is_spectrum(data):
+            if nxdata.get_interpretation(data) == "spectrum":
                 return 100
         return DataView.UNSUPPORTED
 
@@ -582,9 +584,11 @@ class NXdataImageView(DataView):
         data = self.normalizeData(data)
         if info.isNXdata:
             if nxdata.signal_is_2D(data):
-                if not nxdata.signal_is_scalar(data) and not nxdata.signal_is_spectrum(data):
+                if nxdata.get_interpretation(data) not in ["scalar",
+                                                           "spectrum",
+                                                           "scaler"]:
                     return 100
-            if nxdata.signal_is_image(data):
+            if nxdata.get_interpretation(data) == "image":
                 return 100
         return DataView.UNSUPPORTED
 

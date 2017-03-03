@@ -241,12 +241,6 @@ class NXdata(object):
             else:
                 self.axes_names.append(dsname)
 
-        # misspelled word "scaler" is used on NeXus website
-        self.signal_is_scalar = self.interpretation in ["scalar", "scaler"]
-        self.signal_is_spectrum = self.interpretation == "spectrum"
-        self.signal_is_image = self.interpretation == "image"
-        self.signal_is_vertex = self.interpretation == "vertex"
-
         # excludes scatters
         self.signal_is_1D = self.signal_is_1D and len(self.axes) <= 1  # excludes scatters
 
@@ -619,42 +613,6 @@ def signal_is_3D(group):
     :return: Boolean
     """
     return NXdata(group).signal_is_3D
-
-
-def signal_is_scalar(group):
-    """Return True if  *@interpretation="scalar"*
-
-    :param group: h5py-like Group following the NeXus *NXdata* specification.
-    :return: Boolean
-    """
-    return NXdata(group).signal_is_scalar
-
-
-def signal_is_spectrum(group):
-    """Return True if *@interpretation="spectrum"*
-
-    :param group: h5py-like Group following the NeXus *NXdata* specification.
-    :return: Boolean
-    """
-    return NXdata(group).signal_is_spectrum
-
-
-def signal_is_image(group):
-    """Return True if *@interpretation="spectrum"*
-
-    :param group: h5py-like Group following the NeXus *NXdata* specification.
-    :return: Boolean
-    """
-    return NXdata(group).signal_is_image
-
-
-def signal_is_vertex(group):
-    """Return True if *@interpretation="vertex"*
-
-    :param group: h5py-like Group following the NeXus *NXdata* specification.
-    :return: Boolean
-    """
-    return NXdata(group).signal_is_vertex
 
 
 def is_scatter(group):
