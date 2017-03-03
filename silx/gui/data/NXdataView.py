@@ -48,6 +48,27 @@ __date__ = "22/02/2017"
 _logger = logging.getLogger(__name__)
 
 
+def _applyColormap(values,
+                   colormap=silx.gui.plot.MPLColormap.viridis,
+                   minVal=None,
+                   maxVal=None, ):
+    """Compute RGBA array of shape (n, 4) from a 1D array of length n.
+
+    :param values: 1D array of values
+    :param colormap: colormap to be used
+    """
+    values_array = numpy.array(values)
+    if minVal is None:
+        minVal = values_array.min()
+    if maxVal is None:
+        maxVal = values_array.max()
+    sm = matplotlib.cm.ScalarMappable(
+            norm=matplotlib.colors.Normalize(vmin=minVal, vmax=maxVal),
+            cmap=colormap)
+    colors = sm.to_rgba(values)
+    return colors
+
+
 class NXdataScalarView(DataView):
     def __init__(self, parent):
         DataView.__init__(self, parent)
@@ -104,6 +125,7 @@ class ArrayCurvePlot(qt.QWidget):
         self.__axis = None
         self.__axis_name = None
         self.__axis_errors = None
+        self.__values = None
 
         self._plot = Plot1D(self)
         self._selector = NumpyAxesSelector(self)
@@ -128,29 +150,37 @@ class ArrayCurvePlot(qt.QWidget):
 
         self.setLayout(layout)
 
-    def setCurveData(self, signal, axis=None,
-                     yerror= None, xerror=None,
-                     ylabel=None, xlabel=None,
-                     title=None):
+    def setCurveData(self, y, x=None, values=None,
+                     yerror=None, xerror=None,
+                     ylabel=None, xlabel=None, title=None):
         """
 
-        :param signal: n-D dataset, whose last dimension is used as the
-            curve's y values.
-        :param axis: 1-D dataset used as the curve's x values. If provided,
+        :param y: dataset to be represented by the y (vertical) axis.
+            For a scatter, this must be a 1D array and x and values must be
+            1-D arrays of the same size.
+            In other cases, it can be a n-D array whose last dimension must
+            have the same length as x (and values must be None)
+        :param x: 1-D dataset used as the curve's x values. If provided,
             its lengths must be equal to the length of the last dimension of
-            ``signal``.
+            ``y`` (and equal to the length of ``value``, for a scatter plot).
+        :param values: Values, to be provided for a x-y-value scatter plot.
+            This will be used to compute the color map and assign colors
+            to the points.
+        :param yerror: 1-D dataset of errors for y, or None
+        :param xerror: 1-D dataset of errors for x, or None
         :param ylabel: Label for Y axis
         :param xlabel: Label for X axis
         :param title: Graph title
         """
-        self.__signal = signal
+        self.__signal = y
         self.__signal_name = ylabel
         self.__signal_errors = yerror
-        self.__axis = axis
+        self.__axis = x
         self.__axis_name = xlabel
         self.__axis_errors = xerror
+        self.__values = values
 
-        self._selector.setData(signal)
+        self._selector.setData(y)
         self._selector.setAxisNames([ylabel or "Y"])
 
         self._plot.setGraphTitle(title or "")
@@ -174,14 +204,27 @@ class ArrayCurvePlot(qt.QWidget):
             y_errors = self.__signal_errors[self._selector.selection()]
         else:
             y_errors = None
+        # values: x-y-v scatter
+        if self.__values is not None:
+            rgbacolors = _applyColormap(self.__values)
+            self._plot.addCurve(x, y, color=rgbacolors,
+                                legend=legend,
+                                xlabel=self.__axis_name,
+                                ylabel=self.__signal_name,
+                                xerror=self.__axis_errors,
+                                yerror=y_errors,
+                                resetzoom=True, replace=replace,
+                                symbol="o", linestyle="")
+
         # x monotonically increasing: curve
-        if numpy.all(numpy.diff(x) > 0):
+        elif numpy.all(numpy.diff(x) > 0):
             self._plot.addCurve(x, y, legend=legend,
                                 xlabel=self.__axis_name,
                                 ylabel=self.__signal_name,
                                 xerror=self.__axis_errors,
                                 yerror=y_errors,
                                 resetzoom=True, replace=replace)
+
         # scatter
         else:
             self._plot.addCurve(x, y, legend=legend,
@@ -259,16 +302,69 @@ class NXdataCurveView(DataView):
             x_errors = None
 
         self.getWidget().setCurveData(signal, x_axis,
-                                      ylabel=signal_name, xlabel=x_label,
                                       yerror=signal_errors, xerror=x_errors,
+                                      ylabel=signal_name, xlabel=x_label,
                                       title="NXdata group " + group_name)
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
         if info.isNXdata:
+            if nxdata.is_x_y_value_scatter(data) or nxdata.is_unsupported_scatter(data):
+                return DataView.UNSUPPORTED
             if nxdata.signal_is_1D(data) and not nxdata.signal_is_scalar(data):
                 return 100
             if nxdata.signal_is_spectrum(data):
+                return 100
+        return DataView.UNSUPPORTED
+
+
+class NXdataXYVScatterView(DataView):
+    def __init__(self, parent):
+        DataView.__init__(self, parent)
+
+    def createWidget(self, parent):
+        widget = ArrayCurvePlot(parent)
+        return widget
+
+    def axesNames(self, data, info):
+        # disabled (used by default axis selector widget in Hdf5Viewer)
+        return []
+
+    def clear(self):
+        self.getWidget().clear()
+
+    def setData(self, data):
+        data = self.normalizeData(data)
+        signal = nxdata.get_signal(data)
+        signal_name = data.attrs["signal"]
+        # signal_errors = nxdata.get_signal_errors(data)   # not supported
+        group_name = data.name
+        x_axis, y_axis = nxdata.get_axes(data)[-2:]
+
+        x_label, y_label = nxdata.get_axes_names(data)[-2:]
+        if x_label is not None:
+            x_errors = nxdata.get_axis_errors(
+                    data,
+                    x_label)
+        else:
+            x_errors = None
+
+        if y_label is not None:
+            y_errors = nxdata.get_axis_errors(
+                    data,
+                    y_label)
+        else:
+            y_errors = None
+
+        self.getWidget().setCurveData(y_axis, x_axis, values=signal,
+                                      yerror=y_errors, xerror=x_errors,
+                                      ylabel=signal_name, xlabel=x_label,
+                                      title="NXdata group " + group_name)
+
+    def getDataPriority(self, data, info):
+        data = self.normalizeData(data)
+        if info.isNXdata:
+            if nxdata.is_x_y_value_scatter(data):
                 return 100
         return DataView.UNSUPPORTED
 
@@ -389,26 +485,6 @@ class ArrayImagePlot(qt.QWidget):
         """
         return axis[0], axis[1] - axis[0]
 
-    @staticmethod
-    def _applyColormap(values,
-                       colormap=silx.gui.plot.MPLColormap.viridis,
-                       minVal=None,
-                       maxVal=None, ):
-        """Compute RGBA array of shape (n, 4) from a 1D array of length n.
-
-        :param values: 1D array of values
-        :param colormap: colormap to be used
-        """
-        if minVal is None:
-            minVal = values.min()
-        if maxVal is None:
-            maxVal = values.max()
-        sm = matplotlib.cm.ScalarMappable(
-                norm=matplotlib.colors.Normalize(vmin=minVal, vmax=maxVal),
-                cmap=colormap)
-        colors = sm.to_rgba(values)
-        return colors
-
     def _updateImage(self):
         img = self._selector.selectedData()
         x_axis = self.__x_axis
@@ -449,7 +525,7 @@ class ArrayImagePlot(qt.QWidget):
         else:
             # FIXME: use addScatter
             scatterx, scattery = numpy.meshgrid(x_axis, y_axis)
-            rgbacolor = self._applyColormap(numpy.ravel(img))
+            rgbacolor = _applyColormap(numpy.ravel(img))
             self._plot.addCurve(
                     numpy.ravel(scatterx), numpy.ravel(scattery),
                     color=rgbacolor, symbol="o", linestyle="")
@@ -508,6 +584,7 @@ class NXdataView(CompositeDataView):
 
         self.addView(NXdataScalarView(parent))
         self.addView(NXdataCurveView(parent))
+        self.addView(NXdataXYVScatterView(parent))
         self.addView(NXdataImageView(parent))
 #
 #

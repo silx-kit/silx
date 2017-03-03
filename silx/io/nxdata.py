@@ -84,12 +84,13 @@ def is_valid(group):   # noqa
         if isinstance(axes_names, str):
             axes_names = [axes_names]
 
-        if ndim < len(axes_names):
+        if 1 < ndim < len(axes_names):   # ndim = 1 could be a scatter
             NXdata_warning(
                     "More @axes defined than there are " +
                     "signal dimensions: " +
                     "%d axes, %d dimensions." % (len(axes_names), ndim))
             return False
+
 
         # case of less axes than dimensions: number of axes must match
         # dimensionality defined by @interpretation
@@ -201,6 +202,9 @@ class NXdata(object):
             raise TypeError("group is not a valid NXdata class")
         super(NXdata, self).__init__()
 
+        self._is_scatter = None
+        self._axes = None
+
         self.group = group
         """h5py-like group object compliant with NeXus NXdata specification.
         """
@@ -209,7 +213,10 @@ class NXdata(object):
         """Signal dataset in this NXdata group.
         """
 
-        self._axes = None
+        self.signal_is_0D = len(self.signal.shape) == 0
+        self.signal_is_1D = len(self.signal.shape) == 1
+        self.signal_is_2D = len(self.signal.shape) == 2
+        self.signal_is_3D = len(self.signal.shape) == 3
 
         self.axes_names = []
         """List of axes names in a NXdata group.
@@ -225,28 +232,14 @@ class NXdata(object):
             else:
                 self.axes_names.append(dsname)
 
-        self.signal_is_0D = len(self.signal.shape) == 0
-        self.signal_is_1D = len(self.signal.shape) == 1
-        self.signal_is_2D = len(self.signal.shape) == 2
-        self.signal_is_3D = len(self.signal.shape) == 3
-
         # misspelled word "scaler" is used on NeXus website
         self.signal_is_scalar = self.interpretation in ["scalar", "scaler"]
         self.signal_is_spectrum = self.interpretation == "spectrum"
         self.signal_is_image = self.interpretation == "image"
         self.signal_is_vertex = self.interpretation == "vertex"
 
-        self.is_scatter = True  # For 1D data, it can also be a curve
-        sigsize = 1
-        for dim in self.signal.shape:
-            sigsize *= dim
-        for axis in self.axes:
-            if axis is None:
-                continue
-            axis_size = 1
-            for dim in axis.shape:
-                axis_size *= dim
-            self.is_scatter = self.is_scatter and (axis_size == sigsize)
+        # excludes scatters
+        self.signal_is_1D = self.signal_is_1D and len(self.axes) <= 1  # excludes scatters
 
     @property
     def interpretation(self):
@@ -288,8 +281,9 @@ class NXdata(object):
     def axes(self):
         """List of the axes datasets.
 
-        The list has as many elements as there are dimensions in the
-        signal dataset.
+        The list typically has as many elements as there are dimensions in the
+        signal dataset, the exception being scatter plots which typically
+        use a 1D signal and several 1D axes of the same size.
 
         If an axis dataset applies to several dimensions of the signal, it
         will be repeated in the list.
@@ -319,6 +313,7 @@ class NXdata(object):
             return self._axes
         ndims = len(self.signal.shape)
         axes_names = self.group.attrs.get("axes")
+        interpretation = self.interpretation
 
         if axes_names is None:
             self._axes = [None for _i in range(ndims)]
@@ -332,17 +327,19 @@ class NXdata(object):
             axes = [None] * ndims
             for i, axis_n in enumerate(axes_names):
                 if axis_n != ".":
-                    try:
-                        axes[i] = self.group[axis_n]
-                    except KeyError:
-                        raise KeyError(
-                                "No dataset matching axis name " + axis_n)
-        else:
+                    axes[i] = self.group[axis_n]
+        elif interpretation is not None:
             # case of @interpretation attribute defined: we expect 1, 2 or 3 axes
             # corresponding to the 1, 2, or 3 last dimensions of the signal
-            interpretation = get_interpretation(self.group)
             assert len(axes_names) == INTERPDIM[interpretation]
             axes = [None] * (ndims - INTERPDIM[interpretation])
+            for axis_n in axes_names:
+                if axis_n != ".":
+                    axes.append(self.group[axis_n])
+                else:
+                    axes.append(None)
+        else:   # scatter
+            axes = []
             for axis_n in axes_names:
                 if axis_n != ".":
                     axes.append(self.group[axis_n])
@@ -363,8 +360,7 @@ class NXdata(object):
 
     @property
     def axes_dataset_names(self):
-        """See :attr:`NXdata.axes_dataset_names`
-
+        """
         If an axis dataset applies to several dimensions of the signal, its
         name will be repeated in the list.
 
@@ -383,21 +379,21 @@ class NXdata(object):
         if isinstance(axes_dataset_names, str):
             axes_dataset_names = [axes_dataset_names]
 
+        for i, axis_name in enumerate(axes_dataset_names):
+            if axis_name == ".":
+                axes_dataset_names[i] = None
+
         if len(axes_dataset_names) != ndims:
+            if self.is_scatter and ndims == 1:
+                return axes_dataset_names
             # @axes may only define 1 or 2 axes if @interpretation=spectrum/image.
             # Use the existing names for the last few dims, and prepend with Nones.
             assert len(axes_dataset_names) == INTERPDIM[self.interpretation]
             all_dimensions_names = [None] * (ndims - INTERPDIM[self.interpretation])
             for axis_name in axes_dataset_names:
-                if axis_name == ".":
-                    all_dimensions_names.append(None)
-                else:
-                    all_dimensions_names.append(axis_name)
+                all_dimensions_names.append(axis_name)
             return all_dimensions_names
 
-        for i, axis_name in enumerate(axes_dataset_names):
-            if axis_name == ".":
-                axes_dataset_names[i] = None
         return axes_dataset_names
 
     def get_axis_errors(self, axis_name):
@@ -469,6 +465,39 @@ class NXdata(object):
         if "errors" not in self.group:
             return None
         return self.group["errors"]
+
+    @property
+    def is_scatter(self):
+        """True if the signal is 1D and all the axes have the
+        same size as the signal."""
+        if self._is_scatter is not None:
+            return self._is_scatter
+        if not self.signal_is_1D:
+            self._is_scatter = False
+        else:
+            self._is_scatter = True
+            sigsize = 1
+            for dim in self.signal.shape:
+                sigsize *= dim
+            for axis in self.axes:
+                if axis is None:
+                    continue
+                axis_size = 1
+                for dim in axis.shape:
+                    axis_size *= dim
+                self._is_scatter = self._is_scatter and (axis_size == sigsize)
+        return self._is_scatter
+
+    @property
+    def is_x_y_value_scatter(self):
+        """True if this is a scatter with a signal and two axes."""
+        return self.is_scatter and len(self.axes) == 2
+
+    # we currently have no widget capable of plotting 4D data
+    @property
+    def is_unsupported_scatter(self):
+        """True if this is a scatter with a signal and more than 2 axes."""
+        return self.is_scatter and len(self.axes) > 2
 
 
 def get_signal(group):
@@ -620,10 +649,30 @@ def signal_is_vertex(group):
 
 
 def is_scatter(group):
-    """Return True this NXdata is a scatter, i.e. if all
+    """Return True if this NXdata is a scatter, i.e. if all
     axes haves the same size as the signal.
 
     :param group: h5py-like Group following the NeXus *NXdata* specification.
     :return: Boolean
     """
     return NXdata(group).is_scatter
+
+
+def is_x_y_value_scatter(group):
+    """Return True if this NXdata is a x-y-value scatter,
+    with a signal and exactly two axes.
+
+    :param group: h5py-like Group following the NeXus *NXdata* specification.
+    :return: Boolean
+    """
+    return NXdata(group).is_x_y_value_scatter
+
+
+def is_unsupported_scatter(group):
+    """Return True if this NXdata is a scatter,
+    with a signal and more than two axes.
+
+    :param group: h5py-like Group following the NeXus *NXdata* specification.
+    :return: Boolean
+    """
+    return NXdata(group).is_unsupported_scatter

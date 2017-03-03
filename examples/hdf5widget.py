@@ -343,8 +343,11 @@ def get_hdf5_with_nxdata():
     g2d3 = g2d.create_group("5D_images")
     g2d3.attrs["NX_class"] = "NXdata"
     g2d3.attrs["signal"] = "images"
+    g2d3.attrs["axes"] = "rows_coordinates", "columns_coordinates"
     ds = g2d3.create_dataset("images", data=numpy.arange(2*2*2*4*6).reshape((2, 2, 2, 4, 6)))
     ds.attrs["interpretation"] = "image"
+    g2d3.create_dataset("rows_coordinates", data=5+10*numpy.arange(4))
+    g2d3.create_dataset("columns_coordinates", data=0.5+0.02*numpy.arange(6))
 
     # SCATTER
     g = h5.create_group("scatters")
@@ -353,7 +356,7 @@ def get_hdf5_with_nxdata():
     gd0.attrs["NX_class"] = "NXdata"
     gd0.attrs["signal"] = "y"
     gd0.attrs["axes"] = "x",
-    gd0.create_dataset("y", data=numpy.random.rand(128))
+    gd0.create_dataset("y", data=numpy.random.rand(128) - 0.5)
     gd0.create_dataset("x", data=2*numpy.random.rand(128))
     gd0.create_dataset("x_errors", data=0.05*numpy.random.rand(128))
     gd0.create_dataset("errors", data=0.05*numpy.random.rand(128))
@@ -366,14 +369,14 @@ def get_hdf5_with_nxdata():
     gd1.create_dataset("y", data=numpy.random.rand(128))
     gd1.create_dataset("x", data=numpy.random.rand(128))
 
-    gd1 = g.create_group("x_y_z_value_scatter")
-    gd1.attrs["NX_class"] = "NXdata"
-    gd1.attrs["signal"] = "values"
-    gd1.attrs["axes"] = "x", "y", "z"
-    gd1.create_dataset("values", data=3.14*numpy.random.rand(128))
-    gd1.create_dataset("y", data=numpy.random.rand(128))
-    gd1.create_dataset("x", data=numpy.random.rand(128))
-    gd1.create_dataset("z", data=numpy.random.rand(128))
+    # gd2 = g.create_group("x_y_z_value_scatter")
+    # gd2.attrs["NX_class"] = "NXdata"
+    # gd2.attrs["signal"] = "values"
+    # gd2.attrs["axes"] = "x", "y", "z"
+    # gd2.create_dataset("values", data=3.14*numpy.random.rand(128))
+    # gd2.create_dataset("y", data=numpy.random.rand(128))
+    # gd2.create_dataset("x", data=numpy.random.rand(128))
+    # gd2.create_dataset("z", data=numpy.random.rand(128))
 
     h5.close()
 
