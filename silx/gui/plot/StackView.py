@@ -238,12 +238,13 @@ class StackView(qt.QMainWindow):
         if eventDict['event'] == 'mouseMoved':
             activeImage = self.getActiveImage()
             if activeImage is not None:
-                data = activeImage[0]
+                data = activeImage.getData()
                 height, width = data.shape
 
                 # Get corresponding coordinate in image
-                origin = activeImage[4]['origin']
-                scale = activeImage[4]['scale']
+
+                origin = activeImage.getOrigin()
+                scale = activeImage.getScale()
                 x = int((eventDict['x'] - origin[0]) / scale[0])
                 y = int((eventDict['y'] - origin[1]) / scale[1])
 
