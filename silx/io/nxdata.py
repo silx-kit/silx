@@ -254,10 +254,14 @@ class NXdata(object):
         """Signal dataset in this NXdata group.
         """
 
-        self.signal_is_0D = len(self.signal.shape) == 0
-        self.signal_is_1D = len(self.signal.shape) == 1
-        self.signal_is_2D = len(self.signal.shape) == 2
-        self.signal_is_3D = len(self.signal.shape) == 3
+        # ndim will be available in very recent h5py versions only
+        self.signal_ndim = getattr(self.signal, "ndim",
+                                   len(self.signal.shape))
+
+        self.signal_is_0D = self.signal_ndim == 0
+        self.signal_is_1D = self.signal_ndim == 1
+        self.signal_is_2D = self.signal_ndim == 2
+        self.signal_is_3D = self.signal_ndim == 3
 
         self.axes_names = []
         """List of axes names in a NXdata group.
@@ -645,6 +649,15 @@ def signal_is_3D(group):
     :return: Boolean
     """
     return NXdata(group).signal_is_3D
+
+
+def get_signal_ndim(group):
+    """Return the number of dimensions (rank) of the signal dataset
+
+    :param group: h5py-like Group following the NeXus *NXdata* specification.
+    :return: Number of
+    """
+    return NXdata(group).signal_ndim
 
 
 def is_scatter(group):
