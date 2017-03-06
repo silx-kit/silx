@@ -29,8 +29,14 @@ See http://download.nexusformat.org/sphinx/classes/base_classes/NXdata.html
 
 """
 import logging
+import numpy
 
 from .utils import is_dataset, is_group
+
+try:
+    from silx.third_party import six
+except ImportError:
+    import six
 
 _logger = logging.getLogger(__name__)
 
@@ -54,6 +60,32 @@ def NXdata_warning(msg):
     _logger.warning("NXdata warning: " + msg)
 
 
+def _get_attr(item, attr_name, default=None):
+    """Return item.attrs[attr_name]. If it is a byte-string or an array of
+    byte-strings, return it as a default python string.
+
+    For Python 3, this involves a coercion from bytes into unicode.
+    For Python 2, there is nothing special to do, as strings are bytes.
+
+    :param item: Group or dataset
+    :param attr_name: Attribute name
+    :return: item.attrs[attr_name]
+    """
+    attr = item.attrs.get(attr_name, default)
+    if attr == default or six.PY2:
+        return attr
+    if six.PY3:
+        if hasattr(attr, "decode"):
+            # byte-string
+            return attr.decode("ascii")
+        elif isinstance(attr, numpy.ndarray) and hasattr(attr[0], "decode"):
+            # array of byte-strinqs
+            return [element.decode("ascii") for element in attr]
+        else:
+            # attr is not a byte-strinq
+            return attr
+
+
 def is_valid_NXdata(group):   # noqa
     """Check if a h5py group is a **valid** NX_data group.
 
@@ -70,13 +102,13 @@ def is_valid_NXdata(group):   # noqa
     """
     if not is_group(group):
         raise TypeError("group must be a h5py-like group")
-    if group.attrs.get("NX_class") != "NXdata":
+    if _get_attr(group, "NX_class") != "NXdata":
         return False
     if "signal" not in group.attrs:
         _logger.warning("NXdata group does not define a signal attr.")
         return False
 
-    signal_name = group.attrs["signal"]
+    signal_name = _get_attr(group, "signal")
     if signal_name not in group or not is_dataset(group[signal_name]):
         _logger.warning(
                 "Cannot find signal dataset '%s' in NXdata group" % signal_name)
@@ -85,7 +117,7 @@ def is_valid_NXdata(group):   # noqa
     ndim = len(group[signal_name].shape)
 
     if "axes" in group.attrs:
-        axes_names = group.attrs.get("axes")
+        axes_names = _get_attr(group, "axes")
         if isinstance(axes_names, str):
             axes_names = [axes_names]
 
@@ -100,9 +132,9 @@ def is_valid_NXdata(group):   # noqa
         # case of less axes than dimensions: number of axes must match
         # dimensionality defined by @interpretation
         if ndim > len(axes_names):
-            interpretation = group[signal_name].attrs.get("interpretation", None)
+            interpretation = _get_attr(group[signal_name], "interpretation", None)
             if interpretation is None:
-                interpretation = group.attrs.get("interpretation", None)
+                interpretation = _get_attr(group, "interpretation", None)
             if interpretation is None:
                 NXdata_warning("No @interpretation and not enough" +
                                " @axes defined.")
@@ -120,9 +152,9 @@ def is_valid_NXdata(group):   # noqa
                 return False
 
         # Test consistency of @uncertainties
-        uncertainties_names = group.attrs.get("uncertainties")
+        uncertainties_names = _get_attr(group, "uncertainties")
         if uncertainties_names is None:
-            uncertainties_names = group[signal_name].attrs.get("uncertainties")
+            uncertainties_names = _get_attr(group[signal_name], "uncertainties")
         if isinstance(uncertainties_names, str):
             uncertainties_names = [uncertainties_names]
         if uncertainties_names is not None:
@@ -158,8 +190,8 @@ def is_valid_NXdata(group):   # noqa
                 axis_len = axis_size
             else:
                 # for a  1-d axis,
-                fg_idx = group[axis_name].attrs.get("first_good", 0)
-                lg_idx = group[axis_name].attrs.get("last_good", len(group[axis_name]) - 1)
+                fg_idx = _get_attr(group[axis_name], "first_good", 0)
+                lg_idx = _get_attr(group[axis_name], "last_good", len(group[axis_name]) - 1)
                 axis_len = lg_idx + 1 - fg_idx
 
             if axis_len != signal_size:
@@ -271,9 +303,9 @@ class NXdata(object):
                                    # "rgba-image", "hsla-image", "cmyk-image"  # TODO
                                    "vertex"]
 
-        interpretation = self.signal.attrs.get("interpretation", None)
+        interpretation = _get_attr(self.signal, "interpretation", None)
         if interpretation is None:
-            interpretation = self.group.attrs.get("interpretation", None)
+            interpretation = _get_attr(self.group, "interpretation", None)
 
         if interpretation not in allowed_interpretations:
             _logger.warning("Interpretation %s is not valid." % interpretation +
@@ -315,7 +347,7 @@ class NXdata(object):
             # use cache
             return self._axes
         ndims = len(self.signal.shape)
-        axes_names = self.group.attrs.get("axes")
+        axes_names = _get_attr(self.group, "axes")
         interpretation = self.interpretation
 
         if axes_names is None:
@@ -354,8 +386,8 @@ class NXdata(object):
                 continue
             if "first_good" not in axis.attrs and "last_good" not in axis.attrs:
                 continue
-            fg_idx = axis.attrs.get("first_good") or 0
-            lg_idx = axis.attrs.get("last_good") or (len(axis) - 1)
+            fg_idx = _get_attr(axis, "first_good") or 0
+            lg_idx = _get_attr(axis, "last_good") or (len(axis) - 1)
             axes[i] = axis[fg_idx:lg_idx + 1]
 
         self._axes = axes
@@ -371,9 +403,9 @@ class NXdata(object):
         "." in that position in the *@axes* array), `None` is inserted in the
         output list in its position.
         """
-        axes_dataset_names = self.group.attrs.get("axes")
+        axes_dataset_names = _get_attr(self.group, "axes")
         if axes_dataset_names is None:
-           axes_dataset_names = self.signal.attrs.get("axes")
+           axes_dataset_names = _get_attr(self.group, "axes")
 
         ndims = len(self.signal.shape)
         if axes_dataset_names is None:
@@ -413,7 +445,7 @@ class NXdata(object):
         if axis_name not in self.group:
             # tolerate axis_name given as @long_name
             for item in self.group:
-                long_name = self.group[item].attrs.get("long_name")
+                long_name = _get_attr(self.group[item], "long_name")
                 if long_name is not None and long_name == axis_name:
                     axis_name = item
                     break
@@ -423,8 +455,8 @@ class NXdata(object):
 
         len_axis = len(self.group[axis_name])
 
-        fg_idx = self.group[axis_name].attrs.get("first_good", 0)
-        lg_idx = self.group[axis_name].attrs.get("last_good", len_axis - 1)
+        fg_idx = _get_attr(self.group[axis_name], "first_good", 0)
+        lg_idx = _get_attr(self.group[axis_name], "last_good", len_axis - 1)
 
         # case of axisname_errors dataset present
         errors_name = axis_name + "_errors"
@@ -434,16 +466,16 @@ class NXdata(object):
             else:
                 return self.group[errors_name]
         # case of uncertainties dataset name provided in @uncertainties
-        uncertainties_names = self.group.attrs.get("uncertainties")
+        uncertainties_names = _get_attr(self.group, "uncertainties")
         if uncertainties_names is None:
-            uncertainties_names = self.signal.attrs.get("uncertainties")
+            uncertainties_names = _get_attr(self.signal, "uncertainties")
         if isinstance(uncertainties_names, str):
             uncertainties_names = [uncertainties_names]
         if uncertainties_names is not None:
             # take the uncertainty with the same index as the axis in @axes
-            axes_ds_names = self.group.attrs.get("axes")
+            axes_ds_names = _get_attr(self.group, "axes")
             if axes_ds_names is None:
-                axes_ds_names = self.signal.attrs.get("axes")
+                axes_ds_names = _get_attr(self.signal, "axes")
             if isinstance(axes_ds_names, str):
                 axes_ds_names = [axes_ds_names]
             elif not isinstance(axes_ds_names, list):
