@@ -1614,7 +1614,8 @@ class Plot(object):
             handle = self._backendContent.get(
                 (oldActiveItem.getLegend(), 'curve'), None)
             if handle is not None:
-                self._backend.setActiveCurve(handle, False)
+                self._backend.setCurveColor(
+                    handle, oldActiveItem.getCurrentColor())
 
         if legend is None:
             self._activeLegend[kind] = None
@@ -1629,12 +1630,13 @@ class Plot(object):
 
                 # Curve specific: handle highlight
                 if kind == 'curve':
+                    item._setHighlightedColor(self.getActiveCurveColor())
                     item._setHighlighted(True)
 
                     handle = self._backendContent.get((legend, 'curve'), None)
                     if handle is not None:
-                        self._backend.setActiveCurve(
-                            handle, True, self.getActiveCurveColor())
+                        self._backend.setCurveColor(
+                            handle, item.getCurrentColor())
 
                 if item.getXLabel() is not None:
                     xLabel = item.getXLabel()
