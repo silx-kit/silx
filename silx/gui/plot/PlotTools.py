@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "16/12/2016"
+__date__ = "03/03/2017"
 
 
 import logging
@@ -172,11 +172,10 @@ class PositionInfo(qt.QWidget):
                         closestInPixels = self.plot.dataToPixel(
                             xClosest, yClosest, axis=activeCurve.getYAxis())
                         if closestInPixels is not None:
-                            xClosest, yClosest = closestInPixels
                             xPixel, yPixel = event['xpixel'], event['ypixel']
 
-                            if (abs(xClosest - xPixel) < 5 and
-                                    abs(yClosest - yPixel) < 5):
+                            if (abs(closestInPixels[0] - xPixel) < 5 and
+                                    abs(closestInPixels[1] - yPixel) < 5):
                                 # Update label style sheet
                                 styleSheet = "color: rgb(0, 0, 0);"
 

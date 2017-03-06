@@ -1303,6 +1303,7 @@ class PixelIntensitiesHistoAction(PlotAction):
         """
         return self._histo
 
+
 class MedianFilterAction(PlotAction):
     """QAction to plot the pixels intensities diagram
 
@@ -1319,7 +1320,8 @@ class MedianFilterAction(PlotAction):
                             triggered=self._triggered,
                             parent=parent)
         self._originalImage = None
-        self._filtredImage = None
+        self._legend = None
+        self._filteredImage = None
         self._popup = MedianFilterDialog(parent=None)
         self._popup.sigFilterOptChanged.connect(self._updateFilter)
         self.plot.sigActiveImageChanged.connect( self._updateActiveImage)
@@ -1337,27 +1339,29 @@ class MedianFilterAction(PlotAction):
         self._activeImageLegend = self.plot.getActiveImage(just_legend=True)
         if self._activeImageLegend is None:
             self._originalImage = None
+            self._legend = None
         else:
-            self._originalImage = self.plot.getImage(self._activeImageLegend)[0]
+            self._originalImage = self.plot.getImage(self._activeImageLegend).getData(copy=False)
+            self._legend = self.plot.getImage(self._activeImageLegend).getLegend()
 
     def _updateFilter(self, kernelWidth, conditionnal=False):
         if self._originalImage is None:
             return
 
-        self.plot.sigActiveImageChanged.disconnect( self._updateActiveImage)
-        filtredImage = self._computeFiltredImage(kernelWidth, conditionnal)
-        self.plot.addImage(data=filtredImage,
-                           legend=self._originalImage,
+        self.plot.sigActiveImageChanged.disconnect(self._updateActiveImage)
+        filteredImage = self._computeFilteredImage(kernelWidth, conditionnal)
+        self.plot.addImage(data=filteredImage,
+                           legend=self._legend,
                            replace=True)
-        self.plot.sigActiveImageChanged.connect( self._updateActiveImage)
+        self.plot.sigActiveImageChanged.connect(self._updateActiveImage)
 
-    def _computeFiltredImage(self, kernelWidth, conditionnal):
+    def _computeFilteredImage(self, kernelWidth, conditional):
         raise NotImplemented('MedianFilterAction is a an abstract class')
 
     def getFilteredImage(self):
         """
         :return: the image with the median filter apply on"""
-        return self._filtredImage
+        return self._filteredImage
 
 
 class MedianFilter1DAction(MedianFilterAction):
@@ -1371,11 +1375,11 @@ class MedianFilter1DAction(MedianFilterAction):
                         plot,
                         parent=parent)
 
-    def _computeFiltredImage(self, kernelWidth, conditionnal):
+    def _computeFilteredImage(self, kernelWidth, conditional):
         assert(self.plot is not None)
         return medianfilter(self._originalImage,
-                                    kernelWidth,
-                                    conditionnal )
+                            kernelWidth,
+                            conditional)
 
 
 class MedianFilter2DAction(MedianFilterAction):
@@ -1389,8 +1393,8 @@ class MedianFilter2DAction(MedianFilterAction):
                         plot,
                         parent=parent)
 
-    def _computeFiltredImage(self, kernelWidth, conditionnal):
+    def _computeFilteredImage(self, kernelWidth, conditional):
         assert(self.plot is not None)
         return medianfilter(self._originalImage,
-                                          (kernelWidth, kernelWidth),
-                                          conditionnal )
+                            (kernelWidth, kernelWidth),
+                            conditional)
