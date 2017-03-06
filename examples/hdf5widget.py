@@ -372,6 +372,24 @@ def get_hdf5_with_nxdata():
     gd1.create_dataset("x", data=numpy.random.rand(128))
     gd1.create_dataset("x_errors", data=0.02*numpy.random.rand(128))
 
+    # NDIM > 3
+    g = h5.create_group("cubes")
+
+    gd0 = g.create_group("3D_cube")
+    gd0.attrs["NX_class"] = "NXdata"
+    gd0.attrs["signal"] = "cube"
+    gd0.attrs["axes"] = "img_idx", "rows_coordinates", "cols_coordinates"
+    gd0.create_dataset("cube", data=numpy.arange(4*5*6).reshape((4, 5, 6)))
+    gd0.create_dataset("img_idx", data=numpy.arange(4))
+    gd0.create_dataset("rows_coordinates", data=0.1*numpy.arange(5))
+    gd0.create_dataset("cols_coordinates", data=[0.2, 0.3])  # linear calibration
+
+    gd1 = g.create_group("5D")
+    gd1.attrs["NX_class"] = "NXdata"
+    gd1.attrs["signal"] = "hypercube"
+    gd1.create_dataset("hypercube",
+                       data=numpy.arange(2*3*4*5*6).reshape((2, 3, 4, 5, 6)))
+
     h5.close()
 
     _file_cache[ID] = tmp

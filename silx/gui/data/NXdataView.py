@@ -70,6 +70,8 @@ def _applyColormap(values,
 
 
 class NXdataScalarView(DataView):
+    """DataView using a table view for displaying NXdata scalars:
+    0-D signal or n-D signal with *@interpretation=scalar*"""
     def __init__(self, parent):
         DataView.__init__(self, parent)
 
@@ -110,8 +112,11 @@ class ArrayCurvePlot(qt.QWidget):
     the axis array.
 
     The widget provides sliders to select indices on the first (n - 1)
-    dimensions of the signal arry, and buttons to add/replace selected
+    dimensions of the signal array, and buttons to add/replace selected
     curves to the plot.
+
+    This widget also handles simple 2D or 3D scatter plots (third dimension
+    displayed as colour of points).
     """
     def __init__(self, parent=None):
         """
@@ -277,6 +282,12 @@ class ArrayCurvePlot(qt.QWidget):
 
 
 class NXdataCurveView(DataView):
+    """DataView using a Plot1D for displaying NXdata curves:
+    1-D signal or n-D signal with *@interpretation=spectrum*.
+
+    It also handles basic scatter plots:
+    a 1-D signal with one axis whose values are not monotonically increasing.
+    """
     def __init__(self, parent):
         DataView.__init__(self, parent)
 
@@ -325,6 +336,8 @@ class NXdataCurveView(DataView):
 
 
 class NXdataXYVScatterView(DataView):
+    """DataView using a Plot1D for displaying NXdata 3D scatters as
+    a scatter of coloured points (1-D signal with 2 axes)"""
     def __init__(self, parent):
         DataView.__init__(self, parent)
 
@@ -412,6 +425,7 @@ class ArrayImagePlot(qt.QWidget):
                  "autoscale": True})
         self._legend = qt.QLabel(self)
         self._selector = NumpyAxesSelector(self)
+        self._selector.setNamedAxesSelectorVisibility(False)
         self.__selector_is_connected = False
 
         layout = qt.QVBoxLayout()
@@ -554,6 +568,8 @@ class ArrayImagePlot(qt.QWidget):
 
 
 class NXdataImageView(DataView):
+    """DataView using a Plot2D for displaying NXdata images:
+    2-D signal or n-D signals with *@interpretation=spectrum*."""
     def __init__(self, parent):
         DataView.__init__(self, parent)
 
@@ -593,6 +609,198 @@ class NXdataImageView(DataView):
         return DataView.UNSUPPORTED
 
 
+class ArrayStackPlot(qt.QWidget):
+    """
+    Widget for plotting a n-D array (n >= 3) as a stack of images.
+    Three axis arrays can be provided to calibrate the axes.
+
+    The signal array can have an arbitrary number of dimensions, the only
+    limitation being that the last 3 dimensions must have the same length as
+    the axes arrays.
+
+    Sliders are provided to select indices on the first (n - 3) dimensions of
+    the signal array, and the plot is updated to load the stack corresponding
+    to the selection.
+    """
+    def __init__(self, parent=None):
+        """
+
+        :param parent: Parent QWidget
+        """
+        super(ArrayStackPlot, self).__init__(parent)
+
+        self.__signal = None
+        self.__signal_name = None
+        # the Z, Y, X axes apply to the last three dimensions of the signal
+        # (in that order)
+        self.__z_axis = None
+        self.__z_axis_name = None
+        self.__y_axis = None
+        self.__y_axis_name = None
+        self.__x_axis = None
+        self.__x_axis_name = None
+
+        self._stack_view = StackView(self)
+        self._legend = qt.QLabel(self)
+        self._selector = NumpyAxesSelector(self)
+        self._selector.setNamedAxesSelectorVisibility(False)
+        self.__selector_is_connected = False
+
+        layout = qt.QVBoxLayout()
+        layout.addWidget(self._stack_view)
+        layout.addWidget(self._legend)
+        layout.addWidget(self._selector)
+
+        self.setLayout(layout)
+
+    def setStackData(self, signal,
+                     x_axis=None, y_axis=None, z_axis=None,
+                     signal_name=None,
+                     xlabel=None, ylabel=None, zlabel=None,
+                     title=None):
+        """
+
+        :param signal: n-D dataset, whose last 3 dimensions are used as the
+            3D stack values.
+        :param x_axis: 1-D dataset used as the image's x coordinates. If
+            provided, its lengths must be equal to the length of the last
+            dimension of ``signal``.
+        :param y_axis: 1-D dataset used as the image's y. If provided,
+            its lengths must be equal to the length of the 2nd to last
+            dimension of ``signal``.
+        :param z_axis: 1-D dataset used as the image's z. If provided,
+            its lengths must be equal to the length of the 3rd to last
+            dimension of ``signal``.
+        :param signal_name: Label used in the legend
+        :param xlabel: Label for X axis
+        :param ylabel: Label for Y axis
+        :param zlabel: Label for Z axis
+        :param title: Graph title
+        """
+        if self.__selector_is_connected:
+            self._selector.selectionChanged.disconnect(self._updateStack)
+            self.__selector_is_connected = False
+
+        self.__signal = signal
+        self.__signal_name = signal_name or ""
+        self.__x_axis = x_axis
+        self.__x_axis_name = xlabel
+        self.__y_axis = y_axis
+        self.__y_axis_name = ylabel
+        self.__z_axis = z_axis
+        self.__z_axis_name = zlabel
+
+        self._selector.setData(signal)
+        self._selector.setAxisNames([ylabel or "Y", xlabel or "X", zlabel or "Z"])
+
+        self._stack_view.setGraphTitle(title or "")
+        # by default, the z axis is the image position (dimension not plotted)
+        self._stack_view.setGraphXLabel(self.__x_axis_name or "X")
+        self._stack_view.setGraphYLabel(self.__y_axis_name or "Y")
+
+        self._updateStack()
+
+        if not self.__selector_is_connected:
+            self._selector.selectionChanged.connect(self._updateStack)
+            self.__selector_is_connected = True
+
+    @staticmethod
+    def _get_origin_scale(axis):
+        """Assuming axis is a regularly spaced 1D array,
+        return a tuple (origin, scale) where:
+            - origin = axis[0]
+            - scale = (axis[n-1] - axis[0]) / (n -1)
+        :param axis: 1D numpy array
+        :return: Tuple (axis[0], (axis[-1] - axis[0]) / (len(axis) - 1))
+        """
+        return axis[0], (axis[-1] - axis[0]) / (len(axis) - 1)
+
+    def _updateStack(self):
+        """Update displayed stack according to the current axes selector
+        data."""
+        stk = self._selector.selectedData()
+        x_axis = self.__x_axis
+        y_axis = self.__y_axis
+        z_axis = self.__z_axis
+
+        if x_axis is None:
+            xorigin, xscale = 0., 1.
+            x_axis = numpy.arange(stk.shape[-1])
+        else:
+            xorigin, xscale = self._get_origin_scale(x_axis)
+        if y_axis is None:
+            yorigin, yscale = 0., 1.
+            y_axis = numpy.arange(stk.shape[-2])
+        else:
+            yorigin, yscale = self._get_origin_scale(y_axis)
+        if z_axis is None:
+            zorigin, zscale = 0., 1.
+            z_axis = numpy.arange(stk.shape[-3])
+        else:
+            zorigin, zscale = self._get_origin_scale(z_axis)
+
+        origin = (xorigin, yorigin)  # TODO
+        scale = (xscale, yscale)
+
+        legend = self.__signal_name + "["
+        for sl in self._selector.selection():
+            if sl == slice(None):
+                legend += ":, "
+            else:
+                legend += str(sl) + ", "
+        legend = legend[:-2] + "]"
+        self._legend.setText("Displayed data: " + legend)
+
+        self._stack_view.setStack(stk, ) # legend=legend,
+                            # origin=origin, scale=scale)  # TODO
+        self._stack_view.setLabels(
+                labels=[self.__z_axis_name,
+                        self.__y_axis_name,
+                        self.__x_axis_name])
+
+    def clear(self):
+        self._stack_view.clear()
+
+
+class NXdataStackView(DataView):
+    def __init__(self, parent):
+        DataView.__init__(self, parent)
+
+    def createWidget(self, parent):
+        widget = ArrayStackPlot(parent)
+        return widget
+
+    def axesNames(self, data, info):
+        return []
+
+    def clear(self):
+        self.getWidget().clear()
+
+    def setData(self, data):
+        data = self.normalizeData(data)
+        signal = nxdata.get_signal(data)
+        signal_name = data.attrs["signal"]
+        group_name = data.name
+        z_axis, y_axis, x_axis = nxdata.get_axes(data)[-3:]
+        z_label, y_label, x_label = nxdata.get_axes_names(data)[-3:]
+
+        self.getWidget().setStackData(
+                     signal, x_axis=x_axis, y_axis=y_axis, z_axis=z_axis,
+                     signal_name=signal_name,
+                     xlabel=x_label, ylabel=y_label, zlabel=z_label,
+                     title="NXdata group %s: %s" % (group_name, signal_name))
+
+    def getDataPriority(self, data, info):
+        data = self.normalizeData(data)
+        if info.isNXdata:
+            if nxdata.get_signal_ndim(data) >= 3:
+                if nxdata.get_interpretation(data) not in ["scalar", "scaler",
+                                                           "spectrum",
+                                                           "image"]:  # handled by NXdataImageView
+                    return 100
+        return DataView.UNSUPPORTED
+
+
 class NXdataView(CompositeDataView):
     """Composite view displaying NXdata groups using the most adequate
     widget depending on the dimensionality."""
@@ -607,157 +815,4 @@ class NXdataView(CompositeDataView):
         self.addView(NXdataCurveView(parent))
         self.addView(NXdataXYVScatterView(parent))
         self.addView(NXdataImageView(parent))
-#
-#
-# class ArrayStackPlot(qt.QWidget):
-#     """
-#     Widget for plotting a n-D array (n >= 3) as a stack of images.
-#     Three axis arrays can be provided to calibrate the axes.
-#
-#     The signal array can have an arbitrary number of dimensions, the only
-#     limitation being that the last 3 dimensions must have the same length as
-#     the axes arrays.
-#
-#     Sliders are provided to select indices on the first (n - 3) dimensions of
-#     the signal array, and the plot is updated to load the stack corresponding
-#     to the selection.
-#     """
-#     def __init__(self, parent=None):
-#         """
-#
-#         :param parent: Parent QWidget
-#         """
-#         super(ArrayStackPlot, self).__init__(parent)
-#
-#         self.__signal = None
-#         self.__signal_name = None
-#         # the Z, Y, X axes apply to the last three dimensions of the signal
-#         # (in that order)
-#         self.__z_axis = None
-#         self.__z_axis_name = None
-#         self.__y_axis = None
-#         self.__y_axis_name = None
-#         self.__x_axis = None
-#         self.__x_axis_name = None
-#
-#         self._plot = StackView(self)
-#         self._legend = qt.QLabel(self)
-#         self._selector = NumpyAxesSelector(self)
-#         self.__selector_is_connected = False
-#
-#         layout = qt.QVBoxLayout()
-#         layout.addWidget(self._plot)
-#         layout.addWidget(self._legend)
-#         layout.addWidget(self._selector)
-#
-#         self.setLayout(layout)
-#
-#     def setStackData(self, signal,
-#                      x_axis=None, y_axis=None, z_axis=None,
-#                      signal_name=None,
-#                      xlabel=None, ylabel=None, zlabel=None,
-#                      title=None):
-#         """
-#
-#         :param signal: n-D dataset, whose last 3 dimensions are used as the
-#             3D stack values.
-#         :param x_axis: 1-D dataset used as the image's x coordinates. If
-#             provided, its lengths must be equal to the length of the last
-#             dimension of ``signal``.
-#         :param y_axis: 1-D dataset used as the image's y. If provided,
-#             its lengths must be equal to the length of the 2nd to last
-#             dimension of ``signal``.
-#         :param z_axis: 1-D dataset used as the image's z. If provided,
-#             its lengths must be equal to the length of the 3rd to last
-#             dimension of ``signal``.
-#         :param signal_name: Label used in the legend
-#         :param xlabel: Label for X axis
-#         :param ylabel: Label for Y axis
-#         :param zlabel: Label for Z axis
-#         :param title: Graph title
-#         """
-#         if self.__selector_is_connected:
-#             self._selector.selectionChanged.disconnect(self._updateImage)
-#             self.__selector_is_connected = False
-#
-#         self.__signal = signal
-#         self.__signal_name = signal_name or ""
-#         self.__x_axis = x_axis
-#         self.__x_axis_name = xlabel
-#         self.__y_axis = y_axis
-#         self.__y_axis_name = ylabel
-#         self.__z_axis = z_axis
-#         self.__z_axis_name = zlabel
-#
-#         self._selector.setData(signal)
-#         self._selector.setAxisNames([ylabel or "Y", xlabel or "X", zlabel or "Z"])
-#
-#         self._plot.setGraphTitle(title or "")
-#         # by default, the z axis is the image position (dimension not plotted)
-#         self._plot.setGraphXLabel(self.__x_axis_name or "X")
-#         self._plot.setGraphYLabel(self.__y_axis_name or "Y")
-#
-#         self._updateImage()
-#
-#         if not self.__selector_is_connected:
-#             self._selector.selectionChanged.connect(self._updateImage)
-#             self.__selector_is_connected = True
-#
-#     @staticmethod
-#     def _get_origin_scale(axis):
-#         """Assuming axis is a regularly spaced 1D array,
-#         return a tuple (origin, scale) where:
-#             - origin = axis[0]
-#             - scale = (axis[n-1] - axis[0]) / n
-#         :param axis: 1D numpy array
-#         :return: Tuple (axis[0], (axis[-1] - axis[0]) / len(axis))
-#         """
-#         return axis[0], (axis[-1] - axis[0]) / len(axis)
-#
-#     def _updateStack(self):
-#         """Update displayed stack according to the current axes selector
-#         data."""
-#         stk = self._selector.selectedData()
-#         x_axis = self.__x_axis
-#         y_axis = self.__y_axis
-#         z_axis = self.__z_axis
-#
-#         if x_axis is None:
-#             xorigin, xscale = 0., 1.
-#             x_axis = numpy.arange(stk.shape[-1])
-#         else:
-#             xorigin, xscale = self._get_origin_scale(x_axis)
-#         if y_axis is None:
-#             yorigin, yscale = 0., 1.
-#             y_axis = numpy.arange(stk.shape[-2])
-#         else:
-#             yorigin, yscale = self._get_origin_scale(y_axis)
-#         if z_axis is None:
-#             zorigin, zscale = 0., 1.
-#             z_axis = numpy.arange(stk.shape[-3])
-#         else:
-#             zorigin, zscale = self._get_origin_scale(z_axis)
-#
-#         legend = self.__signal_name + "["
-#         for sl in self._selector.selection():
-#             if sl == slice(None):
-#                 legend += ":, "
-#             else:
-#                 legend += str(sl) + ", "
-#         legend = legend[:-2] + "]"
-#         self._legend.setText("Displayed data: " + legend)
-#
-#         self._plot.setStack(stk, legend=legend,
-#                             xlabel=self.__x_axis_name,
-#                             ylabel=self.__y_axis_name,
-#                             origin=origin, scale=scale)
-#         # else:
-#         #     # FIXME: use addScatter
-#         #     scatterx, scattery = numpy.meshgrid(x_axis, y_axis)
-#         #     rgbacolor = self._applyColormap(numpy.ravel(stk))
-#         #     self._plot.addCurve(
-#         #             numpy.ravel(scatterx), numpy.ravel(scattery),
-#         #             color=rgbacolor, symbol="o", linestyle="")
-#
-#     def clear(self):
-#         self._plot.clear()
+        self.addView(NXdataStackView(parent))
