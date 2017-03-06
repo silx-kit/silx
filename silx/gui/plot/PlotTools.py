@@ -172,17 +172,15 @@ class PositionInfo(qt.QWidget):
                         closestInPixels = self.plot.dataToPixel(
                             xClosest, yClosest, axis=activeCurve.getYAxis())
                         if closestInPixels is not None:
-                            xClosest, yClosest = closestInPixels
                             xPixel, yPixel = event['xpixel'], event['ypixel']
 
-                            if (abs(xClosest - xPixel) < 5 and
-                                    abs(yClosest - yPixel) < 5):
+                            if (abs(closestInPixels[0] - xPixel) < 5 and
+                                    abs(closestInPixels[1] - yPixel) < 5):
                                 # Update label style sheet
                                 styleSheet = "color: rgb(0, 0, 0);"
 
                                 # if close enough, wrap to data point coords
-                                x, y = self.plot.pixelToData(
-                                        xClosest, yClosest, axis=activeCurve.getYAxis())
+                                x, y = xClosest, yClosest
 
             for label, name, func in self._fields:
                 label.setStyleSheet(styleSheet)
