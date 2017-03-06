@@ -36,6 +36,7 @@ from silx.test.utils import ParametricTestCase
 import numpy
 
 from silx.gui.plot.Plot import Plot
+from silx.gui.plot.PlotItems import _getHistogramValue
 
 
 class TestPlot(unittest.TestCase):
@@ -486,30 +487,36 @@ class TestPlotHistogram(unittest.TestCase):
         y = numpy.array([3, 2, 5])
 
         # testing x values for right
-        xHisto, yHisto = Plot._getHistogramValue(x, y, 'right')
-        numpy.testing.assert_array_equal(xHisto, numpy.array([0, 1, 1, 2, 2, 3]))
-        numpy.testing.assert_array_equal(yHisto, numpy.array([3, 3, 2, 2, 5, 5]))
+        xHisto, yHisto = _getHistogramValue(x, y, 'right')
+        numpy.testing.assert_array_equal(
+            xHisto, numpy.array([0, 1, 1, 2, 2, 3]))
+        numpy.testing.assert_array_equal(
+            yHisto, numpy.array([3, 3, 2, 2, 5, 5]))
 
-        xHistoFromEdges, yHistoFromEdges = Plot._getHistogramValue(x2, y, 'right')
+        xHistoFromEdges, yHistoFromEdges = _getHistogramValue(x2, y, 'right')
         numpy.testing.assert_array_equal(xHisto, xHistoFromEdges)
         numpy.testing.assert_array_equal(yHisto, yHistoFromEdges)
         numpy.testing.assert_array_equal(yHisto, yHistoFromEdges)
 
         # testing y values for left
-        xHisto, yHisto = Plot._getHistogramValue(x, y, 'left')
-        numpy.testing.assert_array_equal(xHisto, numpy.array([-1, 0, 0, 1, 1, 2]))
-        numpy.testing.assert_array_equal(yHisto, numpy.array([3, 3, 2, 2, 5, 5]))
+        xHisto, yHisto = _getHistogramValue(x, y, 'left')
+        numpy.testing.assert_array_equal(
+            xHisto, numpy.array([-1, 0, 0, 1, 1, 2]))
+        numpy.testing.assert_array_equal(
+            yHisto, numpy.array([3, 3, 2, 2, 5, 5]))
 
-        xHistoFromEdges, yHistoFromEdges = Plot._getHistogramValue(x3, y, 'left')
+        xHistoFromEdges, yHistoFromEdges = _getHistogramValue(x3, y, 'left')
         numpy.testing.assert_array_equal(xHisto, xHistoFromEdges)
         numpy.testing.assert_array_equal(yHisto, yHistoFromEdges)
 
         # testing y values for center
-        xHisto, yHisto = Plot._getHistogramValue(x, y, 'center')
-        numpy.testing.assert_array_equal(xHisto, numpy.array([-0.5, 0.5, 0.5, 1.5, 1.5, 2.5]))
-        numpy.testing.assert_array_equal(yHisto, numpy.array([3, 3, 2, 2, 5, 5]))
+        xHisto, yHisto = _getHistogramValue(x, y, 'center')
+        numpy.testing.assert_array_equal(
+            xHisto, numpy.array([-0.5, 0.5, 0.5, 1.5, 1.5, 2.5]))
+        numpy.testing.assert_array_equal(
+            yHisto, numpy.array([3, 3, 2, 2, 5, 5]))
 
-        xHistoFromEdges, yHistoFromEdges = Plot._getHistogramValue(x4, y, 'center')
+        xHistoFromEdges, yHistoFromEdges = _getHistogramValue(x4, y, 'center')
         numpy.testing.assert_array_equal(xHisto, xHistoFromEdges)
 
 

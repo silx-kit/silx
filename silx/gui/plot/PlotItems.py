@@ -62,6 +62,7 @@ class Item(object):
     """Default selectable state of items"""
 
     def __init__(self):
+        self._dirty = True
         self._plotRef = None
         self._visible = True
         self._legend = self._DEFAULT_LEGEND
@@ -70,6 +71,8 @@ class Item(object):
         self._info = None
         self._xlabel = None
         self._ylabel = None
+
+        self._backendRenderer = None
 
     def getPlot(self):
         """Returns Plot this item belongs to.
@@ -87,8 +90,8 @@ class Item(object):
         """
         if plot is not None and self._plotRef is not None:
             raise RuntimeError('Trying to add a node at two places.')
-            # Alternative: remove it from previous children list
         self._plotRef = None if plot is None else weakref.ref(plot)
+        self._updated()
 
     def getBounds(self):  # TODO return a Bounds object rather than a tuple
         """Returns the bounding box of this item in data coordinates
@@ -114,13 +117,36 @@ class Item(object):
 
         :param bool visible: True to display it, False otherwise
         """
-        self._visible = bool(visible)
+        visible = bool(visible)
+        if visible != self._visible:
+            self._visible = visible
+            # When visibility has changed, always mark as dirty
+            self._updated(checkVisibility=False)
+
+            # TODO hackish data range implementation
+            if isinstance(self, (Curve, Image)):
+                plot = self.getPlot()
+                if plot is not None:
+                    plot._invalidateDataRange()
+
+    def isOverlay(self):
+        """Return true if item is drawn as an overlay.
+
+        :rtype: bool
+        """
+        return False
 
     def getLegend(self):
         """Returns the legend of this item (str)"""
         return self._legend
 
     def _setLegend(self, legend):
+        """Set the legend.
+
+        This is private as it is used by the plot as an identifier
+
+        :param str legend: Item legend
+        """
         legend = str(legend) if legend is not None else self._DEFAULT_LEGEND
         self._legend = legend
 
@@ -128,7 +154,13 @@ class Item(object):
         """Returns true if item is selectable (bool)"""
         return self._selectable
 
-    def _setSelectable(self, selectable):
+    def _setSelectable(self, selectable):  # TODO support update
+        """Set whether item is selectable or not.
+
+        This is private for now as change is not handled.
+
+        :param bool selectable: True to make item selectable
+        """
         self._selectable = bool(selectable)
 
     def getZValue(self):
@@ -136,7 +168,10 @@ class Item(object):
         return self._z
 
     def _setZValue(self, z):
-        self._z = int(z) if z is not None else self._DEFAULT_Z_LAYER
+        z = int(z) if z is not None else self._DEFAULT_Z_LAYER
+        if z != self._z:
+            self._z = z
+            self._updated()
 
     def getInfo(self, copy=True):
         """Returns the info associated to this item
@@ -150,11 +185,68 @@ class Item(object):
             info = deepcopy(info)
         self._info = info
 
+    def _updated(self, checkVisibility=True):
+        """Mark the item as dirty (i.e., needing update).
+
+        This also triggers Plot.replot.
+
+        :param bool checkVisibility: True to only mark as dirty if visible,
+                                     False to always mark as dirty.
+        """
+        if not checkVisibility or self.isVisible():
+            if not self._dirty:
+                self._dirty = True
+                # TODO: send event instead of explicit call
+                plot = self.getPlot()
+                if plot is not None:
+                    plot._itemRequiresUpdate(self)
+
+    def _update(self, backend):
+        """Called by Plot to update the backend for this item.
+
+        This is meant to be called asynchronously from _updated.
+        This optimizes the number of call to _update.
+
+        :param backend: The backend to update
+        """
+        if self._dirty:
+            # Remove previous renderer from backend if any
+            self._removeBackendRenderer(backend)
+
+            # If not visible, do not add renderer to backend
+            if not self.isVisible():
+                return
+
+            self._backendRenderer = self._addBackendRenderer(backend)
+
+            self._dirty = False
+
+    def _addBackendRenderer(self, backend):
+        """Override in subclass to add specific backend renderer.
+
+        :param BackendBase backend: The backend to update
+        :return: The renderer handle to store or None if no renderer in backend
+        """
+        return None
+
+    def _removeBackendRenderer(self, backend):
+        """Override in subclass to remove specific backend renderer.
+
+        :param BackendBase backend: The backend to update
+        """
+        if self._backendRenderer is not None:
+            backend.remove(self._backendRenderer)
+            self._backendRenderer = None
+
 
 # Mix-in classes ##############################################################
 
 class LabelsMixIn(object):
-    """Mix-in class for items with x and y labels"""
+    """Mix-in class for items with x and y labels
+
+    Setters are private, otherwise it needs to check the plot
+    current active curve and access the internal current labels.
+    """
 
     def __init__(self):
         self._xlabel = None
@@ -202,8 +294,10 @@ class DraggableMixIn(object):
         """
         return self._draggable
 
-    def _setDraggable(self, draggable):
+    def _setDraggable(self, draggable):  # TODO support update
         """Set if image is draggable or not.
+
+        This is private for not as it does not support update.
 
         :param bool draggable:
         """
@@ -230,6 +324,8 @@ class ColormapMixIn(object):
         :param dict colormap: colormap description
         """
         self._colormap = colormap.copy()
+        # TODO colormap comparison + colormap object and events on modification
+        self._updated()
 
 
 class SymbolMixIn(object):
@@ -268,7 +364,9 @@ class SymbolMixIn(object):
         assert symbol in ('o', '.', ',', '+', 'x', 'd', 's', '', None)
         if symbol is None:
             symbol = self._DEFAULT_SYMBOL
-        self._symbol = symbol
+        if symbol != self._symbol:
+            self._symbol = symbol
+            self._updated()
 
 
 class ColorMixIn(object):
@@ -297,15 +395,17 @@ class ColorMixIn(object):
                          False to use internal representation (do not modify!)
         """
         if isinstance(color, string_types):
-            self._color = Colors.rgba(color)
+            color = Colors.rgba(color)
         else:
             color = numpy.array(color, copy=copy)
-            # TODO more checks
+            # TODO more checks + improve color array support
             if color.ndim == 1:  # Single RGBA color
                 color = Colors.rgba(color)
             else:  # Array of colors
                 assert color.ndim == 2
-            self._color = color
+
+        self._color = color
+        self._updated()
 
 
 class YAxisMixIn(object):
@@ -333,7 +433,9 @@ class YAxisMixIn(object):
         """
         yaxis = str(yaxis)
         assert yaxis in ('left', 'right')
-        self._yaxis = yaxis
+        if yaxis != self._yaxis:
+            self._yaxis = yaxis
+            self._updated()
 
 
 class FillMixIn(object):
@@ -354,10 +456,82 @@ class FillMixIn(object):
 
         :param bool fill:
         """
-        self._fill = bool(fill)
+        fill = bool(fill)
+        if fill != self._fill:
+            self._fill = fill
+            self._updated()
 
 
 # Items #######################################################################
+
+def _computeEdges(x, histogramType):
+    """Compute the edges from a set of xs and a rule to generate the edges
+
+    :param x: the x value of the curve to transform into an histogram
+    :param histogramType: the type of histogram we wan't to generate.
+         This define the way to center the histogram values compared to the
+         curve value. Possible values can be::
+
+         - 'left'
+         - 'right'
+         - 'center'
+
+    :return: the edges for the given x and the histogramType
+    """
+    # for now we consider that the spaces between xs are constant
+    edges = x.copy()
+    if histogramType is 'left':
+        width = 1
+        if len(x) > 1:
+            width = x[1] - x[0]
+        edges = numpy.append(x[0] - width, edges)
+    if histogramType is 'center':
+        edges = _computeEdges(edges, 'right')
+        widths = (edges[1:] - edges[0:-1]) / 2.0
+        widths = numpy.append(widths, widths[-1])
+        edges = edges - widths
+    if histogramType is 'right':
+        width = 1
+        if len(x) > 1:
+            width = x[-1] - x[-2]
+        edges = numpy.append(edges, x[-1] + width)
+
+    return edges
+
+
+def _getHistogramValue(x, y, histogramType):
+    """Returns the x and y value of a curve corresponding to the histogram
+
+    :param x: the x value of the curve to transform in an histogram
+    :param y: the y value of the curve to transform in an histogram
+    :param histogramType: the type of histogram we wan't to generate.
+         This define the way to center the histogram values compared to the
+         curve value. Possible values can be::
+
+         - 'left'
+         - 'right'
+         - 'center'
+
+    :return: a tuple(x, y) which are the value of the histogram to be
+         displayed as a curve
+    """
+    assert histogramType in ('left', 'right', 'center')
+    if len(x) == len(y) + 1:
+        edges = x
+    else:
+        edges = _computeEdges(x, histogramType)
+    assert len(edges) > 1
+
+    resx = numpy.empty((len(edges) - 1) * 2, dtype=edges.dtype)
+    resy = numpy.empty((len(edges) - 1) * 2, dtype=edges.dtype)
+    # duplicate x and y values with a small shift to get the stairs effect
+    resx[:-1:2] = edges[:-1]
+    resx[1::2] = edges[1:]
+    resy[:-1:2] = y
+    resy[1::2] = y
+
+    assert len(resx) == len(resy)
+    return resx, resy
 
 
 class Curve(Item, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn):
@@ -403,6 +577,40 @@ class Curve(Item, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn):
         # Store bounds depending on axes filtering >0:
         # key is (isXPositiveFilter, isYPositiveFilter)
         self._boundsCache = {}
+
+    def _addBackendRenderer(self, backend):
+        """Update backend renderer"""
+        # Filter-out values <= 0
+        xFiltered, yFiltered, xerror, yerror = self.getData(
+            copy=False, displayed=True)
+
+        if len(xFiltered) == 0:
+            return None  # No data to display, do not add renderer to backend
+
+        # if we want to plot an histogram
+        if self.getHistogramType() in ('left', 'right', 'center'):
+            assert len(xFiltered) in (len(yFiltered), len(yFiltered)+1)
+
+            # TODO move this in Histogram class and avoid histo if
+            xFiltered, yFiltered = _getHistogramValue(
+                xFiltered,  yFiltered, histogramType=self.getHistogramType())
+            if (self.getXErrorData(copy=False) is not None or
+                    self.getYErrorData(copy=False) is not None):
+                _logger.warning("xerror and yerror won't be displayed"
+                                " for histogram display")
+            xerror, yerror = None, None
+
+        return backend.addCurve(xFiltered, yFiltered, self.getLegend(),
+                                color=self.getCurrentColor(),
+                                symbol=self.getSymbol(),
+                                linestyle=self.getLineStyle(),
+                                linewidth=self.getLineWidth(),
+                                yaxis=self.getYAxis(),
+                                xerror=xerror,
+                                yerror=yerror,
+                                z=self.getZValue(),
+                                selectable=self.isSelectable(),
+                                fill=self.isFill())
 
     @deprecated
     def __getitem__(self, item):
@@ -526,7 +734,7 @@ class Curve(Item, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn):
             yPositive = False
 
         if (xPositive, yPositive) not in self._boundsCache:
-            # TODO bounds do not take error bars into account (as in silx Plot)
+            # TODO bounds do not take error bars into account
             x, y, xerror, yerror = self.getData(copy=False, displayed=True)
             self._boundsCache[(xPositive, yPositive)] = (
                 numpy.nanmin(x),
@@ -623,6 +831,13 @@ class Curve(Item, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn):
         self._boundsCache = {}  # Reset cached bounds
         self._filteredCache = {}  # Reset cached filtered data
 
+        self._updated()
+        # TODO hackish data range implementation
+        if self.isVisible():
+            plot = self.getPlot()
+            if plot is not None:
+                plot._invalidateDataRange()
+
     def isHighlighted(self):
         """Returns True if curve is highlighted.
 
@@ -635,7 +850,11 @@ class Curve(Item, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn):
 
         :param bool highlighted:
         """
-        self._highlighted = bool(highlighted)
+        highlighted = bool(highlighted)
+        if highlighted != self._highlighted:
+            self._highlighted = highlighted
+            # TODO inefficient: better to use backend's setCurveColor
+            self._updated()
 
     def getHighlightedColor(self):
         """Returns the RGBA highlight color of the item
@@ -651,7 +870,10 @@ class Curve(Item, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn):
         :type color: str ("#RRGGBB") or (npoints, 4) unsigned byte array or
                      one of the predefined color names defined in Colors.py
         """
-        self._highlightColor = Colors.rgba(color)
+        color = Colors.rgba(color)
+        if color != self._highlightColor:
+            self._highlightColor = color
+            self._updated()
 
     def getCurrentColor(self):
         """Returns the current color of the curve.
@@ -677,7 +899,10 @@ class Curve(Item, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn):
 
         :param float width: Width in pixels
         """
-        self._linewidth = float(width)
+        width = float(width)
+        if width != self._linewidth:
+            self._linewidth = width
+            self._updated()
 
     def getLineStyle(self):
         """Return the type of the line
@@ -705,7 +930,9 @@ class Curve(Item, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn):
         assert style in ('', ' ', '-', '--', '-.', ':', None)
         if style is None:
             style = self._DEFAULT_LINESTYLE
-        self._linestyle = style
+        if style != self._linestyle:
+            self._linestyle = style
+            self._updated()
 
     # TODO make a separate class for histograms
     def getHistogramType(self):
@@ -724,7 +951,9 @@ class Curve(Item, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn):
 
     def _setHistogramType(self, histogram):
         assert histogram in ('left', 'right', 'center', None)
-        self._histogram = histogram
+        if histogram != self._histogram:
+            self._histogram = histogram
+            self._updated()
 
 
 class Image(Item, LabelsMixIn, DraggableMixIn, ColormapMixIn):
@@ -743,6 +972,30 @@ class Image(Item, LabelsMixIn, DraggableMixIn, ColormapMixIn):
         # TODO use calibration instead of origin and scale?
         self._origin = (0., 0.)
         self._scale = (1., 1.)
+
+    def _addBackendRenderer(self, backend):
+        """Update backend renderer"""
+        plot = self.getPlot()
+        assert plot is not None
+        if plot.isXAxisLogarithmic() or plot.isYAxisLogarithmic():
+            return None  # Do not render with log scales
+
+        if self.getPixmap(copy=False) is not None:
+            dataToSend = self.getPixmap(copy=False)
+        else:
+            dataToSend = self.getData(copy=False)
+
+        if dataToSend.size == 0:
+            return None  # No data to display
+
+        return backend.addImage(dataToSend,
+                                legend=self.getLegend(),
+                                origin=self.getOrigin(),
+                                scale=self.getScale(),
+                                z=self.getZValue(),
+                                selectable=self.isSelectable(),
+                                draggable=self.isDraggable(),
+                                colormap=self.getColormap())
 
     @deprecated
     def __getitem__(self, item):
@@ -792,8 +1045,7 @@ class Image(Item, LabelsMixIn, DraggableMixIn, ColormapMixIn):
 
         plot = self.getPlot()
         if (plot is not None and
-                (plot.isXAxisLogarithmic() and xmin <= 0.) or
-                (plot.isYAxisLogarithmic() and ymin <= 0)):
+                plot.isXAxisLogarithmic() or plot.isYAxisLogarithmic()):
             return None
         else:
             return xmin, xmax, ymin, ymax
@@ -840,6 +1092,13 @@ class Image(Item, LabelsMixIn, DraggableMixIn, ColormapMixIn):
             assert pixmap.shape[2] in (3, 4)
             assert pixmap.shape[:2] == data.shape[:2]
         self._pixmap = pixmap
+        self._updated()
+
+        # TODO hackish data range implementation
+        if self.isVisible():
+            plot = self.getPlot()
+            if plot is not None:
+                plot._invalidateDataRange()
 
     def getOrigin(self):
         """Returns the offset from origin at which to display the image.
@@ -858,7 +1117,9 @@ class Image(Item, LabelsMixIn, DraggableMixIn, ColormapMixIn):
             origin = float(origin[0]), float(origin[1])
         else:  # single value origin
             origin = float(origin), float(origin)
-        self._origin = origin
+        if origin != self._origin:
+            self._origin = origin
+            self._updated()
 
     def getScale(self):
         """Returns the scale of the image in data coordinates.
@@ -877,7 +1138,9 @@ class Image(Item, LabelsMixIn, DraggableMixIn, ColormapMixIn):
             scale = float(scale[0]), float(scale[1])
         else:  # single value scale
             scale = float(scale), float(scale)
-        self._scale = scale
+        if scale != self._scale:
+            self._scale = scale
+            self._updated()
 
 
 # Markers ####################################################################
@@ -898,6 +1161,32 @@ class _BaseMarker(Item, DraggableMixIn, ColorMixIn):
         self._y = None
         self._constraint = self._defaultConstraint
 
+    def _addBackendRenderer(self, backend):
+        """Update backend renderer"""
+        # TODO not very nice way to do it, but simple
+        symbol = self.getSymbol() if isinstance(self, Marker) else None
+
+        return backend.addMarker(
+            x=self.getXPosition(),
+            y=self.getYPosition(),
+            legend=self.getLegend(),
+            text=self.getText(),
+            color=self.getColor(),
+            selectable=self.isSelectable(),
+            draggable=self.isDraggable(),
+            symbol=symbol,
+            constraint=self.getConstraint(),
+            overlay=self.isOverlay())
+
+    def isOverlay(self):
+        """Return true if marker is drawn as an overlay.
+
+        A marker is an overlay if it is draggable.
+
+        :rtype: bool
+        """
+        return self.isDraggable()
+
     def getText(self):
         """Returns marker text.
 
@@ -910,7 +1199,10 @@ class _BaseMarker(Item, DraggableMixIn, ColorMixIn):
 
         :param str text: The text to use
         """
-        self._text = str(text)
+        text = str(text)
+        if text != self._text:
+            self._text = text
+            self._updated()
 
     def getXPosition(self):
         """Returns the X position of the marker line in data coordinates
@@ -942,14 +1234,19 @@ class _BaseMarker(Item, DraggableMixIn, ColorMixIn):
         :param float y: Y coordinates in data frame
         """
         x, y = self.getConstraint()(x, y)
-        self._x, self._y = float(x), float(y)
+        x, y = float(x), float(y)
+        if x != self._x or y != self._y:
+            self._x, self._y = x, y
+            self._updated()
 
     def getConstraint(self):
         """Returns the dragging constraint of this item"""
         return self._constraint
 
-    def _setConstraint(self, constraint):
-        """
+    def _setConstraint(self, constraint):  # TODO support update
+        """Set the constraint.
+
+        This is private for now as update is not handled.
 
         :param callable constraint:
         :param constraint: A function filtering item displacement by
@@ -968,7 +1265,7 @@ class _BaseMarker(Item, DraggableMixIn, ColorMixIn):
 
     @staticmethod
     def _defaultConstraint(*args):
-        """Default constraint no doing anything"""
+        """Default constraint not doing anything"""
         return args
 
 
@@ -1023,7 +1320,10 @@ class XMarker(_BaseMarker):
         :param float y: Y coordinates in data frame
         """
         x, _ = self.getConstraint()(x, y)
-        self._x = float(x)
+        x = float(x)
+        if x != self._x:
+            self._x = x
+            self._updated()
 
 
 class YMarker(_BaseMarker):
@@ -1042,7 +1342,10 @@ class YMarker(_BaseMarker):
         :param float y: Y coordinates in data frame
         """
         _, y = self.getConstraint()(x, y)
-        self._y = float(y)
+        y = float(y)
+        if y != self._y:
+            self._y = y
+            self._updated()
 
 
 # TODO probably make one class for each kind of shape
@@ -1058,6 +1361,21 @@ class Shape(Item, ColorMixIn, FillMixIn):
         self._type = 'polygon'
         self._points = ()
 
+        self._handle = None
+
+    def _addBackendRenderer(self, backend):
+        """Update backend renderer"""
+        points = self.getPoints(copy=False)
+        x, y = points.T[0], points.T[1]
+        return backend.addItem(x,
+                               y,
+                               legend=self.getLegend(),
+                               shape=self.getType(),
+                               color=self.getColor(),
+                               fill=self.isFill(),
+                               overlay=self.isOverlay(),
+                               z=self.getZValue())
+
     def isOverlay(self):
         """Return true if shape is drawn as an overlay
 
@@ -1068,9 +1386,12 @@ class Shape(Item, ColorMixIn, FillMixIn):
     def _setOverlay(self, overlay):
         """Set the overlay state of the shape
 
-        :param overlay:
+        :param bool overlay:
         """
-        self._overlay = overlay
+        overlay = bool(overlay)
+        if overlay != self._overlay:
+            self._overlay = overlay
+            self._updated()
 
     def getType(self):
         """Returns the type of shape to draw.
@@ -1083,7 +1404,9 @@ class Shape(Item, ColorMixIn, FillMixIn):
 
     def _setType(self, type_):
         assert type_ in ('hline', 'polygon', 'rectangle', 'vline', 'polyline')
-        self._type = type_
+        if type_ != self._type:
+            self._type = type_
+            self._updated()
 
     def getPoints(self, copy=True):
         """Get the control points of the shape.
@@ -1104,3 +1427,4 @@ class Shape(Item, ColorMixIn, FillMixIn):
         :return:
         """
         self._points = numpy.array(points, copy=copy)
+        self._updated()
