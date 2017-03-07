@@ -43,14 +43,19 @@ _logger = logging.getLogger(__name__)
 # TODO probably make one class for each kind of shape
 # TODO check fill:polygon/polyline + fill = duplicated
 class Shape(Item, ColorMixIn, FillMixIn):
-    """Description of a shape item"""
+    """Description of a shape item
 
-    def __init__(self):
+    :param str type_: The type of shape in:
+                      'hline', 'polygon', 'rectangle', 'vline', 'polyline'
+    """
+
+    def __init__(self, type_):
         Item.__init__(self)
         ColorMixIn.__init__(self)
         FillMixIn.__init__(self)
         self._overlay = False
-        self._type = 'polygon'
+        assert type_ in ('hline', 'polygon', 'rectangle', 'vline', 'polyline')
+        self._type = type_
         self._points = ()
 
         self._handle = None
@@ -93,20 +98,6 @@ class Shape(Item, ColorMixIn, FillMixIn):
         :rtype: str
         """
         return self._type
-
-    def _setType(self, type_):
-        """Set the type of shape to draw.
-
-        This setter is private as it is not expected to change type
-        during life-cycle.
-
-        :param str type_: The type of shape in:
-                          'hline', 'polygon', 'rectangle', 'vline', 'polyline'
-        """
-        assert type_ in ('hline', 'polygon', 'rectangle', 'vline', 'polyline')
-        if type_ != self._type:
-            self._type = type_
-            self._updated()
 
     def getPoints(self, copy=True):
         """Get the control points of the shape.

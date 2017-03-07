@@ -849,10 +849,9 @@ class Plot(object):
         else:
             self.remove(legend, kind='item')
 
-        item = items.Shape()
+        item = items.Shape(shape)
         item._setLegend(legend)
         item.setInfo(info)
-        item._setType(shape)
         item.setColor(color)
         item.setFill(fill)
         item.setOverlay(overlay)
@@ -860,7 +859,6 @@ class Plot(object):
         item.setPoints(numpy.array((xdata, ydata), copy=True).T)
 
         self._add(item)
-        self._setDirtyPlot(overlayOnly=item.isOverlay())
 
         self.notify('contentChanged', action='add', kind='item', legend=legend)
 
