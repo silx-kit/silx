@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -140,9 +140,7 @@ cdef class MarchingCubes:
             raise IndexError("Index out of range")
 
     def process(self, cnumpy.ndarray[cnumpy.float32_t, ndim=3, mode='c'] data):
-        """process(data)
-
-        Compute an isosurface from a 3D scalar field.
+        """Compute an isosurface from a 3D scalar field.
 
         This builds vertices, normals and indices arrays.
         Vertices and normals coordinates are in the same order as input array,
@@ -162,9 +160,7 @@ cdef class MarchingCubes:
     def process_slice(self,
             cnumpy.ndarray[cnumpy.float32_t, ndim=2, mode='c'] slice0,
             cnumpy.ndarray[cnumpy.float32_t, ndim=2, mode='c'] slice1):
-        """process_slice(slice0, slice1)
-        
-        Process a new slice to build the isosurface.
+        """Process a new slice to build the isosurface.
 
         :param numpy.ndarray slice0: Slice previously provided as slice1.
         :param numpy.ndarray slice1: Slice to process.

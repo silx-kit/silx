@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -268,10 +268,7 @@ class MCA(object):
 
 
 def _add_or_concatenate(dictionary, key, value):
-    """
-    _add_or_concatenate(dictionary, key, value)
-
-    If key doesn't exist in dictionary, create a new ``key: value`` pair.
+    """If key doesn't exist in dictionary, create a new ``key: value`` pair.
     Else append/concatenate the new value to the existing one
     """
     try:
@@ -479,9 +476,7 @@ class Scan(object):
         return self._motor_positions
 
     def record_exists_in_hdr(self, record):
-        """record_exists_in_hdr(record)
-
-        Check whether a scan header line exists.
+        """Check whether a scan header line exists.
         
         This should be used before attempting to retrieve header information 
         using a C function that may crash with a *segmentation fault* if the
@@ -500,9 +495,7 @@ class Scan(object):
         return False
 
     def data_line(self, line_index):
-        """data_line(line_index)
-
-        Returns data for a given line of this scan.
+        """Returns data for a given line of this scan.
 
         .. note::
 
@@ -522,9 +515,7 @@ class Scan(object):
         return self.data[:, line_index]
 
     def data_column_by_name(self, label):
-        """data_column_by_name(label)
-
-        Returns a data column
+        """Returns a data column
 
         :param label: Label of data column to retrieve, as defined on the
             ``#L`` line of the scan header.
@@ -536,9 +527,7 @@ class Scan(object):
         return self._specfile.data_column_by_name(self._index, label)
 
     def motor_position_by_name(self, name):
-        """motor_position_by_name(name)
-
-        Returns the position for a given motor
+        """Returns the position for a given motor
 
         :param name: Name of motor, as defined on the ``#O`` line of the
            file header.
@@ -551,9 +540,7 @@ class Scan(object):
 
 
 def _string_to_char_star(string_):
-    """_string_to_char_star(string_)
-
-    Convert a string to ASCII encoded bytes when using python3"""
+    """Convert a string to ASCII encoded bytes when using python3"""
     if sys.version.startswith("3") and not isinstance(string_, bytes):
         return bytes(string_, "ascii")
     return string_
@@ -750,9 +737,7 @@ cdef class SpecFile(object):
         
     
     def index(self, scan_number, scan_order=1):
-        """index(scan_number, scan_order=1)
-
-        Returns scan index from scan number and order.
+        """Returns scan index from scan number and order.
         
         :param scan_number: Scan number (possibly non-unique). 
         :type scan_number: int
@@ -775,9 +760,7 @@ cdef class SpecFile(object):
         return idx - 1
     
     def number(self, scan_index):
-        """number(scan_index)
-
-        Returns scan number from scan index.
+        """Returns scan number from scan index.
         
         :param scan_index: Unique scan index between ``0`` and
             ``len(self)-1``.
@@ -792,9 +775,7 @@ cdef class SpecFile(object):
         return idx
     
     def order(self, scan_index):
-        """order(scan_index)
-
-        Returns scan order from scan index.
+        """Returns scan order from scan index.
         
         :param scan_index: Unique scan index between ``0`` and
             ``len(self)-1``.
@@ -838,9 +819,7 @@ cdef class SpecFile(object):
         return self._list()
     
     def data(self, scan_index):
-        """data(scan_index)
-
-        Returns data for the specified scan index.
+        """Returns data for the specified scan index.
 
         :param scan_index: Unique scan index between ``0`` and
             ``len(self)-1``.
@@ -883,9 +862,7 @@ cdef class SpecFile(object):
         return ret_array
 
     def data_column_by_name(self, scan_index, label):
-        """data_column_by_name(scan_index, label)
-
-        Returns data column for the specified scan index and column label.
+        """Returns data column for the specified scan index and column label.
 
         :param scan_index: Unique scan index between ``0`` and
             ``len(self)-1``.
@@ -920,9 +897,7 @@ cdef class SpecFile(object):
         return ret_array
 
     def scan_header(self, scan_index):
-        """scan_header(scan_index)
-
-        Return list of scan header lines.
+        """Return list of scan header lines.
         
         :param scan_index: Unique scan index between ``0`` and
             ``len(self)-1``.
@@ -952,9 +927,7 @@ cdef class SpecFile(object):
         return lines_list
     
     def file_header(self, scan_index=0):
-        """file_header(scan_index)
-
-        Return list of file header lines.
+        """Return list of file header lines.
         
         A file header contains all lines between a ``#F`` header line and
         a ``#S`` header line (start of scan). We need to specify a scan
@@ -989,9 +962,7 @@ cdef class SpecFile(object):
         return lines_list     
     
     def columns(self, scan_index): 
-        """columns(scan_index)
-
-        Return number of columns in a scan from the ``#N`` header line
+        """Return number of columns in a scan from the ``#N`` header line
         (without ``#N`` and scan number)
         
         :param scan_index: Unique scan index between ``0`` and
@@ -1012,9 +983,7 @@ cdef class SpecFile(object):
         return ncolumns
         
     def command(self, scan_index): 
-        """command(scan_index)
-
-        Return ``#S`` line (without ``#S`` and scan number)
+        """Return ``#S`` line (without ``#S`` and scan number)
         
         :param scan_index: Unique scan index between ``0`` and
             ``len(self)-1``.
@@ -1034,9 +1003,7 @@ cdef class SpecFile(object):
         return s_record.decode()
     
     def date(self, scan_index=0):
-        """date(scan_index)
-
-        Return date from ``#D`` line
+        """Return date from ``#D`` line
 
         :param scan_index: Unique scan index between ``0`` and
             ``len(self)-1``.
@@ -1056,9 +1023,7 @@ cdef class SpecFile(object):
         return d_line.decode()
     
     def labels(self, scan_index):
-        """labels(scan_index)
-
-        Return all labels from ``#L`` line
+        """Return all labels from ``#L`` line
           
         :param scan_index: Unique scan index between ``0`` and
             ``len(self)-1``.
@@ -1085,9 +1050,7 @@ cdef class SpecFile(object):
         return labels_list
      
     def motor_names(self, scan_index=0):
-        """motor_names(scan_index=0)
-
-        Return all motor names from ``#O`` lines
+        """Return all motor names from ``#O`` lines
           
         :param scan_index: Unique scan index between ``0`` and
             ``len(self)-1``.If not specified, defaults to 0 (meaning the
@@ -1118,9 +1081,7 @@ cdef class SpecFile(object):
         return motors_list
 
     def motor_positions(self, scan_index):
-        """motor_positions(scan_index)
-
-        Return all motor positions
+        """Return all motor positions
           
         :param scan_index: Unique scan index between ``0``
             and ``len(self)-1``.
@@ -1147,9 +1108,7 @@ cdef class SpecFile(object):
         return motor_positions_list
 
     def motor_position_by_name(self, scan_index, name):
-        """motor_position_by_name(scan_index, name)
-
-        Return motor position
+        """Return motor position
 
         :param scan_index: Unique scan index between ``0`` and
             ``len(self)-1``.
@@ -1172,9 +1131,7 @@ cdef class SpecFile(object):
         return motor_position
 
     def number_of_mca(self, scan_index):
-        """number_of_mca(scan_index)
-
-        Return number of mca spectra in a scan.
+        """Return number of mca spectra in a scan.
 
         :param scan_index: Unique scan index between ``0`` and
             ``len(self)-1``.
@@ -1196,9 +1153,7 @@ cdef class SpecFile(object):
         return num_mca
 
     def mca_calibration(self, scan_index):
-        """mca_calibration(scan_index)
-
-        Return MCA calibration in the form :math:`a + b x + c x²`
+        """Return MCA calibration in the form :math:`a + b x + c x²`
 
         Raise a KeyError if there is no ``@CALIB`` line in the scan header.
 
@@ -1230,9 +1185,7 @@ cdef class SpecFile(object):
         return mca_calib_list
 
     def get_mca(self, scan_index, mca_index):
-        """get_mca(scan_index, mca_index)
-
-        Return one MCA spectrum
+        """Return one MCA spectrum
 
         :param scan_index: Unique scan index between ``0`` and ``len(self)-1``.
         :type scan_index: int
@@ -1262,7 +1215,3 @@ cdef class SpecFile(object):
 
         free(mca_data)
         return ret_array
-
-
-
-
