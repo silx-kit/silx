@@ -41,17 +41,17 @@ except ImportError:
 _logger = logging.getLogger(__name__)
 
 
-INTERPDIM = {"scalar": 0,
-             "spectrum": 1,
-             "image": 2,
-             # "rgba-image": 3, "hsla-image": 3, "cmyk-image": 3, # TODO
-             "vertex": 1}  # 3D scatter: 1D signal + 3 axes (x, y, z) of same legth
+_INTERPDIM = {"scalar": 0,
+              "spectrum": 1,
+              "image": 2,
+              # "rgba-image": 3, "hsla-image": 3, "cmyk-image": 3, # TODO
+              "vertex": 1}  # 3D scatter: 1D signal + 3 axes (x, y, z) of same legth
 """Number of signal dimensions associated to each possible @interpretation
 attribute.
 """
 
 
-def NXdata_warning(msg):
+def _NXdata_warning(msg):
     """Log a warning message prefixed with
     *"NXdata warning: "*
 
@@ -72,7 +72,7 @@ def _get_attr(item, attr_name, default=None):
     :return: item.attrs[attr_name]
     """
     attr = item.attrs.get(attr_name, default)
-    if attr == default or six.PY2:
+    if six.PY2:
         return attr
     if six.PY3:
         if hasattr(attr, "decode"):
@@ -97,7 +97,7 @@ def is_valid_NXdata(group):   # noqa
 
     :param group: h5py-like group
     :return: True if this NXdata group is valid.
-    :raise TypeError: if group is not a h5py group, a spech5 group,
+    :raise: TypeError if group is not a h5py group, a spech5 group,
         or a fabioh5 group
     """
     if not is_group(group):
@@ -123,7 +123,7 @@ def is_valid_NXdata(group):   # noqa
 
         if 1 < ndim < len(axes_names):
             # ndim = 1 and several axes could be a scatter
-            NXdata_warning(
+            _NXdata_warning(
                     "More @axes defined than there are " +
                     "signal dimensions: " +
                     "%d axes, %d dimensions." % (len(axes_names), ndim))
@@ -136,19 +136,19 @@ def is_valid_NXdata(group):   # noqa
             if interpretation is None:
                 interpretation = _get_attr(group, "interpretation", None)
             if interpretation is None:
-                NXdata_warning("No @interpretation and not enough" +
+                _NXdata_warning("No @interpretation and not enough" +
                                " @axes defined.")
                 return False
 
-            if interpretation not in INTERPDIM:
-                NXdata_warning("Unrecognized @interpretation=" + interpretation +
+            if interpretation not in _INTERPDIM:
+                _NXdata_warning("Unrecognized @interpretation=" + interpretation +
                                " for data with wrong number of defined @axes.")
                 return False
 
-            if len(axes_names) != INTERPDIM[interpretation]:
-                NXdata_warning(
+            if len(axes_names) != _INTERPDIM[interpretation]:
+                _NXdata_warning(
                         "%d-D signal with @interpretation=%s " % (ndim, interpretation) +
-                        "must define %d or %d axes." % (ndim, INTERPDIM[interpretation]))
+                        "must define %d or %d axes." % (ndim, _INTERPDIM[interpretation]))
                 return False
 
         # Test consistency of @uncertainties
@@ -159,7 +159,7 @@ def is_valid_NXdata(group):   # noqa
             uncertainties_names = [uncertainties_names]
         if uncertainties_names is not None:
             if len(uncertainties_names) != len(axes_names):
-                NXdata_warning("@uncertainties does not define the same " +
+                _NXdata_warning("@uncertainties does not define the same " +
                                "number of fields than @axes")
                 return False
 
@@ -173,7 +173,7 @@ def is_valid_NXdata(group):   # noqa
             if axis_name == ".":
                 continue
             if axis_name not in group or not is_dataset(group[axis_name]):
-                NXdata_warning("Could not find axis dataset '%s'" % axis_name)
+                _NXdata_warning("Could not find axis dataset '%s'" % axis_name)
                 return False
 
             axis_size = 1
@@ -184,7 +184,7 @@ def is_valid_NXdata(group):   # noqa
                 # too me, it makes only sense to have a n-D axis if it's total
                 # size is exactly the signal's size (weird n-d scatter)
                 if axis_size != signal_size:
-                    NXdata_warning("Axis %s is not a 1D dataset" % axis_name +
+                    _NXdata_warning("Axis %s is not a 1D dataset" % axis_name +
                                    " and its shape does not match the signal's shape")
                     return False
                 axis_len = axis_size
@@ -196,7 +196,7 @@ def is_valid_NXdata(group):   # noqa
 
             if axis_len != signal_size:
                 if axis_len not in group[signal_name].shape + (1, 2):
-                    NXdata_warning(
+                    _NXdata_warning(
                             "Axis %s number of elements does not " % axis_name +
                             "correspond to the length of any signal dimension,"
                             " it does not appear to be a constant or a linear calibration," +
@@ -207,7 +207,7 @@ def is_valid_NXdata(group):   # noqa
                 is_scatter = False
             else:
                 if not is_scatter:
-                    NXdata_warning(
+                    _NXdata_warning(
                             "Axis %s number of elements is equal " % axis_name +
                             "to the length of the signal, but this does not seem" +
                             " to be a scatter (other axes have different sizes)")
@@ -219,7 +219,7 @@ def is_valid_NXdata(group):   # noqa
                 errors_name = uncertainties_names[i]
                 if errors_name in group and axis_name not in polynomial_axes_names:
                     if group[errors_name].shape != group[axis_name].shape:
-                        NXdata_warning(
+                        _NXdata_warning(
                             "Errors '%s' does not have the same " % errors_name +
                             "dimensions as axis '%s'." % axis_name)
                         return False
@@ -227,7 +227,7 @@ def is_valid_NXdata(group):   # noqa
     # test dimensions of errors associated with signal
     if "errors" in group and is_dataset(group["errors"]):
         if group["errors"].shape != group[signal_name].shape:
-            NXdata_warning("Dataset containing standard deviations must " +
+            _NXdata_warning("Dataset containing standard deviations must " +
                            "have the same dimensions as the signal.")
             return False
     return True
@@ -288,6 +288,7 @@ class NXdata(object):
 
         The *interpretation* attribute provides information about the last
         dimensions of the signal. The allowed values are:
+
              - *"scalar"*: 0-D data to be plotted
              - *"spectrum"*: 1-D data to be plotted
              - *"image"*: 2-D data to be plotted
@@ -370,8 +371,8 @@ class NXdata(object):
         elif interpretation is not None:
             # case of @interpretation attribute defined: we expect 1, 2 or 3 axes
             # corresponding to the 1, 2, or 3 last dimensions of the signal
-            assert len(axes_names) == INTERPDIM[interpretation]
-            axes = [None] * (ndims - INTERPDIM[interpretation])
+            assert len(axes_names) == _INTERPDIM[interpretation]
+            axes = [None] * (ndims - _INTERPDIM[interpretation])
             for axis_n in axes_names:
                 if axis_n != ".":
                     axes.append(self.group[axis_n])
@@ -427,8 +428,8 @@ class NXdata(object):
                 return list(axes_dataset_names)
             # @axes may only define 1 or 2 axes if @interpretation=spectrum/image.
             # Use the existing names for the last few dims, and prepend with Nones.
-            assert len(axes_dataset_names) == INTERPDIM[self.interpretation]
-            all_dimensions_names = [None] * (ndims - INTERPDIM[self.interpretation])
+            assert len(axes_dataset_names) == _INTERPDIM[self.interpretation]
+            all_dimensions_names = [None] * (ndims - _INTERPDIM[self.interpretation])
             for axis_name in axes_dataset_names:
                 all_dimensions_names.append(axis_name)
             return all_dimensions_names
@@ -615,8 +616,7 @@ def get_signal_errors(group):
 
 
 def signal_is_0D(group):
-    """Return True if NXdata signal dataset is 0-D or if
-    *@interpretation="scalar"*
+    """Return True if NXdata signal dataset is 0-D
 
     :param group: h5py-like Group following the NeXus *NXdata* specification.
     :return: Boolean
