@@ -36,7 +36,7 @@ from silx.test.utils import ParametricTestCase
 import numpy
 
 from silx.gui.plot.Plot import Plot
-from silx.gui.plot.PlotItems import _getHistogramValue
+from silx.gui.plot.items.curve import _getHistogramValue
 
 
 class TestPlot(unittest.TestCase):

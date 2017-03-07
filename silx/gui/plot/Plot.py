@@ -210,7 +210,7 @@ from . import PlotInteraction
 from . import PlotEvents
 from . import _utils
 
-from . import PlotItems
+from . import items
 
 
 _logger = logging.getLogger(__name__)
@@ -398,7 +398,7 @@ class Plot(object):
                     xMin = numpy.nanmin([xMin, bounds[0]])
                     xMax = numpy.nanmax([xMax, bounds[1]])
                     # Take care of right axis
-                    if (isinstance(item, PlotItems.YAxisMixIn) and
+                    if (isinstance(item, items.YAxisMixIn) and
                             item.getYAxis() == 'right'):
                         yMinRight = numpy.nanmin([yMinRight, bounds[2]])
                         yMaxRight = numpy.nanmax([yMaxRight, bounds[3]])
@@ -439,14 +439,14 @@ class Plot(object):
         :return: (legend, kind)
         :rtype: (str, str)
         """
-        if isinstance(item, PlotItems.Curve):
+        if isinstance(item, items.Curve):
             kind = 'curve'
-        elif isinstance(item, PlotItems.Image):
+        elif isinstance(item, items.Image):
             kind = 'image'
-        elif isinstance(item, (PlotItems.Marker,
-                               PlotItems.XMarker, PlotItems.YMarker)):
+        elif isinstance(item, (items.Marker,
+                               items.XMarker, items.YMarker)):
             kind = 'marker'
-        elif isinstance(item, PlotItems.Shape):
+        elif isinstance(item, items.Shape):
             kind = 'item'
         else:
             raise ValueError('Unsupported item type %s' % type(item))
@@ -467,7 +467,7 @@ class Plot(object):
         item._setPlot(self)
         if item.isVisible():
             self._itemRequiresUpdate(item)
-        if isinstance(item, (PlotItems.Curve, PlotItems.Image)):
+        if isinstance(item, (items.Curve, items.Image)):
             self._invalidateDataRange()  # TODO handle this automatically
 
     def _remove(self, item):
@@ -613,7 +613,7 @@ class Plot(object):
         curve = self.getCurve(legend)
         if curve is None:
             # No previous curve, create a default one and add it to the plot
-            curve = PlotItems.Curve()
+            curve = items.Curve()
             curve._setLegend(legend)
             # Set default color, linestyle and symbol
             default_color, default_linestyle = self._getColorAndStyle()
@@ -761,7 +761,7 @@ class Plot(object):
         image = self.getImage(legend)
         if image is None:
             # No previous image, create a default one and add it to the plot
-            image = PlotItems.Image()
+            image = items.Image()
             image._setLegend(legend)
             image._setColormap(self.getDefaultColormap())
             self._add(image)
@@ -849,7 +849,7 @@ class Plot(object):
         else:
             self.remove(legend, kind='item')
 
-        item = PlotItems.Shape()
+        item = items.Shape()
         item._setLegend(legend)
         item._setInfo(info)
         item._setType(shape)
@@ -860,7 +860,7 @@ class Plot(object):
         item._setPoints(numpy.array((xdata, ydata), copy=True).T)
 
         self._add(item)
-        self._setDirtyPlot(overlayOnly=item.isOverlay())  # TODO handle overlay
+        self._setDirtyPlot(overlayOnly=item.isOverlay())
 
         self.notify('contentChanged', action='add', kind='item', legend=legend)
 
@@ -1036,11 +1036,11 @@ class Plot(object):
         legend = str(legend)
 
         if x is None:
-            markerClass = PlotItems.YMarker
+            markerClass = items.YMarker
         elif y is None:
-            markerClass = PlotItems.XMarker
+            markerClass = items.XMarker
         else:
-            markerClass = PlotItems.Marker
+            markerClass = items.Marker
 
         # Create/Update marker object
         marker = self._getMarker(legend)
@@ -1350,8 +1350,8 @@ class Plot(object):
                                  False (the default) to get the curve data
                                  and info.
         :return: Active curve's legend or corresponding
-                 :class:`.PlotItems.Curve`
-        :rtype: str or :class:`.PlotItems.Curve` or None
+                 :class:`.items.Curve`
+        :rtype: str or :class:`.items.Curve` or None
         """
         if not self.isActiveCurveHandling():
             return None
@@ -1382,8 +1382,8 @@ class Plot(object):
                                  False (the default) to get the image data
                                  and info.
         :return: Active image's legend or corresponding
-                 :class:`.PlotItems.Image`
-        :rtype: str or :class:`.PlotItems.Image` or None
+                 :class:`.items.Image`
+        :rtype: str or :class:`.items.Image` or None
         """
         return self._getActiveItem(kind='image', just_legend=just_legend)
 
@@ -1459,8 +1459,8 @@ class Plot(object):
                 if item.getXLabel() is not None:
                     xLabel = item.getXLabel()
                 if item.getYLabel() is not None:
-                    if (isinstance(item, PlotItems.YAxisMixIn) and
-                            isinstance(item, PlotItems.LabelsMixIn) and
+                    if (isinstance(item, items.YAxisMixIn) and
+                            isinstance(item, items.LabelsMixIn) and
                             item.getYAxis() == 'right'):
                         yRightLabel = item.getYLabel()
                     else:
@@ -1498,7 +1498,7 @@ class Plot(object):
 
         It returns an empty list in case of not having any curve.
 
-        If just_legend is False, it returns a list of :class:`PlotItems.Curve`
+        If just_legend is False, it returns a list of :class:`items.Curve`
         objects describing the curves.
         If just_legend is True, it returns a list of curves' legend.
 
@@ -1506,8 +1506,8 @@ class Plot(object):
                                  False (the default) to get the curves' data
                                  and info.
         :param bool withhidden: False (default) to skip hidden curves.
-        :return: list of curves' legend or :class:`.PlotItems.Curve`
-        :rtype: list of str or list of :class:`.PlotItems.Curve`
+        :return: list of curves' legend or :class:`.items.Curve`
+        :rtype: list of str or list of :class:`.items.Curve`
         """
         return self._getItems(kind='curve',
                               just_legend=just_legend,
@@ -1523,7 +1523,7 @@ class Plot(object):
             If not provided or None (the default), the active curve is returned
             or if there is no active curve, the latest updated curve that is
             not hidden is returned if there are curves in the plot.
-        :return: None or :class:`.PlotItems.Curve` object
+        :return: None or :class:`.items.Curve` object
         """
         return self._getItem(kind='curve', legend=legend)
 
@@ -1532,15 +1532,15 @@ class Plot(object):
 
         It returns an empty list in case of not having any image.
 
-        If just_legend is False, it returns a list of :class:`PlotItems.Image`
+        If just_legend is False, it returns a list of :class:`items.Image`
         objects describing the images.
         If just_legend is True, it returns a list of legends.
 
         :param bool just_legend: True to get the legend of the images,
                                  False (the default) to get the images'
                                  object.
-        :return: list of images' legend or :class:`.PlotItems.Image`
-        :rtype: list of str or list of :class:`.PlotItems.Image`
+        :return: list of images' legend or :class:`.items.Image`
+        :rtype: list of str or list of :class:`.items.Image`
         """
         return self._getItems(kind='image',
                               just_legend=just_legend,
@@ -1556,7 +1556,7 @@ class Plot(object):
             If not provided or None (the default), the active image is returned
             or if there is no active image, the latest updated image
             is returned if there are images in the plot.
-        :return: None or :class:`.PlotItems.Image` object
+        :return: None or :class:`.items.Image` object
         """
         return self._getItem(kind='image', legend=legend)
 
@@ -1597,9 +1597,9 @@ class Plot(object):
                 if item is not None:  # Return active item if available
                     return item
             # Return last visible item if any
-            items = self._getItems(
+            allItems = self._getItems(
                 kind=kind, just_legend=False, withhidden=False)
-            return items[-1] if items else None
+            return allItems[-1] if allItems else None
 
     # Limits
 
@@ -2334,10 +2334,11 @@ class Plot(object):
             def test(i):
                 return True
 
-        items = self._backend.pickItems(x, y)
-        items = [item for item in items if item['kind'] in ['curve', 'image']]
+        allItems = self._backend.pickItems(x, y)
+        allItems = [item for item in allItems
+                    if item['kind'] in ['curve', 'image']]
 
-        for item in reversed(items):
+        for item in reversed(allItems):
             kind, legend = item['kind'], item['legend']
             if kind == 'curve':
                 curve = self.getCurve(legend)

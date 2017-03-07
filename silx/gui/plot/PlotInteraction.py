@@ -35,7 +35,7 @@ import time
 import weakref
 
 from . import Colors
-from . import PlotItems
+from . import items
 from .Interaction import (ClickOrDrag, LEFT_BTN, RIGHT_BTN,
                           State, StateMachine)
 from .PlotEvents import (prepareCurveSignal, prepareDrawingSignal,
@@ -1018,9 +1018,9 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                     self.machine.plot.setGraphCursorShape()
 
                 elif marker.isDraggable():
-                    if isinstance(marker, PlotItems.YMarker):
+                    if isinstance(marker, items.YMarker):
                         self.machine.plot.setGraphCursorShape(CURSOR_SIZE_VER)
-                    elif isinstance(marker, PlotItems.XMarker):
+                    elif isinstance(marker, items.XMarker):
                         self.machine.plot.setGraphCursorShape(CURSOR_SIZE_HOR)
                     else:
                         self.machine.plot.setGraphCursorShape(CURSOR_SIZE_ALL)
