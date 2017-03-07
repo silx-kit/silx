@@ -113,13 +113,13 @@ class Image(Item, LabelsMixIn, DraggableMixIn, ColormapMixIn):
         else:
             raise IndexError("Index out of range: %s" % str(item))
 
-    def _setVisible(self, visible):
+    def setVisible(self, visible):
         """Set visibility of item.
 
         :param bool visible: True to display it, False otherwise
         """
         visibleChanged = self.isVisible() != bool(visible)
-        super(Image, self)._setVisible(visible)
+        super(Image, self).setVisible(visible)
 
         # TODO hackish data range implementation
         if visibleChanged:
@@ -172,7 +172,7 @@ class Image(Item, LabelsMixIn, DraggableMixIn, ColormapMixIn):
         else:
             return numpy.array(self._pixmap, copy=copy)
 
-    def _setData(self, data, pixmap=None, copy=True):
+    def setData(self, data, pixmap=None, copy=True):
         """Set the image data
 
         :param data: Image data to set
@@ -207,7 +207,7 @@ class Image(Item, LabelsMixIn, DraggableMixIn, ColormapMixIn):
         """
         return self._origin
 
-    def _setOrigin(self, origin):
+    def setOrigin(self, origin):
         """Set the offset from origin at which to display the image.
 
         :param origin: (ox, oy) Offset from origin
@@ -221,6 +221,12 @@ class Image(Item, LabelsMixIn, DraggableMixIn, ColormapMixIn):
             self._origin = origin
             self._updated()
 
+            # TODO hackish data range implementation
+            if self.isVisible():
+                plot = self.getPlot()
+                if plot is not None:
+                    plot._invalidateDataRange()
+
     def getScale(self):
         """Returns the scale of the image in data coordinates.
 
@@ -228,7 +234,7 @@ class Image(Item, LabelsMixIn, DraggableMixIn, ColormapMixIn):
         """
         return self._scale
 
-    def _setScale(self, scale):
+    def setScale(self, scale):
         """Set the scale of the image
 
         :param scale: (sx, sy) Scale of the image
@@ -241,3 +247,9 @@ class Image(Item, LabelsMixIn, DraggableMixIn, ColormapMixIn):
         if scale != self._scale:
             self._scale = scale
             self._updated()
+
+            # TODO hackish data range implementation
+            if self.isVisible():
+                plot = self.getPlot()
+                if plot is not None:
+                    plot._invalidateDataRange()

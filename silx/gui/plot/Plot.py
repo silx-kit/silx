@@ -617,35 +617,35 @@ class Plot(object):
             curve._setLegend(legend)
             # Set default color, linestyle and symbol
             default_color, default_linestyle = self._getColorAndStyle()
-            curve._setColor(default_color)
-            curve._setLineStyle(default_linestyle)
-            curve._setSymbol(self._defaultPlotPoints)
+            curve.setColor(default_color)
+            curve.setLineStyle(default_linestyle)
+            curve.setSymbol(self._defaultPlotPoints)
             self._add(curve)
 
         # Override previous/default values with provided ones
-        curve._setInfo(info)
+        curve.setInfo(info)
         if color is not None:
-            curve._setColor(color)
+            curve.setColor(color)
         if symbol is not None:
-            curve._setSymbol(symbol)
+            curve.setSymbol(symbol)
         if linewidth is not None:
-            curve._setLineWidth(linewidth)
+            curve.setLineWidth(linewidth)
         if linestyle is not None:
-            curve._setLineStyle(linestyle)
+            curve.setLineStyle(linestyle)
         if xlabel is not None:
             curve._setXLabel(xlabel)
         if ylabel is not None:
             curve._setYLabel(ylabel)
         if yaxis is not None:
-            curve._setYAxis(yaxis)
+            curve.setYAxis(yaxis)
         if z is not None:
-            curve._setZValue(z)
+            curve.setZValue(z)
         if selectable is not None:
             curve._setSelectable(selectable)
         if fill is not None:
-            curve._setFill(fill)
+            curve.setFill(fill)
         if histogram is not None:
-            curve._setHistogramType(histogram)
+            curve.setHistogramType(histogram)
 
         # Set curve data
         # If errors not provided, reuse previous ones
@@ -655,7 +655,7 @@ class Plot(object):
         if yerror is None:
             yerror = curve.getYErrorData(copy=False)
 
-        curve._setData(x, y, xerror, yerror)
+        curve.setData(x, y, xerror, yerror)
 
         if replace:  # Then remove all other curves
             for c in self.getAllCurves(withhidden=True):
@@ -763,29 +763,29 @@ class Plot(object):
             # No previous image, create a default one and add it to the plot
             image = items.Image()
             image._setLegend(legend)
-            image._setColormap(self.getDefaultColormap())
+            image.setColormap(self.getDefaultColormap())
             self._add(image)
 
         # Override previous/default values with provided ones
-        image._setInfo(info)
+        image.setInfo(info)
         if origin is not None:
-            image._setOrigin(origin)
+            image.setOrigin(origin)
         if scale is not None:
-            image._setScale(scale)
+            image.setScale(scale)
         if z is not None:
-            image._setZValue(z)
+            image.setZValue(z)
         if selectable is not None:
             image._setSelectable(selectable)
         if draggable is not None:
             image._setDraggable(draggable)
         if colormap is not None:
-            image._setColormap(colormap)
+            image.setColormap(colormap)
         if xlabel is not None:
             image._setXLabel(xlabel)
         if ylabel is not None:
             image._setYLabel(ylabel)
 
-        image._setData(data, pixmap)
+        image.setData(data, pixmap)
 
         if replace:
             for img in self.getAllImages():
@@ -851,13 +851,13 @@ class Plot(object):
 
         item = items.Shape()
         item._setLegend(legend)
-        item._setInfo(info)
+        item.setInfo(info)
         item._setType(shape)
-        item._setColor(color)
-        item._setFill(fill)
-        item._setOverlay(overlay)
-        item._setZValue(z)
-        item._setPoints(numpy.array((xdata, ydata), copy=True).T)
+        item.setColor(color)
+        item.setFill(fill)
+        item.setOverlay(overlay)
+        item.setZValue(z)
+        item.setPoints(numpy.array((xdata, ydata), copy=True).T)
 
         self._add(item)
         self._setDirtyPlot(overlayOnly=item.isOverlay())
@@ -1057,21 +1057,21 @@ class Plot(object):
             self._add(marker)
 
         if text is not None:
-            marker._setText(text)
+            marker.setText(text)
         if color is not None:
-            marker._setColor(color)
+            marker.setColor(color)
         if selectable is not None:
             marker._setSelectable(selectable)
         if draggable is not None:
             marker._setDraggable(draggable)
         if symbol is not None:
-            marker._setSymbol(symbol)
+            marker.setSymbol(symbol)
 
         # TODO to improve, but this ensure constraint is applied
-        marker._setPosition(x, y)
+        marker.setPosition(x, y)
         if constraint is not None:
             marker._setConstraint(constraint)
-        marker._setPosition(x, y)
+        marker.setPosition(x, y)
 
         self.notify(
             'contentChanged', action='add', kind='marker', legend=legend)
@@ -1107,7 +1107,7 @@ class Plot(object):
 
         isVisible = not flag
         if isVisible != curve.isVisible():
-            curve._setVisible(isVisible)
+            curve.setVisible(isVisible)
 
     # Remove
 
@@ -1438,7 +1438,7 @@ class Plot(object):
 
         # Curve specific: Reset highlight of previous active curve
         if kind == 'curve' and oldActiveItem is not None:
-            oldActiveItem._setHighlighted(False)
+            oldActiveItem.setHighlighted(False)
 
         if legend is None:
             self._activeLegend[kind] = None
@@ -1453,8 +1453,8 @@ class Plot(object):
 
                 # Curve specific: handle highlight
                 if kind == 'curve':
-                    item._setHighlightedColor(self.getActiveCurveColor())
-                    item._setHighlighted(True)
+                    item.setHighlightedColor(self.getActiveCurveColor())
+                    item.setHighlighted(True)
 
                 if item.getXLabel() is not None:
                     xLabel = item.getXLabel()
@@ -1949,7 +1949,7 @@ class Plot(object):
 
         if curves:
             for curve in curves:
-                curve._setSymbol(self._defaultPlotPoints)
+                curve.setSymbol(self._defaultPlotPoints)
 
     def isDefaultPlotLines(self):
         """Return True for line as default line style, False for no line."""
@@ -1970,7 +1970,7 @@ class Plot(object):
 
         if curves:
             for curve in curves:
-                curve._setLineStyle(linestyle)
+                curve.setLineStyle(linestyle)
 
     def getDefaultColormap(self):
         """Return the default colormap used by :meth:`addImage` as a dict.
@@ -2298,7 +2298,7 @@ class Plot(object):
         """
         marker = self._getMarker(legend)
         if marker is not None:
-            marker._setPosition(x, y)
+            marker.setPosition(x, y)
 
     def _getAllMarkers(self, just_legend=False):
         """Returns all markers' legend or objects
@@ -2366,7 +2366,7 @@ class Plot(object):
         """
         image = self.getImage(legend)
         origin = image.getOrigin()
-        image._setOrigin((origin[0] + dx, origin[1] + dy))
+        image.setOrigin((origin[0] + dx, origin[1] + dy))
 
     # User event handling #
 

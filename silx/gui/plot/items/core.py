@@ -106,7 +106,7 @@ class Item(object):
         """
         return self._visible
 
-    def _setVisible(self, visible):
+    def setVisible(self, visible):
         """Set visibility of item.
 
         :param bool visible: True to display it, False otherwise
@@ -155,7 +155,7 @@ class Item(object):
         """Returns the layer on which to draw this item (int)"""
         return self._z
 
-    def _setZValue(self, z):
+    def setZValue(self, z):
         z = int(z) if z is not None else self._DEFAULT_Z_LAYER
         if z != self._z:
             self._z = z
@@ -168,7 +168,7 @@ class Item(object):
         """
         return deepcopy(self._info) if copy else self._info
 
-    def _setInfo(self, info, copy=True):
+    def setInfo(self, info, copy=True):
         if copy:
             info = deepcopy(info)
         self._info = info
@@ -304,7 +304,7 @@ class ColormapMixIn(object):
         """Return the used colormap"""
         return self._colormap.copy()
 
-    def _setColormap(self, colormap):
+    def setColormap(self, colormap):
         """Set the colormap of this image
 
         :param dict colormap: colormap description
@@ -340,7 +340,7 @@ class SymbolMixIn(object):
         """
         return self._symbol
 
-    def _setSymbol(self, symbol):
+    def setSymbol(self, symbol):
         """Set the marker type
 
         See :meth:`getSymbol`.
@@ -371,7 +371,7 @@ class ColorMixIn(object):
         """
         return self._color
 
-    def _setColor(self, color, copy=True):
+    def setColor(self, color, copy=True):
         """Set item color
 
         :param color: color(s) to be used
@@ -412,7 +412,7 @@ class YAxisMixIn(object):
         """
         return self._yaxis
 
-    def _setYAxis(self, yaxis):
+    def setYAxis(self, yaxis):
         """Set the Y axis this curve belongs to.
 
         :param str yaxis: 'left' or 'right'
@@ -437,7 +437,7 @@ class FillMixIn(object):
         """
         return self._fill
 
-    def _setFill(self, fill):
+    def setFill(self, fill):
         """Set whether to fill the item or not.
 
         :param bool fill:

@@ -87,7 +87,7 @@ class _BaseMarker(Item, DraggableMixIn, ColorMixIn):
         """
         return self._text
 
-    def _setText(self, text):
+    def setText(self, text):
         """Set the text of the marker.
 
         :param str text: The text to use
@@ -118,7 +118,7 @@ class _BaseMarker(Item, DraggableMixIn, ColorMixIn):
         """
         return self._x, self._y
 
-    def _setPosition(self, x, y):
+    def setPosition(self, x, y):
         """Set marker position in data coordinates
 
         Constraint are applied if any.
@@ -204,7 +204,7 @@ class XMarker(_BaseMarker):
         _BaseMarker.__init__(self)
         self._x = 0.
 
-    def _setPosition(self, x, y):
+    def setPosition(self, x, y):
         """Set marker line position in data coordinates
 
         Constraint are applied if any.
@@ -226,7 +226,7 @@ class YMarker(_BaseMarker):
         _BaseMarker.__init__(self)
         self._y = 0.
 
-    def _setPosition(self, x, y):
+    def setPosition(self, x, y):
         """Set marker line position in data coordinates
 
         Constraint are applied if any.

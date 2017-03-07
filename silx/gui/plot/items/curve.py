@@ -225,13 +225,13 @@ class Curve(Item, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn):
         else:
             raise IndexError("Index out of range: %s", str(item))
 
-    def _setVisible(self, visible):
+    def setVisible(self, visible):
         """Set visibility of item.
 
         :param bool visible: True to display it, False otherwise
         """
         visibleChanged = self.isVisible() != bool(visible)
-        super(Curve, self)._setVisible(visible)
+        super(Curve, self).setVisible(visible)
 
         # TODO hackish data range implementation
         if visibleChanged:
@@ -408,7 +408,7 @@ class Curve(Item, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn):
                 self.getXErrorData(copy),
                 self.getYErrorData(copy))
 
-    def _setData(self, x, y, xerror=None, yerror=None, copy=True):
+    def setData(self, x, y, xerror=None, yerror=None, copy=True):
         x = numpy.array(x, copy=copy)
         y = numpy.array(y, copy=copy)
         assert x.ndim == y.ndim == 1
@@ -438,7 +438,7 @@ class Curve(Item, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn):
         """
         return self._highlighted
 
-    def _setHighlighted(self, highlighted):
+    def setHighlighted(self, highlighted):
         """Set the highlight state of the curve
 
         :param bool highlighted:
@@ -456,7 +456,7 @@ class Curve(Item, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn):
         """
         return self._highlightColor
 
-    def _setHighlightedColor(self, color):
+    def setHighlightedColor(self, color):
         """Set the color to use when highlighted
 
         :param color: color(s) to be used for highlight
@@ -485,7 +485,7 @@ class Curve(Item, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn):
         """Return the curve line width in pixels (int)"""
         return self._linewidth
 
-    def _setLineWidth(self, width):
+    def setLineWidth(self, width):
         """Set the width in pixel of the curve line
 
         See :meth:`getLineWidth`.
@@ -512,7 +512,7 @@ class Curve(Item, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn):
         """
         return self._linestyle
 
-    def _setLineStyle(self, style):
+    def setLineStyle(self, style):
         """Set the style of the curve line.
 
         See :meth:`getLineStyle`.
@@ -542,8 +542,13 @@ class Curve(Item, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn):
         """
         return self._histogram
 
-    def _setHistogramType(self, histogram):
+    def setHistogramType(self, histogram):
         assert histogram in ('left', 'right', 'center', None)
         if histogram != self._histogram:
             self._histogram = histogram
             self._updated()
+            # TODO hackish data range implementation
+            if self.isVisible():
+                plot = self.getPlot()
+                if plot is not None:
+                    plot._invalidateDataRange()

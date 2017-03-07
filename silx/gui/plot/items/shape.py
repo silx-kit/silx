@@ -75,10 +75,10 @@ class Shape(Item, ColorMixIn, FillMixIn):
         """
         return self._overlay
 
-    def _setOverlay(self, overlay):
+    def setOverlay(self, overlay):
         """Set the overlay state of the shape
 
-        :param bool overlay:
+        :param bool overlay: True to make it an overlay
         """
         overlay = bool(overlay)
         if overlay != self._overlay:
@@ -95,6 +95,14 @@ class Shape(Item, ColorMixIn, FillMixIn):
         return self._type
 
     def _setType(self, type_):
+        """Set the type of shape to draw.
+
+        This setter is private as it is not expected to change type
+        during life-cycle.
+
+        :param str type_: The type of shape in:
+                          'hline', 'polygon', 'rectangle', 'vline', 'polyline'
+        """
         assert type_ in ('hline', 'polygon', 'rectangle', 'vline', 'polyline')
         if type_ != self._type:
             self._type = type_
@@ -110,7 +118,7 @@ class Shape(Item, ColorMixIn, FillMixIn):
         """
         return numpy.array(self._points, copy=copy)
 
-    def _setPoints(self, points, copy=True):
+    def setPoints(self, points, copy=True):
         """Set the point coordinates
 
         :param numpy.ndarray points: Array of point coordinates
