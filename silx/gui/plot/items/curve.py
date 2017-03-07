@@ -409,6 +409,23 @@ class Curve(Item, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn):
                 self.getYErrorData(copy))
 
     def setData(self, x, y, xerror=None, yerror=None, copy=True):
+        """Set the data of the curve.
+
+        :param numpy.ndarray x: The data corresponding to the x coordinates.
+          If you attempt to plot an histogram you can set edges values in x.
+          In this case len(x) = len(y) + 1
+        :param numpy.ndarray y: The data corresponding to the y coordinates
+        :param xerror: Values with the uncertainties on the x values
+        :type xerror: A float, or a numpy.ndarray of float32.
+                      If it is an array, it can either be a 1D array of
+                      same length as the data or a 2D array with 2 rows
+                      of same length as the data: row 0 for positive errors,
+                      row 1 for negative errors.
+        :param yerror: Values with the uncertainties on the y values
+        :type yerror: A float, or a numpy.ndarray of float32. See xerror.
+        :param bool copy: True make a copy of the data (default),
+                          False to use provided arrays.
+        """
         x = numpy.array(x, copy=copy)
         y = numpy.array(y, copy=copy)
         assert x.ndim == y.ndim == 1
