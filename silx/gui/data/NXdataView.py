@@ -807,9 +807,8 @@ class NXdataView(CompositeDataView):
     def __init__(self, parent):
         super(NXdataView, self).__init__(
             parent=parent,
-            # modeId=DataViewer.NXDATA_MODE,
             label="NXdata",
-            icon=icons.getQIcon("view-hdf5"))  # FIXME
+            icon=icons.getQIcon("view-nexus"))
 
         self.addView(NXdataScalarView(parent))
         self.addView(NXdataCurveView(parent))
