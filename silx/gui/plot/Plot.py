@@ -2285,19 +2285,6 @@ class Plot(object):
                 return marker
         return None
 
-    def _moveMarker(self, legend, x, y):  # TODO this is not needed
-        """Move a marker to a position.
-
-        To use for interaction implementation.
-
-        :param str legend: The legend associated to the marker.
-        :param float x: The new X position of the marker in data coordinates.
-        :param float y: The new Y position of the marker in data coordinates.
-        """
-        marker = self._getMarker(legend)
-        if marker is not None:
-            marker.setPosition(x, y)
-
     def _getAllMarkers(self, just_legend=False):
         """Returns all markers' legend or objects
 
@@ -2352,19 +2339,6 @@ class Plot(object):
                 _logger.warning('Unsupported kind: %s', kind)
 
         return None
-
-    def _moveImage(self, legend, dx, dy):  # TODO this is not needed
-        """Move an image to a position.
-
-        To use for interaction implementation.
-
-        :param str legend: The legend associated to the image.
-        :param float dx: The X offset to apply to the image in data coords.
-        :param float dy: The Y offset to apply to the image in data coords.
-        """
-        image = self.getImage(legend)
-        origin = image.getOrigin()
-        image.setOrigin((origin[0] + dx, origin[1] + dy))
 
     # User event handling #
 
