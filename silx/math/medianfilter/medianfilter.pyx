@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -43,9 +43,11 @@ ctypedef unsigned int uint32
 ctypedef unsigned short uint16
 
 def medianfilter(input_buffer, kernel_dim, bool conditionnal, int nthread=4):
-    """function computing the medianfilter of the given input_buffer.
-    Behavior at boundaries : the algoithm is reducing the size of the 
-    window/kernel for pixels at boundaries ( There is no mirroring )
+    """medianfilter(input_buffer, kernel_dim, bool conditionnal, int nthread=4)
+
+    Function computing the median filter of the given input_buffer.
+    Behavior at boundaries: the algorithm is reducing the size of the
+    window/kernel for pixels at boundaries (there is no mirroring).
 
     :param numpy.ndarray input_buffer: the array for which we want to apply 
         the median filter
@@ -54,7 +56,7 @@ def medianfilter(input_buffer, kernel_dim, bool conditionnal, int nthread=4):
         a list of (kernel_width, kernel_height)
     :param bool conditionnal: True if we want to apply a conditionnal median 
         filtering.
-    :param int nthread: the number of threads we want to lauch to solve the 
+    :param int nthread: the number of threads we want to launch to solve the
         median filtering.
 
     :returns: the array with the median value for each pixel.
