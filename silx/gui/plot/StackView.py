@@ -326,7 +326,7 @@ class StackView(qt.QMainWindow):
         assert self.__transposed_view is not None
         self._plot.addImage(self.__transposed_view[index, :, :],
                             legend=self.__imageLegend,
-                            resetzoom=False)
+                            resetzoom=False, replace=False)
 
     # public API
     def setStack(self, stack, perspective=0, reset=True):
