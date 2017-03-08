@@ -138,7 +138,6 @@ class SfNoMcaError(Exception):
 
 class MCA(object):
     """
-    ``MCA(scan)``
 
     :param scan: Parent Scan instance
     :type scan: :class:`Scan`
@@ -224,6 +223,7 @@ class MCA(object):
 
     def __len__(self):
         """
+
         :return: Number of mca in Scan
         :rtype: int
         """
@@ -282,7 +282,6 @@ def _add_or_concatenate(dictionary, key, value):
 
 class Scan(object):
     """
-    ``Scan(specfile, scan_index)``
 
     :param specfile: Parent SpecFile from which this scan is extracted.
     :type specfile: :class:`SpecFile`
@@ -366,6 +365,7 @@ class Scan(object):
         self._data = None
         self._mca = None
 
+    @cython.embedsignature(False)
     @property
     def index(self):
         """Unique scan index 0 - len(specfile)-1
@@ -375,16 +375,19 @@ class Scan(object):
         different scan without updating the header accordingly."""
         return self._index
 
+    @cython.embedsignature(False)
     @property
     def number(self):
         """First value on #S line (as int)"""
         return self._number
 
+    @cython.embedsignature(False)
     @property
     def order(self):
         """Order can be > 1 if the same number is repeated in a specfile"""
         return self._order
 
+    @cython.embedsignature(False)
     @property
     def header(self):
         """List of raw header lines (as a list of strings).
@@ -394,18 +397,21 @@ class Scan(object):
         """
         return self._header
 
+    @cython.embedsignature(False)
     @property
     def scan_header(self):
         """List of raw scan header lines (as a list of strings).
         """
         return self._scan_header_lines
 
+    @cython.embedsignature(False)
     @property
     def file_header(self):
         """List of raw file header lines (as a list of strings).
         """
         return self._file_header_lines
 
+    @cython.embedsignature(False)
     @property
     def scan_header_dict(self):
         """
@@ -415,6 +421,7 @@ class Scan(object):
         """
         return self._scan_header_dict
 
+    @cython.embedsignature(False)
     @property
     def mca_header_dict(self):
         """
@@ -423,6 +430,7 @@ class Scan(object):
         """
         return self._mca_header_dict
 
+    @cython.embedsignature(False)
     @property
     def file_header_dict(self):
         """
@@ -431,6 +439,7 @@ class Scan(object):
         """
         return self._file_header_dict
 
+    @cython.embedsignature(False)
     @property
     def labels(self):
         """
@@ -438,6 +447,7 @@ class Scan(object):
         """
         return self._labels
 
+    @cython.embedsignature(False)
     @property
     def data(self):
         """Scan data as a 2D numpy.ndarray with the usual attributes
@@ -450,6 +460,7 @@ class Scan(object):
 
         return self._data
 
+    @cython.embedsignature(False)
     @property
     def mca(self):
         """MCA data in this scan.
@@ -463,12 +474,14 @@ class Scan(object):
             self._mca = MCA(self)
         return self._mca
 
+    @cython.embedsignature(False)
     @property
     def motor_names(self):
         """List of motor names from the ``#O`` file header line.
         """
         return self._motor_names
 
+    @cython.embedsignature(False)
     @property
     def motor_positions(self):
         """List of motor positions as floats from the ``#P`` scan header line.
@@ -569,7 +582,7 @@ def is_specfile(filename):
 
 
 cdef class SpecFile(object):
-    """``SpecFile(filename)``
+    """
 
     :param filename: Path of the SpecFile to read
 
