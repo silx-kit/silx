@@ -136,7 +136,7 @@ class ArrayCurvePlot(qt.QWidget):
         self.__first_curve_added = False
 
         self._plot = Plot1D(self)
-        dock_widget = qt.QDockWidget(self._plot)
+        dock_widget = qt.QDockWidget("Selector", self._plot)
         self._selector = NumpyAxesSelector(dock_widget)
         self._selector.setNamedAxesSelectorVisibility(False)
         self.__selector_is_connected = False
@@ -425,7 +425,7 @@ class ArrayImagePlot(qt.QWidget):
                 {"name": "viridis",
                  "normalization": "linear",
                  "autoscale": True})
-        dock_widget = qt.QDockWidget(self._plot)
+        dock_widget = qt.QDockWidget("Selector", self._plot)
         self._legend = qt.QLabel(self)
         self._selector = NumpyAxesSelector(dock_widget)
         self._selector.setNamedAxesSelectorVisibility(False)
