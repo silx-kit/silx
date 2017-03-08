@@ -35,6 +35,7 @@ __date__ = "05/09/2016"
 
 import numpy
 cimport numpy as cnumpy
+cimport cython
 
 cimport mc
 
@@ -188,11 +189,13 @@ cdef class MarchingCubes:
         """Reset internal resources including computed isosurface info."""
         self.c_mc.reset()
 
+    @cython.embedsignature(False)
     @property
     def shape(self):
         """The shape of the processed scalar field (depth, height, width)."""
         return self.c_mc.depth, self.c_mc.height, self.c_mc.width
 
+    @cython.embedsignature(False)
     @property
     def sampling(self):
         """The sampling over each dimension (depth, height, width).
@@ -203,11 +206,13 @@ cdef class MarchingCubes:
                 self.c_mc.sampling[1],
                 self.c_mc.sampling[2])
 
+    @cython.embedsignature(False)
     @property
     def isolevel(self):
         """The iso-level at which to generate the isosurface"""
         return self.c_mc.isolevel
 
+    @cython.embedsignature(False)
     @property
     def invert_normals(self):
         """True to use gradient descent as normals."""
