@@ -4,4 +4,4 @@
 :mod:`medianfilter`: Median filter
 ----------------------------------
 
-.. autofunction:: silx.math.medianfilter.median_filter
+.. autofunction:: silx.math.medianfilter.medianfilter
