@@ -136,14 +136,16 @@ class ArrayCurvePlot(qt.QWidget):
         self.__first_curve_added = False
 
         self._plot = Plot1D(self)
-        self._selector = NumpyAxesSelector(self)
+        dock_widget = qt.QDockWidget(self._plot)
+        self._selector = NumpyAxesSelector(dock_widget)
         self._selector.setNamedAxesSelectorVisibility(False)
         self.__selector_is_connected = False
+        dock_widget.setWidget(self._selector)
+        self._plot.addTabbedDockWidget(dock_widget)
 
         layout = qt.QGridLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self._plot,  0, 0)
-        layout.addWidget(self._selector, 1, 0)
 
         self.setLayout(layout)
 
@@ -423,15 +425,17 @@ class ArrayImagePlot(qt.QWidget):
                 {"name": "viridis",
                  "normalization": "linear",
                  "autoscale": True})
+        dock_widget = qt.QDockWidget(self._plot)
         self._legend = qt.QLabel(self)
-        self._selector = NumpyAxesSelector(self)
+        self._selector = NumpyAxesSelector(dock_widget)
         self._selector.setNamedAxesSelectorVisibility(False)
         self.__selector_is_connected = False
 
         layout = qt.QVBoxLayout()
         layout.addWidget(self._plot)
         layout.addWidget(self._legend)
-        layout.addWidget(self._selector)
+        dock_widget.setWidget(self._selector)
+        self._plot.addTabbedDockWidget(dock_widget)
 
         self.setLayout(layout)
 
