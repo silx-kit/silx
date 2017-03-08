@@ -30,7 +30,7 @@ It provides the plot API fully defined in :class:`.Plot`.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "26/01/2017"
+__date__ = "07/03/2017"
 
 import collections
 import logging
@@ -287,7 +287,7 @@ class PlotWindow(PlotWidget):
                 available_vars=available_vars,
                 custom_banner=banner,
                 parent=self)
-            self._introduceNewDockWidget(self._consoleDockWidget)
+            self.addTabbedDockWidget(self._consoleDockWidget)
             self._consoleDockWidget.visibilityChanged.connect(
                 self.getConsoleAction().setChecked)
 
@@ -352,9 +352,12 @@ class PlotWindow(PlotWidget):
         controlMenu.addAction(self.getCrosshairAction())
         controlMenu.addAction(self.getPanWithArrowKeysAction())
 
-    def _introduceNewDockWidget(self, dock_widget):
-        """Maintain a list of dock widgets, in the order in which they are
-        added. Tabify them as soon as there are more than one of them.
+    def addTabbedDockWidget(self, dock_widget):
+        """Add a dock widget as a new tab if there are already dock widgets
+        in the plot. When the first tab is added, the area is chosen
+        depending on the plot geometry:
+        it the window is much wider than it is high, the right dock area
+        is used, else the bottom dock area is used.
 
         :param dock_widget: Instance of :class:`QDockWidget` to be added.
         """
@@ -385,7 +388,7 @@ class PlotWindow(PlotWidget):
         if self._legendsDockWidget is None:
             self._legendsDockWidget = LegendsDockWidget(plot=self)
             self._legendsDockWidget.hide()
-            self._introduceNewDockWidget(self._legendsDockWidget)
+            self.addTabbedDockWidget(self._legendsDockWidget)
         return self._legendsDockWidget
 
     @property
@@ -399,7 +402,7 @@ class PlotWindow(PlotWidget):
             self._curvesROIDockWidget = CurvesROIDockWidget(
                 plot=self, name='Regions Of Interest')
             self._curvesROIDockWidget.hide()
-            self._introduceNewDockWidget(self._curvesROIDockWidget)
+            self.addTabbedDockWidget(self._curvesROIDockWidget)
         return self._curvesROIDockWidget
 
     @property
@@ -413,7 +416,7 @@ class PlotWindow(PlotWidget):
             self._maskToolsDockWidget = MaskToolsDockWidget(
                 plot=self, name='Mask')
             self._maskToolsDockWidget.hide()
-            self._introduceNewDockWidget(self._maskToolsDockWidget)
+            self.addTabbedDockWidget(self._maskToolsDockWidget)
         return self._maskToolsDockWidget
 
     # getters for actions
