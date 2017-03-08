@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -61,9 +61,7 @@ cdef class Polygon(object):
         self.nvert = self.vertices.shape[0]
 
     def is_inside(self, row, col):
-        """is_inside(self, row, col)
-
-        Check if (row, col) is inside or outside the polygon
+        """Check if (row, col) is inside or outside the polygon
 
         :param float row:
         :param float col:
@@ -106,9 +104,7 @@ cdef class Polygon(object):
     @cython.wraparound(False)
     @cython.boundscheck(False)
     def make_mask(self, int height, int width):
-        """make_mask(self, height, width)
-
-        Create a mask array representing the filled polygon
+        """Create a mask array representing the filled polygon
 
         :param int height: Height of the mask array
         :param int width: Width of the mask array
@@ -180,9 +176,7 @@ cdef class Polygon(object):
 
 
 def polygon_fill_mask(vertices, shape):
-    """polygon_fill_mask(vertices, shape)
-
-    Return a mask of boolean, True for pixels inside a polygon.
+    """Return a mask of boolean, True for pixels inside a polygon.
 
     :param vertices: Strip of segments end points (row, column) or (y, x)
     :type vertices: numpy.ndarray like container of dimension Nx2
@@ -197,9 +191,7 @@ def polygon_fill_mask(vertices, shape):
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def draw_line(int row0, int col0, int row1, int col1, int width=1):
-    """line(row0, col0, row1, col1) -> tuple
-
-    Line includes both end points.
+    """Line includes both end points.
     Width is handled by drawing parallel lines, so junctions of lines belonging
     to different octant with width > 1 will not look nice.
 
@@ -281,9 +273,7 @@ def draw_line(int row0, int col0, int row1, int col1, int width=1):
 
 
 def circle_fill(int crow, int ccol, float radius):
-    """circle_fill(crow, ccol, radius) -> tuple
-
-    Generates coordinate of image points lying in a disk.
+    """Generates coordinate of image points lying in a disk.
 
     :param int crow: Row of the center of the disk
     :param int ccol: Column of the center of the disk

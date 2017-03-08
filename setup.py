@@ -421,6 +421,7 @@ if not DRY_RUN:
 
         config.ext_modules = cythonize(
             config.ext_modules,
+            compiler_directives={'embedsignature': True},
             force=(os.environ.get("FORCE_CYTHON") is "True"),
             compile_time_env={"HAVE_OPENMP": bool(USE_OPENMP)}
         )

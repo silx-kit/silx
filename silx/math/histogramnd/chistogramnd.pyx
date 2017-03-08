@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -43,10 +43,7 @@ def chistogramnd(sample,
                  histo=None,
                  weighted_histo=None,
                  wh_dtype=None):
-    """
-    histogramnd(sample, histo_range, n_bins, weights=None, weight_min=None, weight_max=None, last_bin_closed=False, histo=None, weighted_histo=None)
-
-    Computes the multidimensional histogram of some data.
+    """Computes the multidimensional histogram of some data.
 
     :param sample:
         The data to be histogrammed.

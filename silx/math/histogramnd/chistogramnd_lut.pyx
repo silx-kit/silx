@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -59,10 +59,7 @@ def histogramnd_get_lut(sample,
                         histo_range,
                         n_bins,
                         last_bin_closed=False):
-    """
-    histogramnd_get_lut(sample, histo_range, n_bins, last_bin_closed=False)
-
-    TBD
+    """TBD
 
     :param sample:
         The data to be histogrammed.

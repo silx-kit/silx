@@ -1,6 +1,6 @@
 # coding: utf-8
 #/*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -60,8 +60,7 @@ cimport filters_wrapper
 
 
 def strip(data, w=1, niterations=1000, factor=1.0, anchors=None):
-    """strip(data, w, niterations, factor=1.0, anchors=None)
-    Extract background from data using the strip algorithm, as explained at
+    """Extract background from data using the strip algorithm, as explained at
     http://pymca.sourceforge.net/stripbackground.html.
 
     In its simplest implementation it is just as an iterative procedure
@@ -127,8 +126,7 @@ def strip(data, w=1, niterations=1000, factor=1.0, anchors=None):
 
 
 def snip1d(data, snip_width):
-    """snip1d(data, snip_width) -> numpy.ndarray
-    Estimate the baseline (background) of a 1D data vector by clipping peaks.
+    """Estimate the baseline (background) of a 1D data vector by clipping peaks.
 
     Implementation of the algorithm SNIP in 1D is described in *Miroslav
     Morhac et al. Nucl. Instruments and Methods in Physics Research A401
@@ -172,8 +170,7 @@ def snip1d(data, snip_width):
 
 
 def snip2d(data, snip_width):
-    """snip2d(data, width, nrows=None, ncolumns=None) -> numpy.ndarray
-    Estimate the baseline (background) of a 2D data signal by clipping peaks.
+    """Estimate the baseline (background) of a 2D data signal by clipping peaks.
 
     Implementation of the algorithm SNIP in 2D described in
     *Miroslav Morhac et al. Nucl. Instruments and Methods in Physics Research
@@ -218,8 +215,7 @@ def snip2d(data, snip_width):
 
 
 def snip3d(data, snip_width):
-    """snip3d(data, width, nx=None, ny=None, nz=None) -> numpy.ndarray
-    Estimate the baseline (background) of a 3D data signal by clipping peaks.
+    """Estimate the baseline (background) of a 3D data signal by clipping peaks.
 
     Implementation of the algorithm SNIP in 2D described in
     *Miroslav Morhac et al. Nucl. Instruments and Methods in Physics Research
@@ -268,8 +264,7 @@ def snip3d(data, snip_width):
 
 
 def savitsky_golay(data, npoints=5):
-    """savitsky_golay(data, npoints=5)
-    Smooth a curve using a Savitsky-Golay filter.
+    """Smooth a curve using a Savitsky-Golay filter.
 
     :param data: Input data
     :type data: 1D numpy array
@@ -299,8 +294,7 @@ def savitsky_golay(data, npoints=5):
 
 
 def smooth1d(data):
-    """smooth1d(data) -> numpy.ndarray
-    Simple smoothing for 1D data.
+    """Simple smoothing for 1D data.
 
     For a data array :math:`y` of length :math:`n`, the smoothed array
     :math:`ys` is calculated as a weighted average of neighboring samples:
@@ -339,8 +333,7 @@ def smooth1d(data):
 
 
 def smooth2d(data):
-    """smooth2d(data) -> numpy.ndarray
-    Simple smoothing for 2D data:
+    """Simple smoothing for 2D data:
     :func:`smooth1d` is applied succesively along both axis
 
     :param data: 2D data array
@@ -378,8 +371,7 @@ def smooth2d(data):
 
 
 def smooth3d(data):
-    """smooth3d(data) -> numpy.ndarray
-    Simple smoothing for 3D data:
+    """Simple smoothing for 3D data:
     :func:`smooth2d` is applied on each 2D slice of the data volume along all
     3 axis
 
@@ -418,4 +410,3 @@ def smooth3d(data):
     filters_wrapper.smooth3d(&data_c[0], nx, ny, nz)
 
     return numpy.asarray(data_c).reshape(data_shape)
-
