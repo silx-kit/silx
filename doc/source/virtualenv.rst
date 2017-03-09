@@ -12,9 +12,9 @@ Prerequisites
 
 This guide assumes that your system meets the following requirements:
 
-   - a version of python compatible with *silx* is installed (python 2.7 or python >= 3.4)
+   - a version of python compatible with *silx* is installed (python 2.7 or python >= 3.5)
    - the *pip* installer for python packages is installed
-   - the Qt libraries is installed (optional, required for using ``silx.gui``)
+   - the Qt and PyQt libraries are installed (optional, required for using ``silx.gui``)
 
 Installation procedure
 ----------------------
@@ -26,6 +26,13 @@ Install vitrualenv
 .. code-block:: bash
 
     pip install virtualenv --user
+
+.. note::
+
+    This step is not required for recent version of Python 3.
+    Virtual environments are created using a builtin standard library,
+    ``venv``.
+
 
 Create a virtualenv
 *******************
@@ -44,6 +51,7 @@ a virtual environment named ``silx_venv``
     cd venvs
     virtualenv silx_venv
 
+
 A virtualenv contains a copy of your default python interpreter with a few tools
 to install packages (pip, setuptools).
 
@@ -53,6 +61,19 @@ For example, to use python 3.4:
 .. code-block:: bash
 
     virtualenv -p /usr/bin/python3.4 silx_venv
+
+But for python 3  you should use the builtin ``venv`` module:
+
+.. code-block:: bash
+
+    python3 -m venv /path/to/new/virtual/environment
+
+.. note::
+
+    If you don't need to start with a clean environment and you don't want
+    to install each required library one by one, you can use a command line
+    option to create a virtualenv with access to all system packages:
+    ``--system-site-packages``
 
 
 Activate a virtualenv
@@ -78,6 +99,7 @@ After activating *silx_venv*, you should upgrade *pip*:
 .. code-block:: bash
 
     python -m pip install --upgrade pip
+
 
 Upgrade setuptools and wheel
 ****************************
@@ -121,62 +143,25 @@ handling parallel computing:
 Install pyqt
 ************
 
-.. TODO: Qt
-
-If your python version is 3.5, installing PyQt5 and all required packages
+If your python version is 3.5 or newer, installing PyQt5 and all required packages
 is as simple as typing:
 
 .. code-block:: bash
 
     pip install PyQt5
 
-For previous versions of python, there are no wheels available, so the installation
-is much more complicated.
+For previous versions of python, there are no PyQt wheels available, so the installation
+is not as simple.
 
-If the Qt libraries are installed, you can install *pyqt* in your virtualenv.
-This is optional, but none of the silx widgets will work if you don't have a python
-binding for Qt.
+The simplest way, assuming that PyQt is installed on your system, is to use that
+system package directly. For this, you need to add a symbolic link to your virtualenv.
 
-You must start by installing SIP:
-
-.. code-block:: bash
-
-    hg clone http://www.riverbankcomputing.com/hg/sip
-    cd sip
-
-    python build.py prepare  # FIXME:  sh: 1: flex: not found
-    python configure.py -d ~/venvs/silx_venv/lib/python2.7/site-packages
-    make
-    make install
-    make clean
-
-
-
-Download PyQt5 or PyQt4, depending on your Qt version.
-
-For Qt 4, download the latest `PyQt4 <https://www.riverbankcomputing.com/software/pyqt/download>`_
-tarball.
+If you want to use PyQt4 installed in ``/usr/lib/python2.7/dist-packages/``, type:
 
 .. code-block:: bash
 
-    wget http://sourceforge.net/projects/pyqt/files/PyQt4/PyQt-4.11.4/PyQt-x11-gpl-4.11.4.tar.gz
+    ln -s /usr/lib/python2.7/dist-packages/PyQt4 silx_venv/lib/python2.7/
 
-Alternatively, download the file using your web browser and save it in
-your virtualenv folder.
-
-.. code-block:: bash
-
-    tar -xvf PyQt-x11-gpl-4.11.4.tar.gz
-    cd PyQt-x11-gpl-4.11.4/
-
-Now, configure the PyQt4 installer to install the library inside your virtualenv:
-
-.. code-block:: bash
-
-    python configure.py --destdir ~/venvs/silx_venv/lib/python2.7/site-packages
-    make
-    make install
-    make clean
 
 Install silx
 ************
@@ -193,13 +178,11 @@ in your virtualenv, type:
 
     python
 
-If you don't have Qt, use:
+If you don't have PyQt, use:
 
 .. code-block:: bash
 
     WITH_QT_TEST=False python
-
-.. FIXME: if pyqt works, remove WITH_QT_TEST=False
 
 Run the test suite using:
 
