@@ -192,7 +192,7 @@ def main(argv=None):
     # Add an iso-surface
     if not numpy.isnan(args.level):
         # Add an iso-surface at the given iso-level
-        window.addIsosurface(args.level)
+        window.addIsosurface(args.level, '#FF0000FF')
     else:
         # Add an iso-surface from a function
         window.addIsosurface(
