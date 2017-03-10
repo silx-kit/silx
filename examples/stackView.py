@@ -36,7 +36,8 @@ app = qt.QApplication(sys.argv[1:])
     
 x, y, z = numpy.meshgrid(numpy.linspace(-10, 10, 200),
                          numpy.linspace(-10, 5, 150),
-                         numpy.linspace(-5, 10, 150))
+                         numpy.linspace(-5, 10, 120),
+                         indexing="ij")
 mystack = numpy.asarray(numpy.sin(x * y * z) / (x * y * z),
                         dtype='float32')
 
@@ -44,8 +45,9 @@ mystack = numpy.asarray(numpy.sin(x * y * z) / (x * y * z),
 sv = StackViewMainWindow()
 sv.setColormap("jet", autoscale=True)
 sv.setStack(mystack)
-sv.setLabels(["1st dim (0-99)", "2nd dim (0-199)",
-              "3rd dim (0-299)"])
+sv.setLabels(["x: -10 to 10 (200 samples)",
+              "y: -10 to 5 (150 samples)",
+              "z: -5 to 10 (120 samples)"])
 sv.show()
 
 app.exec_()
