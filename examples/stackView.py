@@ -34,11 +34,11 @@ from silx.gui.plot.StackView import StackViewMainWindow
 
 app = qt.QApplication(sys.argv[1:])
     
-# synthetic data, stack of 100 images of size 200x300
-mystack = numpy.fromfunction(
-    lambda i, j, k: numpy.sin(i/15.) + numpy.cos(j/4.) + 2 * numpy.sin(k/6.),
-    (100, 200, 300)
-)
+x, y, z = numpy.meshgrid(numpy.linspace(-10, 10, 200),
+                         numpy.linspace(-10, 5, 150),
+                         numpy.linspace(-5, 10, 150))
+mystack = numpy.asarray(numpy.sin(x * y * z) / (x * y * z),
+                        dtype='float32')
 
 # sv = StackView()
 sv = StackViewMainWindow()
