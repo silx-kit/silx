@@ -42,9 +42,9 @@ To run the following sample code, a QApplication must be initialized.
 >>> colorbar.show()
 """
 
-__authors__ = ["T. Vincent"]
+__authors__ = ["H. Payno", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "18/10/2016"
+__date__ = "10/03/2017"
 
 
 import logging
@@ -85,7 +85,6 @@ class ColorbarWidget(qt.QWidget):
         self._label = ''  # Text label to display
         self.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Expanding)
 
-        # self.setFixedWidth(100)
         layout = qt.QVBoxLayout()
         self.setLayout(layout)
         self.layout().addWidget(self.__buildMainColorMap())
@@ -96,18 +95,11 @@ class ColorbarWidget(qt.QWidget):
             self._plot.sigActiveImageChanged.connect(self._activeImageChanged)
             self._activeImageChanged(
                 None, self._plot.getActiveImage(just_legend=True))
-            # self._plot.sigSetDefaultColormap.connect(
-            #     self._defaultColormapChanged)
-
 
     def __buildMainColorMap(self):
         widget = qt.QWidget(self)
         widget.setLayout(qt.QVBoxLayout())
-
-        widget.layout().addWidget(self.__buildMin())
         widget.layout().addWidget(self.__buildGradationAndLegend())
-        widget.layout().addWidget(self.__buildMax())
-
         return widget
 
     def __buildNorm(self):
@@ -149,8 +141,11 @@ class ColorbarWidget(qt.QWidget):
     def __buildGradationAndLegend(self):
         widget = qt.QWidget(self)
         widget.setLayout(qt.QHBoxLayout())
+        widget.layout().setContentsMargins(0, 0, 0, 0)
         # create gradation
-        self._gradation = GradationV2(parent=widget, colormap=self._plot.getDefaultColormap())
+        self._gradation = GradationBar(parent=widget, 
+                                       colormap=self._plot.getDefaultColormap(),
+                                       ticks=[0.0, 0.5, 1.0])
         widget.layout().addWidget(self._gradation)
 
         # create legend# TODO : center this
@@ -158,7 +153,6 @@ class ColorbarWidget(qt.QWidget):
         widget.layout().addWidget(self.legend)
 
         widget.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Preferred)
-        widget.setContentsMargins(0, 0, 0, 0);
         return widget
 
     def getColormap(self):
@@ -214,14 +208,14 @@ class ColorbarWidget(qt.QWidget):
                           'vmax': vmax,
                           'colors': colors}
 
-        self._setMinVal(vmin)
-        self._setMaxVal(vmax)
+        # self._setMinVal(vmin)
+        # self._setMaxVal(vmax)
 
-    def _setMinVal(self, val):
-        self._minLabel.setText(str(val))
+    # def _setMinVal(self, val):
+    #     self._minLabel.setText(str(val))
 
-    def _setMaxVal(self, val):
-        self._maxLabel.setText(str(val))
+    # def _setMaxVal(self, val):
+    #     self._maxLabel.setText(str(val))
 
     def getLabel(self):
         """Return the label of the colorbar (str)"""
@@ -320,35 +314,50 @@ class VerticalLegend(qt.QLabel):
         self.setFixedWidth(preferedWidth)
         self.setMinimumHeight(preferedHeight)
 
+class GradationBar(qt.QWidget):
+
+    def __init__(self, colormap, parent=None, ticks=None):
+        """
+
+        :param ticks: list or tuple registering the ticks to displayed.
+            TODO : add behavior
+        """
+        super(GradationBar, self).__init__(parent)
+
+        self.setLayout(qt.QHBoxLayout())
+        self.leftGroup = qt.QWidget(self)
+        self.layout().addWidget(self.leftGroup)
+        self.rightGroup = qt.QWidget(self)
+        self.layout().addWidget(self.rightGroup)
+
+        self.leftGroup.setLayout(qt.QVBoxLayout())
+        self.rightGroup.setLayout(qt.QVBoxLayout())
+
+        # create the left side group (Gradation)
+        self.rightGroup.layout().addWidget(self.getBottomDownWidget())
+        self.rightGroup.layout().addWidget(Gradation(colormap=colormap, parent=self))
+        self.rightGroup.layout().addWidget(self.getBottomDownWidget())
+
+        # create the right side group (Gradation)
+        self.leftGroup.layout().addWidget(TickBar(ticks=ticks, parent=self))
+
+        self.layout().setContentsMargins(0, 0, 0, 0)
+        self.leftGroup.layout().setContentsMargins(0, 0, 0, 0)
+        self.rightGroup.layout().setContentsMargins(0, 0, 0, 0)
+
+    def getBottomDownWidget(self):
+        w = qt.QWidget(self)
+        return w
 
 class Gradation(qt.QWidget):
 
-    def __init__(self, colormap, parent=None, backend=None):
+    def __init__(self, colormap, parent=None):
         qt.QWidget.__init__(self, parent)
         self.setLayout(qt.QVBoxLayout())
         self.colorMap = MyColorMap(colormap)
 
         self.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
-        # self.setContentsMargins(0, 0, 0, 0);
-        self.xs = numpy.arange(0, 256, 1)
-        self.xs = self.xs.reshape(self.xs.shape[0], 1)
-        self._display = PlotWidget(parent=self)
-        self._display.addImage(self.xs)
-        
-        self.layout().addWidget(self._display)
-        # self._display.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
-        # TODO : issue : if not in, plot won't display
-        self.layout().addWidget(qt.QLabel('test', parent=self))
-
-
-class GradationV2(qt.QWidget):
-
-    def __init__(self, colormap, parent=None, backend=None):
-        qt.QWidget.__init__(self, parent)
-        self.setLayout(qt.QVBoxLayout())
-        self.colorMap = MyColorMap(colormap)
-
-        self.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
+        self.layout().setContentsMargins(0, 0, 0, 0)
 
     def paintEvent(self, event):
         
@@ -376,7 +385,6 @@ class MyColorMap(object):
         from silx.gui.plot import Colors
         cmap = Colors.getMPLColormap(self.name)
         print(type(cmap))
-        # res = matplotlib.colors.LinearSegmentedColormap('blue', cmap, 256)
         import matplotlib.cm
         norm = matplotlib.colors.Normalize(0, 255)
         self.scalarMappable = matplotlib.cm.ScalarMappable(norm=norm, cmap=cmap)
@@ -384,3 +392,31 @@ class MyColorMap(object):
     def getColor(self, val):
         color = self.scalarMappable.to_rgba(val*255)
         return qt.QColor(color[0]*255, color[1]*255, color[2]*255)
+
+
+class TickBar(qt.QWidget):   
+    def __init__(self, ticks, parent=None):
+        """TODO : shift is the bottom up position for drawinf text"""
+        super(TickBar, self).__init__(parent)
+        self.ticks = ticks
+
+        self.__buildGUI()       
+
+    def __buildGUI(self):
+        self.setLayout(qt.QVBoxLayout())
+
+        for iTick, tick in enumerate(self.ticks):
+            alignement = qt.Qt.AlignCenter
+            if len(self.ticks) > 1:
+                if iTick is 0:
+                    alignement = qt.Qt.AlignTop
+                if iTick is len(self.ticks)-1:
+                    alignement = qt.Qt.AlignBottom
+
+            tickWidget = qt.QLabel(text=(str(tick) + '-'), parent=self)
+            tickWidget.setAlignment(alignement)
+            self.layout().addWidget(tickWidget)
+
+        self.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Expanding)
+        self.layout().setContentsMargins(0, 0, 0, 0)
+
