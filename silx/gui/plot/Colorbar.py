@@ -78,7 +78,7 @@ class ColorbarWidget(qt.QWidget):
         super(ColorbarWidget, self).__init__(parent)
         self._plot = plot
         self.setContentsMargins(0, 0, 0, 0);
-        self.setEnabled(False)
+        # self.setEnabled(False)
 
         self.colorbar = None  # matplotlib colorbar this will be an object
 
@@ -118,26 +118,6 @@ class ColorbarWidget(qt.QWidget):
         self._autoscaleCB = qt.QCheckBox('autoscale', parent=self)
         return self._autoscaleCB
         
-    def __buildMin(self):
-        widget = qt.QWidget(self)
-        widget.setLayout(qt.QHBoxLayout())
-        self._minLabel = qt.QLabel('min', widget)
-        widget.layout().addWidget(self._minLabel)
-        widget.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Preferred)
-        widget.setContentsMargins(0, 0, 0, 0);
-        # TODO : reduce margin at least
-        return widget
-
-    def __buildMax(self):
-        widget = qt.QWidget(self)
-        widget.setLayout(qt.QHBoxLayout())
-        self._maxLabel = qt.QLabel('max', widget)
-        widget.layout().addWidget(self._maxLabel)
-        widget.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Preferred)
-        widget.setContentsMargins(0, 0, 0, 0);
-        # TODO : reduce margin at least
-        return widget
-
     def __buildGradationAndLegend(self):
         widget = qt.QWidget(self)
         widget.setLayout(qt.QHBoxLayout())
@@ -148,7 +128,6 @@ class ColorbarWidget(qt.QWidget):
                                        ticks=[0.0, 0.5, 1.0])
         widget.layout().addWidget(self._gradation)
 
-        # create legend# TODO : center this
         self.legend = VerticalLegend('test 1 2 3 4 5 6 7 8', self)
         widget.layout().addWidget(self.legend)
 
@@ -207,15 +186,6 @@ class ColorbarWidget(qt.QWidget):
                           'vmin': vmin,
                           'vmax': vmax,
                           'colors': colors}
-
-        # self._setMinVal(vmin)
-        # self._setMaxVal(vmax)
-
-    # def _setMinVal(self, val):
-    #     self._minLabel.setText(str(val))
-
-    # def _setMaxVal(self, val):
-    #     self._maxLabel.setText(str(val))
 
     def getLabel(self):
         """Return the label of the colorbar (str)"""
@@ -292,6 +262,7 @@ class ColorbarWidget(qt.QWidget):
                          colors=cmap.get('colors', None))
 
 
+
 class VerticalLegend(qt.QLabel):
     """Display vertically the given text"""
     def __init__(self, text, parent=None):
@@ -316,7 +287,7 @@ class VerticalLegend(qt.QLabel):
 
 class GradationBar(qt.QWidget):
 
-    def __init__(self, colormap, parent=None, ticks=None):
+    def __init__(self, colormap, parent=None, ticks=3):
         """
 
         :param ticks: list or tuple registering the ticks to displayed.
@@ -349,15 +320,19 @@ class GradationBar(qt.QWidget):
         w = qt.QWidget(self)
         return w
 
+
 class Gradation(qt.QWidget):
 
     def __init__(self, colormap, parent=None):
         qt.QWidget.__init__(self, parent)
         self.setLayout(qt.QVBoxLayout())
-        self.colorMap = MyColorMap(colormap)
+        self.colormap = MyColorMap(colormap)
 
         self.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
         self.layout().setContentsMargins(0, 0, 0, 0)
+
+        # needed to get the mouse event without waiting for button click
+        self.setMouseTracking(True)
 
     def paintEvent(self, event):
         
@@ -367,10 +342,32 @@ class Gradation(qt.QWidget):
         gradient = qt.QLinearGradient(0, 0, 0, self.rect().height());
         for pt in numpy.arange(0, 256):
             position = pt/256.0
-            gradient.setColorAt( position, self.colorMap.getColor(position))
+            gradient.setColorAt( position, self.colormap.getColor(position))
 
         painter.setBrush(gradient)
         painter.drawRect(self.rect())
+
+    def mouseMoveEvent(self, event):
+        self.setToolTip(str(self.getValueFromRelativePostion(self._getRelativePosition(event.y()))))
+        super(Gradation, self).mouseMoveEvent(event)
+
+    def _getRelativePosition(self, yPixel):
+        """yPixel : pixel position into Gradation widget reference
+        """
+        # widgets are bottom-top referencial but we display in top-bottom referential
+        return 1.0-float(yPixel)/float(self.height())
+
+    def getValueFromRelativePostion(self, value):
+        """Return the value in the colorMap from a relative position in the 
+        GradationBar (y)
+
+        :param val: float value in [0, 1]
+        :return: the value in [minVal, maxVal]
+        """
+        if not ((value >=0) and (value <=1)):
+            raise ValueError('invalid value given, should be in [0.0, 1.0]')
+        #TODO : deal with log type
+        return self.colormap.vmin + (self.colormap.vmax-self.colormap.vmin)*value
 
 
 class MyColorMap(object):
@@ -405,7 +402,7 @@ class TickBar(qt.QWidget):
     def __buildGUI(self):
         self.setLayout(qt.QVBoxLayout())
 
-        for iTick, tick in enumerate(self.ticks):
+        for iTick, tick in enumerate(reversed(self.ticks)):
             alignement = qt.Qt.AlignCenter
             if len(self.ticks) > 1:
                 if iTick is 0:
@@ -415,6 +412,7 @@ class TickBar(qt.QWidget):
 
             tickWidget = qt.QLabel(text=(str(tick) + '-'), parent=self)
             tickWidget.setAlignment(alignement)
+            # insert because we are in top-bottom reference and not bottom-top
             self.layout().addWidget(tickWidget)
 
         self.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Expanding)
