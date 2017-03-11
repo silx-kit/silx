@@ -438,6 +438,10 @@ class Curve(Item, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn):
         else:
             raise IndexError("Index out of range: %s", str(item))
 
+    def __len__(self):
+        """Compatibility with PyMca and silx <= 0.4.0"""
+        return 5
+
     @staticmethod
     def _logFilterError(value, error):
         """Filter/convert error values if they go <= 0.
@@ -773,6 +777,10 @@ class Image(Item, LabelsMixIn, DraggableMixIn, ColormapMixIn):
             return params
         else:
             raise IndexError("Index out of range: %s" % str(item))
+
+    def __len__(self):
+        """Compatibility with PyMca and silx <= 0.4.0"""
+        return 5
 
     def _getBounds(self):
         if self.getData(copy=False).size == 0:  # Empty data
