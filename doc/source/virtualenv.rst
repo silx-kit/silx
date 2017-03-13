@@ -160,7 +160,8 @@ If you want to use PyQt4 installed in ``/usr/lib/python2.7/dist-packages/``, typ
 
 .. code-block:: bash
 
-    ln -s /usr/lib/python2.7/dist-packages/PyQt4 silx_venv/lib/python2.7/
+    ln -s /usr/lib/python2.7/dist-packages/PyQt4 silx_venv/lib/python2.7/site-packages/
+    ln -s /usr/lib/python2.7/dist-packages/sip.so silx_venv/lib/python2.7/site-packages/
 
 
 Install silx
