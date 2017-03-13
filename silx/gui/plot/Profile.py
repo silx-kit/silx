@@ -621,7 +621,7 @@ class ProfileToolBar(qt.QToolBar):
                                            legend=profileName,
                                            xlabel=xLabel,
                                            ylabel="Frame index (depth)",
-                                           colormap=colorMap)
+                                           colormap=colormap)
         else:
             coords = numpy.arange(len(profile[0]), dtype=numpy.float32)
             self.getProfilePlot().addCurve(coords,
