@@ -58,13 +58,6 @@ from silx.gui.plot import Colors
 _logger = logging.getLogger(__name__)
 
 
-# TODO:
-# - Add a button to edit the colormap
-# - Handle width and ticks labels
-# - Store data min and max somewhere in common with plot instead of recomputing
-# - Doc + tests
-# - Add get/setOrientation?
-
 class ColorbarWidget(qt.QWidget):
     """Colorbar widget displaying a colormap
 
@@ -262,11 +255,15 @@ class ColorbarWidget(qt.QWidget):
                          colors=cmap.get('colors', None))
 
 
-
 class VerticalLegend(qt.QLabel):
-    """Display vertically the given text"""
+    """Display vertically the given text
+
+    :param text: the legend
+    :param parent: the Qt parent if any
+    """
     def __init__(self, text, parent=None):
         qt.QLabel.__init__(self, text, parent)
+        self.layout().setContentsMargins(0, 0, 0, 0)
 
     def paintEvent(self, event ):
         painter = qt.QPainter(self)
@@ -286,8 +283,13 @@ class VerticalLegend(qt.QLabel):
         self.setMinimumHeight(preferedHeight)
 
 class GradationBar(qt.QWidget):
+    """The object grouping the Gradation and ticks associated to the Gradation
 
-    def __init__(self, colormap, parent=None, ticks=3):
+    :param colormap: the colormap to be displayed
+    :param ticks: tuple or list of the values to be diaplyed as ticks
+    :param parent: the Qt parent if any
+    """
+    def __init__(self, colormap, ticks, parent=None):
         """
 
         :param ticks: list or tuple registering the ticks to displayed.
@@ -322,7 +324,12 @@ class GradationBar(qt.QWidget):
 
 
 class Gradation(qt.QWidget):
+    """Simple widget wich display the colormap gradation and update the tooltip
+    to return the value equivalence for the color
 
+    :param colormap: the colormap to be displayed
+    :param parent: the Qt parent if any
+    """
     def __init__(self, colormap, parent=None):
         qt.QWidget.__init__(self, parent)
         self.setLayout(qt.QVBoxLayout())
@@ -371,6 +378,9 @@ class Gradation(qt.QWidget):
 
 
 class MyColorMap(object):
+    """
+    Temporaty object, will be removed soon
+    """
     def __init__(self, colormap):
         self.name = colormap['name']
         self.normalization = colormap['normalization']
@@ -391,12 +401,18 @@ class MyColorMap(object):
         return qt.QColor(color[0]*255, color[1]*255, color[2]*255)
 
 
-class TickBar(qt.QWidget):   
+class TickBar(qt.QWidget):
+    """Bar grouping the tickes displayed
+
+    :param ticks: values to be displayed. All values will be displayed in
+        equidistance positions. If only one, will be presented at the center
+        of the bar.
+        If two will be displayed at the bottom and up positions
+    :param parent: the Qt parent if any
+    """
     def __init__(self, ticks, parent=None):
-        """TODO : shift is the bottom up position for drawinf text"""
         super(TickBar, self).__init__(parent)
         self.ticks = ticks
-
         self.__buildGUI()       
 
     def __buildGUI(self):
@@ -411,6 +427,7 @@ class TickBar(qt.QWidget):
                     alignement = qt.Qt.AlignBottom
 
             tickWidget = qt.QLabel(text=(str(tick) + '-'), parent=self)
+            tickWidget.layout().setContentsMargins(0, 0, 0, 0)
             tickWidget.setAlignment(alignement)
             # insert because we are in top-bottom reference and not bottom-top
             self.layout().addWidget(tickWidget)
