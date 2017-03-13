@@ -65,9 +65,12 @@ class ColorbarWidget(qt.QWidget):
 
     :param parent: See :class:`QWidget`
     :param plot: PlotWidget the colorbar is attached to (optional)
+    :param bool hideNorm: if True hide the normalization groupbox
+    :param bool hideAutoscale: if True hide the autoscale checkbox
     """
 
-    def __init__(self, parent=None, plot=None):
+    def __init__(self, parent=None, plot=None, hideNorm=False, 
+        hideAutoscale=False):
         super(ColorbarWidget, self).__init__(parent)
         self._plot = plot
         self.setContentsMargins(0, 0, 0, 0);
@@ -84,6 +87,11 @@ class ColorbarWidget(qt.QWidget):
         self.layout().addWidget(self.__buildAutoscale())
         self.layout().addWidget(self.__buildNorm())
 
+        if hideNorm is True:
+            self._groupNorm.hide()
+        if hideAutoscale is True:
+            self._autoscaleCB.hide()
+
         if self._plot is not None:
             self._plot.sigActiveImageChanged.connect(self._activeImageChanged)
             self._activeImageChanged(
@@ -96,16 +104,16 @@ class ColorbarWidget(qt.QWidget):
         return widget
 
     def __buildNorm(self):
-        group = qt.QGroupBox('Normalization', parent=self)
-        group.setLayout(qt.QHBoxLayout())
+        self._groupNorm = qt.QGroupBox('Normalization', parent=self)
+        self._groupNorm.setLayout(qt.QHBoxLayout())
 
-        self._linearNorm = qt.QRadioButton('linear', group)
-        group.layout().addWidget(self._linearNorm)
+        self._linearNorm = qt.QRadioButton('linear', self._groupNorm)
+        self._groupNorm.layout().addWidget(self._linearNorm)
 
-        self._logNorm = qt.QRadioButton('log', group)
-        group.layout().addWidget(self._logNorm)
+        self._logNorm = qt.QRadioButton('log', self._groupNorm)
+        self._groupNorm.layout().addWidget(self._logNorm)
 
-        return group
+        return self._groupNorm
 
     def __buildAutoscale(self):
         self._autoscaleCB = qt.QCheckBox('autoscale', parent=self)
@@ -413,6 +421,7 @@ class MyColorMap(object):
 
     def getColor(self, val):
         color = self.scalarMappable.to_rgba(val)
+        # Swith to qt.QColor.FromRGB
         return qt.QColor(color[0]*255, color[1]*255, color[2]*255)
 
 
