@@ -73,7 +73,7 @@ Add a file by name
 ++++++++++++++++++
 
 The model can be used to add HDF5. It is internally using
-:func:`silx.io.utils.load`.
+:func:`silx.io.open`.
 
 .. code-block:: python
 
@@ -104,13 +104,13 @@ Silx also provides an input API. It supports HDF5 files through :mod:`h5py`.
 
 .. code-block:: python
 
-   from silx.io.utils.load import load
+   import silx.io
 
    # We can load HDF5 files
-   model.insertH5pyObject(load("test.h5"))
+   model.insertH5pyObject(silx.io.open("test.h5"))
 
    # or Spec files
-   model.insertH5pyObject(load("test.dat"))
+   model.insertH5pyObject(silx.io.open("test.dat"))
 
 
 Custom context menu

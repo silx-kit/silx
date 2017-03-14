@@ -20,6 +20,7 @@ Change Log
  * Handle SPEC, HDF5 and image formats through an unified API
  * hdf5widget example. Inspect and visualize any datasets
  * Improve mask tool
+ * Deprecated PlotWindow dock widgets attributes in favor of getter methods
 
 
 0.3.0: 2016/10/12
