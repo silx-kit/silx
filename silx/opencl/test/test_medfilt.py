@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013-2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "09/02/2017"
+__date__ = "15/03/2017"
 
 
 import sys
@@ -82,7 +82,10 @@ class TestMedianFilter(unittest.TestCase):
         t0 = time.time()
         ref = filters.median_filter(self.data, size, mode="nearest"),
         t1 = time.time()
-        got = self.medianfilter.medfilt2d(self.data, size)
+        try:
+            got = self.medianfilter.medfilt2d(self.data, size)
+        except RuntimeError as msg:
+            logger.error(msg)
         t2 = time.time()
         delta = abs(got - ref).max()
         return Result(size, delta, t1 - t0, t2 - t1)
@@ -93,8 +96,11 @@ class TestMedianFilter(unittest.TestCase):
         tests the median filter kernel
         """
         r = self.measure(size=11)
-        logger.info("test_medfilt: size: %s error %s, t_ref: %.3fs, t_ocl: %.3fs" % r)
-        self.assert_(r.error == 0, 'Results are correct')
+        if r is None:
+            logger.info("test_medfilt: size: %s: skipped")
+        else:
+            logger.info("test_medfilt: size: %s error %s, t_ref: %.3fs, t_ocl: %.3fs" % r)
+            self.assert_(r.error == 0, 'Results are correct')
 
     def benchmark(self, limit=36):
         "Run some benchmarking"

@@ -44,13 +44,14 @@ import logging
 import numpy
 from collections import OrderedDict
 
-from .common import ocl, pyopencl
+from .common import ocl, pyopencl, kernel_workgroup_size
 from .processing import EventDescription, OpenclProcessing, BufferDescription
 
 if pyopencl:
     mf = pyopencl.mem_flags
 else:
     raise ImportError("pyopencl is not installed")
+logger = logging.getLogger("silx.opencl.medfilt")
 
 
 class MedianFilter2D(OpenclProcessing):
@@ -59,7 +60,6 @@ class MedianFilter2D(OpenclProcessing):
                BufferDescription("result", 1, numpy.float32, mf.WRITE_ONLY),
                BufferDescription("image_raw", 1, numpy.float32, mf.READ_ONLY),
                BufferDescription("image", 1, numpy.float32, mf.READ_WRITE),
-               #BufferDescription("debug", 8 * 8, numpy.float32, mf.READ_WRITE),
                ]
     kernel_files = ["preprocess.cl", "bitonic.cl", "medfilt.cl"]
     mapping = {numpy.int8: "s8_to_float",
@@ -174,6 +174,13 @@ class MedianFilter2D(OpenclProcessing):
         kernel_half_size = kernel_size // numpy.int32(2)
         # this is the workgroup size
         wg = self.calc_wg(kernel_size)
+
+        # check for valid work group size:
+        amws = kernel_workgroup_size(self.program, "medfilt2d")
+        logger.warning("max actual workgroup size: %s, expected: %s", amws, wg)
+        if wg > amws:
+            raise RuntimeError("Workgroup size is too big for medfilt2d: %s>%s" % (wg, amws))
+
         localmem = self.get_local_mem(wg)
 
         assert image.ndim == 2, "Treat only 2D images"
@@ -204,7 +211,7 @@ class MedianFilter2D(OpenclProcessing):
             self.events += events
         return result
     __call__ = medfilt2d
-    
+
     @staticmethod
     def calc_kernel_size(kernel_size):
         """format the kernel size to be a 2-length numpy array of int32
