@@ -25,7 +25,7 @@
 """Access project's data and documentation files.
 
 All access to data and documentation files MUST be made through the functions
-of this modules to ensure access accross different distribution schemes:
+of this modules to ensure access across different distribution schemes:
 
 - Installing from source or from wheel
 - Installing package as a zip (through the use of pkg_resources)
@@ -56,7 +56,7 @@ of this modules to ensure access accross different distribution schemes:
 
 __authors__ = ["V.A. Sole", "Thomas Vincent"]
 __license__ = "MIT"
-__date__ = "12/05/2016"
+__date__ = "15/03/2017"
 
 
 import os
@@ -116,3 +116,4 @@ def resource_filename(resource):
                             *resource.split('/'))
     else:  # Preferred way to get resources as it supports zipfile package
         return pkg_resources.resource_filename(__name__, resource)
+

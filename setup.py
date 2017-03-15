@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "16/11/2016"
+__date__ = "15/03/2017"
 __license__ = "MIT"
 
 
@@ -513,6 +513,7 @@ setup_kwargs.update(name=PROJECT,
                         'gui/icons/*.svg',
                         'gui/icons/*.mng',
                         'gui/icons/*.gif',
+                        'opencl/*.cl',
                         'opencl/sift/*.cl',
                         ]},
                     zip_safe=False,

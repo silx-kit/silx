@@ -36,8 +36,9 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "12/01/2017"
+__date__ = "15/03/2017"
 
+import os
 import time
 import logging
 import numpy
@@ -98,7 +99,7 @@ class TestAlgebra(unittest.TestCase):
         cls.queue = None
 
     def setUp(self):
-        kernel_src = get_opencl_code("algebra.cl")
+        kernel_src = get_opencl_code(os.path.join("sift", "algebra.cl"))
         self.program = pyopencl.Program(self.ctx, kernel_src).build()
         self.wg = (32, 4)
         if self.maxwg < self.wg[0] * self.wg[1]:
