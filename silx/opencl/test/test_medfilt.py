@@ -86,6 +86,7 @@ class TestMedianFilter(unittest.TestCase):
             got = self.medianfilter.medfilt2d(self.data, size)
         except RuntimeError as msg:
             logger.error(msg)
+            return
         t2 = time.time()
         delta = abs(got - ref).max()
         return Result(size, delta, t1 - t0, t2 - t1)
