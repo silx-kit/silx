@@ -37,8 +37,9 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013-2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "12/01/2017"
+__date__ = "15/03/2017"
 
+import os
 import unittest
 import time
 import logging
@@ -102,7 +103,7 @@ class TestMatching(unittest.TestCase):
 
     def setUp(self):
         kernel = ("matching_gpu.cl" if not(USE_CPU) else "matching_cpu.cl")
-        kernel_src = get_opencl_code(kernel)
+        kernel_src = get_opencl_code(os.path.join("sift", kernel))
         self.program = pyopencl.Program(self.ctx, kernel_src).build()  # .build('-D WORKGROUP_SIZE=%s' % wg_size)
         self.wg = (1, 128)
 

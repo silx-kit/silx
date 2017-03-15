@@ -46,6 +46,10 @@ import time
 import logging
 import numpy
 try:
+    from silx.third_party import six
+except ImportError:
+    import six
+try:
     import scipy
 except ImportError:
     scipy = None
