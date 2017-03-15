@@ -1484,3 +1484,10 @@ class MaskToolsDockWidget(qt.QDockWidget):
             self.widget().setDirection(qt.QBoxLayout.LeftToRight)
             self.resize(self.widget().minimumSize())
             self.adjustSize()
+
+    def showEvent(self, event):
+        """Make sure this widget is raised when it is shown
+        (when it is first created as a tab in PlotWindow or when it is shown
+        again after hiding).
+        """
+        self.raise_()
