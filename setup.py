@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "16/11/2016"
+__date__ = "16/03/2017"
 __license__ = "MIT"
 
 
@@ -348,13 +348,10 @@ def configuration(parent_package='', top_path=None):
     config.add_subpackage(PROJECT)
     return config
 
-
-config = configuration()
-
-
 # ############## #
 # Compiler flags #
 # ############## #
+
 
 class BuildExtFlags(build_ext):
     """Handle compiler and linker flags.
@@ -413,23 +410,6 @@ def fake_cythonize(extensions):
             new_sources.append(source)
         ext_module.sources = new_sources
 
-
-if not DRY_RUN:
-    if USE_CYTHON:
-        # Cythonize extensions
-        from Cython.Build import cythonize
-
-        config.ext_modules = cythonize(
-            config.ext_modules,
-            compiler_directives={'embedsignature': True},
-            force=(os.environ.get("FORCE_CYTHON") is "True"),
-            compile_time_env={"HAVE_OPENMP": bool(USE_OPENMP)}
-        )
-    else:
-        # Do not use Cython but convert source names from .pyx to .c or .cpp
-        fake_cythonize(config.ext_modules)
-
-
 ################################################################################
 # Debian source tree
 ################################################################################
@@ -476,9 +456,9 @@ class sdist_debian(sdist):
             dest = "".join((base, ext))
         else:
             dest = base
-#         sp = dest.split("-")
-#         base = sp[:-1]
-#         nr = sp[-1]
+        # sp = dest.split("-")
+        # base = sp[:-1]
+        # nr = sp[-1]
         debian_arch = os.path.join(dirname, self.get_debian_name() + ".orig.tar.gz")
         os.rename(self.archive_files[0], debian_arch)
         self.archive_files = [debian_arch]
@@ -491,31 +471,56 @@ cmdclass['debian_src'] = sdist_debian
 # setup #
 # ##### #
 
-setup_kwargs = config.todict()
+def setup_package():
 
-install_requires = ["numpy"]
-setup_requires = ["numpy"]
+    install_requires = ["numpy"]
+    setup_requires = ["numpy"]
 
-setup_kwargs.update(name=PROJECT,
-                    version=get_version(),
-                    url="https://github.com/silx-kit/silx",
-                    author="data analysis unit",
-                    author_email="silx@esrf.fr",
-                    classifiers=classifiers,
-                    description="Software library for X-Ray data analysis",
-                    long_description=get_readme(),
-                    install_requires=install_requires,
-                    setup_requires=setup_requires,
-                    cmdclass=cmdclass,
-                    package_data={'silx.resources': [
-                        # Add here all resources files
-                        'gui/icons/*.png',
-                        'gui/icons/*.svg',
-                        'gui/icons/*.mng',
-                        'gui/icons/*.gif',
-                        'opencl/sift/*.cl',
-                        ]},
-                    zip_safe=False,
-                    )
+    package_data = {
+        'silx.resources': [
+            # Add here all resources files
+            'gui/icons/*.png',
+            'gui/icons/*.svg',
+            'gui/icons/*.mng',
+            'gui/icons/*.gif',
+            'opencl/sift/*.cl']
+    }
 
-setup(**setup_kwargs)
+    config = configuration()
+
+    if not DRY_RUN:
+        if USE_CYTHON:
+            # Cythonize extensions
+            from Cython.Build import cythonize
+
+            config.ext_modules = cythonize(
+                config.ext_modules,
+                compiler_directives={'embedsignature': True},
+                force=(os.environ.get("FORCE_CYTHON") is "True"),
+                compile_time_env={"HAVE_OPENMP": bool(USE_OPENMP)}
+            )
+        else:
+            # Do not use Cython but convert source names from .pyx to .c or .cpp
+            fake_cythonize(config.ext_modules)
+
+    setup_kwargs = config.todict()
+
+    setup_kwargs.update(name=PROJECT,
+                        version=get_version(),
+                        url="https://github.com/silx-kit/silx",
+                        author="data analysis unit",
+                        author_email="silx@esrf.fr",
+                        classifiers=classifiers,
+                        description="Software library for X-Ray data analysis",
+                        long_description=get_readme(),
+                        install_requires=install_requires,
+                        setup_requires=setup_requires,
+                        cmdclass=cmdclass,
+                        package_data=package_data,
+                        zip_safe=False,
+                        )
+
+    setup(**setup_kwargs)
+
+if __name__ == "__main__":
+    setup_package()
