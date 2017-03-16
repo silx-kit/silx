@@ -69,33 +69,40 @@ class ColorbarWidget(qt.QWidget):
     :param bool hideAutoscale: if True hide the autoscale checkbox
     """
 
+    configuration=('withTicksValue', 'minMaxValueOnly')
+
     def __init__(self, parent=None, plot=None, hideNorm=False, 
-        hideAutoscale=False):
+        hideAutoscale=False, config=configuration[0]):
         super(ColorbarWidget, self).__init__(parent)
         self._plot = plot
-        self.setContentsMargins(0, 0, 0, 0);
-        # self.setEnabled(False)
-
+        self._configuration = config
         self.colorbar = None  # matplotlib colorbar this will be an object
-
         self._label = ''  # Text label to display
-        self.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Expanding)
+        self.hideNorm = hideNorm
+        self.hideAutoscale = hideAutoscale
 
+        self.__buildGUI()
+
+    def __buildGUI(self):
         layout = qt.QVBoxLayout()
         self.setLayout(layout)
         self.layout().addWidget(self.__buildMainColorMap())
         self.layout().addWidget(self.__buildAutoscale())
         self.layout().addWidget(self.__buildNorm())
 
-        if hideNorm is True:
+        if self.hideNorm is True:
             self._groupNorm.hide()
-        if hideAutoscale is True:
+        if self.hideAutoscale is True:
             self._autoscaleCB.hide()
 
         if self._plot is not None:
             self._plot.sigActiveImageChanged.connect(self._activeImageChanged)
             self._activeImageChanged(
                 None, self._plot.getActiveImage(just_legend=True))
+
+        self.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Expanding)
+        self.setContentsMargins(0, 0, 0, 0);
+        # self.setEnabled(False)
 
     def __buildMainColorMap(self):
         widget = qt.QWidget(self)
@@ -120,18 +127,62 @@ class ColorbarWidget(qt.QWidget):
         return self._autoscaleCB
         
     def __buildGradationAndLegend(self):
+        if self._configuration is ColorbarWidget.configuration[0]:
+            return self.__buildGradationAndLegendWithTicksValue()
+        if self._configuration is ColorbarWidget.configuration[1]:
+            return self.__buildGradationAndLegendMinMax()
+
+        msg = 'Given configuration is not recognize, can\'t create Gradation'
+        raise ValueError(msg)
+
+    def __buildGradationAndLegendWithTicksValue(self):
         widget = qt.QWidget(self)
         widget.setLayout(qt.QHBoxLayout())
         widget.layout().setContentsMargins(0, 0, 0, 0)
         # create gradation
-        self._gradation = GradationBar(parent=widget, 
+        self._gradation = GradationBar(parent=widget,
                                        colormap=self._plot.getDefaultColormap(),
                                        ticks=[1.0, 0.5, 0.0])
         widget.layout().addWidget(self._gradation)
 
-        self.legend = VerticalLegend('test 1 2 3 4 5 6 7 8', self)
+        self.legend = VerticalLegend('', self)
         widget.layout().addWidget(self.legend)
 
+        widget.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Preferred)
+        return widget
+
+    def __buildGradationAndLegendMinMax(self):
+        widget = qt.QWidget(self)
+        widget.setLayout(qt.QHBoxLayout())
+
+        widgetLeftGroup = qt.QWidget(widget)
+        widgetLeftGroup.setLayout(qt.QVBoxLayout())
+        widget.layout().addWidget(widgetLeftGroup)
+
+        # min label
+        self.__minLabel = qt.QLabel(str(0.0), parent=self)
+        self.__minLabel.setAlignment(qt.Qt.AlignHCenter)
+        self.__minLabel.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Minimum)
+        widgetLeftGroup.layout().addWidget(self.__minLabel)
+
+        # create gradation
+        self._gradation = GradationBar(parent=widget, 
+                                       colormap=self._plot.getDefaultColormap(),
+                                       ticks=[1.0, 0.5, 0.0],
+                                       displayTicksValues=False)
+        widgetLeftGroup.layout().addWidget(self._gradation)
+
+        # max label
+        self.__maxLabel = qt.QLabel(str(1.0), parent=self)
+        self.__maxLabel.setAlignment(qt.Qt.AlignHCenter)
+        self.__maxLabel.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Minimum)
+        widgetLeftGroup.layout().addWidget(self.__maxLabel)
+
+        # legend (is the right group)
+        self.legend = VerticalLegend('', self)
+        widget.layout().addWidget(self.legend)
+
+        widget.layout().setContentsMargins(0, 0, 0, 0)
         widget.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Preferred)
         return widget
 
@@ -299,8 +350,9 @@ class GradationBar(qt.QWidget):
     :param colormap: the colormap to be displayed
     :param ticks: tuple or list of the values to be diaplyed as ticks
     :param parent: the Qt parent if any
+    :param displayTicksValues: display the ticks value or only the '-'
     """
-    def __init__(self, colormap, ticks, parent=None):
+    def __init__(self, colormap, ticks, parent=None, displayTicksValues=True):
         """
 
         :param ticks: list or tuple registering the ticks to displayed.
@@ -324,7 +376,9 @@ class GradationBar(qt.QWidget):
         self.rightGroup.layout().addWidget(self.getBottomDownWidget())
 
         # create the right side group (Gradation)
-        self.leftGroup.layout().addWidget(TickBar(ticks=ticks, parent=self))
+        self.leftGroup.layout().addWidget(TickBar(ticks=ticks,
+                                                  parent=self,
+                                                  displayValues=displayTicksValues))
 
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.leftGroup.layout().setContentsMargins(0, 0, 0, 0)
@@ -433,9 +487,12 @@ class TickBar(qt.QWidget):
         of the bar.
         If two will be displayed at the bottom and up positions
     :param parent: the Qt parent if any
+    :param displayValues: if True display the values close to the tick,
+        Otherwise only signal it by '-'
     """
-    def __init__(self, ticks, parent=None):
+    def __init__(self, ticks, parent=None, displayValues=True):
         super(TickBar, self).__init__(parent)
+        self.displayValues = displayValues
         self.ticks = ticks
         self.__buildGUI()       
 
@@ -450,7 +507,8 @@ class TickBar(qt.QWidget):
                 if iTick is len(self.ticks)-1:
                     alignement = qt.Qt.AlignBottom
 
-            tickWidget = qt.QLabel(text=(str(tick) + '-'), parent=self)
+            txt = (str(tick) + '-') if self.displayValues else '-'
+            tickWidget = qt.QLabel(text=txt, parent=self)
             tickWidget.setLayout(qt.QVBoxLayout())
             tickWidget.layout().setContentsMargins(0, 0, 0, 0)
             tickWidget.setAlignment(alignement)
