@@ -38,6 +38,7 @@ import sys
 import os
 import platform
 
+from distutils.command.clean import clean as Clean
 try:
     from setuptools import Command
     from setuptools.command.build_py import build_py as _build_py
@@ -411,6 +412,17 @@ def fake_cythonize(extensions):
                     raise RuntimeError("Source file not found: %s" % source)
             new_sources.append(source)
         ext_module.sources = new_sources
+
+################################################################################
+# Clean command
+################################################################################
+
+
+class CleanCommand(Clean):
+    description = "Remove build artifacts from the source tree"
+
+
+cmdclass['clean'] = CleanCommand
 
 ################################################################################
 # Debian source tree
