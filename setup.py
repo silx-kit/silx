@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "16/03/2017"
+__date__ = "17/03/2017"
 __license__ = "MIT"
 
 
@@ -39,19 +39,15 @@ import os
 import platform
 
 try:
-    from numpy.distutils.misc_util import Configuration
-except ImportError:
-    raise ImportError(
-        "To install this package, you must install numpy first\n"
-        "(See https://pypi.python.org/pypi/numpy)")
-
-try:
-    from setuptools import setup, Command
+    from setuptools import Command
     from setuptools.command.build_py import build_py as _build_py
     from setuptools.command.build_ext import build_ext
     from setuptools.command.sdist import sdist
 except ImportError:
-    from numpy.distutils.core import setup, Command
+    try:
+        from numpy.distutils.core import Command
+    except ImportError:
+        from distutils.core import Command
     from distutils.command.build_py import build_py as _build_py
     from distutils.command.build_ext import build_ext
     from distutils.command.sdist import sdist
@@ -338,7 +334,13 @@ def configuration(parent_package='', top_path=None):
     """Recursive construction of package info to be used in setup().
 
     See http://docs.scipy.org/doc/numpy/reference/distutils.html#numpy.distutils.misc_util.Configuration
-    """  # noqa
+    """
+    try:
+        from numpy.distutils.misc_util import Configuration
+    except ImportError:
+        raise ImportError(
+            "To install this package, you must install numpy first\n"
+            "(See https://pypi.python.org/pypi/numpy)")
     config = Configuration(None, parent_package, top_path)
     config.set_options(
         ignore_setup_xxx_py=True,
@@ -486,9 +488,25 @@ def setup_package():
             'opencl/sift/*.cl']
     }
 
-    config = configuration()
+    if DRY_RUN:
+        # DRY_RUN implies actions which do not require NumPy
+        #
+        # And they are required to succeed without Numpy for example when
+        # pip is used to install silx when Numpy is not yet present in
+        # the system.
+        try:
+            from setuptools import setup
+        except ImportError:
+            from distutils.core import setup
+        setup_kwargs = {}
+    else:
+        try:
+            from setuptools import setup
+        except ImportError:
+            from numpy.distutils.core import setup
 
-    if not DRY_RUN:
+        config = configuration()
+
         if USE_CYTHON:
             # Cythonize extensions
             from Cython.Build import cythonize
@@ -503,7 +521,7 @@ def setup_package():
             # Do not use Cython but convert source names from .pyx to .c or .cpp
             fake_cythonize(config.ext_modules)
 
-    setup_kwargs = config.todict()
+        setup_kwargs = config.todict()
 
     setup_kwargs.update(name=PROJECT,
                         version=get_version(),
