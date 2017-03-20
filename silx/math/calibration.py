@@ -99,7 +99,7 @@ class LinearCalibration(AbstractCalibration):
         return self.slope
 
 
-class ArrayCalibration(AbstractCalibration):   # fixme: find a better name
+class ArrayCalibration(AbstractCalibration):
     """One-to-one mapping calibration, defined by an array *x'*,
     such as :math:`x \mapsto x'`*.
 
@@ -111,9 +111,10 @@ class ArrayCalibration(AbstractCalibration):   # fixme: find a better name
     :param x1: Calibration array"""
     def __init__(self, x1):
         super(ArrayCalibration, self).__init__()
-        if not isinstance(x1, (list, tuple, numpy.ndarray)):
-            raise TypeError("The calibration array must be a sequence")
-        self.calibration_array = x1
+        if not isinstance(x1, (list, tuple)) and not hasattr(x1, "shape"):
+            raise TypeError(
+                    "The calibration array must be a sequence (list, dataset, array)")
+        self.calibration_array = numpy.array(x1)
         self._is_affine = None
 
     def __call__(self, x):
