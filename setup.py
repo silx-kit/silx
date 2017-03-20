@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "17/03/2017"
+__date__ = "20/03/2017"
 __license__ = "MIT"
 
 
@@ -54,8 +54,6 @@ except ImportError:
     from distutils.command.sdist import sdist
 
 PROJECT = "silx"
-cmdclass = {}
-
 
 if "LANG" not in os.environ and sys.platform == "darwin" and sys.version_info[0]>2:
     print("""WARNING: the LANG environment variable is not defined, 
@@ -124,9 +122,6 @@ class build_py(_build_py):
         return modules
 
 
-cmdclass['build_py'] = build_py
-
-
 ########
 # Test #
 ########
@@ -146,8 +141,6 @@ class PyTest(Command):
         errno = subprocess.call([sys.executable, 'run_tests.py', '-i'])
         if errno != 0:
             raise SystemExit(errno)
-
-cmdclass['test'] = PyTest
 
 
 # ################### #
@@ -213,7 +206,6 @@ if sphinx is not None:
 else:
     BuildDocCommand = SphinxExpectedCommand
 
-cmdclass['build_doc'] = BuildDocCommand
 
 # ################### #
 # test_doc command    #
@@ -244,7 +236,6 @@ if sphinx is not None:
 else:
     TestDocCommand = SphinxExpectedCommand
 
-cmdclass['test_doc'] = TestDocCommand
 
 # ############## #
 # OpenMP support #
@@ -395,9 +386,6 @@ class BuildExtFlags(build_ext):
         build_ext.build_extensions(self)
 
 
-cmdclass['build_ext'] = BuildExtFlags
-
-
 def fake_cythonize(extensions):
     """Replace cython files by .c or .cpp files in extension's sources.
 
@@ -429,8 +417,6 @@ def fake_cythonize(extensions):
 class CleanCommand(Clean):
     description = "Remove build artifacts from the source tree"
 
-
-cmdclass['clean'] = CleanCommand
 
 ################################################################################
 # Debian source tree
@@ -486,8 +472,6 @@ class sdist_debian(sdist):
         self.archive_files = [debian_arch]
         print("Building debian .orig.tar.gz in %s" % self.archive_files[0])
 
-cmdclass['debian_src'] = sdist_debian
-
 
 # ##### #
 # setup #
@@ -512,6 +496,15 @@ def setup_package():
             'gui/icons/*.gif',
             'opencl/sift/*.cl']
     }
+
+    cmdclass = dict(
+        build_py=build_py,
+        test=PyTest,
+        build_doc=BuildDocCommand,
+        test_doc=TestDocCommand,
+        build_ext=BuildExtFlags,
+        clean=CleanCommand,
+        debian_src=sdist_debian)
 
     if DRY_RUN:
         # DRY_RUN implies actions which do not require NumPy
