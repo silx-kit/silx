@@ -38,6 +38,8 @@ from silx.gui import qt
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
 from silx.gui.plot import Plot1D, Plot2D, StackView
 
+from silx.math.calibration import ArrayCalibration, NoCalibration
+
 
 def _applyColormap(values,
                    colormap=silx.gui.plot.MPLColormap.viridis,
@@ -329,15 +331,22 @@ class ArrayImagePlot(qt.QWidget):
         return axis[0], axis[1] - axis[0]
 
     def _updateImage(self):
+        legend = self.__signal_name + "["
+        for sl in self._selector.selection():
+            if sl == slice(None):
+                legend += ":, "
+            else:
+                legend += str(sl) + ", "
+        legend = legend[:-2] + "]"
+        self._legend.setText("Displayed data: " + legend)
+
         img = self._selector.selectedData()
         x_axis = self.__x_axis
         y_axis = self.__y_axis
 
-        is_regular_image = False
         if x_axis is None and y_axis is None:
-            is_regular_image = True
-            origin = (0, 0)
-            scale = (1., 1.)
+            xcalib = NoCalibration()
+            ycalib = NoCalibration()
         else:
             if x_axis is None:
                 # no calibration
@@ -356,24 +365,16 @@ class ArrayImagePlot(qt.QWidget):
             elif len(y_axis) == 2:
                 y_axis = y_axis[0] * numpy.arange(img.shape[-2]) + y_axis[1]
 
-            if self._image_axes_are_regular(x_axis, y_axis):
-                is_regular_image = True
-                xorigin, xscale = self._get_origin_scale(x_axis)
-                yorigin, yscale = self._get_origin_scale(y_axis)
-                origin = (xorigin, yorigin)
-                scale = (xscale, yscale)
+            xcalib = ArrayCalibration(x_axis)
+            ycalib = ArrayCalibration(y_axis)
 
-        legend = self.__signal_name + "["
-        for sl in self._selector.selection():
-            if sl == slice(None):
-                legend += ":, "
-            else:
-                legend += str(sl) + ", "
-        legend = legend[:-2] + "]"
-        self._legend.setText("Displayed data: " + legend)
+        if xcalib.is_affine() and ycalib.is_affine():
+            # regular image
+            xorigin, xscale = xcalib(0), xcalib.get_slope()
+            yorigin, yscale = ycalib(0), ycalib.get_slope()
+            origin = (xorigin, yorigin)
+            scale = (xscale, yscale)
 
-        if is_regular_image:
-            # single regular image
             self._plot.addImage(img, legend=legend,
                                 xlabel=self.__x_axis_name,
                                 ylabel=self.__y_axis_name,
