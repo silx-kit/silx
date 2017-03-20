@@ -138,7 +138,7 @@ class ArrayCurvePlot(qt.QWidget):
         self.__values = values
 
         if self.__selector_is_connected:
-            self._selector.selectionChanged.disconnect(self._replaceCurve)
+            self._selector.selectionChanged.disconnect(self._updateCurve)
             self.__selector_is_connected = False
         self._selector.setData(y)
         self._selector.setAxisNames([ylabel or "Y"])
@@ -146,16 +146,15 @@ class ArrayCurvePlot(qt.QWidget):
         self._plot.setGraphTitle(title or "")
         self._plot.setGraphXLabel(self.__axis_name or "X")
         self._plot.setGraphYLabel(self.__signal_name or "Y")
-        self._replaceCurve()
+        self._updateCurve()
 
         if not self.__selector_is_connected:
-            self._selector.selectionChanged.connect(self._replaceCurve)
+            self._selector.selectionChanged.connect(self._updateCurve)
             self.__selector_is_connected = True
 
-    def _addCurve(self, replace=False):
+    def _updateCurve(self):
         y = self._selector.selectedData()
         x = self.__axis
-        calibration = None
         if x is None:
             x = numpy.arange(len(y))
         elif numpy.isscalar(x) or len(x) == 1:
@@ -184,7 +183,7 @@ class ArrayCurvePlot(qt.QWidget):
                                 ylabel=self.__signal_name,
                                 xerror=self.__axis_errors,
                                 yerror=y_errors,
-                                resetzoom=True, replace=replace,
+                                resetzoom=True, replace=True,
                                 symbol="o", linestyle="")
 
         # x monotonically increasing: curve
@@ -194,7 +193,7 @@ class ArrayCurvePlot(qt.QWidget):
                                 ylabel=self.__signal_name,
                                 xerror=self.__axis_errors,
                                 yerror=y_errors,
-                                resetzoom=True, replace=replace)
+                                resetzoom=True, replace=True)
 
         # scatter
         else:
@@ -203,43 +202,11 @@ class ArrayCurvePlot(qt.QWidget):
                                 ylabel=self.__signal_name,
                                 xerror=self.__axis_errors,
                                 yerror=y_errors,
-                                resetzoom=True, replace=replace,
+                                resetzoom=True, replace=True,
                                 symbol="o", linestyle="")
-
-    def _replaceCurve(self):
-        self._addCurve(replace=True)
 
     def clear(self):
         self._plot.clear()
-
-    def _addAllCurves(self):
-        self.clear()
-        curve_len = self.__signal.shape[-1]
-        all_curves = numpy.reshape(self.__signal,
-                                   (-1, curve_len))
-        x = self.__axis if self.__axis is not None else numpy.arange(curve_len)
-        for i in range(all_curves.shape[0]):
-            y = all_curves[i]
-
-            if len(self.__signal.shape) > 1:
-                nD_index = numpy.unravel_index(i, self.__signal.shape[:-1])
-            else:
-                nD_index = tuple()
-
-            legend = self.__signal_name + "["
-            for j in nD_index:
-                legend += "%d, " % j
-                legend += ":]"
-            if self.__signal_errors is not None:
-                y_errors = self.__signal_errors[nD_index + (slice(None), )]
-            else:
-                y_errors = None
-            self._plot.addCurve(x, y, legend=legend,
-                                xlabel=self.__axis_name,
-                                ylabel=self.__signal_name,
-                                xerror=self.__axis_errors,
-                                yerror=y_errors,
-                                resetzoom=True)
 
 
 class ArrayImagePlot(qt.QWidget):
