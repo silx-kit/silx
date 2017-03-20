@@ -72,13 +72,6 @@ export LC_ALL=en_US.utf-8
 """)
 
 
-# Check if action requires build/install
-DRY_RUN = len(sys.argv) == 1 or (len(sys.argv) >= 2 and (
-    '--help' in sys.argv[1:] or
-    sys.argv[1] in ('--help-commands', 'egg_info', '--version',
-                    'clean', '--name')))
-
-
 def get_version():
     """Returns current version number from version.py file"""
     import version
@@ -327,9 +320,6 @@ def check_cython():
     return True
 
 
-USE_CYTHON = check_cython()
-
-
 # ############################# #
 # numpy.distutils Configuration #
 # ############################# #
@@ -510,7 +500,13 @@ def setup_package():
         clean=CleanCommand,
         debian_src=sdist_debian)
 
-    if DRY_RUN:
+    # Check if action requires build/install
+    dry_run = len(sys.argv) == 1 or (len(sys.argv) >= 2 and (
+        '--help' in sys.argv[1:] or
+        sys.argv[1] in ('--help-commands', 'egg_info', '--version',
+                        'clean', '--name')))
+
+    if dry_run:
         # DRY_RUN implies actions which do not require NumPy
         #
         # And they are required to succeed without Numpy for example when
@@ -522,6 +518,7 @@ def setup_package():
             from distutils.core import setup
         setup_kwargs = {}
     else:
+        use_cython = check_cython()
         try:
             from setuptools import setup
         except ImportError:
@@ -529,7 +526,7 @@ def setup_package():
 
         config = configuration()
 
-        if USE_CYTHON:
+        if use_cython:
             # Cythonize extensions
             from Cython.Build import cythonize
 
