@@ -271,9 +271,6 @@ def check_openmp():
     return True
 
 
-USE_OPENMP = check_openmp()
-
-
 # ############## #
 # Cython support #
 # ############## #
@@ -356,13 +353,15 @@ class BuildExtFlags(build_ext):
     If building with MSVC, compiler flags are converted from gcc flags.
     """
 
+    USE_OPENMP = False
+
     COMPILE_ARGS_CONVERTER = {'-fopenmp': '/openmp'}
 
     LINK_ARGS_CONVERTER = {'-fopenmp': ' '}
 
     def build_extensions(self):
         # Remove OpenMP flags if OpenMP is disabled
-        if not USE_OPENMP:
+        if not self.USE_OPENMP:
             for ext in self.extensions:
                 ext.extra_compile_args = [
                     f for f in ext.extra_compile_args if f != '-fopenmp']
@@ -477,7 +476,6 @@ def setup_package():
     Depending on the command, it either runs the complete setup which depends on numpy,
     or a *dry run* setup with no dependency on numpy.
     """
-
     install_requires = ["numpy"]
     setup_requires = ["numpy"]
 
@@ -519,6 +517,10 @@ def setup_package():
         setup_kwargs = {}
     else:
         use_cython = check_cython()
+
+        use_openmp = check_openmp()
+        BuildExtFlags.USE_OPENMP = use_openmp
+
         try:
             from setuptools import setup
         except ImportError:
@@ -534,7 +536,7 @@ def setup_package():
                 config.ext_modules,
                 compiler_directives={'embedsignature': True},
                 force=(os.environ.get("FORCE_CYTHON") is "True"),
-                compile_time_env={"HAVE_OPENMP": bool(USE_OPENMP)}
+                compile_time_env={"HAVE_OPENMP": use_openmp}
             )
         else:
             # Do not use Cython but convert source names from .pyx to .c or .cpp
