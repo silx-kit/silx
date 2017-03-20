@@ -53,6 +53,15 @@ except ImportError:
     from distutils.command.build_ext import build_ext
     from distutils.command.sdist import sdist
 
+try:
+    import sphinx
+    import sphinx.util.console
+    sphinx.util.console.color_terminal = lambda: False
+    from sphinx.setup_command import BuildDoc
+except ImportError:
+    sphinx = None
+
+
 PROJECT = "silx"
 
 if "LANG" not in os.environ and sys.platform == "darwin" and sys.version_info[0] > 2:
@@ -148,13 +157,7 @@ class PyTest(Command):
 # build_doc command   #
 # ################### #
 
-try:
-    import sphinx
-    import sphinx.util.console
-    sphinx.util.console.color_terminal = lambda: False
-    from sphinx.setup_command import BuildDoc
-except ImportError:
-    sphinx = None
+if sphinx is None:
     class SphinxExpectedCommand(Command):
         """Command to inform that sphinx is missing"""
         user_options = []
