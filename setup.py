@@ -275,15 +275,13 @@ def check_openmp():
 # Cython support #
 # ############## #
 
-CYTHON_MIN_VERSION = '0.21.1'
-
-
-def check_cython():
+def check_cython(min_version=None):
     """
     Check if cython must be activated fron te command line or the environment.
 
     Store the result in WITH_CYTHON environment variable.
 
+    :param string min_version: Minimum version of Cython requested
     :return: True if available and not disabled.
     """
 
@@ -304,7 +302,7 @@ def check_cython():
         os.environ["WITH_CYTHON"] = "False"
         return False
     else:
-        if Cython.Compiler.Version.version < CYTHON_MIN_VERSION:
+        if min_version and Cython.Compiler.Version.version < min_version:
             os.environ["WITH_CYTHON"] = "False"
             return False
 
@@ -516,7 +514,7 @@ def setup_package():
             from distutils.core import setup
         setup_kwargs = {}
     else:
-        use_cython = check_cython()
+        use_cython = check_cython(min_version='0.21.1')
 
         use_openmp = check_openmp()
         BuildExtFlags.USE_OPENMP = use_openmp
