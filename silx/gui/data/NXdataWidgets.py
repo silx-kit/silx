@@ -38,7 +38,7 @@ from silx.gui import qt
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
 from silx.gui.plot import Plot1D, Plot2D, StackView
 
-from silx.math.calibration import ArrayCalibration, NoCalibration
+from silx.math.calibration import ArrayCalibration, NoCalibration, LinearCalibration
 
 
 def _applyColormap(values,
@@ -304,32 +304,6 @@ class ArrayImagePlot(qt.QWidget):
             self._selector.selectionChanged.connect(self._updateImage)
             self.__selector_is_connected = True
 
-    @staticmethod
-    def _image_axes_are_regular(x_axis, y_axis):
-        """Return True if both x_axis and y_axis are regularly spaced arrays
-
-        :param x_axis: 1D numpy array
-        :param y_axis: 1D numpy array
-        """
-        delta_x = x_axis[1:] - x_axis[:-1]
-        if not numpy.isclose(delta_x, delta_x[0]).all():
-            return False
-        delta_y = y_axis[1:] - y_axis[:-1]
-        if not numpy.isclose(delta_y, delta_y[0]).all():
-            return False
-        return True
-
-    @staticmethod
-    def _get_origin_scale(axis):
-        """Assuming axis is a regularly spaced 1D array,
-        return a tuple (origin, scale) where:
-            - origin = axis[0]
-            - scale = axis[1] - axis[0]
-        :param axis: 1D numpy array
-        :return: Tuple (axis[0], axis[1] - axis[0])
-        """
-        return axis[0], axis[1] - axis[0]
-
     def _updateImage(self):
         legend = self.__signal_name + "["
         for sl in self._selector.selection():
@@ -505,24 +479,17 @@ class ArrayStackPlot(qt.QWidget):
         y_axis = self.__y_axis
         z_axis = self.__z_axis
 
-        if x_axis is None:
-            xorigin, xscale = 0., 1.
-            x_axis = numpy.arange(stk.shape[-1])
-        else:
-            xorigin, xscale = self._get_origin_scale(x_axis)
-        if y_axis is None:
-            yorigin, yscale = 0., 1.
-            y_axis = numpy.arange(stk.shape[-2])
-        else:
-            yorigin, yscale = self._get_origin_scale(y_axis)
-        if z_axis is None:
-            zorigin, zscale = 0., 1.
-            z_axis = numpy.arange(stk.shape[-3])
-        else:
-            zorigin, zscale = self._get_origin_scale(z_axis)
+        calibrations = []
+        for axis in [z_axis, y_axis, x_axis]:
 
-        origin = (xorigin, yorigin)  # TODO
-        scale = (xscale, yscale)
+            if axis is None:
+                calibrations.append(NoCalibration())
+            elif len(axis) == 2:
+                calibrations.append(
+                        LinearCalibration(y_intercept=axis[0],
+                                          slope=axis[1]))
+            else:
+                calibrations.append(ArrayCalibration(axis))
 
         legend = self.__signal_name + "["
         for sl in self._selector.selection():
@@ -533,8 +500,7 @@ class ArrayStackPlot(qt.QWidget):
         legend = legend[:-2] + "]"
         self._legend.setText("Displayed data: " + legend)
 
-        self._stack_view.setStack(stk, ) # legend=legend,
-                            # origin=origin, scale=scale)  # TODO
+        self._stack_view.setStack(stk, calibrations=calibrations)
         self._stack_view.setLabels(
                 labels=[self.__z_axis_name,
                         self.__y_axis_name,
