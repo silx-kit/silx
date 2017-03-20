@@ -73,11 +73,13 @@ DRY_RUN = len(sys.argv) == 1 or (len(sys.argv) >= 2 and (
 
 
 def get_version():
+    """Returns current version number from version.py file"""
     import version
     return version.strictversion
 
 
 def get_readme():
+    """Returns content of README.rst file"""
     dirname = os.path.dirname(os.path.abspath(__file__))
     with io.open(os.path.join(dirname, "README.rst"), "r", encoding="utf-8") as fp:
         long_description = fp.read()
@@ -130,6 +132,7 @@ cmdclass['build_py'] = build_py
 ########
 
 class PyTest(Command):
+    """Command to start tests running the script: run_tests.py -i"""
     user_options = []
 
     def initialize_options(self):
@@ -159,6 +162,7 @@ try:
 except ImportError:
     sphinx = None
     class SphinxExpectedCommand(Command):
+        """Command to inform that sphinx is missing"""
         user_options = []
 
         def initialize_options(self):
@@ -174,6 +178,10 @@ except ImportError:
 
 if sphinx is not None:
     class BuildDocCommand(BuildDoc):
+        """Command to build documentation using sphinx.
+        
+        Project should have already be built.
+        """
 
         def run(self):
             # make sure the python path is pointing to the newly built
@@ -213,7 +221,7 @@ cmdclass['build_doc'] = BuildDocCommand
 
 if sphinx is not None:
     class TestDocCommand(BuildDoc):
-        """Target to test the documentation using sphynx doctest.
+        """Command to test the documentation using sphynx doctest.
 
         http://www.sphinx-doc.org/en/1.4.8/ext/doctest.html
         """
@@ -486,6 +494,11 @@ cmdclass['debian_src'] = sdist_debian
 # ##### #
 
 def setup_package():
+    """Run setup(**kwargs)
+    
+    Depending on the command, it either runs the complete setup which depends on numpy,
+    or a *dry run* setup with no dependency on numpy.
+    """
 
     install_requires = ["numpy"]
     setup_requires = ["numpy"]
