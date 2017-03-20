@@ -88,6 +88,7 @@ from .Profile import Profile3DToolBar
 from ..widgets.FrameBrowser import HorizontalSliderWithBrowser
 
 from silx.utils.array_like import DatasetView, ListOfImages
+from silx.math import calibration
 
 
 class StackView(qt.QMainWindow):
@@ -326,11 +327,60 @@ class StackView(qt.QMainWindow):
         """
         assert self.__transposed_view is not None
         self._plot.addImage(self.__transposed_view[index, :, :],
+                            origin=self._getImageOrigin(),
+                            scale=self._getImageScale(),
                             legend=self.__imageLegend,
                             resetzoom=False, replace=False)
 
+    def _set3DScaleAndOrigin(self, calibrations):
+        """Set scale and origin for all 3 axes, to be used when plotting
+        an image.
+
+        See setStack for parameter documentation
+        """
+        if calibrations is None:
+            self.origin3D = (0., 0., 0.)
+            self.scale3D = (1., 1., 1.)
+        else:
+            self.origin3D = []
+            self.scale3D = []
+            for calib in calibrations:
+                if hasattr(calib, "__len__") and len(calib) == 2:
+                    calib = calibration.LinearCalibration(calib[0], calib[1])
+                elif calib is None:
+                    calib = calibration.NoCalibration()
+                elif not isinstance(calib, calibration.AbstractCalibration):
+                    raise TypeError("calibration must be a 2-tuple, None or" +
+                                    " an instance of an AbstractCalibration " +
+                                    "subclass")
+                self.origin3D.append(calib(0))
+                self.scale3D.append(calib.get_slope())
+
+    def _getImageScale(self):
+        """
+        :return: 2-tuple (XScale, YScale) for current image view
+        """
+        if self._perspective == 0:
+            return self.scale3D[2], self.scale3D[1]
+        if self._perspective == 1:
+            return self.scale3D[2], self.scale3D[0]
+        if self._perspective == 2:
+            return self.scale3D[1], self.scale3D[0]
+
+    def _getImageOrigin(self):
+        """
+        :return: 2-tuple (XOrigin, YOrigin) for current image view
+        """
+        if self._perspective == 0:
+            return self.origin3D[2], self.origin3D[1]
+        if self._perspective == 1:
+            return self.origin3D[2], self.origin3D[0]
+        if self._perspective == 2:
+            return self.origin3D[1], self.origin3D[0]
+
+
     # public API
-    def setStack(self, stack, perspective=0, reset=True):
+    def setStack(self, stack, perspective=0, reset=True, calibrations=None):
         """Set the 3D stack.
 
         The perspective parameter is used to define which dimension of the 3D
@@ -345,11 +395,17 @@ class StackView(qt.QMainWindow):
             By default, the dimension for the image index is the first
             dimension of the 3D stack (``perspective=0``).
         :param bool reset: Whether to reset zoom or not.
+        :param calibrations: Sequence of 3 calibration objects for each axis.
+            These objects can be a subclass of :class:`AbstractCalibration`,
+            or 2-tuples *(a, b)* where *a* is the y-intercept and *b* is the
+            slope of a linear calibration (:math:`x \mapsto a + b x`)
         """
         if stack is None:
             self.clear()
             self.sigStackChanged.emit(0)
             return
+
+        self._set3DScaleAndOrigin(calibrations)
 
         # stack as list of 2D arrays: must be converted into an array_like
         if not isinstance(stack, numpy.ndarray):
@@ -370,6 +426,9 @@ class StackView(qt.QMainWindow):
         self._stack = stack
         self.__createTransposedView()
 
+        if perspective != self._perspective:
+            self.__setPerspective(perspective)
+
         # This call to setColormap redefines the meaning of autoscale
         # for 3D volume: take global min/max rather than frame min/max
         if self.__autoscaleCmap:
@@ -379,6 +438,8 @@ class StackView(qt.QMainWindow):
         self._plot.addImage(self.__transposed_view[0, :, :],
                             legend=self.__imageLegend,
                             colormap=self.getColormap(),
+                            origin=self._getImageOrigin(),
+                            scale=self._getImageScale(),
                             resetzoom=False)
         self._plot.setActiveImage(self.__imageLegend)
         self.__updatePlotLabels()
@@ -388,9 +449,6 @@ class StackView(qt.QMainWindow):
 
         # enable and init browser
         self._browser.setEnabled(True)
-
-        if perspective != self._perspective:
-            self.__setPerspective(perspective)
 
         self.sigStackChanged.emit(stack.size)
 
@@ -692,6 +750,8 @@ class StackView(qt.QMainWindow):
         if activeImage is not None:
             self._plot.addImage(
                 activeImage.getData(copy=False),
+                origin=self._getImageOrigin(),
+                scale=self._getImageScale(),
                 legend=activeImage.getLegend(),
                 info=activeImage.getInfo(),
                 pixmap=activeImage.getPixmap(copy=False),
