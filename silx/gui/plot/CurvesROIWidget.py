@@ -880,3 +880,10 @@ class CurvesROIDockWidget(qt.QDockWidget):
                 ymax = max(ymax, y.max())
 
         return xmin, ymin, xmax, ymax
+
+    def showEvent(self, event):
+        """Make sure this widget is raised when it is shown
+        (when it is first created as a tab in PlotWindow or when it is shown
+        again after hiding).
+        """
+        self.raise_()

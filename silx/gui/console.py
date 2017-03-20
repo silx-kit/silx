@@ -195,6 +195,13 @@ class IPythonDockWidget(qt.QDockWidget):
         if available_vars is not None:
             self.ipyconsole.pushVariables(available_vars)
 
+    def showEvent(self, event):
+        """Make sure this widget is raised when it is shown
+        (when it is first created as a tab in PlotWindow or when it is shown
+        again after hiding).
+        """
+        self.raise_()
+
 
 def main():
     """Run a Qt app with an IPython console"""
