@@ -55,9 +55,9 @@ except ImportError:
 
 PROJECT = "silx"
 
-if "LANG" not in os.environ and sys.platform == "darwin" and sys.version_info[0]>2:
-    print("""WARNING: the LANG environment variable is not defined, 
-an utf-8 LANG is mandatory to use setup.py, you may face unexpected UnicodeError. 
+if "LANG" not in os.environ and sys.platform == "darwin" and sys.version_info[0] > 2:
+    print("""WARNING: the LANG environment variable is not defined,
+an utf-8 LANG is mandatory to use setup.py, you may face unexpected UnicodeError.
 export LANG=en_US.utf-8
 export LC_ALL=en_US.utf-8
 """)
@@ -79,7 +79,8 @@ def get_version():
 def get_readme():
     """Returns content of README.rst file"""
     dirname = os.path.dirname(os.path.abspath(__file__))
-    with io.open(os.path.join(dirname, "README.rst"), "r", encoding="utf-8") as fp:
+    filename = os.path.join(dirname, "README.rst")
+    with io.open(filename, "r", encoding="utf-8") as fp:
         long_description = fp.read()
     return long_description
 
@@ -172,7 +173,7 @@ except ImportError:
 if sphinx is not None:
     class BuildDocCommand(BuildDoc):
         """Command to build documentation using sphinx.
-        
+
         Project should have already be built.
         """
 
@@ -479,7 +480,7 @@ class sdist_debian(sdist):
 
 def setup_package():
     """Run setup(**kwargs)
-    
+
     Depending on the command, it either runs the complete setup which depends on numpy,
     or a *dry run* setup with no dependency on numpy.
     """
