@@ -515,7 +515,7 @@ class Plot(object):
                  xlabel=None, ylabel=None, yaxis=None,
                  xerror=None, yerror=None, z=None, selectable=None,
                  fill=None, resetzoom=True,
-                 histogram=None, **kw):
+                 histogram=None, copy=True, **kw):
         """Add a 1D curve given by x an y to the graph.
 
         Curves are uniquely identified by their legend.
@@ -592,7 +592,8 @@ class Plot(object):
             - 'left'
             - 'right'
             - 'center'
-
+        :param bool copy: True make a copy of the data (default),
+                          False to use provided arrays.
         :returns: The key string identify this curve
         """
         # Deprecation warnings
@@ -655,7 +656,7 @@ class Plot(object):
         if yerror is None:
             yerror = curve.getYErrorData(copy=False)
 
-        curve.setData(x, y, xerror, yerror)
+        curve.setData(x, y, xerror, yerror, copy=copy)
 
         if replace:  # Then remove all other curves
             for c in self.getAllCurves(withhidden=True):
@@ -683,7 +684,7 @@ class Plot(object):
                  colormap=None, pixmap=None,
                  xlabel=None, ylabel=None,
                  origin=None, scale=None,
-                 resetzoom=True, **kw):
+                 resetzoom=True, copy=True, **kw):
         """Add a 2D dataset or an image to the plot.
 
         It displays either an array of data using a colormap or a RGB(A) image.
@@ -729,6 +730,8 @@ class Plot(object):
                       Default: (1., 1.)
         :type scale: float or 2-tuple of float
         :param bool resetzoom: True (the default) to reset the zoom.
+        :param bool copy: True make a copy of the data (default),
+                          False to use provided arrays.
         :returns: The key string identify this image
         """
         # Deprecation warnings
@@ -785,7 +788,7 @@ class Plot(object):
         if ylabel is not None:
             image._setYLabel(ylabel)
 
-        image.setData(data, pixmap)
+        image.setData(data, pixmap, copy=copy)
 
         if replace:
             for img in self.getAllImages():
@@ -856,7 +859,7 @@ class Plot(object):
         item.setFill(fill)
         item.setOverlay(overlay)
         item.setZValue(z)
-        item.setPoints(numpy.array((xdata, ydata), copy=True).T)
+        item.setPoints(numpy.array((xdata, ydata)).T)
 
         self._add(item)
 
