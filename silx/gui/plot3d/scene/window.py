@@ -42,8 +42,8 @@ __date__ = "10/01/2017"
 import weakref
 import numpy
 
-from ..glutils import gl
-from .. import glutils
+from ..._glutils import gl
+from ... import _glutils
 
 from . import event
 
@@ -119,7 +119,7 @@ class ContextGL2(Context):
         key = vertexShaderSrc, fragmentShaderSrc
         prog = self._programs.get(key, None)
         if prog is None:
-            prog = glutils.Program(vertexShaderSrc, fragmentShaderSrc)
+            prog = _glutils.Program(vertexShaderSrc, fragmentShaderSrc)
             self._programs[key] = prog
         return prog
 
@@ -145,7 +145,7 @@ class ContextGL2(Context):
         :return: The VertexBuffer created in this context.
         """
         assert self.isCurrent
-        vbo = glutils.VertexBuffer(data, sizeInBytes, usage, target)
+        vbo = _glutils.VertexBuffer(data, sizeInBytes, usage, target)
         vboref = weakref.ref(vbo, self._deadVbo)
         # weakref is hashable as far as target is
         self._vbos[vboref] = vbo.name
@@ -168,9 +168,9 @@ class ContextGL2(Context):
         assert len(data.shape) <= 2
         dimension = 1 if len(data.shape) == 1 else data.shape[1]
 
-        return glutils.VertexBufferAttrib(
+        return _glutils.VertexBufferAttrib(
             vbo,
-            type_=glutils.numpyToGLType(data.dtype),
+            type_=_glutils.numpyToGLType(data.dtype),
             size=data.shape[0],
             dimension=dimension,
             offset=0,
@@ -364,11 +364,11 @@ class Window(event.Notifier):
                 if context in self._framebuffers:
                     self._framebuffers[context].discard()
 
-                fbo = glutils.FramebufferTexture(gl.GL_RGBA,
-                                                 shape=self.shape,
-                                                 minFilter=gl.GL_NEAREST,
-                                                 magFilter=gl.GL_NEAREST,
-                                                 wrap=gl.GL_CLAMP_TO_EDGE)
+                fbo = _glutils.FramebufferTexture(gl.GL_RGBA,
+                                                  shape=self.shape,
+                                                  minFilter=gl.GL_NEAREST,
+                                                  magFilter=gl.GL_NEAREST,
+                                                  wrap=gl.GL_CLAMP_TO_EDGE)
                 self._framebuffers[context] = fbo
                 self._framebufferid = fbo.name
 

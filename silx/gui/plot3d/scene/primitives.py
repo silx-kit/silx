@@ -40,8 +40,8 @@ import numpy
 
 from silx.gui.plot.Colors import rgba
 
-from .. import glutils
-from ..glutils import gl
+from ... import _glutils
+from ..._glutils import gl
 
 from . import event
 from . import core
@@ -242,7 +242,7 @@ class Geometry(core.Elem):
                     assert len(array) in (1, 2, 3, 4)
                     gl.glDisableVertexAttribArray(attribute)
                     _glVertexAttribFunc = getattr(
-                        glutils.gl, 'glVertexAttrib{}f'.format(len(array)))
+                        _glutils.gl, 'glVertexAttrib{}f'.format(len(array)))
                     _glVertexAttribFunc(attribute, *array)
                 else:
                     # TODO As is this is a never event, remove?
@@ -250,7 +250,7 @@ class Geometry(core.Elem):
                     gl.glVertexAttribPointer(
                         attribute,
                         array.shape[-1],
-                        glutils.numpyToGLType(array.dtype),
+                        _glutils.numpyToGLType(array.dtype),
                         gl.GL_FALSE,
                         0,
                         array)
@@ -332,7 +332,7 @@ class Geometry(core.Elem):
             with self._vbos['__indices__']:
                 gl.glDrawElements(self._MODES[self._mode],
                                   nbVertices,
-                                  glutils.numpyToGLType(self._indices.dtype),
+                                  _glutils.numpyToGLType(self._indices.dtype),
                                   ctypes.c_void_p(0))
 
 
