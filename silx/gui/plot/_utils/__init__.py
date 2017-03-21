@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,25 +22,28 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+"""Miscellaneous utility functions for the Plot"""
+
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "16/02/2016"
+__date__ = "21/03/2017"
 
 
-from numpy.distutils.misc_util import Configuration
+from .panzoom import FLOAT32_SAFE_MIN, FLOAT32_MINPOS, FLOAT32_SAFE_MAX
+from .panzoom import applyZoomToPlot, applyPan
 
 
-def configuration(parent_package='', top_path=None):
-    config = Configuration('plot', parent_package, top_path)
-    config.add_subpackage('_utils')
-    config.add_subpackage('backends')
-    config.add_subpackage('items')
-    config.add_subpackage('test')
+def clamp(value, min_=0., max_=1.):
+    """Clip a value to a range [min, max].
 
-    return config
-
-
-if __name__ == "__main__":
-    from numpy.distutils.core import setup
-
-    setup(configuration=configuration)
+    :param value: The value to clip
+    :param min_: The min edge of the range
+    :param max_: The max edge of the range
+    :return: The clipped value
+    """
+    if value < min_:
+        return min_
+    elif value > max_:
+        return max_
+    else:
+        return value

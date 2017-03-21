@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Miscellaneous utility functions"""
+"""Functions to apply pan and zoom on a Plot"""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -154,19 +154,3 @@ def applyPan(min_, max_, panFactor, isLog10):
         if newMin > - float('inf') and newMax < float('inf'):
             min_, max_ = newMin, newMax
     return min_, max_
-
-
-def clamp(value, min_=0., max_=1.):
-    """Clip a value to a range [min, max].
-
-    :param value: The value to clip
-    :param min_: The min edge of the range
-    :param max_: The max edge of the range
-    :return: The clipped value
-    """
-    if value < min_:
-        return min_
-    elif value > max_:
-        return max_
-    else:
-        return value
