@@ -39,7 +39,7 @@ import numpy
 _logger = logging.getLogger(__name__)
 
 
-from .. import qt
+from ... import qt
 
 from ._matplotlib import FigureCanvasQTAgg
 import matplotlib
@@ -52,10 +52,10 @@ from matplotlib.backend_bases import MouseEvent
 from matplotlib.lines import Line2D
 from matplotlib.collections import PathCollection, LineCollection
 
-from . import _utils
+from .. import _utils
 from .ModestImage import ModestImage
 from . import BackendBase
-from . import Colors
+from .. import Colors
 
 
 class BackendMatplotlib(BackendBase.BackendBase):
