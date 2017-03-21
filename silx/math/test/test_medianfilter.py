@@ -146,7 +146,7 @@ class Test2DFilterInputTypes(ParametricTestCase):
             numpy.int32, numpy.int64, numpy.uint64]:
 
 
-            data = numpy.random.rand(10, 10).astype(dtype=testType)
+            data = numpy.random.rand(10, 10).astype(testType)
             out = medianfilter(input_buffer=data,
                                kernel_dim=(3, 3),
                                conditionnal=False)
