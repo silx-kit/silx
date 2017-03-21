@@ -356,7 +356,7 @@ def get_hdf5_with_nxdata():
     gd0 = g.create_group("x_y_scatter")
     gd0.attrs["NX_class"] = "NXdata"
     gd0.attrs["signal"] = "y"
-    gd0.attrs["axes"] = "x",
+    gd0.attrs["axes"] = b"x",
     gd0.create_dataset("y", data=numpy.random.rand(128) - 0.5)
     gd0.create_dataset("x", data=2*numpy.random.rand(128))
     gd0.create_dataset("x_errors", data=0.05*numpy.random.rand(128))
@@ -378,7 +378,7 @@ def get_hdf5_with_nxdata():
     gd0 = g.create_group("3D_cube")
     gd0.attrs["NX_class"] = "NXdata"
     gd0.attrs["signal"] = "cube"
-    gd0.attrs["axes"] = "img_idx", "rows_coordinates", "cols_coordinates"
+    gd0.attrs["axes"] = b"img_idx", b"rows_coordinates", b"cols_coordinates"
     gd0.create_dataset("cube", data=numpy.arange(4*5*6).reshape((4, 5, 6)))
     gd0.create_dataset("img_idx", data=numpy.arange(4))
     gd0.create_dataset("rows_coordinates", data=0.1*numpy.arange(5))
