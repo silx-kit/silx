@@ -39,7 +39,7 @@ from silx.gui.plot.Colors import rgba
 from .. import glutils
 from ..glutils import gl
 
-from .. import _font
+from ..glutils import font as _font
 from ..utils import ticklayout
 
 from . import event, primitives, core, transform
