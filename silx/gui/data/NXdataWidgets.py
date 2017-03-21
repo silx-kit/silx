@@ -460,18 +460,21 @@ class ArrayStackPlot(qt.QWidget):
 
         self._updateStack()
 
-        if not self.__selector_is_connected:
-            self._selector.selectionChanged.connect(self._updateStack)
-            self.__selector_is_connected = True
+        ndims = len(signal.shape)
+        self._stack_view.setFirstStackDimension(ndims - 3)
 
         # the legend label shows the selection slice producing the volume
         # (only interesting for ndim > 3)
-        if len(signal.shape) > 3:
+        if ndims > 3:
             self._legend.setVisible(True)
             self._hline.setVisible(True)
         else:
             self._legend.setVisible(False)
             self._hline.setVisible(False)
+
+        if not self.__selector_is_connected:
+            self._selector.selectionChanged.connect(self._updateStack)
+            self.__selector_is_connected = True
 
     @staticmethod
     def _get_origin_scale(axis):

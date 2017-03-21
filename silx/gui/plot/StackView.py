@@ -179,6 +179,9 @@ class StackView(qt.QMainWindow):
         """These labels are displayed on the X and Y axes.
         :meth:`setLabels` updates this attribute."""
 
+        self._first_stack_dimension = 0
+        """Used for dimension labels and combobox"""
+
         central_widget = qt.QWidget(self)
 
         self._plot = PlotWindow(parent=central_widget, backend=backend,
@@ -203,7 +206,7 @@ class StackView(qt.QMainWindow):
         self.__planeSelection = PlanesWidget(self._plot)
         self.__planeSelection.sigPlaneSelectionChanged.connect(self.__setPerspective)
 
-        browser_label = qt.QLabel("Image index:")
+        self._browser_label = qt.QLabel("Image index (Dim0):")
 
         self._browser = HorizontalSliderWithBrowser(central_widget)
         self._browser.valueChanged[int].connect(self.__updateFrameNumber)
@@ -213,7 +216,7 @@ class StackView(qt.QMainWindow):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self._plot, 0, 0, 1, 3)
         layout.addWidget(self.__planeSelection, 1, 0)
-        layout.addWidget(browser_label, 1, 1)
+        layout.addWidget(self._browser_label, 1, 1)
         layout.addWidget(self._browser, 1, 2)
 
         central_widget.setLayout(layout)
@@ -262,7 +265,7 @@ class StackView(qt.QMainWindow):
     def __setPerspective(self, perspective):
         """Function called when the browsed/orthogonal dimension changes
 
-        :param perspective: the new browsed dimension
+        :param int perspective: the new browsed dimension
         """
         if perspective == self._perspective:
             return
@@ -276,6 +279,8 @@ class StackView(qt.QMainWindow):
             self.__updateFrameNumber(self._browser.value())
             self._plot.resetZoom()
             self.__updatePlotLabels()
+            self._browser_label.setText("Image index (Dim%d):" %
+                                        (self._first_stack_dimension + perspective))
 
             self.sigPlaneSelectionChanged.emit(perspective)
             self.sigStackChanged.emit(self._stack.size if
@@ -811,6 +816,23 @@ class StackView(qt.QMainWindow):
         """
         self._plot.addItem(*args, **kwargs)
 
+    def setFirstStackDimension(self, first_stack_dimension):
+        """When viewing the last 3 dimensions of an n-D array (n>3), you can
+        use this method to change the text in the combobox.
+
+        For instance, for a 7-D array, first stack dim is 4, so the default
+        "Dim1-Dim2" text should be replaced with "Dim5-Dim6" (dimensions
+        numbers are 0-based).
+
+        :param int first_stack_dim: First stack dimension (n-3) when viewing the
+            last 3 dimensions of an n-D array.
+        """
+        old_state = self.__planeSelection.blockSignals(True)
+        self.__planeSelection.setFirstStackDimension(first_stack_dimension)
+        self.__planeSelection.blockSignals(old_state)
+        self._first_stack_dimension = first_stack_dimension
+        self._browser_label.setText("Image index (Dim%d):" % first_stack_dimension)
+
 
 class PlanesWidget(qt.QWidget):
     """Widget for the plane/perspective selection
@@ -836,14 +858,8 @@ class PlanesWidget(qt.QWidget):
         # 1
         # | 0
         # |/__2
-
         self.qcbAxisSelection = qt.QComboBox(self)
-        self.qcbAxisSelection.addItem(icons.getQIcon("cube-front"),
-                                      'Dim1-Dim2')
-        self.qcbAxisSelection.addItem(icons.getQIcon("cube-bottom"),
-                                      'Dim0-Dim2')
-        self.qcbAxisSelection.addItem(icons.getQIcon("cube-left"),
-                                      'Dim0-Dim1')
+        self._setCBChoices(first_stack_dimension=0)
         self.qcbAxisSelection.currentIndexChanged[int].connect(
             self.__planeSelectionChanged)
 
@@ -860,6 +876,33 @@ class PlanesWidget(qt.QWidget):
           - slice plane Dim0-Dim1: perspective 2
         """
         self.sigPlaneSelectionChanged.emit(idx)
+
+    def _setCBChoices(self, first_stack_dimension):
+        self.qcbAxisSelection.clear()
+
+        dim1dim2 = 'Dim%d-Dim%d' % (first_stack_dimension + 1,
+                                    first_stack_dimension + 2)
+        dim0dim2 = 'Dim%d-Dim%d' % (first_stack_dimension,
+                                    first_stack_dimension + 2)
+        dim0dim1 = 'Dim%d-Dim%d' % (first_stack_dimension,
+                                    first_stack_dimension + 1)
+
+        self.qcbAxisSelection.addItem(icons.getQIcon("cube-front"), dim1dim2)
+        self.qcbAxisSelection.addItem(icons.getQIcon("cube-bottom"), dim0dim2)
+        self.qcbAxisSelection.addItem(icons.getQIcon("cube-left"), dim0dim1)
+
+    def setFirstStackDimension(self, first_stack_dim):
+        """When viewing the last 3 dimensions of an n-D array (n>3), you can
+        use this method to change the text in the combobox.
+
+        For instance, for a 7-D array, first stack dim is 4, so the default
+        "Dim1-Dim2" text should be replaced with "Dim5-Dim6" (dimensions
+        numbers are 0-based).
+
+        :param int first_stack_dim: First stack dimension (n-3) when viewing the
+            last 3 dimensions of an n-D array.
+        """
+        self._setCBChoices(first_stack_dim)
 
 
 class StackViewMainWindow(StackView):
