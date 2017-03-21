@@ -3,7 +3,7 @@
 #    Project: silx (originally pyFAI)
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2012-2016  European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2012-2017  European Synchrotron Radiation Facility, Grenoble, France
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -49,7 +49,7 @@ cdef class BilinearImage:
     cdef float c_funct(self, float, float) nogil
 
     def __cinit__(self, data not None):
-        """ Constructor
+        """Constructor
 
         :param data: image as a 2D array
         """
@@ -115,9 +115,7 @@ cdef class BilinearImage:
     @cython.boundscheck(False)
     @cython.wraparound(False)
     def opp_f(self, coord):
-        """opp_f(self, coord)
-
-        Function -f((y,x)) for peak finding via minimizer.
+        """Function -f((y,x)) for peak finding via minimizer.
 
         Gives large number outside the boundaries to return into the image
 
@@ -143,9 +141,7 @@ cdef class BilinearImage:
     @cython.wraparound(False)
     @cython.cdivision(True)
     def local_maxi(self, coord):
-        """local_maxi(self, coord)
-
-        Return the nearest local maximum ... with sub-pixel refinement
+        """Return the nearest local maximum ... with sub-pixel refinement
 
         Nearest maximum search:
             steepest ascent
@@ -207,9 +203,7 @@ cdef class BilinearImage:
         return (float(current0), float(current1))
 
     cpdef size_t coarse_local_maxi(self, size_t x):
-        """coarse_local_maxi(self, idx)
-
-        Return the nearest local maximum ... without sub-pixel refinement
+        """Return the nearest local maximum ... without sub-pixel refinement
 
         :param idx: start index (=row*width+column)
         :return: local maximum index
@@ -254,9 +248,7 @@ cdef class BilinearImage:
 
     @cython.boundscheck(False)
     def map_coordinates(self, coordinates):
-        """map_coordinates(self, coordinates)
-
-        Map coordinates of the array on the image
+        """Map coordinates of the array on the image
 
         :param coordinates: 2-tuple of array of the same size (row_array, column_array)
         :return: array of values at given coordinates
@@ -277,9 +269,7 @@ cdef class BilinearImage:
 
     @cython.boundscheck(False)
     def profile_line(self, src, dst, int linewidth=1):
-        """profile_line(self, src, dst, linewidth=1)
-
-        Return the intensity profile of an image measured along a scan line.
+        """Return the intensity profile of an image measured along a scan line.
 
         :param src: The start point of the scan line.
         :type src: 2-tuple of numeric scalar

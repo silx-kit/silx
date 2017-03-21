@@ -1,6 +1,6 @@
 # coding: utf-8
 #/*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -66,8 +66,7 @@ cimport functions_wrapper
 
 
 def erf(x):
-    """erf(x)
-    Return the gaussian error function
+    """Return the gaussian error function
 
     :param x: Independant variable where the gaussian error function is
         calculated
@@ -97,8 +96,7 @@ def erf(x):
 
 
 def erfc(x):
-    """erfc(x) -> numpy.ndarray
-    Return the gaussian complementary error function
+    """Return the gaussian complementary error function
 
     :param x: Independant variable where the gaussian complementary error
         function is calculated
@@ -128,9 +126,7 @@ def erfc(x):
 
 
 def sum_gauss(x, *params):
-    """sum_gauss(x, *params) -> numpy.ndarray
-
-    Return a sum of gaussian functions defined by *(height, centroid, fwhm)*,
+    """Return a sum of gaussian functions defined by *(height, centroid, fwhm)*,
     where:
 
         - *height* is the peak amplitude
@@ -178,9 +174,7 @@ def sum_gauss(x, *params):
 
 
 def sum_agauss(x, *params):
-    """sum_agauss(x, *params) -> numpy.ndarray
-
-    Return a sum of gaussian functions defined by *(area, centroid, fwhm)*,
+    """Return a sum of gaussian functions defined by *(area, centroid, fwhm)*,
     where:
 
         - *area* is the area underneath the peak
@@ -226,9 +220,7 @@ def sum_agauss(x, *params):
 
 
 def sum_fastagauss(x, *params):
-    """sum_fastagauss(x, *params) -> numpy.ndarray
-
-    Return a sum of gaussian functions defined by *(area, centroid, fwhm)*,
+    """Return a sum of gaussian functions defined by *(area, centroid, fwhm)*,
     where:
 
         - *area* is the area underneath the peak
@@ -278,9 +270,7 @@ def sum_fastagauss(x, *params):
 
 
 def sum_splitgauss(x, *params):
-    """sum_splitgauss(x, *params) -> numpy.ndarray
-
-    Return a sum of gaussian functions defined by *(area, centroid, fwhm1, fwhm2)*,
+    """Return a sum of gaussian functions defined by *(area, centroid, fwhm1, fwhm2)*,
     where:
 
         - *height* is the peak amplitude
@@ -329,9 +319,7 @@ def sum_splitgauss(x, *params):
 
 
 def sum_apvoigt(x, *params):
-    """sum_apvoigt(x, *params) -> numpy.ndarray
-
-    Return a sum of pseudo-Voigt functions, defined by *(area, centroid, fwhm,
+    """Return a sum of pseudo-Voigt functions, defined by *(area, centroid, fwhm,
     eta)*.
 
     The pseudo-Voigt profile ``PV(x)`` is an approximation of the Voigt
@@ -381,9 +369,7 @@ def sum_apvoigt(x, *params):
 
 
 def sum_pvoigt(x, *params):
-    """sum_pvoigt(x, *params) -> numpy.ndarray
-
-    Return a sum of pseudo-Voigt functions, defined by *(height, centroid,
+    """Return a sum of pseudo-Voigt functions, defined by *(height, centroid,
     fwhm, eta)*.
 
     The pseudo-Voigt profile ``PV(x)`` is an approximation of the Voigt
@@ -434,9 +420,7 @@ def sum_pvoigt(x, *params):
 
 
 def sum_splitpvoigt(x, *params):
-    """sum_splitpvoigt(x, *params) -> numpy.ndarray
-
-    Return a sum of split pseudo-Voigt functions, defined by *(height,
+    """Return a sum of split pseudo-Voigt functions, defined by *(height,
     centroid, fwhm1, fwhm2, eta)*.
 
     The pseudo-Voigt profile ``PV(x)`` is an approximation of the Voigt
@@ -491,9 +475,7 @@ def sum_splitpvoigt(x, *params):
 
 
 def sum_lorentz(x, *params):
-    """sum_lorentz(x, *params) -> numpy.ndarray
-
-    Return a sum of Lorentz distributions, also known as Cauchy distribution,
+    """Return a sum of Lorentz distributions, also known as Cauchy distribution,
     defined by *(height, centroid, fwhm)*.
 
         - *height* is the peak amplitude
@@ -540,9 +522,7 @@ def sum_lorentz(x, *params):
 
 
 def sum_alorentz(x, *params):
-    """sum_alorentz(x, *params) -> numpy.ndarray
-
-    Return a sum of Lorentz distributions, also known as Cauchy distribution,
+    """Return a sum of Lorentz distributions, also known as Cauchy distribution,
     defined by *(area, centroid, fwhm)*.
 
         - *area* is the area underneath the peak
@@ -589,9 +569,7 @@ def sum_alorentz(x, *params):
 
 
 def sum_splitlorentz(x, *params):
-    """sum_splitlorentz(x, *params) -> numpy.ndarray
-
-    Return a sum of split Lorentz distributions,
+    """Return a sum of split Lorentz distributions,
     defined by *(height, centroid, fwhm1, fwhm2)*.
 
         - *height* is the peak amplitude
@@ -639,9 +617,7 @@ def sum_splitlorentz(x, *params):
 
 
 def sum_stepdown(x, *params):
-    """sum_stepdown(x, *params) -> numpy.ndarray
-
-    Return a sum of stepdown functions.
+    """Return a sum of stepdown functions.
     defined by *(height, centroid, fwhm)*.
 
         - *height* is the step's amplitude
@@ -689,9 +665,7 @@ def sum_stepdown(x, *params):
 
 
 def sum_stepup(x, *params):
-    """sum_stepup(x, *params) -> numpy.ndarray
-
-    Return a sum of stepup functions.
+    """Return a sum of stepup functions.
     defined by *(height, centroid, fwhm)*.
 
         - *height* is the step's amplitude
@@ -740,9 +714,7 @@ def sum_stepup(x, *params):
 
 
 def sum_slit(x, *params):
-    """sum_slit(x, *params) -> numpy.ndarray
-
-    Return a sum of slit functions.
+    """Return a sum of slit functions.
     defined by *(height, position, fwhm, beamfwhm)*.
 
         - *height* is the slit's amplitude
@@ -794,9 +766,7 @@ def sum_slit(x, *params):
 
 def sum_ahypermet(x, *params,
                   gaussian_term=True, st_term=True, lt_term=True, step_term=True):
-    """sum_ahypermet(x, *params) -> numpy.ndarray
-
-    Return a sum of ahypermet functions.
+    """Return a sum of ahypermet functions.
     defined by *(area, position, fwhm, st_area_r, st_slope_r, lt_area_r,
     lt_slope_r, step_height_r)*.
 
@@ -879,9 +849,7 @@ def sum_ahypermet(x, *params,
 def sum_fastahypermet(x, *params,
                       gaussian_term=True, st_term=True,
                       lt_term=True, step_term=True):
-    """sum_fastahypermet(x, *params) -> numpy.ndarray
-
-    Return a sum of hypermet functions defined by *(area, position, fwhm,
+    """Return a sum of hypermet functions defined by *(area, position, fwhm,
     st_area_r, st_slope_r, lt_area_r, lt_slope_r, step_height_r)*.
 
         - *area* is the area underneath the gaussian peak

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -35,6 +35,7 @@ __date__ = "05/09/2016"
 
 import numpy
 cimport numpy as cnumpy
+cimport cython
 
 cimport mc
 
@@ -140,9 +141,7 @@ cdef class MarchingCubes:
             raise IndexError("Index out of range")
 
     def process(self, cnumpy.ndarray[cnumpy.float32_t, ndim=3, mode='c'] data):
-        """process(data)
-
-        Compute an isosurface from a 3D scalar field.
+        """Compute an isosurface from a 3D scalar field.
 
         This builds vertices, normals and indices arrays.
         Vertices and normals coordinates are in the same order as input array,
@@ -162,9 +161,7 @@ cdef class MarchingCubes:
     def process_slice(self,
             cnumpy.ndarray[cnumpy.float32_t, ndim=2, mode='c'] slice0,
             cnumpy.ndarray[cnumpy.float32_t, ndim=2, mode='c'] slice1):
-        """process_slice(slice0, slice1)
-        
-        Process a new slice to build the isosurface.
+        """Process a new slice to build the isosurface.
 
         :param numpy.ndarray slice0: Slice previously provided as slice1.
         :param numpy.ndarray slice1: Slice to process.
@@ -192,11 +189,13 @@ cdef class MarchingCubes:
         """Reset internal resources including computed isosurface info."""
         self.c_mc.reset()
 
+    @cython.embedsignature(False)
     @property
     def shape(self):
         """The shape of the processed scalar field (depth, height, width)."""
         return self.c_mc.depth, self.c_mc.height, self.c_mc.width
 
+    @cython.embedsignature(False)
     @property
     def sampling(self):
         """The sampling over each dimension (depth, height, width).
@@ -207,11 +206,13 @@ cdef class MarchingCubes:
                 self.c_mc.sampling[1],
                 self.c_mc.sampling[2])
 
+    @cython.embedsignature(False)
     @property
     def isolevel(self):
         """The iso-level at which to generate the isosurface"""
         return self.c_mc.isolevel
 
+    @cython.embedsignature(False)
     @property
     def invert_normals(self):
         """True to use gradient descent as normals."""
