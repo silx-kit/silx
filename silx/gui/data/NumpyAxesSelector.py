@@ -183,10 +183,18 @@ class _Axis(qt.QWidget):
 
     def setNamedAxisSelectorVisibility(self, visible):
         """Hide or show the named axis combobox.
+        If both the selector and the slider are hidden,
+        hide the entire widget.
 
         :param visible: boolean
         """
         self.__axes.setVisible(visible)
+        name = self.axisName()
+
+        if not visible and name != "":
+            self.setVisible(False)
+        else:
+            self.setVisible(True)
 
 
 class NumpyAxesSelector(qt.QWidget):

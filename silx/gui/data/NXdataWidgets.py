@@ -397,6 +397,9 @@ class ArrayStackPlot(qt.QWidget):
         self.__x_axis_name = None
 
         self._stack_view = StackView(self)
+        self._hline = qt.QFrame(self)
+        self._hline.setFrameStyle(qt.QFrame.HLine)
+        self._hline.setFrameShadow(qt.QFrame.Sunken)
         self._legend = qt.QLabel(self)
         self._selector = NumpyAxesSelector(self)
         self._selector.setNamedAxesSelectorVisibility(False)
@@ -404,6 +407,7 @@ class ArrayStackPlot(qt.QWidget):
 
         layout = qt.QVBoxLayout()
         layout.addWidget(self._stack_view)
+        layout.addWidget(self._hline)
         layout.addWidget(self._legend)
         layout.addWidget(self._selector)
 
@@ -459,6 +463,15 @@ class ArrayStackPlot(qt.QWidget):
         if not self.__selector_is_connected:
             self._selector.selectionChanged.connect(self._updateStack)
             self.__selector_is_connected = True
+
+        # the legend label shows the selection slice producing the volume
+        # (only interesting for ndim > 3)
+        if len(signal.shape) > 3:
+            self._legend.setVisible(True)
+            self._hline.setVisible(True)
+        else:
+            self._legend.setVisible(False)
+            self._hline.setVisible(False)
 
     @staticmethod
     def _get_origin_scale(axis):

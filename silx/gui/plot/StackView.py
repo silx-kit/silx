@@ -200,18 +200,21 @@ class StackView(qt.QMainWindow):
         self._plot.setGraphYLabel('Rows')
         self._plot.sigPlotSignal.connect(self._plotCallback)
 
+        self.__planeSelection = PlanesWidget(self._plot)
+        self.__planeSelection.sigPlaneSelectionChanged.connect(self.__setPerspective)
+
+        browser_label = qt.QLabel("Image index:")
+
         self._browser = HorizontalSliderWithBrowser(central_widget)
         self._browser.valueChanged[int].connect(self.__updateFrameNumber)
         self._browser.setEnabled(False)
 
-        self.__planeSelection = PlanesWidget(self._plot)
-        self.__planeSelection.sigPlaneSelectionChanged.connect(self.__setPerspective)
-
         layout = qt.QGridLayout()
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self._plot, 0, 0, 1, 2)
+        layout.addWidget(self._plot, 0, 0, 1, 3)
         layout.addWidget(self.__planeSelection, 1, 0)
-        layout.addWidget(self._browser, 1, 1)
+        layout.addWidget(browser_label, 1, 1)
+        layout.addWidget(self._browser, 1, 2)
 
         central_widget.setLayout(layout)
         self.setCentralWidget(central_widget)
