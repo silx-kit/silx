@@ -40,7 +40,7 @@ from ... import _glutils
 from ..._glutils import gl
 
 from ..._glutils import font as _font
-from ..utils import ticklayout
+from ...plot._utils import ticklayout
 
 from . import event, primitives, core, transform
 

@@ -34,7 +34,7 @@ __date__ = "17/10/2016"
 import logging
 import numpy
 
-from ..utils import ticklayout
+from ...plot._utils import ticklayout
 
 from . import core, primitives, text, transform
 

@@ -56,9 +56,7 @@ def suite():
     # Import here to avoid loading modules if tests are disabled
 
     from ..scene import test as test_scene
-    from ..utils import test as test_utils
 
     test_suite = unittest.TestSuite()
     test_suite.addTest(test_scene.suite())
-    test_suite.addTest(test_utils.suite())
     return test_suite
