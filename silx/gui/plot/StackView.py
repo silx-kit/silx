@@ -594,9 +594,19 @@ class StackView(qt.QMainWindow):
         :param list(str) labels: 3 labels corresponding to the 3 dimensions
              of the data volumes.
         """
+
+        default_labels = ["Dimension %d" % self._first_stack_dimension,
+                          "Dimension %d" % (self._first_stack_dimension + 1),
+                          "Dimension %d" % (self._first_stack_dimension + 2)]
         if labels is None:
-            labels = ["Dimension 0", "Dimension 1", "Dimension 2"]
-        self.__dimensionsLabels = labels
+            new_labels = default_labels
+        else:
+            # filter-out None
+            new_labels = []
+            for i, label in enumerate(labels):
+                new_labels.append(label or default_labels[i])
+
+        self.__dimensionsLabels = new_labels
         self.__updatePlotLabels()
 
     def getGraphXLabel(self):
