@@ -1078,3 +1078,10 @@ class LegendsDockWidget(qt.QDockWidget):
                 self.plot.sigContentChanged.disconnect(self.updateLegends)
                 self.plot.sigActiveCurveChanged.disconnect(self.updateLegends)
                 self._isConnected = False
+
+    def showEvent(self, event):
+        """Make sure this widget is raised when it is shown
+        (when it is first created as a tab in PlotWindow or when it is shown
+        again after hiding).
+        """
+        self.raise_()

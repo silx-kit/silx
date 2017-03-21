@@ -1,6 +1,6 @@
 # coding: utf-8
 #/*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -46,9 +46,7 @@ cimport peaks_wrapper
 def peak_search(y, fwhm, sensitivity=3.5,
                 begin_index=None, end_index=None,
                 debug=False, relevance_info=False):
-    """peak_search(y, fwhm, sensitivity=3.5, begin_index=None, end_index=None, debug=False, relevance_info=False)
-
-    Find peaks in a curve.
+    """Find peaks in a curve.
 
     :param y: Data array
     :type y: numpy.ndarray

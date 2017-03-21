@@ -12,11 +12,11 @@
     :members:
     :undoc-members:
 
-    .. automethod:: __len__()
+    .. automethod:: __len__
 
-    .. automethod:: __iter__()
+    .. automethod:: __iter__
 
-    .. automethod:: __getitem__(key)
+    .. automethod:: __getitem__
 
 .. autoclass:: silx.io.specfile.Scan
     :members:
@@ -26,8 +26,8 @@
     :members:
     :undoc-members:
 
-    .. automethod:: __len__()
+    .. automethod:: __len__
 
-    .. automethod:: __iter__()
+    .. automethod:: __iter__
 
-    .. automethod:: __getitem__(key)
+    .. automethod:: __getitem__

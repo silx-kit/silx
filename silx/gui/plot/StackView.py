@@ -249,7 +249,6 @@ class StackView(qt.QMainWindow):
                 height, width = data.shape
 
                 # Get corresponding coordinate in image
-
                 origin = activeImage.getOrigin()
                 scale = activeImage.getScale()
                 x = int((eventDict['x'] - origin[0]) / scale[0])
