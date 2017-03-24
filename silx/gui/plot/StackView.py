@@ -255,7 +255,9 @@ class StackView(qt.QMainWindow):
                                            None)
 
     def __setPerspective(self, perspective):
-        """Function called when the browsed/orthogonal dimension changes
+        """Function called when the browsed/orthogonal dimension changes.
+        Updates :attr:`_perspective`, transposes data, updates the plot,
+        emits :attr:`sigPlaneSelectionChanged` and :attr:`sigStackChanged`.
 
         :param perspective: the new browsed dimension
         """
@@ -389,9 +391,12 @@ class StackView(qt.QMainWindow):
         self._browser.setEnabled(True)
 
         if perspective != self._perspective:
-            self.__setPerspective(perspective)
+            self.__planeSelection.setPerspective(perspective)
+            # this causes self.__setPerspective to be called, which emits
+            # sigStackChanged and sigPlaneSelectionChanged
 
-        self.sigStackChanged.emit(stack.size)
+        else:
+            self.sigStackChanged.emit(stack.size)
 
     def getStack(self, copy=True, returnNumpyArray=False):
         """Get the original stack, as a 3D array or dataset.
@@ -796,6 +801,17 @@ class PlanesWidget(qt.QWidget):
           - slice plane Dim0-Dim1: perspective 2
         """
         self.sigPlaneSelectionChanged.emit(idx)
+
+    def setPerspective(self, perspective):
+        """Update the combobox selection.
+
+          - slice plane Dim1-Dim2: perspective 0
+          - slice plane Dim0-Dim2: perspective 1
+          - slice plane Dim0-Dim1: perspective 2
+
+        :param perspective: Orthogonal dimension number (0, 1, or 2)
+        """
+        self.qcbAxisSelection.setCurrentIndex(perspective)
 
 
 class StackViewMainWindow(StackView):
