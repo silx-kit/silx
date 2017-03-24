@@ -23,7 +23,54 @@
 #
 # ###########################################################################*/
 """This module defines slider widgets interacting with the transparency
-of an image on a :class:`PlotWidget`"""
+of an image on a :class:`PlotWidget`
+
+Classes:
+--------
+
+- :class:`BaseImageAlphaSlider`
+- :class:`NamedImageAlphaSlider`
+- :class:`ActiveImageAlphaSlider`
+
+Example:
+--------
+
+This widget can, for instance, be added to a plot toolbar.
+
+.. code-block:: python
+
+    import numpy
+    from silx.gui import qt
+    from silx.gui.plot import PlotWidget
+    from silx.gui.plot.ImageAlphaSlider import NamedImageAlphaSlider
+
+    app = qt.QApplication([])
+    pw = PlotWidget()
+
+    img0 = numpy.arange(200*150).reshape((200, 150))
+    pw.addImage(img0, legend="my background", z=0, origin=(50, 50))
+
+    x, y = numpy.meshgrid(numpy.linspace(-10, 10, 200),
+                          numpy.linspace(-10, 5, 150),
+                          indexing="ij")
+    img1 = numpy.asarray(numpy.sin(x * y) / (x * y),
+                        dtype='float32')
+
+    pw.addImage(img1, legend="my data", z=1,
+                replace=False)
+
+    alpha_slider = NamedImageAlphaSlider(parent=pw,
+                                         plot=pw,
+                                         legend="my data",
+                                         label="My data's opacity")
+    toolbar = qt.QToolBar("plot", pw)
+    toolbar.addWidget(alpha_slider)
+    pw.addToolBar(toolbar)
+
+    pw.show()
+    app.exec_()
+
+"""
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
@@ -65,8 +112,8 @@ class BaseImageAlphaSlider(qt.QWidget):
         layout = qt.QHBoxLayout(self)
 
         if label is not None:
-            label = qt.QLabel("Data transparency")
-            layout.addWidget(label)
+            label_widget = qt.QLabel(label)
+            layout.addWidget(label_widget)
 
         self.slider = qt.QSlider(qt.Qt.Horizontal, self)
         self.slider.setRange(0, 255)
@@ -88,10 +135,12 @@ class BaseImageAlphaSlider(qt.QWidget):
                 "implement getImage()")
 
     def _valueChanged(self, value):
-        """Get active image colormap, set the alpha channel,
-        emit sigValueChanged.
+        self._updateImage()
+        self.sigValueChanged.emit(value)
 
-        This is connect to :attr:`slider`.valueChanged"""
+    def _updateImage(self):
+        """Get active image's colormap, update its alpha channel.
+        """
         img = self.getImage()
         if img is None:
             _logger.warning("ImageAlphaSlider not connected to an image")
@@ -121,14 +170,13 @@ class BaseImageAlphaSlider(qt.QWidget):
 
             rgba_colors = sm.to_rgba(numpy.linspace(vmin, vmax, 255))
 
-        rgba_colors = self._change_alpha(rgba_colors, value)
+        rgba_colors = self._change_alpha(rgba_colors,
+                                         self.slider.value())
 
         # set custom colormap based on previous one with alpha changed
         cmap["name"] = None
         cmap["colors"] = rgba_colors
         img.setColormap(cmap)
-
-        self.sigValueChanged.emit(value)
 
     def _change_alpha(self, rgba_colors, alpha):
         """Set the alpha channel to a constant value for the entire
@@ -143,7 +191,8 @@ class BaseImageAlphaSlider(qt.QWidget):
         rgba_colors[:, -1] = alpha
         return rgba_colors
 
-    def _normalize_rgba_colors(self, rgba_colors):
+    @staticmethod
+    def _normalize_rgba_colors(rgba_colors):
         """Return colormap vector as an (N, 4) array of uint8.
 
         :param rgba_colors: Nx3 or Nx4 numpy array of RGB(A) colors,
@@ -174,60 +223,73 @@ class NamedImageAlphaSlider(BaseImageAlphaSlider):
     """Slider widget to be used in a plot toolbar to control the
     transparency of an image (defined by its legend).
 
+    :param parent: Parent QWidget
+    :param plot: Plot on which to operate
+    :param str legend: Legend of image whose transparency is to be
+        controlled.
+        An image with this legend should exist at all times, or this
+        widget should be manually deactivated whenever the image does not
+        exist.
+    :param str label: Optional label put in front of the slider.
+
     See documentation of :class:`BaseImageAlphaSlider`
     """
-    def __init__(self, parent=None, plot=None, legend=None):
+    def __init__(self, parent=None, plot=None, legend=None, label=None):
         self._image_legend = legend
-        super(NamedImageAlphaSlider, self).__init__(parent, plot)
+        super(NamedImageAlphaSlider, self).__init__(parent, plot, label)
 
     def getImage(self):
         return self.plot.getImage(self._image_legend)
+
+    def setLegend(self, legend):
+        """Associate a different image on the same plot to the slider.
+
+        :param legend: New legend of image whose transparency is to be
+            controlled.
+        """
+        self._image_legend = legend
+
+    def getLegend(self):
+        """Return legend of the image currently controlled by this slider.
+
+        :return: Image legend associated to the slider
+        """
+        return self._image_legend
 
 
 class ActiveImageAlphaSlider(BaseImageAlphaSlider):
     """Slider widget to be used in a plot toolbar to control the
     transparency of the **active image**.
 
+    :param parent: Parent QWidget
+    :param plot: Plot on which to operate
+    :param str label: Optional label put in front of the slider.
+
     See documentation of :class:`BaseImageAlphaSlider`
     """
-    def __init__(self, parent=None, plot=None):
+    def __init__(self, parent=None, plot=None, label=None):
         """
 
         :param parent: Parent QWidget
         :param plot: Plot widget on which to operate
         """
-        super(ActiveImageAlphaSlider, self).__init__(parent, plot)
+        super(ActiveImageAlphaSlider, self).__init__(parent, plot, label)
+        plot.sigActiveImageChanged.connect(self._activeImageChanged)
 
     def getImage(self):
         return self.plot.getActiveImage()
 
+    def _activeImageChanged(self, previous, new):
+        """Activate or deactivate slider depending on presence of a new
+        active image.
+        Apply transparency value to new active image.
 
-if __name__ == "__main__":
-    from silx.gui.plot import PlotWidget
-    app = qt.QApplication([])
-    pw = PlotWidget()
+        :param previous: Legend of previous active image, or None
+        :param new: Legend of new active image, or None
+        """
+        if new is not None and not self.isEnabled():
+            self.setEnabled(True)
+        elif new is None and self.isEnabled():
+            self.setEnabled(False)
 
-    img0 = numpy.arange(200*150).reshape((200, 150))
-    pw.addImage(img0, legend="my background", z=0, origin=(50, 50))
-
-    x, y = numpy.meshgrid(numpy.linspace(-10, 10, 200),
-                          numpy.linspace(-10, 5, 150),
-                          indexing="ij")
-    img1 = numpy.asarray(numpy.sin(x * y) / (x * y),
-                        dtype='float32')
-
-    pw.addImage(img1, legend="my data", z=1,
-                # colormap={"name": "temperature",
-                #           "normalization": 'linear',
-                #           "autoscale": True, },
-                replace=False)
-
-    alpha_slider = NamedImageAlphaSlider(parent=pw,
-                                         plot=pw,
-                                         legend="my data")
-    toolbar = qt.QToolBar("plot", pw)
-    toolbar.addWidget(alpha_slider)
-    pw.addToolBar(toolbar)
-
-    pw.show()
-    app.exec_()
+        self._updateImage()
