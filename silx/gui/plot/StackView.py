@@ -262,7 +262,9 @@ class StackView(qt.QMainWindow):
                                            None)
 
     def __setPerspective(self, perspective):
-        """Function called when the browsed/orthogonal dimension changes
+        """Function called when the browsed/orthogonal dimension changes.
+        Updates :attr:`_perspective`, transposes data, updates the plot,
+        emits :attr:`sigPlaneSelectionChanged` and :attr:`sigStackChanged`.
 
         :param int perspective: the new browsed dimension
         """
@@ -457,7 +459,13 @@ class StackView(qt.QMainWindow):
         # enable and init browser
         self._browser.setEnabled(True)
 
-        self.sigStackChanged.emit(stack.size)
+        if perspective != self._perspective:
+            self.__planeSelection.setPerspective(perspective)
+            # this causes self.__setPerspective to be called, which emits
+            # sigStackChanged and sigPlaneSelectionChanged
+
+        else:
+            self.sigStackChanged.emit(stack.size)
 
     def getStack(self, copy=True, returnNumpyArray=False):
         """Get the original stack, as a 3D array or dataset.
