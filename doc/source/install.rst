@@ -8,7 +8,7 @@ To install *silx* on Windows, read the `Windows instructions`_.
 
 To install *silx* on Linux, read the `Linux instructions`_.
 
-To install *silx* on Mac Os X, read the `Mac OS X instructions`_.
+To install *silx* on MacOS, read the `MacOS instructions`_.
 
 You will find the simple instructions for each platform at the beginning of each section, followed by more detailed instructions concerning dependencies and alternative installation methods.
 
@@ -33,9 +33,15 @@ The GUI widgets depend on the following extra packages:
 * `PyOpenGL <http://pyopengl.sourceforge.net/>`_
 * `IPython <https://ipython.org/>`_ and `qt_console <https://pypi.python.org/pypi/qtconsole>`_ for the ``silx.gui.console`` widget.
 
-Tools for reading and writing HDF5 files depend on the following package:
+Tools for reading and writing files depend on the following packages:
 
-* `h5py <http://docs.h5py.org/en/latest/build.html>`_
+* `h5py <http://docs.h5py.org/en/latest/build.html>`_ for HDF5 files
+* `fabio <https://github.com/silx-kit/fabio>`_ for multiple image formats
+
+*silx.opencl* and *silx.image.sift* further depends on OpenCL and the following packages to :
+
+* `pyopencl <https://mathema.tician.de/software/pyopencl/>`_
+* `Mako <http://www.makotemplates.org/>`_
 
 Build dependencies
 ++++++++++++++++++
@@ -207,30 +213,30 @@ Provided numpy is installed, you can install *silx* with::
     pip install silx
 
 
-Mac OS X instructions
----------------------
+MacOS instructions
+------------------
 
-The easy way to install *silx* on Mac OS X, is::
+The easy way to install *silx* on MacOS, is::
 
     pip install silx
 
 This should work without issues, as binary wheels of *silx* are provided on
 PyPi.
 
-Wheels are available for *h5py* on Mac OS X, so you can install it with::
+Wheels are available for *h5py* on MacOS, so you can install it with::
 
     pip install h5py
 
 If at the time of your installation a new version of *h5py* has been released but
-the corresponding Mac OS X wheel is not ready, you should install the latest version including
+the corresponding MacOS wheel is not ready, you should install the latest version including
 a wheel: ``pip install h5py==2.6.0``
 
-A PyQt5 wheel is now available for Python 3.5 on Mac OS X: https://pypi.python.org/simple/pyqt5/.
+A PyQt5 wheel is now available for Python 3.5 on MacOS: https://pypi.python.org/simple/pyqt5/.
 Download it and install it with::
 
     pip install PyQt5-5.6-cp35-cp35m-macosx_10_6_intel.whl
 
-This should work for all versions of Mac OS X from 10.6.
+This should work for all versions of MacOS from 10.6.
 
 
 Installing from source
