@@ -203,7 +203,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
     def addImage(self, data, legend,
                  origin, scale, z,
                  selectable, draggable,
-                 colormap):
+                 colormap, alpha):
         # Non-uniform image
         # http://wiki.scipy.org/Cookbook/Histograms
         # Non-linear axes
@@ -272,6 +272,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
                                zorder=z,
                                norm=scalarMappable.norm,
                                origin='lower')
+        if alpha < 1:
+            image.set_alpha(alpha)
 
         # Set image extent
         xmin = origin[0]

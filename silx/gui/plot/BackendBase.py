@@ -129,7 +129,7 @@ class BackendBase(object):
     def addImage(self, data, legend,
                  origin, scale, z,
                  selectable, draggable,
-                 colormap):
+                 colormap, alpha):
         """Add an image to the plot.
 
         :param numpy.ndarray data: (nrows, ncolumns) data or
@@ -147,6 +147,7 @@ class BackendBase(object):
         :param colormap: Dictionary describing the colormap to use.
                          Ignored if data is RGB(A).
         :type colormap: dict or None
+        :param float alpha: Opacity of the image, as a float in range [0, 1].
         :returns: The handle used by the backend to univocally access the image
         """
         return legend
