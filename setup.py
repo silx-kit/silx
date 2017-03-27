@@ -37,6 +37,7 @@ import io
 import sys
 import os
 import platform
+import shutil
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -416,6 +417,15 @@ def fake_cythonize(extensions):
 class CleanCommand(Clean):
     description = "Remove build artifacts from the source tree"
 
+    def run(self):
+        Clean.run(self)
+        # really remove the build directory
+        if not self.dry_run:
+            try:
+                shutil.rmtree(self.build_base)
+                logger.info("removing '%s'", self.build_base)
+            except OSError:
+                pass
 
 ################################################################################
 # Debian source tree
