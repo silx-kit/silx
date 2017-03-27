@@ -61,8 +61,9 @@ This widget can, for instance, be added to a plot toolbar.
 
     alpha_slider = NamedImageAlphaSlider(parent=pw,
                                          plot=pw,
-                                         legend="my data",
-                                         label="My data's opacity")
+                                         legend="my data")
+    alpha_slider.setOrientation(qt.Qt.Horizontal)
+
     toolbar = qt.QToolBar("plot", pw)
     toolbar.addWidget(alpha_slider)
     pw.addToolBar(toolbar)
@@ -83,58 +84,45 @@ from silx.gui import qt
 _logger = logging.getLogger(__name__)
 
 
-class BaseImageAlphaSlider(qt.QWidget):
+class BaseImageAlphaSlider(qt.QSlider):
     """Slider widget to be used in a plot toolbar to control the
     transparency of an image.
 
     Internally, the slider stores its state as an integer between
-    0 and 255. This is the value emitted by :attr:`sigValueChanged`.
+    0 and 255. This is the value emitted by the :attr:`valueChanged`
+    signal.
 
     The method :meth:`getAlpha` returns the corresponding opacity/alpha
     as a float between 0. and 1. (with a step of :math:`\frac{1}{255}`).
 
     You must subclass this class and implement :meth:`getImage`.
     """
-    sigValueChanged = qt.Signal(int)
-    """Emits the slider's current value, between 0 and 255."""
+    sigAlphaChanged = qt.Signal(float)
+    """Emits the alpha value when the slider's value changes,
+    as a float between 0. and 1."""
 
-    # sigAlphaChanged = qt.Signal(float)
-    # """Emits the alpha value when the slider's value changes,
-    # as a float between 0. and 1."""
-
-    def __init__(self, parent=None, plot=None, label=None):
+    def __init__(self, parent=None, plot=None):
         """
 
         :param parent: Parent QWidget
         :param plot: Parent plot widget
-        :param label: Optional text used as a label in front of the slider
         """
         assert plot is not None
         super(BaseImageAlphaSlider, self).__init__(parent)
 
         self.plot = plot
 
-        layout = qt.QHBoxLayout(self)
-
-        if label is not None:
-            label_widget = qt.QLabel(label)
-            layout.addWidget(label_widget)
-
-        self.slider = qt.QSlider(qt.Qt.Horizontal, self)
-        self.slider.setRange(0, 255)
-
-        layout.addWidget(self.slider)
-        self.setLayout(layout)
+        self.setRange(0, 255)
 
         # if already connected to an image, use its alpha as initial value
         if self.getImage() is None:
-            self.slider.setValue(255)
+            self.setValue(255)
             self.setEnabled(False)
         else:
             alpha = self.getImage().getAlpha()
-            self.slider.setValue(round(255*alpha))
+            self.setValue(round(255*alpha))
 
-        self.slider.valueChanged.connect(self._valueChanged)
+        self.valueChanged.connect(self._valueChanged)
 
     def getImage(self):
         """You must implement this class to define which image
@@ -153,11 +141,11 @@ class BaseImageAlphaSlider(qt.QWidget):
         :return: Alpha value in [0., 1.]
         :rtype: float
         """
-        return self.slider.value() / 255.
+        return self.value() / 255.
 
     def _valueChanged(self, value):
         self._updateImage()
-        self.sigValueChanged.emit(value)
+        self.sigAlphaChanged.emit(value / 255.)
 
     def _updateImage(self):
         """Get active image's colormap, update its alpha channel.
@@ -178,13 +166,12 @@ class NamedImageAlphaSlider(BaseImageAlphaSlider):
         An image with this legend should exist at all times, or this
         widget should be manually deactivated whenever the image does not
         exist.
-    :param str label: Optional label put in front of the slider.
 
     See documentation of :class:`BaseImageAlphaSlider`
     """
-    def __init__(self, parent=None, plot=None, legend=None, label=None):
+    def __init__(self, parent=None, plot=None, legend=None):
         self._image_legend = legend
-        super(NamedImageAlphaSlider, self).__init__(parent, plot, label)
+        super(NamedImageAlphaSlider, self).__init__(parent, plot)
 
     def getImage(self):
         return self.plot.getImage(self._image_legend)
@@ -215,17 +202,16 @@ class ActiveImageAlphaSlider(BaseImageAlphaSlider):
 
     :param parent: Parent QWidget
     :param plot: Plot on which to operate
-    :param str label: Optional label put in front of the slider.
 
     See documentation of :class:`BaseImageAlphaSlider`
     """
-    def __init__(self, parent=None, plot=None, label=None):
+    def __init__(self, parent=None, plot=None):
         """
 
         :param parent: Parent QWidget
         :param plot: Plot widget on which to operate
         """
-        super(ActiveImageAlphaSlider, self).__init__(parent, plot, label)
+        super(ActiveImageAlphaSlider, self).__init__(parent, plot)
         plot.sigActiveImageChanged.connect(self._activeImageChanged)
 
     def getImage(self):
