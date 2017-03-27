@@ -77,10 +77,8 @@ __license__ = "MIT"
 __date__ = "24/03/2017"
 
 import logging
-import numpy
 
 from silx.gui import qt
-from silx.gui.plot.Colors import getMPLScalarMappable
 
 _logger = logging.getLogger(__name__)
 
@@ -89,13 +87,20 @@ class BaseImageAlphaSlider(qt.QWidget):
     """Slider widget to be used in a plot toolbar to control the
     transparency of an image.
 
-    The slider range is 0 to 255.
-    0 means no opacity (100% transparency), and 255 means total opacity.
+    Internally, the slider stores its state as an integer between
+    0 and 255. This is the value emitted by :attr:`sigValueChanged`.
+
+    The method :meth:`getAlpha` returns the corresponding opacity/alpha
+    as a float between 0. and 1. (with a step of :math:`\frac{1}{255}`).
 
     You must subclass this class and implement :meth:`getImage`.
     """
     sigValueChanged = qt.Signal(int)
     """Emits the slider's current value, between 0 and 255."""
+
+    # sigAlphaChanged = qt.Signal(float)
+    # """Emits the alpha value when the slider's value changes,
+    # as a float between 0. and 1."""
 
     def __init__(self, parent=None, plot=None, label=None):
         """
@@ -134,6 +139,14 @@ class BaseImageAlphaSlider(qt.QWidget):
                 "BaseImageAlphaSlider must be subclassed to " +
                 "implement getImage()")
 
+    def getAlpha(self):
+        """Get the opacity, as a float between 0. and 1.
+
+        :return: Alpha value in [0., 1.]
+        :rtype: float
+        """
+        return self.slider.value() / 255.
+
     def _valueChanged(self, value):
         self._updateImage()
         self.sigValueChanged.emit(value)
@@ -142,81 +155,8 @@ class BaseImageAlphaSlider(qt.QWidget):
         """Get active image's colormap, update its alpha channel.
         """
         img = self.getImage()
-        if img is None:
-            _logger.warning("ImageAlphaSlider not connected to an image")
-            return
-        cmap = img.getColormap()
-        cmap_name = cmap.get("name")
-
-        if cmap_name is None:
-            rgba_colors = cmap.get("colors")
-            if rgba_colors is None:
-                raise RuntimeError(
-                        "Could not get active image's colormap as RGBA array")
-        else:
-            # rgba vector for colormap must be computed from name
-            if cmap.get("autoscale"):
-                # use image data for vmin vmax calculation
-                vmin = numpy.nanmin(img.getData(copy=False))
-                vmax = numpy.nanmax(img.getData(copy=False))
-            else:
-                vmin = cmap.get("vmin")
-                assert vmin is not None
-                vmax = cmap.get("vmax")
-                assert vmax is not None
-
-            sm = getMPLScalarMappable(cmap,
-                                      data=numpy.array([vmin, vmax]))
-
-            rgba_colors = sm.to_rgba(numpy.linspace(vmin, vmax, 255))
-
-        rgba_colors = self._change_alpha(rgba_colors,
-                                         self.slider.value())
-
-        # set custom colormap based on previous one with alpha changed
-        cmap["name"] = None
-        cmap["colors"] = rgba_colors
-        img.setColormap(cmap)
-
-    def _change_alpha(self, rgba_colors, alpha):
-        """Set the alpha channel to a constant value for the entire
-         colormap vector.
-
-        :param rgba_colors: Nx3 or Nx4 numpy array of RGB(A) colors.
-            Type can be uint8 or float in [0, 1] (will be converted to uint8)
-        :param int alpha: Alpha value in range [0, 255]
-        :return: Nx4 numpy array of RGBA colors, as uint8.
-        """
-        rgba_colors = self._normalize_rgba_colors(rgba_colors)
-        rgba_colors[:, -1] = alpha
-        return rgba_colors
-
-    @staticmethod
-    def _normalize_rgba_colors(rgba_colors):
-        """Return colormap vector as an (N, 4) array of uint8.
-
-        :param rgba_colors: Nx3 or Nx4 numpy array of RGB(A) colors,
-            either uint8 in [0, 255] or float in [0, 1].
-        :return: Nx4 numpy array of RGBA colors, as uint8.
-            If input array does not have an alpha channel, it is set to 255
-        """
-        if (rgba_colors.dtype.kind != "f" and
-                    rgba_colors.dtype != numpy.uint8):
-            raise TypeError("rgba array must be float in [0, 1] or uint8")
-        elif rgba_colors.dtype.kind == "f":
-            # convert to uint in [range 0, 255]
-            rgba_colors = numpy.array(rgba_colors * 255, dtype=numpy.uint8)
-
-        if len(rgba_colors.shape) != 2 or rgba_colors.shape[1] not in (3, 4):
-            raise TypeError("rgb(a) array shape must (N, 3) or (N, 4)")
-        elif rgba_colors.shape[1] == 3:
-            # add alpha channel
-            new_array = numpy.empty((rgba_colors.shape[0], 4))
-            new_array[:, :-1] = rgba_colors
-            new_array[:, -1] = 255
-            rgba_colors = new_array
-
-        return rgba_colors
+        if img is not None:
+            img.setAlpha(self.getAlpha())
 
 
 class NamedImageAlphaSlider(BaseImageAlphaSlider):
