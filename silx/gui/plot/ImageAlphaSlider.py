@@ -174,6 +174,8 @@ class NamedImageAlphaSlider(BaseImageAlphaSlider):
         super(NamedImageAlphaSlider, self).__init__(parent, plot)
 
     def getImage(self):
+        if self._image_legend is None:
+            return None
         return self.plot.getImage(self._image_legend)
 
     def setLegend(self, legend):
