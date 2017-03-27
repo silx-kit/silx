@@ -257,6 +257,9 @@ def check_openmp():
 
     Store the result in WITH_OPENMP environment variable
 
+    TODO: It would be much better to take care of command line arguments in the
+          initialize_options and finalize_options.
+
     :return: True if available and not disabled.
     """
     if "WITH_OPENMP" in os.environ:
@@ -294,6 +297,9 @@ def check_cython(min_version=None):
     Check if cython must be activated fron te command line or the environment.
 
     Store the result in WITH_CYTHON environment variable.
+
+    TODO: It would be much better to take care of command line arguments in the
+          initialize_options and finalize_options.
 
     :param string min_version: Minimum version of Cython requested
     :return: True if available and not disabled.
