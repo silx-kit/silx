@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "20/03/2017"
+__date__ = "27/03/2017"
 __license__ = "MIT"
 
 
@@ -37,6 +37,12 @@ import io
 import sys
 import os
 import platform
+import logging
+
+logging.basicConfig(level=logging.INFO)
+
+logger = logging.getLogger("silx.setup")
+
 
 from distutils.command.clean import clean as Clean
 try:
@@ -44,6 +50,7 @@ try:
     from setuptools.command.build_py import build_py as _build_py
     from setuptools.command.build_ext import build_ext
     from setuptools.command.sdist import sdist
+    logger.info("Use setuptools")
 except ImportError:
     try:
         from numpy.distutils.core import Command
@@ -52,6 +59,7 @@ except ImportError:
     from distutils.command.build_py import build_py as _build_py
     from distutils.command.build_ext import build_ext
     from distutils.command.sdist import sdist
+    logger.info("Use distutils")
 
 try:
     import sphinx
@@ -510,8 +518,10 @@ def setup_package():
         # the system.
         try:
             from setuptools import setup
+            logger.info("Use setuptools.setup")
         except ImportError:
             from distutils.core import setup
+            logger.info("Use distutils.core.setup")
         setup_kwargs = {}
     else:
         use_cython = check_cython(min_version='0.21.1')
@@ -521,8 +531,10 @@ def setup_package():
 
         try:
             from setuptools import setup
+            logger.info("Use setuptools.setup")
         except ImportError:
             from numpy.distutils.core import setup
+            logger.info("Use numpydistutils.setup")
 
         config = configuration()
 
