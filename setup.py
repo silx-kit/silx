@@ -71,6 +71,11 @@ except ImportError:
     sphinx = None
 
 
+USE_OPENMP = None
+"""Refere if the compilation will use OpenMP or not.
+It have to be initialized before the setup."""
+
+
 PROJECT = "silx"
 
 if "LANG" not in os.environ and sys.platform == "darwin" and sys.version_info[0] > 2:
@@ -360,15 +365,13 @@ class BuildExtFlags(build_ext):
     If building with MSVC, compiler flags are converted from gcc flags.
     """
 
-    USE_OPENMP = False
-
     COMPILE_ARGS_CONVERTER = {'-fopenmp': '/openmp'}
 
     LINK_ARGS_CONVERTER = {'-fopenmp': ' '}
 
     def build_extensions(self):
         # Remove OpenMP flags if OpenMP is disabled
-        if not self.USE_OPENMP:
+        if not USE_OPENMP:
             for ext in self.extensions:
                 ext.extra_compile_args = [
                     f for f in ext.extra_compile_args if f != '-fopenmp']
@@ -537,7 +540,7 @@ def setup_package():
         use_cython = check_cython(min_version='0.21.1')
 
         use_openmp = check_openmp()
-        BuildExtFlags.USE_OPENMP = use_openmp
+        USE_OPENMP = use_openmp
 
         try:
             from setuptools import setup
