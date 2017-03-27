@@ -189,17 +189,17 @@ if sphinx is not None:
             build = self.get_finalized_command('build')
             sys.path.insert(0, os.path.abspath(build.build_lib))
 
-#             # Copy .ui files to the path:
-#             dst = os.path.join(
-#                 os.path.abspath(build.build_lib), "silx", "gui")
-#             if not os.path.isdir(dst):
-#                 os.makedirs(dst)
-#             for i in os.listdir("gui"):
-#                 if i.endswith(".ui"):
-#                     src = os.path.join("gui", i)
-#                     idst = os.path.join(dst, i)
-#                     if not os.path.exists(idst):
-#                         shutil.copy(src, idst)
+            # # Copy .ui files to the path:
+            # dst = os.path.join(
+            #     os.path.abspath(build.build_lib), "silx", "gui")
+            # if not os.path.isdir(dst):
+            #     os.makedirs(dst)
+            # for i in os.listdir("gui"):
+            #     if i.endswith(".ui"):
+            #         src = os.path.join("gui", i)
+            #         idst = os.path.join(dst, i)
+            #         if not os.path.exists(idst):
+            #             shutil.copy(src, idst)
 
             # Build the Users Guide in HTML and TeX format
             for builder in ['html', 'latex']:
