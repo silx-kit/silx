@@ -122,11 +122,19 @@ class BaseImageAlphaSlider(qt.QWidget):
 
         self.slider = qt.QSlider(qt.Qt.Horizontal, self)
         self.slider.setRange(0, 255)
-        self.slider.valueChanged.connect(self._valueChanged)
-        self.slider.setValue(255)
-        layout.addWidget(self.slider)
 
+        layout.addWidget(self.slider)
         self.setLayout(layout)
+
+        # if already connected to an image, use its alpha as initial value
+        if self.getImage() is None:
+            self.slider.setValue(255)
+            self.setEnabled(False)
+        else:
+            alpha = self.getImage().getAlpha()
+            self.slider.setValue(round(255*alpha))
+
+        self.slider.valueChanged.connect(self._valueChanged)
 
     def getImage(self):
         """You must implement this class to define which image
@@ -188,6 +196,10 @@ class NamedImageAlphaSlider(BaseImageAlphaSlider):
             controlled.
         """
         self._image_legend = legend
+        if self.plot.getImage(legend) is not None:
+            self.setEnabled(True)
+        else:
+            self.setEnabled(False)
 
     def getLegend(self):
         """Return legend of the image currently controlled by this slider.
