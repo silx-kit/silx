@@ -270,12 +270,8 @@ class Image(Item, LabelsMixIn, DraggableMixIn, ColormapMixIn):
             and 1. (full opacity)
         :type alpha: float
         """
+        alpah = float(alpha)
+        alpha = max(0., min(alpha, 1.))  # Clip alpha to [0., 1.] range
         if alpha != self._alpha:
             self._alpha = alpha
             self._updated()
-
-            # TODO hackish data range implementation
-            if self.isVisible():
-                plot = self.getPlot()
-                if plot is not None:
-                    plot._invalidateDataRange()
