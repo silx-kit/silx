@@ -35,7 +35,7 @@ import time
 import weakref
 
 from . import Colors
-from . import PlotItems
+from . import items
 from .Interaction import (ClickOrDrag, LEFT_BTN, RIGHT_BTN,
                           State, StateMachine)
 from .PlotEvents import (prepareCurveSignal, prepareDrawingSignal,
@@ -77,7 +77,7 @@ class _PlotInteraction(object):
 
         :param points: The 2D coordinates of the points of the polygon
         :type points: An iterable of (x, y) coordinates
-        :param str fill: The fill mode: 'hatch', 'solid' or None
+        :param str fill: The fill mode: 'hatch', 'solid' or 'none'
         :param color: RGBA color to use or None to disable display
         :type color: list or tuple of 4 float in the range [0, 1]
         :param name: The key associated with this selection area
@@ -93,7 +93,7 @@ class _PlotInteraction(object):
         # TODO Not very nice, but as is for now
         legend = '__SELECTION_AREA__' + name
 
-        fill = bool(fill)  # TODO not very nice either
+        fill = fill != 'none'  # TODO not very nice either
 
         self.plot.addItem(points[:, 0], points[:, 1], legend=legend,
                           replace=False,
@@ -335,7 +335,7 @@ class Zoom(_ZoomOnWheel):
                 areaColor = [1., 1., 1., 1.]
 
             self.setSelectionArea(areaPoints,
-                                  fill=None,
+                                  fill='none',
                                   color=areaColor,
                                   name="zoomedArea")
 
@@ -346,7 +346,7 @@ class Zoom(_ZoomOnWheel):
         corners = numpy.array([self.plot.pixelToData(x, y, check=False)
                                for (x, y) in corners])
 
-        self.setSelectionArea(corners, fill=None, color=self.color)
+        self.setSelectionArea(corners, fill='none', color=self.color)
 
     def endDrag(self, startPos, endPos):
         x0, y0 = startPos
@@ -881,7 +881,7 @@ class DrawFreeHand(Select):
 
         polygon = center + self._circle
 
-        self.setSelectionArea(polygon, fill='', color=self.color)
+        self.setSelectionArea(polygon, fill='none', color=self.color)
 
     def select(self, x, y):
         pos = self.plot.pixelToData(x, y, check=False)
@@ -974,7 +974,7 @@ class SelectFreeLine(ClickOrDrag, _PlotInteraction):
             self.plot.notify(**eventDict)
 
         if not isLast:
-            self.setSelectionArea(self._points, fill=None, color=self.color,
+            self.setSelectionArea(self._points, fill='none', color=self.color,
                                   shape='polylines')
         else:
             self.cancel()
@@ -1018,9 +1018,9 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                     self.machine.plot.setGraphCursorShape()
 
                 elif marker.isDraggable():
-                    if isinstance(marker, PlotItems.YMarker):
+                    if isinstance(marker, items.YMarker):
                         self.machine.plot.setGraphCursorShape(CURSOR_SIZE_VER)
-                    elif isinstance(marker, PlotItems.XMarker):
+                    elif isinstance(marker, items.XMarker):
                         self.machine.plot.setGraphCursorShape(CURSOR_SIZE_HOR)
                     else:
                         self.machine.plot.setGraphCursorShape(CURSOR_SIZE_ALL)
@@ -1073,7 +1073,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
 
         if btn == LEFT_BTN:
             marker = self.plot._pickMarker(
-                x, y, lambda marker: marker.isSelectable())
+                x, y, lambda m: m.isSelectable())
             if marker is not None:
                 xData, yData = marker.getPosition()
                 if xData is None:
@@ -1170,7 +1170,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
         self.imageLegend = None
         self.markerLegend = None
         marker = self.plot._pickMarker(
-            x, y, lambda marker: marker.isDraggable())
+            x, y, lambda m: m.isDraggable())
 
         if marker is not None:
             self.markerLegend = marker.getLegend()
@@ -1196,14 +1196,19 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
         xData, yData = dataPos
 
         if self.markerLegend is not None:
-            self.plot._moveMarker(self.markerLegend, xData, yData)
+            marker = self.plot._getMarker(self.markerLegend)
+            if marker is not None:
+                marker.setPosition(xData, yData)
 
-            self._signalMarkerMovingEvent(
-                'markerMoving', self.plot._getMarker(self.markerLegend), x, y)
+                self._signalMarkerMovingEvent(
+                    'markerMoving', marker, x, y)
 
         if self.imageLegend is not None:
-            dx, dy = xData - self._lastPos[0], yData - self._lastPos[1]
-            self.plot._moveImage(self.imageLegend, dx, dy)
+            image = self.plot.getImage(self.imageLegend)
+            origin = image.getOrigin()
+            xImage = origin[0] + xData - self._lastPos[0]
+            yImage = origin[1] + yData - self._lastPos[1]
+            image.setOrigin((xImage, yImage))
 
         self._lastPos = xData, yData
 
@@ -1270,7 +1275,7 @@ class FocusManager(StateMachine):
     class Focus(State):
         def enterState(self, eventHandler, btn):
             self.eventHandler = eventHandler
-            self.focusBtns = set((btn,))
+            self.focusBtns = {btn}
 
         def onPress(self, x, y, btn):
             self.focusBtns.add(btn)
