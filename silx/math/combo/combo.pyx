@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -187,7 +187,6 @@ def _min_max(_number[:] data, bint min_positive=False):
                          max_index)
 
 
-@cython.embedsignature(True)
 def min_max(data not None, bint min_positive=False):
     """Returns min, max and optionally strictly positive min of data.
 
