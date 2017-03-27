@@ -81,7 +81,7 @@ class _MinMaxResult(object):
     min_positive = property(
         lambda self: self._min_positive,
         doc="""Strictly positive minimum value
-        
+
         It is None if no value is strictly positive.
         """)
     argmin_positive = property(
@@ -232,4 +232,3 @@ def min_max(data not None, bint min_positive=False):
     :raises: ValueError if data is empty
     """
     return _min_max(numpy.asanyarray(data).ravel(), min_positive)
-

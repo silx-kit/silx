@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 
 __authors__ = ["D. Naudet"]
 __license__ = "MIT"
-__date__ = "01/02/2016"
+__date__ = "27/03/2017"
 
 import os.path
 
@@ -97,9 +97,12 @@ def configuration(parent_package='', top_path=None):
                          extra_link_args=extra_link_args,
                          extra_compile_args=extra_compile_args)
 
+
     # min/max
+    combo_dir = 'combo'
     config.add_extension('combo',
-                         sources=["combo.pyx"],
+                         sources=[os.path.join(combo_dir, 'combo.pyx')],
+                         include_dirs=[combo_dir],
                          language='c')
 
     return config
