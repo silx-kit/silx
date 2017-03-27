@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "16/12/2016"
+__date__ = "27/03/2017"
 
 
 import logging
@@ -70,6 +70,8 @@ class BenchmarkMinMax(ParametricTestCase):
         data sets: increasing , decreasing and random data.
         """
         durations = {'min/max': [], 'argmin/max': [], 'combo': []}
+
+        _logger.info('Benchmark against argmin/argmax and nanmin/nanmax')
 
         for dtype in self.DTYPES:
             for arange in self.ARANGE:
@@ -126,6 +128,8 @@ class BenchmarkMinMax(ParametricTestCase):
         """
         durations = {'min/max': [], 'combo': []}
 
+        _logger.info('Benchmark against min, max, positive min')
+
         for dtype in self.DTYPES:
             for arange in self.ARANGE:
                 for exponent in self.EXPONENT:
@@ -153,7 +157,7 @@ class BenchmarkMinMax(ParametricTestCase):
                         durations['combo'].append(time.time() - start)
 
                         _logger.info(
-                            '%s-%s-10**%d\tx%.2f min/max',
+                            '%s-%s-10**%d\tx%.2f min/minpos/max',
                             dtype, arange, exponent,
                             durations['min/max'][-1] / durations['combo'][-1])
 
