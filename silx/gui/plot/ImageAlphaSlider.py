@@ -157,8 +157,8 @@ class BaseImageAlphaSlider(qt.QWidget):
             # rgba vector for colormap must be computed from name
             if cmap.get("autoscale"):
                 # use image data for vmin vmax calculation
-                vmin = numpy.nanmin(img.getData())
-                vmax = numpy.nanmax(img.getData())
+                vmin = numpy.nanmin(img.getData(copy=False))
+                vmax = numpy.nanmax(img.getData(copy=False))
             else:
                 vmin = cmap.get("vmin")
                 assert vmin is not None
