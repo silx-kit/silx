@@ -33,7 +33,11 @@ __license__ = "MIT"
 __date__ = "20/12/2016"
 
 cimport cython
-from libc.math cimport isnan
+
+# Replacement from libc.math cimport isnan
+# which is not available on Windows for Python2.7
+cdef extern from "isnan.h":
+    bint isnan(double x) nogil
 
 import numpy
 
