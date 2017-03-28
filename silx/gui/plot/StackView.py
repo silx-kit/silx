@@ -921,6 +921,17 @@ class PlanesWidget(qt.QWidget):
         """
         self._setCBChoices(first_stack_dim)
 
+    def setPerspective(self, perspective):
+        """Update the combobox selection.
+
+          - slice plane Dim1-Dim2: perspective 0
+          - slice plane Dim0-Dim2: perspective 1
+          - slice plane Dim0-Dim1: perspective 2
+
+        :param perspective: Orthogonal dimension number (0, 1, or 2)
+        """
+        self.qcbAxisSelection.setCurrentIndex(perspective)
+
 
 class StackViewMainWindow(StackView):
     """This class is a :class:`StackView` with a menu, an additional toolbar
