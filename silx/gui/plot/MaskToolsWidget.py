@@ -35,7 +35,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__data__ = "08/06/2016"
+__date__ = "28/03/2017"
 
 
 import os
@@ -59,12 +59,15 @@ except ImportError:
 _logger = logging.getLogger(__name__)
 
 
-class Mask(qt.QObject):
+class BaseMask(qt.QObject):
     """A mask field with update operations.
 
-    Coords follows (row, column) convention and are in mask array coords.
+    A mask is an array of the same shape as some underlying data. The mask
+    array stores integer values in the range 0-255, to allow for 254 levels
+    of mask (value 0 is reserved for unmasked data).
 
-    This is meant for internal use by :class:`MaskToolsWidget`.
+    The mask is updated using spatial selection methods: data located inside
+    a selected area is masked with a specified mask level.
     """
 
     sigChanged = qt.Signal()
@@ -86,20 +89,19 @@ class Mask(qt.QObject):
         self._history = []
         self._redo = []
 
-        super(Mask, self).__init__()
+        super(BaseMask, self).__init__()
 
     def _notify(self):
         """Notify of mask change."""
         self.sigChanged.emit()
 
     def getMask(self, copy=True):
-        """Get the current mask as a 2D array.
+        """Get the current mask as a numpy array.
 
         :param bool copy: True (default) to get a copy of the mask.
                           If False, the returned array MUST not be modified.
-        :return: The array of the mask with dimension of the 'active' image.
-                 If there is no active image, an empty array is returned.
-        :rtype: 2D numpy.ndarray of uint8
+        :return: The array of the mask with dimension of the data to be masked.
+        :rtype: numpy.ndarray of uint8
         """
         return numpy.array(self._mask, copy=copy)
 
@@ -107,54 +109,15 @@ class Mask(qt.QObject):
         """Set the mask to a new array.
 
         :param numpy.ndarray mask: The array to use for the mask.
-        :type mask: numpy.ndarray of uint8 of dimension 2, C-contiguous.
+        :type mask: numpy.ndarray of uint8, C-contiguous.
                     Array of other types are converted.
         :param bool copy: True (the default) to copy the array,
                           False to use it as is if possible.
         """
-        assert len(mask.shape) == 2
         self._mask = numpy.array(mask, copy=copy, order='C', dtype=numpy.uint8)
         self._notify()
 
-    def save(self, filename, kind):
-        """Save current mask in a file
-
-        :param str filename: The file where to save to mask
-        :param str kind: The kind of file to save in 'edf', 'tif', 'npy',
-            or 'msk' (if FabIO is installed)
-        :raise Exception: Raised if the file writing fail
-        """
-        if kind == 'edf':
-            edfFile = EdfFile(filename, access="w+")
-            edfFile.WriteImage({}, self.getMask(copy=False), Append=0)
-
-        elif kind == 'tif':
-            tiffFile = TiffIO(filename, mode='w')
-            tiffFile.writeImage(self.getMask(copy=False), software='silx')
-
-        elif kind == 'npy':
-            try:
-                numpy.save(filename, self.getMask(copy=False))
-            except IOError:
-                raise RuntimeError("Mask file can't be written")
-
-        elif kind == 'msk':
-            if fabio is None:
-                raise ImportError("Fit2d mask files can't be written: Fabio module is not available")
-            try:
-                data = self.getMask(copy=False)
-                image = fabio.fabioimage.FabioImage(data=data)
-                image = image.convert(fabio.fit2dmaskimage.Fit2dMaskImage)
-                image.save(filename)
-            except Exception:
-                _logger.debug("Backtrace", exc_info=True)
-                raise RuntimeError("Mask file can't be written")
-
-        else:
-            raise ValueError("Format '%s' is not supported" % kind)
-
     # History control
-
     def resetHistory(self):
         """Reset history"""
         self._history = [numpy.array(self._mask, copy=True)]
@@ -201,7 +164,7 @@ class Mask(qt.QObject):
             if len(self._history) == 2:  # Something to undo
                 self.sigUndoable.emit(True)
 
-    # Whole mask operations
+                # Whole mask operations
 
     def clear(self, level):
         """Set all values of the given mask level to 0.
@@ -210,23 +173,6 @@ class Mask(qt.QObject):
         """
         assert 0 < level < 256
         self._mask[self._mask == level] = 0
-        self._notify()
-
-    def reset(self, shape=None):
-        """Reset the mask to zero and change its shape
-
-        :param shape: Shape of the new mask or None to have an empty mask
-        :type shape: 2-tuple of int
-        """
-        if shape is None:
-            shape = 0, 0  # Empty 2D array
-        assert len(shape) == 2
-
-        shapeChanged = (shape != self._mask.shape)
-        self._mask = numpy.zeros(shape, dtype=numpy.uint8)
-        if shapeChanged:
-            self.resetHistory()
-
         self._notify()
 
     def invert(self, level):
@@ -242,8 +188,149 @@ class Mask(qt.QObject):
         self._mask[masked] = 0
         self._notify()
 
-    # Drawing operations
+    def reset(self, shape=None):
+        """Reset the mask to zero and change its shape.
 
+        :param shape: Shape of the new mask with the correct dimensionality
+            with regards to the data dimensionality,
+            or None to have an empty mask
+        :type shape: tuple of int
+        """
+        if shape is None:
+            # assume dimensionality never changes
+            shape = (0, ) * len(self._mask.shape)   # empty array
+        shapeChanged = (shape != self._mask.shape)
+        self._mask = numpy.zeros(shape, dtype=numpy.uint8)
+        if shapeChanged:
+            self.resetHistory()
+
+        self._notify()
+
+    # To be implemented
+    def save(self, filename, kind):
+        """Save current mask in a file
+
+        :param str filename: The file where to save to mask
+        :param str kind: The kind of file to save (e.g 'npy')
+        :raise Exception: Raised if the file writing fail
+        """
+        raise NotImplementedError("To be implemented in subclass")
+
+    # Drawing operations:
+    def updateRectangle(self, level, row, col, height, width, mask=True):
+        """Mask/Unmask data inside a rectangle, with the given mask level.
+
+        :param int level: Mask level to update, in range 1-255.
+        :param row: Starting row/y of the rectangle
+        :param col: Starting column/x of the rectangle
+        :param height:
+        :param width:
+        :param bool mask: True to mask (default), False to unmask.
+        """
+        raise NotImplementedError("To be implemented in subclass")
+
+    def updatePolygon(self, level, vertices, mask=True):
+        """Mask/Unmask data inside a polygon, with the given mask level.
+
+        :param int level: Mask level to update.
+        :param vertices: Nx2 array of polygon corners as (row, col) / (y, x)
+        :param bool mask: True to mask (default), False to unmask.
+        """
+        raise NotImplementedError("To be implemented in subclass")
+
+    def updatePoints(self, level, rows, cols, mask=True):
+        """Mask/Unmask points with given coordinates.
+
+        :param int level: Mask level to update.
+        :param rows: Rows/ordinates (y) of selected points
+        :type rows: 1D numpy.ndarray
+        :param cols: Columns/abscissa (x) of selected points
+        :type cols: 1D numpy.ndarray
+        :param bool mask: True to mask (default), False to unmask.
+        """
+        raise NotImplementedError("To be implemented in subclass")
+
+    def updateStencil(self, level, stencil, mask=True):
+        """Mask/Unmask data from boolean mask.
+
+        :param int level: Mask level to update.
+        :param stencil: Boolean mask of mask values to update
+        :type stencil: numpy.array of same dimension as the mask
+        :param bool mask: True to mask (default), False to unmask.
+        """
+        raise NotImplementedError("To be implemented in subclass")
+
+    def updateDisk(self, level, crow, ccol, radius, mask=True):
+        """Mask/Unmask data located inside a disk of the given mask level.
+
+        :param int level: Mask level to update.
+        :param crow: Disk center row/ordinate (y).
+        :param ccol: Disk center column/abscissa.
+        :param float radius: Radius of the disk in mask array unit
+        :param bool mask: True to mask (default), False to unmask.
+        """
+        raise NotImplementedError("To be implemented in subclass")
+
+    def updateLine(self, level, row0, col0, row1, col1, width, mask=True):
+        """Mask/Unmask a line of the given mask level.
+
+        :param int level: Mask level to update.
+        :param row0: Row/y of the starting point.
+        :param col0: Column/x of the starting point.
+        :param row1: Row/y of the end point.
+        :param col1: Column/x of the end point.
+        :param width: Width of the line in mask array unit.
+        :param bool mask: True to mask (default), False to unmask.
+        """
+        raise NotImplementedError("To be implemented in subclass")
+
+
+class ImageMask(BaseMask):
+    """A 2D mask field with update operations.
+
+    Coords follows (row, column) convention and are in mask array coords.
+
+    This is meant for internal use by :class:`MaskToolsWidget`.
+    """
+
+    def save(self, filename, kind):
+        """Save current mask in a file
+
+        :param str filename: The file where to save to mask
+        :param str kind: The kind of file to save in 'edf', 'tif', 'npy',
+            or 'msk' (if FabIO is installed)
+        :raise Exception: Raised if the file writing fail
+        """
+        if kind == 'edf':
+            edfFile = EdfFile(filename, access="w+")
+            edfFile.WriteImage({}, self.getMask(copy=False), Append=0)
+
+        elif kind == 'tif':
+            tiffFile = TiffIO(filename, mode='w')
+            tiffFile.writeImage(self.getMask(copy=False), software='silx')
+
+        elif kind == 'npy':
+            try:
+                numpy.save(filename, self.getMask(copy=False))
+            except IOError:
+                raise RuntimeError("Mask file can't be written")
+
+        elif kind == 'msk':
+            if fabio is None:
+                raise ImportError("Fit2d mask files can't be written: Fabio module is not available")
+            try:
+                data = self.getMask(copy=False)
+                image = fabio.fabioimage.FabioImage(data=data)
+                image = image.convert(fabio.fit2dmaskimage.Fit2dMaskImage)
+                image.save(filename)
+            except Exception:
+                _logger.debug("Backtrace", exc_info=True)
+                raise RuntimeError("Mask file can't be written")
+
+        else:
+            raise ValueError("Format '%s' is not supported" % kind)
+
+    # Drawing operations
     def updateRectangle(self, level, row, col, height, width, mask=True):
         """Mask/Unmask a rectangle of the given mask level.
 
@@ -367,7 +454,7 @@ class MaskToolsWidget(qt.QWidget):
         self._z = 1  # Mask layer in plot
         self._data = numpy.zeros((0, 0), dtype=numpy.uint8)  # Store image
 
-        self._mask = Mask()
+        self._mask = ImageMask()
         self._mask.sigChanged.connect(self._updatePlotMask)
 
         self._drawingMode = None  # Store current drawing mode
