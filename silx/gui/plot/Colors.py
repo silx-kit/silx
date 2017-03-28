@@ -293,3 +293,42 @@ def getMPLScalarMappable(colormap, data=None):
         norm = matplotlib.colors.Normalize(vmin, vmax)
 
     return matplotlib.cm.ScalarMappable(norm=norm, cmap=cmap)
+
+
+def applyColormapToData(data,
+                        name='gray',
+                        normalization='linear',
+                        autoscale=True,
+                        vmin=0.,
+                        vmax=1.,
+                        colors=None):
+    """Apply a colormap to the data and returns the RGBA image
+
+    This supports data of any dimensions (not only of dimension 2).
+    The returned array will have one more dimension (with 4 entries)
+    than the input data to store the RGBA channels
+    corresponding to each bin in the array.
+
+    :param numpy.ndarray data: The data to convert.
+    :param str name: Name of the colormap (default: 'gray').
+    :param str normalization: Colormap mapping: 'linear' or 'log'.
+    :param bool autoscale: Whether to use data min/max (True, default)
+                           or [vmin, vmax] range (False).
+    :param float vmin: The minimum value of the range to use if
+                       'autoscale' is False.
+    :param float vmax: The maximum value of the range to use if
+                       'autoscale' is False.
+    :param numpy.ndarray colors: Only used if name is None.
+        Custom colormap colors as Nx3 or Nx4 RGB or RGBA arrays
+    :return: The computed RGBA image
+    :rtype: numpy.ndarray of uint8
+    """
+    colormap = dict(name=name,
+                    normalization=normalization,
+                    autoscale=autoscale,
+                    vmin=vmin,
+                    vmax=vmax,
+                    colors=colors)
+    scalarMappable = getMPLScalarMappable(colormap, data)
+    rgbaImage = scalarMappable.to_rgba(data, bytes=True)
+    return rgbaImage
