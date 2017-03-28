@@ -765,8 +765,7 @@ class SaveAction(PlotAction):
                             self.IMAGE_FILTER_RGB_TIFF):
             # Apply colormap to data
             colormap = image.getColormap()
-            scalarMappable = Colors.getMPLScalarMappable(colormap, data)
-            rgbaImage = scalarMappable.to_rgba(data, bytes=True)
+            rgbaImage = Colors.applyColormapToData(data, **colormap)
 
             # Convert RGB QImage
             qimage = convertArrayToQImage(rgbaImage[:, :, :3])
