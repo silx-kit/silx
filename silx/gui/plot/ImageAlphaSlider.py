@@ -28,7 +28,7 @@ of an image on a :class:`PlotWidget`
 Classes:
 --------
 
-- :class:`BaseImageAlphaSlider`
+- :class:`BaseImageAlphaSlider` (abstract class)
 - :class:`NamedImageAlphaSlider`
 - :class:`ActiveImageAlphaSlider`
 
@@ -172,6 +172,10 @@ class NamedImageAlphaSlider(BaseImageAlphaSlider):
     def __init__(self, parent=None, plot=None, legend=None):
         self._image_legend = legend
         super(NamedImageAlphaSlider, self).__init__(parent, plot)
+        if self.plot.getImage(legend) is not None:
+            self.setEnabled(True)
+        else:
+            self.setEnabled(False)
 
     def getImage(self):
         if self._image_legend is None:
