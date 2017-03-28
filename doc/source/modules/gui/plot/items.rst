@@ -1,12 +1,12 @@
 
 .. currentmodule:: silx.gui.plot
 
-:mod:`PlotItems`: Plot primitives
-=================================
+:mod:`items`: Plot primitives
+=============================
 
-.. automodule:: silx.gui.plot.PlotItems
+.. automodule:: silx.gui.plot.items
 
-.. currentmodule:: silx.gui.plot.PlotItems
+.. currentmodule:: silx.gui.plot.items
 
 Curve
 -----

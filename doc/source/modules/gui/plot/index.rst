@@ -107,7 +107,7 @@ Public modules
    imageview.rst
    stackview.rst
    plot.rst
-   plotitems.rst
+   items.rst
    plotactions.rst
    plottools.rst
    profile.rst

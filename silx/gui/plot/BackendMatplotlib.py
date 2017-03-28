@@ -461,31 +461,17 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     # Active curve
 
-    def setActiveCurve(self, curve, active, color=None):
+    def setCurveColor(self, curve, color):
         # Store Line2D and PathCollection
         for artist in curve.get_children():
-            if active:
-                if isinstance(artist, (Line2D, LineCollection)):
-                    artist._initialColor = artist.get_color()
-                    artist.set_color(color)
-                elif isinstance(artist, PathCollection):
-                    artist._initialColor = artist.get_facecolors()
-                    artist.set_facecolors(color)
-                    artist.set_edgecolors(color)
-                else:
-                    _logger.warning(
-                        'setActiveCurve ignoring artist %s', str(artist))
+            if isinstance(artist, (Line2D, LineCollection)):
+                artist.set_color(color)
+            elif isinstance(artist, PathCollection):
+                artist.set_facecolors(color)
+                artist.set_edgecolors(color)
             else:
-                if hasattr(artist, '_initialColor'):
-                    if isinstance(artist, (Line2D, LineCollection)):
-                        artist.set_color(artist._initialColor)
-                    elif isinstance(artist, PathCollection):
-                        artist.set_facecolors(artist._initialColor)
-                        artist.set_edgecolors(artist._initialColor)
-                    else:
-                        _logger.info(
-                            'setActiveCurve ignoring artist %s', str(artist))
-                    del artist._initialColor
+                _logger.warning(
+                    'setActiveCurve ignoring artist %s', str(artist))
 
     # Misc.
 

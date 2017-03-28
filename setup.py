@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "15/03/2017"
+__date__ = "27/03/2017"
 __license__ = "MIT"
 
 
@@ -37,52 +37,66 @@ import io
 import sys
 import os
 import platform
+import shutil
+import logging
 
-try:
-    from numpy.distutils.misc_util import Configuration
-except ImportError:
-    raise ImportError(
-        "To install this package, you must install numpy first\n"
-        "(See https://pypi.python.org/pypi/numpy)")
+logging.basicConfig(level=logging.INFO)
 
+logger = logging.getLogger("silx.setup")
+
+
+from distutils.command.clean import clean as Clean
 try:
-    from setuptools import setup, Command
+    from setuptools import Command
     from setuptools.command.build_py import build_py as _build_py
     from setuptools.command.build_ext import build_ext
     from setuptools.command.sdist import sdist
+    logger.info("Use setuptools")
 except ImportError:
-    from numpy.distutils.core import setup, Command
+    try:
+        from numpy.distutils.core import Command
+    except ImportError:
+        from distutils.core import Command
     from distutils.command.build_py import build_py as _build_py
     from distutils.command.build_ext import build_ext
     from distutils.command.sdist import sdist
+    logger.info("Use distutils")
+
+try:
+    import sphinx
+    import sphinx.util.console
+    sphinx.util.console.color_terminal = lambda: False
+    from sphinx.setup_command import BuildDoc
+except ImportError:
+    sphinx = None
+
+
+USE_OPENMP = None
+"""Refere if the compilation will use OpenMP or not.
+It have to be initialized before the setup."""
+
 
 PROJECT = "silx"
-cmdclass = {}
 
-
-if "LANG" not in os.environ and sys.platform == "darwin" and sys.version_info[0]>2:
-    print("""WARNING: the LANG environment variable is not defined, 
-an utf-8 LANG is mandatory to use setup.py, you may face unexpected UnicodeError. 
+if "LANG" not in os.environ and sys.platform == "darwin" and sys.version_info[0] > 2:
+    print("""WARNING: the LANG environment variable is not defined,
+an utf-8 LANG is mandatory to use setup.py, you may face unexpected UnicodeError.
 export LANG=en_US.utf-8
 export LC_ALL=en_US.utf-8
 """)
 
 
-# Check if action requires build/install
-DRY_RUN = len(sys.argv) == 1 or (len(sys.argv) >= 2 and (
-    '--help' in sys.argv[1:] or
-    sys.argv[1] in ('--help-commands', 'egg_info', '--version',
-                    'clean', '--name')))
-
-
 def get_version():
+    """Returns current version number from version.py file"""
     import version
     return version.strictversion
 
 
 def get_readme():
+    """Returns content of README.rst file"""
     dirname = os.path.dirname(os.path.abspath(__file__))
-    with io.open(os.path.join(dirname, "README.rst"), "r", encoding="utf-8") as fp:
+    filename = os.path.join(dirname, "README.rst")
+    with io.open(filename, "r", encoding="utf-8") as fp:
         long_description = fp.read()
     return long_description
 
@@ -125,14 +139,12 @@ class build_py(_build_py):
         return modules
 
 
-cmdclass['build_py'] = build_py
-
-
 ########
 # Test #
 ########
 
 class PyTest(Command):
+    """Command to start tests running the script: run_tests.py -i"""
     user_options = []
 
     def initialize_options(self):
@@ -147,21 +159,14 @@ class PyTest(Command):
         if errno != 0:
             raise SystemExit(errno)
 
-cmdclass['test'] = PyTest
-
 
 # ################### #
 # build_doc command   #
 # ################### #
 
-try:
-    import sphinx
-    import sphinx.util.console
-    sphinx.util.console.color_terminal = lambda: False
-    from sphinx.setup_command import BuildDoc
-except ImportError:
-    sphinx = None
+if sphinx is None:
     class SphinxExpectedCommand(Command):
+        """Command to inform that sphinx is missing"""
         user_options = []
 
         def initialize_options(self):
@@ -177,6 +182,10 @@ except ImportError:
 
 if sphinx is not None:
     class BuildDocCommand(BuildDoc):
+        """Command to build documentation using sphinx.
+
+        Project should have already be built.
+        """
 
         def run(self):
             # make sure the python path is pointing to the newly built
@@ -186,17 +195,17 @@ if sphinx is not None:
             build = self.get_finalized_command('build')
             sys.path.insert(0, os.path.abspath(build.build_lib))
 
-#             # Copy .ui files to the path:
-#             dst = os.path.join(
-#                 os.path.abspath(build.build_lib), "silx", "gui")
-#             if not os.path.isdir(dst):
-#                 os.makedirs(dst)
-#             for i in os.listdir("gui"):
-#                 if i.endswith(".ui"):
-#                     src = os.path.join("gui", i)
-#                     idst = os.path.join(dst, i)
-#                     if not os.path.exists(idst):
-#                         shutil.copy(src, idst)
+            # # Copy .ui files to the path:
+            # dst = os.path.join(
+            #     os.path.abspath(build.build_lib), "silx", "gui")
+            # if not os.path.isdir(dst):
+            #     os.makedirs(dst)
+            # for i in os.listdir("gui"):
+            #     if i.endswith(".ui"):
+            #         src = os.path.join("gui", i)
+            #         idst = os.path.join(dst, i)
+            #         if not os.path.exists(idst):
+            #             shutil.copy(src, idst)
 
             # Build the Users Guide in HTML and TeX format
             for builder in ['html', 'latex']:
@@ -208,7 +217,6 @@ if sphinx is not None:
 else:
     BuildDocCommand = SphinxExpectedCommand
 
-cmdclass['build_doc'] = BuildDocCommand
 
 # ################### #
 # test_doc command    #
@@ -216,7 +224,7 @@ cmdclass['build_doc'] = BuildDocCommand
 
 if sphinx is not None:
     class TestDocCommand(BuildDoc):
-        """Target to test the documentation using sphynx doctest.
+        """Command to test the documentation using sphynx doctest.
 
         http://www.sphinx-doc.org/en/1.4.8/ext/doctest.html
         """
@@ -239,7 +247,6 @@ if sphinx is not None:
 else:
     TestDocCommand = SphinxExpectedCommand
 
-cmdclass['test_doc'] = TestDocCommand
 
 # ############## #
 # OpenMP support #
@@ -249,6 +256,9 @@ def check_openmp():
     """Do we compile with OpenMP?
 
     Store the result in WITH_OPENMP environment variable
+
+    TODO: It would be much better to take care of command line arguments in the
+          initialize_options and finalize_options.
 
     :return: True if available and not disabled.
     """
@@ -278,22 +288,20 @@ def check_openmp():
     return True
 
 
-USE_OPENMP = check_openmp()
-
-
 # ############## #
 # Cython support #
 # ############## #
 
-CYTHON_MIN_VERSION = '0.21.1'
-
-
-def check_cython():
+def check_cython(min_version=None):
     """
     Check if cython must be activated fron te command line or the environment.
 
     Store the result in WITH_CYTHON environment variable.
 
+    TODO: It would be much better to take care of command line arguments in the
+          initialize_options and finalize_options.
+
+    :param string min_version: Minimum version of Cython requested
     :return: True if available and not disabled.
     """
 
@@ -314,7 +322,7 @@ def check_cython():
         os.environ["WITH_CYTHON"] = "False"
         return False
     else:
-        if Cython.Compiler.Version.version < CYTHON_MIN_VERSION:
+        if min_version and Cython.Compiler.Version.version < min_version:
             os.environ["WITH_CYTHON"] = "False"
             return False
 
@@ -327,9 +335,6 @@ def check_cython():
     return True
 
 
-USE_CYTHON = check_cython()
-
-
 # ############################# #
 # numpy.distutils Configuration #
 # ############################# #
@@ -338,7 +343,13 @@ def configuration(parent_package='', top_path=None):
     """Recursive construction of package info to be used in setup().
 
     See http://docs.scipy.org/doc/numpy/reference/distutils.html#numpy.distutils.misc_util.Configuration
-    """  # noqa
+    """
+    try:
+        from numpy.distutils.misc_util import Configuration
+    except ImportError:
+        raise ImportError(
+            "To install this package, you must install numpy first\n"
+            "(See https://pypi.python.org/pypi/numpy)")
     config = Configuration(None, parent_package, top_path)
     config.set_options(
         ignore_setup_xxx_py=True,
@@ -348,13 +359,10 @@ def configuration(parent_package='', top_path=None):
     config.add_subpackage(PROJECT)
     return config
 
-
-config = configuration()
-
-
 # ############## #
 # Compiler flags #
 # ############## #
+
 
 class BuildExtFlags(build_ext):
     """Handle compiler and linker flags.
@@ -387,9 +395,6 @@ class BuildExtFlags(build_ext):
         build_ext.build_extensions(self)
 
 
-cmdclass['build_ext'] = BuildExtFlags
-
-
 def fake_cythonize(extensions):
     """Replace cython files by .c or .cpp files in extension's sources.
 
@@ -413,22 +418,23 @@ def fake_cythonize(extensions):
             new_sources.append(source)
         ext_module.sources = new_sources
 
+################################################################################
+# Clean command
+################################################################################
 
-if not DRY_RUN:
-    if USE_CYTHON:
-        # Cythonize extensions
-        from Cython.Build import cythonize
 
-        config.ext_modules = cythonize(
-            config.ext_modules,
-            compiler_directives={'embedsignature': True},
-            force=(os.environ.get("FORCE_CYTHON") is "True"),
-            compile_time_env={"HAVE_OPENMP": bool(USE_OPENMP)}
-        )
-    else:
-        # Do not use Cython but convert source names from .pyx to .c or .cpp
-        fake_cythonize(config.ext_modules)
+class CleanCommand(Clean):
+    description = "Remove build artifacts from the source tree"
 
+    def run(self):
+        Clean.run(self)
+        # really remove the build directory
+        if not self.dry_run:
+            try:
+                shutil.rmtree(self.build_base)
+                logger.info("removing '%s'", self.build_base)
+            except OSError:
+                pass
 
 ################################################################################
 # Debian source tree
@@ -476,47 +482,114 @@ class sdist_debian(sdist):
             dest = "".join((base, ext))
         else:
             dest = base
-#         sp = dest.split("-")
-#         base = sp[:-1]
-#         nr = sp[-1]
+        # sp = dest.split("-")
+        # base = sp[:-1]
+        # nr = sp[-1]
         debian_arch = os.path.join(dirname, self.get_debian_name() + ".orig.tar.gz")
         os.rename(self.archive_files[0], debian_arch)
         self.archive_files = [debian_arch]
         print("Building debian .orig.tar.gz in %s" % self.archive_files[0])
-
-cmdclass['debian_src'] = sdist_debian
 
 
 # ##### #
 # setup #
 # ##### #
 
-setup_kwargs = config.todict()
+def setup_package():
+    """Run setup(**kwargs)
 
-install_requires = ["numpy"]
-setup_requires = ["numpy"]
+    Depending on the command, it either runs the complete setup which depends on numpy,
+    or a *dry run* setup with no dependency on numpy.
+    """
+    install_requires = ["numpy"]
+    setup_requires = ["numpy"]
 
-setup_kwargs.update(name=PROJECT,
-                    version=get_version(),
-                    url="https://github.com/silx-kit/silx",
-                    author="data analysis unit",
-                    author_email="silx@esrf.fr",
-                    classifiers=classifiers,
-                    description="Software library for X-Ray data analysis",
-                    long_description=get_readme(),
-                    install_requires=install_requires,
-                    setup_requires=setup_requires,
-                    cmdclass=cmdclass,
-                    package_data={'silx.resources': [
-                        # Add here all resources files
-                        'gui/icons/*.png',
-                        'gui/icons/*.svg',
-                        'gui/icons/*.mng',
-                        'gui/icons/*.gif',
-                        'opencl/*.cl',
-                        'opencl/sift/*.cl',
-                        ]},
-                    zip_safe=False,
-                    )
+    package_data = {
+        'silx.resources': [
+            # Add here all resources files
+            'gui/icons/*.png',
+            'gui/icons/*.svg',
+            'gui/icons/*.mng',
+            'gui/icons/*.gif',
+            'opencl/*.cl',
+            'opencl/sift/*.cl']
+    }
 
-setup(**setup_kwargs)
+    cmdclass = dict(
+        build_py=build_py,
+        test=PyTest,
+        build_doc=BuildDocCommand,
+        test_doc=TestDocCommand,
+        build_ext=BuildExtFlags,
+        clean=CleanCommand,
+        debian_src=sdist_debian)
+
+    # Check if action requires build/install
+    dry_run = len(sys.argv) == 1 or (len(sys.argv) >= 2 and (
+        '--help' in sys.argv[1:] or
+        sys.argv[1] in ('--help-commands', 'egg_info', '--version',
+                        'clean', '--name')))
+
+    if dry_run:
+        # DRY_RUN implies actions which do not require NumPy
+        #
+        # And they are required to succeed without Numpy for example when
+        # pip is used to install silx when Numpy is not yet present in
+        # the system.
+        try:
+            from setuptools import setup
+            logger.info("Use setuptools.setup")
+        except ImportError:
+            from distutils.core import setup
+            logger.info("Use distutils.core.setup")
+        setup_kwargs = {}
+    else:
+        use_cython = check_cython(min_version='0.21.1')
+
+        use_openmp = check_openmp()
+        USE_OPENMP = use_openmp
+
+        try:
+            from setuptools import setup
+            logger.info("Use setuptools.setup")
+        except ImportError:
+            from numpy.distutils.core import setup
+            logger.info("Use numpydistutils.setup")
+
+        config = configuration()
+
+        if use_cython:
+            # Cythonize extensions
+            from Cython.Build import cythonize
+
+            config.ext_modules = cythonize(
+                config.ext_modules,
+                compiler_directives={'embedsignature': True},
+                force=(os.environ.get("FORCE_CYTHON") is "True"),
+                compile_time_env={"HAVE_OPENMP": use_openmp}
+            )
+        else:
+            # Do not use Cython but convert source names from .pyx to .c or .cpp
+            fake_cythonize(config.ext_modules)
+
+        setup_kwargs = config.todict()
+
+    setup_kwargs.update(name=PROJECT,
+                        version=get_version(),
+                        url="https://github.com/silx-kit/silx",
+                        author="data analysis unit",
+                        author_email="silx@esrf.fr",
+                        classifiers=classifiers,
+                        description="Software library for X-Ray data analysis",
+                        long_description=get_readme(),
+                        install_requires=install_requires,
+                        setup_requires=setup_requires,
+                        cmdclass=cmdclass,
+                        package_data=package_data,
+                        zip_safe=False,
+                        )
+
+    setup(**setup_kwargs)
+
+if __name__ == "__main__":
+    setup_package()

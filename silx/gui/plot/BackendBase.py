@@ -106,6 +106,7 @@ class BackendBase(object):
             - 's' square
 
         :param float linewidth: The width of the curve in pixels
+        :param str linestyle: Type of line::
 
             - ' ' or ''  no line
             - '-'  solid line
@@ -120,6 +121,7 @@ class BackendBase(object):
         :type yerror: numpy.ndarray or None
         :param int z: Layer on which to draw the cuve
         :param bool selectable: indicate if the curve can be selected
+        :param bool fill: True to fill the curve, False otherwise
         :returns: The handle used by the backend to univocally access the curve
         """
         return legend
@@ -157,6 +159,7 @@ class BackendBase(object):
         :param str legend: The legend to be associated to the item
         :param str shape: Type of item to be drawn in
                           hline, polygon, rectangle, vline, polylines
+        :param str color: Color of the item
         :param bool fill: True to fill the shape
         :param bool overlay: True if item is an overlay, False otherwise
         :param int z: Layer on which to draw the item
@@ -250,7 +253,6 @@ class BackendBase(object):
     def pickItems(self, x, y):
         """Get a list of items at a pixel position.
 
-
         :param float x: The x pixel coord where to pick.
         :param float y: The y pixel coord where to pick.
         :return: All picked items from back to front.
@@ -263,14 +265,12 @@ class BackendBase(object):
         """
         return []
 
-    # Active curve
+    # Update curve
 
-    def setActiveCurve(self, curve, active, color=None):
-        """Set/Reset the color of a curve to show that it is active.
+    def setCurveColor(self, curve, color):
+        """Set the color of a curve.
 
         :param curve: The curve handle
-        :param bool active: True to set curve to color, False to reset curve
-                            to its initial color.
         :param str color: The color to use.
         """
         pass
@@ -455,7 +455,7 @@ class BackendBase(object):
         The list should at least contain and start by:
         ['gray', 'reversed gray', 'temperature', 'red', 'green', 'blue']
         """
-        return ('gray', 'reversed gray', 'temperature', 'red', 'green', 'blue')
+        return 'gray', 'reversed gray', 'temperature', 'red', 'green', 'blue'
 
     # Data <-> Pixel coordinates conversion
 

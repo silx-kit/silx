@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,23 +22,19 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+"""This package provides classes that describes :class:`.Plot` content.
+
+Instances of those classes are returned by :class:`.Plot` methods that give
+access to its content such as :meth:`.Plot.getCurve`, :meth:`.Plot.getImage`.
+"""
+
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "16/02/2016"
+__date__ = "06/03/2017"
 
-
-from numpy.distutils.misc_util import Configuration
-
-
-def configuration(parent_package='', top_path=None):
-    config = Configuration('plot', parent_package, top_path)
-    config.add_subpackage('items')
-    config.add_subpackage('test')
-
-    return config
-
-
-if __name__ == "__main__":
-    from numpy.distutils.core import setup
-
-    setup(configuration=configuration)
+from .core import (Item, LabelsMixIn, DraggableMixIn, ColormapMixIn,  # noqa
+                   SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn)  # noqa
+from .curve import Curve  # noqa
+from .image import Image  # noqa
+from .shape import Shape  # noqa
+from .marker import Marker, XMarker, YMarker  # noqa
