@@ -104,9 +104,10 @@ class _MinMaxResult(object):
             raise IndexError("Index out of range")
 
 
+@cython.initializedcheck(False)
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def _min_max(_number[:] data, bint min_positive=False):
+def _min_max(_number[::1] data, bint min_positive=False):
     """See :func:`min_max` for documentation."""
     cdef:
         _number value, minimum, minpos, maximum
@@ -234,4 +235,4 @@ def min_max(data not None, bint min_positive=False):
               min_positive and argmin_positive are None.
     :raises: ValueError if data is empty
     """
-    return _min_max(numpy.asanyarray(data).ravel(), min_positive)
+    return _min_max(numpy.ascontiguousarray(data).ravel(), min_positive)
