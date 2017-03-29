@@ -37,4 +37,5 @@ from .core import (Item, LabelsMixIn, DraggableMixIn, ColormapMixIn,  # noqa
 from .curve import Curve  # noqa
 from .image import Image  # noqa
 from .shape import Shape  # noqa
+from .scatter import Scatter  # noqa
 from .marker import Marker, XMarker, YMarker  # noqa
