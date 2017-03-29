@@ -1182,25 +1182,25 @@ static int __Pyx_ValidateAndInit_memviewslice(
                 __Pyx_memviewslice *memviewslice,
                 PyObject *original_obj);
 
-static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_float(PyObject *);
+static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dc_float(PyObject *);
 
-static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_double(PyObject *);
+static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dc_double(PyObject *);
 
-static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_signed_char(PyObject *);
+static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dc_signed_char(PyObject *);
 
-static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_signed_short(PyObject *);
+static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dc_signed_short(PyObject *);
 
-static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_signed_int(PyObject *);
+static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dc_signed_int(PyObject *);
 
-static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_signed_long(PyObject *);
+static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dc_signed_long(PyObject *);
 
-static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_unsigned_char(PyObject *);
+static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dc_unsigned_char(PyObject *);
 
-static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_unsigned_short(PyObject *);
+static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dc_unsigned_short(PyObject *);
 
-static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_unsigned_int(PyObject *);
+static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dc_unsigned_int(PyObject *);
 
-static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_unsigned_PY_LONG_LONG(PyObject *);
+static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dc_unsigned_PY_LONG_LONG(PyObject *);
 
 static PyObject *__Pyx_Import(PyObject *name, PyObject *from_list, int level);
 
@@ -1561,7 +1561,6 @@ static char __pyx_k_20_12_2016[] = "20/12/2016";
 static char __pyx_k_IndexError[] = "IndexError";
 static char __pyx_k_ValueError[] = "ValueError";
 static char __pyx_k_argmin_pos[] = "argmin_pos";
-static char __pyx_k_asanyarray[] = "asanyarray";
 static char __pyx_k_pyx_vtable[] = "__pyx_vtable__";
 static char __pyx_k_signatures[] = "signatures";
 static char __pyx_k_signed_int[] = "signed int";
@@ -1583,8 +1582,9 @@ static char __pyx_k_Zero_size_array[] = "Zero-size array";
 static char __pyx_k_allocate_buffer[] = "allocate_buffer";
 static char __pyx_k_argmin_positive[] = "_argmin_positive";
 static char __pyx_k_dtype_is_object[] = "dtype_is_object";
-static char __pyx_k_min_max_line_194[] = "min_max (line 194)";
+static char __pyx_k_min_max_line_195[] = "min_max (line 195)";
 static char __pyx_k_argmin_positive_2[] = "argmin_positive";
+static char __pyx_k_ascontiguousarray[] = "ascontiguousarray";
 static char __pyx_k_Index_out_of_range[] = "Index out of range";
 static char __pyx_k_strided_and_direct[] = "<strided and direct>";
 static char __pyx_k_unsigned_long_long[] = "unsigned long long";
@@ -1679,7 +1679,7 @@ static PyObject *__pyx_n_s_argmin_pos;
 static PyObject *__pyx_n_s_argmin_positive;
 static PyObject *__pyx_n_s_argmin_positive_2;
 static PyObject *__pyx_n_s_args;
-static PyObject *__pyx_n_s_asanyarray;
+static PyObject *__pyx_n_s_ascontiguousarray;
 static PyObject *__pyx_n_s_authors;
 static PyObject *__pyx_n_s_base;
 static PyObject *__pyx_n_s_c;
@@ -1725,7 +1725,7 @@ static PyObject *__pyx_n_s_metaclass;
 static PyObject *__pyx_n_s_min_index;
 static PyObject *__pyx_n_s_min_max;
 static PyObject *__pyx_n_s_min_max_2;
-static PyObject *__pyx_kp_u_min_max_line_194;
+static PyObject *__pyx_kp_u_min_max_line_195;
 static PyObject *__pyx_n_s_min_pos;
 static PyObject *__pyx_n_s_min_pos_index;
 static PyObject *__pyx_n_s_min_positive;
@@ -2477,10 +2477,10 @@ static PyObject *__pyx_pf_5combo_13_MinMaxResult_2__getitem__(CYTHON_UNUSED PyOb
   return __pyx_r;
 }
 
-/* "combo.pyx":109
+/* "combo.pyx":110
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
- * def _min_max(_number[:] data, bint min_positive=False):             # <<<<<<<<<<<<<<
+ * def _min_max(_number[::1] data, bint min_positive=False):             # <<<<<<<<<<<<<<
  *     """See :func:`min_max` for documentation."""
  *     cdef:
  */
@@ -2528,16 +2528,16 @@ static PyObject *__pyx_pw_5combo_1_min_max(PyObject *__pyx_self, PyObject *__pyx
         case  2:
         if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_kwargs)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__pyx_fused_cpdef", 1, 4, 4, 2); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("__pyx_fused_cpdef", 1, 4, 4, 2); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
         case  3:
         if (likely((values[3] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_defaults)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__pyx_fused_cpdef", 1, 4, 4, 3); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("__pyx_fused_cpdef", 1, 4, 4, 3); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__pyx_fused_cpdef") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__pyx_fused_cpdef") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 4) {
       goto __pyx_L5_argtuple_error;
@@ -2554,7 +2554,7 @@ static PyObject *__pyx_pw_5combo_1_min_max(PyObject *__pyx_self, PyObject *__pyx
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__pyx_fused_cpdef", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("__pyx_fused_cpdef", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("combo.__pyx_fused_cpdef", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -2575,14 +2575,14 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
   Py_ssize_t __pyx_v_itemsize;
   int __pyx_v_dtype_signed;
   char __pyx_v_kind;
+  int __pyx_v_signed_short_is_signed;
+  int __pyx_v_signed_long_is_signed;
+  int __pyx_v_signed_int_is_signed;
+  int __pyx_v_unsigned_long_long_is_signed;
+  int __pyx_v_signed_char_is_signed;
+  int __pyx_v_unsigned_short_is_signed;
   int __pyx_v_unsigned_int_is_signed;
   int __pyx_v_unsigned_char_is_signed;
-  int __pyx_v_signed_long_is_signed;
-  int __pyx_v_signed_short_is_signed;
-  int __pyx_v_unsigned_long_long_is_signed;
-  int __pyx_v_unsigned_short_is_signed;
-  int __pyx_v_signed_char_is_signed;
-  int __pyx_v_signed_int_is_signed;
   PyObject *__pyx_v_arg = NULL;
   PyObject *__pyx_v_dtype = NULL;
   PyObject *__pyx_v_arg_base = NULL;
@@ -2618,7 +2618,7 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("_min_max", 0);
   __Pyx_INCREF(__pyx_v_kwargs);
-  __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(Py_None);
   PyList_SET_ITEM(__pyx_t_1, 0, Py_None);
@@ -2628,7 +2628,7 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
   __pyx_t_2 = (__pyx_v_kwargs == Py_None);
   __pyx_t_3 = (__pyx_t_2 != 0);
   if (__pyx_t_3) {
-    __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF_SET(__pyx_v_kwargs, __pyx_t_1);
     __pyx_t_1 = 0;
@@ -2641,13 +2641,13 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
     __Pyx_XGOTREF(__pyx_t_5);
     __Pyx_XGOTREF(__pyx_t_6);
     /*try:*/ {
-      __pyx_t_1 = __Pyx_Import(__pyx_n_s_numpy, 0, -1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
+      __pyx_t_1 = __Pyx_Import(__pyx_n_s_numpy, 0, -1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
       __Pyx_GOTREF(__pyx_t_1);
       __pyx_v_numpy = __pyx_t_1;
       __pyx_t_1 = 0;
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_numpy, __pyx_n_s_ndarray); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_numpy, __pyx_n_s_ndarray); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
       __Pyx_GOTREF(__pyx_t_1);
-      if (!(likely(PyType_CheckExact(__pyx_t_1))||((__pyx_t_1) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "type", Py_TYPE(__pyx_t_1)->tp_name), 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
+      if (!(likely(PyType_CheckExact(__pyx_t_1))||((__pyx_t_1) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "type", Py_TYPE(__pyx_t_1)->tp_name), 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
       __pyx_v_ndarray = ((PyObject*)__pyx_t_1);
       __pyx_t_1 = 0;
     }
@@ -2660,7 +2660,7 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
     __pyx_t_7 = PyErr_ExceptionMatches(__pyx_builtin_ImportError) || PyErr_ExceptionMatches(__pyx_builtin_AttributeError) || PyErr_ExceptionMatches(__pyx_builtin_TypeError);
     if (__pyx_t_7) {
       __Pyx_AddTraceback("combo.__pyx_fused_cpdef", __pyx_clineno, __pyx_lineno, __pyx_filename);
-      if (__Pyx_GetException(&__pyx_t_1, &__pyx_t_8, &__pyx_t_9) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L6_except_error;}
+      if (__Pyx_GetException(&__pyx_t_1, &__pyx_t_8, &__pyx_t_9) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L6_except_error;}
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_GOTREF(__pyx_t_8);
       __Pyx_GOTREF(__pyx_t_9);
@@ -2686,24 +2686,24 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
     __pyx_L11_try_end:;
   }
   __pyx_v_itemsize = -1;
+  __pyx_v_signed_short_is_signed = (((signed short)-1) < 0);
+  __pyx_v_signed_long_is_signed = (((signed long)-1) < 0);
+  __pyx_v_signed_int_is_signed = (((signed int)-1) < 0);
+  __pyx_v_unsigned_long_long_is_signed = (((unsigned PY_LONG_LONG)-1) < 0);
+  __pyx_v_signed_char_is_signed = (((signed char)-1) < 0);
+  __pyx_v_unsigned_short_is_signed = (((unsigned short)-1) < 0);
   __pyx_v_unsigned_int_is_signed = (((unsigned int)-1) < 0);
   __pyx_v_unsigned_char_is_signed = (((unsigned char)-1) < 0);
-  __pyx_v_signed_long_is_signed = (((signed long)-1) < 0);
-  __pyx_v_signed_short_is_signed = (((signed short)-1) < 0);
-  __pyx_v_unsigned_long_long_is_signed = (((unsigned PY_LONG_LONG)-1) < 0);
-  __pyx_v_unsigned_short_is_signed = (((unsigned short)-1) < 0);
-  __pyx_v_signed_char_is_signed = (((signed char)-1) < 0);
-  __pyx_v_signed_int_is_signed = (((signed int)-1) < 0);
   if (unlikely(__pyx_v_args == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
-  __pyx_t_10 = PyTuple_GET_SIZE(((PyObject*)__pyx_v_args)); if (unlikely(__pyx_t_10 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_10 = PyTuple_GET_SIZE(((PyObject*)__pyx_v_args)); if (unlikely(__pyx_t_10 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_t_3 = ((0 < __pyx_t_10) != 0);
   if (__pyx_t_3) {
     if (unlikely(__pyx_v_args == Py_None)) {
       PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
-      {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
     __pyx_t_9 = PyTuple_GET_ITEM(((PyObject*)__pyx_v_args), 0);
     __Pyx_INCREF(__pyx_t_9);
@@ -2713,16 +2713,16 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
   }
   if (unlikely(__pyx_v_kwargs == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not iterable");
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
-  __pyx_t_3 = (__Pyx_PyDict_Contains(__pyx_n_s_data, ((PyObject*)__pyx_v_kwargs), Py_EQ)); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = (__Pyx_PyDict_Contains(__pyx_n_s_data, ((PyObject*)__pyx_v_kwargs), Py_EQ)); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_t_2 = (__pyx_t_3 != 0);
   if (__pyx_t_2) {
     if (unlikely(__pyx_v_kwargs == Py_None)) {
       PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
-      {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
-    __pyx_t_9 = __Pyx_PyDict_GetItem(((PyObject*)__pyx_v_kwargs), __pyx_n_s_data); if (unlikely(__pyx_t_9 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+    __pyx_t_9 = __Pyx_PyDict_GetItem(((PyObject*)__pyx_v_kwargs), __pyx_n_s_data); if (unlikely(__pyx_t_9 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
     __Pyx_GOTREF(__pyx_t_9);
     __pyx_v_arg = __pyx_t_9;
     __pyx_t_9 = 0;
@@ -2731,25 +2731,25 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
   /*else*/ {
     if (unlikely(__pyx_v_args == Py_None)) {
       PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
-      {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
-    __pyx_t_10 = PyTuple_GET_SIZE(((PyObject*)__pyx_v_args)); if (unlikely(__pyx_t_10 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __pyx_t_9 = PyInt_FromSsize_t(__pyx_t_10); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_10 = PyTuple_GET_SIZE(((PyObject*)__pyx_v_args)); if (unlikely(__pyx_t_10 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = PyInt_FromSsize_t(__pyx_t_10); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_9);
-    __pyx_t_8 = __Pyx_PyString_Format(__pyx_kp_s_Expected_at_least_d_arguments, __pyx_t_9); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = __Pyx_PyString_Format(__pyx_kp_s_Expected_at_least_d_arguments, __pyx_t_9); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_8);
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-    __pyx_t_9 = PyTuple_New(1); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = PyTuple_New(1); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_9);
     PyTuple_SET_ITEM(__pyx_t_9, 0, __pyx_t_8);
     __Pyx_GIVEREF(__pyx_t_8);
     __pyx_t_8 = 0;
-    __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_t_9, NULL); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_t_9, NULL); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_8);
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
     __Pyx_Raise(__pyx_t_8, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   __pyx_L14:;
   if (0) {
@@ -2764,7 +2764,7 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
         __pyx_t_3 = __Pyx_TypeCheck(__pyx_v_arg, __pyx_v_ndarray); 
         __pyx_t_2 = (__pyx_t_3 != 0);
         if (__pyx_t_2) {
-          __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_dtype); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_dtype); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_GOTREF(__pyx_t_8);
           __pyx_v_dtype = __pyx_t_8;
           __pyx_t_8 = 0;
@@ -2772,14 +2772,14 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
         }
         __pyx_t_2 = (__pyx_memoryview_check(__pyx_v_arg) != 0);
         if (__pyx_t_2) {
-          __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_base); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_base); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_GOTREF(__pyx_t_8);
           __pyx_v_arg_base = __pyx_t_8;
           __pyx_t_8 = 0;
           __pyx_t_2 = __Pyx_TypeCheck(__pyx_v_arg_base, __pyx_v_ndarray); 
           __pyx_t_3 = (__pyx_t_2 != 0);
           if (__pyx_t_3) {
-            __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg_base, __pyx_n_s_dtype); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+            __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg_base, __pyx_n_s_dtype); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
             __Pyx_GOTREF(__pyx_t_8);
             __pyx_v_dtype = __pyx_t_8;
             __pyx_t_8 = 0;
@@ -2801,22 +2801,22 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
         __pyx_t_3 = (__pyx_v_dtype != Py_None);
         __pyx_t_2 = (__pyx_t_3 != 0);
         if (__pyx_t_2) {
-          __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_dtype, __pyx_n_s_itemsize); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_dtype, __pyx_n_s_itemsize); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_GOTREF(__pyx_t_8);
-          __pyx_t_10 = __Pyx_PyIndex_AsSsize_t(__pyx_t_8); if (unlikely((__pyx_t_10 == (Py_ssize_t)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_10 = __Pyx_PyIndex_AsSsize_t(__pyx_t_8); if (unlikely((__pyx_t_10 == (Py_ssize_t)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
           __pyx_v_itemsize = __pyx_t_10;
-          __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_dtype, __pyx_n_s_kind); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_dtype, __pyx_n_s_kind); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_GOTREF(__pyx_t_8);
-          __pyx_t_9 = PyTuple_New(1); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_9 = PyTuple_New(1); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_GOTREF(__pyx_t_9);
           PyTuple_SET_ITEM(__pyx_t_9, 0, __pyx_t_8);
           __Pyx_GIVEREF(__pyx_t_8);
           __pyx_t_8 = 0;
-          __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_ord, __pyx_t_9, NULL); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_ord, __pyx_t_9, NULL); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_GOTREF(__pyx_t_8);
           __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-          __pyx_t_11 = __Pyx_PyInt_As_char(__pyx_t_8); if (unlikely((__pyx_t_11 == (char)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_11 = __Pyx_PyInt_As_char(__pyx_t_8); if (unlikely((__pyx_t_11 == (char)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
           __pyx_v_kind = __pyx_t_11;
           __pyx_v_dtype_signed = (__pyx_v_kind == 'i');
@@ -2829,9 +2829,9 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
               __pyx_t_2 = __pyx_t_3;
               goto __pyx_L23_bool_binop_done;
             }
-            __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_ndim); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+            __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_ndim); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
             __Pyx_GOTREF(__pyx_t_8);
-            __pyx_t_10 = __Pyx_PyIndex_AsSsize_t(__pyx_t_8); if (unlikely((__pyx_t_10 == (Py_ssize_t)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+            __pyx_t_10 = __Pyx_PyIndex_AsSsize_t(__pyx_t_8); if (unlikely((__pyx_t_10 == (Py_ssize_t)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
             __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
             __pyx_t_3 = ((((Py_ssize_t)__pyx_t_10) == 1) != 0);
             if (__pyx_t_3) {
@@ -2843,7 +2843,7 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
             __pyx_t_2 = __pyx_t_3;
             __pyx_L23_bool_binop_done:;
             if (__pyx_t_2) {
-              if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_kp_s_signed_char, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+              if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_kp_s_signed_char, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
               goto __pyx_L17_break;
             }
             __pyx_t_3 = (((sizeof(signed short)) == __pyx_v_itemsize) != 0);
@@ -2852,9 +2852,9 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
               __pyx_t_2 = __pyx_t_3;
               goto __pyx_L27_bool_binop_done;
             }
-            __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_ndim); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+            __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_ndim); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
             __Pyx_GOTREF(__pyx_t_8);
-            __pyx_t_10 = __Pyx_PyIndex_AsSsize_t(__pyx_t_8); if (unlikely((__pyx_t_10 == (Py_ssize_t)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+            __pyx_t_10 = __Pyx_PyIndex_AsSsize_t(__pyx_t_8); if (unlikely((__pyx_t_10 == (Py_ssize_t)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
             __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
             __pyx_t_3 = ((((Py_ssize_t)__pyx_t_10) == 1) != 0);
             if (__pyx_t_3) {
@@ -2866,7 +2866,7 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
             __pyx_t_2 = __pyx_t_3;
             __pyx_L27_bool_binop_done:;
             if (__pyx_t_2) {
-              if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_kp_s_signed_short, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+              if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_kp_s_signed_short, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
               goto __pyx_L17_break;
             }
             __pyx_t_3 = (((sizeof(signed int)) == __pyx_v_itemsize) != 0);
@@ -2875,9 +2875,9 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
               __pyx_t_2 = __pyx_t_3;
               goto __pyx_L31_bool_binop_done;
             }
-            __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_ndim); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+            __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_ndim); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
             __Pyx_GOTREF(__pyx_t_8);
-            __pyx_t_10 = __Pyx_PyIndex_AsSsize_t(__pyx_t_8); if (unlikely((__pyx_t_10 == (Py_ssize_t)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+            __pyx_t_10 = __Pyx_PyIndex_AsSsize_t(__pyx_t_8); if (unlikely((__pyx_t_10 == (Py_ssize_t)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
             __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
             __pyx_t_3 = ((((Py_ssize_t)__pyx_t_10) == 1) != 0);
             if (__pyx_t_3) {
@@ -2889,7 +2889,7 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
             __pyx_t_2 = __pyx_t_3;
             __pyx_L31_bool_binop_done:;
             if (__pyx_t_2) {
-              if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_kp_s_signed_int, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+              if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_kp_s_signed_int, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
               goto __pyx_L17_break;
             }
             __pyx_t_3 = (((sizeof(signed long)) == __pyx_v_itemsize) != 0);
@@ -2898,9 +2898,9 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
               __pyx_t_2 = __pyx_t_3;
               goto __pyx_L35_bool_binop_done;
             }
-            __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_ndim); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+            __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_ndim); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
             __Pyx_GOTREF(__pyx_t_8);
-            __pyx_t_10 = __Pyx_PyIndex_AsSsize_t(__pyx_t_8); if (unlikely((__pyx_t_10 == (Py_ssize_t)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+            __pyx_t_10 = __Pyx_PyIndex_AsSsize_t(__pyx_t_8); if (unlikely((__pyx_t_10 == (Py_ssize_t)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
             __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
             __pyx_t_3 = ((((Py_ssize_t)__pyx_t_10) == 1) != 0);
             if (__pyx_t_3) {
@@ -2912,7 +2912,7 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
             __pyx_t_2 = __pyx_t_3;
             __pyx_L35_bool_binop_done:;
             if (__pyx_t_2) {
-              if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_kp_s_signed_long, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+              if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_kp_s_signed_long, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
               goto __pyx_L17_break;
             }
             __pyx_t_3 = (((sizeof(unsigned char)) == __pyx_v_itemsize) != 0);
@@ -2921,9 +2921,9 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
               __pyx_t_2 = __pyx_t_3;
               goto __pyx_L39_bool_binop_done;
             }
-            __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_ndim); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+            __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_ndim); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
             __Pyx_GOTREF(__pyx_t_8);
-            __pyx_t_10 = __Pyx_PyIndex_AsSsize_t(__pyx_t_8); if (unlikely((__pyx_t_10 == (Py_ssize_t)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+            __pyx_t_10 = __Pyx_PyIndex_AsSsize_t(__pyx_t_8); if (unlikely((__pyx_t_10 == (Py_ssize_t)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
             __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
             __pyx_t_3 = ((((Py_ssize_t)__pyx_t_10) == 1) != 0);
             if (__pyx_t_3) {
@@ -2935,7 +2935,7 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
             __pyx_t_2 = __pyx_t_3;
             __pyx_L39_bool_binop_done:;
             if (__pyx_t_2) {
-              if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_kp_s_unsigned_char, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+              if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_kp_s_unsigned_char, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
               goto __pyx_L17_break;
             }
             __pyx_t_3 = (((sizeof(unsigned short)) == __pyx_v_itemsize) != 0);
@@ -2944,9 +2944,9 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
               __pyx_t_2 = __pyx_t_3;
               goto __pyx_L43_bool_binop_done;
             }
-            __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_ndim); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+            __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_ndim); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
             __Pyx_GOTREF(__pyx_t_8);
-            __pyx_t_10 = __Pyx_PyIndex_AsSsize_t(__pyx_t_8); if (unlikely((__pyx_t_10 == (Py_ssize_t)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+            __pyx_t_10 = __Pyx_PyIndex_AsSsize_t(__pyx_t_8); if (unlikely((__pyx_t_10 == (Py_ssize_t)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
             __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
             __pyx_t_3 = ((((Py_ssize_t)__pyx_t_10) == 1) != 0);
             if (__pyx_t_3) {
@@ -2958,7 +2958,7 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
             __pyx_t_2 = __pyx_t_3;
             __pyx_L43_bool_binop_done:;
             if (__pyx_t_2) {
-              if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_kp_s_unsigned_short, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+              if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_kp_s_unsigned_short, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
               goto __pyx_L17_break;
             }
             __pyx_t_3 = (((sizeof(unsigned int)) == __pyx_v_itemsize) != 0);
@@ -2967,9 +2967,9 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
               __pyx_t_2 = __pyx_t_3;
               goto __pyx_L47_bool_binop_done;
             }
-            __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_ndim); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+            __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_ndim); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
             __Pyx_GOTREF(__pyx_t_8);
-            __pyx_t_10 = __Pyx_PyIndex_AsSsize_t(__pyx_t_8); if (unlikely((__pyx_t_10 == (Py_ssize_t)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+            __pyx_t_10 = __Pyx_PyIndex_AsSsize_t(__pyx_t_8); if (unlikely((__pyx_t_10 == (Py_ssize_t)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
             __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
             __pyx_t_3 = ((((Py_ssize_t)__pyx_t_10) == 1) != 0);
             if (__pyx_t_3) {
@@ -2981,7 +2981,7 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
             __pyx_t_2 = __pyx_t_3;
             __pyx_L47_bool_binop_done:;
             if (__pyx_t_2) {
-              if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_kp_s_unsigned_int, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+              if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_kp_s_unsigned_int, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
               goto __pyx_L17_break;
             }
             __pyx_t_3 = (((sizeof(unsigned PY_LONG_LONG)) == __pyx_v_itemsize) != 0);
@@ -2990,9 +2990,9 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
               __pyx_t_2 = __pyx_t_3;
               goto __pyx_L51_bool_binop_done;
             }
-            __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_ndim); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+            __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_ndim); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
             __Pyx_GOTREF(__pyx_t_8);
-            __pyx_t_10 = __Pyx_PyIndex_AsSsize_t(__pyx_t_8); if (unlikely((__pyx_t_10 == (Py_ssize_t)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+            __pyx_t_10 = __Pyx_PyIndex_AsSsize_t(__pyx_t_8); if (unlikely((__pyx_t_10 == (Py_ssize_t)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
             __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
             __pyx_t_3 = ((((Py_ssize_t)__pyx_t_10) == 1) != 0);
             if (__pyx_t_3) {
@@ -3004,7 +3004,7 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
             __pyx_t_2 = __pyx_t_3;
             __pyx_L51_bool_binop_done:;
             if (__pyx_t_2) {
-              if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_kp_s_unsigned_long_long, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+              if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_kp_s_unsigned_long_long, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
               goto __pyx_L17_break;
             }
             break;
@@ -3015,15 +3015,15 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
               __pyx_t_2 = __pyx_t_3;
               goto __pyx_L55_bool_binop_done;
             }
-            __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_ndim); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+            __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_ndim); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
             __Pyx_GOTREF(__pyx_t_8);
-            __pyx_t_10 = __Pyx_PyIndex_AsSsize_t(__pyx_t_8); if (unlikely((__pyx_t_10 == (Py_ssize_t)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+            __pyx_t_10 = __Pyx_PyIndex_AsSsize_t(__pyx_t_8); if (unlikely((__pyx_t_10 == (Py_ssize_t)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
             __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
             __pyx_t_3 = ((((Py_ssize_t)__pyx_t_10) == 1) != 0);
             __pyx_t_2 = __pyx_t_3;
             __pyx_L55_bool_binop_done:;
             if (__pyx_t_2) {
-              if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_n_s_float, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+              if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_n_s_float, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
               goto __pyx_L17_break;
             }
             __pyx_t_3 = (((sizeof(double)) == __pyx_v_itemsize) != 0);
@@ -3032,15 +3032,15 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
               __pyx_t_2 = __pyx_t_3;
               goto __pyx_L58_bool_binop_done;
             }
-            __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_ndim); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+            __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_ndim); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
             __Pyx_GOTREF(__pyx_t_8);
-            __pyx_t_10 = __Pyx_PyIndex_AsSsize_t(__pyx_t_8); if (unlikely((__pyx_t_10 == (Py_ssize_t)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+            __pyx_t_10 = __Pyx_PyIndex_AsSsize_t(__pyx_t_8); if (unlikely((__pyx_t_10 == (Py_ssize_t)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
             __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
             __pyx_t_3 = ((((Py_ssize_t)__pyx_t_10) == 1) != 0);
             __pyx_t_2 = __pyx_t_3;
             __pyx_L58_bool_binop_done:;
             if (__pyx_t_2) {
-              if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_n_s_double, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+              if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_n_s_double, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
               goto __pyx_L17_break;
             }
             break;
@@ -3066,11 +3066,11 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
       __pyx_t_2 = __pyx_t_3;
       __pyx_L61_bool_binop_done:;
       if (__pyx_t_2) {
-        __pyx_v_memslice = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_v_arg);
+        __pyx_v_memslice = __Pyx_PyObject_to_MemoryviewSlice_dc_float(__pyx_v_arg);
         __pyx_t_2 = (__pyx_v_memslice.memview != 0);
         if (__pyx_t_2) {
           __PYX_XDEC_MEMVIEW((&__pyx_v_memslice), 1);
-          if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_n_s_float, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_n_s_float, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           goto __pyx_L17_break;
         }
         /*else*/ {
@@ -3089,11 +3089,11 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
       __pyx_t_2 = __pyx_t_3;
       __pyx_L65_bool_binop_done:;
       if (__pyx_t_2) {
-        __pyx_v_memslice = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_arg);
+        __pyx_v_memslice = __Pyx_PyObject_to_MemoryviewSlice_dc_double(__pyx_v_arg);
         __pyx_t_2 = (__pyx_v_memslice.memview != 0);
         if (__pyx_t_2) {
           __PYX_XDEC_MEMVIEW((&__pyx_v_memslice), 1);
-          if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_n_s_double, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_n_s_double, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           goto __pyx_L17_break;
         }
         /*else*/ {
@@ -3112,11 +3112,11 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
       __pyx_t_2 = __pyx_t_3;
       __pyx_L69_bool_binop_done:;
       if (__pyx_t_2) {
-        __pyx_v_memslice = __Pyx_PyObject_to_MemoryviewSlice_ds_signed_char(__pyx_v_arg);
+        __pyx_v_memslice = __Pyx_PyObject_to_MemoryviewSlice_dc_signed_char(__pyx_v_arg);
         __pyx_t_2 = (__pyx_v_memslice.memview != 0);
         if (__pyx_t_2) {
           __PYX_XDEC_MEMVIEW((&__pyx_v_memslice), 1);
-          if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_kp_s_signed_char, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_kp_s_signed_char, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           goto __pyx_L17_break;
         }
         /*else*/ {
@@ -3135,11 +3135,11 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
       __pyx_t_2 = __pyx_t_3;
       __pyx_L73_bool_binop_done:;
       if (__pyx_t_2) {
-        __pyx_v_memslice = __Pyx_PyObject_to_MemoryviewSlice_ds_signed_short(__pyx_v_arg);
+        __pyx_v_memslice = __Pyx_PyObject_to_MemoryviewSlice_dc_signed_short(__pyx_v_arg);
         __pyx_t_2 = (__pyx_v_memslice.memview != 0);
         if (__pyx_t_2) {
           __PYX_XDEC_MEMVIEW((&__pyx_v_memslice), 1);
-          if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_kp_s_signed_short, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_kp_s_signed_short, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           goto __pyx_L17_break;
         }
         /*else*/ {
@@ -3158,11 +3158,11 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
       __pyx_t_2 = __pyx_t_3;
       __pyx_L77_bool_binop_done:;
       if (__pyx_t_2) {
-        __pyx_v_memslice = __Pyx_PyObject_to_MemoryviewSlice_ds_signed_int(__pyx_v_arg);
+        __pyx_v_memslice = __Pyx_PyObject_to_MemoryviewSlice_dc_signed_int(__pyx_v_arg);
         __pyx_t_2 = (__pyx_v_memslice.memview != 0);
         if (__pyx_t_2) {
           __PYX_XDEC_MEMVIEW((&__pyx_v_memslice), 1);
-          if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_kp_s_signed_int, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_kp_s_signed_int, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           goto __pyx_L17_break;
         }
         /*else*/ {
@@ -3181,11 +3181,11 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
       __pyx_t_2 = __pyx_t_3;
       __pyx_L81_bool_binop_done:;
       if (__pyx_t_2) {
-        __pyx_v_memslice = __Pyx_PyObject_to_MemoryviewSlice_ds_signed_long(__pyx_v_arg);
+        __pyx_v_memslice = __Pyx_PyObject_to_MemoryviewSlice_dc_signed_long(__pyx_v_arg);
         __pyx_t_2 = (__pyx_v_memslice.memview != 0);
         if (__pyx_t_2) {
           __PYX_XDEC_MEMVIEW((&__pyx_v_memslice), 1);
-          if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_kp_s_signed_long, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_kp_s_signed_long, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           goto __pyx_L17_break;
         }
         /*else*/ {
@@ -3204,11 +3204,11 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
       __pyx_t_2 = __pyx_t_3;
       __pyx_L85_bool_binop_done:;
       if (__pyx_t_2) {
-        __pyx_v_memslice = __Pyx_PyObject_to_MemoryviewSlice_ds_unsigned_char(__pyx_v_arg);
+        __pyx_v_memslice = __Pyx_PyObject_to_MemoryviewSlice_dc_unsigned_char(__pyx_v_arg);
         __pyx_t_2 = (__pyx_v_memslice.memview != 0);
         if (__pyx_t_2) {
           __PYX_XDEC_MEMVIEW((&__pyx_v_memslice), 1);
-          if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_kp_s_unsigned_char, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_kp_s_unsigned_char, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           goto __pyx_L17_break;
         }
         /*else*/ {
@@ -3227,11 +3227,11 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
       __pyx_t_2 = __pyx_t_3;
       __pyx_L89_bool_binop_done:;
       if (__pyx_t_2) {
-        __pyx_v_memslice = __Pyx_PyObject_to_MemoryviewSlice_ds_unsigned_short(__pyx_v_arg);
+        __pyx_v_memslice = __Pyx_PyObject_to_MemoryviewSlice_dc_unsigned_short(__pyx_v_arg);
         __pyx_t_2 = (__pyx_v_memslice.memview != 0);
         if (__pyx_t_2) {
           __PYX_XDEC_MEMVIEW((&__pyx_v_memslice), 1);
-          if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_kp_s_unsigned_short, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_kp_s_unsigned_short, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           goto __pyx_L17_break;
         }
         /*else*/ {
@@ -3250,11 +3250,11 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
       __pyx_t_2 = __pyx_t_3;
       __pyx_L93_bool_binop_done:;
       if (__pyx_t_2) {
-        __pyx_v_memslice = __Pyx_PyObject_to_MemoryviewSlice_ds_unsigned_int(__pyx_v_arg);
+        __pyx_v_memslice = __Pyx_PyObject_to_MemoryviewSlice_dc_unsigned_int(__pyx_v_arg);
         __pyx_t_2 = (__pyx_v_memslice.memview != 0);
         if (__pyx_t_2) {
           __PYX_XDEC_MEMVIEW((&__pyx_v_memslice), 1);
-          if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_kp_s_unsigned_int, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_kp_s_unsigned_int, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           goto __pyx_L17_break;
         }
         /*else*/ {
@@ -3273,11 +3273,11 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
       __pyx_t_2 = __pyx_t_3;
       __pyx_L97_bool_binop_done:;
       if (__pyx_t_2) {
-        __pyx_v_memslice = __Pyx_PyObject_to_MemoryviewSlice_ds_unsigned_PY_LONG_LONG(__pyx_v_arg);
+        __pyx_v_memslice = __Pyx_PyObject_to_MemoryviewSlice_dc_unsigned_PY_LONG_LONG(__pyx_v_arg);
         __pyx_t_2 = (__pyx_v_memslice.memview != 0);
         if (__pyx_t_2) {
           __PYX_XDEC_MEMVIEW((&__pyx_v_memslice), 1);
-          if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_kp_s_unsigned_long_long, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_kp_s_unsigned_long_long, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           goto __pyx_L17_break;
         }
         /*else*/ {
@@ -3286,22 +3286,22 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
         goto __pyx_L96;
       }
       __pyx_L96:;
-      if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, Py_None, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, Py_None, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       goto __pyx_L17_break;
     }
     __pyx_L17_break:;
   }
   __pyx_L15:;
-  __pyx_t_8 = PyList_New(0); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_8 = PyList_New(0); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_8);
   __pyx_v_candidates = ((PyObject*)__pyx_t_8);
   __pyx_t_8 = 0;
   __pyx_t_10 = 0;
   if (unlikely(__pyx_v_signatures == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not iterable");
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
-  __pyx_t_9 = __Pyx_dict_iterator(((PyObject*)__pyx_v_signatures), 1, ((PyObject *)NULL), (&__pyx_t_12), (&__pyx_t_7)); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_9 = __Pyx_dict_iterator(((PyObject*)__pyx_v_signatures), 1, ((PyObject *)NULL), (&__pyx_t_12), (&__pyx_t_7)); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_9);
   __Pyx_XDECREF(__pyx_t_8);
   __pyx_t_8 = __pyx_t_9;
@@ -3309,23 +3309,23 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
   while (1) {
     __pyx_t_13 = __Pyx_dict_iter_next(__pyx_t_8, __pyx_t_12, &__pyx_t_10, &__pyx_t_9, NULL, NULL, __pyx_t_7);
     if (unlikely(__pyx_t_13 == 0)) break;
-    if (unlikely(__pyx_t_13 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    if (unlikely(__pyx_t_13 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_9);
     __Pyx_XDECREF_SET(__pyx_v_sig, __pyx_t_9);
     __pyx_t_9 = 0;
     __pyx_v_match_found = 0;
-    __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_v_sig, __pyx_n_s_strip); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_v_sig, __pyx_n_s_strip); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_9);
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_9, __pyx_tuple__4, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_9, __pyx_tuple__4, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-    __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_split); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_split); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_9);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_9, __pyx_tuple__6, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_9, __pyx_tuple__6, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-    __pyx_t_9 = PyTuple_New(2); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = PyTuple_New(2); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_9);
     PyTuple_SET_ITEM(__pyx_t_9, 0, __pyx_t_1);
     __Pyx_GIVEREF(__pyx_t_1);
@@ -3333,16 +3333,16 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
     PyTuple_SET_ITEM(__pyx_t_9, 1, __pyx_v_dest_sig);
     __Pyx_GIVEREF(__pyx_v_dest_sig);
     __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_zip, __pyx_t_9, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_zip, __pyx_t_9, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
     if (likely(PyList_CheckExact(__pyx_t_1)) || PyTuple_CheckExact(__pyx_t_1)) {
       __pyx_t_9 = __pyx_t_1; __Pyx_INCREF(__pyx_t_9); __pyx_t_14 = 0;
       __pyx_t_15 = NULL;
     } else {
-      __pyx_t_14 = -1; __pyx_t_9 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_14 = -1; __pyx_t_9 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_9);
-      __pyx_t_15 = Py_TYPE(__pyx_t_9)->tp_iternext; if (unlikely(!__pyx_t_15)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_15 = Py_TYPE(__pyx_t_9)->tp_iternext; if (unlikely(!__pyx_t_15)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     for (;;) {
@@ -3350,16 +3350,16 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
         if (likely(PyList_CheckExact(__pyx_t_9))) {
           if (__pyx_t_14 >= PyList_GET_SIZE(__pyx_t_9)) break;
           #if CYTHON_COMPILING_IN_CPYTHON
-          __pyx_t_1 = PyList_GET_ITEM(__pyx_t_9, __pyx_t_14); __Pyx_INCREF(__pyx_t_1); __pyx_t_14++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_1 = PyList_GET_ITEM(__pyx_t_9, __pyx_t_14); __Pyx_INCREF(__pyx_t_1); __pyx_t_14++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           #else
-          __pyx_t_1 = PySequence_ITEM(__pyx_t_9, __pyx_t_14); __pyx_t_14++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_1 = PySequence_ITEM(__pyx_t_9, __pyx_t_14); __pyx_t_14++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           #endif
         } else {
           if (__pyx_t_14 >= PyTuple_GET_SIZE(__pyx_t_9)) break;
           #if CYTHON_COMPILING_IN_CPYTHON
-          __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_9, __pyx_t_14); __Pyx_INCREF(__pyx_t_1); __pyx_t_14++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_9, __pyx_t_14); __Pyx_INCREF(__pyx_t_1); __pyx_t_14++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           #else
-          __pyx_t_1 = PySequence_ITEM(__pyx_t_9, __pyx_t_14); __pyx_t_14++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_1 = PySequence_ITEM(__pyx_t_9, __pyx_t_14); __pyx_t_14++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           #endif
         }
       } else {
@@ -3368,7 +3368,7 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
           PyObject* exc_type = PyErr_Occurred();
           if (exc_type) {
             if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-            else {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+            else {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           }
           break;
         }
@@ -3384,7 +3384,7 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
         if (unlikely(size != 2)) {
           if (size > 2) __Pyx_RaiseTooManyValuesError(2);
           else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-          {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         }
         #if CYTHON_COMPILING_IN_CPYTHON
         if (likely(PyTuple_CheckExact(sequence))) {
@@ -3397,15 +3397,15 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
         __Pyx_INCREF(__pyx_t_16);
         __Pyx_INCREF(__pyx_t_17);
         #else
-        __pyx_t_16 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_16 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_GOTREF(__pyx_t_16);
-        __pyx_t_17 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_17)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_17 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_17)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_GOTREF(__pyx_t_17);
         #endif
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       } else {
         Py_ssize_t index = -1;
-        __pyx_t_18 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_18)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_18 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_18)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_GOTREF(__pyx_t_18);
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
         __pyx_t_19 = Py_TYPE(__pyx_t_18)->tp_iternext;
@@ -3413,7 +3413,7 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
         __Pyx_GOTREF(__pyx_t_16);
         index = 1; __pyx_t_17 = __pyx_t_19(__pyx_t_18); if (unlikely(!__pyx_t_17)) goto __pyx_L104_unpacking_failed;
         __Pyx_GOTREF(__pyx_t_17);
-        if (__Pyx_IternextUnpackEndCheck(__pyx_t_19(__pyx_t_18), 2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (__Pyx_IternextUnpackEndCheck(__pyx_t_19(__pyx_t_18), 2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __pyx_t_19 = NULL;
         __Pyx_DECREF(__pyx_t_18); __pyx_t_18 = 0;
         goto __pyx_L105_unpacking_done;
@@ -3421,7 +3421,7 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
         __Pyx_DECREF(__pyx_t_18); __pyx_t_18 = 0;
         __pyx_t_19 = NULL;
         if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-        {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __pyx_L105_unpacking_done:;
       }
       __Pyx_XDECREF_SET(__pyx_v_src_type, __pyx_t_16);
@@ -3431,8 +3431,8 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
       __pyx_t_2 = (__pyx_v_dst_type != Py_None);
       __pyx_t_3 = (__pyx_t_2 != 0);
       if (__pyx_t_3) {
-        __pyx_t_1 = PyObject_RichCompare(__pyx_v_src_type, __pyx_v_dst_type, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-        __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_1 = PyObject_RichCompare(__pyx_v_src_type, __pyx_v_dst_type, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
         if (__pyx_t_3) {
           __pyx_v_match_found = 1;
@@ -3451,7 +3451,7 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
     __pyx_t_3 = (__pyx_v_match_found != 0);
     if (__pyx_t_3) {
-      __pyx_t_20 = __Pyx_PyList_Append(__pyx_v_candidates, __pyx_v_sig); if (unlikely(__pyx_t_20 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_20 = __Pyx_PyList_Append(__pyx_v_candidates, __pyx_v_sig); if (unlikely(__pyx_t_20 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       goto __pyx_L108;
     }
     __pyx_L108:;
@@ -3460,28 +3460,28 @@ static PyObject *__pyx_pf_5combo__min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
   __pyx_t_3 = (__pyx_v_candidates != Py_None) && (PyList_GET_SIZE(__pyx_v_candidates) != 0);
   __pyx_t_2 = ((!__pyx_t_3) != 0);
   if (__pyx_t_2) {
-    __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__7, NULL); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__7, NULL); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_8);
     __Pyx_Raise(__pyx_t_8, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
-  __pyx_t_12 = PyList_GET_SIZE(__pyx_v_candidates); if (unlikely(__pyx_t_12 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_12 = PyList_GET_SIZE(__pyx_v_candidates); if (unlikely(__pyx_t_12 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_t_2 = ((__pyx_t_12 > 1) != 0);
   if (__pyx_t_2) {
-    __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__8, NULL); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__8, NULL); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_8);
     __Pyx_Raise(__pyx_t_8, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   /*else*/ {
     __Pyx_XDECREF(__pyx_r);
     if (unlikely(__pyx_v_signatures == Py_None)) {
       PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
-      {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
-    __pyx_t_8 = __Pyx_PyDict_GetItem(((PyObject*)__pyx_v_signatures), PyList_GET_ITEM(__pyx_v_candidates, 0)); if (unlikely(__pyx_t_8 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+    __pyx_t_8 = __Pyx_PyDict_GetItem(((PyObject*)__pyx_v_signatures), PyList_GET_ITEM(__pyx_v_candidates, 0)); if (unlikely(__pyx_t_8 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
     __Pyx_GOTREF(__pyx_t_8);
     __pyx_r = __pyx_t_8;
     __pyx_t_8 = 0;
@@ -3525,14 +3525,14 @@ static PyObject *__pyx_pf_5combo_46__defaults__(CYTHON_UNUSED PyObject *__pyx_se
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__defaults__", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong(__Pyx_CyFunction_Defaults(__pyx_defaults10, __pyx_self)->__pyx_arg_min_positive); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyBool_FromLong(__Pyx_CyFunction_Defaults(__pyx_defaults10, __pyx_self)->__pyx_arg_min_positive); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_2);
@@ -3593,7 +3593,7 @@ static PyObject *__pyx_fuse_0__pyx_pw_5combo_5_min_max(PyObject *__pyx_self, PyO
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_min_max") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_min_max") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -3603,16 +3603,16 @@ static PyObject *__pyx_fuse_0__pyx_pw_5combo_5_min_max(PyObject *__pyx_self, PyO
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_data = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[0]); if (unlikely(!__pyx_v_data.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+    __pyx_v_data = __Pyx_PyObject_to_MemoryviewSlice_dc_float(values[0]); if (unlikely(!__pyx_v_data.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
     if (values[1]) {
-      __pyx_v_min_positive = __Pyx_PyObject_IsTrue(values[1]); if (unlikely((__pyx_v_min_positive == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+      __pyx_v_min_positive = __Pyx_PyObject_IsTrue(values[1]); if (unlikely((__pyx_v_min_positive == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
     } else {
       __pyx_v_min_positive = __pyx_dynamic_args->__pyx_arg_min_positive;
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("_min_max", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("_min_max", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("combo._min_max", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -3662,7 +3662,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__pyx_fuse_0_min_max", 0);
 
-  /* "combo.pyx":114
+  /* "combo.pyx":115
  *         _number value, minimum, minpos, maximum
  *         unsigned int length
  *         unsigned int index = 0             # <<<<<<<<<<<<<<
@@ -3671,7 +3671,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
   __pyx_v_index = 0;
 
-  /* "combo.pyx":115
+  /* "combo.pyx":116
  *         unsigned int length
  *         unsigned int index = 0
  *         unsigned int min_index = 0             # <<<<<<<<<<<<<<
@@ -3680,7 +3680,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
   __pyx_v_min_index = 0;
 
-  /* "combo.pyx":116
+  /* "combo.pyx":117
  *         unsigned int index = 0
  *         unsigned int min_index = 0
  *         unsigned int min_pos_index = 0             # <<<<<<<<<<<<<<
@@ -3689,7 +3689,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
   __pyx_v_min_pos_index = 0;
 
-  /* "combo.pyx":117
+  /* "combo.pyx":118
  *         unsigned int min_index = 0
  *         unsigned int min_pos_index = 0
  *         unsigned int max_index = 0             # <<<<<<<<<<<<<<
@@ -3698,20 +3698,20 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
   __pyx_v_max_index = 0;
 
-  /* "combo.pyx":119
+  /* "combo.pyx":120
  *         unsigned int max_index = 0
  * 
  *     length = len(data)             # <<<<<<<<<<<<<<
  * 
  *     if length == 0:
  */
-  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_v_data, 1, (PyObject *(*)(char *)) __pyx_memview_get_float, (int (*)(char *, PyObject *)) __pyx_memview_set_float, 0);; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_v_data, 1, (PyObject *(*)(char *)) __pyx_memview_get_float, (int (*)(char *, PyObject *)) __pyx_memview_set_float, 0);; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 120; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyObject_Length(__pyx_t_1); if (unlikely(__pyx_t_2 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyObject_Length(__pyx_t_1); if (unlikely(__pyx_t_2 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 120; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_length = __pyx_t_2;
 
-  /* "combo.pyx":121
+  /* "combo.pyx":122
  *     length = len(data)
  * 
  *     if length == 0:             # <<<<<<<<<<<<<<
@@ -3721,21 +3721,21 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
   __pyx_t_3 = ((__pyx_v_length == 0) != 0);
   if (__pyx_t_3) {
 
-    /* "combo.pyx":122
+    /* "combo.pyx":123
  * 
  *     if length == 0:
  *         raise ValueError('Zero-size array')             # <<<<<<<<<<<<<<
  * 
  *     with nogil:
  */
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__9, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__9, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "combo.pyx":124
+  /* "combo.pyx":125
  *         raise ValueError('Zero-size array')
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -3749,7 +3749,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
       #endif
       /*try:*/ {
 
-        /* "combo.pyx":126
+        /* "combo.pyx":127
  *     with nogil:
  *         # Init starting values
  *         value = data[0]             # <<<<<<<<<<<<<<
@@ -3757,9 +3757,9 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  *         maximum = value
  */
         __pyx_t_2 = 0;
-        __pyx_v_value = (*((float *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_2 * __pyx_v_data.strides[0]) )));
+        __pyx_v_value = (*((float *) ( /* dim=0 */ ((char *) (((float *) __pyx_v_data.data) + __pyx_t_2)) )));
 
-        /* "combo.pyx":127
+        /* "combo.pyx":128
  *         # Init starting values
  *         value = data[0]
  *         minimum = value             # <<<<<<<<<<<<<<
@@ -3768,7 +3768,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
         __pyx_v_minimum = __pyx_v_value;
 
-        /* "combo.pyx":128
+        /* "combo.pyx":129
  *         value = data[0]
  *         minimum = value
  *         maximum = value             # <<<<<<<<<<<<<<
@@ -3777,7 +3777,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
         __pyx_v_maximum = __pyx_v_value;
 
-        /* "combo.pyx":129
+        /* "combo.pyx":130
  *         minimum = value
  *         maximum = value
  *         if min_positive and value > 0:             # <<<<<<<<<<<<<<
@@ -3795,7 +3795,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
         __pyx_L8_bool_binop_done:;
         if (__pyx_t_3) {
 
-          /* "combo.pyx":130
+          /* "combo.pyx":131
  *         maximum = value
  *         if min_positive and value > 0:
  *             min_pos = value             # <<<<<<<<<<<<<<
@@ -3807,7 +3807,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
         }
         /*else*/ {
 
-          /* "combo.pyx":132
+          /* "combo.pyx":133
  *             min_pos = value
  *         else:
  *             min_pos = 0             # <<<<<<<<<<<<<<
@@ -3818,7 +3818,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
         }
         __pyx_L7:;
 
-        /* "combo.pyx":136
+        /* "combo.pyx":137
  *         if _number in cython.floating:
  *             # For floating, loop until first not NaN value
  *             for index in range(length):             # <<<<<<<<<<<<<<
@@ -3829,7 +3829,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
         for (__pyx_t_6 = 0; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
           __pyx_v_index = __pyx_t_6;
 
-          /* "combo.pyx":137
+          /* "combo.pyx":138
  *             # For floating, loop until first not NaN value
  *             for index in range(length):
  *                 value = data[index]             # <<<<<<<<<<<<<<
@@ -3837,9 +3837,9 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  *                     minimum = value
  */
           __pyx_t_7 = __pyx_v_index;
-          __pyx_v_value = (*((float *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_7 * __pyx_v_data.strides[0]) )));
+          __pyx_v_value = (*((float *) ( /* dim=0 */ ((char *) (((float *) __pyx_v_data.data) + __pyx_t_7)) )));
 
-          /* "combo.pyx":138
+          /* "combo.pyx":139
  *             for index in range(length):
  *                 value = data[index]
  *                 if not isnan(value):             # <<<<<<<<<<<<<<
@@ -3849,7 +3849,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
           __pyx_t_3 = ((!(isnan(__pyx_v_value) != 0)) != 0);
           if (__pyx_t_3) {
 
-            /* "combo.pyx":139
+            /* "combo.pyx":140
  *                 value = data[index]
  *                 if not isnan(value):
  *                     minimum = value             # <<<<<<<<<<<<<<
@@ -3858,7 +3858,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
             __pyx_v_minimum = __pyx_v_value;
 
-            /* "combo.pyx":140
+            /* "combo.pyx":141
  *                 if not isnan(value):
  *                     minimum = value
  *                     min_index = index             # <<<<<<<<<<<<<<
@@ -3867,7 +3867,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
             __pyx_v_min_index = __pyx_v_index;
 
-            /* "combo.pyx":141
+            /* "combo.pyx":142
  *                     minimum = value
  *                     min_index = index
  *                     maximum = value             # <<<<<<<<<<<<<<
@@ -3876,7 +3876,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
             __pyx_v_maximum = __pyx_v_value;
 
-            /* "combo.pyx":142
+            /* "combo.pyx":143
  *                     min_index = index
  *                     maximum = value
  *                     max_index = index             # <<<<<<<<<<<<<<
@@ -3885,7 +3885,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
             __pyx_v_max_index = __pyx_v_index;
 
-            /* "combo.pyx":143
+            /* "combo.pyx":144
  *                     maximum = value
  *                     max_index = index
  *                     break             # <<<<<<<<<<<<<<
@@ -3897,7 +3897,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
         }
         __pyx_L11_break:;
 
-        /* "combo.pyx":145
+        /* "combo.pyx":146
  *                     break
  * 
  *         if not min_positive:             # <<<<<<<<<<<<<<
@@ -3907,7 +3907,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
         __pyx_t_3 = ((!(__pyx_v_min_positive != 0)) != 0);
         if (__pyx_t_3) {
 
-          /* "combo.pyx":146
+          /* "combo.pyx":147
  * 
  *         if not min_positive:
  *             for index in range(index, length):             # <<<<<<<<<<<<<<
@@ -3918,7 +3918,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
           for (__pyx_t_6 = __pyx_v_index; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
             __pyx_v_index = __pyx_t_6;
 
-            /* "combo.pyx":147
+            /* "combo.pyx":148
  *         if not min_positive:
  *             for index in range(index, length):
  *                 value = data[index]             # <<<<<<<<<<<<<<
@@ -3926,9 +3926,9 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  *                     maximum = value
  */
             __pyx_t_8 = __pyx_v_index;
-            __pyx_v_value = (*((float *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_8 * __pyx_v_data.strides[0]) )));
+            __pyx_v_value = (*((float *) ( /* dim=0 */ ((char *) (((float *) __pyx_v_data.data) + __pyx_t_8)) )));
 
-            /* "combo.pyx":148
+            /* "combo.pyx":149
  *             for index in range(index, length):
  *                 value = data[index]
  *                 if value > maximum:             # <<<<<<<<<<<<<<
@@ -3938,7 +3938,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
             __pyx_t_3 = ((__pyx_v_value > __pyx_v_maximum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":149
+              /* "combo.pyx":150
  *                 value = data[index]
  *                 if value > maximum:
  *                     maximum = value             # <<<<<<<<<<<<<<
@@ -3947,7 +3947,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
               __pyx_v_maximum = __pyx_v_value;
 
-              /* "combo.pyx":150
+              /* "combo.pyx":151
  *                 if value > maximum:
  *                     maximum = value
  *                     max_index = index             # <<<<<<<<<<<<<<
@@ -3958,7 +3958,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
               goto __pyx_L16;
             }
 
-            /* "combo.pyx":151
+            /* "combo.pyx":152
  *                     maximum = value
  *                     max_index = index
  *                 elif value < minimum:             # <<<<<<<<<<<<<<
@@ -3968,7 +3968,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
             __pyx_t_3 = ((__pyx_v_value < __pyx_v_minimum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":152
+              /* "combo.pyx":153
  *                     max_index = index
  *                 elif value < minimum:
  *                     minimum = value             # <<<<<<<<<<<<<<
@@ -3977,7 +3977,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
               __pyx_v_minimum = __pyx_v_value;
 
-              /* "combo.pyx":153
+              /* "combo.pyx":154
  *                 elif value < minimum:
  *                     minimum = value
  *                     min_index = index             # <<<<<<<<<<<<<<
@@ -3993,7 +3993,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
         }
         /*else*/ {
 
-          /* "combo.pyx":157
+          /* "combo.pyx":158
  *         else:
  *             # Loop until min_pos is defined
  *             for index in range(index, length):             # <<<<<<<<<<<<<<
@@ -4004,7 +4004,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
           for (__pyx_t_6 = __pyx_v_index; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
             __pyx_v_index = __pyx_t_6;
 
-            /* "combo.pyx":158
+            /* "combo.pyx":159
  *             # Loop until min_pos is defined
  *             for index in range(index, length):
  *                 value = data[index]             # <<<<<<<<<<<<<<
@@ -4012,9 +4012,9 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  *                     maximum = value
  */
             __pyx_t_9 = __pyx_v_index;
-            __pyx_v_value = (*((float *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_9 * __pyx_v_data.strides[0]) )));
+            __pyx_v_value = (*((float *) ( /* dim=0 */ ((char *) (((float *) __pyx_v_data.data) + __pyx_t_9)) )));
 
-            /* "combo.pyx":159
+            /* "combo.pyx":160
  *             for index in range(index, length):
  *                 value = data[index]
  *                 if value > maximum:             # <<<<<<<<<<<<<<
@@ -4024,7 +4024,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
             __pyx_t_3 = ((__pyx_v_value > __pyx_v_maximum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":160
+              /* "combo.pyx":161
  *                 value = data[index]
  *                 if value > maximum:
  *                     maximum = value             # <<<<<<<<<<<<<<
@@ -4033,7 +4033,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
               __pyx_v_maximum = __pyx_v_value;
 
-              /* "combo.pyx":161
+              /* "combo.pyx":162
  *                 if value > maximum:
  *                     maximum = value
  *                     max_index = index             # <<<<<<<<<<<<<<
@@ -4044,7 +4044,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
               goto __pyx_L19;
             }
 
-            /* "combo.pyx":162
+            /* "combo.pyx":163
  *                     maximum = value
  *                     max_index = index
  *                 elif value < minimum:             # <<<<<<<<<<<<<<
@@ -4054,7 +4054,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
             __pyx_t_3 = ((__pyx_v_value < __pyx_v_minimum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":163
+              /* "combo.pyx":164
  *                     max_index = index
  *                 elif value < minimum:
  *                     minimum = value             # <<<<<<<<<<<<<<
@@ -4063,7 +4063,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
               __pyx_v_minimum = __pyx_v_value;
 
-              /* "combo.pyx":164
+              /* "combo.pyx":165
  *                 elif value < minimum:
  *                     minimum = value
  *                     min_index = index             # <<<<<<<<<<<<<<
@@ -4075,7 +4075,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
             }
             __pyx_L19:;
 
-            /* "combo.pyx":166
+            /* "combo.pyx":167
  *                     min_index = index
  * 
  *                 if value > 0:             # <<<<<<<<<<<<<<
@@ -4085,7 +4085,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
             __pyx_t_3 = ((__pyx_v_value > 0.0) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":167
+              /* "combo.pyx":168
  * 
  *                 if value > 0:
  *                     min_pos = value             # <<<<<<<<<<<<<<
@@ -4094,7 +4094,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
               __pyx_v_min_pos = __pyx_v_value;
 
-              /* "combo.pyx":168
+              /* "combo.pyx":169
  *                 if value > 0:
  *                     min_pos = value
  *                     min_pos_index = index             # <<<<<<<<<<<<<<
@@ -4103,7 +4103,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
               __pyx_v_min_pos_index = __pyx_v_index;
 
-              /* "combo.pyx":169
+              /* "combo.pyx":170
  *                     min_pos = value
  *                     min_pos_index = index
  *                     break             # <<<<<<<<<<<<<<
@@ -4115,7 +4115,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
           }
           __pyx_L18_break:;
 
-          /* "combo.pyx":172
+          /* "combo.pyx":173
  * 
  *             # Loop until the end
  *             for index in range(index+1, length):             # <<<<<<<<<<<<<<
@@ -4126,7 +4126,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
           for (__pyx_t_6 = (__pyx_v_index + 1); __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
             __pyx_v_index = __pyx_t_6;
 
-            /* "combo.pyx":173
+            /* "combo.pyx":174
  *             # Loop until the end
  *             for index in range(index+1, length):
  *                 value = data[index]             # <<<<<<<<<<<<<<
@@ -4134,9 +4134,9 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  *                     maximum = value
  */
             __pyx_t_10 = __pyx_v_index;
-            __pyx_v_value = (*((float *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_10 * __pyx_v_data.strides[0]) )));
+            __pyx_v_value = (*((float *) ( /* dim=0 */ ((char *) (((float *) __pyx_v_data.data) + __pyx_t_10)) )));
 
-            /* "combo.pyx":174
+            /* "combo.pyx":175
  *             for index in range(index+1, length):
  *                 value = data[index]
  *                 if value > maximum:             # <<<<<<<<<<<<<<
@@ -4146,7 +4146,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
             __pyx_t_3 = ((__pyx_v_value > __pyx_v_maximum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":175
+              /* "combo.pyx":176
  *                 value = data[index]
  *                 if value > maximum:
  *                     maximum = value             # <<<<<<<<<<<<<<
@@ -4155,7 +4155,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
               __pyx_v_maximum = __pyx_v_value;
 
-              /* "combo.pyx":176
+              /* "combo.pyx":177
  *                 if value > maximum:
  *                     maximum = value
  *                     max_index = index             # <<<<<<<<<<<<<<
@@ -4167,7 +4167,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
             }
             /*else*/ {
 
-              /* "combo.pyx":178
+              /* "combo.pyx":179
  *                     max_index = index
  *                 else:
  *                     if value < minimum:             # <<<<<<<<<<<<<<
@@ -4177,7 +4177,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
               __pyx_t_3 = ((__pyx_v_value < __pyx_v_minimum) != 0);
               if (__pyx_t_3) {
 
-                /* "combo.pyx":179
+                /* "combo.pyx":180
  *                 else:
  *                     if value < minimum:
  *                         minimum = value             # <<<<<<<<<<<<<<
@@ -4186,7 +4186,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
                 __pyx_v_minimum = __pyx_v_value;
 
-                /* "combo.pyx":180
+                /* "combo.pyx":181
  *                     if value < minimum:
  *                         minimum = value
  *                         min_index = index             # <<<<<<<<<<<<<<
@@ -4198,7 +4198,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
               }
               __pyx_L24:;
 
-              /* "combo.pyx":182
+              /* "combo.pyx":183
  *                         min_index = index
  * 
  *                     if value > 0 and value < min_pos:             # <<<<<<<<<<<<<<
@@ -4216,7 +4216,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
               __pyx_L26_bool_binop_done:;
               if (__pyx_t_3) {
 
-                /* "combo.pyx":183
+                /* "combo.pyx":184
  * 
  *                     if value > 0 and value < min_pos:
  *                         min_pos = value             # <<<<<<<<<<<<<<
@@ -4225,7 +4225,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
                 __pyx_v_min_pos = __pyx_v_value;
 
-                /* "combo.pyx":184
+                /* "combo.pyx":185
  *                     if value > 0 and value < min_pos:
  *                         min_pos = value
  *                         min_pos_index = index             # <<<<<<<<<<<<<<
@@ -4243,7 +4243,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
         __pyx_L13:;
       }
 
-      /* "combo.pyx":124
+      /* "combo.pyx":125
  *         raise ValueError('Zero-size array')
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -4261,7 +4261,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
       }
   }
 
-  /* "combo.pyx":186
+  /* "combo.pyx":187
  *                         min_pos_index = index
  * 
  *     return _MinMaxResult(minimum,             # <<<<<<<<<<<<<<
@@ -4269,12 +4269,12 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  *                          maximum,
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_11 = __Pyx_GetModuleGlobalName(__pyx_n_s_MinMaxResult); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_11 = __Pyx_GetModuleGlobalName(__pyx_n_s_MinMaxResult); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_11);
-  __pyx_t_12 = PyFloat_FromDouble(__pyx_v_minimum); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_12 = PyFloat_FromDouble(__pyx_v_minimum); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_12);
 
-  /* "combo.pyx":187
+  /* "combo.pyx":188
  * 
  *     return _MinMaxResult(minimum,
  *                          min_pos if min_pos > 0 else None,             # <<<<<<<<<<<<<<
@@ -4282,7 +4282,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  *                          min_index,
  */
   if (((__pyx_v_min_pos > 0.0) != 0)) {
-    __pyx_t_14 = PyFloat_FromDouble(__pyx_v_min_pos); if (unlikely(!__pyx_t_14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_14 = PyFloat_FromDouble(__pyx_v_min_pos); if (unlikely(!__pyx_t_14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 188; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_14);
     __pyx_t_13 = __pyx_t_14;
     __pyx_t_14 = 0;
@@ -4291,27 +4291,27 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
     __pyx_t_13 = Py_None;
   }
 
-  /* "combo.pyx":188
+  /* "combo.pyx":189
  *     return _MinMaxResult(minimum,
  *                          min_pos if min_pos > 0 else None,
  *                          maximum,             # <<<<<<<<<<<<<<
  *                          min_index,
  *                          min_pos_index if min_pos > 0 else None,
  */
-  __pyx_t_14 = PyFloat_FromDouble(__pyx_v_maximum); if (unlikely(!__pyx_t_14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 188; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_14 = PyFloat_FromDouble(__pyx_v_maximum); if (unlikely(!__pyx_t_14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 189; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_14);
 
-  /* "combo.pyx":189
+  /* "combo.pyx":190
  *                          min_pos if min_pos > 0 else None,
  *                          maximum,
  *                          min_index,             # <<<<<<<<<<<<<<
  *                          min_pos_index if min_pos > 0 else None,
  *                          max_index)
  */
-  __pyx_t_15 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_index); if (unlikely(!__pyx_t_15)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 189; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_15 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_index); if (unlikely(!__pyx_t_15)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_15);
 
-  /* "combo.pyx":190
+  /* "combo.pyx":191
  *                          maximum,
  *                          min_index,
  *                          min_pos_index if min_pos > 0 else None,             # <<<<<<<<<<<<<<
@@ -4319,7 +4319,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  * 
  */
   if (((__pyx_v_min_pos > 0.0) != 0)) {
-    __pyx_t_17 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_pos_index); if (unlikely(!__pyx_t_17)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_17 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_pos_index); if (unlikely(!__pyx_t_17)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 191; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_17);
     __pyx_t_16 = __pyx_t_17;
     __pyx_t_17 = 0;
@@ -4328,14 +4328,14 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
     __pyx_t_16 = Py_None;
   }
 
-  /* "combo.pyx":191
+  /* "combo.pyx":192
  *                          min_index,
  *                          min_pos_index if min_pos > 0 else None,
  *                          max_index)             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_t_17 = __Pyx_PyInt_From_unsigned_int(__pyx_v_max_index); if (unlikely(!__pyx_t_17)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 191; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_17 = __Pyx_PyInt_From_unsigned_int(__pyx_v_max_index); if (unlikely(!__pyx_t_17)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 192; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_17);
   __pyx_t_18 = NULL;
   __pyx_t_19 = 0;
@@ -4349,7 +4349,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
       __pyx_t_19 = 1;
     }
   }
-  __pyx_t_20 = PyTuple_New(6+__pyx_t_19); if (unlikely(!__pyx_t_20)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_20 = PyTuple_New(6+__pyx_t_19); if (unlikely(!__pyx_t_20)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_20);
   if (__pyx_t_18) {
     PyTuple_SET_ITEM(__pyx_t_20, 0, __pyx_t_18); __Pyx_GIVEREF(__pyx_t_18); __pyx_t_18 = NULL;
@@ -4372,7 +4372,7 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
   __pyx_t_15 = 0;
   __pyx_t_16 = 0;
   __pyx_t_17 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_11, __pyx_t_20, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_11, __pyx_t_20, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_20); __pyx_t_20 = 0;
   __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
@@ -4380,10 +4380,10 @@ static PyObject *__pyx_pf_5combo_4_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "combo.pyx":109
+  /* "combo.pyx":110
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
- * def _min_max(_number[:] data, bint min_positive=False):             # <<<<<<<<<<<<<<
+ * def _min_max(_number[::1] data, bint min_positive=False):             # <<<<<<<<<<<<<<
  *     """See :func:`min_max` for documentation."""
  *     cdef:
  */
@@ -4419,14 +4419,14 @@ static PyObject *__pyx_pf_5combo_48__defaults__(CYTHON_UNUSED PyObject *__pyx_se
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__defaults__", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong(__Pyx_CyFunction_Defaults(__pyx_defaults11, __pyx_self)->__pyx_arg_min_positive); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyBool_FromLong(__Pyx_CyFunction_Defaults(__pyx_defaults11, __pyx_self)->__pyx_arg_min_positive); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_2);
@@ -4487,7 +4487,7 @@ static PyObject *__pyx_fuse_1__pyx_pw_5combo_7_min_max(PyObject *__pyx_self, PyO
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_min_max") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_min_max") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -4497,16 +4497,16 @@ static PyObject *__pyx_fuse_1__pyx_pw_5combo_7_min_max(PyObject *__pyx_self, PyO
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_data = __Pyx_PyObject_to_MemoryviewSlice_ds_double(values[0]); if (unlikely(!__pyx_v_data.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+    __pyx_v_data = __Pyx_PyObject_to_MemoryviewSlice_dc_double(values[0]); if (unlikely(!__pyx_v_data.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
     if (values[1]) {
-      __pyx_v_min_positive = __Pyx_PyObject_IsTrue(values[1]); if (unlikely((__pyx_v_min_positive == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+      __pyx_v_min_positive = __Pyx_PyObject_IsTrue(values[1]); if (unlikely((__pyx_v_min_positive == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
     } else {
       __pyx_v_min_positive = __pyx_dynamic_args->__pyx_arg_min_positive;
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("_min_max", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("_min_max", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("combo._min_max", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -4556,7 +4556,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__pyx_fuse_1_min_max", 0);
 
-  /* "combo.pyx":114
+  /* "combo.pyx":115
  *         _number value, minimum, minpos, maximum
  *         unsigned int length
  *         unsigned int index = 0             # <<<<<<<<<<<<<<
@@ -4565,7 +4565,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
   __pyx_v_index = 0;
 
-  /* "combo.pyx":115
+  /* "combo.pyx":116
  *         unsigned int length
  *         unsigned int index = 0
  *         unsigned int min_index = 0             # <<<<<<<<<<<<<<
@@ -4574,7 +4574,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
   __pyx_v_min_index = 0;
 
-  /* "combo.pyx":116
+  /* "combo.pyx":117
  *         unsigned int index = 0
  *         unsigned int min_index = 0
  *         unsigned int min_pos_index = 0             # <<<<<<<<<<<<<<
@@ -4583,7 +4583,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
   __pyx_v_min_pos_index = 0;
 
-  /* "combo.pyx":117
+  /* "combo.pyx":118
  *         unsigned int min_index = 0
  *         unsigned int min_pos_index = 0
  *         unsigned int max_index = 0             # <<<<<<<<<<<<<<
@@ -4592,20 +4592,20 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
   __pyx_v_max_index = 0;
 
-  /* "combo.pyx":119
+  /* "combo.pyx":120
  *         unsigned int max_index = 0
  * 
  *     length = len(data)             # <<<<<<<<<<<<<<
  * 
  *     if length == 0:
  */
-  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_v_data, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_v_data, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 120; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyObject_Length(__pyx_t_1); if (unlikely(__pyx_t_2 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyObject_Length(__pyx_t_1); if (unlikely(__pyx_t_2 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 120; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_length = __pyx_t_2;
 
-  /* "combo.pyx":121
+  /* "combo.pyx":122
  *     length = len(data)
  * 
  *     if length == 0:             # <<<<<<<<<<<<<<
@@ -4615,21 +4615,21 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
   __pyx_t_3 = ((__pyx_v_length == 0) != 0);
   if (__pyx_t_3) {
 
-    /* "combo.pyx":122
+    /* "combo.pyx":123
  * 
  *     if length == 0:
  *         raise ValueError('Zero-size array')             # <<<<<<<<<<<<<<
  * 
  *     with nogil:
  */
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__10, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__10, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "combo.pyx":124
+  /* "combo.pyx":125
  *         raise ValueError('Zero-size array')
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -4643,7 +4643,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
       #endif
       /*try:*/ {
 
-        /* "combo.pyx":126
+        /* "combo.pyx":127
  *     with nogil:
  *         # Init starting values
  *         value = data[0]             # <<<<<<<<<<<<<<
@@ -4651,9 +4651,9 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  *         maximum = value
  */
         __pyx_t_2 = 0;
-        __pyx_v_value = (*((double *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_2 * __pyx_v_data.strides[0]) )));
+        __pyx_v_value = (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_data.data) + __pyx_t_2)) )));
 
-        /* "combo.pyx":127
+        /* "combo.pyx":128
  *         # Init starting values
  *         value = data[0]
  *         minimum = value             # <<<<<<<<<<<<<<
@@ -4662,7 +4662,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
         __pyx_v_minimum = __pyx_v_value;
 
-        /* "combo.pyx":128
+        /* "combo.pyx":129
  *         value = data[0]
  *         minimum = value
  *         maximum = value             # <<<<<<<<<<<<<<
@@ -4671,7 +4671,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
         __pyx_v_maximum = __pyx_v_value;
 
-        /* "combo.pyx":129
+        /* "combo.pyx":130
  *         minimum = value
  *         maximum = value
  *         if min_positive and value > 0:             # <<<<<<<<<<<<<<
@@ -4689,7 +4689,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
         __pyx_L8_bool_binop_done:;
         if (__pyx_t_3) {
 
-          /* "combo.pyx":130
+          /* "combo.pyx":131
  *         maximum = value
  *         if min_positive and value > 0:
  *             min_pos = value             # <<<<<<<<<<<<<<
@@ -4701,7 +4701,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
         }
         /*else*/ {
 
-          /* "combo.pyx":132
+          /* "combo.pyx":133
  *             min_pos = value
  *         else:
  *             min_pos = 0             # <<<<<<<<<<<<<<
@@ -4712,7 +4712,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
         }
         __pyx_L7:;
 
-        /* "combo.pyx":136
+        /* "combo.pyx":137
  *         if _number in cython.floating:
  *             # For floating, loop until first not NaN value
  *             for index in range(length):             # <<<<<<<<<<<<<<
@@ -4723,7 +4723,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
         for (__pyx_t_6 = 0; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
           __pyx_v_index = __pyx_t_6;
 
-          /* "combo.pyx":137
+          /* "combo.pyx":138
  *             # For floating, loop until first not NaN value
  *             for index in range(length):
  *                 value = data[index]             # <<<<<<<<<<<<<<
@@ -4731,9 +4731,9 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  *                     minimum = value
  */
           __pyx_t_7 = __pyx_v_index;
-          __pyx_v_value = (*((double *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_7 * __pyx_v_data.strides[0]) )));
+          __pyx_v_value = (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_data.data) + __pyx_t_7)) )));
 
-          /* "combo.pyx":138
+          /* "combo.pyx":139
  *             for index in range(length):
  *                 value = data[index]
  *                 if not isnan(value):             # <<<<<<<<<<<<<<
@@ -4743,7 +4743,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
           __pyx_t_3 = ((!(isnan(__pyx_v_value) != 0)) != 0);
           if (__pyx_t_3) {
 
-            /* "combo.pyx":139
+            /* "combo.pyx":140
  *                 value = data[index]
  *                 if not isnan(value):
  *                     minimum = value             # <<<<<<<<<<<<<<
@@ -4752,7 +4752,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
             __pyx_v_minimum = __pyx_v_value;
 
-            /* "combo.pyx":140
+            /* "combo.pyx":141
  *                 if not isnan(value):
  *                     minimum = value
  *                     min_index = index             # <<<<<<<<<<<<<<
@@ -4761,7 +4761,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
             __pyx_v_min_index = __pyx_v_index;
 
-            /* "combo.pyx":141
+            /* "combo.pyx":142
  *                     minimum = value
  *                     min_index = index
  *                     maximum = value             # <<<<<<<<<<<<<<
@@ -4770,7 +4770,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
             __pyx_v_maximum = __pyx_v_value;
 
-            /* "combo.pyx":142
+            /* "combo.pyx":143
  *                     min_index = index
  *                     maximum = value
  *                     max_index = index             # <<<<<<<<<<<<<<
@@ -4779,7 +4779,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
             __pyx_v_max_index = __pyx_v_index;
 
-            /* "combo.pyx":143
+            /* "combo.pyx":144
  *                     maximum = value
  *                     max_index = index
  *                     break             # <<<<<<<<<<<<<<
@@ -4791,7 +4791,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
         }
         __pyx_L11_break:;
 
-        /* "combo.pyx":145
+        /* "combo.pyx":146
  *                     break
  * 
  *         if not min_positive:             # <<<<<<<<<<<<<<
@@ -4801,7 +4801,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
         __pyx_t_3 = ((!(__pyx_v_min_positive != 0)) != 0);
         if (__pyx_t_3) {
 
-          /* "combo.pyx":146
+          /* "combo.pyx":147
  * 
  *         if not min_positive:
  *             for index in range(index, length):             # <<<<<<<<<<<<<<
@@ -4812,7 +4812,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
           for (__pyx_t_6 = __pyx_v_index; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
             __pyx_v_index = __pyx_t_6;
 
-            /* "combo.pyx":147
+            /* "combo.pyx":148
  *         if not min_positive:
  *             for index in range(index, length):
  *                 value = data[index]             # <<<<<<<<<<<<<<
@@ -4820,9 +4820,9 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  *                     maximum = value
  */
             __pyx_t_8 = __pyx_v_index;
-            __pyx_v_value = (*((double *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_8 * __pyx_v_data.strides[0]) )));
+            __pyx_v_value = (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_data.data) + __pyx_t_8)) )));
 
-            /* "combo.pyx":148
+            /* "combo.pyx":149
  *             for index in range(index, length):
  *                 value = data[index]
  *                 if value > maximum:             # <<<<<<<<<<<<<<
@@ -4832,7 +4832,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
             __pyx_t_3 = ((__pyx_v_value > __pyx_v_maximum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":149
+              /* "combo.pyx":150
  *                 value = data[index]
  *                 if value > maximum:
  *                     maximum = value             # <<<<<<<<<<<<<<
@@ -4841,7 +4841,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
               __pyx_v_maximum = __pyx_v_value;
 
-              /* "combo.pyx":150
+              /* "combo.pyx":151
  *                 if value > maximum:
  *                     maximum = value
  *                     max_index = index             # <<<<<<<<<<<<<<
@@ -4852,7 +4852,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
               goto __pyx_L16;
             }
 
-            /* "combo.pyx":151
+            /* "combo.pyx":152
  *                     maximum = value
  *                     max_index = index
  *                 elif value < minimum:             # <<<<<<<<<<<<<<
@@ -4862,7 +4862,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
             __pyx_t_3 = ((__pyx_v_value < __pyx_v_minimum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":152
+              /* "combo.pyx":153
  *                     max_index = index
  *                 elif value < minimum:
  *                     minimum = value             # <<<<<<<<<<<<<<
@@ -4871,7 +4871,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
               __pyx_v_minimum = __pyx_v_value;
 
-              /* "combo.pyx":153
+              /* "combo.pyx":154
  *                 elif value < minimum:
  *                     minimum = value
  *                     min_index = index             # <<<<<<<<<<<<<<
@@ -4887,7 +4887,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
         }
         /*else*/ {
 
-          /* "combo.pyx":157
+          /* "combo.pyx":158
  *         else:
  *             # Loop until min_pos is defined
  *             for index in range(index, length):             # <<<<<<<<<<<<<<
@@ -4898,7 +4898,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
           for (__pyx_t_6 = __pyx_v_index; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
             __pyx_v_index = __pyx_t_6;
 
-            /* "combo.pyx":158
+            /* "combo.pyx":159
  *             # Loop until min_pos is defined
  *             for index in range(index, length):
  *                 value = data[index]             # <<<<<<<<<<<<<<
@@ -4906,9 +4906,9 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  *                     maximum = value
  */
             __pyx_t_9 = __pyx_v_index;
-            __pyx_v_value = (*((double *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_9 * __pyx_v_data.strides[0]) )));
+            __pyx_v_value = (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_data.data) + __pyx_t_9)) )));
 
-            /* "combo.pyx":159
+            /* "combo.pyx":160
  *             for index in range(index, length):
  *                 value = data[index]
  *                 if value > maximum:             # <<<<<<<<<<<<<<
@@ -4918,7 +4918,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
             __pyx_t_3 = ((__pyx_v_value > __pyx_v_maximum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":160
+              /* "combo.pyx":161
  *                 value = data[index]
  *                 if value > maximum:
  *                     maximum = value             # <<<<<<<<<<<<<<
@@ -4927,7 +4927,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
               __pyx_v_maximum = __pyx_v_value;
 
-              /* "combo.pyx":161
+              /* "combo.pyx":162
  *                 if value > maximum:
  *                     maximum = value
  *                     max_index = index             # <<<<<<<<<<<<<<
@@ -4938,7 +4938,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
               goto __pyx_L19;
             }
 
-            /* "combo.pyx":162
+            /* "combo.pyx":163
  *                     maximum = value
  *                     max_index = index
  *                 elif value < minimum:             # <<<<<<<<<<<<<<
@@ -4948,7 +4948,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
             __pyx_t_3 = ((__pyx_v_value < __pyx_v_minimum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":163
+              /* "combo.pyx":164
  *                     max_index = index
  *                 elif value < minimum:
  *                     minimum = value             # <<<<<<<<<<<<<<
@@ -4957,7 +4957,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
               __pyx_v_minimum = __pyx_v_value;
 
-              /* "combo.pyx":164
+              /* "combo.pyx":165
  *                 elif value < minimum:
  *                     minimum = value
  *                     min_index = index             # <<<<<<<<<<<<<<
@@ -4969,7 +4969,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
             }
             __pyx_L19:;
 
-            /* "combo.pyx":166
+            /* "combo.pyx":167
  *                     min_index = index
  * 
  *                 if value > 0:             # <<<<<<<<<<<<<<
@@ -4979,7 +4979,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
             __pyx_t_3 = ((__pyx_v_value > 0.0) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":167
+              /* "combo.pyx":168
  * 
  *                 if value > 0:
  *                     min_pos = value             # <<<<<<<<<<<<<<
@@ -4988,7 +4988,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
               __pyx_v_min_pos = __pyx_v_value;
 
-              /* "combo.pyx":168
+              /* "combo.pyx":169
  *                 if value > 0:
  *                     min_pos = value
  *                     min_pos_index = index             # <<<<<<<<<<<<<<
@@ -4997,7 +4997,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
               __pyx_v_min_pos_index = __pyx_v_index;
 
-              /* "combo.pyx":169
+              /* "combo.pyx":170
  *                     min_pos = value
  *                     min_pos_index = index
  *                     break             # <<<<<<<<<<<<<<
@@ -5009,7 +5009,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
           }
           __pyx_L18_break:;
 
-          /* "combo.pyx":172
+          /* "combo.pyx":173
  * 
  *             # Loop until the end
  *             for index in range(index+1, length):             # <<<<<<<<<<<<<<
@@ -5020,7 +5020,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
           for (__pyx_t_6 = (__pyx_v_index + 1); __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
             __pyx_v_index = __pyx_t_6;
 
-            /* "combo.pyx":173
+            /* "combo.pyx":174
  *             # Loop until the end
  *             for index in range(index+1, length):
  *                 value = data[index]             # <<<<<<<<<<<<<<
@@ -5028,9 +5028,9 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  *                     maximum = value
  */
             __pyx_t_10 = __pyx_v_index;
-            __pyx_v_value = (*((double *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_10 * __pyx_v_data.strides[0]) )));
+            __pyx_v_value = (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_data.data) + __pyx_t_10)) )));
 
-            /* "combo.pyx":174
+            /* "combo.pyx":175
  *             for index in range(index+1, length):
  *                 value = data[index]
  *                 if value > maximum:             # <<<<<<<<<<<<<<
@@ -5040,7 +5040,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
             __pyx_t_3 = ((__pyx_v_value > __pyx_v_maximum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":175
+              /* "combo.pyx":176
  *                 value = data[index]
  *                 if value > maximum:
  *                     maximum = value             # <<<<<<<<<<<<<<
@@ -5049,7 +5049,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
               __pyx_v_maximum = __pyx_v_value;
 
-              /* "combo.pyx":176
+              /* "combo.pyx":177
  *                 if value > maximum:
  *                     maximum = value
  *                     max_index = index             # <<<<<<<<<<<<<<
@@ -5061,7 +5061,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
             }
             /*else*/ {
 
-              /* "combo.pyx":178
+              /* "combo.pyx":179
  *                     max_index = index
  *                 else:
  *                     if value < minimum:             # <<<<<<<<<<<<<<
@@ -5071,7 +5071,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
               __pyx_t_3 = ((__pyx_v_value < __pyx_v_minimum) != 0);
               if (__pyx_t_3) {
 
-                /* "combo.pyx":179
+                /* "combo.pyx":180
  *                 else:
  *                     if value < minimum:
  *                         minimum = value             # <<<<<<<<<<<<<<
@@ -5080,7 +5080,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
                 __pyx_v_minimum = __pyx_v_value;
 
-                /* "combo.pyx":180
+                /* "combo.pyx":181
  *                     if value < minimum:
  *                         minimum = value
  *                         min_index = index             # <<<<<<<<<<<<<<
@@ -5092,7 +5092,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
               }
               __pyx_L24:;
 
-              /* "combo.pyx":182
+              /* "combo.pyx":183
  *                         min_index = index
  * 
  *                     if value > 0 and value < min_pos:             # <<<<<<<<<<<<<<
@@ -5110,7 +5110,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
               __pyx_L26_bool_binop_done:;
               if (__pyx_t_3) {
 
-                /* "combo.pyx":183
+                /* "combo.pyx":184
  * 
  *                     if value > 0 and value < min_pos:
  *                         min_pos = value             # <<<<<<<<<<<<<<
@@ -5119,7 +5119,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
                 __pyx_v_min_pos = __pyx_v_value;
 
-                /* "combo.pyx":184
+                /* "combo.pyx":185
  *                     if value > 0 and value < min_pos:
  *                         min_pos = value
  *                         min_pos_index = index             # <<<<<<<<<<<<<<
@@ -5137,7 +5137,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
         __pyx_L13:;
       }
 
-      /* "combo.pyx":124
+      /* "combo.pyx":125
  *         raise ValueError('Zero-size array')
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -5155,7 +5155,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
       }
   }
 
-  /* "combo.pyx":186
+  /* "combo.pyx":187
  *                         min_pos_index = index
  * 
  *     return _MinMaxResult(minimum,             # <<<<<<<<<<<<<<
@@ -5163,12 +5163,12 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  *                          maximum,
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_11 = __Pyx_GetModuleGlobalName(__pyx_n_s_MinMaxResult); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_11 = __Pyx_GetModuleGlobalName(__pyx_n_s_MinMaxResult); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_11);
-  __pyx_t_12 = PyFloat_FromDouble(__pyx_v_minimum); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_12 = PyFloat_FromDouble(__pyx_v_minimum); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_12);
 
-  /* "combo.pyx":187
+  /* "combo.pyx":188
  * 
  *     return _MinMaxResult(minimum,
  *                          min_pos if min_pos > 0 else None,             # <<<<<<<<<<<<<<
@@ -5176,7 +5176,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  *                          min_index,
  */
   if (((__pyx_v_min_pos > 0.0) != 0)) {
-    __pyx_t_14 = PyFloat_FromDouble(__pyx_v_min_pos); if (unlikely(!__pyx_t_14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_14 = PyFloat_FromDouble(__pyx_v_min_pos); if (unlikely(!__pyx_t_14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 188; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_14);
     __pyx_t_13 = __pyx_t_14;
     __pyx_t_14 = 0;
@@ -5185,27 +5185,27 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
     __pyx_t_13 = Py_None;
   }
 
-  /* "combo.pyx":188
+  /* "combo.pyx":189
  *     return _MinMaxResult(minimum,
  *                          min_pos if min_pos > 0 else None,
  *                          maximum,             # <<<<<<<<<<<<<<
  *                          min_index,
  *                          min_pos_index if min_pos > 0 else None,
  */
-  __pyx_t_14 = PyFloat_FromDouble(__pyx_v_maximum); if (unlikely(!__pyx_t_14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 188; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_14 = PyFloat_FromDouble(__pyx_v_maximum); if (unlikely(!__pyx_t_14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 189; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_14);
 
-  /* "combo.pyx":189
+  /* "combo.pyx":190
  *                          min_pos if min_pos > 0 else None,
  *                          maximum,
  *                          min_index,             # <<<<<<<<<<<<<<
  *                          min_pos_index if min_pos > 0 else None,
  *                          max_index)
  */
-  __pyx_t_15 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_index); if (unlikely(!__pyx_t_15)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 189; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_15 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_index); if (unlikely(!__pyx_t_15)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_15);
 
-  /* "combo.pyx":190
+  /* "combo.pyx":191
  *                          maximum,
  *                          min_index,
  *                          min_pos_index if min_pos > 0 else None,             # <<<<<<<<<<<<<<
@@ -5213,7 +5213,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  * 
  */
   if (((__pyx_v_min_pos > 0.0) != 0)) {
-    __pyx_t_17 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_pos_index); if (unlikely(!__pyx_t_17)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_17 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_pos_index); if (unlikely(!__pyx_t_17)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 191; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_17);
     __pyx_t_16 = __pyx_t_17;
     __pyx_t_17 = 0;
@@ -5222,14 +5222,14 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
     __pyx_t_16 = Py_None;
   }
 
-  /* "combo.pyx":191
+  /* "combo.pyx":192
  *                          min_index,
  *                          min_pos_index if min_pos > 0 else None,
  *                          max_index)             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_t_17 = __Pyx_PyInt_From_unsigned_int(__pyx_v_max_index); if (unlikely(!__pyx_t_17)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 191; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_17 = __Pyx_PyInt_From_unsigned_int(__pyx_v_max_index); if (unlikely(!__pyx_t_17)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 192; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_17);
   __pyx_t_18 = NULL;
   __pyx_t_19 = 0;
@@ -5243,7 +5243,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
       __pyx_t_19 = 1;
     }
   }
-  __pyx_t_20 = PyTuple_New(6+__pyx_t_19); if (unlikely(!__pyx_t_20)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_20 = PyTuple_New(6+__pyx_t_19); if (unlikely(!__pyx_t_20)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_20);
   if (__pyx_t_18) {
     PyTuple_SET_ITEM(__pyx_t_20, 0, __pyx_t_18); __Pyx_GIVEREF(__pyx_t_18); __pyx_t_18 = NULL;
@@ -5266,7 +5266,7 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
   __pyx_t_15 = 0;
   __pyx_t_16 = 0;
   __pyx_t_17 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_11, __pyx_t_20, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_11, __pyx_t_20, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_20); __pyx_t_20 = 0;
   __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
@@ -5274,10 +5274,10 @@ static PyObject *__pyx_pf_5combo_6_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "combo.pyx":109
+  /* "combo.pyx":110
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
- * def _min_max(_number[:] data, bint min_positive=False):             # <<<<<<<<<<<<<<
+ * def _min_max(_number[::1] data, bint min_positive=False):             # <<<<<<<<<<<<<<
  *     """See :func:`min_max` for documentation."""
  *     cdef:
  */
@@ -5313,14 +5313,14 @@ static PyObject *__pyx_pf_5combo_50__defaults__(CYTHON_UNUSED PyObject *__pyx_se
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__defaults__", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong(__Pyx_CyFunction_Defaults(__pyx_defaults12, __pyx_self)->__pyx_arg_min_positive); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyBool_FromLong(__Pyx_CyFunction_Defaults(__pyx_defaults12, __pyx_self)->__pyx_arg_min_positive); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_2);
@@ -5381,7 +5381,7 @@ static PyObject *__pyx_fuse_2__pyx_pw_5combo_9_min_max(PyObject *__pyx_self, PyO
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_min_max") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_min_max") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -5391,16 +5391,16 @@ static PyObject *__pyx_fuse_2__pyx_pw_5combo_9_min_max(PyObject *__pyx_self, PyO
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_data = __Pyx_PyObject_to_MemoryviewSlice_ds_signed_char(values[0]); if (unlikely(!__pyx_v_data.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+    __pyx_v_data = __Pyx_PyObject_to_MemoryviewSlice_dc_signed_char(values[0]); if (unlikely(!__pyx_v_data.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
     if (values[1]) {
-      __pyx_v_min_positive = __Pyx_PyObject_IsTrue(values[1]); if (unlikely((__pyx_v_min_positive == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+      __pyx_v_min_positive = __Pyx_PyObject_IsTrue(values[1]); if (unlikely((__pyx_v_min_positive == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
     } else {
       __pyx_v_min_positive = __pyx_dynamic_args->__pyx_arg_min_positive;
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("_min_max", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("_min_max", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("combo._min_max", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -5449,7 +5449,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__pyx_fuse_2_min_max", 0);
 
-  /* "combo.pyx":114
+  /* "combo.pyx":115
  *         _number value, minimum, minpos, maximum
  *         unsigned int length
  *         unsigned int index = 0             # <<<<<<<<<<<<<<
@@ -5458,7 +5458,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
   __pyx_v_index = 0;
 
-  /* "combo.pyx":115
+  /* "combo.pyx":116
  *         unsigned int length
  *         unsigned int index = 0
  *         unsigned int min_index = 0             # <<<<<<<<<<<<<<
@@ -5467,7 +5467,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
   __pyx_v_min_index = 0;
 
-  /* "combo.pyx":116
+  /* "combo.pyx":117
  *         unsigned int index = 0
  *         unsigned int min_index = 0
  *         unsigned int min_pos_index = 0             # <<<<<<<<<<<<<<
@@ -5476,7 +5476,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
   __pyx_v_min_pos_index = 0;
 
-  /* "combo.pyx":117
+  /* "combo.pyx":118
  *         unsigned int min_index = 0
  *         unsigned int min_pos_index = 0
  *         unsigned int max_index = 0             # <<<<<<<<<<<<<<
@@ -5485,20 +5485,20 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
   __pyx_v_max_index = 0;
 
-  /* "combo.pyx":119
+  /* "combo.pyx":120
  *         unsigned int max_index = 0
  * 
  *     length = len(data)             # <<<<<<<<<<<<<<
  * 
  *     if length == 0:
  */
-  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_v_data, 1, (PyObject *(*)(char *)) __pyx_memview_get_signed_char, (int (*)(char *, PyObject *)) __pyx_memview_set_signed_char, 0);; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_v_data, 1, (PyObject *(*)(char *)) __pyx_memview_get_signed_char, (int (*)(char *, PyObject *)) __pyx_memview_set_signed_char, 0);; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 120; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyObject_Length(__pyx_t_1); if (unlikely(__pyx_t_2 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyObject_Length(__pyx_t_1); if (unlikely(__pyx_t_2 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 120; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_length = __pyx_t_2;
 
-  /* "combo.pyx":121
+  /* "combo.pyx":122
  *     length = len(data)
  * 
  *     if length == 0:             # <<<<<<<<<<<<<<
@@ -5508,21 +5508,21 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
   __pyx_t_3 = ((__pyx_v_length == 0) != 0);
   if (__pyx_t_3) {
 
-    /* "combo.pyx":122
+    /* "combo.pyx":123
  * 
  *     if length == 0:
  *         raise ValueError('Zero-size array')             # <<<<<<<<<<<<<<
  * 
  *     with nogil:
  */
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__11, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__11, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "combo.pyx":124
+  /* "combo.pyx":125
  *         raise ValueError('Zero-size array')
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -5536,7 +5536,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
       #endif
       /*try:*/ {
 
-        /* "combo.pyx":126
+        /* "combo.pyx":127
  *     with nogil:
  *         # Init starting values
  *         value = data[0]             # <<<<<<<<<<<<<<
@@ -5544,9 +5544,9 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  *         maximum = value
  */
         __pyx_t_2 = 0;
-        __pyx_v_value = (*((signed char *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_2 * __pyx_v_data.strides[0]) )));
+        __pyx_v_value = (*((signed char *) ( /* dim=0 */ ((char *) (((signed char *) __pyx_v_data.data) + __pyx_t_2)) )));
 
-        /* "combo.pyx":127
+        /* "combo.pyx":128
  *         # Init starting values
  *         value = data[0]
  *         minimum = value             # <<<<<<<<<<<<<<
@@ -5555,7 +5555,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
         __pyx_v_minimum = __pyx_v_value;
 
-        /* "combo.pyx":128
+        /* "combo.pyx":129
  *         value = data[0]
  *         minimum = value
  *         maximum = value             # <<<<<<<<<<<<<<
@@ -5564,7 +5564,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
         __pyx_v_maximum = __pyx_v_value;
 
-        /* "combo.pyx":129
+        /* "combo.pyx":130
  *         minimum = value
  *         maximum = value
  *         if min_positive and value > 0:             # <<<<<<<<<<<<<<
@@ -5582,7 +5582,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
         __pyx_L8_bool_binop_done:;
         if (__pyx_t_3) {
 
-          /* "combo.pyx":130
+          /* "combo.pyx":131
  *         maximum = value
  *         if min_positive and value > 0:
  *             min_pos = value             # <<<<<<<<<<<<<<
@@ -5594,7 +5594,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
         }
         /*else*/ {
 
-          /* "combo.pyx":132
+          /* "combo.pyx":133
  *             min_pos = value
  *         else:
  *             min_pos = 0             # <<<<<<<<<<<<<<
@@ -5605,7 +5605,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
         }
         __pyx_L7:;
 
-        /* "combo.pyx":145
+        /* "combo.pyx":146
  *                     break
  * 
  *         if not min_positive:             # <<<<<<<<<<<<<<
@@ -5615,7 +5615,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
         __pyx_t_3 = ((!(__pyx_v_min_positive != 0)) != 0);
         if (__pyx_t_3) {
 
-          /* "combo.pyx":146
+          /* "combo.pyx":147
  * 
  *         if not min_positive:
  *             for index in range(index, length):             # <<<<<<<<<<<<<<
@@ -5626,7 +5626,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
           for (__pyx_t_6 = __pyx_v_index; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
             __pyx_v_index = __pyx_t_6;
 
-            /* "combo.pyx":147
+            /* "combo.pyx":148
  *         if not min_positive:
  *             for index in range(index, length):
  *                 value = data[index]             # <<<<<<<<<<<<<<
@@ -5634,9 +5634,9 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  *                     maximum = value
  */
             __pyx_t_7 = __pyx_v_index;
-            __pyx_v_value = (*((signed char *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_7 * __pyx_v_data.strides[0]) )));
+            __pyx_v_value = (*((signed char *) ( /* dim=0 */ ((char *) (((signed char *) __pyx_v_data.data) + __pyx_t_7)) )));
 
-            /* "combo.pyx":148
+            /* "combo.pyx":149
  *             for index in range(index, length):
  *                 value = data[index]
  *                 if value > maximum:             # <<<<<<<<<<<<<<
@@ -5646,7 +5646,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
             __pyx_t_3 = ((__pyx_v_value > __pyx_v_maximum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":149
+              /* "combo.pyx":150
  *                 value = data[index]
  *                 if value > maximum:
  *                     maximum = value             # <<<<<<<<<<<<<<
@@ -5655,7 +5655,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
               __pyx_v_maximum = __pyx_v_value;
 
-              /* "combo.pyx":150
+              /* "combo.pyx":151
  *                 if value > maximum:
  *                     maximum = value
  *                     max_index = index             # <<<<<<<<<<<<<<
@@ -5666,7 +5666,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
               goto __pyx_L13;
             }
 
-            /* "combo.pyx":151
+            /* "combo.pyx":152
  *                     maximum = value
  *                     max_index = index
  *                 elif value < minimum:             # <<<<<<<<<<<<<<
@@ -5676,7 +5676,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
             __pyx_t_3 = ((__pyx_v_value < __pyx_v_minimum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":152
+              /* "combo.pyx":153
  *                     max_index = index
  *                 elif value < minimum:
  *                     minimum = value             # <<<<<<<<<<<<<<
@@ -5685,7 +5685,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
               __pyx_v_minimum = __pyx_v_value;
 
-              /* "combo.pyx":153
+              /* "combo.pyx":154
  *                 elif value < minimum:
  *                     minimum = value
  *                     min_index = index             # <<<<<<<<<<<<<<
@@ -5701,7 +5701,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
         }
         /*else*/ {
 
-          /* "combo.pyx":157
+          /* "combo.pyx":158
  *         else:
  *             # Loop until min_pos is defined
  *             for index in range(index, length):             # <<<<<<<<<<<<<<
@@ -5712,7 +5712,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
           for (__pyx_t_6 = __pyx_v_index; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
             __pyx_v_index = __pyx_t_6;
 
-            /* "combo.pyx":158
+            /* "combo.pyx":159
  *             # Loop until min_pos is defined
  *             for index in range(index, length):
  *                 value = data[index]             # <<<<<<<<<<<<<<
@@ -5720,9 +5720,9 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  *                     maximum = value
  */
             __pyx_t_8 = __pyx_v_index;
-            __pyx_v_value = (*((signed char *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_8 * __pyx_v_data.strides[0]) )));
+            __pyx_v_value = (*((signed char *) ( /* dim=0 */ ((char *) (((signed char *) __pyx_v_data.data) + __pyx_t_8)) )));
 
-            /* "combo.pyx":159
+            /* "combo.pyx":160
  *             for index in range(index, length):
  *                 value = data[index]
  *                 if value > maximum:             # <<<<<<<<<<<<<<
@@ -5732,7 +5732,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
             __pyx_t_3 = ((__pyx_v_value > __pyx_v_maximum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":160
+              /* "combo.pyx":161
  *                 value = data[index]
  *                 if value > maximum:
  *                     maximum = value             # <<<<<<<<<<<<<<
@@ -5741,7 +5741,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
               __pyx_v_maximum = __pyx_v_value;
 
-              /* "combo.pyx":161
+              /* "combo.pyx":162
  *                 if value > maximum:
  *                     maximum = value
  *                     max_index = index             # <<<<<<<<<<<<<<
@@ -5752,7 +5752,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
               goto __pyx_L16;
             }
 
-            /* "combo.pyx":162
+            /* "combo.pyx":163
  *                     maximum = value
  *                     max_index = index
  *                 elif value < minimum:             # <<<<<<<<<<<<<<
@@ -5762,7 +5762,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
             __pyx_t_3 = ((__pyx_v_value < __pyx_v_minimum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":163
+              /* "combo.pyx":164
  *                     max_index = index
  *                 elif value < minimum:
  *                     minimum = value             # <<<<<<<<<<<<<<
@@ -5771,7 +5771,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
               __pyx_v_minimum = __pyx_v_value;
 
-              /* "combo.pyx":164
+              /* "combo.pyx":165
  *                 elif value < minimum:
  *                     minimum = value
  *                     min_index = index             # <<<<<<<<<<<<<<
@@ -5783,7 +5783,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
             }
             __pyx_L16:;
 
-            /* "combo.pyx":166
+            /* "combo.pyx":167
  *                     min_index = index
  * 
  *                 if value > 0:             # <<<<<<<<<<<<<<
@@ -5793,7 +5793,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
             __pyx_t_3 = ((__pyx_v_value > 0) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":167
+              /* "combo.pyx":168
  * 
  *                 if value > 0:
  *                     min_pos = value             # <<<<<<<<<<<<<<
@@ -5802,7 +5802,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
               __pyx_v_min_pos = __pyx_v_value;
 
-              /* "combo.pyx":168
+              /* "combo.pyx":169
  *                 if value > 0:
  *                     min_pos = value
  *                     min_pos_index = index             # <<<<<<<<<<<<<<
@@ -5811,7 +5811,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
               __pyx_v_min_pos_index = __pyx_v_index;
 
-              /* "combo.pyx":169
+              /* "combo.pyx":170
  *                     min_pos = value
  *                     min_pos_index = index
  *                     break             # <<<<<<<<<<<<<<
@@ -5823,7 +5823,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
           }
           __pyx_L15_break:;
 
-          /* "combo.pyx":172
+          /* "combo.pyx":173
  * 
  *             # Loop until the end
  *             for index in range(index+1, length):             # <<<<<<<<<<<<<<
@@ -5834,7 +5834,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
           for (__pyx_t_6 = (__pyx_v_index + 1); __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
             __pyx_v_index = __pyx_t_6;
 
-            /* "combo.pyx":173
+            /* "combo.pyx":174
  *             # Loop until the end
  *             for index in range(index+1, length):
  *                 value = data[index]             # <<<<<<<<<<<<<<
@@ -5842,9 +5842,9 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  *                     maximum = value
  */
             __pyx_t_9 = __pyx_v_index;
-            __pyx_v_value = (*((signed char *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_9 * __pyx_v_data.strides[0]) )));
+            __pyx_v_value = (*((signed char *) ( /* dim=0 */ ((char *) (((signed char *) __pyx_v_data.data) + __pyx_t_9)) )));
 
-            /* "combo.pyx":174
+            /* "combo.pyx":175
  *             for index in range(index+1, length):
  *                 value = data[index]
  *                 if value > maximum:             # <<<<<<<<<<<<<<
@@ -5854,7 +5854,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
             __pyx_t_3 = ((__pyx_v_value > __pyx_v_maximum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":175
+              /* "combo.pyx":176
  *                 value = data[index]
  *                 if value > maximum:
  *                     maximum = value             # <<<<<<<<<<<<<<
@@ -5863,7 +5863,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
               __pyx_v_maximum = __pyx_v_value;
 
-              /* "combo.pyx":176
+              /* "combo.pyx":177
  *                 if value > maximum:
  *                     maximum = value
  *                     max_index = index             # <<<<<<<<<<<<<<
@@ -5875,7 +5875,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
             }
             /*else*/ {
 
-              /* "combo.pyx":178
+              /* "combo.pyx":179
  *                     max_index = index
  *                 else:
  *                     if value < minimum:             # <<<<<<<<<<<<<<
@@ -5885,7 +5885,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
               __pyx_t_3 = ((__pyx_v_value < __pyx_v_minimum) != 0);
               if (__pyx_t_3) {
 
-                /* "combo.pyx":179
+                /* "combo.pyx":180
  *                 else:
  *                     if value < minimum:
  *                         minimum = value             # <<<<<<<<<<<<<<
@@ -5894,7 +5894,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
                 __pyx_v_minimum = __pyx_v_value;
 
-                /* "combo.pyx":180
+                /* "combo.pyx":181
  *                     if value < minimum:
  *                         minimum = value
  *                         min_index = index             # <<<<<<<<<<<<<<
@@ -5906,7 +5906,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
               }
               __pyx_L21:;
 
-              /* "combo.pyx":182
+              /* "combo.pyx":183
  *                         min_index = index
  * 
  *                     if value > 0 and value < min_pos:             # <<<<<<<<<<<<<<
@@ -5924,7 +5924,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
               __pyx_L23_bool_binop_done:;
               if (__pyx_t_3) {
 
-                /* "combo.pyx":183
+                /* "combo.pyx":184
  * 
  *                     if value > 0 and value < min_pos:
  *                         min_pos = value             # <<<<<<<<<<<<<<
@@ -5933,7 +5933,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  */
                 __pyx_v_min_pos = __pyx_v_value;
 
-                /* "combo.pyx":184
+                /* "combo.pyx":185
  *                     if value > 0 and value < min_pos:
  *                         min_pos = value
  *                         min_pos_index = index             # <<<<<<<<<<<<<<
@@ -5951,7 +5951,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
         __pyx_L10:;
       }
 
-      /* "combo.pyx":124
+      /* "combo.pyx":125
  *         raise ValueError('Zero-size array')
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -5969,7 +5969,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
       }
   }
 
-  /* "combo.pyx":186
+  /* "combo.pyx":187
  *                         min_pos_index = index
  * 
  *     return _MinMaxResult(minimum,             # <<<<<<<<<<<<<<
@@ -5977,12 +5977,12 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  *                          maximum,
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_MinMaxResult); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_MinMaxResult); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_10);
-  __pyx_t_11 = __Pyx_PyInt_From_signed__char(__pyx_v_minimum); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_11 = __Pyx_PyInt_From_signed__char(__pyx_v_minimum); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_11);
 
-  /* "combo.pyx":187
+  /* "combo.pyx":188
  * 
  *     return _MinMaxResult(minimum,
  *                          min_pos if min_pos > 0 else None,             # <<<<<<<<<<<<<<
@@ -5990,7 +5990,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  *                          min_index,
  */
   if (((__pyx_v_min_pos > 0) != 0)) {
-    __pyx_t_13 = __Pyx_PyInt_From_long(__pyx_v_min_pos); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_13 = __Pyx_PyInt_From_long(__pyx_v_min_pos); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 188; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_13);
     __pyx_t_12 = __pyx_t_13;
     __pyx_t_13 = 0;
@@ -5999,27 +5999,27 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
     __pyx_t_12 = Py_None;
   }
 
-  /* "combo.pyx":188
+  /* "combo.pyx":189
  *     return _MinMaxResult(minimum,
  *                          min_pos if min_pos > 0 else None,
  *                          maximum,             # <<<<<<<<<<<<<<
  *                          min_index,
  *                          min_pos_index if min_pos > 0 else None,
  */
-  __pyx_t_13 = __Pyx_PyInt_From_signed__char(__pyx_v_maximum); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 188; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_13 = __Pyx_PyInt_From_signed__char(__pyx_v_maximum); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 189; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_13);
 
-  /* "combo.pyx":189
+  /* "combo.pyx":190
  *                          min_pos if min_pos > 0 else None,
  *                          maximum,
  *                          min_index,             # <<<<<<<<<<<<<<
  *                          min_pos_index if min_pos > 0 else None,
  *                          max_index)
  */
-  __pyx_t_14 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_index); if (unlikely(!__pyx_t_14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 189; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_14 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_index); if (unlikely(!__pyx_t_14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_14);
 
-  /* "combo.pyx":190
+  /* "combo.pyx":191
  *                          maximum,
  *                          min_index,
  *                          min_pos_index if min_pos > 0 else None,             # <<<<<<<<<<<<<<
@@ -6027,7 +6027,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
  * 
  */
   if (((__pyx_v_min_pos > 0) != 0)) {
-    __pyx_t_16 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_pos_index); if (unlikely(!__pyx_t_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_16 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_pos_index); if (unlikely(!__pyx_t_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 191; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_16);
     __pyx_t_15 = __pyx_t_16;
     __pyx_t_16 = 0;
@@ -6036,14 +6036,14 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
     __pyx_t_15 = Py_None;
   }
 
-  /* "combo.pyx":191
+  /* "combo.pyx":192
  *                          min_index,
  *                          min_pos_index if min_pos > 0 else None,
  *                          max_index)             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_t_16 = __Pyx_PyInt_From_unsigned_int(__pyx_v_max_index); if (unlikely(!__pyx_t_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 191; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_16 = __Pyx_PyInt_From_unsigned_int(__pyx_v_max_index); if (unlikely(!__pyx_t_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 192; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_16);
   __pyx_t_17 = NULL;
   __pyx_t_18 = 0;
@@ -6057,7 +6057,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
       __pyx_t_18 = 1;
     }
   }
-  __pyx_t_19 = PyTuple_New(6+__pyx_t_18); if (unlikely(!__pyx_t_19)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_19 = PyTuple_New(6+__pyx_t_18); if (unlikely(!__pyx_t_19)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_19);
   if (__pyx_t_17) {
     PyTuple_SET_ITEM(__pyx_t_19, 0, __pyx_t_17); __Pyx_GIVEREF(__pyx_t_17); __pyx_t_17 = NULL;
@@ -6080,7 +6080,7 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
   __pyx_t_14 = 0;
   __pyx_t_15 = 0;
   __pyx_t_16 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_19, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_19, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_19); __pyx_t_19 = 0;
   __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
@@ -6088,10 +6088,10 @@ static PyObject *__pyx_pf_5combo_8_min_max(CYTHON_UNUSED PyObject *__pyx_self, _
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "combo.pyx":109
+  /* "combo.pyx":110
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
- * def _min_max(_number[:] data, bint min_positive=False):             # <<<<<<<<<<<<<<
+ * def _min_max(_number[::1] data, bint min_positive=False):             # <<<<<<<<<<<<<<
  *     """See :func:`min_max` for documentation."""
  *     cdef:
  */
@@ -6127,14 +6127,14 @@ static PyObject *__pyx_pf_5combo_52__defaults__(CYTHON_UNUSED PyObject *__pyx_se
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__defaults__", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong(__Pyx_CyFunction_Defaults(__pyx_defaults13, __pyx_self)->__pyx_arg_min_positive); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyBool_FromLong(__Pyx_CyFunction_Defaults(__pyx_defaults13, __pyx_self)->__pyx_arg_min_positive); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_2);
@@ -6195,7 +6195,7 @@ static PyObject *__pyx_fuse_3__pyx_pw_5combo_11_min_max(PyObject *__pyx_self, Py
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_min_max") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_min_max") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -6205,16 +6205,16 @@ static PyObject *__pyx_fuse_3__pyx_pw_5combo_11_min_max(PyObject *__pyx_self, Py
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_data = __Pyx_PyObject_to_MemoryviewSlice_ds_signed_short(values[0]); if (unlikely(!__pyx_v_data.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+    __pyx_v_data = __Pyx_PyObject_to_MemoryviewSlice_dc_signed_short(values[0]); if (unlikely(!__pyx_v_data.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
     if (values[1]) {
-      __pyx_v_min_positive = __Pyx_PyObject_IsTrue(values[1]); if (unlikely((__pyx_v_min_positive == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+      __pyx_v_min_positive = __Pyx_PyObject_IsTrue(values[1]); if (unlikely((__pyx_v_min_positive == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
     } else {
       __pyx_v_min_positive = __pyx_dynamic_args->__pyx_arg_min_positive;
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("_min_max", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("_min_max", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("combo._min_max", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -6263,7 +6263,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__pyx_fuse_3_min_max", 0);
 
-  /* "combo.pyx":114
+  /* "combo.pyx":115
  *         _number value, minimum, minpos, maximum
  *         unsigned int length
  *         unsigned int index = 0             # <<<<<<<<<<<<<<
@@ -6272,7 +6272,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
   __pyx_v_index = 0;
 
-  /* "combo.pyx":115
+  /* "combo.pyx":116
  *         unsigned int length
  *         unsigned int index = 0
  *         unsigned int min_index = 0             # <<<<<<<<<<<<<<
@@ -6281,7 +6281,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
   __pyx_v_min_index = 0;
 
-  /* "combo.pyx":116
+  /* "combo.pyx":117
  *         unsigned int index = 0
  *         unsigned int min_index = 0
  *         unsigned int min_pos_index = 0             # <<<<<<<<<<<<<<
@@ -6290,7 +6290,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
   __pyx_v_min_pos_index = 0;
 
-  /* "combo.pyx":117
+  /* "combo.pyx":118
  *         unsigned int min_index = 0
  *         unsigned int min_pos_index = 0
  *         unsigned int max_index = 0             # <<<<<<<<<<<<<<
@@ -6299,20 +6299,20 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
   __pyx_v_max_index = 0;
 
-  /* "combo.pyx":119
+  /* "combo.pyx":120
  *         unsigned int max_index = 0
  * 
  *     length = len(data)             # <<<<<<<<<<<<<<
  * 
  *     if length == 0:
  */
-  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_v_data, 1, (PyObject *(*)(char *)) __pyx_memview_get_signed_short, (int (*)(char *, PyObject *)) __pyx_memview_set_signed_short, 0);; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_v_data, 1, (PyObject *(*)(char *)) __pyx_memview_get_signed_short, (int (*)(char *, PyObject *)) __pyx_memview_set_signed_short, 0);; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 120; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyObject_Length(__pyx_t_1); if (unlikely(__pyx_t_2 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyObject_Length(__pyx_t_1); if (unlikely(__pyx_t_2 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 120; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_length = __pyx_t_2;
 
-  /* "combo.pyx":121
+  /* "combo.pyx":122
  *     length = len(data)
  * 
  *     if length == 0:             # <<<<<<<<<<<<<<
@@ -6322,21 +6322,21 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
   __pyx_t_3 = ((__pyx_v_length == 0) != 0);
   if (__pyx_t_3) {
 
-    /* "combo.pyx":122
+    /* "combo.pyx":123
  * 
  *     if length == 0:
  *         raise ValueError('Zero-size array')             # <<<<<<<<<<<<<<
  * 
  *     with nogil:
  */
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__12, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__12, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "combo.pyx":124
+  /* "combo.pyx":125
  *         raise ValueError('Zero-size array')
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -6350,7 +6350,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
       #endif
       /*try:*/ {
 
-        /* "combo.pyx":126
+        /* "combo.pyx":127
  *     with nogil:
  *         # Init starting values
  *         value = data[0]             # <<<<<<<<<<<<<<
@@ -6358,9 +6358,9 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *         maximum = value
  */
         __pyx_t_2 = 0;
-        __pyx_v_value = (*((signed short *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_2 * __pyx_v_data.strides[0]) )));
+        __pyx_v_value = (*((signed short *) ( /* dim=0 */ ((char *) (((signed short *) __pyx_v_data.data) + __pyx_t_2)) )));
 
-        /* "combo.pyx":127
+        /* "combo.pyx":128
  *         # Init starting values
  *         value = data[0]
  *         minimum = value             # <<<<<<<<<<<<<<
@@ -6369,7 +6369,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
         __pyx_v_minimum = __pyx_v_value;
 
-        /* "combo.pyx":128
+        /* "combo.pyx":129
  *         value = data[0]
  *         minimum = value
  *         maximum = value             # <<<<<<<<<<<<<<
@@ -6378,7 +6378,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
         __pyx_v_maximum = __pyx_v_value;
 
-        /* "combo.pyx":129
+        /* "combo.pyx":130
  *         minimum = value
  *         maximum = value
  *         if min_positive and value > 0:             # <<<<<<<<<<<<<<
@@ -6396,7 +6396,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         __pyx_L8_bool_binop_done:;
         if (__pyx_t_3) {
 
-          /* "combo.pyx":130
+          /* "combo.pyx":131
  *         maximum = value
  *         if min_positive and value > 0:
  *             min_pos = value             # <<<<<<<<<<<<<<
@@ -6408,7 +6408,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         }
         /*else*/ {
 
-          /* "combo.pyx":132
+          /* "combo.pyx":133
  *             min_pos = value
  *         else:
  *             min_pos = 0             # <<<<<<<<<<<<<<
@@ -6419,7 +6419,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         }
         __pyx_L7:;
 
-        /* "combo.pyx":145
+        /* "combo.pyx":146
  *                     break
  * 
  *         if not min_positive:             # <<<<<<<<<<<<<<
@@ -6429,7 +6429,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         __pyx_t_3 = ((!(__pyx_v_min_positive != 0)) != 0);
         if (__pyx_t_3) {
 
-          /* "combo.pyx":146
+          /* "combo.pyx":147
  * 
  *         if not min_positive:
  *             for index in range(index, length):             # <<<<<<<<<<<<<<
@@ -6440,7 +6440,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
           for (__pyx_t_6 = __pyx_v_index; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
             __pyx_v_index = __pyx_t_6;
 
-            /* "combo.pyx":147
+            /* "combo.pyx":148
  *         if not min_positive:
  *             for index in range(index, length):
  *                 value = data[index]             # <<<<<<<<<<<<<<
@@ -6448,9 +6448,9 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *                     maximum = value
  */
             __pyx_t_7 = __pyx_v_index;
-            __pyx_v_value = (*((signed short *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_7 * __pyx_v_data.strides[0]) )));
+            __pyx_v_value = (*((signed short *) ( /* dim=0 */ ((char *) (((signed short *) __pyx_v_data.data) + __pyx_t_7)) )));
 
-            /* "combo.pyx":148
+            /* "combo.pyx":149
  *             for index in range(index, length):
  *                 value = data[index]
  *                 if value > maximum:             # <<<<<<<<<<<<<<
@@ -6460,7 +6460,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value > __pyx_v_maximum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":149
+              /* "combo.pyx":150
  *                 value = data[index]
  *                 if value > maximum:
  *                     maximum = value             # <<<<<<<<<<<<<<
@@ -6469,7 +6469,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_maximum = __pyx_v_value;
 
-              /* "combo.pyx":150
+              /* "combo.pyx":151
  *                 if value > maximum:
  *                     maximum = value
  *                     max_index = index             # <<<<<<<<<<<<<<
@@ -6480,7 +6480,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
               goto __pyx_L13;
             }
 
-            /* "combo.pyx":151
+            /* "combo.pyx":152
  *                     maximum = value
  *                     max_index = index
  *                 elif value < minimum:             # <<<<<<<<<<<<<<
@@ -6490,7 +6490,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value < __pyx_v_minimum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":152
+              /* "combo.pyx":153
  *                     max_index = index
  *                 elif value < minimum:
  *                     minimum = value             # <<<<<<<<<<<<<<
@@ -6499,7 +6499,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_minimum = __pyx_v_value;
 
-              /* "combo.pyx":153
+              /* "combo.pyx":154
  *                 elif value < minimum:
  *                     minimum = value
  *                     min_index = index             # <<<<<<<<<<<<<<
@@ -6515,7 +6515,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         }
         /*else*/ {
 
-          /* "combo.pyx":157
+          /* "combo.pyx":158
  *         else:
  *             # Loop until min_pos is defined
  *             for index in range(index, length):             # <<<<<<<<<<<<<<
@@ -6526,7 +6526,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
           for (__pyx_t_6 = __pyx_v_index; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
             __pyx_v_index = __pyx_t_6;
 
-            /* "combo.pyx":158
+            /* "combo.pyx":159
  *             # Loop until min_pos is defined
  *             for index in range(index, length):
  *                 value = data[index]             # <<<<<<<<<<<<<<
@@ -6534,9 +6534,9 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *                     maximum = value
  */
             __pyx_t_8 = __pyx_v_index;
-            __pyx_v_value = (*((signed short *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_8 * __pyx_v_data.strides[0]) )));
+            __pyx_v_value = (*((signed short *) ( /* dim=0 */ ((char *) (((signed short *) __pyx_v_data.data) + __pyx_t_8)) )));
 
-            /* "combo.pyx":159
+            /* "combo.pyx":160
  *             for index in range(index, length):
  *                 value = data[index]
  *                 if value > maximum:             # <<<<<<<<<<<<<<
@@ -6546,7 +6546,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value > __pyx_v_maximum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":160
+              /* "combo.pyx":161
  *                 value = data[index]
  *                 if value > maximum:
  *                     maximum = value             # <<<<<<<<<<<<<<
@@ -6555,7 +6555,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_maximum = __pyx_v_value;
 
-              /* "combo.pyx":161
+              /* "combo.pyx":162
  *                 if value > maximum:
  *                     maximum = value
  *                     max_index = index             # <<<<<<<<<<<<<<
@@ -6566,7 +6566,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
               goto __pyx_L16;
             }
 
-            /* "combo.pyx":162
+            /* "combo.pyx":163
  *                     maximum = value
  *                     max_index = index
  *                 elif value < minimum:             # <<<<<<<<<<<<<<
@@ -6576,7 +6576,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value < __pyx_v_minimum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":163
+              /* "combo.pyx":164
  *                     max_index = index
  *                 elif value < minimum:
  *                     minimum = value             # <<<<<<<<<<<<<<
@@ -6585,7 +6585,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_minimum = __pyx_v_value;
 
-              /* "combo.pyx":164
+              /* "combo.pyx":165
  *                 elif value < minimum:
  *                     minimum = value
  *                     min_index = index             # <<<<<<<<<<<<<<
@@ -6597,7 +6597,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             }
             __pyx_L16:;
 
-            /* "combo.pyx":166
+            /* "combo.pyx":167
  *                     min_index = index
  * 
  *                 if value > 0:             # <<<<<<<<<<<<<<
@@ -6607,7 +6607,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value > 0) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":167
+              /* "combo.pyx":168
  * 
  *                 if value > 0:
  *                     min_pos = value             # <<<<<<<<<<<<<<
@@ -6616,7 +6616,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_min_pos = __pyx_v_value;
 
-              /* "combo.pyx":168
+              /* "combo.pyx":169
  *                 if value > 0:
  *                     min_pos = value
  *                     min_pos_index = index             # <<<<<<<<<<<<<<
@@ -6625,7 +6625,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_min_pos_index = __pyx_v_index;
 
-              /* "combo.pyx":169
+              /* "combo.pyx":170
  *                     min_pos = value
  *                     min_pos_index = index
  *                     break             # <<<<<<<<<<<<<<
@@ -6637,7 +6637,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
           }
           __pyx_L15_break:;
 
-          /* "combo.pyx":172
+          /* "combo.pyx":173
  * 
  *             # Loop until the end
  *             for index in range(index+1, length):             # <<<<<<<<<<<<<<
@@ -6648,7 +6648,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
           for (__pyx_t_6 = (__pyx_v_index + 1); __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
             __pyx_v_index = __pyx_t_6;
 
-            /* "combo.pyx":173
+            /* "combo.pyx":174
  *             # Loop until the end
  *             for index in range(index+1, length):
  *                 value = data[index]             # <<<<<<<<<<<<<<
@@ -6656,9 +6656,9 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *                     maximum = value
  */
             __pyx_t_9 = __pyx_v_index;
-            __pyx_v_value = (*((signed short *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_9 * __pyx_v_data.strides[0]) )));
+            __pyx_v_value = (*((signed short *) ( /* dim=0 */ ((char *) (((signed short *) __pyx_v_data.data) + __pyx_t_9)) )));
 
-            /* "combo.pyx":174
+            /* "combo.pyx":175
  *             for index in range(index+1, length):
  *                 value = data[index]
  *                 if value > maximum:             # <<<<<<<<<<<<<<
@@ -6668,7 +6668,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value > __pyx_v_maximum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":175
+              /* "combo.pyx":176
  *                 value = data[index]
  *                 if value > maximum:
  *                     maximum = value             # <<<<<<<<<<<<<<
@@ -6677,7 +6677,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_maximum = __pyx_v_value;
 
-              /* "combo.pyx":176
+              /* "combo.pyx":177
  *                 if value > maximum:
  *                     maximum = value
  *                     max_index = index             # <<<<<<<<<<<<<<
@@ -6689,7 +6689,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             }
             /*else*/ {
 
-              /* "combo.pyx":178
+              /* "combo.pyx":179
  *                     max_index = index
  *                 else:
  *                     if value < minimum:             # <<<<<<<<<<<<<<
@@ -6699,7 +6699,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
               __pyx_t_3 = ((__pyx_v_value < __pyx_v_minimum) != 0);
               if (__pyx_t_3) {
 
-                /* "combo.pyx":179
+                /* "combo.pyx":180
  *                 else:
  *                     if value < minimum:
  *                         minimum = value             # <<<<<<<<<<<<<<
@@ -6708,7 +6708,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
                 __pyx_v_minimum = __pyx_v_value;
 
-                /* "combo.pyx":180
+                /* "combo.pyx":181
  *                     if value < minimum:
  *                         minimum = value
  *                         min_index = index             # <<<<<<<<<<<<<<
@@ -6720,7 +6720,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
               }
               __pyx_L21:;
 
-              /* "combo.pyx":182
+              /* "combo.pyx":183
  *                         min_index = index
  * 
  *                     if value > 0 and value < min_pos:             # <<<<<<<<<<<<<<
@@ -6738,7 +6738,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
               __pyx_L23_bool_binop_done:;
               if (__pyx_t_3) {
 
-                /* "combo.pyx":183
+                /* "combo.pyx":184
  * 
  *                     if value > 0 and value < min_pos:
  *                         min_pos = value             # <<<<<<<<<<<<<<
@@ -6747,7 +6747,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
                 __pyx_v_min_pos = __pyx_v_value;
 
-                /* "combo.pyx":184
+                /* "combo.pyx":185
  *                     if value > 0 and value < min_pos:
  *                         min_pos = value
  *                         min_pos_index = index             # <<<<<<<<<<<<<<
@@ -6765,7 +6765,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         __pyx_L10:;
       }
 
-      /* "combo.pyx":124
+      /* "combo.pyx":125
  *         raise ValueError('Zero-size array')
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -6783,7 +6783,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
       }
   }
 
-  /* "combo.pyx":186
+  /* "combo.pyx":187
  *                         min_pos_index = index
  * 
  *     return _MinMaxResult(minimum,             # <<<<<<<<<<<<<<
@@ -6791,12 +6791,12 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *                          maximum,
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_MinMaxResult); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_MinMaxResult); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_10);
-  __pyx_t_11 = __Pyx_PyInt_From_signed__short(__pyx_v_minimum); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_11 = __Pyx_PyInt_From_signed__short(__pyx_v_minimum); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_11);
 
-  /* "combo.pyx":187
+  /* "combo.pyx":188
  * 
  *     return _MinMaxResult(minimum,
  *                          min_pos if min_pos > 0 else None,             # <<<<<<<<<<<<<<
@@ -6804,7 +6804,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *                          min_index,
  */
   if (((__pyx_v_min_pos > 0) != 0)) {
-    __pyx_t_13 = __Pyx_PyInt_From_long(__pyx_v_min_pos); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_13 = __Pyx_PyInt_From_long(__pyx_v_min_pos); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 188; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_13);
     __pyx_t_12 = __pyx_t_13;
     __pyx_t_13 = 0;
@@ -6813,27 +6813,27 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
     __pyx_t_12 = Py_None;
   }
 
-  /* "combo.pyx":188
+  /* "combo.pyx":189
  *     return _MinMaxResult(minimum,
  *                          min_pos if min_pos > 0 else None,
  *                          maximum,             # <<<<<<<<<<<<<<
  *                          min_index,
  *                          min_pos_index if min_pos > 0 else None,
  */
-  __pyx_t_13 = __Pyx_PyInt_From_signed__short(__pyx_v_maximum); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 188; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_13 = __Pyx_PyInt_From_signed__short(__pyx_v_maximum); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 189; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_13);
 
-  /* "combo.pyx":189
+  /* "combo.pyx":190
  *                          min_pos if min_pos > 0 else None,
  *                          maximum,
  *                          min_index,             # <<<<<<<<<<<<<<
  *                          min_pos_index if min_pos > 0 else None,
  *                          max_index)
  */
-  __pyx_t_14 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_index); if (unlikely(!__pyx_t_14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 189; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_14 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_index); if (unlikely(!__pyx_t_14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_14);
 
-  /* "combo.pyx":190
+  /* "combo.pyx":191
  *                          maximum,
  *                          min_index,
  *                          min_pos_index if min_pos > 0 else None,             # <<<<<<<<<<<<<<
@@ -6841,7 +6841,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  * 
  */
   if (((__pyx_v_min_pos > 0) != 0)) {
-    __pyx_t_16 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_pos_index); if (unlikely(!__pyx_t_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_16 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_pos_index); if (unlikely(!__pyx_t_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 191; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_16);
     __pyx_t_15 = __pyx_t_16;
     __pyx_t_16 = 0;
@@ -6850,14 +6850,14 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
     __pyx_t_15 = Py_None;
   }
 
-  /* "combo.pyx":191
+  /* "combo.pyx":192
  *                          min_index,
  *                          min_pos_index if min_pos > 0 else None,
  *                          max_index)             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_t_16 = __Pyx_PyInt_From_unsigned_int(__pyx_v_max_index); if (unlikely(!__pyx_t_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 191; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_16 = __Pyx_PyInt_From_unsigned_int(__pyx_v_max_index); if (unlikely(!__pyx_t_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 192; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_16);
   __pyx_t_17 = NULL;
   __pyx_t_18 = 0;
@@ -6871,7 +6871,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
       __pyx_t_18 = 1;
     }
   }
-  __pyx_t_19 = PyTuple_New(6+__pyx_t_18); if (unlikely(!__pyx_t_19)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_19 = PyTuple_New(6+__pyx_t_18); if (unlikely(!__pyx_t_19)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_19);
   if (__pyx_t_17) {
     PyTuple_SET_ITEM(__pyx_t_19, 0, __pyx_t_17); __Pyx_GIVEREF(__pyx_t_17); __pyx_t_17 = NULL;
@@ -6894,7 +6894,7 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
   __pyx_t_14 = 0;
   __pyx_t_15 = 0;
   __pyx_t_16 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_19, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_19, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_19); __pyx_t_19 = 0;
   __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
@@ -6902,10 +6902,10 @@ static PyObject *__pyx_pf_5combo_10_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "combo.pyx":109
+  /* "combo.pyx":110
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
- * def _min_max(_number[:] data, bint min_positive=False):             # <<<<<<<<<<<<<<
+ * def _min_max(_number[::1] data, bint min_positive=False):             # <<<<<<<<<<<<<<
  *     """See :func:`min_max` for documentation."""
  *     cdef:
  */
@@ -6941,14 +6941,14 @@ static PyObject *__pyx_pf_5combo_54__defaults__(CYTHON_UNUSED PyObject *__pyx_se
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__defaults__", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong(__Pyx_CyFunction_Defaults(__pyx_defaults14, __pyx_self)->__pyx_arg_min_positive); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyBool_FromLong(__Pyx_CyFunction_Defaults(__pyx_defaults14, __pyx_self)->__pyx_arg_min_positive); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_2);
@@ -7009,7 +7009,7 @@ static PyObject *__pyx_fuse_4__pyx_pw_5combo_13_min_max(PyObject *__pyx_self, Py
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_min_max") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_min_max") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -7019,16 +7019,16 @@ static PyObject *__pyx_fuse_4__pyx_pw_5combo_13_min_max(PyObject *__pyx_self, Py
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_data = __Pyx_PyObject_to_MemoryviewSlice_ds_signed_int(values[0]); if (unlikely(!__pyx_v_data.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+    __pyx_v_data = __Pyx_PyObject_to_MemoryviewSlice_dc_signed_int(values[0]); if (unlikely(!__pyx_v_data.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
     if (values[1]) {
-      __pyx_v_min_positive = __Pyx_PyObject_IsTrue(values[1]); if (unlikely((__pyx_v_min_positive == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+      __pyx_v_min_positive = __Pyx_PyObject_IsTrue(values[1]); if (unlikely((__pyx_v_min_positive == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
     } else {
       __pyx_v_min_positive = __pyx_dynamic_args->__pyx_arg_min_positive;
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("_min_max", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("_min_max", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("combo._min_max", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -7077,7 +7077,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__pyx_fuse_4_min_max", 0);
 
-  /* "combo.pyx":114
+  /* "combo.pyx":115
  *         _number value, minimum, minpos, maximum
  *         unsigned int length
  *         unsigned int index = 0             # <<<<<<<<<<<<<<
@@ -7086,7 +7086,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
   __pyx_v_index = 0;
 
-  /* "combo.pyx":115
+  /* "combo.pyx":116
  *         unsigned int length
  *         unsigned int index = 0
  *         unsigned int min_index = 0             # <<<<<<<<<<<<<<
@@ -7095,7 +7095,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
   __pyx_v_min_index = 0;
 
-  /* "combo.pyx":116
+  /* "combo.pyx":117
  *         unsigned int index = 0
  *         unsigned int min_index = 0
  *         unsigned int min_pos_index = 0             # <<<<<<<<<<<<<<
@@ -7104,7 +7104,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
   __pyx_v_min_pos_index = 0;
 
-  /* "combo.pyx":117
+  /* "combo.pyx":118
  *         unsigned int min_index = 0
  *         unsigned int min_pos_index = 0
  *         unsigned int max_index = 0             # <<<<<<<<<<<<<<
@@ -7113,20 +7113,20 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
   __pyx_v_max_index = 0;
 
-  /* "combo.pyx":119
+  /* "combo.pyx":120
  *         unsigned int max_index = 0
  * 
  *     length = len(data)             # <<<<<<<<<<<<<<
  * 
  *     if length == 0:
  */
-  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_v_data, 1, (PyObject *(*)(char *)) __pyx_memview_get_signed_int, (int (*)(char *, PyObject *)) __pyx_memview_set_signed_int, 0);; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_v_data, 1, (PyObject *(*)(char *)) __pyx_memview_get_signed_int, (int (*)(char *, PyObject *)) __pyx_memview_set_signed_int, 0);; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 120; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyObject_Length(__pyx_t_1); if (unlikely(__pyx_t_2 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyObject_Length(__pyx_t_1); if (unlikely(__pyx_t_2 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 120; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_length = __pyx_t_2;
 
-  /* "combo.pyx":121
+  /* "combo.pyx":122
  *     length = len(data)
  * 
  *     if length == 0:             # <<<<<<<<<<<<<<
@@ -7136,21 +7136,21 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
   __pyx_t_3 = ((__pyx_v_length == 0) != 0);
   if (__pyx_t_3) {
 
-    /* "combo.pyx":122
+    /* "combo.pyx":123
  * 
  *     if length == 0:
  *         raise ValueError('Zero-size array')             # <<<<<<<<<<<<<<
  * 
  *     with nogil:
  */
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__13, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__13, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "combo.pyx":124
+  /* "combo.pyx":125
  *         raise ValueError('Zero-size array')
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -7164,7 +7164,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
       #endif
       /*try:*/ {
 
-        /* "combo.pyx":126
+        /* "combo.pyx":127
  *     with nogil:
  *         # Init starting values
  *         value = data[0]             # <<<<<<<<<<<<<<
@@ -7172,9 +7172,9 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *         maximum = value
  */
         __pyx_t_2 = 0;
-        __pyx_v_value = (*((signed int *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_2 * __pyx_v_data.strides[0]) )));
+        __pyx_v_value = (*((signed int *) ( /* dim=0 */ ((char *) (((signed int *) __pyx_v_data.data) + __pyx_t_2)) )));
 
-        /* "combo.pyx":127
+        /* "combo.pyx":128
  *         # Init starting values
  *         value = data[0]
  *         minimum = value             # <<<<<<<<<<<<<<
@@ -7183,7 +7183,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
         __pyx_v_minimum = __pyx_v_value;
 
-        /* "combo.pyx":128
+        /* "combo.pyx":129
  *         value = data[0]
  *         minimum = value
  *         maximum = value             # <<<<<<<<<<<<<<
@@ -7192,7 +7192,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
         __pyx_v_maximum = __pyx_v_value;
 
-        /* "combo.pyx":129
+        /* "combo.pyx":130
  *         minimum = value
  *         maximum = value
  *         if min_positive and value > 0:             # <<<<<<<<<<<<<<
@@ -7210,7 +7210,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         __pyx_L8_bool_binop_done:;
         if (__pyx_t_3) {
 
-          /* "combo.pyx":130
+          /* "combo.pyx":131
  *         maximum = value
  *         if min_positive and value > 0:
  *             min_pos = value             # <<<<<<<<<<<<<<
@@ -7222,7 +7222,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         }
         /*else*/ {
 
-          /* "combo.pyx":132
+          /* "combo.pyx":133
  *             min_pos = value
  *         else:
  *             min_pos = 0             # <<<<<<<<<<<<<<
@@ -7233,7 +7233,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         }
         __pyx_L7:;
 
-        /* "combo.pyx":145
+        /* "combo.pyx":146
  *                     break
  * 
  *         if not min_positive:             # <<<<<<<<<<<<<<
@@ -7243,7 +7243,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         __pyx_t_3 = ((!(__pyx_v_min_positive != 0)) != 0);
         if (__pyx_t_3) {
 
-          /* "combo.pyx":146
+          /* "combo.pyx":147
  * 
  *         if not min_positive:
  *             for index in range(index, length):             # <<<<<<<<<<<<<<
@@ -7254,7 +7254,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
           for (__pyx_t_6 = __pyx_v_index; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
             __pyx_v_index = __pyx_t_6;
 
-            /* "combo.pyx":147
+            /* "combo.pyx":148
  *         if not min_positive:
  *             for index in range(index, length):
  *                 value = data[index]             # <<<<<<<<<<<<<<
@@ -7262,9 +7262,9 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *                     maximum = value
  */
             __pyx_t_7 = __pyx_v_index;
-            __pyx_v_value = (*((signed int *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_7 * __pyx_v_data.strides[0]) )));
+            __pyx_v_value = (*((signed int *) ( /* dim=0 */ ((char *) (((signed int *) __pyx_v_data.data) + __pyx_t_7)) )));
 
-            /* "combo.pyx":148
+            /* "combo.pyx":149
  *             for index in range(index, length):
  *                 value = data[index]
  *                 if value > maximum:             # <<<<<<<<<<<<<<
@@ -7274,7 +7274,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value > __pyx_v_maximum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":149
+              /* "combo.pyx":150
  *                 value = data[index]
  *                 if value > maximum:
  *                     maximum = value             # <<<<<<<<<<<<<<
@@ -7283,7 +7283,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_maximum = __pyx_v_value;
 
-              /* "combo.pyx":150
+              /* "combo.pyx":151
  *                 if value > maximum:
  *                     maximum = value
  *                     max_index = index             # <<<<<<<<<<<<<<
@@ -7294,7 +7294,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
               goto __pyx_L13;
             }
 
-            /* "combo.pyx":151
+            /* "combo.pyx":152
  *                     maximum = value
  *                     max_index = index
  *                 elif value < minimum:             # <<<<<<<<<<<<<<
@@ -7304,7 +7304,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value < __pyx_v_minimum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":152
+              /* "combo.pyx":153
  *                     max_index = index
  *                 elif value < minimum:
  *                     minimum = value             # <<<<<<<<<<<<<<
@@ -7313,7 +7313,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_minimum = __pyx_v_value;
 
-              /* "combo.pyx":153
+              /* "combo.pyx":154
  *                 elif value < minimum:
  *                     minimum = value
  *                     min_index = index             # <<<<<<<<<<<<<<
@@ -7329,7 +7329,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         }
         /*else*/ {
 
-          /* "combo.pyx":157
+          /* "combo.pyx":158
  *         else:
  *             # Loop until min_pos is defined
  *             for index in range(index, length):             # <<<<<<<<<<<<<<
@@ -7340,7 +7340,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
           for (__pyx_t_6 = __pyx_v_index; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
             __pyx_v_index = __pyx_t_6;
 
-            /* "combo.pyx":158
+            /* "combo.pyx":159
  *             # Loop until min_pos is defined
  *             for index in range(index, length):
  *                 value = data[index]             # <<<<<<<<<<<<<<
@@ -7348,9 +7348,9 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *                     maximum = value
  */
             __pyx_t_8 = __pyx_v_index;
-            __pyx_v_value = (*((signed int *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_8 * __pyx_v_data.strides[0]) )));
+            __pyx_v_value = (*((signed int *) ( /* dim=0 */ ((char *) (((signed int *) __pyx_v_data.data) + __pyx_t_8)) )));
 
-            /* "combo.pyx":159
+            /* "combo.pyx":160
  *             for index in range(index, length):
  *                 value = data[index]
  *                 if value > maximum:             # <<<<<<<<<<<<<<
@@ -7360,7 +7360,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value > __pyx_v_maximum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":160
+              /* "combo.pyx":161
  *                 value = data[index]
  *                 if value > maximum:
  *                     maximum = value             # <<<<<<<<<<<<<<
@@ -7369,7 +7369,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_maximum = __pyx_v_value;
 
-              /* "combo.pyx":161
+              /* "combo.pyx":162
  *                 if value > maximum:
  *                     maximum = value
  *                     max_index = index             # <<<<<<<<<<<<<<
@@ -7380,7 +7380,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
               goto __pyx_L16;
             }
 
-            /* "combo.pyx":162
+            /* "combo.pyx":163
  *                     maximum = value
  *                     max_index = index
  *                 elif value < minimum:             # <<<<<<<<<<<<<<
@@ -7390,7 +7390,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value < __pyx_v_minimum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":163
+              /* "combo.pyx":164
  *                     max_index = index
  *                 elif value < minimum:
  *                     minimum = value             # <<<<<<<<<<<<<<
@@ -7399,7 +7399,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_minimum = __pyx_v_value;
 
-              /* "combo.pyx":164
+              /* "combo.pyx":165
  *                 elif value < minimum:
  *                     minimum = value
  *                     min_index = index             # <<<<<<<<<<<<<<
@@ -7411,7 +7411,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             }
             __pyx_L16:;
 
-            /* "combo.pyx":166
+            /* "combo.pyx":167
  *                     min_index = index
  * 
  *                 if value > 0:             # <<<<<<<<<<<<<<
@@ -7421,7 +7421,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value > 0) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":167
+              /* "combo.pyx":168
  * 
  *                 if value > 0:
  *                     min_pos = value             # <<<<<<<<<<<<<<
@@ -7430,7 +7430,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_min_pos = __pyx_v_value;
 
-              /* "combo.pyx":168
+              /* "combo.pyx":169
  *                 if value > 0:
  *                     min_pos = value
  *                     min_pos_index = index             # <<<<<<<<<<<<<<
@@ -7439,7 +7439,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_min_pos_index = __pyx_v_index;
 
-              /* "combo.pyx":169
+              /* "combo.pyx":170
  *                     min_pos = value
  *                     min_pos_index = index
  *                     break             # <<<<<<<<<<<<<<
@@ -7451,7 +7451,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
           }
           __pyx_L15_break:;
 
-          /* "combo.pyx":172
+          /* "combo.pyx":173
  * 
  *             # Loop until the end
  *             for index in range(index+1, length):             # <<<<<<<<<<<<<<
@@ -7462,7 +7462,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
           for (__pyx_t_6 = (__pyx_v_index + 1); __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
             __pyx_v_index = __pyx_t_6;
 
-            /* "combo.pyx":173
+            /* "combo.pyx":174
  *             # Loop until the end
  *             for index in range(index+1, length):
  *                 value = data[index]             # <<<<<<<<<<<<<<
@@ -7470,9 +7470,9 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *                     maximum = value
  */
             __pyx_t_9 = __pyx_v_index;
-            __pyx_v_value = (*((signed int *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_9 * __pyx_v_data.strides[0]) )));
+            __pyx_v_value = (*((signed int *) ( /* dim=0 */ ((char *) (((signed int *) __pyx_v_data.data) + __pyx_t_9)) )));
 
-            /* "combo.pyx":174
+            /* "combo.pyx":175
  *             for index in range(index+1, length):
  *                 value = data[index]
  *                 if value > maximum:             # <<<<<<<<<<<<<<
@@ -7482,7 +7482,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value > __pyx_v_maximum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":175
+              /* "combo.pyx":176
  *                 value = data[index]
  *                 if value > maximum:
  *                     maximum = value             # <<<<<<<<<<<<<<
@@ -7491,7 +7491,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_maximum = __pyx_v_value;
 
-              /* "combo.pyx":176
+              /* "combo.pyx":177
  *                 if value > maximum:
  *                     maximum = value
  *                     max_index = index             # <<<<<<<<<<<<<<
@@ -7503,7 +7503,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             }
             /*else*/ {
 
-              /* "combo.pyx":178
+              /* "combo.pyx":179
  *                     max_index = index
  *                 else:
  *                     if value < minimum:             # <<<<<<<<<<<<<<
@@ -7513,7 +7513,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
               __pyx_t_3 = ((__pyx_v_value < __pyx_v_minimum) != 0);
               if (__pyx_t_3) {
 
-                /* "combo.pyx":179
+                /* "combo.pyx":180
  *                 else:
  *                     if value < minimum:
  *                         minimum = value             # <<<<<<<<<<<<<<
@@ -7522,7 +7522,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
                 __pyx_v_minimum = __pyx_v_value;
 
-                /* "combo.pyx":180
+                /* "combo.pyx":181
  *                     if value < minimum:
  *                         minimum = value
  *                         min_index = index             # <<<<<<<<<<<<<<
@@ -7534,7 +7534,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
               }
               __pyx_L21:;
 
-              /* "combo.pyx":182
+              /* "combo.pyx":183
  *                         min_index = index
  * 
  *                     if value > 0 and value < min_pos:             # <<<<<<<<<<<<<<
@@ -7552,7 +7552,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
               __pyx_L23_bool_binop_done:;
               if (__pyx_t_3) {
 
-                /* "combo.pyx":183
+                /* "combo.pyx":184
  * 
  *                     if value > 0 and value < min_pos:
  *                         min_pos = value             # <<<<<<<<<<<<<<
@@ -7561,7 +7561,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
                 __pyx_v_min_pos = __pyx_v_value;
 
-                /* "combo.pyx":184
+                /* "combo.pyx":185
  *                     if value > 0 and value < min_pos:
  *                         min_pos = value
  *                         min_pos_index = index             # <<<<<<<<<<<<<<
@@ -7579,7 +7579,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         __pyx_L10:;
       }
 
-      /* "combo.pyx":124
+      /* "combo.pyx":125
  *         raise ValueError('Zero-size array')
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -7597,7 +7597,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
       }
   }
 
-  /* "combo.pyx":186
+  /* "combo.pyx":187
  *                         min_pos_index = index
  * 
  *     return _MinMaxResult(minimum,             # <<<<<<<<<<<<<<
@@ -7605,12 +7605,12 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *                          maximum,
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_MinMaxResult); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_MinMaxResult); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_10);
-  __pyx_t_11 = __Pyx_PyInt_From_signed__int(__pyx_v_minimum); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_11 = __Pyx_PyInt_From_signed__int(__pyx_v_minimum); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_11);
 
-  /* "combo.pyx":187
+  /* "combo.pyx":188
  * 
  *     return _MinMaxResult(minimum,
  *                          min_pos if min_pos > 0 else None,             # <<<<<<<<<<<<<<
@@ -7618,7 +7618,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *                          min_index,
  */
   if (((__pyx_v_min_pos > 0) != 0)) {
-    __pyx_t_13 = __Pyx_PyInt_From_long(__pyx_v_min_pos); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_13 = __Pyx_PyInt_From_long(__pyx_v_min_pos); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 188; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_13);
     __pyx_t_12 = __pyx_t_13;
     __pyx_t_13 = 0;
@@ -7627,27 +7627,27 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
     __pyx_t_12 = Py_None;
   }
 
-  /* "combo.pyx":188
+  /* "combo.pyx":189
  *     return _MinMaxResult(minimum,
  *                          min_pos if min_pos > 0 else None,
  *                          maximum,             # <<<<<<<<<<<<<<
  *                          min_index,
  *                          min_pos_index if min_pos > 0 else None,
  */
-  __pyx_t_13 = __Pyx_PyInt_From_signed__int(__pyx_v_maximum); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 188; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_13 = __Pyx_PyInt_From_signed__int(__pyx_v_maximum); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 189; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_13);
 
-  /* "combo.pyx":189
+  /* "combo.pyx":190
  *                          min_pos if min_pos > 0 else None,
  *                          maximum,
  *                          min_index,             # <<<<<<<<<<<<<<
  *                          min_pos_index if min_pos > 0 else None,
  *                          max_index)
  */
-  __pyx_t_14 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_index); if (unlikely(!__pyx_t_14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 189; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_14 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_index); if (unlikely(!__pyx_t_14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_14);
 
-  /* "combo.pyx":190
+  /* "combo.pyx":191
  *                          maximum,
  *                          min_index,
  *                          min_pos_index if min_pos > 0 else None,             # <<<<<<<<<<<<<<
@@ -7655,7 +7655,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  * 
  */
   if (((__pyx_v_min_pos > 0) != 0)) {
-    __pyx_t_16 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_pos_index); if (unlikely(!__pyx_t_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_16 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_pos_index); if (unlikely(!__pyx_t_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 191; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_16);
     __pyx_t_15 = __pyx_t_16;
     __pyx_t_16 = 0;
@@ -7664,14 +7664,14 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
     __pyx_t_15 = Py_None;
   }
 
-  /* "combo.pyx":191
+  /* "combo.pyx":192
  *                          min_index,
  *                          min_pos_index if min_pos > 0 else None,
  *                          max_index)             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_t_16 = __Pyx_PyInt_From_unsigned_int(__pyx_v_max_index); if (unlikely(!__pyx_t_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 191; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_16 = __Pyx_PyInt_From_unsigned_int(__pyx_v_max_index); if (unlikely(!__pyx_t_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 192; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_16);
   __pyx_t_17 = NULL;
   __pyx_t_18 = 0;
@@ -7685,7 +7685,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
       __pyx_t_18 = 1;
     }
   }
-  __pyx_t_19 = PyTuple_New(6+__pyx_t_18); if (unlikely(!__pyx_t_19)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_19 = PyTuple_New(6+__pyx_t_18); if (unlikely(!__pyx_t_19)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_19);
   if (__pyx_t_17) {
     PyTuple_SET_ITEM(__pyx_t_19, 0, __pyx_t_17); __Pyx_GIVEREF(__pyx_t_17); __pyx_t_17 = NULL;
@@ -7708,7 +7708,7 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
   __pyx_t_14 = 0;
   __pyx_t_15 = 0;
   __pyx_t_16 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_19, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_19, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_19); __pyx_t_19 = 0;
   __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
@@ -7716,10 +7716,10 @@ static PyObject *__pyx_pf_5combo_12_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "combo.pyx":109
+  /* "combo.pyx":110
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
- * def _min_max(_number[:] data, bint min_positive=False):             # <<<<<<<<<<<<<<
+ * def _min_max(_number[::1] data, bint min_positive=False):             # <<<<<<<<<<<<<<
  *     """See :func:`min_max` for documentation."""
  *     cdef:
  */
@@ -7755,14 +7755,14 @@ static PyObject *__pyx_pf_5combo_56__defaults__(CYTHON_UNUSED PyObject *__pyx_se
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__defaults__", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong(__Pyx_CyFunction_Defaults(__pyx_defaults15, __pyx_self)->__pyx_arg_min_positive); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyBool_FromLong(__Pyx_CyFunction_Defaults(__pyx_defaults15, __pyx_self)->__pyx_arg_min_positive); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_2);
@@ -7823,7 +7823,7 @@ static PyObject *__pyx_fuse_5__pyx_pw_5combo_15_min_max(PyObject *__pyx_self, Py
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_min_max") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_min_max") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -7833,16 +7833,16 @@ static PyObject *__pyx_fuse_5__pyx_pw_5combo_15_min_max(PyObject *__pyx_self, Py
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_data = __Pyx_PyObject_to_MemoryviewSlice_ds_signed_long(values[0]); if (unlikely(!__pyx_v_data.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+    __pyx_v_data = __Pyx_PyObject_to_MemoryviewSlice_dc_signed_long(values[0]); if (unlikely(!__pyx_v_data.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
     if (values[1]) {
-      __pyx_v_min_positive = __Pyx_PyObject_IsTrue(values[1]); if (unlikely((__pyx_v_min_positive == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+      __pyx_v_min_positive = __Pyx_PyObject_IsTrue(values[1]); if (unlikely((__pyx_v_min_positive == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
     } else {
       __pyx_v_min_positive = __pyx_dynamic_args->__pyx_arg_min_positive;
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("_min_max", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("_min_max", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("combo._min_max", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -7891,7 +7891,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__pyx_fuse_5_min_max", 0);
 
-  /* "combo.pyx":114
+  /* "combo.pyx":115
  *         _number value, minimum, minpos, maximum
  *         unsigned int length
  *         unsigned int index = 0             # <<<<<<<<<<<<<<
@@ -7900,7 +7900,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
   __pyx_v_index = 0;
 
-  /* "combo.pyx":115
+  /* "combo.pyx":116
  *         unsigned int length
  *         unsigned int index = 0
  *         unsigned int min_index = 0             # <<<<<<<<<<<<<<
@@ -7909,7 +7909,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
   __pyx_v_min_index = 0;
 
-  /* "combo.pyx":116
+  /* "combo.pyx":117
  *         unsigned int index = 0
  *         unsigned int min_index = 0
  *         unsigned int min_pos_index = 0             # <<<<<<<<<<<<<<
@@ -7918,7 +7918,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
   __pyx_v_min_pos_index = 0;
 
-  /* "combo.pyx":117
+  /* "combo.pyx":118
  *         unsigned int min_index = 0
  *         unsigned int min_pos_index = 0
  *         unsigned int max_index = 0             # <<<<<<<<<<<<<<
@@ -7927,20 +7927,20 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
   __pyx_v_max_index = 0;
 
-  /* "combo.pyx":119
+  /* "combo.pyx":120
  *         unsigned int max_index = 0
  * 
  *     length = len(data)             # <<<<<<<<<<<<<<
  * 
  *     if length == 0:
  */
-  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_v_data, 1, (PyObject *(*)(char *)) __pyx_memview_get_signed_long, (int (*)(char *, PyObject *)) __pyx_memview_set_signed_long, 0);; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_v_data, 1, (PyObject *(*)(char *)) __pyx_memview_get_signed_long, (int (*)(char *, PyObject *)) __pyx_memview_set_signed_long, 0);; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 120; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyObject_Length(__pyx_t_1); if (unlikely(__pyx_t_2 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyObject_Length(__pyx_t_1); if (unlikely(__pyx_t_2 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 120; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_length = __pyx_t_2;
 
-  /* "combo.pyx":121
+  /* "combo.pyx":122
  *     length = len(data)
  * 
  *     if length == 0:             # <<<<<<<<<<<<<<
@@ -7950,21 +7950,21 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
   __pyx_t_3 = ((__pyx_v_length == 0) != 0);
   if (__pyx_t_3) {
 
-    /* "combo.pyx":122
+    /* "combo.pyx":123
  * 
  *     if length == 0:
  *         raise ValueError('Zero-size array')             # <<<<<<<<<<<<<<
  * 
  *     with nogil:
  */
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__14, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__14, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "combo.pyx":124
+  /* "combo.pyx":125
  *         raise ValueError('Zero-size array')
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -7978,7 +7978,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
       #endif
       /*try:*/ {
 
-        /* "combo.pyx":126
+        /* "combo.pyx":127
  *     with nogil:
  *         # Init starting values
  *         value = data[0]             # <<<<<<<<<<<<<<
@@ -7986,9 +7986,9 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *         maximum = value
  */
         __pyx_t_2 = 0;
-        __pyx_v_value = (*((signed long *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_2 * __pyx_v_data.strides[0]) )));
+        __pyx_v_value = (*((signed long *) ( /* dim=0 */ ((char *) (((signed long *) __pyx_v_data.data) + __pyx_t_2)) )));
 
-        /* "combo.pyx":127
+        /* "combo.pyx":128
  *         # Init starting values
  *         value = data[0]
  *         minimum = value             # <<<<<<<<<<<<<<
@@ -7997,7 +7997,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
         __pyx_v_minimum = __pyx_v_value;
 
-        /* "combo.pyx":128
+        /* "combo.pyx":129
  *         value = data[0]
  *         minimum = value
  *         maximum = value             # <<<<<<<<<<<<<<
@@ -8006,7 +8006,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
         __pyx_v_maximum = __pyx_v_value;
 
-        /* "combo.pyx":129
+        /* "combo.pyx":130
  *         minimum = value
  *         maximum = value
  *         if min_positive and value > 0:             # <<<<<<<<<<<<<<
@@ -8024,7 +8024,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         __pyx_L8_bool_binop_done:;
         if (__pyx_t_3) {
 
-          /* "combo.pyx":130
+          /* "combo.pyx":131
  *         maximum = value
  *         if min_positive and value > 0:
  *             min_pos = value             # <<<<<<<<<<<<<<
@@ -8036,7 +8036,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         }
         /*else*/ {
 
-          /* "combo.pyx":132
+          /* "combo.pyx":133
  *             min_pos = value
  *         else:
  *             min_pos = 0             # <<<<<<<<<<<<<<
@@ -8047,7 +8047,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         }
         __pyx_L7:;
 
-        /* "combo.pyx":145
+        /* "combo.pyx":146
  *                     break
  * 
  *         if not min_positive:             # <<<<<<<<<<<<<<
@@ -8057,7 +8057,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         __pyx_t_3 = ((!(__pyx_v_min_positive != 0)) != 0);
         if (__pyx_t_3) {
 
-          /* "combo.pyx":146
+          /* "combo.pyx":147
  * 
  *         if not min_positive:
  *             for index in range(index, length):             # <<<<<<<<<<<<<<
@@ -8068,7 +8068,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
           for (__pyx_t_6 = __pyx_v_index; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
             __pyx_v_index = __pyx_t_6;
 
-            /* "combo.pyx":147
+            /* "combo.pyx":148
  *         if not min_positive:
  *             for index in range(index, length):
  *                 value = data[index]             # <<<<<<<<<<<<<<
@@ -8076,9 +8076,9 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *                     maximum = value
  */
             __pyx_t_7 = __pyx_v_index;
-            __pyx_v_value = (*((signed long *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_7 * __pyx_v_data.strides[0]) )));
+            __pyx_v_value = (*((signed long *) ( /* dim=0 */ ((char *) (((signed long *) __pyx_v_data.data) + __pyx_t_7)) )));
 
-            /* "combo.pyx":148
+            /* "combo.pyx":149
  *             for index in range(index, length):
  *                 value = data[index]
  *                 if value > maximum:             # <<<<<<<<<<<<<<
@@ -8088,7 +8088,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value > __pyx_v_maximum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":149
+              /* "combo.pyx":150
  *                 value = data[index]
  *                 if value > maximum:
  *                     maximum = value             # <<<<<<<<<<<<<<
@@ -8097,7 +8097,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_maximum = __pyx_v_value;
 
-              /* "combo.pyx":150
+              /* "combo.pyx":151
  *                 if value > maximum:
  *                     maximum = value
  *                     max_index = index             # <<<<<<<<<<<<<<
@@ -8108,7 +8108,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
               goto __pyx_L13;
             }
 
-            /* "combo.pyx":151
+            /* "combo.pyx":152
  *                     maximum = value
  *                     max_index = index
  *                 elif value < minimum:             # <<<<<<<<<<<<<<
@@ -8118,7 +8118,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value < __pyx_v_minimum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":152
+              /* "combo.pyx":153
  *                     max_index = index
  *                 elif value < minimum:
  *                     minimum = value             # <<<<<<<<<<<<<<
@@ -8127,7 +8127,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_minimum = __pyx_v_value;
 
-              /* "combo.pyx":153
+              /* "combo.pyx":154
  *                 elif value < minimum:
  *                     minimum = value
  *                     min_index = index             # <<<<<<<<<<<<<<
@@ -8143,7 +8143,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         }
         /*else*/ {
 
-          /* "combo.pyx":157
+          /* "combo.pyx":158
  *         else:
  *             # Loop until min_pos is defined
  *             for index in range(index, length):             # <<<<<<<<<<<<<<
@@ -8154,7 +8154,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
           for (__pyx_t_6 = __pyx_v_index; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
             __pyx_v_index = __pyx_t_6;
 
-            /* "combo.pyx":158
+            /* "combo.pyx":159
  *             # Loop until min_pos is defined
  *             for index in range(index, length):
  *                 value = data[index]             # <<<<<<<<<<<<<<
@@ -8162,9 +8162,9 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *                     maximum = value
  */
             __pyx_t_8 = __pyx_v_index;
-            __pyx_v_value = (*((signed long *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_8 * __pyx_v_data.strides[0]) )));
+            __pyx_v_value = (*((signed long *) ( /* dim=0 */ ((char *) (((signed long *) __pyx_v_data.data) + __pyx_t_8)) )));
 
-            /* "combo.pyx":159
+            /* "combo.pyx":160
  *             for index in range(index, length):
  *                 value = data[index]
  *                 if value > maximum:             # <<<<<<<<<<<<<<
@@ -8174,7 +8174,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value > __pyx_v_maximum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":160
+              /* "combo.pyx":161
  *                 value = data[index]
  *                 if value > maximum:
  *                     maximum = value             # <<<<<<<<<<<<<<
@@ -8183,7 +8183,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_maximum = __pyx_v_value;
 
-              /* "combo.pyx":161
+              /* "combo.pyx":162
  *                 if value > maximum:
  *                     maximum = value
  *                     max_index = index             # <<<<<<<<<<<<<<
@@ -8194,7 +8194,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
               goto __pyx_L16;
             }
 
-            /* "combo.pyx":162
+            /* "combo.pyx":163
  *                     maximum = value
  *                     max_index = index
  *                 elif value < minimum:             # <<<<<<<<<<<<<<
@@ -8204,7 +8204,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value < __pyx_v_minimum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":163
+              /* "combo.pyx":164
  *                     max_index = index
  *                 elif value < minimum:
  *                     minimum = value             # <<<<<<<<<<<<<<
@@ -8213,7 +8213,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_minimum = __pyx_v_value;
 
-              /* "combo.pyx":164
+              /* "combo.pyx":165
  *                 elif value < minimum:
  *                     minimum = value
  *                     min_index = index             # <<<<<<<<<<<<<<
@@ -8225,7 +8225,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             }
             __pyx_L16:;
 
-            /* "combo.pyx":166
+            /* "combo.pyx":167
  *                     min_index = index
  * 
  *                 if value > 0:             # <<<<<<<<<<<<<<
@@ -8235,7 +8235,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value > 0) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":167
+              /* "combo.pyx":168
  * 
  *                 if value > 0:
  *                     min_pos = value             # <<<<<<<<<<<<<<
@@ -8244,7 +8244,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_min_pos = __pyx_v_value;
 
-              /* "combo.pyx":168
+              /* "combo.pyx":169
  *                 if value > 0:
  *                     min_pos = value
  *                     min_pos_index = index             # <<<<<<<<<<<<<<
@@ -8253,7 +8253,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_min_pos_index = __pyx_v_index;
 
-              /* "combo.pyx":169
+              /* "combo.pyx":170
  *                     min_pos = value
  *                     min_pos_index = index
  *                     break             # <<<<<<<<<<<<<<
@@ -8265,7 +8265,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
           }
           __pyx_L15_break:;
 
-          /* "combo.pyx":172
+          /* "combo.pyx":173
  * 
  *             # Loop until the end
  *             for index in range(index+1, length):             # <<<<<<<<<<<<<<
@@ -8276,7 +8276,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
           for (__pyx_t_6 = (__pyx_v_index + 1); __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
             __pyx_v_index = __pyx_t_6;
 
-            /* "combo.pyx":173
+            /* "combo.pyx":174
  *             # Loop until the end
  *             for index in range(index+1, length):
  *                 value = data[index]             # <<<<<<<<<<<<<<
@@ -8284,9 +8284,9 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *                     maximum = value
  */
             __pyx_t_9 = __pyx_v_index;
-            __pyx_v_value = (*((signed long *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_9 * __pyx_v_data.strides[0]) )));
+            __pyx_v_value = (*((signed long *) ( /* dim=0 */ ((char *) (((signed long *) __pyx_v_data.data) + __pyx_t_9)) )));
 
-            /* "combo.pyx":174
+            /* "combo.pyx":175
  *             for index in range(index+1, length):
  *                 value = data[index]
  *                 if value > maximum:             # <<<<<<<<<<<<<<
@@ -8296,7 +8296,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value > __pyx_v_maximum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":175
+              /* "combo.pyx":176
  *                 value = data[index]
  *                 if value > maximum:
  *                     maximum = value             # <<<<<<<<<<<<<<
@@ -8305,7 +8305,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_maximum = __pyx_v_value;
 
-              /* "combo.pyx":176
+              /* "combo.pyx":177
  *                 if value > maximum:
  *                     maximum = value
  *                     max_index = index             # <<<<<<<<<<<<<<
@@ -8317,7 +8317,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             }
             /*else*/ {
 
-              /* "combo.pyx":178
+              /* "combo.pyx":179
  *                     max_index = index
  *                 else:
  *                     if value < minimum:             # <<<<<<<<<<<<<<
@@ -8327,7 +8327,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
               __pyx_t_3 = ((__pyx_v_value < __pyx_v_minimum) != 0);
               if (__pyx_t_3) {
 
-                /* "combo.pyx":179
+                /* "combo.pyx":180
  *                 else:
  *                     if value < minimum:
  *                         minimum = value             # <<<<<<<<<<<<<<
@@ -8336,7 +8336,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
                 __pyx_v_minimum = __pyx_v_value;
 
-                /* "combo.pyx":180
+                /* "combo.pyx":181
  *                     if value < minimum:
  *                         minimum = value
  *                         min_index = index             # <<<<<<<<<<<<<<
@@ -8348,7 +8348,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
               }
               __pyx_L21:;
 
-              /* "combo.pyx":182
+              /* "combo.pyx":183
  *                         min_index = index
  * 
  *                     if value > 0 and value < min_pos:             # <<<<<<<<<<<<<<
@@ -8366,7 +8366,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
               __pyx_L23_bool_binop_done:;
               if (__pyx_t_3) {
 
-                /* "combo.pyx":183
+                /* "combo.pyx":184
  * 
  *                     if value > 0 and value < min_pos:
  *                         min_pos = value             # <<<<<<<<<<<<<<
@@ -8375,7 +8375,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
                 __pyx_v_min_pos = __pyx_v_value;
 
-                /* "combo.pyx":184
+                /* "combo.pyx":185
  *                     if value > 0 and value < min_pos:
  *                         min_pos = value
  *                         min_pos_index = index             # <<<<<<<<<<<<<<
@@ -8393,7 +8393,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         __pyx_L10:;
       }
 
-      /* "combo.pyx":124
+      /* "combo.pyx":125
  *         raise ValueError('Zero-size array')
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -8411,7 +8411,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
       }
   }
 
-  /* "combo.pyx":186
+  /* "combo.pyx":187
  *                         min_pos_index = index
  * 
  *     return _MinMaxResult(minimum,             # <<<<<<<<<<<<<<
@@ -8419,12 +8419,12 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *                          maximum,
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_MinMaxResult); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_MinMaxResult); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_10);
-  __pyx_t_11 = __Pyx_PyInt_From_signed__long(__pyx_v_minimum); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_11 = __Pyx_PyInt_From_signed__long(__pyx_v_minimum); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_11);
 
-  /* "combo.pyx":187
+  /* "combo.pyx":188
  * 
  *     return _MinMaxResult(minimum,
  *                          min_pos if min_pos > 0 else None,             # <<<<<<<<<<<<<<
@@ -8432,7 +8432,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *                          min_index,
  */
   if (((__pyx_v_min_pos > 0) != 0)) {
-    __pyx_t_13 = __Pyx_PyInt_From_long(__pyx_v_min_pos); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_13 = __Pyx_PyInt_From_long(__pyx_v_min_pos); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 188; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_13);
     __pyx_t_12 = __pyx_t_13;
     __pyx_t_13 = 0;
@@ -8441,27 +8441,27 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
     __pyx_t_12 = Py_None;
   }
 
-  /* "combo.pyx":188
+  /* "combo.pyx":189
  *     return _MinMaxResult(minimum,
  *                          min_pos if min_pos > 0 else None,
  *                          maximum,             # <<<<<<<<<<<<<<
  *                          min_index,
  *                          min_pos_index if min_pos > 0 else None,
  */
-  __pyx_t_13 = __Pyx_PyInt_From_signed__long(__pyx_v_maximum); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 188; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_13 = __Pyx_PyInt_From_signed__long(__pyx_v_maximum); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 189; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_13);
 
-  /* "combo.pyx":189
+  /* "combo.pyx":190
  *                          min_pos if min_pos > 0 else None,
  *                          maximum,
  *                          min_index,             # <<<<<<<<<<<<<<
  *                          min_pos_index if min_pos > 0 else None,
  *                          max_index)
  */
-  __pyx_t_14 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_index); if (unlikely(!__pyx_t_14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 189; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_14 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_index); if (unlikely(!__pyx_t_14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_14);
 
-  /* "combo.pyx":190
+  /* "combo.pyx":191
  *                          maximum,
  *                          min_index,
  *                          min_pos_index if min_pos > 0 else None,             # <<<<<<<<<<<<<<
@@ -8469,7 +8469,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  * 
  */
   if (((__pyx_v_min_pos > 0) != 0)) {
-    __pyx_t_16 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_pos_index); if (unlikely(!__pyx_t_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_16 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_pos_index); if (unlikely(!__pyx_t_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 191; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_16);
     __pyx_t_15 = __pyx_t_16;
     __pyx_t_16 = 0;
@@ -8478,14 +8478,14 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
     __pyx_t_15 = Py_None;
   }
 
-  /* "combo.pyx":191
+  /* "combo.pyx":192
  *                          min_index,
  *                          min_pos_index if min_pos > 0 else None,
  *                          max_index)             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_t_16 = __Pyx_PyInt_From_unsigned_int(__pyx_v_max_index); if (unlikely(!__pyx_t_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 191; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_16 = __Pyx_PyInt_From_unsigned_int(__pyx_v_max_index); if (unlikely(!__pyx_t_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 192; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_16);
   __pyx_t_17 = NULL;
   __pyx_t_18 = 0;
@@ -8499,7 +8499,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
       __pyx_t_18 = 1;
     }
   }
-  __pyx_t_19 = PyTuple_New(6+__pyx_t_18); if (unlikely(!__pyx_t_19)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_19 = PyTuple_New(6+__pyx_t_18); if (unlikely(!__pyx_t_19)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_19);
   if (__pyx_t_17) {
     PyTuple_SET_ITEM(__pyx_t_19, 0, __pyx_t_17); __Pyx_GIVEREF(__pyx_t_17); __pyx_t_17 = NULL;
@@ -8522,7 +8522,7 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
   __pyx_t_14 = 0;
   __pyx_t_15 = 0;
   __pyx_t_16 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_19, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_19, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_19); __pyx_t_19 = 0;
   __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
@@ -8530,10 +8530,10 @@ static PyObject *__pyx_pf_5combo_14_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "combo.pyx":109
+  /* "combo.pyx":110
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
- * def _min_max(_number[:] data, bint min_positive=False):             # <<<<<<<<<<<<<<
+ * def _min_max(_number[::1] data, bint min_positive=False):             # <<<<<<<<<<<<<<
  *     """See :func:`min_max` for documentation."""
  *     cdef:
  */
@@ -8569,14 +8569,14 @@ static PyObject *__pyx_pf_5combo_58__defaults__(CYTHON_UNUSED PyObject *__pyx_se
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__defaults__", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong(__Pyx_CyFunction_Defaults(__pyx_defaults16, __pyx_self)->__pyx_arg_min_positive); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyBool_FromLong(__Pyx_CyFunction_Defaults(__pyx_defaults16, __pyx_self)->__pyx_arg_min_positive); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_2);
@@ -8637,7 +8637,7 @@ static PyObject *__pyx_fuse_6__pyx_pw_5combo_17_min_max(PyObject *__pyx_self, Py
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_min_max") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_min_max") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -8647,16 +8647,16 @@ static PyObject *__pyx_fuse_6__pyx_pw_5combo_17_min_max(PyObject *__pyx_self, Py
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_data = __Pyx_PyObject_to_MemoryviewSlice_ds_unsigned_char(values[0]); if (unlikely(!__pyx_v_data.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+    __pyx_v_data = __Pyx_PyObject_to_MemoryviewSlice_dc_unsigned_char(values[0]); if (unlikely(!__pyx_v_data.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
     if (values[1]) {
-      __pyx_v_min_positive = __Pyx_PyObject_IsTrue(values[1]); if (unlikely((__pyx_v_min_positive == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+      __pyx_v_min_positive = __Pyx_PyObject_IsTrue(values[1]); if (unlikely((__pyx_v_min_positive == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
     } else {
       __pyx_v_min_positive = __pyx_dynamic_args->__pyx_arg_min_positive;
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("_min_max", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("_min_max", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("combo._min_max", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -8705,7 +8705,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__pyx_fuse_6_min_max", 0);
 
-  /* "combo.pyx":114
+  /* "combo.pyx":115
  *         _number value, minimum, minpos, maximum
  *         unsigned int length
  *         unsigned int index = 0             # <<<<<<<<<<<<<<
@@ -8714,7 +8714,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
   __pyx_v_index = 0;
 
-  /* "combo.pyx":115
+  /* "combo.pyx":116
  *         unsigned int length
  *         unsigned int index = 0
  *         unsigned int min_index = 0             # <<<<<<<<<<<<<<
@@ -8723,7 +8723,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
   __pyx_v_min_index = 0;
 
-  /* "combo.pyx":116
+  /* "combo.pyx":117
  *         unsigned int index = 0
  *         unsigned int min_index = 0
  *         unsigned int min_pos_index = 0             # <<<<<<<<<<<<<<
@@ -8732,7 +8732,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
   __pyx_v_min_pos_index = 0;
 
-  /* "combo.pyx":117
+  /* "combo.pyx":118
  *         unsigned int min_index = 0
  *         unsigned int min_pos_index = 0
  *         unsigned int max_index = 0             # <<<<<<<<<<<<<<
@@ -8741,20 +8741,20 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
   __pyx_v_max_index = 0;
 
-  /* "combo.pyx":119
+  /* "combo.pyx":120
  *         unsigned int max_index = 0
  * 
  *     length = len(data)             # <<<<<<<<<<<<<<
  * 
  *     if length == 0:
  */
-  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_v_data, 1, (PyObject *(*)(char *)) __pyx_memview_get_unsigned_char, (int (*)(char *, PyObject *)) __pyx_memview_set_unsigned_char, 0);; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_v_data, 1, (PyObject *(*)(char *)) __pyx_memview_get_unsigned_char, (int (*)(char *, PyObject *)) __pyx_memview_set_unsigned_char, 0);; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 120; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyObject_Length(__pyx_t_1); if (unlikely(__pyx_t_2 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyObject_Length(__pyx_t_1); if (unlikely(__pyx_t_2 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 120; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_length = __pyx_t_2;
 
-  /* "combo.pyx":121
+  /* "combo.pyx":122
  *     length = len(data)
  * 
  *     if length == 0:             # <<<<<<<<<<<<<<
@@ -8764,21 +8764,21 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
   __pyx_t_3 = ((__pyx_v_length == 0) != 0);
   if (__pyx_t_3) {
 
-    /* "combo.pyx":122
+    /* "combo.pyx":123
  * 
  *     if length == 0:
  *         raise ValueError('Zero-size array')             # <<<<<<<<<<<<<<
  * 
  *     with nogil:
  */
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__15, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__15, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "combo.pyx":124
+  /* "combo.pyx":125
  *         raise ValueError('Zero-size array')
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -8792,7 +8792,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
       #endif
       /*try:*/ {
 
-        /* "combo.pyx":126
+        /* "combo.pyx":127
  *     with nogil:
  *         # Init starting values
  *         value = data[0]             # <<<<<<<<<<<<<<
@@ -8800,9 +8800,9 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *         maximum = value
  */
         __pyx_t_2 = 0;
-        __pyx_v_value = (*((unsigned char *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_2 * __pyx_v_data.strides[0]) )));
+        __pyx_v_value = (*((unsigned char *) ( /* dim=0 */ ((char *) (((unsigned char *) __pyx_v_data.data) + __pyx_t_2)) )));
 
-        /* "combo.pyx":127
+        /* "combo.pyx":128
  *         # Init starting values
  *         value = data[0]
  *         minimum = value             # <<<<<<<<<<<<<<
@@ -8811,7 +8811,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
         __pyx_v_minimum = __pyx_v_value;
 
-        /* "combo.pyx":128
+        /* "combo.pyx":129
  *         value = data[0]
  *         minimum = value
  *         maximum = value             # <<<<<<<<<<<<<<
@@ -8820,7 +8820,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
         __pyx_v_maximum = __pyx_v_value;
 
-        /* "combo.pyx":129
+        /* "combo.pyx":130
  *         minimum = value
  *         maximum = value
  *         if min_positive and value > 0:             # <<<<<<<<<<<<<<
@@ -8838,7 +8838,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         __pyx_L8_bool_binop_done:;
         if (__pyx_t_3) {
 
-          /* "combo.pyx":130
+          /* "combo.pyx":131
  *         maximum = value
  *         if min_positive and value > 0:
  *             min_pos = value             # <<<<<<<<<<<<<<
@@ -8850,7 +8850,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         }
         /*else*/ {
 
-          /* "combo.pyx":132
+          /* "combo.pyx":133
  *             min_pos = value
  *         else:
  *             min_pos = 0             # <<<<<<<<<<<<<<
@@ -8861,7 +8861,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         }
         __pyx_L7:;
 
-        /* "combo.pyx":145
+        /* "combo.pyx":146
  *                     break
  * 
  *         if not min_positive:             # <<<<<<<<<<<<<<
@@ -8871,7 +8871,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         __pyx_t_3 = ((!(__pyx_v_min_positive != 0)) != 0);
         if (__pyx_t_3) {
 
-          /* "combo.pyx":146
+          /* "combo.pyx":147
  * 
  *         if not min_positive:
  *             for index in range(index, length):             # <<<<<<<<<<<<<<
@@ -8882,7 +8882,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
           for (__pyx_t_6 = __pyx_v_index; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
             __pyx_v_index = __pyx_t_6;
 
-            /* "combo.pyx":147
+            /* "combo.pyx":148
  *         if not min_positive:
  *             for index in range(index, length):
  *                 value = data[index]             # <<<<<<<<<<<<<<
@@ -8890,9 +8890,9 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *                     maximum = value
  */
             __pyx_t_7 = __pyx_v_index;
-            __pyx_v_value = (*((unsigned char *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_7 * __pyx_v_data.strides[0]) )));
+            __pyx_v_value = (*((unsigned char *) ( /* dim=0 */ ((char *) (((unsigned char *) __pyx_v_data.data) + __pyx_t_7)) )));
 
-            /* "combo.pyx":148
+            /* "combo.pyx":149
  *             for index in range(index, length):
  *                 value = data[index]
  *                 if value > maximum:             # <<<<<<<<<<<<<<
@@ -8902,7 +8902,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value > __pyx_v_maximum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":149
+              /* "combo.pyx":150
  *                 value = data[index]
  *                 if value > maximum:
  *                     maximum = value             # <<<<<<<<<<<<<<
@@ -8911,7 +8911,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_maximum = __pyx_v_value;
 
-              /* "combo.pyx":150
+              /* "combo.pyx":151
  *                 if value > maximum:
  *                     maximum = value
  *                     max_index = index             # <<<<<<<<<<<<<<
@@ -8922,7 +8922,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
               goto __pyx_L13;
             }
 
-            /* "combo.pyx":151
+            /* "combo.pyx":152
  *                     maximum = value
  *                     max_index = index
  *                 elif value < minimum:             # <<<<<<<<<<<<<<
@@ -8932,7 +8932,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value < __pyx_v_minimum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":152
+              /* "combo.pyx":153
  *                     max_index = index
  *                 elif value < minimum:
  *                     minimum = value             # <<<<<<<<<<<<<<
@@ -8941,7 +8941,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_minimum = __pyx_v_value;
 
-              /* "combo.pyx":153
+              /* "combo.pyx":154
  *                 elif value < minimum:
  *                     minimum = value
  *                     min_index = index             # <<<<<<<<<<<<<<
@@ -8957,7 +8957,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         }
         /*else*/ {
 
-          /* "combo.pyx":157
+          /* "combo.pyx":158
  *         else:
  *             # Loop until min_pos is defined
  *             for index in range(index, length):             # <<<<<<<<<<<<<<
@@ -8968,7 +8968,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
           for (__pyx_t_6 = __pyx_v_index; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
             __pyx_v_index = __pyx_t_6;
 
-            /* "combo.pyx":158
+            /* "combo.pyx":159
  *             # Loop until min_pos is defined
  *             for index in range(index, length):
  *                 value = data[index]             # <<<<<<<<<<<<<<
@@ -8976,9 +8976,9 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *                     maximum = value
  */
             __pyx_t_8 = __pyx_v_index;
-            __pyx_v_value = (*((unsigned char *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_8 * __pyx_v_data.strides[0]) )));
+            __pyx_v_value = (*((unsigned char *) ( /* dim=0 */ ((char *) (((unsigned char *) __pyx_v_data.data) + __pyx_t_8)) )));
 
-            /* "combo.pyx":159
+            /* "combo.pyx":160
  *             for index in range(index, length):
  *                 value = data[index]
  *                 if value > maximum:             # <<<<<<<<<<<<<<
@@ -8988,7 +8988,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value > __pyx_v_maximum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":160
+              /* "combo.pyx":161
  *                 value = data[index]
  *                 if value > maximum:
  *                     maximum = value             # <<<<<<<<<<<<<<
@@ -8997,7 +8997,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_maximum = __pyx_v_value;
 
-              /* "combo.pyx":161
+              /* "combo.pyx":162
  *                 if value > maximum:
  *                     maximum = value
  *                     max_index = index             # <<<<<<<<<<<<<<
@@ -9008,7 +9008,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
               goto __pyx_L16;
             }
 
-            /* "combo.pyx":162
+            /* "combo.pyx":163
  *                     maximum = value
  *                     max_index = index
  *                 elif value < minimum:             # <<<<<<<<<<<<<<
@@ -9018,7 +9018,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value < __pyx_v_minimum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":163
+              /* "combo.pyx":164
  *                     max_index = index
  *                 elif value < minimum:
  *                     minimum = value             # <<<<<<<<<<<<<<
@@ -9027,7 +9027,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_minimum = __pyx_v_value;
 
-              /* "combo.pyx":164
+              /* "combo.pyx":165
  *                 elif value < minimum:
  *                     minimum = value
  *                     min_index = index             # <<<<<<<<<<<<<<
@@ -9039,7 +9039,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             }
             __pyx_L16:;
 
-            /* "combo.pyx":166
+            /* "combo.pyx":167
  *                     min_index = index
  * 
  *                 if value > 0:             # <<<<<<<<<<<<<<
@@ -9049,7 +9049,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value > 0) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":167
+              /* "combo.pyx":168
  * 
  *                 if value > 0:
  *                     min_pos = value             # <<<<<<<<<<<<<<
@@ -9058,7 +9058,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_min_pos = __pyx_v_value;
 
-              /* "combo.pyx":168
+              /* "combo.pyx":169
  *                 if value > 0:
  *                     min_pos = value
  *                     min_pos_index = index             # <<<<<<<<<<<<<<
@@ -9067,7 +9067,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_min_pos_index = __pyx_v_index;
 
-              /* "combo.pyx":169
+              /* "combo.pyx":170
  *                     min_pos = value
  *                     min_pos_index = index
  *                     break             # <<<<<<<<<<<<<<
@@ -9079,7 +9079,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
           }
           __pyx_L15_break:;
 
-          /* "combo.pyx":172
+          /* "combo.pyx":173
  * 
  *             # Loop until the end
  *             for index in range(index+1, length):             # <<<<<<<<<<<<<<
@@ -9090,7 +9090,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
           for (__pyx_t_6 = (__pyx_v_index + 1); __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
             __pyx_v_index = __pyx_t_6;
 
-            /* "combo.pyx":173
+            /* "combo.pyx":174
  *             # Loop until the end
  *             for index in range(index+1, length):
  *                 value = data[index]             # <<<<<<<<<<<<<<
@@ -9098,9 +9098,9 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *                     maximum = value
  */
             __pyx_t_9 = __pyx_v_index;
-            __pyx_v_value = (*((unsigned char *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_9 * __pyx_v_data.strides[0]) )));
+            __pyx_v_value = (*((unsigned char *) ( /* dim=0 */ ((char *) (((unsigned char *) __pyx_v_data.data) + __pyx_t_9)) )));
 
-            /* "combo.pyx":174
+            /* "combo.pyx":175
  *             for index in range(index+1, length):
  *                 value = data[index]
  *                 if value > maximum:             # <<<<<<<<<<<<<<
@@ -9110,7 +9110,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value > __pyx_v_maximum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":175
+              /* "combo.pyx":176
  *                 value = data[index]
  *                 if value > maximum:
  *                     maximum = value             # <<<<<<<<<<<<<<
@@ -9119,7 +9119,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_maximum = __pyx_v_value;
 
-              /* "combo.pyx":176
+              /* "combo.pyx":177
  *                 if value > maximum:
  *                     maximum = value
  *                     max_index = index             # <<<<<<<<<<<<<<
@@ -9131,7 +9131,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             }
             /*else*/ {
 
-              /* "combo.pyx":178
+              /* "combo.pyx":179
  *                     max_index = index
  *                 else:
  *                     if value < minimum:             # <<<<<<<<<<<<<<
@@ -9141,7 +9141,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
               __pyx_t_3 = ((__pyx_v_value < __pyx_v_minimum) != 0);
               if (__pyx_t_3) {
 
-                /* "combo.pyx":179
+                /* "combo.pyx":180
  *                 else:
  *                     if value < minimum:
  *                         minimum = value             # <<<<<<<<<<<<<<
@@ -9150,7 +9150,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
                 __pyx_v_minimum = __pyx_v_value;
 
-                /* "combo.pyx":180
+                /* "combo.pyx":181
  *                     if value < minimum:
  *                         minimum = value
  *                         min_index = index             # <<<<<<<<<<<<<<
@@ -9162,7 +9162,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
               }
               __pyx_L21:;
 
-              /* "combo.pyx":182
+              /* "combo.pyx":183
  *                         min_index = index
  * 
  *                     if value > 0 and value < min_pos:             # <<<<<<<<<<<<<<
@@ -9180,7 +9180,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
               __pyx_L23_bool_binop_done:;
               if (__pyx_t_3) {
 
-                /* "combo.pyx":183
+                /* "combo.pyx":184
  * 
  *                     if value > 0 and value < min_pos:
  *                         min_pos = value             # <<<<<<<<<<<<<<
@@ -9189,7 +9189,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
                 __pyx_v_min_pos = __pyx_v_value;
 
-                /* "combo.pyx":184
+                /* "combo.pyx":185
  *                     if value > 0 and value < min_pos:
  *                         min_pos = value
  *                         min_pos_index = index             # <<<<<<<<<<<<<<
@@ -9207,7 +9207,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         __pyx_L10:;
       }
 
-      /* "combo.pyx":124
+      /* "combo.pyx":125
  *         raise ValueError('Zero-size array')
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -9225,7 +9225,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
       }
   }
 
-  /* "combo.pyx":186
+  /* "combo.pyx":187
  *                         min_pos_index = index
  * 
  *     return _MinMaxResult(minimum,             # <<<<<<<<<<<<<<
@@ -9233,12 +9233,12 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *                          maximum,
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_MinMaxResult); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_MinMaxResult); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_10);
-  __pyx_t_11 = __Pyx_PyInt_From_unsigned_char(__pyx_v_minimum); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_11 = __Pyx_PyInt_From_unsigned_char(__pyx_v_minimum); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_11);
 
-  /* "combo.pyx":187
+  /* "combo.pyx":188
  * 
  *     return _MinMaxResult(minimum,
  *                          min_pos if min_pos > 0 else None,             # <<<<<<<<<<<<<<
@@ -9246,7 +9246,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *                          min_index,
  */
   if (((__pyx_v_min_pos > 0) != 0)) {
-    __pyx_t_13 = __Pyx_PyInt_From_long(__pyx_v_min_pos); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_13 = __Pyx_PyInt_From_long(__pyx_v_min_pos); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 188; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_13);
     __pyx_t_12 = __pyx_t_13;
     __pyx_t_13 = 0;
@@ -9255,27 +9255,27 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
     __pyx_t_12 = Py_None;
   }
 
-  /* "combo.pyx":188
+  /* "combo.pyx":189
  *     return _MinMaxResult(minimum,
  *                          min_pos if min_pos > 0 else None,
  *                          maximum,             # <<<<<<<<<<<<<<
  *                          min_index,
  *                          min_pos_index if min_pos > 0 else None,
  */
-  __pyx_t_13 = __Pyx_PyInt_From_unsigned_char(__pyx_v_maximum); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 188; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_13 = __Pyx_PyInt_From_unsigned_char(__pyx_v_maximum); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 189; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_13);
 
-  /* "combo.pyx":189
+  /* "combo.pyx":190
  *                          min_pos if min_pos > 0 else None,
  *                          maximum,
  *                          min_index,             # <<<<<<<<<<<<<<
  *                          min_pos_index if min_pos > 0 else None,
  *                          max_index)
  */
-  __pyx_t_14 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_index); if (unlikely(!__pyx_t_14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 189; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_14 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_index); if (unlikely(!__pyx_t_14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_14);
 
-  /* "combo.pyx":190
+  /* "combo.pyx":191
  *                          maximum,
  *                          min_index,
  *                          min_pos_index if min_pos > 0 else None,             # <<<<<<<<<<<<<<
@@ -9283,7 +9283,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  * 
  */
   if (((__pyx_v_min_pos > 0) != 0)) {
-    __pyx_t_16 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_pos_index); if (unlikely(!__pyx_t_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_16 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_pos_index); if (unlikely(!__pyx_t_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 191; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_16);
     __pyx_t_15 = __pyx_t_16;
     __pyx_t_16 = 0;
@@ -9292,14 +9292,14 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
     __pyx_t_15 = Py_None;
   }
 
-  /* "combo.pyx":191
+  /* "combo.pyx":192
  *                          min_index,
  *                          min_pos_index if min_pos > 0 else None,
  *                          max_index)             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_t_16 = __Pyx_PyInt_From_unsigned_int(__pyx_v_max_index); if (unlikely(!__pyx_t_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 191; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_16 = __Pyx_PyInt_From_unsigned_int(__pyx_v_max_index); if (unlikely(!__pyx_t_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 192; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_16);
   __pyx_t_17 = NULL;
   __pyx_t_18 = 0;
@@ -9313,7 +9313,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
       __pyx_t_18 = 1;
     }
   }
-  __pyx_t_19 = PyTuple_New(6+__pyx_t_18); if (unlikely(!__pyx_t_19)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_19 = PyTuple_New(6+__pyx_t_18); if (unlikely(!__pyx_t_19)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_19);
   if (__pyx_t_17) {
     PyTuple_SET_ITEM(__pyx_t_19, 0, __pyx_t_17); __Pyx_GIVEREF(__pyx_t_17); __pyx_t_17 = NULL;
@@ -9336,7 +9336,7 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
   __pyx_t_14 = 0;
   __pyx_t_15 = 0;
   __pyx_t_16 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_19, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_19, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_19); __pyx_t_19 = 0;
   __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
@@ -9344,10 +9344,10 @@ static PyObject *__pyx_pf_5combo_16_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "combo.pyx":109
+  /* "combo.pyx":110
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
- * def _min_max(_number[:] data, bint min_positive=False):             # <<<<<<<<<<<<<<
+ * def _min_max(_number[::1] data, bint min_positive=False):             # <<<<<<<<<<<<<<
  *     """See :func:`min_max` for documentation."""
  *     cdef:
  */
@@ -9383,14 +9383,14 @@ static PyObject *__pyx_pf_5combo_60__defaults__(CYTHON_UNUSED PyObject *__pyx_se
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__defaults__", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong(__Pyx_CyFunction_Defaults(__pyx_defaults17, __pyx_self)->__pyx_arg_min_positive); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyBool_FromLong(__Pyx_CyFunction_Defaults(__pyx_defaults17, __pyx_self)->__pyx_arg_min_positive); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_2);
@@ -9451,7 +9451,7 @@ static PyObject *__pyx_fuse_7__pyx_pw_5combo_19_min_max(PyObject *__pyx_self, Py
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_min_max") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_min_max") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -9461,16 +9461,16 @@ static PyObject *__pyx_fuse_7__pyx_pw_5combo_19_min_max(PyObject *__pyx_self, Py
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_data = __Pyx_PyObject_to_MemoryviewSlice_ds_unsigned_short(values[0]); if (unlikely(!__pyx_v_data.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+    __pyx_v_data = __Pyx_PyObject_to_MemoryviewSlice_dc_unsigned_short(values[0]); if (unlikely(!__pyx_v_data.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
     if (values[1]) {
-      __pyx_v_min_positive = __Pyx_PyObject_IsTrue(values[1]); if (unlikely((__pyx_v_min_positive == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+      __pyx_v_min_positive = __Pyx_PyObject_IsTrue(values[1]); if (unlikely((__pyx_v_min_positive == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
     } else {
       __pyx_v_min_positive = __pyx_dynamic_args->__pyx_arg_min_positive;
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("_min_max", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("_min_max", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("combo._min_max", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -9519,7 +9519,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__pyx_fuse_7_min_max", 0);
 
-  /* "combo.pyx":114
+  /* "combo.pyx":115
  *         _number value, minimum, minpos, maximum
  *         unsigned int length
  *         unsigned int index = 0             # <<<<<<<<<<<<<<
@@ -9528,7 +9528,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
   __pyx_v_index = 0;
 
-  /* "combo.pyx":115
+  /* "combo.pyx":116
  *         unsigned int length
  *         unsigned int index = 0
  *         unsigned int min_index = 0             # <<<<<<<<<<<<<<
@@ -9537,7 +9537,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
   __pyx_v_min_index = 0;
 
-  /* "combo.pyx":116
+  /* "combo.pyx":117
  *         unsigned int index = 0
  *         unsigned int min_index = 0
  *         unsigned int min_pos_index = 0             # <<<<<<<<<<<<<<
@@ -9546,7 +9546,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
   __pyx_v_min_pos_index = 0;
 
-  /* "combo.pyx":117
+  /* "combo.pyx":118
  *         unsigned int min_index = 0
  *         unsigned int min_pos_index = 0
  *         unsigned int max_index = 0             # <<<<<<<<<<<<<<
@@ -9555,20 +9555,20 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
   __pyx_v_max_index = 0;
 
-  /* "combo.pyx":119
+  /* "combo.pyx":120
  *         unsigned int max_index = 0
  * 
  *     length = len(data)             # <<<<<<<<<<<<<<
  * 
  *     if length == 0:
  */
-  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_v_data, 1, (PyObject *(*)(char *)) __pyx_memview_get_unsigned_short, (int (*)(char *, PyObject *)) __pyx_memview_set_unsigned_short, 0);; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_v_data, 1, (PyObject *(*)(char *)) __pyx_memview_get_unsigned_short, (int (*)(char *, PyObject *)) __pyx_memview_set_unsigned_short, 0);; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 120; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyObject_Length(__pyx_t_1); if (unlikely(__pyx_t_2 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyObject_Length(__pyx_t_1); if (unlikely(__pyx_t_2 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 120; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_length = __pyx_t_2;
 
-  /* "combo.pyx":121
+  /* "combo.pyx":122
  *     length = len(data)
  * 
  *     if length == 0:             # <<<<<<<<<<<<<<
@@ -9578,21 +9578,21 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
   __pyx_t_3 = ((__pyx_v_length == 0) != 0);
   if (__pyx_t_3) {
 
-    /* "combo.pyx":122
+    /* "combo.pyx":123
  * 
  *     if length == 0:
  *         raise ValueError('Zero-size array')             # <<<<<<<<<<<<<<
  * 
  *     with nogil:
  */
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__16, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__16, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "combo.pyx":124
+  /* "combo.pyx":125
  *         raise ValueError('Zero-size array')
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -9606,7 +9606,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
       #endif
       /*try:*/ {
 
-        /* "combo.pyx":126
+        /* "combo.pyx":127
  *     with nogil:
  *         # Init starting values
  *         value = data[0]             # <<<<<<<<<<<<<<
@@ -9614,9 +9614,9 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *         maximum = value
  */
         __pyx_t_2 = 0;
-        __pyx_v_value = (*((unsigned short *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_2 * __pyx_v_data.strides[0]) )));
+        __pyx_v_value = (*((unsigned short *) ( /* dim=0 */ ((char *) (((unsigned short *) __pyx_v_data.data) + __pyx_t_2)) )));
 
-        /* "combo.pyx":127
+        /* "combo.pyx":128
  *         # Init starting values
  *         value = data[0]
  *         minimum = value             # <<<<<<<<<<<<<<
@@ -9625,7 +9625,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
         __pyx_v_minimum = __pyx_v_value;
 
-        /* "combo.pyx":128
+        /* "combo.pyx":129
  *         value = data[0]
  *         minimum = value
  *         maximum = value             # <<<<<<<<<<<<<<
@@ -9634,7 +9634,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
         __pyx_v_maximum = __pyx_v_value;
 
-        /* "combo.pyx":129
+        /* "combo.pyx":130
  *         minimum = value
  *         maximum = value
  *         if min_positive and value > 0:             # <<<<<<<<<<<<<<
@@ -9652,7 +9652,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         __pyx_L8_bool_binop_done:;
         if (__pyx_t_3) {
 
-          /* "combo.pyx":130
+          /* "combo.pyx":131
  *         maximum = value
  *         if min_positive and value > 0:
  *             min_pos = value             # <<<<<<<<<<<<<<
@@ -9664,7 +9664,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         }
         /*else*/ {
 
-          /* "combo.pyx":132
+          /* "combo.pyx":133
  *             min_pos = value
  *         else:
  *             min_pos = 0             # <<<<<<<<<<<<<<
@@ -9675,7 +9675,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         }
         __pyx_L7:;
 
-        /* "combo.pyx":145
+        /* "combo.pyx":146
  *                     break
  * 
  *         if not min_positive:             # <<<<<<<<<<<<<<
@@ -9685,7 +9685,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         __pyx_t_3 = ((!(__pyx_v_min_positive != 0)) != 0);
         if (__pyx_t_3) {
 
-          /* "combo.pyx":146
+          /* "combo.pyx":147
  * 
  *         if not min_positive:
  *             for index in range(index, length):             # <<<<<<<<<<<<<<
@@ -9696,7 +9696,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
           for (__pyx_t_6 = __pyx_v_index; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
             __pyx_v_index = __pyx_t_6;
 
-            /* "combo.pyx":147
+            /* "combo.pyx":148
  *         if not min_positive:
  *             for index in range(index, length):
  *                 value = data[index]             # <<<<<<<<<<<<<<
@@ -9704,9 +9704,9 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *                     maximum = value
  */
             __pyx_t_7 = __pyx_v_index;
-            __pyx_v_value = (*((unsigned short *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_7 * __pyx_v_data.strides[0]) )));
+            __pyx_v_value = (*((unsigned short *) ( /* dim=0 */ ((char *) (((unsigned short *) __pyx_v_data.data) + __pyx_t_7)) )));
 
-            /* "combo.pyx":148
+            /* "combo.pyx":149
  *             for index in range(index, length):
  *                 value = data[index]
  *                 if value > maximum:             # <<<<<<<<<<<<<<
@@ -9716,7 +9716,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value > __pyx_v_maximum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":149
+              /* "combo.pyx":150
  *                 value = data[index]
  *                 if value > maximum:
  *                     maximum = value             # <<<<<<<<<<<<<<
@@ -9725,7 +9725,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_maximum = __pyx_v_value;
 
-              /* "combo.pyx":150
+              /* "combo.pyx":151
  *                 if value > maximum:
  *                     maximum = value
  *                     max_index = index             # <<<<<<<<<<<<<<
@@ -9736,7 +9736,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
               goto __pyx_L13;
             }
 
-            /* "combo.pyx":151
+            /* "combo.pyx":152
  *                     maximum = value
  *                     max_index = index
  *                 elif value < minimum:             # <<<<<<<<<<<<<<
@@ -9746,7 +9746,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value < __pyx_v_minimum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":152
+              /* "combo.pyx":153
  *                     max_index = index
  *                 elif value < minimum:
  *                     minimum = value             # <<<<<<<<<<<<<<
@@ -9755,7 +9755,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_minimum = __pyx_v_value;
 
-              /* "combo.pyx":153
+              /* "combo.pyx":154
  *                 elif value < minimum:
  *                     minimum = value
  *                     min_index = index             # <<<<<<<<<<<<<<
@@ -9771,7 +9771,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         }
         /*else*/ {
 
-          /* "combo.pyx":157
+          /* "combo.pyx":158
  *         else:
  *             # Loop until min_pos is defined
  *             for index in range(index, length):             # <<<<<<<<<<<<<<
@@ -9782,7 +9782,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
           for (__pyx_t_6 = __pyx_v_index; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
             __pyx_v_index = __pyx_t_6;
 
-            /* "combo.pyx":158
+            /* "combo.pyx":159
  *             # Loop until min_pos is defined
  *             for index in range(index, length):
  *                 value = data[index]             # <<<<<<<<<<<<<<
@@ -9790,9 +9790,9 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *                     maximum = value
  */
             __pyx_t_8 = __pyx_v_index;
-            __pyx_v_value = (*((unsigned short *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_8 * __pyx_v_data.strides[0]) )));
+            __pyx_v_value = (*((unsigned short *) ( /* dim=0 */ ((char *) (((unsigned short *) __pyx_v_data.data) + __pyx_t_8)) )));
 
-            /* "combo.pyx":159
+            /* "combo.pyx":160
  *             for index in range(index, length):
  *                 value = data[index]
  *                 if value > maximum:             # <<<<<<<<<<<<<<
@@ -9802,7 +9802,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value > __pyx_v_maximum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":160
+              /* "combo.pyx":161
  *                 value = data[index]
  *                 if value > maximum:
  *                     maximum = value             # <<<<<<<<<<<<<<
@@ -9811,7 +9811,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_maximum = __pyx_v_value;
 
-              /* "combo.pyx":161
+              /* "combo.pyx":162
  *                 if value > maximum:
  *                     maximum = value
  *                     max_index = index             # <<<<<<<<<<<<<<
@@ -9822,7 +9822,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
               goto __pyx_L16;
             }
 
-            /* "combo.pyx":162
+            /* "combo.pyx":163
  *                     maximum = value
  *                     max_index = index
  *                 elif value < minimum:             # <<<<<<<<<<<<<<
@@ -9832,7 +9832,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value < __pyx_v_minimum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":163
+              /* "combo.pyx":164
  *                     max_index = index
  *                 elif value < minimum:
  *                     minimum = value             # <<<<<<<<<<<<<<
@@ -9841,7 +9841,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_minimum = __pyx_v_value;
 
-              /* "combo.pyx":164
+              /* "combo.pyx":165
  *                 elif value < minimum:
  *                     minimum = value
  *                     min_index = index             # <<<<<<<<<<<<<<
@@ -9853,7 +9853,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             }
             __pyx_L16:;
 
-            /* "combo.pyx":166
+            /* "combo.pyx":167
  *                     min_index = index
  * 
  *                 if value > 0:             # <<<<<<<<<<<<<<
@@ -9863,7 +9863,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value > 0) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":167
+              /* "combo.pyx":168
  * 
  *                 if value > 0:
  *                     min_pos = value             # <<<<<<<<<<<<<<
@@ -9872,7 +9872,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_min_pos = __pyx_v_value;
 
-              /* "combo.pyx":168
+              /* "combo.pyx":169
  *                 if value > 0:
  *                     min_pos = value
  *                     min_pos_index = index             # <<<<<<<<<<<<<<
@@ -9881,7 +9881,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_min_pos_index = __pyx_v_index;
 
-              /* "combo.pyx":169
+              /* "combo.pyx":170
  *                     min_pos = value
  *                     min_pos_index = index
  *                     break             # <<<<<<<<<<<<<<
@@ -9893,7 +9893,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
           }
           __pyx_L15_break:;
 
-          /* "combo.pyx":172
+          /* "combo.pyx":173
  * 
  *             # Loop until the end
  *             for index in range(index+1, length):             # <<<<<<<<<<<<<<
@@ -9904,7 +9904,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
           for (__pyx_t_6 = (__pyx_v_index + 1); __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
             __pyx_v_index = __pyx_t_6;
 
-            /* "combo.pyx":173
+            /* "combo.pyx":174
  *             # Loop until the end
  *             for index in range(index+1, length):
  *                 value = data[index]             # <<<<<<<<<<<<<<
@@ -9912,9 +9912,9 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *                     maximum = value
  */
             __pyx_t_9 = __pyx_v_index;
-            __pyx_v_value = (*((unsigned short *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_9 * __pyx_v_data.strides[0]) )));
+            __pyx_v_value = (*((unsigned short *) ( /* dim=0 */ ((char *) (((unsigned short *) __pyx_v_data.data) + __pyx_t_9)) )));
 
-            /* "combo.pyx":174
+            /* "combo.pyx":175
  *             for index in range(index+1, length):
  *                 value = data[index]
  *                 if value > maximum:             # <<<<<<<<<<<<<<
@@ -9924,7 +9924,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value > __pyx_v_maximum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":175
+              /* "combo.pyx":176
  *                 value = data[index]
  *                 if value > maximum:
  *                     maximum = value             # <<<<<<<<<<<<<<
@@ -9933,7 +9933,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_maximum = __pyx_v_value;
 
-              /* "combo.pyx":176
+              /* "combo.pyx":177
  *                 if value > maximum:
  *                     maximum = value
  *                     max_index = index             # <<<<<<<<<<<<<<
@@ -9945,7 +9945,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             }
             /*else*/ {
 
-              /* "combo.pyx":178
+              /* "combo.pyx":179
  *                     max_index = index
  *                 else:
  *                     if value < minimum:             # <<<<<<<<<<<<<<
@@ -9955,7 +9955,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
               __pyx_t_3 = ((__pyx_v_value < __pyx_v_minimum) != 0);
               if (__pyx_t_3) {
 
-                /* "combo.pyx":179
+                /* "combo.pyx":180
  *                 else:
  *                     if value < minimum:
  *                         minimum = value             # <<<<<<<<<<<<<<
@@ -9964,7 +9964,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
                 __pyx_v_minimum = __pyx_v_value;
 
-                /* "combo.pyx":180
+                /* "combo.pyx":181
  *                     if value < minimum:
  *                         minimum = value
  *                         min_index = index             # <<<<<<<<<<<<<<
@@ -9976,7 +9976,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
               }
               __pyx_L21:;
 
-              /* "combo.pyx":182
+              /* "combo.pyx":183
  *                         min_index = index
  * 
  *                     if value > 0 and value < min_pos:             # <<<<<<<<<<<<<<
@@ -9994,7 +9994,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
               __pyx_L23_bool_binop_done:;
               if (__pyx_t_3) {
 
-                /* "combo.pyx":183
+                /* "combo.pyx":184
  * 
  *                     if value > 0 and value < min_pos:
  *                         min_pos = value             # <<<<<<<<<<<<<<
@@ -10003,7 +10003,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
                 __pyx_v_min_pos = __pyx_v_value;
 
-                /* "combo.pyx":184
+                /* "combo.pyx":185
  *                     if value > 0 and value < min_pos:
  *                         min_pos = value
  *                         min_pos_index = index             # <<<<<<<<<<<<<<
@@ -10021,7 +10021,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         __pyx_L10:;
       }
 
-      /* "combo.pyx":124
+      /* "combo.pyx":125
  *         raise ValueError('Zero-size array')
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -10039,7 +10039,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
       }
   }
 
-  /* "combo.pyx":186
+  /* "combo.pyx":187
  *                         min_pos_index = index
  * 
  *     return _MinMaxResult(minimum,             # <<<<<<<<<<<<<<
@@ -10047,12 +10047,12 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *                          maximum,
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_MinMaxResult); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_MinMaxResult); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_10);
-  __pyx_t_11 = __Pyx_PyInt_From_unsigned_short(__pyx_v_minimum); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_11 = __Pyx_PyInt_From_unsigned_short(__pyx_v_minimum); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_11);
 
-  /* "combo.pyx":187
+  /* "combo.pyx":188
  * 
  *     return _MinMaxResult(minimum,
  *                          min_pos if min_pos > 0 else None,             # <<<<<<<<<<<<<<
@@ -10060,7 +10060,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *                          min_index,
  */
   if (((__pyx_v_min_pos > 0) != 0)) {
-    __pyx_t_13 = __Pyx_PyInt_From_long(__pyx_v_min_pos); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_13 = __Pyx_PyInt_From_long(__pyx_v_min_pos); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 188; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_13);
     __pyx_t_12 = __pyx_t_13;
     __pyx_t_13 = 0;
@@ -10069,27 +10069,27 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
     __pyx_t_12 = Py_None;
   }
 
-  /* "combo.pyx":188
+  /* "combo.pyx":189
  *     return _MinMaxResult(minimum,
  *                          min_pos if min_pos > 0 else None,
  *                          maximum,             # <<<<<<<<<<<<<<
  *                          min_index,
  *                          min_pos_index if min_pos > 0 else None,
  */
-  __pyx_t_13 = __Pyx_PyInt_From_unsigned_short(__pyx_v_maximum); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 188; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_13 = __Pyx_PyInt_From_unsigned_short(__pyx_v_maximum); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 189; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_13);
 
-  /* "combo.pyx":189
+  /* "combo.pyx":190
  *                          min_pos if min_pos > 0 else None,
  *                          maximum,
  *                          min_index,             # <<<<<<<<<<<<<<
  *                          min_pos_index if min_pos > 0 else None,
  *                          max_index)
  */
-  __pyx_t_14 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_index); if (unlikely(!__pyx_t_14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 189; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_14 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_index); if (unlikely(!__pyx_t_14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_14);
 
-  /* "combo.pyx":190
+  /* "combo.pyx":191
  *                          maximum,
  *                          min_index,
  *                          min_pos_index if min_pos > 0 else None,             # <<<<<<<<<<<<<<
@@ -10097,7 +10097,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  * 
  */
   if (((__pyx_v_min_pos > 0) != 0)) {
-    __pyx_t_16 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_pos_index); if (unlikely(!__pyx_t_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_16 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_pos_index); if (unlikely(!__pyx_t_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 191; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_16);
     __pyx_t_15 = __pyx_t_16;
     __pyx_t_16 = 0;
@@ -10106,14 +10106,14 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
     __pyx_t_15 = Py_None;
   }
 
-  /* "combo.pyx":191
+  /* "combo.pyx":192
  *                          min_index,
  *                          min_pos_index if min_pos > 0 else None,
  *                          max_index)             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_t_16 = __Pyx_PyInt_From_unsigned_int(__pyx_v_max_index); if (unlikely(!__pyx_t_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 191; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_16 = __Pyx_PyInt_From_unsigned_int(__pyx_v_max_index); if (unlikely(!__pyx_t_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 192; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_16);
   __pyx_t_17 = NULL;
   __pyx_t_18 = 0;
@@ -10127,7 +10127,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
       __pyx_t_18 = 1;
     }
   }
-  __pyx_t_19 = PyTuple_New(6+__pyx_t_18); if (unlikely(!__pyx_t_19)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_19 = PyTuple_New(6+__pyx_t_18); if (unlikely(!__pyx_t_19)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_19);
   if (__pyx_t_17) {
     PyTuple_SET_ITEM(__pyx_t_19, 0, __pyx_t_17); __Pyx_GIVEREF(__pyx_t_17); __pyx_t_17 = NULL;
@@ -10150,7 +10150,7 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
   __pyx_t_14 = 0;
   __pyx_t_15 = 0;
   __pyx_t_16 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_19, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_19, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_19); __pyx_t_19 = 0;
   __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
@@ -10158,10 +10158,10 @@ static PyObject *__pyx_pf_5combo_18_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "combo.pyx":109
+  /* "combo.pyx":110
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
- * def _min_max(_number[:] data, bint min_positive=False):             # <<<<<<<<<<<<<<
+ * def _min_max(_number[::1] data, bint min_positive=False):             # <<<<<<<<<<<<<<
  *     """See :func:`min_max` for documentation."""
  *     cdef:
  */
@@ -10197,14 +10197,14 @@ static PyObject *__pyx_pf_5combo_62__defaults__(CYTHON_UNUSED PyObject *__pyx_se
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__defaults__", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong(__Pyx_CyFunction_Defaults(__pyx_defaults18, __pyx_self)->__pyx_arg_min_positive); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyBool_FromLong(__Pyx_CyFunction_Defaults(__pyx_defaults18, __pyx_self)->__pyx_arg_min_positive); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_2);
@@ -10265,7 +10265,7 @@ static PyObject *__pyx_fuse_8__pyx_pw_5combo_21_min_max(PyObject *__pyx_self, Py
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_min_max") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_min_max") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -10275,16 +10275,16 @@ static PyObject *__pyx_fuse_8__pyx_pw_5combo_21_min_max(PyObject *__pyx_self, Py
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_data = __Pyx_PyObject_to_MemoryviewSlice_ds_unsigned_int(values[0]); if (unlikely(!__pyx_v_data.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+    __pyx_v_data = __Pyx_PyObject_to_MemoryviewSlice_dc_unsigned_int(values[0]); if (unlikely(!__pyx_v_data.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
     if (values[1]) {
-      __pyx_v_min_positive = __Pyx_PyObject_IsTrue(values[1]); if (unlikely((__pyx_v_min_positive == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+      __pyx_v_min_positive = __Pyx_PyObject_IsTrue(values[1]); if (unlikely((__pyx_v_min_positive == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
     } else {
       __pyx_v_min_positive = __pyx_dynamic_args->__pyx_arg_min_positive;
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("_min_max", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("_min_max", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("combo._min_max", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -10333,7 +10333,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__pyx_fuse_8_min_max", 0);
 
-  /* "combo.pyx":114
+  /* "combo.pyx":115
  *         _number value, minimum, minpos, maximum
  *         unsigned int length
  *         unsigned int index = 0             # <<<<<<<<<<<<<<
@@ -10342,7 +10342,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
   __pyx_v_index = 0;
 
-  /* "combo.pyx":115
+  /* "combo.pyx":116
  *         unsigned int length
  *         unsigned int index = 0
  *         unsigned int min_index = 0             # <<<<<<<<<<<<<<
@@ -10351,7 +10351,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
   __pyx_v_min_index = 0;
 
-  /* "combo.pyx":116
+  /* "combo.pyx":117
  *         unsigned int index = 0
  *         unsigned int min_index = 0
  *         unsigned int min_pos_index = 0             # <<<<<<<<<<<<<<
@@ -10360,7 +10360,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
   __pyx_v_min_pos_index = 0;
 
-  /* "combo.pyx":117
+  /* "combo.pyx":118
  *         unsigned int min_index = 0
  *         unsigned int min_pos_index = 0
  *         unsigned int max_index = 0             # <<<<<<<<<<<<<<
@@ -10369,20 +10369,20 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
   __pyx_v_max_index = 0;
 
-  /* "combo.pyx":119
+  /* "combo.pyx":120
  *         unsigned int max_index = 0
  * 
  *     length = len(data)             # <<<<<<<<<<<<<<
  * 
  *     if length == 0:
  */
-  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_v_data, 1, (PyObject *(*)(char *)) __pyx_memview_get_unsigned_int, (int (*)(char *, PyObject *)) __pyx_memview_set_unsigned_int, 0);; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_v_data, 1, (PyObject *(*)(char *)) __pyx_memview_get_unsigned_int, (int (*)(char *, PyObject *)) __pyx_memview_set_unsigned_int, 0);; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 120; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyObject_Length(__pyx_t_1); if (unlikely(__pyx_t_2 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyObject_Length(__pyx_t_1); if (unlikely(__pyx_t_2 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 120; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_length = __pyx_t_2;
 
-  /* "combo.pyx":121
+  /* "combo.pyx":122
  *     length = len(data)
  * 
  *     if length == 0:             # <<<<<<<<<<<<<<
@@ -10392,21 +10392,21 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
   __pyx_t_3 = ((__pyx_v_length == 0) != 0);
   if (__pyx_t_3) {
 
-    /* "combo.pyx":122
+    /* "combo.pyx":123
  * 
  *     if length == 0:
  *         raise ValueError('Zero-size array')             # <<<<<<<<<<<<<<
  * 
  *     with nogil:
  */
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__17, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__17, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "combo.pyx":124
+  /* "combo.pyx":125
  *         raise ValueError('Zero-size array')
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -10420,7 +10420,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
       #endif
       /*try:*/ {
 
-        /* "combo.pyx":126
+        /* "combo.pyx":127
  *     with nogil:
  *         # Init starting values
  *         value = data[0]             # <<<<<<<<<<<<<<
@@ -10428,9 +10428,9 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *         maximum = value
  */
         __pyx_t_2 = 0;
-        __pyx_v_value = (*((unsigned int *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_2 * __pyx_v_data.strides[0]) )));
+        __pyx_v_value = (*((unsigned int *) ( /* dim=0 */ ((char *) (((unsigned int *) __pyx_v_data.data) + __pyx_t_2)) )));
 
-        /* "combo.pyx":127
+        /* "combo.pyx":128
  *         # Init starting values
  *         value = data[0]
  *         minimum = value             # <<<<<<<<<<<<<<
@@ -10439,7 +10439,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
         __pyx_v_minimum = __pyx_v_value;
 
-        /* "combo.pyx":128
+        /* "combo.pyx":129
  *         value = data[0]
  *         minimum = value
  *         maximum = value             # <<<<<<<<<<<<<<
@@ -10448,7 +10448,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
         __pyx_v_maximum = __pyx_v_value;
 
-        /* "combo.pyx":129
+        /* "combo.pyx":130
  *         minimum = value
  *         maximum = value
  *         if min_positive and value > 0:             # <<<<<<<<<<<<<<
@@ -10466,7 +10466,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         __pyx_L8_bool_binop_done:;
         if (__pyx_t_3) {
 
-          /* "combo.pyx":130
+          /* "combo.pyx":131
  *         maximum = value
  *         if min_positive and value > 0:
  *             min_pos = value             # <<<<<<<<<<<<<<
@@ -10478,7 +10478,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         }
         /*else*/ {
 
-          /* "combo.pyx":132
+          /* "combo.pyx":133
  *             min_pos = value
  *         else:
  *             min_pos = 0             # <<<<<<<<<<<<<<
@@ -10489,7 +10489,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         }
         __pyx_L7:;
 
-        /* "combo.pyx":145
+        /* "combo.pyx":146
  *                     break
  * 
  *         if not min_positive:             # <<<<<<<<<<<<<<
@@ -10499,7 +10499,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         __pyx_t_3 = ((!(__pyx_v_min_positive != 0)) != 0);
         if (__pyx_t_3) {
 
-          /* "combo.pyx":146
+          /* "combo.pyx":147
  * 
  *         if not min_positive:
  *             for index in range(index, length):             # <<<<<<<<<<<<<<
@@ -10510,7 +10510,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
           for (__pyx_t_6 = __pyx_v_index; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
             __pyx_v_index = __pyx_t_6;
 
-            /* "combo.pyx":147
+            /* "combo.pyx":148
  *         if not min_positive:
  *             for index in range(index, length):
  *                 value = data[index]             # <<<<<<<<<<<<<<
@@ -10518,9 +10518,9 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *                     maximum = value
  */
             __pyx_t_7 = __pyx_v_index;
-            __pyx_v_value = (*((unsigned int *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_7 * __pyx_v_data.strides[0]) )));
+            __pyx_v_value = (*((unsigned int *) ( /* dim=0 */ ((char *) (((unsigned int *) __pyx_v_data.data) + __pyx_t_7)) )));
 
-            /* "combo.pyx":148
+            /* "combo.pyx":149
  *             for index in range(index, length):
  *                 value = data[index]
  *                 if value > maximum:             # <<<<<<<<<<<<<<
@@ -10530,7 +10530,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value > __pyx_v_maximum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":149
+              /* "combo.pyx":150
  *                 value = data[index]
  *                 if value > maximum:
  *                     maximum = value             # <<<<<<<<<<<<<<
@@ -10539,7 +10539,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_maximum = __pyx_v_value;
 
-              /* "combo.pyx":150
+              /* "combo.pyx":151
  *                 if value > maximum:
  *                     maximum = value
  *                     max_index = index             # <<<<<<<<<<<<<<
@@ -10550,7 +10550,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
               goto __pyx_L13;
             }
 
-            /* "combo.pyx":151
+            /* "combo.pyx":152
  *                     maximum = value
  *                     max_index = index
  *                 elif value < minimum:             # <<<<<<<<<<<<<<
@@ -10560,7 +10560,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value < __pyx_v_minimum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":152
+              /* "combo.pyx":153
  *                     max_index = index
  *                 elif value < minimum:
  *                     minimum = value             # <<<<<<<<<<<<<<
@@ -10569,7 +10569,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_minimum = __pyx_v_value;
 
-              /* "combo.pyx":153
+              /* "combo.pyx":154
  *                 elif value < minimum:
  *                     minimum = value
  *                     min_index = index             # <<<<<<<<<<<<<<
@@ -10585,7 +10585,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         }
         /*else*/ {
 
-          /* "combo.pyx":157
+          /* "combo.pyx":158
  *         else:
  *             # Loop until min_pos is defined
  *             for index in range(index, length):             # <<<<<<<<<<<<<<
@@ -10596,7 +10596,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
           for (__pyx_t_6 = __pyx_v_index; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
             __pyx_v_index = __pyx_t_6;
 
-            /* "combo.pyx":158
+            /* "combo.pyx":159
  *             # Loop until min_pos is defined
  *             for index in range(index, length):
  *                 value = data[index]             # <<<<<<<<<<<<<<
@@ -10604,9 +10604,9 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *                     maximum = value
  */
             __pyx_t_8 = __pyx_v_index;
-            __pyx_v_value = (*((unsigned int *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_8 * __pyx_v_data.strides[0]) )));
+            __pyx_v_value = (*((unsigned int *) ( /* dim=0 */ ((char *) (((unsigned int *) __pyx_v_data.data) + __pyx_t_8)) )));
 
-            /* "combo.pyx":159
+            /* "combo.pyx":160
  *             for index in range(index, length):
  *                 value = data[index]
  *                 if value > maximum:             # <<<<<<<<<<<<<<
@@ -10616,7 +10616,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value > __pyx_v_maximum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":160
+              /* "combo.pyx":161
  *                 value = data[index]
  *                 if value > maximum:
  *                     maximum = value             # <<<<<<<<<<<<<<
@@ -10625,7 +10625,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_maximum = __pyx_v_value;
 
-              /* "combo.pyx":161
+              /* "combo.pyx":162
  *                 if value > maximum:
  *                     maximum = value
  *                     max_index = index             # <<<<<<<<<<<<<<
@@ -10636,7 +10636,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
               goto __pyx_L16;
             }
 
-            /* "combo.pyx":162
+            /* "combo.pyx":163
  *                     maximum = value
  *                     max_index = index
  *                 elif value < minimum:             # <<<<<<<<<<<<<<
@@ -10646,7 +10646,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value < __pyx_v_minimum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":163
+              /* "combo.pyx":164
  *                     max_index = index
  *                 elif value < minimum:
  *                     minimum = value             # <<<<<<<<<<<<<<
@@ -10655,7 +10655,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_minimum = __pyx_v_value;
 
-              /* "combo.pyx":164
+              /* "combo.pyx":165
  *                 elif value < minimum:
  *                     minimum = value
  *                     min_index = index             # <<<<<<<<<<<<<<
@@ -10667,7 +10667,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             }
             __pyx_L16:;
 
-            /* "combo.pyx":166
+            /* "combo.pyx":167
  *                     min_index = index
  * 
  *                 if value > 0:             # <<<<<<<<<<<<<<
@@ -10677,7 +10677,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value > 0) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":167
+              /* "combo.pyx":168
  * 
  *                 if value > 0:
  *                     min_pos = value             # <<<<<<<<<<<<<<
@@ -10686,7 +10686,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_min_pos = __pyx_v_value;
 
-              /* "combo.pyx":168
+              /* "combo.pyx":169
  *                 if value > 0:
  *                     min_pos = value
  *                     min_pos_index = index             # <<<<<<<<<<<<<<
@@ -10695,7 +10695,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_min_pos_index = __pyx_v_index;
 
-              /* "combo.pyx":169
+              /* "combo.pyx":170
  *                     min_pos = value
  *                     min_pos_index = index
  *                     break             # <<<<<<<<<<<<<<
@@ -10707,7 +10707,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
           }
           __pyx_L15_break:;
 
-          /* "combo.pyx":172
+          /* "combo.pyx":173
  * 
  *             # Loop until the end
  *             for index in range(index+1, length):             # <<<<<<<<<<<<<<
@@ -10718,7 +10718,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
           for (__pyx_t_6 = (__pyx_v_index + 1); __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
             __pyx_v_index = __pyx_t_6;
 
-            /* "combo.pyx":173
+            /* "combo.pyx":174
  *             # Loop until the end
  *             for index in range(index+1, length):
  *                 value = data[index]             # <<<<<<<<<<<<<<
@@ -10726,9 +10726,9 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *                     maximum = value
  */
             __pyx_t_9 = __pyx_v_index;
-            __pyx_v_value = (*((unsigned int *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_9 * __pyx_v_data.strides[0]) )));
+            __pyx_v_value = (*((unsigned int *) ( /* dim=0 */ ((char *) (((unsigned int *) __pyx_v_data.data) + __pyx_t_9)) )));
 
-            /* "combo.pyx":174
+            /* "combo.pyx":175
  *             for index in range(index+1, length):
  *                 value = data[index]
  *                 if value > maximum:             # <<<<<<<<<<<<<<
@@ -10738,7 +10738,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value > __pyx_v_maximum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":175
+              /* "combo.pyx":176
  *                 value = data[index]
  *                 if value > maximum:
  *                     maximum = value             # <<<<<<<<<<<<<<
@@ -10747,7 +10747,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_maximum = __pyx_v_value;
 
-              /* "combo.pyx":176
+              /* "combo.pyx":177
  *                 if value > maximum:
  *                     maximum = value
  *                     max_index = index             # <<<<<<<<<<<<<<
@@ -10759,7 +10759,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             }
             /*else*/ {
 
-              /* "combo.pyx":178
+              /* "combo.pyx":179
  *                     max_index = index
  *                 else:
  *                     if value < minimum:             # <<<<<<<<<<<<<<
@@ -10769,7 +10769,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
               __pyx_t_3 = ((__pyx_v_value < __pyx_v_minimum) != 0);
               if (__pyx_t_3) {
 
-                /* "combo.pyx":179
+                /* "combo.pyx":180
  *                 else:
  *                     if value < minimum:
  *                         minimum = value             # <<<<<<<<<<<<<<
@@ -10778,7 +10778,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
                 __pyx_v_minimum = __pyx_v_value;
 
-                /* "combo.pyx":180
+                /* "combo.pyx":181
  *                     if value < minimum:
  *                         minimum = value
  *                         min_index = index             # <<<<<<<<<<<<<<
@@ -10790,7 +10790,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
               }
               __pyx_L21:;
 
-              /* "combo.pyx":182
+              /* "combo.pyx":183
  *                         min_index = index
  * 
  *                     if value > 0 and value < min_pos:             # <<<<<<<<<<<<<<
@@ -10808,7 +10808,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
               __pyx_L23_bool_binop_done:;
               if (__pyx_t_3) {
 
-                /* "combo.pyx":183
+                /* "combo.pyx":184
  * 
  *                     if value > 0 and value < min_pos:
  *                         min_pos = value             # <<<<<<<<<<<<<<
@@ -10817,7 +10817,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
                 __pyx_v_min_pos = __pyx_v_value;
 
-                /* "combo.pyx":184
+                /* "combo.pyx":185
  *                     if value > 0 and value < min_pos:
  *                         min_pos = value
  *                         min_pos_index = index             # <<<<<<<<<<<<<<
@@ -10835,7 +10835,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         __pyx_L10:;
       }
 
-      /* "combo.pyx":124
+      /* "combo.pyx":125
  *         raise ValueError('Zero-size array')
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -10853,7 +10853,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
       }
   }
 
-  /* "combo.pyx":186
+  /* "combo.pyx":187
  *                         min_pos_index = index
  * 
  *     return _MinMaxResult(minimum,             # <<<<<<<<<<<<<<
@@ -10861,12 +10861,12 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *                          maximum,
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_MinMaxResult); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_MinMaxResult); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_10);
-  __pyx_t_11 = __Pyx_PyInt_From_unsigned_int(__pyx_v_minimum); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_11 = __Pyx_PyInt_From_unsigned_int(__pyx_v_minimum); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_11);
 
-  /* "combo.pyx":187
+  /* "combo.pyx":188
  * 
  *     return _MinMaxResult(minimum,
  *                          min_pos if min_pos > 0 else None,             # <<<<<<<<<<<<<<
@@ -10874,7 +10874,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *                          min_index,
  */
   if (((__pyx_v_min_pos > 0) != 0)) {
-    __pyx_t_13 = __Pyx_PyInt_From_long(__pyx_v_min_pos); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_13 = __Pyx_PyInt_From_long(__pyx_v_min_pos); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 188; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_13);
     __pyx_t_12 = __pyx_t_13;
     __pyx_t_13 = 0;
@@ -10883,27 +10883,27 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
     __pyx_t_12 = Py_None;
   }
 
-  /* "combo.pyx":188
+  /* "combo.pyx":189
  *     return _MinMaxResult(minimum,
  *                          min_pos if min_pos > 0 else None,
  *                          maximum,             # <<<<<<<<<<<<<<
  *                          min_index,
  *                          min_pos_index if min_pos > 0 else None,
  */
-  __pyx_t_13 = __Pyx_PyInt_From_unsigned_int(__pyx_v_maximum); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 188; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_13 = __Pyx_PyInt_From_unsigned_int(__pyx_v_maximum); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 189; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_13);
 
-  /* "combo.pyx":189
+  /* "combo.pyx":190
  *                          min_pos if min_pos > 0 else None,
  *                          maximum,
  *                          min_index,             # <<<<<<<<<<<<<<
  *                          min_pos_index if min_pos > 0 else None,
  *                          max_index)
  */
-  __pyx_t_14 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_index); if (unlikely(!__pyx_t_14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 189; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_14 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_index); if (unlikely(!__pyx_t_14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_14);
 
-  /* "combo.pyx":190
+  /* "combo.pyx":191
  *                          maximum,
  *                          min_index,
  *                          min_pos_index if min_pos > 0 else None,             # <<<<<<<<<<<<<<
@@ -10911,7 +10911,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  * 
  */
   if (((__pyx_v_min_pos > 0) != 0)) {
-    __pyx_t_16 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_pos_index); if (unlikely(!__pyx_t_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_16 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_pos_index); if (unlikely(!__pyx_t_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 191; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_16);
     __pyx_t_15 = __pyx_t_16;
     __pyx_t_16 = 0;
@@ -10920,14 +10920,14 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
     __pyx_t_15 = Py_None;
   }
 
-  /* "combo.pyx":191
+  /* "combo.pyx":192
  *                          min_index,
  *                          min_pos_index if min_pos > 0 else None,
  *                          max_index)             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_t_16 = __Pyx_PyInt_From_unsigned_int(__pyx_v_max_index); if (unlikely(!__pyx_t_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 191; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_16 = __Pyx_PyInt_From_unsigned_int(__pyx_v_max_index); if (unlikely(!__pyx_t_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 192; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_16);
   __pyx_t_17 = NULL;
   __pyx_t_18 = 0;
@@ -10941,7 +10941,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
       __pyx_t_18 = 1;
     }
   }
-  __pyx_t_19 = PyTuple_New(6+__pyx_t_18); if (unlikely(!__pyx_t_19)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_19 = PyTuple_New(6+__pyx_t_18); if (unlikely(!__pyx_t_19)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_19);
   if (__pyx_t_17) {
     PyTuple_SET_ITEM(__pyx_t_19, 0, __pyx_t_17); __Pyx_GIVEREF(__pyx_t_17); __pyx_t_17 = NULL;
@@ -10964,7 +10964,7 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
   __pyx_t_14 = 0;
   __pyx_t_15 = 0;
   __pyx_t_16 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_19, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_19, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_19); __pyx_t_19 = 0;
   __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
@@ -10972,10 +10972,10 @@ static PyObject *__pyx_pf_5combo_20_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "combo.pyx":109
+  /* "combo.pyx":110
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
- * def _min_max(_number[:] data, bint min_positive=False):             # <<<<<<<<<<<<<<
+ * def _min_max(_number[::1] data, bint min_positive=False):             # <<<<<<<<<<<<<<
  *     """See :func:`min_max` for documentation."""
  *     cdef:
  */
@@ -11011,14 +11011,14 @@ static PyObject *__pyx_pf_5combo_64__defaults__(CYTHON_UNUSED PyObject *__pyx_se
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__defaults__", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong(__Pyx_CyFunction_Defaults(__pyx_defaults19, __pyx_self)->__pyx_arg_min_positive); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyBool_FromLong(__Pyx_CyFunction_Defaults(__pyx_defaults19, __pyx_self)->__pyx_arg_min_positive); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_2);
@@ -11079,7 +11079,7 @@ static PyObject *__pyx_fuse_9__pyx_pw_5combo_23_min_max(PyObject *__pyx_self, Py
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_min_max") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_min_max") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -11089,16 +11089,16 @@ static PyObject *__pyx_fuse_9__pyx_pw_5combo_23_min_max(PyObject *__pyx_self, Py
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_data = __Pyx_PyObject_to_MemoryviewSlice_ds_unsigned_PY_LONG_LONG(values[0]); if (unlikely(!__pyx_v_data.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+    __pyx_v_data = __Pyx_PyObject_to_MemoryviewSlice_dc_unsigned_PY_LONG_LONG(values[0]); if (unlikely(!__pyx_v_data.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
     if (values[1]) {
-      __pyx_v_min_positive = __Pyx_PyObject_IsTrue(values[1]); if (unlikely((__pyx_v_min_positive == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+      __pyx_v_min_positive = __Pyx_PyObject_IsTrue(values[1]); if (unlikely((__pyx_v_min_positive == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
     } else {
       __pyx_v_min_positive = __pyx_dynamic_args->__pyx_arg_min_positive;
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("_min_max", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("_min_max", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("combo._min_max", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -11147,7 +11147,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__pyx_fuse_9_min_max", 0);
 
-  /* "combo.pyx":114
+  /* "combo.pyx":115
  *         _number value, minimum, minpos, maximum
  *         unsigned int length
  *         unsigned int index = 0             # <<<<<<<<<<<<<<
@@ -11156,7 +11156,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
   __pyx_v_index = 0;
 
-  /* "combo.pyx":115
+  /* "combo.pyx":116
  *         unsigned int length
  *         unsigned int index = 0
  *         unsigned int min_index = 0             # <<<<<<<<<<<<<<
@@ -11165,7 +11165,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
   __pyx_v_min_index = 0;
 
-  /* "combo.pyx":116
+  /* "combo.pyx":117
  *         unsigned int index = 0
  *         unsigned int min_index = 0
  *         unsigned int min_pos_index = 0             # <<<<<<<<<<<<<<
@@ -11174,7 +11174,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
   __pyx_v_min_pos_index = 0;
 
-  /* "combo.pyx":117
+  /* "combo.pyx":118
  *         unsigned int min_index = 0
  *         unsigned int min_pos_index = 0
  *         unsigned int max_index = 0             # <<<<<<<<<<<<<<
@@ -11183,20 +11183,20 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
   __pyx_v_max_index = 0;
 
-  /* "combo.pyx":119
+  /* "combo.pyx":120
  *         unsigned int max_index = 0
  * 
  *     length = len(data)             # <<<<<<<<<<<<<<
  * 
  *     if length == 0:
  */
-  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_v_data, 1, (PyObject *(*)(char *)) __pyx_memview_get_unsigned_PY_LONG_LONG, (int (*)(char *, PyObject *)) __pyx_memview_set_unsigned_PY_LONG_LONG, 0);; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_v_data, 1, (PyObject *(*)(char *)) __pyx_memview_get_unsigned_PY_LONG_LONG, (int (*)(char *, PyObject *)) __pyx_memview_set_unsigned_PY_LONG_LONG, 0);; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 120; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyObject_Length(__pyx_t_1); if (unlikely(__pyx_t_2 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyObject_Length(__pyx_t_1); if (unlikely(__pyx_t_2 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 120; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_length = __pyx_t_2;
 
-  /* "combo.pyx":121
+  /* "combo.pyx":122
  *     length = len(data)
  * 
  *     if length == 0:             # <<<<<<<<<<<<<<
@@ -11206,21 +11206,21 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
   __pyx_t_3 = ((__pyx_v_length == 0) != 0);
   if (__pyx_t_3) {
 
-    /* "combo.pyx":122
+    /* "combo.pyx":123
  * 
  *     if length == 0:
  *         raise ValueError('Zero-size array')             # <<<<<<<<<<<<<<
  * 
  *     with nogil:
  */
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__18, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__18, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "combo.pyx":124
+  /* "combo.pyx":125
  *         raise ValueError('Zero-size array')
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -11234,7 +11234,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
       #endif
       /*try:*/ {
 
-        /* "combo.pyx":126
+        /* "combo.pyx":127
  *     with nogil:
  *         # Init starting values
  *         value = data[0]             # <<<<<<<<<<<<<<
@@ -11242,9 +11242,9 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *         maximum = value
  */
         __pyx_t_2 = 0;
-        __pyx_v_value = (*((unsigned PY_LONG_LONG *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_2 * __pyx_v_data.strides[0]) )));
+        __pyx_v_value = (*((unsigned PY_LONG_LONG *) ( /* dim=0 */ ((char *) (((unsigned PY_LONG_LONG *) __pyx_v_data.data) + __pyx_t_2)) )));
 
-        /* "combo.pyx":127
+        /* "combo.pyx":128
  *         # Init starting values
  *         value = data[0]
  *         minimum = value             # <<<<<<<<<<<<<<
@@ -11253,7 +11253,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
         __pyx_v_minimum = __pyx_v_value;
 
-        /* "combo.pyx":128
+        /* "combo.pyx":129
  *         value = data[0]
  *         minimum = value
  *         maximum = value             # <<<<<<<<<<<<<<
@@ -11262,7 +11262,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
         __pyx_v_maximum = __pyx_v_value;
 
-        /* "combo.pyx":129
+        /* "combo.pyx":130
  *         minimum = value
  *         maximum = value
  *         if min_positive and value > 0:             # <<<<<<<<<<<<<<
@@ -11280,7 +11280,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         __pyx_L8_bool_binop_done:;
         if (__pyx_t_3) {
 
-          /* "combo.pyx":130
+          /* "combo.pyx":131
  *         maximum = value
  *         if min_positive and value > 0:
  *             min_pos = value             # <<<<<<<<<<<<<<
@@ -11292,7 +11292,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         }
         /*else*/ {
 
-          /* "combo.pyx":132
+          /* "combo.pyx":133
  *             min_pos = value
  *         else:
  *             min_pos = 0             # <<<<<<<<<<<<<<
@@ -11303,7 +11303,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         }
         __pyx_L7:;
 
-        /* "combo.pyx":145
+        /* "combo.pyx":146
  *                     break
  * 
  *         if not min_positive:             # <<<<<<<<<<<<<<
@@ -11313,7 +11313,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         __pyx_t_3 = ((!(__pyx_v_min_positive != 0)) != 0);
         if (__pyx_t_3) {
 
-          /* "combo.pyx":146
+          /* "combo.pyx":147
  * 
  *         if not min_positive:
  *             for index in range(index, length):             # <<<<<<<<<<<<<<
@@ -11324,7 +11324,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
           for (__pyx_t_6 = __pyx_v_index; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
             __pyx_v_index = __pyx_t_6;
 
-            /* "combo.pyx":147
+            /* "combo.pyx":148
  *         if not min_positive:
  *             for index in range(index, length):
  *                 value = data[index]             # <<<<<<<<<<<<<<
@@ -11332,9 +11332,9 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *                     maximum = value
  */
             __pyx_t_7 = __pyx_v_index;
-            __pyx_v_value = (*((unsigned PY_LONG_LONG *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_7 * __pyx_v_data.strides[0]) )));
+            __pyx_v_value = (*((unsigned PY_LONG_LONG *) ( /* dim=0 */ ((char *) (((unsigned PY_LONG_LONG *) __pyx_v_data.data) + __pyx_t_7)) )));
 
-            /* "combo.pyx":148
+            /* "combo.pyx":149
  *             for index in range(index, length):
  *                 value = data[index]
  *                 if value > maximum:             # <<<<<<<<<<<<<<
@@ -11344,7 +11344,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value > __pyx_v_maximum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":149
+              /* "combo.pyx":150
  *                 value = data[index]
  *                 if value > maximum:
  *                     maximum = value             # <<<<<<<<<<<<<<
@@ -11353,7 +11353,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_maximum = __pyx_v_value;
 
-              /* "combo.pyx":150
+              /* "combo.pyx":151
  *                 if value > maximum:
  *                     maximum = value
  *                     max_index = index             # <<<<<<<<<<<<<<
@@ -11364,7 +11364,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
               goto __pyx_L13;
             }
 
-            /* "combo.pyx":151
+            /* "combo.pyx":152
  *                     maximum = value
  *                     max_index = index
  *                 elif value < minimum:             # <<<<<<<<<<<<<<
@@ -11374,7 +11374,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value < __pyx_v_minimum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":152
+              /* "combo.pyx":153
  *                     max_index = index
  *                 elif value < minimum:
  *                     minimum = value             # <<<<<<<<<<<<<<
@@ -11383,7 +11383,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_minimum = __pyx_v_value;
 
-              /* "combo.pyx":153
+              /* "combo.pyx":154
  *                 elif value < minimum:
  *                     minimum = value
  *                     min_index = index             # <<<<<<<<<<<<<<
@@ -11399,7 +11399,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         }
         /*else*/ {
 
-          /* "combo.pyx":157
+          /* "combo.pyx":158
  *         else:
  *             # Loop until min_pos is defined
  *             for index in range(index, length):             # <<<<<<<<<<<<<<
@@ -11410,7 +11410,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
           for (__pyx_t_6 = __pyx_v_index; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
             __pyx_v_index = __pyx_t_6;
 
-            /* "combo.pyx":158
+            /* "combo.pyx":159
  *             # Loop until min_pos is defined
  *             for index in range(index, length):
  *                 value = data[index]             # <<<<<<<<<<<<<<
@@ -11418,9 +11418,9 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *                     maximum = value
  */
             __pyx_t_8 = __pyx_v_index;
-            __pyx_v_value = (*((unsigned PY_LONG_LONG *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_8 * __pyx_v_data.strides[0]) )));
+            __pyx_v_value = (*((unsigned PY_LONG_LONG *) ( /* dim=0 */ ((char *) (((unsigned PY_LONG_LONG *) __pyx_v_data.data) + __pyx_t_8)) )));
 
-            /* "combo.pyx":159
+            /* "combo.pyx":160
  *             for index in range(index, length):
  *                 value = data[index]
  *                 if value > maximum:             # <<<<<<<<<<<<<<
@@ -11430,7 +11430,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value > __pyx_v_maximum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":160
+              /* "combo.pyx":161
  *                 value = data[index]
  *                 if value > maximum:
  *                     maximum = value             # <<<<<<<<<<<<<<
@@ -11439,7 +11439,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_maximum = __pyx_v_value;
 
-              /* "combo.pyx":161
+              /* "combo.pyx":162
  *                 if value > maximum:
  *                     maximum = value
  *                     max_index = index             # <<<<<<<<<<<<<<
@@ -11450,7 +11450,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
               goto __pyx_L16;
             }
 
-            /* "combo.pyx":162
+            /* "combo.pyx":163
  *                     maximum = value
  *                     max_index = index
  *                 elif value < minimum:             # <<<<<<<<<<<<<<
@@ -11460,7 +11460,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value < __pyx_v_minimum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":163
+              /* "combo.pyx":164
  *                     max_index = index
  *                 elif value < minimum:
  *                     minimum = value             # <<<<<<<<<<<<<<
@@ -11469,7 +11469,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_minimum = __pyx_v_value;
 
-              /* "combo.pyx":164
+              /* "combo.pyx":165
  *                 elif value < minimum:
  *                     minimum = value
  *                     min_index = index             # <<<<<<<<<<<<<<
@@ -11481,7 +11481,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             }
             __pyx_L16:;
 
-            /* "combo.pyx":166
+            /* "combo.pyx":167
  *                     min_index = index
  * 
  *                 if value > 0:             # <<<<<<<<<<<<<<
@@ -11491,7 +11491,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value > 0) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":167
+              /* "combo.pyx":168
  * 
  *                 if value > 0:
  *                     min_pos = value             # <<<<<<<<<<<<<<
@@ -11500,7 +11500,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_min_pos = __pyx_v_value;
 
-              /* "combo.pyx":168
+              /* "combo.pyx":169
  *                 if value > 0:
  *                     min_pos = value
  *                     min_pos_index = index             # <<<<<<<<<<<<<<
@@ -11509,7 +11509,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_min_pos_index = __pyx_v_index;
 
-              /* "combo.pyx":169
+              /* "combo.pyx":170
  *                     min_pos = value
  *                     min_pos_index = index
  *                     break             # <<<<<<<<<<<<<<
@@ -11521,7 +11521,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
           }
           __pyx_L15_break:;
 
-          /* "combo.pyx":172
+          /* "combo.pyx":173
  * 
  *             # Loop until the end
  *             for index in range(index+1, length):             # <<<<<<<<<<<<<<
@@ -11532,7 +11532,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
           for (__pyx_t_6 = (__pyx_v_index + 1); __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
             __pyx_v_index = __pyx_t_6;
 
-            /* "combo.pyx":173
+            /* "combo.pyx":174
  *             # Loop until the end
  *             for index in range(index+1, length):
  *                 value = data[index]             # <<<<<<<<<<<<<<
@@ -11540,9 +11540,9 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *                     maximum = value
  */
             __pyx_t_9 = __pyx_v_index;
-            __pyx_v_value = (*((unsigned PY_LONG_LONG *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_9 * __pyx_v_data.strides[0]) )));
+            __pyx_v_value = (*((unsigned PY_LONG_LONG *) ( /* dim=0 */ ((char *) (((unsigned PY_LONG_LONG *) __pyx_v_data.data) + __pyx_t_9)) )));
 
-            /* "combo.pyx":174
+            /* "combo.pyx":175
  *             for index in range(index+1, length):
  *                 value = data[index]
  *                 if value > maximum:             # <<<<<<<<<<<<<<
@@ -11552,7 +11552,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             __pyx_t_3 = ((__pyx_v_value > __pyx_v_maximum) != 0);
             if (__pyx_t_3) {
 
-              /* "combo.pyx":175
+              /* "combo.pyx":176
  *                 value = data[index]
  *                 if value > maximum:
  *                     maximum = value             # <<<<<<<<<<<<<<
@@ -11561,7 +11561,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
               __pyx_v_maximum = __pyx_v_value;
 
-              /* "combo.pyx":176
+              /* "combo.pyx":177
  *                 if value > maximum:
  *                     maximum = value
  *                     max_index = index             # <<<<<<<<<<<<<<
@@ -11573,7 +11573,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
             }
             /*else*/ {
 
-              /* "combo.pyx":178
+              /* "combo.pyx":179
  *                     max_index = index
  *                 else:
  *                     if value < minimum:             # <<<<<<<<<<<<<<
@@ -11583,7 +11583,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
               __pyx_t_3 = ((__pyx_v_value < __pyx_v_minimum) != 0);
               if (__pyx_t_3) {
 
-                /* "combo.pyx":179
+                /* "combo.pyx":180
  *                 else:
  *                     if value < minimum:
  *                         minimum = value             # <<<<<<<<<<<<<<
@@ -11592,7 +11592,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
                 __pyx_v_minimum = __pyx_v_value;
 
-                /* "combo.pyx":180
+                /* "combo.pyx":181
  *                     if value < minimum:
  *                         minimum = value
  *                         min_index = index             # <<<<<<<<<<<<<<
@@ -11604,7 +11604,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
               }
               __pyx_L21:;
 
-              /* "combo.pyx":182
+              /* "combo.pyx":183
  *                         min_index = index
  * 
  *                     if value > 0 and value < min_pos:             # <<<<<<<<<<<<<<
@@ -11622,7 +11622,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
               __pyx_L23_bool_binop_done:;
               if (__pyx_t_3) {
 
-                /* "combo.pyx":183
+                /* "combo.pyx":184
  * 
  *                     if value > 0 and value < min_pos:
  *                         min_pos = value             # <<<<<<<<<<<<<<
@@ -11631,7 +11631,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  */
                 __pyx_v_min_pos = __pyx_v_value;
 
-                /* "combo.pyx":184
+                /* "combo.pyx":185
  *                     if value > 0 and value < min_pos:
  *                         min_pos = value
  *                         min_pos_index = index             # <<<<<<<<<<<<<<
@@ -11649,7 +11649,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
         __pyx_L10:;
       }
 
-      /* "combo.pyx":124
+      /* "combo.pyx":125
  *         raise ValueError('Zero-size array')
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -11667,7 +11667,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
       }
   }
 
-  /* "combo.pyx":186
+  /* "combo.pyx":187
  *                         min_pos_index = index
  * 
  *     return _MinMaxResult(minimum,             # <<<<<<<<<<<<<<
@@ -11675,12 +11675,12 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *                          maximum,
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_MinMaxResult); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_MinMaxResult); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_10);
-  __pyx_t_11 = __Pyx_PyInt_From_unsigned_PY_LONG_LONG(__pyx_v_minimum); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_11 = __Pyx_PyInt_From_unsigned_PY_LONG_LONG(__pyx_v_minimum); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_11);
 
-  /* "combo.pyx":187
+  /* "combo.pyx":188
  * 
  *     return _MinMaxResult(minimum,
  *                          min_pos if min_pos > 0 else None,             # <<<<<<<<<<<<<<
@@ -11688,7 +11688,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  *                          min_index,
  */
   if (((__pyx_v_min_pos > 0) != 0)) {
-    __pyx_t_13 = __Pyx_PyInt_From_unsigned_PY_LONG_LONG(__pyx_v_min_pos); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_13 = __Pyx_PyInt_From_unsigned_PY_LONG_LONG(__pyx_v_min_pos); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 188; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_13);
     __pyx_t_12 = __pyx_t_13;
     __pyx_t_13 = 0;
@@ -11697,27 +11697,27 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
     __pyx_t_12 = Py_None;
   }
 
-  /* "combo.pyx":188
+  /* "combo.pyx":189
  *     return _MinMaxResult(minimum,
  *                          min_pos if min_pos > 0 else None,
  *                          maximum,             # <<<<<<<<<<<<<<
  *                          min_index,
  *                          min_pos_index if min_pos > 0 else None,
  */
-  __pyx_t_13 = __Pyx_PyInt_From_unsigned_PY_LONG_LONG(__pyx_v_maximum); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 188; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_13 = __Pyx_PyInt_From_unsigned_PY_LONG_LONG(__pyx_v_maximum); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 189; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_13);
 
-  /* "combo.pyx":189
+  /* "combo.pyx":190
  *                          min_pos if min_pos > 0 else None,
  *                          maximum,
  *                          min_index,             # <<<<<<<<<<<<<<
  *                          min_pos_index if min_pos > 0 else None,
  *                          max_index)
  */
-  __pyx_t_14 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_index); if (unlikely(!__pyx_t_14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 189; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_14 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_index); if (unlikely(!__pyx_t_14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_14);
 
-  /* "combo.pyx":190
+  /* "combo.pyx":191
  *                          maximum,
  *                          min_index,
  *                          min_pos_index if min_pos > 0 else None,             # <<<<<<<<<<<<<<
@@ -11725,7 +11725,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
  * 
  */
   if (((__pyx_v_min_pos > 0) != 0)) {
-    __pyx_t_16 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_pos_index); if (unlikely(!__pyx_t_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_16 = __Pyx_PyInt_From_unsigned_int(__pyx_v_min_pos_index); if (unlikely(!__pyx_t_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 191; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_16);
     __pyx_t_15 = __pyx_t_16;
     __pyx_t_16 = 0;
@@ -11734,14 +11734,14 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
     __pyx_t_15 = Py_None;
   }
 
-  /* "combo.pyx":191
+  /* "combo.pyx":192
  *                          min_index,
  *                          min_pos_index if min_pos > 0 else None,
  *                          max_index)             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_t_16 = __Pyx_PyInt_From_unsigned_int(__pyx_v_max_index); if (unlikely(!__pyx_t_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 191; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_16 = __Pyx_PyInt_From_unsigned_int(__pyx_v_max_index); if (unlikely(!__pyx_t_16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 192; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_16);
   __pyx_t_17 = NULL;
   __pyx_t_18 = 0;
@@ -11755,7 +11755,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
       __pyx_t_18 = 1;
     }
   }
-  __pyx_t_19 = PyTuple_New(6+__pyx_t_18); if (unlikely(!__pyx_t_19)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_19 = PyTuple_New(6+__pyx_t_18); if (unlikely(!__pyx_t_19)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_19);
   if (__pyx_t_17) {
     PyTuple_SET_ITEM(__pyx_t_19, 0, __pyx_t_17); __Pyx_GIVEREF(__pyx_t_17); __pyx_t_17 = NULL;
@@ -11778,7 +11778,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
   __pyx_t_14 = 0;
   __pyx_t_15 = 0;
   __pyx_t_16 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_19, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_19, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_19); __pyx_t_19 = 0;
   __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
@@ -11786,10 +11786,10 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "combo.pyx":109
+  /* "combo.pyx":110
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
- * def _min_max(_number[:] data, bint min_positive=False):             # <<<<<<<<<<<<<<
+ * def _min_max(_number[::1] data, bint min_positive=False):             # <<<<<<<<<<<<<<
  *     """See :func:`min_max` for documentation."""
  *     cdef:
  */
@@ -11815,7 +11815,7 @@ static PyObject *__pyx_pf_5combo_22_min_max(CYTHON_UNUSED PyObject *__pyx_self, 
   return __pyx_r;
 }
 
-/* "combo.pyx":194
+/* "combo.pyx":195
  * 
  * 
  * def min_max(data not None, bint min_positive=False):             # <<<<<<<<<<<<<<
@@ -11860,7 +11860,7 @@ static PyObject *__pyx_pw_5combo_3min_max(PyObject *__pyx_self, PyObject *__pyx_
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "min_max") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 194; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "min_max") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 195; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -11872,21 +11872,21 @@ static PyObject *__pyx_pw_5combo_3min_max(PyObject *__pyx_self, PyObject *__pyx_
     }
     __pyx_v_data = values[0];
     if (values[1]) {
-      __pyx_v_min_positive = __Pyx_PyObject_IsTrue(values[1]); if (unlikely((__pyx_v_min_positive == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 194; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+      __pyx_v_min_positive = __Pyx_PyObject_IsTrue(values[1]); if (unlikely((__pyx_v_min_positive == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 195; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
     } else {
       __pyx_v_min_positive = ((int)0);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("min_max", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 194; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("min_max", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 195; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("combo.min_max", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
   if (unlikely(((PyObject *)__pyx_v_data) == Py_None)) {
-    PyErr_Format(PyExc_TypeError, "Argument '%.200s' must not be None", "data"); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 194; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    PyErr_Format(PyExc_TypeError, "Argument '%.200s' must not be None", "data"); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 195; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   __pyx_r = __pyx_pf_5combo_2min_max(__pyx_self, __pyx_v_data, __pyx_v_min_positive);
 
@@ -11915,17 +11915,17 @@ static PyObject *__pyx_pf_5combo_2min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("min_max", 0);
 
-  /* "combo.pyx":237
+  /* "combo.pyx":238
  *     :raises: ValueError if data is empty
  *     """
- *     return _min_max(numpy.asanyarray(data).ravel(), min_positive)             # <<<<<<<<<<<<<<
+ *     return _min_max(numpy.ascontiguousarray(data).ravel(), min_positive)             # <<<<<<<<<<<<<<
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_min_max); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 237; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_min_max); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 238; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 237; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 238; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_asanyarray); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 237; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_ascontiguousarray); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 238; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __pyx_t_5 = NULL;
@@ -11939,21 +11939,21 @@ static PyObject *__pyx_pf_5combo_2min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
     }
   }
   if (!__pyx_t_5) {
-    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_6, __pyx_v_data); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 237; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_6, __pyx_v_data); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 238; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
   } else {
-    __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 237; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 238; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_7);
     PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_5); __Pyx_GIVEREF(__pyx_t_5); __pyx_t_5 = NULL;
     __Pyx_INCREF(__pyx_v_data);
     PyTuple_SET_ITEM(__pyx_t_7, 0+1, __pyx_v_data);
     __Pyx_GIVEREF(__pyx_v_data);
-    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_t_7, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 237; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_t_7, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 238; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   }
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_ravel); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 237; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_ravel); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 238; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_t_4 = NULL;
@@ -11967,14 +11967,14 @@ static PyObject *__pyx_pf_5combo_2min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
     }
   }
   if (__pyx_t_4) {
-    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_6, __pyx_t_4); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 237; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_6, __pyx_t_4); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 238; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   } else {
-    __pyx_t_3 = __Pyx_PyObject_CallNoArg(__pyx_t_6); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 237; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_CallNoArg(__pyx_t_6); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 238; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = __Pyx_PyBool_FromLong(__pyx_v_min_positive); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 237; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_6 = __Pyx_PyBool_FromLong(__pyx_v_min_positive); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 238; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_6);
   __pyx_t_4 = NULL;
   __pyx_t_8 = 0;
@@ -11988,7 +11988,7 @@ static PyObject *__pyx_pf_5combo_2min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
       __pyx_t_8 = 1;
     }
   }
-  __pyx_t_7 = PyTuple_New(2+__pyx_t_8); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 237; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_7 = PyTuple_New(2+__pyx_t_8); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 238; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_7);
   if (__pyx_t_4) {
     PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_4); __Pyx_GIVEREF(__pyx_t_4); __pyx_t_4 = NULL;
@@ -11999,7 +11999,7 @@ static PyObject *__pyx_pf_5combo_2min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
   __Pyx_GIVEREF(__pyx_t_6);
   __pyx_t_3 = 0;
   __pyx_t_6 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 237; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 238; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -12007,7 +12007,7 @@ static PyObject *__pyx_pf_5combo_2min_max(CYTHON_UNUSED PyObject *__pyx_self, Py
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "combo.pyx":194
+  /* "combo.pyx":195
  * 
  * 
  * def min_max(data not None, bint min_positive=False):             # <<<<<<<<<<<<<<
@@ -23394,7 +23394,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_argmin_positive, __pyx_k_argmin_positive, sizeof(__pyx_k_argmin_positive), 0, 0, 1, 1},
   {&__pyx_n_s_argmin_positive_2, __pyx_k_argmin_positive_2, sizeof(__pyx_k_argmin_positive_2), 0, 0, 1, 1},
   {&__pyx_n_s_args, __pyx_k_args, sizeof(__pyx_k_args), 0, 0, 1, 1},
-  {&__pyx_n_s_asanyarray, __pyx_k_asanyarray, sizeof(__pyx_k_asanyarray), 0, 0, 1, 1},
+  {&__pyx_n_s_ascontiguousarray, __pyx_k_ascontiguousarray, sizeof(__pyx_k_ascontiguousarray), 0, 0, 1, 1},
   {&__pyx_n_s_authors, __pyx_k_authors, sizeof(__pyx_k_authors), 0, 0, 1, 1},
   {&__pyx_n_s_base, __pyx_k_base, sizeof(__pyx_k_base), 0, 0, 1, 1},
   {&__pyx_n_s_c, __pyx_k_c, sizeof(__pyx_k_c), 0, 0, 1, 1},
@@ -23440,7 +23440,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_min_index, __pyx_k_min_index, sizeof(__pyx_k_min_index), 0, 0, 1, 1},
   {&__pyx_n_s_min_max, __pyx_k_min_max, sizeof(__pyx_k_min_max), 0, 0, 1, 1},
   {&__pyx_n_s_min_max_2, __pyx_k_min_max_2, sizeof(__pyx_k_min_max_2), 0, 0, 1, 1},
-  {&__pyx_kp_u_min_max_line_194, __pyx_k_min_max_line_194, sizeof(__pyx_k_min_max_line_194), 0, 1, 0, 0},
+  {&__pyx_kp_u_min_max_line_195, __pyx_k_min_max_line_195, sizeof(__pyx_k_min_max_line_195), 0, 1, 0, 0},
   {&__pyx_n_s_min_pos, __pyx_k_min_pos, sizeof(__pyx_k_min_pos), 0, 0, 1, 1},
   {&__pyx_n_s_min_pos_index, __pyx_k_min_pos_index, sizeof(__pyx_k_min_pos_index), 0, 0, 1, 1},
   {&__pyx_n_s_min_positive, __pyx_k_min_positive, sizeof(__pyx_k_min_positive), 0, 0, 1, 1},
@@ -23501,13 +23501,13 @@ static int __Pyx_InitCachedBuiltins(void) {
   __pyx_builtin_object = __Pyx_GetBuiltinName(__pyx_n_s_object); if (!__pyx_builtin_object) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_builtin_property = __Pyx_GetBuiltinName(__pyx_n_s_property); if (!__pyx_builtin_property) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 71; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_builtin_IndexError = __Pyx_GetBuiltinName(__pyx_n_s_IndexError); if (!__pyx_builtin_IndexError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 104; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_builtin_ImportError = __Pyx_GetBuiltinName(__pyx_n_s_ImportError); if (!__pyx_builtin_ImportError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_builtin_AttributeError = __Pyx_GetBuiltinName(__pyx_n_s_AttributeError); if (!__pyx_builtin_AttributeError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_builtin_ord = __Pyx_GetBuiltinName(__pyx_n_s_ord); if (!__pyx_builtin_ord) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_builtin_zip = __Pyx_GetBuiltinName(__pyx_n_s_zip); if (!__pyx_builtin_zip) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 136; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_ImportError = __Pyx_GetBuiltinName(__pyx_n_s_ImportError); if (!__pyx_builtin_ImportError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_AttributeError = __Pyx_GetBuiltinName(__pyx_n_s_AttributeError); if (!__pyx_builtin_AttributeError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_ord = __Pyx_GetBuiltinName(__pyx_n_s_ord); if (!__pyx_builtin_ord) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_zip = __Pyx_GetBuiltinName(__pyx_n_s_zip); if (!__pyx_builtin_zip) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 137; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 142; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_builtin_enumerate = __Pyx_GetBuiltinName(__pyx_n_s_enumerate); if (!__pyx_builtin_enumerate) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 145; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_builtin_Ellipsis = __Pyx_GetBuiltinName(__pyx_n_s_Ellipsis); if (!__pyx_builtin_Ellipsis) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 357; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -23537,61 +23537,61 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple_);
   __Pyx_GIVEREF(__pyx_tuple_);
 
-  /* "combo.pyx":109
+  /* "combo.pyx":110
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
- * def _min_max(_number[:] data, bint min_positive=False):             # <<<<<<<<<<<<<<
+ * def _min_max(_number[::1] data, bint min_positive=False):             # <<<<<<<<<<<<<<
  *     """See :func:`min_max` for documentation."""
  *     cdef:
  */
-  __pyx_tuple__4 = PyTuple_Pack(1, __pyx_kp_s__3); if (unlikely(!__pyx_tuple__4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__4 = PyTuple_Pack(1, __pyx_kp_s__3); if (unlikely(!__pyx_tuple__4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__4);
   __Pyx_GIVEREF(__pyx_tuple__4);
-  __pyx_tuple__6 = PyTuple_Pack(1, __pyx_kp_s__5); if (unlikely(!__pyx_tuple__6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__6 = PyTuple_Pack(1, __pyx_kp_s__5); if (unlikely(!__pyx_tuple__6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__6);
   __Pyx_GIVEREF(__pyx_tuple__6);
-  __pyx_tuple__7 = PyTuple_Pack(1, __pyx_kp_s_No_matching_signature_found); if (unlikely(!__pyx_tuple__7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__7 = PyTuple_Pack(1, __pyx_kp_s_No_matching_signature_found); if (unlikely(!__pyx_tuple__7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__7);
   __Pyx_GIVEREF(__pyx_tuple__7);
-  __pyx_tuple__8 = PyTuple_Pack(1, __pyx_kp_s_Function_call_with_ambiguous_arg); if (unlikely(!__pyx_tuple__8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__8 = PyTuple_Pack(1, __pyx_kp_s_Function_call_with_ambiguous_arg); if (unlikely(!__pyx_tuple__8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__8);
   __Pyx_GIVEREF(__pyx_tuple__8);
 
-  /* "combo.pyx":122
+  /* "combo.pyx":123
  * 
  *     if length == 0:
  *         raise ValueError('Zero-size array')             # <<<<<<<<<<<<<<
  * 
  *     with nogil:
  */
-  __pyx_tuple__9 = PyTuple_Pack(1, __pyx_kp_s_Zero_size_array); if (unlikely(!__pyx_tuple__9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__9 = PyTuple_Pack(1, __pyx_kp_s_Zero_size_array); if (unlikely(!__pyx_tuple__9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__9);
   __Pyx_GIVEREF(__pyx_tuple__9);
-  __pyx_tuple__10 = PyTuple_Pack(1, __pyx_kp_s_Zero_size_array); if (unlikely(!__pyx_tuple__10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__10 = PyTuple_Pack(1, __pyx_kp_s_Zero_size_array); if (unlikely(!__pyx_tuple__10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__10);
   __Pyx_GIVEREF(__pyx_tuple__10);
-  __pyx_tuple__11 = PyTuple_Pack(1, __pyx_kp_s_Zero_size_array); if (unlikely(!__pyx_tuple__11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__11 = PyTuple_Pack(1, __pyx_kp_s_Zero_size_array); if (unlikely(!__pyx_tuple__11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__11);
   __Pyx_GIVEREF(__pyx_tuple__11);
-  __pyx_tuple__12 = PyTuple_Pack(1, __pyx_kp_s_Zero_size_array); if (unlikely(!__pyx_tuple__12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__12 = PyTuple_Pack(1, __pyx_kp_s_Zero_size_array); if (unlikely(!__pyx_tuple__12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__12);
   __Pyx_GIVEREF(__pyx_tuple__12);
-  __pyx_tuple__13 = PyTuple_Pack(1, __pyx_kp_s_Zero_size_array); if (unlikely(!__pyx_tuple__13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__13 = PyTuple_Pack(1, __pyx_kp_s_Zero_size_array); if (unlikely(!__pyx_tuple__13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__13);
   __Pyx_GIVEREF(__pyx_tuple__13);
-  __pyx_tuple__14 = PyTuple_Pack(1, __pyx_kp_s_Zero_size_array); if (unlikely(!__pyx_tuple__14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__14 = PyTuple_Pack(1, __pyx_kp_s_Zero_size_array); if (unlikely(!__pyx_tuple__14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__14);
   __Pyx_GIVEREF(__pyx_tuple__14);
-  __pyx_tuple__15 = PyTuple_Pack(1, __pyx_kp_s_Zero_size_array); if (unlikely(!__pyx_tuple__15)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__15 = PyTuple_Pack(1, __pyx_kp_s_Zero_size_array); if (unlikely(!__pyx_tuple__15)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__15);
   __Pyx_GIVEREF(__pyx_tuple__15);
-  __pyx_tuple__16 = PyTuple_Pack(1, __pyx_kp_s_Zero_size_array); if (unlikely(!__pyx_tuple__16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__16 = PyTuple_Pack(1, __pyx_kp_s_Zero_size_array); if (unlikely(!__pyx_tuple__16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__16);
   __Pyx_GIVEREF(__pyx_tuple__16);
-  __pyx_tuple__17 = PyTuple_Pack(1, __pyx_kp_s_Zero_size_array); if (unlikely(!__pyx_tuple__17)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__17 = PyTuple_Pack(1, __pyx_kp_s_Zero_size_array); if (unlikely(!__pyx_tuple__17)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__17);
   __Pyx_GIVEREF(__pyx_tuple__17);
-  __pyx_tuple__18 = PyTuple_Pack(1, __pyx_kp_s_Zero_size_array); if (unlikely(!__pyx_tuple__18)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__18 = PyTuple_Pack(1, __pyx_kp_s_Zero_size_array); if (unlikely(!__pyx_tuple__18)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__18);
   __Pyx_GIVEREF(__pyx_tuple__18);
 
@@ -23740,29 +23740,29 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__32);
   __pyx_codeobj__33 = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__32, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_mntdirect__tmp_14_days_tvincent, __pyx_n_s_getitem, 98, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__33)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 98; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "combo.pyx":109
+  /* "combo.pyx":110
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
- * def _min_max(_number[:] data, bint min_positive=False):             # <<<<<<<<<<<<<<
+ * def _min_max(_number[::1] data, bint min_positive=False):             # <<<<<<<<<<<<<<
  *     """See :func:`min_max` for documentation."""
  *     cdef:
  */
-  __pyx_tuple__34 = PyTuple_Pack(12, __pyx_n_s_data, __pyx_n_s_min_positive_2, __pyx_n_s_value, __pyx_n_s_minimum_2, __pyx_n_s_minpos, __pyx_n_s_maximum_2, __pyx_n_s_length, __pyx_n_s_index, __pyx_n_s_min_index, __pyx_n_s_min_pos_index, __pyx_n_s_max_index, __pyx_n_s_min_pos); if (unlikely(!__pyx_tuple__34)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__34 = PyTuple_Pack(12, __pyx_n_s_data, __pyx_n_s_min_positive_2, __pyx_n_s_value, __pyx_n_s_minimum_2, __pyx_n_s_minpos, __pyx_n_s_maximum_2, __pyx_n_s_length, __pyx_n_s_index, __pyx_n_s_min_index, __pyx_n_s_min_pos_index, __pyx_n_s_max_index, __pyx_n_s_min_pos); if (unlikely(!__pyx_tuple__34)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__34);
   __Pyx_GIVEREF(__pyx_tuple__34);
-  __pyx_codeobj__35 = (PyObject*)__Pyx_PyCode_New(2, 0, 12, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__34, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_mntdirect__tmp_14_days_tvincent, __pyx_n_s_min_max, 109, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__35)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__35 = (PyObject*)__Pyx_PyCode_New(2, 0, 12, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__34, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_mntdirect__tmp_14_days_tvincent, __pyx_n_s_min_max, 110, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__35)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "combo.pyx":194
+  /* "combo.pyx":195
  * 
  * 
  * def min_max(data not None, bint min_positive=False):             # <<<<<<<<<<<<<<
  *     """Returns min, max and optionally strictly positive min of data.
  * 
  */
-  __pyx_tuple__36 = PyTuple_Pack(2, __pyx_n_s_data, __pyx_n_s_min_positive_2); if (unlikely(!__pyx_tuple__36)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 194; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__36 = PyTuple_Pack(2, __pyx_n_s_data, __pyx_n_s_min_positive_2); if (unlikely(!__pyx_tuple__36)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 195; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__36);
   __Pyx_GIVEREF(__pyx_tuple__36);
-  __pyx_codeobj__37 = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__36, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_mntdirect__tmp_14_days_tvincent, __pyx_n_s_min_max_2, 194, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__37)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 194; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__37 = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__36, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_mntdirect__tmp_14_days_tvincent, __pyx_n_s_min_max_2, 195, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__37)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 195; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
   /* "View.MemoryView":276
  *         return self.name
@@ -24250,127 +24250,127 @@ PyMODINIT_FUNC PyInit_combo(void)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "combo.pyx":109
+  /* "combo.pyx":110
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
- * def _min_max(_number[:] data, bint min_positive=False):             # <<<<<<<<<<<<<<
+ * def _min_max(_number[::1] data, bint min_positive=False):             # <<<<<<<<<<<<<<
  *     """See :func:`min_max` for documentation."""
  *     cdef:
  */
-  __pyx_t_1 = __Pyx_PyBool_FromLong(0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyBool_FromLong(0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyBool_FromLong(0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyBool_FromLong(0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_k__2 = __pyx_t_1;
   __Pyx_GIVEREF(__pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0__pyx_mdef_5combo_5_min_max, 0, __pyx_n_s_min_max, NULL, __pyx_n_s_combo, __pyx_d, ((PyObject *)__pyx_codeobj__35)); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0__pyx_mdef_5combo_5_min_max, 0, __pyx_n_s_min_max, NULL, __pyx_n_s_combo, __pyx_d, ((PyObject *)__pyx_codeobj__35)); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  if (!__Pyx_CyFunction_InitDefaults(__pyx_t_3, sizeof(__pyx_defaults10), 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (!__Pyx_CyFunction_InitDefaults(__pyx_t_3, sizeof(__pyx_defaults10), 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_CyFunction_Defaults(__pyx_defaults10, __pyx_t_3)->__pyx_arg_min_positive = 0;
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_3, __pyx_t_2);
   __Pyx_CyFunction_SetDefaultsGetter(__pyx_t_3, __pyx_pf_5combo_46__defaults__);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_float, __pyx_t_3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_float, __pyx_t_3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1__pyx_mdef_5combo_7_min_max, 0, __pyx_n_s_min_max, NULL, __pyx_n_s_combo, __pyx_d, ((PyObject *)__pyx_codeobj__35)); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1__pyx_mdef_5combo_7_min_max, 0, __pyx_n_s_min_max, NULL, __pyx_n_s_combo, __pyx_d, ((PyObject *)__pyx_codeobj__35)); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  if (!__Pyx_CyFunction_InitDefaults(__pyx_t_3, sizeof(__pyx_defaults11), 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (!__Pyx_CyFunction_InitDefaults(__pyx_t_3, sizeof(__pyx_defaults11), 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_CyFunction_Defaults(__pyx_defaults11, __pyx_t_3)->__pyx_arg_min_positive = 0;
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_3, __pyx_t_2);
   __Pyx_CyFunction_SetDefaultsGetter(__pyx_t_3, __pyx_pf_5combo_48__defaults__);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_double, __pyx_t_3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_double, __pyx_t_3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __pyx_FusedFunction_NewEx(&__pyx_fuse_2__pyx_mdef_5combo_9_min_max, 0, __pyx_n_s_min_max, NULL, __pyx_n_s_combo, __pyx_d, ((PyObject *)__pyx_codeobj__35)); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __pyx_FusedFunction_NewEx(&__pyx_fuse_2__pyx_mdef_5combo_9_min_max, 0, __pyx_n_s_min_max, NULL, __pyx_n_s_combo, __pyx_d, ((PyObject *)__pyx_codeobj__35)); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  if (!__Pyx_CyFunction_InitDefaults(__pyx_t_3, sizeof(__pyx_defaults12), 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (!__Pyx_CyFunction_InitDefaults(__pyx_t_3, sizeof(__pyx_defaults12), 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_CyFunction_Defaults(__pyx_defaults12, __pyx_t_3)->__pyx_arg_min_positive = 0;
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_3, __pyx_t_2);
   __Pyx_CyFunction_SetDefaultsGetter(__pyx_t_3, __pyx_pf_5combo_50__defaults__);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_signed_char, __pyx_t_3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_signed_char, __pyx_t_3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __pyx_FusedFunction_NewEx(&__pyx_fuse_3__pyx_mdef_5combo_11_min_max, 0, __pyx_n_s_min_max, NULL, __pyx_n_s_combo, __pyx_d, ((PyObject *)__pyx_codeobj__35)); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __pyx_FusedFunction_NewEx(&__pyx_fuse_3__pyx_mdef_5combo_11_min_max, 0, __pyx_n_s_min_max, NULL, __pyx_n_s_combo, __pyx_d, ((PyObject *)__pyx_codeobj__35)); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  if (!__Pyx_CyFunction_InitDefaults(__pyx_t_3, sizeof(__pyx_defaults13), 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (!__Pyx_CyFunction_InitDefaults(__pyx_t_3, sizeof(__pyx_defaults13), 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_CyFunction_Defaults(__pyx_defaults13, __pyx_t_3)->__pyx_arg_min_positive = 0;
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_3, __pyx_t_2);
   __Pyx_CyFunction_SetDefaultsGetter(__pyx_t_3, __pyx_pf_5combo_52__defaults__);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_signed_short, __pyx_t_3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_signed_short, __pyx_t_3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __pyx_FusedFunction_NewEx(&__pyx_fuse_4__pyx_mdef_5combo_13_min_max, 0, __pyx_n_s_min_max, NULL, __pyx_n_s_combo, __pyx_d, ((PyObject *)__pyx_codeobj__35)); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __pyx_FusedFunction_NewEx(&__pyx_fuse_4__pyx_mdef_5combo_13_min_max, 0, __pyx_n_s_min_max, NULL, __pyx_n_s_combo, __pyx_d, ((PyObject *)__pyx_codeobj__35)); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  if (!__Pyx_CyFunction_InitDefaults(__pyx_t_3, sizeof(__pyx_defaults14), 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (!__Pyx_CyFunction_InitDefaults(__pyx_t_3, sizeof(__pyx_defaults14), 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_CyFunction_Defaults(__pyx_defaults14, __pyx_t_3)->__pyx_arg_min_positive = 0;
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_3, __pyx_t_2);
   __Pyx_CyFunction_SetDefaultsGetter(__pyx_t_3, __pyx_pf_5combo_54__defaults__);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_signed_int, __pyx_t_3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_signed_int, __pyx_t_3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __pyx_FusedFunction_NewEx(&__pyx_fuse_5__pyx_mdef_5combo_15_min_max, 0, __pyx_n_s_min_max, NULL, __pyx_n_s_combo, __pyx_d, ((PyObject *)__pyx_codeobj__35)); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __pyx_FusedFunction_NewEx(&__pyx_fuse_5__pyx_mdef_5combo_15_min_max, 0, __pyx_n_s_min_max, NULL, __pyx_n_s_combo, __pyx_d, ((PyObject *)__pyx_codeobj__35)); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  if (!__Pyx_CyFunction_InitDefaults(__pyx_t_3, sizeof(__pyx_defaults15), 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (!__Pyx_CyFunction_InitDefaults(__pyx_t_3, sizeof(__pyx_defaults15), 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_CyFunction_Defaults(__pyx_defaults15, __pyx_t_3)->__pyx_arg_min_positive = 0;
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_3, __pyx_t_2);
   __Pyx_CyFunction_SetDefaultsGetter(__pyx_t_3, __pyx_pf_5combo_56__defaults__);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_signed_long, __pyx_t_3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_signed_long, __pyx_t_3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __pyx_FusedFunction_NewEx(&__pyx_fuse_6__pyx_mdef_5combo_17_min_max, 0, __pyx_n_s_min_max, NULL, __pyx_n_s_combo, __pyx_d, ((PyObject *)__pyx_codeobj__35)); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __pyx_FusedFunction_NewEx(&__pyx_fuse_6__pyx_mdef_5combo_17_min_max, 0, __pyx_n_s_min_max, NULL, __pyx_n_s_combo, __pyx_d, ((PyObject *)__pyx_codeobj__35)); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  if (!__Pyx_CyFunction_InitDefaults(__pyx_t_3, sizeof(__pyx_defaults16), 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (!__Pyx_CyFunction_InitDefaults(__pyx_t_3, sizeof(__pyx_defaults16), 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_CyFunction_Defaults(__pyx_defaults16, __pyx_t_3)->__pyx_arg_min_positive = 0;
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_3, __pyx_t_2);
   __Pyx_CyFunction_SetDefaultsGetter(__pyx_t_3, __pyx_pf_5combo_58__defaults__);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_unsigned_char, __pyx_t_3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_unsigned_char, __pyx_t_3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __pyx_FusedFunction_NewEx(&__pyx_fuse_7__pyx_mdef_5combo_19_min_max, 0, __pyx_n_s_min_max, NULL, __pyx_n_s_combo, __pyx_d, ((PyObject *)__pyx_codeobj__35)); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __pyx_FusedFunction_NewEx(&__pyx_fuse_7__pyx_mdef_5combo_19_min_max, 0, __pyx_n_s_min_max, NULL, __pyx_n_s_combo, __pyx_d, ((PyObject *)__pyx_codeobj__35)); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  if (!__Pyx_CyFunction_InitDefaults(__pyx_t_3, sizeof(__pyx_defaults17), 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (!__Pyx_CyFunction_InitDefaults(__pyx_t_3, sizeof(__pyx_defaults17), 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_CyFunction_Defaults(__pyx_defaults17, __pyx_t_3)->__pyx_arg_min_positive = 0;
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_3, __pyx_t_2);
   __Pyx_CyFunction_SetDefaultsGetter(__pyx_t_3, __pyx_pf_5combo_60__defaults__);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_unsigned_short, __pyx_t_3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_unsigned_short, __pyx_t_3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __pyx_FusedFunction_NewEx(&__pyx_fuse_8__pyx_mdef_5combo_21_min_max, 0, __pyx_n_s_min_max, NULL, __pyx_n_s_combo, __pyx_d, ((PyObject *)__pyx_codeobj__35)); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __pyx_FusedFunction_NewEx(&__pyx_fuse_8__pyx_mdef_5combo_21_min_max, 0, __pyx_n_s_min_max, NULL, __pyx_n_s_combo, __pyx_d, ((PyObject *)__pyx_codeobj__35)); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  if (!__Pyx_CyFunction_InitDefaults(__pyx_t_3, sizeof(__pyx_defaults18), 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (!__Pyx_CyFunction_InitDefaults(__pyx_t_3, sizeof(__pyx_defaults18), 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_CyFunction_Defaults(__pyx_defaults18, __pyx_t_3)->__pyx_arg_min_positive = 0;
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_3, __pyx_t_2);
   __Pyx_CyFunction_SetDefaultsGetter(__pyx_t_3, __pyx_pf_5combo_62__defaults__);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_unsigned_int, __pyx_t_3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_unsigned_int, __pyx_t_3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __pyx_FusedFunction_NewEx(&__pyx_fuse_9__pyx_mdef_5combo_23_min_max, 0, __pyx_n_s_min_max, NULL, __pyx_n_s_combo, __pyx_d, ((PyObject *)__pyx_codeobj__35)); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __pyx_FusedFunction_NewEx(&__pyx_fuse_9__pyx_mdef_5combo_23_min_max, 0, __pyx_n_s_min_max, NULL, __pyx_n_s_combo, __pyx_d, ((PyObject *)__pyx_codeobj__35)); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  if (!__Pyx_CyFunction_InitDefaults(__pyx_t_3, sizeof(__pyx_defaults19), 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (!__Pyx_CyFunction_InitDefaults(__pyx_t_3, sizeof(__pyx_defaults19), 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_CyFunction_Defaults(__pyx_defaults19, __pyx_t_3)->__pyx_arg_min_positive = 0;
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_3, __pyx_t_2);
   __Pyx_CyFunction_SetDefaultsGetter(__pyx_t_3, __pyx_pf_5combo_64__defaults__);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_unsigned_long_long, __pyx_t_3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_unsigned_long_long, __pyx_t_3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __pyx_FusedFunction_NewEx(&__pyx_mdef_5combo_1_min_max, 0, __pyx_n_s_min_max, NULL, __pyx_n_s_combo, __pyx_d, ((PyObject *)__pyx_codeobj__35)); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __pyx_FusedFunction_NewEx(&__pyx_mdef_5combo_1_min_max, 0, __pyx_n_s_min_max, NULL, __pyx_n_s_combo, __pyx_d, ((PyObject *)__pyx_codeobj__35)); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_3, __pyx_t_2);
   __Pyx_CyFunction_SetDefaultsGetter(__pyx_t_3, __pyx_pf_5combo_46__defaults__);
   ((__pyx_FusedFunctionObject *) __pyx_t_3)->__signatures__ = __pyx_t_1;
   __Pyx_GIVEREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_min_max, __pyx_t_3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_min_max, __pyx_t_3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "combo.pyx":194
+  /* "combo.pyx":195
  * 
  * 
  * def min_max(data not None, bint min_positive=False):             # <<<<<<<<<<<<<<
  *     """Returns min, max and optionally strictly positive min of data.
  * 
  */
-  __pyx_t_4 = PyCFunction_NewEx(&__pyx_mdef_5combo_3min_max, NULL, __pyx_n_s_combo); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 194; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = PyCFunction_NewEx(&__pyx_mdef_5combo_3min_max, NULL, __pyx_n_s_combo); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 195; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_min_max_2, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 194; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_min_max_2, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 195; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
   /* "combo.pyx":1
@@ -24380,7 +24380,7 @@ PyMODINIT_FUNC PyInit_combo(void)
  */
   __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_kp_u_min_max_line_194, __pyx_kp_u_Returns_min_max_and_optionally_s) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_4, __pyx_kp_u_min_max_line_195, __pyx_kp_u_Returns_min_max_and_optionally_s) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_test, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
@@ -24497,7 +24497,7 @@ PyMODINIT_FUNC PyInit_combo(void)
  * 
  * cdef extern from *:             # <<<<<<<<<<<<<<
  *     void __pyx_PyErr_Clear "PyErr_Clear" ()
- *     __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_float(object)
+ *     __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dc_float(object)
  */
 
   /*--- Wrapped vars code ---*/
@@ -27769,17 +27769,17 @@ no_fail:
     return retval;
 }
 
-static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_float(PyObject *obj) {
+static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dc_float(PyObject *obj) {
     __Pyx_memviewslice result = { 0, 0, { 0 }, { 0 }, { 0 } };
     __Pyx_BufFmt_StackElem stack[1];
-    int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_STRIDED) };
+    int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_CONTIG) };
     int retcode;
     if (obj == Py_None) {
         result.memview = (struct __pyx_memoryview_obj *) Py_None;
         return result;
     }
-    retcode = __Pyx_ValidateAndInit_memviewslice(axes_specs, 0,
-                                                 PyBUF_RECORDS, 1,
+    retcode = __Pyx_ValidateAndInit_memviewslice(axes_specs, __Pyx_IS_C_CONTIG,
+                                                 (PyBUF_C_CONTIGUOUS | PyBUF_FORMAT | PyBUF_WRITABLE), 1,
                                                  &__Pyx_TypeInfo_float, stack,
                                                  &result, obj);
     if (unlikely(retcode == -1))
@@ -27791,17 +27791,17 @@ __pyx_fail:
     return result;
 }
 
-static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_double(PyObject *obj) {
+static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dc_double(PyObject *obj) {
     __Pyx_memviewslice result = { 0, 0, { 0 }, { 0 }, { 0 } };
     __Pyx_BufFmt_StackElem stack[1];
-    int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_STRIDED) };
+    int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_CONTIG) };
     int retcode;
     if (obj == Py_None) {
         result.memview = (struct __pyx_memoryview_obj *) Py_None;
         return result;
     }
-    retcode = __Pyx_ValidateAndInit_memviewslice(axes_specs, 0,
-                                                 PyBUF_RECORDS, 1,
+    retcode = __Pyx_ValidateAndInit_memviewslice(axes_specs, __Pyx_IS_C_CONTIG,
+                                                 (PyBUF_C_CONTIGUOUS | PyBUF_FORMAT | PyBUF_WRITABLE), 1,
                                                  &__Pyx_TypeInfo_double, stack,
                                                  &result, obj);
     if (unlikely(retcode == -1))
@@ -27813,17 +27813,17 @@ __pyx_fail:
     return result;
 }
 
-static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_signed_char(PyObject *obj) {
+static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dc_signed_char(PyObject *obj) {
     __Pyx_memviewslice result = { 0, 0, { 0 }, { 0 }, { 0 } };
     __Pyx_BufFmt_StackElem stack[1];
-    int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_STRIDED) };
+    int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_CONTIG) };
     int retcode;
     if (obj == Py_None) {
         result.memview = (struct __pyx_memoryview_obj *) Py_None;
         return result;
     }
-    retcode = __Pyx_ValidateAndInit_memviewslice(axes_specs, 0,
-                                                 PyBUF_RECORDS, 1,
+    retcode = __Pyx_ValidateAndInit_memviewslice(axes_specs, __Pyx_IS_C_CONTIG,
+                                                 (PyBUF_C_CONTIGUOUS | PyBUF_FORMAT | PyBUF_WRITABLE), 1,
                                                  &__Pyx_TypeInfo_signed_char, stack,
                                                  &result, obj);
     if (unlikely(retcode == -1))
@@ -27835,17 +27835,17 @@ __pyx_fail:
     return result;
 }
 
-static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_signed_short(PyObject *obj) {
+static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dc_signed_short(PyObject *obj) {
     __Pyx_memviewslice result = { 0, 0, { 0 }, { 0 }, { 0 } };
     __Pyx_BufFmt_StackElem stack[1];
-    int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_STRIDED) };
+    int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_CONTIG) };
     int retcode;
     if (obj == Py_None) {
         result.memview = (struct __pyx_memoryview_obj *) Py_None;
         return result;
     }
-    retcode = __Pyx_ValidateAndInit_memviewslice(axes_specs, 0,
-                                                 PyBUF_RECORDS, 1,
+    retcode = __Pyx_ValidateAndInit_memviewslice(axes_specs, __Pyx_IS_C_CONTIG,
+                                                 (PyBUF_C_CONTIGUOUS | PyBUF_FORMAT | PyBUF_WRITABLE), 1,
                                                  &__Pyx_TypeInfo_signed_short, stack,
                                                  &result, obj);
     if (unlikely(retcode == -1))
@@ -27857,17 +27857,17 @@ __pyx_fail:
     return result;
 }
 
-static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_signed_int(PyObject *obj) {
+static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dc_signed_int(PyObject *obj) {
     __Pyx_memviewslice result = { 0, 0, { 0 }, { 0 }, { 0 } };
     __Pyx_BufFmt_StackElem stack[1];
-    int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_STRIDED) };
+    int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_CONTIG) };
     int retcode;
     if (obj == Py_None) {
         result.memview = (struct __pyx_memoryview_obj *) Py_None;
         return result;
     }
-    retcode = __Pyx_ValidateAndInit_memviewslice(axes_specs, 0,
-                                                 PyBUF_RECORDS, 1,
+    retcode = __Pyx_ValidateAndInit_memviewslice(axes_specs, __Pyx_IS_C_CONTIG,
+                                                 (PyBUF_C_CONTIGUOUS | PyBUF_FORMAT | PyBUF_WRITABLE), 1,
                                                  &__Pyx_TypeInfo_signed_int, stack,
                                                  &result, obj);
     if (unlikely(retcode == -1))
@@ -27879,17 +27879,17 @@ __pyx_fail:
     return result;
 }
 
-static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_signed_long(PyObject *obj) {
+static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dc_signed_long(PyObject *obj) {
     __Pyx_memviewslice result = { 0, 0, { 0 }, { 0 }, { 0 } };
     __Pyx_BufFmt_StackElem stack[1];
-    int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_STRIDED) };
+    int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_CONTIG) };
     int retcode;
     if (obj == Py_None) {
         result.memview = (struct __pyx_memoryview_obj *) Py_None;
         return result;
     }
-    retcode = __Pyx_ValidateAndInit_memviewslice(axes_specs, 0,
-                                                 PyBUF_RECORDS, 1,
+    retcode = __Pyx_ValidateAndInit_memviewslice(axes_specs, __Pyx_IS_C_CONTIG,
+                                                 (PyBUF_C_CONTIGUOUS | PyBUF_FORMAT | PyBUF_WRITABLE), 1,
                                                  &__Pyx_TypeInfo_signed_long, stack,
                                                  &result, obj);
     if (unlikely(retcode == -1))
@@ -27901,17 +27901,17 @@ __pyx_fail:
     return result;
 }
 
-static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_unsigned_char(PyObject *obj) {
+static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dc_unsigned_char(PyObject *obj) {
     __Pyx_memviewslice result = { 0, 0, { 0 }, { 0 }, { 0 } };
     __Pyx_BufFmt_StackElem stack[1];
-    int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_STRIDED) };
+    int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_CONTIG) };
     int retcode;
     if (obj == Py_None) {
         result.memview = (struct __pyx_memoryview_obj *) Py_None;
         return result;
     }
-    retcode = __Pyx_ValidateAndInit_memviewslice(axes_specs, 0,
-                                                 PyBUF_RECORDS, 1,
+    retcode = __Pyx_ValidateAndInit_memviewslice(axes_specs, __Pyx_IS_C_CONTIG,
+                                                 (PyBUF_C_CONTIGUOUS | PyBUF_FORMAT | PyBUF_WRITABLE), 1,
                                                  &__Pyx_TypeInfo_unsigned_char, stack,
                                                  &result, obj);
     if (unlikely(retcode == -1))
@@ -27923,17 +27923,17 @@ __pyx_fail:
     return result;
 }
 
-static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_unsigned_short(PyObject *obj) {
+static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dc_unsigned_short(PyObject *obj) {
     __Pyx_memviewslice result = { 0, 0, { 0 }, { 0 }, { 0 } };
     __Pyx_BufFmt_StackElem stack[1];
-    int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_STRIDED) };
+    int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_CONTIG) };
     int retcode;
     if (obj == Py_None) {
         result.memview = (struct __pyx_memoryview_obj *) Py_None;
         return result;
     }
-    retcode = __Pyx_ValidateAndInit_memviewslice(axes_specs, 0,
-                                                 PyBUF_RECORDS, 1,
+    retcode = __Pyx_ValidateAndInit_memviewslice(axes_specs, __Pyx_IS_C_CONTIG,
+                                                 (PyBUF_C_CONTIGUOUS | PyBUF_FORMAT | PyBUF_WRITABLE), 1,
                                                  &__Pyx_TypeInfo_unsigned_short, stack,
                                                  &result, obj);
     if (unlikely(retcode == -1))
@@ -27945,17 +27945,17 @@ __pyx_fail:
     return result;
 }
 
-static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_unsigned_int(PyObject *obj) {
+static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dc_unsigned_int(PyObject *obj) {
     __Pyx_memviewslice result = { 0, 0, { 0 }, { 0 }, { 0 } };
     __Pyx_BufFmt_StackElem stack[1];
-    int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_STRIDED) };
+    int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_CONTIG) };
     int retcode;
     if (obj == Py_None) {
         result.memview = (struct __pyx_memoryview_obj *) Py_None;
         return result;
     }
-    retcode = __Pyx_ValidateAndInit_memviewslice(axes_specs, 0,
-                                                 PyBUF_RECORDS, 1,
+    retcode = __Pyx_ValidateAndInit_memviewslice(axes_specs, __Pyx_IS_C_CONTIG,
+                                                 (PyBUF_C_CONTIGUOUS | PyBUF_FORMAT | PyBUF_WRITABLE), 1,
                                                  &__Pyx_TypeInfo_unsigned_int, stack,
                                                  &result, obj);
     if (unlikely(retcode == -1))
@@ -27967,17 +27967,17 @@ __pyx_fail:
     return result;
 }
 
-static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_unsigned_PY_LONG_LONG(PyObject *obj) {
+static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dc_unsigned_PY_LONG_LONG(PyObject *obj) {
     __Pyx_memviewslice result = { 0, 0, { 0 }, { 0 }, { 0 } };
     __Pyx_BufFmt_StackElem stack[1];
-    int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_STRIDED) };
+    int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_CONTIG) };
     int retcode;
     if (obj == Py_None) {
         result.memview = (struct __pyx_memoryview_obj *) Py_None;
         return result;
     }
-    retcode = __Pyx_ValidateAndInit_memviewslice(axes_specs, 0,
-                                                 PyBUF_RECORDS, 1,
+    retcode = __Pyx_ValidateAndInit_memviewslice(axes_specs, __Pyx_IS_C_CONTIG,
+                                                 (PyBUF_C_CONTIGUOUS | PyBUF_FORMAT | PyBUF_WRITABLE), 1,
                                                  &__Pyx_TypeInfo_unsigned_PY_LONG_LONG, stack,
                                                  &result, obj);
     if (unlikely(retcode == -1))
