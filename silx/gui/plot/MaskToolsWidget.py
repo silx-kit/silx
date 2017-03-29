@@ -1419,7 +1419,7 @@ class MaskToolsWidget(qt.QWidget):
 
 
 class MaskToolsDockWidget(qt.QDockWidget):
-    """:class:`MaskToolsDockWidget` embedded in a QDockWidget.
+    """:class:`MaskToolsWidget` embedded in a QDockWidget.
 
     For integration in a :class:`PlotWindow`.
 

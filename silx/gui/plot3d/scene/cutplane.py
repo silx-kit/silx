@@ -34,8 +34,8 @@ __date__ = "05/10/2016"
 import string
 import numpy
 
-from .. import glutils
-from ..glutils import gl
+from ... import _glutils
+from ..._glutils import gl
 
 from .function import Colormap
 from .primitives import Box, Geometry, PlaneInGroup
@@ -164,7 +164,7 @@ class ColormapMesh3D(Geometry):
                 filter_ = gl.GL_LINEAR
             self._update_texture = False
             self._update_texture_filter = False
-            self._texture = glutils.Texture(
+            self._texture = _glutils.Texture(
                 gl.GL_R32F, self._data, gl.GL_RED,
                 minFilter=filter_,
                 magFilter=filter_,
