@@ -32,7 +32,6 @@ try:
 except ImportError:
     h5py = None
 import numpy
-import os
 import tempfile
 import unittest
 from .. import nxdata
@@ -162,7 +161,7 @@ class TestNXdata(unittest.TestCase):
         for group in self.h5f:
             for subgroup in self.h5f[group]:
                 self.assertTrue(
-                        nxdata.is_valid_NXdata(self.h5f[group][subgroup]),
+                        nxdata.is_valid_nxdata(self.h5f[group][subgroup]),
                         "%s/%s not found to be a valid NXdata group" % (group, subgroup))
 
     def testScalars(self):

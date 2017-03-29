@@ -84,7 +84,7 @@ class DataInfo(object):
         if data is None:
             return
 
-        if silx.io.is_group(data) and nxdata.is_valid_NXdata(data):
+        if silx.io.is_group(data) and nxdata.is_valid_nxdata(data):
             self.isNXdata = True
             nxd = nxdata.NXdata(data)
 
