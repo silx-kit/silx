@@ -34,8 +34,8 @@ import logging
 
 import numpy
 
-from .core import Points, LabelsMixIn, ColormapMixIn, SymbolMixIn
-
+from .core import Points, ColormapMixIn
+from silx.gui.plot.Colors import applyColormapToData    # TODO: cherry-pick commit or wait for PR merge
 
 _logger = logging.getLogger(__name__)
 
@@ -52,7 +52,33 @@ class Scatter(Points, ColormapMixIn):
 
         self._symbol = self._DEFAULT_SYMBOL
 
-    # TODO _addBackendRenderer
+    def _addBackendRenderer(self, backend):
+        """Update backend renderer"""
+        # Filter-out values <= 0
+        xFiltered, yFiltered, valueFiltered, xerror, yerror = self.getData(
+            copy=False, displayed=True)
+
+        if len(xFiltered) == 0:
+            return None  # No data to display, do not add renderer to backend
+
+        cmap = self.getColormap()
+        rgbacolors = applyColormapToData(self._value,
+                                         cmap["name"],
+                                         cmap["normalization"],
+                                         cmap["autoscale"],
+                                         cmap["vmin"],
+                                         cmap["vmax"],
+                                         cmap["colors"])
+
+        return backend.addCurve(xFiltered, yFiltered, self.getLegend(),
+                                color=rgbacolors,
+                                symbol=self.getSymbol(),
+                                linestyle="",
+                                xerror=xerror,
+                                yerror=yerror,
+                                z=self.getZValue(),   # FIXME: overload _DEFAULT_ZLAYER?
+                                selectable=self.isSelectable())
+
 
     def _logFilterData(self, xPositive, yPositive):
         """Filter out values with x or y <= 0 on log axes
