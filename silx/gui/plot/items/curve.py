@@ -156,6 +156,7 @@ class Curve(Points, ColorMixIn, YAxisMixIn, FillMixIn):
         # if we want to plot an histogram
         if self.getHistogramType() in ('left', 'right', 'center'):
             assert len(xFiltered) in (len(yFiltered), len(yFiltered)+1)
+            # FIXME: setData does not allow len(yFiltered)+1 for now
 
             # TODO move this in Histogram class and avoid histo if
             xFiltered, yFiltered = _getHistogramValue(
