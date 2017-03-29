@@ -34,81 +34,25 @@ import logging
 
 import numpy
 
-from .core import Item, LabelsMixIn, ColormapMixIn, SymbolMixIn
+from .core import Points, LabelsMixIn, ColormapMixIn, SymbolMixIn
 
 
 _logger = logging.getLogger(__name__)
 
 
-class Scatter(Item, ColormapMixIn, SymbolMixIn, LabelsMixIn):
+class Scatter(Points, ColormapMixIn):
     """Description of a scatter plot"""
     _DEFAULT_SYMBOL = 'o'
     """Default symbol of the scatter plots"""
 
     def __init__(self):
-        Item.__init__(self)
+        Points.__init__(self)
         ColormapMixIn.__init__(self)
-        SymbolMixIn.__init__(self)
-        LabelsMixIn.__init__(self)
-        self._x = ()
-        self._y = ()
-        self._xerror = None
-        self._yerror = None
         self._value = ()
 
         self._symbol = self._DEFAULT_SYMBOL
 
-        # Store filtered data for x > 0 and/or y > 0
-        self._filteredCache = {}
-
-        # Store bounds depending on axes filtering >0:
-        # key is (isXPositiveFilter, isYPositiveFilter)
-        self._boundsCache = {}
-
-    @staticmethod
-    def _logFilterError(value, error):
-        """Filter/convert error values if they go <= 0.
-
-        Replace error leading to negative values by nan
-
-        :param numpy.ndarray value: 1D array of values
-        :param numpy.ndarray error:
-            Array of errors: scalar, N, Nx1 or 2xN or None.
-        :return: Filtered error so error bars are never negative
-        """
-        if error is not None:
-            # Convert Nx1 to N
-            if error.ndim == 2 and error.shape[1] == 1 and len(value) != 1:
-                error = numpy.ravel(error)
-
-            # Supports error being scalar, N or 2xN array
-            errorClipped = (value - numpy.atleast_2d(error)[0]) <= 0
-
-            if numpy.any(errorClipped):  # Need filtering
-
-                # expand errorbars to 2xN
-                if error.size == 1:  # Scalar
-                    error = numpy.full(
-                        (2, len(value)), error, dtype=numpy.float)
-
-                elif error.ndim == 1:  # N array
-                    newError = numpy.empty((2, len(value)),
-                                           dtype=numpy.float)
-                    newError[0, :] = error
-                    newError[1, :] = error
-                    error = newError
-
-                elif error.size == 2 * len(value):  # 2xN array
-                    error = numpy.array(
-                        error, copy=True, dtype=numpy.float)
-
-                else:
-                    _logger.error("Unhandled error array")
-                    return error
-
-                error[0, errorClipped] = numpy.nan
-
-        return error
+    # TODO _addBackendRenderer
 
     def _logFilterData(self, xPositive, yPositive):
         """Filter out values with x or y <= 0 on log axes
@@ -165,56 +109,14 @@ class Scatter(Item, ColormapMixIn, SymbolMixIn, LabelsMixIn):
             )
         return self._boundsCache[(xPositive, yPositive)]
 
-    def getXData(self, copy=True):
-        """Returns the x coordinates of the data points
-
-        :param copy: True (Default) to get a copy,
-                     False to use internal representation (do not modify!)
-        :rtype: numpy.ndarray
-        """
-        return numpy.array(self._x, copy=copy)
-
-    def getYData(self, copy=True):
-        """Returns the y coordinates of the data points
-
-        :param copy: True (Default) to get a copy,
-                     False to use internal representation (do not modify!)
-        :rtype: numpy.ndarray
-        """
-        return numpy.array(self._y, copy=copy)
-
     def getValueData(self, copy=True):
-        """Returns the value of the data points
+        """Returns the value assigned to the scatter data points.
 
         :param copy: True (Default) to get a copy,
                      False to use internal representation (do not modify!)
         :rtype: numpy.ndarray
         """
         return numpy.array(self._value, copy=copy)
-
-    def getXErrorData(self, copy=True):
-        """Returns the x error of the curve
-
-        :param copy: True (Default) to get a copy,
-                     False to use internal representation (do not modify!)
-        :rtype: numpy.ndarray or None
-        """
-        if self._xerror is None:
-            return None
-        else:
-            return numpy.array(self._xerror, copy=copy)
-
-    def getYErrorData(self, copy=True):
-        """Returns the y error of the curve
-
-        :param copy: True (Default) to get a copy,
-                     False to use internal representation (do not modify!)
-        :rtype: numpy.ndarray or None
-        """
-        if self._yerror is None:
-            return None
-        else:
-            return numpy.array(self._yerror, copy=copy)
 
     def getData(self, copy=True, displayed=False):
         """Returns the x, y coordinates and the value of the data points
@@ -246,6 +148,7 @@ class Scatter(Item, ColormapMixIn, SymbolMixIn, LabelsMixIn):
                 self.getXErrorData(copy),
                 self.getYErrorData(copy))
 
+    # reimplemented from Points to handle `value`
     def setData(self, x, y, value, xerror=None, yerror=None, copy=True):
         """Set the data of the scatter.
 
@@ -264,26 +167,11 @@ class Scatter(Item, ColormapMixIn, SymbolMixIn, LabelsMixIn):
         :param bool copy: True make a copy of the data (default),
                           False to use provided arrays.
         """
-        x = numpy.array(x, copy=copy)
-        y = numpy.array(y, copy=copy)
         value = numpy.array(value, copy=copy)
-        assert x.ndim == y.ndim == value.ndim == 1
-        assert len(x) == len(y) == len(value)
-        if xerror is not None:
-            xerror = numpy.array(xerror, copy=copy)
-        if yerror is not None:
-            yerror = numpy.array(yerror, copy=copy)
-        # TODO checks on xerror, yerror
+        assert value.ndim == 1
+        assert len(x) == len(value)
 
-        self._x, self._y, self._value, = x, y, value
-        self._xerror, self._yerror = xerror, yerror
+        self._value = value
 
-        self._boundsCache = {}  # Reset cached bounds
-        self._filteredCache = {}  # Reset cached filtered data
-
-        self._updated()
-        # TODO hackish data range implementation
-        if self.isVisible():
-            plot = self.getPlot()
-            if plot is not None:
-                plot._invalidateDataRange()
+        # set the rest and call self._updated + plot._invalidateDataRange()
+        Points.setData(self, x, y, xerror, yerror, copy)
