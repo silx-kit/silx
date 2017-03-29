@@ -25,23 +25,15 @@
 """This module defines a view for a NXdata HDF5 group, to be used in
 :class:`silx.gui.data.DataViewer.DataViewer`
 """
-import logging
-
 import numpy
 
-# scatter plot handling
-from silx.gui.data.NXdataWidgets import ArrayCurvePlot, ArrayImagePlot, ArrayStackPlot
 from silx.io.nxdata import NXdata
 from silx.gui import icons
 from silx.gui.data.DataViews import DataView, CompositeDataView
-from silx.gui.data.ArrayTableWidget import ArrayTableWidget
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "22/02/2017"
-
-
-_logger = logging.getLogger(__name__)
 
 
 class NXdataScalarView(DataView):
@@ -51,6 +43,7 @@ class NXdataScalarView(DataView):
         DataView.__init__(self, parent)
 
     def createWidget(self, parent):
+        from silx.gui.data.ArrayTableWidget import ArrayTableWidget
         widget = ArrayTableWidget(parent)
         #widget.displayAxesSelector(False)
         return widget
@@ -88,6 +81,7 @@ class NXdataCurveView(DataView):
         DataView.__init__(self, parent)
 
     def createWidget(self, parent):
+        from silx.gui.data.NXdataWidgets import ArrayCurvePlot
         widget = ArrayCurvePlot(parent)
         return widget
 
@@ -134,6 +128,7 @@ class NXdataXYVScatterView(DataView):
         DataView.__init__(self, parent)
 
     def createWidget(self, parent):
+        from silx.gui.data.NXdataWidgets import ArrayCurvePlot
         widget = ArrayCurvePlot(parent)
         return widget
 
@@ -183,6 +178,7 @@ class NXdataImageView(DataView):
         DataView.__init__(self, parent)
 
     def createWidget(self, parent):
+        from silx.gui.data.NXdataWidgets import ArrayImagePlot
         widget = ArrayImagePlot(parent)
         return widget
 
@@ -222,6 +218,7 @@ class NXdataStackView(DataView):
         DataView.__init__(self, parent)
 
     def createWidget(self, parent):
+        from silx.gui.data.NXdataWidgets import ArrayStackPlot
         widget = ArrayStackPlot(parent)
         return widget
 
