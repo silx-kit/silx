@@ -28,38 +28,14 @@ __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "20/03/2017"
 
-import matplotlib.cm
-import matplotlib.colors
-
 import numpy
 
-import silx.gui
 from silx.gui import qt
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
 from silx.gui.plot import Plot1D, Plot2D, StackView
+from silx.gui.plot.Colors import applyColormapToData
 
 from silx.math.calibration import ArrayCalibration, NoCalibration, LinearCalibration
-
-
-def _applyColormap(values,
-                   colormap=silx.gui.plot.MPLColormap.viridis,
-                   minVal=None,
-                   maxVal=None, ):
-    """Compute RGBA array of shape (n, 4) from a 1D array of length n.
-
-    :param values: 1D array of values
-    :param colormap: colormap to be used
-    """
-    values_array = numpy.array(values)
-    if minVal is None:
-        minVal = values_array.min()
-    if maxVal is None:
-        maxVal = values_array.max()
-    sm = matplotlib.cm.ScalarMappable(
-            norm=matplotlib.colors.Normalize(vmin=minVal, vmax=maxVal),
-            cmap=colormap)
-    colors = sm.to_rgba(values)
-    return colors
 
 
 class ArrayCurvePlot(qt.QWidget):
@@ -178,7 +154,7 @@ class ArrayCurvePlot(qt.QWidget):
             y_errors = None
         # values: x-y-v scatter
         if self.__values is not None:
-            rgbacolors = _applyColormap(self.__values)
+            rgbacolors = applyColormapToData(self.__values, "viridis")
             self._plot.addCurve(x, y, color=rgbacolors,
                                 legend=legend,
                                 xlabel=self.__axis_name,
@@ -356,7 +332,7 @@ class ArrayImagePlot(qt.QWidget):
         else:
             # FIXME: use addScatter
             scatterx, scattery = numpy.meshgrid(x_axis, y_axis)
-            rgbacolor = _applyColormap(numpy.ravel(img))
+            rgbacolor = applyColormapToData(numpy.ravel(img), "viridis")
             self._plot.addCurve(
                     numpy.ravel(scatterx), numpy.ravel(scattery),
                     color=rgbacolor, symbol="o", linestyle="")
