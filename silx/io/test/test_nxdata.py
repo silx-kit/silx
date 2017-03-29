@@ -166,7 +166,7 @@ class TestNXdata(unittest.TestCase):
 
     def testScalars(self):
         nxd = nxdata.NXdata(self.h5f["scalars/0D_scalar"])
-        self.assertTrue(nxd.signal_is_0D)
+        self.assertTrue(nxd.signal_is_0d)
         self.assertEqual(nxd.signal[()], 10)
         self.assertEqual(nxd.axes_names, [])
         self.assertEqual(nxd.axes_dataset_names, [])
@@ -176,7 +176,7 @@ class TestNXdata(unittest.TestCase):
         self.assertIsNone(nxd.interpretation)
 
         nxd = nxdata.NXdata(self.h5f["scalars/2D_scalars"])
-        self.assertTrue(nxd.signal_is_2D)
+        self.assertTrue(nxd.signal_is_2d)
         self.assertEqual(nxd.signal[1, 2], 12)
         self.assertEqual(nxd.axes_names, [None, None])
         self.assertEqual(nxd.axes_dataset_names, [None, None])
@@ -186,8 +186,8 @@ class TestNXdata(unittest.TestCase):
         self.assertEqual(nxd.interpretation, "scalar")
 
         nxd = nxdata.NXdata(self.h5f["scalars/4D_scalars"])
-        self.assertFalse(nxd.signal_is_0D or nxd.signal_is_1D or
-                         nxd.signal_is_2D or nxd.signal_is_3D)
+        self.assertFalse(nxd.signal_is_0d or nxd.signal_is_1d or
+                         nxd.signal_is_2d or nxd.signal_is_3d)
         self.assertEqual(nxd.signal[1, 0, 1, 4], 74)
         self.assertEqual(nxd.axes_names, [None, None, None, None])
         self.assertEqual(nxd.axes_dataset_names, [None, None, None, None])
@@ -198,7 +198,7 @@ class TestNXdata(unittest.TestCase):
 
     def testSpectra(self):
         nxd = nxdata.NXdata(self.h5f["spectra/1D_spectrum"])
-        self.assertTrue(nxd.signal_is_1D)
+        self.assertTrue(nxd.signal_is_1d)
         self.assertTrue(numpy.array_equal(numpy.array(nxd.signal),
                                           numpy.arange(10)))
         self.assertEqual(nxd.axes_names, ["energy_calib"])
@@ -210,7 +210,7 @@ class TestNXdata(unittest.TestCase):
         self.assertIsNone(nxd.interpretation)
 
         nxd = nxdata.NXdata(self.h5f["spectra/2D_spectra"])
-        self.assertTrue(nxd.signal_is_2D)
+        self.assertTrue(nxd.signal_is_2d)
         self.assertEqual(nxd.axes_names, [None, None])
         self.assertEqual(nxd.axes_dataset_names, [None, None])
         self.assertEqual(nxd.axes, [None, None])
@@ -219,8 +219,8 @@ class TestNXdata(unittest.TestCase):
         self.assertEqual(nxd.interpretation, "spectrum")
 
         nxd = nxdata.NXdata(self.h5f["spectra/4D_spectra"])
-        self.assertFalse(nxd.signal_is_0D or nxd.signal_is_1D or
-                         nxd.signal_is_2D or nxd.signal_is_3D)
+        self.assertFalse(nxd.signal_is_0d or nxd.signal_is_1d or
+                         nxd.signal_is_2d or nxd.signal_is_3d)
         self.assertEqual(nxd.axes_names,
                          [None, None, None, "Calibrated energy"])
         self.assertEqual(nxd.axes_dataset_names,
@@ -234,7 +234,7 @@ class TestNXdata(unittest.TestCase):
 
     def testImages(self):
         nxd = nxdata.NXdata(self.h5f["images/2D_regular_image"])
-        self.assertTrue(nxd.signal_is_2D)
+        self.assertTrue(nxd.signal_is_2d)
         self.assertEqual(nxd.axes_names, ["Calibrated Y", "columns_coordinates"])
         self.assertEqual(list(nxd.axes_dataset_names),
                          ["rows_calib", "columns_coordinates"])
@@ -243,7 +243,7 @@ class TestNXdata(unittest.TestCase):
         self.assertIsNone(nxd.interpretation)
 
         nxd = nxdata.NXdata(self.h5f["images/2D_irregular_data"])
-        self.assertTrue(nxd.signal_is_2D)
+        self.assertTrue(nxd.signal_is_2d)
         self.assertTrue(numpy.array_equal(nxd.axes_dataset_names, nxd.axes_names))
         self.assertEqual(list(nxd.axes_dataset_names),
                          ["rows_coordinates", "columns_coordinates"])
@@ -253,8 +253,8 @@ class TestNXdata(unittest.TestCase):
         self.assertIsNone(nxd.interpretation)
 
         nxd = nxdata.NXdata(self.h5f["images/5D_images"])
-        self.assertFalse(nxd.signal_is_0D or nxd.signal_is_1D or
-                         nxd.signal_is_2D or nxd.signal_is_3D)
+        self.assertFalse(nxd.signal_is_0d or nxd.signal_is_1d or
+                         nxd.signal_is_2d or nxd.signal_is_3d)
         self.assertEqual(nxd.axes_names,
                          [None, None, None, 'rows_coordinates', 'columns_coordinates'])
         self.assertEqual(nxd.axes_dataset_names,
@@ -265,7 +265,7 @@ class TestNXdata(unittest.TestCase):
 
     def testScatters(self):
         nxd = nxdata.NXdata(self.h5f["scatters/x_y_scatter"])
-        self.assertTrue(nxd.signal_is_1D)
+        self.assertTrue(nxd.signal_is_1d)
         self.assertEqual(nxd.axes_names, ["x"])
         self.assertEqual(nxd.axes_dataset_names,
                          ["x"])
@@ -277,7 +277,7 @@ class TestNXdata(unittest.TestCase):
         self.assertIsNone(nxd.interpretation)
 
         nxd = nxdata.NXdata(self.h5f["scatters/x_y_value_scatter"])
-        self.assertFalse(nxd.signal_is_1D)
+        self.assertFalse(nxd.signal_is_1d)
         self.assertTrue(nxd.axes_dataset_names,
                         nxd.axes_names)
         self.assertEqual(nxd.axes_dataset_names,

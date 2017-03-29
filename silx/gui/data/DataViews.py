@@ -31,7 +31,6 @@ import numpy
 
 import silx.io
 from silx.gui import qt, icons
-# from silx.gui.data.DataViewer import DataViewer
 from silx.gui.data.TextFormatter import TextFormatter
 from silx.gui.widgets.TableWidget import TableView
 from silx.io import nxdata
@@ -755,7 +754,7 @@ class _NXdataScalarView(DataView):
         data = self.normalizeData(data)
         if info.isNXdata:
             nxd = NXdata(data)
-            if nxd.signal_is_0D or nxd.interpretation in ["scalar", "scaler"]:
+            if nxd.signal_is_0d or nxd.interpretation in ["scalar", "scaler"]:
                 return 100
         return DataView.UNSUPPORTED
 
@@ -803,7 +802,7 @@ class _NXdataCurveView(DataView):
             nxd = NXdata(data)
             if nxd.is_x_y_value_scatter or nxd.is_unsupported_scatter:
                 return DataView.UNSUPPORTED
-            if nxd.signal_is_1D and \
+            if nxd.signal_is_1d and \
                     not nxd.interpretation in ["scalar", "scaler"]:
                 return 100
             if nxd.interpretation == "spectrum":
@@ -895,7 +894,7 @@ class _NXdataImageView(DataView):
         data = self.normalizeData(data)
         if info.isNXdata:
             nxd = NXdata(data)
-            if nxd.signal_is_2D:
+            if nxd.signal_is_2d:
                 if nxd.interpretation not in ["scalar", "spectrum", "scaler"]:
                     return 100
             if nxd.interpretation == "image":

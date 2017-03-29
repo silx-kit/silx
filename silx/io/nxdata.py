@@ -258,10 +258,10 @@ class NXdata(object):
         self.signal_ndim = getattr(self.signal, "ndim",
                                    len(self.signal.shape))
 
-        self.signal_is_0D = self.signal_ndim == 0
-        self.signal_is_1D = self.signal_ndim == 1
-        self.signal_is_2D = self.signal_ndim == 2
-        self.signal_is_3D = self.signal_ndim == 3
+        self.signal_is_0d = self.signal_ndim == 0
+        self.signal_is_1d = self.signal_ndim == 1
+        self.signal_is_2d = self.signal_ndim == 2
+        self.signal_is_3d = self.signal_ndim == 3
 
         self.axes_names = []
         """List of axes names in a NXdata group.
@@ -278,7 +278,7 @@ class NXdata(object):
                 self.axes_names.append(dsname)
 
         # excludes scatters
-        self.signal_is_1D = self.signal_is_1D and len(self.axes) <= 1  # excludes n-D scatters
+        self.signal_is_1d = self.signal_is_1d and len(self.axes) <= 1  # excludes n-D scatters
 
     @property
     def interpretation(self):
@@ -512,7 +512,7 @@ class NXdata(object):
         same size as the signal."""
         if self._is_scatter is not None:
             return self._is_scatter
-        if not self.signal_is_1D:
+        if not self.signal_is_1d:
             self._is_scatter = False
         else:
             self._is_scatter = True
