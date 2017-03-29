@@ -63,7 +63,7 @@ class Scatter(Item, ColormapMixIn, SymbolMixIn, LabelsMixIn):
 
         # Store bounds depending on axes filtering >0:
         # key is (isXPositiveFilter, isYPositiveFilter)
-        self._boundsCache = {}   # TODO
+        self._boundsCache = {}
 
     @staticmethod
     def _logFilterError(value, error):
@@ -141,6 +141,29 @@ class Scatter(Item, ColormapMixIn, SymbolMixIn, LabelsMixIn):
                     yerror = self._logFilterError(y, yerror)
 
         return x, y, value, xerror, yerror
+
+    def _getBounds(self):
+        if self.getXData(copy=False).size == 0:  # Empty data
+            return None
+
+        plot = self.getPlot()
+        if plot is not None:
+            xPositive = plot.isXAxisLogarithmic()
+            yPositive = plot.isYAxisLogarithmic()
+        else:
+            xPositive = False
+            yPositive = False
+
+        if (xPositive, yPositive) not in self._boundsCache:
+            # TODO bounds do not take error bars into account
+            x, y, value, xerror, yerror = self.getData(copy=False, displayed=True)
+            self._boundsCache[(xPositive, yPositive)] = (
+                numpy.nanmin(x),
+                numpy.nanmax(x),
+                numpy.nanmin(y),
+                numpy.nanmax(y)
+            )
+        return self._boundsCache[(xPositive, yPositive)]
 
     def getXData(self, copy=True):
         """Returns the x coordinates of the data points
