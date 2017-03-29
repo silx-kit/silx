@@ -31,7 +31,7 @@ import numpy
 
 # scatter plot handling
 from silx.gui.data.NXdataWidgets import ArrayCurvePlot, ArrayImagePlot, ArrayStackPlot
-from silx.io import nxdata
+from silx.io.nxdata import NXdata
 from silx.gui import icons
 from silx.gui.data.DataViews import DataView, CompositeDataView
 from silx.gui.data.ArrayTableWidget import ArrayTableWidget
@@ -64,16 +64,16 @@ class NXdataScalarView(DataView):
 
     def setData(self, data):
         data = self.normalizeData(data)
-        signal = nxdata.get_signal(data)
+        signal = NXdata(data).signal
         self.getWidget().setArrayData(signal,
                                       labels=True)
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
-        if info.isNXdata and (
-                    nxdata.signal_is_0D(data) or
-                    nxdata.get_interpretation(data) in ["scalar", "scaler"]):
-            return 100
+        if info.isNXdata:
+            nxd = NXdata(data)
+            if nxd.signal_is_0D or nxd.interpretation in ["scalar", "scaler"]:
+                return 100
         return DataView.UNSUPPORTED
 
 
@@ -100,33 +100,29 @@ class NXdataCurveView(DataView):
 
     def setData(self, data):
         data = self.normalizeData(data)
-        signal = nxdata.get_signal(data)
+        nxd = NXdata(data)
         signal_name = data.attrs["signal"]
-        signal_errors = nxdata.get_signal_errors(data)
         group_name = data.name
-        x_axis = nxdata.get_axes(data)[-1]
-        x_label = nxdata.get_axes_names(data)[-1]
-        if x_label is not None:
-            x_errors = nxdata.get_axis_errors(
-                    data,
-                    x_label)
+        if nxd.axes_names[-1] is not None:
+            x_errors = nxd.get_axis_errors(nxd.axes_names[-1])
         else:
             x_errors = None
 
-        self.getWidget().setCurveData(signal, x_axis,
-                                      yerror=signal_errors, xerror=x_errors,
-                                      ylabel=signal_name, xlabel=x_label,
+        self.getWidget().setCurveData(nxd.signal, nxd.axes[-1],
+                                      yerror=nxd.errors, xerror=x_errors,
+                                      ylabel=signal_name, xlabel=nxd.axes_names[-1],
                                       title="NXdata group " + group_name)
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
         if info.isNXdata:
-            if nxdata.is_x_y_value_scatter(data) or nxdata.is_unsupported_scatter(data):
+            nxd = NXdata(data)
+            if nxd.is_x_y_value_scatter or nxd.is_unsupported_scatter:
                 return DataView.UNSUPPORTED
-            if nxdata.signal_is_1D(data) and \
-                    not nxdata.get_interpretation(data) in ["scalar", "scaler"]:
+            if nxd.signal_is_1D and \
+                    not nxd.interpretation in ["scalar", "scaler"]:
                 return 100
-            if nxdata.get_interpretation(data) == "spectrum":
+            if nxd.interpretation == "spectrum":
                 return 100
         return DataView.UNSUPPORTED
 
@@ -150,28 +146,24 @@ class NXdataXYVScatterView(DataView):
 
     def setData(self, data):
         data = self.normalizeData(data)
-        signal = nxdata.get_signal(data)
+        nxd = NXdata(data)
         signal_name = data.attrs["signal"]
-        # signal_errors = nxdata.get_signal_errors(data)   # not supported
+        # signal_errors = nx.errors   # not supported
         group_name = data.name
-        x_axis, y_axis = nxdata.get_axes(data)[-2:]
+        x_axis, y_axis = nxd.axes[-2:]
 
-        x_label, y_label = nxdata.get_axes_names(data)[-2:]
+        x_label, y_label = nxd.axes_names[-2:]
         if x_label is not None:
-            x_errors = nxdata.get_axis_errors(
-                    data,
-                    x_label)
+            x_errors = nxd.get_axis_errors(x_label)
         else:
             x_errors = None
 
         if y_label is not None:
-            y_errors = nxdata.get_axis_errors(
-                    data,
-                    y_label)
+            y_errors = nxd.get_axis_errors(y_label)
         else:
             y_errors = None
 
-        self.getWidget().setCurveData(y_axis, x_axis, values=signal,
+        self.getWidget().setCurveData(y_axis, x_axis, values=nxd.signal,
                                       yerror=y_errors, xerror=x_errors,
                                       ylabel=signal_name, xlabel=x_label,
                                       title="NXdata group " + group_name)
@@ -179,7 +171,7 @@ class NXdataXYVScatterView(DataView):
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
         if info.isNXdata:
-            if nxdata.is_x_y_value_scatter(data):
+            if NXdata(data).is_x_y_value_scatter:
                 return 100
         return DataView.UNSUPPORTED
 
@@ -202,26 +194,25 @@ class NXdataImageView(DataView):
 
     def setData(self, data):
         data = self.normalizeData(data)
-        signal = nxdata.get_signal(data)
+        nxd = NXdata(data)
         signal_name = data.attrs["signal"]
         group_name = data.name
-        y_axis, x_axis = nxdata.get_axes(data)[-2:]
-        y_label, x_label = nxdata.get_axes_names(data)[-2:]
+        y_axis, x_axis = nxd.axes[-2:]
+        y_label, x_label = nxd.axes_names[-2:]
 
         self.getWidget().setImageData(
-                     signal, x_axis=x_axis, y_axis=y_axis,
+                     nxd.signal, x_axis=x_axis, y_axis=y_axis,
                      signal_name=signal_name, xlabel=x_label, ylabel=y_label,
                      title="NXdata group %s: %s" % (group_name, signal_name))
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
         if info.isNXdata:
-            if nxdata.signal_is_2D(data):
-                if nxdata.get_interpretation(data) not in ["scalar",
-                                                           "spectrum",
-                                                           "scaler"]:
+            nxd = NXdata(data)
+            if nxd.signal_is_2D:
+                if nxd.interpretation not in ["scalar", "spectrum", "scaler"]:
                     return 100
-            if nxdata.get_interpretation(data) == "image":
+            if nxd.interpretation == "image":
                 return 100
         return DataView.UNSUPPORTED
 
@@ -242,14 +233,14 @@ class NXdataStackView(DataView):
 
     def setData(self, data):
         data = self.normalizeData(data)
-        signal = nxdata.get_signal(data)
+        nxd = NXdata(data)
         signal_name = data.attrs["signal"]
         group_name = data.name
-        z_axis, y_axis, x_axis = nxdata.get_axes(data)[-3:]
-        z_label, y_label, x_label = nxdata.get_axes_names(data)[-3:]
+        z_axis, y_axis, x_axis = nxd.axes[-3:]
+        z_label, y_label, x_label = nxd.axes_names[-3:]
 
         self.getWidget().setStackData(
-                     signal, x_axis=x_axis, y_axis=y_axis, z_axis=z_axis,
+                     nxd.signal, x_axis=x_axis, y_axis=y_axis, z_axis=z_axis,
                      signal_name=signal_name,
                      xlabel=x_label, ylabel=y_label, zlabel=z_label,
                      title="NXdata group %s: %s" % (group_name, signal_name))
@@ -257,10 +248,10 @@ class NXdataStackView(DataView):
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
         if info.isNXdata:
-            if nxdata.get_signal_ndim(data) >= 3:
-                if nxdata.get_interpretation(data) not in ["scalar", "scaler",
-                                                           "spectrum",
-                                                           "image"]:  # handled by NXdataImageView
+            nxd = NXdata(data)
+            if nxd.signal_ndim >= 3:
+                if nxd.interpretation not in ["scalar", "scaler",
+                                              "spectrum", "image"]:
                     return 100
         return DataView.UNSUPPORTED
 
