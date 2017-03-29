@@ -27,6 +27,3 @@
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "21/03/2017"
-
-# First of all init matplotlib and set its backend
-from . import _matplotlib  # noqa

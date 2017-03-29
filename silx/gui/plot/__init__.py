@@ -50,8 +50,8 @@ __license__ = "MIT"
 __date__ = "22/02/2016"
 
 
-# First of all init backends: matplotlib and set its backend
-from . import backends as _backends  # noqa
+# First of all init matplotlib and set its backend
+from .backends import _matplotlib  # noqa
 
 from .PlotWidget import PlotWidget  # noqa
 from .PlotWindow import PlotWindow, Plot1D, Plot2D  # noqa
