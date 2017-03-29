@@ -27,13 +27,12 @@ view from available ones from silx.
 """
 from __future__ import division
 
-from silx.gui.data import DataViews, NXdataView
+from silx.gui.data import DataViews
 from silx.gui.data.DataViews import _normalizeData
 import numpy
 import logging
 from silx.gui import qt
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
-from silx.gui.data.NXdataView import NXdataView
 
 try:
     from silx.third_party import six
@@ -141,7 +140,7 @@ class DataViewer(qt.QFrame):
         viewClasses = [
             DataViews._EmptyView,
             DataViews._Hdf5View,
-            NXdataView,
+            DataViews._NXdataView,
             DataViews._Plot1dView,
             DataViews._Plot2dView,
             DataViews._Plot3dView,

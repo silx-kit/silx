@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module defines widgets used by NXdataView.
+"""This module defines widgets used by _NXdataView.
 """
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"

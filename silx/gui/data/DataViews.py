@@ -36,11 +36,11 @@ from silx.gui.data.TextFormatter import TextFormatter
 from silx.gui.widgets.TableWidget import TableView
 from silx.io import nxdata
 from silx.gui.hdf5 import H5Node
+from silx.io.nxdata import NXdata
 
-
-__authors__ = ["V. Valls"]
+__authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "27/01/2017"
+__date__ = "29/03/2017"
 
 _logger = logging.getLogger(__name__)
 
@@ -724,3 +724,236 @@ class _RawView(CompositeDataView):
         self.addView(_ScalarView(parent))
         self.addView(_ArrayView(parent))
         self.addView(_RecordView(parent))
+
+
+class _NXdataScalarView(DataView):
+    """DataView using a table view for displaying NXdata scalars:
+    0-D signal or n-D signal with *@interpretation=scalar*"""
+    def __init__(self, parent):
+        DataView.__init__(self, parent)
+
+    def createWidget(self, parent):
+        from silx.gui.data.ArrayTableWidget import ArrayTableWidget
+        widget = ArrayTableWidget(parent)
+        #widget.displayAxesSelector(False)
+        return widget
+
+    def axesNames(self, data, info):
+        return ["col", "row"]
+
+    def clear(self):
+        self.getWidget().setArrayData(numpy.array([[]]),
+                                      labels=True)
+
+    def setData(self, data):
+        data = self.normalizeData(data)
+        signal = NXdata(data).signal
+        self.getWidget().setArrayData(signal,
+                                      labels=True)
+
+    def getDataPriority(self, data, info):
+        data = self.normalizeData(data)
+        if info.isNXdata:
+            nxd = NXdata(data)
+            if nxd.signal_is_0D or nxd.interpretation in ["scalar", "scaler"]:
+                return 100
+        return DataView.UNSUPPORTED
+
+
+class _NXdataCurveView(DataView):
+    """DataView using a Plot1D for displaying NXdata curves:
+    1-D signal or n-D signal with *@interpretation=spectrum*.
+
+    It also handles basic scatter plots:
+    a 1-D signal with one axis whose values are not monotonically increasing.
+    """
+    def __init__(self, parent):
+        DataView.__init__(self, parent)
+
+    def createWidget(self, parent):
+        from silx.gui.data.NXdataWidgets import ArrayCurvePlot
+        widget = ArrayCurvePlot(parent)
+        return widget
+
+    def axesNames(self, data, info):
+        # disabled (used by default axis selector widget in Hdf5Viewer)
+        return []
+
+    def clear(self):
+        self.getWidget().clear()
+
+    def setData(self, data):
+        data = self.normalizeData(data)
+        nxd = NXdata(data)
+        signal_name = data.attrs["signal"]
+        group_name = data.name
+        if nxd.axes_names[-1] is not None:
+            x_errors = nxd.get_axis_errors(nxd.axes_names[-1])
+        else:
+            x_errors = None
+
+        self.getWidget().setCurveData(nxd.signal, nxd.axes[-1],
+                                      yerror=nxd.errors, xerror=x_errors,
+                                      ylabel=signal_name, xlabel=nxd.axes_names[-1],
+                                      title="NXdata group " + group_name)
+
+    def getDataPriority(self, data, info):
+        data = self.normalizeData(data)
+        if info.isNXdata:
+            nxd = NXdata(data)
+            if nxd.is_x_y_value_scatter or nxd.is_unsupported_scatter:
+                return DataView.UNSUPPORTED
+            if nxd.signal_is_1D and \
+                    not nxd.interpretation in ["scalar", "scaler"]:
+                return 100
+            if nxd.interpretation == "spectrum":
+                return 100
+        return DataView.UNSUPPORTED
+
+
+class _NXdataXYVScatterView(DataView):
+    """DataView using a Plot1D for displaying NXdata 3D scatters as
+    a scatter of coloured points (1-D signal with 2 axes)"""
+    def __init__(self, parent):
+        DataView.__init__(self, parent)
+
+    def createWidget(self, parent):
+        from silx.gui.data.NXdataWidgets import ArrayCurvePlot
+        widget = ArrayCurvePlot(parent)
+        return widget
+
+    def axesNames(self, data, info):
+        # disabled (used by default axis selector widget in Hdf5Viewer)
+        return []
+
+    def clear(self):
+        self.getWidget().clear()
+
+    def setData(self, data):
+        data = self.normalizeData(data)
+        nxd = NXdata(data)
+        signal_name = data.attrs["signal"]
+        # signal_errors = nx.errors   # not supported
+        group_name = data.name
+        x_axis, y_axis = nxd.axes[-2:]
+
+        x_label, y_label = nxd.axes_names[-2:]
+        if x_label is not None:
+            x_errors = nxd.get_axis_errors(x_label)
+        else:
+            x_errors = None
+
+        if y_label is not None:
+            y_errors = nxd.get_axis_errors(y_label)
+        else:
+            y_errors = None
+
+        self.getWidget().setCurveData(y_axis, x_axis, values=nxd.signal,
+                                      yerror=y_errors, xerror=x_errors,
+                                      ylabel=signal_name, xlabel=x_label,
+                                      title="NXdata group " + group_name)
+
+    def getDataPriority(self, data, info):
+        data = self.normalizeData(data)
+        if info.isNXdata:
+            if NXdata(data).is_x_y_value_scatter:
+                return 100
+        return DataView.UNSUPPORTED
+
+
+class _NXdataImageView(DataView):
+    """DataView using a Plot2D for displaying NXdata images:
+    2-D signal or n-D signals with *@interpretation=spectrum*."""
+    def __init__(self, parent):
+        DataView.__init__(self, parent)
+
+    def createWidget(self, parent):
+        from silx.gui.data.NXdataWidgets import ArrayImagePlot
+        widget = ArrayImagePlot(parent)
+        return widget
+
+    def axesNames(self, data, info):
+        return []
+
+    def clear(self):
+        self.getWidget().clear()
+
+    def setData(self, data):
+        data = self.normalizeData(data)
+        nxd = NXdata(data)
+        signal_name = data.attrs["signal"]
+        group_name = data.name
+        y_axis, x_axis = nxd.axes[-2:]
+        y_label, x_label = nxd.axes_names[-2:]
+
+        self.getWidget().setImageData(
+                     nxd.signal, x_axis=x_axis, y_axis=y_axis,
+                     signal_name=signal_name, xlabel=x_label, ylabel=y_label,
+                     title="NXdata group %s: %s" % (group_name, signal_name))
+
+    def getDataPriority(self, data, info):
+        data = self.normalizeData(data)
+        if info.isNXdata:
+            nxd = NXdata(data)
+            if nxd.signal_is_2D:
+                if nxd.interpretation not in ["scalar", "spectrum", "scaler"]:
+                    return 100
+            if nxd.interpretation == "image":
+                return 100
+        return DataView.UNSUPPORTED
+
+
+class _NXdataStackView(DataView):
+    def __init__(self, parent):
+        DataView.__init__(self, parent)
+
+    def createWidget(self, parent):
+        from silx.gui.data.NXdataWidgets import ArrayStackPlot
+        widget = ArrayStackPlot(parent)
+        return widget
+
+    def axesNames(self, data, info):
+        return []
+
+    def clear(self):
+        self.getWidget().clear()
+
+    def setData(self, data):
+        data = self.normalizeData(data)
+        nxd = NXdata(data)
+        signal_name = data.attrs["signal"]
+        group_name = data.name
+        z_axis, y_axis, x_axis = nxd.axes[-3:]
+        z_label, y_label, x_label = nxd.axes_names[-3:]
+
+        self.getWidget().setStackData(
+                     nxd.signal, x_axis=x_axis, y_axis=y_axis, z_axis=z_axis,
+                     signal_name=signal_name,
+                     xlabel=x_label, ylabel=y_label, zlabel=z_label,
+                     title="NXdata group %s: %s" % (group_name, signal_name))
+
+    def getDataPriority(self, data, info):
+        data = self.normalizeData(data)
+        if info.isNXdata:
+            nxd = NXdata(data)
+            if nxd.signal_ndim >= 3:
+                if nxd.interpretation not in ["scalar", "scaler",
+                                              "spectrum", "image"]:
+                    return 100
+        return DataView.UNSUPPORTED
+
+
+class _NXdataView(CompositeDataView):
+    """Composite view displaying NXdata groups using the most adequate
+    widget depending on the dimensionality."""
+    def __init__(self, parent):
+        super(_NXdataView, self).__init__(
+            parent=parent,
+            label="NXdata",
+            icon=icons.getQIcon("view-nexus"))
+
+        self.addView(_NXdataScalarView(parent))
+        self.addView(_NXdataCurveView(parent))
+        self.addView(_NXdataXYVScatterView(parent))
+        self.addView(_NXdataImageView(parent))
+        self.addView(_NXdataStackView(parent))
