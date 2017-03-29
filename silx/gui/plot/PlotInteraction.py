@@ -42,8 +42,8 @@ from .PlotEvents import (prepareCurveSignal, prepareDrawingSignal,
                          prepareHoverSignal, prepareImageSignal,
                          prepareMarkerSignal, prepareMouseSignal)
 
-from .BackendBase import (CURSOR_POINTING, CURSOR_SIZE_HOR,
-                          CURSOR_SIZE_VER, CURSOR_SIZE_ALL)
+from .backends.BackendBase import (CURSOR_POINTING, CURSOR_SIZE_HOR,
+                                   CURSOR_SIZE_VER, CURSOR_SIZE_ALL)
 
 from ._utils import (FLOAT32_SAFE_MIN, FLOAT32_MINPOS, FLOAT32_SAFE_MAX,
                      applyZoomToPlot)

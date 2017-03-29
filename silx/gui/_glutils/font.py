@@ -32,8 +32,8 @@ __date__ = "13/10/2016"
 import logging
 import sys
 import numpy
-from silx.gui import qt
-from silx.gui._utils import convertQImageToArray
+from .. import qt
+from .._utils import convertQImageToArray
 
 
 _logger = logging.getLogger(__name__)

@@ -204,7 +204,7 @@ import logging
 import numpy
 
 # Import matplotlib backend here to init matplotlib our way
-from .BackendMatplotlib import BackendMatplotlibQt
+from .backends.BackendMatplotlib import BackendMatplotlibQt
 from . import Colors
 from . import PlotInteraction
 from . import PlotEvents
@@ -282,7 +282,7 @@ class Plot(object):
             if lowerCaseString in ("matplotlib", "mpl"):
                 backendClass = BackendMatplotlibQt
             elif lowerCaseString == 'none':
-                from .BackendBase import BackendBase as backendClass
+                from .backends.BackendBase import BackendBase as backendClass
             else:
                 raise ValueError("Backend not supported %s" % backend)
             self._backend = backendClass(self, parent)

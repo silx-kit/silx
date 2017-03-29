@@ -38,7 +38,7 @@ from silx.gui.plot.Colors import rgba
 from silx.gui.plot3d import Plot3DActions
 from .._utils import convertArrayToQImage
 
-from .glutils import gl
+from .._glutils import gl
 from .scene import interaction, primitives, transform
 from . import scene
 

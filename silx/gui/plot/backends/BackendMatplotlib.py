@@ -39,7 +39,7 @@ import numpy
 _logger = logging.getLogger(__name__)
 
 
-from .. import qt
+from ... import qt
 
 from ._matplotlib import FigureCanvasQTAgg
 import matplotlib
@@ -52,10 +52,10 @@ from matplotlib.backend_bases import MouseEvent
 from matplotlib.lines import Line2D
 from matplotlib.collections import PathCollection, LineCollection
 
-from . import _utils
+from . import utils
 from .ModestImage import ModestImage
 from . import BackendBase
-from . import Colors
+from .. import Colors
 
 
 class BackendMatplotlib(BackendBase.BackendBase):
@@ -543,7 +543,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                 ymin2, ymax2 = ranges.yright
 
             # Add margins around data inside the plot area
-            newLimits = list(_utils.addMarginsToLimits(
+            newLimits = list(utils.addMarginsToLimits(
                 dataMargins,
                 self.ax.get_xscale() == 'log',
                 self.ax.get_yscale() == 'log',
