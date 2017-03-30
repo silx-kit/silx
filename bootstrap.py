@@ -108,7 +108,12 @@ if __name__ == "__main__":
         sys.argv = sys.argv[1:]
         logger.info("Patch the sys.argv: %s", sys.argv)
         logger.info("Executing %s.main()", script)
+
         fullpath = os.path.join(SCRIPTSPATH, script)
+        if not os.path.exists(fullpath):
+            script = script + ".py"
+            fullpath = os.path.join(SCRIPTSPATH, script)
+
         if os.path.exists(fullpath):
             runfile(fullpath)
         else:
