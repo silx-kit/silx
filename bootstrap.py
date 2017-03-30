@@ -102,12 +102,12 @@ if __name__ == "__main__":
     else:
         logging.info("Running iPython by default")
     sys.path.insert(0, LIBPATH)
-    logger.info("01. Patched sys.path with %s", LIBPATH)
+    logger.info("Patched sys.path with %s", LIBPATH)
 
     if script:
         sys.argv = sys.argv[1:]
-        logger.info("03. patch the sys.argv: %s", sys.argv)
-        logger.info("04. Executing %s.main()", script)
+        logger.info("Patch the sys.argv: %s", sys.argv)
+        logger.info("Executing %s.main()", script)
         fullpath = os.path.join(SCRIPTSPATH, script)
         if os.path.exists(fullpath):
             runfile(fullpath)
@@ -121,7 +121,7 @@ if __name__ == "__main__":
                         runfile(fullpath)
                         break
     else:
-        logger.info("03. patch the sys.argv: %s", sys.argv)
+        logger.info("Patch the sys.argv: %s", sys.argv)
         sys.path.insert(2, "")
         try:
             from IPython import embed
