@@ -10,7 +10,7 @@ example: ./bootstrap.py ipython
 __authors__ = ["Frédéric-Emmanuel Picca", "Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
-__date__ = "20/12/2016"
+__date__ = "30/03/2017"
 
 
 import sys
@@ -66,6 +66,7 @@ def runfile(fname):
         # Providing globals() as locals will force to feed the file into
         # globals() (for examples imports).
         # Without this any function call from the executed file loses imports
+        print("########### EXECFILE ###########")
         execfile(fname, globals(), globals())
     except SyntaxError as error:
         logger.error(error)
@@ -73,6 +74,7 @@ def runfile(fname):
         env = os.environ.copy()
         env.update({"PYTHONPATH": LIBPATH + os.pathsep + os.environ.get("PYTHONPATH", ""),
                     "PATH": SCRIPTSPATH + os.pathsep + os.environ.get("PATH", "")})
+        print("########### SUBPROCESS ###########")
         run = subprocess.Popen(sys.argv, shell=False, env=env)
         run.wait()
 
