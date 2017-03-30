@@ -450,6 +450,8 @@ class FillMixIn(object):
 
 class Points(Item, SymbolMixIn,):
     """Base class for :class:`Curve` and :class:`Scatter`"""
+    # note: _logFilterData must be overloaded if you overload
+    #       getData to change its signature
 
     _DEFAULT_Z_LAYER = 1
     """Default overlay layer for points,
@@ -465,6 +467,7 @@ class Points(Item, SymbolMixIn,):
 
         # Store filtered data for x > 0 and/or y > 0
         self._filteredCache = {}
+        self._clippedCache = {}
 
         # Store bounds depending on axes filtering >0:
         # key is (isXPositiveFilter, isYPositiveFilter)
@@ -524,18 +527,21 @@ class Points(Item, SymbolMixIn,):
         :rtype: boolean numpy.ndarray
         """
         assert xPositive or yPositive
-        x = self.getXData(copy=False)
-        y = self.getYData(copy=False)
-        xclipped = (x <= 0) if xPositive else False
-        yclipped = (y <= 0) if yPositive else False
-        return numpy.logical_or(xclipped, yclipped)
+        if (xPositive, yPositive) not in self._clippedCache:
+            x = self.getXData(copy=False)
+            y = self.getYData(copy=False)
+            xclipped = (x <= 0) if xPositive else False
+            yclipped = (y <= 0) if yPositive else False
+            self._clippedCache[(xPositive, yPositive)] = \
+                numpy.logical_or(xclipped, yclipped)
+        return self._clippedCache[(xPositive, yPositive)]
 
     def _logFilterData(self, xPositive, yPositive):
         """Filter out values with x or y <= 0 on log axes
 
         :param bool xPositive: True to filter arrays according to X coords.
         :param bool yPositive: True to filter arrays according to Y coords.
-        :return: The filter arrays or unchanged object if not filtering needed
+        :return: The filter arrays or unchanged object if filtering not needed
         :rtype: (x, y, xerror, yerror)
         """
         x = self.getXData(copy=False)
@@ -587,29 +593,38 @@ class Points(Item, SymbolMixIn,):
             )
         return self._boundsCache[(xPositive, yPositive)]
 
+    def _getCachedData(self):
+        """Return cached filtered data if applicable,
+        i.e. if any axis is in log scale.
+        Return None if caching is not applicable."""
+        plot = self.getPlot()
+        if plot is not None:
+            xPositive = plot.isXAxisLogarithmic()
+            yPositive = plot.isYAxisLogarithmic()
+            if xPositive or yPositive:
+                # At least one axis has log scale, filter data
+                if (xPositive, yPositive) not in self._filteredCache:
+                    self._filteredCache[(xPositive, yPositive)] = \
+                        self._logFilterData(xPositive, yPositive)
+                return self._filteredCache[(xPositive, yPositive)]
+        return None
+
     def getData(self, copy=True, displayed=False):
         """Returns the x, y values of the curve points and xerror, yerror
 
         :param bool copy: True (Default) to get a copy,
                          False to use internal representation (do not modify!)
         :param bool displayed: True to only get curve points that are displayed
-                               in the plot. Default: False.
+                               in the plot. Default: False
                                Note: If plot has log scale, negative points
                                are not displayed.
         :returns: (x, y, xerror, yerror)
         :rtype: 4-tuple of numpy.ndarray
         """
-        if displayed:  # Eventually filter data according to plot state
-            plot = self.getPlot()
-            if plot is not None:
-                xPositive = plot.isXAxisLogarithmic()
-                yPositive = plot.isYAxisLogarithmic()
-                if xPositive or yPositive:
-                    # One axis has log scale, filter data
-                    if (xPositive, yPositive) not in self._filteredCache:
-                        self._filteredCache[(xPositive, yPositive)] = \
-                            self._logFilterData(xPositive, yPositive)
-                    return self._filteredCache[(xPositive, yPositive)]
+        if displayed:  # filter data according to plot state
+            cached_data = self._getCachedData()
+            if cached_data is not None:
+                return cached_data
 
         return (self.getXData(copy),
                 self.getYData(copy),
@@ -688,6 +703,7 @@ class Points(Item, SymbolMixIn,):
 
         self._boundsCache = {}  # Reset cached bounds
         self._filteredCache = {}  # Reset cached filtered data
+        self._clippedCache = {}  # Reset cached clipped bool array
 
         self._updated()
         # TODO hackish data range implementation
