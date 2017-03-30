@@ -104,9 +104,6 @@ if __name__ == "__main__":
     sys.path.insert(0, LIBPATH)
     logger.info("01. Patched sys.path with %s", LIBPATH)
 
-    sys.path.insert(0, SCRIPTSPATH)
-    logger.info("02. Patched sys.path with %s", SCRIPTSPATH)
-
     if script:
         sys.argv = sys.argv[1:]
         logger.info("03. patch the sys.argv: %s", sys.argv)
