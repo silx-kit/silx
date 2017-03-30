@@ -97,7 +97,7 @@ def bootstrap_module(module, argv):
 def print_help():
     """Print the help into stdout.
     """
-    print("usage: silx [--version] <command> [<args>]")
+    print("usage: silx [--version|--help] <command> [<args>]")
     print("")
     print("The silx commands are:")
     commands = sorted(default_apps.keys())
@@ -124,7 +124,7 @@ def main():
         print("silx version %s" % silx._version.version)
         return 0
 
-    if command == "help":
+    if command in ["help", "--help", "-h"]:
         # Special help command
         if len(sys.argv) == 2:
             print_help()

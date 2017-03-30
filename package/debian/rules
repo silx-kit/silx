@@ -38,8 +38,10 @@ override_dh_install:
 override_dh_auto_test:
 	dh_auto_test -- -s custom --test-args="env PYTHONPATH={build_dir} WITH_QT_TEST=False {interpreter} run_tests.py"
 
-#override_dh_installman:
-#	dh_installman -p silx doc/*.1
+override_dh_installman:
+	mkdir -p build/man
+	help2man doc/man/wrapper.sh -o build/man/silx.l
+	dh_installman -p silx build/man/*.1
 
 override_dh_installdocs:
 	dh_installdocs "build/sphinx/html" -p python-silx-doc
