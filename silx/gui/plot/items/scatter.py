@@ -124,10 +124,10 @@ class Scatter(Points, ColormapMixIn):
         :rtype: 5-tuple of numpy.ndarray
         """
         if displayed:
-            # return cached data (handled by parent class)
-            data = Points.getData(self, copy, displayed)
-            assert len(data) == 5
-            return data
+            data = self._getCachedData()
+            if data is not None:
+                assert len(data) == 5
+                return data
 
         return (self.getXData(copy),
                 self.getYData(copy),
@@ -160,5 +160,7 @@ class Scatter(Points, ColormapMixIn):
 
         self._value = value
 
-        # set x, y, xerror, yerror and call self._updated + plot._invalidateDataRange()
+        # set x, y, xerror, yerror
+
+        # call self._updated + plot._invalidateDataRange()
         Points.setData(self, x, y, xerror, yerror, copy)
