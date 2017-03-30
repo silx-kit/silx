@@ -1377,7 +1377,7 @@ class MedianFilter1DAction(MedianFilterAction):
     def _computeFilteredImage(self, kernelWidth, conditional):
         assert(self.plot is not None)
         return medianfilter(self._originalImage,
-                            kernelWidth,
+                            (kernelWidth, 1),
                             conditional)
 
 

@@ -51,7 +51,7 @@ def medianfilter(input_buffer, kernel_dim, bool conditionnal, int nthread=4):
         the median filter
     :param kernel_dim: the dimension of the kernel.
     :type kernel_dim: For 1D should be an int for 2D should be a tuple or 
-        a list of (kernel_width, kernel_height)
+        a list of (kernel_height, kernel_width)
     :param bool conditionnal: True if we want to apply a conditionnal median 
         filtering.
     :param int nthread: the number of threads we want to launch to solve the
@@ -72,11 +72,11 @@ def medianfilter(input_buffer, kernel_dim, bool conditionnal, int nthread=4):
 
     if type(kernel_dim) in (tuple, list):
       if(len(kernel_dim) == 1):
-          ker_dim = numpy.array([kernel_dim[0], 1], dtype=numpy.int32)
+          ker_dim = numpy.array(1, [kernel_dim[0]], dtype=numpy.int32)
       else:
           ker_dim = numpy.array(kernel_dim, dtype=numpy.int32)
     else:
-      ker_dim = numpy.array([kernel_dim, 1], dtype=numpy.int32)
+      ker_dim = numpy.array([kernel_dim, kernel_dim], dtype=numpy.int32)
 
     ranges = numpy.array(
         [ int(input_buffer.shape[0] * x / nthread) for x in range(nthread+1) ],

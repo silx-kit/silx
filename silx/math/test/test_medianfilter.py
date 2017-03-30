@@ -161,7 +161,7 @@ class Test1DFilter(unittest.TestCase):
         dataIn = numpy.arange(100, dtype=numpy.int32)
 
         dataOut = medianfilter(input_buffer=dataIn,
-                               kernel_dim=5,
+                               kernel_dim=(5),
                                conditionnal=False)
         
         self.assertTrue(dataOut[0] == 1)
