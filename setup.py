@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "27/03/2017"
+__date__ = "30/03/2017"
 __license__ = "MIT"
 
 
@@ -39,6 +39,7 @@ import os
 import platform
 import shutil
 import logging
+import glob
 
 logging.basicConfig(level=logging.INFO)
 
@@ -514,6 +515,8 @@ def setup_package():
             'opencl/sift/*.cl']
     }
 
+    script_files = glob.glob("scripts/*")
+
     cmdclass = dict(
         build_py=build_py,
         test=PyTest,
@@ -586,6 +589,7 @@ def setup_package():
                         cmdclass=cmdclass,
                         package_data=package_data,
                         zip_safe=False,
+                        scripts=script_files,
                         )
 
     setup(**setup_kwargs)
