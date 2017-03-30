@@ -448,7 +448,7 @@ class FillMixIn(object):
             self._updated()
 
 
-class Points(Item, SymbolMixIn,):
+class Points(Item, SymbolMixIn):
     """Base class for :class:`Curve` and :class:`Scatter`"""
     # note: _logFilterData must be overloaded if you overload
     #       getData to change its signature

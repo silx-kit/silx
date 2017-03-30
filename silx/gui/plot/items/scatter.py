@@ -50,8 +50,6 @@ class Scatter(Points, ColormapMixIn):
         ColormapMixIn.__init__(self)
         self._value = ()
 
-        self._symbol = self._DEFAULT_SYMBOL
-
     def _addBackendRenderer(self, backend):
         """Update backend renderer"""
         # Filter-out values <= 0
@@ -68,16 +66,19 @@ class Scatter(Points, ColormapMixIn):
                                          cmap["autoscale"],
                                          cmap["vmin"],
                                          cmap["vmax"],
-                                         cmap["colors"])
+                                         cmap.get("colors"))
 
         return backend.addCurve(xFiltered, yFiltered, self.getLegend(),
                                 color=rgbacolors,
                                 symbol=self.getSymbol(),
+                                linewidth=0,
                                 linestyle="",
+                                yaxis='left',
                                 xerror=xerror,
                                 yerror=yerror,
-                                z=self.getZValue(),   # FIXME: overload _DEFAULT_ZLAYER?
-                                selectable=self.isSelectable())
+                                z=self.getZValue(),
+                                selectable=self.isSelectable(),
+                                fill=False)
 
     def _logFilterData(self, xPositive, yPositive):
         """Filter out values with x or y <= 0 on log axes
