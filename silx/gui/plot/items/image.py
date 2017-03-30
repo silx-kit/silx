@@ -58,6 +58,7 @@ class Image(Item, LabelsMixIn, DraggableMixIn, ColormapMixIn):
         # TODO use calibration instead of origin and scale?
         self._origin = (0., 0.)
         self._scale = (1., 1.)
+        self._alpha = 1.
 
     def _addBackendRenderer(self, backend):
         """Update backend renderer"""
@@ -81,7 +82,8 @@ class Image(Item, LabelsMixIn, DraggableMixIn, ColormapMixIn):
                                 z=self.getZValue(),
                                 selectable=self.isSelectable(),
                                 draggable=self.isDraggable(),
-                                colormap=self.getColormap())
+                                colormap=self.getColormap(),
+                                alpha=self.getAlpha())
 
     @deprecated
     def __getitem__(self, item):
@@ -253,3 +255,23 @@ class Image(Item, LabelsMixIn, DraggableMixIn, ColormapMixIn):
                 plot = self.getPlot()
                 if plot is not None:
                     plot._invalidateDataRange()
+
+    def getAlpha(self):
+        """Returns the opacity of the image.
+
+        :rtype: float in [0, 1.]
+        """
+        return self._alpha
+
+    def setAlpha(self, alpha):
+        """Set the opacity of the image
+
+        :param alpha: Opacity of the image, between 0 (full transparency)
+            and 1. (full opacity)
+        :type alpha: float
+        """
+        alpha = float(alpha)
+        alpha = max(0., min(alpha, 1.))  # Clip alpha to [0., 1.] range
+        if alpha != self._alpha:
+            self._alpha = alpha
+            self._updated()
