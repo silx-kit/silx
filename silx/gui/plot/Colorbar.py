@@ -141,8 +141,8 @@ class ColorbarWidget(qt.QWidget):
         widget.layout().setContentsMargins(0, 0, 0, 0)
         # create gradation
         self._gradation = GradationBar(parent=widget,
-                                       colormap=self._plot.getDefaultColormap(),
-                                       ticks=[1.0, 0.5, 0.0])
+                                       logNorm=False,
+                                       colormap=self._plot.getDefaultColormap())
         widget.layout().addWidget(self._gradation)
 
         self.legend = VerticalLegend('', self)
@@ -166,9 +166,12 @@ class ColorbarWidget(qt.QWidget):
         widgetLeftGroup.layout().addWidget(self.__minLabel)
 
         # create gradation
+
+
+        
         self._gradation = GradationBar(parent=widget, 
                                        colormap=self._plot.getDefaultColormap(),
-                                       ticks=[1.0, 0.5, 0.0],
+                                       logNorm=True,
                                        displayTicksValues=False)
         widgetLeftGroup.layout().addWidget(self._gradation)
 
@@ -352,7 +355,7 @@ class GradationBar(qt.QWidget):
     :param parent: the Qt parent if any
     :param displayTicksValues: display the ticks value or only the '-'
     """
-    def __init__(self, colormap, ticks, parent=None, displayTicksValues=True):
+    def __init__(self, colormap, logNorm, parent=None, displayTicksValues=True):
         """
 
         :param ticks: list or tuple registering the ticks to displayed.
@@ -376,7 +379,9 @@ class GradationBar(qt.QWidget):
         self.rightGroup.layout().addWidget(self.getBottomDownWidget())
 
         # create the right side group (Gradation)
-        self.leftGroup.layout().addWidget(TickBar(ticks=ticks,
+        self.leftGroup.layout().addWidget(TickBar(vmin=colormap['vmin'],
+                                                  vmax=colormap['vmin'],
+                                                  logNorm=logNorm,
                                                   parent=self,
                                                   displayValues=displayTicksValues))
 
@@ -490,31 +495,79 @@ class TickBar(qt.QWidget):
     :param displayValues: if True display the values close to the tick,
         Otherwise only signal it by '-'
     """
-    def __init__(self, ticks, parent=None, displayValues=True):
+    def __init__(self, vmin, vmax, logNorm, parent=None, displayValues=True):
         super(TickBar, self).__init__(parent)
         self.displayValues = displayValues
-        self.ticks = ticks
-        self.__buildGUI()       
+        self.nticks = 5
+        self._logNorm = logNorm 
+        self.vmin = vmin
+        self.vmax = vmax
 
-    def __buildGUI(self):
         self.setLayout(qt.QVBoxLayout())
+        # self.__buildGUI()
 
-        for iTick, tick in enumerate(reversed(self.ticks)):
-            alignement = qt.Qt.AlignCenter
-            if len(self.ticks) > 1:
-                if iTick is 0:
-                    alignement = qt.Qt.AlignTop
-                if iTick is len(self.ticks)-1:
-                    alignement = qt.Qt.AlignBottom
+    def _computeTicks(self):
+        from silx.gui.plot3d.utils import ticklayout
 
-            txt = (str(tick) + '-') if self.displayValues else '-'
-            tickWidget = qt.QLabel(text=txt, parent=self)
-            tickWidget.setLayout(qt.QVBoxLayout())
-            tickWidget.layout().setContentsMargins(0, 0, 0, 0)
-            tickWidget.setAlignment(alignement)
-            # insert because we are in top-bottom reference and not bottom-top
-            self.layout().addWidget(tickWidget)
+        func = ticklayout.niceNumbersForLog10 if self._logNorm is True else ticklayout.niceNumbers
+        self.tickMin, self.tickMax, self.step, self.nfrac = func(0,
+                                                                 100,
+                                                                 self.nticks)
 
-        self.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Expanding)
-        self.layout().setContentsMargins(0, 0, 0, 0)
+        print('self.tickMin %s'%self.tickMin)
+        print('self.tickMax %s'%self.tickMax)
+        print('self.step %s'%self.step)
+        print('self.nfrac %s'%self.nfrac)
 
+        self.ticks = numpy.linspace(self.tickMin, self.tickMax, self.nticks)
+        print(self.ticks)
+
+
+    def paintEvent(self, event):
+        
+        self._computeTicks()
+
+        painter = qt.QPainter(self)
+        for iTick, val in enumerate(self.ticks):
+            print('rect height is %s'%self.rect().height())
+            print('i tick is %s'%iTick)
+            print('step is %s'%self.step)
+            height = self.rect().height() * iTick / self.nticks #* (self.step / 100)
+            print(height)
+            painter.drawLine(qt.QLine(0.0, height, 10.0, height))
+
+        qt.QWidget.paintEvent(self, event)
+        # gradient = qt.QLinearGradient(0, 0, 0, self.rect().height());
+        # # TODO : betwen vmin and vmax ...
+        # steps = (self.colormap.vmax - self.colormap.vmin)/256
+        # for pt in numpy.arange(self.colormap.vmin, self.colormap.vmax, steps):
+        #     colormapPosition = (pt-self.colormap.vmin) / (self.colormap.vmax-self.colormap.vmin)
+        #     assert(colormapPosition >= 0.0 )
+        #     assert(colormapPosition <= 1.0 )
+
+        #     qtGradientPosition = pt / self.colormap.vmax
+        #     # self.colormap.vmax - position because Qt is in the top-bottom reference
+        #     gradient.setColorAt( qtGradientPosition, self.colormap.getColor(pt))
+
+        # painter.setBrush(gradient)
+        # painter.drawRect(self.rect())        
+
+        # ticks are always homogemeously setted
+        # for iTick, tick in enumerate(reversed(self.ticks)):
+        #     alignement = qt.Qt.AlignCenter
+        #     if len(self.ticks) > 1:
+        #         if iTick is 0:
+        #             alignement = qt.Qt.AlignTop
+        #         if iTick is len(self.ticks)-1:
+        #             alignement = qt.Qt.AlignBottom
+
+        #     txt = (str(tick) + '-') if self.displayValues else '-'
+        #     tickWidget = qt.QLabel(text=txt, parent=self)
+        #     tickWidget.setLayout(qt.QVBoxLayout())
+        #     tickWidget.layout().setContentsMargins(0, 0, 0, 0)
+        #     tickWidget.setAlignment(alignement)
+        #     # insert because we are in top-bottom reference and not bottom-top
+        #     self.layout().addWidget(tickWidget)
+
+        # self.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Expanding)
+        # self.layout().setContentsMargins(0, 0, 0, 0)

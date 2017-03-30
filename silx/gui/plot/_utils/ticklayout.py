@@ -175,4 +175,28 @@ def niceNumbersForLog10(minLog, maxLog, nTicks=5):
         graphminlog = math.floor(graphminlog / spacing) * spacing
         graphmaxlog = math.ceil(graphmaxlog / spacing) * spacing
 
-    return int(graphminlog), int(graphmaxlog), int(spacing)
+
+    nfrac = numberOfDigits(spacing)
+
+    return int(graphminlog), int(graphmaxlog), int(spacing), nfrac
+
+
+def niceNumbersAdaptativeForLog10(vMin, vMax, axisLength, tickDensity):
+    """Returns tick positions using :func:`niceNumbers` and a
+    density of ticks.
+
+    axisLength and tickDensity are based on the same unit (e.g., pixel).
+
+    :param float vMin: The min value on the axis
+    :param float vMax: The max value on the axis
+    :param float axisLength: The length of the axis.
+    :param float tickDensity: The density of ticks along the axis.
+    :returns: min, max, increment value of tick positions and
+              number of fractional digit to show
+    :rtype: tuple
+    """
+    # At least 2 ticks
+    nticks = max(2, int(round(tickDensity * axisLength)))
+    tickmin, tickmax, step, nfrac = niceNumbersForLog10(vMin, vMax, nticks)
+
+    return tickmin, tickmax, step, nfrac
