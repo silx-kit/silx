@@ -79,61 +79,28 @@ class Scatter(Points, ColormapMixIn):
                                 z=self.getZValue(),   # FIXME: overload _DEFAULT_ZLAYER?
                                 selectable=self.isSelectable())
 
-
     def _logFilterData(self, xPositive, yPositive):
         """Filter out values with x or y <= 0 on log axes
 
         :param bool xPositive: True to filter arrays according to X coords.
         :param bool yPositive: True to filter arrays according to Y coords.
-        :return: The filter arrays or unchanged object if not filtering needed
+        :return: The filtered arrays or unchanged object if not filtering needed
         :rtype: (x, y, value, xerror, yerror)
         """
-        x, y, value, xerror, yerror = self.getData(copy=False)
+        # overloaded from Points to filter also value.
+        value = self.getValueData(copy=False)
 
         if xPositive or yPositive:
-            xclipped = (x <= 0) if xPositive else False
-            yclipped = (y <= 0) if yPositive else False
-            clipped = numpy.logical_or(xclipped, yclipped)
+            clipped = self._getClippingBoolArray(xPositive, yPositive)
 
             if numpy.any(clipped):
                 # copy to keep original array and convert to float
-                x = numpy.array(x, copy=True, dtype=numpy.float)
-                x[clipped] = numpy.nan
-                y = numpy.array(y, copy=True, dtype=numpy.float)
-                y[clipped] = numpy.nan
                 value = numpy.array(value, copy=True, dtype=numpy.float)
                 value[clipped] = numpy.nan
 
-                if xPositive and xerror is not None:
-                    xerror = self._logFilterError(x, xerror)
-
-                if yPositive and yerror is not None:
-                    yerror = self._logFilterError(y, yerror)
+        x, y, xerror, yerror = Points._logFilterData(self, xPositive, yPositive)
 
         return x, y, value, xerror, yerror
-
-    def _getBounds(self):
-        if self.getXData(copy=False).size == 0:  # Empty data
-            return None
-
-        plot = self.getPlot()
-        if plot is not None:
-            xPositive = plot.isXAxisLogarithmic()
-            yPositive = plot.isYAxisLogarithmic()
-        else:
-            xPositive = False
-            yPositive = False
-
-        if (xPositive, yPositive) not in self._boundsCache:
-            # TODO bounds do not take error bars into account
-            x, y, value, xerror, yerror = self.getData(copy=False, displayed=True)
-            self._boundsCache[(xPositive, yPositive)] = (
-                numpy.nanmin(x),
-                numpy.nanmax(x),
-                numpy.nanmin(y),
-                numpy.nanmax(y)
-            )
-        return self._boundsCache[(xPositive, yPositive)]
 
     def getValueData(self, copy=True):
         """Returns the value assigned to the scatter data points.
@@ -153,20 +120,14 @@ class Scatter(Points, ColormapMixIn):
                                in the plot. Default: False.
                                Note: If plot has log scale, negative points
                                are not displayed.
-        :returns: (x, y, value xerror, yerror)
+        :returns: (x, y, value, xerror, yerror)
         :rtype: 5-tuple of numpy.ndarray
         """
         if displayed:
-            plot = self.getPlot()
-            if plot is not None:
-                xPositive = plot.isXAxisLogarithmic()
-                yPositive = plot.isYAxisLogarithmic()
-                if xPositive or yPositive:
-                    # One axis has log scale, filter data
-                    if (xPositive, yPositive) not in self._filteredCache:
-                        self._filteredCache[(xPositive, yPositive)] = \
-                            self._logFilterData(xPositive, yPositive)
-                    return self._filteredCache[(xPositive, yPositive)]
+            # return cached data (handled by parent class)
+            data = Points.getData(self, copy, displayed)
+            assert len(data) == 5
+            return data
 
         return (self.getXData(copy),
                 self.getYData(copy),
@@ -199,5 +160,5 @@ class Scatter(Points, ColormapMixIn):
 
         self._value = value
 
-        # set the rest and call self._updated + plot._invalidateDataRange()
+        # set x, y, xerror, yerror and call self._updated + plot._invalidateDataRange()
         Points.setData(self, x, y, xerror, yerror, copy)

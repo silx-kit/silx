@@ -448,12 +448,15 @@ class FillMixIn(object):
             self._updated()
 
 
-class Points(Item, LabelsMixIn, SymbolMixIn,):
+class Points(Item, SymbolMixIn,):
     """Base class for :class:`Curve` and :class:`Scatter`"""
+
+    _DEFAULT_Z_LAYER = 1
+    """Default overlay layer for points,
+    on top of images."""
 
     def __init__(self):
         Item.__init__(self)
-        LabelsMixIn.__init__(self)
         SymbolMixIn.__init__(self)
         self._x = ()
         self._y = ()
@@ -511,6 +514,107 @@ class Points(Item, LabelsMixIn, SymbolMixIn,):
                 error[0, errorClipped] = numpy.nan
 
         return error
+
+    def _getClippingBoolArray(self, xPositive, yPositive):
+        """Compute a boolean array to filter out points with negative
+        coordinates on log axes.
+
+        :param bool xPositive: True to filter arrays according to X coords.
+        :param bool yPositive: True to filter arrays according to Y coords.
+        :rtype: boolean numpy.ndarray
+        """
+        assert xPositive or yPositive
+        x = self.getXData(copy=False)
+        y = self.getYData(copy=False)
+        xclipped = (x <= 0) if xPositive else False
+        yclipped = (y <= 0) if yPositive else False
+        return numpy.logical_or(xclipped, yclipped)
+
+    def _logFilterData(self, xPositive, yPositive):
+        """Filter out values with x or y <= 0 on log axes
+
+        :param bool xPositive: True to filter arrays according to X coords.
+        :param bool yPositive: True to filter arrays according to Y coords.
+        :return: The filter arrays or unchanged object if not filtering needed
+        :rtype: (x, y, xerror, yerror)
+        """
+        x = self.getXData(copy=False)
+        y = self.getYData(copy=False)
+        xerror = self.getXErrorData(copy=False)
+        yerror = self.getYErrorData(copy=False)
+
+        if xPositive or yPositive:
+            clipped = self._getClippingBoolArray(xPositive, yPositive)
+
+            if numpy.any(clipped):
+                # copy to keep original array and convert to float
+                x = numpy.array(x, copy=True, dtype=numpy.float)
+                x[clipped] = numpy.nan
+                y = numpy.array(y, copy=True, dtype=numpy.float)
+                y[clipped] = numpy.nan
+
+                if xPositive and xerror is not None:
+                    xerror = self._logFilterError(x, xerror)
+
+                if yPositive and yerror is not None:
+                    yerror = self._logFilterError(y, yerror)
+
+        return x, y, xerror, yerror
+
+    def _getBounds(self):
+        if self.getXData(copy=False).size == 0:  # Empty data
+            return None
+
+        plot = self.getPlot()
+        if plot is not None:
+            xPositive = plot.isXAxisLogarithmic()
+            yPositive = plot.isYAxisLogarithmic()
+        else:
+            xPositive = False
+            yPositive = False
+
+        # TODO bounds do not take error bars into account
+        if (xPositive, yPositive) not in self._boundsCache:
+            # use the getData class method because instance method can be
+            # overloaded to return additional arrays
+            x, y, xerror, yerror = Points.getData(self, copy=False,
+                                                  displayed=True)
+            self._boundsCache[(xPositive, yPositive)] = (
+                numpy.nanmin(x),
+                numpy.nanmax(x),
+                numpy.nanmin(y),
+                numpy.nanmax(y)
+            )
+        return self._boundsCache[(xPositive, yPositive)]
+
+    def getData(self, copy=True, displayed=False):
+        """Returns the x, y values of the curve points and xerror, yerror
+
+        :param bool copy: True (Default) to get a copy,
+                         False to use internal representation (do not modify!)
+        :param bool displayed: True to only get curve points that are displayed
+                               in the plot. Default: False.
+                               Note: If plot has log scale, negative points
+                               are not displayed.
+        :returns: (x, y, xerror, yerror)
+        :rtype: 4-tuple of numpy.ndarray
+        """
+        if displayed:  # Eventually filter data according to plot state
+            plot = self.getPlot()
+            if plot is not None:
+                xPositive = plot.isXAxisLogarithmic()
+                yPositive = plot.isYAxisLogarithmic()
+                if xPositive or yPositive:
+                    # One axis has log scale, filter data
+                    if (xPositive, yPositive) not in self._filteredCache:
+                        self._filteredCache[(xPositive, yPositive)] = \
+                            self._logFilterData(xPositive, yPositive)
+                    return self._filteredCache[(xPositive, yPositive)]
+
+        return (self.getXData(copy),
+                self.getYData(copy),
+                self.getXErrorData(copy),
+                self.getYErrorData(copy))
 
     def getXData(self, copy=True):
         """Returns the x coordinates of the data points
