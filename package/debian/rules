@@ -36,7 +36,7 @@ override_dh_install:
 	dh_install
 
 override_dh_auto_test:
-	dh_auto_test -- -s custom --test-args="env PYTHONPATH={build_dir} WITH_QT_TEST=False {interpreter} run_tests.py"
+	dh_auto_test -- -s custom --test-args="env PYTHONPATH={build_dir} WITH_QT_TEST=False {interpreter} run_tests.py -v"
 
 override_dh_installman:
 	mkdir -p build/man
