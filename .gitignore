@@ -14,6 +14,8 @@ env/
 build/
 develop-eggs/
 /package/silx*
+/package/python-silx*
+/package/python3-silx*
 dist/
 downloads/
 eggs/
