@@ -101,8 +101,7 @@ class ColorbarWidget(qt.QWidget):
                 None, self._plot.getActiveImage(just_legend=True))
 
         self.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Expanding)
-        self.setContentsMargins(0, 0, 0, 0);
-        # self.setEnabled(False)
+        self.layout().setContentsMargins(0, 0, 0, 0)
 
     def __buildMainColorMap(self):
         widget = qt.QWidget(self)
@@ -273,7 +272,7 @@ class ColorbarWidget(qt.QWidget):
             return
 
         # Sync with active image
-        image = self._plot.getActiveImage()[0]
+        image = self._plot.getActiveImage().getData()
 
         # RGB(A) image, display default colormap
         if image.ndim != 2:
@@ -281,7 +280,7 @@ class ColorbarWidget(qt.QWidget):
             return
 
         # data image, sync with image colormap
-        cmap = self._plot.getActiveImage()[4]['colormap']
+        cmap = self._plot.getActiveImage().getColormap()
         if cmap['autoscale']:
             if cmap['normalization'] == 'log':
                 data = image[
@@ -364,34 +363,20 @@ class GradationBar(qt.QWidget):
         super(GradationBar, self).__init__(parent)
 
         self.setLayout(qt.QHBoxLayout())
-        self.leftGroup = qt.QWidget(self)
-        self.layout().addWidget(self.leftGroup)
-        self.rightGroup = qt.QWidget(self)
-        self.layout().addWidget(self.rightGroup)
-
-        self.leftGroup.setLayout(qt.QVBoxLayout())
-        self.rightGroup.setLayout(qt.QVBoxLayout())
+        self.textMargin = 10
 
         # create the left side group (Gradation)
-        self.rightGroup.layout().addWidget(self.getBottomDownWidget())
         self.gradation = Gradation(colormap=colormap, parent=self)
-        self.rightGroup.layout().addWidget(self.gradation)
-        self.rightGroup.layout().addWidget(self.getBottomDownWidget())
+        self.tickbar = TickBar(vmin=colormap['vmin'],
+                               vmax=colormap['vmin'],
+                               logNorm=logNorm,
+                               parent=self,
+                               displayValues=displayTicksValues)
 
-        # create the right side group (Gradation)
-        self.leftGroup.layout().addWidget(TickBar(vmin=colormap['vmin'],
-                                                  vmax=colormap['vmin'],
-                                                  logNorm=logNorm,
-                                                  parent=self,
-                                                  displayValues=displayTicksValues))
-
-        self.layout().setContentsMargins(0, 0, 0, 0)
-        self.leftGroup.layout().setContentsMargins(0, 0, 0, 0)
-        self.rightGroup.layout().setContentsMargins(0, 0, 0, 0)
-
-    def getBottomDownWidget(self):
-        w = qt.QWidget(self)
-        return w
+        self.gradation.setMargin(self.textMargin)
+        self.tickbar.setMargin(self.textMargin)
+        self.layout().addWidget(self.tickbar)
+        self.layout().addWidget(self.gradation)
 
 
 class Gradation(qt.QWidget):
@@ -406,12 +391,14 @@ class Gradation(qt.QWidget):
         self.setLayout(qt.QVBoxLayout())
 
         self.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
-        self.layout().setContentsMargins(0, 0, 0, 0)
+        # self.layout().setContentsMargins(0, 0, 0, 0)
 
         self.setColormap(colormap)
 
         # needed to get the mouse event without waiting for button click
         self.setMouseTracking(True)
+        self.setMargin(0)
+        self.setContentsMargins(0, 0, 0, 0)
 
     def setColormap(self, colormap):
         self.colormap = MyColorMap(colormap)
@@ -421,7 +408,7 @@ class Gradation(qt.QWidget):
         qt.QWidget.paintEvent(self, event)
 
         painter = qt.QPainter(self)
-        gradient = qt.QLinearGradient(0, 0, 0, self.rect().height());
+        gradient = qt.QLinearGradient(0, 0, 0, self.rect().height() - 2*self.margin);
         # TODO : betwen vmin and vmax ...
         steps = (self.colormap.vmax - self.colormap.vmin)/256
         for pt in numpy.arange(self.colormap.vmin, self.colormap.vmax, steps):
@@ -434,7 +421,8 @@ class Gradation(qt.QWidget):
             gradient.setColorAt( qtGradientPosition, self.colormap.getColor(pt))
 
         painter.setBrush(gradient)
-        painter.drawRect(self.rect())
+        painter.drawRect(
+            qt.QRect(0, self.margin, self.width(), self.height() - 2.*self.margin))
 
     def mouseMoveEvent(self, event):
         self.setToolTip(str(self.getValueFromRelativePosition(self._getRelativePosition(event.y()))))
@@ -458,6 +446,15 @@ class Gradation(qt.QWidget):
         #TODO : deal with log type
         return self.colormap.vmin + (self.colormap.vmax-self.colormap.vmin)*value
 
+    def setMargin(self, margin):
+        """Define the margin to fit with a TickBar object.
+        This is needed since we can only paint on the viewport of the widget.
+        Didn't work with a simple setContentsMargins
+
+        :param int margin: the margin to apply on the top and bottom.
+        """
+        self.margin = margin
+
 
 class MyColorMap(object):
     """
@@ -473,7 +470,6 @@ class MyColorMap(object):
         # for now only deal with matplotlib colorbar
         from silx.gui.plot import Colors
         cmap = Colors.getMPLColormap(self.name)
-        print(type(cmap))
         import matplotlib.cm
         norm = matplotlib.colors.Normalize(self.vmin, self.vmax)
         self.scalarMappable = matplotlib.cm.ScalarMappable(norm=norm, cmap=cmap)
@@ -502,9 +498,20 @@ class TickBar(qt.QWidget):
         self._logNorm = logNorm 
         self.vmin = vmin
         self.vmax = vmax
-
+        self.__width = 35
+        self._fontsize = 10
+        self.setFixedWidth(self.__width)
         self.setLayout(qt.QVBoxLayout())
-        # self.__buildGUI()
+        self.setMargin(0)
+        self.setContentsMargins(0, 0, 0, 0)
+
+    def setMargin(self, margin):
+        """Define the margin to fit with a Gradation object.
+        This is needed since we can only paint on the viewport of the widget
+
+        :param int margin: the margin to apply on the top and bottom.
+        """
+        self.margin = margin
 
     def _computeTicks(self):
         from silx.gui.plot3d.utils import ticklayout
@@ -514,60 +521,25 @@ class TickBar(qt.QWidget):
                                                                  100,
                                                                  self.nticks)
 
-        print('self.tickMin %s'%self.tickMin)
-        print('self.tickMax %s'%self.tickMax)
-        print('self.step %s'%self.step)
-        print('self.nfrac %s'%self.nfrac)
-
         self.ticks = numpy.linspace(self.tickMin, self.tickMax, self.nticks)
-        print(self.ticks)
-
 
     def paintEvent(self, event):
         
         self._computeTicks()
 
         painter = qt.QPainter(self)
+        font = painter.font()
+        font.setPixelSize(self._fontsize)
+        fm = qt.QFontMetrics(font)
+        painter.setFont(font)
+
+        viewportHeight = self.rect().height() - self.margin * 2
         for iTick, val in enumerate(self.ticks):
-            print('rect height is %s'%self.rect().height())
-            print('i tick is %s'%iTick)
-            print('step is %s'%self.step)
-            height = self.rect().height() * iTick / self.nticks #* (self.step / 100)
-            print(height)
-            painter.drawLine(qt.QLine(0.0, height, 10.0, height))
+            height = (viewportHeight * iTick) / (self.nticks -1)
+            height += self.margin
+            linewidth = 10
+            painter.drawLine(qt.QLine(35 - linewidth, height, 35, height))
+
+            painter.drawText(qt.QPoint(0.0, height + (fm.height() / 2)), str(val));
 
         qt.QWidget.paintEvent(self, event)
-        # gradient = qt.QLinearGradient(0, 0, 0, self.rect().height());
-        # # TODO : betwen vmin and vmax ...
-        # steps = (self.colormap.vmax - self.colormap.vmin)/256
-        # for pt in numpy.arange(self.colormap.vmin, self.colormap.vmax, steps):
-        #     colormapPosition = (pt-self.colormap.vmin) / (self.colormap.vmax-self.colormap.vmin)
-        #     assert(colormapPosition >= 0.0 )
-        #     assert(colormapPosition <= 1.0 )
-
-        #     qtGradientPosition = pt / self.colormap.vmax
-        #     # self.colormap.vmax - position because Qt is in the top-bottom reference
-        #     gradient.setColorAt( qtGradientPosition, self.colormap.getColor(pt))
-
-        # painter.setBrush(gradient)
-        # painter.drawRect(self.rect())        
-
-        # ticks are always homogemeously setted
-        # for iTick, tick in enumerate(reversed(self.ticks)):
-        #     alignement = qt.Qt.AlignCenter
-        #     if len(self.ticks) > 1:
-        #         if iTick is 0:
-        #             alignement = qt.Qt.AlignTop
-        #         if iTick is len(self.ticks)-1:
-        #             alignement = qt.Qt.AlignBottom
-
-        #     txt = (str(tick) + '-') if self.displayValues else '-'
-        #     tickWidget = qt.QLabel(text=txt, parent=self)
-        #     tickWidget.setLayout(qt.QVBoxLayout())
-        #     tickWidget.layout().setContentsMargins(0, 0, 0, 0)
-        #     tickWidget.setAlignment(alignement)
-        #     # insert because we are in top-bottom reference and not bottom-top
-        #     self.layout().addWidget(tickWidget)
-
-        # self.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Expanding)
-        # self.layout().setContentsMargins(0, 0, 0, 0)
