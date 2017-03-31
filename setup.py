@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "30/03/2017"
+__date__ = "31/03/2017"
 __license__ = "MIT"
 
 
@@ -447,6 +447,9 @@ class sdist_debian(sdist):
     Tailor made sdist for debian
     * remove auto-generated doc
     * remove cython generated .c files
+    * remove cython generated .c files
+    * remove .bat files
+    * include .l man files
     """
     @staticmethod
     def get_debian_name():
@@ -470,6 +473,12 @@ class sdist_debian(sdist):
                     self.filelist.exclude_pattern(pattern=base_file + ".c")
                     self.filelist.exclude_pattern(pattern=base_file + ".cpp")
                     self.filelist.exclude_pattern(pattern=base_file + ".html")
+
+        # ignore windows files
+        self.filelist.exclude_pattern(pattern="scripts/*.bat")
+
+        # include man pages
+        self.filelist.include_pattern(pattern="doc/build/man/*.l")
 
     def make_distribution(self):
         self.prune_file_list()

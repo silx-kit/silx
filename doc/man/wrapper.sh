@@ -11,5 +11,4 @@
 # > mkdir -p build/man
 # > help2man doc/man/wrapper.sh -o build/man/silx.l
 # 
-
-./bootstrap.py silx $* 2>/dev/null | sed -e '1,/######/d'
+./bootstrap.py silx-launcher.py $* 2>/dev/null | sed -e '1,/######/d'

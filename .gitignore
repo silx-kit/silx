@@ -16,6 +16,7 @@ develop-eggs/
 /package/silx*
 /package/python-silx*
 /package/python3-silx*
+/doc/build
 dist/
 downloads/
 eggs/
