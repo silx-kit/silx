@@ -35,6 +35,7 @@ __date__ = "31/03/2017"
 import sys
 import importlib
 import contextlib
+import argparse
 import logging
 
 
@@ -159,7 +160,7 @@ class Launcher(object):
         help_command = LauncherCommand(
             "help",
             description="Show help of the following command",
-            function=lambda x: None)
+            function=self.execute_help)
         self.add_command(command=help_command)
 
     def add_command(self, name=None, module_name=None, description=None, command=None):
@@ -206,6 +207,34 @@ class Launcher(object):
         print("")
         print(epilog.format(self))
 
+    def execute_help(self, argv):
+        """Execute the help command.
+
+        :param list[str] argv: The list of arguments (the first one is the
+            name of the application with the help command)
+        """
+        description = "Display help information about %s" % self.prog
+        parser = argparse.ArgumentParser(description=description)
+        parser.add_argument(
+            'command',
+            default=None,
+            nargs=argparse.OPTIONAL,
+            help='Command in which aving help')
+
+        options = parser.parse_args(argv[1:])
+        command_name = options.command
+        if command_name is None:
+            self.print_help()
+            return 0
+
+        if command_name not in self._commands:
+            print("Unknown command: %s", command_name)
+            self.print_help()
+            return -1
+
+        command = self._commands[command_name]
+        prog = "%s %s" % (self.prog, command.name)
+        return command.execute([prog, "--help"])
     def execute(self, argv=None):
         """Execute the launcher.
 
@@ -225,7 +254,7 @@ class Launcher(object):
             print("%s version %s" % (self.prog, str(self.version)))
             return 0
 
-        if command_name in ["help", "--help", "-h"]:
+        if command_name in ["--help", "-h"]:
             # Special help command
             if len(argv) == 2:
                 self.print_help()
