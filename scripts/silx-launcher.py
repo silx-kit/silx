@@ -117,6 +117,7 @@ class LauncherCommand():
         :param list[str] argv: The list of arguments (the first one is the
             name of the application and command)
         :rtype: int
+        :returns: The execution status
         """
         with self.get_env(argv):
             func = self.get_function()
@@ -212,6 +213,8 @@ class Launcher(object):
 
         :param list[str] argv: The list of arguments (the first one is the
             name of the application with the help command)
+        :rtype: int
+        :returns: The execution status
         """
         description = "Display help information about %s" % self.prog
         parser = argparse.ArgumentParser(description=description)
@@ -235,11 +238,14 @@ class Launcher(object):
         command = self._commands[command_name]
         prog = "%s %s" % (self.prog, command.name)
         return command.execute([prog, "--help"])
+
     def execute(self, argv=None):
         """Execute the launcher.
 
         :param list[str] argv: The list of arguments (the first one is the
             name of the application)
+        :rtype: int
+        :returns: The execution status
         """
         if argv is None:
             argv = sys.argv
@@ -280,6 +286,7 @@ def main():
     """Main function of the launcher
 
     :rtype: int
+    :returns: The execution status
     """
     import silx._version
 
