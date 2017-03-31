@@ -29,11 +29,12 @@ by the library.
 
 __authors__ = ["P. Knobel", "V. Valls"]
 __license__ = "MIT"
-__date__ = "30/03/2017"
+__date__ = "31/03/2017"
 
 
 import sys
 import importlib
+import contextlib
 import logging
 
 
@@ -41,71 +42,209 @@ logging.basicConfig()
 _logger = logging.getLevelName("silx.launcher")
 
 
-default_apps = {
-    'help': ("silx.app.help", "Show help of the following command"),
-    'view': ("silx.app.view", "Browse a data file with a GUI"),
-}
-"""List available applications and a short description"""
+class LauncherCommand():
+    """Description of a command"""
 
+    def __init__(self, name, description=None, module_name=None, function=None):
+        """
+        Constructor
 
-def get_module_from_name(module_name):
-    """
-    Get a module object from it's name
+        :param str name: Name of the command
+        :param str description: Description of the command
+        :param str module_name: Module name to execute
+        :param callable function: Python function to execute
+        """
+        self.name = name
+        self.module_name = module_name
+        self.description = description
+        self.function = function
 
-    :param str module_name: Name of the module to load
-    :returns: Python module
-    """
-    try:
-        module = importlib.import_module(module_name)
-        return module
-    except ImportError:
-        _logger.debug("Error while reaching module ''%s", module_name, exc_info=True)
-        return None
+    def get_module(self):
+        """Returns the python module to execute. If any.
 
+        :rtype: module
+        """
+        try:
+            module = importlib.import_module(self.module_name)
+            return module
+        except ImportError:
+            msg = "Error while reaching module ''%s"
+            _logger.debug(msg, self.module_name, exc_info=True)
+            return None
 
-def bootstrap_module(module, argv):
-    """Execute the module
+    def get_function(self):
+        """Returns the main function to execute.
 
-    It must contains a main function taking an argument list as single
-    parameter.
-
-    :param module: module A python module
-    :param argv: list[string] argv Argument to use for the main function
-    :rtype: int
-    """
-
-    # fix the context
-    old_argv = sys.argv
-    sys.argv = argv
-
-    try:
-        # reach the 'main' function
-        if not hasattr(module, "main"):
-            raise TypeError("Module excpect to have a 'main' function")
+        :rtype: callable
+        """
+        if self.function is not None:
+            return self.function
         else:
-            main = getattr(module, "main")
+            module = self.get_module()
+            if module is None:
+                raise Exception("Module name '%s' unknown" % self.module_name)
 
-        # run main() function
-        status = main(argv)
-        return status
+            # reach the 'main' function
+            if not hasattr(module, "main"):
+                raise TypeError("Module excpect to have a 'main' function")
+            else:
+                main = getattr(module, "main")
+            return main
 
-    finally:
-        # clean up the context
-        sys.argv = old_argv
+    @contextlib.contextmanager
+    def get_env(self, argv):
+        """Fix the environement before and after executing the command.
+
+        :param list argv: The list of arguments (the first one is the name of
+            the application and command)
+        :rtype: int
+        """
+
+        # fix the context
+        old_argv = sys.argv
+        sys.argv = argv
+
+        try:
+            yield
+        finally:
+            # clean up the context
+            sys.argv = old_argv
+
+    def execute(self, argv):
+        """Execute the command.
+
+        :param list[str] argv: The list of arguments (the first one is the
+            name of the application and command)
+        :rtype: int
+        """
+        with self.get_env(argv):
+            func = self.get_function()
+            status = func(argv)
+            return status
 
 
-def print_help():
-    """Print the help into stdout.
+class Launcher(object):
     """
-    print("usage: silx [--version|--help] <command> [<args>]")
-    print("")
-    print("The silx commands are:")
-    commands = sorted(default_apps.keys())
-    for command in commands:
-        _module_name, description = default_apps[command]
-        print("   {:10s} {:s}".format(command, description))
-    print("")
-    print("See 'silx help <command>' to read about a specific subcommand")
+    Manage launch of module.
+
+    Provides an API to describe available commands and feature to display help
+    and execute the commands.
+    """
+
+    def __init__(self,
+                 prog=None,
+                 usage=None,
+                 description=None,
+                 epilog=None,
+                 version=None):
+        """
+        :param str prog: Name of the program. If it is not defined it uses the
+            first argument of `sys.argv`
+        :param str usage: Custom the string explaining the usage. Else it is
+            autogenerated.
+        :param str description: Description of the application displayed after the
+            usage.
+        :param str epilog: Custom the string displayed at the end of the help.
+        :param str version: Define the version of the application.
+        """
+        if prog is None:
+            prog = sys.argv[0]
+        self.prog = prog
+        self.usage = usage
+        self.description = description
+        self.epilog = epilog
+        self.version = version
+        self._commands = {}
+
+        help_command = LauncherCommand(
+            "help",
+            description="Show help of the following command",
+            function=lambda x: None)
+        self.add_command(command=help_command)
+
+    def add_command(self, name=None, module_name=None, description=None, command=None):
+        """
+        Add a command to the launcher.
+
+        See also `LauncherCommand`.
+
+        :param str name: Name of the command
+        :param str module_name: Module to execute
+        :param str description: Description of the command
+        :param LauncherCommand command: A `LauncherCommand`
+        """
+        if command is not None:
+            assert(name is None and module_name is None and description is None)
+        else:
+            command = LauncherCommand(
+                name=name,
+                description=description,
+                module_name=module_name)
+        self._commands[command.name] = command
+
+    def print_help(self):
+        """Print the help to stdout.
+        """
+        usage = self.usage
+        if usage is None:
+            usage = "usage: {0.prog} [--version|--help] <command> [<args>]"
+        description = self.description
+        epilog = self.epilog
+        if epilog is None:
+            epilog = "See '{0.prog} help <command>' to read about a specific subcommand"
+
+        print(usage.format(self))
+        print("")
+        if description is not None:
+            print(description)
+            print("")
+        print("The {0.prog} commands are:".format(self))
+        commands = sorted(self._commands.keys())
+        for command in commands:
+            command = self._commands[command]
+            print("   {:10s} {:s}".format(command.name, command.description))
+        print("")
+        print(epilog.format(self))
+
+    def execute(self, argv=None):
+        """Execute the launcher.
+
+        :param list[str] argv: The list of arguments (the first one is the
+            name of the application)
+        """
+        if argv is None:
+            argv = sys.argv
+
+        if len(argv) <= 1:
+            self.print_help()
+            return 0
+
+        command_name = argv[1]
+
+        if command_name == "--version":
+            print("%s version %s" % (self.prog, str(self.version)))
+            return 0
+
+        if command_name in ["help", "--help", "-h"]:
+            # Special help command
+            if len(argv) == 2:
+                self.print_help()
+                return 0
+            else:
+                command_name = argv[2]
+                command_argv = argv[2:] + ["--help"]
+                command_argv[0] = "%s %s" % (self.prog, command_argv[0])
+        else:
+            command_argv = sys.argv[1:]
+            command_argv[0] = "%s %s" % (self.prog, command_argv[0])
+
+        if command_name not in self._commands:
+            print("Unknown command: %s", command_name)
+            self.print_help()
+            return -1
+
+        command = self._commands[command_name]
+        return command.execute(command_argv)
 
 
 def main():
@@ -113,42 +252,14 @@ def main():
 
     :rtype: int
     """
-    if len(sys.argv) <= 1:
-        print_help()
-        return 0
+    import silx._version
 
-    command = sys.argv[1]
-
-    if command == "--version":
-        import silx._version
-        print("silx version %s" % silx._version.version)
-        return 0
-
-    if command in ["help", "--help", "-h"]:
-        # Special help command
-        if len(sys.argv) == 2:
-            print_help()
-            return 0
-        else:
-            command = sys.argv[2]
-            args = sys.argv[2:] + ["--help"]
-            args[0] = "silx " + args[0]
-    else:
-        args = sys.argv[1:]
-        args[0] = "silx " + args[0]
-
-    if command not in default_apps:
-        print("Unknown command: %s", command)
-        print_help()
-        return -1
-
-    module_name = default_apps[command][0]
-    module = get_module_from_name(module_name)
-    if module is None:
-        raise Exception("Module name '%s' unknown" % module_name)
-    status = bootstrap_module(module, args)
+    launcher = Launcher(version=silx._version.version)
+    launcher.add_command("view",
+                         module_name="silx.app.view",
+                         description="Browse a data file with a GUI")
+    status = launcher.execute(sys.argv)
     return status
-
 
 if __name__ == "__main__":
     status = main()
