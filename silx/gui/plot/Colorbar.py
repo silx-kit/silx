@@ -50,6 +50,7 @@ __date__ = "10/03/2017"
 import logging
 import numpy
 from silx.gui.plot import PlotWidget
+from ._utils import ticklayout
 
 
 from .. import qt
@@ -363,7 +364,7 @@ class GradationBar(qt.QWidget):
         super(GradationBar, self).__init__(parent)
 
         self.setLayout(qt.QHBoxLayout())
-        self.textMargin = 10
+        self.textMargin = 5
 
         # create the left side group (Gradation)
         self.gradation = Gradation(colormap=colormap, parent=self)
@@ -514,8 +515,6 @@ class TickBar(qt.QWidget):
         self.margin = margin
 
     def _computeTicks(self):
-        from silx.gui.plot3d.utils import ticklayout
-
         func = ticklayout.niceNumbersForLog10 if self._logNorm is True else ticklayout.niceNumbers
         self.tickMin, self.tickMax, self.step, self.nfrac = func(0,
                                                                  100,
@@ -524,9 +523,7 @@ class TickBar(qt.QWidget):
         self.ticks = numpy.linspace(self.tickMin, self.tickMax, self.nticks)
 
     def paintEvent(self, event):
-        
         self._computeTicks()
-
         painter = qt.QPainter(self)
         font = painter.font()
         font.setPixelSize(self._fontsize)
