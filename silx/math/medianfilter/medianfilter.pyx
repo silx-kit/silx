@@ -78,8 +78,10 @@ def medianfilter(input_buffer, kernel_dim, bool conditionnal, int nthread=4):
     else:
       ker_dim = numpy.array([kernel_dim, 1], dtype=numpy.int32)
 
+    # limit the number of threads according to the input data
+    maxThread = min(nthread, input_buffer.shape[0])
     ranges = numpy.array(
-        [ int(input_buffer.shape[0] * x / nthread) for x in range(nthread+1) ],
+        [ int(input_buffer.shape[0] * x / maxThread) for x in range(maxThread+1) ],
         dtype=numpy.int32)
 
     if input_buffer.dtype == numpy.float64:
