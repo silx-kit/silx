@@ -254,7 +254,7 @@ def main():
     """
     import silx._version
 
-    launcher = Launcher(version=silx._version.version)
+    launcher = Launcher(prog="silx", version=silx._version.version)
     launcher.add_command("view",
                          module_name="silx.app.view",
                          description="Browse a data file with a GUI")
