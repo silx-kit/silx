@@ -100,8 +100,7 @@ class ColorbarWidget(qt.QWidget):
 
         if self._plot is not None:
             self._plot.sigActiveImageChanged.connect(self._activeImageChanged)
-            self._activeImageChanged(
-                None, self._plot.getActiveImage(just_legend=True))
+            self._activeImageChanged(self._plot.getActiveImage(just_legend=True))
 
         self.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Expanding)
         self.layout().setContentsMargins(0, 0, 0, 0)
@@ -225,14 +224,14 @@ class ColorbarWidget(qt.QWidget):
         else:
             raise ValueError('Wrong normalization %s' % normalization)
 
-        self._setAutoscale(autoscale)
-
         self._colormap = {'name': name,
                           'normalization': normalization,
                           'autoscale': autoscale,
                           'vmin': vmin,
                           'vmax': vmax,
                           'colors': colors}
+
+        self._setAutoscale(autoscale)
 
         print('will change colormap for ')
         print(self._colormap)
@@ -263,8 +262,9 @@ class ColorbarWidget(qt.QWidget):
         """
         return self.legend.getText()
 
-    def _activeImageChanged(self, previous, legend):
+    def _activeImageChanged(self, legend):
         """Handle plot active curve changed"""
+        print('ACTIVE image changed !!!!!!!!!')
         if legend is None:  # No active image, display default colormap
             self._syncWithDefaultColormap()
             return
@@ -431,7 +431,7 @@ class Gradation(qt.QWidget):
         gradient = qt.QLinearGradient(0, 0, 0, self.rect().height() - 2*self.margin);
         vmin = self.colormap['vmin']
         vmax = self.colormap['vmax']
-        steps = (vmax - vmin)/256
+        steps = (vmax - vmin)/256.0
 
         points = numpy.arange(vmin, vmax, steps)
         colors = Colors.applyColormapToData(points,
@@ -445,10 +445,7 @@ class Gradation(qt.QWidget):
             colormapPosition = (pt-vmin) / (vmax-vmin)
             assert(colormapPosition >= 0.0 )
             assert(colormapPosition <= 1.0 )
-
-            qtGradientPosition = pt / vmax
-            # self.colormap.vmax - position because Qt is in the top-bottom reference
-            gradient.setColorAt( qtGradientPosition, qt.QColor(*colors[iPt]))
+            gradient.setColorAt( colormapPosition, qt.QColor(*colors[iPt]))
 
         painter.setBrush(gradient)
         painter.drawRect(
@@ -617,11 +614,7 @@ class TickBar(qt.QWidget):
         self._forcedDisplayType = disType
 
     def _getStandardFormat(self, val):
-        if type(val) in (int, numpy.integer, numpy.inexact, float, long):
-            return "{0:.%sf}"%self.nfrac
-        else:
-            err = "type %s is not managed by the TickBar"
-            raise ValueError(err)
+        return "{0:.%sf}"%self.nfrac
 
     def _getFormat(self, font):
         self._computeTicks()
