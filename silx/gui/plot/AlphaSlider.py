@@ -173,7 +173,7 @@ class NamedImageAlphaSlider(BaseAlphaSlider):
     def __init__(self, parent=None, plot=None, legend=None):
         self._image_legend = legend
         super(NamedImageAlphaSlider, self).__init__(parent, plot)
-        if legend is not None and self.plot.getImage(legend) is not None:
+        if self.plot.getImage(legend) is not None:
             self.setEnabled(True)
         else:
             self.setEnabled(False)
@@ -238,50 +238,3 @@ class ActiveImageAlphaSlider(BaseAlphaSlider):
             self.setEnabled(False)
 
         self._updateItem()
-
-
-class NamedScatterAlphaSlider(BaseAlphaSlider):
-    """Slider widget to be used in a plot toolbar to control the
-    transparency of a scatter (defined by its legend).
-
-    :param parent: Parent QWidget
-    :param plot: Plot on which to operate
-    :param str legend: Legend of scatter whose transparency is to be
-        controlled.
-        An scatter with this legend should exist at all times, or this
-        widget should be manually deactivated whenever the scatter does not
-        exist.
-
-    See documentation of :class:`BaseAlphaSlider`
-    """
-    def __init__(self, parent=None, plot=None, legend=None):
-        self._scatter_legend = legend
-        super(NamedScatterAlphaSlider, self).__init__(parent, plot)
-        if legend is not None and self.plot.getScatter(legend) is not None:
-            self.setEnabled(True)
-        else:
-            self.setEnabled(False)
-
-    def getItem(self):
-        if self._scatter_legend is None:
-            return None
-        return self.plot.getScatter(self._scatter_legend)
-
-    def setLegend(self, legend):
-        """Associate a different scatter on the same plot to the slider.
-
-        :param legend: Legend of new scatter whose transparency is to be
-            controlled.
-        """
-        self._scatter_legend = legend
-        if self.plot.getScatter(legend) is not None:
-            self.setEnabled(True)
-        else:
-            self.setEnabled(False)
-
-    def getLegend(self):
-        """Return legend of the scatter currently controlled by this slider.
-
-        :return: Scatter legend associated to the slider
-        """
-        return self._scatter_legend
