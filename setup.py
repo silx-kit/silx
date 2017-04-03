@@ -427,15 +427,39 @@ def fake_cythonize(extensions):
 class CleanCommand(Clean):
     description = "Remove build artifacts from the source tree"
 
+    def expand(self, path_list):
+        """Expand a list of path using glob magic.
+
+        :param list[str] path_list: A list of path which may contains magic
+        :rtype: list[str]
+        :returns: A list of path without magic
+        """
+        path_list2 = []
+        for path in path_list:
+            if glob.has_magic(path):
+                iterator = glob.iglob(path)
+                path_list2.extend(iterator)
+            else:
+                path_list2.append(path)
+        return path_list2
+
     def run(self):
         Clean.run(self)
-        # really remove the build directory
+        # really remove the directories
+        # and not only if they are empty
+        to_remove = [self.build_base, "./doc/build", "./package/silx*", "./package/python*"]
+        to_remove = self.expand(to_remove)
+
         if not self.dry_run:
-            try:
-                shutil.rmtree(self.build_base)
-                logger.info("removing '%s'", self.build_base)
-            except OSError:
-                pass
+            for path in to_remove:
+                try:
+                    if os.path.isdir(path):
+                        shutil.rmtree(path)
+                    else:
+                        os.remove(path)
+                    logger.info("removing '%s'", path)
+                except OSError:
+                    pass
 
 ################################################################################
 # Debian source tree
