@@ -28,12 +28,17 @@
 # Script that builds a debian package from this library
 
 project=silx
-debian=$(grep -o '[0-9]*' /etc/issue)
 version=$(python -c"import version; print(version.version)")
 strictversion=$(python -c"import version; print(version.strictversion)")
 debianversion=$(python -c"import version; print(version.debianversion)")
 tarname=${project}_${debianversion}.orig.tar.gz
 deb_name=$(echo "$project" | tr '[:upper:]' '[:lower:]')
+
+# target system
+
+debian_version=$(grep -o '[0-9]*' /etc/issue)
+target_system=debian${debian_version}
+
 
 if [ -d /usr/lib/ccache ];
 then
@@ -71,7 +76,7 @@ then
 fi
 
 cd ${directory}
-cp -r ../debian .
+cp -r ../${target_system} debian
 cp ../../copyright debian
 
 #handle test images
@@ -93,7 +98,7 @@ else
 fi
 
 dch -v ${debianversion}-1 "upstream development build of ${project} ${version}"
-dch --bpo "${project} snapshot ${version} built for debian ${debian}"
+dch --bpo "${project} snapshot ${version} built for ${target_system}"
 dpkg-buildpackage -r
 rc=$?
 if [ $rc -eq 0 ]
