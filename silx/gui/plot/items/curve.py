@@ -178,7 +178,8 @@ class Curve(Points, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn):
                                 yerror=yerror,
                                 z=self.getZValue(),
                                 selectable=self.isSelectable(),
-                                fill=self.isFill())
+                                fill=self.isFill(),
+                                alpha=self.getAlpha())
 
     @deprecated
     def __getitem__(self, item):
@@ -227,7 +228,6 @@ class Curve(Points, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn):
             plot = self.getPlot()
             if plot is not None:
                 plot._invalidateDataRange()
-
 
     def isHighlighted(self):
         """Returns True if curve is highlighted.
