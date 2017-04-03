@@ -220,7 +220,6 @@ class ColorbarWidget(qt.QWidget):
             if vmin <= 0 or vmax <= 0:
                 _logger.warning(
                     'Log colormap with bound <= 0: changing bounds.')
-                print('SETTING a lof scale !!!!!!! ')
                 vmin, vmax = 1., 10.
             pass
         else:
@@ -406,7 +405,6 @@ class Gradation(qt.QWidget):
         :param colormap: the colormap to be displayed
         :param parent: the Qt parent if any
         """
-        print('building')
         qt.QWidget.__init__(self, parent)
         if colormap is not None:
             self.setColormap(colormap)
@@ -417,7 +415,6 @@ class Gradation(qt.QWidget):
         self.setMouseTracking(True)
         self.setMargin(0)
         self.setContentsMargins(0, 0, 0, 0)
-        print('end building')
 
 
     def setColormap(self, colormap):
@@ -425,8 +422,6 @@ class Gradation(qt.QWidget):
         In the future the _MyColorMap should be removed
         """
         self.colormap = _MyColorMap(colormap)
-        print("setting colormap")
-        print(colormap)
 
     def paintEvent(self, event):
         
@@ -465,8 +460,6 @@ class Gradation(qt.QWidget):
         :param val: float value in [0, 1]
         :return: the value in [colormap['vmin'], colormap['vmax']]
         """
-        print("vmin is %s"%self.colormap.vmin)
-        print("vmax is %s"%self.colormap.vmax)
         if not ((value >=0) and (value <=1)):
             raise ValueError('invalid value given, should be in [0.0, 1.0]')
         if self.colormap.normalization is 'linear':
@@ -542,25 +535,40 @@ class TickBar(qt.QWidget):
             raise ValueError(err)
 
     def _computeTicksLog(self):
-        self.tickMin, self.tickMax, self.step, self.nfrac = ticklayout.niceNumbersForLog10(numpy.log10(self.vmin),
-                                                                                           numpy.log10(self.vmax), 
-                                                                                           self.nticks)
-        _dtype = numpy.int64 if type(self.vmin) in (int, numpy.integer) else numpy.float64
-        self.ticks = numpy.linspace(self.tickMin, self.tickMax, self.nticks).astype(_dtype)
-        # self.ticks = numpy.exp(self.ticks).astype(_dtype)
+        # TODO : get a number of ticks depending on height of the widget
+        # TODO : link this in ticklayout
+        self.nticks = max(2, self.nticks)
+        logMin = numpy.log10(self.vmin)
+        logMax = numpy.log10(self.vmax)
+
+        vrange = ticklayout._niceNum(logMax - logMin, False)
+        spacing = ticklayout._niceNum(vrange / self.nticks, True)
+        
+        self.ticks = numpy.linspace(logMin, logMax, self.nticks).astype(numpy.float64)
         self.ticks = 10**self.ticks
+        self._computeFrac()
         return self.ticks
 
     def _computeTicksLin(self):
-        self.tickMin, self.tickMax, self.step, self.nfrac = ticklayout.niceNumbers(self.vmin,
-                                                                                   self.vmax, 
-                                                                                   self.nticks)
-        _dtype = numpy.int64 if type(self.vmin) in (int, numpy.integer) else numpy.float64
-        self.ticks = numpy.linspace(self.tickMin, self.tickMax, self.nticks).astype(_dtype)
+        # TODO : link this in ticklayout
+        vrange = ticklayout._niceNum(self.vmax - self.vmin, False)
+        spacing = ticklayout._niceNum(vrange / self.nticks, True)
+        # TODO : get a number of ticks depending on height of the widget
+        self.ticks = numpy.linspace(self.vmin, self.vmax, self.nticks).astype(numpy.float64)
+        self._computeFrac()
         return self.ticks
 
+    def _computeFrac(self):
+        # quite old school to do it ...
+        self.nfrac = 0
+        for tick in self.ticks:
+            representation = str(tick)
+            if '.' in representation:
+                ldigit = len(representation.split('.')[1])
+                if ldigit > self.nfrac:
+                    self.nfrac = ldigit
+
     def paintEvent(self, event):
-        self._computeTicks()
         painter = qt.QPainter(self)
         font = painter.font()
         font.setPixelSize(self._fontSize)
@@ -596,15 +604,15 @@ class TickBar(qt.QWidget):
         self._forcedDisplayType = disType
 
     def _getStandardFormat(self, val):
-        if type(val) in (int, numpy.integer):
-            return "{0:d}"
-        elif type(val) in (numpy.inexact, float, long):
+        if type(val) in (int, numpy.integer, numpy.inexact, float, long):
             return "{0:.%sf}"%self.nfrac
         else:
             err = "type %s is not managed by the TickBar"
             raise ValueError(err)
 
     def _getFormat(self, font):
+        self._computeTicks()
+
         if self._forcedDisplayType is None:
             return self._guessType(font)
         elif self._forcedDisplayType is 'std':
@@ -616,7 +624,7 @@ class TickBar(qt.QWidget):
             raise ValueError(err)
 
     def _getScientificForm(self):
-        return "{0:.%se}"%self.nfrac
+        return "{0:.0e}"
 
     def _guessType(self, font):
         """Try fo find the better format to display the tick's labels
@@ -627,8 +635,10 @@ class TickBar(qt.QWidget):
         form = self._getStandardFormat(self.vmin)
         
         fm = qt.QFontMetrics(font)
-        width = max(fm.width(form.format(self.vmin)), fm.width(form.format(self.vmax)))
-        painter = None
+        width = 0
+        for tick in self.ticks:
+            width = max(fm.width(form.format(tick)), width)
+
         # if the length of the string are too long we are mooving to scientific
         # display
         if width > self._widthDisplayVal - self._lineWidth:
