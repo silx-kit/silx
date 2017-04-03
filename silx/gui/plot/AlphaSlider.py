@@ -28,7 +28,7 @@ of an image on a :class:`PlotWidget`
 Classes:
 --------
 
-- :class:`BaseImageAlphaSlider` (abstract class)
+- :class:`BaseAlphaSlider` (abstract class)
 - :class:`NamedImageAlphaSlider`
 - :class:`ActiveImageAlphaSlider`
 
@@ -84,9 +84,9 @@ from silx.gui import qt
 _logger = logging.getLogger(__name__)
 
 
-class BaseImageAlphaSlider(qt.QSlider):
+class BaseAlphaSlider(qt.QSlider):
     """Slider widget to be used in a plot toolbar to control the
-    transparency of an image.
+    transparency of a plot primitive (image, scatter or curve).
 
     Internally, the slider stores its state as an integer between
     0 and 255. This is the value emitted by the :attr:`valueChanged`
@@ -95,7 +95,7 @@ class BaseImageAlphaSlider(qt.QSlider):
     The method :meth:`getAlpha` returns the corresponding opacity/alpha
     as a float between 0. and 1. (with a step of :math:`\frac{1}{255}`).
 
-    You must subclass this class and implement :meth:`getImage`.
+    You must subclass this class and implement :meth:`getItem`.
     """
     sigAlphaChanged = qt.Signal(float)
     """Emits the alpha value when the slider's value changes,
@@ -108,32 +108,33 @@ class BaseImageAlphaSlider(qt.QSlider):
         :param plot: Parent plot widget
         """
         assert plot is not None
-        super(BaseImageAlphaSlider, self).__init__(parent)
+        super(BaseAlphaSlider, self).__init__(parent)
 
         self.plot = plot
 
         self.setRange(0, 255)
 
-        # if already connected to an image, use its alpha as initial value
-        if self.getImage() is None:
+        # if already connected to an item, use its alpha as initial value
+        if self.getItem() is None:
             self.setValue(255)
             self.setEnabled(False)
         else:
-            alpha = self.getImage().getAlpha()
+            alpha = self.getItem().getAlpha()
             self.setValue(round(255*alpha))
 
         self.valueChanged.connect(self._valueChanged)
 
-    def getImage(self):
-        """You must implement this class to define which image
-        to work on.
+    def getItem(self):
+        """You must implement this class to define which item
+        to work on. It must return an item that inherits
+        :class:`silx.gui.plot.items.core.AlphaMixIn`.
 
-        :return: Image on which to operate, or None
-        :rtype: :class:`silx.plot.items.Image`
+        :return: Item on which to operate, or None
+        :rtype: :class:`silx.plot.items.Item`
         """
         raise NotImplementedError(
-                "BaseImageAlphaSlider must be subclassed to " +
-                "implement getImage()")
+                "BaseAlphaSlider must be subclassed to " +
+                "implement getItem()")
 
     def getAlpha(self):
         """Get the opacity, as a float between 0. and 1.
@@ -144,18 +145,18 @@ class BaseImageAlphaSlider(qt.QSlider):
         return self.value() / 255.
 
     def _valueChanged(self, value):
-        self._updateImage()
+        self._updateItem()
         self.sigAlphaChanged.emit(value / 255.)
 
-    def _updateImage(self):
-        """Get active image's colormap, update its alpha channel.
+    def _updateItem(self):
+        """Update the item's alpha channel.
         """
-        img = self.getImage()
-        if img is not None:
-            img.setAlpha(self.getAlpha())
+        item = self.getItem()
+        if item is not None:
+            item.setAlpha(self.getAlpha())
 
 
-class NamedImageAlphaSlider(BaseImageAlphaSlider):
+class NamedImageAlphaSlider(BaseAlphaSlider):
     """Slider widget to be used in a plot toolbar to control the
     transparency of an image (defined by its legend).
 
@@ -167,7 +168,7 @@ class NamedImageAlphaSlider(BaseImageAlphaSlider):
         widget should be manually deactivated whenever the image does not
         exist.
 
-    See documentation of :class:`BaseImageAlphaSlider`
+    See documentation of :class:`BaseAlphaSlider`
     """
     def __init__(self, parent=None, plot=None, legend=None):
         self._image_legend = legend
@@ -177,7 +178,7 @@ class NamedImageAlphaSlider(BaseImageAlphaSlider):
         else:
             self.setEnabled(False)
 
-    def getImage(self):
+    def getItem(self):
         if self._image_legend is None:
             return None
         return self.plot.getImage(self._image_legend)
@@ -202,14 +203,14 @@ class NamedImageAlphaSlider(BaseImageAlphaSlider):
         return self._image_legend
 
 
-class ActiveImageAlphaSlider(BaseImageAlphaSlider):
+class ActiveImageAlphaSlider(BaseAlphaSlider):
     """Slider widget to be used in a plot toolbar to control the
     transparency of the **active image**.
 
     :param parent: Parent QWidget
     :param plot: Plot on which to operate
 
-    See documentation of :class:`BaseImageAlphaSlider`
+    See documentation of :class:`BaseAlphaSlider`
     """
     def __init__(self, parent=None, plot=None):
         """
@@ -220,7 +221,7 @@ class ActiveImageAlphaSlider(BaseImageAlphaSlider):
         super(ActiveImageAlphaSlider, self).__init__(parent, plot)
         plot.sigActiveImageChanged.connect(self._activeImageChanged)
 
-    def getImage(self):
+    def getItem(self):
         return self.plot.getActiveImage()
 
     def _activeImageChanged(self, previous, new):
@@ -236,4 +237,4 @@ class ActiveImageAlphaSlider(BaseImageAlphaSlider):
         elif new is None and self.isEnabled():
             self.setEnabled(False)
 
-        self._updateImage()
+        self._updateItem()

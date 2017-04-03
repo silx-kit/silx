@@ -35,7 +35,7 @@ import unittest
 from silx.gui import qt
 from silx.gui.test.utils import TestCaseQt
 from silx.gui.plot import PlotWidget
-from silx.gui.plot import ImageAlphaSlider
+from silx.gui.plot import AlphaSlider
 
 # Makes sure a QApplication exists
 _qapp = qt.QApplication.instance() or qt.QApplication([])
@@ -45,7 +45,7 @@ class TestActiveImageAlphaSlider(TestCaseQt):
     def setUp(self):
         super(TestActiveImageAlphaSlider, self).setUp()
         self.plot = PlotWidget()
-        self.aslider = ImageAlphaSlider.ActiveImageAlphaSlider(plot=self.plot)
+        self.aslider = AlphaSlider.ActiveImageAlphaSlider(plot=self.plot)
         self.aslider.setOrientation(qt.Qt.Horizontal)
 
         toolbar = qt.QToolBar("plot", self.plot)
@@ -81,12 +81,12 @@ class TestActiveImageAlphaSlider(TestCaseQt):
     def testGetImage(self):
         self.plot.addImage(numpy.array([[0, 1, 2], [3, 4, 5]]))
         self.assertEqual(self.plot.getActiveImage(),
-                         self.aslider.getImage())
+                         self.aslider.getItem())
 
         self.plot.addImage(numpy.array([[0, 1, 3], [2, 4, 6]]), legend="2")
         self.plot.setActiveImage("2")
         self.assertEqual(self.plot.getImage("2"),
-                         self.aslider.getImage())
+                         self.aslider.getItem())
 
     def testGetAlpha(self):
         self.plot.addImage(numpy.array([[0, 1, 2], [3, 4, 5]]), legend="1")
@@ -99,7 +99,7 @@ class TestNamedImageAlphaSlider(TestCaseQt):
     def setUp(self):
         super(TestNamedImageAlphaSlider, self).setUp()
         self.plot = PlotWidget()
-        self.aslider = ImageAlphaSlider.NamedImageAlphaSlider(plot=self.plot)
+        self.aslider = AlphaSlider.NamedImageAlphaSlider(plot=self.plot)
         self.aslider.setOrientation(qt.Qt.Horizontal)
 
         toolbar = qt.QToolBar("plot", self.plot)
@@ -135,11 +135,11 @@ class TestNamedImageAlphaSlider(TestCaseQt):
         self.plot.addImage(numpy.array([[0, 1, 3], [2, 4, 6]]), legend="2")
         self.aslider.setLegend("1")
         self.assertEqual(self.plot.getImage("1"),
-                         self.aslider.getImage())
+                         self.aslider.getItem())
 
         self.aslider.setLegend("2")
         self.assertEqual(self.plot.getImage("2"),
-                         self.aslider.getImage())
+                         self.aslider.getItem())
 
     def testGetAlpha(self):
         self.plot.addImage(numpy.array([[0, 1, 2], [3, 4, 5]]), legend="1")
