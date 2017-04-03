@@ -82,6 +82,7 @@ class ColorbarWidget(qt.QWidget):
         self.hideAutoscale = hideAutoscale
 
         self.__buildGUI()
+        self.setPlot(plot)
         if legend is not None:
             assert(type(legend) is str)
             self.setLegend(legend)
@@ -98,10 +99,7 @@ class ColorbarWidget(qt.QWidget):
         if self.hideAutoscale is True:
             self._autoscaleCB.hide()
 
-        if self._plot is not None:
-            self._plot.sigActiveImageChanged.connect(self._activeImageChanged)
-            self._activeImageChanged(self._plot.getActiveImage(just_legend=True))
-
+        self.setPlot(_plot)
         self.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Expanding)
         self.layout().setContentsMargins(0, 0, 0, 0)
 
@@ -187,6 +185,21 @@ class ColorbarWidget(qt.QWidget):
         widget.layout().setContentsMargins(0, 0, 0, 0)
         widget.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Preferred)
         return widget
+
+    def setPlot(self, plot):
+        """Associate the plot to this ColorBar
+        """
+        if plot is None:
+            return
+
+        # removing previous plot if any
+        if self._plot is not None:
+            self._plot.sigActiveImageChanged.disconnect(self._activeImageChanged)
+
+        # setting the new plot
+        self._plot=plot
+        self._plot.sigActiveImageChanged.connect(self._activeImageChanged)
+        self._activeImageChanged(self._plot.getActiveImage(just_legend=True))
 
     def getColormap(self):
         """Return the colormap displayed in the colorbar as a dict.
@@ -421,6 +434,9 @@ class Gradation(qt.QWidget):
         """Create a _MyColorMap elemtent from the given silx colormap.
         In the future the _MyColorMap should be removed
         """
+        if colormap['normalization'] is 'log':
+            if not (colormap['vmin']>0 and colormap['vmax']>0):
+                raise ValueError('vmin and vmax should be positives')
         self.colormap = colormap
 
     def paintEvent(self, event):
@@ -480,7 +496,6 @@ class Gradation(qt.QWidget):
         else:
             err = "normalization type (%s) is not managed by the Gradation Widget"%self.colormap['normalization']
             raise ValueError(err)
-
 
     def setMargin(self, margin):
         """Define the margin to fit with a TickBar object.

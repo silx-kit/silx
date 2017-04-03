@@ -30,6 +30,7 @@ __date__ = "03/04/2017"
 
 import unittest
 from silx.gui.plot.Colorbar import Gradation
+from silx.gui.plot import Plot1D
 import numpy
 
 class TestFormats(unittest.TestCase):
@@ -41,18 +42,6 @@ class TestFormats(unittest.TestCase):
 class TestGradation(unittest.TestCase):
     """Test that interaction with the gradation is correct"""
     def setUp(self):
-        self.colorMapLin1 = { 'name': 'gray', 'normalization': 'linear',
-                    'autoscale': False, 'vmin': 0.0, 'vmax': 1.0 }
-
-        self.colorMapLin2 = { 'name': 'viridis', 'normalization': 'linear',
-                    'autoscale': False, 'vmin': -10, 'vmax': 0 }
-
-        self.colorMapLog1 = { 'name': 'temperature', 'normalization': 'log',
-                    'autoscale': False, 'vmin': 10.0, 'vmax': 1e8 }
-
-        self.colorMapLog2 = { 'name': 'red', 'normalization': 'log',
-                    'autoscale': False, 'vmin': 10, 'vmax': 12 }
-
         self.gradationWidget = Gradation(colormap=None, parent=None)
 
     def tearDown(self):
@@ -60,14 +49,21 @@ class TestGradation(unittest.TestCase):
         self.gradationWidget = None        
 
     def testRelativePositionLinear(self):
+        self.colorMapLin1 = { 'name': 'gray', 'normalization': 'linear',
+                    'autoscale': False, 'vmin': 0.0, 'vmax': 1.0 }
         self.gradationWidget.setColormap(self.colorMapLin1)
+        
         self.assertTrue(
             self.gradationWidget.getValueFromRelativePosition(0.25) == 0.25)
         self.assertTrue(
             self.gradationWidget.getValueFromRelativePosition(0.5) == 0.5)
         self.assertTrue(
             self.gradationWidget.getValueFromRelativePosition(1.0) == 1.0)
+
+        self.colorMapLin2 = { 'name': 'viridis', 'normalization': 'linear',
+                    'autoscale': False, 'vmin': -10, 'vmax': 0 }
         self.gradationWidget.setColormap(self.colorMapLin2)
+        
         self.assertTrue(
             self.gradationWidget.getValueFromRelativePosition(0.25) == -7.5)
         self.assertTrue(
@@ -76,6 +72,9 @@ class TestGradation(unittest.TestCase):
             self.gradationWidget.getValueFromRelativePosition(1.0) == 0.0)
 
     def testRelativePositionLog(self):
+        self.colorMapLog1 = { 'name': 'temperature', 'normalization': 'log',
+                    'autoscale': False, 'vmin': 10.0, 'vmax': 1e8 }
+
         self.gradationWidget.setColormap(self.colorMapLog1)
 
         reVal = self.gradationWidget.getValueFromRelativePosition(0.25)
@@ -89,6 +88,20 @@ class TestGradation(unittest.TestCase):
         thVal = self.gradationWidget.getValueFromRelativePosition(1.0)
         reVal = self.getLogScaleValue(1.0, self.colorMapLog1['vmin'], self.colorMapLog1['vmax'] )
         self.assertTrue(thVal == reVal)
+
+    def testNegativeLogMin(self):
+        colormap = { 'name': 'gray', 'normalization': 'log',
+                    'autoscale': False, 'vmin': -1.0, 'vmax': 1.0 }
+
+        with self.assertRaises(ValueError):
+            self.gradationWidget.setColormap(colormap)
+
+    def testNegativeLogMax(self):
+        colormap = { 'name': 'gray', 'normalization': 'log',
+                    'autoscale': False, 'vmin': 1.0, 'vmax': -1.0 }
+
+        with self.assertRaises(ValueError):
+            self.gradationWidget.setColormap(colormap)
         
     def getLogScaleValue(self, relativeVal, vmin, vmax):
         assert(vmin > 0)
@@ -104,6 +117,8 @@ class TestTickBar(unittest.TestCase):
     def testLinearNorm(self):
         pass
 
+
+# TODO : test GradationBar : should test the colormap when vmin and vmax are negative
 
 def suite():
     test_suite = unittest.TestSuite()
