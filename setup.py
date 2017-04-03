@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "31/03/2017"
+__date__ = "03/04/2017"
 __license__ = "MIT"
 
 
@@ -261,7 +261,6 @@ if sphinx is not None:
 
         http://www.sphinx-doc.org/en/1.4.8/ext/doctest.html
         """
-
         def run(self):
             # make sure the python path is pointing to the newly built
             # code so that the documentation is built on this and not a
@@ -277,6 +276,7 @@ if sphinx is not None:
                 self.mkpath(self.builder_target_dir)
                 BuildDoc.run(self)
             sys.path.pop(0)
+
 else:
     TestDocCommand = SphinxExpectedCommand
 

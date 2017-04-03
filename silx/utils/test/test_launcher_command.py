@@ -1,8 +1,7 @@
-#!/usr/bin/env python
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,39 +22,26 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module describe silx applications which are available  through
-the silx launcher.
-
-You environment should provide a command `silx`. You can reach help with
-`silx --help`, and check the version with `silx --version`.
-"""
+"""Tests for html module"""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "03/04/2017"
 
 
-import logging
-logging.basicConfig()
-
 import sys
-from silx.utils.launcher import Launcher
-import silx._version
 
 
-def main():
-    """Main function of the launcher
+def main(argv):
 
-    :rtype: int
-    :returns: The execution status
-    """
-    launcher = Launcher(prog="silx", version=silx._version.version)
-    launcher.add_command("view",
-                         module_name="silx.app.view",
-                         description="Browse a data file with a GUI")
-    status = launcher.execute(sys.argv)
-    return status
+    if "--help" in argv:
+        # Common behaviour of ArgumentParser
+        sys.exit(0)
 
-if __name__ == "__main__":
-    status = main()
-    sys.exit(status)
+    if "exception" in argv:
+        raise RuntimeError("Simulated exception")
+
+    if "error" in argv:
+        return -1
+
+    return 0
