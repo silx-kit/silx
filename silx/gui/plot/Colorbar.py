@@ -220,6 +220,7 @@ class ColorbarWidget(qt.QWidget):
             if vmin <= 0 or vmax <= 0:
                 _logger.warning(
                     'Log colormap with bound <= 0: changing bounds.')
+                print('SETTING a lof scale !!!!!!! ')
                 vmin, vmax = 1., 10.
             pass
         else:
@@ -234,8 +235,10 @@ class ColorbarWidget(qt.QWidget):
                           'vmax': vmax,
                           'colors': colors}
 
-        self._gradation.gradation.setColormap(self._colormap)
+        print('will change colormap for ')
+        print(self._colormap)
 
+        self._gradation.setColormap(self._colormap)
 
     def _setLogNorm(self):
         self._logNorm.setChecked(True)
@@ -386,6 +389,12 @@ class GradationBar(qt.QWidget):
         """
         return self.gradation
 
+    def setColormap(self, colormap):
+        self.gradation.setColormap(colormap)
+        self.tickbar._norm = colormap['normalization']
+        self.tickbar.vmin = colormap['vmin']
+        self.tickbar.vmax = colormap['vmax']
+
 
 class Gradation(qt.QWidget):
     """Simple widget wich display the colormap gradation and update the tooltip
@@ -397,8 +406,10 @@ class Gradation(qt.QWidget):
         :param colormap: the colormap to be displayed
         :param parent: the Qt parent if any
         """
+        print('building')
         qt.QWidget.__init__(self, parent)
-        self.setColormap(colormap)
+        if colormap is not None:
+            self.setColormap(colormap)
 
         self.setLayout(qt.QVBoxLayout())
         self.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
@@ -406,12 +417,16 @@ class Gradation(qt.QWidget):
         self.setMouseTracking(True)
         self.setMargin(0)
         self.setContentsMargins(0, 0, 0, 0)
+        print('end building')
+
 
     def setColormap(self, colormap):
         """Create a _MyColorMap elemtent from the given silx colormap.
         In the future the _MyColorMap should be removed
         """
         self.colormap = _MyColorMap(colormap)
+        print("setting colormap")
+        print(colormap)
 
     def paintEvent(self, event):
         
@@ -448,11 +463,21 @@ class Gradation(qt.QWidget):
         GradationBar (y)
 
         :param val: float value in [0, 1]
-        :return: the value in [minVal, maxVal]
+        :return: the value in [colormap['vmin'], colormap['vmax']]
         """
+        print("vmin is %s"%self.colormap.vmin)
+        print("vmax is %s"%self.colormap.vmax)
         if not ((value >=0) and (value <=1)):
             raise ValueError('invalid value given, should be in [0.0, 1.0]')
-        return self.colormap.vmin + (self.colormap.vmax-self.colormap.vmin)*value
+        if self.colormap.normalization is 'linear':
+            return self.colormap.vmin + (self.colormap.vmax-self.colormap.vmin)*value
+        elif self.colormap.normalization is 'log':
+            rpos = (numpy.log10(self.colormap.vmax)-numpy.log10(self.colormap.vmin))*value
+            return self.colormap.vmin + numpy.exp(rpos)
+        else:
+            err = "normalization type (%s) is not managed by the Gradation Widget"%self.colormap.normalization
+            raise ValueError(err)
+
 
     def setMargin(self, margin):
         """Define the margin to fit with a TickBar object.
@@ -513,7 +538,8 @@ class TickBar(qt.QWidget):
         elif self._norm == 'linear':
             return self._computeTicksLin()
         else:
-            raise ValueError('TickBar - Wrong normalization %s' % normalization)
+            err = 'TickBar - Wrong normalization %s'%normalization
+            raise ValueError(err)
 
     def _computeTicksLog(self):
         self.tickMin, self.tickMax, self.step, self.nfrac = ticklayout.niceNumbersForLog10(numpy.log10(self.vmin),
@@ -587,7 +613,7 @@ class TickBar(qt.QWidget):
             return self._getScientificForm()
         else:
             err = 'Forced type for display %s is not recognized'%self._forcedDisplayType
-            ValueError(err)
+            raise ValueError(err)
 
     def _getScientificForm(self):
         return "{0:.%se}"%self.nfrac
