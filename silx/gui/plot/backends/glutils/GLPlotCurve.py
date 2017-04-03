@@ -37,7 +37,8 @@ import warnings
 
 from ...._glutils.gl import *  # noqa
 from ...._glutils import numpyToGLType
-from .GLSupport import buildFillMaskIndices, FLOAT32_MINPOS
+from ..._utils import FLOAT32_MINPOS
+from .GLSupport import buildFillMaskIndices
 from .GLProgram import GLProgram
 from .GLVertexBuffer import createVBOFromArrays
 

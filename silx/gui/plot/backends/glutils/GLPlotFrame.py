@@ -43,8 +43,8 @@ import warnings
 from collections import namedtuple
 
 from ...._glutils.gl import *  # noqa
-from .GLSupport import mat4Ortho, clamp, \
-    FLOAT32_SAFE_MIN, FLOAT32_MINPOS, FLOAT32_SAFE_MAX
+from ..._utils import FLOAT32_SAFE_MIN, FLOAT32_MINPOS, FLOAT32_SAFE_MAX
+from .GLSupport import mat4Ortho
 from .GLProgram import GLProgram
 from .GLText import Text2D, CENTER, BOTTOM, TOP, LEFT, RIGHT, ROTATE_270
 from ..._utils.ticklayout import niceNumbersAdaptative, niceNumbersForLog10
@@ -874,8 +874,8 @@ class GLPlotFrame2D(GLPlotFrame):
     def _clipToSafeRange(min_, max_, isLog):
         # Clip range if needed
         minLimit = FLOAT32_MINPOS if isLog else FLOAT32_SAFE_MIN
-        min_ = clamp(min_, minLimit, FLOAT32_SAFE_MAX)
-        max_ = clamp(max_, minLimit, FLOAT32_SAFE_MAX)
+        min_ = np.clip(min_, minLimit, FLOAT32_SAFE_MAX)
+        max_ = np.clip(max_, minLimit, FLOAT32_SAFE_MAX)
         assert min_ < max_
         return min_, max_
 

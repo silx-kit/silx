@@ -36,7 +36,8 @@ from ...._glutils.gl import *  # noqa
 from ...._glutils import numpyToGLType
 
 import math
-from .GLSupport import mat4Translate, mat4Scale, FLOAT32_MINPOS
+from ..._utils import FLOAT32_MINPOS
+from .GLSupport import mat4Translate, mat4Scale
 from .GLProgram import GLProgram
 from .GLTexture import Image
 
