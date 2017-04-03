@@ -55,6 +55,8 @@ class LauncherCommand():
         """
         self.name = name
         self.module_name = module_name
+        if description is None:
+            description = "A command"
         self.description = description
         self.function = function
 
