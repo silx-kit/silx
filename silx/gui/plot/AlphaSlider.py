@@ -190,7 +190,7 @@ class NamedImageAlphaSlider(BaseAlphaSlider):
             controlled.
         """
         self._image_legend = legend
-        if self.plot.getImage(legend) is not None:
+        if legend is not None and self.plot.getImage(legend) is not None:
             self.setEnabled(True)
         else:
             self.setEnabled(False)
@@ -274,7 +274,7 @@ class NamedScatterAlphaSlider(BaseAlphaSlider):
             controlled.
         """
         self._scatter_legend = legend
-        if self.plot.getScatter(legend) is not None:
+        if legend is not None and self.plot.getScatter(legend) is not None:
             self.setEnabled(True)
         else:
             self.setEnabled(False)
