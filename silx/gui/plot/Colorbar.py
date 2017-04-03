@@ -128,6 +128,7 @@ class ColorbarWidget(qt.QWidget):
 
     def __buildAutoscale(self):
         self._autoscaleCB = qt.QCheckBox('autoscale', parent=self)
+        self._autoscaleCB.setEnabled(False)
         return self._autoscaleCB
         
     def __buildGradationAndLegend(self):
@@ -465,9 +466,13 @@ class Gradation(qt.QWidget):
 
 class TickBar(qt.QWidget):
     _widthDisplayVal = 45
+    """widget width when displayed with ticks labels"""
     _widthNoDisplayVal = 10
-    _fontsize = 10
-    _linewidth = 10
+    """widget width when displayed without ticks labels"""
+    _fontSize = 10
+    """font size for ticks labels"""
+    _lineWidth = 10
+    """width of the line to mark a tickk"""
 
     def __init__(self, vmin, vmax, norm, parent=None, displayValues=True):
         """Bar grouping the tickes displayed
@@ -532,7 +537,7 @@ class TickBar(qt.QWidget):
         self._computeTicks()
         painter = qt.QPainter(self)
         font = painter.font()
-        font.setPixelSize(self._fontsize)
+        font.setPixelSize(self._fontSize)
         fm = qt.QFontMetrics(font)
         painter.setFont(font)
 
@@ -541,7 +546,7 @@ class TickBar(qt.QWidget):
         for iTick, val in enumerate(self.ticks):
             height = (viewportHeight * iTick) / (self.nticks -1)
             height += self.margin
-            painter.drawLine(qt.QLine(self.width - self._linewidth,
+            painter.drawLine(qt.QLine(self.width - self._lineWidth,
                                       height,
                                       self.width,
                                       height))
@@ -589,6 +594,8 @@ class TickBar(qt.QWidget):
 
     def _guessType(self, font):
         """Try fo find the better format to display the tick's labels
+
+        :param QFont font: the font we want want to use durint the painting
         """
         assert(type(self.vmin) == type(self.vmax))
         form = self._getStandardFormat(self.vmin)
@@ -598,7 +605,7 @@ class TickBar(qt.QWidget):
         painter = None
         # if the length of the string are too long we are mooving to scientific
         # display
-        if width > self._widthDisplayVal - self._linewidth:
+        if width > self._widthDisplayVal - self._lineWidth:
             return self._getScientificForm()
         else:
             return form
@@ -626,4 +633,4 @@ class _MyColorMap(object):
     def getColor(self, val):
         color = self.scalarMappable.to_rgba(val)
         # Swith to qt.QColor.fromRgb
-        return qt.QColor(color[0]*255, color[1]*255, color[2]*255)
+        return qt.QColor.fromRgb(color[0]*255, color[1]*255, color[2]*255)
