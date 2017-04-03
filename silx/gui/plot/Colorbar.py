@@ -632,5 +632,4 @@ class _MyColorMap(object):
 
     def getColor(self, val):
         color = self.scalarMappable.to_rgba(val)
-        # Swith to qt.QColor.fromRgb
-        return qt.QColor.fromRgb(color[0]*255, color[1]*255, color[2]*255)
+        return qt.QColor.fromRgbF(*color)
