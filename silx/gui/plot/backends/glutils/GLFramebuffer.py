@@ -1,11 +1,7 @@
-# /*#########################################################################
+# coding: utf-8
+# /*##########################################################################
 #
-# The PyMca X-Ray Fluorescence Toolkit
-#
-# Copyright (c) 2004-2014 European Synchrotron Radiation Facility
-#
-# This file is part of the PyMca X-ray Fluorescence Toolkit developed at
-# the ESRF by the Software group.
+# Copyright (c) 2014-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,33 +21,20 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# ###########################################################################*/
-__author__ = "T. Vincent - ESRF Data Analysis"
-__contact__ = "thomas.vincent@esrf.fr"
-__license__ = "MIT"
-__copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__doc__ = """
+# ############################################################################*/
+"""
 This module provides a texture associated to a framebuffer object for
 off-screen rendering
 """
 
+__authors__ = ["T. Vincent"]
+__license__ = "MIT"
+__date__ = "03/04/2017"
 
-# import ######################################################################
 
-from .gl import *  # noqa
-from ctypes import c_uint
+from ...._glutils.gl import *  # noqa
 
 from .GLTexture import Texture2D
-
-
-# utils #######################################################################
-
-def _deleteRenderbuffer(bufferId):
-    glDeleteRenderbuffers(1, (c_uint * 1)(bufferId))
-
-
-def _deleteFramebuffer(bufferId):
-    glDeleteFramebuffers(1, (c_uint * 1)(bufferId))
 
 
 # framebuffer #################################################################
@@ -117,17 +100,17 @@ class FBOTexture(Texture2D):
     def discard(self):
         if hasattr(self, '_fbo'):
             if bool(glDeleteFramebuffers):  # Test for __del__
-                _deleteFramebuffer(self._fbo)
+                glDeleteFramebuffers(self._fbo)
             del self._fbo
         if hasattr(self, '_stencilId'):
             if bool(glDeleteRenderbuffers):  # Test for __del__
-                _deleteRenderbuffer(self._stencilId)
+                glDeleteRenderbuffers(self._stencilId)
             if self._stencilId == getattr(self, '_depthId', -1):
                 del self._depthId
             del self._stencilId
         if hasattr(self, '_depthId'):
             if bool(glDeleteRenderbuffers):  # Test for __del__
-                _deleteRenderbuffer(self._depthId)
+                glDeleteRenderbuffers(self._depthId)
             del self._depthId
         super(FBOTexture, self).discard()
 

@@ -1,11 +1,7 @@
-# /*#########################################################################
+# coding: utf-8
+# /*##########################################################################
 #
-# The PyMca X-Ray Fluorescence Toolkit
-#
-# Copyright (c) 2004-2014 European Synchrotron Radiation Facility
-#
-# This file is part of the PyMca X-ray Fluorescence Toolkit developed at
-# the ESRF by the Software group.
+# Copyright (c) 2014-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,19 +21,17 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# ###########################################################################*/
-__author__ = "T. Vincent - ESRF Data Analysis"
-__contact__ = "thomas.vincent@esrf.fr"
+# ############################################################################*/
+"""This module provides a class managing a vertex buffer"""
+
+__authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__doc__ = """
-This module provides a class managing a vertex buffer
-"""
+__date__ = "03/04/2017"
 
-# import ######################################################################
 
-from .gl import *  # noqa
-from ctypes import c_void_p, c_uint
+from ...._glutils.gl import *  # noqa
+from ...._glutils import numpyToGLType, sizeofGLType
+from ctypes import c_void_p
 import numpy as np
 
 
@@ -117,8 +111,9 @@ class VertexBuffer(object):
 
     def discard(self):
         if hasattr(self, '_vboId'):
+            # TODO move tests for __del__ in gl
             if bool(glDeleteBuffers):  # Test for __del__
-                glDeleteBuffers(1, (c_uint * 1)(self._vboId))
+                glDeleteBuffers(self._vboId)
             del self._vboId
             del self._size
 

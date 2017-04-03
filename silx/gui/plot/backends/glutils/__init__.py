@@ -1,11 +1,7 @@
-# /*#########################################################################
+# coding: utf-8
+# /*##########################################################################
 #
-# The PyMca X-Ray Fluorescence Toolkit
-#
-# Copyright (c) 2004-2014 European Synchrotron Radiation Facility
-#
-# This file is part of the PyMca X-ray Fluorescence Toolkit developed at
-# the ESRF by the Software group.
+# Copyright (c) 2014-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,17 +21,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# ###########################################################################*/
-__author__ = "T. Vincent - ESRF Data Analysis"
-__contact__ = "thomas.vincent@esrf.fr"
-__license__ = "MIT"
-__copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__doc__ = """
-This module provides convenient classes for the OpenGL rendering backend.
+# ############################################################################*/
+"""This module provides convenient classes for the OpenGL rendering backend.
 """
 
+__authors__ = ["T. Vincent"]
+__license__ = "MIT"
+__date__ = "03/04/2017"
 
-# import ######################################################################
 
 from .GLContext import *  # noqa
 from .GLFramebuffer import *  # noqa
@@ -47,5 +40,3 @@ from .GLSupport import *  # noqa
 from .GLText import *  # noqa
 from .GLTexture import *  # noqa
 from .GLVertexBuffer import *  # noqa
-from .Interaction import *  # noqa
-from .LabelLayout import *  # noqa

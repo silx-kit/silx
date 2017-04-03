@@ -1,11 +1,7 @@
-# /*#########################################################################
+# coding: utf-8
+# /*##########################################################################
 #
-# The PyMca X-Ray Fluorescence Toolkit
-#
-# Copyright (c) 2004-2014 European Synchrotron Radiation Facility
-#
-# This file is part of the PyMca X-ray Fluorescence Toolkit developed at
-# the ESRF by the Software group.
+# Copyright (c) 2014-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,20 +21,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# ###########################################################################*/
-__author__ = "T. Vincent - ESRF Data Analysis"
-__contact__ = "thomas.vincent@esrf.fr"
+# ############################################################################*/
+"""This module provides a standalone Latin-1 monospace font as a texture."""
+
+__authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__doc__ = """
-This module provides a standalone Latin-1 monospace font as a texture.
-"""
+__date__ = "03/04/2017"
 
-
-# import ######################################################################
 
 import zlib
-from .gl import *  # noqa
+from ...._glutils import gl
 from .GLTexture import Texture2D
 
 
@@ -76,8 +68,8 @@ def charTexCoords(char):
 
 def loadTexture():
     data = zlib.decompress(dataZip)
-    return Texture2D(GL_RED, dataWidth, dataHeight,
-                     type_=GL_UNSIGNED_BYTE,
-                     minFilter=GL_NEAREST, magFilter=GL_NEAREST,
-                     wrapS=GL_CLAMP_TO_EDGE, wrapT=GL_CLAMP_TO_EDGE,
+    return Texture2D(gl.GL_RED, dataWidth, dataHeight,
+                     type_=gl.GL_UNSIGNED_BYTE,
+                     minFilter=gl.GL_NEAREST, magFilter=gl.GL_NEAREST,
+                     wrapS=gl.GL_CLAMP_TO_EDGE, wrapT=gl.GL_CLAMP_TO_EDGE,
                      data=data, unpackAlign=1)

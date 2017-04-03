@@ -1,11 +1,7 @@
-# /*#########################################################################
+# coding: utf-8
+# /*##########################################################################
 #
-# The PyMca X-Ray Fluorescence Toolkit
-#
-# Copyright (c) 2004-2015 European Synchrotron Radiation Facility
-#
-# This file is part of the PyMca X-ray Fluorescence Toolkit developed at
-# the ESRF by the Software group.
+# Copyright (c) 2014-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,24 +21,21 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# ###########################################################################*/
-from __future__ import with_statement
-
-__author__ = "T. Vincent - ESRF Data Analysis"
-__contact__ = "thomas.vincent@esrf.fr"
-__license__ = "MIT"
-__copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__doc__ = """
+# ############################################################################*/
+"""
 This module provides minimalistic text support for OpenGL.
 It provides Latin-1 (ISO8859-1) characters for one monospace font at one size.
 """
 
+__authors__ = ["T. Vincent"]
+__license__ = "MIT"
+__date__ = "03/04/2017"
 
-# import ######################################################################
+
 import numpy as np
 import math
 from ctypes import c_void_p, sizeof, c_float
-from .gl import *  # noqa
+from ...._glutils.gl import *  # noqa
 from . import FontLatin1_12 as font
 from .GLContext import getGLContext
 from .GLSupport import mat4Translate

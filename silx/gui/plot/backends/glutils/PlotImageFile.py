@@ -1,11 +1,7 @@
-# /*#########################################################################
+# coding: utf-8
+# /*##########################################################################
 #
-# The PyMca X-Ray Fluorescence Toolkit
-#
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
-#
-# This file is part of the PyMca X-ray Fluorescence Toolkit developed at
-# the ESRF by the Software group.
+# Copyright (c) 2014-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,17 +21,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# ###########################################################################*/
-__author__ = "T. Vincent - ESRF Data Analysis"
-__contact__ = "thomas.vincent@esrf.fr"
+# ############################################################################*/
+"""Function to save an image to a file."""
+
+__authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__doc__ = """
-Function to save an image to a file.
-"""
+__date__ = "03/04/2017"
 
-
-# import ######################################################################
 
 import base64
 import struct
@@ -106,9 +98,9 @@ def saveImageToFile(data, fileNameOrObj, fileFormat):
 
     if not hasattr(fileNameOrObj, 'write'):
         if sys.version < "3.0":
-            fileObj=open(fileNameOrObj, "wb")
+            fileObj = open(fileNameOrObj, "wb")
         else:
-            fileObj=open(fileNameOrObj, "w", newline='')
+            fileObj = open(fileNameOrObj, "w", newline='')
     else:  # Use as a file-like object
         fileObj = fileNameOrObj
 

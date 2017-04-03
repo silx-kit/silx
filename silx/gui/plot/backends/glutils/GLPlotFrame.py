@@ -1,11 +1,7 @@
-# /*#########################################################################
+# coding: utf-8
+# /*##########################################################################
 #
-# The PyMca X-Ray Fluorescence Toolkit
-#
-# Copyright (c) 2004-2015 European Synchrotron Radiation Facility
-#
-# This file is part of the PyMca X-ray Fluorescence Toolkit developed at
-# the ESRF by the Software group.
+# Copyright (c) 2014-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,25 +21,20 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# ###########################################################################*/
-from __future__ import with_statement
-
-__author__ = "T. Vincent - ESRF Data Analysis"
-__contact__ = "thomas.vincent@esrf.fr"
-__license__ = "MIT"
-__copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__doc__ = """
+# ############################################################################*/
+"""
 This modules provides the rendering of plot titles, axes and grid.
 """
+
+__authors__ = ["T. Vincent"]
+__license__ = "MIT"
+__date__ = "03/04/2017"
+
 
 # TODO
 # keep aspect ratio managed here?
 # smarter dirty flag handling?
 
-
-# import ######################################################################
-
-import logging
 import numpy as np
 import math
 import weakref
@@ -51,12 +42,12 @@ import warnings
 
 from collections import namedtuple
 
-from .gl import *  # noqa
+from ...._glutils.gl import *  # noqa
 from .GLSupport import mat4Ortho, clamp, \
     FLOAT32_SAFE_MIN, FLOAT32_MINPOS, FLOAT32_SAFE_MAX
 from .GLProgram import GLProgram
 from .GLText import Text2D, CENTER, BOTTOM, TOP, LEFT, RIGHT, ROTATE_270
-from .LabelLayout import niceNumbersAdaptative, niceNumbersForLog10
+from ..._utils.ticklayout import niceNumbersAdaptative, niceNumbersForLog10
 
 
 # PlotAxis ####################################################################
@@ -569,7 +560,7 @@ class GLPlotFrame(object):
 
         usedAxis = trBounds.y if axis == "left" else trBounds.y2
         yOffset = (plotHeight * (yDataTr - usedAxis[0]) /
-                (usedAxis[1] - usedAxis[0]))
+                   (usedAxis[1] - usedAxis[0]))
 
         if self.isYAxisInverted:
             yPixel = int(self.margins.top + yOffset)
@@ -747,7 +738,7 @@ class GLPlotFrame(object):
         glLineWidth(self._LINE_WIDTH)
         glUniformMatrix4fv(prog.uniforms['matrix'], 1, GL_TRUE, matProj)
         glUniform4f(prog.uniforms['color'], 0.7, 0.7, 0.7, 1.)
-        glUniform1f(prog.uniforms['tickFactor'], 0.) #1/2.)  # 1/tickLen
+        glUniform1f(prog.uniforms['tickFactor'], 0.)  # 1/2.)  # 1/tickLen
 
         glEnableVertexAttribArray(prog.attributes['position'])
         glVertexAttribPointer(prog.attributes['position'],
@@ -986,7 +977,7 @@ class GLPlotFrame2D(GLPlotFrame):
                                         vertices.append(pixelPos)
                                     break  # Stop at first intersection
 
-                else: # y or y2 axes
+                else:  # y or y2 axes
                     if axis == self.yAxis:
                         axis_name = 'left'
                         cornersInData = np.array([

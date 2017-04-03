@@ -1,11 +1,7 @@
-# /*#########################################################################
+# coding: utf-8
+# /*##########################################################################
 #
-# The PyMca X-Ray Fluorescence Toolkit
-#
-# Copyright (c) 2004-2015 European Synchrotron Radiation Facility
-#
-# This file is part of the PyMca X-ray Fluorescence Toolkit developed at
-# the ESRF by the Software group.
+# Copyright (c) 2014-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,40 +21,23 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# ###########################################################################*/
-__author__ = "T. Vincent - ESRF Data Analysis"
-__contact__ = "thomas.vincent@esrf.fr"
-__license__ = "MIT"
-__copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__doc__ = """
+# ############################################################################*/
+"""
 This module provides a class to handle shader program compilation.
 """
 
+__authors__ = ["T. Vincent"]
+__license__ = "MIT"
+__date__ = "03/04/2017"
 
-# import ######################################################################
 
 from ctypes import c_float
 import warnings
 
 import numpy
 
-from .gl import *  # noqa
+from ...._glutils.gl import *  # noqa
 from .GLContext import getGLContext
-
-
-# utils #######################################################################
-
-def _glGetActiveAttrib(program, index):
-    """Wrap PyOpenGL glGetActiveAttrib as for glGetActiveUniform
-    """
-    bufSize = glGetProgramiv(program, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH)
-    length = GLsizei()
-    size = GLint()
-    type_ = GLenum()
-    name = (GLchar * bufSize)()
-
-    glGetActiveAttrib(program, index, bufSize, length, size, type_, name)
-    return name.value, size.value, type_.value
 
 
 # GLProgram ###################################################################
@@ -115,7 +94,7 @@ class GLProgram(object):
 
         attributes = {}
         for index in range(glGetProgramiv(program, GL_ACTIVE_ATTRIBUTES)):
-            name = _glGetActiveAttrib(program, index)[0]
+            name = glGetActiveAttrib(program, index)[0]
             nameStr = name.decode('ascii')
             attributes[nameStr] = glGetAttribLocation(program, name)
 

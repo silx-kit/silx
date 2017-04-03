@@ -1,11 +1,7 @@
-# /*#########################################################################
+# coding: utf-8
+# /*##########################################################################
 #
-# The PyMca X-Ray Fluorescence Toolkit
-#
-# Copyright (c) 2004-2015 European Synchrotron Radiation Facility
-#
-# This file is part of the PyMca X-ray Fluorescence Toolkit developed at
-# the ESRF by the Software group.
+# Copyright (c) 2014-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,32 +21,35 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# ###########################################################################*/
-__author__ = "T. Vincent - ESRF Data Analysis"
-__contact__ = "thomas.vincent@esrf.fr"
-__license__ = "MIT"
-__copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__doc__ = """
+# ############################################################################*/
+"""
 This module provides a class to render 2D array as a colormap or RGB(A) image
 """
 
+__authors__ = ["T. Vincent"]
+__license__ = "MIT"
+__date__ = "03/04/2017"
 
-# import ######################################################################
 
-from .gl import *  # noqa
+import numpy as np
+from ...._glutils.gl import *  # noqa
+from ...._glutils import numpyToGLType
 
 import math
 from .GLSupport import mat4Translate, mat4Scale, FLOAT32_MINPOS
 from .GLProgram import GLProgram
 from .GLTexture import Image
 
-try:
-    from ....ctools import minMax
-except ImportError:
-    from PyMca5.PyMcaGraph.ctools import minMax
 
+# TODO replace with silx.math.combo min_max
+def minMax(data, minPositive):
+    min_ = np.nanmin(data)
+    max_ = np.nanmax(data)
+    if minPositive:
+        return min_, np.nanmin(data[data > 0]), max_
+    else:
+        return min_, max_
 
-# colormap ####################################################################
 
 class _GLPlotData2D(object):
     def __init__(self, data, origin, scale):
