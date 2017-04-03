@@ -37,7 +37,7 @@ import warnings
 import numpy
 
 from ...._glutils.gl import *  # noqa
-from .GLContext import getGLContext
+from ...._glutils.Context import getGLContext
 
 
 # GLProgram ###################################################################

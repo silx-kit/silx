@@ -40,9 +40,10 @@ from .. import Colors
 from ... import qt
 
 from ..._glutils import gl
+from ..._glutils.Context import getGLContext, setGLContextGetter
 from .glutils import (
     GLPlotCurve2D, GLPlotColormap, GLPlotRGBAImage, GLPlotFrame2D, GLProgram,
-    mat4Ortho, getGLContext, FBOTexture, mat4Identity,
+    mat4Ortho, FBOTexture, mat4Identity,
     LEFT, RIGHT, BOTTOM, TOP,
     Text2D, Shape2D)
 from .glutils.PlotImageFile import saveImageToFile
@@ -302,6 +303,10 @@ _texFragShd = """
 
 
 # BackendOpenGL ###############################################################
+
+
+setGLContextGetter(qt.QGLContext.currentContext)
+
 
 class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
     """OpenGL-based Plot backend.

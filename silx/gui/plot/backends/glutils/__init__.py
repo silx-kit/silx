@@ -30,7 +30,6 @@ __license__ = "MIT"
 __date__ = "03/04/2017"
 
 
-from .GLContext import *  # noqa
 from .GLFramebuffer import *  # noqa
 from .GLPlotCurve import *  # noqa
 from .GLPlotFrame import *  # noqa

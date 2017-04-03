@@ -36,8 +36,8 @@ import numpy as np
 import math
 from ctypes import c_void_p, sizeof, c_float
 from ...._glutils.gl import *  # noqa
+from ...._glutils.Context import getGLContext
 from . import FontLatin1_12 as font
-from .GLContext import getGLContext
 from .GLSupport import mat4Translate
 from .GLProgram import GLProgram
 
@@ -240,7 +240,7 @@ if __name__ == "__main__":
         from PyQt5.QtWidgets import QApplication
         from PyQt5.QtOpenGL import QGLWidget, QGLContext
 
-    from .GLContext import setGLContextGetter
+    from  ...._glutils.Context import setGLContextGetter
     from .GLSupport import mat4Ortho
 
     setGLContextGetter(QGLContext.currentContext)
