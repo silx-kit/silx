@@ -2479,8 +2479,8 @@ class Plot(object):
         :return: (x, y) in widget coord (in pixel) in the plot area
         """
         left, top, width, height = self.getPlotBoundsInPixels()
-        xPlot = _utils.clamp(x, left, left + width)
-        yPlot = _utils.clamp(y, top, top + height)
+        xPlot = numpy.clip(x, left, left + width)
+        yPlot = numpy.clip(y, top, top + height)
         return xPlot, yPlot
 
     def onMousePress(self, xPixel, yPixel, btn):

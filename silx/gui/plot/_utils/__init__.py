@@ -33,21 +33,6 @@ from .panzoom import FLOAT32_SAFE_MIN, FLOAT32_MINPOS, FLOAT32_SAFE_MAX
 from .panzoom import applyZoomToPlot, applyPan
 
 
-def clamp(value, min_=0., max_=1.):
-    """Clip a value to a range [min, max].
-
-    :param value: The value to clip
-    :param min_: The min edge of the range
-    :param max_: The max edge of the range
-    :return: The clipped value
-    """
-    if value < min_:
-        return min_
-    elif value > max_:
-        return max_
-    else:
-        return value
-
 def clipColormapLogRange(colormap):
     """Clip colormap vmin and vmax to 1, 10 if normalization is 'log' and vmin
     or vmax <1
@@ -57,3 +42,4 @@ def clipColormapLogRange(colormap):
     if colormap['normalization'] is 'log':
         if colormap['vmin'] < 1. or colormap['vmax'] < 1.:
             colormap['vmin'], colormap['vmax'] = 1., 10.
+
