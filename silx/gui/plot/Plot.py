@@ -1661,6 +1661,20 @@ class Plot(object):
         """
         return self._getItem(kind='image', legend=legend)
 
+    def getScatter(self, legend=None):
+        """Get the object describing a specific scatter.
+
+        It returns None in case no matching scatter is found.
+
+        :param str legend:
+            The legend identifying the scatter.
+            If not provided or None (the default), the active scatter is returned
+            or if there is no active scatter, the latest updated scatter
+            is returned if there are scatters in the plot.
+        :return: None or :class:`.items.Scatter` object
+        """
+        return self._getItem(kind='scatter', legend=legend)
+
     def _getItems(self, kind, just_legend=False, withhidden=False):
         """Retrieve all items of a kind in the plot
 
