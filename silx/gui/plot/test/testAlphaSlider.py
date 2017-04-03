@@ -149,10 +149,69 @@ class TestNamedImageAlphaSlider(TestCaseQt):
                                128. / 255)
 
 
+class TestNamedScatterAlphaSlider(TestCaseQt):
+    def setUp(self):
+        super(TestNamedScatterAlphaSlider, self).setUp()
+        self.plot = PlotWidget()
+        self.aslider = AlphaSlider.NamedScatterAlphaSlider(plot=self.plot)
+        self.aslider.setOrientation(qt.Qt.Horizontal)
+
+        toolbar = qt.QToolBar("plot", self.plot)
+        toolbar.addWidget(self.aslider)
+        self.plot.addToolBar(toolbar)
+
+        self.plot.show()
+        self.qWaitForWindowExposed(self.plot)
+
+        self.mouseMove(self.plot)  # Move to center
+        self.qapp.processEvents()
+
+    def tearDown(self):
+        self.qapp.processEvents()
+        self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.plot.close()
+        del self.plot
+        del self.aslider
+
+        super(TestNamedScatterAlphaSlider, self).tearDown()
+
+    def testWidgetEnabled(self):
+        # no Scatter set initially, slider must be deactivate
+        self.assertFalse(self.aslider.isEnabled())
+
+        self.plot.addScatter([0, 1, 2], [2, 3, 4], [5, 6, 7],
+                             legend="1")
+        self.aslider.setLegend("1")
+        # now we have an image set
+        self.assertTrue(self.aslider.isEnabled())
+
+    def testGetScatter(self):
+        self.plot.addScatter([0, 1, 2], [2, 3, 4], [5, 6, 7],
+                             legend="1")
+        self.plot.addScatter([0, 10, 20], [20, 30, 40], [50, 60, 70],
+                             legend="2")
+        self.aslider.setLegend("1")
+        self.assertEqual(self.plot.getScatter("1"),
+                         self.aslider.getItem())
+
+        self.aslider.setLegend("2")
+        self.assertEqual(self.plot.getScatter("2"),
+                         self.aslider.getItem())
+
+    def testGetAlpha(self):
+        self.plot.addScatter([0, 10, 20], [20, 30, 40], [50, 60, 70],
+                             legend="1")
+        self.aslider.setLegend("1")
+        self.aslider.setValue(128)
+        self.assertAlmostEqual(self.aslider.getAlpha(),
+                               128. / 255)
+
+
 def suite():
     test_suite = unittest.TestSuite()
     # test_suite.addTest(positionInfoTestSuite)
-    for testClass in (TestActiveImageAlphaSlider, TestNamedImageAlphaSlider):
+    for testClass in (TestActiveImageAlphaSlider, TestNamedImageAlphaSlider,
+                      TestNamedScatterAlphaSlider):
         test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(
             testClass))
     return test_suite
