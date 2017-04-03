@@ -181,6 +181,38 @@ if sphinx is None:
                 'Sphinx is required to build or test the documentation.\n'
                 'Please install Sphinx (http://www.sphinx-doc.org).')
 
+
+class BuildMan(Command):
+    """Command to build man pages"""
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        build = self.get_finalized_command('build')
+        path = sys.path
+        path.insert(0, os.path.abspath(build.build_lib))
+
+        env = dict((str(k), str(v)) for k, v in os.environ.items())
+        env["PYTHONPATH"] = os.pathsep.join(path)
+        env["PYTHON"] = sys.executable
+
+        import subprocess
+
+        status = subprocess.call(["mkdir", "-p", "build/man"])
+        if status != 0:
+            raise RuntimeError("Fail to create build/man directory")
+
+        p = subprocess.Popen(["help2man", "doc/man/wrapper.sh", "-o", "build/man/silx.1"], env=env)
+        status = p.wait()
+        if status != 0:
+            raise RuntimeError("Fail to generate man documentation")
+
+
 if sphinx is not None:
     class BuildDocCommand(BuildDoc):
         """Command to build documentation using sphinx.
@@ -447,7 +479,7 @@ class CleanCommand(Clean):
         Clean.run(self)
         # really remove the directories
         # and not only if they are empty
-        to_remove = [self.build_base, "./doc/build", "./package/silx*", "./package/python*"]
+        to_remove = [self.build_base, "./package/silx*", "./package/python*"]
         to_remove = self.expand(to_remove)
 
         if not self.dry_run:
@@ -501,8 +533,8 @@ class sdist_debian(sdist):
         # ignore windows files
         self.filelist.exclude_pattern(pattern="scripts/*.bat")
 
-        # include man pages
-        self.filelist.include_pattern(pattern="doc/build/man/*.l")
+        # include script for man pages
+        self.filelist.include_pattern(pattern="doc/man/*")
 
     def make_distribution(self):
         self.prune_file_list()
@@ -556,6 +588,7 @@ def setup_package():
         build_doc=BuildDocCommand,
         test_doc=TestDocCommand,
         build_ext=BuildExtFlags,
+        build_man=BuildMan,
         clean=CleanCommand,
         debian_src=sdist_debian)
 

@@ -1,14 +1,19 @@
 #!/usr/bin/env sh
 
 #
-# It uses bootstrap.py to execute silx application
+# Called by setup.py when using build_man command.
+# The build_man command takes care of the environment.
+# PYTHON is passed using the environment to use the
+# right executable.
 #
-# The sed command will filter all the lines before ######
-# 
-# help2man will pass --help and --version to the script
+# help2man will pass --help and --version to this script
 #
-# It must be used like that from root of the project:
-# > mkdir -p build/man
-# > help2man doc/man/wrapper.sh -o build/man/silx.l
+# Use python setup.py build_man to use this script.
+# It should generate a file ./build/man/silx.1
 # 
-./bootstrap.py silx-launcher.py $* 2>/dev/null | sed -e '1,/######/d'
+
+if [ -z "$STATE" ]; then
+    PYTHON=python
+fi
+$PYTHON scripts/silx-launcher.py $*
+

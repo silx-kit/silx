@@ -40,11 +40,6 @@ then
    export PATH=/usr/lib/ccache:$PATH
 fi
 
-# build the man pages
-# It would be better to move it in the setup.py
-mkdir -p doc/build/man
-help2man doc/man/wrapper.sh -o doc/build/man/silx.l
-
 python setup.py debian_src
 cp -f dist/${tarname} package
 
