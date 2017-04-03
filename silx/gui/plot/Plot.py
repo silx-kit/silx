@@ -281,6 +281,10 @@ class Plot(object):
             lowerCaseString = backend.lower()
             if lowerCaseString in ("matplotlib", "mpl"):
                 backendClass = BackendMatplotlibQt
+            elif lowerCaseString in ('gl', 'opengl'):
+                # TODO check that OpenGL is available
+                from .backends.BackendOpenGL import BackendOpenGL
+                backendClass = BackendOpenGL
             elif lowerCaseString == 'none':
                 from .backends.BackendBase import BackendBase as backendClass
             else:
