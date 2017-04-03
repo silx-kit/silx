@@ -35,14 +35,14 @@ import logging
 
 import numpy
 
-from .core import Item, LabelsMixIn, DraggableMixIn, ColormapMixIn
+from .core import Item, LabelsMixIn, DraggableMixIn, ColormapMixIn, AlphaMixIn
 from ....utils.decorators import deprecated
 
 
 _logger = logging.getLogger(__name__)
 
 
-class Image(Item, LabelsMixIn, DraggableMixIn, ColormapMixIn):
+class Image(Item, LabelsMixIn, DraggableMixIn, ColormapMixIn, AlphaMixIn):
     """Description of an image"""
 
     # TODO method to get image of data converted to RGBA with current colormap
@@ -52,13 +52,13 @@ class Image(Item, LabelsMixIn, DraggableMixIn, ColormapMixIn):
         LabelsMixIn.__init__(self)
         DraggableMixIn.__init__(self)
         ColormapMixIn.__init__(self)
+        AlphaMixIn.__init__(self)
         self._data = ()
         self._pixmap = None
 
         # TODO use calibration instead of origin and scale?
         self._origin = (0., 0.)
         self._scale = (1., 1.)
-        self._alpha = 1.
 
     def _addBackendRenderer(self, backend):
         """Update backend renderer"""
@@ -248,30 +248,4 @@ class Image(Item, LabelsMixIn, DraggableMixIn, ColormapMixIn):
             scale = float(scale), float(scale)
         if scale != self._scale:
             self._scale = scale
-            self._updated()
-
-            # TODO hackish data range implementation
-            if self.isVisible():
-                plot = self.getPlot()
-                if plot is not None:
-                    plot._invalidateDataRange()
-
-    def getAlpha(self):
-        """Returns the opacity of the image.
-
-        :rtype: float in [0, 1.]
-        """
-        return self._alpha
-
-    def setAlpha(self, alpha):
-        """Set the opacity of the image
-
-        :param alpha: Opacity of the image, between 0 (full transparency)
-            and 1. (full opacity)
-        :type alpha: float
-        """
-        alpha = float(alpha)
-        alpha = max(0., min(alpha, 1.))  # Clip alpha to [0., 1.] range
-        if alpha != self._alpha:
-            self._alpha = alpha
             self._updated()

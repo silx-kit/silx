@@ -448,7 +448,40 @@ class FillMixIn(object):
             self._updated()
 
 
-class Points(Item, SymbolMixIn):
+class AlphaMixIn(object):
+    """Mix-in class for item with opacity"""
+
+    def __init__(self):
+        self._alpha = 1.
+
+    def getAlpha(self):
+        """Returns the opacity of the item
+
+        :rtype: float in [0, 1.]
+        """
+        return self._alpha
+
+    def setAlpha(self, alpha):
+        """Set the opacity of the item
+
+        .. note::
+
+            If the colormap already has some transparency, this alpha
+            adds additional transparency. The alpha channel of the colormap
+            is multiplied by this value.
+
+        :param alpha: Opacity of the item, between 0 (full transparency)
+            and 1. (full opacity)
+        :type alpha: float
+        """
+        alpha = float(alpha)
+        alpha = max(0., min(alpha, 1.))  # Clip alpha to [0., 1.] range
+        if alpha != self._alpha:
+            self._alpha = alpha
+            self._updated()
+
+
+class Points(Item, SymbolMixIn, AlphaMixIn):
     """Base class for :class:`Curve` and :class:`Scatter`"""
     # note: _logFilterData must be overloaded if you overload
     #       getData to change its signature
@@ -460,6 +493,7 @@ class Points(Item, SymbolMixIn):
     def __init__(self):
         Item.__init__(self)
         SymbolMixIn.__init__(self)
+        AlphaMixIn.__init__(self)
         self._x = ()
         self._y = ()
         self._xerror = None
