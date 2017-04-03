@@ -64,24 +64,27 @@ class ColorbarWidget(qt.QWidget):
     """
     configuration=('withTicksValue', 'minMaxValueOnly')
 
-    def __init__(self, parent=None, plot=None, hideNorm=True, 
+    def __init__(self, parent=None, plot=None, legend=None, hideNorm=True, 
         hideAutoscale=True, config=configuration[0]):
         """
 
         :param parent: See :class:`QWidget`
         :param plot: PlotWidget the colorbar is attached to (optional)
-        :param bool hideNorm: if True hide the normalization groupbox
-        :param bool hideAutoscale: if True hide the autoscale checkbox
+        :param str legend: the label to set to the colormap
+        :param bool hideNorm: if True hide the normalization groupbox (optional)
+        :param bool hideAutoscale: if True hide the autoscale checkbox (optional)
         """
         super(ColorbarWidget, self).__init__(parent)
         self._plot = plot
         self._configuration = config
-        self.colorbar = None  # matplotlib colorbar this will be an object
         self._label = ''  # Text label to display
         self.hideNorm = hideNorm
         self.hideAutoscale = hideAutoscale
 
         self.__buildGUI()
+        if legend is not None:
+            assert(type(legend) is str)
+            self.setLegend(legend)
 
     def __buildGUI(self):
         layout = qt.QVBoxLayout()
@@ -110,12 +113,14 @@ class ColorbarWidget(qt.QWidget):
         return widget
 
     def __buildNorm(self):
+        # group definition
         self._groupNorm = qt.QGroupBox('Normalization', parent=self)
         self._groupNorm.setLayout(qt.QHBoxLayout())
-
+        self._groupNorm.setEnabled(False)
+        # adding linear option
         self._linearNorm = qt.QRadioButton('linear', self._groupNorm)
         self._groupNorm.layout().addWidget(self._linearNorm)
-
+        # adding lof option
         self._logNorm = qt.QRadioButton('log', self._groupNorm)
         self._groupNorm.layout().addWidget(self._logNorm)
 
@@ -204,7 +209,6 @@ class ColorbarWidget(qt.QWidget):
         :type colors: numpy.ndarray
         """
         if name is None and colors is None:
-            self.colorbar = None
             self._colormap = None
             return
 
@@ -220,14 +224,7 @@ class ColorbarWidget(qt.QWidget):
         else:
             raise ValueError('Wrong normalization %s' % normalization)
 
-        self.colorbar = None # TODO : get colorma
         self._setAutoscale(autoscale)
-
-        self.legend.setText(self._label)
-        # if normalization == 'linear':
-        #     formatter = matplotlib.ticker.FormatStrFormatter('%.4g')
-        #     self.colorbar.formatter = formatter
-        #     self.colorbar.update_ticks()
 
         self._colormap = {'name': name,
                           'normalization': normalization,
@@ -238,9 +235,6 @@ class ColorbarWidget(qt.QWidget):
 
         self._gradation.gradation.setColormap(self._colormap)
 
-    def getLabel(self):
-        """Return the label of the colorbar (str)"""
-        return self._label
 
     def _setLogNorm(self):
         self._logNorm.setChecked(True)
@@ -251,14 +245,20 @@ class ColorbarWidget(qt.QWidget):
     def _setAutoscale(self, b):
         self._autoscaleCB.setChecked(b)
 
-    def _setLabel(self, label):
-        """Set the label displayed along the colorbar
+    def setLegend(self, legend):
+        """Set the legend displayed along the colorbar
 
-        :param str label: The label
+        :param str legend: The label
         """
-        self._label = str(label)
-        if self.colorbar is not None:
-            self.colorbar.set_label(self._label)
+        self.legend.setText(legend)
+
+    def getLegend(self):
+        """
+
+        :return: return the legend displayed along the colorbar
+        :rtype: str 
+        """
+        return self.legend.getText()
 
     def _activeImageChanged(self, previous, legend):
         """Handle plot active curve changed"""
