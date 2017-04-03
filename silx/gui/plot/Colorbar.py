@@ -421,7 +421,7 @@ class Gradation(qt.QWidget):
         """Create a _MyColorMap elemtent from the given silx colormap.
         In the future the _MyColorMap should be removed
         """
-        self.colormap = _MyColorMap(colormap)
+        self.colormap = colormap
 
     def paintEvent(self, event):
         
@@ -429,15 +429,26 @@ class Gradation(qt.QWidget):
 
         painter = qt.QPainter(self)
         gradient = qt.QLinearGradient(0, 0, 0, self.rect().height() - 2*self.margin);
-        steps = (self.colormap.vmax - self.colormap.vmin)/256
-        for pt in numpy.arange(self.colormap.vmin, self.colormap.vmax, steps):
-            colormapPosition = (pt-self.colormap.vmin) / (self.colormap.vmax-self.colormap.vmin)
+        vmin = self.colormap['vmin']
+        vmax = self.colormap['vmax']
+        steps = (vmax - vmin)/256
+
+        points = numpy.arange(vmin, vmax, steps)
+        colors = Colors.applyColormapToData(points,
+                                            name=self.colormap['name'],
+                                            normalization=self.colormap['normalization'],
+                                            autoscale=self.colormap['autoscale'],
+                                            vmin=vmin,
+                                            vmax=vmax)
+
+        for iPt, pt in enumerate(points):
+            colormapPosition = (pt-vmin) / (vmax-vmin)
             assert(colormapPosition >= 0.0 )
             assert(colormapPosition <= 1.0 )
 
-            qtGradientPosition = pt / self.colormap.vmax
+            qtGradientPosition = pt / vmax
             # self.colormap.vmax - position because Qt is in the top-bottom reference
-            gradient.setColorAt( qtGradientPosition, self.colormap.getColor(pt))
+            gradient.setColorAt( qtGradientPosition, qt.QColor(*colors[iPt]))
 
         painter.setBrush(gradient)
         painter.drawRect(
@@ -460,15 +471,17 @@ class Gradation(qt.QWidget):
         :param val: float value in [0, 1]
         :return: the value in [colormap['vmin'], colormap['vmax']]
         """
+        vmin = self.colormap['vmin']
+        vmax = self.colormap['vmax']
         if not ((value >=0) and (value <=1)):
             raise ValueError('invalid value given, should be in [0.0, 1.0]')
-        if self.colormap.normalization is 'linear':
-            return self.colormap.vmin + (self.colormap.vmax-self.colormap.vmin)*value
-        elif self.colormap.normalization is 'log':
-            rpos = (numpy.log10(self.colormap.vmax)-numpy.log10(self.colormap.vmin))*value
-            return self.colormap.vmin + numpy.exp(rpos)
+        if self.colormap['normalization'] is 'linear':
+            return vmin + (vmax-vmin)*value
+        elif self.colormap['normalization'] is 'log':
+            rpos = (numpy.log10(vmax)-numpy.log10(vmin))*value
+            return vmin + numpy.exp(rpos)
         else:
-            err = "normalization type (%s) is not managed by the Gradation Widget"%self.colormap.normalization
+            err = "normalization type (%s) is not managed by the Gradation Widget"%self.colormap['normalization']
             raise ValueError(err)
 
 
@@ -645,27 +658,3 @@ class TickBar(qt.QWidget):
             return self._getScientificForm()
         else:
             return form
-
-
-class _MyColorMap(object):
-    """
-    Temporaty object, will be removed soon
-    This widget is using matplotlib.
-    """
-    def __init__(self, colormap):
-        self.name = colormap['name']
-        self.normalization = colormap['normalization']
-        self.autoscale = colormap['autoscale']
-        self.vmin = colormap['vmin']
-        self.vmax = colormap['vmax']
-
-        # for now only deal with matplotlib colorbar
-        from silx.gui.plot import Colors
-        cmap = Colors.getMPLColormap(self.name)
-        import matplotlib.cm
-        norm = matplotlib.colors.Normalize(self.vmin, self.vmax)
-        self.scalarMappable = matplotlib.cm.ScalarMappable(norm=norm, cmap=cmap)
-
-    def getColor(self, val):
-        color = self.scalarMappable.to_rgba(val)
-        return qt.QColor.fromRgbF(*color)
