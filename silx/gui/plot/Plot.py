@@ -814,7 +814,7 @@ class Plot(object):
 
     def addScatter(self, x, y, value, legend=None, colormap=None,
                    info=None, symbol=None, xerror=None, yerror=None,
-                   z=None, resetzoom=True, copy=True):
+                   z=None, copy=True):
         """Add a (x, y, value) scatter to the graph.
 
         Scatters are uniquely identified by their legend.
@@ -855,17 +855,15 @@ class Plot(object):
         :type yerror: A float, or a numpy.ndarray of float32. See xerror.
         :param int z: Layer on which to draw the scatter (default: 1)
                       This allows to control the overlay.
-
-        :param bool resetzoom: True (the default) to reset the zoom.
         :param bool copy: True make a copy of the data (default),
                           False to use provided arrays.
         :returns: The key string identify this scatter
         """
         legend = 'Unnamed scatter 1.1' if legend is None else str(legend)
 
-        # # Check if scatter was previously active
-        # wasActive = self._getActiveItem(kind='scatter',
-        #                                 just_legend=True) == legend
+        # Check if scatter was previously active
+        wasActive = self._getActiveItem(kind='scatter',
+                                        just_legend=True) == legend
 
         # Create/Update curve object
         scatter = self._getItem(kind='scatter', legend=legend)
@@ -898,15 +896,9 @@ class Plot(object):
         self.notify(
             'contentChanged', action='add', kind='scatter', legend=legend)
 
-        # if wasActive:      # FIXME: remove if no longer needed
-        #     self._setActiveItem('scatter', scatter.getLegend())
-
-        if resetzoom:
-            # We ask for a zoom reset in order to handle the plot scaling
-            # if the user does not want that, autoscale of the different
-            # axes has to be set to off.
-            self.resetZoom()
-
+        if wasActive:
+            self._setActiveItem('scatter', scatter.getLegend())
+        
         return legend
 
     def addItem(self, xdata, ydata, legend=None, info=None,
