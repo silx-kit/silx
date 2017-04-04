@@ -87,10 +87,10 @@ class Image(object):
 
     def __init__(self, internalFormat, data, format_=None, texUnit=0):
         self.internalFormat = internalFormat
-        self.height, self.width = data.shape
+        self.height, self.width = data.shape[0:2]
         type_ = numpyToGLType(data.dtype)
 
-        if _checkTexture2D(internalFormat, data.shape, format_, type_):
+        if _checkTexture2D(internalFormat, data.shape[0:2], format_, type_):
             texture = Texture(internalFormat,
                               data,
                               format_,
