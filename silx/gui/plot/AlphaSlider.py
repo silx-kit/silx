@@ -212,6 +212,14 @@ class NamedItemAlphaSlider(BaseAlphaSlider):
         super(NamedItemAlphaSlider, self).__init__(parent, plot)
 
         self._updateState()
+        plot.sigContentChanged.connect(self._onContentChanged)
+
+    def _onContentChanged(self, action, kind, legend):
+        if legend == self._item_legend and kind == self._item_kind:
+            if action == "add":
+                self.setEnabled(True)
+            elif action == "remove":
+                self.setEnabled(False)
 
     def _updateState(self):
         """Enable or disable widget based on item's availability."""
