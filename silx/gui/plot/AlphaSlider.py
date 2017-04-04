@@ -156,53 +156,6 @@ class BaseAlphaSlider(qt.QSlider):
             item.setAlpha(self.getAlpha())
 
 
-class NamedImageAlphaSlider(BaseAlphaSlider):
-    """Slider widget to be used in a plot toolbar to control the
-    transparency of an image (defined by its legend).
-
-    :param parent: Parent QWidget
-    :param plot: Plot on which to operate
-    :param str legend: Legend of image whose transparency is to be
-        controlled.
-        An image with this legend should exist at all times, or this
-        widget should be manually deactivated whenever the image does not
-        exist.
-
-    See documentation of :class:`BaseAlphaSlider`
-    """
-    def __init__(self, parent=None, plot=None, legend=None):
-        self._image_legend = legend
-        super(NamedImageAlphaSlider, self).__init__(parent, plot)
-        if legend is not None and self.plot.getImage(legend) is not None:
-            self.setEnabled(True)
-        else:
-            self.setEnabled(False)
-
-    def getItem(self):
-        if self._image_legend is None:
-            return None
-        return self.plot.getImage(self._image_legend)
-
-    def setLegend(self, legend):
-        """Associate a different image on the same plot to the slider.
-
-        :param legend: New legend of image whose transparency is to be
-            controlled.
-        """
-        self._image_legend = legend
-        if legend is not None and self.plot.getImage(legend) is not None:
-            self.setEnabled(True)
-        else:
-            self.setEnabled(False)
-
-    def getLegend(self):
-        """Return legend of the image currently controlled by this slider.
-
-        :return: Image legend associated to the slider
-        """
-        return self._image_legend
-
-
 class ActiveImageAlphaSlider(BaseAlphaSlider):
     """Slider widget to be used in a plot toolbar to control the
     transparency of the **active image**.
@@ -240,6 +193,91 @@ class ActiveImageAlphaSlider(BaseAlphaSlider):
         self._updateItem()
 
 
+class NamedItemAlphaSlider(BaseAlphaSlider):
+    """Slider widget to be used in a plot toolbar to control the
+    transparency of an item (defined by its kind and legend).
+
+    :param parent: Parent QWidget
+    :param plot: Plot on which to operate
+    :param str kind: Kind of item whose transparency is to be
+        controlled: "scatter", "image" or "curve".
+    :param str legend: Legend of item whose transparency is to be
+        controlled.
+    """
+    def __init__(self, parent=None, plot=None,
+                 kind=None, legend=None):
+        self._item_legend = legend
+        self._item_kind = kind
+
+        super(NamedItemAlphaSlider, self).__init__(parent, plot)
+
+        self._updateState()
+
+    def _updateState(self):
+        """Enable or disable widget based on item's availability."""
+        if self.getItem() is not None:
+            self.setEnabled(True)
+        else:
+            self.setEnabled(False)
+
+    def getItem(self):
+        """Return plot item currently associated to this widget (can be
+        a curve, an image, a scatter...)
+
+        :rtype: subclass of :class:`silx.gui.plot.items.Item`"""
+        if self._item_legend is None or self._item_kind is None:
+            return None
+        return self.plot._getItem(kind=self._item_kind,
+                                  legend=self._item_legend)
+
+    def setLegend(self, legend):
+        """Associate a different item (of the same kind) to the slider.
+
+        :param legend: New legend of item whose transparency is to be
+            controlled.
+        """
+        self._item_legend = legend
+        self._updateState()
+
+    def getLegend(self):
+        """Return legend of the item currently controlled by this slider.
+
+        :return: Image legend associated to the slider
+        """
+        return self._item_kind
+
+    def setItemKind(self, legend):
+        """Associate a different item (of the same kind) to the slider.
+
+        :param legend: New legend of item whose transparency is to be
+            controlled.
+        """
+        self._item_legend = legend
+        self._updateState()
+
+    def getItemKind(self):
+        """Return kind of the item currently controlled by this slider.
+
+        :return: Item kind ("image", "scatter"...)
+        :rtype: str on None
+        """
+        return self._item_kind
+
+
+class NamedImageAlphaSlider(NamedItemAlphaSlider):
+    """Slider widget to be used in a plot toolbar to control the
+    transparency of an image (defined by its legend).
+
+    :param parent: Parent QWidget
+    :param plot: Plot on which to operate
+    :param str legend: Legend of image whose transparency is to be
+        controlled.
+    """
+    def __init__(self, parent=None, plot=None, legend=None):
+        NamedItemAlphaSlider.__init__(parent, plot,
+                                      kind="image", legend=legend)
+
+
 class NamedScatterAlphaSlider(BaseAlphaSlider):
     """Slider widget to be used in a plot toolbar to control the
     transparency of a scatter (defined by its legend).
@@ -248,40 +286,7 @@ class NamedScatterAlphaSlider(BaseAlphaSlider):
     :param plot: Plot on which to operate
     :param str legend: Legend of scatter whose transparency is to be
         controlled.
-        An scatter with this legend should exist at all times, or this
-        widget should be manually deactivated whenever the scatter does not
-        exist.
-
-    See documentation of :class:`BaseAlphaSlider`
     """
     def __init__(self, parent=None, plot=None, legend=None):
-        self._scatter_legend = legend
-        super(NamedScatterAlphaSlider, self).__init__(parent, plot)
-        if legend is not None and self.plot.getScatter(legend) is not None:
-            self.setEnabled(True)
-        else:
-            self.setEnabled(False)
-
-    def getItem(self):
-        if self._scatter_legend is None:
-            return None
-        return self.plot.getScatter(self._scatter_legend)
-
-    def setLegend(self, legend):
-        """Associate a different scatter on the same plot to the slider.
-
-        :param legend: Legend of new scatter whose transparency is to be
-            controlled.
-        """
-        self._scatter_legend = legend
-        if legend is not None and self.plot.getScatter(legend) is not None:
-            self.setEnabled(True)
-        else:
-            self.setEnabled(False)
-
-    def getLegend(self):
-        """Return legend of the scatter currently controlled by this slider.
-
-        :return: Scatter legend associated to the slider
-        """
-        return self._scatter_legend
+        NamedItemAlphaSlider.__init__(parent, plot,
+                                      kind="scatter", legend=legend)

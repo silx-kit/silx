@@ -33,7 +33,8 @@ __license__ = "MIT"
 __date__ = "06/03/2017"
 
 from .core import (Item, LabelsMixIn, DraggableMixIn, ColormapMixIn,  # noqa
-                   SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn)  # noqa
+                   SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn,  # noqa
+                   AlphaMixIn)  # noqa
 from .curve import Curve  # noqa
 from .image import Image  # noqa
 from .shape import Shape  # noqa
