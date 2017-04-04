@@ -40,12 +40,14 @@ try:
     # it should be loaded before h5py
     import hdf5plugin  # noqa
 except ImportError:
-    message = "Module 'hdf5plugin' is not installed. It supports some hdf5"\
-        + " compressions. You can install it using \"pip install hdf5plugin\"."
-    _logger.warning(message)
-import h5py
+    hdf5plugin = None
 
-import silx.gui.hdf5
+try:
+    import h5py
+    import silx.gui.hdf5
+except ImportError:
+    h5py = None
+
 from silx.gui import qt
 from silx.gui.data.DataViewerFrame import DataViewerFrame
 
@@ -179,6 +181,17 @@ def main(argv):
         help='Data file to show (h5 file, edf files, spec files)')
 
     options = parser.parse_args(argv[1:])
+
+    if h5py is None:
+        message = "Module 'h5py' is not installed but is mandatory."\
+            + " You can install it using \"pip install h5py\"."
+        _logger.error(message)
+        return -1
+
+    if hdf5plugin is None:
+        message = "Module 'hdf5plugin' is not installed. It supports some hdf5"\
+            + " compressions. You can install it using \"pip install hdf5plugin\"."
+        _logger.warning(message)
 
     app = qt.QApplication([])
     sys.excepthook = qt.exceptionHandler
