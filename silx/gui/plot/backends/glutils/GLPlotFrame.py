@@ -43,9 +43,9 @@ import warnings
 from collections import namedtuple
 
 from ...._glutils.gl import *  # noqa
+from ...._glutils import Program
 from ..._utils import FLOAT32_SAFE_MIN, FLOAT32_MINPOS, FLOAT32_SAFE_MAX
 from .GLSupport import mat4Ortho
-from .GLProgram import GLProgram
 from .GLText import Text2D, CENTER, BOTTOM, TOP, LEFT, RIGHT, ROTATE_270
 from ..._utils.ticklayout import niceNumbersAdaptative, niceNumbersForLog10
 
@@ -686,7 +686,7 @@ class GLPlotFrame(object):
 
         self._renderResources = (vertices, gridVertices, labels)
 
-    _program = GLProgram(_SHADERS['vertex'], _SHADERS['fragment'])
+    _program = Program(_SHADERS['vertex'], _SHADERS['fragment'])
 
     def render(self):
         if self._renderResources is None:

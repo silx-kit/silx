@@ -40,10 +40,10 @@ from .. import Colors
 from ... import qt
 
 from ..._glutils import gl
-from ..._glutils.Context import getGLContext, setGLContextGetter
+from ... import _glutils as glu
 from .glutils import (
-    GLPlotCurve2D, GLPlotColormap, GLPlotRGBAImage, GLPlotFrame2D, GLProgram,
-    mat4Ortho, FBOTexture, mat4Identity,
+    GLPlotCurve2D, GLPlotColormap, GLPlotRGBAImage, GLPlotFrame2D,
+    mat4Ortho, mat4Identity,
     LEFT, RIGHT, BOTTOM, TOP,
     Text2D, Shape2D)
 from .glutils.PlotImageFile import saveImageToFile
@@ -305,7 +305,7 @@ _texFragShd = """
 # BackendOpenGL ###############################################################
 
 
-setGLContextGetter(qt.QGLContext.currentContext)
+glu.setGLContextGetter(qt.QGLContext.currentContext)
 
 
 class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
@@ -329,8 +329,8 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
 
         self.matScreenProj = mat4Identity()
 
-        self._progBase = GLProgram(_baseVertShd, _baseFragShd)
-        self._progTex = GLProgram(_texVertShd, _texFragShd)
+        self._progBase = glu.Program(_baseVertShd, _baseFragShd)
+        self._progTex = glu.Program(_texVertShd, _texFragShd)
         self._plotFBOs = {}
 
         self._keepDataAspectRatio = False
@@ -447,7 +447,7 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
         self._renderOverlayGL()
 
     def _paintFBOGL(self):
-        context = getGLContext()
+        context = glu.getGLContext()
         plotFBOTex = self._plotFBOs.get(context)
         if (self._plotDirtyFlag or self._plotFrame.isDirty or
                 plotFBOTex is None):
@@ -458,17 +458,18 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
                                              (1., 1., 1., 1.)),
                                              dtype=numpy.float32)
             if plotFBOTex is None or \
-               plotFBOTex.width != self._plotFrame.size[0] or \
-               plotFBOTex.height != self._plotFrame.size[1]:
+               plotFBOTex.shape[1] != self._plotFrame.size[0] or \
+               plotFBOTex.shape[0] != self._plotFrame.size[1]:
                 if plotFBOTex is not None:
                     plotFBOTex.discard()
-                plotFBOTex = FBOTexture(gl.GL_RGBA,
-                                        self._plotFrame.size[0],
-                                        self._plotFrame.size[1],
-                                        minFilter=gl.GL_NEAREST,
-                                        magFilter=gl.GL_NEAREST,
-                                        wrapS=gl.GL_CLAMP_TO_EDGE,
-                                        wrapT=gl.GL_CLAMP_TO_EDGE)
+                plotFBOTex = glu.FramebufferTexture(
+                    gl.GL_RGBA,
+                    shape=(self._plotFrame.size[1],
+                           self._plotFrame.size[0]),
+                    minFilter=gl.GL_NEAREST,
+                    magFilter=gl.GL_NEAREST,
+                    wrap=(gl.GL_CLAMP_TO_EDGE,
+                          gl.GL_CLAMP_TO_EDGE))
                 self._plotFBOs[context] = plotFBOTex
 
             with plotFBOTex:
@@ -503,9 +504,8 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
                                  gl.GL_FALSE,
                                  stride, texCoordsPtr)
 
-        plotFBOTex.bind(texUnit)
-        gl.glDrawArrays(gl.GL_TRIANGLE_STRIP, 0, len(self._plotVertices))
-        gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
+        with plotFBOTex.texture:
+            gl.glDrawArrays(gl.GL_TRIANGLE_STRIP, 0, len(self._plotVertices))
 
         self._renderMarkersGL()
         self._renderOverlayGL()

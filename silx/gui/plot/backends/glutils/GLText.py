@@ -36,10 +36,9 @@ import numpy as np
 import math
 from ctypes import c_void_p, sizeof, c_float
 from ...._glutils.gl import *  # noqa
-from ...._glutils.Context import getGLContext
+from ...._glutils import getGLContext, Program
 from . import FontLatin1_12 as font
 from .GLSupport import mat4Translate
-from .GLProgram import GLProgram
 
 # TODO: Font should be configurable by the main program
 
@@ -83,8 +82,8 @@ class Text2D(object):
     """
     }
 
-    _program = GLProgram(_SHADERS['vertex'],
-                         _SHADERS['fragment'])
+    _program = Program(_SHADERS['vertex'],
+                       _SHADERS['fragment'])
 
     _textures = {}
 

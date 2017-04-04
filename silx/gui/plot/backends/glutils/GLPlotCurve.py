@@ -36,11 +36,9 @@ import math
 import warnings
 
 from ...._glutils.gl import *  # noqa
-from ...._glutils import numpyToGLType
+from ...._glutils import numpyToGLType, Program, vertexBuffer
 from ..._utils import FLOAT32_MINPOS
 from .GLSupport import buildFillMaskIndices
-from .GLProgram import GLProgram
-from .GLVertexBuffer import createVBOFromArrays
 
 
 # TODO replace with silx.math.combo min_max
@@ -116,16 +114,16 @@ class _Fill2D(object):
     }
 
     _programs = {
-        _LINEAR: GLProgram(
+        _LINEAR: Program(
             _SHADERS['vertex'] % _SHADERS['vertexTransforms'][_LINEAR],
             _SHADERS['fragment']),
-        _LOG10_X: GLProgram(
+        _LOG10_X: Program(
             _SHADERS['vertex'] % _SHADERS['vertexTransforms'][_LOG10_X],
             _SHADERS['fragment']),
-        _LOG10_Y: GLProgram(
+        _LOG10_Y: Program(
             _SHADERS['vertex'] % _SHADERS['vertexTransforms'][_LOG10_Y],
             _SHADERS['fragment']),
-        _LOG10_X_Y: GLProgram(
+        _LOG10_X_Y: Program(
             _SHADERS['vertex'] % _SHADERS['vertexTransforms'][_LOG10_X_Y],
             _SHADERS['fragment']),
     }
@@ -382,7 +380,7 @@ class _Lines2D(object):
             sources = cls._SHADERS[style]
             vertexShdr = sources['vertex'] % \
                 cls._SHADERS['vertexTransforms'][transform]
-            prgm = GLProgram(vertexShdr, sources['fragment'])
+            prgm = Program(vertexShdr, sources['fragment'])
             cls._programs[(transform, style)] = prgm
         return prgm
 
@@ -700,7 +698,7 @@ class _Points2D(object):
                 cls._SHADERS['vertexTransforms'][transform]
             fragShdr = cls._SHADERS['fragment'] % \
                 cls._SHADERS['fragmentSymbols'][marker]
-            prgm = GLProgram(vertShdr, fragShdr)
+            prgm = Program(vertShdr, fragShdr)
 
             cls._programs[(transform, marker)] = prgm
         return prgm
@@ -932,7 +930,7 @@ class _ErrorBars(object):
         if self._attribs is None:
             xCoords, yCoords = self._buildVertices(isXLog, isYLog)
 
-            xAttrib, yAttrib = createVBOFromArrays((xCoords, yCoords))
+            xAttrib, yAttrib = vertexBuffer((xCoords, yCoords))
             self._attribs = xAttrib, yAttrib
 
             self._lines.xVboData, self._lines.yVboData = xAttrib, yAttrib
@@ -946,11 +944,11 @@ class _ErrorBars(object):
             # Set yError points using the same VBO as lines
             self._yErrPoints.xVboData = xAttrib.copy()
             self._yErrPoints.xVboData.size //= 2
-            self._yErrPoints.xVboData.offset += (xAttrib.itemSize *
+            self._yErrPoints.xVboData.offset += (xAttrib.itemsize *
                                                  xAttrib.size // 2)
             self._yErrPoints.yVboData = yAttrib.copy()
             self._yErrPoints.yVboData.size //= 2
-            self._yErrPoints.yVboData.offset += (yAttrib.itemSize *
+            self._yErrPoints.yVboData.offset += (yAttrib.itemsize *
                                                  yAttrib.size // 2)
 
     def render(self, matrix, isXLog, isYLog):
@@ -1133,30 +1131,30 @@ class GLPlotCurve2D(object):
             if self.lineStyle == DASHED:
                 dists = _distancesFromArrays(self.xData, self.yData)
                 if self.colorData is None:
-                    xAttrib, yAttrib, dAttrib = createVBOFromArrays(
+                    xAttrib, yAttrib, dAttrib = vertexBuffer(
                         (self.xData, self.yData, dists),
                         prefix=(1, 1, 0), suffix=(1, 1, 0))
                 else:
-                    xAttrib, yAttrib, cAttrib, dAttrib = createVBOFromArrays(
+                    xAttrib, yAttrib, cAttrib, dAttrib = vertexBuffer(
                         (self.xData, self.yData, self.colorData, dists),
                         prefix=(1, 1, 0, 0), suffix=(1, 1, 0, 0))
             elif self.colorData is None:
-                xAttrib, yAttrib = createVBOFromArrays(
+                xAttrib, yAttrib = vertexBuffer(
                     (self.xData, self.yData),
                     prefix=(1, 1), suffix=(1, 1))
             else:
-                xAttrib, yAttrib, cAttrib = createVBOFromArrays(
+                xAttrib, yAttrib, cAttrib = vertexBuffer(
                     (self.xData, self.yData, self.colorData),
                     prefix=(1, 1, 0))
 
             # Shrink VBO
             self.xVboData = xAttrib.copy()
             self.xVboData.size -= 2
-            self.xVboData.offset += xAttrib.itemSize
+            self.xVboData.offset += xAttrib.itemsize
 
             self.yVboData = yAttrib.copy()
             self.yVboData.size -= 2
-            self.yVboData.offset += yAttrib.itemSize
+            self.yVboData.offset += yAttrib.itemsize
 
             self.colorVboData = cAttrib
             self.useColorVboData = cAttrib is not None
@@ -1175,11 +1173,11 @@ class GLPlotCurve2D(object):
                 # Add one point after data: (xN, 0.)
                 xAttrib.vbo.update(xData[-1],
                                    xAttrib.offset +
-                                   (xAttrib.size - 1) * xAttrib.itemSize,
+                                   (xAttrib.size - 1) * xAttrib.itemsize,
                                    xData[-1].itemsize)
                 yAttrib.vbo.update(zero,
                                    yAttrib.offset +
-                                   (yAttrib.size - 1) * yAttrib.itemSize,
+                                   (yAttrib.size - 1) * yAttrib.itemsize,
                                    zero.itemsize)
 
                 self.fill.xFillVboData = xAttrib

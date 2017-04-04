@@ -33,12 +33,11 @@ __date__ = "03/04/2017"
 
 import numpy as np
 from ...._glutils.gl import *  # noqa
-from ...._glutils import numpyToGLType
+from ...._glutils import Program
 
 import math
 from ..._utils import FLOAT32_MINPOS
 from .GLSupport import mat4Translate, mat4Scale
-from .GLProgram import GLProgram
 from .GLTexture import Image
 
 
@@ -276,13 +275,13 @@ class GLPlotColormap(_GLPlotData2D):
         np.dtype(np.uint8): GL_R8,
     }
 
-    _linearProgram = GLProgram(_SHADERS['linear']['vertex'],
-                               _SHADERS['fragment'] %
-                               _SHADERS['linear']['fragTransform'])
+    _linearProgram = Program(_SHADERS['linear']['vertex'],
+                             _SHADERS['fragment'] %
+                             _SHADERS['linear']['fragTransform'])
 
-    _logProgram = GLProgram(_SHADERS['log']['vertex'],
-                            _SHADERS['fragment'] %
-                            _SHADERS['log']['fragTransform'])
+    _logProgram = Program(_SHADERS['log']['vertex'],
+                          _SHADERS['fragment'] %
+                          _SHADERS['log']['fragTransform'])
 
     def __init__(self, data, origin, scale,
                  colormap, cmapIsLog=False, cmapRange=None):
@@ -387,18 +386,14 @@ class GLPlotColormap(_GLPlotData2D):
     def prepare(self):
         if not hasattr(self, '_texture'):
             internalFormat = self._INTERNAL_FORMATS[self.data.dtype]
-            height, width = self.data.shape
 
-            self._texture = Image(internalFormat, width, height,
+            self._texture = Image(internalFormat,
+                                  self.data,
                                   format_=GL_RED,
-                                  type_=numpyToGLType(self.data.dtype),
-                                  data=self.data,
                                   texUnit=self._DATA_TEX_UNIT)
         elif self._textureIsDirty:
             self._textureIsDirty = True
-            self._texture.updateAll(format_=GL_RED,
-                                    type_=numpyToGLType(self.data.dtype),
-                                    data=self.data)
+            self._texture.updateAll(format_=GL_RED, data=self.data)
 
     def _setCMap(self, prog):
         dataMin, dataMax = self.cmapRange  # If log, it is stricly positive
@@ -595,11 +590,11 @@ class GLPlotRGBAImage(_GLPlotData2D):
 
     _SUPPORTED_DTYPES = (np.dtype(np.float32), np.dtype(np.uint8))
 
-    _linearProgram = GLProgram(_SHADERS['linear']['vertex'],
-                               _SHADERS['linear']['fragment'])
+    _linearProgram = Program(_SHADERS['linear']['vertex'],
+                             _SHADERS['linear']['fragment'])
 
-    _logProgram = GLProgram(_SHADERS['log']['vertex'],
-                            _SHADERS['log']['fragment'])
+    _logProgram = Program(_SHADERS['log']['vertex'],
+                          _SHADERS['log']['fragment'])
 
     def __init__(self, data, origin, scale):
         """Create a 2D RGB(A) image from data
@@ -639,22 +634,18 @@ class GLPlotRGBAImage(_GLPlotData2D):
 
     def prepare(self):
         if not hasattr(self, '_texture'):
-            height, width, depth = self.data.shape
-            format_ = GL_RGBA if depth == 4 else GL_RGB
-            type_ = numpyToGLType(self.data.dtype)
+            format_ = GL_RGBA if self.data.shape[2] == 4 else GL_RGB
 
-            self._texture = Image(format_, width, height,
-                                  format_=format_, type_=type_,
-                                  data=self.data,
+            self._texture = Image(format_,
+                                  self.data,
+                                  format_=format_,
                                   texUnit=self._DATA_TEX_UNIT)
         elif self._textureIsDirty:
             self._textureIsDirty = False
 
             # We should check that internal format is the same
             format_ = GL_RGBA if self.data.shape[2] == 4 else GL_RGB
-            type_ = numpyToGLType(self.data.dtype)
-            self._texture.updateAll(format_=format_, type_=type_,
-                                    data=self.data)
+            self._texture.updateAll(format_=format_, data=self.data)
 
     def _renderLinear(self, matrix):
         self.prepare()
