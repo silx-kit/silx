@@ -260,7 +260,7 @@ class Plot(object):
                     or a :class:`BackendBase.BackendBase` class
     """
 
-    defaultBackend = 'matplotlib'
+    DEFAULT_BACKEND = 'matplotlib'
     """Class attribute setting the default backend for all instances."""
 
     colorList = _COLORLIST
@@ -272,7 +272,7 @@ class Plot(object):
         self._cursorInPlot = False
 
         if backend is None:
-            backend = self.defaultBackend
+            backend = self.DEFAULT_BACKEND
 
         if hasattr(backend, "__call__"):
             self._backend = backend(self, parent)
