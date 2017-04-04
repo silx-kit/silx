@@ -33,12 +33,12 @@ __date__ = "03/04/2017"
 
 
 import numpy
-from ctypes import c_void_p, sizeof, c_float
-from ...._glutils import gl, getGLContext, Program
-from . import FontLatin1_12 as font
+
+from ...._glutils import font, gl, getGLContext, Program, Texture
 from .GLSupport import mat4Translate
 
-# TODO: Font should be configurable by the main program
+
+# TODO: Font should be configurable by the main program: using mpl.rcParams?
 
 
 # Text2D ######################################################################
@@ -85,6 +85,10 @@ class Text2D(object):
 
     _textures = {}
 
+    _rasterTextCache = {}
+    """Internal cache storing already rasterized text"""
+    # TODO limit cache size and discard least recent used
+
     def __init__(self, text, x=0, y=0,
                  color=(0., 0., 0., 1.),
                  bgColor=None,
@@ -98,84 +102,75 @@ class Text2D(object):
         self.bgColor = bgColor
 
         if align not in (LEFT, CENTER, RIGHT):
-            raise RuntimeError(
+            raise ValueError(
                 "Horizontal alignment not supported: {0}".format(align))
         self._align = align
 
         if valign not in (TOP, CENTER, BASELINE, BOTTOM):
-            raise RuntimeError(
+            raise ValueError(
                 "Vertical alignment not supported: {0}".format(valign))
         self._valign = valign
 
         self._rotate = numpy.radians(rotate)
 
     @classmethod
-    def _getTexture(cls):
-        # Loaded once for all Text2D instances per OpenGL context
-        context = getGLContext()
-        try:
-            tex = cls._textures[context]
-        except KeyError:
-            cls._textures[context] = font.loadTexture()
-            tex = cls._textures[context]
-        return tex
+    def _getTexture(cls, text):
+        key = getGLContext(), text
+        if key not in cls._textures:
+            image, offset = font.rasterText(text,
+                                            font.getDefaultFontFamily())
+            cls._textures[key] = (Texture(gl.GL_RED,
+                                          data=image,
+                                          minFilter=gl.GL_NEAREST,
+                                          magFilter=gl.GL_NEAREST,
+                                          wrap=(gl.GL_CLAMP_TO_EDGE,
+                                                gl.GL_CLAMP_TO_EDGE)),
+                                  offset)
+
+        return cls._textures[key]
 
     @property
     def text(self):
         return self._text
 
-    @text.setter
-    def text(self, text):
-        if self._text != text:
-            self._vertices = None
-            self._text = text
-
     @property
-    def size(self):
-        return len(self._text) * font.cWidth, font.cHeight
+    def size(self):  # TODO very poor implementation
+        image, offset = font.rasterText(self.text,
+                                        font.getDefaultFontFamily())
+        return image.shape[1], image.shape[0]
 
-    def getVertices(self):
-        if self._vertices is None:
-            self._vertices = numpy.empty((len(self.text), 4, 4),
-                                         dtype='float32')
+    def getVertices(self, offset, shape):
+        height, width = shape
 
-            if self._align == LEFT:
-                xOrig = 0
-            elif self._align == RIGHT:
-                xOrig = - len(self._text) * font.cWidth
-            else:  # CENTER
-                xOrig = - (len(self._text) * font.cWidth) // 2
+        if self._align == LEFT:
+            xOrig = 0
+        elif self._align == RIGHT:
+            xOrig = - width
+        else:  # CENTER
+            xOrig = - width // 2
 
-            if self._valign == BASELINE:
-                yOrig = - font.bearingY
-            elif self._valign == TOP:
-                yOrig = 0
-            elif self._valign == BOTTOM:
-                yOrig = - font.cHeight
-            else:  # CENTER
-                yOrig = - font.cHeight // 2
+        if self._valign == BASELINE:
+            yOrig = - offset
+        elif self._valign == TOP:
+            yOrig = 0
+        elif self._valign == BOTTOM:
+            yOrig = - height
+        else:  # CENTER
+            yOrig = - height // 2
 
-            cos, sin = numpy.cos(self._rotate), numpy.sin(self._rotate)
+        vertices = numpy.array((
+            (xOrig, yOrig),
+            (xOrig + width, yOrig),
+            (xOrig, yOrig + height),
+            (xOrig + width, yOrig + height)), dtype=numpy.float32)
 
-            for index, char in enumerate(self.text):
-                uMin, vMin, uMax, vMax = font.charTexCoords(char)
-                vertices = ((xOrig + index * font.cWidth, yOrig + font.cHeight,
-                             uMin, vMax),
-                            (xOrig + index * font.cWidth, yOrig, uMin, vMin),
-                            (xOrig + (index + 1) * font.cWidth,
-                             yOrig + font.cHeight, uMax, vMax),
-                            (xOrig + (index + 1) * font.cWidth, yOrig,
-                             uMax, vMin))
+        cos, sin = numpy.cos(self._rotate), numpy.sin(self._rotate)
+        vertices = numpy.transpose(numpy.array((
+            cos * vertices[:, 0] - sin * vertices[:, 1],
+            sin * vertices[:, 0] + cos * vertices[:, 1]),
+            dtype=numpy.float32))
 
-                self._vertices[index] = [
-                    (cos * x - sin * y, sin * x + cos * y, u, v)
-                    for x, y, u, v in vertices]
-
-        return self._vertices
-
-    def getStride(self):
-        vertices = self.getVertices()
-        return vertices.shape[-1] * vertices.itemsize
+        return vertices
 
     def render(self, matrix):
         if not self.text:
@@ -185,12 +180,12 @@ class Text2D(object):
         prog.use()
 
         texUnit = 0
-        self._getTexture().bind(texUnit)
+        texture, offset = self._getTexture(self.text)
 
         gl.glUniform1i(prog.uniforms['texText'], texUnit)
 
         gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE,
-                              matrix * mat4Translate(self.x, self.y))
+                              matrix * mat4Translate(int(self.x), int(self.y)))
 
         gl.glUniform4f(prog.uniforms['color'], *self.color)
         if self.bgColor is not None:
@@ -199,7 +194,7 @@ class Text2D(object):
             bgColor = self.color[0], self.color[1], self.color[2], 0.
         gl.glUniform4f(prog.uniforms['bgColor'], *bgColor)
 
-        stride, vertices = self.getStride(), self.getVertices()
+        vertices = self.getVertices(offset, texture.shape)
 
         posAttrib = prog.attributes['position']
         gl.glEnableVertexAttribArray(posAttrib)
@@ -207,7 +202,11 @@ class Text2D(object):
                                  2,
                                  gl.GL_FLOAT,
                                  gl.GL_FALSE,
-                                 stride, vertices)
+                                 0,
+                                 vertices)
+
+        texCoords = numpy.array(((0., 0.), (1., 0.), (0., 1.), (1., 1.)),
+                                dtype=numpy.float32)
 
         texAttrib = prog.attributes['texCoords']
         gl.glEnableVertexAttribArray(texAttrib)
@@ -215,12 +214,8 @@ class Text2D(object):
                                  2,
                                  gl.GL_FLOAT,
                                  gl.GL_FALSE,
-                                 stride,
-                                 c_void_p(vertices.ctypes.data +
-                                          2 * sizeof(c_float))
-                                 )
+                                 0,
+                                 texCoords.ravel())
 
-        nbChar, nbVert, _ = vertices.shape
-        gl.glDrawArrays(gl.GL_TRIANGLE_STRIP, 0, nbChar * nbVert)
-
-        gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
+        with texture:
+            gl.glDrawArrays(gl.GL_TRIANGLE_STRIP, 0, 4)
