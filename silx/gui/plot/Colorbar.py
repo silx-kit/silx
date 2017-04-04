@@ -82,10 +82,11 @@ class ColorbarWidget(qt.QWidget):
         self.showAutoscale = showAutoscale
 
         self.__buildGUI()
-        self.setPlot(plot)
         if legend is not None:
             assert(type(legend) is str)
             self.setLegend(legend)
+
+        self.setPlot(plot)
 
     def __buildGUI(self):
         layout = qt.QVBoxLayout()
@@ -96,10 +97,9 @@ class ColorbarWidget(qt.QWidget):
 
         if self.showNorm is False:
             self._groupNorm.hide()
-        if self.hideAutoscale is False:
+        if self.showAutoscale is False:
             self._autoscaleCB.hide()
 
-        self.setPlot(_plot)
         self.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Expanding)
         self.layout().setContentsMargins(0, 0, 0, 0)
 
@@ -143,7 +143,7 @@ class ColorbarWidget(qt.QWidget):
         widget.layout().setContentsMargins(0, 0, 0, 0)
         # create gradation
         self._gradation = GradationBar(parent=widget,
-                                       colormap=self._plot.getDefaultColormap())
+                                       colormap=None)
         widget.layout().addWidget(self._gradation)
 
         self.legend = VerticalLegend('', self)
@@ -246,10 +246,6 @@ class ColorbarWidget(qt.QWidget):
                           'colors': colors}
 
         self._setAutoscale(autoscale)
-
-        print('will change colormap for ')
-        print(self._colormap)
-
         self._gradation.setColormap(self._colormap)
 
     def _setLogNorm(self):
@@ -278,7 +274,6 @@ class ColorbarWidget(qt.QWidget):
 
     def _activeImageChanged(self, legend):
         """Handle plot active curve changed"""
-        print('ACTIVE image changed !!!!!!!!!')
         if legend is None:  # No active image, display default colormap
             self._syncWithDefaultColormap()
             return
@@ -329,6 +324,10 @@ class ColorbarWidget(qt.QWidget):
                          vmax=vmax,
                          colors=cmap.get('colors', None))
 
+    def getGradationBar(self):
+        """:return: :class:`GradationBar`"""
+        return self._gradation
+
 
 class VerticalLegend(qt.QLabel):
     """Display vertically the given text
@@ -360,6 +359,7 @@ class VerticalLegend(qt.QLabel):
         self.setFixedWidth(preferedWidth)
         self.setMinimumHeight(preferedHeight)
 
+
 class GradationBar(qt.QWidget):
     """The object grouping the Gradation and ticks associated to the Gradation
     """
@@ -377,9 +377,9 @@ class GradationBar(qt.QWidget):
 
         # create the left side group (Gradation)
         self.gradation = Gradation(colormap=colormap, parent=self)
-        self.tickbar = TickBar(vmin=colormap['vmin'],
-                               vmax=colormap['vmax'],
-                               norm=colormap['normalization'],
+        self.tickbar = TickBar(vmin=colormap['vmin'] if colormap else 0.0,
+                               vmax=colormap['vmax'] if colormap else 1.0,
+                               norm=colormap['normalization'] if colormap else 'linear',
                                parent=self,
                                displayValues=displayTicksValues)
 

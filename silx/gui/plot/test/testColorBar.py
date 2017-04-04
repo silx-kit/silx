@@ -30,6 +30,7 @@ __date__ = "03/04/2017"
 
 import unittest
 from silx.gui.plot.Colorbar import Gradation
+from silx.gui.plot.Colorbar import ColorbarWidget
 from silx.gui.plot import Plot1D
 import numpy
 
@@ -120,11 +121,45 @@ class TestTickBar(unittest.TestCase):
 
 # TODO : test GradationBar : should test the colormap when vmin and vmax are negative
 
-class TestGradationBar(unittest.TestCase):
+class TestColorbarWidget(unittest.TestCase):
     """Test interaction with the GradationBar"""
 
+    def setUp(self):
+        self.plot = Plot1D()
+        self.gradationBar = ColorbarWidget(parent=None, plot=self.plot)
+
+        self.colormap = { 'name': 'gray', 'normalization': 'log',
+                    'autoscale': True, 'vmin': -1.0, 'vmax': 1.0 }
+
     def testNegativeColormaps(self):
+        """test the behavior of the ColorbarWidget in the case of negative
+        values
+
+        Note : colorbar is modified by the Plot directly not ColorbarWidget
+        """
+        data = numpy.linspace(-9, 11, 100).reshape(10, 10)
+        self.plot.addImage(data=data, colormap=self.colormap, legend='toto')
+        self.plot.setActiveImage('toto')
+
+        # default behavior when autoscale : set to minmal positive value
+        data[data<0] = data.max()
+        self.assertTrue(self.gradationBar._colormap['vmin'] == data.min())
+        self.assertTrue(self.gradationBar._colormap['vmax'] == data.max())
+
+        data = numpy.linspace(-9, -2, 100).reshape(10, 10)
+        self.colormap = { 'name': 'gray', 'normalization': 'log',
+                    'autoscale': False, 'vmin': -1.0, 'vmax': 1.0 }
+
+        self.plot.addImage(data=data, colormap=self.colormap, legend='toto')
+        self.plot.setActiveImage('toto')
+        # if negative values, changing bounds for default : 1, 10
+        self.assertTrue(self.gradationBar._colormap['vmin'] == 1)
+        self.assertTrue(self.gradationBar._colormap['vmax'] == 10)
+
+    def testPlotAssocation(self):
+        """Make sure the ColorbarWidget is proparly connected with the plot"""
         pass
+
 # TODO : test connection with an existing plot
 
 
