@@ -38,13 +38,69 @@ fi
 export PYBUILD_DISABLE_python2=test
 export PYBUILD_DISABLE_python3=test
 export DEB_BUILD_OPTIONS=nocheck
-rm -rf dist
-python setup.py sdist
-cd dist
-tar -xzf ${PROJECT}-*.tar.gz
-cd ${PROJECT}*
 
-if [ $1 = 3 ]
+usage="usage: $(basename "$0") [options]
+
+Build the Debian 7 package of the ${PROJECT} library.
+
+If the build succeed the directory dist/debian7 will
+contains the pachages.
+
+optional arguments:
+    --help     show this help text
+    --install  install the packages generated at the end of
+               the process using 'sudo dpkg'
+    --python3  use python3 to build the packages
+               (it looks to be broken)
+"
+
+
+use_python3=0
+install=0
+
+while :
+do
+    case "$1" in
+      -h | --help)
+          echo "$usage"
+          exit 0
+          ;;
+      --install)
+          install=1
+          shift
+          ;;
+      --python3)
+          use_python3=1
+          shift
+          ;;
+      -*)
+          echo "Error: Unknown option: $1" >&2
+          echo "$usage"
+          exit 1
+          ;;
+      *)  # No more options
+          break
+          ;;
+    esac
+done
+
+
+build_directory=build/debian7
+
+# clean up previous build
+rm -rf ${build_directory}
+
+# create the build context
+mkdir -p ${build_directory}
+#python setup.py debian_src
+python setup.py sdist
+tar -xzf dist/${PROJECT}-*.tar.gz --directory ${build_directory}
+cd ${build_directory}/${PROJECT}*
+
+# clean up windows files
+rm scripts/*.bat
+
+if [ $use_python3 = 1 ]
 then
   echo Using Python 2+3 
   PATH=$CCPATH  python3 setup.py --command-packages=stdeb.command sdist_dsc --with-python2=True --with-python3=True --no-python3-scripts=True bdist_deb --no-cython
@@ -54,6 +110,15 @@ else
   PATH=$CCPATH python setup.py --command-packages=stdeb.command bdist_deb --no-cython
 fi
 
-sudo su -c  "dpkg -i deb_dist/python-${PROJECT}*.deb"
-cd ../..
+# move packages to dist directory
+rm -rf ../../../dist/debian7
+mkdir -p ../../../dist
+mv deb_dist ../../../dist/debian7
+
+# back to the root
+cd ../../..
+
+if [ $install = 1 ]; then
+  sudo -v su -c  "dpkg -i dist/debian7/python-${PROJECT}*.deb"
+fi
 
