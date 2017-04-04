@@ -904,7 +904,7 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
                  color, symbol, linewidth, linestyle,
                  yaxis,
                  xerror, yerror, z, selectable,
-                 fill):
+                 fill, alpha):
         for parameter in (x, y, legend, color, symbol, linewidth, linestyle,
                           yaxis, z, selectable, fill):
             assert parameter is not None
@@ -930,6 +930,12 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
         else:
             colorArray = None
             color = Colors.rgba(color)
+
+        if alpha < 1.:  # Apply image transparency
+            if colorArray is not None and colorArray.shape[1] == 4:
+                colorArray[:, 3] *= alpha  # multiply alpha channel
+            if color is not None:
+                color = color[0], color[1], color[2], color[3] * alpha
 
         behaviors = set()
         if selectable:
@@ -997,7 +1003,8 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
                                    scale,
                                    colormap['name'],
                                    colormapIsLog,
-                                   cmapRange)
+                                   cmapRange,
+                                   alpha)
             image.info = {
                 'legend': legend,
                 'zOrder': z,
@@ -1010,7 +1017,7 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
             assert data.shape[2] in (3, 4)
             assert data.dtype in (numpy.float32, numpy.uint8)
 
-            image = GLPlotRGBAImage(data, origin, scale)
+            image = GLPlotRGBAImage(data, origin, scale, alpha)
 
             image.info = {
                 'legend': legend,

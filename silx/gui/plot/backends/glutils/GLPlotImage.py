@@ -185,6 +185,7 @@ class GLPlotColormap(_GLPlotData2D):
         float min;
         float oneOverRange;
     } cmap;
+    uniform float alpha;
 
     varying vec2 coords;
 
@@ -250,6 +251,7 @@ class GLPlotColormap(_GLPlotData2D):
         } else if (cmap.id == CMAP_TEMP) {
             gl_FragColor = cmapTemperature(value);
         }
+        gl_FragColor.a *= alpha;
     }
     """
     }
@@ -283,7 +285,8 @@ class GLPlotColormap(_GLPlotData2D):
                           _SHADERS['log']['fragTransform'])
 
     def __init__(self, data, origin, scale,
-                 colormap, cmapIsLog=False, cmapRange=None):
+                 colormap, cmapIsLog=False, cmapRange=None,
+                 alpha=1.0):
         """Create a 2D colormap
 
         :param data: The 2D scalar data array to display
@@ -300,6 +303,7 @@ class GLPlotColormap(_GLPlotData2D):
             For logarithmic colormap, the range is in the untransformed data
             TODO: check consistency with matplotlib
         :type cmapRange: (float, float) or None
+        :param float alpha: Opacity from 0 (transparent) to 1 (opaque)
         """
         assert data.dtype in self._INTERNAL_FORMATS
 
@@ -309,6 +313,7 @@ class GLPlotColormap(_GLPlotData2D):
         self._cmapRange = None  # User-provided range info
         self._cmapRangeCache = None  # Store extra data for range
         self.cmapRange = cmapRange  # Update _cmapRange
+        self._alpha = numpy.clip(alpha, 0., 1.)
 
         self._textureIsDirty = False
 
@@ -367,6 +372,10 @@ class GLPlotColormap(_GLPlotData2D):
             assert len(cmapRange) == 2
             assert cmapRange[0] <= cmapRange[1]
             self._cmapRange = tuple(cmapRange)
+
+    @property
+    def alpha(self):
+        return self._alpha
 
     def updateData(self, data):
         assert data.dtype in self._INTERNAL_FORMATS
@@ -428,6 +437,8 @@ class GLPlotColormap(_GLPlotData2D):
         mat = matrix * mat4Translate(*self.origin) * mat4Scale(*self.scale)
         gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE, mat)
 
+        gl.glUniform1f(prog.uniforms['alpha'], self.alpha)
+
         self._setCMap(prog)
 
         self._texture.render(prog.attributes['position'],
@@ -465,6 +476,8 @@ class GLPlotColormap(_GLPlotData2D):
                        ox * xOneOverRange, oy * yOneOverRange)
         gl.glUniform2f(prog.uniforms['bounds.oneOverRange'],
                        xOneOverRange, yOneOverRange)
+
+        gl.glUniform1f(prog.uniforms['alpha'], self.alpha)
 
         self._setCMap(prog)
 
@@ -522,11 +535,13 @@ class GLPlotRGBAImage(_GLPlotData2D):
     #version 120
 
     uniform sampler2D tex;
+    uniform float alpha;
 
     varying vec2 coords;
 
     void main(void) {
         gl_FragColor = texture2D(tex, coords);
+        gl_FragColor.a *= alpha;
     }
     """},
 
@@ -564,6 +579,7 @@ class GLPlotRGBAImage(_GLPlotData2D):
         vec2 oneOverRange;
         vec2 originOverRange;
     } bounds;
+    uniform float alpha;
 
     varying vec2 coords;
 
@@ -581,6 +597,7 @@ class GLPlotRGBAImage(_GLPlotData2D):
 
     void main(void) {
         gl_FragColor = texture2D(tex, textureCoords());
+        gl_FragColor.a *= alpha;
     }
     """}
     }
@@ -596,7 +613,7 @@ class GLPlotRGBAImage(_GLPlotData2D):
     _logProgram = Program(_SHADERS['log']['vertex'],
                           _SHADERS['log']['fragment'])
 
-    def __init__(self, data, origin, scale):
+    def __init__(self, data, origin, scale, alpha):
         """Create a 2D RGB(A) image from data
 
         :param data: The 2D image data array to display
@@ -607,13 +624,19 @@ class GLPlotRGBAImage(_GLPlotData2D):
         :param scale: (sx, sy) scale factors of the data array.
                       This is the size of a data pixel in plot data space.
         :type scale: 2-tuple of floats.
+        :param float alpha: Opacity from 0 (transparent) to 1 (opaque)
         """
         assert data.dtype in self._SUPPORTED_DTYPES
         super(GLPlotRGBAImage, self).__init__(data, origin, scale)
         self._textureIsDirty = False
+        self._alpha = numpy.clip(alpha, 0., 1.)
 
     def __del__(self):
         self.discard()
+
+    @property
+    def alpha(self):
+        return self._alpha
 
     def discard(self):
         if hasattr(self, '_texture'):
@@ -658,6 +681,8 @@ class GLPlotRGBAImage(_GLPlotData2D):
         mat = matrix * mat4Translate(*self.origin) * mat4Scale(*self.scale)
         gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE, mat)
 
+        gl.glUniform1f(prog.uniforms['alpha'], self.alpha)
+
         self._texture.render(prog.attributes['position'],
                              prog.attributes['texCoords'],
                              self._DATA_TEX_UNIT)
@@ -677,6 +702,8 @@ class GLPlotRGBAImage(_GLPlotData2D):
         gl.glUniformMatrix4fv(prog.uniforms['matOffset'], 1, gl.GL_TRUE, mat)
 
         gl.glUniform2i(prog.uniforms['isLog'], isXLog, isYLog)
+
+        gl.glUniform1f(prog.uniforms['alpha'], self.alpha)
 
         ex = ox + self.scale[0] * self.data.shape[1]
         ey = oy + self.scale[1] * self.data.shape[0]
