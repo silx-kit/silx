@@ -35,7 +35,7 @@ import logging
 import numpy
 
 from .. import Colors
-from .core import (Item, LabelsMixIn, SymbolMixIn,
+from .core import (Points, LabelsMixIn, SymbolMixIn,
                    ColorMixIn, YAxisMixIn, FillMixIn)
 from ....utils.decorators import deprecated
 
@@ -113,7 +113,7 @@ def _getHistogramValue(x, y, histogramType):
     return resx, resy
 
 
-class Curve(Item, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn):
+class Curve(Points, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn):
     """Description of a curve"""
 
     _DEFAULT_Z_LAYER = 1
@@ -132,16 +132,11 @@ class Curve(Item, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn):
     """Default highlight color of the item"""
 
     def __init__(self):
-        Item.__init__(self)
-        LabelsMixIn.__init__(self)
-        SymbolMixIn.__init__(self)
+        Points.__init__(self)
         ColorMixIn.__init__(self)
         YAxisMixIn.__init__(self)
         FillMixIn.__init__(self)
-        self._x = ()
-        self._y = ()
-        self._xerror = None
-        self._yerror = None
+        LabelsMixIn.__init__(self)
 
         self._linewidth = self._DEFAULT_LINEWIDTH
         self._linestyle = self._DEFAULT_LINESTYLE
@@ -149,13 +144,6 @@ class Curve(Item, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn):
 
         self._highlightColor = self._DEFAULT_HIGHLIGHT_COLOR
         self._highlighted = False
-
-        # Store filtered data for x > 0 and/or y > 0
-        self._filteredCache = {}
-
-        # Store bounds depending on axes filtering >0:
-        # key is (isXPositiveFilter, isYPositiveFilter)
-        self._boundsCache = {}
 
     def _addBackendRenderer(self, backend):
         """Update backend renderer"""
@@ -169,6 +157,7 @@ class Curve(Item, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn):
         # if we want to plot an histogram
         if self.getHistogramType() in ('left', 'right', 'center'):
             assert len(xFiltered) in (len(yFiltered), len(yFiltered)+1)
+            # FIXME: setData does not allow len(yFiltered)+1 for now
 
             # TODO move this in Histogram class and avoid histo if
             xFiltered, yFiltered = _getHistogramValue(
@@ -189,7 +178,8 @@ class Curve(Item, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn):
                                 yerror=yerror,
                                 z=self.getZValue(),
                                 selectable=self.isSelectable(),
-                                fill=self.isFill())
+                                fill=self.isFill(),
+                                alpha=self.getAlpha())
 
     @deprecated
     def __getitem__(self, item):
@@ -235,215 +225,6 @@ class Curve(Item, LabelsMixIn, SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn):
 
         # TODO hackish data range implementation
         if visibleChanged:
-            plot = self.getPlot()
-            if plot is not None:
-                plot._invalidateDataRange()
-
-    @staticmethod
-    def _logFilterError(value, error):
-        """Filter/convert error values if they go <= 0.
-
-        Replace error leading to negative values by nan
-
-        :param numpy.ndarray value: 1D array of values
-        :param numpy.ndarray error:
-            Array of errors: scalar, N, Nx1 or 2xN or None.
-        :return: Filtered error so error bars are never negative
-        """
-        if error is not None:
-            # Convert Nx1 to N
-            if error.ndim == 2 and error.shape[1] == 1 and len(value) != 1:
-                error = numpy.ravel(error)
-
-            # Supports error being scalar, N or 2xN array
-            errorClipped = (value - numpy.atleast_2d(error)[0]) <= 0
-
-            if numpy.any(errorClipped):  # Need filtering
-
-                # expand errorbars to 2xN
-                if error.size == 1:  # Scalar
-                    error = numpy.full(
-                        (2, len(value)), error, dtype=numpy.float)
-
-                elif error.ndim == 1:  # N array
-                    newError = numpy.empty((2, len(value)),
-                                           dtype=numpy.float)
-                    newError[0, :] = error
-                    newError[1, :] = error
-                    error = newError
-
-                elif error.size == 2 * len(value):  # 2xN array
-                    error = numpy.array(
-                        error, copy=True, dtype=numpy.float)
-
-                else:
-                    _logger.error("Unhandled error array")
-                    return error
-
-                error[0, errorClipped] = numpy.nan
-
-        return error
-
-    def _logFilterData(self, xPositive, yPositive):
-        """Filter out values with x or y <= 0 on log axes
-
-        :param bool xPositive: True to filter arrays according to X coords.
-        :param bool yPositive: True to filter arrays according to Y coords.
-        :return: The filter arrays or unchanged object if not filtering needed
-        :rtype: (x, y, xerror, yerror)
-        """
-        x, y, xerror, yerror = self.getData(copy=False)
-
-        if xPositive or yPositive:
-            xclipped = (x <= 0) if xPositive else False
-            yclipped = (y <= 0) if yPositive else False
-            clipped = numpy.logical_or(xclipped, yclipped)
-
-            if numpy.any(clipped):
-                # copy to keep original array and convert to float
-                x = numpy.array(x, copy=True, dtype=numpy.float)
-                x[clipped] = numpy.nan
-                y = numpy.array(y, copy=True, dtype=numpy.float)
-                y[clipped] = numpy.nan
-
-                if xPositive and xerror is not None:
-                    xerror = self._logFilterError(x, xerror)
-
-                if yPositive and yerror is not None:
-                    yerror = self._logFilterError(y, yerror)
-
-        return x, y, xerror, yerror
-
-    def _getBounds(self):
-        if self.getXData(copy=False).size == 0:  # Empty data
-            return None
-
-        plot = self.getPlot()
-        if plot is not None:
-            xPositive = plot.isXAxisLogarithmic()
-            yPositive = plot.isYAxisLogarithmic()
-        else:
-            xPositive = False
-            yPositive = False
-
-        if (xPositive, yPositive) not in self._boundsCache:
-            # TODO bounds do not take error bars into account
-            x, y, xerror, yerror = self.getData(copy=False, displayed=True)
-            self._boundsCache[(xPositive, yPositive)] = (
-                numpy.nanmin(x),
-                numpy.nanmax(x),
-                numpy.nanmin(y),
-                numpy.nanmax(y)
-            )
-        return self._boundsCache[(xPositive, yPositive)]
-
-    def getXData(self, copy=True):
-        """Returns the x coordinates of the data points
-
-        :param copy: True (Default) to get a copy,
-                     False to use internal representation (do not modify!)
-        :rtype: numpy.ndarray
-        """
-        return numpy.array(self._x, copy=copy)
-
-    def getYData(self, copy=True):
-        """Returns the y coordinates of the data points
-
-        :param copy: True (Default) to get a copy,
-                     False to use internal representation (do not modify!)
-        :rtype: numpy.ndarray
-        """
-        return numpy.array(self._y, copy=copy)
-
-    def getXErrorData(self, copy=True):
-        """Returns the x error of the curve
-
-        :param copy: True (Default) to get a copy,
-                     False to use internal representation (do not modify!)
-        :rtype: numpy.ndarray or None
-        """
-        if self._xerror is None:
-            return None
-        else:
-            return numpy.array(self._xerror, copy=copy)
-
-    def getYErrorData(self, copy=True):
-        """Returns the y error of the curve
-
-        :param copy: True (Default) to get a copy,
-                     False to use internal representation (do not modify!)
-        :rtype: numpy.ndarray or None
-        """
-        if self._yerror is None:
-            return None
-        else:
-            return numpy.array(self._yerror, copy=copy)
-
-    def getData(self, copy=True, displayed=False):
-        """Returns the x, y values of the curve points and xerror, yerror
-
-        :param bool copy: True (Default) to get a copy,
-                         False to use internal representation (do not modify!)
-        :param bool displayed: True to only get curve points that are displayed
-                               in the plot. Default: False.
-                               Note: If plot has log scale, negative points
-                               are not displayed.
-        :returns: (x, y, xerror, yerror)
-        :rtype: 4-tuple of numpy.ndarray
-        """
-        if displayed:  # Eventually filter data according to plot state
-            plot = self.getPlot()
-            if plot is not None:
-                xPositive = plot.isXAxisLogarithmic()
-                yPositive = plot.isYAxisLogarithmic()
-                if xPositive or yPositive:
-                    # One axis has log scale, filter data
-                    if (xPositive, yPositive) not in self._filteredCache:
-                        self._filteredCache[(xPositive, yPositive)] = \
-                            self._logFilterData(xPositive, yPositive)
-                    return self._filteredCache[(xPositive, yPositive)]
-
-        return (self.getXData(copy),
-                self.getYData(copy),
-                self.getXErrorData(copy),
-                self.getYErrorData(copy))
-
-    def setData(self, x, y, xerror=None, yerror=None, copy=True):
-        """Set the data of the curve.
-
-        :param numpy.ndarray x: The data corresponding to the x coordinates.
-          If you attempt to plot an histogram you can set edges values in x.
-          In this case len(x) = len(y) + 1
-        :param numpy.ndarray y: The data corresponding to the y coordinates
-        :param xerror: Values with the uncertainties on the x values
-        :type xerror: A float, or a numpy.ndarray of float32.
-                      If it is an array, it can either be a 1D array of
-                      same length as the data or a 2D array with 2 rows
-                      of same length as the data: row 0 for positive errors,
-                      row 1 for negative errors.
-        :param yerror: Values with the uncertainties on the y values
-        :type yerror: A float, or a numpy.ndarray of float32. See xerror.
-        :param bool copy: True make a copy of the data (default),
-                          False to use provided arrays.
-        """
-        x = numpy.array(x, copy=copy)
-        y = numpy.array(y, copy=copy)
-        assert x.ndim == y.ndim == 1
-        assert len(x) == len(y)
-        if xerror is not None:
-            xerror = numpy.array(xerror, copy=copy)
-        if yerror is not None:
-            yerror = numpy.array(yerror, copy=copy)
-        # TODO checks on xerror, yerror
-        self._x, self._y = x, y
-        self._xerror, self._yerror = xerror, yerror
-
-        self._boundsCache = {}  # Reset cached bounds
-        self._filteredCache = {}  # Reset cached filtered data
-
-        self._updated()
-        # TODO hackish data range implementation
-        if self.isVisible():
             plot = self.getPlot()
             if plot is not None:
                 plot._invalidateDataRange()
