@@ -26,13 +26,13 @@
 """This module describe silx applications which are available  through
 the silx launcher.
 
-You environment should provide a command `silx`. You can reach help with
+Your environment should provide a command `silx`. You can reach help with
 `silx --help`, and check the version with `silx --version`.
 """
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "03/04/2017"
+__date__ = "04/04/2017"
 
 
 import logging
@@ -56,6 +56,5 @@ def main():
     status = launcher.execute(sys.argv)
     return status
 
-if __name__ == "__main__":
-    status = main()
-    sys.exit(status)
+status = main()
+sys.exit(status)

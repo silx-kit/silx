@@ -1,8 +1,3 @@
-#!/usr/bin/env sh
-
-# relative
-CURRENT_PATH="`dirname \"$0\"`"
-# absolutized and normalized
-CURRENT_PATH="`( cd \"$CURRENT_PATH\" && pwd )`"
-
-env python ${CURRENT_PATH}/silx-launcher.py $*
+#!/usr/bin/env python
+import runpy
+runpy.run_module("silx")
