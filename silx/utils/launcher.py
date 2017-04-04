@@ -68,9 +68,17 @@ class LauncherCommand():
         try:
             module = importlib.import_module(self.module_name)
             return module
-        except ImportError:
-            msg = "Error while reaching module '%s'"
-            _logger.debug(msg, self.module_name, exc_info=True)
+        except ImportError as e:
+            if "No module name" in e.args[0]:
+                msg = "Error while reaching module '%s'"
+                _logger.debug(msg, self.module_name, exc_info=True)
+                missing_module = e.args[0].split("'")[1]
+                msg = "Module '%s' is not installed but is mandatory."\
+                    + " You can install it using \"pip install %s\"."
+                _logger.error(msg, missing_module, missing_module)
+            else:
+                msg = "Error while reaching module '%s'"
+                _logger.error(msg, self.module_name, exc_info=True)
             return None
 
     def get_function(self):
@@ -83,7 +91,8 @@ class LauncherCommand():
         else:
             module = self.get_module()
             if module is None:
-                raise Exception("Module name '%s' unknown" % self.module_name)
+                _logger.error("Imposible to load module name '%s'" % self.module_name)
+                return None
 
             # reach the 'main' function
             if not hasattr(module, "main"):
@@ -121,6 +130,9 @@ class LauncherCommand():
         """
         with self.get_env(argv):
             func = self.get_function()
+            if func is None:
+                _logger.error("Imposible to execute the command '%s'" % self.name)
+                return -1
             try:
                 status = func(argv)
             except SystemExit as e:
