@@ -119,8 +119,6 @@ class TestTickBar(unittest.TestCase):
         pass
 
 
-# TODO : test GradationBar : should test the colormap when vmin and vmax are negative
-
 class TestColorbarWidget(unittest.TestCase):
     """Test interaction with the GradationBar"""
 
@@ -128,8 +126,12 @@ class TestColorbarWidget(unittest.TestCase):
         self.plot = Plot1D()
         self.gradationBar = ColorbarWidget(parent=None, plot=self.plot)
 
-        self.colormap = { 'name': 'gray', 'normalization': 'log',
-                    'autoscale': True, 'vmin': -1.0, 'vmax': 1.0 }
+    def tearDown(self):
+        self.gradationBar.setPlot(None)
+        self.gradationBar.deleteLater()
+        self.gradationBar = None
+        self.plot.deleteLater()
+        self.plot = None
 
     def testNegativeColormaps(self):
         """test the behavior of the ColorbarWidget in the case of negative
@@ -137,8 +139,14 @@ class TestColorbarWidget(unittest.TestCase):
 
         Note : colorbar is modified by the Plot directly not ColorbarWidget
         """
+        colormapLog = { 'name': 'gray', 'normalization': 'log',
+                    'autoscale': True, 'vmin': -1.0, 'vmax': 1.0 }
+
+        colormapLog2 = { 'name': 'gray', 'normalization': 'log',
+                    'autoscale': False, 'vmin': -1.0, 'vmax': 1.0 }
+
         data = numpy.linspace(-9, 11, 100).reshape(10, 10)
-        self.plot.addImage(data=data, colormap=self.colormap, legend='toto')
+        self.plot.addImage(data=data, colormap=colormapLog, legend='toto')
         self.plot.setActiveImage('toto')
 
         # default behavior when autoscale : set to minmal positive value
@@ -147,10 +155,8 @@ class TestColorbarWidget(unittest.TestCase):
         self.assertTrue(self.gradationBar._colormap['vmax'] == data.max())
 
         data = numpy.linspace(-9, -2, 100).reshape(10, 10)
-        self.colormap = { 'name': 'gray', 'normalization': 'log',
-                    'autoscale': False, 'vmin': -1.0, 'vmax': 1.0 }
 
-        self.plot.addImage(data=data, colormap=self.colormap, legend='toto')
+        self.plot.addImage(data=data, colormap=colormapLog2, legend='toto')
         self.plot.setActiveImage('toto')
         # if negative values, changing bounds for default : 1, 10
         self.assertTrue(self.gradationBar._colormap['vmin'] == 1)
@@ -158,9 +164,20 @@ class TestColorbarWidget(unittest.TestCase):
 
     def testPlotAssocation(self):
         """Make sure the ColorbarWidget is proparly connected with the plot"""
-        pass
+        colormap = { 'name': 'gray', 'normalization': 'linear',
+                    'autoscale': True, 'vmin': -1.0, 'vmax': 1.0 }
 
-# TODO : test connection with an existing plot
+        # make sure that default settings are the same
+        self.assertTrue(
+            self.gradationBar.getColormap() == self.plot.getDefaultColormap())
+
+        data = numpy.linspace(0, 10, 100).reshape(10, 10)
+        self.plot.addImage(data=data, colormap=colormap, legend='toto')
+        self.plot.setActiveImage('toto')
+
+        # make sure the modification of the colormap has been done
+        self.assertFalse(
+            self.gradationBar.getColormap() == self.plot.getDefaultColormap())
 
 
 def suite():

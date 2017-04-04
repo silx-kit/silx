@@ -212,14 +212,13 @@ class ColorbarWidget(qt.QWidget):
         return self._colormap.copy()
 
     def setColormap(self, name, normalization='linear',
-                    vmin=0., vmax=1., colors=None, autoscale=False):
+                    vmin=0., vmax=1., autoscale=True):
         """Set the colormap to display in the colorbar.
 
         :param str name: The name of the colormap or None
         :param str normalization: Normalization to use: 'linear' or 'log'
         :param float vmin: The value to bind to the beginning of the colormap
         :param float vmax: The value to bind to the end of the colormap
-        :param colors: Array of RGB(A) colors to use as colormap
         :type colors: numpy.ndarray
         """
         if name is None and colors is None:
@@ -242,8 +241,7 @@ class ColorbarWidget(qt.QWidget):
                           'normalization': normalization,
                           'autoscale': autoscale,
                           'vmin': vmin,
-                          'vmax': vmax,
-                          'colors': colors}
+                          'vmax': vmax}
 
         self._setAutoscale(autoscale)
         self._gradation.setColormap(self._colormap)
@@ -301,8 +299,7 @@ class ColorbarWidget(qt.QWidget):
         self.setColormap(name=cmap['name'],
                          normalization=cmap['normalization'],
                          vmin=vmin,
-                         vmax=vmax,
-                         colors=cmap.get('colors', None))
+                         vmax=vmax)
 
     def _defaultColormapChanged(self):
         """Handle plot default colormap changed"""
@@ -313,16 +310,16 @@ class ColorbarWidget(qt.QWidget):
     def _syncWithDefaultColormap(self):
         """Update colorbar according to plot default colormap"""
         cmap = self._plot.getDefaultColormap()
-        if cmap['autoscale']:  # Makes sure range is OK
-            vmin, vmax = 1., 10.
-        else:
-            vmin, vmax = cmap['vmin'], cmap['vmax']
+        # if cmap['autoscale']:  # Makes sure range is OK
+        #     vmin, vmax = 1., 10.
+        # else:
+        #     vmin, vmax = cmap['vmin'], cmap['vmax']
+        vmin, vmax = cmap['vmin'], cmap['vmax']
 
         self.setColormap(name=cmap['name'],
                          normalization=cmap['normalization'],
                          vmin=vmin,
-                         vmax=vmax,
-                         colors=cmap.get('colors', None))
+                         vmax=vmax)
 
     def getGradationBar(self):
         """:return: :class:`GradationBar`"""
