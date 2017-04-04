@@ -38,7 +38,7 @@ import argparse
 import logging
 
 
-_logger = logging.getLevelName(__name__)
+_logger = logging.getLogger(__name__)
 
 
 class LauncherCommand():
