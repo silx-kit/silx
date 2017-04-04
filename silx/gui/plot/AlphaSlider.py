@@ -274,11 +274,11 @@ class NamedImageAlphaSlider(NamedItemAlphaSlider):
         controlled.
     """
     def __init__(self, parent=None, plot=None, legend=None):
-        NamedItemAlphaSlider.__init__(parent, plot,
+        NamedItemAlphaSlider.__init__(self, parent, plot,
                                       kind="image", legend=legend)
 
 
-class NamedScatterAlphaSlider(BaseAlphaSlider):
+class NamedScatterAlphaSlider(NamedItemAlphaSlider):
     """Slider widget to be used in a plot toolbar to control the
     transparency of a scatter (defined by its legend).
 
@@ -288,5 +288,5 @@ class NamedScatterAlphaSlider(BaseAlphaSlider):
         controlled.
     """
     def __init__(self, parent=None, plot=None, legend=None):
-        NamedItemAlphaSlider.__init__(parent, plot,
+        NamedItemAlphaSlider.__init__(self, parent, plot,
                                       kind="scatter", legend=legend)
