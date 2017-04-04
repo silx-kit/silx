@@ -120,6 +120,14 @@ class TestTickBar(unittest.TestCase):
 
 # TODO : test GradationBar : should test the colormap when vmin and vmax are negative
 
+class TestGradationBar(unittest.TestCase):
+    """Test interaction with the GradationBar"""
+
+    def testNegativeColormaps(self):
+        pass
+# TODO : test connection with an existing plot
+
+
 def suite():
     test_suite = unittest.TestSuite()
     for ui in (TestFormats, TestGradation, TestTickBar):

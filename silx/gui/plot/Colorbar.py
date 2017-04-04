@@ -64,22 +64,22 @@ class ColorbarWidget(qt.QWidget):
     """
     configuration=('withTicksValue', 'minMaxValueOnly')
 
-    def __init__(self, parent=None, plot=None, legend=None, hideNorm=True, 
-        hideAutoscale=True, config=configuration[0]):
+    def __init__(self, parent=None, plot=None, legend=None, showNorm=False,
+        showAutoscale=False, config=configuration[0]):
         """
 
         :param parent: See :class:`QWidget`
         :param plot: PlotWidget the colorbar is attached to (optional)
         :param str legend: the label to set to the colormap
-        :param bool hideNorm: if True hide the normalization groupbox (optional)
-        :param bool hideAutoscale: if True hide the autoscale checkbox (optional)
+        :param bool showNorm: if True hide the normalization groupbox (optional)
+        :param bool showAutoscale: if True hide the autoscale checkbox (optional)
         """
         super(ColorbarWidget, self).__init__(parent)
-        self._plot = plot
+        self._plot = None
         self._configuration = config
         self._label = ''  # Text label to display
-        self.hideNorm = hideNorm
-        self.hideAutoscale = hideAutoscale
+        self.showNorm = showNorm
+        self.showAutoscale = showAutoscale
 
         self.__buildGUI()
         self.setPlot(plot)
@@ -94,9 +94,9 @@ class ColorbarWidget(qt.QWidget):
         self.layout().addWidget(self.__buildAutoscale())
         self.layout().addWidget(self.__buildNorm())
 
-        if self.hideNorm is True:
+        if self.showNorm is False:
             self._groupNorm.hide()
-        if self.hideAutoscale is True:
+        if self.hideAutoscale is False:
             self._autoscaleCB.hide()
 
         self.setPlot(_plot)
@@ -188,18 +188,19 @@ class ColorbarWidget(qt.QWidget):
 
     def setPlot(self, plot):
         """Associate the plot to this ColorBar
-        """
-        if plot is None:
-            return
 
+        :param plot: the plot associated with the colorbar. If None will remove
+            any connection with a previous plot.
+        """
         # removing previous plot if any
         if self._plot is not None:
             self._plot.sigActiveImageChanged.disconnect(self._activeImageChanged)
 
         # setting the new plot
         self._plot=plot
-        self._plot.sigActiveImageChanged.connect(self._activeImageChanged)
-        self._activeImageChanged(self._plot.getActiveImage(just_legend=True))
+        if self._plot is not None:
+            self._plot.sigActiveImageChanged.connect(self._activeImageChanged)
+            self._activeImageChanged(self._plot.getActiveImage(just_legend=True))
 
     def getColormap(self):
         """Return the colormap displayed in the colorbar as a dict.
