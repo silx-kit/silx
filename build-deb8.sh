@@ -35,25 +35,71 @@ tarname=${project}_${debianversion}.orig.tar.gz
 deb_name=$(echo "$project" | tr '[:upper:]' '[:lower:]')
 
 # target system
-
 debian_version=$(grep -o '[0-9]*' /etc/issue)
 target_system=debian${debian_version}
 
+project_directory="`dirname \"$0\"`"
+project_directory="`( cd \"$project_directory\" && pwd )`" # absolutized
+dist_directory=${project_directory}/dist/${target_system}
+build_directory=${project_directory}/build/${target_system}
 
 if [ -d /usr/lib/ccache ];
 then
    export PATH=/usr/lib/ccache:$PATH
 fi
 
-python setup.py debian_src
-cp -f dist/${tarname} package
 
+usage="usage: $(basename "$0") [options]
+
+Build the Debian ${debian_version} package of the ${project} library.
+
+If the build succeed the directory dist/debian7 will
+contains the pachages.
+
+optional arguments:
+    --help     show this help text
+    --install  install the packages generated at the end of
+               the process using 'sudo dpkg'
+"
+
+install=0
+
+while :
+do
+    case "$1" in
+      -h | --help)
+          echo "$usage"
+          exit 0
+          ;;
+      --install)
+          install=1
+          shift
+          ;;
+      -*)
+          echo "Error: Unknown option: $1" >&2
+          echo "$usage"
+          exit 1
+          ;;
+      *)  # No more options
+          break
+          ;;
+    esac
+done
+
+
+
+# clean up previous build
+rm -rf ${build_directory}
+# create the build context
+mkdir -p ${build_directory}
+python setup.py debian_src
+cp -f dist/${tarname} ${build_directory}
 if [ -f dist/${project}-testimages.tar.gz ]
 then
-  cp -f dist/${project}-testimages.tar.gz package
+  cp -f dist/${project}-testimages.tar.gz ${build_directory}
 fi
 
-cd package
+cd ${build_directory}
 tar -xzf ${tarname}
 newname=${deb_name}_${debianversion}.orig.tar.gz
 directory=${project}-${strictversion}
@@ -76,8 +122,8 @@ then
 fi
 
 cd ${directory}
-cp -r ../${target_system} debian
-cp ../../copyright debian
+cp -r ${project_directory}/package/${target_system} debian
+cp ${project_directory}/copyright debian
 
 #handle test images
 if [ -f ../${deb_name}_${debianversion}.orig-testimages.tar.gz ]
@@ -87,7 +133,7 @@ then
     mkdir testimages
   fi
   cd testimages
-  tar -xzf  ../../${deb_name}_${debianversion}.orig-testimages.tar.gz
+  tar -xzf  ../${deb_name}_${debianversion}.orig-testimages.tar.gz
   cd ..
 else
   # Disable to skip tests during build
@@ -101,18 +147,25 @@ dch -v ${debianversion}-1 "upstream development build of ${project} ${version}"
 dch --bpo "${project} snapshot ${version} built for ${target_system}"
 dpkg-buildpackage -r
 rc=$?
+
 if [ $rc -eq 0 ]
 then
-  cd ..
-  if [ -z $1 ]
-  #Provide an option name for avoiding auto-install
-  then
-    sudo su -c  "dpkg -i *.deb"
-  fi
-  #rm -rf ${directory}
-  cd ..
+
+  # move packages to dist directory
+  rm -rf ${dist_directory}
+  mkdir -p ${dist_directory}
+  mv ${build_directory}/*.deb ${dist_directory}
+  mv ${build_directory}/*.x* ${dist_directory}
+  mv ${build_directory}/*.dsc ${dist_directory}
+  mv ${build_directory}/*.changes ${dist_directory}
+  cd ../../..
+
 else
   echo Build failed, please investigate ...
-  cd ../..
+  exit
+fi
+
+if [ $install = 1 ]; then
+  sudo -v su -c  "dpkg -i ${dist_directory}/*.deb"
 fi
 
