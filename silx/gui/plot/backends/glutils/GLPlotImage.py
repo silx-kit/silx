@@ -34,20 +34,12 @@ __date__ = "03/04/2017"
 import math
 import numpy
 
+from silx.math.combo import min_max
+
 from ...._glutils import gl, Program
 from ..._utils import FLOAT32_MINPOS
 from .GLSupport import mat4Translate, mat4Scale
 from .GLTexture import Image
-
-
-# TODO replace with silx.math.combo min_max
-def minMax(data, minPositive):
-    min_ = numpy.nanmin(data)
-    max_ = numpy.nanmax(data)
-    if minPositive:
-        return min_, numpy.nanmin(data[data > 0]), max_
-    else:
-        return min_, max_
 
 
 class _GLPlotData2D(object):
@@ -331,7 +323,10 @@ class GLPlotColormap(_GLPlotData2D):
         if self._cmapRange is None:  # Auto-scale mode
             if self._cmapRangeCache is None:
                 # Build data , positive ranges
-                min_, minPos, max_ = minMax(self.data, minPositive=True)
+                result = min_max(self.data, min_positive=True)
+                min_ = result.minimum
+                minPos = result.min_positive
+                max_ = result.maximum
                 maxPos = max_ if max_ > 0. else 1.
                 if minPos is None:
                     minPos = maxPos
@@ -350,8 +345,10 @@ class GLPlotColormap(_GLPlotData2D):
                     if min_ > 0. and max_ > 0.:
                         minPos, maxPos = min_, max_
                     else:
-                        dataMin, minPos, dataMax = minMax(self.data,
-                                                          minPositive=True)
+                        result = min_max(self.data, min_positive=True)
+                        dataMin = result.minimum
+                        minPos = result.min_positive
+                        dataMax = result.maximum
                         if max_ > 0.:
                             maxPos = max_
                         elif dataMax > 0.:

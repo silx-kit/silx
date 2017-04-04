@@ -36,6 +36,8 @@ import logging
 
 import numpy
 
+from silx.math.combo import min_max
+
 from ...._glutils import gl
 from ...._glutils import numpyToGLType, Program, vertexBuffer
 from ..._utils import FLOAT32_MINPOS
@@ -44,15 +46,6 @@ from .GLSupport import buildFillMaskIndices
 
 _logger = logging.getLogger(__name__)
 
-
-# TODO replace with silx.math.combo min_max
-def minMax(data, minPositive):
-    min_ = numpy.nanmin(data)
-    max_ = numpy.nanmax(data)
-    if minPositive:
-        return min_, numpy.nanmin(data[data > 0]), max_
-    else:
-        return min_, max_
 
 _MPL_NONES = None, 'None', '', ' '
 
@@ -1012,30 +1005,36 @@ class GLPlotCurve2D(object):
 
         # Compute x bounds
         if xError is None:
-            self.xMin, self.xMinPos, self.xMax = minMax(xData,
-                                                        minPositive=True)
+            result = min_max(xData, min_positive=True)
+            self.xMin = result.minimum
+            self.xMinPos = result.min_positive
+            self.xMax = result.maximum
         else:
             # Takes the error into account
             if hasattr(xError, 'shape') and len(xError.shape) == 2:
                 xErrorPlus, xErrorMinus = xError[0], xError[1]
             else:
                 xErrorPlus, xErrorMinus = xError, xError
-            self.xMin, self.xMinPos, _ = minMax(xData - xErrorMinus,
-                                                minPositive=True)
+            result = min_max(xData - xErrorMinus, min_positive=True)
+            self.xMin = result.minimum
+            self.xMinPos = result.min_positive
             self.xMax = (xData + xErrorPlus).max()
 
         # Compute y bounds
         if yError is None:
-            self.yMin, self.yMinPos, self.yMax = minMax(yData,
-                                                        minPositive=True)
+            result = min_max(yData, min_positive=True)
+            self.yMin = result.minimum
+            self.yMinPos = result.min_positive
+            self.yMax = result.maximum
         else:
             # Takes the error into account
             if hasattr(yError, 'shape') and len(yError.shape) == 2:
                 yErrorPlus, yErrorMinus = yError[0], yError[1]
             else:
                 yErrorPlus, yErrorMinus = yError, yError
-            self.yMin, self.yMinPos, _ = minMax(yData - yErrorMinus,
-                                                minPositive=True)
+            result = min_max(yData - yErrorMinus, min_positive=True)
+            self.yMin = result.minimum
+            self.yMinPos = result.min_positive
             self.yMax = (yData + yErrorPlus).max()
 
         self._errorBars = _ErrorBars(xData, yData, xError, yError,
