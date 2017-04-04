@@ -35,19 +35,21 @@ __date__ = "03/04/2017"
 # keep aspect ratio managed here?
 # smarter dirty flag handling?
 
-import numpy as np
 import math
 import weakref
-import warnings
-
+import logging
 from collections import namedtuple
 
-from ...._glutils.gl import *  # noqa
-from ...._glutils import Program
+import numpy
+
+from ...._glutils import gl, Program
 from ..._utils import FLOAT32_SAFE_MIN, FLOAT32_MINPOS, FLOAT32_SAFE_MAX
 from .GLSupport import mat4Ortho
 from .GLText import Text2D, CENTER, BOTTOM, TOP, LEFT, RIGHT, ROTATE_270
 from ..._utils.ticklayout import niceNumbersAdaptative, niceNumbersForLog10
+
+
+_logger = logging.getLogger(__name__)
 
 
 # PlotAxis ####################################################################
@@ -223,9 +225,8 @@ class PlotAxis(object):
         """
         dataMin, dataMax = self.dataRange
         if self.isLog and dataMin <= 0.:
-            warnings.warn(
-                'Getting ticks while isLog=True and dataRange[0]<=0.',
-                RuntimeWarning)
+            _logger.warning(
+                'Getting ticks while isLog=True and dataRange[0]<=0.')
             dataMin = 1.
             if dataMax < dataMin:
                 dataMax = 1.
@@ -447,16 +448,16 @@ class GLPlotFrame(object):
             # Non-orthogonal axes
             if self.baseVectors != self.DEFAULT_BASE_VECTORS:
                 (xx, xy), (yx, yy) = self.baseVectors
-                skew_mat = np.array(((xx, yx), (xy, yy)))
+                skew_mat = numpy.array(((xx, yx), (xy, yy)))
 
                 corners = [(xMin, yMin), (xMin, yMax),
                            (xMax, yMin), (xMax, yMax),
                            (xMin, y2Min), (xMin, y2Max),
                            (xMax, y2Min), (xMax, y2Max)]
 
-                corners = np.array(
-                    [np.dot(skew_mat, corner) for corner in corners],
-                    dtype=np.float32)
+                corners = numpy.array(
+                    [numpy.dot(skew_mat, corner) for corner in corners],
+                    dtype=numpy.float32)
                 xMin, xMax = corners[:, 0].min(),  corners[:, 0].max()
                 yMin, yMax = corners[0:4, 1].min(), corners[0:4, 1].max()
                 y2Min, y2Max = corners[4:, 1].min(), corners[4:, 1].max()
@@ -484,11 +485,11 @@ class GLPlotFrame(object):
             # Non-orthogonal axes
             if self.baseVectors != self.DEFAULT_BASE_VECTORS:
                 (xx, xy), (yx, yy) = self.baseVectors
-                mat = mat * np.matrix((
+                mat = mat * numpy.matrix((
                     (xx, yx, 0., 0.),
                     (xy, yy, 0., 0.),
                     (0., 0., 1., 0.),
-                    (0., 0., 0., 1.)), dtype=np.float32)
+                    (0., 0., 0., 1.)), dtype=numpy.float32)
 
             self._transformedDataProjMat = mat
 
@@ -513,11 +514,11 @@ class GLPlotFrame(object):
             # Non-orthogonal axes
             if self.baseVectors != self.DEFAULT_BASE_VECTORS:
                 (xx, xy), (yx, yy) = self.baseVectors
-                mat = mat * np.matrix((
+                mat = mat * numpy.matrix((
                     (xx, yx, 0., 0.),
                     (xy, yy, 0., 0.),
                     (0., 0., 1., 0.),
-                    (0., 0., 0., 1.)), dtype=np.float32)
+                    (0., 0., 0., 1.)), dtype=numpy.float32)
 
             self._transformedDataY2ProjMat = mat
 
@@ -547,9 +548,9 @@ class GLPlotFrame(object):
         # Non-orthogonal axes
         if self.baseVectors != self.DEFAULT_BASE_VECTORS:
             (xx, xy), (yx, yy) = self.baseVectors
-            skew_mat = np.array(((xx, yx), (xy, yy)))
+            skew_mat = numpy.array(((xx, yx), (xy, yy)))
 
-            coords = np.dot(skew_mat, np.array((xDataTr, yDataTr)))
+            coords = numpy.dot(skew_mat, numpy.array((xDataTr, yDataTr)))
             xDataTr, yDataTr = coords
 
         plotWidth, plotHeight = self.plotSize
@@ -598,10 +599,10 @@ class GLPlotFrame(object):
         # non-orthogonal axis
         if self.baseVectors != self.DEFAULT_BASE_VECTORS:
             (xx, xy), (yx, yy) = self.baseVectors
-            skew_mat = np.array(((xx, yx), (xy, yy)))
-            skew_mat = np.linalg.inv(skew_mat)
+            skew_mat = numpy.array(((xx, yx), (xy, yy)))
+            skew_mat = numpy.linalg.inv(skew_mat)
 
-            coords = np.dot(skew_mat, np.array((xData, yData)))
+            coords = numpy.dot(skew_mat, numpy.array((xData, yData)))
             xData, yData = coords
 
         if self.xAxis.isLog:
@@ -669,7 +670,7 @@ class GLPlotFrame(object):
             vertices += axisVertices
             labels += axisLabels
 
-        vertices = np.array(vertices, dtype=np.float32)
+        vertices = numpy.array(vertices, dtype=numpy.float32)
 
         # Add main title
         xTitle = (self.size[0] + self.margins.left -
@@ -682,7 +683,8 @@ class GLPlotFrame(object):
                              valign=BOTTOM))
 
         # grid
-        gridVertices = np.array(self._buildGridVertices(), dtype=np.float32)
+        gridVertices = numpy.array(self._buildGridVertices(),
+                                   dtype=numpy.float32)
 
         self._renderResources = (vertices, gridVertices, labels)
 
@@ -696,25 +698,25 @@ class GLPlotFrame(object):
         width, height = self.size
         matProj = mat4Ortho(0, width, height, 0, 1, -1)
 
-        glViewport(0, 0, width, height)
+        gl.glViewport(0, 0, width, height)
 
         prog = self._program
         prog.use()
 
-        glLineWidth(self._LINE_WIDTH)
+        gl.glLineWidth(self._LINE_WIDTH)
 
-        glUniformMatrix4fv(prog.uniforms['matrix'], 1, GL_TRUE, matProj)
-        glUniform4f(prog.uniforms['color'], 0., 0., 0., 1.)
-        glUniform1f(prog.uniforms['tickFactor'], 0.)
+        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE, matProj)
+        gl.glUniform4f(prog.uniforms['color'], 0., 0., 0., 1.)
+        gl.glUniform1f(prog.uniforms['tickFactor'], 0.)
 
-        glEnableVertexAttribArray(prog.attributes['position'])
-        glVertexAttribPointer(prog.attributes['position'],
-                              2,
-                              GL_FLOAT,
-                              GL_FALSE,
-                              0, vertices)
+        gl.glEnableVertexAttribArray(prog.attributes['position'])
+        gl.glVertexAttribPointer(prog.attributes['position'],
+                                 2,
+                                 gl.GL_FLOAT,
+                                 gl.GL_FALSE,
+                                 0, vertices)
 
-        glDrawArrays(GL_LINES, 0, len(vertices))
+        gl.glDrawArrays(gl.GL_LINES, 0, len(vertices))
 
         for label in labels:
             label.render(matProj)
@@ -730,24 +732,24 @@ class GLPlotFrame(object):
         width, height = self.size
         matProj = mat4Ortho(0, width, height, 0, 1, -1)
 
-        glViewport(0, 0, width, height)
+        gl.glViewport(0, 0, width, height)
 
         prog = self._program
         prog.use()
 
-        glLineWidth(self._LINE_WIDTH)
-        glUniformMatrix4fv(prog.uniforms['matrix'], 1, GL_TRUE, matProj)
-        glUniform4f(prog.uniforms['color'], 0.7, 0.7, 0.7, 1.)
-        glUniform1f(prog.uniforms['tickFactor'], 0.)  # 1/2.)  # 1/tickLen
+        gl.glLineWidth(self._LINE_WIDTH)
+        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE, matProj)
+        gl.glUniform4f(prog.uniforms['color'], 0.7, 0.7, 0.7, 1.)
+        gl.glUniform1f(prog.uniforms['tickFactor'], 0.)  # 1/2.)  # 1/tickLen
 
-        glEnableVertexAttribArray(prog.attributes['position'])
-        glVertexAttribPointer(prog.attributes['position'],
+        gl.glEnableVertexAttribArray(prog.attributes['position'])
+        gl.glVertexAttribPointer(prog.attributes['position'],
                               2,
-                              GL_FLOAT,
-                              GL_FALSE,
+                              gl.GL_FLOAT,
+                              gl.GL_FALSE,
                               0, gridVertices)
 
-        glDrawArrays(GL_LINES, 0, len(gridVertices))
+        gl.glDrawArrays(gl.GL_LINES, 0, len(gridVertices))
 
 
 # GLPlotFrame2D ###############################################################
@@ -874,8 +876,8 @@ class GLPlotFrame2D(GLPlotFrame):
     def _clipToSafeRange(min_, max_, isLog):
         # Clip range if needed
         minLimit = FLOAT32_MINPOS if isLog else FLOAT32_SAFE_MIN
-        min_ = np.clip(min_, minLimit, FLOAT32_SAFE_MAX)
-        max_ = np.clip(max_, minLimit, FLOAT32_SAFE_MAX)
+        min_ = numpy.clip(min_, minLimit, FLOAT32_SAFE_MAX)
+        max_ = numpy.clip(max_, minLimit, FLOAT32_SAFE_MAX)
         assert min_ < max_
         return min_, max_
 
@@ -957,7 +959,7 @@ class GLPlotFrame2D(GLPlotFrame):
 
             for axis in self.axes:
                 if axis == self.xAxis:
-                    cornersInData = np.array([
+                    cornersInData = numpy.array([
                         self.pixelToData(x, y) for (x, y) in corners])
                     borders = ((cornersInData[0], cornersInData[3]),  # top
                                (cornersInData[1], cornersInData[0]),  # left
@@ -980,7 +982,7 @@ class GLPlotFrame2D(GLPlotFrame):
                 else:  # y or y2 axes
                     if axis == self.yAxis:
                         axis_name = 'left'
-                        cornersInData = np.array([
+                        cornersInData = numpy.array([
                             self.pixelToData(x, y) for (x, y) in corners])
                         borders = (
                             (cornersInData[3], cornersInData[2]),  # right
@@ -989,7 +991,7 @@ class GLPlotFrame2D(GLPlotFrame):
 
                     else:  # axis == self.y2Axis
                         axis_name = 'right'
-                        corners = np.array([self.pixelToData(
+                        corners = numpy.array([self.pixelToData(
                             x, y, axis='right') for (x, y) in corners])
                         borders = (
                             (cornersInData[1], cornersInData[0]),  # left
@@ -1022,7 +1024,8 @@ class GLPlotFrame2D(GLPlotFrame):
         if not self.isY2Axis:
             extraVertices += self._y2Axis.displayCoords
 
-        extraVertices = np.array(extraVertices, copy=False, dtype=np.float32)
-        vertices = np.append(vertices, extraVertices, axis=0)
+        extraVertices = numpy.array(
+            extraVertices, copy=False, dtype=numpy.float32)
+        vertices = numpy.append(vertices, extraVertices, axis=0)
 
         self._renderResources = (vertices, gridVertices, labels)

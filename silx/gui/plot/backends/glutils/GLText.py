@@ -32,11 +32,9 @@ __license__ = "MIT"
 __date__ = "03/04/2017"
 
 
-import numpy as np
-import math
+import numpy
 from ctypes import c_void_p, sizeof, c_float
-from ...._glutils.gl import *  # noqa
-from ...._glutils import getGLContext, Program
+from ...._glutils import gl, getGLContext, Program
 from . import FontLatin1_12 as font
 from .GLSupport import mat4Translate
 
@@ -109,7 +107,7 @@ class Text2D(object):
                 "Vertical alignment not supported: {0}".format(valign))
         self._valign = valign
 
-        self._rotate = math.radians(rotate)
+        self._rotate = numpy.radians(rotate)
 
     @classmethod
     def _getTexture(cls):
@@ -138,7 +136,8 @@ class Text2D(object):
 
     def getVertices(self):
         if self._vertices is None:
-            self._vertices = np.empty((len(self.text), 4, 4), dtype='float32')
+            self._vertices = numpy.empty((len(self.text), 4, 4),
+                                         dtype='float32')
 
             if self._align == LEFT:
                 xOrig = 0
@@ -156,7 +155,7 @@ class Text2D(object):
             else:  # CENTER
                 yOrig = - font.cHeight // 2
 
-            cos, sin = math.cos(self._rotate), math.sin(self._rotate)
+            cos, sin = numpy.cos(self._rotate), numpy.sin(self._rotate)
 
             for index, char in enumerate(self.text):
                 uMin, vMin, uMax, vMax = font.charTexCoords(char)
@@ -188,40 +187,40 @@ class Text2D(object):
         texUnit = 0
         self._getTexture().bind(texUnit)
 
-        glUniform1i(prog.uniforms['texText'], texUnit)
+        gl.glUniform1i(prog.uniforms['texText'], texUnit)
 
-        glUniformMatrix4fv(prog.uniforms['matrix'], 1, GL_TRUE,
-                           matrix * mat4Translate(self.x, self.y))
+        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE,
+                              matrix * mat4Translate(self.x, self.y))
 
-        glUniform4f(prog.uniforms['color'], *self.color)
+        gl.glUniform4f(prog.uniforms['color'], *self.color)
         if self.bgColor is not None:
             bgColor = self.bgColor
         else:
             bgColor = self.color[0], self.color[1], self.color[2], 0.
-        glUniform4f(prog.uniforms['bgColor'], *bgColor)
+        gl.glUniform4f(prog.uniforms['bgColor'], *bgColor)
 
         stride, vertices = self.getStride(), self.getVertices()
 
         posAttrib = prog.attributes['position']
-        glEnableVertexAttribArray(posAttrib)
-        glVertexAttribPointer(posAttrib,
-                              2,
-                              GL_FLOAT,
-                              GL_FALSE,
-                              stride, vertices)
+        gl.glEnableVertexAttribArray(posAttrib)
+        gl.glVertexAttribPointer(posAttrib,
+                                 2,
+                                 gl.GL_FLOAT,
+                                 gl.GL_FALSE,
+                                 stride, vertices)
 
         texAttrib = prog.attributes['texCoords']
-        glEnableVertexAttribArray(texAttrib)
-        glVertexAttribPointer(texAttrib,
-                              2,
-                              GL_FLOAT,
-                              GL_FALSE,
-                              stride,
-                              c_void_p(vertices.ctypes.data +
-                                       2 * sizeof(c_float))
-                              )
+        gl.glEnableVertexAttribArray(texAttrib)
+        gl.glVertexAttribPointer(texAttrib,
+                                 2,
+                                 gl.GL_FLOAT,
+                                 gl.GL_FALSE,
+                                 stride,
+                                 c_void_p(vertices.ctypes.data +
+                                          2 * sizeof(c_float))
+                                 )
 
         nbChar, nbVert, _ = vertices.shape
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, nbChar * nbVert)
+        gl.glDrawArrays(gl.GL_TRIANGLE_STRIP, 0, nbChar * nbVert)
 
-        glBindTexture(GL_TEXTURE_2D, 0)
+        gl.glBindTexture(gl.GL_TEXTURE_2D, 0)

@@ -31,22 +31,26 @@ __license__ = "MIT"
 __date__ = "03/04/2017"
 
 
-import numpy as np
 import math
-import warnings
+import logging
 
-from ...._glutils.gl import *  # noqa
+import numpy
+
+from ...._glutils import gl
 from ...._glutils import numpyToGLType, Program, vertexBuffer
 from ..._utils import FLOAT32_MINPOS
 from .GLSupport import buildFillMaskIndices
 
 
+_logger = logging.getLogger(__name__)
+
+
 # TODO replace with silx.math.combo min_max
 def minMax(data, minPositive):
-    min_ = np.nanmin(data)
-    max_ = np.nanmax(data)
+    min_ = numpy.nanmin(data)
+    max_ = numpy.nanmax(data)
     if minPositive:
-        return min_, np.nanmin(data[data > 0]), max_
+        return min_, numpy.nanmin(data[data > 0]), max_
     else:
         return min_, max_
 
@@ -147,10 +151,10 @@ class _Fill2D(object):
 
         if self._bboxVertices is None:
             yMin, yMax = min(self.yMin, 1e-32), max(self.yMax, 1e-32)
-            self._bboxVertices = np.array(((self.xMin, self.xMin,
-                                            self.xMax, self.xMax),
-                                           (yMin, yMax, yMin, yMax)),
-                                          dtype=np.float32)
+            self._bboxVertices = numpy.array(((self.xMin, self.xMin,
+                                               self.xMax, self.xMax),
+                                              (yMin, yMax, yMin, yMax)),
+                                             dtype=numpy.float32)
 
     def render(self, matrix, isXLog, isYLog):
         self.prepare()
@@ -163,42 +167,42 @@ class _Fill2D(object):
         prog = self._programs[transform]
         prog.use()
 
-        glUniformMatrix4fv(prog.uniforms['matrix'], 1, GL_TRUE, matrix)
+        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE, matrix)
 
-        glUniform4f(prog.uniforms['color'], *self.color)
+        gl.glUniform4f(prog.uniforms['color'], *self.color)
 
         xPosAttrib = prog.attributes['xPos']
         yPosAttrib = prog.attributes['yPos']
 
-        glEnableVertexAttribArray(xPosAttrib)
+        gl.glEnableVertexAttribArray(xPosAttrib)
         self.xFillVboData.setVertexAttrib(xPosAttrib)
 
-        glEnableVertexAttribArray(yPosAttrib)
+        gl.glEnableVertexAttribArray(yPosAttrib)
         self.yFillVboData.setVertexAttrib(yPosAttrib)
 
         # Prepare fill mask
-        glEnable(GL_STENCIL_TEST)
-        glStencilMask(1)
-        glStencilFunc(GL_ALWAYS, 1, 1)
-        glStencilOp(GL_INVERT, GL_INVERT, GL_INVERT)
-        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE)
-        glDepthMask(GL_FALSE)
+        gl.glEnable(gl.GL_STENCIL_TEST)
+        gl.glStencilMask(1)
+        gl.glStencilFunc(gl.GL_ALWAYS, 1, 1)
+        gl.glStencilOp(gl.GL_INVERT, gl.GL_INVERT, gl.GL_INVERT)
+        gl.glColorMask(gl.GL_FALSE, gl.GL_FALSE, gl.GL_FALSE, gl.GL_FALSE)
+        gl.glDepthMask(gl.GL_FALSE)
 
-        glDrawElements(GL_TRIANGLE_STRIP, self._indices.size,
-                       self._indicesType, self._indices)
+        gl.glDrawElements(gl.GL_TRIANGLE_STRIP, self._indices.size,
+                          self._indicesType, self._indices)
 
-        glStencilFunc(GL_EQUAL, 1, 1)
-        glStencilOp(GL_ZERO, GL_ZERO, GL_ZERO)  # Reset stencil while drawing
-        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE)
-        glDepthMask(GL_TRUE)
+        gl.glStencilFunc(gl.GL_EQUAL, 1, 1)
+        gl.glStencilOp(gl.GL_ZERO, gl.GL_ZERO, gl.GL_ZERO)  # Reset stencil while drawing
+        gl.glColorMask(gl.GL_TRUE, gl.GL_TRUE, gl.GL_TRUE, gl.GL_TRUE)
+        gl.glDepthMask(gl.GL_TRUE)
 
-        glVertexAttribPointer(xPosAttrib, 1, GL_FLOAT, GL_FALSE, 0,
-                              self._bboxVertices[0])
-        glVertexAttribPointer(yPosAttrib, 1, GL_FLOAT, GL_FALSE, 0,
-                              self._bboxVertices[1])
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, self._bboxVertices[0].size)
+        gl.glVertexAttribPointer(xPosAttrib, 1, gl.GL_FLOAT, gl.GL_FALSE, 0,
+                                 self._bboxVertices[0])
+        gl.glVertexAttribPointer(yPosAttrib, 1, gl.GL_FLOAT, gl.GL_FALSE, 0,
+                                 self._bboxVertices[1])
+        gl.glDrawArrays(gl.GL_TRIANGLE_STRIP, 0, self._bboxVertices[0].size)
 
-        glDisable(GL_STENCIL_TEST)
+        gl.glDisable(gl.GL_STENCIL_TEST)
 
 
 # line ########################################################################
@@ -338,7 +342,7 @@ class _Lines2D(object):
         self.style = style
         self.dashPeriod = dashPeriod
 
-        self._drawMode = drawMode if drawMode is not None else GL_LINE_STRIP
+        self._drawMode = drawMode if drawMode is not None else gl.GL_LINE_STRIP
 
     @property
     def style(self):
@@ -366,7 +370,7 @@ class _Lines2D(object):
         # try:
         #    widthRange = self._widthRange
         # except AttributeError:
-        #    widthRange = glGetFloatv(GL_ALIASED_LINE_WIDTH_RANGE)
+        #    widthRange = gl.glGetFloatv(gl.GL_ALIASED_LINE_WIDTH_RANGE)
         #    # Shared among contexts, this should be enough..
         #    _Lines2D._widthRange = widthRange
         # assert width >= widthRange[0] and width <= widthRange[1]
@@ -386,7 +390,7 @@ class _Lines2D(object):
 
     @classmethod
     def init(cls):
-        glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)
+        gl.glHint(gl.GL_LINE_SMOOTH_HINT, gl.GL_NICEST)
 
     def _renderNone(self, matrix, isXLog, isYLog):
         pass
@@ -402,30 +406,30 @@ class _Lines2D(object):
         prog = self._getProgram(transform, SOLID)
         prog.use()
 
-        glEnable(GL_LINE_SMOOTH)
+        gl.glEnable(gl.GL_LINE_SMOOTH)
 
-        glUniformMatrix4fv(prog.uniforms['matrix'], 1, GL_TRUE, matrix)
+        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE, matrix)
 
         colorAttrib = prog.attributes['color']
         if self.useColorVboData and self.colorVboData is not None:
-            glEnableVertexAttribArray(colorAttrib)
+            gl.glEnableVertexAttribArray(colorAttrib)
             self.colorVboData.setVertexAttrib(colorAttrib)
         else:
-            glDisableVertexAttribArray(colorAttrib)
-            glVertexAttrib4f(colorAttrib, *self.color)
+            gl.glDisableVertexAttribArray(colorAttrib)
+            gl.glVertexAttrib4f(colorAttrib, *self.color)
 
         xPosAttrib = prog.attributes['xPos']
-        glEnableVertexAttribArray(xPosAttrib)
+        gl.glEnableVertexAttribArray(xPosAttrib)
         self.xVboData.setVertexAttrib(xPosAttrib)
 
         yPosAttrib = prog.attributes['yPos']
-        glEnableVertexAttribArray(yPosAttrib)
+        gl.glEnableVertexAttribArray(yPosAttrib)
         self.yVboData.setVertexAttrib(yPosAttrib)
 
-        glLineWidth(self.width)
-        glDrawArrays(self._drawMode, 0, self.xVboData.size)
+        gl.glLineWidth(self.width)
+        gl.glDrawArrays(self._drawMode, 0, self.xVboData.size)
 
-        glDisable(GL_LINE_SMOOTH)
+        gl.glDisable(gl.GL_LINE_SMOOTH)
 
     def _renderDash(self, matrix, isXLog, isYLog):
         if isXLog:
@@ -436,45 +440,46 @@ class _Lines2D(object):
         prog = self._getProgram(transform, DASHED)
         prog.use()
 
-        glEnable(GL_LINE_SMOOTH)
+        gl.glEnable(gl.GL_LINE_SMOOTH)
 
-        glUniformMatrix4fv(prog.uniforms['matrix'], 1, GL_TRUE, matrix)
-        x, y, viewWidth, viewHeight = glGetFloatv(GL_VIEWPORT)
-        glUniform2f(prog.uniforms['halfViewportSize'],
-                    0.5 * viewWidth, 0.5 * viewHeight)
+        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE, matrix)
+        x, y, viewWidth, viewHeight = gl.glGetFloatv(gl.GL_VIEWPORT)
+        gl.glUniform2f(prog.uniforms['halfViewportSize'],
+                       0.5 * viewWidth, 0.5 * viewHeight)
 
-        glUniform1f(prog.uniforms['dashPeriod'], self.dashPeriod)
+        gl.glUniform1f(prog.uniforms['dashPeriod'], self.dashPeriod)
 
         colorAttrib = prog.attributes['color']
         if self.useColorVboData and self.colorVboData is not None:
-            glEnableVertexAttribArray(colorAttrib)
+            gl.glEnableVertexAttribArray(colorAttrib)
             self.colorVboData.setVertexAttrib(colorAttrib)
         else:
-            glDisableVertexAttribArray(colorAttrib)
-            glVertexAttrib4f(colorAttrib, *self.color)
+            gl.glDisableVertexAttribArray(colorAttrib)
+            gl.glVertexAttrib4f(colorAttrib, *self.color)
 
         distAttrib = prog.attributes['distance']
-        glEnableVertexAttribArray(distAttrib)
+        gl.glEnableVertexAttribArray(distAttrib)
         self.distVboData.setVertexAttrib(distAttrib)
 
         xPosAttrib = prog.attributes['xPos']
-        glEnableVertexAttribArray(xPosAttrib)
+        gl.glEnableVertexAttribArray(xPosAttrib)
         self.xVboData.setVertexAttrib(xPosAttrib)
 
         yPosAttrib = prog.attributes['yPos']
-        glEnableVertexAttribArray(yPosAttrib)
+        gl.glEnableVertexAttribArray(yPosAttrib)
         self.yVboData.setVertexAttrib(yPosAttrib)
 
-        glLineWidth(self.width)
-        glDrawArrays(self._drawMode, 0, self.xVboData.size)
+        gl.glLineWidth(self.width)
+        gl.glDrawArrays(self._drawMode, 0, self.xVboData.size)
 
-        glDisable(GL_LINE_SMOOTH)
+        gl.glDisable(gl.GL_LINE_SMOOTH)
 
 
 def _distancesFromArrays(xData, yData):
-    deltas = np.dstack((np.ediff1d(xData, to_begin=np.float32(0.)),
-                        np.ediff1d(yData, to_begin=np.float32(0.))))[0]
-    return np.cumsum(np.sqrt((deltas ** 2).sum(axis=1)))
+    deltas = numpy.dstack((
+        numpy.ediff1d(xData, to_begin=numpy.float32(0.)),
+        numpy.ediff1d(yData, to_begin=numpy.float32(0.))))[0]
+    return numpy.cumsum(numpy.sqrt((deltas ** 2).sum(axis=1)))
 
 
 # points ######################################################################
@@ -678,7 +683,7 @@ class _Points2D(object):
         # try:
         #    sizeRange = self._sizeRange
         # except AttributeError:
-        #    sizeRange = glGetFloatv(GL_POINT_SIZE_RANGE)
+        #    sizeRange = gl.glGetFloatv(gl.GL_POINT_SIZE_RANGE)
         #    # Shared among contexts, this should be enough..
         #    _Points2D._sizeRange = sizeRange
         # assert size >= sizeRange[0] and size <= sizeRange[1]
@@ -705,13 +710,13 @@ class _Points2D(object):
 
     @classmethod
     def init(cls):
-        version = glGetString(GL_VERSION)
+        version = gl.glGetString(gl.GL_VERSION)
         majorVersion = int(version[0])
         assert majorVersion >= 2
-        glEnable(GL_VERTEX_PROGRAM_POINT_SIZE)  # OpenGL 2
-        glEnable(GL_POINT_SPRITE)  # OpenGL 2
+        gl.glEnable(gl.GL_VERTEX_PROGRAM_POINT_SIZE)  # OpenGL 2
+        gl.glEnable(gl.GL_POINT_SPRITE)  # OpenGL 2
         if majorVersion >= 3:  # OpenGL 3
-            glEnable(GL_PROGRAM_POINT_SIZE)
+            gl.glEnable(gl.GL_PROGRAM_POINT_SIZE)
 
     def _renderNone(self, matrix, isXLog, isYLog):
         pass
@@ -726,35 +731,35 @@ class _Points2D(object):
 
         prog = self._getProgram(transform, self.marker)
         prog.use()
-        glUniformMatrix4fv(prog.uniforms['matrix'], 1, GL_TRUE, matrix)
+        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE, matrix)
         if self.marker == PIXEL:
             size = 1
         elif self.marker == POINT:
             size = math.ceil(0.5 * self.size) + 1  # Mimic Matplotlib point
         else:
             size = self.size
-        glUniform1f(prog.uniforms['size'], size)
-        # glPointSize(self.size)
+        gl.glUniform1f(prog.uniforms['size'], size)
+        # gl.glPointSize(self.size)
 
         cAttrib = prog.attributes['color']
         if self.useColorVboData and self.colorVboData is not None:
-            glEnableVertexAttribArray(cAttrib)
+            gl.glEnableVertexAttribArray(cAttrib)
             self.colorVboData.setVertexAttrib(cAttrib)
         else:
-            glDisableVertexAttribArray(cAttrib)
-            glVertexAttrib4f(cAttrib, *self.color)
+            gl.glDisableVertexAttribArray(cAttrib)
+            gl.glVertexAttrib4f(cAttrib, *self.color)
 
         xAttrib = prog.attributes['xPos']
-        glEnableVertexAttribArray(xAttrib)
+        gl.glEnableVertexAttribArray(xAttrib)
         self.xVboData.setVertexAttrib(xAttrib)
 
         yAttrib = prog.attributes['yPos']
-        glEnableVertexAttribArray(yAttrib)
+        gl.glEnableVertexAttribArray(yAttrib)
         self.yVboData.setVertexAttrib(yAttrib)
 
-        glDrawArrays(GL_POINTS, 0, self.xVboData.size)
+        gl.glDrawArrays(gl.GL_POINTS, 0, self.xVboData.size)
 
-        glUseProgram(0)
+        gl.glUseProgram(0)
 
 
 # error bars ##################################################################
@@ -798,21 +803,21 @@ class _ErrorBars(object):
 
         if xError is not None or yError is not None:
             assert len(xData) == len(yData)
-            self._xData = np.array(xData, order='C', dtype=np.float32,
-                                   copy=False)
-            self._yData = np.array(yData, order='C', dtype=np.float32,
-                                   copy=False)
+            self._xData = numpy.array(
+                xData, order='C', dtype=numpy.float32, copy=False)
+            self._yData = numpy.array(
+                yData, order='C', dtype=numpy.float32, copy=False)
 
             # This also works if xError, yError is a float/int
-            self._xError = np.array(xError, order='C', dtype=np.float32,
-                                    copy=False)
-            self._yError = np.array(yError, order='C', dtype=np.float32,
-                                    copy=False)
+            self._xError = numpy.array(
+                xError, order='C', dtype=numpy.float32, copy=False)
+            self._yError = numpy.array(
+                yError, order='C', dtype=numpy.float32, copy=False)
         else:
             self._xData, self._yData = None, None
             self._xError, self._yError = None, None
 
-        self._lines = _Lines2D(None, None, color=color, drawMode=GL_LINES)
+        self._lines = _Lines2D(None, None, color=color, drawMode=gl.GL_LINES)
         self._xErrPoints = _Points2D(None, None, color=color, marker=V_LINE)
         self._yErrPoints = _Points2D(None, None, color=color, marker=H_LINE)
 
@@ -829,9 +834,8 @@ class _ErrorBars(object):
             # No need to filter, all values are > 0 on log axes
             return self._xData, self._yData, self._xError, self._yError
 
-        warnings.warn(
-            'Removing values <= 0 of curve with error bars on a log axis.',
-            RuntimeWarning)
+        _logger.warning(
+            'Removing values <= 0 of curve with error bars on a log axis.')
 
         x, y = self._xData, self._yData
         xError, yError = self._xError, self._yError
@@ -871,10 +875,10 @@ class _ErrorBars(object):
 
         # interleave coord+error, coord-error.
         # xError vertices first if any, then yError vertices if any.
-        xCoords = np.empty(nbDataPts * nbLinesPerDataPts * 2,
-                           dtype=np.float32)
-        yCoords = np.empty(nbDataPts * nbLinesPerDataPts * 2,
-                           dtype=np.float32)
+        xCoords = numpy.empty(nbDataPts * nbLinesPerDataPts * 2,
+                              dtype=numpy.float32)
+        yCoords = numpy.empty(nbDataPts * nbLinesPerDataPts * 2,
+                              dtype=numpy.float32)
 
         if xError is not None:  # errors on the X axis
             if len(xError.shape) == 2:
@@ -1088,18 +1092,18 @@ class GLPlotCurve2D(object):
     def _logFilterData(x, y, color=None, xLog=False, yLog=False):
         # Copied from Plot.py
         if xLog and yLog:
-            idx = np.nonzero((x > 0) & (y > 0))[0]
-            x = np.take(x, idx)
-            y = np.take(y, idx)
+            idx = numpy.nonzero((x > 0) & (y > 0))[0]
+            x = numpy.take(x, idx)
+            y = numpy.take(y, idx)
         elif yLog:
-            idx = np.nonzero(y > 0)[0]
-            x = np.take(x, idx)
-            y = np.take(y, idx)
+            idx = numpy.nonzero(y > 0)[0]
+            x = numpy.take(x, idx)
+            y = numpy.take(y, idx)
         elif xLog:
-            idx = np.nonzero(x > 0)[0]
-            x = np.take(x, idx)
-            y = np.take(y, idx)
-        if isinstance(color, np.ndarray):
+            idx = numpy.nonzero(x > 0)[0]
+            x = numpy.take(x, idx)
+            y = numpy.take(y, idx)
+        if isinstance(color, numpy.ndarray):
             colors = numpy.zeros((x.size, 4), color.dtype)
             colors[:, 0] = color[idx, 0]
             colors[:, 1] = color[idx, 1]
@@ -1163,7 +1167,7 @@ class GLPlotCurve2D(object):
             if self.fill is not None:
                 xData = self.xData[:]
                 xData.shape = xData.size, 1
-                zero = np.array((1e-32,), dtype=self.yData.dtype)
+                zero = numpy.array((1e-32,), dtype=self.yData.dtype)
 
                 # Add one point before data: (x0, 0.)
                 xAttrib.vbo.update(xData[0], xAttrib.offset,
@@ -1234,12 +1238,12 @@ class GLPlotCurve2D(object):
                     (self.xData < xPickMin)
 
             # Add all points that are inside the picking area
-            indices = np.nonzero(codes == 0)[0].tolist()
+            indices = numpy.nonzero(codes == 0)[0].tolist()
 
             # Segment that might cross the area with no end point inside it
-            segToTestIdx = np.nonzero((codes[:-1] != 0) &
-                                      (codes[1:] != 0) &
-                                      ((codes[:-1] & codes[1:]) == 0))[0]
+            segToTestIdx = numpy.nonzero((codes[:-1] != 0) &
+                                         (codes[1:] != 0) &
+                                         ((codes[:-1] & codes[1:]) == 0))[0]
 
             TOP, BOTTOM, RIGHT, LEFT = (1 << 3), (1 << 2), (1 << 1), (1 << 0)
 
@@ -1280,9 +1284,9 @@ class GLPlotCurve2D(object):
             indices.sort()
 
         else:
-            indices = np.nonzero((self.xData >= xPickMin) &
-                                 (self.xData <= xPickMax) &
-                                 (self.yData >= yPickMin) &
-                                 (self.yData <= yPickMax))[0].tolist()
+            indices = numpy.nonzero((self.xData >= xPickMin) &
+                                    (self.xData <= xPickMax) &
+                                    (self.yData >= yPickMin) &
+                                    (self.yData <= yPickMax))[0].tolist()
 
         return indices

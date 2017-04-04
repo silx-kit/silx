@@ -31,11 +31,10 @@ __license__ = "MIT"
 __date__ = "03/04/2017"
 
 
-import numpy as np
-from ...._glutils.gl import *  # noqa
-from ...._glutils import Program
-
 import math
+import numpy
+
+from ...._glutils import gl, Program
 from ..._utils import FLOAT32_MINPOS
 from .GLSupport import mat4Translate, mat4Scale
 from .GLTexture import Image
@@ -43,10 +42,10 @@ from .GLTexture import Image
 
 # TODO replace with silx.math.combo min_max
 def minMax(data, minPositive):
-    min_ = np.nanmin(data)
-    max_ = np.nanmax(data)
+    min_ = numpy.nanmin(data)
+    max_ = numpy.nanmax(data)
     if minPositive:
-        return min_, np.nanmin(data[data > 0]), max_
+        return min_, numpy.nanmin(data[data > 0]), max_
     else:
         return min_, max_
 
@@ -269,10 +268,10 @@ class GLPlotColormap(_GLPlotData2D):
     _DATA_TEX_UNIT = 0
 
     _INTERNAL_FORMATS = {
-        np.dtype(np.float32): GL_R32F,
+        numpy.dtype(numpy.float32): gl.GL_R32F,
         # Use normalized integer for unsigned int formats
-        np.dtype(np.uint16): GL_R16,
-        np.dtype(np.uint8): GL_R8,
+        numpy.dtype(numpy.uint16): gl.GL_R16,
+        numpy.dtype(numpy.uint8): gl.GL_R8,
     }
 
     _linearProgram = Program(_SHADERS['linear']['vertex'],
@@ -389,34 +388,34 @@ class GLPlotColormap(_GLPlotData2D):
 
             self._texture = Image(internalFormat,
                                   self.data,
-                                  format_=GL_RED,
+                                  format_=gl.GL_RED,
                                   texUnit=self._DATA_TEX_UNIT)
         elif self._textureIsDirty:
             self._textureIsDirty = True
-            self._texture.updateAll(format_=GL_RED, data=self.data)
+            self._texture.updateAll(format_=gl.GL_RED, data=self.data)
 
     def _setCMap(self, prog):
         dataMin, dataMax = self.cmapRange  # If log, it is stricly positive
 
-        if self.data.dtype in (np.uint16, np.uint8):
+        if self.data.dtype in (numpy.uint16, numpy.uint8):
             # Using unsigned int as normalized integer in OpenGL
             # So normalize range
-            maxInt = float(np.iinfo(self.data.dtype).max)
+            maxInt = float(numpy.iinfo(self.data.dtype).max)
             dataMin, dataMax = dataMin / maxInt, dataMax / maxInt
 
         if self.cmapIsLog:
             dataMin = math.log10(dataMin)
             dataMax = math.log10(dataMax)
 
-        glUniform1i(prog.uniforms['cmap.id'],
-                    self._SHADER_CMAP_IDS[self.colormap])
-        glUniform1i(prog.uniforms['cmap.isLog'], self.cmapIsLog)
-        glUniform1f(prog.uniforms['cmap.min'], dataMin)
+        gl.glUniform1i(prog.uniforms['cmap.id'],
+                       self._SHADER_CMAP_IDS[self.colormap])
+        gl.glUniform1i(prog.uniforms['cmap.isLog'], self.cmapIsLog)
+        gl.glUniform1f(prog.uniforms['cmap.min'], dataMin)
         if dataMax > dataMin:
             oneOverRange = 1. / (dataMax - dataMin)
         else:
             oneOverRange = 0.  # Fall-back
-        glUniform1f(prog.uniforms['cmap.oneOverRange'], oneOverRange)
+        gl.glUniform1f(prog.uniforms['cmap.oneOverRange'], oneOverRange)
 
     def _renderLinear(self, matrix):
         self.prepare()
@@ -424,10 +423,10 @@ class GLPlotColormap(_GLPlotData2D):
         prog = self._linearProgram
         prog.use()
 
-        glUniform1i(prog.uniforms['data'], self._DATA_TEX_UNIT)
+        gl.glUniform1i(prog.uniforms['data'], self._DATA_TEX_UNIT)
 
         mat = matrix * mat4Translate(*self.origin) * mat4Scale(*self.scale)
-        glUniformMatrix4fv(prog.uniforms['matrix'], 1, GL_TRUE, mat)
+        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE, mat)
 
         self._setCMap(prog)
 
@@ -449,23 +448,23 @@ class GLPlotColormap(_GLPlotData2D):
 
         ox, oy = self.origin
 
-        glUniform1i(prog.uniforms['data'], self._DATA_TEX_UNIT)
+        gl.glUniform1i(prog.uniforms['data'], self._DATA_TEX_UNIT)
 
-        glUniformMatrix4fv(prog.uniforms['matrix'], 1, GL_TRUE, matrix)
+        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE, matrix)
         mat = mat4Translate(ox, oy) * mat4Scale(*self.scale)
-        glUniformMatrix4fv(prog.uniforms['matOffset'], 1, GL_TRUE, mat)
+        gl.glUniformMatrix4fv(prog.uniforms['matOffset'], 1, gl.GL_TRUE, mat)
 
-        glUniform2i(prog.uniforms['isLog'], isXLog, isYLog)
+        gl.glUniform2i(prog.uniforms['isLog'], isXLog, isYLog)
 
         ex = ox + self.scale[0] * self.data.shape[1]
         ey = oy + self.scale[1] * self.data.shape[0]
 
         xOneOverRange = 1. / (ex - ox)
         yOneOverRange = 1. / (ey - oy)
-        glUniform2f(prog.uniforms['bounds.originOverRange'],
-                    ox * xOneOverRange, oy * yOneOverRange)
-        glUniform2f(prog.uniforms['bounds.oneOverRange'],
-                    xOneOverRange, yOneOverRange)
+        gl.glUniform2f(prog.uniforms['bounds.originOverRange'],
+                       ox * xOneOverRange, oy * yOneOverRange)
+        gl.glUniform2f(prog.uniforms['bounds.oneOverRange'],
+                       xOneOverRange, yOneOverRange)
 
         self._setCMap(prog)
 
@@ -483,14 +482,14 @@ class GLPlotColormap(_GLPlotData2D):
 
         posAttrib = prog.attributes['position']
         stride = vertices.shape[-1] * vertices.itemsize
-        glEnableVertexAttribArray(posAttrib)
-        glVertexAttribPointer(posAttrib,
-                              2,
-                              GL_FLOAT,
-                              GL_FALSE,
-                              stride, vertices)
+        gl.glEnableVertexAttribArray(posAttrib)
+        gl.glVertexAttribPointer(posAttrib,
+                                 2,
+                                 gl.GL_FLOAT,
+                                 gl.GL_FALSE,
+                                 stride, vertices)
 
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, len(vertices))
+        gl.glDrawArrays(gl.GL_TRIANGLE_STRIP, 0, len(vertices))
 
     def render(self, matrix, isXLog, isYLog):
         if any((isXLog, isYLog)):
@@ -588,7 +587,8 @@ class GLPlotRGBAImage(_GLPlotData2D):
 
     _DATA_TEX_UNIT = 0
 
-    _SUPPORTED_DTYPES = (np.dtype(np.float32), np.dtype(np.uint8))
+    _SUPPORTED_DTYPES = (numpy.dtype(numpy.float32),
+                         numpy.dtype(numpy.uint8))
 
     _linearProgram = Program(_SHADERS['linear']['vertex'],
                              _SHADERS['linear']['fragment'])
@@ -634,7 +634,7 @@ class GLPlotRGBAImage(_GLPlotData2D):
 
     def prepare(self):
         if not hasattr(self, '_texture'):
-            format_ = GL_RGBA if self.data.shape[2] == 4 else GL_RGB
+            format_ = gl.GL_RGBA if self.data.shape[2] == 4 else gl.GL_RGB
 
             self._texture = Image(format_,
                                   self.data,
@@ -644,7 +644,7 @@ class GLPlotRGBAImage(_GLPlotData2D):
             self._textureIsDirty = False
 
             # We should check that internal format is the same
-            format_ = GL_RGBA if self.data.shape[2] == 4 else GL_RGB
+            format_ = gl.GL_RGBA if self.data.shape[2] == 4 else gl.GL_RGB
             self._texture.updateAll(format_=format_, data=self.data)
 
     def _renderLinear(self, matrix):
@@ -653,10 +653,10 @@ class GLPlotRGBAImage(_GLPlotData2D):
         prog = self._linearProgram
         prog.use()
 
-        glUniform1i(prog.uniforms['tex'], self._DATA_TEX_UNIT)
+        gl.glUniform1i(prog.uniforms['tex'], self._DATA_TEX_UNIT)
 
         mat = matrix * mat4Translate(*self.origin) * mat4Scale(*self.scale)
-        glUniformMatrix4fv(prog.uniforms['matrix'], 1, GL_TRUE, mat)
+        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE, mat)
 
         self._texture.render(prog.attributes['position'],
                              prog.attributes['texCoords'],
@@ -670,23 +670,23 @@ class GLPlotRGBAImage(_GLPlotData2D):
 
         ox, oy = self.origin
 
-        glUniform1i(prog.uniforms['tex'], self._DATA_TEX_UNIT)
+        gl.glUniform1i(prog.uniforms['tex'], self._DATA_TEX_UNIT)
 
-        glUniformMatrix4fv(prog.uniforms['matrix'], 1, GL_TRUE, matrix)
+        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE, matrix)
         mat = mat4Translate(ox, oy) * mat4Scale(*self.scale)
-        glUniformMatrix4fv(prog.uniforms['matOffset'], 1, GL_TRUE, mat)
+        gl.glUniformMatrix4fv(prog.uniforms['matOffset'], 1, gl.GL_TRUE, mat)
 
-        glUniform2i(prog.uniforms['isLog'], isXLog, isYLog)
+        gl.glUniform2i(prog.uniforms['isLog'], isXLog, isYLog)
 
         ex = ox + self.scale[0] * self.data.shape[1]
         ey = oy + self.scale[1] * self.data.shape[0]
 
         xOneOverRange = 1. / (ex - ox)
         yOneOverRange = 1. / (ey - oy)
-        glUniform2f(prog.uniforms['bounds.originOverRange'],
-                    ox * xOneOverRange, oy * yOneOverRange)
-        glUniform2f(prog.uniforms['bounds.oneOverRange'],
-                    xOneOverRange, yOneOverRange)
+        gl.glUniform2f(prog.uniforms['bounds.originOverRange'],
+                       ox * xOneOverRange, oy * yOneOverRange)
+        gl.glUniform2f(prog.uniforms['bounds.oneOverRange'],
+                       xOneOverRange, yOneOverRange)
 
         try:
             tiles = self._texture.tiles
@@ -702,14 +702,14 @@ class GLPlotRGBAImage(_GLPlotData2D):
 
         posAttrib = prog.attributes['position']
         stride = vertices.shape[-1] * vertices.itemsize
-        glEnableVertexAttribArray(posAttrib)
-        glVertexAttribPointer(posAttrib,
-                              2,
-                              GL_FLOAT,
-                              GL_FALSE,
-                              stride, vertices)
+        gl.glEnableVertexAttribArray(posAttrib)
+        gl.glVertexAttribPointer(posAttrib,
+                                 2,
+                                 gl.GL_FLOAT,
+                                 gl.GL_FALSE,
+                                 stride, vertices)
 
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, len(vertices))
+        gl.glDrawArrays(gl.GL_TRIANGLE_STRIP, 0, len(vertices))
 
     def render(self, matrix, isXLog, isYLog):
         if any((isXLog, isYLog)):

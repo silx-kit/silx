@@ -29,12 +29,12 @@ __license__ = "MIT"
 __date__ = "03/04/2017"
 
 
+from ctypes import c_void_p
 import logging
 
-from ...._glutils import gl
-from ...._glutils import Texture, numpyToGLType
-from ctypes import c_void_p
 import numpy
+
+from ...._glutils import gl, Texture, numpyToGLType
 
 
 _logger = logging.getLogger(__name__)
