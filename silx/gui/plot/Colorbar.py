@@ -160,11 +160,11 @@ class ColorbarWidget(qt.QWidget):
         widgetLeftGroup.setLayout(qt.QVBoxLayout())
         widget.layout().addWidget(widgetLeftGroup)
 
-        # min label
-        self.__minLabel = qt.QLabel(str(0.0), parent=self)
-        self.__minLabel.setAlignment(qt.Qt.AlignHCenter)
-        self.__minLabel.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Minimum)
-        widgetLeftGroup.layout().addWidget(self.__minLabel)
+        # max label
+        self.__maxLabel = qt.QLabel(str(1.0), parent=self)
+        self.__maxLabel.setAlignment(qt.Qt.AlignHCenter)
+        self.__maxLabel.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Minimum)
+        widgetLeftGroup.layout().addWidget(self.__maxLabel)
 
         # create gradation widget
         self._gradation = GradationBar(parent=widget, 
@@ -172,11 +172,11 @@ class ColorbarWidget(qt.QWidget):
                                        displayTicksValues=False)
         widgetLeftGroup.layout().addWidget(self._gradation)
 
-        # max label
-        self.__maxLabel = qt.QLabel(str(1.0), parent=self)
-        self.__maxLabel.setAlignment(qt.Qt.AlignHCenter)
-        self.__maxLabel.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Minimum)
-        widgetLeftGroup.layout().addWidget(self.__maxLabel)
+        # min label
+        self.__minLabel = qt.QLabel(str(0.0), parent=self)
+        self.__minLabel.setAlignment(qt.Qt.AlignHCenter)
+        self.__minLabel.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Minimum)
+        widgetLeftGroup.layout().addWidget(self.__minLabel)
 
         # legend (is the right group)
         self.legend = VerticalLegend('', self)
@@ -310,10 +310,6 @@ class ColorbarWidget(qt.QWidget):
     def _syncWithDefaultColormap(self):
         """Update colorbar according to plot default colormap"""
         cmap = self._plot.getDefaultColormap()
-        # if cmap['autoscale']:  # Makes sure range is OK
-        #     vmin, vmax = 1., 10.
-        # else:
-        #     vmin, vmax = cmap['vmin'], cmap['vmax']
         vmin, vmax = cmap['vmin'], cmap['vmax']
 
         self.setColormap(name=cmap['name'],
@@ -346,7 +342,7 @@ class VerticalLegend(qt.QLabel):
         painter.translate(0, self.rect().height())
         painter.rotate(270)
         newRect = qt.QRect(0, 0, self.rect().height(), self.rect().width())
-        # painter.drawText(self.rect(),
+
         painter.drawText(newRect,
                          qt.Qt.AlignHCenter,self.text())
 
@@ -457,7 +453,7 @@ class Gradation(qt.QWidget):
                                             vmax=vmax)
 
         for iPt, pt in enumerate(points):
-            colormapPosition = (pt-vmin) / (vmax-vmin)
+            colormapPosition = 1 - (pt-vmin) / (vmax-vmin)
             assert(colormapPosition >= 0.0 )
             assert(colormapPosition <= 1.0 )
             gradient.setColorAt( colormapPosition, qt.QColor(*colors[iPt]))
@@ -474,7 +470,7 @@ class Gradation(qt.QWidget):
         """yPixel : pixel position into Gradation widget reference
         """
         # widgets are bottom-top referencial but we display in top-bottom referential
-        return float(yPixel)/float(self.height())
+        return 1 - float(yPixel)/float(self.height())
 
     def getValueFromRelativePosition(self, value):
         """Return the value in the colorMap from a relative position in the 
@@ -597,23 +593,21 @@ class TickBar(qt.QWidget):
     def _computeTicksLog(self, nticks):
         logMin = numpy.log10(self.vmin)
         logMax = numpy.log10(self.vmax)
-
-        vrange = ticklayout._niceNum(logMax - logMin, False)
-        spacing = ticklayout._niceNum(vrange / nticks, True)
-        
-        self.ticks = numpy.linspace(logMin, logMax, nticks).astype(numpy.float64)
-        self.ticks = 10**self.ticks
-        return self.ticks
+        _min, _max, _spacing, _nfrac = ticklayout.niceNumbersForLog10(logMin,
+                                                                      logMax,
+                                                                      nticks)
+        self.ticks = 10**numpy.arange(_min, _max, _spacing)
 
     def resizeEvent(self, event):
         qt.QWidget.resizeEvent(self, event)
         self.computeTicks()
 
     def _computeTicksLin(self, nticks):
-        vrange = ticklayout._niceNum(self.vmax - self.vmin, False)
-        spacing = ticklayout._niceNum(vrange / nticks, True)
-        self.ticks = numpy.linspace(self.vmin, self.vmax, nticks).astype(numpy.float64)
-        return self.ticks
+        _min, _max, _spacing, _nfrac = ticklayout.niceNumbers(self.vmin,
+                                                              self.vmax,
+                                                              nticks)
+
+        self.ticks = numpy.arange(_min, _max, _spacing)
 
     def _getOptimalNbTicks(self):
         return max(2, int(round(self.ticksDensity * self.rect().height())))
@@ -642,7 +636,7 @@ class TickBar(qt.QWidget):
     def _getRelativePosition(self, val):
         """Return the relative position of val according to min and max value
         """
-        return (val - self.vmin)/ (self.vmax - self.vmin)
+        return 1 - (val - self.vmin)/ (self.vmax - self.vmin)
 
     def _painTick(self, val, painter, major=True):
         
