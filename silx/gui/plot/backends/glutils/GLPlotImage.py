@@ -36,7 +36,7 @@ import numpy
 
 from silx.math.combo import min_max
 
-from ...._glutils import gl, Program
+from ...._glutils import gl, Program, Texture
 from ..._utils import FLOAT32_MINPOS
 from .GLSupport import mat4Translate, mat4Scale
 from .GLTexture import Image
@@ -162,16 +162,9 @@ class GLPlotColormap(_GLPlotData2D):
         'fragment': """
     #version 120
 
-    #define CMAP_GRAY   0
-    #define CMAP_R_GRAY 1
-    #define CMAP_RED    2
-    #define CMAP_GREEN  3
-    #define CMAP_BLUE   4
-    #define CMAP_TEMP   5
-
     uniform sampler2D data;
     uniform struct {
-        int id;
+        sampler2D texture;
         bool isLog;
         float min;
         float oneOverRange;
@@ -181,37 +174,6 @@ class GLPlotColormap(_GLPlotData2D):
     varying vec2 coords;
 
     %s
-
-    vec4 cmapGray(float normValue) {
-        return vec4(normValue, normValue, normValue, 1.);
-    }
-
-    vec4 cmapReversedGray(float normValue) {
-        float invValue = 1. - normValue;
-        return vec4(invValue, invValue, invValue, 1.);
-    }
-
-    vec4 cmapRed(float normValue) {
-        return vec4(normValue, 0., 0., 1.);
-    }
-
-    vec4 cmapGreen(float normValue) {
-        return vec4(0., normValue, 0., 1.);
-    }
-
-    vec4 cmapBlue(float normValue) {
-        return vec4(0., 0., normValue, 1.);
-    }
-
-    //red: 0.5->0.75: 0->1
-    //green: 0.->0.25: 0->1; 0.75->1.: 1->0
-    //blue: 0.25->0.5: 1->0
-    vec4 cmapTemperature(float normValue) {
-        float red = clamp(4. * normValue - 2., 0., 1.);
-        float green = 1. - clamp(4. * abs(normValue - 0.5) - 1., 0., 1.);
-        float blue = 1. - clamp(4. * normValue - 1., 0., 1.);
-        return vec4(red, green, blue, 1.);
-    }
 
     const float oneOverLog10 = 0.43429448190325176;
 
@@ -229,36 +191,14 @@ class GLPlotColormap(_GLPlotData2D):
             value = clamp(cmap.oneOverRange * (value - cmap.min), 0., 1.);
         }
 
-        if (cmap.id == CMAP_GRAY) {
-            gl_FragColor = cmapGray(value);
-        } else if (cmap.id == CMAP_R_GRAY) {
-            gl_FragColor = cmapReversedGray(value);
-        } else if (cmap.id == CMAP_RED) {
-            gl_FragColor = cmapRed(value);
-        } else if (cmap.id == CMAP_GREEN) {
-            gl_FragColor = cmapGreen(value);
-        } else if (cmap.id == CMAP_BLUE) {
-            gl_FragColor = cmapBlue(value);
-        } else if (cmap.id == CMAP_TEMP) {
-            gl_FragColor = cmapTemperature(value);
-        }
+        gl_FragColor = texture2D(cmap.texture, vec2(value, 0.5));
         gl_FragColor.a *= alpha;
     }
     """
     }
 
-    _SHADER_CMAP_IDS = {
-        'gray': 0,
-        'reversed gray': 1,
-        'red': 2,
-        'green': 3,
-        'blue': 4,
-        'temperature': 5
-    }
-
-    COLORMAPS = tuple(_SHADER_CMAP_IDS.keys())
-
     _DATA_TEX_UNIT = 0
+    _CMAP_TEX_UNIT = 1
 
     _INTERNAL_FORMATS = {
         numpy.dtype(numpy.float32): gl.GL_R32F,
@@ -299,13 +239,14 @@ class GLPlotColormap(_GLPlotData2D):
         assert data.dtype in self._INTERNAL_FORMATS
 
         super(GLPlotColormap, self).__init__(data, origin, scale)
-        self.colormap = colormap
+        self.colormap = numpy.array(colormap, copy=False)
         self.cmapIsLog = cmapIsLog
         self._cmapRange = None  # User-provided range info
         self._cmapRangeCache = None  # Store extra data for range
         self.cmapRange = cmapRange  # Update _cmapRange
         self._alpha = numpy.clip(alpha, 0., 1.)
 
+        self._cmap_texture = None
         self._texture = None
         self._textureIsDirty = False
 
@@ -313,6 +254,10 @@ class GLPlotColormap(_GLPlotData2D):
         self.discard()
 
     def discard(self):
+        if self._cmap_texture is not None:
+            self._cmap_texture.discard()
+            self._cmap_texture = None
+
         if self._texture is not None:
             self._texture.discard()
             self._texture = None
@@ -388,6 +333,22 @@ class GLPlotColormap(_GLPlotData2D):
                 self._textureIsDirty = True
 
     def prepare(self):
+        if self._cmap_texture is None:
+            # TODO share cmap texture accross Images
+            # put all cmaps in one texture
+            colormap = numpy.empty((16, 256, self.colormap.shape[1]),
+                                   dtype=self.colormap.dtype)
+            colormap[:] = self.colormap
+            format_ = gl.GL_RGBA if colormap.shape[-1] == 4 else gl.GL_RGB
+            self._cmap_texture = Texture(internalFormat=format_,
+                                         data=colormap,
+                                         format_=format_,
+                                         texUnit=self._CMAP_TEX_UNIT,
+                                         minFilter=gl.GL_NEAREST,
+                                         magFilter=gl.GL_NEAREST,
+                                         wrap=(gl.GL_CLAMP_TO_EDGE,
+                                               gl.GL_CLAMP_TO_EDGE))
+
         if self._texture is None:
             internalFormat = self._INTERNAL_FORMATS[self.data.dtype]
 
@@ -412,8 +373,8 @@ class GLPlotColormap(_GLPlotData2D):
             dataMin = math.log10(dataMin)
             dataMax = math.log10(dataMax)
 
-        gl.glUniform1i(prog.uniforms['cmap.id'],
-                       self._SHADER_CMAP_IDS[self.colormap])
+        gl.glUniform1i(prog.uniforms['cmap.texture'],
+                       self._cmap_texture.texUnit)
         gl.glUniform1i(prog.uniforms['cmap.isLog'], self.cmapIsLog)
         gl.glUniform1f(prog.uniforms['cmap.min'], dataMin)
         if dataMax > dataMin:
@@ -421,6 +382,8 @@ class GLPlotColormap(_GLPlotData2D):
         else:
             oneOverRange = 0.  # Fall-back
         gl.glUniform1f(prog.uniforms['cmap.oneOverRange'], oneOverRange)
+
+        self._cmap_texture.bind()
 
     def _renderLinear(self, matrix):
         self.prepare()
@@ -505,6 +468,10 @@ class GLPlotColormap(_GLPlotData2D):
             self._renderLog10(matrix, isXLog, isYLog)
         else:
             self._renderLinear(matrix)
+
+        # Unbind colormap texture
+        gl.glActiveTexture(gl.GL_TEXTURE0 + self._cmap_texture.texUnit)
+        gl.glBindTexture(self._cmap_texture.target, 0)
 
 
 # image #######################################################################

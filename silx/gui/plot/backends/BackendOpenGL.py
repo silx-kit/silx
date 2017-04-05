@@ -998,10 +998,16 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
                 cmapRange = colormap['vmin'], colormap['vmax']
                 assert cmapRange[0] <= cmapRange[1]
 
+            # Retrieve colormap LUT from name and color array
+            colormapLut = Colors.applyColormapToData(
+                numpy.arange(256),
+                name=colormap['name'],
+                colors=colormap.get('colors'))
+
             image = GLPlotColormap(data,
                                    origin,
                                    scale,
-                                   colormap['name'],
+                                   colormapLut,
                                    colormapIsLog,
                                    cmapRange,
                                    alpha)
@@ -1605,11 +1611,6 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
         self._plotFrame.grid = which is not None  # TODO True grid support
         self._plotDirtyFlag = True
         self.replot()  # TODO replot needed?
-
-    # colormap
-
-    def getSupportedColormaps(self):
-        return GLPlotColormap.COLORMAPS
 
     # Data <-> Pixel coordinates conversion
 
