@@ -128,16 +128,16 @@ class TestTickBar(unittest.TestCase):
 
     def testLogNormNoAutoscale(self):
         colormapLog = { 'name': 'gray', 'normalization': 'log',
-                    'autoscale': False, 'vmin': -1.0, 'vmax': 1.0 }
+                    'autoscale': True, 'vmin': -1.0, 'vmax': 1.0 }
 
         data = numpy.linspace(10, 1e10, 9).reshape(3, 3)
         self.plot.addImage(data=data, colormap=colormapLog, legend='toto')
         self.plot.setActiveImage('toto')
 
+        self.tickBar.setNTicks(10)
         self.tickBar.computeTicks()
 
-        print(self.tickBar.ticks)
-
+        numpy.array_equal(self.tickBar.ticks, numpy.linspace(10, 1e10, 10))
 
     def testLinearNormNoAutoscale(self):
         pass
