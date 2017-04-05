@@ -633,7 +633,7 @@ class MaskToolsWidget(qt.QWidget):
 
         clearBtn = qt.QPushButton('Clear')
         clearBtn.setShortcut(qt.QKeySequence.Delete)
-        clearBtn.setToolTip('Clear current mask <b>%s</b>' %
+        clearBtn.setToolTip('Clear current mask level <b>%s</b>' %
                             clearBtn.shortcut().toString())
         clearBtn.clicked.connect(self._handleClearMask)
 
