@@ -983,7 +983,7 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
 
         if data.ndim == 2:
             # Ensure array is contiguous and eventually convert its type
-            if data.dtype.char in (numpy.float32, numpy.uint8, numpy.uint16):
+            if data.dtype in (numpy.float32, numpy.uint8, numpy.uint16):
                 data = numpy.array(data, copy=False, order='C')
             else:
                 _logger.warning(
@@ -1000,8 +1000,12 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
 
             # Retrieve colormap LUT from name and color array
             colormapLut = Colors.applyColormapToData(
-                numpy.arange(256),
+                numpy.arange(256, dtype=numpy.uint8),
                 name=colormap['name'],
+                normalization='linear',
+                autoscale=False,
+                vmin=0,
+                vmax=255,
                 colors=colormap.get('colors'))
 
             image = GLPlotColormap(data,
