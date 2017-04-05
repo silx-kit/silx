@@ -646,7 +646,12 @@ class TickBar(qt.QWidget):
     def _getRelativePosition(self, val):
         """Return the relative position of val according to min and max value
         """
-        return 1 - (val - self.vmin)/ (self.vmax - self.vmin)
+        if self._norm == 'linear':
+            return 1 - (val - self.vmin)/ (self.vmax - self.vmin)
+        elif self._norm == 'log':
+            return 1 - (numpy.log10(val) - numpy.log10(self.vmin))/(numpy.log10(self.vmax) - numpy.log(self.vmin))
+        else:
+            raise ValueError('Norm is not recognized')
 
     def _painTick(self, val, painter, major=True):
         
