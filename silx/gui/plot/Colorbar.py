@@ -404,6 +404,7 @@ class GradationBar(qt.QWidget):
         self.tickbar._norm = colormap['normalization']
         self.tickbar.vmin = colormap['vmin']
         self.tickbar.vmax = colormap['vmax']
+        self.tickbar.computeTicks()
 
 
 class Gradation(qt.QWidget):
@@ -575,25 +576,25 @@ class TickBar(qt.QWidget):
         This function compute ticks values labels.
         Called at each paint event.
         Deal only with linear and log for now"""
-        # TODO : ticks should be computed at each resize and not each time.
-        # would be better for time computation
-        # TODO : if nticks is None, should compute a density or something like
-        # that
         nticks = self.nticks
         if nticks is None:
             nticks = self._getOptimalNbTicks()
 
         if self._norm == 'log':
-            return self._computeTicksLog(nticks)
+            self._computeTicksLog(nticks)
         elif self._norm == 'linear':
-            return self._computeTicksLin(nticks)
+            self._computeTicksLin(nticks)
         else:
             err = 'TickBar - Wrong normalization %s'%normalization
             raise ValueError(err)
+        # update the form
+        font = qt.QFont()
+        font.setPixelSize(self._fontSize)
+        
+        self._computeFrac()
+        self.form = self._getFormat(font)
 
     def _computeTicksLog(self, nticks):
-        # TODO : get a number of ticks depending on height of the widget
-        # TODO : link this in ticklayout
         logMin = numpy.log10(self.vmin)
         logMax = numpy.log10(self.vmax)
 
@@ -602,23 +603,22 @@ class TickBar(qt.QWidget):
         
         self.ticks = numpy.linspace(logMin, logMax, nticks).astype(numpy.float64)
         self.ticks = 10**self.ticks
-        self._computeFrac()
         return self.ticks
 
+    def resizeEvent(self, event):
+        qt.QWidget.resizeEvent(self, event)
+        self.computeTicks()
+
     def _computeTicksLin(self, nticks):
-        # TODO : link this in ticklayout
         vrange = ticklayout._niceNum(self.vmax - self.vmin, False)
         spacing = ticklayout._niceNum(vrange / nticks, True)
-        # TODO : get a number of ticks depending on height of the widget
         self.ticks = numpy.linspace(self.vmin, self.vmax, nticks).astype(numpy.float64)
-        self._computeFrac()
         return self.ticks
 
     def _getOptimalNbTicks(self):
         return max(2, int(round(self.ticksDensity * self.rect().height())))
 
     def _computeFrac(self):
-        # quite old school to do it ...
         self.nfrac = 0
         for tick in self.ticks:
             representation = str(tick)
@@ -635,17 +635,17 @@ class TickBar(qt.QWidget):
         painter.setFont(font)
 
         viewportHeight = self.rect().height() - self.margin * 2
-        form = self._getFormat(font)
-        for iTick, val in enumerate(self.ticks):
-            height = (viewportHeight * iTick) / (len(self.ticks) -1)
-            height += self.margin
-            painter.drawLine(qt.QLine(self.width - self._lineWidth,
-                                      height,
-                                      self.width,
-                                      height))
-            if self.displayValues:
-                painter.drawText(qt.QPoint(0.0, height + (fm.height() / 2)),
-                                 form.format(val));
+        if self.ticks is not None:
+            for iTick, val in enumerate(self.ticks):
+                height = (viewportHeight * iTick) / (len(self.ticks) -1)
+                height += self.margin
+                painter.drawLine(qt.QLine(self.width - self._lineWidth,
+                                          height,
+                                          self.width,
+                                          height))
+                if self.displayValues:
+                    painter.drawText(qt.QPoint(0.0, height + (fm.height() / 2)),
+                                     self.form.format(val));
         qt.QWidget.paintEvent(self, event)
 
     def setDisplayType(self, disType):
@@ -666,8 +666,6 @@ class TickBar(qt.QWidget):
         return "{0:.%sf}"%self.nfrac
 
     def _getFormat(self, font):
-        self.computeTicks()
-
         if self._forcedDisplayType is None:
             return self._guessType(font)
         elif self._forcedDisplayType is 'std':
