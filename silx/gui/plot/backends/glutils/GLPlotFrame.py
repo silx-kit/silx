@@ -242,7 +242,7 @@ class PlotAxis(object):
                 yScale = (y1 - y0) / (logMax - logMin)
 
                 for logPos in self._frange(tickMin, tickMax, step):
-                    if logPos >= logMin and logPos <= logMax:
+                    if logMin <= logPos <= logMax:
                         dataPos = 10 ** logPos
                         xPixel = x0 + (logPos - logMin) * xScale
                         yPixel = y0 + (logPos - logMin) * yScale
@@ -255,7 +255,7 @@ class PlotAxis(object):
                         dataOrigPos = 10 ** logPos
                         for index in range(2, 10):
                             dataPos = dataOrigPos * index
-                            if dataPos >= dataMin and dataPos <= dataMax:
+                            if dataMin <= dataPos <= dataMax:
                                 logSubPos = math.log10(dataPos)
                                 xPixel = x0 + (logSubPos - logMin) * xScale
                                 yPixel = y0 + (logSubPos - logMin) * yScale
@@ -273,7 +273,7 @@ class PlotAxis(object):
                     dataMin, dataMax, nbPixels, 1.3 / 92)
 
                 for dataPos in self._frange(tickMin, tickMax, step):
-                    if dataPos >= dataMin and dataPos <= dataMax:
+                    if dataMin <= dataPos <= dataMax:
                         xPixel = x0 + (dataPos - dataMin) * xScale
                         yPixel = y0 + (dataPos - dataMin) * yScale
 
@@ -332,18 +332,11 @@ class GLPlotFrame(object):
         self._grid = False
         self._size = 0., 0.
         self._title = ''
-        self._baseVectors = (1., 0.), (0., 1.)
-        self._transformedDataRanges = None
-        self._transformedDataProjMat = None
-        self._transformedDataY2ProjMat = None
 
     @property
     def isDirty(self):
         """True if it need to refresh graphic rendering, False otherwise."""
-        return (self._renderResources is None or
-                self._transformedDataRanges is None or
-                self._transformedDataProjMat is None or
-                self._transformedDataY2ProjMat is None)
+        return self._renderResources is None
 
     GRID_NONE = 0
     GRID_MAIN_TICKS = 1
@@ -397,6 +390,315 @@ class GLPlotFrame(object):
         w -= self.margins.left + self.margins.right
         h -= self.margins.top + self.margins.bottom
         return w, h
+
+    @property
+    def title(self):
+        """Main title as a str in latin-1."""
+        return self._title
+
+    @title.setter
+    def title(self, title):
+        if title != self._title:
+            self._title = title
+            self._dirty()
+
+        # In-place update
+        # if self._renderResources is not None:
+        #    self._renderResources[-1][-1].text = title
+
+    def _dirty(self):
+        # When Text2D require discard we need to handle it
+        self._renderResources = None
+
+    def _buildGridVertices(self):
+        if self._grid == self.GRID_NONE:
+            return []
+
+        elif self._grid == self.GRID_MAIN_TICKS:
+            def test(text):
+                return text is not None
+        elif self._grid == self.GRID_SUB_TICKS:
+            def test(text):
+                return text is None
+        elif self._grid == self.GRID_ALL_TICKS:
+            def test(text):
+                return True
+        else:
+            logging.warning('Wrong grid mode: %d' % self._grid)
+            return []
+
+        return self._buildGridVerticesWithTest(test)
+
+    def _buildGridVerticesWithTest(self, test):
+        """Override in subclass to generate grid vertices"""
+        return []
+
+    def _buildVerticesAndLabels(self):
+        # To fill with copy of axes lists
+        vertices = []
+        labels = []
+
+        for axis in self.axes:
+            axisVertices, axisLabels = axis.getVerticesAndLabels()
+            vertices += axisVertices
+            labels += axisLabels
+
+        vertices = numpy.array(vertices, dtype=numpy.float32)
+
+        # Add main title
+        xTitle = (self.size[0] + self.margins.left -
+                  self.margins.right) // 2
+        yTitle = self.margins.top - self._TICK_LENGTH_IN_PIXELS
+        labels.append(Text2D(text=self.title,
+                             x=xTitle,
+                             y=yTitle,
+                             align=CENTER,
+                             valign=BOTTOM))
+
+        # grid
+        gridVertices = numpy.array(self._buildGridVertices(),
+                                   dtype=numpy.float32)
+
+        self._renderResources = (vertices, gridVertices, labels)
+
+    _program = Program(_SHADERS['vertex'], _SHADERS['fragment'])
+
+    def render(self):
+        if self._renderResources is None:
+            self._buildVerticesAndLabels()
+        vertices, gridVertices, labels = self._renderResources
+
+        width, height = self.size
+        matProj = mat4Ortho(0, width, height, 0, 1, -1)
+
+        gl.glViewport(0, 0, width, height)
+
+        prog = self._program
+        prog.use()
+
+        gl.glLineWidth(self._LINE_WIDTH)
+
+        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE, matProj)
+        gl.glUniform4f(prog.uniforms['color'], 0., 0., 0., 1.)
+        gl.glUniform1f(prog.uniforms['tickFactor'], 0.)
+
+        gl.glEnableVertexAttribArray(prog.attributes['position'])
+        gl.glVertexAttribPointer(prog.attributes['position'],
+                                 2,
+                                 gl.GL_FLOAT,
+                                 gl.GL_FALSE,
+                                 0, vertices)
+
+        gl.glDrawArrays(gl.GL_LINES, 0, len(vertices))
+
+        for label in labels:
+            label.render(matProj)
+
+    def renderGrid(self):
+        if self._grid == self.GRID_NONE:
+            return
+
+        if self._renderResources is None:
+            self._buildVerticesAndLabels()
+        vertices, gridVertices, labels = self._renderResources
+
+        width, height = self.size
+        matProj = mat4Ortho(0, width, height, 0, 1, -1)
+
+        gl.glViewport(0, 0, width, height)
+
+        prog = self._program
+        prog.use()
+
+        gl.glLineWidth(self._LINE_WIDTH)
+        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE, matProj)
+        gl.glUniform4f(prog.uniforms['color'], 0.7, 0.7, 0.7, 1.)
+        gl.glUniform1f(prog.uniforms['tickFactor'], 0.)  # 1/2.)  # 1/tickLen
+
+        gl.glEnableVertexAttribArray(prog.attributes['position'])
+        gl.glVertexAttribPointer(prog.attributes['position'],
+                                 2,
+                                 gl.GL_FLOAT,
+                                 gl.GL_FALSE,
+                                 0, gridVertices)
+
+        gl.glDrawArrays(gl.GL_LINES, 0, len(gridVertices))
+
+
+# GLPlotFrame2D ###############################################################
+
+class GLPlotFrame2D(GLPlotFrame):
+    def __init__(self, margins):
+        """
+        :param margins: The margins around plot area for axis and labels.
+        :type margins: dict with 'left', 'right', 'top', 'bottom' keys and
+                       values as ints.
+        """
+        super(GLPlotFrame2D, self).__init__(margins)
+        self.axes.append(PlotAxis(self,
+                                  tickLength=(0., -5.),
+                                  labelAlign=CENTER, labelVAlign=TOP,
+                                  titleAlign=CENTER, titleVAlign=TOP,
+                                  titleRotate=0,
+                                  titleOffset=(0, self.margins.bottom // 2)))
+
+        self._x2AxisCoords = ()
+
+        self.axes.append(PlotAxis(self,
+                                  tickLength=(5., 0.),
+                                  labelAlign=RIGHT, labelVAlign=CENTER,
+                                  titleAlign=CENTER, titleVAlign=BOTTOM,
+                                  titleRotate=ROTATE_270,
+                                  titleOffset=(-3 * self.margins.left // 4,
+                                               0)))
+
+        self._y2Axis = PlotAxis(self,
+                                tickLength=(-5., 0.),
+                                labelAlign=LEFT, labelVAlign=CENTER,
+                                titleAlign=CENTER, titleVAlign=TOP,
+                                titleRotate=ROTATE_270,
+                                titleOffset=(3 * self.margins.right // 4,
+                                             0))
+
+        self._isYAxisInverted = False
+
+        self._dataRanges = {
+            'x': (1., 100.), 'y': (1., 100.), 'y2': (1., 100.)}
+
+        self._baseVectors = (1., 0.), (0., 1.)
+
+        self._transformedDataRanges = None
+        self._transformedDataProjMat = None
+        self._transformedDataY2ProjMat = None
+
+    def _dirty(self):
+        super(GLPlotFrame2D, self)._dirty()
+        self._transformedDataRanges = None
+        self._transformedDataProjMat = None
+        self._transformedDataY2ProjMat = None
+
+    @property
+    def isDirty(self):
+        """True if it need to refresh graphic rendering, False otherwise."""
+        return (super(GLPlotFrame2D, self).isDirty or
+                self._transformedDataRanges is None or
+                self._transformedDataProjMat is None or
+                self._transformedDataY2ProjMat is None)
+
+    @property
+    def xAxis(self):
+        return self.axes[0]
+
+    @property
+    def yAxis(self):
+        return self.axes[1]
+
+    @property
+    def y2Axis(self):
+        return self._y2Axis
+
+    @property
+    def isY2Axis(self):
+        """Whether to display the left Y axis or not."""
+        return len(self.axes) == 3
+
+    @isY2Axis.setter
+    def isY2Axis(self, isY2Axis):
+        if isY2Axis != self.isY2Axis:
+            if isY2Axis:
+                self.axes.append(self._y2Axis)
+            else:
+                self.axes = self.axes[:2]
+
+            self._dirty()
+
+    @property
+    def isYAxisInverted(self):
+        """Whether Y axes are inverted or not as a bool."""
+        return self._isYAxisInverted
+
+    @isYAxisInverted.setter
+    def isYAxisInverted(self, value):
+        value = bool(value)
+        if value != self._isYAxisInverted:
+            self._isYAxisInverted = value
+            self._dirty()
+
+    DEFAULT_BASE_VECTORS = (1., 0.), (0., 1.)
+    """Values of baseVectors for orthogonal axes."""
+
+    @property
+    def baseVectors(self):
+        """Coordinates of the X and Y axes in the orthogonal plot coords.
+
+        Raises ValueError if corresponding matrix is singular.
+
+        2 tuples of 2 floats: (xx, xy), (yx, yy)
+        """
+        return self._baseVectors
+
+    @baseVectors.setter
+    def baseVectors(self, baseVectors):
+        self._dirty()
+
+        (xx, xy), (yx, yy) = baseVectors
+        vectors = (float(xx), float(xy)), (float(yx), float(yy))
+
+        det = (vectors[0][0] * vectors[1][1] - vectors[1][0] * vectors[0][1])
+        if det == 0.:
+            raise ValueError("Singular matrix for base vectors: " +
+                             str(vectors))
+
+        if vectors != self._baseVectors:
+            self._baseVectors = vectors
+            self._dirty()
+
+    @property
+    def dataRanges(self):
+        """Ranges of data visible in the plot on x, y and y2 axes.
+
+        This is different to the axes range when axes are not orthogonal.
+
+        Type: ((xMin, xMax), (yMin, yMax), (y2Min, y2Max))
+        """
+        return self._DataRanges(self._dataRanges['x'],
+                                self._dataRanges['y'],
+                                self._dataRanges['y2'])
+
+    @staticmethod
+    def _clipToSafeRange(min_, max_, isLog):
+        # Clip range if needed
+        minLimit = FLOAT32_MINPOS if isLog else FLOAT32_SAFE_MIN
+        min_ = numpy.clip(min_, minLimit, FLOAT32_SAFE_MAX)
+        max_ = numpy.clip(max_, minLimit, FLOAT32_SAFE_MAX)
+        assert min_ < max_
+        return min_, max_
+
+    def setDataRanges(self, x=None, y=None, y2=None):
+        """Set data range over each axes.
+
+        The provided ranges are clipped to possible values
+        (i.e., 32 float range + positive range for log scale).
+
+        :param x: (min, max) data range over X axis
+        :param y: (min, max) data range over Y axis
+        :param y2: (min, max) data range over Y2 axis
+        """
+        if x is not None:
+            self._dataRanges['x'] = \
+                self._clipToSafeRange(x[0], x[1], self.xAxis.isLog)
+
+        if y is not None:
+            self._dataRanges['y'] = \
+                self._clipToSafeRange(y[0], y[1], self.yAxis.isLog)
+
+        if y2 is not None:
+            self._dataRanges['y2'] = \
+                self._clipToSafeRange(y2[0], y2[1], self.y2Axis.isLog)
+
+        self.xAxis.dataRange = self._dataRanges['x']
+        self.yAxis.dataRange = self._dataRanges['y']
+        self.y2Axis.dataRange = self._dataRanges['y2']
 
     _DataRanges = namedtuple('dataRanges', ('x', 'y', 'y2'))
 
@@ -612,325 +914,6 @@ class GLPlotFrame(object):
 
         return xData, yData
 
-    @property
-    def title(self):
-        """Main title as a str in latin-1."""
-        return self._title
-
-    @title.setter
-    def title(self, title):
-        if title != self._title:
-            self._title = title
-            self._dirty()
-
-        # In-place update
-        # if self._renderResources is not None:
-        #    self._renderResources[-1][-1].text = title
-
-    def _dirty(self):
-        # When Text2D require discard we need to handle it
-        self._renderResources = None
-        self._transformedDataRanges = None
-        self._transformedDataProjMat = None
-        self._transformedDataY2ProjMat = None
-
-    def _updateAxes(self):
-        """Override in subclass to update PlotAxis in axes."""
-        pass
-
-    def _buildGridVertices(self):
-        if self._grid == self.GRID_NONE:
-            return []
-
-        elif self._grid == self.GRID_MAIN_TICKS:
-            test = lambda text: text is not None
-        elif self._grid == self.GRID_SUB_TICKS:
-            test = lambda text: text is None
-        elif self._grid == self.GRID_ALL_TICKS:
-            test = lambda text: True
-        else:
-            logging.warning('Wrong grid mode: %d' % self._grid)
-            return []
-
-        return self._buildGridVerticesWithTest(test)
-
-    def _buildGridVerticesWithTest(self, test):
-        """Override in subclass to generate grid vertices"""
-        return []
-
-    def _buildVerticesAndLabels(self):
-        self._updateAxes()
-
-        # To fill with copy of axes lists
-        vertices = []
-        labels = []
-
-        for axis in self.axes:
-            axisVertices, axisLabels = axis.getVerticesAndLabels()
-            vertices += axisVertices
-            labels += axisLabels
-
-        vertices = numpy.array(vertices, dtype=numpy.float32)
-
-        # Add main title
-        xTitle = (self.size[0] + self.margins.left -
-                  self.margins.right) // 2
-        yTitle = self.margins.top - self._TICK_LENGTH_IN_PIXELS
-        labels.append(Text2D(text=self.title,
-                             x=xTitle,
-                             y=yTitle,
-                             align=CENTER,
-                             valign=BOTTOM))
-
-        # grid
-        gridVertices = numpy.array(self._buildGridVertices(),
-                                   dtype=numpy.float32)
-
-        self._renderResources = (vertices, gridVertices, labels)
-
-    _program = Program(_SHADERS['vertex'], _SHADERS['fragment'])
-
-    def render(self):
-        if self._renderResources is None:
-            self._buildVerticesAndLabels()
-        vertices, gridVertices, labels = self._renderResources
-
-        width, height = self.size
-        matProj = mat4Ortho(0, width, height, 0, 1, -1)
-
-        gl.glViewport(0, 0, width, height)
-
-        prog = self._program
-        prog.use()
-
-        gl.glLineWidth(self._LINE_WIDTH)
-
-        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE, matProj)
-        gl.glUniform4f(prog.uniforms['color'], 0., 0., 0., 1.)
-        gl.glUniform1f(prog.uniforms['tickFactor'], 0.)
-
-        gl.glEnableVertexAttribArray(prog.attributes['position'])
-        gl.glVertexAttribPointer(prog.attributes['position'],
-                                 2,
-                                 gl.GL_FLOAT,
-                                 gl.GL_FALSE,
-                                 0, vertices)
-
-        gl.glDrawArrays(gl.GL_LINES, 0, len(vertices))
-
-        for label in labels:
-            label.render(matProj)
-
-    def renderGrid(self):
-        if self._grid == self.GRID_NONE:
-            return
-
-        if self._renderResources is None:
-            self._buildVerticesAndLabels()
-        vertices, gridVertices, labels = self._renderResources
-
-        width, height = self.size
-        matProj = mat4Ortho(0, width, height, 0, 1, -1)
-
-        gl.glViewport(0, 0, width, height)
-
-        prog = self._program
-        prog.use()
-
-        gl.glLineWidth(self._LINE_WIDTH)
-        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE, matProj)
-        gl.glUniform4f(prog.uniforms['color'], 0.7, 0.7, 0.7, 1.)
-        gl.glUniform1f(prog.uniforms['tickFactor'], 0.)  # 1/2.)  # 1/tickLen
-
-        gl.glEnableVertexAttribArray(prog.attributes['position'])
-        gl.glVertexAttribPointer(prog.attributes['position'],
-                              2,
-                              gl.GL_FLOAT,
-                              gl.GL_FALSE,
-                              0, gridVertices)
-
-        gl.glDrawArrays(gl.GL_LINES, 0, len(gridVertices))
-
-
-# GLPlotFrame2D ###############################################################
-
-class GLPlotFrame2D(GLPlotFrame):
-    def __init__(self, margins):
-        """
-        :param margins: The margins around plot area for axis and labels.
-        :type margins: dict with 'left', 'right', 'top', 'bottom' keys and
-                       values as ints.
-        """
-        super(GLPlotFrame2D, self).__init__(margins)
-        self.axes.append(PlotAxis(self,
-                                  tickLength=(0., -5.),
-                                  labelAlign=CENTER, labelVAlign=TOP,
-                                  titleAlign=CENTER, titleVAlign=TOP,
-                                  titleRotate=0,
-                                  titleOffset=(0, self.margins.bottom // 2)))
-
-        self._x2AxisCoords = ()
-
-        self.axes.append(PlotAxis(self,
-                                  tickLength=(5., 0.),
-                                  labelAlign=RIGHT, labelVAlign=CENTER,
-                                  titleAlign=CENTER, titleVAlign=BOTTOM,
-                                  titleRotate=ROTATE_270,
-                                  titleOffset=(-3 * self.margins.left // 4,
-                                               0)))
-
-        self._y2Axis = PlotAxis(self,
-                                tickLength=(-5., 0.),
-                                labelAlign=LEFT, labelVAlign=CENTER,
-                                titleAlign=CENTER, titleVAlign=TOP,
-                                titleRotate=ROTATE_270,
-                                titleOffset=(3 * self.margins.right // 4,
-                                             0))
-
-        self._isYAxisInverted = False
-
-        self._dataRanges = {
-            'x': (1., 100.), 'y': (1., 100.), 'y2': (1., 100.)}
-
-    @property
-    def xAxis(self):
-        return self.axes[0]
-
-    @property
-    def yAxis(self):
-        return self.axes[1]
-
-    @property
-    def y2Axis(self):
-        return self._y2Axis
-
-    @property
-    def isY2Axis(self):
-        """Whether to display the left Y axis or not."""
-        return len(self.axes) == 3
-
-    @isY2Axis.setter
-    def isY2Axis(self, isY2Axis):
-        if isY2Axis != self.isY2Axis:
-            if isY2Axis:
-                self.axes.append(self._y2Axis)
-            else:
-                self.axes = self.axes[:2]
-
-            self._dirty()
-
-    @property
-    def isYAxisInverted(self):
-        """Whether Y axes are inverted or not as a bool."""
-        return self._isYAxisInverted
-
-    @isYAxisInverted.setter
-    def isYAxisInverted(self, value):
-        value = bool(value)
-        if value != self._isYAxisInverted:
-            self._isYAxisInverted = value
-            self._dirty()
-
-    DEFAULT_BASE_VECTORS = (1., 0.), (0., 1.)
-    """Values of baseVectors for orthogonal axes."""
-
-    @property
-    def baseVectors(self):
-        """Coordinates of the X and Y axes in the orthogonal plot coords.
-
-        Raises ValueError if corresponding matrix is singular.
-
-        2 tuples of 2 floats: (xx, xy), (yx, yy)
-        """
-        return self._baseVectors
-
-    @baseVectors.setter
-    def baseVectors(self, baseVectors):
-        self._dirty()
-
-        (xx, xy), (yx, yy) = baseVectors
-        vectors = (float(xx), float(xy)), (float(yx), float(yy))
-
-        det = (vectors[0][0] * vectors[1][1] - vectors[1][0] * vectors[0][1])
-        if det == 0.:
-            raise ValueError("Singular matrix for base vectors: " +
-                             str(vectors))
-
-        if vectors != self._baseVectors:
-            self._baseVectors = vectors
-            self._dirty()
-
-    @property
-    def dataRanges(self):
-        """Ranges of data visible in the plot on x, y and y2 axes.
-
-        This is different to the axes range when axes are not orthogonal.
-
-        Type: ((xMin, xMax), (yMin, yMax), (y2Min, y2Max))
-        """
-        return self._DataRanges(self._dataRanges['x'],
-                                self._dataRanges['y'],
-                                self._dataRanges['y2'])
-
-    @staticmethod
-    def _clipToSafeRange(min_, max_, isLog):
-        # Clip range if needed
-        minLimit = FLOAT32_MINPOS if isLog else FLOAT32_SAFE_MIN
-        min_ = numpy.clip(min_, minLimit, FLOAT32_SAFE_MAX)
-        max_ = numpy.clip(max_, minLimit, FLOAT32_SAFE_MAX)
-        assert min_ < max_
-        return min_, max_
-
-    def setDataRanges(self, x=None, y=None, y2=None):
-        """Set data range over each axes.
-
-        The provided ranges are clipped to possible values
-        (i.e., 32 float range + positive range for log scale).
-
-        :param x: (min, max) data range over X axis
-        :param y: (min, max) data range over Y axis
-        :param y2: (min, max) data range over Y2 axis
-        """
-        if x is not None:
-            self._dataRanges['x'] = \
-                self._clipToSafeRange(x[0], x[1], self.xAxis.isLog)
-
-        if y is not None:
-            self._dataRanges['y'] = \
-                self._clipToSafeRange(y[0], y[1], self.yAxis.isLog)
-
-        if y2 is not None:
-            self._dataRanges['y2'] = \
-                self._clipToSafeRange(y2[0], y2[1], self.y2Axis.isLog)
-
-        self.xAxis.dataRange = self._dataRanges['x']
-        self.yAxis.dataRange = self._dataRanges['y']
-        self.y2Axis.dataRange = self._dataRanges['y2']
-
-    def _updateAxes(self):
-        width, height = self.size
-
-        xCoords = (self.margins.left - 0.5,
-                   width - self.margins.right + 0.5)
-        yCoords = (height - self.margins.bottom + 0.5,
-                   self.margins.top - 0.5)
-
-        self.axes[0].displayCoords = ((xCoords[0], yCoords[0]),
-                                      (xCoords[1], yCoords[0]))
-
-        self._x2AxisCoords = ((xCoords[0], yCoords[1]),
-                              (xCoords[1], yCoords[1]))
-
-        if self.isYAxisInverted:
-            # Y axes are inverted, axes coordinates are inverted
-            yCoords = yCoords[1], yCoords[0]
-
-        self.axes[1].displayCoords = ((xCoords[0], yCoords[0]),
-                                      (xCoords[0], yCoords[1]))
-
-        self._y2Axis.displayCoords = ((xCoords[1], yCoords[0]),
-                                      (xCoords[1], yCoords[1]))
-
     def _buildGridVerticesWithTest(self, test):
         vertices = []
 
@@ -968,7 +951,7 @@ class GLPlotFrame2D(GLPlotFrame):
                     for (xPixel, yPixel), data, text in axis.ticks:
                         if test(text):
                             for (x0, y0), (x1, y1) in borders:
-                                if data >= min(x0, x1) and data < max(x0, x1):
+                                if min(x0, x1) <= data < max(x0, x1):
                                     yIntersect = (data - x0) * \
                                         (y1 - y0) / (x1 - x0) + y0
 
@@ -1001,7 +984,7 @@ class GLPlotFrame2D(GLPlotFrame):
                     for (xPixel, yPixel), data, text in axis.ticks:
                         if test(text):
                             for (x0, y0), (x1, y1) in borders:
-                                if data >= min(y0, y1) and data < max(y0, y1):
+                                if min(y0, y1) <= data < max(y0, y1):
                                     xIntersect = (data - y0) * \
                                         (x1 - x0) / (y1 - y0) + x0
 
@@ -1015,7 +998,31 @@ class GLPlotFrame2D(GLPlotFrame):
         return vertices
 
     def _buildVerticesAndLabels(self):
+        width, height = self.size
+
+        xCoords = (self.margins.left - 0.5,
+                   width - self.margins.right + 0.5)
+        yCoords = (height - self.margins.bottom + 0.5,
+                   self.margins.top - 0.5)
+
+        self.axes[0].displayCoords = ((xCoords[0], yCoords[0]),
+                                      (xCoords[1], yCoords[0]))
+
+        self._x2AxisCoords = ((xCoords[0], yCoords[1]),
+                              (xCoords[1], yCoords[1]))
+
+        if self.isYAxisInverted:
+            # Y axes are inverted, axes coordinates are inverted
+            yCoords = yCoords[1], yCoords[0]
+
+        self.axes[1].displayCoords = ((xCoords[0], yCoords[0]),
+                                      (xCoords[0], yCoords[1]))
+
+        self._y2Axis.displayCoords = ((xCoords[1], yCoords[0]),
+                                      (xCoords[1], yCoords[1]))
+
         super(GLPlotFrame2D, self)._buildVerticesAndLabels()
+
         vertices, gridVertices, labels = self._renderResources
 
         # Adds vertices for borders without axis

@@ -136,6 +136,7 @@ class _Fill2D(object):
 
         self._bboxVertices = None
         self._indices = None
+        self._indicesType = None
 
     def prepare(self):
         if self._indices is None:
@@ -185,7 +186,8 @@ class _Fill2D(object):
                           self._indicesType, self._indices)
 
         gl.glStencilFunc(gl.GL_EQUAL, 1, 1)
-        gl.glStencilOp(gl.GL_ZERO, gl.GL_ZERO, gl.GL_ZERO)  # Reset stencil while drawing
+        # Reset stencil while drawing
+        gl.glStencilOp(gl.GL_ZERO, gl.GL_ZERO, gl.GL_ZERO)
         gl.glColorMask(gl.GL_TRUE, gl.GL_TRUE, gl.GL_TRUE, gl.GL_TRUE)
         gl.glDepthMask(gl.GL_TRUE)
 
@@ -331,7 +333,9 @@ class _Lines2D(object):
         self.useColorVboData = colorVboData is not None
 
         self.color = color
+        self._width = 1
         self.width = width
+        self._style = None
         self.style = style
         self.dashPeriod = dashPeriod
 
@@ -472,7 +476,7 @@ def _distancesFromArrays(xData, yData):
     deltas = numpy.dstack((
         numpy.ediff1d(xData, to_begin=numpy.float32(0.)),
         numpy.ediff1d(yData, to_begin=numpy.float32(0.))))[0]
-    return numpy.cumsum(numpy.sqrt((deltas ** 2).sum(axis=1)))
+    return numpy.cumsum(numpy.sqrt(numpy.sum(deltas ** 2, axis=1)))
 
 
 # points ######################################################################
@@ -645,7 +649,9 @@ class _Points2D(object):
     def __init__(self, xVboData=None, yVboData=None, colorVboData=None,
                  marker=SQUARE, color=(0., 0., 0., 1.), size=7):
         self.color = color
+        self._marker = None
         self.marker = marker
+        self._size = 1
         self.size = size
 
         self.xVboData = xVboData
@@ -1102,7 +1108,10 @@ class GLPlotCurve2D(object):
             idx = numpy.nonzero(x > 0)[0]
             x = numpy.take(x, idx)
             y = numpy.take(y, idx)
-        if isinstance(color, numpy.ndarray):
+        else:
+            idx = None
+
+        if idx is not None and isinstance(color, numpy.ndarray):
             colors = numpy.zeros((x.size, 4), color.dtype)
             colors[:, 0] = color[idx, 0]
             colors[:, 1] = color[idx, 1]
@@ -1114,7 +1123,7 @@ class GLPlotCurve2D(object):
 
     def prepare(self, isXLog, isYLog):
         # init only supports updating isXLog, isYLog
-        xData, yData, color = self.xData, self.yData, self.colorData
+        xData, yData, colorData = self.xData, self.yData, self.colorData
 
         if self._isXLog != isXLog or self._isYLog != isYLog:
             # Log state has changed
@@ -1123,7 +1132,7 @@ class GLPlotCurve2D(object):
             # Check if data <= 0. with log scale
             if (isXLog and self.xMin <= 0.) or (isYLog and self.yMin <= 0.):
                 # Filtering data is needed
-                xData, yData, color = self._logFilterData(
+                xData, yData, colorData = self._logFilterData(
                     self.xData, self.yData, self.colorData,
                     self._isXLog, self._isYLog)
 
@@ -1132,23 +1141,21 @@ class GLPlotCurve2D(object):
         if self.xVboData is None:
             xAttrib, yAttrib, cAttrib, dAttrib = None, None, None, None
             if self.lineStyle == DASHED:
-                dists = _distancesFromArrays(self.xData, self.yData)
+                dists = _distancesFromArrays(xData, yData)
                 if self.colorData is None:
                     xAttrib, yAttrib, dAttrib = vertexBuffer(
-                        (self.xData, self.yData, dists),
+                        (xData, yData, dists),
                         prefix=(1, 1, 0), suffix=(1, 1, 0))
                 else:
                     xAttrib, yAttrib, cAttrib, dAttrib = vertexBuffer(
-                        (self.xData, self.yData, self.colorData, dists),
+                        (xData, yData, colorData, dists),
                         prefix=(1, 1, 0, 0), suffix=(1, 1, 0, 0))
             elif self.colorData is None:
                 xAttrib, yAttrib = vertexBuffer(
-                    (self.xData, self.yData),
-                    prefix=(1, 1), suffix=(1, 1))
+                    (xData, yData), prefix=(1, 1), suffix=(1, 1))
             else:
                 xAttrib, yAttrib, cAttrib = vertexBuffer(
-                    (self.xData, self.yData, self.colorData),
-                    prefix=(1, 1, 0))
+                    (xData, yData, colorData), prefix=(1, 1, 0))
 
             # Shrink VBO
             self.xVboData = xAttrib.copy()
@@ -1164,8 +1171,7 @@ class GLPlotCurve2D(object):
             self.distVboData = dAttrib
 
             if self.fill is not None:
-                xData = self.xData[:]
-                xData.shape = xData.size, 1
+                xData = xData.reshape(xData.size, 1)
                 zero = numpy.array((1e-32,), dtype=self.yData.dtype)
 
                 # Add one point before data: (x0, 0.)
@@ -1262,7 +1268,7 @@ class GLPlotCurve2D(object):
                     else:
                         x = None  # No horizontal bounds intersection test
 
-                    if x is not None and x >= xPickMin and x <= xPickMax:
+                    if x is not None and xPickMin <= x <= xPickMax:
                         # Intersection
                         indices.append(index)
 
@@ -1276,7 +1282,7 @@ class GLPlotCurve2D(object):
                         else:
                             y = None  # No vertical bounds intersection test
 
-                        if y is not None and y >= yPickMin and y <= yPickMax:
+                        if y is not None and yPickMin <= y <= yPickMax:
                             # Intersection
                             indices.append(index)
 

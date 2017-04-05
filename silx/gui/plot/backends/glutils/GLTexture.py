@@ -66,14 +66,14 @@ def _getMaxSquareTexture2DSize(internalFormat=gl.GL_RGBA,
     """Returns a supported size for a corresponding square texture
 
     :returns: GL_MAX_TEXTURE_SIZE or a smaller supported size (not optimal)
-    :rtype: tuple
+    :rtype: int
     """
     # Is this useful?
     maxTexSize = gl.glGetIntegerv(gl.GL_MAX_TEXTURE_SIZE)
     while maxTexSize > MIN_TEXTURE_SIZE and \
         not _checkTexture2D(internalFormat, (maxTexSize, maxTexSize),
                             format_, type_, border):
-        maxTexSize = maxTexSize // 2
+        maxTexSize //= 2
     return max(MIN_TEXTURE_SIZE, maxTexSize)
 
 

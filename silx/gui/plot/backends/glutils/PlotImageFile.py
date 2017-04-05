@@ -54,33 +54,29 @@ def convertRGBDataToPNG(data):
     colorType = 2  # 'truecolor' = RGB
     interlace = 0  # No
 
-    pngData = []
-
-    # PNG signature
-    pngData.append(b'\x89PNG\r\n\x1a\n')
-
-    # IHDR chunk: Image Header
-    pngData.append(struct.pack(">I", 13))  # length
     IHDRdata = struct.pack(">ccccIIBBBBB", b'I', b'H', b'D', b'R',
                            width, height, depth, colorType,
                            0, 0, interlace)
-    pngData.append(IHDRdata)
-    pngData.append(struct.pack(">I", zlib.crc32(IHDRdata) & 0xffffffff))  # CRC
 
     # Add filter 'None' before each scanline
     preparedData = b'\x00' + b'\x00'.join(line.tostring() for line in data)
     compressedData = zlib.compress(preparedData, 8)
 
-    # IDAT chunk: Payload
-    pngData.append(struct.pack(">I", len(compressedData)))
     IDATdata = struct.pack("cccc", b'I', b'D', b'A', b'T')
     IDATdata += compressedData
-    pngData.append(IDATdata)
-    pngData.append(struct.pack(">I", zlib.crc32(IDATdata) & 0xffffffff))  # CRC
 
-    # IEND chunk: footer
-    pngData.append(b'\x00\x00\x00\x00IEND\xaeB`\x82')
-    return b''.join(pngData)
+    return b''.join([
+        b'\x89PNG\r\n\x1a\n',  # PNG signature
+        # IHDR chunk: Image Header
+        struct.pack(">I", 13),  # length
+        IHDRdata,
+        struct.pack(">I", zlib.crc32(IHDRdata) & 0xffffffff),  # CRC
+        # IDAT chunk: Payload
+        struct.pack(">I", len(compressedData)),
+        IDATdata,
+        struct.pack(">I", zlib.crc32(IDATdata) & 0xffffffff),  # CRC
+        b'\x00\x00\x00\x00IEND\xaeB`\x82'  # IEND chunk: footer
+    ])
 
 
 def saveImageToFile(data, fileNameOrObj, fileFormat):
@@ -90,7 +86,7 @@ def saveImageToFile(data, fileNameOrObj, fileFormat):
     :type data: numpy.ndarray with of unsigned bytes.
     :param fileNameOrObj: Filename or object to use to write the image.
     :type fileNameOrObj: A str or a 'file-like' object with a 'write' method.
-    :param str fileType: The type of the file in: 'png', 'ppm', 'svg', 'tiff'.
+    :param str fileFormat: The type of the file in: 'png', 'ppm', 'svg', 'tiff'.
     """
     assert len(data.shape) == 3
     assert data.shape[2] == 3
@@ -144,7 +140,7 @@ def saveImageToFile(data, fileNameOrObj, fileFormat):
             raise NotImplementedError(
                 'Save TIFF to a file-like object not implemented')
 
-        from PyMca5.PyMcaIO.TiffIO import TiffIO
+        from silx.third_party.TiffIO import TiffIO
 
         tif = TiffIO(fileNameOrObj, mode='wb+')
         tif.writeImage(data, info={'Title': 'PyMCA GL Snapshot'})

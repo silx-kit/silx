@@ -51,8 +51,7 @@ class _GLPlotData2D(object):
         self.scale = tuple(scale)
 
     def pick(self, x, y):
-        if (self.xMin <= x and x <= self.xMax and
-                self.yMin <= y and y <= self.yMax):
+        if self.xMin <= x <= self.xMax and self.yMin <= y <= self.yMax:
             ox, oy = self.origin
             sx, sy = self.scale
             col = int((x - ox) / sx)
@@ -87,7 +86,7 @@ class _GLPlotData2D(object):
     def prepare(self):
         pass
 
-    def render(self, matrix):
+    def render(self, matrix, isXLog, isYLog):
         pass
 
 
@@ -307,15 +306,16 @@ class GLPlotColormap(_GLPlotData2D):
         self.cmapRange = cmapRange  # Update _cmapRange
         self._alpha = numpy.clip(alpha, 0., 1.)
 
+        self._texture = None
         self._textureIsDirty = False
 
     def __del__(self):
         self.discard()
 
     def discard(self):
-        if hasattr(self, '_texture'):
+        if self._texture is not None:
             self._texture.discard()
-            del self._texture
+            self._texture = None
         self._textureIsDirty = False
 
     @property
@@ -346,7 +346,6 @@ class GLPlotColormap(_GLPlotData2D):
                         minPos, maxPos = min_, max_
                     else:
                         result = min_max(self.data, min_positive=True)
-                        dataMin = result.minimum
                         minPos = result.min_positive
                         dataMax = result.maximum
                         if max_ > 0.:
@@ -381,7 +380,7 @@ class GLPlotColormap(_GLPlotData2D):
 
         self._cmapRangeCache = None
 
-        if hasattr(self, '_texture'):
+        if self._texture is not None:
             if (self.data.shape != oldData.shape or
                     self.data.dtype != oldData.dtype):
                 self.discard()
@@ -389,7 +388,7 @@ class GLPlotColormap(_GLPlotData2D):
                 self._textureIsDirty = True
 
     def prepare(self):
-        if not hasattr(self, '_texture'):
+        if self._texture is None:
             internalFormat = self._INTERNAL_FORMATS[self.data.dtype]
 
             self._texture = Image(internalFormat,
@@ -625,6 +624,7 @@ class GLPlotRGBAImage(_GLPlotData2D):
         """
         assert data.dtype in self._SUPPORTED_DTYPES
         super(GLPlotRGBAImage, self).__init__(data, origin, scale)
+        self._texture = None
         self._textureIsDirty = False
         self._alpha = numpy.clip(alpha, 0., 1.)
 
@@ -636,9 +636,9 @@ class GLPlotRGBAImage(_GLPlotData2D):
         return self._alpha
 
     def discard(self):
-        if hasattr(self, '_texture'):
+        if self._texture is not None:
             self._texture.discard()
-            del self._texture
+            self._texture = None
         self._textureIsDirty = False
 
     def updateData(self, data):
@@ -646,14 +646,14 @@ class GLPlotRGBAImage(_GLPlotData2D):
         oldData = self.data
         self.data = data
 
-        if hasattr(self, '_texture'):
+        if self._texture is not None:
             if self.data.shape != oldData.shape:
                 self.discard()
             else:
                 self._textureIsDirty = True
 
     def prepare(self):
-        if not hasattr(self, '_texture'):
+        if self._texture is None:
             format_ = gl.GL_RGBA if self.data.shape[2] == 4 else gl.GL_RGB
 
             self._texture = Image(format_,
