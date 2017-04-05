@@ -515,7 +515,10 @@ class TickBar(qt.QWidget):
     _lineWidth = 10
     """width of the line to mark a tick"""
 
-    def __init__(self, vmin, vmax, norm, parent=None, displayValues=True):
+    DEFAULT_TICK_DENSITY = 0.015
+
+    def __init__(self, vmin, vmax, norm, parent=None, displayValues=True,
+        nticks=None):
         """Bar grouping the tickes displayed
 
         :param vmin: minimal value on the colormap
@@ -524,15 +527,18 @@ class TickBar(qt.QWidget):
         :param parent: the Qt parent if any
         :param displayValues: if True display the values close to the tick,
             Otherwise only signal it by '-'
+        :param nticks: the number of tick we want to display. Should be an
+            unsigned int ot None. If None, let the Tick bar find the optimal
+            number of ticks from the tick density.
         """
         super(TickBar, self).__init__(parent)
         self._forcedDisplayType = None
         self.displayValues = displayValues
-        self.nticks = 5
         self._norm = norm
         self.vmin = vmin
         self.vmax = vmax
-        self.ticks = None
+        self.ticksDensity = TickBar.DEFAULT_TICK_DENSITY
+        self.setNTicks(nticks)
 
         self.setLayout(qt.QVBoxLayout())
         self.setMargin(0)
@@ -549,6 +555,21 @@ class TickBar(qt.QWidget):
         """
         self.margin = margin
 
+    def setNTicks(self, nticks):
+        """Set the number of ticks to display.
+
+        :param nticks: the number of tick we want to display. Should be an
+            unsigned int ot None. If None, let the Tick bar find the optimal
+            number of ticks from the tick density.
+        """
+        self.nticks = nticks
+        self.ticks = None
+
+    def setTicksDensity(self, density):
+        if density < 0.0:
+            raise ValueError('Density should be a positive value')
+        self.ticksDensity = density
+
     def computeTicks(self):
         """
         This function compute ticks values labels.
@@ -558,37 +579,43 @@ class TickBar(qt.QWidget):
         # would be better for time computation
         # TODO : if nticks is None, should compute a density or something like
         # that
+        nticks = self.nticks
+        if nticks is None:
+            nticks = self._getOptimalNbTicks()
+
         if self._norm == 'log':
-            return self.computeTicksLog()
+            return self._computeTicksLog(nticks)
         elif self._norm == 'linear':
-            return self.computeTicksLin()
+            return self._computeTicksLin(nticks)
         else:
             err = 'TickBar - Wrong normalization %s'%normalization
             raise ValueError(err)
 
-    def computeTicksLog(self):
+    def _computeTicksLog(self, nticks):
         # TODO : get a number of ticks depending on height of the widget
         # TODO : link this in ticklayout
-        self.nticks = max(2, self.nticks)
         logMin = numpy.log10(self.vmin)
         logMax = numpy.log10(self.vmax)
 
         vrange = ticklayout._niceNum(logMax - logMin, False)
-        spacing = ticklayout._niceNum(vrange / self.nticks, True)
+        spacing = ticklayout._niceNum(vrange / nticks, True)
         
-        self.ticks = numpy.linspace(logMin, logMax, self.nticks).astype(numpy.float64)
+        self.ticks = numpy.linspace(logMin, logMax, nticks).astype(numpy.float64)
         self.ticks = 10**self.ticks
         self._computeFrac()
         return self.ticks
 
-    def computeTicksLin(self):
+    def _computeTicksLin(self, nticks):
         # TODO : link this in ticklayout
         vrange = ticklayout._niceNum(self.vmax - self.vmin, False)
-        spacing = ticklayout._niceNum(vrange / self.nticks, True)
+        spacing = ticklayout._niceNum(vrange / nticks, True)
         # TODO : get a number of ticks depending on height of the widget
-        self.ticks = numpy.linspace(self.vmin, self.vmax, self.nticks).astype(numpy.float64)
+        self.ticks = numpy.linspace(self.vmin, self.vmax, nticks).astype(numpy.float64)
         self._computeFrac()
         return self.ticks
+
+    def _getOptimalNbTicks(self):
+        return max(2, int(round(self.ticksDensity * self.rect().height())))
 
     def _computeFrac(self):
         # quite old school to do it ...
@@ -610,7 +637,7 @@ class TickBar(qt.QWidget):
         viewportHeight = self.rect().height() - self.margin * 2
         form = self._getFormat(font)
         for iTick, val in enumerate(self.ticks):
-            height = (viewportHeight * iTick) / (self.nticks -1)
+            height = (viewportHeight * iTick) / (len(self.ticks) -1)
             height += self.margin
             painter.drawLine(qt.QLine(self.width - self._lineWidth,
                                       height,
