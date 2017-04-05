@@ -25,13 +25,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE
 
-# Script that builds a debian package from this library 
+# Script that builds a debian package from this library
 
 PROJECT=silx
  
 if [ -d /usr/lib/ccache ];
 then 
-   CCPATH=/usr/lib/ccache:$PATH 
+   CCPATH=/usr/lib/ccache:$PATH
 else  
    CCPATH=$PATH
 fi
@@ -102,10 +102,9 @@ rm scripts/*.bat
 
 if [ $use_python3 = 1 ]
 then
-  echo Using Python 2+3 
+  echo Using Python 2+3
   PATH=$CCPATH  python3 setup.py --command-packages=stdeb.command sdist_dsc --with-python2=True --with-python3=True --no-python3-scripts=True bdist_deb --no-cython
   rc=$?
-  sudo dpkg -i deb_dist/python3-${PROJECT}*.deb
 else
   echo Using Python 2
   PATH=$CCPATH python setup.py --command-packages=stdeb.command bdist_deb --no-cython
@@ -121,7 +120,7 @@ mv deb_dist ../../../dist/debian7
 cd ../../..
 
 if [ $install = 1 ]; then
-  sudo -v su -c  "dpkg -i dist/debian7/python-${PROJECT}*.deb"
+  sudo -v su -c  "dpkg -i dist/debian7/python*-${PROJECT}*.deb"
 fi
 
 exit "$rc"
