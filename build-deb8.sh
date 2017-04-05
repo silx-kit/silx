@@ -162,10 +162,11 @@ then
 
 else
   echo Build failed, please investigate ...
-  exit
+  exit "$rc"
 fi
 
 if [ $install = 1 ]; then
   sudo -v su -c  "dpkg -i ${dist_directory}/*.deb"
 fi
 
+exit 0

@@ -104,10 +104,12 @@ if [ $use_python3 = 1 ]
 then
   echo Using Python 2+3 
   PATH=$CCPATH  python3 setup.py --command-packages=stdeb.command sdist_dsc --with-python2=True --with-python3=True --no-python3-scripts=True bdist_deb --no-cython
+  rc=$?
   sudo dpkg -i deb_dist/python3-${PROJECT}*.deb
 else
   echo Using Python 2
   PATH=$CCPATH python setup.py --command-packages=stdeb.command bdist_deb --no-cython
+  rc=$?
 fi
 
 # move packages to dist directory
@@ -122,3 +124,4 @@ if [ $install = 1 ]; then
   sudo -v su -c  "dpkg -i dist/debian7/python-${PROJECT}*.deb"
 fi
 
+exit "$rc"
