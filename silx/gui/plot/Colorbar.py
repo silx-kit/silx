@@ -149,6 +149,9 @@ class ColorbarWidget(qt.QWidget):
         self.legend = VerticalLegend('', self)
         widget.layout().addWidget(self.legend)
 
+        self.__maxLabel = None
+        self.__minLabel = None
+
         widget.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Preferred)
         return widget
 
@@ -168,7 +171,7 @@ class ColorbarWidget(qt.QWidget):
 
         # create gradation widget
         self._gradation = GradationBar(parent=widget, 
-                                       colormap=self._plot.getDefaultColormap(),
+                                       colormap=None,
                                        displayTicksValues=False)
         widgetLeftGroup.layout().addWidget(self._gradation)
 
@@ -245,6 +248,12 @@ class ColorbarWidget(qt.QWidget):
 
         self._setAutoscale(autoscale)
         self._gradation.setColormap(self._colormap)
+        
+        # TODO : deal with form if needed
+        if self.__minLabel is not None:
+            self.__minLabel.setText(str(self._colormap['vmin']))
+        if self.__maxLabel is not None:
+            self.__maxLabel.setText(str(self._colormap['vmax']))
 
     def _setLogNorm(self):
         self._logNorm.setChecked(True)
@@ -424,7 +433,6 @@ class Gradation(qt.QWidget):
         self.setMargin(0)
         self.setContentsMargins(0, 0, 0, 0)
 
-
     def setColormap(self, colormap):
         """Create a _MyColorMap elemtent from the given silx colormap.
         In the future the _MyColorMap should be removed
@@ -435,7 +443,6 @@ class Gradation(qt.QWidget):
         self.colormap = colormap
 
     def paintEvent(self, event):
-        
         qt.QWidget.paintEvent(self, event)
 
         painter = qt.QPainter(self)
@@ -445,9 +452,12 @@ class Gradation(qt.QWidget):
         steps = (vmax - vmin)/256.0
 
         points = numpy.arange(vmin, vmax, steps)
+
+        # TODO : why do we need this linear every time ?
+        # because we are setting values linearly every time...
         colors = Colors.applyColormapToData(points,
                                             name=self.colormap['name'],
-                                            normalization=self.colormap['normalization'],
+                                            normalization='linear',
                                             autoscale=self.colormap['autoscale'],
                                             vmin=vmin,
                                             vmax=vmax)
@@ -487,7 +497,7 @@ class Gradation(qt.QWidget):
             return vmin + (vmax-vmin)*value
         elif self.colormap['normalization'] is 'log':
             rpos = (numpy.log10(vmax)-numpy.log10(vmin))*value
-            return vmin + numpy.exp(rpos)
+            return vmin + 10**(rpos)
         else:
             err = "normalization type (%s) is not managed by the Gradation Widget"%self.colormap['normalization']
             raise ValueError(err)
