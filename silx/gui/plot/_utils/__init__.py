@@ -1,6 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+#
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,32 +21,29 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# ############################################################################*/
+# ###########################################################################*/
+"""Miscellaneous utility functions for the Plot"""
 
-__authors__ = ["D. Naudet"]
+__authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "04/07/2016"
-
-import unittest
-
-from .test_histogramnd_error import suite as test_histo_error
-from .test_histogramnd_nominal import suite as test_histo_nominal
-from .test_histogramnd_vs_np import suite as test_histo_vs_np
-from .test_HistogramndLut_nominal import suite as test_histolut_nominal
-from ..fit.test import suite as test_fit_suite
-from .test_marchingcubes import suite as test_marchingcubes_suite
-from .test_medianfilter import suite as test_medianfilter_suite
-from .test_combo import suite as test_combo_suite
+__date__ = "21/03/2017"
 
 
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(test_histo_nominal())
-    test_suite.addTest(test_histo_error())
-    test_suite.addTest(test_histo_vs_np())
-    test_suite.addTest(test_fit_suite())
-    test_suite.addTest(test_histolut_nominal())
-    test_suite.addTest(test_marchingcubes_suite())
-    test_suite.addTest(test_medianfilter_suite())
-    test_suite.addTest(test_combo_suite())
-    return test_suite
+from .panzoom import FLOAT32_SAFE_MIN, FLOAT32_MINPOS, FLOAT32_SAFE_MAX
+from .panzoom import applyZoomToPlot, applyPan
+
+
+def clamp(value, min_=0., max_=1.):
+    """Clip a value to a range [min, max].
+
+    :param value: The value to clip
+    :param min_: The min edge of the range
+    :param max_: The max edge of the range
+    :return: The clipped value
+    """
+    if value < min_:
+        return min_
+    elif value > max_:
+        return max_
+    else:
+        return value

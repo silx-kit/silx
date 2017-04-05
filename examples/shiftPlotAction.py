@@ -68,22 +68,18 @@ class ShiftUpAction(PlotAction):
                                        'Please select a curve.')
         else:
             # Unpack curve data.
-            # Each curve is represented by an object with method to access:
+            # Each curve is represented by an object with methods to access:
             # the curve data, its legend, associated information and curve style
+            # Here we retrieve the x and y data of the curve
             x0 = activeCurve.getXData()
             y0 = activeCurve.getYData()
-            legend = activeCurve.getLegend()
-            info = activeCurve.getInfo()
 
             # Add 1 to all values in the y array
             # and assign the result to a new array y1
-            # (do not modify y0 if you want to preserve the original curve)
             y1 = y0 + 1.0
 
-            # Re-using the same legend causes the original curve
-            # to be replaced
-            self.plot.addCurve(x0, y1, legend=legend,
-                               info=info)
+            # Set the active curve data with the shifted y values
+            activeCurve.setData(x0, y1)
 
 
 # creating QApplication is mandatory in order to use qt widget

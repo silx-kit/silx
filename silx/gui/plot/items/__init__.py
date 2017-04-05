@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,41 +22,21 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""plot3d test suite."""
+"""This package provides classes that describes :class:`.Plot` content.
+
+Instances of those classes are returned by :class:`.Plot` methods that give
+access to its content such as :meth:`.Plot.getCurve`, :meth:`.Plot.getImage`.
+"""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "05/01/2017"
+__date__ = "06/03/2017"
 
-
-import logging
-import os
-import unittest
-
-
-_logger = logging.getLogger(__name__)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-
-    if os.environ.get('WITH_GL_TEST', 'True') == 'False':
-        # Explicitly disabled tests
-        _logger.warning(
-            "silx.gui.plot3d tests disabled (WITH_GL_TEST=False)")
-
-        class SkipPlot3DTest(unittest.TestCase):
-            def runTest(self):
-                self.skipTest(
-                    "silx.gui.plot3d tests disabled (WITH_GL_TEST=False)")
-
-        test_suite.addTest(SkipPlot3DTest())
-        return test_suite
-
-    # Import here to avoid loading modules if tests are disabled
-
-    from ..scene import test as test_scene
-
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(test_scene.suite())
-    return test_suite
+from .core import (Item, LabelsMixIn, DraggableMixIn, ColormapMixIn,  # noqa
+                   SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn,  # noqa
+                   AlphaMixIn)  # noqa
+from .curve import Curve  # noqa
+from .image import Image  # noqa
+from .shape import Shape  # noqa
+from .scatter import Scatter  # noqa
+from .marker import Marker, XMarker, YMarker  # noqa

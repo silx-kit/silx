@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,9 +29,11 @@ __date__ = "18/02/2016"
 
 import unittest
 
+from .._utils.test import suite as testUtilsSuite
 from .testColormapDialog import suite as testColormapDialogSuite
 from .testColors import suite as testColorsSuite
 from .testCurvesROIWidget import suite as testCurvesROIWidgetSuite
+from .testAlphaSlider import suite as testAlphaSliderSuite
 from .testInteraction import suite as testInteractionSuite
 from .testLegendSelector import suite as testLegendSelectorSuite
 from .testMaskToolsWidget import suite as testMaskToolsWidgetSuite
@@ -47,9 +49,11 @@ from .testStackView import suite as testStackViewSuite
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTests(
-        [testColorsSuite(),
+        [testUtilsSuite(),
+         testColorsSuite(),
          testColormapDialogSuite(),
          testCurvesROIWidgetSuite(),
+         testAlphaSliderSuite(),
          testInteractionSuite(),
          testLegendSelectorSuite(),
          testMaskToolsWidgetSuite(),

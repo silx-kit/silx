@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,41 +21,25 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""plot3d test suite."""
+/* This header provides a compatible isnan function across platforms.
 
-__authors__ = ["T. Vincent"]
-__license__ = "MIT"
-__date__ = "05/01/2017"
+   VisualStudio 2008 (i.e., Python2.7) provides a _isnan method and no isnan.
 
+   Usage from cython:
 
-import logging
-import os
-import unittest
+   cdef extern from "isnan.h":
+       bint isnan(double x) nogil
+*/
 
+#ifndef __ISNAN_H__
+#define __ISNAN_H__
 
-_logger = logging.getLogger(__name__)
+#include <math.h>
 
+#if (defined (_MSC_VER) && _MSC_VER < 1800)
+#include <float.h>
 
-def suite():
-    test_suite = unittest.TestSuite()
+#define isnan(v) _isnan(v)
+#endif
 
-    if os.environ.get('WITH_GL_TEST', 'True') == 'False':
-        # Explicitly disabled tests
-        _logger.warning(
-            "silx.gui.plot3d tests disabled (WITH_GL_TEST=False)")
-
-        class SkipPlot3DTest(unittest.TestCase):
-            def runTest(self):
-                self.skipTest(
-                    "silx.gui.plot3d tests disabled (WITH_GL_TEST=False)")
-
-        test_suite.addTest(SkipPlot3DTest())
-        return test_suite
-
-    # Import here to avoid loading modules if tests are disabled
-
-    from ..scene import test as test_scene
-
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(test_scene.suite())
-    return test_suite
+#endif /*__ISNAN_H__*/

@@ -39,7 +39,7 @@ import numpy
 _logger = logging.getLogger(__name__)
 
 
-from .. import qt
+from ... import qt
 
 from ._matplotlib import FigureCanvasQTAgg
 import matplotlib
@@ -52,10 +52,10 @@ from matplotlib.backend_bases import MouseEvent
 from matplotlib.lines import Line2D
 from matplotlib.collections import PathCollection, LineCollection
 
-from . import _utils
+from . import utils
 from .ModestImage import ModestImage
 from . import BackendBase
-from . import Colors
+from .. import Colors
 
 
 class BackendMatplotlib(BackendBase.BackendBase):
@@ -115,7 +115,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                  color, symbol, linewidth, linestyle,
                  yaxis,
                  xerror, yerror, z, selectable,
-                 fill):
+                 fill, alpha):
         for parameter in (x, y, legend, color, symbol, linewidth, linestyle,
                           yaxis, z, selectable, fill):
             assert parameter is not None
@@ -197,13 +197,15 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         for artist in artists:
             artist.set_zorder(z)
+            if alpha < 1:
+                artist.set_alpha(alpha)
 
         return Container(artists)
 
     def addImage(self, data, legend,
                  origin, scale, z,
                  selectable, draggable,
-                 colormap):
+                 colormap, alpha):
         # Non-uniform image
         # http://wiki.scipy.org/Cookbook/Histograms
         # Non-linear axes
@@ -272,6 +274,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
                                zorder=z,
                                norm=scalarMappable.norm,
                                origin='lower')
+        if alpha < 1:
+            image.set_alpha(alpha)
 
         # Set image extent
         xmin = origin[0]
@@ -461,31 +465,17 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     # Active curve
 
-    def setActiveCurve(self, curve, active, color=None):
+    def setCurveColor(self, curve, color):
         # Store Line2D and PathCollection
         for artist in curve.get_children():
-            if active:
-                if isinstance(artist, (Line2D, LineCollection)):
-                    artist._initialColor = artist.get_color()
-                    artist.set_color(color)
-                elif isinstance(artist, PathCollection):
-                    artist._initialColor = artist.get_facecolors()
-                    artist.set_facecolors(color)
-                    artist.set_edgecolors(color)
-                else:
-                    _logger.warning(
-                        'setActiveCurve ignoring artist %s', str(artist))
+            if isinstance(artist, (Line2D, LineCollection)):
+                artist.set_color(color)
+            elif isinstance(artist, PathCollection):
+                artist.set_facecolors(color)
+                artist.set_edgecolors(color)
             else:
-                if hasattr(artist, '_initialColor'):
-                    if isinstance(artist, (Line2D, LineCollection)):
-                        artist.set_color(artist._initialColor)
-                    elif isinstance(artist, PathCollection):
-                        artist.set_facecolors(artist._initialColor)
-                        artist.set_edgecolors(artist._initialColor)
-                    else:
-                        _logger.info(
-                            'setActiveCurve ignoring artist %s', str(artist))
-                    del artist._initialColor
+                _logger.warning(
+                    'setActiveCurve ignoring artist %s', str(artist))
 
     # Misc.
 
@@ -557,7 +547,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                 ymin2, ymax2 = ranges.yright
 
             # Add margins around data inside the plot area
-            newLimits = list(_utils.addMarginsToLimits(
+            newLimits = list(utils.addMarginsToLimits(
                 dataMargins,
                 self.ax.get_xscale() == 'log',
                 self.ax.get_yscale() == 'log',

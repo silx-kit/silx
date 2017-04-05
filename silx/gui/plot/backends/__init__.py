@@ -1,6 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+#
+# Copyright (c) 2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,32 +21,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# ############################################################################*/
+# ###########################################################################*/
+"""This package implements the backend of the Plot."""
 
-__authors__ = ["D. Naudet"]
+__authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "04/07/2016"
-
-import unittest
-
-from .test_histogramnd_error import suite as test_histo_error
-from .test_histogramnd_nominal import suite as test_histo_nominal
-from .test_histogramnd_vs_np import suite as test_histo_vs_np
-from .test_HistogramndLut_nominal import suite as test_histolut_nominal
-from ..fit.test import suite as test_fit_suite
-from .test_marchingcubes import suite as test_marchingcubes_suite
-from .test_medianfilter import suite as test_medianfilter_suite
-from .test_combo import suite as test_combo_suite
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(test_histo_nominal())
-    test_suite.addTest(test_histo_error())
-    test_suite.addTest(test_histo_vs_np())
-    test_suite.addTest(test_fit_suite())
-    test_suite.addTest(test_histolut_nominal())
-    test_suite.addTest(test_marchingcubes_suite())
-    test_suite.addTest(test_medianfilter_suite())
-    test_suite.addTest(test_combo_suite())
-    return test_suite
+__date__ = "21/03/2017"

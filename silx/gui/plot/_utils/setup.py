@@ -24,13 +24,14 @@
 # ###########################################################################*/
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "18/10/2016"
+__date__ = "21/03/2017"
+
 
 from numpy.distutils.misc_util import Configuration
 
 
 def configuration(parent_package='', top_path=None):
-    config = Configuration('utils', parent_package, top_path)
+    config = Configuration('_utils', parent_package, top_path)
     config.add_subpackage('test')
     return config
 
