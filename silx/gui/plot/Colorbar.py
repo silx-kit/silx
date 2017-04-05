@@ -600,6 +600,7 @@ class TickBar(qt.QWidget):
         self._computeFrac()
         self.form = self._getFormat(font)
 
+
     def _computeTicksLog(self, nticks):
         logMin = numpy.log10(self.vmin)
         logMax = numpy.log10(self.vmax)
@@ -607,6 +608,10 @@ class TickBar(qt.QWidget):
                                                                       logMax,
                                                                       nticks)
         self.ticks = 10**numpy.arange(_min, _max, _spacing)
+        if _spacing == 1:
+            self.subTicks = self._getSubTicks(self.ticks, 10**_min, 10**_max)
+        else:
+            self.subTicks = []
 
     def resizeEvent(self, event):
         qt.QWidget.resizeEvent(self, event)
@@ -618,11 +623,13 @@ class TickBar(qt.QWidget):
                                                               nticks)
 
         self.ticks = numpy.arange(_min, _max, _spacing)
+        self.subTicks = []
 
     def _getOptimalNbTicks(self):
         return max(2, int(round(self.ticksDensity * self.rect().height())))
 
     def _computeFrac(self):
+        # TODO : should be removed and used from
         self.nfrac = 0
         for tick in self.ticks:
             representation = str(tick)
@@ -637,9 +644,14 @@ class TickBar(qt.QWidget):
         font.setPixelSize(self._fontSize)
         painter.setFont(font)
 
+        # paint ticks
         if self.ticks is not None:
             for val in self.ticks:
-                self._painTick(val, painter)
+                self._paintTick(val, painter, majorTick=True)
+
+            # paint subticks
+            for val in self.subTicks:
+                self._paintTick(val, painter, majorTick=False)
 
         qt.QWidget.paintEvent(self, event)
 
@@ -653,20 +665,42 @@ class TickBar(qt.QWidget):
         else:
             raise ValueError('Norm is not recognized')
 
-    def _painTick(self, val, painter, major=True):
+    def _paintTick(self, val, painter, majorTick=True):
+        """
+
+        :param bool majorTick: if False will never draw text and will set a line
+            with a smaller width
+        """
         
         fm = qt.QFontMetrics(painter.font())
         viewportHeight = self.rect().height() - self.margin * 2
         relativePos = self._getRelativePosition(val)
         height = viewportHeight * relativePos
         height += self.margin
-        painter.drawLine(qt.QLine(self.width - self._lineWidth,
+        lineWidth = self._lineWidth
+        if majorTick is False:
+            lineWidth /= 2
+
+        painter.drawLine(qt.QLine(self.width - lineWidth,
                                   height,
                                   self.width,
                                   height))
-        if self.displayValues:
+
+        if self.displayValues and majorTick is True:
             painter.drawText(qt.QPoint(0.0, height + (fm.height() / 2)),
                              self.form.format(val));
+
+    def _getSubTicks(self, ticks, tickMin, tickMax):
+        """Return the sub ticks for the log scale
+        """
+        res = []
+        for logPos in ticks:
+            dataOrigPos = logPos
+            for index in range(2, 10):
+                dataPos = dataOrigPos * index
+                if tickMin <= dataPos <= tickMax:
+                    res.append(dataPos)
+        return res
 
     def setDisplayType(self, disType):
         """Set the type of display we want to set for ticks labels
