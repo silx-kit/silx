@@ -33,7 +33,6 @@ import numpy
 from silx.gui import qt
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
 from silx.gui.plot import Plot1D, Plot2D, StackView
-from silx.gui.plot.Colors import applyColormapToData
 
 from silx.math.calibration import ArrayCalibration, NoCalibration, LinearCalibration
 
@@ -152,36 +151,31 @@ class ArrayCurvePlot(qt.QWidget):
             y_errors = self.__signal_errors[self._selector.selection()]
         else:
             y_errors = None
+
+        self._plot.remove(kind=("curve", "scatter"))
+
         # values: x-y-v scatter
         if self.__values is not None:
-            rgbacolors = applyColormapToData(self.__values, "viridis")
-            self._plot.addCurve(x, y, color=rgbacolors,
-                                legend=legend,
-                                xlabel=self.__axis_name,
-                                ylabel=self.__signal_name,
-                                xerror=self.__axis_errors,
-                                yerror=y_errors,
-                                resetzoom=True, replace=True,
-                                symbol="o", linestyle="")
+            self._plot.addScatter(x, y, self.__values,
+                                  legend=legend,
+                                  xerror=self.__axis_errors,
+                                  yerror=y_errors)
 
         # x monotonically increasing: curve
         elif numpy.all(numpy.diff(x) > 0):
             self._plot.addCurve(x, y, legend=legend,
-                                xlabel=self.__axis_name,
-                                ylabel=self.__signal_name,
                                 xerror=self.__axis_errors,
-                                yerror=y_errors,
-                                resetzoom=True, replace=True)
+                                yerror=y_errors)
 
         # scatter
         else:
-            self._plot.addCurve(x, y, legend=legend,
-                                xlabel=self.__axis_name,
-                                ylabel=self.__signal_name,
-                                xerror=self.__axis_errors,
-                                yerror=y_errors,
-                                resetzoom=True, replace=True,
-                                symbol="o", linestyle="")
+            self._plot.addScatter(x, y, value=numpy.ones_like(y),
+                                  legend=legend,
+                                  xerror=self.__axis_errors,
+                                  yerror=y_errors)
+        self._plot.resetZoom()
+        self._plot.setGraphXLabel(self.__axis_name)
+        self._plot.setGraphYLabel(self.__signal_name)
 
     def clear(self):
         self._plot.clear()
@@ -318,6 +312,7 @@ class ArrayImagePlot(qt.QWidget):
             xcalib = ArrayCalibration(x_axis)
             ycalib = ArrayCalibration(y_axis)
 
+        self._plot.remove(kind=("scatter", "image"))
         if xcalib.is_affine() and ycalib.is_affine():
             # regular image
             xorigin, xscale = xcalib(0), xcalib.get_slope()
@@ -326,16 +321,16 @@ class ArrayImagePlot(qt.QWidget):
             scale = (xscale, yscale)
 
             self._plot.addImage(img, legend=legend,
-                                xlabel=self.__x_axis_name,
-                                ylabel=self.__y_axis_name,
                                 origin=origin, scale=scale)
         else:
-            # FIXME: use addScatter
             scatterx, scattery = numpy.meshgrid(x_axis, y_axis)
-            rgbacolor = applyColormapToData(numpy.ravel(img), "viridis")
-            self._plot.addCurve(
-                    numpy.ravel(scatterx), numpy.ravel(scattery),
-                    color=rgbacolor, symbol="o", linestyle="")
+            self._plot.addScatter(numpy.ravel(scatterx),
+                                  numpy.ravel(scattery),
+                                  numpy.ravel(img),
+                                  legend=legend)
+        self._plot.setGraphXLabel(self.__x_axis_name)
+        self._plot.setGraphYLabel(self.__y_axis_name)
+        self._plot.resetZoom()
 
     def clear(self):
         self._plot.clear()
