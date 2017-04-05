@@ -631,22 +631,33 @@ class TickBar(qt.QWidget):
         painter = qt.QPainter(self)
         font = painter.font()
         font.setPixelSize(self._fontSize)
-        fm = qt.QFontMetrics(font)
         painter.setFont(font)
 
-        viewportHeight = self.rect().height() - self.margin * 2
         if self.ticks is not None:
-            for iTick, val in enumerate(self.ticks):
-                height = (viewportHeight * iTick) / (len(self.ticks) -1)
-                height += self.margin
-                painter.drawLine(qt.QLine(self.width - self._lineWidth,
-                                          height,
-                                          self.width,
-                                          height))
-                if self.displayValues:
-                    painter.drawText(qt.QPoint(0.0, height + (fm.height() / 2)),
-                                     self.form.format(val));
+            for val in self.ticks:
+                self._painTick(val, painter)
+
         qt.QWidget.paintEvent(self, event)
+
+    def _getRelativePosition(self, val):
+        """Return the relative position of val according to min and max value
+        """
+        return (val - self.vmin)/ (self.vmax - self.vmin)
+
+    def _painTick(self, val, painter, major=True):
+        
+        fm = qt.QFontMetrics(painter.font())
+        viewportHeight = self.rect().height() - self.margin * 2
+        relativePos = self._getRelativePosition(val)
+        height = viewportHeight * relativePos
+        height += self.margin
+        painter.drawLine(qt.QLine(self.width - self._lineWidth,
+                                  height,
+                                  self.width,
+                                  height))
+        if self.displayValues:
+            painter.drawText(qt.QPoint(0.0, height + (fm.height() / 2)),
+                             self.form.format(val));
 
     def setDisplayType(self, disType):
         """Set the type of display we want to set for ticks labels
