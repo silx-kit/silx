@@ -112,10 +112,34 @@ class TestGradation(unittest.TestCase):
 
 class TestTickBar(unittest.TestCase):
     """Test that ticks displayed in the TickBar are correct"""
-    def testLogNorm(self):
-        pass
 
-    def testLinearNorm(self):
+    def setUp(self):
+        self.plot = Plot1D()
+        self.colorBar = ColorbarWidget(parent=None, plot=self.plot)
+        self.tickBar = self.colorBar._gradation.tickbar
+
+    def tearDown(self):
+        self.tickBar = None
+        self.colorBar.setPlot(None)
+        self.colorBar.deleteLater()
+        self.colorBar = None
+        self.plot.deleteLater()
+        self.plot = None
+
+    def testLogNormNoAutoscale(self):
+        colormapLog = { 'name': 'gray', 'normalization': 'log',
+                    'autoscale': False, 'vmin': -1.0, 'vmax': 1.0 }
+
+        data = numpy.linspace(10, 1e10, 9).reshape(3, 3)
+        self.plot.addImage(data=data, colormap=colormapLog, legend='toto')
+        self.plot.setActiveImage('toto')
+
+        self.tickBar.computeTicks()
+
+        print(self.tickBar.ticks)
+
+
+    def testLinearNormNoAutoscale(self):
         pass
 
 
@@ -124,12 +148,12 @@ class TestColorbarWidget(unittest.TestCase):
 
     def setUp(self):
         self.plot = Plot1D()
-        self.gradationBar = ColorbarWidget(parent=None, plot=self.plot)
+        self.colorBar = ColorbarWidget(parent=None, plot=self.plot)
 
     def tearDown(self):
-        self.gradationBar.setPlot(None)
-        self.gradationBar.deleteLater()
-        self.gradationBar = None
+        self.colorBar.setPlot(None)
+        self.colorBar.deleteLater()
+        self.colorBar = None
         self.plot.deleteLater()
         self.plot = None
 
@@ -151,16 +175,16 @@ class TestColorbarWidget(unittest.TestCase):
 
         # default behavior when autoscale : set to minmal positive value
         data[data<0] = data.max()
-        self.assertTrue(self.gradationBar._colormap['vmin'] == data.min())
-        self.assertTrue(self.gradationBar._colormap['vmax'] == data.max())
+        self.assertTrue(self.colorBar._colormap['vmin'] == data.min())
+        self.assertTrue(self.colorBar._colormap['vmax'] == data.max())
 
         data = numpy.linspace(-9, -2, 100).reshape(10, 10)
 
         self.plot.addImage(data=data, colormap=colormapLog2, legend='toto')
         self.plot.setActiveImage('toto')
         # if negative values, changing bounds for default : 1, 10
-        self.assertTrue(self.gradationBar._colormap['vmin'] == 1)
-        self.assertTrue(self.gradationBar._colormap['vmax'] == 10)
+        self.assertTrue(self.colorBar._colormap['vmin'] == 1)
+        self.assertTrue(self.colorBar._colormap['vmax'] == 10)
 
     def testPlotAssocation(self):
         """Make sure the ColorbarWidget is proparly connected with the plot"""
@@ -169,7 +193,7 @@ class TestColorbarWidget(unittest.TestCase):
 
         # make sure that default settings are the same
         self.assertTrue(
-            self.gradationBar.getColormap() == self.plot.getDefaultColormap())
+            self.colorBar.getColormap() == self.plot.getDefaultColormap())
 
         data = numpy.linspace(0, 10, 100).reshape(10, 10)
         self.plot.addImage(data=data, colormap=colormap, legend='toto')
@@ -177,7 +201,7 @@ class TestColorbarWidget(unittest.TestCase):
 
         # make sure the modification of the colormap has been done
         self.assertFalse(
-            self.gradationBar.getColormap() == self.plot.getDefaultColormap())
+            self.colorBar.getColormap() == self.plot.getDefaultColormap())
 
 
 def suite():
