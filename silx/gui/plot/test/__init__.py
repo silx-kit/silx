@@ -33,7 +33,7 @@ from .._utils.test import suite as testUtilsSuite
 from .testColormapDialog import suite as testColormapDialogSuite
 from .testColors import suite as testColorsSuite
 from .testCurvesROIWidget import suite as testCurvesROIWidgetSuite
-from .testImageAlphaSlider import suite as testImageAlphaSliderSuite
+from .testAlphaSlider import suite as testAlphaSliderSuite
 from .testInteraction import suite as testInteractionSuite
 from .testLegendSelector import suite as testLegendSelectorSuite
 from .testMaskToolsWidget import suite as testMaskToolsWidgetSuite
@@ -53,7 +53,7 @@ def suite():
          testColorsSuite(),
          testColormapDialogSuite(),
          testCurvesROIWidgetSuite(),
-         testImageAlphaSliderSuite(),
+         testAlphaSliderSuite(),
          testInteractionSuite(),
          testLegendSelectorSuite(),
          testMaskToolsWidgetSuite(),

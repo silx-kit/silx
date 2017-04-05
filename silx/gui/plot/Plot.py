@@ -307,7 +307,8 @@ class Plot(object):
 
         self._activeCurveHandling = True
         self._activeCurveColor = "#000000"
-        self._activeLegend = {'curve': None, 'image': None}
+        self._activeLegend = {'curve': None, 'image': None,
+                              'scatter': None}
 
         # default properties
         self._cursorConfiguration = None
@@ -443,6 +444,8 @@ class Plot(object):
             kind = 'curve'
         elif isinstance(item, items.Image):
             kind = 'image'
+        elif isinstance(item, items.Scatter):
+            kind = 'scatter'
         elif isinstance(item, (items.Marker,
                                items.XMarker, items.YMarker)):
             kind = 'marker'
@@ -809,6 +812,96 @@ class Plot(object):
 
         return legend
 
+    def addScatter(self, x, y, value, legend=None, colormap=None,
+                   info=None, symbol=None, xerror=None, yerror=None,
+                   z=None, copy=True):
+        """Add a (x, y, value) scatter to the graph.
+
+        Scatters are uniquely identified by their legend.
+        To add multiple scatters, call :meth:`addScatter` multiple times with
+        different legend argument.
+        To replace/update an existing scatter, call :meth:`addScatter` with the
+        existing scatter legend.
+
+        When scatter parameters are not provided, if a scatter with the
+        same legend is displayed in the plot, its parameters are used.
+
+        :param numpy.ndarray x: The data corresponding to the x coordinates.
+        :param numpy.ndarray y: The data corresponding to the y coordinates
+        :param numpy.ndarray value: The data value associated with each point
+        :param str legend: The legend to be associated to the scatter (or None)
+        :param dict colormap: The colormap to be used for the scatter (or None)
+                              See :mod:`Plot` for the documentation
+                              of the colormap dict.
+        :param info: User-defined information associated to the curve
+        :param str symbol: Symbol to be drawn at each (x, y) position::
+
+            - 'o' circle
+            - '.' point
+            - ',' pixel
+            - '+' cross
+            - 'x' x-cross
+            - 'd' diamond
+            - 's' square
+            - None (the default) to use default symbol
+
+        :param xerror: Values with the uncertainties on the x values
+        :type xerror: A float, or a numpy.ndarray of float32.
+                      If it is an array, it can either be a 1D array of
+                      same length as the data or a 2D array with 2 rows
+                      of same length as the data: row 0 for positive errors,
+                      row 1 for negative errors.
+        :param yerror: Values with the uncertainties on the y values
+        :type yerror: A float, or a numpy.ndarray of float32. See xerror.
+        :param int z: Layer on which to draw the scatter (default: 1)
+                      This allows to control the overlay.
+
+        :param bool copy: True make a copy of the data (default),
+                          False to use provided arrays.
+        :returns: The key string identify this scatter
+        """
+        legend = 'Unnamed scatter 1.1' if legend is None else str(legend)
+
+        # Check if scatter was previously active
+        wasActive = self._getActiveItem(kind='scatter',
+                                        just_legend=True) == legend
+
+        # Create/Update curve object
+        scatter = self._getItem(kind='scatter', legend=legend)
+        if scatter is None:
+            # No previous scatter, create a default one and add it to the plot
+            scatter = items.Scatter()
+            scatter._setLegend(legend)
+            scatter.setColormap(self.getDefaultColormap())
+            self._add(scatter)
+
+        # Override previous/default values with provided ones
+        scatter.setInfo(info)
+        if symbol is not None:
+            scatter.setSymbol(symbol)
+        if z is not None:
+            scatter.setZValue(z)
+        if colormap is not None:
+            scatter.setColormap(colormap)
+
+        # Set scatter data
+        # If errors not provided, reuse previous ones
+        # TODO: Issue if size of data change but not that of errors
+        if xerror is None:
+            xerror = scatter.getXErrorData(copy=False)
+        if yerror is None:
+            yerror = scatter.getYErrorData(copy=False)
+
+        scatter.setData(x, y, value, xerror, yerror, copy=copy)
+
+        self.notify(
+            'contentChanged', action='add', kind='scatter', legend=legend)
+
+        if wasActive:
+            self._setActiveItem('scatter', scatter.getLegend())
+
+        return legend
+
     def addItem(self, xdata, ydata, legend=None, info=None,
                 replace=False,
                 shape="polygon", color='black', fill=True,
@@ -1112,7 +1205,7 @@ class Plot(object):
 
     # Remove
 
-    ITEM_KINDS = 'curve', 'image', 'item', 'marker'
+    ITEM_KINDS = 'curve', 'image', 'scatter', 'item', 'marker'
 
     def remove(self, legend=None, kind=ITEM_KINDS):
         """Remove one or all element(s) of the given legend and kind.
@@ -1402,12 +1495,12 @@ class Plot(object):
     def _getActiveItem(self, kind, just_legend=False):
         """Return the currently active item of that kind if any
 
-        :param str kind: Type of item: 'curve' or 'image'
+        :param str kind: Type of item: 'curve', 'scatter' or 'image'
         :param bool just_legend: True to get the legend,
                                  False (default) to get the item
         :return: legend or item or None if no active item
         """
-        assert kind in ('curve', 'image')
+        assert kind in ('curve', 'scatter', 'image')
 
         if self._activeLegend[kind] is None:
             return None
@@ -1429,7 +1522,7 @@ class Plot(object):
                        or None to have no active curve.
         :type legend: str or None
         """
-        assert kind in ('curve', 'image')
+        assert kind in ('curve', 'image', 'scatter')
 
         xLabel = self._defaultLabels['x']
         yLabel = self._defaultLabels['y']
@@ -1457,15 +1550,15 @@ class Plot(object):
                     item.setHighlightedColor(self.getActiveCurveColor())
                     item.setHighlighted(True)
 
-                if item.getXLabel() is not None:
-                    xLabel = item.getXLabel()
-                if item.getYLabel() is not None:
-                    if (isinstance(item, items.YAxisMixIn) and
-                            isinstance(item, items.LabelsMixIn) and
-                            item.getYAxis() == 'right'):
-                        yRightLabel = item.getYLabel()
-                    else:
-                        yLabel = item.getYLabel()
+                if isinstance(item, items.LabelsMixIn):
+                    if item.getXLabel() is not None:
+                        xLabel = item.getXLabel()
+                    if item.getYLabel() is not None:
+                        if (isinstance(item, items.YAxisMixIn) and
+                                item.getYAxis() == 'right'):
+                            yRightLabel = item.getYLabel()
+                        else:
+                            yLabel = item.getYLabel()
 
         # Store current labels and update plot
         self._currentLabels['x'] = xLabel
@@ -1561,6 +1654,20 @@ class Plot(object):
         """
         return self._getItem(kind='image', legend=legend)
 
+    def getScatter(self, legend=None):
+        """Get the object describing a specific scatter.
+
+        It returns None in case no matching scatter is found.
+
+        :param str legend:
+            The legend identifying the scatter.
+            If not provided or None (the default), the active scatter is returned
+            or if there is no active scatter, the latest updated scatter
+            is returned if there are scatters in the plot.
+        :return: None or :class:`.items.Scatter` object
+        """
+        return self._getItem(kind='scatter', legend=legend)
+
     def _getItems(self, kind, just_legend=False, withhidden=False):
         """Retrieve all items of a kind in the plot
 
@@ -1593,7 +1700,7 @@ class Plot(object):
         if legend is not None:
             return self._content.get((legend, kind), None)
         else:
-            if kind in ('curve', 'image'):
+            if kind in ('curve', 'image', 'scatter'):
                 item = self._getActiveItem(kind=kind)
                 if item is not None:  # Return active item if available
                     return item
