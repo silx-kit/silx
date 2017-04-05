@@ -451,16 +451,6 @@ class BackendBase(object):
         """
         pass
 
-    # colormap
-
-    def getSupportedColormaps(self):
-        """Get a list of strings with the supported colormap names.
-
-        The list should at least contain and start by:
-        ['gray', 'reversed gray', 'temperature', 'red', 'green', 'blue']
-        """
-        return 'gray', 'reversed gray', 'temperature', 'red', 'green', 'blue'
-
     # Data <-> Pixel coordinates conversion
 
     def dataToPixel(self, x, y, axis):

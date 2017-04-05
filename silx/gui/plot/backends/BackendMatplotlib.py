@@ -679,14 +679,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
         if which is not None:
             self.ax.grid(True, which=which)
 
-    # colormap
-
-    def getSupportedColormaps(self):
-        default = super(BackendMatplotlib, self).getSupportedColormaps()
-        maps = [m for m in cm.datad]
-        maps.sort()
-        return default + tuple(maps)
-
     # Data <-> Pixel coordinates conversion
 
     def dataToPixel(self, x, y, axis):

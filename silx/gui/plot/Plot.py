@@ -205,6 +205,12 @@ import numpy
 
 # Import matplotlib backend here to init matplotlib our way
 from .backends.BackendMatplotlib import BackendMatplotlibQt
+
+try:
+    from matplotlib import cm as matplotlib_cm
+except ImportError:
+    matplotlib_cm = None
+
 from . import Colors
 from . import PlotInteraction
 from . import PlotEvents
@@ -2135,7 +2141,15 @@ class Plot(object):
         The list should at least contain and start by:
         ('gray', 'reversed gray', 'temperature', 'red', 'green', 'blue')
         """
-        return self._backend.getSupportedColormaps()
+        default = ('gray', 'reversed gray',
+                   'temperature',
+                   'red', 'green', 'blue')
+        if matplotlib_cm is None:
+            return default
+        else:
+            maps = [m for m in matplotlib_cm.datad]
+            maps.sort()
+            return default + tuple(maps)
 
     def _getColorAndStyle(self):
         color = self.colorList[self._colorIndex]
