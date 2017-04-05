@@ -787,8 +787,8 @@ class _ErrorBars(object):
         :type xError: A float, or a numpy.ndarray of float32.
                       If it is an array, it can either be a 1D array of
                       same length as the data or a 2D array with 2 rows
-                      of same length as the data: row 0 for positive errors,
-                      row 1 for negative errors.
+                      of same length as the data: row 0 for negative errors,
+                      row 1 for positive errors.
         :param yError: The absolute error on the Y axis.
         :type yError: A float, or a numpy.ndarray of float32. See xError.
         :param float xMin: The min X value already computed by GLPlotCurve2D.
@@ -881,10 +881,10 @@ class _ErrorBars(object):
 
         if xError is not None:  # errors on the X axis
             if len(xError.shape) == 2:
-                xErrorPlus, xErrorMinus = xError[0], xError[1]
+                xErrorMinus, xErrorPlus = xError[0], xError[1]
             else:
                 # numpy arrays of len 1 or len(xData)
-                xErrorPlus, xErrorMinus = xError, xError
+                xErrorMinus, xErrorPlus = xError, xError
 
             # Interleave vertices for xError
             endXError = 2 * nbDataPts
@@ -903,10 +903,10 @@ class _ErrorBars(object):
 
         if yError is not None:  # errors on the Y axis
             if len(yError.shape) == 2:
-                yErrorPlus, yErrorMinus = yError[0], yError[1]
+                yErrorMinus, yErrorPlus = yError[0], yError[1]
             else:
                 # numpy arrays of len 1 or len(yData)
-                yErrorPlus, yErrorMinus = yError, yError
+                yErrorMinus, yErrorPlus = yError, yError
 
             # Interleave vertices for yError
             xCoords[endXError::2] = xData
