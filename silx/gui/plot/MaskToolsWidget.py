@@ -876,7 +876,7 @@ class MaskToolsWidget(qt.QWidget):
             self._scale = activeImage.getScale()
             self._z = activeImage.getZValue() + 1
             self._data = activeImage.getData(copy=False)
-            if self._data.shape != self.getSelectionMask(copy=False).shape:
+            if self._data.shape[:2] != self.getSelectionMask(copy=False).shape:
                 # Image has not the same size, remove mask and stop listening
                 if self.plot.getImage(self._maskName):
                     self.plot.remove(self._maskName, kind='image')
@@ -911,12 +911,15 @@ class MaskToolsWidget(qt.QWidget):
             self._scale = activeImage.getScale()
             self._z = activeImage.getZValue() + 1
             self._data = activeImage.getData(copy=False)
-            if self._data.shape != self.getSelectionMask(copy=False).shape:
-                self._mask.reset(self._data.shape)
+            if self._data.shape[:2] != self.getSelectionMask(copy=False).shape:
+                self._mask.reset(self._data.shape[:2])
                 self._mask.commit()
             else:
                 # Refresh in case origin, scale, z changed
                 self._updatePlotMask()
+
+            # Threshold tools only available for data with colormap
+            self.thresholdGroup.setEnabled(self._data.ndim == 2)
 
         self._updateInteractiveMode()
 
@@ -1180,7 +1183,7 @@ class MaskToolsWidget(qt.QWidget):
 
     def resetSelectionMask(self):
         """Reset the mask"""
-        self._mask.reset(shape=self._data.shape)
+        self._mask.reset(shape=self._data.shape[:2])
         self._mask.commit()
 
     def _handleInvertMask(self):
