@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Basic tests for ColorBar featues"""
+"""Basic tests for ColorBar featues and sub widgets of Colorbar module"""
 
 __authors__ = ["H. Payno"]
 __license__ = "MIT"
@@ -34,11 +34,6 @@ from silx.gui.plot.Colorbar import ColorbarWidget
 from silx.gui.plot import Plot1D
 import numpy
 
-class TestFormats(unittest.TestCase):
-    """Test that the format used to display the ticks labels are correct"""
-    def testScientificDisplay(self):
-        pass
-        # TODO
 
 class TestGradation(unittest.TestCase):
     """Test that interaction with the gradation is correct"""
@@ -72,23 +67,20 @@ class TestGradation(unittest.TestCase):
         self.assertTrue(
             self.gradationWidget.getValueFromRelativePosition(1.0) == 0.0)
 
-    # def testRelativePositionLog(self):
-    #     self.colorMapLog1 = { 'name': 'temperature', 'normalization': 'log',
-    #                 'autoscale': False, 'vmin': 10.0, 'vmax': 1e8 }
+    def testRelativePositionLog(self):
+        self.colorMapLog1 = { 'name': 'temperature', 'normalization': 'log',
+                    'autoscale': False, 'vmin': 1.0, 'vmax': 100.0 }
 
-    #     self.gradationWidget.setColormap(self.colorMapLog1)
+        self.gradationWidget.setColormap(self.colorMapLog1)
 
-    #     reVal = self.gradationWidget.getValueFromRelativePosition(0.75)
-    #     thVal = self.getLogScaleValue(0.25, self.colorMapLog1['vmin'], self.colorMapLog1['vmax'] )
-    #     self.assertTrue(thVal == reVal)
+        val = self.gradationWidget.getValueFromRelativePosition(1.0)
+        self.assertTrue(val == 100.0)
 
-    #     thVal = self.gradationWidget.getValueFromRelativePosition(0.5)
-    #     reVal = self.getLogScaleValue(0.5, self.colorMapLog1['vmin'], self.colorMapLog1['vmax'] )
-    #     self.assertTrue(thVal == reVal)
+        val = self.gradationWidget.getValueFromRelativePosition(0.5)
+        self.assertTrue(val == 10.0)
         
-    #     thVal = self.gradationWidget.getValueFromRelativePosition(1.0)
-    #     reVal = self.getLogScaleValue(1.0, self.colorMapLog1['vmin'], self.colorMapLog1['vmax'] )
-    #     self.assertTrue(thVal == reVal)
+        val = self.gradationWidget.getValueFromRelativePosition(0.0)
+        self.assertTrue(val == 1.0)
 
     def testNegativeLogMin(self):
         colormap = { 'name': 'gray', 'normalization': 'log',
@@ -104,19 +96,16 @@ class TestGradation(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.gradationWidget.setColormap(colormap)
         
-    def getLogScaleValue(self, relativeVal, vmin, vmax):
-        assert(vmin > 0)
-        assert(vmax > 0)
-        assert((relativeVal >= 0.0) and (relativeVal <= 1.0))
-        return vmin + numpy.exp((numpy.log10(vmax) - numpy.log10(vmin))*relativeVal)
-
-class TestTickBar(unittest.TestCase):
-    """Test that ticks displayed in the TickBar are correct"""
+class TestNoAutoscale(unittest.TestCase):
+    """Test that ticks and color displayed are correct in the case of a colormap
+    with no autoscale
+    """
 
     def setUp(self):
         self.plot = Plot1D()
         self.colorBar = ColorbarWidget(parent=None, plot=self.plot)
-        self.tickBar = self.colorBar._gradation.tickbar
+        self.tickBar = self.colorBar.getGradationBar().tickbar
+        self.gradation = self.colorBar.getGradationBar().gradation
 
     def tearDown(self):
         self.tickBar = None
@@ -128,21 +117,47 @@ class TestTickBar(unittest.TestCase):
 
     def testLogNormNoAutoscale(self):
         colormapLog = { 'name': 'gray', 'normalization': 'log',
-                    'autoscale': True, 'vmin': -1.0, 'vmax': 1.0 }
+                    'autoscale': False, 'vmin': 1.0, 'vmax': 100.0 }
 
         data = numpy.linspace(10, 1e10, 9).reshape(3, 3)
         self.plot.addImage(data=data, colormap=colormapLog, legend='toto')
         self.plot.setActiveImage('toto')
 
+        # test Ticks
         self.tickBar.setNTicks(10)
         self.tickBar.computeTicks()
 
-        numpy.array_equal(self.tickBar.ticks, numpy.linspace(10, 1e10, 10))
+        ticksTh = numpy.linspace(1.0, 100.0, 10)
+        ticksTh = 10**ticksTh
+        numpy.array_equal(self.tickBar.ticks, ticksTh)
 
+        # test Gradation
+        val = self.gradation.getValueFromRelativePosition(1.0)
+        self.assertTrue(val == 100.0)
+
+        val = self.gradation.getValueFromRelativePosition(0.0)
+        self.assertTrue(val == 1.0)
 
     def testLinearNormNoAutoscale(self):
-        pass
+        colormapLog = { 'name': 'gray', 'normalization': 'linear',
+                    'autoscale': False, 'vmin': -4, 'vmax': 5 }
 
+        data = numpy.linspace(1, 9, 9).reshape(3, 3)
+        self.plot.addImage(data=data, colormap=colormapLog, legend='toto')
+        self.plot.setActiveImage('toto')
+
+        # test Ticks
+        self.tickBar.setNTicks(10)
+        self.tickBar.computeTicks()
+
+        numpy.array_equal(self.tickBar.ticks, numpy.linspace(-4, 5, 10))
+
+        # test Gradation
+        val = self.gradation.getValueFromRelativePosition(1.0)
+        self.assertTrue(val == 5.0)
+
+        val = self.gradation.getValueFromRelativePosition(0.0)
+        self.assertTrue(val == -4.0)
 
 class TestColorbarWidget(unittest.TestCase):
     """Test interaction with the GradationBar"""
@@ -207,7 +222,7 @@ class TestColorbarWidget(unittest.TestCase):
 
 def suite():
     test_suite = unittest.TestSuite()
-    for ui in (TestFormats, TestGradation, TestTickBar):
+    for ui in (TestGradation, TestTickBar, TestColorbarWidget):
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(ui))
 
