@@ -797,7 +797,7 @@ class Plot(object):
             image._setSelectable(selectable)
         if draggable is not None:
             image._setDraggable(draggable)
-        if colormap is not None and isinstance(image, items.ImageData):
+        if colormap is not None and isinstance(image, items.ColormapMixIn):
             image.setColormap(colormap)
         if xlabel is not None:
             image._setXLabel(xlabel)

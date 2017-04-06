@@ -411,7 +411,7 @@ class ColormapAction(PlotAction):
 
         # Update active image colormap
         activeImage = self.plot.getActiveImage()
-        if isinstance(activeImage, items.ImageData):
+        if isinstance(activeImage, items.ColormapMixIn):
             activeImage.setColormap(colormap)
 
 
