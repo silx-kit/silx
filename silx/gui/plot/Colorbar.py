@@ -64,6 +64,14 @@ class ColorbarWidget(qt.QWidget):
     """
     configuration=('withTicksValue', 'minMaxValueOnly')
 
+    MIN_LIM_SCI_FORM = -1000
+    """Used for the min and max label to know when we should display it under the
+    scientific form"""
+
+    MAX_LIM_SCI_FORM = 1000
+    """Used for the min and max label to know when we should display it under the
+    scientific form"""
+
     def __init__(self, parent=None, plot=None, legend=None, showNorm=False,
         showAutoscale=False, config=configuration[0]):
         """
@@ -249,11 +257,32 @@ class ColorbarWidget(qt.QWidget):
         self._setAutoscale(autoscale)
         self._gradation.setColormap(self._colormap)
         
-        # TODO : deal with form if needed
-        if self.__minLabel is not None:
-            self.__minLabel.setText(str(self._colormap['vmin']))
-        if self.__maxLabel is not None:
-            self.__maxLabel.setText(str(self._colormap['vmax']))
+        self._setMinMaxLabels(minVal=self._colormap['vmin'],
+                              maxVal=self._colormap['vmax'])
+
+    def _setMinMaxLabels(self, minVal, maxVal):
+        # bad hack to try to display has much information as possible
+        self.minVal = minVal
+        self.maxVal = maxVal
+        self._updateMinMax()
+
+    def _updateMinMax(self):
+        """Update the min and max label if we are in the case of the
+        configuration 'minMaxValueOnly'"""
+        if self.__minLabel is not None and self.__maxLabel is not None:
+            if ColorbarWidget.MIN_LIM_SCI_FORM <= self.minVal <= ColorbarWidget.MAX_LIM_SCI_FORM:
+                self.__minLabel.setText(str(self.minVal))
+            else:
+                self.__minLabel.setText("{0:.0e}".format(self.minVal))
+
+            if ColorbarWidget.MIN_LIM_SCI_FORM <= self.maxVal <= ColorbarWidget.MAX_LIM_SCI_FORM:
+                self.__maxLabel.setText(str(self.maxVal))
+            else:
+                self.__maxLabel.setText("{0:.0e}".format(self.maxVal))
+
+    def resizeEvent(self, event):
+        qt.QWidget.resizeEvent(self, event)
+        self._updateMinMax()
 
     def _setLogNorm(self):
         self._logNorm.setChecked(True)
