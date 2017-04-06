@@ -365,7 +365,8 @@ class VerticalLegend(qt.QLabel):
 class GradationBar(qt.QWidget):
     """The object grouping the Gradation and ticks associated to the Gradation
     """
-    def __init__(self, colormap, parent=None, displayTicksValues=True):
+    TEXT_MARGIN = 5
+    def __init__(self, parent=None, colormap=None, displayTicksValues=True):
         """
 
         :param colormap: the colormap to be displayed
@@ -375,20 +376,24 @@ class GradationBar(qt.QWidget):
         super(GradationBar, self).__init__(parent)
 
         self.setLayout(qt.QHBoxLayout())
-        self.textMargin = 5
 
         # create the left side group (Gradation)
-        self.gradation = Gradation(colormap=colormap, parent=self)
-        self.tickbar = TickBar(vmin=colormap['vmin'] if colormap else 0.0,
-                               vmax=colormap['vmax'] if colormap else 1.0,
-                               norm=colormap['normalization'] if colormap else 'linear',
+        self.gradation = Gradation(colormap=colormap,
+                                   parent=self,
+                                   margin=GradationBar.TEXT_MARGIN)
+        
+        self.tickbar = TickBar(vmin=colormap['vmin'],
+                               vmax=colormap['vmax'],
+                               norm=colormap['normalization'],
                                parent=self,
-                               displayValues=displayTicksValues)
+                               displayValues=displayTicksValues,
+                               margin=GradationBar.TEXT_MARGIN)
 
-        self.gradation.setMargin(self.textMargin)
-        self.tickbar.setMargin(self.textMargin)
         self.layout().addWidget(self.tickbar)
         self.layout().addWidget(self.gradation)
+
+        self.layout().setContentsMargins(0, 0, 0, 0)
+        self.layout().setSpacing(0)
 
     def getTickBar(self):
         """
@@ -405,38 +410,42 @@ class GradationBar(qt.QWidget):
         return self.gradation
 
     def setColormap(self, colormap):
-        self.gradation.setColormap(colormap)
-        self.tickbar._norm = colormap['normalization']
-        self.tickbar.vmin = colormap['vmin']
-        self.tickbar.vmax = colormap['vmax']
-        self.tickbar.computeTicks()
+        self.gradation.update(vmin=colormap['vmin'],
+                                vmax=colormap['vmax'],
+                                norm=colormap['norm'])
+
+        self.tickbar.update(vmin=colormap['vmin'],
+                            vmax=colormap['vmax'],
+                            norm=colormap['norm'])
 
 
 class Gradation(qt.QWidget):
     """Simple widget wich display the colormap gradation and update the tooltip
     to return the value equivalence for the color
     """
-    def __init__(self, colormap, parent=None):
+    def __init__(self, colormap, parent=None, margin=5):
         """
 
         :param colormap: the colormap to be displayed
         :param parent: the Qt parent if any
         """
         qt.QWidget.__init__(self, parent)
-        if colormap is not None:
-            self.setColormap(colormap)
+        self.colormap = colormap
 
         self.setLayout(qt.QVBoxLayout())
         self.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
         # needed to get the mouse event without waiting for button click
         self.setMouseTracking(True)
-        self.setMargin(0)
+        self.setMargin(margin)
         self.setContentsMargins(0, 0, 0, 0)
 
     def setColormap(self, colormap):
         """Create a _MyColorMap elemtent from the given silx colormap.
         In the future the _MyColorMap should be removed
         """
+        if norm not in ('log', 'linear'):
+            raise ValueError("Unrecognized normalization, should be 'linear' or 'log'")
+
         if colormap['normalization'] is 'log':
             if not (colormap['vmin']>0 and colormap['vmax']>0):
                 raise ValueError('vmin and vmax should be positives')
@@ -453,8 +462,7 @@ class Gradation(qt.QWidget):
 
         points = numpy.arange(vmin, vmax, steps)
 
-        # TODO : why do we need this linear every time ?
-        # because we are setting values linearly every time...
+        # TODO : should the colors be computed once for all ?
         colors = Colors.applyColormapToData(points,
                                             name=self.colormap['name'],
                                             normalization='linear',
@@ -480,7 +488,7 @@ class Gradation(qt.QWidget):
         """yPixel : pixel position into Gradation widget reference
         """
         # widgets are bottom-top referencial but we display in top-bottom referential
-        return 1 - float(yPixel)/float(self.height())
+        return 1 - float(yPixel)/float(self.height() - 2*self.margin)
 
     def getValueFromRelativePosition(self, value):
         """Return the value in the colorMap from a relative position in the 
@@ -489,15 +497,15 @@ class Gradation(qt.QWidget):
         :param val: float value in [0, 1]
         :return: the value in [colormap['vmin'], colormap['vmax']]
         """
+        value = max(0.0, value)
+        value = min(value, 1.0)
         vmin = self.colormap['vmin']
         vmax = self.colormap['vmax']
-        if not ((value >=0) and (value <=1)):
-            raise ValueError('invalid value given, should be in [0.0, 1.0]')
         if self.colormap['normalization'] is 'linear':
-            return vmin + (vmax-vmin)*value
+            return vmin + (vmax - vmin) * value
         elif self.colormap['normalization'] is 'log':
-            rpos = (numpy.log10(vmax)-numpy.log10(vmin))*value
-            return vmin + 10**(rpos)
+            rpos = (numpy.log10(vmax) - numpy.log10(vmin)) * value + numpy.log10(vmin)
+            return 10**rpos
         else:
             err = "normalization type (%s) is not managed by the Gradation Widget"%self.colormap['normalization']
             raise ValueError(err)
@@ -525,7 +533,7 @@ class TickBar(qt.QWidget):
     DEFAULT_TICK_DENSITY = 0.015
 
     def __init__(self, vmin, vmax, norm, parent=None, displayValues=True,
-        nticks=None):
+        nticks=None, margin=5):
         """Bar grouping the tickes displayed
 
         :param vmin: minimal value on the colormap
@@ -537,22 +545,38 @@ class TickBar(qt.QWidget):
         :param nticks: the number of tick we want to display. Should be an
             unsigned int ot None. If None, let the Tick bar find the optimal
             number of ticks from the tick density.
+        :param int margin: margin to set on the top and bottom
         """
         super(TickBar, self).__init__(parent)
         self._forcedDisplayType = None
-        self.displayValues = displayValues
-        self._norm = norm
+        self.ticksDensity = TickBar.DEFAULT_TICK_DENSITY
+        
         self.vmin = vmin
         self.vmax = vmax
-        self.ticksDensity = TickBar.DEFAULT_TICK_DENSITY
+        # TODO : should be grouped into a global function, called by all
+        # logScale displayer to make sure we have the same behavior everywhere
+        if self.vmin <= 0 or self.vmax <= 0:
+            _logger.warning(
+                'Log colormap with bound <= 0: changing bounds.')
+            self.vmin, self.vmax = 1., 10.
+
+        self._norm = norm
+        self.displayValues = displayValues
         self.setNTicks(nticks)
+        self.setMargin(margin)
 
         self.setLayout(qt.QVBoxLayout())
-        self.setMargin(0)
+        self.setMargin(margin)
         self.setContentsMargins(0, 0, 0, 0)
 
         self.width = self._widthDisplayVal if self.displayValues else self._widthNoDisplayVal
         self.setFixedWidth(self.width)
+
+    def update(self, vmin, vmax, norm):
+        self.vmin=vmin
+        self.vmax=vmax
+        self.norm=norm
+        qt.QWidget.update(self)
 
     def setMargin(self, margin):
         """Define the margin to fit with a Gradation object.
@@ -571,6 +595,8 @@ class TickBar(qt.QWidget):
         """
         self.nticks = nticks
         self.ticks = None
+        self.computeTicks()
+        qt.QWidget.update(self)
 
     def setTicksDensity(self, density):
         if density < 0.0:
