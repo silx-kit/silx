@@ -574,7 +574,8 @@ class TickBar(qt.QWidget):
     def update(self, vmin, vmax, norm):
         self.vmin=vmin
         self.vmax=vmax
-        self.norm=norm
+        self._norm=norm
+        self.computeTicks()
         qt.QWidget.update(self)
 
     def setMargin(self, margin):
