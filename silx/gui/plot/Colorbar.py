@@ -22,24 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""A widget displaying a colorbar linked to a :class:`PlotWidget`.
-
-It is a wrapper over matplotlib :class:`ColorbarBase`.
-
-It uses a description of colormaps as dict compatible with :class:`Plot`.
-
-To run the following sample code, a QApplication must be initialized.
-
->>> import numpy
->>> from silx.gui.plot import Plot2D
->>> from silx.gui.plot.Colorbar import ColorbarWidget
-
->>> plot = Plot2D()  # Create a plot widget
->>> plot.show()
-
->>> colorbar = ColorbarWidget(plot=plot)  # Associate the colorbar with it
->>> colorbar._setLabel('Colormap')
->>> colorbar.show()
+"""Modules containint several widget associated to a colormap.
 """
 
 __authors__ = ["H. Payno", "T. Vincent"]
@@ -61,27 +44,67 @@ _logger = logging.getLogger(__name__)
 
 class ColorbarWidget(qt.QWidget):
     """Colorbar widget displaying a colormap
-    """
-    configuration=('withTicksValue', 'minMaxValueOnly')
 
-    MIN_LIM_SCI_FORM = -1000
+    It uses a description of colormaps as dict compatible with :class:`Plot`.
+
+    .. image:: img/linearColorbar.png
+        :width: 80px
+        :align: center
+
+    To run the following sample code, a QApplication must be initialized.
+
+    >>> import numpy
+    >>> from silx.gui.plot import Plot2D
+    >>> from silx.gui.plot.Colorbar import ColorbarWidget
+
+    >>> plot = Plot2D()  # Create a plot widget
+    >>> plot.show()
+
+    >>> colorbar = ColorbarWidget(plot=plot, legend='Colormap')  # Associate the colorbar with it
+    >>> colorbar.show()
+
+    Initializer parameters :
+
+    :param parent: See :class:`QWidget`
+    :param plot: PlotWidget the colorbar is attached to (optional)
+    :param str legend: the label to set to the colormap
+    :param bool showNorm: if True hide the normalization groupbox (optional)
+    :param bool showAutoscale: if True hide the autoscale checkbox (optional)
+    :param str config: the standard configuration to set. See ColorbarWidget.Configuration
+    """
+
+    Configuration=('withTicksValue', 'minMaxValueOnly')
+    """The twos default configuration for now are :
+
+    * Configuration[0] = 'withTicksValue'. This configuration will display ticks
+        with ticks values on the left, gradation on the center and label/legend
+        on the right. Information about scale and normalization are always
+        displayed on the bottom.
+
+        .. image:: img/logColorbar.png
+            :width: 80px
+            :align: center
+
+    * Configuration[1] = 'minMaxValueOnly'. This configuration  is the
+        'withTicksValue' but ticks values are not displayed. Insteada we have a
+        label on the top and at the bottom of the Gradation with min and max
+        values of the colormap.
+
+        .. image:: img/linearColorbar.png
+            :width: 80px
+            :align: center
+    """
+
+    _MIN_LIM_SCI_FORM = -1000
     """Used for the min and max label to know when we should display it under the
     scientific form"""
 
-    MAX_LIM_SCI_FORM = 1000
+    _MAX_LIM_SCI_FORM = 1000
     """Used for the min and max label to know when we should display it under the
     scientific form"""
 
     def __init__(self, parent=None, plot=None, legend=None, showNorm=False,
-        showAutoscale=False, config=configuration[0]):
-        """
-
-        :param parent: See :class:`QWidget`
-        :param plot: PlotWidget the colorbar is attached to (optional)
-        :param str legend: the label to set to the colormap
-        :param bool showNorm: if True hide the normalization groupbox (optional)
-        :param bool showAutoscale: if True hide the autoscale checkbox (optional)
-        """
+        showAutoscale=False, config=Configuration[0]):
         super(ColorbarWidget, self).__init__(parent)
         self._plot = None
         self._configuration = config
@@ -137,9 +160,9 @@ class ColorbarWidget(qt.QWidget):
         return self._autoscaleCB
         
     def __buildGradationAndLegend(self):
-        if self._configuration is ColorbarWidget.configuration[0]:
+        if self._configuration is ColorbarWidget.Configuration[0]:
             return self.__buildGradationAndLegendWithTicksValue()
-        if self._configuration is ColorbarWidget.configuration[1]:
+        if self._configuration is ColorbarWidget.Configuration[1]:
             return self.__buildGradationAndLegendMinMax()
 
         msg = 'Given configuration is not recognize, can\'t create Gradation'
@@ -198,9 +221,9 @@ class ColorbarWidget(qt.QWidget):
         return widget
 
     def setPlot(self, plot):
-        """Associate the plot to this ColorBar
+        """Associate a plot to the ColorBar
 
-        :param plot: the plot associated with the colorbar. If None will remove
+        :param plot: the plot to associate with the colorbar. If None will remove
             any connection with a previous plot.
         """
         # removing previous plot if any
@@ -217,14 +240,14 @@ class ColorbarWidget(qt.QWidget):
         """Return the colormap displayed in the colorbar as a dict.
 
         It returns None if no colormap is set.
-        See :class:`Plot` documentation for the description of the colormap
+        See :class:`silx.gui.plot.Plot` documentation for the description of the colormap
         dict description.
         """
         return self._colormap.copy()
 
     def setColormap(self, name, normalization='linear',
                     vmin=0., vmax=1., autoscale=True):
-        """Set the colormap to display in the colorbar.
+        """Set the colormap to be displayed.
 
         :param str name: The name of the colormap or None
         :param str normalization: Normalization to use: 'linear' or 'log'
@@ -270,12 +293,12 @@ class ColorbarWidget(qt.QWidget):
         """Update the min and max label if we are in the case of the
         configuration 'minMaxValueOnly'"""
         if self.__minLabel is not None and self.__maxLabel is not None:
-            if ColorbarWidget.MIN_LIM_SCI_FORM <= self.minVal <= ColorbarWidget.MAX_LIM_SCI_FORM:
+            if ColorbarWidget._MIN_LIM_SCI_FORM <= self.minVal <= ColorbarWidget._MAX_LIM_SCI_FORM:
                 self.__minLabel.setText(str(self.minVal))
             else:
                 self.__minLabel.setText("{0:.0e}".format(self.minVal))
 
-            if ColorbarWidget.MIN_LIM_SCI_FORM <= self.maxVal <= ColorbarWidget.MAX_LIM_SCI_FORM:
+            if ColorbarWidget._MIN_LIM_SCI_FORM <= self.maxVal <= ColorbarWidget._MAX_LIM_SCI_FORM:
                 self.__maxLabel.setText(str(self.maxVal))
             else:
                 self.__maxLabel.setText("{0:.0e}".format(self.maxVal))
@@ -356,7 +379,10 @@ class ColorbarWidget(qt.QWidget):
                          vmax=vmax)
 
     def getGradationBar(self):
-        """:return: :class:`GradationBar`"""
+        """
+
+        :return: return the :class:`GradationBar` used to display Gradation
+            and ticks"""
         return self._gradation
 
 
@@ -392,16 +418,34 @@ class _VerticalLegend(qt.QLabel):
 
 
 class GradationBar(qt.QWidget):
-    """The object grouping the Gradation and ticks associated to the Gradation
+    """This class is making the composition of a :class:`Gradation` and a
+    :class:`TickBar`.
+    It is the simplest widget displaying ficks and colormap gradient.
+
+    .. image:: img/gradationbar.png
+        :width: 150px
+        :align: center
+
+    To run the following sample code, a QApplication must be initialized.
+
+    >>> colormap={'name':'gray',
+              'normalization':'log',
+              'vmin':1,
+              'vmax':100000,
+              'autoscale':False
+              }
+    >>> gradation = GradationBar(parent=None,
+                         colormap=colormap )
+    >>> gradation.show()
+
+    Initializer parameters :
+
+    :param colormap: the colormap to be displayed
+    :param parent: the Qt parent if any
+    :param displayTicksValues: display the ticks value or only the '-'
     """
     TEXT_MARGIN = 5
     def __init__(self, parent=None, colormap=None, displayTicksValues=True):
-        """
-
-        :param colormap: the colormap to be displayed
-        :param parent: the Qt parent if any
-        :param displayTicksValues: display the ticks value or only the '-'
-        """
         super(GradationBar, self).__init__(parent)
 
         self.setLayout(qt.QHBoxLayout())
@@ -427,18 +471,22 @@ class GradationBar(qt.QWidget):
     def getTickBar(self):
         """
 
-        :return: :class:`TickBar`
+        :return: the instanciation of the :class:`TickBar`
         """
         return self.tickbar
 
     def getGradation(self):
         """
 
-        :return: :class:`Gradation`
+        :return: the instanciation of the :class:`Gradation`
         """
         return self.gradation
 
     def setColormap(self, colormap):
+        """Set the new colormap to be displayed
+
+        :param dict colormap: the colormap to set
+        """
         if colormap is not None:
             self.gradation.setColormap(colormap)
 
@@ -448,18 +496,41 @@ class GradationBar(qt.QWidget):
 
 
 class Gradation(qt.QWidget):
-    """Simple widget wich display the colormap gradation and update the tooltip
-    to return the value equivalence for the color
+    """Widget displaying the colormap gradation.
+    Show matching value between the gradient color (from the colormap) at mouse
+    position and value.
+
+    .. image:: img/gradation.png
+        :width: 20px
+        :align: center
+
+
+    To run the following sample code, a QApplication must be initialized.
+
+    >>> colormap={'name':'viridis',
+              'normalization':'log',
+              'vmin':1,
+              'vmax':100000,
+              'autoscale':False
+              }
+    >>> gradation = GradationBar(parent=None,
+                         colormap=colormap )
+    >>> gradation.show()
+
+    Initializer parameters :
+
+    :param colormap: the colormap to be displayed
+    :param parent: the Qt parent if any
+    :param int margin: the top and left margin to apply. 
+
+    .. warning:: Value drawing will be
+        done at the center of ticks. So if no margin is done your values
+        drawing might not be fully done for extrems values.
     """
 
-    NB_CONTROL_POINTS = 256
+    _NB_CONTROL_POINTS = 256
 
     def __init__(self, colormap, parent=None, margin=5):
-        """
-
-        :param colormap: the colormap to be displayed
-        :param parent: the Qt parent if any
-        """
         qt.QWidget.__init__(self, parent)
         self.colormap = None
         self.setColormap(colormap)
@@ -472,8 +543,9 @@ class Gradation(qt.QWidget):
         self.setContentsMargins(0, 0, 0, 0)
 
     def setColormap(self, colormap):
-        """Create a _MyColorMap elemtent from the given silx colormap.
-        In the future the _MyColorMap should be removed
+        """Set the new colormap to be displayed
+
+        :param dict colormap: the colormap to set
         """
         if colormap is None:
             return
@@ -492,7 +564,7 @@ class Gradation(qt.QWidget):
         """
         vmin = self.colormap['vmin']
         vmax = self.colormap['vmax']
-        steps = (vmax - vmin)/float(Gradation.NB_CONTROL_POINTS)
+        steps = (vmax - vmin)/float(Gradation._NB_CONTROL_POINTS)
         self.ctrPoints = numpy.arange(vmin, vmax, steps)
         self.colorsCtrPts = Colors.applyColormapToData(self.ctrPoints,
                                                     name=self.colormap['name'],
@@ -534,7 +606,7 @@ class Gradation(qt.QWidget):
         """Return the value in the colorMap from a relative position in the 
         GradationBar (y)
 
-        :param val: float value in [0, 1]
+        :param value: float value in [0, 1]
         :return: the value in [colormap['vmin'], colormap['vmax']]
         """
         value = max(0.0, value)
@@ -561,32 +633,42 @@ class Gradation(qt.QWidget):
 
 
 class TickBar(qt.QWidget):
-    _widthDisplayVal = 45
+    """Bar grouping the ticks displayed
+
+    To run the following sample code, a QApplication must be initialized.
+
+    >>> bar = TickBar(1, 1000, norm='log', parent=None, displayValues=True)
+    >>> bar.show()
+
+    .. image:: img/tickbar.png
+        :width: 40px
+        :align: center
+
+    :param int vmin: smaller value of the range of values
+    :param int vmax: higher value of the range of values
+    :param str norm: normalization type to be displayed. Valid values are
+        'linear' and 'log'
+    :param parent: the Qt parent if any
+    :param bool displayValues: if True display the values close to the tick,
+        Otherwise only signal it by '-'
+    :param int nticks: the number of tick we want to display. Should be an
+        unsigned int ot None. If None, let the Tick bar find the optimal
+        number of ticks from the tick density.
+    :param int margin: margin to set on the top and bottom
+    """
+    _WIDTH_DISP_VAL = 45
     """widget width when displayed with ticks labels"""
-    _widthNoDisplayVal = 10
+    _WIDTH_NO_DISP_VAL = 10
     """widget width when displayed without ticks labels"""
-    _fontSize = 10
+    _FONT_SIZE = 10
     """font size for ticks labels"""
-    _lineWidth = 10
+    _lLINE_WIDTH= 10
     """width of the line to mark a tick"""
 
     DEFAULT_TICK_DENSITY = 0.015
 
     def __init__(self, vmin, vmax, norm, parent=None, displayValues=True,
         nticks=None, margin=5):
-        """Bar grouping the tickes displayed
-
-        :param vmin: minimal value on the colormap
-        :param vmax: maximal value on the colormap
-        :param str norm: the normalization of the colormap
-        :param parent: the Qt parent if any
-        :param displayValues: if True display the values close to the tick,
-            Otherwise only signal it by '-'
-        :param nticks: the number of tick we want to display. Should be an
-            unsigned int ot None. If None, let the Tick bar find the optimal
-            number of ticks from the tick density.
-        :param int margin: margin to set on the top and bottom
-        """
         super(TickBar, self).__init__(parent)
         self._forcedDisplayType = None
         self.ticksDensity = TickBar.DEFAULT_TICK_DENSITY
@@ -609,7 +691,7 @@ class TickBar(qt.QWidget):
         self.setMargin(margin)
         self.setContentsMargins(0, 0, 0, 0)
 
-        self.width = self._widthDisplayVal if self.displayValues else self._widthNoDisplayVal
+        self.width = TickBar._WIDTH_DISP_VAL if self.displayValues else TickBar._WIDTH_NO_DISP_VAL
         self.setFixedWidth(self.width)
 
     def update(self, vmin, vmax, norm):
@@ -630,9 +712,9 @@ class TickBar(qt.QWidget):
     def setNTicks(self, nticks):
         """Set the number of ticks to display.
 
-        :param nticks: the number of tick we want to display. Should be an
-            unsigned int ot None. If None, let the Tick bar find the optimal
-            number of ticks from the tick density.
+        :param nticks: the number of tick to be display. Should be an
+            unsigned int ot None. If None, let the :class:`TickBar` find the
+            optimal number of ticks from the tick density.
         """
         self._nticks = nticks
         self.ticks = None
@@ -640,15 +722,18 @@ class TickBar(qt.QWidget):
         qt.QWidget.update(self)
 
     def setTicksDensity(self, density):
+        """If you let :class:`TickBar` deal with the number of ticks
+        (nticks=None) then you can specify a ticks density to be displayed.
+        """
         if density < 0.0:
             raise ValueError('Density should be a positive value')
         self.ticksDensity = density
 
     def computeTicks(self):
+        """This function compute ticks values labels. It is called at each
+        update and each resize event.
+        Deal only with linear and log scale.
         """
-        This function compute ticks values labels.
-        Called at each paint event.
-        Deal only with linear and log for now"""
         nticks = self._nticks
         if nticks is None:
             nticks = self._getOptimalNbTicks()
@@ -662,7 +747,7 @@ class TickBar(qt.QWidget):
             raise ValueError(err)
         # update the form
         font = qt.QFont()
-        font.setPixelSize(self._fontSize)
+        font.setPixelSize(TickBar._FONT_SIZE)
         
         self.form = self._getFormat(font)
 
@@ -670,8 +755,8 @@ class TickBar(qt.QWidget):
         logMin = numpy.log10(self._vmin)
         logMax = numpy.log10(self._vmax)
         _min, _max, _spacing, self._nfrac = ticklayout.niceNumbersForLog10(logMin,
-                                                                      logMax,
-                                                                      nticks)
+                                                                           logMax,
+                                                                           nticks)
         self.ticks = 10**numpy.arange(_min, _max, _spacing)
         if _spacing == 1:
             self.subTicks = self._getSubTicks(self.ticks, 10**_min, 10**_max)
@@ -684,8 +769,8 @@ class TickBar(qt.QWidget):
 
     def _computeTicksLin(self, nticks):
         _min, _max, _spacing, self._nfrac = ticklayout.niceNumbers(self._vmin,
-                                                              self._vmax,
-                                                              nticks)
+                                                                   self._vmax,
+                                                                   nticks)
 
         self.ticks = numpy.arange(_min, _max, _spacing)
         self.subTicks = []
@@ -696,7 +781,7 @@ class TickBar(qt.QWidget):
     def paintEvent(self, event):
         painter = qt.QPainter(self)
         font = painter.font()
-        font.setPixelSize(self._fontSize)
+        font.setPixelSize(TickBar._FONT_SIZE)
         painter.setFont(font)
 
         # paint ticks
@@ -731,7 +816,7 @@ class TickBar(qt.QWidget):
         relativePos = self._getRelativePosition(val)
         height = viewportHeight * relativePos
         height += self.margin
-        lineWidth = self._lineWidth
+        lineWidth = TickBar._LINE_WIDTH
         if majorTick is False:
             lineWidth /= 2
 
@@ -761,6 +846,7 @@ class TickBar(qt.QWidget):
 
         :param str disType: The type of display we want to set. disType values
             can be : 
+
             - 'std' for standard, meaning only a formatting on the number of
                 digits is done
             - 'e' for scientific display
@@ -802,7 +888,7 @@ class TickBar(qt.QWidget):
 
         # if the length of the string are too long we are mooving to scientific
         # display
-        if width > self._widthDisplayVal - self._lineWidth:
+        if width > self._widthDisplayVal - TickBar._LINE_WIDTH:
             return self._getScientificForm()
         else:
             return form

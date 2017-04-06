@@ -83,6 +83,11 @@ It also provides (and uses) widgets that can be attached to a :class:`PlotWidget
    :width: 300px
    :align: middle
 
+.. |imgColorbar| image:: img/logColorbar.png
+   :height: 150px
+   :align: middle
+
+
 .. list-table::
    :widths: 1 4
    :header-rows: 1
@@ -95,6 +100,9 @@ It also provides (and uses) widgets that can be attached to a :class:`PlotWidget
    * - |imgLimitsToolBar|
      - :class:`.PlotTools.LimitsToolBar` is a QToolBar displaying and
        controlling the limits of a :class:`PlotWidget`.
+   * - |imgColorbar|
+     - :class:`Colorbar` display colormap gradient and can be linked with a plot
+       to display the colormap
 
 Public modules
 --------------
