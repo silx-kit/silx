@@ -39,7 +39,7 @@ from silx.io.nxdata import NXdata
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "29/03/2017"
+__date__ = "07/04/2017"
 
 _logger = logging.getLogger(__name__)
 
@@ -676,32 +676,24 @@ class _Hdf5View(DataView):
             icon=icons.getQIcon("view-hdf5"))
 
     def createWidget(self, parent):
-        from .Hdf5TableModel import Hdf5TableModel
-        widget = TableView()
-        widget.setModel(Hdf5TableModel(widget))
+        from .Hdf5TableView import Hdf5TableView
+        widget = Hdf5TableView(parent)
         return widget
 
     def clear(self):
-        self.getWidget().model().setObject(None)
+        widget = self.getWidget()
+        widget.setData(None)
 
     def setData(self, data):
         widget = self.getWidget()
-        widget.model().setObject(data)
-        header = widget.horizontalHeader()
-        if qt.qVersion() < "5.0":
-            setResizeMode = header.setResizeMode
-        else:
-            setResizeMode = header.setSectionResizeMode
-        setResizeMode(0, qt.QHeaderView.Fixed)
-        setResizeMode(1, qt.QHeaderView.Stretch)
-        header.setStretchLastSection(True)
+        widget.setData(data)
 
     def axesNames(self, data, info):
         return []
 
     def getDataPriority(self, data, info):
         widget = self.getWidget()
-        if widget.model().isSupportedObject(data):
+        if widget.isSupportedData(data):
             return 1
         else:
             return DataView.UNSUPPORTED

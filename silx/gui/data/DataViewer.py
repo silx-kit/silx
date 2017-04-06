@@ -41,7 +41,7 @@ except ImportError:
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "27/01/2017"
+__date__ = "07/04/2017"
 
 
 _logger = logging.getLogger(__name__)
