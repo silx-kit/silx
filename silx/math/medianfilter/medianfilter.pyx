@@ -78,8 +78,10 @@ def medfilt2d(input, kernel_size=3, bool conditionnal=False, int nthread=4):
     else:
       ker_dim = numpy.array([kernel_size, kernel_size], dtype=numpy.int32)
 
+    # limit the number of threads according to the input data
+    maxThread = min(nthread, input.shape[0])
     ranges = numpy.array(
-        [ int(input.shape[0] * x / nthread) for x in range(nthread+1) ],
+        [ int(input.shape[0] * x / maxThread) for x in range(maxThread+1) ],
         dtype=numpy.int32)
 
     if input.dtype == numpy.float64:

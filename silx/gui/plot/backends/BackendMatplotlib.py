@@ -115,7 +115,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                  color, symbol, linewidth, linestyle,
                  yaxis,
                  xerror, yerror, z, selectable,
-                 fill):
+                 fill, alpha):
         for parameter in (x, y, legend, color, symbol, linewidth, linestyle,
                           yaxis, z, selectable, fill):
             assert parameter is not None
@@ -197,6 +197,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         for artist in artists:
             artist.set_zorder(z)
+            if alpha < 1:
+                artist.set_alpha(alpha)
 
         return Container(artists)
 

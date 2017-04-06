@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2017 European Synchrotron Radiation Facility
@@ -22,21 +21,25 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This package provides classes that describes :class:`.Plot` content.
+/* This header provides a compatible isnan function across platforms.
 
-Instances of those classes are returned by :class:`.Plot` methods that give
-access to its content such as :meth:`.Plot.getCurve`, :meth:`.Plot.getImage`.
-"""
+   VisualStudio 2008 (i.e., Python2.7) provides a _isnan method and no isnan.
 
-__authors__ = ["T. Vincent"]
-__license__ = "MIT"
-__date__ = "06/03/2017"
+   Usage from cython:
 
-from .core import (Item, LabelsMixIn, DraggableMixIn, ColormapMixIn,  # noqa
-                   SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn,  # noqa
-                   AlphaMixIn)  # noqa
-from .curve import Curve  # noqa
-from .image import Image  # noqa
-from .shape import Shape  # noqa
-from .scatter import Scatter  # noqa
-from .marker import Marker, XMarker, YMarker  # noqa
+   cdef extern from "isnan.h":
+       bint isnan(double x) nogil
+*/
+
+#ifndef __ISNAN_H__
+#define __ISNAN_H__
+
+#include <math.h>
+
+#if (defined (_MSC_VER) && _MSC_VER < 1800)
+#include <float.h>
+
+#define isnan(v) _isnan(v)
+#endif
+
+#endif /*__ISNAN_H__*/
