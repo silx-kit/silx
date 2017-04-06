@@ -721,7 +721,7 @@ class ImageView(PlotWindow):
 
         # Update active image colormap
         activeImage = self.getActiveImage()
-        if isinstance(activeImage, items.ImageData):
+        if isinstance(activeImage, items.ColormapMixIn):
             activeImage.setColormap(self.getColormap())
 
     def setImage(self, image, origin=(0, 0), scale=(1., 1.),

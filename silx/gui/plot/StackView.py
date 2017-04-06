@@ -486,6 +486,11 @@ class StackView(qt.QMainWindow):
         if image is None:
             return None
 
+        if isinstance(image, items.ColormapMixIn):
+            colormap = image.getColormap()
+        else:
+            colormap = None
+
         params = {
             'info': image.getInfo(),
             'origin': image.getOrigin(),
@@ -493,7 +498,7 @@ class StackView(qt.QMainWindow):
             'z': image.getZValue(),
             'selectable': image.isSelectable(),
             'draggable': image.isDraggable(),
-            'colormap': image.getColormap(),
+            'colormap': colormap,
             'xlabel': image.getXLabel(),
             'ylabel': image.getYLabel(),
         }
@@ -532,6 +537,11 @@ class StackView(qt.QMainWindow):
         if image is None:
             return None
 
+        if isinstance(image, items.ColormapMixIn):
+            colormap = image.getColormap()
+        else:
+            colormap = None
+
         params = {
             'info': image.getInfo(),
             'origin': image.getOrigin(),
@@ -539,7 +549,7 @@ class StackView(qt.QMainWindow):
             'z': image.getZValue(),
             'selectable': image.isSelectable(),
             'draggable': image.isDraggable(),
-            'colormap': image.getColormap(),
+            'colormap': colormap,
             'xlabel': image.getXLabel(),
             'ylabel': image.getYLabel(),
         }
@@ -771,7 +781,7 @@ class StackView(qt.QMainWindow):
 
         # Update active image colormap
         activeImage = self._plot.getActiveImage()
-        if isinstance(activeImage, items.ImageData):
+        if isinstance(activeImage, items.ColormapMixIn):
             activeImage.setColormap(self.getColormap())
 
     def isKeepDataAspectRatio(self):

@@ -366,8 +366,9 @@ class ColormapAction(PlotAction):
             self._dialog = ColormapDialog()
 
         image = self.plot.getActiveImage()
-        if image is None:
-            # No active image, set dialog from default info
+        if not isinstance(image, items.ColormapMixIn):
+            # No active image or active image is RGBA,
+            # set dialog from default info
             colormap = self.plot.getDefaultColormap()
 
             self._dialog.setHistogram()  # Reset histogram and range if any
@@ -757,10 +758,8 @@ class SaveAction(PlotAction):
 
         elif nameFilter in (self.IMAGE_FILTER_RGB_PNG,
                             self.IMAGE_FILTER_RGB_TIFF):
-            # Apply colormap to data
-            colormap = image.getColormap()
-            rgbaImage = Colors.applyColormapToData(data, **colormap)
-
+            # Get displayed image
+            rgbaImage = image.getRbgaImageData(copy=False)
             # Convert RGB QImage
             qimage = convertArrayToQImage(rgbaImage[:, :, :3])
 
