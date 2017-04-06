@@ -71,7 +71,7 @@ import numpy
 from .. import icons
 from .. import qt
 from .._utils import convertArrayToQImage
-from . import Colors
+from . import Colors, items
 from .ColormapDialog import ColormapDialog
 from ._utils import applyZoomToPlot as _applyZoomToPlot
 from silx.third_party.EdfFile import EdfFile
@@ -408,16 +408,10 @@ class ColormapAction(PlotAction):
         # Update default colormap
         self.plot.setDefaultColormap(colormap)
 
-        # Update active image
-        image = self.plot.getActiveImage()
-        if image is not None:
-            # Update image: This do not preserve pixmap
-            self.plot.addImage(image.getData(copy=False),
-                               legend=image.getLegend(),
-                               info=image.getInfo(),
-                               colormap=colormap,
-                               replace=False,
-                               resetzoom=False)
+        # Update active image colormap
+        activeImage = self.plot.getActiveImage()
+        if isinstance(activeImage, items.ImageData):
+            activeImage.setColormap(colormap)
 
 
 class KeepAspectRatioAction(PlotAction):
