@@ -382,9 +382,9 @@ class GradationBar(qt.QWidget):
                                    parent=self,
                                    margin=GradationBar.TEXT_MARGIN)
         
-        self.tickbar = TickBar(vmin=colormap['vmin'],
-                               vmax=colormap['vmax'],
-                               norm=colormap['normalization'],
+        self.tickbar = TickBar(vmin=colormap['vmin'] if colormap else 0.0,
+                               vmax=colormap['vmax'] if colormap else 1.0,
+                               norm=colormap['normalization'] if colormap else 'linear',
                                parent=self,
                                displayValues=displayTicksValues,
                                margin=GradationBar.TEXT_MARGIN)
@@ -410,13 +410,12 @@ class GradationBar(qt.QWidget):
         return self.gradation
 
     def setColormap(self, colormap):
-        self.gradation.update(vmin=colormap['vmin'],
-                                vmax=colormap['vmax'],
-                                norm=colormap['norm'])
+        if colormap is not None:
+            self.gradation.setColormap(colormap)
 
-        self.tickbar.update(vmin=colormap['vmin'],
-                            vmax=colormap['vmax'],
-                            norm=colormap['norm'])
+            self.tickbar.update(vmin=colormap['vmin'],
+                                vmax=colormap['vmax'],
+                                norm=colormap['normalization'])
 
 
 class Gradation(qt.QWidget):
@@ -443,7 +442,7 @@ class Gradation(qt.QWidget):
         """Create a _MyColorMap elemtent from the given silx colormap.
         In the future the _MyColorMap should be removed
         """
-        if norm not in ('log', 'linear'):
+        if colormap['normalization'] not in ('log', 'linear'):
             raise ValueError("Unrecognized normalization, should be 'linear' or 'log'")
 
         if colormap['normalization'] is 'log':
@@ -623,14 +622,12 @@ class TickBar(qt.QWidget):
         font = qt.QFont()
         font.setPixelSize(self._fontSize)
         
-        self._computeFrac()
         self.form = self._getFormat(font)
-
 
     def _computeTicksLog(self, nticks):
         logMin = numpy.log10(self.vmin)
         logMax = numpy.log10(self.vmax)
-        _min, _max, _spacing, _nfrac = ticklayout.niceNumbersForLog10(logMin,
+        _min, _max, _spacing, self._nfrac = ticklayout.niceNumbersForLog10(logMin,
                                                                       logMax,
                                                                       nticks)
         self.ticks = 10**numpy.arange(_min, _max, _spacing)
@@ -644,7 +641,7 @@ class TickBar(qt.QWidget):
         self.computeTicks()
 
     def _computeTicksLin(self, nticks):
-        _min, _max, _spacing, _nfrac = ticklayout.niceNumbers(self.vmin,
+        _min, _max, _spacing, self._nfrac = ticklayout.niceNumbers(self.vmin,
                                                               self.vmax,
                                                               nticks)
 
@@ -653,16 +650,6 @@ class TickBar(qt.QWidget):
 
     def _getOptimalNbTicks(self):
         return max(2, int(round(self.ticksDensity * self.rect().height())))
-
-    def _computeFrac(self):
-        # TODO : should be removed and used from
-        self.nfrac = 0
-        for tick in self.ticks:
-            representation = str(tick)
-            if '.' in representation:
-                ldigit = len(representation.split('.')[1])
-                if ldigit > self.nfrac:
-                    self.nfrac = ldigit
 
     def paintEvent(self, event):
         painter = qt.QPainter(self)
@@ -743,7 +730,7 @@ class TickBar(qt.QWidget):
         self._forcedDisplayType = disType
 
     def _getStandardFormat(self, val):
-        return "{0:.%sf}"%self.nfrac
+        return "{0:.%sf}"%self._nfrac
 
     def _getFormat(self, font):
         if self._forcedDisplayType is None:
