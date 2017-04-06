@@ -451,6 +451,9 @@ class Gradation(qt.QWidget):
     """Simple widget wich display the colormap gradation and update the tooltip
     to return the value equivalence for the color
     """
+
+    NB_CONTROL_POINTS = 256
+
     def __init__(self, colormap, parent=None, margin=5):
         """
 
@@ -458,7 +461,8 @@ class Gradation(qt.QWidget):
         :param parent: the Qt parent if any
         """
         qt.QWidget.__init__(self, parent)
-        self.colormap = colormap
+        self.colormap = None
+        self.setColormap(colormap)
 
         self.setLayout(qt.QVBoxLayout())
         self.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
@@ -471,6 +475,9 @@ class Gradation(qt.QWidget):
         """Create a _MyColorMap elemtent from the given silx colormap.
         In the future the _MyColorMap should be removed
         """
+        if colormap is None:
+            return
+
         if colormap['normalization'] not in ('log', 'linear'):
             raise ValueError("Unrecognized normalization, should be 'linear' or 'log'")
 
@@ -478,37 +485,42 @@ class Gradation(qt.QWidget):
             if not (colormap['vmin']>0 and colormap['vmax']>0):
                 raise ValueError('vmin and vmax should be positives')
         self.colormap = colormap
+        self._computeColorPoints()
+
+    def _computeColorPoints(self):
+        """Compute the color points for the gradient
+        """
+        vmin = self.colormap['vmin']
+        vmax = self.colormap['vmax']
+        steps = (vmax - vmin)/float(Gradation.NB_CONTROL_POINTS)
+        self.ctrPoints = numpy.arange(vmin, vmax, steps)
+        self.colorsCtrPts = Colors.applyColormapToData(self.ctrPoints,
+                                                    name=self.colormap['name'],
+                                                    normalization='linear',
+                                                    autoscale=self.colormap['autoscale'],
+                                                    vmin=vmin,
+                                                    vmax=vmax )
 
     def paintEvent(self, event):
+        """"""
         qt.QWidget.paintEvent(self, event)
+        vmin = self.colormap['vmin']
+        vmax = self.colormap['vmax']
 
         painter = qt.QPainter(self)
         gradient = qt.QLinearGradient(0, 0, 0, self.rect().height() - 2*self.margin);
-        vmin = self.colormap['vmin']
-        vmax = self.colormap['vmax']
-        steps = (vmax - vmin)/256.0
-
-        points = numpy.arange(vmin, vmax, steps)
-
-        # TODO : should the colors be computed once for all ?
-        colors = Colors.applyColormapToData(points,
-                                            name=self.colormap['name'],
-                                            normalization='linear',
-                                            autoscale=self.colormap['autoscale'],
-                                            vmin=vmin,
-                                            vmax=vmax)
-
-        for iPt, pt in enumerate(points):
+        for iPt, pt in enumerate(self.ctrPoints):
             colormapPosition = 1 - (pt-vmin) / (vmax-vmin)
             assert(colormapPosition >= 0.0 )
             assert(colormapPosition <= 1.0 )
-            gradient.setColorAt( colormapPosition, qt.QColor(*colors[iPt]))
+            gradient.setColorAt( colormapPosition, qt.QColor(*(self.colorsCtrPts[iPt])))
 
         painter.setBrush(gradient)
         painter.drawRect(
             qt.QRect(0, self.margin, self.width(), self.height() - 2.*self.margin))
 
     def mouseMoveEvent(self, event):
+        """"""
         self.setToolTip(str(self.getValueFromRelativePosition(self._getRelativePosition(event.y()))))
         super(Gradation, self).mouseMoveEvent(event)
 
