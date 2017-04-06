@@ -163,10 +163,13 @@ def plot(*args, **kwargs):
         # Parse style
         if style:
             # Handle color first
-            for c in COLORDICT:
-                if style.startswith(c):
-                    curve_color = c
-                    style = style[len(c):]
+            possible_colors = [c for c in COLORDICT if style.startswith(c)]
+            if possible_colors:  # Take the longest string matching a color name
+                curve_color = possible_colors[0]
+                for c in possible_colors[1:]:
+                    if len(c) > len(curve_color):
+                        curve_color = c
+                style = style[len(curve_color):]
 
             if style:
                 # Run twice to handle inversion symbol/linestyle
