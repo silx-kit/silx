@@ -146,7 +146,7 @@ class ColorbarWidget(qt.QWidget):
                                        colormap=None)
         widget.layout().addWidget(self._gradation)
 
-        self.legend = VerticalLegend('', self)
+        self.legend = _VerticalLegend('', self)
         widget.layout().addWidget(self.legend)
 
         self.__maxLabel = None
@@ -182,7 +182,7 @@ class ColorbarWidget(qt.QWidget):
         widgetLeftGroup.layout().addWidget(self.__minLabel)
 
         # legend (is the right group)
-        self.legend = VerticalLegend('', self)
+        self.legend = _VerticalLegend('', self)
         widget.layout().addWidget(self.legend)
 
         widget.layout().setContentsMargins(0, 0, 0, 0)
@@ -331,7 +331,7 @@ class ColorbarWidget(qt.QWidget):
         return self._gradation
 
 
-class VerticalLegend(qt.QLabel):
+class _VerticalLegend(qt.QLabel):
     """Display vertically the given text
     """
     def __init__(self, text, parent=None):
@@ -550,14 +550,14 @@ class TickBar(qt.QWidget):
         self._forcedDisplayType = None
         self.ticksDensity = TickBar.DEFAULT_TICK_DENSITY
         
-        self.vmin = vmin
-        self.vmax = vmax
+        self._vmin = vmin
+        self._vmax = vmax
         # TODO : should be grouped into a global function, called by all
         # logScale displayer to make sure we have the same behavior everywhere
-        if self.vmin <= 0 or self.vmax <= 0:
+        if self._vmin <= 0 or self._vmax <= 0:
             _logger.warning(
                 'Log colormap with bound <= 0: changing bounds.')
-            self.vmin, self.vmax = 1., 10.
+            self._vmin, self._vmax = 1., 10.
 
         self._norm = norm
         self.displayValues = displayValues
@@ -572,8 +572,8 @@ class TickBar(qt.QWidget):
         self.setFixedWidth(self.width)
 
     def update(self, vmin, vmax, norm):
-        self.vmin=vmin
-        self.vmax=vmax
+        self._vmin=vmin
+        self._vmax=vmax
         self._norm=norm
         self.computeTicks()
         qt.QWidget.update(self)
@@ -593,7 +593,7 @@ class TickBar(qt.QWidget):
             unsigned int ot None. If None, let the Tick bar find the optimal
             number of ticks from the tick density.
         """
-        self.nticks = nticks
+        self._nticks = nticks
         self.ticks = None
         self.computeTicks()
         qt.QWidget.update(self)
@@ -608,7 +608,7 @@ class TickBar(qt.QWidget):
         This function compute ticks values labels.
         Called at each paint event.
         Deal only with linear and log for now"""
-        nticks = self.nticks
+        nticks = self._nticks
         if nticks is None:
             nticks = self._getOptimalNbTicks()
 
@@ -626,8 +626,8 @@ class TickBar(qt.QWidget):
         self.form = self._getFormat(font)
 
     def _computeTicksLog(self, nticks):
-        logMin = numpy.log10(self.vmin)
-        logMax = numpy.log10(self.vmax)
+        logMin = numpy.log10(self._vmin)
+        logMax = numpy.log10(self._vmax)
         _min, _max, _spacing, self._nfrac = ticklayout.niceNumbersForLog10(logMin,
                                                                       logMax,
                                                                       nticks)
@@ -642,8 +642,8 @@ class TickBar(qt.QWidget):
         self.computeTicks()
 
     def _computeTicksLin(self, nticks):
-        _min, _max, _spacing, self._nfrac = ticklayout.niceNumbers(self.vmin,
-                                                              self.vmax,
+        _min, _max, _spacing, self._nfrac = ticklayout.niceNumbers(self._vmin,
+                                                              self._vmax,
                                                               nticks)
 
         self.ticks = numpy.arange(_min, _max, _spacing)
@@ -673,9 +673,9 @@ class TickBar(qt.QWidget):
         """Return the relative position of val according to min and max value
         """
         if self._norm == 'linear':
-            return 1 - (val - self.vmin)/ (self.vmax - self.vmin)
+            return 1 - (val - self._vmin)/ (self._vmax - self._vmin)
         elif self._norm == 'log':
-            return 1 - (numpy.log10(val) - numpy.log10(self.vmin))/(numpy.log10(self.vmax) - numpy.log(self.vmin))
+            return 1 - (numpy.log10(val) - numpy.log10(self._vmin))/(numpy.log10(self._vmax) - numpy.log(self._vmin))
         else:
             raise ValueError('Norm is not recognized')
 
@@ -685,7 +685,6 @@ class TickBar(qt.QWidget):
         :param bool majorTick: if False will never draw text and will set a line
             with a smaller width
         """
-        
         fm = qt.QFontMetrics(painter.font())
         viewportHeight = self.rect().height() - self.margin * 2
         relativePos = self._getRelativePosition(val)
@@ -752,8 +751,8 @@ class TickBar(qt.QWidget):
 
         :param QFont font: the font we want want to use durint the painting
         """
-        assert(type(self.vmin) == type(self.vmax))
-        form = self._getStandardFormat(self.vmin)
+        assert(type(self._vmin) == type(self._vmax))
+        form = self._getStandardFormat(self._vmin)
         
         fm = qt.QFontMetrics(font)
         width = 0
