@@ -521,7 +521,7 @@ class Gradation(qt.QWidget):
 
     :param colormap: the colormap to be displayed
     :param parent: the Qt parent if any
-    :param int margin: the top and left margin to apply. 
+    :param int margin: the top and left margin to apply.
 
     .. warning:: Value drawing will be
         done at the center of ticks. So if no margin is done your values
@@ -662,7 +662,7 @@ class TickBar(qt.QWidget):
     """widget width when displayed without ticks labels"""
     _FONT_SIZE = 10
     """font size for ticks labels"""
-    _lLINE_WIDTH= 10
+    _LINE_WIDTH= 10
     """width of the line to mark a tick"""
 
     DEFAULT_TICK_DENSITY = 0.015
@@ -754,12 +754,14 @@ class TickBar(qt.QWidget):
     def _computeTicksLog(self, nticks):
         logMin = numpy.log10(self._vmin)
         logMax = numpy.log10(self._vmax)
-        _min, _max, _spacing, self._nfrac = ticklayout.niceNumbersForLog10(logMin,
-                                                                           logMax,
-                                                                           nticks)
-        self.ticks = 10**numpy.arange(_min, _max, _spacing)
-        if _spacing == 1:
-            self.subTicks = self._getSubTicks(self.ticks, 10**_min, 10**_max)
+        lowBound, highBound, spacing, self._nfrac = ticklayout.niceNumbersForLog10(logMin,
+                                                                                   logMax,
+                                                                                   nticks)
+        self.ticks = 10**numpy.arange(lowBound, highBound, spacing)
+        if spacing == 1:
+            self.subTicks = ticklayout.computeLogSubTicks(ticks=self.ticks,
+                                                          lowBound=10**lowBound,
+                                                          highBound=10**highBound)
         else:
             self.subTicks = []
 
@@ -829,18 +831,6 @@ class TickBar(qt.QWidget):
             painter.drawText(qt.QPoint(0.0, height + (fm.height() / 2)),
                              self.form.format(val));
 
-    def _getSubTicks(self, ticks, tickMin, tickMax):
-        """Return the sub ticks for the log scale
-        """
-        res = []
-        for logPos in ticks:
-            dataOrigPos = logPos
-            for index in range(2, 10):
-                dataPos = dataOrigPos * index
-                if tickMin <= dataPos <= tickMax:
-                    res.append(dataPos)
-        return res
-
     def setDisplayType(self, disType):
         """Set the type of display we want to set for ticks labels
 
@@ -888,7 +878,7 @@ class TickBar(qt.QWidget):
 
         # if the length of the string are too long we are mooving to scientific
         # display
-        if width > self._widthDisplayVal - TickBar._LINE_WIDTH:
+        if width > TickBar._WIDTH_DISP_VAL - TickBar._LINE_WIDTH:
             return self._getScientificForm()
         else:
             return form

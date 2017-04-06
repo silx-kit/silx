@@ -200,3 +200,24 @@ def niceNumbersAdaptativeForLog10(vMin, vMax, axisLength, tickDensity):
     tickmin, tickmax, step, nfrac = niceNumbersForLog10(vMin, vMax, nticks)
 
     return tickmin, tickmax, step, nfrac
+
+def computeLogSubTicks(ticks, lowBound, highBound):
+    """Return the sub ticks for the log scale for all given ticks if subtick
+    is in [lowBound, highBound]
+
+    :param ticks: log10 of the ticks
+    :param lowBound: the lower boundary of ticks
+    :param highBound: the higher boundary of ticks
+    :return: all the sub ticks contained in ticks (log10)
+    """
+    if len(ticks) < 1:
+        return []
+
+    res = []
+    for logPos in ticks:
+        dataOrigPos = logPos
+        for index in range(2, 10):
+            dataPos = dataOrigPos * index
+            if lowBound <= dataPos <= highBound:
+                res.append(dataPos)
+    return res
