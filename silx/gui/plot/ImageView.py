@@ -59,7 +59,7 @@ from . import PlotWindow, PlotWidget
 from . import PlotActions
 from .Colors import cursorColorForColormap
 from .PlotTools import LimitsToolBar
-from .Profile import ProfileToolBar
+from .Profile import Profile2DToolBar
 
 
 _logger = logging.getLogger(__name__)
@@ -294,10 +294,10 @@ class ImageView(PlotWindow):
 
         self._initWidgets(backend)
 
-        self.profile = ProfileToolBar(plot=self)
+        self.profile = Profile2DToolBar(plot=self)
         """"Profile tools attached to this plot.
 
-        See :class:`silx.gui.plot.PlotTools.ProfileToolBar`
+        See :class:`silx.gui.plot.PlotTools.Profile2DToolBar`
         """
 
         self.addToolBar(self.profile)

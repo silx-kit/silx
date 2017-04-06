@@ -41,7 +41,7 @@ from . import PlotWidget
 from . import PlotActions
 from . import PlotToolButtons
 from .PlotTools import PositionInfo
-from .Profile import ProfileToolBar
+from .Profile import Profile2DToolBar
 from .LegendSelector import LegendsDockWidget
 from .CurvesROIWidget import CurvesROIDockWidget
 from .MaskToolsWidget import MaskToolsDockWidget
@@ -701,7 +701,7 @@ class Plot2D(PlotWindow):
         self.setGraphXLabel('Columns')
         self.setGraphYLabel('Rows')
 
-        self.profile = ProfileToolBar(plot=self)
+        self.profile = Profile2DToolBar(plot=self)
 
         self.addToolBar(self.profile)
 
@@ -732,7 +732,7 @@ class Plot2D(PlotWindow):
     def getProfileToolbar(self):
         """Profile tools attached to this plot
 
-        See :class:`silx.gui.plot.Profile.ProfileToolBar`
+        See :class:`silx.gui.plot.Profile.Profile2DToolBar`
         """
         return self.profile
 

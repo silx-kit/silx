@@ -44,13 +44,13 @@ _qapp = qt.QApplication.instance() or qt.QApplication([])
 
 
 class TestProfileToolBar(TestCaseQt, ParametricTestCase):
-    """Tests for ProfileToolBar widget."""
+    """Tests for Profile2DToolBar widget."""
 
     def setUp(self):
         super(TestProfileToolBar, self).setUp()
         profileWindow = PlotWindow()
         self.plot = PlotWindow()
-        self.toolBar = Profile.ProfileToolBar(
+        self.toolBar = Profile.Profile2DToolBar(
             plot=self.plot, profileWindow=profileWindow)
         self.plot.addToolBar(self.toolBar)
 

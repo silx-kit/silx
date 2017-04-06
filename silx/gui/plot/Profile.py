@@ -311,7 +311,6 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth):
 
     return profile, area, profileName, xLabel
 
-
 # ProfileToolBar ##############################################################
 
 class ProfileToolBar(qt.QToolBar):
@@ -323,13 +322,13 @@ class ProfileToolBar(qt.QToolBar):
     - actionGroup: :class:`QActionGroup` of available actions.
 
     To run the following sample code, a QApplication must be initialized.
-    First, create a PlotWindow and add a :class:`ProfileToolBar`.
+    First, create a PlotWindow and add a :class:`Profile2DToolBar`.
 
     >>> from silx.gui.plot import PlotWindow
-    >>> from silx.gui.plot.Profile import ProfileToolBar
+    >>> from silx.gui.plot.Profile import Profile2DToolBar
 
     >>> plot = PlotWindow()  # Create a PlotWindow
-    >>> toolBar = ProfileToolBar(plot=plot)  # Create a profile toolbar
+    >>> toolBar = Profile2DToolBar(plot=plot)  # Create a profile toolbar
     >>> plot.addToolBar(toolBar)  # Add it to plot
     >>> plot.show()  # To display the PlotWindow with the profile toolbar
 
@@ -603,40 +602,7 @@ class ProfileToolBar(qt.QToolBar):
         :param dict colormap: The colormap to use
         :param int z: The z layer of the image
         """
-        if self._roiInfo is None:
-            return
-
-        profile, area, profileName, xLabel = createProfile(
-            roiInfo=self._roiInfo,
-            currentData=currentData,
-            origin=origin,
-            scale=scale,
-            lineWidth=self.lineWidthSpinBox.value())
-
-        self.getProfilePlot().setGraphTitle(profileName)
-
-        dataIs3D = len(currentData.shape) > 2
-        if dataIs3D:
-            self.getProfilePlot().addImage(profile,
-                                           legend=profileName,
-                                           xlabel=xLabel,
-                                           ylabel="Frame index (depth)",
-                                           colormap=colormap)
-        else:
-            coords = numpy.arange(len(profile[0]), dtype=numpy.float32)
-            self.getProfilePlot().addCurve(coords,
-                                           profile[0],
-                                           legend=profileName,
-                                           xlabel=xLabel,
-                                           color=self.overlayColor)
-
-        self.plot.addItem(area[0], area[1],
-                          legend=self._POLYGON_LEGEND,
-                          color=self.overlayColor,
-                          shape='polygon', fill=True,
-                          replace=False, z=z + 1)
-
-        self._showProfileMainWindow()
+        raise NotImplemented('ProfileToolBar is an abstract class')
 
     def _showProfileMainWindow(self):
         """If profile window was created by this toolbar,
@@ -672,6 +638,22 @@ class ProfileToolBar(qt.QToolBar):
         # is changed
         if self.getProfileMainWindow() is not None:
             self.getProfileMainWindow().hide()
+
+    def _create2DProfile(self, profile, profileName, xLabel, overlayColor):
+        coords = numpy.arange(len(profile), dtype=numpy.float32)
+        self.getProfilePlot().addCurve(coords,
+                                       profile,
+                                       legend=profileName,
+                                       xlabel=xLabel,
+                                       color=overlayColor)
+
+    def _create3DProfile(self, profile, profileName, xLabel, yLabel, colormap):
+        assert(len(profile) == 3)
+        self.getProfilePlot().addImage(profile,
+                                       legend=profileName,
+                                       xlabel=xLabel,
+                                       ylabel=yLabel,
+                                       colormap=colormap)        
 
 
 class Profile3DToolBar(ProfileToolBar):
@@ -736,3 +718,91 @@ class Profile3DToolBar(ProfileToolBar):
         else:
             raise ValueError(
                     "Profile type must be 1D or 2D, not %s" % self._profileType)
+
+    def _createProfile(self, currentData, origin, scale, colormap, z):
+        """Create the profile line for the the given image.
+
+        :param numpy.ndarray currentData: the image or the stack of images
+            on which we compute the profile
+        :param origin: (ox, oy) the offset from origin
+        :type origin: 2-tuple of float
+        :param scale: (sx, sy) the scale to use
+        :type scale: 2-tuple of float
+        :param dict colormap: The colormap to use
+        :param int z: The z layer of the image
+        """
+
+        if self._roiInfo is None:
+            return
+
+        profile, area, profileName, xLabel = createProfile(
+            roiInfo=self._roiInfo,
+            currentData=currentData,
+            origin=origin,
+            scale=scale,
+            lineWidth=self.lineWidthSpinBox.value())
+
+        self.getProfilePlot().setGraphTitle(profileName)
+
+        dataIs3D = len(currentData.shape) > 2
+        if dataIs3D:
+            self._create3DProfile(profile=profile,
+                                  legend=profileName,
+                                  xlabel=xLabel,
+                                  ylabel="Frame index (depth)",
+                                  colormap=colormap)
+        else:
+            self._create2DProfile(profile=profile[0],
+                                  profileName=profileName,
+                                  xLabel=xLabel,
+                                  overlayColor=self.overlayColor)
+
+
+        self.plot.addItem(area[0], area[1],
+                          legend=self._POLYGON_LEGEND,
+                          color=self.overlayColor,
+                          shape='polygon', fill=True,
+                          replace=False, z=z + 1)
+
+        self._showProfileMainWindow()
+
+
+class Profile2DToolBar(ProfileToolBar):
+
+    def _createProfile(self, currentData, origin, scale, colormap, z):
+        """Create the profile line for the the given image.
+
+        :param numpy.ndarray currentData: the image or the stack of images
+            on which we compute the profile
+        :param origin: (ox, oy) the offset from origin
+        :type origin: 2-tuple of float
+        :param scale: (sx, sy) the scale to use
+        :type scale: 2-tuple of float
+        :param dict colormap: The colormap to use
+        :param int z: The z layer of the image
+        """
+
+        if self._roiInfo is None:
+            return
+
+        profile, area, profileName, xLabel = createProfile(
+            roiInfo=self._roiInfo,
+            currentData=currentData,
+            origin=origin,
+            scale=scale,
+            lineWidth=self.lineWidthSpinBox.value())
+
+        self.getProfilePlot().setGraphTitle(profileName)
+
+        self._create2DProfile(profile=profile[0],
+                              profileName=profileName,
+                              xLabel=xLabel,
+                              overlayColor=self.overlayColor)
+
+        self.plot.addItem(area[0], area[1],
+                          legend=self._POLYGON_LEGEND,
+                          color=self.overlayColor,
+                          shape='polygon', fill=True,
+                          replace=False, z=z + 1)
+
+        self._showProfileMainWindow()
