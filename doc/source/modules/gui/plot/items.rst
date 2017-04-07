@@ -26,6 +26,15 @@ Images
    :members:
    :inherited-members:
 
+
+Scatter
+-------
+
+.. autoclass:: Scatter
+   :members:
+   :inherited-members:
+
+
 Markers
 -------
 
