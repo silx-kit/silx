@@ -243,6 +243,7 @@ class NumpyAxesSelector(qt.QWidget):
         self.__namedAxesVisibility = True
         layout = qt.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSizeConstraint(qt.QLayout.SetMinAndMaxSize)
         self.setLayout(layout)
 
     def clear(self):
