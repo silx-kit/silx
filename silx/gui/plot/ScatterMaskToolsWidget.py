@@ -22,8 +22,21 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+"""Widget providing a set of tools to draw masks on a PlotWidget.
+
+This widget is meant to work with a modified :class:`silx.gui.plot.PlotWidget`
+
+- :class:`ScatterMask`: Handle scatter mask update and history
+- :class:`ScatterMaskToolsWidget`: GUI for :class:`ScatterMask`
+- :class:`ScatterMaskToolsDockWidget`: DockWidget to integrate in :class:`PlotWindow`
+"""
 
 from __future__ import division
+
+__authors__ = ["P. Knobel"]
+__license__ = "MIT"
+__date__ = "07/04/2017"
+
 
 import math
 import logging
@@ -203,8 +216,7 @@ class ScatterMask(BaseMask):
 
 
 class ScatterMaskToolsWidget(qt.QWidget):
-    """Widget with tools for drawing mask on an image in a MaskScatterWidget
-    (a PlotWidget with an additional sigActiveScatterChanged signal)."""
+    """Widget with tools for drawing mask on an image in a :class:`PlotWidget`."""
 
     _maxLevelNumber = 255
 
@@ -711,7 +723,7 @@ class ScatterMaskToolsWidget(qt.QWidget):
             self.plot.sigActiveScatterChanged.connect(
                 self._activeScatterChangedAfterCare)
 
-    def _activeScatterChangedAfterCare(self):
+    def _activeScatterChangedAfterCare(self, previous, next):
         """Check synchro of active scatter and mask when mask widget is hidden.
 
         If active image has no more the same size as the mask, the mask is
@@ -745,7 +757,7 @@ class ScatterMaskToolsWidget(qt.QWidget):
                 self._mask.setScatter(self._data_scatter)
                 self._updatePlotMask()
 
-    def _activeScatterChanged(self):
+    def _activeScatterChanged(self, previous, next):
         """Update widget and mask according to active scatter changes"""
         activeScatter = self.plot.getScatter()
         if activeScatter is None or activeScatter.getLegend() == self._maskName:

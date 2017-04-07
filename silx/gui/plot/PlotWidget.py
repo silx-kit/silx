@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -115,6 +115,15 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
     It provides 2 informations:
 
     - previous: The legend of the previous active image or None
+    - legend: The legend of the new active image or None if no image is active
+    """
+
+    sigActiveScatterChanged = qt.Signal(object, object)
+    """Signal emitted when the active Scatter has changed.
+
+    It provides following information:
+
+    - previous: The legend of the previous active scatter or None
     - legend: The legend of the new active image or None if no image is active
     """
 
