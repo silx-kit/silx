@@ -54,7 +54,7 @@ usage="usage: $(basename "$0") [options]
 Build the Debian ${debian_version} package of the ${project} library.
 
 If the build succeed the directory dist/debian7 will
-contains the pachages.
+contains the packages.
 
 optional arguments:
     --help     show this help text
