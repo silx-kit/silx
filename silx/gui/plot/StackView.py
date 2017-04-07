@@ -80,8 +80,7 @@ except ImportError:
 
 from silx.gui import qt
 from .. import icons
-from . import PlotWindow
-from . import PlotActions
+from . import items, PlotWindow, PlotActions
 from .Colors import cursorColorForColormap
 from .PlotTools import LimitsToolBar
 from .Profile import Profile3DToolBar
@@ -418,6 +417,11 @@ class StackView(qt.QMainWindow):
         if image is None:
             return None
 
+        if isinstance(image, items.ColormapMixIn):
+            colormap = image.getColormap()
+        else:
+            colormap = None
+
         params = {
             'info': image.getInfo(),
             'origin': image.getOrigin(),
@@ -425,7 +429,7 @@ class StackView(qt.QMainWindow):
             'z': image.getZValue(),
             'selectable': image.isSelectable(),
             'draggable': image.isDraggable(),
-            'colormap': image.getColormap(),
+            'colormap': colormap,
             'xlabel': image.getXLabel(),
             'ylabel': image.getYLabel(),
         }
@@ -464,6 +468,11 @@ class StackView(qt.QMainWindow):
         if image is None:
             return None
 
+        if isinstance(image, items.ColormapMixIn):
+            colormap = image.getColormap()
+        else:
+            colormap = None
+
         params = {
             'info': image.getInfo(),
             'origin': image.getOrigin(),
@@ -471,7 +480,7 @@ class StackView(qt.QMainWindow):
             'z': image.getZValue(),
             'selectable': image.isSelectable(),
             'draggable': image.isDraggable(),
-            'colormap': image.getColormap(),
+            'colormap': colormap,
             'xlabel': image.getXLabel(),
             'ylabel': image.getYLabel(),
         }
@@ -691,16 +700,10 @@ class StackView(qt.QMainWindow):
 
         self._plot.setDefaultColormap(cmapDict)
 
-        # Refresh image with new colormap
+        # Update active image colormap
         activeImage = self._plot.getActiveImage()
-        if activeImage is not None:
-            self._plot.addImage(
-                activeImage.getData(copy=False),
-                legend=activeImage.getLegend(),
-                info=activeImage.getInfo(),
-                pixmap=activeImage.getPixmap(copy=False),
-                colormap=self.getColormap(),
-                resetzoom=False)
+        if isinstance(activeImage, items.ColormapMixIn):
+            activeImage.setColormap(self.getColormap())
 
     def isKeepDataAspectRatio(self):
         """Returns whether the plot is keeping data aspect ratio or not."""

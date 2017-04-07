@@ -442,7 +442,7 @@ class Plot(object):
         """
         if isinstance(item, items.Curve):
             kind = 'curve'
-        elif isinstance(item, items.Image):
+        elif isinstance(item, items.ImageBase):
             kind = 'image'
         elif isinstance(item, items.Scatter):
             kind = 'scatter'
@@ -470,7 +470,7 @@ class Plot(object):
         item._setPlot(self)
         if item.isVisible():
             self._itemRequiresUpdate(item)
-        if isinstance(item, (items.Curve, items.Image)):
+        if isinstance(item, (items.Curve, items.ImageBase)):
             self._invalidateDataRange()  # TODO handle this automatically
 
     def _remove(self, item):
@@ -764,12 +764,25 @@ class Plot(object):
         # Check if image was previously active
         wasActive = self.getActiveImage(just_legend=True) == legend
 
+        data = numpy.array(data, copy=False)
+        assert data.ndim in (2, 3)
+
         image = self.getImage(legend)
+        if image is not None and image.getData(copy=False).ndim != data.ndim:
+            # Update a data image with RGBA image or the other way around:
+            # Remove previous image
+            # In this case, we don't retrieve defaults from the previous image
+            self._remove(image)
+            image = None
+
         if image is None:
             # No previous image, create a default one and add it to the plot
-            image = items.Image()
+            if data.ndim == 2:
+                image = items.ImageData()
+                image.setColormap(self.getDefaultColormap())
+            else:
+                image = items.ImageRgba()
             image._setLegend(legend)
-            image.setColormap(self.getDefaultColormap())
             self._add(image)
 
         # Override previous/default values with provided ones
@@ -784,14 +797,20 @@ class Plot(object):
             image._setSelectable(selectable)
         if draggable is not None:
             image._setDraggable(draggable)
-        if colormap is not None:
+        if colormap is not None and isinstance(image, items.ColormapMixIn):
             image.setColormap(colormap)
         if xlabel is not None:
             image._setXLabel(xlabel)
         if ylabel is not None:
             image._setYLabel(ylabel)
 
-        image.setData(data, pixmap, copy=copy)
+        if data.ndim == 2:
+            image.setData(data, alternative=pixmap, copy=copy)
+        else:  # RGB(A) image
+            if pixmap is not None:
+                _logger.warning(
+                    'addImage: pixmap argument ignored when data is RGB(A)')
+            image.setData(data, copy=copy)
 
         if replace:
             for img in self.getAllImages():
@@ -1475,9 +1494,9 @@ class Plot(object):
         :param bool just_legend: True to get the legend of the image,
                                  False (the default) to get the image data
                                  and info.
-        :return: Active image's legend or corresponding
-                 :class:`.items.Image`
-        :rtype: str or :class:`.items.Image` or None
+        :return: Active image's legend or corresponding image object
+        :rtype: str, :class:`.items.ImageData`, :class:`.items.ImageRgba`
+                or None
         """
         return self._getActiveItem(kind='image', just_legend=just_legend)
 
@@ -1626,15 +1645,15 @@ class Plot(object):
 
         It returns an empty list in case of not having any image.
 
-        If just_legend is False, it returns a list of :class:`items.Image`
+        If just_legend is False, it returns a list of :class:`items.ImageBase`
         objects describing the images.
         If just_legend is True, it returns a list of legends.
 
         :param bool just_legend: True to get the legend of the images,
                                  False (the default) to get the images'
                                  object.
-        :return: list of images' legend or :class:`.items.Image`
-        :rtype: list of str or list of :class:`.items.Image`
+        :return: list of images' legend or :class:`.items.ImageBase`
+        :rtype: list of str or list of :class:`.items.ImageBase`
         """
         return self._getItems(kind='image',
                               just_legend=just_legend,
@@ -1650,7 +1669,7 @@ class Plot(object):
             If not provided or None (the default), the active image is returned
             or if there is no active image, the latest updated image
             is returned if there are images in the plot.
-        :return: None or :class:`.items.Image` object
+        :return: None or :class:`.items.ImageBase` object
         """
         return self._getItem(kind='image', legend=legend)
 
