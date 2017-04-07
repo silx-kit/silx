@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "20/01/2017"
+__date__ = "05/04/2017"
 
 import logging
 import numpy
@@ -146,6 +146,46 @@ class TestFabioH5(unittest.TestCase):
         self.assertEquals(dataset[()], numpy.string_("2000 hi!"))
         self.assertEquals(dataset.dtype.type, numpy.string_)
         self.assertEquals(dataset.shape, (1,))
+
+    def test_float_32(self):
+        float_list = [u'1.2', u'1.3', u'1.4']
+        data = numpy.array([[0, 0], [0, 0]], dtype=numpy.int8)
+        fabio_image = None
+        for float_item in float_list:
+            header = {"float_item": float_item}
+            if fabio_image is None:
+                fabio_image = fabio.edfimage.EdfImage(data=data, header=header)
+            else:
+                fabio_image.appendFrame(data=data, header=header)
+        h5_image = fabioh5.File(fabio_image=fabio_image)
+        data = h5_image["/scan_0/instrument/detector_0/others/float_item"]
+        # There is no equality between items
+        self.assertEqual(len(data), len(set(data)))
+        # At worst a float32
+        self.assertIn(data.dtype.char, ['d', 'f'])
+        self.assertLessEqual(data.dtype.itemsize, 32 / 8)
+
+    def test_float_64(self):
+        float_list = [
+            u'1469117129.082226',
+            u'1469117136.684986', u'1469117144.312749', u'1469117151.892507',
+            u'1469117159.474265', u'1469117167.100027', u'1469117174.815799',
+            u'1469117182.437561', u'1469117190.094326', u'1469117197.721089']
+        data = numpy.array([[0, 0], [0, 0]], dtype=numpy.int8)
+        fabio_image = None
+        for float_item in float_list:
+            header = {"time_of_day": float_item}
+            if fabio_image is None:
+                fabio_image = fabio.edfimage.EdfImage(data=data, header=header)
+            else:
+                fabio_image.appendFrame(data=data, header=header)
+        h5_image = fabioh5.File(fabio_image=fabio_image)
+        data = h5_image["/scan_0/instrument/detector_0/others/time_of_day"]
+        # There is no equality between items
+        self.assertEqual(len(data), len(set(data)))
+        # At least a float64
+        self.assertIn(data.dtype.char, ['d', 'f'])
+        self.assertGreaterEqual(data.dtype.itemsize, 64 / 8)
 
 
 def suite():

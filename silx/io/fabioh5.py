@@ -833,10 +833,19 @@ class FabioReader(object):
             return dtype.type(value)
         except ValueError:
             try:
-                value = float(value)
-                dtype = numpy.min_scalar_type(value)
-                assert dtype.kind != "O"
-                return dtype.type(value)
+                # numpy.min_scalar_type is not able to do very well the job
+                # when there is a lot of digit after the dot
+                # https://github.com/numpy/numpy/issues/8207
+                # Let's count the digit of the string
+                digits = len(value) - 1  # minus the dot
+                if digits <= 7:
+                    # A float32 is accurate with about 7 digits
+                    return numpy.float32(value)
+                elif digits <= 16:
+                    # A float64 is accurate with about 16 digits
+                    return numpy.float64(value)
+                else:
+                    return numpy.float128(value)
             except ValueError:
                 return numpy.string_(value)
 
