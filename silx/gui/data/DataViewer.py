@@ -29,7 +29,6 @@ from __future__ import division
 
 from silx.gui.data import DataViews
 from silx.gui.data.DataViews import _normalizeData
-import numpy
 import logging
 from silx.gui import qt
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector

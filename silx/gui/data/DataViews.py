@@ -32,7 +32,6 @@ import numpy
 import silx.io
 from silx.gui import qt, icons
 from silx.gui.data.TextFormatter import TextFormatter
-from silx.gui.widgets.TableWidget import TableView
 from silx.io import nxdata
 from silx.gui.hdf5 import H5Node
 from silx.io.nxdata import NXdata
@@ -726,7 +725,7 @@ class _NXdataScalarView(DataView):
     def createWidget(self, parent):
         from silx.gui.data.ArrayTableWidget import ArrayTableWidget
         widget = ArrayTableWidget(parent)
-        #widget.displayAxesSelector(False)
+        # widget.displayAxesSelector(False)
         return widget
 
     def axesNames(self, data, info):
