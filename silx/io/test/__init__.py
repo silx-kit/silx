@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -36,6 +36,7 @@ from .test_spectoh5 import suite as test_spectoh5_suite
 from .test_octaveh5 import suite as test_octaveh5_suite
 from .test_fabioh5 import suite as test_fabioh5_suite
 from .test_utils import suite as test_utils_suite
+from .test_nxdata import suite as test_nxdata_suite
 
 
 def suite():
@@ -48,4 +49,5 @@ def suite():
     test_suite.addTest(test_octaveh5_suite())
     test_suite.addTest(test_utils_suite())
     test_suite.addTest(test_fabioh5_suite())
+    test_suite.addTest(test_nxdata_suite())
     return test_suite
