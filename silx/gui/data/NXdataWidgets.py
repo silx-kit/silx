@@ -77,12 +77,15 @@ class ArrayCurvePlot(qt.QWidget):
                  "normalization": "linear",
                  "autoscale": True})
 
-        dock_widget = qt.QDockWidget("Selector", self._plot)
-        self._selector = NumpyAxesSelector(dock_widget)
+        self.selectorDock = qt.QDockWidget("Data selector", self._plot)
+        # not closable
+        self.selectorDock.setFeatures(qt.QDockWidget.DockWidgetMovable |
+                                qt.QDockWidget.DockWidgetFloatable)
+        self._selector = NumpyAxesSelector(self.selectorDock)
         self._selector.setNamedAxesSelectorVisibility(False)
         self.__selector_is_connected = False
-        dock_widget.setWidget(self._selector)
-        self._plot.addTabbedDockWidget(dock_widget)
+        self.selectorDock.setWidget(self._selector)
+        self._plot.addTabbedDockWidget(self.selectorDock)
 
         layout = qt.QGridLayout()
         layout.setContentsMargins(0, 0, 0, 0)
@@ -125,6 +128,11 @@ class ArrayCurvePlot(qt.QWidget):
             self.__selector_is_connected = False
         self._selector.setData(y)
         self._selector.setAxisNames([ylabel or "Y"])
+
+        if len(y.shape) < 2:
+            self.selectorDock.hide()
+        else:
+            self.selectorDock.show()
 
         self._plot.setGraphTitle(title or "")
         self._plot.setGraphXLabel(self.__axis_name or "X")
@@ -223,17 +231,21 @@ class ArrayImagePlot(qt.QWidget):
                  "vmin": 0., "vmax": 1.,   # ignored (autoscale) but mandatory
                  "normalization": "linear",
                  "autoscale": True})
-        dock_widget = qt.QDockWidget("Selector", self._plot)
+
+        self.selectorDock = qt.QDockWidget("Data selector", self._plot)
+        # not closable
+        self.selectorDock.setFeatures(qt.QDockWidget.DockWidgetMovable |
+                                      qt.QDockWidget.DockWidgetFloatable)
         self._legend = qt.QLabel(self)
-        self._selector = NumpyAxesSelector(dock_widget)
+        self._selector = NumpyAxesSelector(self.selectorDock)
         self._selector.setNamedAxesSelectorVisibility(False)
         self.__selector_is_connected = False
 
         layout = qt.QVBoxLayout()
         layout.addWidget(self._plot)
         layout.addWidget(self._legend)
-        dock_widget.setWidget(self._selector)
-        self._plot.addTabbedDockWidget(dock_widget)
+        self.selectorDock.setWidget(self._selector)
+        self._plot.addTabbedDockWidget(self.selectorDock)
 
         self.setLayout(layout)
 
@@ -270,6 +282,11 @@ class ArrayImagePlot(qt.QWidget):
 
         self._selector.setData(signal)
         self._selector.setAxisNames([ylabel or "Y", xlabel or "X"])
+
+        if len(signal.shape) < 3:
+            self.selectorDock.hide()
+        else:
+            self.selectorDock.show()
 
         self._plot.setGraphTitle(title or "")
         self._plot.setGraphXLabel(self.__x_axis_name or "X")
@@ -444,9 +461,11 @@ class ArrayStackPlot(qt.QWidget):
         # the legend label shows the selection slice producing the volume
         # (only interesting for ndim > 3)
         if ndims > 3:
+            self._selector.setVisible(True)
             self._legend.setVisible(True)
             self._hline.setVisible(True)
         else:
+            self._selector.setVisible(False)
             self._legend.setVisible(False)
             self._hline.setVisible(False)
 
