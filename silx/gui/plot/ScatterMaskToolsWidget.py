@@ -42,12 +42,12 @@ import math
 import logging
 import os
 import numpy
+import sys
 
 from .. import qt
-from .. import icons
 from ...image import shapes
 
-from .MaskToolsWidget import BaseMask
+from .MaskToolsWidget import BaseMask, BaseMaskToolsWidget, BaseMaskToolsDockWidget
 from .Colors import cursorColorForColormap, rgba
 
 
@@ -227,29 +227,10 @@ class ScatterMask(BaseMask):
                            mask)
 
 
-class ScatterMaskToolsWidget(qt.QWidget):
+class ScatterMaskToolsWidget(BaseMaskToolsWidget):
     """Widget with tools for drawing mask on an image in a :class:`PlotWidget`."""
 
-    _maxLevelNumber = 255
-
     def __init__(self, parent=None, plot=None):
-        # register if the user as force a color for the corresponding mask level
-        self._defaultColors = numpy.ones((self._maxLevelNumber + 1), dtype=numpy.bool)
-        # overlays colors set by the user
-        self._overlayColors = numpy.zeros((self._maxLevelNumber + 1, 3), dtype=numpy.float32)
-
-        self._plot = plot
-        self._maskName = '__MASK_TOOLS_%d' % id(self)  # Legend of the mask
-
-        self._colormap = {
-            'name': None,
-            'normalization': 'linear',
-            'autoscale': False,
-            'vmin': 0, 'vmax': self._maxLevelNumber,
-            'colors': None}
-        self._defaultOverlayColor = rgba('gray')  # Color of the mask
-        self._setMaskColors(1, 0.5)
-
         self._z = 2  # Mask layer in plot
         self._data_scatter = None
         """plot Scatter item for data"""
@@ -257,32 +238,10 @@ class ScatterMaskToolsWidget(qt.QWidget):
         """plot Scatter item for representing the mask"""
 
         self._mask = ScatterMask()
-        self._mask.sigChanged.connect(self._updatePlotMask)
 
-        self._drawingMode = None  # Store current drawing mode
-        self._lastPencilPos = None
-
-        self._multipleMasks = 'exclusive'
-
-        super(ScatterMaskToolsWidget, self).__init__(parent)
+        super(ScatterMaskToolsWidget, self).__init__(parent, plot)
 
         self._initWidgets()
-
-        self._maskFileDir = qt.QDir.home().absolutePath()
-
-        self.plot.sigInteractiveModeChanged.connect(
-            self._interactiveModeChanged)
-
-    def getSelectionMask(self, copy=True):
-        """Get the current mask as an array.
-
-        :param bool copy: True (default) to get a copy of the mask.
-                          If False, the returned array MUST not be modified.
-        :return: The array of the mask with dimension of the 'active' image.
-                 If there is no active image, an empty array is returned.
-        :rtype: numpy.ndarray of uint8
-        """
-        return self._mask.getMask(copy=copy)
 
     def setSelectionMask(self, mask, copy=True):
         """Set the mask to a new array.
@@ -306,390 +265,6 @@ class ScatterMaskToolsWidget(qt.QWidget):
         else:
             raise ValueError("Mask does not have the same shape as the data")
 
-    def multipleMasks(self):
-        """Return the current mode of multiple masks support.
-
-        See :meth:`setMultipleMasks`
-        """
-        return self._multipleMasks
-
-    def setMultipleMasks(self, mode):
-        """Set the mode of multiple masks support.
-
-        Available modes:
-
-        - 'single': Edit a single level of mask
-        - 'exclusive': Supports to 256 levels of non overlapping masks
-
-        :param str mode: The mode to use
-        """
-        assert mode in ('exclusive', 'single')
-        if mode != self._multipleMasks:
-            self._multipleMasks = mode
-            self.levelWidget.setVisible(self._multipleMasks != 'single')
-            self.clearAllBtn.setVisible(self._multipleMasks != 'single')
-
-    @property
-    def maskFileDir(self):
-        """The directory from which to load/save mask from/to files."""
-        if not os.path.isdir(self._maskFileDir):
-            self._maskFileDir = qt.QDir.home().absolutePath()
-        return self._maskFileDir
-
-    @maskFileDir.setter
-    def maskFileDir(self, maskFileDir):
-        self._maskFileDir = str(maskFileDir)
-
-    @property
-    def plot(self):
-        """The :class:`.PlotWindow` this widget is attached to."""
-        return self._plot
-
-    def setDirection(self, direction=qt.QBoxLayout.LeftToRight):
-        """Set the direction of the layout of the widget
-
-        :param direction: QBoxLayout direction
-        """
-        self.layout().setDirection(direction)
-
-    def _initWidgets(self):
-        """Create widgets"""
-        layout = qt.QBoxLayout(qt.QBoxLayout.LeftToRight)
-        layout.addWidget(self._initMaskGroupBox())
-        layout.addWidget(self._initDrawGroupBox())
-        layout.addWidget(self._initThresholdGroupBox())
-        layout.addStretch(1)
-        self.setLayout(layout)
-
-    @staticmethod
-    def _hboxWidget(*widgets, **kwargs):
-        """Place widgets in widget with horizontal layout
-
-        :param widgets: Widgets to position horizontally
-        :param bool stretch: True for trailing stretch (default),
-                             False for no trailing stretch
-        :return: A QWidget with a QHBoxLayout
-        """
-        stretch = kwargs.get('stretch', True)
-
-        layout = qt.QHBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        for widget in widgets:
-            layout.addWidget(widget)
-        if stretch:
-            layout.addStretch(1)
-        widget = qt.QWidget()
-        widget.setLayout(layout)
-        return widget
-
-    def _initTransparencyWidget(self):
-        """ Init the mask transparency widget """
-        transparencyWidget = qt.QWidget(self)
-        grid = qt.QGridLayout()
-        grid.setContentsMargins(0, 0, 0, 0)
-        self.transparencySlider = qt.QSlider(qt.Qt.Horizontal, parent=transparencyWidget)
-        self.transparencySlider.setRange(3, 10)
-        self.transparencySlider.setValue(8)
-        self.transparencySlider.setToolTip(
-            'Set the transparency of the mask display')
-        self.transparencySlider.valueChanged.connect(self._updateColors)
-        grid.addWidget(qt.QLabel('Display:', parent=transparencyWidget), 0, 0)
-        grid.addWidget(self.transparencySlider, 0, 1, 1, 3)
-        grid.addWidget(qt.QLabel('<small><b>Transparent</b></small>', parent=transparencyWidget), 1, 1)
-        grid.addWidget(qt.QLabel('<small><b>Opaque</b></small>', parent=transparencyWidget), 1, 3)
-        transparencyWidget.setLayout(grid)
-        return transparencyWidget
-
-    def _initMaskGroupBox(self):
-        """Init general mask operation widgets"""
-
-        # Mask level
-        self.levelSpinBox = qt.QSpinBox()
-        self.levelSpinBox.setRange(1, self._maxLevelNumber)
-        self.levelSpinBox.setToolTip(
-            'Choose which mask level is edited.\n'
-            'A mask can have up to 255 non-overlapping levels.')
-        self.levelSpinBox.valueChanged[int].connect(self._updateColors)
-        self.levelWidget = self._hboxWidget(qt.QLabel('Mask level:'),
-                                            self.levelSpinBox)
-        # Transparency
-        self.transparencyWidget = self._initTransparencyWidget()
-
-        # Buttons group
-        invertBtn = qt.QPushButton('Invert')
-        invertBtn.setShortcut(qt.Qt.CTRL + qt.Qt.Key_I)
-        invertBtn.setToolTip('Invert current mask <b>%s</b>' %
-                             invertBtn.shortcut().toString())
-        invertBtn.clicked.connect(self._handleInvertMask)
-
-        clearBtn = qt.QPushButton('Clear')
-        clearBtn.setShortcut(qt.QKeySequence.Delete)
-        clearBtn.setToolTip('Clear current mask level <b>%s</b>' %
-                            clearBtn.shortcut().toString())
-        clearBtn.clicked.connect(self._handleClearMask)
-
-        invertClearWidget = self._hboxWidget(
-            invertBtn, clearBtn, stretch=False)
-
-        undoBtn = qt.QPushButton('Undo')
-        undoBtn.setShortcut(qt.QKeySequence.Undo)
-        undoBtn.setToolTip('Undo last mask change <b>%s</b>' %
-                           undoBtn.shortcut().toString())
-        self._mask.sigUndoable.connect(undoBtn.setEnabled)
-        undoBtn.clicked.connect(self._mask.undo)
-
-        redoBtn = qt.QPushButton('Redo')
-        redoBtn.setShortcut(qt.QKeySequence.Redo)
-        redoBtn.setToolTip('Redo last undone mask change <b>%s</b>' %
-                           redoBtn.shortcut().toString())
-        self._mask.sigRedoable.connect(redoBtn.setEnabled)
-        redoBtn.clicked.connect(self._mask.redo)
-
-        undoRedoWidget = self._hboxWidget(undoBtn, redoBtn, stretch=False)
-
-        self.clearAllBtn = qt.QPushButton('Clear all')
-        self.clearAllBtn.setToolTip('Clear all mask levels')
-        self.clearAllBtn.clicked.connect(self.resetSelectionMask)
-
-        loadBtn = qt.QPushButton('Load...')
-        loadBtn.clicked.connect(self._loadMask)
-
-        saveBtn = qt.QPushButton('Save...')
-        saveBtn.clicked.connect(self._saveMask)
-
-        self.loadSaveWidget = self._hboxWidget(loadBtn, saveBtn, stretch=False)
-
-        layout = qt.QVBoxLayout()
-        layout.addWidget(self.levelWidget)
-        layout.addWidget(self.transparencyWidget)
-        layout.addWidget(invertClearWidget)
-        layout.addWidget(undoRedoWidget)
-        layout.addWidget(self.clearAllBtn)
-        layout.addWidget(self.loadSaveWidget)
-        layout.addStretch(1)
-
-        maskGroup = qt.QGroupBox('Mask')
-        maskGroup.setLayout(layout)
-        return maskGroup
-
-    def _initDrawGroupBox(self):
-        """Init drawing tools widgets"""
-        layout = qt.QVBoxLayout()
-
-        # Draw tools
-        self.browseAction = qt.QAction(
-            icons.getQIcon('normal'), 'Browse', None)
-        self.browseAction.setShortcut(qt.QKeySequence(qt.Qt.Key_B))
-        self.browseAction.setToolTip(
-            'Disables drawing tools, enables zooming interaction mode'
-            ' <b>B</b>')
-        self.browseAction.setCheckable(True)
-        self.browseAction.triggered.connect(self._activeBrowseMode)
-        self.addAction(self.browseAction)
-
-        self.rectAction = qt.QAction(
-            icons.getQIcon('shape-rectangle'), 'Rectangle selection', None)
-        self.rectAction.setToolTip(
-            'Rectangle selection tool: (Un)Mask a rectangular region <b>R</b>')
-        self.rectAction.setShortcut(qt.QKeySequence(qt.Qt.Key_R))
-        self.rectAction.setCheckable(True)
-        self.rectAction.triggered.connect(self._activeRectMode)
-        self.addAction(self.rectAction)
-
-        self.polygonAction = qt.QAction(
-            icons.getQIcon('shape-polygon'), 'Polygon selection', None)
-        self.polygonAction.setShortcut(qt.QKeySequence(qt.Qt.Key_S))
-        self.polygonAction.setToolTip(
-            'Polygon selection tool: (Un)Mask a polygonal region <b>S</b><br>'
-            'Left-click to place polygon corners<br>'
-            'Right-click to place the last corner')
-        self.polygonAction.setCheckable(True)
-        self.polygonAction.triggered.connect(self._activePolygonMode)
-        self.addAction(self.polygonAction)
-
-        self.pencilAction = qt.QAction(
-            icons.getQIcon('draw-pencil'), 'Pencil tool', None)
-        self.pencilAction.setShortcut(qt.QKeySequence(qt.Qt.Key_P))
-        self.pencilAction.setToolTip(
-            'Pencil tool: (Un)Mask using a pencil <b>P</b>')
-        self.pencilAction.setCheckable(True)
-        self.pencilAction.triggered.connect(self._activePencilMode)
-        self.addAction(self.polygonAction)
-
-        self.drawActionGroup = qt.QActionGroup(self)
-        self.drawActionGroup.setExclusive(True)
-        self.drawActionGroup.addAction(self.browseAction)
-        self.drawActionGroup.addAction(self.rectAction)
-        self.drawActionGroup.addAction(self.polygonAction)
-        self.drawActionGroup.addAction(self.pencilAction)
-
-        self.browseAction.setChecked(True)
-
-        self.drawButtons = {}
-        for action in self.drawActionGroup.actions():
-            btn = qt.QToolButton()
-            btn.setDefaultAction(action)
-            self.drawButtons[action.text()] = btn
-        container = self._hboxWidget(*self.drawButtons.values())
-        layout.addWidget(container)
-
-        # Mask/Unmask radio buttons
-        maskRadioBtn = qt.QRadioButton('Mask')
-        maskRadioBtn.setToolTip(
-            'Drawing masks with current level. Press <b>Ctrl</b> to unmask')
-        maskRadioBtn.setChecked(True)
-
-        unmaskRadioBtn = qt.QRadioButton('Unmask')
-        unmaskRadioBtn.setToolTip(
-            'Drawing unmasks with current level. Press <b>Ctrl</b> to mask')
-
-        self.maskStateGroup = qt.QButtonGroup()
-        self.maskStateGroup.addButton(maskRadioBtn, 1)
-        self.maskStateGroup.addButton(unmaskRadioBtn, 0)
-
-        self.maskStateWidget = self._hboxWidget(maskRadioBtn, unmaskRadioBtn)
-        layout.addWidget(self.maskStateWidget)
-
-        # Connect mask state widget visibility with browse action
-        self.maskStateWidget.setHidden(self.browseAction.isChecked())
-        self.browseAction.toggled[bool].connect(
-            self.maskStateWidget.setHidden)
-
-        # Pencil settings
-        self.pencilSetting = self._createPencilSettings(None)
-        self.pencilSetting.setVisible(False)
-        layout.addWidget(self.pencilSetting)
-
-        layout.addStretch(1)
-
-        drawGroup = qt.QGroupBox('Draw tools')
-        drawGroup.setLayout(layout)
-        return drawGroup
-
-    def _createPencilSettings(self, parent=None):
-        pencilSetting = qt.QWidget(parent)
-
-        self.pencilSpinBox = qt.QSpinBox(parent=pencilSetting)
-        self.pencilSpinBox.setRange(1, 1024)
-        pencilToolTip = """Set pencil drawing tool size in pixels of the image
-            on which to make the mask."""
-        self.pencilSpinBox.setToolTip(pencilToolTip)
-
-        self.pencilSlider = qt.QSlider(qt.Qt.Horizontal, parent=pencilSetting)
-        self.pencilSlider.setRange(1, 50)
-        self.pencilSlider.setToolTip(pencilToolTip)
-
-        pencilLabel = qt.QLabel('Pencil size:', parent=pencilSetting)
-
-        layout = qt.QGridLayout()
-        layout.addWidget(pencilLabel, 0, 0)
-        layout.addWidget(self.pencilSpinBox, 0, 1)
-        layout.addWidget(self.pencilSlider, 1, 1)
-        pencilSetting.setLayout(layout)
-
-        self.pencilSpinBox.valueChanged.connect(self._pencilWidthChanged)
-        self.pencilSlider.valueChanged.connect(self._pencilWidthChanged)
-
-        return pencilSetting
-
-    def _initThresholdGroupBox(self):
-        """Init thresholding widgets"""
-        layout = qt.QVBoxLayout()
-
-        # Thresholing
-
-        self.belowThresholdAction = qt.QAction(
-            icons.getQIcon('plot-roi-below'), 'Mask below threshold', None)
-        self.belowThresholdAction.setToolTip(
-            'Mask image where values are below given threshold')
-        self.belowThresholdAction.setCheckable(True)
-        self.belowThresholdAction.triggered[bool].connect(
-            self._belowThresholdActionTriggered)
-
-        self.betweenThresholdAction = qt.QAction(
-            icons.getQIcon('plot-roi-between'), 'Mask within range', None)
-        self.betweenThresholdAction.setToolTip(
-            'Mask image where values are within given range')
-        self.betweenThresholdAction.setCheckable(True)
-        self.betweenThresholdAction.triggered[bool].connect(
-            self._betweenThresholdActionTriggered)
-
-        self.aboveThresholdAction = qt.QAction(
-            icons.getQIcon('plot-roi-above'), 'Mask above threshold', None)
-        self.aboveThresholdAction.setToolTip(
-            'Mask image where values are above given threshold')
-        self.aboveThresholdAction.setCheckable(True)
-        self.aboveThresholdAction.triggered[bool].connect(
-            self._aboveThresholdActionTriggered)
-
-        self.thresholdActionGroup = qt.QActionGroup(self)
-        self.thresholdActionGroup.setExclusive(False)
-        self.thresholdActionGroup.addAction(self.belowThresholdAction)
-        self.thresholdActionGroup.addAction(self.betweenThresholdAction)
-        self.thresholdActionGroup.addAction(self.aboveThresholdAction)
-        self.thresholdActionGroup.triggered.connect(
-            self._thresholdActionGroupTriggered)
-
-        self.loadColormapRangeAction = qt.QAction(
-            icons.getQIcon('view-refresh'), 'Set min-max from colormap', None)
-        self.loadColormapRangeAction.setToolTip(
-            'Set min and max values from current colormap range')
-        self.loadColormapRangeAction.setCheckable(False)
-        self.loadColormapRangeAction.triggered.connect(
-            self._loadRangeFromColormapTriggered)
-
-        widgets = []
-        for action in self.thresholdActionGroup.actions():
-            btn = qt.QToolButton()
-            btn.setDefaultAction(action)
-            widgets.append(btn)
-
-        spacer = qt.QWidget()
-        spacer.setSizePolicy(qt.QSizePolicy.Expanding,
-                             qt.QSizePolicy.Preferred)
-        widgets.append(spacer)
-
-        loadColormapRangeBtn = qt.QToolButton()
-        loadColormapRangeBtn.setDefaultAction(self.loadColormapRangeAction)
-        widgets.append(loadColormapRangeBtn)
-
-        container = self._hboxWidget(*widgets, stretch=False)
-        layout.addWidget(container)
-
-        form = qt.QFormLayout()
-
-        self.minLineEdit = qt.QLineEdit()
-        self.minLineEdit.setText('0')
-        self.minLineEdit.setValidator(qt.QDoubleValidator())
-        self.minLineEdit.setEnabled(False)
-        form.addRow('Min:', self.minLineEdit)
-
-        self.maxLineEdit = qt.QLineEdit()
-        self.maxLineEdit.setText('0')
-        self.maxLineEdit.setValidator(qt.QDoubleValidator())
-        self.maxLineEdit.setEnabled(False)
-        form.addRow('Max:', self.maxLineEdit)
-
-        self.applyMaskBtn = qt.QPushButton('Apply mask')
-        self.applyMaskBtn.clicked.connect(self._maskBtnClicked)
-        self.applyMaskBtn.setEnabled(False)
-        form.addRow(self.applyMaskBtn)
-
-        self.maskNanBtn = qt.QPushButton('Mask not finite values')
-        self.maskNanBtn.setToolTip('Mask Not a Number and infinite values')
-        self.maskNanBtn.clicked.connect(self._maskNotFiniteBtnClicked)
-        form.addRow(self.maskNanBtn)
-
-        thresholdWidget = qt.QWidget()
-        thresholdWidget.setLayout(form)
-        layout.addWidget(thresholdWidget)
-
-        layout.addStretch(1)
-
-        self.thresholdGroup = qt.QGroupBox('Threshold')
-        self.thresholdGroup.setLayout(layout)
-        return self.thresholdGroup
-
     # Handle mask refresh on the plot
 
     def _updatePlotMask(self):
@@ -710,20 +285,13 @@ class ScatterMaskToolsWidget(qt.QWidget):
 
     # track widget visibility and plot active image changes
 
-    def changeEvent(self, event):
-        """Reset drawing action when disabling widget"""
-        if (event.type() == qt.QEvent.EnabledChange and
-                not self.isEnabled() and
-                not self.browseAction.isChecked()):
-            self.browseAction.trigger()  # Disable drawing tool
-
     def showEvent(self, event):
         try:
             self.plot.sigActiveScatterChanged.disconnect(
                 self._activeScatterChangedAfterCare)
         except (RuntimeError, TypeError):
             pass
-        self._activeScatterChanged()   # Init mask + enable/disable widget
+        self._activeScatterChanged(None, None)   # Init mask + enable/disable widget
         self.plot.sigActiveScatterChanged.connect(self._activeScatterChanged)
 
     def hideEvent(self, event):
@@ -870,15 +438,6 @@ class ScatterMaskToolsWidget(qt.QWidget):
             msg.setText("Cannot load mask from file. " + message)
             msg.exec_()
 
-    def save(self, filename, kind):
-        """Save current mask in a file
-
-        :param str filename: The file where to save to mask
-        :param str kind: The kind of file to save in 'edf', 'tif', 'npy'
-        :raise Exception: Raised if the process fails
-        """
-        self._mask.save(filename, kind)
-
     def _saveMask(self):
         """Open Save mask dialog"""
         dialog = qt.QFileDialog(self)
@@ -924,205 +483,11 @@ class ScatterMaskToolsWidget(qt.QWidget):
             msg.setText("Cannot save file %s\n%s" % (filename, e.args[0]))
             msg.exec_()
 
-    def getCurrentMaskColor(self):
-        """Returns the color of the current selected level.
-
-        :rtype: A tuple or a python array
-        """
-        currentLevel = self.levelSpinBox.value()
-        if self._defaultColors[currentLevel]:
-            return self._defaultOverlayColor
-        else:
-            return self._overlayColors[currentLevel].tolist()
-
-    def _setMaskColors(self, level, alpha):
-        """Set-up the mask colormap to highlight current mask level.
-
-        :param int level: The mask level to highlight
-        :param float alpha: Alpha level of mask in [0., 1.]
-        """
-        assert 0 < level <= self._maxLevelNumber
-
-        colors = numpy.empty((self._maxLevelNumber + 1, 4), dtype=numpy.float32)
-
-        # Set color
-        colors[:, :3] = self._defaultOverlayColor[:3]
-
-        # check if some colors has been directly set by the user
-        mask = numpy.equal(self._defaultColors, False)
-        colors[mask, :3] = self._overlayColors[mask, :3]
-
-        # Set alpha
-        colors[:, -1] = alpha / 2.
-
-        # Set highlighted level color
-        colors[level, 3] = alpha
-
-        # Set no mask level
-        colors[0] = (0., 0., 0., 0.)
-
-        self._colormap['colors'] = colors
-
-    def resetMaskColors(self, level=None):
-        """Reset the mask color at the given level to be defaultColors
-
-        :param level:
-            The index of the mask for which we want to reset the color.
-            If none we will reset color for all masks.
-        """
-        if level is None:
-            self._defaultColors[level] = True
-        else:
-            self._defaultColors[:] = True
-
-        self._updateColors()
-
-    def setMaskColors(self, rgb, level=None):
-        """Set the masks color
-
-        :param rgb: The rgb color
-        :param level:
-            The index of the mask for which we want to change the color.
-            If none set this color for all the masks
-        """
-        if level is None:
-            self._overlayColors[:] = rgb
-            self._defaultColors[:] = False
-        else:
-            self._overlayColors[level] = rgb
-            self._defaultColors[level] = False
-
-        self._updateColors()
-
-    def getMaskColors(self):
-        """masks colors getter"""
-        return self._overlayColors
-
-    def _updateColors(self, *args):
-        """Rebuild mask colormap when selected level or transparency change"""
-        self._setMaskColors(self.levelSpinBox.value(),
-                            self.transparencySlider.value() /
-                            self.transparencySlider.maximum())
-        self._updatePlotMask()
-        self._updateInteractiveMode()
-
-    def _pencilWidthChanged(self, width):
-
-        old = self.pencilSpinBox.blockSignals(True)
-        try:
-            self.pencilSpinBox.setValue(width)
-        finally:
-            self.pencilSpinBox.blockSignals(old)
-
-        old = self.pencilSlider.blockSignals(True)
-        try:
-            self.pencilSlider.setValue(width)
-        finally:
-            self.pencilSlider.blockSignals(old)
-        self._updateInteractiveMode()
-
-    def _updateInteractiveMode(self):
-        """Update the current mode to the same if some cached data have to be
-        updated. It is the case for the color for example.
-        """
-        if self._drawingMode == 'rectangle':
-            self._activeRectMode()
-        elif self._drawingMode == 'polygon':
-            self._activePolygonMode()
-        elif self._drawingMode == 'pencil':
-            self._activePencilMode()
-
-    def _handleClearMask(self):
-        """Handle clear button clicked: reset current level mask"""
-        self._mask.clear(self.levelSpinBox.value())
-        self._mask.commit()
-
     def resetSelectionMask(self):
         """Reset the mask"""
         self._mask.reset(
                 shape=self._data_scatter.getXData(copy=False).shape)
         self._mask.commit()
-
-    def _handleInvertMask(self):
-        """Invert the current mask level selection."""
-        self._mask.invert(self.levelSpinBox.value())
-        self._mask.commit()
-
-    # Handle drawing tools UI events
-
-    def _interactiveModeChanged(self, source):
-        """Handle plot interactive mode changed:
-
-        If changed from elsewhere, disable drawing tool
-        """
-        if source is not self:
-            # Do not trigger browseAction to avoid to call
-            # self.plot.setInteractiveMode
-            self.browseAction.setChecked(True)
-            self._releaseDrawingMode()
-
-    def _releaseDrawingMode(self):
-        """Release the drawing mode if is was used"""
-        if self._drawingMode is None:
-            return
-        self.plot.sigPlotSignal.disconnect(self._plotDrawEvent)
-        self._drawingMode = None
-
-    def _activeBrowseMode(self):
-        """Handle browse action mode triggered by user.
-
-        Set plot interactive mode only when
-        the user is triggering the browse action.
-        """
-        self._releaseDrawingMode()
-        self.plot.setInteractiveMode('zoom', source=self)
-        self._updateDrawingModeWidgets()
-
-    def _activeRectMode(self):
-        """Handle rect action mode triggering"""
-        self._releaseDrawingMode()
-        self._drawingMode = 'rectangle'
-        self.plot.sigPlotSignal.connect(self._plotDrawEvent)
-        color = self.getCurrentMaskColor()
-        self.plot.setInteractiveMode(
-            'draw', shape='rectangle', source=self, color=color)
-        self._updateDrawingModeWidgets()
-
-    def _activePolygonMode(self):
-        """Handle polygon action mode triggering"""
-        self._releaseDrawingMode()
-        self._drawingMode = 'polygon'
-        self.plot.sigPlotSignal.connect(self._plotDrawEvent)
-        color = self.getCurrentMaskColor()
-        self.plot.setInteractiveMode('draw', shape='polygon', source=self, color=color)
-        self._updateDrawingModeWidgets()
-
-    def _activePencilMode(self):
-        """Handle pencil action mode triggering"""
-        self._releaseDrawingMode()
-        self._drawingMode = 'pencil'
-        self.plot.sigPlotSignal.connect(self._plotDrawEvent)
-        color = self.getCurrentMaskColor()
-        width = self.pencilSpinBox.value()
-        self.plot.setInteractiveMode(
-            'draw', shape='pencil', source=self, color=color, width=width)
-        self._updateDrawingModeWidgets()
-
-    def _updateDrawingModeWidgets(self):
-        self.pencilSetting.setVisible(self._drawingMode == 'pencil')
-
-    # Handle plot drawing events
-
-    def _isMasking(self):
-        """Returns true if the tool is used for masking, else it is used for
-        unmasking.
-
-        :rtype: bool"""
-        # First draw event, use current modifiers for all draw sequence
-        doMask = (self.maskStateGroup.checkedId() == 1)
-        if qt.QApplication.keyboardModifiers() & qt.Qt.ControlModifier:
-            doMask = not doMask
-        return doMask
 
     def _plotDrawEvent(self, event):
         """Handle draw events from the plot"""
@@ -1181,39 +546,6 @@ class ScatterMaskToolsWidget(qt.QWidget):
             else:
                 self._lastPencilPos = y, x
 
-    # Handle threshold UI events
-
-    def _belowThresholdActionTriggered(self, triggered):
-        if triggered:
-            self.minLineEdit.setEnabled(True)
-            self.maxLineEdit.setEnabled(False)
-            self.applyMaskBtn.setEnabled(True)
-
-    def _betweenThresholdActionTriggered(self, triggered):
-        if triggered:
-            self.minLineEdit.setEnabled(True)
-            self.maxLineEdit.setEnabled(True)
-            self.applyMaskBtn.setEnabled(True)
-
-    def _aboveThresholdActionTriggered(self, triggered):
-        if triggered:
-            self.minLineEdit.setEnabled(False)
-            self.maxLineEdit.setEnabled(True)
-            self.applyMaskBtn.setEnabled(True)
-
-    def _thresholdActionGroupTriggered(self, triggeredAction):
-        """Threshold action group listener."""
-        if triggeredAction.isChecked():
-            # Uncheck other actions
-            for action in self.thresholdActionGroup.actions():
-                if action is not triggeredAction and action.isChecked():
-                    action.setChecked(False)
-        else:
-            # Disable min/max edit
-            self.minLineEdit.setEnabled(False)
-            self.maxLineEdit.setEnabled(False)
-            self.applyMaskBtn.setEnabled(False)
-
     def _maskBtnClicked(self):
         data_values = self._data_scatter.getValueData(copy=False)
 
@@ -1263,8 +595,8 @@ class ScatterMaskToolsWidget(qt.QWidget):
             self.maxLineEdit.setText(str(max_))
 
 
-class ScatterMaskToolsDockWidget(qt.QDockWidget):
-    """:class:`MaskToolsWidget` embedded in a QDockWidget.
+class ScatterMaskToolsDockWidget(BaseMaskToolsDockWidget):
+    """:class:`ScatterMaskToolsWidget` embedded in a QDockWidget.
 
     For integration in a :class:`PlotWindow`.
 
@@ -1272,67 +604,6 @@ class ScatterMaskToolsDockWidget(qt.QDockWidget):
     :param plot: The PlotWidget this widget is operating on
     :paran str name: The title of this widget
     """
-
     def __init__(self, parent=None, plot=None, name='Mask'):
-        super(ScatterMaskToolsDockWidget, self).__init__(parent)
-        self.setWindowTitle(name)
-
-        self.layout().setContentsMargins(0, 0, 0, 0)
+        super(ScatterMaskToolsDockWidget, self).__init__(parent, plot, name)
         self.setWidget(ScatterMaskToolsWidget(plot=plot))
-        self.dockLocationChanged.connect(self._dockLocationChanged)
-        self.topLevelChanged.connect(self._topLevelChanged)
-
-    def getSelectionMask(self, copy=True):
-        """Get the current mask as a 2D array.
-
-        :param bool copy: True (default) to get a copy of the mask.
-                          If False, the returned array MUST not be modified.
-        :return: The array of the mask with dimension of the 'active' image.
-                 If there is no active image, an empty array is returned.
-        :rtype: 2D numpy.ndarray of uint8
-        """
-        return self.widget().getSelectionMask(copy=copy)
-
-    def setSelectionMask(self, mask, copy=True):
-        """Set the mask to a new array.
-
-        :param numpy.ndarray mask: The array to use for the mask.
-        :type mask: numpy.ndarray of uint8 of dimension 2, C-contiguous.
-                    Array of other types are converted.
-        :param bool copy: True (the default) to copy the array,
-                          False to use it as is if possible.
-        :return: None if failed, shape of mask as 2-tuple if successful.
-                 The mask can be cropped or padded to fit active image,
-                 the returned shape is that of the active image.
-        """
-        return self.widget().setSelectionMask(mask, copy=copy)
-
-    def toggleViewAction(self):
-        """Returns a checkable action that shows or closes this widget.
-
-        See :class:`QMainWindow`.
-        """
-        action = super(ScatterMaskToolsDockWidget, self).toggleViewAction()
-        action.setIcon(icons.getQIcon('image-mask'))
-        action.setToolTip("Display/hide mask tools")
-        return action
-
-    def _dockLocationChanged(self, area):
-        if area in (qt.Qt.LeftDockWidgetArea, qt.Qt.RightDockWidgetArea):
-            direction = qt.QBoxLayout.TopToBottom
-        else:
-            direction = qt.QBoxLayout.LeftToRight
-        self.widget().setDirection(direction)
-
-    def _topLevelChanged(self, topLevel):
-        if topLevel:
-            self.widget().setDirection(qt.QBoxLayout.LeftToRight)
-            self.resize(self.widget().minimumSize())
-            self.adjustSize()
-
-    def showEvent(self, event):
-        """Make sure this widget is raised when it is shown
-        (when it is first created as a tab in PlotWindow or when it is shown
-        again after hiding).
-        """
-        self.raise_()

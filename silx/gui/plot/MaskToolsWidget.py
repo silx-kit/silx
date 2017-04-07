@@ -427,8 +427,7 @@ class ImageMask(BaseMask):
         self.updatePoints(level, rows, cols, mask)
 
 
-class MaskToolsWidget(qt.QWidget):
-    """Widget with tools for drawing mask on an image in a PlotWidget."""
+class BaseMaskToolsWidget(qt.QWidget):
 
     _maxLevelNumber = 255
 
@@ -450,71 +449,29 @@ class MaskToolsWidget(qt.QWidget):
         self._defaultOverlayColor = rgba('gray')  # Color of the mask
         self._setMaskColors(1, 0.5)
 
-        self._origin = (0., 0.)  # Mask origin in plot
-        self._scale = (1., 1.)  # Mask scale in plot
-        self._z = 1  # Mask layer in plot
-        self._data = numpy.zeros((0, 0), dtype=numpy.uint8)  # Store image
-
-        self._mask = ImageMask()
         self._mask.sigChanged.connect(self._updatePlotMask)
 
         self._drawingMode = None  # Store current drawing mode
         self._lastPencilPos = None
-
         self._multipleMasks = 'exclusive'
 
-        super(MaskToolsWidget, self).__init__(parent)
-        self._initWidgets()
+        super(BaseMaskToolsWidget, self).__init__(parent)
 
         self._maskFileDir = qt.QDir.home().absolutePath()
-
         self.plot.sigInteractiveModeChanged.connect(
             self._interactiveModeChanged)
 
     def getSelectionMask(self, copy=True):
-        """Get the current mask as a 2D array.
+        """Get the current mask as a numpy array.
 
         :param bool copy: True (default) to get a copy of the mask.
                           If False, the returned array MUST not be modified.
-        :return: The array of the mask with dimension of the 'active' image.
-                 If there is no active image, an empty array is returned.
-        :rtype: 2D numpy.ndarray of uint8
+        :return: The array of the mask with dimension of the 'active' plot item.
+                 If there is no active image or scatter, an empty array is
+                 returned.
+        :rtype: numpy.ndarray of uint8
         """
         return self._mask.getMask(copy=copy)
-
-    def setSelectionMask(self, mask, copy=True):
-        """Set the mask to a new array.
-
-        :param numpy.ndarray mask: The array to use for the mask.
-        :type mask: numpy.ndarray of uint8 of dimension 2, C-contiguous.
-                    Array of other types are converted.
-        :param bool copy: True (the default) to copy the array,
-                          False to use it as is if possible.
-        :return: None if failed, shape of mask as 2-tuple if successful.
-                 The mask can be cropped or padded to fit active image,
-                 the returned shape is that of the active image.
-        """
-        mask = numpy.array(mask, copy=False, dtype=numpy.uint8)
-        if len(mask.shape) != 2:
-            _logger.error('Not an image, shape: %d', len(mask.shape))
-            return None
-
-        if self._data.shape == (0, 0) or mask.shape == self._data.shape:
-            self._mask.setMask(mask, copy=copy)
-            self._mask.commit()
-            return mask.shape
-        else:
-            _logger.warning('Mask has not the same size as current image.'
-                            ' Mask will be cropped or padded to fit image'
-                            ' dimensions. %s != %s',
-                            str(mask.shape), str(self._data.shape))
-            resizedMask = numpy.zeros(self._data.shape, dtype=numpy.uint8)
-            height = min(self._data.shape[0], mask.shape[0])
-            width = min(self._data.shape[1], mask.shape[1])
-            resizedMask[:height, :width] = mask[:height, :width]
-            self._mask.setMask(resizedMask, copy=False)
-            self._mask.commit()
-            return resizedMask.shape
 
     def multipleMasks(self):
         """Return the current mode of multiple masks support.
@@ -601,7 +558,7 @@ class MaskToolsWidget(qt.QWidget):
         self.transparencySlider.setRange(3, 10)
         self.transparencySlider.setValue(8)
         self.transparencySlider.setToolTip(
-            'Set the transparency of the mask display')
+                'Set the transparency of the mask display')
         self.transparencySlider.valueChanged.connect(self._updateColors)
         grid.addWidget(qt.QLabel('Display:', parent=transparencyWidget), 0, 0)
         grid.addWidget(self.transparencySlider, 0, 1, 1, 3)
@@ -617,8 +574,8 @@ class MaskToolsWidget(qt.QWidget):
         self.levelSpinBox = qt.QSpinBox()
         self.levelSpinBox.setRange(1, self._maxLevelNumber)
         self.levelSpinBox.setToolTip(
-            'Choose which mask level is edited.\n'
-            'A mask can have up to 255 non-overlapping levels.')
+                'Choose which mask level is edited.\n'
+                'A mask can have up to 255 non-overlapping levels.')
         self.levelSpinBox.valueChanged[int].connect(self._updateColors)
         self.levelWidget = self._hboxWidget(qt.QLabel('Mask level:'),
                                             self.levelSpinBox)
@@ -639,7 +596,7 @@ class MaskToolsWidget(qt.QWidget):
         clearBtn.clicked.connect(self._handleClearMask)
 
         invertClearWidget = self._hboxWidget(
-            invertBtn, clearBtn, stretch=False)
+                invertBtn, clearBtn, stretch=False)
 
         undoBtn = qt.QPushButton('Undo')
         undoBtn.setShortcut(qt.QKeySequence.Undo)
@@ -688,40 +645,40 @@ class MaskToolsWidget(qt.QWidget):
 
         # Draw tools
         self.browseAction = qt.QAction(
-            icons.getQIcon('normal'), 'Browse', None)
+                icons.getQIcon('normal'), 'Browse', None)
         self.browseAction.setShortcut(qt.QKeySequence(qt.Qt.Key_B))
         self.browseAction.setToolTip(
-            'Disables drawing tools, enables zooming interaction mode'
-            ' <b>B</b>')
+                'Disables drawing tools, enables zooming interaction mode'
+                ' <b>B</b>')
         self.browseAction.setCheckable(True)
         self.browseAction.triggered.connect(self._activeBrowseMode)
         self.addAction(self.browseAction)
 
         self.rectAction = qt.QAction(
-            icons.getQIcon('shape-rectangle'), 'Rectangle selection', None)
+                icons.getQIcon('shape-rectangle'), 'Rectangle selection', None)
         self.rectAction.setToolTip(
-            'Rectangle selection tool: (Un)Mask a rectangular region <b>R</b>')
+                'Rectangle selection tool: (Un)Mask a rectangular region <b>R</b>')
         self.rectAction.setShortcut(qt.QKeySequence(qt.Qt.Key_R))
         self.rectAction.setCheckable(True)
         self.rectAction.triggered.connect(self._activeRectMode)
         self.addAction(self.rectAction)
 
         self.polygonAction = qt.QAction(
-            icons.getQIcon('shape-polygon'), 'Polygon selection', None)
+                icons.getQIcon('shape-polygon'), 'Polygon selection', None)
         self.polygonAction.setShortcut(qt.QKeySequence(qt.Qt.Key_S))
         self.polygonAction.setToolTip(
-            'Polygon selection tool: (Un)Mask a polygonal region <b>S</b><br>'
-            'Left-click to place polygon corners<br>'
-            'Right-click to place the last corner')
+                'Polygon selection tool: (Un)Mask a polygonal region <b>S</b><br>'
+                'Left-click to place polygon corners<br>'
+                'Right-click to place the last corner')
         self.polygonAction.setCheckable(True)
         self.polygonAction.triggered.connect(self._activePolygonMode)
         self.addAction(self.polygonAction)
 
         self.pencilAction = qt.QAction(
-            icons.getQIcon('draw-pencil'), 'Pencil tool', None)
+                icons.getQIcon('draw-pencil'), 'Pencil tool', None)
         self.pencilAction.setShortcut(qt.QKeySequence(qt.Qt.Key_P))
         self.pencilAction.setToolTip(
-            'Pencil tool: (Un)Mask using a pencil <b>P</b>')
+                'Pencil tool: (Un)Mask using a pencil <b>P</b>')
         self.pencilAction.setCheckable(True)
         self.pencilAction.triggered.connect(self._activePencilMode)
         self.addAction(self.polygonAction)
@@ -746,12 +703,12 @@ class MaskToolsWidget(qt.QWidget):
         # Mask/Unmask radio buttons
         maskRadioBtn = qt.QRadioButton('Mask')
         maskRadioBtn.setToolTip(
-            'Drawing masks with current level. Press <b>Ctrl</b> to unmask')
+                'Drawing masks with current level. Press <b>Ctrl</b> to unmask')
         maskRadioBtn.setChecked(True)
 
         unmaskRadioBtn = qt.QRadioButton('Unmask')
         unmaskRadioBtn.setToolTip(
-            'Drawing unmasks with current level. Press <b>Ctrl</b> to mask')
+                'Drawing unmasks with current level. Press <b>Ctrl</b> to mask')
 
         self.maskStateGroup = qt.QButtonGroup()
         self.maskStateGroup.addButton(maskRadioBtn, 1)
@@ -763,7 +720,7 @@ class MaskToolsWidget(qt.QWidget):
         # Connect mask state widget visibility with browse action
         self.maskStateWidget.setHidden(self.browseAction.isChecked())
         self.browseAction.toggled[bool].connect(
-            self.maskStateWidget.setHidden)
+                self.maskStateWidget.setHidden)
 
         # Pencil settings
         self.pencilSetting = self._createPencilSettings(None)
@@ -809,28 +766,28 @@ class MaskToolsWidget(qt.QWidget):
         # Thresholing
 
         self.belowThresholdAction = qt.QAction(
-            icons.getQIcon('plot-roi-below'), 'Mask below threshold', None)
+                icons.getQIcon('plot-roi-below'), 'Mask below threshold', None)
         self.belowThresholdAction.setToolTip(
-            'Mask image where values are below given threshold')
+                'Mask image where values are below given threshold')
         self.belowThresholdAction.setCheckable(True)
         self.belowThresholdAction.triggered[bool].connect(
-            self._belowThresholdActionTriggered)
+                self._belowThresholdActionTriggered)
 
         self.betweenThresholdAction = qt.QAction(
-            icons.getQIcon('plot-roi-between'), 'Mask within range', None)
+                icons.getQIcon('plot-roi-between'), 'Mask within range', None)
         self.betweenThresholdAction.setToolTip(
-            'Mask image where values are within given range')
+                'Mask image where values are within given range')
         self.betweenThresholdAction.setCheckable(True)
         self.betweenThresholdAction.triggered[bool].connect(
-            self._betweenThresholdActionTriggered)
+                self._betweenThresholdActionTriggered)
 
         self.aboveThresholdAction = qt.QAction(
-            icons.getQIcon('plot-roi-above'), 'Mask above threshold', None)
+                icons.getQIcon('plot-roi-above'), 'Mask above threshold', None)
         self.aboveThresholdAction.setToolTip(
-            'Mask image where values are above given threshold')
+                'Mask image where values are above given threshold')
         self.aboveThresholdAction.setCheckable(True)
         self.aboveThresholdAction.triggered[bool].connect(
-            self._aboveThresholdActionTriggered)
+                self._aboveThresholdActionTriggered)
 
         self.thresholdActionGroup = qt.QActionGroup(self)
         self.thresholdActionGroup.setExclusive(False)
@@ -838,15 +795,15 @@ class MaskToolsWidget(qt.QWidget):
         self.thresholdActionGroup.addAction(self.betweenThresholdAction)
         self.thresholdActionGroup.addAction(self.aboveThresholdAction)
         self.thresholdActionGroup.triggered.connect(
-            self._thresholdActionGroupTriggered)
+                self._thresholdActionGroupTriggered)
 
         self.loadColormapRangeAction = qt.QAction(
-            icons.getQIcon('view-refresh'), 'Set min-max from colormap', None)
+                icons.getQIcon('view-refresh'), 'Set min-max from colormap', None)
         self.loadColormapRangeAction.setToolTip(
-            'Set min and max values from current colormap range')
+                'Set min and max values from current colormap range')
         self.loadColormapRangeAction.setCheckable(False)
         self.loadColormapRangeAction.triggered.connect(
-            self._loadRangeFromColormapTriggered)
+                self._loadRangeFromColormapTriggered)
 
         widgets = []
         for action in self.thresholdActionGroup.actions():
@@ -900,22 +857,7 @@ class MaskToolsWidget(qt.QWidget):
         self.thresholdGroup.setLayout(layout)
         return self.thresholdGroup
 
-    # Handle mask refresh on the plot
-
-    def _updatePlotMask(self):
-        """Update mask image in plot"""
-        mask = self.getSelectionMask(copy=False)
-        if len(mask):
-            self.plot.addImage(mask, legend=self._maskName,
-                               colormap=self._colormap,
-                               origin=self._origin,
-                               scale=self._scale,
-                               z=self._z,
-                               replace=False, resetzoom=False)
-        elif self.plot.getImage(self._maskName):
-            self.plot.remove(self._maskName, kind='image')
-
-    # track widget visibility and plot active image changes
+        # track widget visibility and plot active image changes
 
     def changeEvent(self, event):
         """Reset drawing action when disabling widget"""
@@ -923,188 +865,6 @@ class MaskToolsWidget(qt.QWidget):
                 not self.isEnabled() and
                 not self.browseAction.isChecked()):
             self.browseAction.trigger()  # Disable drawing tool
-
-    def showEvent(self, event):
-        try:
-            self.plot.sigActiveImageChanged.disconnect(
-                self._activeImageChangedAfterCare)
-        except (RuntimeError, TypeError):
-            pass
-        self._activeImageChanged()  # Init mask + enable/disable widget
-        self.plot.sigActiveImageChanged.connect(self._activeImageChanged)
-
-    def hideEvent(self, event):
-        self.plot.sigActiveImageChanged.disconnect(self._activeImageChanged)
-        if not self.browseAction.isChecked():
-            self.browseAction.trigger()  # Disable drawing tool
-
-        if len(self.getSelectionMask(copy=False)):
-            self.plot.sigActiveImageChanged.connect(
-                self._activeImageChangedAfterCare)
-
-    def _setOverlayColorForImage(self, image):
-        """Set the color of overlay adapted to image
-
-        :param image: :class:`.items.ImageBase` object to set color for.
-        """
-        if isinstance(image, items.ColormapMixIn):
-            colormap = image.getColormap()
-            self._defaultOverlayColor = rgba(
-                cursorColorForColormap(colormap['name']))
-        else:
-            self._defaultOverlayColor = rgba('black')
-
-    def _activeImageChangedAfterCare(self, *args):
-        """Check synchro of active image and mask when mask widget is hidden.
-
-        If active image has no more the same size as the mask, the mask is
-        removed, otherwise it is adjusted to origin, scale and z.
-        """
-        activeImage = self.plot.getActiveImage()
-        if activeImage is None or activeImage.getLegend() == self._maskName:
-            # No active image or active image is the mask...
-            self.plot.sigActiveImageChanged.disconnect(
-                self._activeImageChangedAfterCare)
-        else:
-            self._setOverlayColorForImage(activeImage)
-            self._setMaskColors(self.levelSpinBox.value(),
-                                self.transparencySlider.value() /
-                                self.transparencySlider.maximum())
-
-            self._origin = activeImage.getOrigin()
-            self._scale = activeImage.getScale()
-            self._z = activeImage.getZValue() + 1
-            self._data = activeImage.getData(copy=False)
-            if self._data.shape != self.getSelectionMask(copy=False).shape:
-                # Image has not the same size, remove mask and stop listening
-                if self.plot.getImage(self._maskName):
-                    self.plot.remove(self._maskName, kind='image')
-
-                self.plot.sigActiveImageChanged.disconnect(
-                    self._activeImageChangedAfterCare)
-            else:
-                # Refresh in case origin, scale, z changed
-                self._updatePlotMask()
-
-    def _activeImageChanged(self, *args):
-        """Update widget and mask according to active image changes"""
-        activeImage = self.plot.getActiveImage()
-        if activeImage is None or activeImage.getLegend() == self._maskName:
-            # No active image or active image is the mask...
-            self.setEnabled(False)
-
-            self._data = numpy.zeros((0, 0), dtype=numpy.uint8)
-            self._mask.reset()
-            self._mask.commit()
-
-        else:  # There is an active image
-            self.setEnabled(True)
-
-            self._setOverlayColorForImage(activeImage)
-
-            self._setMaskColors(self.levelSpinBox.value(),
-                                self.transparencySlider.value() /
-                                self.transparencySlider.maximum())
-
-            self._origin = activeImage.getOrigin()
-            self._scale = activeImage.getScale()
-            self._z = activeImage.getZValue() + 1
-            self._data = activeImage.getData(copy=False)
-            if self._data.shape != self.getSelectionMask(copy=False).shape:
-                self._mask.reset(self._data.shape)
-                self._mask.commit()
-            else:
-                # Refresh in case origin, scale, z changed
-                self._updatePlotMask()
-
-        self._updateInteractiveMode()
-
-    # Handle whole mask operations
-
-    def load(self, filename):
-        """Load a mask from an image file.
-
-        :param str filename: File name from which to load the mask
-        :raise Exception: An exception in case of failure
-        :raise RuntimeWarning: In case the mask was applied but with some
-            import changes to notice
-        """
-        _, extension = os.path.splitext(filename)
-        extension = extension.lower()[1:]
-
-        if extension == "npy":
-            try:
-                mask = numpy.load(filename)
-            except IOError:
-                _logger.error("Can't load filename '%s'", filename)
-                _logger.debug("Backtrace", exc_info=True)
-                raise RuntimeError('File "%s" is not a numpy file.', filename)
-        elif extension == "edf":
-            try:
-                mask = EdfFile(filename, access='r').GetData(0)
-            except Exception as e:
-                _logger.error("Can't load filename %s", filename)
-                _logger.debug("Backtrace", exc_info=True)
-                raise e
-        elif extension == "msk":
-            if fabio is None:
-                raise ImportError("Fit2d mask files can't be read: Fabio module is not available")
-            try:
-                mask = fabio.open(filename).data
-            except Exception as e:
-                _logger.error("Can't load fit2d mask file")
-                _logger.debug("Backtrace", exc_info=True)
-                raise e
-        else:
-            msg = "Extension '%s' is not supported."
-            raise RuntimeError(msg % extension)
-
-        effectiveMaskShape = self.setSelectionMask(mask, copy=False)
-        if effectiveMaskShape is None:
-            return
-        if mask.shape != effectiveMaskShape:
-            msg = 'Mask was resized from %s to %s'
-            msg = msg % (str(mask.shape), str(effectiveMaskShape))
-            raise RuntimeWarning(msg)
-
-    def _loadMask(self):
-        """Open load mask dialog"""
-        dialog = qt.QFileDialog(self)
-        dialog.setWindowTitle("Load Mask")
-        dialog.setModal(1)
-        filters = [
-            'EDF (*.edf)',
-            'TIFF (*.tif)',
-            'NumPy binary file (*.npy)',
-            # Fit2D mask is displayed anyway fabio is here or not
-            # to show to the user that the option exists
-            'Fit2D mask (*.msk)',
-        ]
-        dialog.setNameFilters(filters)
-        dialog.setFileMode(qt.QFileDialog.ExistingFile)
-        dialog.setDirectory(self.maskFileDir)
-        if not dialog.exec_():
-            dialog.close()
-            return
-
-        filename = dialog.selectedFiles()[0]
-        dialog.close()
-
-        self.maskFileDir = os.path.dirname(filename)
-        try:
-            self.load(filename)
-        except RuntimeWarning as e:
-            message = e.args[0]
-            msg = qt.QMessageBox(self)
-            msg.setIcon(qt.QMessageBox.Warning)
-            msg.setText("Mask loaded but an operation was applied.\n" + message)
-            msg.exec_()
-        except Exception as e:
-            message = e.args[0]
-            msg = qt.QMessageBox(self)
-            msg.setIcon(qt.QMessageBox.Critical)
-            msg.setText("Cannot load mask from file. " + message)
-            msg.exec_()
 
     def save(self, filename, kind):
         """Save current mask in a file
@@ -1114,55 +874,6 @@ class MaskToolsWidget(qt.QWidget):
         :raise Exception: Raised if the process fails
         """
         self._mask.save(filename, kind)
-
-    def _saveMask(self):
-        """Open Save mask dialog"""
-        dialog = qt.QFileDialog(self)
-        dialog.setWindowTitle("Save Mask")
-        dialog.setModal(1)
-        filters = [
-            'EDF (*.edf)',
-            'TIFF (*.tif)',
-            'NumPy binary file (*.npy)',
-            # Fit2D mask is displayed anyway fabio is here or not
-            # to show to the user that the option exists
-            'Fit2D mask (*.msk)',
-        ]
-        dialog.setNameFilters(filters)
-        dialog.setFileMode(qt.QFileDialog.AnyFile)
-        dialog.setAcceptMode(qt.QFileDialog.AcceptSave)
-        dialog.setDirectory(self.maskFileDir)
-        if not dialog.exec_():
-            dialog.close()
-            return
-
-        # convert filter name to extension name with the .
-        extension = dialog.selectedNameFilter().split()[-1][2:-1]
-        filename = dialog.selectedFiles()[0]
-        dialog.close()
-
-        if not filename.lower().endswith(extension):
-            filename += extension
-
-        if os.path.exists(filename):
-            try:
-                os.remove(filename)
-            except IOError:
-                msg = qt.QMessageBox(self)
-                msg.setIcon(qt.QMessageBox.Critical)
-                msg.setText("Cannot save.\n"
-                            "Input Output Error: %s" % (sys.exc_info()[1]))
-                msg.exec_()
-                return
-
-        self.maskFileDir = os.path.dirname(filename)
-        try:
-            self.save(filename, extension[1:])
-        except Exception as e:
-            msg = qt.QMessageBox(self)
-            msg.setIcon(qt.QMessageBox.Critical)
-            msg.setText("Cannot save file %s\n%s" % (filename, e.args[0]))
-            msg.exec_()
 
     def getCurrentMaskColor(self):
         """Returns the color of the current selected level.
@@ -1277,11 +988,6 @@ class MaskToolsWidget(qt.QWidget):
         self._mask.clear(self.levelSpinBox.value())
         self._mask.commit()
 
-    def resetSelectionMask(self):
-        """Reset the mask"""
-        self._mask.reset(shape=self._data.shape)
-        self._mask.commit()
-
     def _handleInvertMask(self):
         """Invert the current mask level selection."""
         self._mask.invert(self.levelSpinBox.value())
@@ -1363,6 +1069,339 @@ class MaskToolsWidget(qt.QWidget):
             doMask = not doMask
         return doMask
 
+    # Handle threshold UI events
+    def _belowThresholdActionTriggered(self, triggered):
+        if triggered:
+            self.minLineEdit.setEnabled(True)
+            self.maxLineEdit.setEnabled(False)
+            self.applyMaskBtn.setEnabled(True)
+
+    def _betweenThresholdActionTriggered(self, triggered):
+        if triggered:
+            self.minLineEdit.setEnabled(True)
+            self.maxLineEdit.setEnabled(True)
+            self.applyMaskBtn.setEnabled(True)
+
+    def _aboveThresholdActionTriggered(self, triggered):
+        if triggered:
+            self.minLineEdit.setEnabled(False)
+            self.maxLineEdit.setEnabled(True)
+            self.applyMaskBtn.setEnabled(True)
+
+    def _thresholdActionGroupTriggered(self, triggeredAction):
+        """Threshold action group listener."""
+        if triggeredAction.isChecked():
+            # Uncheck other actions
+            for action in self.thresholdActionGroup.actions():
+                if action is not triggeredAction and action.isChecked():
+                    action.setChecked(False)
+        else:
+            # Disable min/max edit
+            self.minLineEdit.setEnabled(False)
+            self.maxLineEdit.setEnabled(False)
+            self.applyMaskBtn.setEnabled(False)
+
+
+class MaskToolsWidget(BaseMaskToolsWidget):
+    """Widget with tools for drawing mask on an image in a PlotWidget."""
+
+    _maxLevelNumber = 255
+
+    def __init__(self, parent=None, plot=None):
+        self._origin = (0., 0.)  # Mask origin in plot
+        self._scale = (1., 1.)  # Mask scale in plot
+        self._z = 1  # Mask layer in plot
+        self._data = numpy.zeros((0, 0), dtype=numpy.uint8)  # Store image
+
+        self._mask = ImageMask()
+
+        super(MaskToolsWidget, self).__init__(parent, plot)
+
+        self._initWidgets()
+
+    def setSelectionMask(self, mask, copy=True):
+        """Set the mask to a new array.
+
+        :param numpy.ndarray mask: The array to use for the mask.
+        :type mask: numpy.ndarray of uint8 of dimension 2, C-contiguous.
+                    Array of other types are converted.
+        :param bool copy: True (the default) to copy the array,
+                          False to use it as is if possible.
+        :return: None if failed, shape of mask as 2-tuple if successful.
+                 The mask can be cropped or padded to fit active image,
+                 the returned shape is that of the active image.
+        """
+        mask = numpy.array(mask, copy=False, dtype=numpy.uint8)
+        if len(mask.shape) != 2:
+            _logger.error('Not an image, shape: %d', len(mask.shape))
+            return None
+
+        if self._data.shape == (0, 0) or mask.shape == self._data.shape:
+            self._mask.setMask(mask, copy=copy)
+            self._mask.commit()
+            return mask.shape
+        else:
+            _logger.warning('Mask has not the same size as current image.'
+                            ' Mask will be cropped or padded to fit image'
+                            ' dimensions. %s != %s',
+                            str(mask.shape), str(self._data.shape))
+            resizedMask = numpy.zeros(self._data.shape, dtype=numpy.uint8)
+            height = min(self._data.shape[0], mask.shape[0])
+            width = min(self._data.shape[1], mask.shape[1])
+            resizedMask[:height, :width] = mask[:height, :width]
+            self._mask.setMask(resizedMask, copy=False)
+            self._mask.commit()
+            return resizedMask.shape
+
+    # Handle mask refresh on the plot
+    def _updatePlotMask(self):
+        """Update mask image in plot"""
+        mask = self.getSelectionMask(copy=False)
+        if len(mask):
+            self.plot.addImage(mask, legend=self._maskName,
+                               colormap=self._colormap,
+                               origin=self._origin,
+                               scale=self._scale,
+                               z=self._z,
+                               replace=False, resetzoom=False)
+        elif self.plot.getImage(self._maskName):
+            self.plot.remove(self._maskName, kind='image')
+
+    def showEvent(self, event):
+        try:
+            self.plot.sigActiveImageChanged.disconnect(
+                self._activeImageChangedAfterCare)
+        except (RuntimeError, TypeError):
+            pass
+        self._activeImageChanged()  # Init mask + enable/disable widget
+        self.plot.sigActiveImageChanged.connect(self._activeImageChanged)
+
+    def hideEvent(self, event):
+        self.plot.sigActiveImageChanged.disconnect(self._activeImageChanged)
+        if not self.browseAction.isChecked():
+            self.browseAction.trigger()  # Disable drawing tool
+
+        if len(self.getSelectionMask(copy=False)):
+            self.plot.sigActiveImageChanged.connect(
+                self._activeImageChangedAfterCare)
+
+    def _setOverlayColorForImage(self, image):
+        """Set the color of overlay adapted to image
+
+        :param image: :class:`.items.ImageBase` object to set color for.
+        """
+        if isinstance(image, items.ColormapMixIn):
+            colormap = image.getColormap()
+            self._defaultOverlayColor = rgba(
+                cursorColorForColormap(colormap['name']))
+        else:
+            self._defaultOverlayColor = rgba('black')
+
+    def _activeImageChangedAfterCare(self, *args):
+        """Check synchro of active image and mask when mask widget is hidden.
+
+        If active image has no more the same size as the mask, the mask is
+        removed, otherwise it is adjusted to origin, scale and z.
+        """
+        activeImage = self.plot.getActiveImage()
+        if activeImage is None or activeImage.getLegend() == self._maskName:
+            # No active image or active image is the mask...
+            self.plot.sigActiveImageChanged.disconnect(
+                self._activeImageChangedAfterCare)
+        else:
+            self._setOverlayColorForImage(activeImage)
+            self._setMaskColors(self.levelSpinBox.value(),
+                                self.transparencySlider.value() /
+                                self.transparencySlider.maximum())
+
+            self._origin = activeImage.getOrigin()
+            self._scale = activeImage.getScale()
+            self._z = activeImage.getZValue() + 1
+            self._data = activeImage.getData(copy=False)
+            if self._data.shape != self.getSelectionMask(copy=False).shape:
+                # Image has not the same size, remove mask and stop listening
+                if self.plot.getImage(self._maskName):
+                    self.plot.remove(self._maskName, kind='image')
+
+                self.plot.sigActiveImageChanged.disconnect(
+                    self._activeImageChangedAfterCare)
+            else:
+                # Refresh in case origin, scale, z changed
+                self._updatePlotMask()
+
+    def _activeImageChanged(self, *args):
+        """Update widget and mask according to active image changes"""
+        activeImage = self.plot.getActiveImage()
+        if activeImage is None or activeImage.getLegend() == self._maskName:
+            # No active image or active image is the mask...
+            self.setEnabled(False)
+
+            self._data = numpy.zeros((0, 0), dtype=numpy.uint8)
+            self._mask.reset()
+            self._mask.commit()
+
+        else:  # There is an active image
+            self.setEnabled(True)
+
+            self._setOverlayColorForImage(activeImage)
+
+            self._setMaskColors(self.levelSpinBox.value(),
+                                self.transparencySlider.value() /
+                                self.transparencySlider.maximum())
+
+            self._origin = activeImage.getOrigin()
+            self._scale = activeImage.getScale()
+            self._z = activeImage.getZValue() + 1
+            self._data = activeImage.getData(copy=False)
+            if self._data.shape != self.getSelectionMask(copy=False).shape:
+                self._mask.reset(self._data.shape)
+                self._mask.commit()
+            else:
+                # Refresh in case origin, scale, z changed
+                self._updatePlotMask()
+
+        self._updateInteractiveMode()
+
+    # Handle whole mask operations
+    def load(self, filename):
+        """Load a mask from an image file.
+
+        :param str filename: File name from which to load the mask
+        :raise Exception: An exception in case of failure
+        :raise RuntimeWarning: In case the mask was applied but with some
+            import changes to notice
+        """
+        _, extension = os.path.splitext(filename)
+        extension = extension.lower()[1:]
+
+        if extension == "npy":
+            try:
+                mask = numpy.load(filename)
+            except IOError:
+                _logger.error("Can't load filename '%s'", filename)
+                _logger.debug("Backtrace", exc_info=True)
+                raise RuntimeError('File "%s" is not a numpy file.', filename)
+        elif extension == "edf":
+            try:
+                mask = EdfFile(filename, access='r').GetData(0)
+            except Exception as e:
+                _logger.error("Can't load filename %s", filename)
+                _logger.debug("Backtrace", exc_info=True)
+                raise e
+        elif extension == "msk":
+            if fabio is None:
+                raise ImportError("Fit2d mask files can't be read: Fabio module is not available")
+            try:
+                mask = fabio.open(filename).data
+            except Exception as e:
+                _logger.error("Can't load fit2d mask file")
+                _logger.debug("Backtrace", exc_info=True)
+                raise e
+        else:
+            msg = "Extension '%s' is not supported."
+            raise RuntimeError(msg % extension)
+
+        effectiveMaskShape = self.setSelectionMask(mask, copy=False)
+        if effectiveMaskShape is None:
+            return
+        if mask.shape != effectiveMaskShape:
+            msg = 'Mask was resized from %s to %s'
+            msg = msg % (str(mask.shape), str(effectiveMaskShape))
+            raise RuntimeWarning(msg)
+
+    def _loadMask(self):
+        """Open load mask dialog"""
+        dialog = qt.QFileDialog(self)
+        dialog.setWindowTitle("Load Mask")
+        dialog.setModal(1)
+        filters = [
+            'EDF (*.edf)',
+            'TIFF (*.tif)',
+            'NumPy binary file (*.npy)',
+            # Fit2D mask is displayed anyway fabio is here or not
+            # to show to the user that the option exists
+            'Fit2D mask (*.msk)',
+        ]
+        dialog.setNameFilters(filters)
+        dialog.setFileMode(qt.QFileDialog.ExistingFile)
+        dialog.setDirectory(self.maskFileDir)
+        if not dialog.exec_():
+            dialog.close()
+            return
+
+        filename = dialog.selectedFiles()[0]
+        dialog.close()
+
+        self.maskFileDir = os.path.dirname(filename)
+        try:
+            self.load(filename)
+        except RuntimeWarning as e:
+            message = e.args[0]
+            msg = qt.QMessageBox(self)
+            msg.setIcon(qt.QMessageBox.Warning)
+            msg.setText("Mask loaded but an operation was applied.\n" + message)
+            msg.exec_()
+        except Exception as e:
+            message = e.args[0]
+            msg = qt.QMessageBox(self)
+            msg.setIcon(qt.QMessageBox.Critical)
+            msg.setText("Cannot load mask from file. " + message)
+            msg.exec_()
+
+    def _saveMask(self):
+        """Open Save mask dialog"""
+        dialog = qt.QFileDialog(self)
+        dialog.setWindowTitle("Save Mask")
+        dialog.setModal(1)
+        filters = [
+            'EDF (*.edf)',
+            'TIFF (*.tif)',
+            'NumPy binary file (*.npy)',
+            # Fit2D mask is displayed anyway fabio is here or not
+            # to show to the user that the option exists
+            'Fit2D mask (*.msk)',
+        ]
+        dialog.setNameFilters(filters)
+        dialog.setFileMode(qt.QFileDialog.AnyFile)
+        dialog.setAcceptMode(qt.QFileDialog.AcceptSave)
+        dialog.setDirectory(self.maskFileDir)
+        if not dialog.exec_():
+            dialog.close()
+            return
+
+        # convert filter name to extension name with the .
+        extension = dialog.selectedNameFilter().split()[-1][2:-1]
+        filename = dialog.selectedFiles()[0]
+        dialog.close()
+
+        if not filename.lower().endswith(extension):
+            filename += extension
+
+        if os.path.exists(filename):
+            try:
+                os.remove(filename)
+            except IOError:
+                msg = qt.QMessageBox(self)
+                msg.setIcon(qt.QMessageBox.Critical)
+                msg.setText("Cannot save.\n"
+                            "Input Output Error: %s" % (sys.exc_info()[1]))
+                msg.exec_()
+                return
+
+        self.maskFileDir = os.path.dirname(filename)
+        try:
+            self.save(filename, extension[1:])
+        except Exception as e:
+            msg = qt.QMessageBox(self)
+            msg.setIcon(qt.QMessageBox.Critical)
+            msg.setText("Cannot save file %s\n%s" % (filename, e.args[0]))
+            msg.exec_()
+
+    def resetSelectionMask(self):
+        """Reset the mask"""
+        self._mask.reset(shape=self._data.shape)
+        self._mask.commit()
+
     def _plotDrawEvent(self, event):
         """Handle draw events from the plot"""
         if (self._drawingMode is None or
@@ -1436,39 +1475,6 @@ class MaskToolsWidget(qt.QWidget):
             else:
                 self._lastPencilPos = row, col
 
-    # Handle threshold UI events
-
-    def _belowThresholdActionTriggered(self, triggered):
-        if triggered:
-            self.minLineEdit.setEnabled(True)
-            self.maxLineEdit.setEnabled(False)
-            self.applyMaskBtn.setEnabled(True)
-
-    def _betweenThresholdActionTriggered(self, triggered):
-        if triggered:
-            self.minLineEdit.setEnabled(True)
-            self.maxLineEdit.setEnabled(True)
-            self.applyMaskBtn.setEnabled(True)
-
-    def _aboveThresholdActionTriggered(self, triggered):
-        if triggered:
-            self.minLineEdit.setEnabled(False)
-            self.maxLineEdit.setEnabled(True)
-            self.applyMaskBtn.setEnabled(True)
-
-    def _thresholdActionGroupTriggered(self, triggeredAction):
-        """Threshold action group listener."""
-        if triggeredAction.isChecked():
-            # Uncheck other actions
-            for action in self.thresholdActionGroup.actions():
-                if action is not triggeredAction and action.isChecked():
-                    action.setChecked(False)
-        else:
-            # Disable min/max edit
-            self.minLineEdit.setEnabled(False)
-            self.maxLineEdit.setEnabled(False)
-            self.applyMaskBtn.setEnabled(False)
-
     def _maskBtnClicked(self):
         if self.belowThresholdAction.isChecked():
             if len(self._data) and self.minLineEdit.text():
@@ -1517,7 +1523,7 @@ class MaskToolsWidget(qt.QWidget):
             self.maxLineEdit.setText(str(max_))
 
 
-class MaskToolsDockWidget(qt.QDockWidget):
+class BaseMaskToolsDockWidget(qt.QDockWidget):
     """:class:`MaskToolsWidget` embedded in a QDockWidget.
 
     For integration in a :class:`PlotWindow`.
@@ -1528,7 +1534,7 @@ class MaskToolsDockWidget(qt.QDockWidget):
     """
 
     def __init__(self, parent=None, plot=None, name='Mask'):
-        super(MaskToolsDockWidget, self).__init__(parent)
+        super(BaseMaskToolsDockWidget, self).__init__(parent)
         self.setWindowTitle(name)
 
         self.layout().setContentsMargins(0, 0, 0, 0)
@@ -1566,7 +1572,7 @@ class MaskToolsDockWidget(qt.QDockWidget):
 
         See :class:`QMainWindow`.
         """
-        action = super(MaskToolsDockWidget, self).toggleViewAction()
+        action = super(BaseMaskToolsDockWidget, self).toggleViewAction()
         action.setIcon(icons.getQIcon('image-mask'))
         action.setToolTip("Display/hide mask tools")
         return action
@@ -1590,3 +1596,18 @@ class MaskToolsDockWidget(qt.QDockWidget):
         again after hiding).
         """
         self.raise_()
+
+
+class MaskToolsDockWidget(BaseMaskToolsDockWidget):
+    """:class:`MaskToolsWidget` embedded in a QDockWidget.
+
+    For integration in a :class:`PlotWindow`.
+
+    :param parent: See :class:`QDockWidget`
+    :param plot: The PlotWidget this widget is operating on
+    :paran str name: The title of this widget
+    """
+
+    def __init__(self, parent=None, plot=None, name='Mask'):
+        super(MaskToolsDockWidget, self).__init__(parent, plot, name)
+        self.setWidget(MaskToolsWidget(plot=plot))
