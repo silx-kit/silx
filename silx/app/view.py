@@ -25,7 +25,7 @@
 
 __authors__ = ["P. Knobel", "V. Valls"]
 __license__ = "MIT"
-__date__ = "30/03/2017"
+__date__ = "07/04/2017"
 
 import sys
 import argparse
@@ -175,8 +175,8 @@ def main(argv):
     """
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        'filenames',
-        type=argparse.FileType('r'),
+        'files',
+        type=argparse.FileType('rb'),
         nargs=argparse.ZERO_OR_MORE,
         help='Data file to show (h5 file, edf files, spec files)')
 
@@ -198,7 +198,9 @@ def main(argv):
     window = Viewer()
     window.resize(qt.QSize(640, 480))
 
-    for filename in options.filenames:
+    for f in options.files:
+        filename = f.name
+        f.close()
         window.appendFile(filename)
 
     window.show()
