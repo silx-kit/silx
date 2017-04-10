@@ -228,7 +228,8 @@ class ScatterMask(BaseMask):
 
 
 class ScatterMaskToolsWidget(BaseMaskToolsWidget):
-    """Widget with tools for drawing mask on an image in a :class:`PlotWidget`."""
+    """Widget with tools for masking data points on a scatter in a
+    :class:`PlotWidget`."""
 
     def __init__(self, parent=None, plot=None):
         self._z = 2  # Mask layer in plot
