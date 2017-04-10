@@ -222,7 +222,7 @@ class TestColorbarWidget(unittest.TestCase):
 
 def suite():
     test_suite = unittest.TestSuite()
-    for ui in (TestGradation, TestTickBar, TestColorbarWidget):
+    for ui in (TestGradation, TestNoAutoscale, TestColorbarWidget):
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(ui))
 
