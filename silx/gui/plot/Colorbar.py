@@ -67,52 +67,16 @@ class ColorbarWidget(qt.QWidget):
     :param parent: See :class:`QWidget`
     :param plot: PlotWidget the colorbar is attached to (optional)
     :param str legend: the label to set to the colormap
-    :param bool showNorm: if True hide the normalization groupbox (optional)
-    :param bool showAutoscale: if True hide the autoscale checkbox (optional)
-    :param str config: the standard configuration to set. See next for more details.
     """
 
-    Configuration = ('withTicksValue', 'minMaxValueOnly')
-    """The twos default configuration for now are :
-
-    * Configuration[0] = 'withTicksValue'. This configuration will display ticks
-        with ticks values on the left, gradation on the center and label/legend
-        on the right. Information about scale and normalization are always
-        displayed on the bottom.
-
-        .. image:: img/logColorbar.png
-            :width: 80px
-            :align: center
-
-    * Configuration[1] = 'minMaxValueOnly'. This configuration  is the
-        'withTicksValue' but ticks values are not displayed. Insteada we have a
-        label on the top and at the bottom of the Gradation with min and max
-        values of the colormap.
-
-        .. image:: img/linearColorbar.png
-            :width: 80px
-            :align: center
-    """
-
-    _MIN_LIM_SCI_FORM = -1000
-    """Used for the min and max label to know when we should display it under
-    the scientific form"""
-
-    _MAX_LIM_SCI_FORM = 1000
-    """Used for the min and max label to know when we should display it under
-    the scientific form"""
-
-    def __init__(self, parent=None, plot=None, legend=None, showNorm=False,
-                 showAutoscale=False, config=Configuration[0]):
+    def __init__(self, parent=None, plot=None, legend=None):
         super(ColorbarWidget, self).__init__(parent)
         self._plot = None
-        self._configuration = config
-        self._label = ''  # Text label to display
-        self.showNorm = showNorm
-        self.showAutoscale = showAutoscale
 
         self.__buildGUI()
-        if legend is not None:
+        if legend is None:
+            self.legend.hide()
+        else:
             assert(type(legend) is str)
             self.setLegend(legend)
 
@@ -122,13 +86,6 @@ class ColorbarWidget(qt.QWidget):
         layout = qt.QVBoxLayout()
         self.setLayout(layout)
         self.layout().addWidget(self.__buildMainColorMap())
-        self.layout().addWidget(self.__buildAutoscale())
-        self.layout().addWidget(self.__buildNorm())
-
-        if self.showNorm is False:
-            self._groupNorm.hide()
-        if self.showAutoscale is False:
-            self._autoscaleCB.hide()
 
         self.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Expanding)
         self.layout().setContentsMargins(0, 0, 0, 0)
@@ -139,77 +96,14 @@ class ColorbarWidget(qt.QWidget):
         widget.layout().addWidget(self.__buildGradationAndLegend())
         return widget
 
-    def __buildNorm(self):
-        # group definition
-        self._groupNorm = qt.QGroupBox('Normalization', parent=self)
-        self._groupNorm.setLayout(qt.QHBoxLayout())
-        self._groupNorm.setEnabled(False)
-        # adding linear option
-        self._linearNorm = qt.QRadioButton('linear', self._groupNorm)
-        self._groupNorm.layout().addWidget(self._linearNorm)
-        # adding lof option
-        self._logNorm = qt.QRadioButton('log', self._groupNorm)
-        self._groupNorm.layout().addWidget(self._logNorm)
-
-        return self._groupNorm
-
-    def __buildAutoscale(self):
-        self._autoscaleCB = qt.QCheckBox('autoscale', parent=self)
-        self._autoscaleCB.setEnabled(False)
-        return self._autoscaleCB
-
     def __buildGradationAndLegend(self):
-        if self._configuration is ColorbarWidget.Configuration[0]:
-            return self.__buildGradationAndLegendWithTicksValue()
-        if self._configuration is ColorbarWidget.Configuration[1]:
-            return self.__buildGradationAndLegendMinMax()
-
-        msg = 'Given configuration is not recognize, can\'t create Gradation'
-        raise ValueError(msg)
-
-    def __buildGradationAndLegendWithTicksValue(self):
         widget = qt.QWidget(self)
         widget.setLayout(qt.QHBoxLayout())
-        widget.layout().setContentsMargins(0, 0, 0, 0)
-        # create gradation
-        self._gradation = GradationBar(parent=widget,
-                                       colormap=None)
-        widget.layout().addWidget(self._gradation)
-
-        self.legend = _VerticalLegend('', self)
-        widget.layout().addWidget(self.legend)
-
-        self.__maxLabel = None
-        self.__minLabel = None
-
-        widget.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Preferred)
-        return widget
-
-    def __buildGradationAndLegendMinMax(self):
-        widget = qt.QWidget(self)
-        widget.setLayout(qt.QHBoxLayout())
-
-        widgetLeftGroup = qt.QWidget(widget)
-        widgetLeftGroup.setLayout(qt.QVBoxLayout())
-        widget.layout().addWidget(widgetLeftGroup)
-
-        # max label
-        self.__maxLabel = qt.QLabel(str(1.0), parent=self)
-        self.__maxLabel.setAlignment(qt.Qt.AlignHCenter)
-        self.__maxLabel.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Minimum)
-        widgetLeftGroup.layout().addWidget(self.__maxLabel)
 
         # create gradation widget
         self._gradation = GradationBar(parent=widget,
-                                       colormap=None,
-                                       displayTicksValues=False)
-        widgetLeftGroup.layout().addWidget(self._gradation)
-
-        # min label
-        self.__minLabel = qt.QLabel(str(0.0), parent=self)
-        self.__minLabel.setAlignment(qt.Qt.AlignHCenter)
-        self.__minLabel.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Minimum)
-        widgetLeftGroup.layout().addWidget(self.__minLabel)
+                                       colormap=None)
+        widget.layout().addWidget(self._gradation)
 
         # legend (is the right group)
         self.legend = _VerticalLegend('', self)
@@ -257,17 +151,13 @@ class ColorbarWidget(qt.QWidget):
             self._colormap = None
             return
 
-        if normalization == 'linear':
-            self._setLinearNorm()
-        elif normalization == 'log':
-            self._setLogNorm()
+        if normalization not in ('log', 'linear'):
+            raise ValueError('Wrong normalization %s' % normalization)
+        if normalization == 'log':
             if vmin <= 0 or vmax <= 0:
                 _logger.warning(
                     'Log colormap with bound <= 0: changing bounds.')
                 vmin, vmax = 1., 10.
-            pass
-        else:
-            raise ValueError('Wrong normalization %s' % normalization)
 
         self._colormap = {'name': name,
                           'normalization': normalization,
@@ -275,50 +165,17 @@ class ColorbarWidget(qt.QWidget):
                           'vmin': vmin,
                           'vmax': vmax}
 
-        self._setAutoscale(autoscale)
         self._gradation.setColormap(self._colormap)
 
-        self._setMinMaxLabels(minVal=self._colormap['vmin'],
+        self.getGradationBar().setMinMaxLabels(minVal=self._colormap['vmin'],
                               maxVal=self._colormap['vmax'])
-
-    def _setMinMaxLabels(self, minVal, maxVal):
-        # bad hack to try to display has much information as possible
-        self.minVal = minVal
-        self.maxVal = maxVal
-        self._updateMinMax()
-
-    def _updateMinMax(self):
-        """Update the min and max label if we are in the case of the
-        configuration 'minMaxValueOnly'"""
-        if self.__minLabel is not None and self.__maxLabel is not None:
-            if ColorbarWidget._MIN_LIM_SCI_FORM <= self.minVal <= ColorbarWidget._MAX_LIM_SCI_FORM:
-                self.__minLabel.setText(str(self.minVal))
-            else:
-                self.__minLabel.setText("{0:.0e}".format(self.minVal))
-
-            if ColorbarWidget._MIN_LIM_SCI_FORM <= self.maxVal <= ColorbarWidget._MAX_LIM_SCI_FORM:
-                self.__maxLabel.setText(str(self.maxVal))
-            else:
-                self.__maxLabel.setText("{0:.0e}".format(self.maxVal))
-
-    def resizeEvent(self, event):
-        qt.QWidget.resizeEvent(self, event)
-        self._updateMinMax()
-
-    def _setLogNorm(self):
-        self._logNorm.setChecked(True)
-
-    def _setLinearNorm(self):
-        self._linearNorm.setChecked(True)
-
-    def _setAutoscale(self, b):
-        self._autoscaleCB.setChecked(b)
 
     def setLegend(self, legend):
         """Set the legend displayed along the colorbar
 
         :param str legend: The label
         """
+        self.legend.show()
         self.legend.setText(legend)
 
     def getLegend(self):
@@ -446,10 +303,18 @@ class GradationBar(qt.QWidget):
     """The tick bar need a margin to display all labels at the correct place.
     So the Gradation should have the same margin in order for both to fit"""
 
+    _MIN_LIM_SCI_FORM = -1000
+    """Used for the min and max label to know when we should display it under
+    the scientific form"""
+
+    _MAX_LIM_SCI_FORM = 1000
+    """Used for the min and max label to know when we should display it under
+    the scientific form"""
+
     def __init__(self, parent=None, colormap=None, displayTicksValues=True):
         super(GradationBar, self).__init__(parent)
 
-        self.setLayout(qt.QHBoxLayout())
+        self.setLayout(qt.QGridLayout())
 
         # create the left side group (Gradation)
         self.gradation = Gradation(colormap=colormap,
@@ -463,11 +328,23 @@ class GradationBar(qt.QWidget):
                                displayValues=displayTicksValues,
                                margin=GradationBar._TEXT_MARGIN)
 
-        self.layout().addWidget(self.tickbar)
-        self.layout().addWidget(self.gradation)
+        self.layout().addWidget(self.tickbar, 1, 0)
+        self.layout().addWidget(self.gradation, 1, 1)
 
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.layout().setSpacing(0)
+
+        # max label
+        self._maxLabel = qt.QLabel(str(1.0), parent=self)
+        self._maxLabel.setAlignment(qt.Qt.AlignHCenter)
+        self._maxLabel.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Minimum)
+        self.layout().addWidget(self._maxLabel, 0, 1)
+
+        # min label
+        self._minLabel = qt.QLabel(str(0.0), parent=self)
+        self._minLabel.setAlignment(qt.Qt.AlignHCenter)
+        self._minLabel.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Minimum)
+        self.layout().addWidget(self._minLabel, 2, 1)
 
     def getTickBar(self):
         """
@@ -494,6 +371,43 @@ class GradationBar(qt.QWidget):
             self.tickbar.update(vmin=colormap['vmin'],
                                 vmax=colormap['vmax'],
                                 norm=colormap['normalization'])
+
+    def setMinMaxVisible(self, val=True):
+        """Change visibility of the min label and the max label
+
+        :param val: if True, set the labels visible, otherwise set it not visible
+        """
+        self._maxLabel.show() if val is True else self._maxLabel.hide()
+        self._minLabel.show() if val is True else self._minLabel.hide()
+
+    def _updateMinMax(self):
+        """Update the min and max label if we are in the case of the
+        configuration 'minMaxValueOnly'"""
+        if self._minLabel is not None and self._maxLabel is not None:
+            if GradationBar._MIN_LIM_SCI_FORM <= self.minVal <= GradationBar._MAX_LIM_SCI_FORM:
+                self._minLabel.setText(str(self.minVal))
+            else:
+                self._minLabel.setText("{0:.0e}".format(self.minVal))
+
+            if GradationBar._MIN_LIM_SCI_FORM <= self.maxVal <= GradationBar._MAX_LIM_SCI_FORM:
+                self._maxLabel.setText(str(self.maxVal))
+            else:
+                self._maxLabel.setText("{0:.0e}".format(self.maxVal))
+
+    def setMinMaxLabels(self, minVal, maxVal):
+        """Change the value of the min anx max labels to be displayed.
+
+        :param minVal: the value the minimal value of the TickBar (not str)
+        :param minVal: the value the maximal value of the TickBar (not str)
+        """
+        # bad hack to try to display has much information as possible
+        self.minVal = minVal
+        self.maxVal = maxVal
+        self._updateMinMax()
+
+    def resizeEvent(self, event):
+        qt.QWidget.resizeEvent(self, event)
+        self._updateMinMax()
 
 
 class Gradation(qt.QWidget):
@@ -692,6 +606,13 @@ class TickBar(qt.QWidget):
         self.setMargin(margin)
         self.setContentsMargins(0, 0, 0, 0)
 
+        self._resetWidth()
+
+    def setTicksValuesVisible(self, val):
+        self.displayValues = val
+        self._resetWidth()
+
+    def _resetWidth(self):
         self.width = TickBar._WIDTH_DISP_VAL if self.displayValues else TickBar._WIDTH_NO_DISP_VAL
         self.setFixedWidth(self.width)
 
