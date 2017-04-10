@@ -29,7 +29,6 @@ from __future__ import division
 
 from silx.gui.data import DataViews
 from silx.gui.data.DataViews import _normalizeData
-import numpy
 import logging
 from silx.gui import qt
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
@@ -41,7 +40,7 @@ except ImportError:
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "27/01/2017"
+__date__ = "07/04/2017"
 
 
 _logger = logging.getLogger(__name__)
