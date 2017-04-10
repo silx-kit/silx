@@ -77,7 +77,7 @@ from ._utils import applyZoomToPlot as _applyZoomToPlot
 from silx.third_party.EdfFile import EdfFile
 from silx.third_party.TiffIO import TiffIO
 from silx.math.histogram import Histogramnd
-from silx.math.medianfilter import medianfilter
+from silx.math.medianfilter import medfilt2d
 from silx.gui.widgets.MedianFilterDialog import MedianFilterDialog
 
 from silx.io.utils import save1D, savespec
@@ -1376,8 +1376,8 @@ class MedianFilter1DAction(MedianFilterAction):
 
     def _computeFilteredImage(self, kernelWidth, conditional):
         assert(self.plot is not None)
-        return medianfilter(self._originalImage,
-                            kernelWidth,
+        return medfilt2d(self._originalImage,
+                            (kernelWidth, 1),
                             conditional)
 
 
@@ -1394,6 +1394,6 @@ class MedianFilter2DAction(MedianFilterAction):
 
     def _computeFilteredImage(self, kernelWidth, conditional):
         assert(self.plot is not None)
-        return medianfilter(self._originalImage,
+        return medfilt2d(self._originalImage,
                             (kernelWidth, kernelWidth),
                             conditional)

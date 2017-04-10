@@ -27,4 +27,4 @@ __license__ = "MIT"
 __date__ = "14/02/2017"
 
 # exposing medianfilter (math) to the image module
-from silx.math.medianfilter import medianfilter
+from silx.math.medianfilter import medfilt2d
