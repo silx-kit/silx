@@ -40,7 +40,7 @@ except ImportError:
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "07/04/2017"
+__date__ = "10/04/2017"
 
 
 _logger = logging.getLogger(__name__)
@@ -123,19 +123,26 @@ class DataViewer(qt.QFrame):
         self.__data = None
         self.__useAxisSelection = False
 
-        views = self.createDefaultViews()
-        self.__views = list(views)
-
-        # store stack index for each views
+        self.__views = []
         self.__index = {}
+        """store stack index for each views"""
 
+        self._initializeViews()
+
+    def _initializeViews(self):
+        """Inisialize the available views"""
+        views = self.createDefaultViews(self.__stack)
+        self.__views = list(views)
         self.setDisplayMode(self.EMPTY_MODE)
 
-    def createDefaultViews(self):
+    def createDefaultViews(self, parent=None):
         """Create and returns available views which can be displayed by default
-        by the data viewer.
+        by the data viewer. It is called internally by the widget. It can be
+        overwriten to provide a different set of viewers.
 
-        :rtype: list[silx.gui.data.DataViews.DataView]"""
+        :param QWidget parent: QWidget parent of the views
+        :rtype: list[silx.gui.data.DataViews.DataView]
+        """
         viewClasses = [
             DataViews._EmptyView,
             DataViews._Hdf5View,
@@ -149,7 +156,7 @@ class DataViewer(qt.QFrame):
         views = []
         for viewClass in viewClasses:
             try:
-                view = viewClass(self.__stack)
+                view = viewClass(parent)
                 views.append(view)
             except Exception:
                 _logger.warning("%s instantiation failed. View is ignored" % viewClass.__name__)

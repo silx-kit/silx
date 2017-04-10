@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "26/01/2017"
+__date__ = "10/04/2017"
 
 import os
 import tempfile
@@ -165,6 +165,11 @@ class AbstractDataViewerTests(TestCaseQt):
         self.assertEquals(widget.displayedView().modeId(), DataViewer.RAW_MODE)
         widget.setDisplayMode(DataViewer.EMPTY_MODE)
         self.assertEquals(widget.displayedView().modeId(), DataViewer.EMPTY_MODE)
+
+    def test_create_default_views(self):
+        widget = self.create_widget()
+        views = widget.createDefaultViews()
+        self.assertTrue(len(views) > 0)
 
 
 class TestDataViewer(AbstractDataViewerTests):

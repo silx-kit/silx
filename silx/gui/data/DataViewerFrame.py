@@ -27,7 +27,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "25/01/2017"
+__date__ = "10/04/2017"
 
 from silx.gui import qt
 from .DataViewer import DataViewer
@@ -68,7 +68,20 @@ class DataViewerFrame(qt.QWidget):
         """
         super(DataViewerFrame, self).__init__(parent)
 
-        self.__dataViewer = DataViewer(self)
+        class _DataViewer(DataViewer):
+            """Overwrite methods to avoid to create views while the instance
+            is not created. `initializeViews` have to be called manually."""
+
+            def _initializeViews(self):
+                pass
+
+            def initializeViews(self):
+                """Avoid to create views while the instance is not created."""
+                super(_DataViewer, self)._initializeViews()
+
+        self.__dataViewer = _DataViewer(self)
+        # initialize views when `self.__dataViewer` is set
+        self.__dataViewer.initializeViews()
         self.__dataViewer.setFrameShape(qt.QFrame.StyledPanel)
         self.__dataViewer.setFrameShadow(qt.QFrame.Sunken)
         self.__dataViewerSelector = DataViewerSelector(self, self.__dataViewer)
@@ -98,6 +111,16 @@ class DataViewerFrame(qt.QWidget):
         :rtype: List[DataView]
         """
         return self.__dataViewer.currentAvailableViews()
+
+    def createDefaultViews(self, parent=None):
+        """Create and returns available views which can be displayed by default
+        by the data viewer. It is called internally by the widget. It can be
+        overwriten to provide a different set of viewers.
+
+        :param QWidget parent: QWidget parent of the views
+        :rtype: list[silx.gui.data.DataViews.DataView]
+        """
+        return self.__dataViewer.createDefaultViews(parent)
 
     def setData(self, data):
         """Set the data to view.
