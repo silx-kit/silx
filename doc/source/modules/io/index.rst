@@ -10,6 +10,7 @@
    
    configdict.rst
    dictdump.rst
+   nxdata.rst
    octaveh5.rst
    specfile.rst
    specfilewrapper.rst
