@@ -195,6 +195,9 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
         elif event == 'activeImageChanged':
             self.sigActiveImageChanged.emit(
                 kwargs['previous'], kwargs['legend'])
+        elif event == 'activeScatterChanged':
+            self.sigActiveScatterChanged.emit(
+                kwargs['previous'], kwargs['legend'])
         elif event == 'interactiveModeChanged':
             self.sigInteractiveModeChanged.emit(kwargs['source'])
         Plot.Plot.notify(self, event, **kwargs)
