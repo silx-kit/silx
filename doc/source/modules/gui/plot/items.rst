@@ -15,12 +15,25 @@ Curve
    :members:
    :inherited-members:
 
-Image
------
+Images
+------
 
-.. autoclass:: Image
+.. autoclass:: ImageData
    :members:
    :inherited-members:
+
+.. autoclass:: ImageRgba
+   :members:
+   :inherited-members:
+
+
+Scatter
+-------
+
+.. autoclass:: Scatter
+   :members:
+   :inherited-members:
+
 
 Markers
 -------
