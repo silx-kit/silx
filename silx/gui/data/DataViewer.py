@@ -122,6 +122,7 @@ class DataViewer(qt.QFrame):
         self.__currentView = None
         self.__data = None
         self.__useAxisSelection = False
+        self.__userSelectedView = None
 
         self.__views = []
         self.__index = {}
@@ -242,6 +243,16 @@ class DataViewer(qt.QFrame):
 
         :param silx.gui.data.DataViews.DataView view: The DataView to use to display the data
         """
+        self.__userSelectedView = view
+        self._setDisplayedView(view)
+
+    def _setDisplayedView(self, view):
+        """Internal set of the displayed view.
+
+        Change the displayed view according to the view itself.
+
+        :param silx.gui.data.DataViews.DataView view: The DataView to use to display the data
+        """
         if self.__currentView is view:
             return
         self.__clearCurrentView()
@@ -284,7 +295,7 @@ class DataViewer(qt.QFrame):
             view = self.getViewFromModeId(modeId)
         except KeyError:
             raise ValueError("Display mode %s is unknown" % modeId)
-        self.setDisplayedView(view)
+        self._setDisplayedView(view)
 
     def displayedView(self):
         """Returns the current displayed view.
@@ -315,6 +326,9 @@ class DataViewer(qt.QFrame):
         self.__stack.removeWidget(view.getWidget())
         # invalidate the full index. It will be updated as expected
         self.__index = {}
+
+        if self.__userSelectedView is view:
+            self.__userSelectedView = None
 
         if view is self.__currentView:
             self.__updateView()
@@ -355,12 +369,12 @@ class DataViewer(qt.QFrame):
         view = self.getDefaultViewFromAvailableViews(data, available)
         self.__clearCurrentView()
         try:
-            self.setDisplayedView(view)
+            self._setDisplayedView(view)
         except Exception as e:
             # in case there is a problem to read the data, try to use a safe
             # view
             view = self.getSafeViewFromAvailableViews(data, available)
-            self.setDisplayedView(view)
+            self._setDisplayedView(view)
             raise e
 
     def getSafeViewFromAvailableViews(self, data, available):
@@ -388,6 +402,9 @@ class DataViewer(qt.QFrame):
         """
         if len(available) > 0:
             # returns the view with the highest priority
+            if self.__userSelectedView in available:
+                return self.__userSelectedView
+            self.__userSelectedView = None
             view = available[0]
         else:
             # else returns the empty view
