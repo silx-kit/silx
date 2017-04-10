@@ -185,7 +185,7 @@ class Image(Item, LabelsMixIn, DraggableMixIn, ColormapMixIn, AlphaMixIn):
         data = numpy.array(data, copy=copy)
         assert data.ndim in (2, 3)
         if data.ndim == 3:
-            assert data.shape[1] in (3, 4)
+            assert data.shape[-1] in (3, 4)
         self._data = data
 
         if pixmap is not None:
