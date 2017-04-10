@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "05/04/2017"
+__date__ = "10/04/2017"
 
 import logging
 import numpy
@@ -186,6 +186,43 @@ class TestFabioH5(unittest.TestCase):
         # At least a float64
         self.assertIn(data.dtype.char, ['d', 'f'])
         self.assertGreaterEqual(data.dtype.itemsize, 64 / 8)
+
+    def test_ub_matrix(self):
+        """Data from mediapix.edf"""
+        header = {}
+        header["UB_mne"] = 'UB0 UB1 UB2 UB3 UB4 UB5 UB6 UB7 UB8'
+        header["UB_pos"] = '1.99593e-16 2.73682e-16 -1.54 -1.08894 1.08894 1.6083e-16 1.08894 1.08894 9.28619e-17'
+        header["sample_mne"] = 'U0 U1 U2 U3 U4 U5'
+        header["sample_pos"] = '4.08 4.08 4.08 90 90 90'
+        data = numpy.array([[0, 0], [0, 0]], dtype=numpy.int8)
+        fabio_image = fabio.edfimage.EdfImage(data=data, header=header)
+        h5_image = fabioh5.File(fabio_image=fabio_image)
+        sample = h5_image["/scan_0/sample"]
+        self.assertIsNotNone(sample)
+        self.assertEquals(sample.attrs["NXclass"], "NXsample")
+
+        d = sample['unit_cell_abc']
+        expected = numpy.array([4.08, 4.08, 4.08])
+        self.assertIsNotNone(d)
+        self.assertEquals(d.shape, (3, ))
+        self.assertIn(d.dtype.char, ['d', 'f'])
+        numpy.testing.assert_array_almost_equal(d[...], expected)
+
+        d = sample['unit_cell_alphabetagamma']
+        expected = numpy.array([90.0, 90.0, 90.0])
+        self.assertIsNotNone(d)
+        self.assertEquals(d.shape, (3, ))
+        self.assertIn(d.dtype.char, ['d', 'f'])
+        numpy.testing.assert_array_almost_equal(d[...], expected)
+
+        d = sample['orientation_matrix']
+        expected = numpy.array([[[1.99593e-16, 2.73682e-16, -1.54],
+                                 [-1.08894, 1.08894, 1.6083e-16],
+                                 [1.08894, 1.08894, 9.28619e-17]]])
+        self.assertIsNotNone(d)
+        self.assertEquals(d.shape, (1, 3, 3))
+        self.assertIn(d.dtype.char, ['d', 'f'])
+        numpy.testing.assert_array_almost_equal(d[...], expected)
 
 
 def suite():
