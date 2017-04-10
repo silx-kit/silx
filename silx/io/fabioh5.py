@@ -579,6 +579,29 @@ class ImageGroup(LazyLoadableGroup):
         self.add_node(detector)
 
 
+class SampleGroup(LazyLoadableGroup):
+    """Define the image group (sub group of measurement) using Fabio data.
+    """
+
+    def __init__(self, name, fabio_reader, parent=None):
+        attrs = {"NXclass": "NXsample"}
+        LazyLoadableGroup.__init__(self, name, parent, attrs)
+        self.__fabio_reader = fabio_reader
+
+    def _create_child(self):
+        if self.__fabio_reader.has_ub_matrix():
+            scalar = {"interpretation": "scalar"}
+            data = self.__fabio_reader.get_unit_cell_abc()
+            data = Dataset("unit_cell_abc", data, attrs=scalar)
+            self.add_node(data)
+            data = self.__fabio_reader.get_unit_cell_alphabetagamma()
+            data = Dataset("unit_cell_alphabetagamma", data, attrs=scalar)
+            self.add_node(data)
+            data = self.__fabio_reader.get_orientation_matrix()
+            data = Dataset("orientation_matrix", data, attrs=scalar)
+            self.add_node(data)
+
+
 class MeasurementGroup(LazyLoadableGroup):
     """Define the measurement group for fabio file.
     """
@@ -623,6 +646,9 @@ class FabioReader(object):
         self.__data = None
         self.__frame_count = self.__fabio_file.nframes
         self._read(self.__fabio_file)
+
+    def fabio_file(self):
+        return self.__fabio_file
 
     def _create_data(self):
         """Initialize hold data by merging all frames into a single cube.
@@ -876,6 +902,21 @@ class FabioReader(object):
         except ValueError:
             return numpy.string_(value)
 
+    def has_sample_information(self):
+        """Returns true if there is information about the sample in the
+        file
+
+        :rtype: bool
+        """
+        return self.has_ub_matrix()
+
+    def has_ub_matrix(self):
+        """Returns true if a UB matrix is available.
+
+        :rtype: bool
+        """
+        return False
+
 
 class EdfFabioReader(FabioReader):
     """Class which read and cache data and metadata from a fabio image.
@@ -883,6 +924,12 @@ class EdfFabioReader(FabioReader):
     It is mostly the same as FabioReader, but counter_mne and
     motor_mne are parsed using a special way.
     """
+
+    def __init__(self, fabio_file):
+        FabioReader.__init__(self, fabio_file)
+        self.__unit_cell_abc = None
+        self.__unit_cell_alphabetagamma = None
+        self.__orientation_matrix = None
 
     def _read_frame(self, frame_id, header):
         """Overwrite the method to check and parse special keys: counter and
@@ -904,8 +951,7 @@ class EdfFabioReader(FabioReader):
             return
         FabioReader._read_key(self, frame_id, name, value)
 
-    def _read_mnemonic_key(self, frame_id, base_key, header):
-        """Parse a mnemonic key"""
+    def _get_mnemonic_key(self, base_key, header):
         mnemonic_values_key = base_key + "_mne"
         mnemonic_values = header.get(mnemonic_values_key, "")
         mnemonic_values = mnemonic_values.split()
@@ -913,9 +959,7 @@ class EdfFabioReader(FabioReader):
         pos_values = header.get(pos_values_key, "")
         pos_values = pos_values.split()
 
-        is_counter = base_key == "counter"
-        is_positioner = base_key == "motor"
-
+        result = collections.OrderedDict()
         nbitems = max(len(mnemonic_values), len(pos_values))
         for i in range(nbitems):
             if i < len(mnemonic_values):
@@ -929,12 +973,86 @@ class EdfFabioReader(FabioReader):
             else:
                 pos = None
 
+            result[mnemonic] = pos
+        return result
+
+    def _read_mnemonic_key(self, frame_id, base_key, header):
+        """Parse a mnemonic key"""
+        is_counter = base_key == "counter"
+        is_positioner = base_key == "motor"
+        data = self._get_mnemonic_key(base_key, header)
+
+        for mnemonic, pos in data.items():
             if is_counter:
                 self._set_counter_value(frame_id, mnemonic, pos)
             elif is_positioner:
                 self._set_positioner_value(frame_id, mnemonic, pos)
             else:
                 raise Exception("State unexpected (base_key: %s)" % base_key)
+
+    def has_ub_matrix(self):
+        """Returns true if a UB matrix is available.
+
+        :rtype: bool
+        """
+        header = self.fabio_file().header
+        expected_keys = set(["UB_mne", "UB_pos", "sample_mne", "sample_pos"])
+        return expected_keys.issubset(header)
+
+    def parse_ub_matrix(self):
+        header = self.fabio_file().header
+        ub_data = self._get_mnemonic_key("UB", header)
+        s_data = self._get_mnemonic_key("sample", header)
+        if len(ub_data) > 9:
+            _logger.warning("UB_mne and UB_pos contains more than expected keys.")
+        if len(s_data) > 6:
+            _logger.warning("sample_mne and sample_pos contains more than expected keys.")
+
+        data = numpy.array([s_data["U0"], s_data["U1"], s_data["U2"]], dtype=float)
+        unit_cell_abc = data
+
+        data = numpy.array([s_data["U3"], s_data["U4"], s_data["U5"]], dtype=float)
+        unit_cell_alphabetagamma = data
+
+        data = numpy.array([[
+            [ub_data["UB0"], ub_data["UB1"], ub_data["UB2"]],
+            [ub_data["UB3"], ub_data["UB4"], ub_data["UB5"]],
+            [ub_data["UB6"], ub_data["UB7"], ub_data["UB8"]]]], dtype=float)
+        orientation_matrix = data
+
+        self.__unit_cell_abc = unit_cell_abc
+        self.__unit_cell_alphabetagamma = unit_cell_alphabetagamma
+        self.__orientation_matrix = orientation_matrix
+
+    def get_unit_cell_abc(self):
+        """Get a numpy array data as defined for the dataset unit_cell_abc
+        from the NXsample dataset.
+
+        :rtype: numpy.ndarray
+        """
+        if self.__unit_cell_abc is None:
+            self.parse_ub_matrix()
+        return self.__unit_cell_abc
+
+    def get_unit_cell_alphabetagamma(self):
+        """Get a numpy array data as defined for the dataset
+        unit_cell_alphabetagamma from the NXsample dataset.
+
+        :rtype: numpy.ndarray
+        """
+        if self.__unit_cell_alphabetagamma is None:
+            self.parse_ub_matrix()
+        return self.__unit_cell_alphabetagamma
+
+    def get_orientation_matrix(self):
+        """Get a numpy array data as defined for the dataset orientation_matrix
+        from the NXsample dataset.
+
+        :rtype: numpy.ndarray
+        """
+        if self.__orientation_matrix is None:
+            self.parse_ub_matrix()
+        return self.__orientation_matrix
 
 
 class File(Group):
@@ -965,11 +1083,11 @@ class File(Group):
 
         scan = Group("scan_0", attrs={"NX_class": "NXentry"})
         instrument = Group("instrument", attrs={"NX_class": "NXinstrument"})
-        measurement = MeasurementGroup("measurement", self.__fabio_reader, attrs={"NX_class": "NXcollection"})
+        measurement = MeasurementGroup("measurement", fabio_reader, attrs={"NX_class": "NXcollection"})
         file_ = Group("file", attrs={"NX_class": "NXcollection"})
-        positioners = MetadataGroup("positioners", self.__fabio_reader, FabioReader.POSITIONER, attrs={"NX_class": "NXpositioner"})
+        positioners = MetadataGroup("positioners", fabio_reader, FabioReader.POSITIONER, attrs={"NX_class": "NXpositioner"})
         raw_header = RawHeaderData("scan_header", fabio_image, self)
-        detector = DetectorGroup("detector_0", self.__fabio_reader)
+        detector = DetectorGroup("detector_0", fabio_reader)
 
         scan.add_node(instrument)
         instrument.add_node(positioners)
@@ -977,6 +1095,11 @@ class File(Group):
         instrument.add_node(detector)
         file_.add_node(raw_header)
         scan.add_node(measurement)
+
+        if fabio_reader.has_sample_information():
+            sample = SampleGroup("sample", fabio_reader)
+            scan.add_node(sample)
+
         return scan
 
     def create_fabio_reader(self, fabio_file):
