@@ -293,10 +293,41 @@ class DataViewer(qt.QFrame):
         """
         return self.__currentView
 
-    def __updateView(self):
-        """Display the data using the widget which fit the best"""
-        data = self.__data
+    def addView(self, view):
+        """Allow to add a view to the dataview.
 
+        If the current data support this view, it will be displayed.
+
+        :param DataView view: A dataview
+        """
+        self.__views.append(view)
+        # TODO It can be skipped if the view do not support the data
+        self.__updateAvailableViews()
+
+    def removeView(self, view):
+        """Allow to remove a view which was available from the dataview.
+
+        If the view was displayed, the widget will be updated.
+
+        :param DataView view: A dataview
+        """
+        self.__views.remove(view)
+        self.__stack.removeWidget(view.getWidget())
+        # invalidate the full index. It will be updated as expected
+        self.__index = {}
+
+        if view is self.__currentView:
+            self.__updateView()
+        else:
+            # TODO It can be skipped if the view is not part of the
+            # available views
+            self.__updateAvailableViews()
+
+    def __updateAvailableViews(self):
+        """
+        Update available views from the current data.
+        """
+        data = self.__data
         # sort available views according to priority
         info = DataViews.DataInfo(data)
         priorities = [v.getDataPriority(data, info) for v in self.__views]
@@ -311,6 +342,14 @@ class DataViewer(qt.QFrame):
         else:
             available = [v[1] for v in views]
             self.__setCurrentAvailableViews(available)
+
+    def __updateView(self):
+        """Display the data using the widget which fit the best"""
+        data = self.__data
+
+        # update available views for this data
+        self.__updateAvailableViews()
+        available = self.__currentAvailableViews
 
         # display the view with the most priority (the default view)
         view = self.getDefaultViewFromAvailableViews(data, available)

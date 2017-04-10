@@ -33,6 +33,9 @@ from contextlib import contextmanager
 
 import numpy
 from ..DataViewer import DataViewer
+from ..DataViews import DataView
+
+from silx.gui import qt
 
 from silx.gui.data.DataViewerFrame import DataViewerFrame
 from silx.gui.test.utils import SignalListener
@@ -42,6 +45,22 @@ try:
     import h5py
 except ImportError:
     h5py = None
+
+
+class _DataViewMock(DataView):
+    """Dummy view to display nothing"""
+
+    def __init__(self, parent):
+        DataView.__init__(self, parent)
+
+    def axesNames(self, data, info):
+        return []
+
+    def createWidget(self, parent):
+        return qt.QLabel(parent)
+
+    def getDataPriority(self, data, info):
+        return 0
 
 
 class AbstractDataViewerTests(TestCaseQt):
@@ -170,6 +189,21 @@ class AbstractDataViewerTests(TestCaseQt):
         widget = self.create_widget()
         views = widget.createDefaultViews()
         self.assertTrue(len(views) > 0)
+
+    def test_add_view(self):
+        widget = self.create_widget()
+        view = _DataViewMock(widget)
+        widget.addView(view)
+        self.assertTrue(view in widget.availableViews())
+        self.assertTrue(view in widget.currentAvailableViews())
+
+    def test_remove_view(self):
+        widget = self.create_widget()
+        widget.setData("foobar")
+        view = widget.currentAvailableViews()[0]
+        widget.removeView(view)
+        self.assertTrue(view not in widget.availableViews())
+        self.assertTrue(view not in widget.currentAvailableViews())
 
 
 class TestDataViewer(AbstractDataViewerTests):

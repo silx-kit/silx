@@ -105,6 +105,13 @@ class DataViewerFrame(qt.QWidget):
         """Called when the displayed view changes"""
         self.displayedViewChanged.emit(view)
 
+    def availableViews(self):
+        """Returns the list of registered views
+
+        :rtype: List[DataView]
+        """
+        return self.__dataViewer.availableViews()
+
     def currentAvailableViews(self):
         """Returns the list of available views for the current data
 
@@ -121,6 +128,24 @@ class DataViewerFrame(qt.QWidget):
         :rtype: list[silx.gui.data.DataViews.DataView]
         """
         return self.__dataViewer.createDefaultViews(parent)
+
+    def addView(self, view):
+        """Allow to add a view to the dataview.
+
+        If the current data support this view, it will be displayed.
+
+        :param DataView view: A dataview
+        """
+        return self.__dataViewer.addView(view)
+
+    def removeView(self, view):
+        """Allow to remove a view which was available from the dataview.
+
+        If the view was displayed, the widget will be updated.
+
+        :param DataView view: A dataview
+        """
+        return self.__dataViewer.removeView(view)
 
     def setData(self, data):
         """Set the data to view.
