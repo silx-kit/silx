@@ -24,6 +24,8 @@
 # ############################################################################*/
 """OpenGL Plot backend."""
 
+from __future__ import division
+
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "21/03/2017"
@@ -1450,29 +1452,66 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
         if self.isKeepDataAspectRatio():
             self._ensureAspectRatio(keepDim)
 
-    def resetZoom(self, dataMargins=None):
-        dataBounds = self._plotContent.getBounds(
-            self._plotFrame.xAxis.isLog, self._plotFrame.yAxis.isLog)
+    def resetZoom(self, dataMargins):
+        xAuto = self._plot.isXAxisAutoScale()
+        yAuto = self._plot.isYAxisAutoScale()
 
-        isXAuto = self._plot.isXAxisAutoScale()
-        isYAuto = self._plot.isYAxisAutoScale()
+        if not xAuto and not yAuto:
+            _logger.debug("Nothing to autoscale")
+        else:  # Some axes to autoscale
+            xLimits = self.getGraphXLimits()
+            yLimits = self.getGraphYLimits(axis='left')
+            y2Limits = self.getGraphYLimits(axis='right')
 
-        xMin, xMax, yMin, yMax, y2Min, y2Max = utils.addMarginsToLimits(
-            dataMargins,
-            self._plotFrame.xAxis.isLog, self._plotFrame.yAxis.isLog,
-            dataBounds.xAxis.min_, dataBounds.xAxis.max_,
-            dataBounds.yAxis.min_, dataBounds.yAxis.max_,
-            dataBounds.y2Axis.min_, dataBounds.y2Axis.max_)
+            # Get data range
+            ranges = self._plot.getDataRange()
+            xmin, xmax = (1., 100.) if ranges.x is None else ranges.x
+            ymin, ymax = (1., 100.) if ranges.y is None else ranges.y
+            if ranges.yright is None:
+                ymin2, ymax2 = None, None
+            else:
+                ymin2, ymax2 = ranges.yright
 
-        if isXAuto and isYAuto:
-            self.setLimits(xMin, xMax, yMin, yMax, y2Min, y2Max)
+            # Add margins around data inside the plot area
+            newLimits = list(utils.addMarginsToLimits(
+                dataMargins,
+                self._plotFrame.xAxis.isLog,
+                self._plotFrame.yAxis.isLog,
+                xmin, xmax, ymin, ymax, ymin2, ymax2))
 
-        elif isXAuto:
-            self.setGraphXLimits(xMin, xMax)
+            if self.isKeepDataAspectRatio():
+                # Use limits with margins to keep ratio
+                xmin, xmax, ymin, ymax = newLimits[:4]
 
-        elif isYAuto:
-            xMin, xMax = self.getGraphXLimits()
-            self.setLimits(xMin, xMax, yMin, yMax, y2Min, y2Max)
+                # Compute bbox wth figure aspect ratio
+                figW, figH = self.getPlotBoundsInPixels()[2:]
+                figureRatio = figH / figW
+
+                dataRatio = (ymax - ymin) / (xmax - xmin)
+                if dataRatio < figureRatio:
+                    # Increase y range
+                    ycenter = 0.5 * (ymax + ymin)
+                    yrange = (xmax - xmin) * figureRatio
+                    newLimits[2] = ycenter - 0.5 * yrange
+                    newLimits[3] = ycenter + 0.5 * yrange
+
+                elif dataRatio > figureRatio:
+                    # Increase x range
+                    xcenter = 0.5 * (xmax + xmin)
+                    xrange_ = (ymax - ymin) / figureRatio
+                    newLimits[0] = xcenter - 0.5 * xrange_
+                    newLimits[1] = xcenter + 0.5 * xrange_
+
+            self.setLimits(*newLimits)
+
+            if not xAuto and yAuto:
+                self.setGraphXLimits(*xLimits)
+            elif xAuto and not yAuto:
+                if y2Limits is not None:
+                    self.setGraphYLimits(
+                        y2Limits[0], y2Limits[1], axis='right')
+                if yLimits is not None:
+                    self.setGraphYLimits(yLimits[0], yLimits[1], axis='left')
 
     def setLimits(self, xmin, xmax, ymin, ymax, y2min=None, y2max=None):
         assert xmin < xmax
