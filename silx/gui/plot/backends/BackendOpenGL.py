@@ -52,7 +52,6 @@ _logger = logging.getLogger(__name__)
 
 
 # TODO idea: BackendQtMixIn class to share code between mpl and gl
-# TODO merge dirty flag and replot with Plot
 # TODO check if OpenGL is available
 # TODO make an off-screen mesa backend
 
@@ -346,8 +345,6 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
         self._selectionAreas = OrderedDict()
         self._glGarbageCollector = []
 
-        self._plotDirtyFlag = True
-
         self._plotFrame = GLPlotFrame2D(
             margins={'left': 100, 'right': 50, 'top': 50, 'bottom': 50})
 
@@ -389,7 +386,7 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
         if (self._crosshairCursor is not None and
                 previousMousePosInPixels != self._crosshairCursor):
             # Avoid replot when cursor remains outside plot area
-            self.replot()
+            self._plot._setDirtyPlot(overlayOnly=True)
 
         self._plot.onMouseMove(xPixel, yPixel)
         event.accept()
@@ -440,8 +437,6 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
         gl.glEnable(gl.GL_POINT_SPRITE)  # OpenGL 2
         # gl.glEnable(gl.GL_PROGRAM_POINT_SIZE)
 
-        # Building shader programs here failed on Mac OS X 10.7.5
-
     def _paintDirectGL(self):
         self._renderPlotAreaGL()
         self._plotFrame.render()
@@ -451,9 +446,8 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
     def _paintFBOGL(self):
         context = glu.getGLContext()
         plotFBOTex = self._plotFBOs.get(context)
-        if (self._plotDirtyFlag or self._plotFrame.isDirty or
+        if (self._plot._getDirtyPlot() or self._plotFrame.isDirty or
                 plotFBOTex is None):
-            self._plotDirtyFlag = False
             self._plotVertices = numpy.array(((-1., -1., 0., 0.),
                                              (1., -1., 1., 0.),
                                              (-1., 1., 0., 1.),
@@ -965,9 +959,6 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
 
         self._plotContent.add(curve)
 
-        self._plotDirtyFlag = True
-        self._resetZoom()
-
         return legend, 'curve'
 
     def addImage(self, data, legend,
@@ -1050,8 +1041,6 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
         else:
             raise RuntimeError("Unsupported data shape {0}".format(data.shape))
 
-        self._plotDirtyFlag = True
-
         return legend, 'image'
 
     def addItem(self, x, y, legend, shape, color, fill, overlay, z):
@@ -1083,7 +1072,6 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
             'x': x,
             'y': y
         }
-        self._plotDirtyFlag = True
 
         return legend, 'item'
 
@@ -1125,8 +1113,6 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
             'symbol': symbol,
         }
 
-        self._plotDirtyFlag = True
-
         return legend, 'marker'
 
     # Remove methods
@@ -1143,21 +1129,17 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
                 self._plotFrame.isY2Axis = next(y2AxisItems, None) is not None
 
                 self._glGarbageCollector.append(curve)
-                self._plotDirtyFlag = True
 
         elif kind == 'image':
             image = self._plotContent.pop('image', legend)
             if image is not None:
                 self._glGarbageCollector.append(image)
-                self._plotDirtyFlag = True
 
         elif kind == 'marker':
-            if self._markers.pop(legend, False):
-                self._plotDirtyFlag = True
+            self._markers.pop(legend, False)
 
         elif kind == 'item':
-            if self._items.pop(legend, False):
-                self._plotDirtyFlag = True
+            self._items.pop(legend, False)
 
         else:
             _logger.error('Unsupported kind: %s', str(kind))
@@ -1191,7 +1173,6 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
 
         if crosshairCursor != self._crosshairCursor:
             self._crosshairCursor = crosshairCursor
-            self.replot()
 
     _PICK_OFFSET = 3  # Offset in pixel used for picking
 
@@ -1339,15 +1320,12 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
 
     def setGraphTitle(self, title):
         self._plotFrame.title = title
-        self._plotDirtyFlag = True  # TODO needed?
 
     def setGraphXLabel(self, label):
         self._plotFrame.xAxis.title = label
-        self._plotDirtyFlag = True
 
     def setGraphYLabel(self, label, axis):
         self._plotFrame.yAxis.title = label
-        self._plotDirtyFlag = True
 
     # Non orthogonal axes
 
@@ -1372,7 +1350,6 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
                 self.keepDataAspectRatio(False)
 
         self._plotFrame.baseVectors = x, y
-        self._plotDirtyFlag = True
         self.resetZoom()
 
     def getBaseVectors(self):
@@ -1475,18 +1452,12 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
         if self.isKeepDataAspectRatio():
             self._ensureAspectRatio(keepDim)
 
-        # Raise dirty flags
-        self._plotDirtyFlag = True
-
-    def _resetZoom(self, dataMargins=None, forceAutoscale=False):
+    def resetZoom(self, dataMargins=None):
         dataBounds = self._plotContent.getBounds(
             self._isXAxisLogarithmic(), self._isYAxisLogarithmic())
 
-        if forceAutoscale:
-            isXAuto, isYAuto = True, True
-        else:
-            isXAuto = self._plot.isXAxisAutoScale()
-            isYAuto = self._plot.isYAxisAutoScale()
+        isXAuto = self._plot.isXAxisAutoScale()
+        isYAuto = self._plot.isYAxisAutoScale()
 
         xMin, xMax, yMin, yMax, y2Min, y2Max = utils.addMarginsToLimits(
             dataMargins,
@@ -1504,10 +1475,6 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
         elif isYAuto:
             xMin, xMax = self.getGraphXLimits()
             self.setLimits(xMin, xMax, yMin, yMax, y2Min, y2Max)
-
-    def resetZoom(self, dataMargins=None):
-        self._resetZoom(dataMargins)
-        self.replot()
 
     def setLimits(self, xmin, xmax, ymin, ymax, y2min=None, y2max=None):
         assert xmin < xmax
@@ -1564,10 +1531,6 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
 
             self._plotFrame.xAxis.isLog = flag
 
-            # With log axis on, force autoscale to avoid limits <= 0
-            if flag:
-                self._resetZoom(forceAutoscale=True)  # TODO always do it?
-
     def setYAxisLogarithmic(self, flag):
         if (flag != self._plotFrame.yAxis.isLog or
                 flag != self._plotFrame.y2Axis.isLog):
@@ -1583,14 +1546,9 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
             self._plotFrame.yAxis.isLog = flag
             self._plotFrame.y2Axis.isLog = flag
 
-            # With log axis on, force autoscale to avoid limits <= 0
-            if flag:
-                self._resetZoom(forceAutoscale=True)  # TODO always do it?
-
     def setYAxisInverted(self, flag):
         if flag != self._plotFrame.isYAxisInverted:
             self._plotFrame.isYAxisInverted = flag
-            self._plotDirtyFlag = True
 
     def isYAxisInverted(self):
         return self._plotFrame.isYAxisInverted
@@ -1616,8 +1574,6 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
     def setGraphGrid(self, which):
         assert which in (None, 'major', 'both')
         self._plotFrame.grid = which is not None  # TODO True grid support
-        self._plotDirtyFlag = True
-        self.replot()  # TODO replot needed?
 
     # Data <-> Pixel coordinates conversion
 
