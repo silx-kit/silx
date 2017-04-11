@@ -62,20 +62,19 @@ class ScatterMask(BaseMask):
 
         :param scatter: :class:`silx.gui.plot.items.Scatter` instance
         """
-        BaseMask.__init__(self)
+        BaseMask.__init__(self, scatter)
 
-        self._x = None
-        self._y = None
-        self._value = None
-        if scatter is not None:
-            self.setScatter(scatter)
+    def _getXY(self):
+        x = self._dataItem.getXData(copy=False)
+        y = self._dataItem.getYData(copy=False)
+        return x, y
 
-    def setScatter(self, scatter):
-        self._x = scatter.getXData(copy=False)
-        self._y = scatter.getYData(copy=False)
-        self._value = scatter.getValueData(copy=False)
+    def getDataValues(self):
+        """Return scatter data values as a 1D array.
 
-        self._mask = numpy.zeros_like(self._x, dtype=numpy.uint8)
+        :rtype: 1D numpy.ndarray
+        """
+        return self._dataItem.getValueData(copy=False)
 
     def save(self, filename, kind):
         if kind == 'npy':
@@ -88,22 +87,6 @@ class ScatterMask(BaseMask):
                 numpy.savetxt(filename, self.getMask(copy=False))
             except IOError:
                 raise RuntimeError("Mask file can't be written")
-
-    def updateStencil(self, level, stencil, mask=True):
-        """Mask/Unmask points from boolean mask: all elements that are True
-        in the boolean mask are set to ``level`` (if ``mask=True``) or 0
-        (if ``mask=False``)
-
-        :param int level: Mask level to update.
-        :param stencil: Boolean mask.
-        :type stencil: numpy.array of same dimension as the mask
-        :param bool mask: True to mask (default), False to unmask.
-        """
-        if mask:
-            self._mask[stencil] = level
-        else:
-            self._mask[numpy.logical_and(self._mask == level, stencil)] = 0
-        self._notify()
 
     def updatePoints(self, level, indices, mask=True):
         """Mask/Unmask points with given indices.
@@ -131,10 +114,11 @@ class ScatterMask(BaseMask):
         :param bool mask: True to mask (default), False to unmask.
         """
         polygon = shapes.Polygon(vertices)
+        x, y = self._getXY()
 
         # TODO: this could be optimized if necessary
-        indices_in_polygon = [idx for idx in range(len(self._x)) if
-                              polygon.is_inside(self._y[idx], self._x[idx])]
+        indices_in_polygon = [idx for idx in range(len(x)) if
+                              polygon.is_inside(y[idx], x[idx])]
 
         self.updatePoints(level, indices_in_polygon, mask)
 
@@ -163,7 +147,8 @@ class ScatterMask(BaseMask):
         :param float radius: Radius of the disk in mask array unit
         :param bool mask: True to mask (default), False to unmask.
         """
-        stencil = (self._y - cy)**2 + (self._x - cx)**2 < radius**2
+        x, y = self._getXY()
+        stencil = (y - cy)**2 + (x - cx)**2 < radius**2
         self.updateStencil(level, stencil, mask)
 
     def updateLine(self, level, y0, x0, y1, x1, width, mask=True):
@@ -189,41 +174,6 @@ class ScatterMask(BaseMask):
                     (y1 - w_over_2_cos_theta, x1 + w_over_2_sin_theta)]
 
         self.updatePolygon(level, vertices, mask)
-
-    # update thresholds
-    def updateBelowThreshold(self, level, threshold, mask=True):
-        """Mask/unmask all points whose values are below a threshold.
-
-        :param int level:
-        :param float threshold: Threshold
-        :param bool mask: True to mask (default), False to unmask.
-        """
-        self.updateStencil(level,
-                           self._value < threshold,
-                           mask)
-
-    def updateBetweenThresholds(self, level, min_, max_, mask=True):
-        """Mask/unmask all points whose values are in a range.
-
-        :param int level:
-        :param float min_: Lower threshold
-        :param float max_: Upper threshold
-        :param bool mask: True to mask (default), False to unmask.
-        """
-        stencil = numpy.logical_and(min_ <= self._value,
-                                    self._value <= max_)
-        self.updateStencil(level, stencil, mask)
-
-    def updateAboveThreshold(self, level, threshold, mask=True):
-        """Mask/unmask all points whose values are above a threshold.
-
-        :param int level: Mask level to update.
-        :param float threshold: Threshold.
-        :param bool mask: True to mask (default), False to unmask.
-        """
-        self.updateStencil(level,
-                           self._value > threshold,
-                           mask)
 
 
 class ScatterMaskToolsWidget(BaseMaskToolsWidget):
@@ -334,7 +284,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
                     self._activeScatterChangedAfterCare)
             else:
                 # Refresh in case z changed
-                self._mask.setScatter(self._data_scatter)
+                self._mask.setDataItem(self._data_scatter)
                 self._updatePlotMask()
 
     def _activeScatterChanged(self, previous, next):
@@ -361,7 +311,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
             self._data_scatter = activeScatter
             if self._data_scatter.getXData(copy=False).shape != self.getSelectionMask(copy=False).shape:
                 self._mask.reset(self._data_scatter.getXData(copy=False).shape)  # cp
-                self._mask.setScatter(self._data_scatter)
+                self._mask.setDataItem(self._data_scatter)
                 self._mask.commit()
             else:
                 # Refresh in case z changed
@@ -545,39 +495,6 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
                 self._lastPencilPos = None
             else:
                 self._lastPencilPos = y, x
-
-    def _maskBtnClicked(self):
-        # data_values = self._data_scatter.getValueData(copy=False)
-        doMask = self._isMasking()
-        if self.belowThresholdAction.isChecked():
-            if self.minLineEdit.text():
-                self._mask.updateBelowThreshold(self.levelSpinBox.value(),
-                                                float(self.minLineEdit.text()),
-                                                doMask)
-                self._mask.commit()
-
-        elif self.betweenThresholdAction.isChecked():
-            if self.minLineEdit.text() and self.maxLineEdit.text():
-                min_ = float(self.minLineEdit.text())
-                max_ = float(self.maxLineEdit.text())
-                self._mask.updateBetweenThresholds(self.levelSpinBox.value(),
-                                                   min_, max_, doMask)
-                self._mask.commit()
-
-        elif self.aboveThresholdAction.isChecked():
-            if self.maxLineEdit.text():
-                max_ = float(self.maxLineEdit.text())
-                self._mask.updateAboveThreshold(self.levelSpinBox.value(),
-                                                max_, doMask)
-                self._mask.commit()
-
-    def _maskNotFiniteBtnClicked(self):
-        """Handle not finite mask button clicked: mask NaNs and inf"""
-        self._mask.updateStencil(
-            self.levelSpinBox.value(),
-            numpy.logical_not(
-                    numpy.isfinite(self._data_scatter.getValueData(copy=False))))
-        self._mask.commit()
 
     def _loadRangeFromColormapTriggered(self):
         """Set range from active scatter colormap range"""

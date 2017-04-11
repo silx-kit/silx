@@ -80,17 +80,44 @@ class BaseMask(qt.QObject):
     sigRedoable = qt.Signal(bool)
     """Signal emitted when redo becomes possible/impossible"""
 
-    def __init__(self):
+    def __init__(self, dataItem=None):
         self.historyDepth = 10
         """Maximum number of operation stored in history list for undo"""
-
-        self._mask = numpy.array((), dtype=numpy.uint8)  # Store the mask
-
         # Init lists for undo/redo
         self._history = []
         self._redo = []
 
+        # Store the mask
+        self._mask = numpy.array((), dtype=numpy.uint8)
+
+        # Store the plot item to be masked
+        self._dataItem = None
+        if dataItem is not None:
+            self.setDataItem(dataItem)
+
         super(BaseMask, self).__init__()
+
+    def setDataItem(self, item):
+        """
+
+        :param item: A plot item, subclass of :class:`silx.gui.plot.items.Item`
+        :return:
+        """
+        self._dataItem = item
+        self._mask = numpy.zeros_like(self.getDataValues(),
+                                      dtype=numpy.uint8)
+
+    def getDataValues(self):
+        """Return data values, as a numpy array with the same shape
+        as the mask.
+
+        This method must be implemented in a subclass, as the way of
+        accessing data depends on the data item passed to :meth:`setDataItem`
+
+        :return: Data values associated with the data item.
+        :rtype: numpy.ndarray
+        """
+        raise NotImplementedError("To be implemented in subclass")
 
     def _notify(self):
         """Notify of mask change."""
@@ -217,6 +244,67 @@ class BaseMask(qt.QObject):
         """
         raise NotImplementedError("To be implemented in subclass")
 
+    # update thresholds
+    def updateStencil(self, level, stencil, mask=True):
+        """Mask/Unmask points from boolean mask: all elements that are True
+        in the boolean mask are set to ``level`` (if ``mask=True``) or 0
+        (if ``mask=False``)
+
+        :param int level: Mask level to update.
+        :param stencil: Boolean mask.
+        :type stencil: numpy.array of same dimension as the mask
+        :param bool mask: True to mask (default), False to unmask.
+        """
+        if mask:
+            self._mask[stencil] = level
+        else:
+            self._mask[numpy.logical_and(self._mask == level, stencil)] = 0
+        self._notify()
+
+    def updateBelowThreshold(self, level, threshold, mask=True):
+        """Mask/unmask all points whose values are below a threshold.
+
+        :param int level:
+        :param float threshold: Threshold
+        :param bool mask: True to mask (default), False to unmask.
+        """
+        self.updateStencil(level,
+                           self.getDataValues() < threshold,
+                           mask)
+
+    def updateBetweenThresholds(self, level, min_, max_, mask=True):
+        """Mask/unmask all points whose values are in a range.
+
+        :param int level:
+        :param float min_: Lower threshold
+        :param float max_: Upper threshold
+        :param bool mask: True to mask (default), False to unmask.
+        """
+        stencil = numpy.logical_and(min_ <= self._getValues(),
+                                    self.getDataValues() <= max_)
+        self.updateStencil(level, stencil, mask)
+
+    def updateAboveThreshold(self, level, threshold, mask=True):
+        """Mask/unmask all points whose values are above a threshold.
+
+        :param int level: Mask level to update.
+        :param float threshold: Threshold.
+        :param bool mask: True to mask (default), False to unmask.
+        """
+        self.updateStencil(level,
+                           self.getDataValues() > threshold,
+                           mask)
+
+    def updateNotFinite(self, level, mask=True):
+        """Mask/unmask all points whose values are not finite.
+
+        :param int level: Mask level to update.
+        :param bool mask: True to mask (default), False to unmask.
+        """
+        self.updateStencil(level,
+                           numpy.logical_not(numpy.isfinite(self.getDataValues())),
+                           mask)
+
     # Drawing operations:
     def updateRectangle(self, level, row, col, height, width, mask=True):
         """Mask/Unmask data inside a rectangle, with the given mask level.
@@ -247,16 +335,6 @@ class BaseMask(qt.QObject):
         :type rows: 1D numpy.ndarray
         :param cols: Columns/abscissa (x) of selected points
         :type cols: 1D numpy.ndarray
-        :param bool mask: True to mask (default), False to unmask.
-        """
-        raise NotImplementedError("To be implemented in subclass")
-
-    def updateStencil(self, level, stencil, mask=True):
-        """Mask/Unmask data from boolean mask.
-
-        :param int level: Mask level to update.
-        :param stencil: Boolean mask of mask values to update
-        :type stencil: numpy.array of same dimension as the mask
         :param bool mask: True to mask (default), False to unmask.
         """
         raise NotImplementedError("To be implemented in subclass")
@@ -293,6 +371,19 @@ class ImageMask(BaseMask):
 
     This is meant for internal use by :class:`MaskToolsWidget`.
     """
+    def __init__(self, image=None):
+        """
+
+        :param image: :class:`silx.gui.plot.items.ImageBase` instance
+        """
+        BaseMask.__init__(self, image)
+
+    def getDataValues(self):
+        """Return image data as a 2D or 3D array (if it is a RGBA image).
+
+        :rtype: 2D or 3D numpy.ndarray
+        """
+        return self._dataItem.getData(copy=False)
 
     def save(self, filename, kind):
         """Save current mask in a file
@@ -388,17 +479,6 @@ class ImageMask(BaseMask):
             inMask = self._mask[rows, cols] == level
             self._mask[rows[inMask], cols[inMask]] = 0
         self._notify()
-
-    def updateStencil(self, level, stencil, mask=True):
-        """Mask/Unmask area from boolean mask.
-
-        :param int level: Mask level to update.
-        :param stencil: Boolean mask of mask values to update
-        :type stencil: numpy.array of same dimension as the mask
-        :param bool mask: True to mask (default), False to unmask.
-        """
-        rows, cols = numpy.nonzero(stencil)
-        self.updatePoints(level, rows, cols, mask)
 
     def updateDisk(self, level, crow, ccol, radius, mask=True):
         """Mask/Unmask a disk of the given mask level.
@@ -1101,6 +1181,34 @@ class BaseMaskToolsWidget(qt.QWidget):
             self.maxLineEdit.setEnabled(False)
             self.applyMaskBtn.setEnabled(False)
 
+    def _maskBtnClicked(self):
+        if self.belowThresholdAction.isChecked():
+            if self.minLineEdit.text():
+                self._mask.updateBelowThreshold(self.levelSpinBox.value(),
+                                                float(self.minLineEdit.text()))
+                self._mask.commit()
+
+        elif self.betweenThresholdAction.isChecked():
+            if self.minLineEdit.text() and self.maxLineEdit.text():
+                min_ = float(self.minLineEdit.text())
+                max_ = float(self.maxLineEdit.text())
+                self._mask.updateBetweenThresholds(self.levelSpinBox.value(),
+                                                   min_, max_)
+                self._mask.commit()
+
+        elif self.aboveThresholdAction.isChecked():
+            if self.maxLineEdit.text():
+                max_ = float(self.maxLineEdit.text())
+                self._mask.updateAboveThreshold(self.levelSpinBox.value(),
+                                                max_)
+                self._mask.commit()
+
+    def _maskNotFiniteBtnClicked(self):
+        """Handle not finite mask button clicked: mask NaNs and inf"""
+        self._mask.updateNotFinite(
+            self.levelSpinBox.value())
+        self._mask.commit()
+
 
 class MaskToolsWidget(BaseMaskToolsWidget):
     """Widget with tools for drawing mask on an image in a PlotWidget."""
@@ -1477,38 +1585,6 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                 self._lastPencilPos = None
             else:
                 self._lastPencilPos = row, col
-
-    def _maskBtnClicked(self):
-        if self.belowThresholdAction.isChecked():
-            if len(self._data) and self.minLineEdit.text():
-                min_ = float(self.minLineEdit.text())
-                self._mask.updateStencil(self.levelSpinBox.value(),
-                                         self._data < min_)
-                self._mask.commit()
-
-        elif self.betweenThresholdAction.isChecked():
-            if (len(self._data) and
-                    self.minLineEdit.text() and self.maxLineEdit.text()):
-                min_ = float(self.minLineEdit.text())
-                max_ = float(self.maxLineEdit.text())
-                self._mask.updateStencil(self.levelSpinBox.value(),
-                                         numpy.logical_and(min_ <= self._data,
-                                                           self._data <= max_))
-                self._mask.commit()
-
-        elif self.aboveThresholdAction.isChecked():
-            if len(self._data) and self.maxLineEdit.text():
-                max_ = float(self.maxLineEdit.text())
-                self._mask.updateStencil(self.levelSpinBox.value(),
-                                         self._data > max_)
-                self._mask.commit()
-
-    def _maskNotFiniteBtnClicked(self):
-        """Handle not finite mask button clicked: mask NaNs and inf"""
-        self._mask.updateStencil(
-            self.levelSpinBox.value(),
-            numpy.logical_not(numpy.isfinite(self._data)))
-        self._mask.commit()
 
     def _loadRangeFromColormapTriggered(self):
         """Set range from active image colormap range"""
