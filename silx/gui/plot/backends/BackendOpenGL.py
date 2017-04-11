@@ -923,7 +923,7 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
                 type(color[3]) in [type(1), numpy.uint8, numpy.int8]):
             color = numpy.array(color, dtype=numpy.float32) / 255.
 
-        if isinstance(color, numpy.ndarray) and len(color) > 4:
+        if isinstance(color, numpy.ndarray) and color.ndim == 2:
             colorArray = color
             color = None
         else:
@@ -1289,8 +1289,8 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
         self._sigPostRedisplay.emit()
 
     def replot(self):
-        self.update()
-        # Use self.repaint() instead for immediate repaint
+        self.update()  # async redraw
+        # self.repaint()  # immediate redraw
 
     def saveGraph(self, fileName, fileFormat, dpi):
         if dpi is not None:
