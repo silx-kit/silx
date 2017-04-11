@@ -2326,16 +2326,72 @@ class Plot(object):
         if dataMargins is None:
             dataMargins = self._defaultDataMargins
 
-        xlim = self.getGraphXLimits()
-        ylim = self.getGraphYLimits(axis='left')
-        y2lim = self.getGraphYLimits(axis='right')
+        xLimits = self.getGraphXLimits()
+        yLimits = self.getGraphYLimits(axis='left')
+        y2Limits = self.getGraphYLimits(axis='right')
 
-        self._backend.resetZoom(dataMargins)
+        xAuto = self.isXAxisAutoScale()
+        yAuto = self.isYAxisAutoScale()
+
+        if not xAuto and not yAuto:
+            _logger.debug("Nothing to autoscale")
+        else:  # Some axes to autoscale
+
+            # Get data range
+            ranges = self.getDataRange()
+            xmin, xmax = (1., 100.) if ranges.x is None else ranges.x
+            ymin, ymax = (1., 100.) if ranges.y is None else ranges.y
+            if ranges.yright is None:
+                ymin2, ymax2 = None, None
+            else:
+                ymin2, ymax2 = ranges.yright
+
+            # Add margins around data inside the plot area
+            newLimits = list(_utils.addMarginsToLimits(
+                dataMargins,
+                self.isXAxisLogarithmic(),
+                self.isYAxisLogarithmic(),
+                xmin, xmax, ymin, ymax, ymin2, ymax2))
+
+            if self.isKeepDataAspectRatio():
+                # Use limits with margins to keep ratio
+                xmin, xmax, ymin, ymax = newLimits[:4]
+
+                # Compute bbox wth figure aspect ratio
+                plotWidth, plotHeight = self.getPlotBoundsInPixels()[2:]
+                plotRatio = plotHeight / plotWidth
+
+                dataRatio = (ymax - ymin) / (xmax - xmin)
+                if dataRatio < plotRatio:
+                    # Increase y range
+                    ycenter = 0.5 * (ymax + ymin)
+                    yrange = (xmax - xmin) * plotRatio
+                    newLimits[2] = ycenter - 0.5 * yrange
+                    newLimits[3] = ycenter + 0.5 * yrange
+
+                elif dataRatio > plotRatio:
+                    # Increase x range
+                    xcenter = 0.5 * (xmax + xmin)
+                    xrange_ = (ymax - ymin) / plotRatio
+                    newLimits[0] = xcenter - 0.5 * xrange_
+                    newLimits[1] = xcenter + 0.5 * xrange_
+
+            self.setLimits(*newLimits)
+
+            if not xAuto and yAuto:
+                self.setGraphXLimits(*xLimits)
+            elif xAuto and not yAuto:
+                if y2Limits is not None:
+                    self.setGraphYLimits(
+                        y2Limits[0], y2Limits[1], axis='right')
+                if yLimits is not None:
+                    self.setGraphYLimits(yLimits[0], yLimits[1], axis='left')
+
         self._setDirtyPlot()
 
-        if (xlim != self.getGraphXLimits() or
-                ylim != self.getGraphYLimits(axis='left') or
-                y2lim != self.getGraphYLimits(axis='right')):
+        if (xLimits != self.getGraphXLimits() or
+                yLimits != self.getGraphYLimits(axis='left') or
+                y2Limits != self.getGraphYLimits(axis='right')):
             self._notifyLimitsChanged()
 
     # Coord conversion

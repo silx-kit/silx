@@ -43,7 +43,6 @@ from ... import qt
 
 from ._matplotlib import FigureCanvasQTAgg
 import matplotlib
-from matplotlib import cm
 from matplotlib.container import Container
 from matplotlib.figure import Figure
 from matplotlib.patches import Rectangle, Polygon
@@ -52,7 +51,6 @@ from matplotlib.backend_bases import MouseEvent
 from matplotlib.lines import Line2D
 from matplotlib.collections import PathCollection, LineCollection
 
-from . import utils
 from .ModestImage import ModestImage
 from . import BackendBase
 from .. import Colors
@@ -527,67 +525,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
         axes.set_ylabel(label)
 
     # Graph limits
-
-    def resetZoom(self, dataMargins):
-        xAuto = self._plot.isXAxisAutoScale()
-        yAuto = self._plot.isYAxisAutoScale()
-
-        if not xAuto and not yAuto:
-            _logger.debug("Nothing to autoscale")
-        else:  # Some axes to autoscale
-            xLimits = self.getGraphXLimits()
-            yLimits = self.getGraphYLimits(axis='left')
-            y2Limits = self.getGraphYLimits(axis='right')
-
-            # Get data range
-            ranges = self._plot.getDataRange()
-            xmin, xmax = (1., 100.) if ranges.x is None else ranges.x
-            ymin, ymax = (1., 100.) if ranges.y is None else ranges.y
-            if ranges.yright is None:
-                ymin2, ymax2 = None, None
-            else:
-                ymin2, ymax2 = ranges.yright
-
-            # Add margins around data inside the plot area
-            newLimits = list(utils.addMarginsToLimits(
-                dataMargins,
-                self.ax.get_xscale() == 'log',
-                self.ax.get_yscale() == 'log',
-                xmin, xmax, ymin, ymax, ymin2, ymax2))
-
-            if self.isKeepDataAspectRatio():
-                # Use limits with margins to keep ratio
-                xmin, xmax, ymin, ymax = newLimits[:4]
-
-                # Compute bbox wth figure aspect ratio
-                figW, figH = self.fig.get_size_inches()
-                figureRatio = figH / figW
-
-                dataRatio = (ymax - ymin) / (xmax - xmin)
-                if dataRatio < figureRatio:
-                    # Increase y range
-                    ycenter = 0.5 * (ymax + ymin)
-                    yrange = (xmax - xmin) * figureRatio
-                    newLimits[2] = ycenter - 0.5 * yrange
-                    newLimits[3] = ycenter + 0.5 * yrange
-
-                elif dataRatio > figureRatio:
-                    # Increase x range
-                    xcenter = 0.5 * (xmax + xmin)
-                    xrange_ = (ymax - ymin) / figureRatio
-                    newLimits[0] = xcenter - 0.5 * xrange_
-                    newLimits[1] = xcenter + 0.5 * xrange_
-
-            self.setLimits(*newLimits)
-
-            if not xAuto and yAuto:
-                self.setGraphXLimits(*xLimits)
-            elif xAuto and not yAuto:
-                if y2Limits is not None:
-                    self.setGraphYLimits(
-                        y2Limits[0], y2Limits[1], axis='right')
-                if yLimits is not None:
-                    self.setGraphYLimits(yLimits[0], yLimits[1], axis='left')
 
     def setLimits(self, xmin, xmax, ymin, ymax, y2min=None, y2max=None):
         # Let matplotlib taking care of keep aspect ratio if any
