@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "10/04/2017"
+__date__ = "11/04/2017"
 
 import logging
 import numpy
@@ -215,7 +215,7 @@ class TestFabioH5(unittest.TestCase):
         self.assertIn(d.dtype.char, ['d', 'f'])
         numpy.testing.assert_array_almost_equal(d[...], expected)
 
-        d = sample['orientation_matrix']
+        d = sample['ub']
         expected = numpy.array([[[1.99593e-16, 2.73682e-16, -1.54],
                                  [-1.08894, 1.08894, 1.6083e-16],
                                  [1.08894, 1.08894, 9.28619e-17]]])

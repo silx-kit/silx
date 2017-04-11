@@ -597,8 +597,13 @@ class SampleGroup(LazyLoadableGroup):
             data = self.__fabio_reader.get_unit_cell_alphabetagamma()
             data = Dataset("unit_cell_alphabetagamma", data, attrs=scalar)
             self.add_node(data)
-            data = self.__fabio_reader.get_orientation_matrix()
-            data = Dataset("orientation_matrix", data, attrs=scalar)
+            # According to this issue the UB matrix is not yet available
+            # in the Nexus specification (it only can describe the U matrix)
+            # We are using "ub" temporarly as proposed by Armando
+            # https://github.com/nexusformat/definitions/issues/559
+            # TODO update it when the specification is fixed (valls 2017-04)
+            data = self.__fabio_reader.get_ub_matrix()
+            data = Dataset("ub", data, attrs=scalar)
             self.add_node(data)
 
 
@@ -929,7 +934,7 @@ class EdfFabioReader(FabioReader):
         FabioReader.__init__(self, fabio_file)
         self.__unit_cell_abc = None
         self.__unit_cell_alphabetagamma = None
-        self.__orientation_matrix = None
+        self.__ub_matrix = None
 
     def _read_frame(self, frame_id, header):
         """Overwrite the method to check and parse special keys: counter and
@@ -1014,15 +1019,14 @@ class EdfFabioReader(FabioReader):
         data = numpy.array([s_data["U3"], s_data["U4"], s_data["U5"]], dtype=float)
         unit_cell_alphabetagamma = data
 
-        data = numpy.array([[
+        ub_matrix = numpy.array([[
             [ub_data["UB0"], ub_data["UB1"], ub_data["UB2"]],
             [ub_data["UB3"], ub_data["UB4"], ub_data["UB5"]],
             [ub_data["UB6"], ub_data["UB7"], ub_data["UB8"]]]], dtype=float)
-        orientation_matrix = data
 
         self.__unit_cell_abc = unit_cell_abc
         self.__unit_cell_alphabetagamma = unit_cell_alphabetagamma
-        self.__orientation_matrix = orientation_matrix
+        self.__ub_matrix = ub_matrix
 
     def get_unit_cell_abc(self):
         """Get a numpy array data as defined for the dataset unit_cell_abc
@@ -1044,15 +1048,15 @@ class EdfFabioReader(FabioReader):
             self.parse_ub_matrix()
         return self.__unit_cell_alphabetagamma
 
-    def get_orientation_matrix(self):
-        """Get a numpy array data as defined for the dataset orientation_matrix
+    def get_ub_matrix(self):
+        """Get a numpy array data as defined for the dataset ub_matrix
         from the NXsample dataset.
 
         :rtype: numpy.ndarray
         """
-        if self.__orientation_matrix is None:
+        if self.__ub_matrix is None:
             self.parse_ub_matrix()
-        return self.__orientation_matrix
+        return self.__ub_matrix
 
 
 class File(Group):
