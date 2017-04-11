@@ -743,6 +743,7 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
                     markerSize=11)
                 markerCurve.render(self._plotFrame.transformedDataProjMat,
                                    isXLog, isYLog)
+                markerCurve.discard()
 
         gl.glViewport(0, 0, self._plotFrame.size[0], self._plotFrame.size[1])
 

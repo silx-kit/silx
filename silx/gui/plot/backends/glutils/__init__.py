@@ -31,37 +31,9 @@ __date__ = "03/04/2017"
 
 
 import logging
-from ...._glutils import FramebufferTexture, Texture, VertexBuffer
 
 
 _logger = logging.getLogger(__name__)
-
-
-# TODO remove when fully tested
-# Monkey-patching
-
-def _VertexBuffer_del(self):
-    if self._name is not None:
-        _logger.error('Discarding GL resources not yet freed')
-        self.discard()
-
-VertexBuffer.__del__ = _VertexBuffer_del
-
-
-def _FramebufferTexture_del(self):
-    if self._name is not None:
-        _logger.error('Discarding GL resources not yet freed')
-        self.discard()
-
-FramebufferTexture.__del__ = _FramebufferTexture_del
-
-
-def _Texture_del(self):
-    if self._name is not None:
-        _logger.error('Discarding GL resources not yet freed')
-        self.discard()
-
-Texture.__del__ = _Texture_del
 
 
 from .GLPlotCurve import *  # noqa
