@@ -113,16 +113,16 @@ class _Fill2D(object):
     _programs = {
         _LINEAR: Program(
             _SHADERS['vertex'] % _SHADERS['vertexTransforms'][_LINEAR],
-            _SHADERS['fragment']),
+            _SHADERS['fragment'], attrib0='xPos'),
         _LOG10_X: Program(
             _SHADERS['vertex'] % _SHADERS['vertexTransforms'][_LOG10_X],
-            _SHADERS['fragment']),
+            _SHADERS['fragment'], attrib0='xPos'),
         _LOG10_Y: Program(
             _SHADERS['vertex'] % _SHADERS['vertexTransforms'][_LOG10_Y],
-            _SHADERS['fragment']),
+            _SHADERS['fragment'], attrib0='xPos'),
         _LOG10_X_Y: Program(
             _SHADERS['vertex'] % _SHADERS['vertexTransforms'][_LOG10_X_Y],
-            _SHADERS['fragment']),
+            _SHADERS['fragment'], attrib0='xPos'),
     }
 
     def __init__(self, xFillVboData=None, yFillVboData=None,
@@ -383,7 +383,7 @@ class _Lines2D(object):
             sources = cls._SHADERS[style]
             vertexShdr = sources['vertex'] % \
                 cls._SHADERS['vertexTransforms'][transform]
-            prgm = Program(vertexShdr, sources['fragment'])
+            prgm = Program(vertexShdr, sources['fragment'], attrib0='xPos')
             cls._programs[(transform, style)] = prgm
         return prgm
 
@@ -720,7 +720,7 @@ class _Points2D(object):
                 cls._SHADERS['vertexTransforms'][transform]
             fragShdr = cls._SHADERS['fragment'] % \
                 cls._SHADERS['fragmentSymbols'][marker]
-            prgm = Program(vertShdr, fragShdr)
+            prgm = Program(vertShdr, fragShdr, attrib0='xPos')
 
             cls._programs[(transform, marker)] = prgm
         return prgm

@@ -81,7 +81,8 @@ class Text2D(object):
     }
 
     _program = Program(_SHADERS['vertex'],
-                       _SHADERS['fragment'])
+                       _SHADERS['fragment'],
+                       attrib0='position')
 
     _textures = {}
 

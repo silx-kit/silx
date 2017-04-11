@@ -329,8 +329,10 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
 
         self.matScreenProj = mat4Identity()
 
-        self._progBase = glu.Program(_baseVertShd, _baseFragShd)
-        self._progTex = glu.Program(_texVertShd, _texFragShd)
+        self._progBase = glu.Program(
+            _baseVertShd, _baseFragShd, attrib0='position')
+        self._progTex = glu.Program(
+            _texVertShd, _texFragShd, attrib0='position')
         self._plotFBOs = {}
 
         self._keepDataAspectRatio = False

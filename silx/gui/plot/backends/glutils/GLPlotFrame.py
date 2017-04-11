@@ -461,7 +461,8 @@ class GLPlotFrame(object):
 
         self._renderResources = (vertices, gridVertices, labels)
 
-    _program = Program(_SHADERS['vertex'], _SHADERS['fragment'])
+    _program = Program(
+        _SHADERS['vertex'], _SHADERS['fragment'], attrib0='position')
 
     def render(self):
         if self._renderResources is None:

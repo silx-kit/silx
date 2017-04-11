@@ -209,11 +209,13 @@ class GLPlotColormap(_GLPlotData2D):
 
     _linearProgram = Program(_SHADERS['linear']['vertex'],
                              _SHADERS['fragment'] %
-                             _SHADERS['linear']['fragTransform'])
+                             _SHADERS['linear']['fragTransform'],
+                             attrib0='position')
 
     _logProgram = Program(_SHADERS['log']['vertex'],
                           _SHADERS['fragment'] %
-                          _SHADERS['log']['fragTransform'])
+                          _SHADERS['log']['fragTransform'],
+                          attrib0='position')
 
     def __init__(self, data, origin, scale,
                  colormap, cmapIsLog=False, cmapRange=None,
@@ -571,10 +573,12 @@ class GLPlotRGBAImage(_GLPlotData2D):
                          numpy.dtype(numpy.uint8))
 
     _linearProgram = Program(_SHADERS['linear']['vertex'],
-                             _SHADERS['linear']['fragment'])
+                             _SHADERS['linear']['fragment'],
+                             attrib0='position')
 
     _logProgram = Program(_SHADERS['log']['vertex'],
-                          _SHADERS['log']['fragment'])
+                          _SHADERS['log']['fragment'],
+                          attrib0='position')
 
     def __init__(self, data, origin, scale, alpha):
         """Create a 2D RGB(A) image from data
