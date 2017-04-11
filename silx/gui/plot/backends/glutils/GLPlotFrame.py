@@ -717,35 +717,35 @@ class GLPlotFrame2D(GLPlotFrame):
                 try:
                     xMin = math.log10(xMin)
                 except ValueError:
-                    print('xMin: warning log10({0})'.format(xMin))
+                    _logger.info('xMin: warning log10(%f)', xMin)
                     xMin = 0.
                 try:
                     xMax = math.log10(xMax)
                 except ValueError:
-                    print('xMax: warning log10({0})'.format(xMax))
+                    _logger.info('xMax: warning log10(%f)', xMax)
                     xMax = 0.
 
             if self.yAxis.isLog:
                 try:
                     yMin = math.log10(yMin)
                 except ValueError:
-                    print('yMin: warning log10({0})'.format(yMin))
+                    _logger.info('yMin: warning log10(%f)', yMin)
                     yMin = 0.
                 try:
                     yMax = math.log10(yMax)
                 except ValueError:
-                    print('yMax: warning log10({0})'.format(yMax))
+                    _logger.info('yMax: warning log10(%f)', yMax)
                     yMax = 0.
 
                 try:
                     y2Min = math.log10(y2Min)
                 except ValueError:
-                    print('yMin: warning log10({0})'.format(y2Min))
+                    _logger.info('yMin: warning log10(%f)', y2Min)
                     y2Min = 0.
                 try:
                     y2Max = math.log10(y2Max)
                 except ValueError:
-                    print('yMax: warning log10({0})'.format(y2Max))
+                    _logger.info('yMax: warning log10(%f)', y2Max)
                     y2Max = 0.
 
             # Non-orthogonal axes
