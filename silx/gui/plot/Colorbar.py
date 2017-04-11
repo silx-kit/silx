@@ -154,7 +154,7 @@ class ColorbarWidget(qt.QWidget):
         if normalization not in ('log', 'linear'):
             raise ValueError('Wrong normalization %s' % normalization)
         if normalization == 'log':
-            if vmin <= 0 or vmax <= 0:
+            if vmin < 1. or vmax <= 1.:
                 _logger.warning(
                     'Log colormap with bound <= 0: changing bounds.')
                 vmin, vmax = 1., 10.
@@ -592,7 +592,7 @@ class TickBar(qt.QWidget):
         self._vmax = vmax
         # TODO : should be grouped into a global function, called by all
         # logScale displayer to make sure we have the same behavior everywhere
-        if self._vmin <= 0 or self._vmax <= 0:
+        if self._vmin < 1. or self._vmax < 1.:
             _logger.warning(
                 'Log colormap with bound <= 0: changing bounds.')
             self._vmin, self._vmax = 1., 10.

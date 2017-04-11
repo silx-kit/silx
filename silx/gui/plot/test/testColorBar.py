@@ -185,12 +185,13 @@ class TestColorbarWidget(unittest.TestCase):
         colormapLog2 = { 'name': 'gray', 'normalization': 'log',
                     'autoscale': False, 'vmin': -1.0, 'vmax': 1.0 }
 
-        data = numpy.linspace(-9, 11, 100).reshape(10, 10)
+        data = numpy.array([-5, -4, 0, 2, 3, 5, 10, 20, 30])
+        data = data.reshape(3, 3)
         self.plot.addImage(data=data, colormap=colormapLog, legend='toto')
         self.plot.setActiveImage('toto')
 
         # default behavior when autoscale : set to minmal positive value
-        data[data<0] = data.max()
+        data[data<1] = data.max()
         self.assertTrue(self.colorBar._colormap['vmin'] == data.min())
         self.assertTrue(self.colorBar._colormap['vmax'] == data.max())
 
