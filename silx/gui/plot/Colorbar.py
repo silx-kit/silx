@@ -27,7 +27,7 @@
 
 __authors__ = ["H. Payno", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "06/04/2017"
+__date__ = "11/04/2017"
 
 
 import logging
@@ -74,18 +74,14 @@ class ColorbarWidget(qt.QWidget):
         self._plot = None
 
         self.__buildGUI()
-        if legend is None:
-            self.legend.hide()
-        else:
-            assert(type(legend) is str)
-            self.setLegend(legend)
-
+        self.setLegend(legend)
         self.setPlot(plot)
 
     def __buildGUI(self):
         layout = qt.QVBoxLayout()
         self.setLayout(layout)
         self.layout().addWidget(self.__buildMainColorMap())
+        self.layout().setSizeConstraint(qt.QLayout.SetMinAndMaxSize)
 
         self.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Expanding)
         self.layout().setContentsMargins(0, 0, 0, 0)
@@ -175,11 +171,17 @@ class ColorbarWidget(qt.QWidget):
 
         :param str legend: The label
         """
-        self.legend.show()
-        self.legend.setText(legend)
+        if legend is None or legend == "":
+            self.legend.hide()
+            self.legend.setText("")
+        else:
+            assert(type(legend) is str)
+            self.legend.show()
+            self.legend.setText(legend)
 
     def getLegend(self):
         """
+        Returns the legend displayed along the colorbar
 
         :return: return the legend displayed along the colorbar
         :rtype: str
