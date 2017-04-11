@@ -26,9 +26,10 @@
 
 __authors__ = ["H. Payno"]
 __license__ = "MIT"
-__date__ = "03/04/2017"
+__date__ = "11/04/2017"
 
 import unittest
+from silx.gui.test.utils import TestCaseQt
 from silx.gui.plot.Colorbar import Gradation
 from silx.gui.plot.Colorbar import ColorbarWidget
 from silx.gui.plot import Plot1D
@@ -159,10 +160,11 @@ class TestNoAutoscale(unittest.TestCase):
         val = self.gradation.getValueFromRelativePosition(0.0)
         self.assertTrue(val == -4.0)
 
-class TestColorbarWidget(unittest.TestCase):
+class TestColorbarWidget(TestCaseQt):
     """Test interaction with the GradationBar"""
 
     def setUp(self):
+        super(TestColorbarWidget, self).setUp()
         self.plot = Plot1D()
         self.colorBar = ColorbarWidget(parent=None, plot=self.plot)
 
@@ -172,6 +174,12 @@ class TestColorbarWidget(unittest.TestCase):
         self.colorBar = None
         self.plot.deleteLater()
         self.plot = None
+        super(TestColorbarWidget, self).tearDown()
+
+    def testEmptyColorBar(self):
+        colorBar = ColorbarWidget(parent=None)
+        colorBar.show()
+        self.qWaitForWindowExposed(colorBar)
 
     def testNegativeColormaps(self):
         """test the behavior of the ColorbarWidget in the case of negative
