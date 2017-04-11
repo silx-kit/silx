@@ -320,8 +320,12 @@ class SymbolMixIn(object):
     _DEFAULT_SYMBOL = ''
     """Default marker of the item"""
 
+    _DEFAULT_SYMBOL_SIZE = 1.0
+    """Default marker size of the item"""
+
     def __init__(self):
         self._symbol = self._DEFAULT_SYMBOL
+        self._symbol_size = self._DEFAULT_SYMBOL_SIZE
 
     def getSymbol(self):
         """Return the point marker type.
@@ -352,6 +356,26 @@ class SymbolMixIn(object):
             symbol = self._DEFAULT_SYMBOL
         if symbol != self._symbol:
             self._symbol = symbol
+            self._updated()
+
+    def getSymbolSize(self):
+        """Return the point marker size in points.
+
+        :rtype: float
+        """
+        return self._symbol_size
+
+    def setSymbolSize(self, size):
+        """Set the point marker size in points.
+
+        See :meth:`getSymbolSize`.
+
+        :param str symbol: Marker type
+        """
+        if size is None:
+            size = self._DEFAULT_SYMBOL_SIZE
+        if size != self._symbol_size:
+            self._symbol_size = size
             self._updated()
 
 

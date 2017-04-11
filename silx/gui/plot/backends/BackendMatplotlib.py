@@ -115,9 +115,9 @@ class BackendMatplotlib(BackendBase.BackendBase):
                  color, symbol, linewidth, linestyle,
                  yaxis,
                  xerror, yerror, z, selectable,
-                 fill, alpha):
+                 fill, alpha, symbolsize):
         for parameter in (x, y, legend, color, symbol, linewidth, linestyle,
-                          yaxis, z, selectable, fill):
+                          yaxis, z, selectable, fill, alpha, symbolsize):
             assert parameter is not None
         assert yaxis in ('left', 'right')
 
@@ -174,7 +174,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
                                    label=legend,
                                    color=actualColor,
                                    marker=symbol,
-                                   picker=picker)
+                                   picker=picker,
+                                   s=symbolsize)
             artists.append(scatter)
 
             if fill:
@@ -188,7 +189,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
                                   color=color,
                                   linewidth=linewidth,
                                   marker=symbol,
-                                  picker=picker)
+                                  picker=picker,
+                                  markersize=symbolsize)
             artists += list(curveList)
 
             if fill:

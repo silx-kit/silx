@@ -79,7 +79,8 @@ class Scatter(Points, ColormapMixIn):
                                 z=self.getZValue(),
                                 selectable=self.isSelectable(),
                                 fill=False,
-                                alpha=self.getAlpha())
+                                alpha=self.getAlpha(),
+                                symbolsize=self.getSymbolSize())
 
     def _logFilterData(self, xPositive, yPositive):
         """Filter out values with x or y <= 0 on log axes

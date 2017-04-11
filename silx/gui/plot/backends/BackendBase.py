@@ -85,7 +85,7 @@ class BackendBase(object):
                  color, symbol, linewidth, linestyle,
                  yaxis,
                  xerror, yerror, z, selectable,
-                 fill, alpha):
+                 fill, alpha, symbolsize):
         """Add a 1D curve given by x an y to the graph.
 
         :param numpy.ndarray x: The data corresponding to the x axis
@@ -123,6 +123,8 @@ class BackendBase(object):
         :param bool selectable: indicate if the curve can be selected
         :param bool fill: True to fill the curve, False otherwise
         :param float alpha: Curve opacity, as a float in [0., 1.]
+        :param float symbolsize: Size of the symbol (if any) drawn
+                                 at each (x, y) position.
         :returns: The handle used by the backend to univocally access the curve
         """
         return legend
