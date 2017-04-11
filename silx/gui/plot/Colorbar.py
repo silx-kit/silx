@@ -532,7 +532,7 @@ class Gradation(qt.QWidget):
             return vmin + (vmax - vmin) * value
         elif self.colormap['normalization'] is 'log':
             rpos = (numpy.log10(vmax) - numpy.log10(vmin)) * value + numpy.log10(vmin)
-            return 10**rpos
+            return numpy.power(10, rpos)
         else:
             err = "normalization type (%s) is not managed by the Gradation Widget" % self.colormap['normalization']
             raise ValueError(err)
@@ -679,11 +679,11 @@ class TickBar(qt.QWidget):
         lowBound, highBound, spacing, self._nfrac = ticklayout.niceNumbersForLog10(logMin,
                                                                                    logMax,
                                                                                    nticks)
-        self.ticks = 10**numpy.arange(lowBound, highBound, spacing)
+        self.ticks = numpy.power(10, numpy.arange(lowBound, highBound, spacing))
         if spacing == 1:
             self.subTicks = ticklayout.computeLogSubTicks(ticks=self.ticks,
-                                                          lowBound=10**lowBound,
-                                                          highBound=10**highBound)
+                                                          lowBound=numpy.power(10, lowBound),
+                                                          highBound=numpy.power(10, highBound))
         else:
             self.subTicks = []
 
