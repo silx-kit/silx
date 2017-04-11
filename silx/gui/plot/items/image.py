@@ -22,7 +22,8 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides the :class:`Image` item of the :class:`Plot`.
+"""This module provides the :class:`ImageData` and :class:`ImageRgba` items
+of the :class:`Plot`.
 """
 
 __authors__ = ["T. Vincent"]
@@ -36,54 +37,65 @@ import logging
 import numpy
 
 from .core import Item, LabelsMixIn, DraggableMixIn, ColormapMixIn, AlphaMixIn
+from ..Colors import applyColormapToData
 from ....utils.decorators import deprecated
 
 
 _logger = logging.getLogger(__name__)
 
 
-class Image(Item, LabelsMixIn, DraggableMixIn, ColormapMixIn, AlphaMixIn):
-    """Description of an image"""
+def _convertImageToRgba32(image, copy=True):
+    """Convert an RGB or RGBA image to RGBA32.
 
-    # TODO method to get image of data converted to RGBA with current colormap
+    It converts from floats in [0, 1], bool, integer and uint in [0, 255]
+
+    If the input image is already an RGBA32 image,
+    the returned image shares the same data.
+
+    :param image: Image to convert to
+    :type image: numpy.ndarray with 3 dimensions: height, width, color channels
+    :param bool copy: True (Default) to get a copy, False, avoid copy if possible
+    :return: The image converted to RGBA32 with dimension: (height, width, 4)
+    :rtype: numpy.ndarray of uint8
+    """
+    assert image.ndim == 3
+    assert image.shape[-1] in (3, 4)
+
+    # Convert type to uint8
+    if image.dtype.name != 'uin8':
+        if image.dtype.kind == 'f':  # Float in [0, 1]
+            image = (numpy.clip(image, 0., 1.) * 255).astype(numpy.uint8)
+        elif image.dtype.kind == 'b':  # boolean
+            image = image.astype(numpy.uint8) * 255
+        elif image.dtype.kind in ('i', 'u'):  # int, uint
+            image = numpy.clip(image, 0, 255).astype(numpy.uint8)
+        else:
+            raise ValueError('Unsupported image dtype: %s', image.dtype.name)
+        copy = False  # A copy as already been done, avoid next one
+
+    # Convert RGB to RGBA
+    if image.shape[-1] == 3:
+        new_image = numpy.empty((image.shape[0], image.shape[1], 4),
+                                dtype=numpy.uint8)
+        new_image[:, :, :3] = image
+        new_image[:, :, 3] = 255
+        return new_image  # This is a copy anyway
+    else:
+        return numpy.array(image, copy=copy)
+
+
+class ImageBase(Item, LabelsMixIn, DraggableMixIn, AlphaMixIn):
+    """Description of an image"""
 
     def __init__(self):
         Item.__init__(self)
         LabelsMixIn.__init__(self)
         DraggableMixIn.__init__(self)
-        ColormapMixIn.__init__(self)
         AlphaMixIn.__init__(self)
-        self._data = ()
-        self._pixmap = None
+        self._data = numpy.zeros((0, 0, 4), dtype=numpy.uint8)
 
-        # TODO use calibration instead of origin and scale?
         self._origin = (0., 0.)
         self._scale = (1., 1.)
-
-    def _addBackendRenderer(self, backend):
-        """Update backend renderer"""
-        plot = self.getPlot()
-        assert plot is not None
-        if plot.isXAxisLogarithmic() or plot.isYAxisLogarithmic():
-            return None  # Do not render with log scales
-
-        if self.getPixmap(copy=False) is not None:
-            dataToSend = self.getPixmap(copy=False)
-        else:
-            dataToSend = self.getData(copy=False)
-
-        if dataToSend.size == 0:
-            return None  # No data to display
-
-        return backend.addImage(dataToSend,
-                                legend=self.getLegend(),
-                                origin=self.getOrigin(),
-                                scale=self.getScale(),
-                                z=self.getZValue(),
-                                selectable=self.isSelectable(),
-                                draggable=self.isDraggable(),
-                                colormap=self.getColormap(),
-                                alpha=self.getAlpha())
 
     @deprecated
     def __getitem__(self, item):
@@ -98,7 +110,7 @@ class Image(Item, LabelsMixIn, DraggableMixIn, ColormapMixIn, AlphaMixIn):
             info = self.getInfo(copy=False)
             return {} if info is None else info
         elif item == 3:
-            return self.getPixmap(copy=False)
+            return None
         elif item == 4:
             params = {
                 'info': self.getInfo(),
@@ -107,7 +119,7 @@ class Image(Item, LabelsMixIn, DraggableMixIn, ColormapMixIn, AlphaMixIn):
                 'z': self.getZValue(),
                 'selectable': self.isSelectable(),
                 'draggable': self.isDraggable(),
-                'colormap': self.getColormap(),
+                'colormap': None,
                 'xlabel': self.getXLabel(),
                 'ylabel': self.getYLabel(),
             }
@@ -121,7 +133,7 @@ class Image(Item, LabelsMixIn, DraggableMixIn, ColormapMixIn, AlphaMixIn):
         :param bool visible: True to display it, False otherwise
         """
         visibleChanged = self.isVisible() != bool(visible)
-        super(Image, self).setVisible(visible)
+        super(ImageBase, self).setVisible(visible)
 
         # TODO hackish data range implementation
         if visibleChanged:
@@ -161,46 +173,12 @@ class Image(Item, LabelsMixIn, DraggableMixIn, ColormapMixIn, AlphaMixIn):
         """
         return numpy.array(self._data, copy=copy)
 
-    def getPixmap(self, copy=True):
-        """Get the optional pixmap that is displayed instead of the data
+    def getRgbaImageData(self, copy=True):
+        """Get the displayed RGB(A) image
 
-        :param copy: True (Default) to get a copy,
-                     False to use internal representation (do not modify!)
-        :return: The pixmap representing the data if any
-        :rtype: numpy.ndarray or None
+        :returns: numpy.ndarray of uint8 of shape (height, width, 4)
         """
-        if self._pixmap is None:
-            return None
-        else:
-            return numpy.array(self._pixmap, copy=copy)
-
-    def setData(self, data, pixmap=None, copy=True):
-        """Set the image data
-
-        :param data: Image data to set
-        :param pixmap: Optional RGB(A) image representing the data
-        :param bool copy: True (Default) to get a copy,
-                          False to use internal representation (do not modify!)
-        """
-        data = numpy.array(data, copy=copy)
-        assert data.ndim in (2, 3)
-        if data.ndim == 3:
-            assert data.shape[1] in (3, 4)
-        self._data = data
-
-        if pixmap is not None:
-            pixmap = numpy.array(pixmap, copy=copy)
-            assert pixmap.ndim == 3
-            assert pixmap.shape[2] in (3, 4)
-            assert pixmap.shape[:2] == data.shape[:2]
-        self._pixmap = pixmap
-        self._updated()
-
-        # TODO hackish data range implementation
-        if self.isVisible():
-            plot = self.getPlot()
-            if plot is not None:
-                plot._invalidateDataRange()
+        raise NotImplementedError('This MUST be implemented in sub-class')
 
     def getOrigin(self):
         """Returns the offset from origin at which to display the image.
@@ -249,3 +227,162 @@ class Image(Item, LabelsMixIn, DraggableMixIn, ColormapMixIn, AlphaMixIn):
         if scale != self._scale:
             self._scale = scale
             self._updated()
+
+
+class ImageData(ImageBase, ColormapMixIn):
+    """Description of a data image with a colormap"""
+
+    def __init__(self):
+        ImageBase.__init__(self)
+        ColormapMixIn.__init__(self)
+        self._data = numpy.zeros((0, 0), dtype=numpy.float32)
+        self._alternativeImage = None
+
+    def _addBackendRenderer(self, backend):
+        """Update backend renderer"""
+        plot = self.getPlot()
+        assert plot is not None
+        if plot.isXAxisLogarithmic() or plot.isYAxisLogarithmic():
+            return None  # Do not render with log scales
+
+        if self.getAlternativeImageData(copy=False) is not None:
+            dataToUse = self.getAlternativeImageData(copy=False)
+        else:
+            dataToUse = self.getData(copy=False)
+
+        if dataToUse.size == 0:
+            return None  # No data to display
+
+        return backend.addImage(dataToUse,
+                                legend=self.getLegend(),
+                                origin=self.getOrigin(),
+                                scale=self.getScale(),
+                                z=self.getZValue(),
+                                selectable=self.isSelectable(),
+                                draggable=self.isDraggable(),
+                                colormap=self.getColormap(),
+                                alpha=self.getAlpha())
+
+    @deprecated
+    def __getitem__(self, item):
+        """Compatibility with PyMca and silx <= 0.4.0"""
+        if item == 3:
+            return self.getAlternativeImageData(copy=False)
+
+        params = ImageBase.__getitem__(self, item)
+        if item == 4:
+            params['colormap'] = self.getColormap()
+
+        return params
+
+    def getRgbaImageData(self, copy=True):
+        """Get the displayed RGB(A) image
+
+        :returns: numpy.ndarray of uint8 of shape (height, width, 4)
+        """
+        if self._alternativeImage is not None:
+            return _convertImageToRgba32(
+                self.getAlternativeImageData(copy=False), copy=copy)
+        else:
+            # Apply colormap, in this case an new array is always returned
+            colormap = self.getColormap()
+            image = applyColormapToData(self.getData(copy=False),
+                                        **colormap)
+            return image
+
+    def getAlternativeImageData(self, copy=True):
+        """Get the optional RGBA image that is displayed instead of the data
+
+        :param copy: True (Default) to get a copy,
+                     False to use internal representation (do not modify!)
+        :returns: None or numpy.ndarray
+        :rtype: numpy.ndarray or None
+        """
+        if self._alternativeImage is None:
+            return None
+        else:
+            return numpy.array(self._alternativeImage, copy=copy)
+
+    def setData(self, data, alternative=None, copy=True):
+        """"Set the image data and optionally an alternative RGB(A) representation
+
+        :param numpy.ndarray data: Data array with 2 dimensions (h, w)
+        :param alternative: RGB(A) image to display instead of data,
+                            shape: (h, w, 3 or 4)
+        :type alternative: None or numpy.ndarray
+        :param bool copy: True (Default) to get a copy,
+                          False to use internal representation (do not modify!)
+        """
+        data = numpy.array(data, copy=copy)
+        assert data.ndim == 2
+        self._data = data
+
+        if alternative is not None:
+            alternative = numpy.array(alternative, copy=copy)
+            assert alternative.ndim == 3
+            assert alternative.shape[2] in (3, 4)
+            assert alternative.shape[:2] == data.shape[:2]
+        self._alternativeImage = alternative
+        self._updated()
+
+        # TODO hackish data range implementation
+        if self.isVisible():
+            plot = self.getPlot()
+            if plot is not None:
+                plot._invalidateDataRange()
+
+
+class ImageRgba(ImageBase):
+    """Description of an RGB(A) image"""
+
+    def __init__(self):
+        ImageBase.__init__(self)
+
+    def _addBackendRenderer(self, backend):
+        """Update backend renderer"""
+        plot = self.getPlot()
+        assert plot is not None
+        if plot.isXAxisLogarithmic() or plot.isYAxisLogarithmic():
+            return None  # Do not render with log scales
+
+        data = self.getData(copy=False)
+
+        if data.size == 0:
+            return None  # No data to display
+
+        return backend.addImage(data,
+                                legend=self.getLegend(),
+                                origin=self.getOrigin(),
+                                scale=self.getScale(),
+                                z=self.getZValue(),
+                                selectable=self.isSelectable(),
+                                draggable=self.isDraggable(),
+                                colormap=None,
+                                alpha=self.getAlpha())
+
+    def getRgbaImageData(self, copy=True):
+        """Get the displayed RGB(A) image
+
+        :returns: numpy.ndarray of uint8 of shape (height, width, 4)
+        """
+        return _convertImageToRgba32(self.getData(copy=False), copy=copy)
+
+    def setData(self, data, copy=True):
+        """Set the image data
+
+        :param data: RGB(A) image data to set
+        :param bool copy: True (Default) to get a copy,
+                          False to use internal representation (do not modify!)
+        """
+        data = numpy.array(data, copy=copy)
+        assert data.ndim == 3
+        assert data.shape[-1] in (3, 4)
+        self._data = data
+
+        self._updated()
+
+        # TODO hackish data range implementation
+        if self.isVisible():
+            plot = self.getPlot()
+            if plot is not None:
+                plot._invalidateDataRange()

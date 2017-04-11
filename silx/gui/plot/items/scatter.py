@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides the :class:`Image` item of the :class:`Plot`.
+"""This module provides the :class:`Scatter` item of the :class:`Plot`.
 """
 
 __authors__ = ["T. Vincent", "P. Knobel"]
@@ -41,7 +41,7 @@ _logger = logging.getLogger(__name__)
 
 
 class Scatter(Points, ColormapMixIn):
-    """Description of a scatter plot"""
+    """Description of a scatter"""
     _DEFAULT_SYMBOL = 'o'
     """Default symbol of the scatter plots"""
 
