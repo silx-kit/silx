@@ -202,12 +202,12 @@ class _Fill2D(object):
 
 # line ########################################################################
 
-SOLID, DASHED = '-', '--'
+SOLID, DASHED, DASHDOT, DOTTED = '-', '--', '-.', ':'
 
 
 class _Lines2D(object):
-    STYLES = SOLID, DASHED
-    """Supported line styles (missing '-.' ':')"""
+    STYLES = SOLID, DASHED, DASHDOT, DOTTED
+    """Supported line styles"""
 
     _LINEAR, _LOG10_X, _LOG10_Y, _LOG10_X_Y = 0, 1, 2, 3
 
@@ -242,7 +242,7 @@ class _Lines2D(object):
         }
         """
         },
-        SOLID: {
+        'solid': {
             'vertex': """
         #version 120
 
@@ -275,7 +275,7 @@ class _Lines2D(object):
         # Limitation: Dash using an estimate of distance in screen coord
         # to avoid computing distance when viewport is resized
         # results in inequal dashes when viewport aspect ratio is far from 1
-        DASHED: {
+        'dashed': {
             'vertex': """
         #version 120
 
@@ -304,17 +304,19 @@ class _Lines2D(object):
             'fragment': """
         #version 120
 
-        uniform float dashPeriod;
+        /* Dashes: [0, x], [y, z]
+           Dash period: w */
+        uniform vec4 dash;
 
         varying float vDist;
         varying vec4 vColor;
 
         void main(void) {
-            if (mod(vDist, dashPeriod) > 0.5 * dashPeriod) {
+            float dist = mod(vDist, dash.w);
+            if ((dist > dash.x && dist < dash.y) || dist > dash.z) {
                 discard;
-            } else {
-                gl_FragColor = vColor;
             }
+            gl_FragColor = vColor;
         }
         """
         }
@@ -355,7 +357,7 @@ class _Lines2D(object):
             self._style = style
             if style == SOLID:
                 self.render = self._renderSolid
-            elif style == DASHED:
+            else:  # DASHED, DASHDOT, DOTTED
                 self.render = self._renderDash
 
     @property
@@ -400,7 +402,7 @@ class _Lines2D(object):
         else:
             transform = self._LOG10_Y if isYLog else self._LINEAR
 
-        prog = self._getProgram(transform, SOLID)
+        prog = self._getProgram(transform, 'solid')
         prog.use()
 
         gl.glEnable(gl.GL_LINE_SMOOTH)
@@ -434,7 +436,7 @@ class _Lines2D(object):
         else:
             transform = self._LOG10_Y if isYLog else self._LINEAR
 
-        prog = self._getProgram(transform, DASHED)
+        prog = self._getProgram(transform, 'dashed')
         prog.use()
 
         gl.glEnable(gl.GL_LINE_SMOOTH)
@@ -444,7 +446,23 @@ class _Lines2D(object):
         gl.glUniform2f(prog.uniforms['halfViewportSize'],
                        0.5 * viewWidth, 0.5 * viewHeight)
 
-        gl.glUniform1f(prog.uniforms['dashPeriod'], self.dashPeriod)
+        if self.style == DOTTED:
+            dash = (0.1 * self.dashPeriod,
+                    0.6 * self.dashPeriod,
+                    0.7 * self.dashPeriod,
+                    self.dashPeriod)
+        elif self.style == DASHDOT:
+            dash = (0.3 * self.dashPeriod,
+                    0.5 * self.dashPeriod,
+                    0.6 * self.dashPeriod,
+                    self.dashPeriod)
+        else:
+            dash = (0.5 * self.dashPeriod,
+                    self.dashPeriod,
+                    self.dashPeriod,
+                    self.dashPeriod)
+
+        gl.glUniform4f(prog.uniforms['dash'], *dash)
 
         colorAttrib = prog.attributes['color']
         if self.useColorVboData and self.colorVboData is not None:
@@ -1140,7 +1158,7 @@ class GLPlotCurve2D(object):
 
         if self.xVboData is None:
             xAttrib, yAttrib, cAttrib, dAttrib = None, None, None, None
-            if self.lineStyle == DASHED:
+            if self.lineStyle in (DASHED, DASHDOT, DOTTED):
                 dists = _distancesFromArrays(xData, yData)
                 if self.colorData is None:
                     xAttrib, yAttrib, dAttrib = vertexBuffer(
