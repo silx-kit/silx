@@ -1350,7 +1350,6 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
                 self.keepDataAspectRatio(False)
 
         self._plotFrame.baseVectors = x, y
-        self.resetZoom()
 
     def getBaseVectors(self):
         return self._plotFrame.baseVectors
@@ -1568,8 +1567,6 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
                 "keepDataAspectRatio ignored because baseVectors are set")
 
         self._keepDataAspectRatio = flag
-
-        self.resetZoom()
 
     def setGraphGrid(self, which):
         assert which in (None, 'major', 'both')
