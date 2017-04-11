@@ -1284,12 +1284,11 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
         return self
 
     def postRedisplay(self):
-        self._sigPostRedisplay.emit()  # TODO think about it
+        self._sigPostRedisplay.emit()
 
     def replot(self):
         self.update()
-        # TODO or self.repaint() for immediate redraw?
-        # TODO or self.postRedisplay and connect signal to update?
+        # Use self.repaint() instead for immediate repaint
 
     def saveGraph(self, fileName, fileFormat, dpi):
         if dpi is not None:
