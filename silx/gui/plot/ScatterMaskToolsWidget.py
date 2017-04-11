@@ -102,7 +102,7 @@ class ScatterMask(BaseMask):
         if mask:
             self._mask[stencil] = level
         else:
-            self._mask[stencil][self._mask[stencil] == level] = 0
+            self._mask[numpy.logical_and(self._mask == level, stencil)] = 0
         self._notify()
 
     def updatePoints(self, level, indices, mask=True):
@@ -119,8 +119,7 @@ class ScatterMask(BaseMask):
             # unmask only where mask level is the specified value
             indices_stencil = numpy.zeros_like(self._mask, dtype=numpy.bool)
             indices_stencil[indices] = True
-            self._mask[numpy.logical_and(self._mask == level,
-                                         indices_stencil)    ] = 0   # noqa
+            self._mask[numpy.logical_and(self._mask == level, indices_stencil)] = 0
         self._notify()
 
     # update shapes
@@ -548,28 +547,28 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
                 self._lastPencilPos = y, x
 
     def _maskBtnClicked(self):
-        data_values = self._data_scatter.getValueData(copy=False)
-
+        # data_values = self._data_scatter.getValueData(copy=False)
+        doMask = self._isMasking()
         if self.belowThresholdAction.isChecked():
-            if len(data_values) and self.minLineEdit.text():
+            if self.minLineEdit.text():
                 self._mask.updateBelowThreshold(self.levelSpinBox.value(),
-                                                float(self.minLineEdit.text()))
+                                                float(self.minLineEdit.text()),
+                                                doMask)
                 self._mask.commit()
 
         elif self.betweenThresholdAction.isChecked():
-            if (len(data_values) and
-                    self.minLineEdit.text() and self.maxLineEdit.text()):
+            if self.minLineEdit.text() and self.maxLineEdit.text():
                 min_ = float(self.minLineEdit.text())
                 max_ = float(self.maxLineEdit.text())
                 self._mask.updateBetweenThresholds(self.levelSpinBox.value(),
-                                                   min_, max_)
+                                                   min_, max_, doMask)
                 self._mask.commit()
 
         elif self.aboveThresholdAction.isChecked():
-            if len(data_values) and self.maxLineEdit.text():
+            if self.maxLineEdit.text():
                 max_ = float(self.maxLineEdit.text())
                 self._mask.updateAboveThreshold(self.levelSpinBox.value(),
-                                                max_)
+                                                max_, doMask)
                 self._mask.commit()
 
     def _maskNotFiniteBtnClicked(self):
