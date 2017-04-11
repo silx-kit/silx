@@ -1337,10 +1337,10 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
         Base vector does not work well with log axes, to investi
         """
         if x != (1., 0.) and y != (0., 1.):
-            if self._isXAxisLogarithmic():
+            if self._plotFrame.xAxis.isLog:
                 _logger.warning("setBaseVectors disables X axis logarithmic.")
                 self.setXAxisLogarithmic(False)
-            if self._isYAxisLogarithmic():
+            if self._plotFrame.yAxis.isLog:
                 _logger.warning("setBaseVectors disables Y axis logarithmic.")
                 self.setYAxisLogarithmic(False)
 
@@ -1405,7 +1405,7 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
 
         if keepDim is None:
             dataBounds = self._plotContent.getBounds(
-                self._isXAxisLogarithmic(), self._isYAxisLogarithmic())
+                self._plotFrame.xAxis.isLog, self._plotFrame.yAxis.isLog)
             if dataBounds.yAxis.range_ != 0.:
                 dataRatio = dataBounds.xAxis.range_
                 dataRatio /= float(dataBounds.yAxis.range_)
@@ -1452,14 +1452,14 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
 
     def resetZoom(self, dataMargins=None):
         dataBounds = self._plotContent.getBounds(
-            self._isXAxisLogarithmic(), self._isYAxisLogarithmic())
+            self._plotFrame.xAxis.isLog, self._plotFrame.yAxis.isLog)
 
         isXAuto = self._plot.isXAxisAutoScale()
         isYAuto = self._plot.isYAxisAutoScale()
 
         xMin, xMax, yMin, yMax, y2Min, y2Max = utils.addMarginsToLimits(
             dataMargins,
-            self._isXAxisLogarithmic(), self._isYAxisLogarithmic(),
+            self._plotFrame.xAxis.isLog, self._plotFrame.yAxis.isLog,
             dataBounds.xAxis.min_, dataBounds.xAxis.max_,
             dataBounds.yAxis.min_, dataBounds.yAxis.max_,
             dataBounds.y2Axis.min_, dataBounds.y2Axis.max_)
@@ -1509,12 +1509,6 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
             self._setPlotBounds(y2Range=(ymin, ymax), keepDim='y')
 
     # Graph axes
-
-    def _isXAxisLogarithmic(self):
-        return self._plotFrame.xAxis.isLog
-
-    def _isYAxisLogarithmic(self):
-        return self._plotFrame.yAxis.isLog
 
     def setXAxisLogarithmic(self, flag):
         if flag != self._plotFrame.xAxis.isLog:
@@ -1578,7 +1572,7 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
 
         if x is None or y is None:
             dataBounds = self._plotContent.getBounds(
-                self._isXAxisLogarithmic(), self._isYAxisLogarithmic())
+                self._plotFrame.xAxis.isLog, self._plotFrame.yAxis.isLog)
 
             if x is None:
                 x = dataBounds.xAxis.center
