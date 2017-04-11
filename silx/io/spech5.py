@@ -1020,14 +1020,14 @@ def _dataset_builder(name, specfileh5, parent_group):
         if not "G3" in scan.scan_header_dict:
             raise KeyError("No UB matrix in a scan without a #G3 header line")
         array_like = numpy.array(
-                list(map(float, scan.scan_header_dict["G3"].split())))
+                list(map(float, scan.scan_header_dict["G3"].split()))).reshape((1, 3, 3))
 
     elif unit_cell_pattern.match(name):
         if not "G1" in scan.scan_header_dict:
             raise KeyError(
                     "No unit_cell matrix in a scan without a #G1 header line")
         array_like = numpy.array(
-                list(map(float, scan.scan_header_dict["G3"].split())))
+                list(map(float, scan.scan_header_dict["G1"].split()))[0:6]).reshape((1, 6))
 
     elif "CTIME" in scan.mca_header_dict and "mca_" in name:
         m = re.compile(r"/.*/mca_([0-9]+)/.*").match(name)
