@@ -192,6 +192,9 @@ It provides the following keys:
 setting the interactive mode.
 """
 
+from __future__ import division
+
+
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "16/02/2017"
@@ -2361,20 +2364,21 @@ class Plot(object):
                 plotWidth, plotHeight = self.getPlotBoundsInPixels()[2:]
                 plotRatio = plotHeight / plotWidth
 
-                dataRatio = (ymax - ymin) / (xmax - xmin)
-                if dataRatio < plotRatio:
-                    # Increase y range
-                    ycenter = 0.5 * (ymax + ymin)
-                    yrange = (xmax - xmin) * plotRatio
-                    newLimits[2] = ycenter - 0.5 * yrange
-                    newLimits[3] = ycenter + 0.5 * yrange
+                if plotRatio > 0.:
+                    dataRatio = (ymax - ymin) / (xmax - xmin)
+                    if dataRatio < plotRatio:
+                        # Increase y range
+                        ycenter = 0.5 * (ymax + ymin)
+                        yrange = (xmax - xmin) * plotRatio
+                        newLimits[2] = ycenter - 0.5 * yrange
+                        newLimits[3] = ycenter + 0.5 * yrange
 
-                elif dataRatio > plotRatio:
-                    # Increase x range
-                    xcenter = 0.5 * (xmax + xmin)
-                    xrange_ = (ymax - ymin) / plotRatio
-                    newLimits[0] = xcenter - 0.5 * xrange_
-                    newLimits[1] = xcenter + 0.5 * xrange_
+                    elif dataRatio > plotRatio:
+                        # Increase x range
+                        xcenter = 0.5 * (xmax + xmin)
+                        xrange_ = (ymax - ymin) / plotRatio
+                        newLimits[0] = xcenter - 0.5 * xrange_
+                        newLimits[1] = xcenter + 0.5 * xrange_
 
             self.setLimits(*newLimits)
 
