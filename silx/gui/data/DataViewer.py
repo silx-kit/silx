@@ -40,7 +40,7 @@ except ImportError:
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "07/04/2017"
+__date__ = "10/04/2017"
 
 
 _logger = logging.getLogger(__name__)
@@ -122,20 +122,28 @@ class DataViewer(qt.QFrame):
         self.__currentView = None
         self.__data = None
         self.__useAxisSelection = False
+        self.__userSelectedView = None
 
-        views = self.createDefaultViews()
-        self.__views = list(views)
-
-        # store stack index for each views
+        self.__views = []
         self.__index = {}
+        """store stack index for each views"""
 
+        self._initializeViews()
+
+    def _initializeViews(self):
+        """Inisialize the available views"""
+        views = self.createDefaultViews(self.__stack)
+        self.__views = list(views)
         self.setDisplayMode(self.EMPTY_MODE)
 
-    def createDefaultViews(self):
+    def createDefaultViews(self, parent=None):
         """Create and returns available views which can be displayed by default
-        by the data viewer.
+        by the data viewer. It is called internally by the widget. It can be
+        overwriten to provide a different set of viewers.
 
-        :rtype: list[silx.gui.data.DataViews.DataView]"""
+        :param QWidget parent: QWidget parent of the views
+        :rtype: list[silx.gui.data.DataViews.DataView]
+        """
         viewClasses = [
             DataViews._EmptyView,
             DataViews._Hdf5View,
@@ -149,7 +157,7 @@ class DataViewer(qt.QFrame):
         views = []
         for viewClass in viewClasses:
             try:
-                view = viewClass(self.__stack)
+                view = viewClass(parent)
                 views.append(view)
             except Exception:
                 _logger.warning("%s instantiation failed. View is ignored" % viewClass.__name__)
@@ -235,6 +243,16 @@ class DataViewer(qt.QFrame):
 
         :param silx.gui.data.DataViews.DataView view: The DataView to use to display the data
         """
+        self.__userSelectedView = view
+        self._setDisplayedView(view)
+
+    def _setDisplayedView(self, view):
+        """Internal set of the displayed view.
+
+        Change the displayed view according to the view itself.
+
+        :param silx.gui.data.DataViews.DataView view: The DataView to use to display the data
+        """
         if self.__currentView is view:
             return
         self.__clearCurrentView()
@@ -277,7 +295,7 @@ class DataViewer(qt.QFrame):
             view = self.getViewFromModeId(modeId)
         except KeyError:
             raise ValueError("Display mode %s is unknown" % modeId)
-        self.setDisplayedView(view)
+        self._setDisplayedView(view)
 
     def displayedView(self):
         """Returns the current displayed view.
@@ -286,10 +304,44 @@ class DataViewer(qt.QFrame):
         """
         return self.__currentView
 
-    def __updateView(self):
-        """Display the data using the widget which fit the best"""
-        data = self.__data
+    def addView(self, view):
+        """Allow to add a view to the dataview.
 
+        If the current data support this view, it will be displayed.
+
+        :param DataView view: A dataview
+        """
+        self.__views.append(view)
+        # TODO It can be skipped if the view do not support the data
+        self.__updateAvailableViews()
+
+    def removeView(self, view):
+        """Allow to remove a view which was available from the dataview.
+
+        If the view was displayed, the widget will be updated.
+
+        :param DataView view: A dataview
+        """
+        self.__views.remove(view)
+        self.__stack.removeWidget(view.getWidget())
+        # invalidate the full index. It will be updated as expected
+        self.__index = {}
+
+        if self.__userSelectedView is view:
+            self.__userSelectedView = None
+
+        if view is self.__currentView:
+            self.__updateView()
+        else:
+            # TODO It can be skipped if the view is not part of the
+            # available views
+            self.__updateAvailableViews()
+
+    def __updateAvailableViews(self):
+        """
+        Update available views from the current data.
+        """
+        data = self.__data
         # sort available views according to priority
         info = DataViews.DataInfo(data)
         priorities = [v.getDataPriority(data, info) for v in self.__views]
@@ -305,16 +357,24 @@ class DataViewer(qt.QFrame):
             available = [v[1] for v in views]
             self.__setCurrentAvailableViews(available)
 
+    def __updateView(self):
+        """Display the data using the widget which fit the best"""
+        data = self.__data
+
+        # update available views for this data
+        self.__updateAvailableViews()
+        available = self.__currentAvailableViews
+
         # display the view with the most priority (the default view)
         view = self.getDefaultViewFromAvailableViews(data, available)
         self.__clearCurrentView()
         try:
-            self.setDisplayedView(view)
+            self._setDisplayedView(view)
         except Exception as e:
             # in case there is a problem to read the data, try to use a safe
             # view
             view = self.getSafeViewFromAvailableViews(data, available)
-            self.setDisplayedView(view)
+            self._setDisplayedView(view)
             raise e
 
     def getSafeViewFromAvailableViews(self, data, available):
@@ -342,6 +402,9 @@ class DataViewer(qt.QFrame):
         """
         if len(available) > 0:
             # returns the view with the highest priority
+            if self.__userSelectedView in available:
+                return self.__userSelectedView
+            self.__userSelectedView = None
             view = available[0]
         else:
             # else returns the empty view
