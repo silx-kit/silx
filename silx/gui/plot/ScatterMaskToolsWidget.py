@@ -309,9 +309,9 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
 
             self._z = activeScatter.getZValue() + 1
             self._data_scatter = activeScatter
+            self._mask.setDataItem(self._data_scatter)
             if self._data_scatter.getXData(copy=False).shape != self.getSelectionMask(copy=False).shape:
-                self._mask.reset(self._data_scatter.getXData(copy=False).shape)  # cp
-                self._mask.setDataItem(self._data_scatter)
+                self._mask.reset(self._data_scatter.getXData(copy=False).shape)
                 self._mask.commit()
             else:
                 # Refresh in case z changed

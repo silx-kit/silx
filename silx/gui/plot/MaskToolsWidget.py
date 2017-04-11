@@ -94,18 +94,17 @@ class BaseMask(qt.QObject):
         self._dataItem = None
         if dataItem is not None:
             self.setDataItem(dataItem)
+            self.reset(self.getDataValues().shape)
 
         super(BaseMask, self).__init__()
 
     def setDataItem(self, item):
-        """
+        """Set a data item
 
         :param item: A plot item, subclass of :class:`silx.gui.plot.items.Item`
         :return:
         """
         self._dataItem = item
-        self._mask = numpy.zeros_like(self.getDataValues(),
-                                      dtype=numpy.uint8)
 
     def getDataValues(self):
         """Return data values, as a numpy array with the same shape
@@ -1335,6 +1334,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                     self._activeImageChangedAfterCare)
             else:
                 # Refresh in case origin, scale, z changed
+                self._mask.setDataItem(activeImage)
                 self._updatePlotMask()
 
     def _activeImageChanged(self, *args):
@@ -1361,6 +1361,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             self._scale = activeImage.getScale()
             self._z = activeImage.getZValue() + 1
             self._data = activeImage.getData(copy=False)
+            self._mask.setDataItem(activeImage)
             if self._data.shape[:2] != self.getSelectionMask(copy=False).shape:
                 self._mask.reset(self._data.shape[:2])
                 self._mask.commit()
