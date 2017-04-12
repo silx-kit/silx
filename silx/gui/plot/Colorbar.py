@@ -44,7 +44,7 @@ _logger = logging.getLogger(__name__)
 class ColorbarWidget(qt.QWidget):
     """Colorbar widget displaying a colormap
 
-    It uses a description of colormaps as dict compatible with :class:`Plot`.
+    It uses a description of colormap as dict compatible with :class:`Plot`.
 
     .. image:: img/linearColorbar.png
         :width: 80px
@@ -93,7 +93,7 @@ class ColorbarWidget(qt.QWidget):
         self.layout().setContentsMargins(0, 0, 0, 0)
 
     def getPlot(self):
-        """Returns the :class:`Plot` associated to this widget if any"""
+        """Returns the :class:`Plot` associated to this widget or None"""
         return self._plot
 
     def setPlot(self, plot):
@@ -252,13 +252,13 @@ class ColorScaleBar(qt.QWidget):
     To run the following sample code, a QApplication must be initialized.
 
     >>> colormap={'name':'gray',
-              'normalization':'log',
-              'vmin':1,
-              'vmax':100000,
-              'autoscale':False
-              }
+    ...       'normalization':'log',
+    ...       'vmin':1,
+    ...       'vmax':100000,
+    ...       'autoscale':False
+    ...       }
     >>> colorscale = ColorScaleBar(parent=None,
-                                   colormap=colormap )
+    ...                            colormap=colormap )
     >>> colorscale.show()
 
     Initializer parameters :
@@ -375,7 +375,7 @@ class ColorScaleBar(qt.QWidget):
         """Change the value of the min and max labels to be displayed.
 
         :param minVal: the minimal value of the TickBar (not str)
-        :param minVal: the maximal value of the TickBar (not str)
+        :param maxVal: the maximal value of the TickBar (not str)
         """
         # bad hack to try to display has much information as possible
         self.minVal = minVal
@@ -389,6 +389,7 @@ class ColorScaleBar(qt.QWidget):
 
 class _ColorScale(qt.QWidget):
     """Widget displaying the colormap colorScale.
+
     Show matching value between the gradient color (from the colormap) at mouse
     position and value.
 
@@ -400,13 +401,13 @@ class _ColorScale(qt.QWidget):
     To run the following sample code, a QApplication must be initialized.
 
     >>> colormap={'name':'viridis',
-              'normalization':'log',
-              'vmin':1,
-              'vmax':100000,
-              'autoscale':False
-              }
-    >>> colorscale = ColorScaleBar(parent=None,
-                         colormap=colormap )
+    ...       'normalization':'log',
+    ...       'vmin':1,
+    ...       'vmax':100000,
+    ...       'autoscale':False
+    ...       }
+    >>> colorscale = ColorScale(parent=None,
+    ...                         colormap=colormap)
     >>> colorscale.show()
 
     Initializer parameters :
@@ -751,7 +752,7 @@ class _TickBar(qt.QWidget):
             raise ValueError("display type not recognized, value should be in (None, 'std', 'e'")
         self._forcedDisplayType = disType
 
-    def _getStandardFormat(self, val):
+    def _getStandardFormat(self, val=0):
         return "{0:.%sf}" % self._nfrac
 
     def _getFormat(self, font):
