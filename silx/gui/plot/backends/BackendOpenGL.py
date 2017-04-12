@@ -1326,7 +1326,11 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
         self._plotFrame.xAxis.title = label
 
     def setGraphYLabel(self, label, axis):
-        self._plotFrame.yAxis.title = label
+        if axis == 'left':
+            self._plotFrame.yAxis.title = label
+        else:  # right axis
+            if label:
+                _logger.warning('Right axis label not implemented')
 
     # Non orthogonal axes
 
