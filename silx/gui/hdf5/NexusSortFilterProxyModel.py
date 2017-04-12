@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "20/12/2016"
+__date__ = "12/04/2017"
 
 
 import logging
@@ -72,7 +72,7 @@ class NexusSortFilterProxyModel(qt.QSortFilterProxyModel):
         left = self.sourceModel().data(sourceLeft, Hdf5TreeModel.H5PY_ITEM_ROLE)
         right = self.sourceModel().data(sourceRight, Hdf5TreeModel.H5PY_ITEM_ROLE)
 
-        if issubclass(left.h5pyClass, h5py.Group) and issubclass(right.h5pyClass, h5py.Group):
+        if self.__isNXentry(left) and self.__isNXentry(right):
             less = self.childDatasetLessThan(left, right, "start_time")
             if less is not None:
                 return less
@@ -83,6 +83,13 @@ class NexusSortFilterProxyModel(qt.QSortFilterProxyModel):
         left = self.sourceModel().data(sourceLeft, qt.Qt.DisplayRole)
         right = self.sourceModel().data(sourceRight, qt.Qt.DisplayRole)
         return self.nameLessThan(left, right)
+
+    def __isNXentry(self, node):
+        """Returns try if the node is an NXentry"""
+        if not issubclass(node.h5pyClass, h5py.Group):
+            return False
+        nxClass = node.obj.attrs.get("NX_class", None)
+        return nxClass == "NXentry"
 
     def getWordsAndNumbers(self, name):
         """
