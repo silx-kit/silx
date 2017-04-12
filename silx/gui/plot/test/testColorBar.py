@@ -32,7 +32,7 @@ import unittest
 from silx.gui.test.utils import TestCaseQt
 from silx.gui.plot.Colorbar import Gradation
 from silx.gui.plot.Colorbar import ColorbarWidget
-from silx.gui.plot import Plot1D
+from silx.gui.plot import Plot2D
 import numpy
 
 
@@ -103,18 +103,17 @@ class TestNoAutoscale(unittest.TestCase):
     """
 
     def setUp(self):
-        self.plot = Plot1D()
+        self.plot = Plot2D()
         self.colorBar = ColorbarWidget(parent=None, plot=self.plot)
         self.tickBar = self.colorBar.getGradationBar().tickbar
         self.gradation = self.colorBar.getGradationBar().gradation
 
     def tearDown(self):
         self.tickBar = None
-        self.colorBar.setPlot(None)
-        self.colorBar.deleteLater()
-        self.colorBar = None
-        self.plot.deleteLater()
-        self.plot = None
+        self.gradation = None
+        del self.colorBar
+        self.plot.close()
+        del self.plot
 
     def testLogNormNoAutoscale(self):
         colormapLog = { 'name': 'gray', 'normalization': 'log',
@@ -165,15 +164,14 @@ class TestColorbarWidget(TestCaseQt):
 
     def setUp(self):
         super(TestColorbarWidget, self).setUp()
-        self.plot = Plot1D()
+        self.plot = Plot2D()
         self.colorBar = ColorbarWidget(parent=None, plot=self.plot)
 
     def tearDown(self):
-        self.colorBar.setPlot(None)
-        self.colorBar.deleteLater()
-        self.colorBar = None
-        self.plot.deleteLater()
-        self.plot = None
+        del self.colorBar
+        self.plot.close()
+        del self.plot
+
         super(TestColorbarWidget, self).tearDown()
 
     def testEmptyColorBar(self):
