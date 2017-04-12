@@ -78,36 +78,20 @@ class ColorbarWidget(qt.QWidget):
         self.setPlot(plot)
 
     def __buildGUI(self):
-        layout = qt.QVBoxLayout()
-        self.setLayout(layout)
-        self.layout().addWidget(self.__buildMainColorMap())
-        self.layout().setSizeConstraint(qt.QLayout.SetMinAndMaxSize)
-
-        self.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Expanding)
-        self.layout().setContentsMargins(0, 0, 0, 0)
-
-    def __buildMainColorMap(self):
-        widget = qt.QWidget(self)
-        widget.setLayout(qt.QVBoxLayout())
-        widget.layout().addWidget(self.__buildGradationAndLegend())
-        return widget
-
-    def __buildGradationAndLegend(self):
-        widget = qt.QWidget(self)
-        widget.setLayout(qt.QHBoxLayout())
+        self.setLayout(qt.QHBoxLayout())
 
         # create gradation widget
-        self._gradation = GradationBar(parent=widget,
+        self._gradation = GradationBar(parent=self,
                                        colormap=None)
-        widget.layout().addWidget(self._gradation)
+        self.layout().addWidget(self._gradation)
 
         # legend (is the right group)
         self.legend = _VerticalLegend('', self)
-        widget.layout().addWidget(self.legend)
+        self.layout().addWidget(self.legend)
 
-        widget.layout().setContentsMargins(0, 0, 0, 0)
-        widget.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Preferred)
-        return widget
+        self.layout().setSizeConstraint(qt.QLayout.SetMinAndMaxSize)
+        self.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Expanding)
+        self.layout().setContentsMargins(0, 0, 0, 0)
 
     def setPlot(self, plot):
         """Associate a plot to the ColorBar
