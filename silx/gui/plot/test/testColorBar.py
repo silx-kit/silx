@@ -36,51 +36,51 @@ from silx.gui.plot import Plot2D
 import numpy
 
 
-class TestGradation(unittest.TestCase):
+class TestColorScale(unittest.TestCase):
     """Test that interaction with the colorScale is correct"""
     def setUp(self):
-        self.gradationWidget = ColorScale(colormap=None, parent=None)
+        self.colorScaleWidget = ColorScale(colormap=None, parent=None)
 
     def tearDown(self):
-        self.gradationWidget.deleteLater()
-        self.gradationWidget = None        
+        self.colorScaleWidget.deleteLater()
+        self.colorScaleWidget = None
 
     def testRelativePositionLinear(self):
         self.colorMapLin1 = { 'name': 'gray', 'normalization': 'linear',
                     'autoscale': False, 'vmin': 0.0, 'vmax': 1.0 }
-        self.gradationWidget.setColormap(self.colorMapLin1)
+        self.colorScaleWidget.setColormap(self.colorMapLin1)
         
         self.assertTrue(
-            self.gradationWidget.getValueFromRelativePosition(0.25) == 0.25)
+            self.colorScaleWidget.getValueFromRelativePosition(0.25) == 0.25)
         self.assertTrue(
-            self.gradationWidget.getValueFromRelativePosition(0.5) == 0.5)
+            self.colorScaleWidget.getValueFromRelativePosition(0.5) == 0.5)
         self.assertTrue(
-            self.gradationWidget.getValueFromRelativePosition(1.0) == 1.0)
+            self.colorScaleWidget.getValueFromRelativePosition(1.0) == 1.0)
 
         self.colorMapLin2 = { 'name': 'viridis', 'normalization': 'linear',
                     'autoscale': False, 'vmin': -10, 'vmax': 0 }
-        self.gradationWidget.setColormap(self.colorMapLin2)
+        self.colorScaleWidget.setColormap(self.colorMapLin2)
         
         self.assertTrue(
-            self.gradationWidget.getValueFromRelativePosition(0.25) == -7.5)
+            self.colorScaleWidget.getValueFromRelativePosition(0.25) == -7.5)
         self.assertTrue(
-            self.gradationWidget.getValueFromRelativePosition(0.5) == -5.0)
+            self.colorScaleWidget.getValueFromRelativePosition(0.5) == -5.0)
         self.assertTrue(
-            self.gradationWidget.getValueFromRelativePosition(1.0) == 0.0)
+            self.colorScaleWidget.getValueFromRelativePosition(1.0) == 0.0)
 
     def testRelativePositionLog(self):
         self.colorMapLog1 = { 'name': 'temperature', 'normalization': 'log',
                     'autoscale': False, 'vmin': 1.0, 'vmax': 100.0 }
 
-        self.gradationWidget.setColormap(self.colorMapLog1)
+        self.colorScaleWidget.setColormap(self.colorMapLog1)
 
-        val = self.gradationWidget.getValueFromRelativePosition(1.0)
+        val = self.colorScaleWidget.getValueFromRelativePosition(1.0)
         self.assertTrue(val == 100.0)
 
-        val = self.gradationWidget.getValueFromRelativePosition(0.5)
+        val = self.colorScaleWidget.getValueFromRelativePosition(0.5)
         self.assertTrue(val == 10.0)
         
-        val = self.gradationWidget.getValueFromRelativePosition(0.0)
+        val = self.colorScaleWidget.getValueFromRelativePosition(0.0)
         self.assertTrue(val == 1.0)
 
     def testNegativeLogMin(self):
@@ -88,14 +88,14 @@ class TestGradation(unittest.TestCase):
                     'autoscale': False, 'vmin': -1.0, 'vmax': 1.0 }
 
         with self.assertRaises(ValueError):
-            self.gradationWidget.setColormap(colormap)
+            self.colorScaleWidget.setColormap(colormap)
 
     def testNegativeLogMax(self):
         colormap = { 'name': 'gray', 'normalization': 'log',
                     'autoscale': False, 'vmin': 1.0, 'vmax': -1.0 }
 
         with self.assertRaises(ValueError):
-            self.gradationWidget.setColormap(colormap)
+            self.colorScaleWidget.setColormap(colormap)
         
 class TestNoAutoscale(unittest.TestCase):
     """Test that ticks and color displayed are correct in the case of a colormap
@@ -105,12 +105,12 @@ class TestNoAutoscale(unittest.TestCase):
     def setUp(self):
         self.plot = Plot2D()
         self.colorBar = ColorbarWidget(parent=None, plot=self.plot)
-        self.tickBar = self.colorBar.getColorScaleBar().tickbar
-        self.gradation = self.colorBar.getColorScaleBar().gradation
+        self.tickBar = self.colorBar.getColorScaleBar().getTickBar()
+        self.colorScale = self.colorBar.getColorScaleBar().getColorScale()
 
     def tearDown(self):
         self.tickBar = None
-        self.gradation = None
+        self.colorScale = None
         del self.colorBar
         self.plot.close()
         del self.plot
@@ -132,10 +132,10 @@ class TestNoAutoscale(unittest.TestCase):
         numpy.array_equal(self.tickBar.ticks, ticksTh)
 
         # test ColorScale
-        val = self.gradation.getValueFromRelativePosition(1.0)
+        val = self.colorScale.getValueFromRelativePosition(1.0)
         self.assertTrue(val == 100.0)
 
-        val = self.gradation.getValueFromRelativePosition(0.0)
+        val = self.colorScale.getValueFromRelativePosition(0.0)
         self.assertTrue(val == 1.0)
 
     def testLinearNormNoAutoscale(self):
@@ -153,10 +153,10 @@ class TestNoAutoscale(unittest.TestCase):
         numpy.array_equal(self.tickBar.ticks, numpy.linspace(-4, 5, 10))
 
         # test ColorScale
-        val = self.gradation.getValueFromRelativePosition(1.0)
+        val = self.colorScale.getValueFromRelativePosition(1.0)
         self.assertTrue(val == 5.0)
 
-        val = self.gradation.getValueFromRelativePosition(0.0)
+        val = self.colorScale.getValueFromRelativePosition(0.0)
         self.assertTrue(val == -4.0)
 
 class TestColorbarWidget(TestCaseQt):
@@ -229,7 +229,7 @@ class TestColorbarWidget(TestCaseQt):
 
 def suite():
     test_suite = unittest.TestSuite()
-    for ui in (TestGradation, TestNoAutoscale, TestColorbarWidget):
+    for ui in (TestColorScale, TestNoAutoscale, TestColorbarWidget):
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(ui))
 
