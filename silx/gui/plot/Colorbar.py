@@ -613,7 +613,7 @@ class TickBar(qt.QWidget):
 
         self._norm = norm
         self.displayValues = displayValues
-        self.setNTicks(nticks)
+        self.setTicksNumber(nticks)
         self.setMargin(margin)
 
         self.setLayout(qt.QVBoxLayout())
@@ -645,7 +645,7 @@ class TickBar(qt.QWidget):
         """
         self.margin = margin
 
-    def setNTicks(self, nticks):
+    def setTicksNumber(self, nticks):
         """Set the number of ticks to display.
 
         :param nticks: the number of tick to be display. Should be an

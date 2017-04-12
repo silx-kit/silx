@@ -124,7 +124,7 @@ class TestNoAutoscale(unittest.TestCase):
         self.plot.setActiveImage('toto')
 
         # test Ticks
-        self.tickBar.setNTicks(10)
+        self.tickBar.setTicksNumber(10)
         self.tickBar.computeTicks()
 
         ticksTh = numpy.linspace(1.0, 100.0, 10)
@@ -147,7 +147,7 @@ class TestNoAutoscale(unittest.TestCase):
         self.plot.setActiveImage('toto')
 
         # test Ticks
-        self.tickBar.setNTicks(10)
+        self.tickBar.setTicksNumber(10)
         self.tickBar.computeTicks()
 
         numpy.array_equal(self.tickBar.ticks, numpy.linspace(-4, 5, 10))
