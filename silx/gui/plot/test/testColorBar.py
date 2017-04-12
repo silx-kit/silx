@@ -30,8 +30,8 @@ __date__ = "11/04/2017"
 
 import unittest
 from silx.gui.test.utils import TestCaseQt
-from silx.gui.plot.Colorbar import ColorScale
-from silx.gui.plot.Colorbar import ColorbarWidget
+from silx.gui.plot.ColorBar import ColorScale
+from silx.gui.plot.ColorBar import ColorBarWidget
 from silx.gui.plot import Plot2D
 import numpy
 
@@ -104,7 +104,7 @@ class TestNoAutoscale(unittest.TestCase):
 
     def setUp(self):
         self.plot = Plot2D()
-        self.colorBar = ColorbarWidget(parent=None, plot=self.plot)
+        self.colorBar = ColorBarWidget(parent=None, plot=self.plot)
         self.tickBar = self.colorBar.getColorScaleBar().getTickBar()
         self.colorScale = self.colorBar.getColorScaleBar().getColorScale()
 
@@ -165,7 +165,7 @@ class TestColorbarWidget(TestCaseQt):
     def setUp(self):
         super(TestColorbarWidget, self).setUp()
         self.plot = Plot2D()
-        self.colorBar = ColorbarWidget(parent=None, plot=self.plot)
+        self.colorBar = ColorBarWidget(parent=None, plot=self.plot)
 
     def tearDown(self):
         del self.colorBar
@@ -175,15 +175,15 @@ class TestColorbarWidget(TestCaseQt):
         super(TestColorbarWidget, self).tearDown()
 
     def testEmptyColorBar(self):
-        colorBar = ColorbarWidget(parent=None)
+        colorBar = ColorBarWidget(parent=None)
         colorBar.show()
         self.qWaitForWindowExposed(colorBar)
 
     def testNegativeColormaps(self):
-        """test the behavior of the ColorbarWidget in the case of negative
+        """test the behavior of the ColorBarWidget in the case of negative
         values
 
-        Note : colorbar is modified by the Plot directly not ColorbarWidget
+        Note : colorbar is modified by the Plot directly not ColorBarWidget
         """
         colormapLog = { 'name': 'gray', 'normalization': 'log',
                     'autoscale': True, 'vmin': -1.0, 'vmax': 1.0 }
@@ -210,7 +210,7 @@ class TestColorbarWidget(TestCaseQt):
         self.assertTrue(self.colorBar._colormap['vmax'] == 10)
 
     def testPlotAssocation(self):
-        """Make sure the ColorbarWidget is proparly connected with the plot"""
+        """Make sure the ColorBarWidget is proparly connected with the plot"""
         colormap = { 'name': 'gray', 'normalization': 'linear',
                     'autoscale': True, 'vmin': -1.0, 'vmax': 1.0 }
 

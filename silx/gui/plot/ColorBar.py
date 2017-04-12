@@ -41,7 +41,7 @@ from silx.gui.plot import Colors
 _logger = logging.getLogger(__name__)
 
 
-class ColorbarWidget(qt.QWidget):
+class ColorBarWidget(qt.QWidget):
     """Colorbar widget displaying a colormap
 
     It uses a description of colormap as dict compatible with :class:`Plot`.
@@ -53,12 +53,12 @@ class ColorbarWidget(qt.QWidget):
     To run the following sample code, a QApplication must be initialized.
 
     >>> from silx.gui.plot import Plot2D
-    >>> from silx.gui.plot.Colorbar import ColorbarWidget
+    >>> from silx.gui.plot.ColorBar import ColorBarWidget
 
     >>> plot = Plot2D()  # Create a plot widget
     >>> plot.show()
 
-    >>> colorbar = ColorbarWidget(plot=plot, legend='Colormap')  # Associate the colorbar with it
+    >>> colorbar = ColorBarWidget(plot=plot, legend='Colormap')  # Associate the colorbar with it
     >>> colorbar.show()
 
     Initializer parameters:
@@ -69,7 +69,7 @@ class ColorbarWidget(qt.QWidget):
     """
 
     def __init__(self, parent=None, plot=None, legend=None):
-        super(ColorbarWidget, self).__init__(parent)
+        super(ColorBarWidget, self).__init__(parent)
         self._plot = None
 
         self.__buildGUI()
@@ -124,7 +124,7 @@ class ColorbarWidget(qt.QWidget):
     def setColormap(self, colormap):
         """Set the colormap to be displayed.
 
-        :param dict colormap: The colormap to apply on the ColorbarWidget
+        :param dict colormap: The colormap to apply on the ColorBarWidget
         """
         self._colormap = colormap
         if self._colormap is None:
