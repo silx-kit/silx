@@ -752,7 +752,7 @@ class _TickBar(qt.QWidget):
             raise ValueError("display type not recognized, value should be in (None, 'std', 'e'")
         self._forcedDisplayType = disType
 
-    def _getStandardFormat(self, val=0):
+    def _getStandardFormat(self):
         return "{0:.%sf}" % self._nfrac
 
     def _getFormat(self, font):
@@ -775,7 +775,7 @@ class _TickBar(qt.QWidget):
         :param QFont font: the font we want want to use durint the painting
         """
         assert(type(self._vmin) == type(self._vmax))
-        form = self._getStandardFormat(self._vmin)
+        form = self._getStandardFormat()
 
         fm = qt.QFontMetrics(font)
         width = 0
