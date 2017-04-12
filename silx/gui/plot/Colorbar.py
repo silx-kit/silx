@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Modules containint several widget associated to a colormap.
+"""Module containing several widgets associated to a colormap.
 """
 
 __authors__ = ["H. Payno", "T. Vincent"]
@@ -62,7 +62,7 @@ class ColorbarWidget(qt.QWidget):
     >>> colorbar = ColorbarWidget(plot=plot, legend='Colormap')  # Associate the colorbar with it
     >>> colorbar.show()
 
-    Initializer parameters :
+    Initializer parameters:
 
     :param parent: See :class:`QWidget`
     :param plot: PlotWidget the colorbar is attached to (optional)
@@ -118,7 +118,7 @@ class ColorbarWidget(qt.QWidget):
         """
         return self._colormap.copy()
 
-    def setColormap(self, colormap=None):
+    def setColormap(self, colormap):
         """Set the colormap to be displayed.
 
         :param dict colormap: The colormap to apply on the ColorbarWidget
