@@ -52,7 +52,6 @@ class ColorbarWidget(qt.QWidget):
 
     To run the following sample code, a QApplication must be initialized.
 
-    >>> import numpy
     >>> from silx.gui.plot import Plot2D
     >>> from silx.gui.plot.Colorbar import ColorbarWidget
 
@@ -92,6 +91,10 @@ class ColorbarWidget(qt.QWidget):
         self.layout().setSizeConstraint(qt.QLayout.SetMinAndMaxSize)
         self.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Expanding)
         self.layout().setContentsMargins(0, 0, 0, 0)
+
+    def getPlot(self):
+        """Returns the :class:`Plot` associated to this widget if any"""
+        return self._plot
 
     def setPlot(self, plot):
         """Associate a plot to the ColorBar
@@ -167,7 +170,7 @@ class ColorbarWidget(qt.QWidget):
             return
 
         # Sync with active image
-        image = self._plot.getActiveImage().getData()
+        image = self._plot.getActiveImage().getData(copy=False)
 
         # RGB(A) image, display default colormap
         if image.ndim != 2:
