@@ -179,7 +179,8 @@ class Curve(Points, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn):
                                 z=self.getZValue(),
                                 selectable=self.isSelectable(),
                                 fill=self.isFill(),
-                                alpha=self.getAlpha())
+                                alpha=self.getAlpha(),
+                                symbolsize=self.getSymbolSize())
 
     @deprecated
     def __getitem__(self, item):
