@@ -136,9 +136,7 @@ class ColorbarWidget(qt.QWidget):
                 self._colormap['vmin'] = 1.
                 self._colormap['vmax'] = 10.
 
-        self._gradation.setColormap(self._colormap)
-        self.getGradationBar().setMinMaxLabels(minVal=self._colormap['vmin'],
-                              maxVal=self._colormap['vmax'])
+        self.getGradationBar().setColormap(self._colormap)
 
     def setLegend(self, legend):
         """Set the legend displayed along the colorbar
@@ -289,11 +287,11 @@ class GradationBar(qt.QWidget):
         self.setLayout(qt.QGridLayout())
 
         # create the left side group (Gradation)
-        self.gradation = Gradation(colormap=colormap,
+        self.gradation = _Gradation(colormap=colormap,
                                    parent=self,
                                    margin=GradationBar._TEXT_MARGIN)
 
-        self.tickbar = TickBar(vmin=colormap['vmin'] if colormap else 0.0,
+        self.tickbar = _TickBar(vmin=colormap['vmin'] if colormap else 0.0,
                                vmax=colormap['vmax'] if colormap else 1.0,
                                norm=colormap['normalization'] if colormap else 'linear',
                                parent=self,
@@ -321,7 +319,7 @@ class GradationBar(qt.QWidget):
     def getTickBar(self):
         """
 
-        :return: the instanciation of the :class:`TickBar`
+        :return: the instanciation of the :class:`_TickBar`
         """
         return self.tickbar
 
@@ -343,6 +341,8 @@ class GradationBar(qt.QWidget):
             self.tickbar.update(vmin=colormap['vmin'],
                                 vmax=colormap['vmax'],
                                 norm=colormap['normalization'])
+
+            self._setMinMaxLabels(colormap['vmin'], colormap['vmax'])
 
     def setMinMaxVisible(self, val=True):
         """Change visibility of the min label and the max label
@@ -367,7 +367,7 @@ class GradationBar(qt.QWidget):
                 else:
                     self._maxLabel.setText("{0:.0e}".format(self.maxVal))
 
-    def setMinMaxLabels(self, minVal, maxVal):
+    def _setMinMaxLabels(self, minVal, maxVal):
         """Change the value of the min anx max labels to be displayed.
 
         :param minVal: the value the minimal value of the TickBar (not str)
@@ -383,7 +383,7 @@ class GradationBar(qt.QWidget):
         self._updateMinMax()
 
 
-class Gradation(qt.QWidget):
+class _Gradation(qt.QWidget):
     """Widget displaying the colormap gradation.
     Show matching value between the gradient color (from the colormap) at mouse
     position and value.
@@ -455,7 +455,7 @@ class Gradation(qt.QWidget):
 
         vmin = self.colormap['vmin']
         vmax = self.colormap['vmax']
-        steps = (vmax - vmin)/float(Gradation._NB_CONTROL_POINTS)
+        steps = (vmax - vmin)/float(_Gradation._NB_CONTROL_POINTS)
         self.ctrPoints = numpy.arange(vmin, vmax, steps)
         self.colorsCtrPts = Colors.applyColormapToData(self.ctrPoints,
                                                        name=self.colormap['name'],
@@ -488,7 +488,7 @@ class Gradation(qt.QWidget):
     def mouseMoveEvent(self, event):
         """"""
         self.setToolTip(str(self.getValueFromRelativePosition(self._getRelativePosition(event.y()))))
-        super(Gradation, self).mouseMoveEvent(event)
+        super(_Gradation, self).mouseMoveEvent(event)
 
     def _getRelativePosition(self, yPixel):
         """yPixel : pixel position into Gradation widget reference
@@ -526,7 +526,7 @@ class Gradation(qt.QWidget):
         self.margin = margin
 
 
-class TickBar(qt.QWidget):
+class _TickBar(qt.QWidget):
     """Bar grouping the ticks displayed
 
     To run the following sample code, a QApplication must be initialized.
@@ -563,9 +563,9 @@ class TickBar(qt.QWidget):
 
     def __init__(self, vmin, vmax, norm, parent=None, displayValues=True,
                  nticks=None, margin=5):
-        super(TickBar, self).__init__(parent)
+        super(_TickBar, self).__init__(parent)
         self._forcedDisplayType = None
-        self.ticksDensity = TickBar.DEFAULT_TICK_DENSITY
+        self.ticksDensity = _TickBar.DEFAULT_TICK_DENSITY
 
         self._vmin = vmin
         self._vmax = vmax
@@ -592,7 +592,7 @@ class TickBar(qt.QWidget):
         self._resetWidth()
 
     def _resetWidth(self):
-        self.width = TickBar._WIDTH_DISP_VAL if self.displayValues else TickBar._WIDTH_NO_DISP_VAL
+        self.width = _TickBar._WIDTH_DISP_VAL if self.displayValues else _TickBar._WIDTH_NO_DISP_VAL
         self.setFixedWidth(self.width)
 
     def update(self, vmin, vmax, norm):
@@ -614,7 +614,7 @@ class TickBar(qt.QWidget):
         """Set the number of ticks to display.
 
         :param nticks: the number of tick to be display. Should be an
-            unsigned int ot None. If None, let the :class:`TickBar` find the
+            unsigned int ot None. If None, let the :class:`_TickBar` find the
             optimal number of ticks from the tick density.
         """
         self._nticks = nticks
@@ -623,7 +623,7 @@ class TickBar(qt.QWidget):
         qt.QWidget.update(self)
 
     def setTicksDensity(self, density):
-        """If you let :class:`TickBar` deal with the number of ticks
+        """If you let :class:`_TickBar` deal with the number of ticks
         (nticks=None) then you can specify a ticks density to be displayed.
         """
         if density < 0.0:
@@ -648,7 +648,7 @@ class TickBar(qt.QWidget):
             raise ValueError(err)
         # update the form
         font = qt.QFont()
-        font.setPixelSize(TickBar._FONT_SIZE)
+        font.setPixelSize(_TickBar._FONT_SIZE)
 
         self.form = self._getFormat(font)
 
@@ -684,7 +684,7 @@ class TickBar(qt.QWidget):
     def paintEvent(self, event):
         painter = qt.QPainter(self)
         font = painter.font()
-        font.setPixelSize(TickBar._FONT_SIZE)
+        font.setPixelSize(_TickBar._FONT_SIZE)
         painter.setFont(font)
 
         # paint ticks
@@ -719,7 +719,7 @@ class TickBar(qt.QWidget):
         relativePos = self._getRelativePosition(val)
         height = viewportHeight * relativePos
         height += self.margin
-        lineWidth = TickBar._LINE_WIDTH
+        lineWidth = _TickBar._LINE_WIDTH
         if majorTick is False:
             lineWidth /= 2
 
@@ -741,7 +741,7 @@ class TickBar(qt.QWidget):
             - 'std' for standard, meaning only a formatting on the number of
                 digits is done
             - 'e' for scientific display
-            - None to let the TickBar guess the best display for this kind of data.
+            - None to let the _TickBar guess the best display for this kind of data.
         """
         if disType not in (None, 'std', 'e'):
             raise ValueError("display type not recognized, value should be in (None, 'std', 'e'")
@@ -779,7 +779,7 @@ class TickBar(qt.QWidget):
 
         # if the length of the string are too long we are mooving to scientific
         # display
-        if width > TickBar._WIDTH_DISP_VAL - TickBar._LINE_WIDTH:
+        if width > _TickBar._WIDTH_DISP_VAL - _TickBar._LINE_WIDTH:
             return self._getScientificForm()
         else:
             return form
