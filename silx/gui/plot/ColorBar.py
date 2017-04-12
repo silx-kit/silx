@@ -33,6 +33,7 @@ __date__ = "11/04/2017"
 import logging
 import numpy
 from ._utils import ticklayout
+from ._utils import clipColormapLogRange
 
 
 from .. import qt
@@ -132,12 +133,11 @@ class ColorBarWidget(qt.QWidget):
 
         if self._colormap['normalization'] not in ('log', 'linear'):
             raise ValueError('Wrong normalization %s' % self._colormap['normalization'])
-        if self._colormap['normalization'] == 'log':
-            if self._colormap['vmin'] < 1. or self._colormap['vmax'] <= 1.:
-                _logger.warning(
-                    'Log colormap with bound <= 0: changing bounds.')
-                self._colormap['vmin'] = 1.
-                self._colormap['vmax'] = 10.
+
+        if self._colormap['normalization'] is 'log':
+            if self._colormap['vmin'] < 1. or self._colormap['vmax'] < 1.:
+                _logger.warning('Log colormap with bound <= 1: changing bounds.')
+            clipColormapLogRange(colormap)
 
         self.getGradationBar().setColormap(self._colormap)
 
@@ -578,7 +578,7 @@ class _TickBar(qt.QWidget):
         # logScale displayer to make sure we have the same behavior everywhere
         if self._vmin < 1. or self._vmax < 1.:
             _logger.warning(
-                'Log colormap with bound <= 0: changing bounds.')
+                'Log colormap with bound <= 1: changing bounds.')
             self._vmin, self._vmax = 1., 10.
 
         self._norm = norm
