@@ -497,7 +497,7 @@ class TestPlotAddScatter(unittest.TestCase):
         self.assertEqual(active.getLegend(), 'scatter 0')
 
         # check default values
-        self.assertAlmostEqual(active.getSymbolSize(),)
+        self.assertAlmostEqual(active.getSymbolSize(), active._DEFAULT_SYMBOL_SIZE)
         self.assertEqual(active.getSymbol(), "o")
         self.assertAlmostEqual(active.getAlpha(), 1.0)
 
