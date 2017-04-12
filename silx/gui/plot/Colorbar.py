@@ -314,6 +314,11 @@ class GradationBar(qt.QWidget):
     def __init__(self, parent=None, colormap=None, displayTicksValues=True):
         super(GradationBar, self).__init__(parent)
 
+        self.minVal = None
+        """Value set to the _minLabel"""
+        self.maxVal = None
+        """Value set to the _maxLabel"""
+
         self.setLayout(qt.QGridLayout())
 
         # create the left side group (Gradation)
@@ -384,15 +389,16 @@ class GradationBar(qt.QWidget):
         """Update the min and max label if we are in the case of the
         configuration 'minMaxValueOnly'"""
         if self._minLabel is not None and self._maxLabel is not None:
-            if GradationBar._MIN_LIM_SCI_FORM <= self.minVal <= GradationBar._MAX_LIM_SCI_FORM:
-                self._minLabel.setText(str(self.minVal))
-            else:
-                self._minLabel.setText("{0:.0e}".format(self.minVal))
-
-            if GradationBar._MIN_LIM_SCI_FORM <= self.maxVal <= GradationBar._MAX_LIM_SCI_FORM:
-                self._maxLabel.setText(str(self.maxVal))
-            else:
-                self._maxLabel.setText("{0:.0e}".format(self.maxVal))
+            if self.minVal is not None:
+                if GradationBar._MIN_LIM_SCI_FORM <= self.minVal <= GradationBar._MAX_LIM_SCI_FORM:
+                    self._minLabel.setText(str(self.minVal))
+                else:
+                    self._minLabel.setText("{0:.0e}".format(self.minVal))
+            if self.maxVal is not None:
+                if GradationBar._MIN_LIM_SCI_FORM <= self.maxVal <= GradationBar._MAX_LIM_SCI_FORM:
+                    self._maxLabel.setText(str(self.maxVal))
+                else:
+                    self._maxLabel.setText("{0:.0e}".format(self.maxVal))
 
     def setMinMaxLabels(self, minVal, maxVal):
         """Change the value of the min anx max labels to be displayed.
@@ -477,6 +483,9 @@ class Gradation(qt.QWidget):
     def _computeColorPoints(self):
         """Compute the color points for the gradient
         """
+        if self.colormap is None:
+            return
+
         vmin = self.colormap['vmin']
         vmax = self.colormap['vmax']
         steps = (vmax - vmin)/float(Gradation._NB_CONTROL_POINTS)
@@ -491,6 +500,9 @@ class Gradation(qt.QWidget):
     def paintEvent(self, event):
         """"""
         qt.QWidget.paintEvent(self, event)
+        if self.colormap is None:
+            return
+
         vmin = self.colormap['vmin']
         vmax = self.colormap['vmax']
 
