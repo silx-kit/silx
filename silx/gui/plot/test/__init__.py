@@ -45,6 +45,7 @@ from . import testPlotTools
 from . import testPlotWidgetNoBackend
 from . import testPlotWidget
 from . import testPlotWindow
+from . import testPlotEvents
 from . import testProfile
 from . import testStackView
 from . import testItem
@@ -70,6 +71,7 @@ def suite():
          testPlotTools.suite(),
          testPlotWidget.suite(),
          testPlotWindow.suite(),
+         testPlotEvents.suite(),
          testProfile.suite(),
          testStackView.suite(),
          testColormap.suite(),
@@ -77,3 +79,4 @@ def suite():
          testUtilsAxis.suite(),
          testLimitConstraints.suite()])
     return test_suite
+
