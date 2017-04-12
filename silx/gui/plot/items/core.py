@@ -320,7 +320,7 @@ class SymbolMixIn(object):
     _DEFAULT_SYMBOL = ''
     """Default marker of the item"""
 
-    _DEFAULT_SYMBOL_SIZE = 1.0
+    _DEFAULT_SYMBOL_SIZE = 6.0
     """Default marker size of the item"""
 
     def __init__(self):

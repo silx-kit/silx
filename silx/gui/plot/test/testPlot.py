@@ -492,9 +492,25 @@ class TestPlotAddScatter(unittest.TestCase):
         plot.addScatter(x=(0, 1), y=(0, 1), value=(0, 1), legend='scatter 2')
         plot._setActiveItem('scatter', 'scatter 0')
 
-        # Active curve
+        # Active scatter
         active = plot._getActiveItem(kind='scatter')
         self.assertEqual(active.getLegend(), 'scatter 0')
+
+        # check default values
+        self.assertAlmostEqual(active.getSymbolSize(),)
+        self.assertEqual(active.getSymbol(), "o")
+        self.assertAlmostEqual(active.getAlpha(), 1.0)
+
+        # modify parameters
+        active.setSymbolSize(20.5)
+        active.setSymbol("d")
+        active.setAlpha(0.777)
+
+        s0 = plot.getScatter("scatter 0")
+
+        self.assertAlmostEqual(s0.getSymbolSize(), 20.5)
+        self.assertEqual(s0.getSymbol(), "d")
+        self.assertAlmostEqual(s0.getAlpha(), 0.777)
 
         scatter1 = plot._getItem(kind='scatter', legend='scatter 1')
         self.assertEqual(scatter1.getLegend(), 'scatter 1')
