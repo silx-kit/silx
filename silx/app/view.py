@@ -23,9 +23,9 @@
 # ############################################################################*/
 """Browse a data file with a GUI"""
 
-__authors__ = ["P. Knobel", "V. Valls"]
+__authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "07/04/2017"
+__date__ = "12/04/2017"
 
 import sys
 import argparse
@@ -115,12 +115,6 @@ class Viewer(qt.QMainWindow):
 
     def useAsyncLoad(self, useAsync):
         self.__asyncload = useAsync
-
-    def __fileCreated(self, filename):
-        if self.__asyncload:
-            self.__treeview.findHdf5TreeModel().insertFileAsync(filename)
-        else:
-            self.__treeview.findHdf5TreeModel().insertFile(filename)
 
     def customContextMenu(self, event):
         """Called to populate the context menu
