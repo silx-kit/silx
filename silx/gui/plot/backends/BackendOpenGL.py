@@ -903,9 +903,9 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
                  color, symbol, linewidth, linestyle,
                  yaxis,
                  xerror, yerror, z, selectable,
-                 fill, alpha):
+                 fill, alpha, symbolsize):
         for parameter in (x, y, legend, color, symbol, linewidth, linestyle,
-                          yaxis, z, selectable, fill):
+                          yaxis, z, selectable, fill, symbolsize):
             assert parameter is not None
         assert yaxis in ('left', 'right')
 
@@ -949,6 +949,7 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
                               lineWidth=linewidth,
                               marker=symbol,
                               markerColor=color,
+                              markerSize=symbolsize,
                               fillColor=color if fill else None)
         curve.info = {
             'legend': legend,
