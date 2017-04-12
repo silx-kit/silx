@@ -22,16 +22,15 @@
 
 .. currentmodule:: silx.gui.plot
 
-:mod:`ColorBar`: ColorBar API
-===========================================
+:mod:`ColorBar`: ColorBar Widget
+================================
 
 .. currentmodule:: silx.gui.plot.ColorBar
 
-The :class:`ColorbarWidget` is TODO ...
+.. automodule:: silx.gui.plot.ColorBar
 
+:class:`ColorBarWidget` class
+-----------------------------
 
-Colorbar API
----------------
-
-.. automodule:: silx.gui.plot.Colorbar
+.. autoclass:: ColorBarWidget
    :members:
