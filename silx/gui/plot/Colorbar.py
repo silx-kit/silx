@@ -134,35 +134,25 @@ class ColorbarWidget(qt.QWidget):
         """
         return self._colormap.copy()
 
-    def setColormap(self, name, normalization='linear',
-                    vmin=0., vmax=1., autoscale=True):
+    def setColormap(self, colormap=None):
         """Set the colormap to be displayed.
 
-        :param str name: The name of the colormap or None
-        :param str normalization: Normalization to use: 'linear' or 'log'
-        :param float vmin: The value to bind to the beginning of the colormap
-        :param float vmax: The value to bind to the end of the colormap
+        :param dict colormap: The colormap to apply on the ColorbarWidget
         """
-        if name is None:
-            self._colormap = None
+        self._colormap = colormap
+        if self._colormap is None:
             return
 
-        if normalization not in ('log', 'linear'):
-            raise ValueError('Wrong normalization %s' % normalization)
-        if normalization == 'log':
-            if vmin < 1. or vmax <= 1.:
+        if self._colormap['normalization'] not in ('log', 'linear'):
+            raise ValueError('Wrong normalization %s' % self._colormap['normalization'])
+        if self._colormap['normalization'] == 'log':
+            if self._colormap['vmin'] < 1. or self._colormap['vmax'] <= 1.:
                 _logger.warning(
                     'Log colormap with bound <= 0: changing bounds.')
-                vmin, vmax = 1., 10.
-
-        self._colormap = {'name': name,
-                          'normalization': normalization,
-                          'autoscale': autoscale,
-                          'vmin': vmin,
-                          'vmax': vmax}
+                self._colormap['vmin'] = 1.
+                self._colormap['vmax'] = 10.
 
         self._gradation.setColormap(self._colormap)
-
         self.getGradationBar().setMinMaxLabels(minVal=self._colormap['vmin'],
                               maxVal=self._colormap['vmax'])
 
@@ -203,21 +193,18 @@ class ColorbarWidget(qt.QWidget):
             return
 
         # data image, sync with image colormap
-        cmap = self._plot.getActiveImage().getColormap()
+        # do we need the copy here : used in the case we are changing
+        # vmin and vmax but should have already be done by the plot
+        cmap = self._plot.getActiveImage().getColormap().copy()
         if cmap['autoscale']:
             if cmap['normalization'] == 'log':
                 data = image[
                     numpy.logical_and(image > 0, numpy.isfinite(image))]
             else:
                 data = image[numpy.isfinite(image)]
-            vmin, vmax = data.min(), data.max()
-        else:  # No autoscale
-            vmin, vmax = cmap['vmin'], cmap['vmax']
+            cmap['vmin'], cmap['vmax'] = data.min(), data.max()
 
-        self.setColormap(name=cmap['name'],
-                         normalization=cmap['normalization'],
-                         vmin=vmin,
-                         vmax=vmax)
+        self.setColormap(cmap)
 
     def _defaultColormapChanged(self):
         """Handle plot default colormap changed"""
@@ -227,13 +214,7 @@ class ColorbarWidget(qt.QWidget):
 
     def _syncWithDefaultColormap(self):
         """Update colorbar according to plot default colormap"""
-        cmap = self._plot.getDefaultColormap()
-        vmin, vmax = cmap['vmin'], cmap['vmax']
-
-        self.setColormap(name=cmap['name'],
-                         normalization=cmap['normalization'],
-                         vmin=vmin,
-                         vmax=vmax)
+        self.setColormap(self._plot.getDefaultColormap())
 
     def getGradationBar(self):
         """
