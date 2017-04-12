@@ -932,7 +932,8 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
 
         if alpha < 1.:  # Apply image transparency
             if colorArray is not None and colorArray.shape[1] == 4:
-                colorArray[:, 3] *= alpha  # multiply alpha channel
+                # multiply alpha channel
+                colorArray[:, 3] = colorArray[:, 3] * alpha
             if color is not None:
                 color = color[0], color[1], color[2], color[3] * alpha
 
