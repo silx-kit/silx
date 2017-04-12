@@ -97,8 +97,8 @@ void median_filter(
     assert((kernel_dim[1] - 1)%2 == 0);
 
     // # this should be move up to avoid calculation each time
-    int halfKernel_x = (kernel_dim[0] - 1) / 2;
-    int halfKernel_y = (kernel_dim[1] - 1) / 2;
+    int halfKernel_x = (kernel_dim[1] - 1) / 2;
+    int halfKernel_y = (kernel_dim[0] - 1) / 2;
 
     for(int pixel_x=x_pixel_range_min; pixel_x <= x_pixel_range_max; pixel_x ++ ){
         for(int pixel_y=y_pixel_range_min; pixel_y <= y_pixel_range_max; pixel_y ++ ){

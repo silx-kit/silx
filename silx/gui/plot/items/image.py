@@ -22,7 +22,8 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides the :class:`Image` item of the :class:`Plot`.
+"""This module provides the :class:`ImageData` and :class:`ImageRgba` items
+of the :class:`Plot`.
 """
 
 __authors__ = ["T. Vincent"]

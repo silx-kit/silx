@@ -784,7 +784,6 @@ class StackView(qt.QMainWindow):
         if isinstance(activeImage, items.ColormapMixIn):
             activeImage.setColormap(self.getColormap())
 
-
     def isKeepDataAspectRatio(self):
         """Returns whether the plot is keeping data aspect ratio or not."""
         return self._plot.isKeepDataAspectRatio()
