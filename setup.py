@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "27/03/2017"
+__date__ = "03/04/2017"
 __license__ = "MIT"
 
 
@@ -39,6 +39,7 @@ import os
 import platform
 import shutil
 import logging
+import glob
 
 logging.basicConfig(level=logging.INFO)
 
@@ -180,6 +181,38 @@ if sphinx is None:
                 'Sphinx is required to build or test the documentation.\n'
                 'Please install Sphinx (http://www.sphinx-doc.org).')
 
+
+class BuildMan(Command):
+    """Command to build man pages"""
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        build = self.get_finalized_command('build')
+        path = sys.path
+        path.insert(0, os.path.abspath(build.build_lib))
+
+        env = dict((str(k), str(v)) for k, v in os.environ.items())
+        env["PYTHONPATH"] = os.pathsep.join(path)
+        env["PYTHON"] = sys.executable
+
+        import subprocess
+
+        status = subprocess.call(["mkdir", "-p", "build/man"])
+        if status != 0:
+            raise RuntimeError("Fail to create build/man directory")
+
+        p = subprocess.Popen(["help2man", "scripts/silx", "-o", "build/man/silx.1"], env=env)
+        status = p.wait()
+        if status != 0:
+            raise RuntimeError("Fail to generate man documentation")
+
+
 if sphinx is not None:
     class BuildDocCommand(BuildDoc):
         """Command to build documentation using sphinx.
@@ -228,7 +261,6 @@ if sphinx is not None:
 
         http://www.sphinx-doc.org/en/1.4.8/ext/doctest.html
         """
-
         def run(self):
             # make sure the python path is pointing to the newly built
             # code so that the documentation is built on this and not a
@@ -244,6 +276,7 @@ if sphinx is not None:
                 self.mkpath(self.builder_target_dir)
                 BuildDoc.run(self)
             sys.path.pop(0)
+
 else:
     TestDocCommand = SphinxExpectedCommand
 
@@ -426,15 +459,39 @@ def fake_cythonize(extensions):
 class CleanCommand(Clean):
     description = "Remove build artifacts from the source tree"
 
+    def expand(self, path_list):
+        """Expand a list of path using glob magic.
+
+        :param list[str] path_list: A list of path which may contains magic
+        :rtype: list[str]
+        :returns: A list of path without magic
+        """
+        path_list2 = []
+        for path in path_list:
+            if glob.has_magic(path):
+                iterator = glob.iglob(path)
+                path_list2.extend(iterator)
+            else:
+                path_list2.append(path)
+        return path_list2
+
     def run(self):
         Clean.run(self)
-        # really remove the build directory
+        # really remove the directories
+        # and not only if they are empty
+        to_remove = [self.build_base]
+        to_remove = self.expand(to_remove)
+
         if not self.dry_run:
-            try:
-                shutil.rmtree(self.build_base)
-                logger.info("removing '%s'", self.build_base)
-            except OSError:
-                pass
+            for path in to_remove:
+                try:
+                    if os.path.isdir(path):
+                        shutil.rmtree(path)
+                    else:
+                        os.remove(path)
+                    logger.info("removing '%s'", path)
+                except OSError:
+                    pass
 
 ################################################################################
 # Debian source tree
@@ -446,6 +503,9 @@ class sdist_debian(sdist):
     Tailor made sdist for debian
     * remove auto-generated doc
     * remove cython generated .c files
+    * remove cython generated .c files
+    * remove .bat files
+    * include .l man files
     """
     @staticmethod
     def get_debian_name():
@@ -469,6 +529,9 @@ class sdist_debian(sdist):
                     self.filelist.exclude_pattern(pattern=base_file + ".c")
                     self.filelist.exclude_pattern(pattern=base_file + ".cpp")
                     self.filelist.exclude_pattern(pattern=base_file + ".html")
+
+        # ignore windows files
+        self.filelist.exclude_pattern(pattern="scripts/*.bat")
 
     def make_distribution(self):
         self.prune_file_list()
@@ -514,12 +577,15 @@ def setup_package():
             'opencl/sift/*.cl']
     }
 
+    script_files = glob.glob("scripts/*")
+
     cmdclass = dict(
         build_py=build_py,
         test=PyTest,
         build_doc=BuildDocCommand,
         test_doc=TestDocCommand,
         build_ext=BuildExtFlags,
+        build_man=BuildMan,
         clean=CleanCommand,
         debian_src=sdist_debian)
 
@@ -586,6 +652,7 @@ def setup_package():
                         cmdclass=cmdclass,
                         package_data=package_data,
                         zip_safe=False,
+                        scripts=script_files,
                         )
 
     setup(**setup_kwargs)

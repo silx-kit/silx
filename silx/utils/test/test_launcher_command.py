@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,32 +22,26 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+"""Tests for html module"""
 
-__authors__ = ["T. Vincent"]
+__authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "30/03/2017"
-
-from numpy.distutils.misc_util import Configuration
+__date__ = "03/04/2017"
 
 
-def configuration(parent_package='', top_path=None):
-    config = Configuration('silx', parent_package, top_path)
-    config.add_subpackage('gui')
-    config.add_subpackage('io')
-    config.add_subpackage('math')
-    config.add_subpackage('image')
-    config.add_subpackage('opencl')
-    config.add_subpackage('resources')
-    config.add_subpackage('sx')
-    config.add_subpackage('test')
-    config.add_subpackage('third_party')
-    config.add_subpackage('utils')
-    config.add_subpackage('app')
-
-    return config
+import sys
 
 
-if __name__ == "__main__":
-    from numpy.distutils.core import setup
+def main(argv):
 
-    setup(configuration=configuration)
+    if "--help" in argv:
+        # Common behaviour of ArgumentParser
+        sys.exit(0)
+
+    if "exception" in argv:
+        raise RuntimeError("Simulated exception")
+
+    if "error" in argv:
+        return -1
+
+    return 0

@@ -68,13 +68,15 @@ Homepage: https://github.com/silx-kit/silx
 X-Python-Version: >= 2.7
 X-Python3-Version: >= 3.4
 
-#Package: silx
-#Architecture: all
-#Depends: ${misc:Depends},
-#         ${python:Depends},
-#         ${shlibs:Depends},
-#         python3-silx (>= ${source:Version})
-#Description: Toolbox for X-Ray data analysis - Executables
+Package: silx
+Architecture: all
+Depends: ${misc:Depends},
+         ${python:Depends},
+         ${shlibs:Depends},
+         python-silx (>= ${source:Version})
+Description: Toolbox for X-Ray data analysis - Executables
+ .
+ This uses the Python 2 version of the package.
 
 Package: python-silx
 Architecture: any

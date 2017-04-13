@@ -1,7 +1,8 @@
+#!/usr/bin/env python
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,32 +23,38 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+"""This module describe silx applications which are available  through
+the silx launcher.
 
-__authors__ = ["T. Vincent"]
+Your environment should provide a command `silx`. You can reach help with
+`silx --help`, and check the version with `silx --version`.
+"""
+
+__authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "30/03/2017"
-
-from numpy.distutils.misc_util import Configuration
+__date__ = "04/04/2017"
 
 
-def configuration(parent_package='', top_path=None):
-    config = Configuration('silx', parent_package, top_path)
-    config.add_subpackage('gui')
-    config.add_subpackage('io')
-    config.add_subpackage('math')
-    config.add_subpackage('image')
-    config.add_subpackage('opencl')
-    config.add_subpackage('resources')
-    config.add_subpackage('sx')
-    config.add_subpackage('test')
-    config.add_subpackage('third_party')
-    config.add_subpackage('utils')
-    config.add_subpackage('app')
+import logging
+logging.basicConfig()
 
-    return config
+import sys
+from silx.utils.launcher import Launcher
+import silx._version
 
 
-if __name__ == "__main__":
-    from numpy.distutils.core import setup
+def main():
+    """Main function of the launcher
 
-    setup(configuration=configuration)
+    :rtype: int
+    :returns: The execution status
+    """
+    launcher = Launcher(prog="silx", version=silx._version.version)
+    launcher.add_command("view",
+                         module_name="silx.app.view",
+                         description="Browse a data file with a GUI")
+    status = launcher.execute(sys.argv)
+    return status
+
+status = main()
+sys.exit(status)
