@@ -30,6 +30,7 @@ __date__ = "18/02/2016"
 import unittest
 
 from .._utils.test import suite as testUtilsSuite
+from .testColorBar import suite as testColorBarSuite
 from .testColormapDialog import suite as testColormapDialogSuite
 from .testColors import suite as testColorsSuite
 from .testCurvesROIWidget import suite as testCurvesROIWidgetSuite
@@ -50,6 +51,7 @@ def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTests(
         [testUtilsSuite(),
+         testColorBarSuite(),
          testColorsSuite(),
          testColormapDialogSuite(),
          testCurvesROIWidgetSuite(),

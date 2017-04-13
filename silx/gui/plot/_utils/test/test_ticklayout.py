@@ -56,9 +56,9 @@ class TestTickLayout(ParametricTestCase):
     def testNiceNumbersLog(self):
         """Minimalistic tests of :func:`niceNumbersForLog10`"""
         tests = {  # (log10(min), log10(max): ref_ticks
-            (0., 3.): (0, 3, 1),
-            (-3., 3): (-3, 3, 1),
-            (-32., 0.): (-36, 0, 6)
+            (0., 3.): (0, 3, 1, 0),
+            (-3., 3): (-3, 3, 1, 0),
+            (-32., 0.): (-36, 0, 6, 0)
         }
 
         for (vmin, vmax), ref_ticks in tests.items():

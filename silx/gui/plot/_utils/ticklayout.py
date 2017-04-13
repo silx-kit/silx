@@ -175,4 +175,49 @@ def niceNumbersForLog10(minLog, maxLog, nTicks=5):
         graphminlog = math.floor(graphminlog / spacing) * spacing
         graphmaxlog = math.ceil(graphmaxlog / spacing) * spacing
 
-    return int(graphminlog), int(graphmaxlog), int(spacing)
+
+    nfrac = numberOfDigits(spacing)
+
+    return int(graphminlog), int(graphmaxlog), int(spacing), nfrac
+
+
+def niceNumbersAdaptativeForLog10(vMin, vMax, axisLength, tickDensity):
+    """Returns tick positions using :func:`niceNumbers` and a
+    density of ticks.
+
+    axisLength and tickDensity are based on the same unit (e.g., pixel).
+
+    :param float vMin: The min value on the axis
+    :param float vMax: The max value on the axis
+    :param float axisLength: The length of the axis.
+    :param float tickDensity: The density of ticks along the axis.
+    :returns: min, max, increment value of tick positions and
+              number of fractional digit to show
+    :rtype: tuple
+    """
+    # At least 2 ticks
+    nticks = max(2, int(round(tickDensity * axisLength)))
+    tickmin, tickmax, step, nfrac = niceNumbersForLog10(vMin, vMax, nticks)
+
+    return tickmin, tickmax, step, nfrac
+
+def computeLogSubTicks(ticks, lowBound, highBound):
+    """Return the sub ticks for the log scale for all given ticks if subtick
+    is in [lowBound, highBound]
+
+    :param ticks: log10 of the ticks
+    :param lowBound: the lower boundary of ticks
+    :param highBound: the higher boundary of ticks
+    :return: all the sub ticks contained in ticks (log10)
+    """
+    if len(ticks) < 1:
+        return []
+
+    res = []
+    for logPos in ticks:
+        dataOrigPos = logPos
+        for index in range(2, 10):
+            dataPos = dataOrigPos * index
+            if lowBound <= dataPos <= highBound:
+                res.append(dataPos)
+    return res

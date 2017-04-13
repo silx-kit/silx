@@ -47,3 +47,13 @@ def clamp(value, min_=0., max_=1.):
         return max_
     else:
         return value
+
+def clipColormapLogRange(colormap):
+    """Clip colormap vmin and vmax to 1, 10 if normalization is 'log' and vmin
+    or vmax <1
+
+    :param dict colormap: the colormap for which we want to clip vmin and vmax
+    """
+    if colormap['normalization'] is 'log':
+        if colormap['vmin'] < 1. or colormap['vmax'] < 1.:
+            colormap['vmin'], colormap['vmax'] = 1., 10.

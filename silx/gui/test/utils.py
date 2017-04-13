@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "15/12/2016"
+__date__ = "11/04/2017"
 
 
 import gc
@@ -34,6 +34,7 @@ import logging
 import unittest
 import time
 import functools
+import sys
 
 logging.basicConfig()
 _logger = logging.getLogger(__name__)
@@ -118,8 +119,19 @@ class TestCaseQt(unittest.TestCase):
     """
 
     @classmethod
+    def exceptionHandler(cls, exceptionClass, exception, stack):
+        import traceback
+        message = (''.join(traceback.format_tb(stack)))
+        template = 'Traceback (most recent call last):\n{2}{0}: {1}'
+        message = template.format(exceptionClass.__name__, exception, message)
+        cls._exceptions.append(message)
+
+    @classmethod
     def setUpClass(cls):
         """Makes sure Qt is inited"""
+        cls._oldExceptionHook = sys.excepthook
+        sys.excepthook = cls.exceptionHandler
+
         global _qapp
         if _qapp is None:
             # Makes sure a QApplication exists and do it once for all
@@ -132,10 +144,15 @@ class TestCaseQt(unittest.TestCase):
             _dummyWidget.close()
             _qapp.processEvents()
 
+    @classmethod
+    def tearDownClass(cls):
+        sys.excepthook = cls._oldExceptionHook
+
     def setUp(self):
         """Get the list of existing widgets."""
         self.allowedLeakingWidgets = 0
         self.__previousWidgets = self.qapp.allWidgets()
+        self.__class__._exceptions = []
 
     def _currentTestSucceeded(self):
         if hasattr(self, '_outcome'):
@@ -174,6 +191,10 @@ class TestCaseQt(unittest.TestCase):
                 "Test ended with widgets alive: %s" % str(widgets))
 
     def tearDown(self):
+        if len(self.__class__._exceptions) > 0:
+            messages = "\n".join(self.__class__._exceptions)
+            raise AssertionError("Exception occured in Qt thread:\n" + messages)
+
         if self._currentTestSucceeded():
             self._checkForUnreleasedWidgets()
 
