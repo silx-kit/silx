@@ -79,10 +79,10 @@ class ColorbarWidget(qt.QWidget):
     def __buildGUI(self):
         self.setLayout(qt.QHBoxLayout())
 
-        # create gradation widget
-        self._gradation = GradationBar(parent=self,
-                                       colormap=None)
-        self.layout().addWidget(self._gradation)
+        # create color scale widget
+        self._colorScale = ColorScaleBar(parent=self,
+                                         colormap=None)
+        self.layout().addWidget(self._colorScale)
 
         # legend (is the right group)
         self.legend = _VerticalLegend('', self)
@@ -201,12 +201,12 @@ class ColorbarWidget(qt.QWidget):
         """Update colorbar according to plot default colormap"""
         self.setColormap(self._plot.getDefaultColormap())
 
-    def getGradationBar(self):
+    def getColorScaleBar(self):
         """
 
-        :return: return the :class:`GradationBar` used to display Gradation
+        :return: return the :class:`ColorScaleBar` used to display ColorScale
             and ticks"""
-        return self._gradation
+        return self._colorScale
 
 
 class _VerticalLegend(qt.QLabel):
@@ -239,10 +239,11 @@ class _VerticalLegend(qt.QLabel):
         self.setMinimumHeight(preferedHeight)
 
 
-class GradationBar(qt.QWidget):
-    """This class is making the composition of a :class:`Gradation` and a
+class ColorScaleBar(qt.QWidget):
+    """This class is making the composition of a :class:`ColorScale` and a
     :class:`TickBar`.
-    It is the simplest widget displaying ficks and colormap gradient.
+
+    It is the simplest widget displaying ticks and colormap gradient.
 
     .. image:: img/gradationbar.png
         :width: 150px
@@ -256,9 +257,9 @@ class GradationBar(qt.QWidget):
               'vmax':100000,
               'autoscale':False
               }
-    >>> gradation = GradationBar(parent=None,
-                         colormap=colormap )
-    >>> gradation.show()
+    >>> colorscale = ColorScaleBar(parent=None,
+                                   colormap=colormap )
+    >>> colorscale.show()
 
     Initializer parameters :
 
@@ -269,7 +270,7 @@ class GradationBar(qt.QWidget):
 
     _TEXT_MARGIN = 5
     """The tick bar need a margin to display all labels at the correct place.
-    So the Gradation should have the same margin in order for both to fit"""
+    So the ColorScale should have the same margin in order for both to fit"""
 
     _MIN_LIM_SCI_FORM = -1000
     """Used for the min and max label to know when we should display it under
@@ -280,7 +281,7 @@ class GradationBar(qt.QWidget):
     the scientific form"""
 
     def __init__(self, parent=None, colormap=None, displayTicksValues=True):
-        super(GradationBar, self).__init__(parent)
+        super(ColorScaleBar, self).__init__(parent)
 
         self.minVal = None
         """Value set to the _minLabel"""
@@ -289,20 +290,20 @@ class GradationBar(qt.QWidget):
 
         self.setLayout(qt.QGridLayout())
 
-        # create the left side group (Gradation)
-        self.gradation = _Gradation(colormap=colormap,
-                                   parent=self,
-                                   margin=GradationBar._TEXT_MARGIN)
+        # create the left side group (ColorScale)
+        self.colorScale = _ColorScale(colormap=colormap,
+                                     parent=self,
+                                     margin=ColorScaleBar._TEXT_MARGIN)
 
         self.tickbar = _TickBar(vmin=colormap['vmin'] if colormap else 0.0,
                                vmax=colormap['vmax'] if colormap else 1.0,
                                norm=colormap['normalization'] if colormap else 'linear',
                                parent=self,
                                displayValues=displayTicksValues,
-                               margin=GradationBar._TEXT_MARGIN)
+                               margin=ColorScaleBar._TEXT_MARGIN)
 
         self.layout().addWidget(self.tickbar, 1, 0)
-        self.layout().addWidget(self.gradation, 1, 1)
+        self.layout().addWidget(self.colorScale, 1, 1)
 
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.layout().setSpacing(0)
@@ -326,12 +327,12 @@ class GradationBar(qt.QWidget):
         """
         return self.tickbar
 
-    def getGradation(self):
+    def getColorScale(self):
         """
 
-        :return: the instanciation of the :class:`Gradation`
+        :return: the instanciation of the :class:`_ColorScale`
         """
-        return self.gradation
+        return self.colorScale
 
     def setColormap(self, colormap):
         """Set the new colormap to be displayed
@@ -339,7 +340,7 @@ class GradationBar(qt.QWidget):
         :param dict colormap: the colormap to set
         """
         if colormap is not None:
-            self.gradation.setColormap(colormap)
+            self.colorScale.setColormap(colormap)
 
             self.tickbar.update(vmin=colormap['vmin'],
                                 vmax=colormap['vmax'],
@@ -360,21 +361,21 @@ class GradationBar(qt.QWidget):
         configuration 'minMaxValueOnly'"""
         if self._minLabel is not None and self._maxLabel is not None:
             if self.minVal is not None:
-                if GradationBar._MIN_LIM_SCI_FORM <= self.minVal <= GradationBar._MAX_LIM_SCI_FORM:
+                if ColorScaleBar._MIN_LIM_SCI_FORM <= self.minVal <= ColorScaleBar._MAX_LIM_SCI_FORM:
                     self._minLabel.setText(str(self.minVal))
                 else:
                     self._minLabel.setText("{0:.0e}".format(self.minVal))
             if self.maxVal is not None:
-                if GradationBar._MIN_LIM_SCI_FORM <= self.maxVal <= GradationBar._MAX_LIM_SCI_FORM:
+                if ColorScaleBar._MIN_LIM_SCI_FORM <= self.maxVal <= ColorScaleBar._MAX_LIM_SCI_FORM:
                     self._maxLabel.setText(str(self.maxVal))
                 else:
                     self._maxLabel.setText("{0:.0e}".format(self.maxVal))
 
     def _setMinMaxLabels(self, minVal, maxVal):
-        """Change the value of the min anx max labels to be displayed.
+        """Change the value of the min and max labels to be displayed.
 
-        :param minVal: the value the minimal value of the TickBar (not str)
-        :param minVal: the value the maximal value of the TickBar (not str)
+        :param minVal: the minimal value of the TickBar (not str)
+        :param minVal: the maximal value of the TickBar (not str)
         """
         # bad hack to try to display has much information as possible
         self.minVal = minVal
@@ -386,8 +387,8 @@ class GradationBar(qt.QWidget):
         self._updateMinMax()
 
 
-class _Gradation(qt.QWidget):
-    """Widget displaying the colormap gradation.
+class _ColorScale(qt.QWidget):
+    """Widget displaying the colormap colorScale.
     Show matching value between the gradient color (from the colormap) at mouse
     position and value.
 
@@ -404,9 +405,9 @@ class _Gradation(qt.QWidget):
               'vmax':100000,
               'autoscale':False
               }
-    >>> gradation = GradationBar(parent=None,
+    >>> colorscale = ColorScaleBar(parent=None,
                          colormap=colormap )
-    >>> gradation.show()
+    >>> colorscale.show()
 
     Initializer parameters :
 
@@ -458,7 +459,7 @@ class _Gradation(qt.QWidget):
 
         vmin = self.colormap['vmin']
         vmax = self.colormap['vmax']
-        steps = (vmax - vmin)/float(_Gradation._NB_CONTROL_POINTS)
+        steps = (vmax - vmin)/float(_ColorScale._NB_CONTROL_POINTS)
         self.ctrPoints = numpy.arange(vmin, vmax, steps)
         self.colorsCtrPts = Colors.applyColormapToData(self.ctrPoints,
                                                        name=self.colormap['name'],
@@ -491,17 +492,17 @@ class _Gradation(qt.QWidget):
     def mouseMoveEvent(self, event):
         """"""
         self.setToolTip(str(self.getValueFromRelativePosition(self._getRelativePosition(event.y()))))
-        super(_Gradation, self).mouseMoveEvent(event)
+        super(_ColorScale, self).mouseMoveEvent(event)
 
     def _getRelativePosition(self, yPixel):
-        """yPixel : pixel position into Gradation widget reference
+        """yPixel : pixel position into _ColorScale widget reference
         """
         # widgets are bottom-top referencial but we display in top-bottom referential
         return 1 - float(yPixel)/float(self.height() - 2*self.margin)
 
     def getValueFromRelativePosition(self, value):
         """Return the value in the colorMap from a relative position in the
-        GradationBar (y)
+        ColorScaleBar (y)
 
         :param value: float value in [0, 1]
         :return: the value in [colormap['vmin'], colormap['vmax']]
@@ -516,7 +517,7 @@ class _Gradation(qt.QWidget):
             rpos = (numpy.log10(vmax) - numpy.log10(vmin)) * value + numpy.log10(vmin)
             return numpy.power(10., rpos)
         else:
-            err = "normalization type (%s) is not managed by the Gradation Widget" % self.colormap['normalization']
+            err = "normalization type (%s) is not managed by the _ColorScale Widget" % self.colormap['normalization']
             raise ValueError(err)
 
     def setMargin(self, margin):
@@ -606,7 +607,7 @@ class _TickBar(qt.QWidget):
         qt.QWidget.update(self)
 
     def setMargin(self, margin):
-        """Define the margin to fit with a Gradation object.
+        """Define the margin to fit with a ColorScale object.
         This is needed since we can only paint on the viewport of the widget
 
         :param int margin: the margin to apply on the top and bottom.

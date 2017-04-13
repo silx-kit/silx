@@ -30,16 +30,16 @@ __date__ = "11/04/2017"
 
 import unittest
 from silx.gui.test.utils import TestCaseQt
-from silx.gui.plot.Colorbar import Gradation
+from silx.gui.plot.Colorbar import ColorScale
 from silx.gui.plot.Colorbar import ColorbarWidget
 from silx.gui.plot import Plot2D
 import numpy
 
 
 class TestGradation(unittest.TestCase):
-    """Test that interaction with the gradation is correct"""
+    """Test that interaction with the colorScale is correct"""
     def setUp(self):
-        self.gradationWidget = Gradation(colormap=None, parent=None)
+        self.gradationWidget = ColorScale(colormap=None, parent=None)
 
     def tearDown(self):
         self.gradationWidget.deleteLater()
@@ -105,8 +105,8 @@ class TestNoAutoscale(unittest.TestCase):
     def setUp(self):
         self.plot = Plot2D()
         self.colorBar = ColorbarWidget(parent=None, plot=self.plot)
-        self.tickBar = self.colorBar.getGradationBar().tickbar
-        self.gradation = self.colorBar.getGradationBar().gradation
+        self.tickBar = self.colorBar.getColorScaleBar().tickbar
+        self.gradation = self.colorBar.getColorScaleBar().gradation
 
     def tearDown(self):
         self.tickBar = None
@@ -131,7 +131,7 @@ class TestNoAutoscale(unittest.TestCase):
         ticksTh = 10**ticksTh
         numpy.array_equal(self.tickBar.ticks, ticksTh)
 
-        # test Gradation
+        # test ColorScale
         val = self.gradation.getValueFromRelativePosition(1.0)
         self.assertTrue(val == 100.0)
 
@@ -152,7 +152,7 @@ class TestNoAutoscale(unittest.TestCase):
 
         numpy.array_equal(self.tickBar.ticks, numpy.linspace(-4, 5, 10))
 
-        # test Gradation
+        # test ColorScale
         val = self.gradation.getValueFromRelativePosition(1.0)
         self.assertTrue(val == 5.0)
 
@@ -160,7 +160,7 @@ class TestNoAutoscale(unittest.TestCase):
         self.assertTrue(val == -4.0)
 
 class TestColorbarWidget(TestCaseQt):
-    """Test interaction with the GradationBar"""
+    """Test interaction with the ColorScaleBar"""
 
     def setUp(self):
         super(TestColorbarWidget, self).setUp()
