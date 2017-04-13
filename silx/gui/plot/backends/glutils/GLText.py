@@ -80,6 +80,10 @@ class Text2D(object):
     """
     }
 
+    _TEX_COORDS = numpy.array(((0., 0.), (1., 0.), (0., 1.), (1., 1.)),
+                              dtype=numpy.float32).ravel()
+
+
     _program = Program(_SHADERS['vertex'],
                        _SHADERS['fragment'],
                        attrib0='position')
@@ -166,10 +170,10 @@ class Text2D(object):
             (xOrig + width, yOrig + height)), dtype=numpy.float32)
 
         cos, sin = numpy.cos(self._rotate), numpy.sin(self._rotate)
-        vertices = numpy.transpose(numpy.array((
+        vertices = numpy.ascontiguousarray(numpy.transpose(numpy.array((
             cos * vertices[:, 0] - sin * vertices[:, 1],
             sin * vertices[:, 0] + cos * vertices[:, 1]),
-            dtype=numpy.float32))
+            dtype=numpy.float32)))
 
         return vertices
 
@@ -206,9 +210,6 @@ class Text2D(object):
                                  0,
                                  vertices)
 
-        texCoords = numpy.array(((0., 0.), (1., 0.), (0., 1.), (1., 1.)),
-                                dtype=numpy.float32)
-
         texAttrib = prog.attributes['texCoords']
         gl.glEnableVertexAttribArray(texAttrib)
         gl.glVertexAttribPointer(texAttrib,
@@ -216,7 +217,7 @@ class Text2D(object):
                                  gl.GL_FLOAT,
                                  gl.GL_FALSE,
                                  0,
-                                 texCoords.ravel())
+                                 self._TEX_COORDS)
 
         with texture:
             gl.glDrawArrays(gl.GL_TRIANGLE_STRIP, 0, 4)
