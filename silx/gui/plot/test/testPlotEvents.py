@@ -26,12 +26,28 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "12/04/2017"
+__date__ = "13/04/2017"
 
 
 import unittest
 import numpy
 from .. import PlotEvents
+
+
+class TestEvents(unittest.TestCase):
+    """Test object events"""
+
+    def testLimitsChangedEvent(self):
+        sourceObj = "a"
+        xRange = "b"
+        yRange = "c"
+        y2Range = "d"
+        event = PlotEvents.LimitsChangedEvent(
+            sourceObj, xRange, yRange, y2Range)
+        self.assertEquals(event.getType(), PlotEvents.Type.LimitChanged)
+        self.assertEquals(event.getXRange(), xRange)
+        self.assertEquals(event.getYRange(), yRange)
+        self.assertEquals(event.getY2Range(), y2Range)
 
 
 class TestDictionaryLikeGetter(unittest.TestCase):
@@ -157,7 +173,7 @@ class TestDictionaryLikeGetter(unittest.TestCase):
         xRange = "b"
         yRange = "c"
         y2Range = "d"
-        event = PlotEvents.prepareLimitsChangedSignal(
+        event = PlotEvents.LimitsChangedEvent(
             sourceObj, xRange, yRange, y2Range)
         self.assertEquals(event['event'], "limitsChanged")
         self.assertEquals(event['source'], id(sourceObj))
@@ -195,6 +211,7 @@ class TestDictionaryLikeGetter(unittest.TestCase):
 def suite():
     test_suite = unittest.TestSuite()
     loader = unittest.defaultTestLoader.loadTestsFromTestCase
+    test_suite.addTest(loader(TestEvents))
     test_suite.addTest(loader(TestDictionaryLikeGetter))
     return test_suite
 

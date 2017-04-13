@@ -2018,9 +2018,9 @@ class PlotWidget(qt.QMainWindow):
             ranges = xRange, yRange, y2Range
             for axis, limits in zip(axes, ranges):
                 axis.sigLimitsChanged.emit(*limits)
-        event = PlotEvents.prepareLimitsChangedSignal(
+        event = PlotEvents.LimitsChangedEvent(
             id(self.getWidgetHandle()), xRange, yRange, y2Range)
-        self.notify(**event)
+        self.notify(event)
 
     def getLimitsHistory(self):
         """Returns the object handling the history of limits of the plot"""
@@ -2458,34 +2458,37 @@ class PlotWidget(qt.QMainWindow):
         :param str event: The type of event
         :param kwargs: The information of the event.
         """
-        eventDict = kwargs.copy()
-        eventDict['event'] = event
-        self.sigPlotSignal.emit(eventDict)
+        if isinstance(event, PlotEvents.PlotEvent):
+            assert(kwargs == {})
+            eventName = event['event']
+        else:
+            eventName = event
+            event = kwargs.copy()
+            event['event'] = eventName
+        self.sigPlotSignal.emit(event)
 
-        if event == 'setKeepDataAspectRatio':
+        if eventName == 'setKeepDataAspectRatio':
             self.sigSetKeepDataAspectRatio.emit(kwargs['state'])
-        elif event == 'setGraphGrid':
+        elif eventName == 'setGraphGrid':
             self.sigSetGraphGrid.emit(kwargs['which'])
-        elif event == 'setGraphCursor':
+        elif eventName == 'setGraphCursor':
             self.sigSetGraphCursor.emit(kwargs['state'])
-        elif event == 'contentChanged':
+        elif eventName == 'contentChanged':
             self.sigContentChanged.emit(
                 kwargs['action'], kwargs['kind'], kwargs['legend'])
-        elif event == 'activeCurveChanged':
+        elif eventName == 'activeCurveChanged':
             self.sigActiveCurveChanged.emit(
                 kwargs['previous'], kwargs['legend'])
-        elif event == 'activeImageChanged':
+        elif eventName == 'activeImageChanged':
             self.sigActiveImageChanged.emit(
                 kwargs['previous'], kwargs['legend'])
-        elif event == 'activeScatterChanged':
+        elif eventName == 'activeScatterChanged':
             self.sigActiveScatterChanged.emit(
                 kwargs['previous'], kwargs['legend'])
-        elif event == 'interactiveModeChanged':
+        elif eventName == 'interactiveModeChanged':
             self.sigInteractiveModeChanged.emit(kwargs['source'])
 
-        eventDict = kwargs.copy()
-        eventDict['event'] = event
-        self._callback(eventDict)
+        self._callback(event)
 
     def setCallback(self, callbackFunction=None):
         """Attach a listener to the backend.
@@ -2502,7 +2505,7 @@ class PlotWidget(qt.QMainWindow):
             callbackFunction = self.graphCallback
         self._callback = callbackFunction
 
-    def graphCallback(self, ddict=None):
+    def graphCallback(self, event=None):
         """This callback is going to receive all the events from the plot.
 
         Those events will consist on a dictionary and among the dictionary
@@ -2510,13 +2513,12 @@ class PlotWidget(qt.QMainWindow):
         This default implementation only handles setting the active curve.
         """
 
-        if ddict is None:
-            ddict = {}
-        _logger.debug("Received dict keys = %s", str(ddict.keys()))
-        _logger.debug(str(ddict))
-        if ddict['event'] in ["legendClicked", "curveClicked"]:
-            if ddict['button'] == "left":
-                self.setActiveCurve(ddict['label'])
+        if event is None:
+            event = {}
+        _logger.debug("Received event %s", str(event))
+        if event['event'] in ["legendClicked", "curveClicked"]:
+            if event['button'] == "left":
+                self.setActiveCurve(event['label'])
 
     def saveGraph(self, filename, fileFormat=None, dpi=None, **kw):
         """Save a snapshot of the plot.
