@@ -85,7 +85,7 @@ class NexusSortFilterProxyModel(qt.QSortFilterProxyModel):
         return self.nameLessThan(left, right)
 
     def __isNXentry(self, node):
-        """Returns try if the node is an NXentry"""
+        """Returns true if the node is an NXentry"""
         if not issubclass(node.h5pyClass, h5py.Group):
             return False
         nxClass = node.obj.attrs.get("NX_class", None)
