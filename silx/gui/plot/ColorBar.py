@@ -240,8 +240,8 @@ class _VerticalLegend(qt.QLabel):
 
 
 class ColorScaleBar(qt.QWidget):
-    """This class is making the composition of a :class:`ColorScale` and a
-    :class:`TickBar`.
+    """This class is making the composition of a :class:`_ColorScale` and a
+    :class:`_TickBar`.
 
     It is the simplest widget displaying ticks and colormap gradient.
 
@@ -608,7 +608,7 @@ class _TickBar(qt.QWidget):
         qt.QWidget.update(self)
 
     def setMargin(self, margin):
-        """Define the margin to fit with a ColorScale object.
+        """Define the margin to fit with a _ColorScale object.
         This is needed since we can only paint on the viewport of the widget
 
         :param int margin: the margin to apply on the top and bottom.

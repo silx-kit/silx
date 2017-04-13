@@ -30,7 +30,7 @@ __date__ = "11/04/2017"
 
 import unittest
 from silx.gui.test.utils import TestCaseQt
-from silx.gui.plot.ColorBar import ColorScale
+from silx.gui.plot.ColorBar import _ColorScale
 from silx.gui.plot.ColorBar import ColorBarWidget
 from silx.gui.plot import Plot2D
 import numpy
@@ -39,7 +39,7 @@ import numpy
 class TestColorScale(unittest.TestCase):
     """Test that interaction with the colorScale is correct"""
     def setUp(self):
-        self.colorScaleWidget = ColorScale(colormap=None, parent=None)
+        self.colorScaleWidget = _ColorScale(colormap=None, parent=None)
 
     def tearDown(self):
         self.colorScaleWidget.deleteLater()
