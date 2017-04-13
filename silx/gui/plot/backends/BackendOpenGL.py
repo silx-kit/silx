@@ -309,7 +309,7 @@ _texFragShd = """
 glu.setGLContextGetter(qt.QGLContext.currentContext)
 
 
-class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
+class BackendOpenGL(BackendBase.BackendBase, qt.QGLWidget):
     """OpenGL-based Plot backend.
 
     WARNINGS:
@@ -1195,7 +1195,7 @@ class BackendOpenGL(qt.QGLWidget, BackendBase.BackendBase):
         dataPos = self.pixelToData(x, y, axis='left', check=True)
         if dataPos is not None:
             # Pick markers
-            for marker in reversed(self._markers.values()):
+            for marker in reversed(list(self._markers.values())):
                 pixelPos = self.dataToPixel(
                     marker['x'], marker['y'], axis='left', check=False)
                 if pixelPos is None:  # negative coord on a log axis
