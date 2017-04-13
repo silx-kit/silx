@@ -139,7 +139,7 @@ class ColorBarWidget(qt.QWidget):
                 _logger.warning('Log colormap with bound <= 1: changing bounds.')
             clipColormapLogRange(colormap)
 
-        self.getGradationBar().setColormap(self._colormap)
+        self.getColorScaleBar().setColormap(self._colormap)
 
     def setLegend(self, legend):
         """Set the legend displayed along the colorbar
