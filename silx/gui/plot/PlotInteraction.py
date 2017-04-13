@@ -38,9 +38,10 @@ from . import Colors
 from . import items
 from .Interaction import (ClickOrDrag, LEFT_BTN, RIGHT_BTN,
                           State, StateMachine)
+from . import PlotEvents
 from .PlotEvents import (prepareCurveSignal, prepareDrawingSignal,
                          prepareHoverSignal, prepareImageSignal,
-                         prepareMarkerSignal, prepareMouseSignal)
+                         prepareMarkerSignal)
 
 from .backends.BackendBase import (CURSOR_POINTING, CURSOR_SIZE_HOR,
                                    CURSOR_SIZE_VER, CURSOR_SIZE_ALL)
@@ -270,19 +271,21 @@ class Zoom(_ZoomOnWheel):
             # Signal mouse double clicked event first
             if (time.time() - lastClickTime) <= self._DOUBLE_CLICK_TIMEOUT:
                 # Use position of first click
-                eventDict = prepareMouseSignal('mouseDoubleClicked', 'left',
-                                               *lastClickPos)
-                self.plot.notify(**eventDict)
+                dataPos = [lastClickPos[0], lastClickPos[1]]
+                screenPos = [lastClickPos[2], lastClickPos[3]]
+                event = PlotEvents.MouseDoubleClickedEvent('left', dataPos, screenPos)
+                self.plot.notify(event)
 
                 self._lastClick = 0., None
             else:
                 # Signal mouse clicked event
                 dataPos = self.plot.pixelToData(x, y)
                 assert dataPos is not None
-                eventDict = prepareMouseSignal('mouseClicked', 'left',
-                                               dataPos[0], dataPos[1],
-                                               x, y)
-                self.plot.notify(**eventDict)
+                event = PlotEvents.MouseClickedEvent(
+                    'left',
+                    [dataPos[0], dataPos[1]],
+                    [x, y])
+                self.plot.notify(event)
 
                 self._lastClick = time.time(), (dataPos[0], dataPos[1], x, y)
 
@@ -290,10 +293,10 @@ class Zoom(_ZoomOnWheel):
             # Signal mouse clicked event
             dataPos = self.plot.pixelToData(x, y)
             assert dataPos is not None
-            eventDict = prepareMouseSignal('mouseClicked', 'right',
-                                           dataPos[0], dataPos[1],
-                                           x, y)
-            self.plot.notify(**eventDict)
+            event = PlotEvents.MouseClickedEvent('right',
+                                                 [dataPos[0], dataPos[1]],
+                                                 [x, y])
+            self.plot.notify(event)
 
     def beginDrag(self, x, y):
         dataPos = self.plot.pixelToData(x, y)
@@ -1011,10 +1014,8 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
         # Signal mouse clicked event
         dataPos = self.plot.pixelToData(x, y)
         assert dataPos is not None
-        eventDict = prepareMouseSignal('mouseClicked', btn,
-                                       dataPos[0], dataPos[1],
-                                       x, y)
-        self.plot.notify(**eventDict)
+        event = PlotEvents.MouseClickedEvent(btn, dataPos, [x, y])
+        self.plot.notify(event)
 
         eventDict = self._handleClick(x, y, btn)
         if eventDict is not None:
@@ -1291,18 +1292,17 @@ class ZoomAndSelect(ItemsInteraction):
         :param btn: Pressed button id
         :return: True if click is catched by an item, False otherwise
         """
-        eventDict = self._handleClick(x, y, btn)
+        event = self._handleClick(x, y, btn)
 
-        if eventDict is not None:
+        if event is not None:
             # Signal mouse clicked event
             dataPos = self.plot.pixelToData(x, y)
             assert dataPos is not None
-            clickedEventDict = prepareMouseSignal('mouseClicked', btn,
-                                                  dataPos[0], dataPos[1],
-                                                  x, y)
-            self.plot.notify(**clickedEventDict)
+            pos = [x, y]
+            clickedEvent = PlotEvents.MouseClickedEvent(btn, dataPos, pos)
+            self.plot.notify(clickedEvent)
 
-            self.plot.notify(**eventDict)
+            self.plot.notify(event)
 
         else:
             self._zoom.click(x, y, btn)

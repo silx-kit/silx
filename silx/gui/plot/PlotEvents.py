@@ -31,13 +31,23 @@ __date__ = "13/04/2017"
 
 import numpy as np
 import enum
+from silx.gui import qt
 
 
 class Type(enum.Enum):
     """Event type used for `PlotEvent` class."""
 
     LimitChanged = 'limitsChanged'
-    """Type of the `LimitsChangedEvent` event"""
+    """Type of the `LimitsChangedEvent`"""
+
+    MouseMoved = 'mouseMoved'
+    """Type of the `MouseEvent` when mouse moving"""
+
+    MouseClicked = 'mouseClicked'
+    """Type of the `MouseEvent` when mouse is clicked"""
+
+    MouseDoubleClicked = 'mouseDoubleClicked'
+    """Type of the `MouseEvent` when mouse is double clicked"""
 
 
 class PlotEvent(object):
@@ -47,7 +57,7 @@ class PlotEvent(object):
     def __init__(self, eventType):
         """Constructor
 
-        :param Type eventType:
+        :param Type eventType: Type of the event.
         """
         self.__type = eventType
 
@@ -83,17 +93,140 @@ def prepareDrawingSignal(event, type_, points, parameters=None):
     return eventDict
 
 
-def prepareMouseSignal(eventType, button, xData, yData, xPixel, yPixel):
-    """See Plot documentation for content of events"""
-    assert eventType in ('mouseMoved', 'mouseClicked', 'mouseDoubleClicked')
-    assert button in (None, 'left', 'middle', 'right')
+class MouseEvent(PlotEvent):
+    """The MouseEvent provides an event that is generated when the mouse is
+    activated of the plot."""
 
-    return {'event': eventType,
-            'x': xData,
-            'y': yData,
-            'xpixel': xPixel,
-            'ypixel': yPixel,
-            'button': button}
+    def __init__(self, eventType, button, scenePos, screenPos):
+        """Constructor
+
+        :param qt.Qt.MouseButton button: The clicked button if exists
+        :param tuple(int,int) scenePos: Scene position of the mouse
+        :param tuple(int,int) screenPos: Screen position (pixels relative to
+            widget) of the mouse.
+        """
+        super(MouseEvent, self).__init__(eventType)
+        self._button = button
+        self._scenePos = scenePos
+        self._screenPos = screenPos
+
+    def getButton(self):
+        """
+        Returns the activated button in case of a MouseClicked event
+
+        :rtype: qt.Qt.MouseButton
+        """
+        return self._button
+
+    def getScenePos(self):
+        """Returns the current scene position of the mouse (x, y).
+
+        :rtype: tuple(float,float)
+        """
+        return self._scenePos
+
+    def getScreenPos(self):
+        """Return the current screen position (pixels relative to widget) of
+        the mouse.
+
+        :rtype: tuple(int,int)
+        """
+        return self._screenPos
+
+    def __getitem__(self, key):
+        """Returns event content using the old dictionary-key mapping.
+
+        This is deprecated. Look at the source code to have a description of
+        available key names.
+
+        :param str key: Name of the old key.
+        :rtype: object
+        :raises KeyError: If the requested key is not available
+        """
+        if key == 'event':
+            events = {
+                Type.MouseMoved: 'mouseMoved',
+                Type.MouseClicked: 'mouseClicked',
+                Type.MouseDoubleClicked: 'mouseDoubleClicked',
+            }
+            return events[self.getType()]
+        elif key == "x":
+            return self.getScenePos()[0]
+        elif key == "y":
+            return self.getScenePos()[1]
+        elif key == 'xpixel':
+            return self.getScreenPos()[0]
+        elif key == 'ypixel':
+            return self.getScreenPos()[1]
+        elif key == 'button':
+            buttons = {
+                'left': 'left',
+                'right': 'right',
+                'middle': 'middle',
+                qt.Qt.LeftButton: 'left',
+                qt.Qt.RightButton: 'right',
+                qt.Qt.MiddleButton: 'middle',
+                qt.Qt.NoButton: None,
+            }
+            return buttons[self.getButton()]
+        else:
+            raise KeyError("Key %s not found" % key)
+
+
+class MouseMovedEvent(MouseEvent):
+    """The MouseMovedEvent provides an event that is generated when the mouse
+    is moved on the plot."""
+
+    def __init__(self, scenePos, screenPos):
+        """Constructor
+
+        :param tuple(int,int) scenePos: Scene position of the mouse
+        :param tuple(int,int) screenPos: Screen position (pixels relative to
+            widget) of the mouse.
+        """
+        MouseEvent.__init__(self,
+                            Type.MouseMoved,
+                            qt.Qt.NoButton,
+                            scenePos,
+                            screenPos)
+
+
+class MouseClickedEvent(MouseEvent):
+    """The MouseClickedEvent provides an event that is generated when the mouse
+    is clicked on the plot."""
+
+    def __init__(self, button, scenePos, screenPos):
+        """Constructor
+
+        :param qt.Qt.MouseButton button: The clicked button if exists
+        :param tuple(int,int) scenePos: Scene position of the mouse
+        :param tuple(int,int) screenPos: Screen position (pixels relative to
+            widget) of the mouse.
+        """
+        MouseEvent.__init__(self,
+                            Type.MouseClicked,
+                            button,
+                            scenePos,
+                            screenPos)
+
+
+class MouseDoubleClickedEvent(MouseEvent):
+    """The MouseDoubleClickedEvent provides an event that is generated when the
+    mouse double clicked on the plot."""
+
+    def __init__(self, button, scenePos, screenPos):
+        """Constructor
+
+        :param qt.Qt.MouseButton button: The clicked button if exists
+        :param tuple(int,int) scenePos: Scene position of the mouse
+        :param tuple(int,int) screenPos: Screen position (pixels relative to
+            widget) of the mouse.
+        """
+        MouseEvent.__init__(self,
+                            Type.MouseDoubleClicked,
+                            button,
+                            scenePos,
+                            screenPos)
 
 
 def prepareHoverSignal(label, type_, posData, posPixel, draggable, selectable):

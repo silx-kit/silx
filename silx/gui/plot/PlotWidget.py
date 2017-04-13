@@ -2889,10 +2889,10 @@ class PlotWidget(qt.QMainWindow):
             dataPos = self.pixelToData(inXPixel, inYPixel)
             assert dataPos is not None
 
-            btn = self._pressedButtons[-1] if self._pressedButtons else None
-            event = PlotEvents.prepareMouseSignal(
-                'mouseMoved', btn, dataPos[0], dataPos[1], xPixel, yPixel)
-            self.notify(**event)
+            # FIXME make sure it is not needed
+            # btn = self._pressedButtons[-1] if self._pressedButtons else None
+            event = PlotEvents.MouseMovedEvent(dataPos, [xPixel, yPixel])
+            self.notify(event)
 
         # Either button was pressed in the plot or cursor is in the plot
         if isCursorInPlot or self._pressedButtons:

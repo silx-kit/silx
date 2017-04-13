@@ -31,6 +31,7 @@ __date__ = "13/04/2017"
 
 import unittest
 import numpy
+from silx.gui import qt
 from .. import PlotEvents
 
 
@@ -48,6 +49,48 @@ class TestEvents(unittest.TestCase):
         self.assertEquals(event.getXRange(), xRange)
         self.assertEquals(event.getYRange(), yRange)
         self.assertEquals(event.getY2Range(), y2Range)
+
+    def testMouseEvent(self):
+        event = "e"
+        button = "b"
+        xData = "xd"
+        yData = "yd"
+        xPixel = "xp"
+        yPixel = "yp"
+        event = PlotEvents.MouseEvent(event, button, [xData, yData], [xPixel, yPixel])
+        self.assertEquals(event.getType(), "e")
+        self.assertEquals(event.getButton(), "b")
+        self.assertEquals(event.getScenePos()[0], xData)
+        self.assertEquals(event.getScenePos()[1], yData)
+        self.assertEquals(event.getScreenPos()[0], xPixel)
+        self.assertEquals(event.getScreenPos()[1], yPixel)
+
+    def testMouseClickedEvent(self):
+        button = "b"
+        xData = "xd"
+        yData = "yd"
+        xPixel = "xp"
+        yPixel = "yp"
+        event = PlotEvents.MouseClickedEvent(button, [xData, yData], [xPixel, yPixel])
+        self.assertEquals(event.getType(), PlotEvents.Type.MouseClicked)
+
+    def testMouseDoubleClickedEvent(self):
+        button = "b"
+        xData = "xd"
+        yData = "yd"
+        xPixel = "xp"
+        yPixel = "yp"
+        event = PlotEvents.MouseDoubleClickedEvent(button, [xData, yData], [xPixel, yPixel])
+        self.assertEquals(event.getType(), PlotEvents.Type.MouseDoubleClicked)
+
+    def testMouseMovedEvent(self):
+        xData = "xd"
+        yData = "yd"
+        xPixel = "xp"
+        yPixel = "yp"
+        event = PlotEvents.MouseMovedEvent([xData, yData], [xPixel, yPixel])
+        self.assertEquals(event.getType(), PlotEvents.Type.MouseMoved)
+        self.assertEquals(event.getButton(), qt.Qt.NoButton)
 
 
 class TestDictionaryLikeGetter(unittest.TestCase):
@@ -91,15 +134,14 @@ class TestDictionaryLikeGetter(unittest.TestCase):
         self.assertEquals(event['parameters'], params)
 
     def testMouseEvent(self):
-        eventType = "mouseMoved"
-        button = "left"
+        button = qt.Qt.LeftButton
         xData = "xd"
         yData = "yd"
         xPixel = "xp"
         yPixel = "yp"
-        event = PlotEvents.prepareMouseSignal(eventType, button, xData, yData, xPixel, yPixel)
-        self.assertEquals(event['event'], eventType)
-        self.assertEquals(event['button'], button)
+        event = PlotEvents.MouseClickedEvent(button, [xData, yData], [xPixel, yPixel])
+        self.assertEquals(event['event'], "mouseClicked")
+        self.assertEquals(event['button'], "left")
         self.assertEquals(event['x'], xData)
         self.assertEquals(event['y'], yData)
         self.assertEquals(event['xpixel'], xPixel)
