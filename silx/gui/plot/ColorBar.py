@@ -245,7 +245,7 @@ class ColorScaleBar(qt.QWidget):
 
     It is the simplest widget displaying ticks and colormap gradient.
 
-    .. image:: img/gradationbar.png
+    .. image:: img/colorScaleBar.png
         :width: 150px
         :align: center
 
@@ -393,7 +393,7 @@ class _ColorScale(qt.QWidget):
     Show matching value between the gradient color (from the colormap) at mouse
     position and value.
 
-    .. image:: img/gradation.png
+    .. image:: img/colorScale.png
         :width: 20px
         :align: center
 
