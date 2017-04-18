@@ -305,8 +305,14 @@ _texFragShd = """
 
 # BackendOpenGL ###############################################################
 
+_current_context = None
 
-glu.setGLContextGetter(qt.QGLContext.currentContext)
+def _getContext():
+    assert _current_context is not None
+    return _current_context
+
+
+glu.setGLContextGetter(_getContext)
 
 
 class BackendOpenGL(BackendBase.BackendBase, qt.QGLWidget):
@@ -323,6 +329,7 @@ class BackendOpenGL(BackendBase.BackendBase, qt.QGLWidget):
 
     _sigPostRedisplay = qt.Signal()
     """Signal handling automatic asynchronous replot"""
+
 
     def __init__(self, plot, parent=None):
         qt.QGLWidget.__init__(self, parent)
@@ -509,6 +516,9 @@ class BackendOpenGL(BackendBase.BackendBase, qt.QGLWidget):
         self._renderOverlayGL()
 
     def paintGL(self):
+        global _current_context
+        _current_context = self.context()
+
         # Release OpenGL resources
         for item in self._glGarbageCollector:
             item.discard()
@@ -523,6 +533,8 @@ class BackendOpenGL(BackendBase.BackendBase, qt.QGLWidget):
 
         # self._paintDirectGL()
         self._paintFBOGL()
+
+        _current_context = None
 
     def _nonOrthoAxesLineMarkerPrimitives(self, marker, pixelOffset):
         """Generates the vertices and label for a line marker.
