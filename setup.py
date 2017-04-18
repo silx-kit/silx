@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "03/04/2017"
+__date__ = "18/04/2017"
 __license__ = "MIT"
 
 
@@ -564,8 +564,13 @@ def setup_package():
     Depending on the command, it either runs the complete setup which depends on numpy,
     or a *dry run* setup with no dependency on numpy.
     """
-    install_requires = ["numpy"]
-    setup_requires = ["numpy"]
+    install_requires = [
+        # for most of the computation
+        "numpy",
+        # for the script launcher
+        "setuptools"]
+
+    setup_requires = ["setuptools", "numpy"]
 
     package_data = {
         'silx.resources': [
@@ -577,7 +582,10 @@ def setup_package():
             'opencl/sift/*.cl']
     }
 
-    script_files = glob.glob("scripts/*")
+    entry_points = {
+        'console_scripts': ['silx = silx.__main__:main'],
+        # 'gui_scripts': [],
+    }
 
     cmdclass = dict(
         build_py=build_py,
@@ -652,7 +660,7 @@ def setup_package():
                         cmdclass=cmdclass,
                         package_data=package_data,
                         zip_safe=False,
-                        scripts=script_files,
+                        entry_points=entry_points,
                         )
 
     setup(**setup_kwargs)
