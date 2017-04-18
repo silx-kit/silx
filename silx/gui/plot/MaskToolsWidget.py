@@ -944,192 +944,7 @@ class BaseMaskToolsWidget(qt.QWidget):
                 not self.isEnabled() and
                 not self.browseAction.isChecked()):
             self.browseAction.trigger()  # Disable drawing tool
-#
-# <<<<<<< HEAD
-# =======
-#     def showEvent(self, event):
-#         try:
-#             self.plot.sigActiveImageChanged.disconnect(
-#                 self._activeImageChangedAfterCare)
-#         except (RuntimeError, TypeError):
-#             pass
-#         self._activeImageChanged()  # Init mask + enable/disable widget
-#         self.plot.sigActiveImageChanged.connect(self._activeImageChanged)
-#
-#     def hideEvent(self, event):
-#         self.plot.sigActiveImageChanged.disconnect(self._activeImageChanged)
-#         if not self.browseAction.isChecked():
-#             self.browseAction.trigger()  # Disable drawing tool
-#
-#         if len(self.getSelectionMask(copy=False)):
-#             self.plot.sigActiveImageChanged.connect(
-#                 self._activeImageChangedAfterCare)
-#
-#     def _setOverlayColorForImage(self, image):
-#         """Set the color of overlay adapted to image
-#
-#         :param image: :class:`.items.ImageBase` object to set color for.
-#         """
-#         if isinstance(image, items.ColormapMixIn):
-#             colormap = image.getColormap()
-#             self._defaultOverlayColor = rgba(
-#                 cursorColorForColormap(colormap['name']))
-#         else:
-#             self._defaultOverlayColor = rgba('black')
-#
-#     def _activeImageChangedAfterCare(self, *args):
-#         """Check synchro of active image and mask when mask widget is hidden.
-#
-#         If active image has no more the same size as the mask, the mask is
-#         removed, otherwise it is adjusted to origin, scale and z.
-#         """
-#         activeImage = self.plot.getActiveImage()
-#         if activeImage is None or activeImage.getLegend() == self._maskName:
-#             # No active image or active image is the mask...
-#             self.plot.sigActiveImageChanged.disconnect(
-#                 self._activeImageChangedAfterCare)
-#         else:
-#             self._setOverlayColorForImage(activeImage)
-#             self._setMaskColors(self.levelSpinBox.value(),
-#                                 self.transparencySlider.value() /
-#                                 self.transparencySlider.maximum())
-#
-#             self._origin = activeImage.getOrigin()
-#             self._scale = activeImage.getScale()
-#             self._z = activeImage.getZValue() + 1
-#             self._data = activeImage.getData(copy=False)
-#             if self._data.shape != self.getSelectionMask(copy=False).shape:
-#                 # Image has not the same size, remove mask and stop listening
-#                 if self.plot.getImage(self._maskName):
-#                     self.plot.remove(self._maskName, kind='image')
-#
-#                 self.plot.sigActiveImageChanged.disconnect(
-#                     self._activeImageChangedAfterCare)
-#             else:
-#                 # Refresh in case origin, scale, z changed
-#                 self._updatePlotMask()
-#
-#     def _activeImageChanged(self, *args):
-#         """Update widget and mask according to active image changes"""
-#         activeImage = self.plot.getActiveImage()
-#         if activeImage is None or activeImage.getLegend() == self._maskName:
-#             # No active image or active image is the mask...
-#             self.setEnabled(False)
-#
-#             self._data = numpy.zeros((0, 0), dtype=numpy.uint8)
-#             self._mask.reset()
-#             self._mask.commit()
-#
-#         else:  # There is an active image
-#             self.setEnabled(True)
-#
-#             self._setOverlayColorForImage(activeImage)
-#
-#             self._setMaskColors(self.levelSpinBox.value(),
-#                                 self.transparencySlider.value() /
-#                                 self.transparencySlider.maximum())
-#
-#             self._origin = activeImage.getOrigin()
-#             self._scale = activeImage.getScale()
-#             self._z = activeImage.getZValue() + 1
-#             self._data = activeImage.getData(copy=False)
-#             if self._data.shape != self.getSelectionMask(copy=False).shape:
-#                 self._mask.reset(self._data.shape)
-#                 self._mask.commit()
-#             else:
-#                 # Refresh in case origin, scale, z changed
-#                 self._updatePlotMask()
-#
-#         self._updateInteractiveMode()
-#
-#     # Handle whole mask operations
-#
-#     def load(self, filename):
-#         """Load a mask from an image file.
-#
-#         :param str filename: File name from which to load the mask
-#         :raise Exception: An exception in case of failure
-#         :raise RuntimeWarning: In case the mask was applied but with some
-#             import changes to notice
-#         """
-#         _, extension = os.path.splitext(filename)
-#         extension = extension.lower()[1:]
-#
-#         if extension == "npy":
-#             try:
-#                 mask = numpy.load(filename)
-#             except IOError:
-#                 _logger.error("Can't load filename '%s'", filename)
-#                 _logger.debug("Backtrace", exc_info=True)
-#                 raise RuntimeError('File "%s" is not a numpy file.', filename)
-#         elif extension == "edf":
-#             try:
-#                 mask = EdfFile(filename, access='r').GetData(0)
-#             except Exception as e:
-#                 _logger.error("Can't load filename %s", filename)
-#                 _logger.debug("Backtrace", exc_info=True)
-#                 raise e
-#         elif extension == "msk":
-#             if fabio is None:
-#                 raise ImportError("Fit2d mask files can't be read: Fabio module is not available")
-#             try:
-#                 mask = fabio.open(filename).data
-#             except Exception as e:
-#                 _logger.error("Can't load fit2d mask file")
-#                 _logger.debug("Backtrace", exc_info=True)
-#                 raise e
-#         else:
-#             msg = "Extension '%s' is not supported."
-#             raise RuntimeError(msg % extension)
-#
-#         effectiveMaskShape = self.setSelectionMask(mask, copy=False)
-#         if effectiveMaskShape is None:
-#             return
-#         if mask.shape != effectiveMaskShape:
-#             msg = 'Mask was resized from %s to %s'
-#             msg = msg % (str(mask.shape), str(effectiveMaskShape))
-#             raise RuntimeWarning(msg)
-#
-#     def _loadMask(self):
-#         """Open load mask dialog"""
-#         dialog = qt.QFileDialog(self)
-#         dialog.setWindowTitle("Load Mask")
-#         dialog.setModal(1)
-#         filters = [
-#             'EDF (*.edf)',
-#             'TIFF (*.tif)',
-#             'NumPy binary file (*.npy)',
-#             # Fit2D mask is displayed anyway fabio is here or not
-#             # to show to the user that the option exists
-#             'Fit2D mask (*.msk)',
-#         ]
-#         dialog.setNameFilters(filters)
-#         dialog.setFileMode(qt.QFileDialog.ExistingFile)
-#         dialog.setDirectory(self.maskFileDir)
-#         if not dialog.exec_():
-#             dialog.close()
-#             return
-#
-#         filename = dialog.selectedFiles()[0]
-#         dialog.close()
-#
-#         self.maskFileDir = os.path.dirname(filename)
-#         try:
-#             self.load(filename)
-#         except RuntimeWarning as e:
-#             message = e.args[0]
-#             msg = qt.QMessageBox(self)
-#             msg.setIcon(qt.QMessageBox.Warning)
-#             msg.setText("Mask loaded but an operation was applied.\n" + message)
-#             msg.exec_()
-#         except Exception as e:
-#             message = e.args[0]
-#             msg = qt.QMessageBox(self)
-#             msg.setIcon(qt.QMessageBox.Critical)
-#             msg.setText("Cannot load mask from file. " + message)
-#             msg.exec_()
-#
-# >>>>>>> 8ed3fda8c481a57abf42ee74c4160447ddd36022
+
     def save(self, filename, kind):
         """Save current mask in a file
 
@@ -1428,7 +1243,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             _logger.error('Not an image, shape: %d', len(mask.shape))
             return None
 
-        if self._data.shape == (0, 0) or mask.shape == self._data.shape:
+        if self._data.shape[0:2] == (0, 0) or mask.shape == self._data.shape[0:2]:
             self._mask.setMask(mask, copy=copy)
             self._mask.commit()
             return mask.shape
@@ -1437,7 +1252,8 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                             ' Mask will be cropped or padded to fit image'
                             ' dimensions. %s != %s',
                             str(mask.shape), str(self._data.shape))
-            resizedMask = numpy.zeros(self._data.shape, dtype=numpy.uint8)
+            resizedMask = numpy.zeros(self._data.shape[0:2],
+                                      dtype=numpy.uint8)
             height = min(self._data.shape[0], mask.shape[0])
             width = min(self._data.shape[1], mask.shape[1])
             resizedMask[:height, :width] = mask[:height, :width]
