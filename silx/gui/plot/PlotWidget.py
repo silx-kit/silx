@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -51,8 +51,8 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
     with arrow keys.
 
     :param parent: The parent of this widget or None.
-    :param backend: The backend to use for the plot.
-                    The default is to use matplotlib.
+    :param backend: The backend to use for the plot (default: matplotlib).
+                    See :class:`.Plot` for the list of supported backend.
     :type backend: str or :class:`BackendBase.BackendBase`
     """
 

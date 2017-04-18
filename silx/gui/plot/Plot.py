@@ -261,11 +261,12 @@ class Plot(object):
     Supported backends:
 
     - 'matplotlib' and 'mpl': Matplotlib with Qt.
+    - 'opengl' and 'gl': OpenGL backend (requires PyOpenGL and OpenGL >= 2.1)
     - 'none': No backend, to run headless for testing purpose.
 
     :param parent: The parent widget of the plot (Default: None)
     :param backend: The backend to use. A str in:
-                    'matplotlib', 'mpl', 'none'
+                    'matplotlib', 'mpl', 'opengl', 'gl', 'none'
                     or a :class:`BackendBase.BackendBase` class
     """
 
@@ -291,7 +292,6 @@ class Plot(object):
             if lowerCaseString in ("matplotlib", "mpl"):
                 backendClass = BackendMatplotlibQt
             elif lowerCaseString in ('gl', 'opengl'):
-                # TODO check that OpenGL is available
                 from .backends.BackendOpenGL import BackendOpenGL
                 backendClass = BackendOpenGL
             elif lowerCaseString == 'none':
