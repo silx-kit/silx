@@ -236,7 +236,7 @@ class PlotAxis(object):
 
             if self.isLog:
                 logMin, logMax = math.log10(dataMin), math.log10(dataMax)
-                tickMin, tickMax, step = niceNumbersForLog10(logMin, logMax)
+                tickMin, tickMax, step, _ = niceNumbersForLog10(logMin, logMax)
 
                 xScale = (x1 - x0) / (logMax - logMin)
                 yScale = (y1 - y0) / (logMax - logMin)
