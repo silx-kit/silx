@@ -91,6 +91,8 @@ def convertQImageToArray(image):
         ptr.setsize(image.byteCount())
         if qt.BINDING == 'PyQt4' and sys.version_info[0] == 2:
             ptr = ptr.asstring()
+        elif sys.version_info[0] == 3:  # PySide with Python3
+            ptr = ptr.tobytes()
 
     array = numpy.fromstring(ptr, dtype=numpy.uint8)
 

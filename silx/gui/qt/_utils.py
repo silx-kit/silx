@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,13 +30,13 @@ __license__ = "MIT"
 __date__ = "30/11/2016"
 
 import sys
-from ._qt import QImageReader
+from ._qt import BINDING, QImageReader
 
 
 def supportedImageFormats():
     """Return a set of string of file format extensions supported by the
     Qt runtime."""
-    if sys.version_info[0] < 3:
+    if sys.version_info[0] < 3 or BINDING == 'PySide':
         convert = str
     else:
         convert = lambda data: str(data, 'ascii')
