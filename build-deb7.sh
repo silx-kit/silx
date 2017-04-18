@@ -95,10 +95,9 @@ mkdir -p ${build_directory}
 #python setup.py debian_src
 python setup.py sdist
 tar -xzf dist/${PROJECT}-*.tar.gz --directory ${build_directory}
+cp -r scripts ${build_directory}
 cd ${build_directory}/${PROJECT}*
-
-# clean up windows files
-rm scripts/*.bat
+mv ../scripts scripts
 
 if [ $use_python3 = 1 ]
 then

@@ -530,8 +530,8 @@ class sdist_debian(sdist):
                     self.filelist.exclude_pattern(pattern=base_file + ".cpp")
                     self.filelist.exclude_pattern(pattern=base_file + ".html")
 
-        # ignore windows files
-        self.filelist.exclude_pattern(pattern="scripts/*.bat")
+        # include scripts
+        self.filelist.include_pattern(pattern="scripts/*")
 
     def make_distribution(self):
         self.prune_file_list()
