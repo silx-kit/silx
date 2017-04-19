@@ -312,9 +312,6 @@ def _getContext():
     return _current_context
 
 
-glu.setGLContextGetter(_getContext)
-
-
 class BackendOpenGL(BackendBase.BackendBase, qt.QGLWidget):
     """OpenGL-based Plot backend.
 
@@ -519,6 +516,8 @@ class BackendOpenGL(BackendBase.BackendBase, qt.QGLWidget):
         global _current_context
         _current_context = self.context()
 
+        glu.setGLContextGetter(_getContext)
+
         # Release OpenGL resources
         for item in self._glGarbageCollector:
             item.discard()
@@ -534,6 +533,7 @@ class BackendOpenGL(BackendBase.BackendBase, qt.QGLWidget):
         # self._paintDirectGL()
         self._paintFBOGL()
 
+       glu.setGLContextGetter()
         _current_context = None
 
     def _nonOrthoAxesLineMarkerPrimitives(self, marker, pixelOffset):
