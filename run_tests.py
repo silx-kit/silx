@@ -292,7 +292,7 @@ if options.coverage:
     logger.info("Running test-coverage")
     import coverage
     omits = ["*test*", "*third_party*", "*/setup.py",
-             # modules imported for tests
+             # temporary test modules (silx.math.fit.test.test_fitmanager)
              "*customfun.py", ]
     try:
         cov = coverage.Coverage(omit=omits)
