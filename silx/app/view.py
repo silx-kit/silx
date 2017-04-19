@@ -98,6 +98,55 @@ class Viewer(qt.QMainWindow):
         self.__store_lambda = lambda event: self.closeAndSyncCustomContextMenu(event)
         self.__treeview.addContextMenuCallback(self.__store_lambda)
 
+        self.createActions()
+        self.createMenus()
+
+    def createActions(self):
+        action = qt.QAction("E&xit", self)
+        action.setShortcuts(qt.QKeySequence.Quit)
+        action.setStatusTip("Exit the application")
+        action.triggered.connect(self.close)
+        self._exitAction = action
+
+        action = qt.QAction("&About", self)
+        action.setStatusTip("Show the application's About box")
+        action.triggered.connect(self.about)
+        self._aboutAction = action
+
+    def createMenus(self):
+        fileMenu = self.menuBar().addMenu("&File")
+        fileMenu.addAction(self._exitAction)
+        helpMenu = self.menuBar().addMenu("&Help")
+        helpMenu.addAction(self._aboutAction)
+
+    def about(self):
+        import silx._version
+        message = """<center><b>Silx viewer</b>
+        <br />
+        <br />{silx_version}
+        <br />
+        <br /><a href="{project_url}">Upstream project on GitHub</a>
+        </center>
+        <br />
+        <br /><b>Silx version</b>: {silx_version}
+        <br /><b>Qt version</b>: {qt_version}
+        <br /><b>Qt binding</b>: {qt_binding}
+        <br /><b>Python version</b>: {python_version}
+        <br />
+        <center>
+        <br />Copyright (C) <a href="{esrf_url}">European Synchrotron Radiation Facility</a>
+        </center>
+        """
+        info = dict(
+            esrf_url="http://www.esrf.eu",
+            project_url="https://github.com/silx-kit/silx",
+            silx_version=silx._version.version,
+            qt_binding=qt.BINDING,
+            qt_version=qt.qVersion(),
+            python_version=sys.version.replace("\n", "<br />"),
+        )
+        qt.QMessageBox.about(self, "About Menu", message.format(**info))
+
     def appendFile(self, filename):
         self.__treeview.findHdf5TreeModel().appendFile(filename)
 
