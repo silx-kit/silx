@@ -29,7 +29,7 @@ and NamedScatterAlphaSlider with a PlotWidget.
 import numpy
 
 from silx.gui import qt
-from silx.gui.plot import PlotWidget
+from silx.gui.plot import Plot1D
 from silx.gui.plot import PlotActions
 
 from silx.gui.plot.AlphaSlider import NamedScatterAlphaSlider
@@ -37,7 +37,7 @@ from silx.gui.plot.AlphaSlider import NamedScatterAlphaSlider
 from silx.gui.plot import ScatterMaskToolsWidget
 
 
-class MaskScatterWidget(PlotWidget):
+class MaskScatterWidget(qt.QMainWindow):
     """Simple plot widget designed to display a scatter plot on top
     of a background image.
 
@@ -47,40 +47,37 @@ class MaskScatterWidget(PlotWidget):
     A mask tools widget is provided to select/mask points of the scatter
     plot.
     """
-    sigActiveScatterChanged = qt.Signal()
-    """emitted when active scatter is removed, added, or set
-    (:meth:`setScatter`)"""
-
-    def __init__(self, parent=None, backend=None):
-        super(MaskScatterWidget, self).__init__(parent=parent, backend=backend)
+    def __init__(self, parent=None):
+        super(MaskScatterWidget, self).__init__(parent=parent)
         self._activeScatterLegend = "active scatter"
         self._bgImageLegend = "background image"
 
-        self.setActiveCurveHandling(False)   # avoids color change when selecting scatter
+        # widgets
+        centralWidget = qt.QWidget(self)
 
-        # Create and hide ScatterMaskToolsWidget (shown when icon is clicked)
-        self._maskToolsDockWidget = ScatterMaskToolsWidget.ScatterMaskToolsDockWidget(
-                plot=self, name='Mask')
-        self._maskToolsDockWidget.hide()
-        self.addDockWidget(qt.Qt.BottomDockWidgetArea,
-                           self._maskToolsDockWidget)
+        self._plot = Plot1D(parent=centralWidget)
+        self._plot.setActiveCurveHandling(False)   # avoids color change when selecting scatter
+
+        self._maskToolsWidget = ScatterMaskToolsWidget.ScatterMaskToolsWidget(
+            plot=self._plot, parent=centralWidget)
+
+        # layout
+        layout = qt.QVBoxLayout(centralWidget)
+        layout.addWidget(self._plot)
+        layout.addWidget(self._maskToolsWidget)
+        centralWidget.setLayout(layout)
+
+        self.setCentralWidget(centralWidget)
 
         # Init toolbar actions and widgets
-        self._toolbar = qt.QToolBar("Plot", self)
-        self.resetZoomAction = PlotActions.ResetZoomAction(self)
-        self.zoomInAction = PlotActions.ZoomInAction(self)
-        self.zoomOutAction = PlotActions.ZoomOutAction(self)
+        self._toolbar = qt.QToolBar("Plot", self._plot)
 
-        self.alphaSlider = NamedScatterAlphaSlider(parent=self, plot=self)
-        self.alphaSlider.setOrientation(qt.Qt.Horizontal)
+        self._alphaSlider = NamedScatterAlphaSlider(parent=self, plot=self._plot)
+        self._alphaSlider.setOrientation(qt.Qt.Horizontal)
 
-        self._toolbar.addAction(self.resetZoomAction)
-        self._toolbar.addAction(self.zoomInAction)
-        self._toolbar.addAction(self.zoomOutAction)
-        self._toolbar.addAction(self._maskToolsDockWidget.toggleViewAction())
-        self.alphaSliderAction = self._toolbar.addWidget(self.alphaSlider)
+        self.alphaSliderAction = self._toolbar.addWidget(self._alphaSlider)
 
-        self.addToolBar(self._toolbar)
+        self._plot.addToolBar(self._toolbar)
 
     def setSelectionMask(self, mask, copy=True):
         """Set the mask to a new array.
@@ -92,8 +89,8 @@ class MaskScatterWidget(PlotWidget):
                           False to use it as is if possible.
         :return: None if failed, shape of mask as 1-tuple if successful.
         """
-        return self._maskToolsDockWidget.setSelectionMask(mask,
-                                                          copy=copy)
+        return self._maskToolsWidget.setSelectionMask(mask,
+                                                      copy=copy)
 
     def getSelectionMask(self, copy=True):
         """Get the current mask as a 1D array.
@@ -104,7 +101,7 @@ class MaskScatterWidget(PlotWidget):
                  If there is no scatter data, an empty array is returned.
         :rtype: 1D numpy.ndarray of uint8
         """
-        return self._maskToolsDockWidget.getSelectionMask(copy=copy)
+        return self._maskToolsWidget.getSelectionMask(copy=copy)
 
     def setBackgroundImage(self, image, xscale=(0, 1.), yscale=(0, 1.),
                            colormap=None):
@@ -116,11 +113,11 @@ class MaskScatterWidget(PlotWidget):
             *(a, b)* such as :math:`x \mapsto a + bx`
         :param yscale: Factors for polynomial scaling  for y-axis
         """
-        self.addImage(image, legend=self._bgImageLegend,
-                      origin=(xscale[0], yscale[0]),
-                      scale=(xscale[1], yscale[1]),
-                      z=0, replace=False,
-                      colormap=colormap)
+        self._plot.addImage(image, legend=self._bgImageLegend,
+                            origin=(xscale[0], yscale[0]),
+                            scale=(xscale[1], yscale[1]),
+                            z=0, replace=False,
+                            colormap=colormap)
 
     def setScatter(self, x, y, v=None, info=None, colormap=None):
         """Set the scatter data, by providing its data as a 1D
@@ -134,11 +131,10 @@ class MaskScatterWidget(PlotWidget):
         :param v: Array of values for each point, represented as the color
              of the point on the plot.
         """
-        self.addScatter(x, y, v, legend=self._activeScatterLegend,
-                        info=info, colormap=colormap)
+        self._plot.addScatter(x, y, v, legend=self._activeScatterLegend,
+                              info=info, colormap=colormap)
 
-        self.alphaSlider.setLegend(self._activeScatterLegend)
-        self.sigActiveScatterChanged.emit()
+        self._alphaSlider.setLegend(self._activeScatterLegend)
 
 
 if __name__ == "__main__":
