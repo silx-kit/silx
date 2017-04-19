@@ -522,5 +522,5 @@ class ScatterMaskToolsDockWidget(BaseMaskToolsDockWidget):
     :paran str name: The title of this widget
     """
     def __init__(self, parent=None, plot=None, name='Mask'):
-        super(ScatterMaskToolsDockWidget, self).__init__(parent, plot, name)
+        super(ScatterMaskToolsDockWidget, self).__init__(parent, name)
         self.setWidget(ScatterMaskToolsWidget(plot=plot))

@@ -1614,12 +1614,11 @@ class BaseMaskToolsDockWidget(qt.QDockWidget):
     :paran str name: The title of this widget
     """
 
-    def __init__(self, parent=None, plot=None, name='Mask'):
+    def __init__(self, parent=None, name='Mask'):
         super(BaseMaskToolsDockWidget, self).__init__(parent)
         self.setWindowTitle(name)
 
         self.layout().setContentsMargins(0, 0, 0, 0)
-        self.setWidget(MaskToolsWidget(plot=plot))
         self.dockLocationChanged.connect(self._dockLocationChanged)
         self.topLevelChanged.connect(self._topLevelChanged)
 
@@ -1690,5 +1689,5 @@ class MaskToolsDockWidget(BaseMaskToolsDockWidget):
     """
 
     def __init__(self, parent=None, plot=None, name='Mask'):
-        super(MaskToolsDockWidget, self).__init__(parent, plot, name)
+        super(MaskToolsDockWidget, self).__init__(parent, name)
         self.setWidget(MaskToolsWidget(plot=plot))
