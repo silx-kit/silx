@@ -65,7 +65,7 @@ class Viewer(qt.QMainWindow):
             instances)
         """
         qt.QMainWindow.__init__(self)
-        self.setWindowTitle("Silx HDF5 widget example")
+        self.setWindowTitle("Silx viewer")
 
         self.__asyncload = False
         self.__treeview = silx.gui.hdf5.Hdf5TreeView(self)
