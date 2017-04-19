@@ -28,8 +28,10 @@ __license__ = "MIT"
 __date__ = "12/04/2017"
 
 import sys
+import os
 import argparse
 import logging
+import collections
 
 
 logging.basicConfig()
@@ -73,6 +75,7 @@ class Viewer(qt.QMainWindow):
         self.setWindowTitle("Silx viewer")
 
         self.__asyncload = False
+        self.__dialogState = None
         self.__treeview = silx.gui.hdf5.Hdf5TreeView(self)
         """Silx HDF5 TreeView"""
 
@@ -113,6 +116,11 @@ class Viewer(qt.QMainWindow):
         action.triggered.connect(self.close)
         self._exitAction = action
 
+        action = qt.QAction("&Open", self)
+        action.setStatusTip("Open a file")
+        action.triggered.connect(self.open)
+        self._openAction = action
+
         action = qt.QAction("&About", self)
         action.setStatusTip("Show the application's About box")
         action.triggered.connect(self.about)
@@ -120,9 +128,56 @@ class Viewer(qt.QMainWindow):
 
     def createMenus(self):
         fileMenu = self.menuBar().addMenu("&File")
+        fileMenu.addAction(self._openAction)
+        fileMenu.addSeparator()
         fileMenu.addAction(self._exitAction)
         helpMenu = self.menuBar().addMenu("&Help")
         helpMenu.addAction(self._aboutAction)
+
+    def open(self):
+        dialog = self.createFileDialog()
+        if self.__dialogState is None:
+            currentDirectory = os.getcwd()
+            dialog.setDirectory(currentDirectory)
+        else:
+            dialog.restoreState(self.__dialogState)
+
+        result = dialog.exec_()
+        if not result:
+            return
+
+        self.__dialogState = dialog.saveState()
+
+        filenames = dialog.selectedFiles()
+        for filename in filenames:
+            self.appendFile(filename)
+
+    def createFileDialog(self):
+        dialog = qt.QFileDialog(self)
+        dialog.setWindowTitle("Open")
+        dialog.setModal(True)
+
+        extensions = collections.OrderedDict()
+        # expect h5py
+        extensions["HDF5 files"] = "*.h5"
+        # no dependancy
+        extensions["Spec files"] = "*.dat *.spec *.mca"
+        # expect fabio
+        extensions["EDF files"] = "*.edf"
+        extensions["TIFF image files"] = "*.tif *.tiff"
+        extensions["NumPy binary files"] = "*.npy"
+        extensions["CBF files"] = "*.cbf"
+        extensions["MarCCD image files"] = "*.mccd"
+
+        filters = []
+        filters.append("All supported files (%s)" % " ".join(extensions.values()))
+        for name, extension in extensions.items():
+            filters.append("%s (%s)" % (name, extension))
+        filters.append("All files (*)")
+
+        dialog.setNameFilters(filters)
+        dialog.setFileMode(qt.QFileDialog.ExistingFiles)
+        return dialog
 
     def about(self):
         import silx._version
