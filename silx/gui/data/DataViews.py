@@ -534,7 +534,7 @@ class _ArrayView(DataView):
             return DataView.UNSUPPORTED
         if info.interpretation in ["scalar", "scaler"]:
             return 1000
-        return 50
+        return 500
 
 
 class _StackView(DataView):
@@ -657,8 +657,8 @@ class _RecordView(DataView):
             if info.interpretation in ["scalar", "scaler"]:
                 return 1000
             if info.shape[0] == 1:
-                return 110
-            return 40
+                return 510
+            return 500
         elif info.isRecord:
             return 40
         return DataView.UNSUPPORTED
