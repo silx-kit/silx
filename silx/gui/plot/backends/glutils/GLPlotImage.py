@@ -252,9 +252,6 @@ class GLPlotColormap(_GLPlotData2D):
         self._texture = None
         self._textureIsDirty = False
 
-    def __del__(self):
-        self.discard()
-
     def discard(self):
         if self._cmap_texture is not None:
             self._cmap_texture.discard()
@@ -598,9 +595,6 @@ class GLPlotRGBAImage(_GLPlotData2D):
         self._texture = None
         self._textureIsDirty = False
         self._alpha = numpy.clip(alpha, 0., 1.)
-
-    def __del__(self):
-        self.discard()
 
     @property
     def alpha(self):
