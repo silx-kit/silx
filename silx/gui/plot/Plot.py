@@ -1752,6 +1752,29 @@ class Plot(object):
             id(self.getWidgetHandle()), xRange, yRange, y2Range)
         self.notify(**event)
 
+    def _checkLimits(self, min_, max_, axis):
+        """Makes sure axis range is not empty
+
+        :param float min_: Min axis value
+        :param float max_: Max axis value
+        :param str axis: 'x', 'y' or 'y2' the axis to deal with
+        :return: (min, max) making sure min < max
+        :rtype: 2-tuple of float
+        """
+        if max_ < min_:
+            _logger.info('%s axis: max < min, inverting limits.', axis)
+            min_, max_ = max_, min_
+        elif max_ == min_:
+            _logger.info('%s axis: max == min, expanding limits.', axis)
+            if min_ == 0.:
+                min_, max_ = -0.1, 0.1
+            elif min_ < 0:
+                min_, max_ = min_ * 1.1, min_ * 0.9
+            else:  # xmin > 0
+                min_, max_ = min_ * 0.9, min_ * 1.1
+
+        return min_, max_
+
     def getGraphXLimits(self):
         """Get the graph X (bottom) limits.
 
@@ -1768,16 +1791,7 @@ class Plot(object):
         if replot is not None:
             _logger.warning('setGraphXLimits deprecated replot parameter')
 
-        # Deal with incorrect values
-        if xmax < xmin:
-            _logger.warning('setGraphXLimits xmax < xmin, inverting limits.')
-            xmin, xmax = xmax, xmin
-        elif xmax == xmin:
-            _logger.warning('setGraphXLimits xmax == xmin, expanding limits.')
-            if xmin == 0.:
-                xmin, xmax = -0.1, 0.1
-            else:
-                xmin, xmax = xmin * 1.1, xmax * 0.9
+        xmin, xmax = self._checkLimits(xmin, xmax, axis='x')
 
         self._backend.setGraphXLimits(xmin, xmax)
         self._setDirtyPlot()
@@ -1805,18 +1819,11 @@ class Plot(object):
         if replot is not None:
             _logger.warning('setGraphYLimits deprecated replot parameter')
 
-        # Deal with incorrect values
-        if ymax < ymin:
-            _logger.warning('setGraphYLimits ymax < ymin, inverting limits.')
-            ymin, ymax = ymax, ymin
-        elif ymax == ymin:
-            _logger.warning('setGraphXLimits ymax == ymin, expanding limits.')
-            if ymin == 0.:
-                ymin, ymax = -0.1, 0.1
-            else:
-                ymin, ymax = ymin * 1.1, ymax * 0.9
-
         assert axis in ('left', 'right')
+
+        ymin, ymax = self._checkLimits(ymin, ymax,
+                                       axis='y' if axis == 'left' else 'y2')
+
         self._backend.setGraphYLimits(ymin, ymax, axis)
         self._setDirtyPlot()
 
@@ -1835,39 +1842,14 @@ class Plot(object):
         :param float y2max: maximum right axis value or None (the default)
         """
         # Deal with incorrect values
-        if xmax < xmin:
-            _logger.warning('setLimits xmax < xmin, inverting limits.')
-            xmin, xmax = xmax, xmin
-        elif xmax == xmin:
-            _logger.warning('setLimits xmax == xmin, expanding limits.')
-            if xmin == 0.:
-                xmin, xmax = -0.1, 0.1
-            else:
-                xmin, xmax = xmin * 1.1, xmax * 0.9
-
-        if ymax < ymin:
-            _logger.warning('setLimits ymax < ymin, inverting limits.')
-            ymin, ymax = ymax, ymin
-        elif ymax == ymin:
-            _logger.warning('setLimits ymax == ymin, expanding limits.')
-            if ymin == 0.:
-                ymin, ymax = -0.1, 0.1
-            else:
-                ymin, ymax = ymin * 1.1, ymax * 0.9
+        xmin, xmax = self._checkLimits(xmin, xmax, axis='x')
+        ymin, ymax = self._checkLimits(ymin, ymax, axis='y')
 
         if y2min is None or y2max is None:
             # if one limit is None, both are ignored
             y2min, y2max = None, None
         else:
-            if y2max < y2min:
-                _logger.warning('setLimits y2max < y2min, inverting limits.')
-                y2min, y2max = y2max, y2min
-            elif y2max == y2min:
-                _logger.warning('setLimits y2max == y2min, expanding limits.')
-                if y2min == 0.:
-                    y2min, y2max = -0.1, 0.1
-                else:
-                    y2min, y2max = y2min * 1.1, y2max * 0.9
+            y2min, y2max = self._checkLimits(y2min, y2max, axis='y2')
 
         self._backend.setLimits(xmin, xmax, ymin, ymax, y2min, y2max)
         self._setDirtyPlot()
