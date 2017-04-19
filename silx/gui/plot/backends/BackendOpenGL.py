@@ -533,7 +533,7 @@ class BackendOpenGL(BackendBase.BackendBase, qt.QGLWidget):
         # self._paintDirectGL()
         self._paintFBOGL()
 
-       glu.setGLContextGetter()
+        glu.setGLContextGetter()
         _current_context = None
 
     def _nonOrthoAxesLineMarkerPrimitives(self, marker, pixelOffset):
