@@ -178,9 +178,6 @@ class Viewer(qt.QMainWindow):
         if len(selected) == 1:
             # Update the viewer for a single selection
             data = selected[0]
-            # data is a hdf5.H5Node object
-            # data.h5py_object is a Group/Dataset object (from h5py, spech5, fabioh5)
-            # The dataviewer can display both
             self.__dataViewer.setData(data)
 
     def useAsyncLoad(self, useAsync):
