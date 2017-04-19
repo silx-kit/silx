@@ -30,14 +30,14 @@ __date__ = "19/04/2017"
 
 import os
 import unittest
-from .utils import _UtilsTest, utilstest
+from .utils import TestResources, utilstest
 
 
 class TestUtils(unittest.TestCase):
 
     def test_tempdir(self):
         "test the temporary directory creation"
-        utilstest = _UtilsTest()
+        utilstest = TestResources()
         d = utilstest.tempdir
         self.assertTrue(os.path.isdir(d))
         self.assertEqual(d, utilstest.tempdir, 'tmpdir is stable')
@@ -50,8 +50,8 @@ class TestUtils(unittest.TestCase):
         utilstest.clean_up()
 
     def test_download(self):
-        "test the download from internet"
-        f=utilstest.getfile("lena.png")
+        "test the download from silx.org"
+        f = utilstest.getfile("lena.png")
         self.assertTrue(os.path.exists(f))
         f = utilstest.getdir("source.tar.gz")
         self.assertTrue(os.path.isfile(f))
