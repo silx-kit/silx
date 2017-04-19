@@ -998,7 +998,7 @@ class BackendOpenGL(BackendBase.BackendBase, qt.QGLWidget):
             if data.dtype in (numpy.float32, numpy.uint8, numpy.uint16):
                 data = numpy.array(data, copy=False, order='C')
             else:
-                _logger.warning(
+                _logger.info(
                     'addImage: Convert %s data to float32', str(data.dtype))
                 data = numpy.array(data, dtype=numpy.float32, order='C')
 
