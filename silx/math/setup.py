@@ -92,7 +92,7 @@ def configuration(parent_package='', top_path=None):
     extra_compile_args = ["-fopenmp"] if os.environ["WITH_OPENMP"] else []
     config.add_extension('medianfilter',
                          sources=medfilt_src,
-                         include_dirs=[medfilt_src, medfilt_inc],
+                         include_dirs=[medfilt_inc],
                          language='c++',
                          extra_link_args=extra_link_args,
                          extra_compile_args=extra_compile_args)
