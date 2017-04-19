@@ -26,15 +26,18 @@
 
 __authors__ = ["J. Kieffer"]
 __license__ = "MIT"
-__date__ = "19/04/2017" 
+__date__ = "19/04/2017"
 
+import os
 import unittest
 from .utils import _UtilsTest, utilstest
-import os
+
 
 class TestUtils(unittest.TestCase):
+
     def test_tempdir(self):
-        utilstest=_UtilsTest()
+        "test the temporary directory creation"
+        utilstest = _UtilsTest()
         d = utilstest.tempdir
         self.assertTrue(os.path.isdir(d))
         self.assertEqual(d, utilstest.tempdir, 'tmpdir is stable')
@@ -45,11 +48,15 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(e, utilstest.tempdir, 'tmpdir is stable')
         self.assertNotEqual(d, e, "tempdir changed")
         utilstest.clean_up()
+
     def test_download(self):
+        "test the download from internet"
         f=utilstest.getfile("lena.png")
         self.assertTrue(os.path.exists(f))
-        
-        
+        f = utilstest.getdir("source.tar.gz")
+        self.assertTrue(os.path.isfile(f))
+        self.assertTrue(os.path.isdir(f[:-7]))
+
 
 def suite():
     test_suite = unittest.TestSuite()

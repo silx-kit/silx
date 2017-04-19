@@ -36,8 +36,6 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "19/04/2017"
 
-PACKAGE = "silx"
-DATA_KEY = "SILX_DATA"
 
 import os
 import contextlib
@@ -53,6 +51,8 @@ import json
 import getpass
 
 logger = logging.getLogger("silx.test.utils")
+PACKAGE = "silx"
+DATA_KEY = "SILX_DATA"
 
 
 # Parametric Test Base Class ##################################################
@@ -218,14 +218,13 @@ def test_logging(logger=None, critical=None, error=None,
 
 
 class _UtilsTest(object):
-    """Utility class which allows to download test-data from www.silx.org 
+    """Utility class which allows to download test-data from www.silx.org
     and manage the temporary data during the tests.
 
     """
     options = None
     timeout = 60  # timeout in seconds for downloading images
     url_base = "http://www.silx.org/pub/silx/"
-    
     testdata = None
     data_home = None
     all_data = set()
@@ -242,7 +241,8 @@ class _UtilsTest(object):
         if not self._tempdir:
             with self.sem:
                 if not self._tempdir:
-                    self._tempdir = tempfile.mkdtemp("_" + getpass.getuser(), PACKAGE + "_")
+                    self._tempdir = tempfile.mkdtemp("_" + getpass.getuser(),
+                                                     PACKAGE + "_")
 
     def initialize_data(self):
         """Initialize for downloading test data"""
@@ -255,7 +255,6 @@ class _UtilsTest(object):
                         self.data_home = os.path.join(tempfile.gettempdir(), "%s_testdata_%s" % (PACKAGE, getpass.getuser()))
                     if not os.path.exists(self.data_home):
                         os.makedirs(self.data_home)
-                    
                     self.testdata = os.path.join(self.data_home, "all_testdata.json")
                     if os.path.exists(self.testdata):
                         with open(self.testdata) as f:
@@ -282,7 +281,7 @@ class _UtilsTest(object):
                     os.rmdir(os.path.join(root, name))
             os.rmdir(self._tempdir)
             self._tempdir=None
-                    
+
     def getfile(self, filename):
         """Downloads the requested file from web-server available at 
         https://www.silx.org/pub/silx/
@@ -292,9 +291,10 @@ class _UtilsTest(object):
         """
 
         if not self._initialized:
-            from ..third_party.six.moves.urllib.request import urlopen, ProxyHandler, build_opener
-            from ..third_party.six.moves.urllib.error import URLError
             self.initialize_data()
+
+        from ..third_party.six.moves.urllib.request import urlopen, ProxyHandler, build_opener
+        from ..third_party.six.moves.urllib.error import URLError
 
         if filename not in self.all_data:
             self.all_data.add(filename)
@@ -345,24 +345,36 @@ class _UtilsTest(object):
                 download test images %s!\n \ If you are behind a firewall, \
                 please set both environment variable http_proxy and https_proxy.\
                 This even works under windows ! \n \
-                Otherwise please try to download the images manually from \n%s/%s" % (filename, self.url_base, filename))
+                Otherwise please try to download the images manually from \n%s/%s"\
+                 % (filename, self.url_base, filename))
 
         return fullfilename
 
     def getdir(self, dirname):
-        """Downloads the requested tarball from the server and un-zips it into  
-        https://www.silx.org/pub/silx/
+        """Downloads the requested tarball from the server 
+                https://www.silx.org/pub/silx/
+        and unzips it into the data directory
 
         :param: relative name of the image.
         :return: full path of the locally saved file.
 
         """
-        if not(dirname.endswith("tar") or dirname.endswith("tgz") or dirname.endswith("tbz2") 
-               or dirname.endswith("tar.gz") or dirname.endswith("tar.bz2")):
-            dirname = dirname+".tar"
-        dirname =  self.getfile(dirname)      
-        #TODO: unzip content of tar in directory
-        
+        lodn = dirname.lower()
+        if (lodn.endswith("tar") or lodn.endswith("tgz") or lodn.endswith("tbz2") or
+            lodn.endswith("tar.gz") or lodn.endswith("tar.bz2")):
+            import tarfile
+            engine = tarfile.TarFile
+        elif lodn.endswith("zip"):
+            import zipfile
+            engine = zipfile.ZipFile
+        else:
+            raise RuntimeError("Unsupported archive format. Only tar and zip are currently supported")
+        full_path = self.getfile(dirname)
+        with engine.open(full_path) as fd:
+            fd.extractall(self.data_home)
+            print(fd)
+        return full_path
+
     def download_all(self, imgs=None):
         """Download all data needed for the test/benchmarks
 
@@ -379,6 +391,7 @@ class _UtilsTest(object):
 
 utilstest = _UtilsTest()
 "This is the instance to be used. Singleton like feature provided by module"
+
 
 # Temporary directory context #################################################
 
