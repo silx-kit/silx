@@ -55,6 +55,7 @@ from silx.gui.plot.PlotActions import PlotAction
 scriptdir = os.path.dirname(os.path.realpath(__file__))
 my_icon = os.path.join(scriptdir, "fft.png")
 
+
 class FftAction(PlotAction):
     """QAction performing a Fourier transform on all curves when checked,
     and reverse transform when unchecked.
@@ -191,5 +192,3 @@ plotwin.setGraphXLabel("time")
 plotwin.show()
 app.exec_()
 sys.excepthook = sys.__excepthook__
-
-    

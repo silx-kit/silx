@@ -24,13 +24,14 @@
 # ###########################################################################*/
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "19/09/2016"
+__date__ = "03/04/2017"
 
 
 import unittest
 from .test_weakref import suite as test_weakref_suite
 from .test_html import suite as test_html_suite
 from .test_array_like import suite as test_array_like_suite
+from .test_launcher import suite as test_launcher_suite
 
 
 def suite():
@@ -38,4 +39,5 @@ def suite():
     test_suite.addTest(test_weakref_suite())
     test_suite.addTest(test_html_suite())
     test_suite.addTest(test_array_like_suite())
+    test_suite.addTest(test_launcher_suite())
     return test_suite

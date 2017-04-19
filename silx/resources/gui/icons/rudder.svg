@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg  PUBLIC '-//W3C//DTD SVG 1.1//EN'  'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd' [
+	<!ENTITY ns_flows "http://ns.adobe.com/Flows/1.0/">
+	<!ENTITY ns_extend "http://ns.adobe.com/Extensibility/1.0/">
+	<!ENTITY ns_ai "http://ns.adobe.com/AdobeIllustrator/10.0/">
+	<!ENTITY ns_graphs "http://ns.adobe.com/Graphs/1.0/">
+]>
+<svg enable-background="new 0 0 32 32" version="1.1" viewBox="0 0 32 32" xml:space="preserve" xmlns="http://www.w3.org/2000/svg">
+	<path d="m16.398 2.854v26.483m13.244-13.241h-26.484m3.863 9.347l18.758-18.694m-0.032 18.727l-18.695-18.759m9.332 0.678c-4.804 0-8.701 3.895-8.701 8.701s3.896 8.703 8.701 8.703c4.807 0 8.702-3.897 8.702-8.703s-3.895-8.701-8.702-8.701z" fill="none" stroke="#00A651" stroke-miterlimit="10" stroke-width="1.9"/>
+</svg>

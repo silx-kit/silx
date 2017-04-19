@@ -18,3 +18,19 @@
 .. autoclass:: LimitsToolBar
    :show-inheritance:
    :members:
+
+
+.. currentmodule:: silx.gui.plot
+
+:mod:`ColorBar`: ColorBar Widget
+================================
+
+.. currentmodule:: silx.gui.plot.ColorBar
+
+.. automodule:: silx.gui.plot.ColorBar
+
+:class:`ColorBarWidget` class
+-----------------------------
+
+.. autoclass:: ColorBarWidget
+   :members:

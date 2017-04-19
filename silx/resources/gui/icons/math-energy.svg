@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg  PUBLIC '-//W3C//DTD SVG 1.1//EN'  'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'>
+<svg enable-background="new 0 0 32 32" version="1.1" viewBox="0 0 32 32" xml:space="preserve" xmlns="http://www.w3.org/2000/svg">
+<linearGradient id="a" x1="6.3496" x2="28.184" y1="16.621" y2="16.621" gradientUnits="userSpaceOnUse">
+	<stop stop-color="#fff" offset="0"/>
+	<stop stop-color="#FDFDFD" stop-opacity=".971" offset=".2903"/>
+	<stop stop-color="#F5F5F5" stop-opacity=".957" offset=".4299"/>
+	<stop stop-color="#E8E8E8" stop-opacity=".9463" offset=".5375"/>
+	<stop stop-color="#D6D6D6" stop-opacity=".9371" offset=".6286"/>
+	<stop stop-color="#BEBEBE" stop-opacity=".9291" offset=".7093"/>
+	<stop stop-color="#A0A0A0" stop-opacity=".9217" offset=".7826"/>
+	<stop stop-color="#7D7D7D" stop-opacity=".915" offset=".8505"/>
+	<stop stop-color="#545454" stop-opacity=".9086" offset=".9139"/>
+	<stop stop-color="#272727" stop-opacity=".9028" offset=".9717"/>
+	<stop stop-color="#0E0E0E" stop-opacity=".9" offset="1"/>
+</linearGradient>
+<rect x="6.85" y="6.205" width="20.834" height="20.833" fill="none" stroke="url(#a)" stroke-miterlimit="10"/>
+<line x1="20.104" x2="5.141" y1="6.204" y2="6.204" fill="none" stroke="#F7941E" stroke-miterlimit="10" stroke-width="2.8"/>
+<line x1="6.872" x2="6.872" y1="6.204" y2="27.037" fill="none" stroke="#F7941E" stroke-miterlimit="10" stroke-width="2.8"/>
+<line x1="5.141" x2="20.104" y1="27.037" y2="27.037" fill="none" stroke="#F7941E" stroke-miterlimit="10" stroke-width="2.8"/>
+<line x1="7.712" x2="15.85" y1="16.246" y2="16.246" fill="none" stroke="#F7941E" stroke-miterlimit="10" stroke-width="2.8"/>
+</svg>

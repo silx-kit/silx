@@ -35,7 +35,7 @@ import contextlib
 import logging
 import numpy
 
-from ..glutils import gl
+from ..._glutils import gl
 
 from . import event
 from . import utils

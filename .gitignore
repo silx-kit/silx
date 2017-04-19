@@ -1,3 +1,6 @@
+# Hidden files
+.*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -10,6 +13,10 @@ __pycache__/
 env/
 build/
 develop-eggs/
+/package/silx*
+/package/python-silx*
+/package/python3-silx*
+/doc/build
 dist/
 downloads/
 eggs/

@@ -1,19 +1,19 @@
-:mod:`glutils`
-==============
+:mod:`_glutils`
+===============
 
-.. automodule:: silx.gui.plot3d.glutils
+.. automodule:: silx.gui._glutils
 
 
-:mod:`glutils.gl`
------------------
+:mod:`_glutils.gl`
+------------------
 
-.. automodule:: silx.gui.plot3d.glutils.gl
+.. automodule:: silx.gui._glutils.gl
    :members:
 
 Utility functions
 -----------------
 
-.. currentmodule:: silx.gui.plot3d.glutils
+.. currentmodule:: silx.gui._glutils
 
 For OpenGL context management:
 
@@ -57,3 +57,11 @@ Vertex Buffer
    :members:
 
 .. autofunction:: vertexBuffer
+
+:mod:`font`
+-----------
+
+.. currentmodule:: silx.gui._glutils.font
+
+.. automodule:: silx.gui._glutils.font
+   :members:

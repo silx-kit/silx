@@ -44,6 +44,7 @@ import numpy
 import logging
 
 from silx.image import shapes
+from . import items
 from .Colors import cursorColorForColormap, rgba
 from .. import icons, qt
 
@@ -854,6 +855,18 @@ class MaskToolsWidget(qt.QWidget):
             self.plot.sigActiveImageChanged.connect(
                 self._activeImageChangedAfterCare)
 
+    def _setOverlayColorForImage(self, image):
+        """Set the color of overlay adapted to image
+
+        :param image: :class:`.items.ImageBase` object to set color for.
+        """
+        if isinstance(image, items.ColormapMixIn):
+            colormap = image.getColormap()
+            self._defaultOverlayColor = rgba(
+                cursorColorForColormap(colormap['name']))
+        else:
+            self._defaultOverlayColor = rgba('black')
+
     def _activeImageChangedAfterCare(self, *args):
         """Check synchro of active image and mask when mask widget is hidden.
 
@@ -866,8 +879,7 @@ class MaskToolsWidget(qt.QWidget):
             self.plot.sigActiveImageChanged.disconnect(
                 self._activeImageChangedAfterCare)
         else:
-            colormap = activeImage.getColormap()
-            self._defaultOverlayColor = rgba(cursorColorForColormap(colormap['name']))
+            self._setOverlayColorForImage(activeImage)
             self._setMaskColors(self.levelSpinBox.value(),
                                 self.transparencySlider.value() /
                                 self.transparencySlider.maximum())
@@ -901,8 +913,8 @@ class MaskToolsWidget(qt.QWidget):
         else:  # There is an active image
             self.setEnabled(True)
 
-            colormap = activeImage.getColormap()
-            self._defaultOverlayColor = rgba(cursorColorForColormap(colormap['name']))
+            self._setOverlayColorForImage(activeImage)
+
             self._setMaskColors(self.levelSpinBox.value(),
                                 self.transparencySlider.value() /
                                 self.transparencySlider.maximum())
@@ -1405,7 +1417,7 @@ class MaskToolsWidget(qt.QWidget):
     def _loadRangeFromColormapTriggered(self):
         """Set range from active image colormap range"""
         activeImage = self.plot.getActiveImage()
-        if (activeImage is not None and
+        if (isinstance(activeImage, items.ColormapMixIn) and
                 activeImage.getLegend() != self._maskName):
             # Update thresholds according to colormap
             colormap = activeImage.getColormap()
@@ -1419,7 +1431,7 @@ class MaskToolsWidget(qt.QWidget):
 
 
 class MaskToolsDockWidget(qt.QDockWidget):
-    """:class:`MaskToolsDockWidget` embedded in a QDockWidget.
+    """:class:`MaskToolsWidget` embedded in a QDockWidget.
 
     For integration in a :class:`PlotWindow`.
 
@@ -1484,3 +1496,10 @@ class MaskToolsDockWidget(qt.QDockWidget):
             self.widget().setDirection(qt.QBoxLayout.LeftToRight)
             self.resize(self.widget().minimumSize())
             self.adjustSize()
+
+    def showEvent(self, event):
+        """Make sure this widget is raised when it is shown
+        (when it is first created as a tab in PlotWindow or when it is shown
+        again after hiding).
+        """
+        self.raise_()

@@ -40,7 +40,7 @@ import numpy
 
 from silx.gui.plot.Colors import rgba
 
-from ..glutils import gl
+from ..._glutils import gl
 
 from . import camera
 from . import event
