@@ -181,6 +181,21 @@ class _Axis(qt.QWidget):
         """
         self.valueChanged.emit(value)
 
+    def setNamedAxisSelectorVisibility(self, visible):
+        """Hide or show the named axis combobox.
+        If both the selector and the slider are hidden,
+        hide the entire widget.
+
+        :param visible: boolean
+        """
+        self.__axes.setVisible(visible)
+        name = self.axisName()
+
+        if not visible and name != "":
+            self.setVisible(False)
+        else:
+            self.setVisible(True)
+
 
 class NumpyAxesSelector(qt.QWidget):
     """Widget to select a view from a numpy array.
@@ -221,11 +236,14 @@ class NumpyAxesSelector(qt.QWidget):
 
         self.__data = None
         self.__selectedData = None
+        self.__selection = tuple()
         self.__axis = []
         self.__axisNames = []
         self.__customAxisNames = set([])
+        self.__namedAxesVisibility = True
         layout = qt.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSizeConstraint(qt.QLayout.SetMinAndMaxSize)
         self.setLayout(layout)
 
     def clear(self):
@@ -296,6 +314,7 @@ class NumpyAxesSelector(qt.QWidget):
                 # this weak method was expected to be able to delete sub widget
                 callback = functools.partial(silx.utils.weakref.WeakMethodProxy(self.__axisNameChanged), axis)
                 axis.axisNameChanged.connect(callback)
+                axis.setNamedAxisSelectorVisibility(self.__namedAxesVisibility)
                 self.layout().addWidget(axis)
                 self.__axis.append(axis)
         self.__normalizeAxisGeometry()
@@ -383,6 +402,7 @@ class NumpyAxesSelector(qt.QWidget):
         if self.__data is None:
             if self.__selectedData is not None:
                 self.__selectedData = None
+                self.__selection = tuple()
                 self.selectionChanged.emit()
             return
 
@@ -396,10 +416,11 @@ class NumpyAxesSelector(qt.QWidget):
                 selection.append(slice(None))
                 axisNames.append(name)
 
+        self.__selection = tuple(selection)
         # get a view with few fixed dimensions
         # with a h5py dataset, it create a copy
         # TODO we can reuse the same memory in case of a copy
-        view = self.__data[tuple(selection)]
+        view = self.__data[self.__selection]
 
         # order axis as expected
         source = []
@@ -428,3 +449,20 @@ class NumpyAxesSelector(qt.QWidget):
         :rtype: numpy.ndarray
         """
         return self.__selectedData
+
+    def selection(self):
+        """Returns the selection tuple used to slice the data.
+
+        :rtype: tuple
+        """
+        return self.__selection
+
+    def setNamedAxesSelectorVisibility(self, visible):
+        """Show or hide the combo-boxes allowing to map the plot axes
+        to the data dimension.
+
+        :param visible: Boolean
+        """
+        self.__namedAxesVisibility = visible
+        for axis in self.__axis:
+            axis.setNamedAxisSelectorVisibility(visible)

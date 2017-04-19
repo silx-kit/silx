@@ -37,6 +37,7 @@ from silx.image.bilinear import BilinearImage
 
 from .. import icons
 from .. import qt
+from . import items
 from .Colors import cursorColorForColormap
 from .PlotActions import PlotAction
 from .PlotToolButtons import ProfileToolButton
@@ -476,9 +477,11 @@ class ProfileToolBar(qt.QToolBar):
         if legend is not None:
             # Update default profile color
             activeImage = self.plot.getActiveImage()
-            if activeImage is not None:
+            if isinstance(activeImage, items.ColormapMixIn):
                 self._defaultOverlayColor = cursorColorForColormap(
                     activeImage.getColormap()['name'])
+            else:
+                self._defaultOverlayColor = 'black'
 
             self.updateProfile()
 
@@ -588,7 +591,7 @@ class ProfileToolBar(qt.QToolBar):
         self._createProfile(currentData=image.getData(copy=False),
                             origin=image.getOrigin(),
                             scale=image.getScale(),
-                            colormap=image.getColormap(),
+                            colormap=None,  # Not used for 2D data
                             z=image.getZValue())
 
     def _createProfile(self, currentData, origin, scale, colormap, z):

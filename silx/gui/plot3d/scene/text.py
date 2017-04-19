@@ -36,11 +36,11 @@ import numpy
 
 from silx.gui.plot.Colors import rgba
 
-from .. import glutils
-from ..glutils import gl
+from ... import _glutils
+from ..._glutils import gl
 
-from .. import _font
-from ..utils import ticklayout
+from ..._glutils import font as _font
+from ...plot._utils import ticklayout
 
 from . import event, primitives, core, transform
 
@@ -235,7 +235,7 @@ class Text2D(primitives.Geometry):
 
             if self.text:
                 image, self._baselineOffset = self._raster()
-                self._texture = glutils.Texture(
+                self._texture = _glutils.Texture(
                     gl.GL_R8, image, gl.GL_RED,
                     minFilter=gl.GL_NEAREST,
                     magFilter=gl.GL_NEAREST,

@@ -26,7 +26,7 @@
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "19/12/2016"
+__date__ = "20/03/2017"
 
 
 import unittest
@@ -55,7 +55,7 @@ class TestStackView(TestCaseQt):
         self.qWaitForWindowExposed(self.stackview)
         self.mystack = numpy.fromfunction(
             lambda i, j, k: numpy.sin(i/15.) + numpy.cos(j/4.) + 2 * numpy.sin(k/6.),
-            (100, 200, 300)
+            (10, 20, 30)
         )
 
     def tearDown(self):
@@ -113,6 +113,23 @@ class TestStackView(TestCaseQt):
                               ListOfImages)  # returnNumpyArray=False by default in getStack
         self.assertIs(my_trans_stack.images, loi)
 
+    def testPerspective(self):
+        self.stackview.setStack(numpy.arange(24).reshape((2, 3, 4)))
+        self.assertEqual(self.stackview._perspective, 0,
+                         "Default perspective is not 0 (dim1-dim2).")
+
+        self.stackview._StackView__planeSelection.setPerspective(1)
+        self.assertEqual(self.stackview._perspective, 1,
+                         "Plane selection combobox not updating perspective")
+
+        self.stackview.setStack(numpy.arange(6).reshape((1, 2, 3)))
+        self.assertEqual(self.stackview._perspective, 0,
+                         "Default perspective not restored in setStack.")
+
+        self.stackview.setStack(numpy.arange(24).reshape((2, 3, 4)), perspective=2)
+        self.assertEqual(self.stackview._perspective, 2,
+                         "Perspective not set in setStack(..., perspective=2).")
+
 
 class TestStackViewMainWindow(TestCaseQt):
     """Base class for tests of StackView."""
@@ -124,7 +141,7 @@ class TestStackViewMainWindow(TestCaseQt):
         self.qWaitForWindowExposed(self.stackview)
         self.mystack = numpy.fromfunction(
             lambda i, j, k: numpy.sin(i/15.) + numpy.cos(j/4.) + 2 * numpy.sin(k/6.),
-            (100, 200, 300)
+            (10, 20, 30)
         )
 
     def tearDown(self):

@@ -10,9 +10,3 @@
 
 .. automodule:: silx.gui.plot3d.utils.mng
    :members:
-
-:mod:`ticklayout`
------------------
-
-.. automodule:: silx.gui.plot3d.utils.ticklayout
-   :members:

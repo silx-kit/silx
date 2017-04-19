@@ -10,7 +10,7 @@ example: ./bootstrap.py ipython
 __authors__ = ["Frédéric-Emmanuel Picca", "Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
-__date__ = "20/12/2016"
+__date__ = "07/04/2017"
 
 
 import sys
@@ -18,6 +18,8 @@ import os
 import distutils.util
 import subprocess
 import logging
+
+logging.basicConfig()
 logger = logging.getLogger("bootstrap")
 
 
@@ -59,22 +61,67 @@ if sys.version_info[0] >= 3:  # Python3
             exec(code, globals, locals)
 
 
-def runfile(fname):
+def run_file(filename, argv):
+    """
+    Execute a script trying first to use execfile, then a subprocess
+
+    :param str filename: Script to execute
+    :param list[str] argv: Arguments passed to the filename
+    """
+    full_args = [filename]
+    full_args.extend(argv)
+
     try:
         logger.info("Execute target using exec")
         # execfile is considered as a local call.
         # Providing globals() as locals will force to feed the file into
         # globals() (for examples imports).
         # Without this any function call from the executed file loses imports
-        execfile(fname, globals(), globals())
+        try:
+            old_argv = sys.argv
+            sys.argv = full_args
+            logger.info("Patch the sys.argv: %s", sys.argv)
+            logger.info("Executing %s.main()", filename)
+            print("########### EXECFILE ###########")
+            execfile(filename, globals(), globals())
+        finally:
+            sys.argv = old_argv
     except SyntaxError as error:
         logger.error(error)
         logger.info("Execute target using subprocess")
         env = os.environ.copy()
         env.update({"PYTHONPATH": LIBPATH + os.pathsep + os.environ.get("PYTHONPATH", ""),
                     "PATH": SCRIPTSPATH + os.pathsep + os.environ.get("PATH", "")})
-        run = subprocess.Popen(sys.argv, shell=False, env=env)
+        print("########### SUBPROCESS ###########")
+        run = subprocess.Popen(full_args, shell=False, env=env)
         run.wait()
+
+
+def find_executable_file(script_name):
+    """Find a filename from a script name.
+
+    Check the script name as file path, then checks files from the 'scripts'
+    directory, then search the script from the PATH environment variable.
+
+    :param str script_name: Name of the script
+    :returns: An absolute file path, else None if nothing found.
+    """
+    if os.path.isfile(script_name):
+        return os.path.abspath(script_name)
+
+    # search the file from the script path
+    path = os.path.join(SCRIPTSPATH, script_name)
+    if os.path.isfile(path):
+        return path
+
+    # search the file from env PATH
+    for dirname in os.environ.get("PATH", "").split(os.pathsep):
+        path = os.path.join(dirname, script_name)
+        if os.path.isfile(path):
+            return path
+
+    return None
+
 
 home = os.path.dirname(os.path.abspath(__file__))
 SCRIPTSPATH = os.path.join(home, 'build', _distutils_scripts_name())
@@ -88,8 +135,8 @@ os.chdir(cwd)
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        logging.warning("usage: ./bootstrap.py <script>\n")
-        logging.warning("Available scripts : %s\n" %
+        logger.warning("usage: ./bootstrap.py <script>\n")
+        logger.warning("Available scripts : %s\n" %
                         _get_available_scripts(SCRIPTSPATH))
         script = None
     else:
@@ -100,29 +147,17 @@ if __name__ == "__main__":
     else:
         logging.info("Running iPython by default")
     sys.path.insert(0, LIBPATH)
-    logger.info("01. Patched sys.path with %s", LIBPATH)
-
-    sys.path.insert(0, SCRIPTSPATH)
-    logger.info("02. Patched sys.path with %s", SCRIPTSPATH)
+    logger.info("Patched sys.path with %s", LIBPATH)
 
     if script:
-        sys.argv = sys.argv[1:]
-        logger.info("03. patch the sys.argv: %s", sys.argv)
-        logger.info("04. Executing %s.main()", script)
-        fullpath = os.path.join(SCRIPTSPATH, script)
-        if os.path.exists(fullpath):
-            runfile(fullpath)
+        argv = sys.argv[2:]
+        fullpath = find_executable_file(script)
+        if fullpath is not None:
+            run_file(fullpath, argv)
         else:
-            if os.path.exists(script):
-                runfile(script)
-            else:
-                for dirname in os.environ.get("PATH", "").split(os.pathsep):
-                    fullpath = os.path.join(dirname, script)
-                    if os.path.exists(fullpath):
-                        runfile(fullpath)
-                        break
+            logger.error("Script %s not found", script)
     else:
-        logger.info("03. patch the sys.argv: %s", sys.argv)
+        logger.info("Patch the sys.argv: %s", sys.argv)
         sys.path.insert(2, "")
         try:
             from IPython import embed

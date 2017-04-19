@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -60,10 +60,33 @@ class TestRGBA(ParametricTestCase):
                 self.assertEqual(result, expected)
 
 
+class TestApplyColormapToData(ParametricTestCase):
+    """Tests of applyColormapToData function"""
+
+    def testApplyColormapToData(self):
+        """Simple test of applyColormapToData function"""
+        colormap = dict(name='gray', normalization='linear',
+                        autoscale=False, vmin=0, vmax=255)
+
+        size = 10
+        expected = numpy.empty((size, 4), dtype='uint8')
+        expected[:, 0] = numpy.arange(size, dtype='uint8')
+        expected[:, 1] = expected[:, 0]
+        expected[:, 2] = expected[:, 0]
+        expected[:, 3] = 255
+
+        for dtype in ('uint8', 'int32', 'float32', 'float64'):
+            with self.subTest(dtype=dtype):
+                array = numpy.arange(size, dtype=dtype)
+                result = Colors.applyColormapToData(array, **colormap)
+                self.assertTrue(numpy.all(numpy.equal(result, expected)))
+
+
 def suite():
     test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestRGBA))
+    for testClass in (TestRGBA, TestApplyColormapToData):
+        test_suite.addTest(
+            unittest.defaultTestLoader.loadTestsFromTestCase(testClass))
     return test_suite
 
 

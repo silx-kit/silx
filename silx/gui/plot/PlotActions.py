@@ -71,13 +71,13 @@ import numpy
 from .. import icons
 from .. import qt
 from .._utils import convertArrayToQImage
-from . import Colors
+from . import Colors, items
 from .ColormapDialog import ColormapDialog
 from ._utils import applyZoomToPlot as _applyZoomToPlot
 from silx.third_party.EdfFile import EdfFile
 from silx.third_party.TiffIO import TiffIO
 from silx.math.histogram import Histogramnd
-from silx.math.medianfilter import medianfilter
+from silx.math.medianfilter import medfilt2d
 from silx.gui.widgets.MedianFilterDialog import MedianFilterDialog
 
 from silx.io.utils import save1D, savespec
@@ -366,8 +366,9 @@ class ColormapAction(PlotAction):
             self._dialog = ColormapDialog()
 
         image = self.plot.getActiveImage()
-        if image is None:
-            # No active image, set dialog from default info
+        if not isinstance(image, items.ColormapMixIn):
+            # No active image or active image is RGBA,
+            # set dialog from default info
             colormap = self.plot.getDefaultColormap()
 
             self._dialog.setHistogram()  # Reset histogram and range if any
@@ -408,16 +409,10 @@ class ColormapAction(PlotAction):
         # Update default colormap
         self.plot.setDefaultColormap(colormap)
 
-        # Update active image
-        image = self.plot.getActiveImage()
-        if image is not None:
-            # Update image: This do not preserve pixmap
-            self.plot.addImage(image.getData(copy=False),
-                               legend=image.getLegend(),
-                               info=image.getInfo(),
-                               colormap=colormap,
-                               replace=False,
-                               resetzoom=False)
+        # Update active image colormap
+        activeImage = self.plot.getActiveImage()
+        if isinstance(activeImage, items.ColormapMixIn):
+            activeImage.setColormap(colormap)
 
 
 class KeepAspectRatioAction(PlotAction):
@@ -763,11 +758,8 @@ class SaveAction(PlotAction):
 
         elif nameFilter in (self.IMAGE_FILTER_RGB_PNG,
                             self.IMAGE_FILTER_RGB_TIFF):
-            # Apply colormap to data
-            colormap = image.getColormap()
-            scalarMappable = Colors.getMPLScalarMappable(colormap, data)
-            rgbaImage = scalarMappable.to_rgba(data, bytes=True)
-
+            # Get displayed image
+            rgbaImage = image.getRbgaImageData(copy=False)
             # Convert RGB QImage
             qimage = convertArrayToQImage(rgbaImage[:, :, :3])
 
@@ -1377,8 +1369,8 @@ class MedianFilter1DAction(MedianFilterAction):
 
     def _computeFilteredImage(self, kernelWidth, conditional):
         assert(self.plot is not None)
-        return medianfilter(self._originalImage,
-                            kernelWidth,
+        return medfilt2d(self._originalImage,
+                            (kernelWidth, 1),
                             conditional)
 
 
@@ -1395,6 +1387,6 @@ class MedianFilter2DAction(MedianFilterAction):
 
     def _computeFilteredImage(self, kernelWidth, conditional):
         assert(self.plot is not None)
-        return medianfilter(self._originalImage,
+        return medfilt2d(self._originalImage,
                             (kernelWidth, kernelWidth),
                             conditional)

@@ -26,15 +26,13 @@ OpenGL scene API
 This API is NOT stable.
 Widgets of :mod:`silx.gui.plot3d` are based on the following sub-packages:
 
-- :mod:`.glutils`: Loads PyOpenGL and provides classes to handle OpenGL resources.
 - :mod:`.scene`: Provides a hierarchical scene structure handling rendering and interaction.
 - :mod:`.utils`: Miscellaneous supporting modules.
-- :mod:`._font`: Provides an API to use Qt Font system from the :mod:`.scene` package.
+- :mod:`silx.gui._glutils`: Loads PyOpenGL and provides classes to handle OpenGL resources.
 
 .. toctree::
    :maxdepth: 2
 
-   glutils.rst
    scene.rst
    utils.rst
-   _font.rst
+   glutils.rst

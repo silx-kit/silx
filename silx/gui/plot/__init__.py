@@ -51,7 +51,7 @@ __date__ = "22/02/2016"
 
 
 # First of all init matplotlib and set its backend
-from . import _matplotlib  # noqa
+from .backends import _matplotlib  # noqa
 
 from .PlotWidget import PlotWidget  # noqa
 from .PlotWindow import PlotWindow, Plot1D, Plot2D  # noqa
