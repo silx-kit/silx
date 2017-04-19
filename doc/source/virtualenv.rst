@@ -32,6 +32,8 @@ Install vitrualenv
     This step is not required for recent version of Python 3.
     Virtual environments are created using a builtin standard library,
     ``venv``.
+    On Debian platforms, you might need to install the ``python3-venv``
+    package.
 
 
 Create a virtualenv
@@ -85,11 +87,13 @@ A script is provided in your virtualenv to activate it.
 
     source silx_venv/bin/activate
 
-After activating your new virtualenv, this python interpreter and the
+After activating your new virtualenv, this python interpreter and its
 package tools are used, instead of the ones from the system.
 
 Any libraries you will install or upgrade will be inside the virtual
 environment, and will not affect the rest of system.
+
+To deactivate the virtual environment, just type ``deactivate``.
 
 Upgrade pip
 ***********
@@ -121,6 +125,8 @@ install *silx*:
 .. code-block:: bash
 
     pip install numpy cython
+
+.. since 0.5, numpy is now automatically installed when doing `pip install silx`
 
 Install optional dependencies
 *****************************
