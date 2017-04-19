@@ -97,7 +97,7 @@ class Viewer(qt.QMainWindow):
 
         self.setCentralWidget(main_panel)
 
-        self.__treeview.activated.connect(self.displayData)
+        self.__treeview.selectionModel().selectionChanged.connect(self.displayData)
 
         self.__treeview.addContextMenuCallback(self.customContextMenu)
         # lambda function will never be called cause we store it as weakref
