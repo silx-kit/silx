@@ -899,6 +899,8 @@ class BackendOpenGL(BackendBase.BackendBase, qt.QGLWidget):
         gl.glDisable(gl.GL_SCISSOR_TEST)
 
     def resizeGL(self, width, height):
+        if width == 0 or height == 0:  # Do not resize
+            return
         self._plotFrame.size = width, height
 
         self.matScreenProj = mat4Ortho(0, self._plotFrame.size[0],
