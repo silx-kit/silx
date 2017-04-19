@@ -30,7 +30,6 @@ import numpy
 
 from silx.gui import qt
 from silx.gui.plot import Plot1D
-from silx.gui.plot import PlotActions
 
 from silx.gui.plot.AlphaSlider import NamedScatterAlphaSlider
 
