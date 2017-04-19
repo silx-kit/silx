@@ -342,6 +342,8 @@ class BackendOpenGL(BackendBase.BackendBase, qt.QGLWidget):
 
         self._keepDataAspectRatio = False
 
+        self._devicePixelRatio = 1.0
+
         self._crosshairCursor = None
         self._mousePosInPixels = None
 
@@ -375,13 +377,15 @@ class BackendOpenGL(BackendBase.BackendBase, qt.QGLWidget):
         return qt.QSize(8 * 80, 6 * 80)  # Mimic MatplotlibBackend
 
     def mousePressEvent(self, event):
-        xPixel, yPixel = event.x(), event.y()
+        xPixel = event.x() * self._devicePixelRatio
+        yPixel = event.y() * self._devicePixelRatio
         btn = self._MOUSE_BTNS[event.button()]
         self._plot.onMousePress(xPixel, yPixel, btn)
         event.accept()
 
     def mouseMoveEvent(self, event):
-        xPixel, yPixel = event.x(), event.y()
+        xPixel = event.x() * self._devicePixelRatio
+        yPixel = event.y() * self._devicePixelRatio
 
         # Handle crosshair
         inXPixel, inYPixel = self._mouseInPlotArea(xPixel, yPixel)
@@ -398,13 +402,17 @@ class BackendOpenGL(BackendBase.BackendBase, qt.QGLWidget):
         event.accept()
 
     def mouseReleaseEvent(self, event):
-        xPixel, yPixel = event.x(), event.y()
+        xPixel = event.x() * self._devicePixelRatio
+        yPixel = event.y() * self._devicePixelRatio
+
         btn = self._MOUSE_BTNS[event.button()]
         self._plot.onMouseRelease(xPixel, yPixel, btn)
         event.accept()
 
     def wheelEvent(self, event):
-        xPixel, yPixel = event.x(), event.y()
+        xPixel = event.x() * self._devicePixelRatio
+        yPixel = event.y() * self._devicePixelRatio
+
         if hasattr(event, 'angleDelta'):  # Qt 5
             delta = event.angleDelta().y()
         else:  # Qt 4 support
@@ -517,6 +525,13 @@ class BackendOpenGL(BackendBase.BackendBase, qt.QGLWidget):
         _current_context = self.context()
 
         glu.setGLContextGetter(_getContext)
+
+        if hasattr(self, 'windowHandle'):  # Qt 5
+            devicePixelRatio = self.windowHandle().devicePixelRatio()
+            if devicePixelRatio != self._devicePixelRatio:
+                self._devicePixelRatio = devicePixelRatio
+                self.resizeGL(int(self.width() * devicePixelRatio),
+                              int(self.height() * devicePixelRatio))
 
         # Release OpenGL resources
         for item in self._glGarbageCollector:
