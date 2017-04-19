@@ -507,6 +507,8 @@ class TestSpecH5(unittest.TestCase):
         self.assertIn("sample", self.sfh5["/1000.1"])
         self.assertIn("ub", self.sfh5["/1000.1/sample"])
         self.assertIn("unit_cell", self.sfh5["/1000.1/sample"])
+        self.assertIn("unit_cell_abc", self.sfh5["/1000.1/sample"])
+        self.assertIn("unit_cell_alphabetagamma", self.sfh5["/1000.1/sample"])
 
 
 sftext_multi_mca_headers = """
