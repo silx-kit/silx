@@ -32,7 +32,7 @@ Test coverage dependencies: coverage, lxml.
 """
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "29/11/2016"
+__date__ = "19/04/2017"
 __license__ = "MIT"
 
 import distutils.util
@@ -291,10 +291,13 @@ if options.low_mem:
 if options.coverage:
     logger.info("Running test-coverage")
     import coverage
+    omits = ["*test*", "*third_party*", "*/setup.py",
+             # temporary test modules (silx.math.fit.test.test_fitmanager)
+             "*customfun.py", ]
     try:
-        cov = coverage.Coverage(omit=["*test*", "*third_party*", "*/setup.py"])
+        cov = coverage.Coverage(omit=omits)
     except AttributeError:
-        cov = coverage.coverage(omit=["*test*", "*third_party*", "*/setup.py"])
+        cov = coverage.coverage(omit=omits)
     cov.start()
 
 if options.qt_binding:
