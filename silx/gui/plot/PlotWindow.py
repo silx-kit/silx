@@ -244,6 +244,7 @@ class PlotWindow(PlotWidget):
             layout.setContentsMargins(0, 0, 0, 0)
             layout.addWidget(self.getWidgetHandle())
             layout.addWidget(bottomBar)
+            layout.setStretch(0, 1)
 
             centralWidget = qt.QWidget()
             centralWidget.setLayout(layout)
