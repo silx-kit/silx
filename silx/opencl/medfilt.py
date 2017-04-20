@@ -27,7 +27,7 @@
 
 """A module for performing the 1d, 2d and 3d median filter ...
 
-The target is to mimic the signature of scipy.signal.medfilt and scipy.medfilt2
+The target is to mimic the signature of scipy.signal.medfilt and scipy.medfilt2d
 
 The first implementation targets 2D implementation where this operation is costly (~10s/2kx2k image)
 """

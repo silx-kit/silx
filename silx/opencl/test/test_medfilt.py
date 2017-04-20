@@ -44,11 +44,9 @@ import logging
 import numpy
 import unittest
 from collections import namedtuple
-from ..common import ocl
+from silx.opencl.common import ocl
 if ocl:
-    import pyopencl
-    import pyopencl.array
-    from .. import medfilt
+    from silx.opencl import medfilt
 
 logger = logging.getLogger(__name__)
 
@@ -104,33 +102,46 @@ class TestMedianFilter(unittest.TestCase):
             self.assert_(r.error == 0, 'Results are correct')
 
     def benchmark(self, limit=36):
-        "Run some benchmarking"
+        """Run some benchmarking"""
         try:
-            import PyQt5
-            from ...gui.matplotlib import pylab
-            from ...gui.utils import update_fig
+            from silx.gui import qt
+            from silx.gui import plot  # To have matplotlib using Qt
+            from matplotlib import pylab
+
+            def update_fig(fig=None):
+                """
+                Update a matplotlib figure with a Qt4 backend
+                :param fig: pylab figure
+                """
+
+                if fig and "canvas" in dir(fig) and fig.canvas:
+                    fig.canvas.draw()
+                if "Qt" in pylab.get_backend():
+                    event = qt.QResizeEvent(fig.canvas.size(), fig.canvas.size())
+                    qt.qApp.postEvent(fig.canvas, event)
+                    qt.QCoreApplication.processEvents()
+
         except:
             pylab = None
 
-            def update_fig(*ag, **kwarg):
-                pass
-
-        fig = pylab.figure()
-        fig.suptitle("Median filter of an image 512x512")
-        sp = fig.add_subplot(1, 1, 1)
-        sp.set_title(self.medianfilter.ctx.devices[0].name)
-        sp.set_xlabel("Window width & height")
-        sp.set_ylabel("Execution time (s)")
-        sp.set_xlim(2, limit + 1)
-        sp.set_ylim(0, 4)
         data_size = []
         data_scipy = []
         data_opencl = []
-        plot_sp = sp.plot(data_size, data_scipy, "-or", label="scipy")[0]
-        plot_opencl = sp.plot(data_size, data_opencl, "-ob", label="opencl")[0]
-        sp.legend(loc=2)
-        fig.show()
-        update_fig(fig)
+        if pylab:
+            fig = pylab.figure()
+            fig.suptitle("Median filter of an image 512x512")
+            sp = fig.add_subplot(1, 1, 1)
+            sp.set_title(self.medianfilter.ctx.devices[0].name)
+            sp.set_xlabel("Window width & height")
+            sp.set_ylabel("Execution time (s)")
+            sp.set_xlim(2, limit + 1)
+            sp.set_ylim(0, 4)
+            plot_sp = sp.plot(data_size, data_scipy, "-or", label="scipy")[0]
+            plot_opencl = sp.plot(data_size, data_opencl, "-ob", label="opencl")[0]
+            sp.legend(loc=2)
+            fig.show()
+            update_fig(fig)
+
         for s in range(3, limit, 2):
             r = self.measure(s)
             print(r)
@@ -138,14 +149,16 @@ class TestMedianFilter(unittest.TestCase):
                 data_size.append(s)
                 data_scipy.append(r.sp_time)
                 data_opencl.append(r.oc_time)
-                plot_sp.set_data(data_size, data_scipy)
-                plot_opencl.set_data(data_size, data_opencl)
-                update_fig(fig)
-        fig.show()
-        if sys.version_info[0] < 3:
-            raw_input()
-        else:
-            input()
+                if pylab:
+                    plot_sp.set_data(data_size, data_scipy)
+                    plot_opencl.set_data(data_size, data_opencl)
+                    update_fig(fig)
+
+        if pylab:
+            if sys.version_info[0] < 3:
+                raw_input()
+            else:
+                input()
 
 
 def suite():
