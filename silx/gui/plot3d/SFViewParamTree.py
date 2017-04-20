@@ -385,11 +385,14 @@ class DataTypeItem(DataChangedItem):
 
 
 class DataShapeItem(DataChangedItem):
-    itemName = 'shape'
+    itemName = 'size'
 
     def _pullData(self):
         data = self.subject.getData(copy=False)
-        return ((data is not None) and str(data.shape)) or 'N/A'
+        if data is None:
+            return 'N/A'
+        else:
+            return str(list(reversed(data.shape)))
 
 
 class OffsetItem(DataChangedItem):
