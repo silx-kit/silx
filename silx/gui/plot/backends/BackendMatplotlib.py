@@ -674,6 +674,8 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
             super(BackendMatplotlibQt, self).postRedisplay,
             qt.Qt.QueuedConnection)
 
+        self._picked = None
+
         self.mpl_connect('button_press_event', self._onMousePress)
         self.mpl_connect('button_release_event', self._onMouseRelease)
         self.mpl_connect('motion_notify_event', self._onMouseMove)
@@ -723,6 +725,10 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
     def _onPick(self, event):
         # TODO not very nice and fragile, find a better way?
         # Make a selection according to kind
+        if self._picked is None:
+            _logger.error('Internal picking error')
+            return
+
         label = event.artist.get_label()
         if label.startswith('__MARKER__'):
             self._picked.append({'kind': 'marker', 'legend': label[10:]})
@@ -753,7 +759,7 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
         self.fig.pick(mouseEvent)
         self.mpl_disconnect(cid)
         picked = self._picked
-        del self._picked
+        self._picked = None
 
         return picked
 

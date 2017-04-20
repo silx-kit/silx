@@ -421,7 +421,7 @@ class GLPlotFrame(object):
             def test(text):
                 return text is None
         elif self._grid == self.GRID_ALL_TICKS:
-            def test(text):
+            def test(_):
                 return True
         else:
             logging.warning('Wrong grid mode: %d' % self._grid)

@@ -307,6 +307,7 @@ _texFragShd = """
 
 _current_context = None
 
+
 def _getContext():
     assert _current_context is not None
     return _current_context
@@ -326,7 +327,6 @@ class BackendOpenGL(BackendBase.BackendBase, qt.QGLWidget):
 
     _sigPostRedisplay = qt.Signal()
     """Signal handling automatic asynchronous replot"""
-
 
     def __init__(self, plot, parent=None):
         qt.QGLWidget.__init__(self, parent)

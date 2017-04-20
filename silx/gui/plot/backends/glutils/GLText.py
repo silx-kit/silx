@@ -83,7 +83,6 @@ class Text2D(object):
     _TEX_COORDS = numpy.array(((0., 0.), (1., 0.), (0., 1.), (1., 1.)),
                               dtype=numpy.float32).ravel()
 
-
     _program = Program(_SHADERS['vertex'],
                        _SHADERS['fragment'],
                        attrib0='position')
