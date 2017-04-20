@@ -29,6 +29,9 @@ override_dh_install:
 	dh_numpy
 	dh_numpy3
 
+	# move the scripts to right package
+	dh_install -p silx debian/scripts/* usr/bin
+
 	# remove all py/pyc/egg-info files from dbg packages
 	find debian/python-silx-dbg/usr -type f \( -not -name "*.so" \) -delete
 	find debian/python3-silx-dbg/usr -type f \( -not -name "*.so" \) -delete
