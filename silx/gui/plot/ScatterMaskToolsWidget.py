@@ -47,7 +47,7 @@ import sys
 from .. import qt
 from ...image import shapes
 
-from .MaskToolsWidget import BaseMask, BaseMaskToolsWidget, BaseMaskToolsDockWidget
+from .BaseMaskToolsWidget import BaseMask, BaseMaskToolsWidget, BaseMaskToolsDockWidget
 from .Colors import cursorColorForColormap, rgba
 
 
