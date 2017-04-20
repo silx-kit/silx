@@ -594,8 +594,13 @@ class SampleGroup(LazyLoadableGroup):
             data = self.__fabio_reader.get_unit_cell_abc()
             data = Dataset("unit_cell_abc", data, attrs=scalar)
             self.add_node(data)
+            unit_cell_data = numpy.zeros((1, 6), numpy.float32)
+            unit_cell_data[0, :3] = data
             data = self.__fabio_reader.get_unit_cell_alphabetagamma()
             data = Dataset("unit_cell_alphabetagamma", data, attrs=scalar)
+            self.add_node(data)
+            unit_cell_data[0, 3:] = data
+            data = Dataset("unit_cell", unit_cell_data, attrs=scalar)
             self.add_node(data)
             # According to this issue the UB matrix is not yet available
             # in the Nexus specification (it only can describe the U matrix)

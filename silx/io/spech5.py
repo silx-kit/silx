@@ -238,6 +238,8 @@ instrument_mca_elapsed_t_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[
 instrument_mca_live_t_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/live_time$")
 ub_pattern = re.compile(r"/[0-9]+\.[0-9]+/sample/ub$")
 unit_cell_pattern = re.compile(r"/[0-9]+\.[0-9]+/sample/unit_cell$")
+unit_cell_abc_pattern = re.compile(r"/[0-9]+\.[0-9]+/sample/unit_cell_abc$")
+unit_cell_alphabetagamma_pattern = re.compile(r"/[0-9]+\.[0-9]+/sample/unit_cell_alphabetagamma$")
 
 # Links to dataset
 measurement_mca_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_([0-9]+)/data$")
@@ -311,7 +313,7 @@ def is_dataset(name):
         instrument_mca_chann_pattern,
         instrument_mca_preset_t_pattern, instrument_mca_elapsed_t_pattern,
         instrument_mca_live_t_pattern,
-        ub_pattern, unit_cell_pattern
+        ub_pattern, unit_cell_pattern, unit_cell_abc_pattern, unit_cell_alphabetagamma_pattern
     )
     return _bulk_match(name, data_patterns)
 
@@ -404,9 +406,13 @@ def _get_attrs_dict(name):
         sample_pattern:
             {"NX_class": "NXsample", },
         ub_pattern:
-            {},
+            {"interpretation": "scalar"},
         unit_cell_pattern:
-            {},
+            {"interpretation": "scalar"},
+        unit_cell_abc_pattern:
+            {"interpretation": "scalar"},
+        unit_cell_alphabetagamma_pattern:
+            {"interpretation": "scalar"},
     }
 
     for pattern in pattern_attrs:
@@ -1021,14 +1027,24 @@ def _dataset_builder(name, specfileh5, parent_group):
             raise KeyError("No UB matrix in a scan without a #G3 header line")
         array_like = numpy.array(
                 list(map(float, scan.scan_header_dict["G3"].split()))).reshape((1, 3, 3))
-
     elif unit_cell_pattern.match(name):
         if not "G1" in scan.scan_header_dict:
             raise KeyError(
                     "No unit_cell matrix in a scan without a #G1 header line")
         array_like = numpy.array(
                 list(map(float, scan.scan_header_dict["G1"].split()))[0:6]).reshape((1, 6))
-
+    elif unit_cell_abc_pattern.match(name):
+        if not "G1" in scan.scan_header_dict:
+            raise KeyError(
+                    "No unit_cell matrix in a scan without a #G1 header line")
+        array_like = numpy.array(
+                list(map(float, scan.scan_header_dict["G1"].split()))[0:3]).reshape((3,))
+    elif unit_cell_alphabetagamma_pattern.match(name):
+        if not "G1" in scan.scan_header_dict:
+            raise KeyError(
+                    "No unit_cell matrix in a scan without a #G1 header line")
+        array_like = numpy.array(
+                list(map(float, scan.scan_header_dict["G1"].split()))[3:6]).reshape((3,))
     elif "CTIME" in scan.mca_header_dict and "mca_" in name:
         m = re.compile(r"/.*/mca_([0-9]+)/.*").match(name)
         analyser_index = int(m.group(1))
@@ -1259,6 +1275,13 @@ class SpecH5Group(object):
         if key.endswith("sample/unit_cell"):
             return "G1" in self.file._sf[scan_key].scan_header_dict
 
+        if key.endswith("sample/unit_cell_abc"):
+            return "G1" in self.file._sf[scan_key].scan_header_dict
+
+
+        if key.endswith("sample/unit_cell_alphabetagamma"):
+            return "G1" in self.file._sf[scan_key].scan_header_dict
+
         # header, title, start_time, existing scan/mca/motor/measurement
         return True
 
@@ -1385,6 +1408,8 @@ class SpecH5Group(object):
             ret = []
             if "G1" in self._scan.scan_header_dict:
                 ret.append(u"unit_cell")
+                ret.append(u"unit_cell_abc")
+                ret.append(u"unit_cell_alphabetagamma")
             if "G3" in self._scan.scan_header_dict:
                 ret.append(u"ub")
             return ret
