@@ -34,7 +34,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "19/04/2017"
+__date__ = "20/04/2017"
 
 
 import os
@@ -46,14 +46,15 @@ import shutil
 import sys
 import tempfile
 import unittest
-import threading
-import json
-import getpass
+from ..resources import ExternalResources
 
-logger = logging.getLogger("silx.test.utils")
-PACKAGE = "silx"
-DATA_KEY = "SILX_DATA"
-URL = "http://www.silx.org/pub/silx/"
+logger = logging.getLogger(__name__)
+
+utilstest = ExternalResources(project="silx",
+                              url_base="http://www.silx.org/pub/silx/",
+                              env_key="SILX_DATA",
+                              timeout=60)
+"This is the instance to be used. Singleton-like feature provided by module"
 
 # Parametric Test Base Class ##################################################
 
@@ -217,191 +218,8 @@ def test_logging(logger=None, critical=None, error=None,
     return decorator
 
 
-class TestResources(object):
-    """Utility class which allows to download test-data from www.silx.org
-    and manage the temporary data during the tests.
-
-    """
-
-    def __init__(self, project=PACKAGE,
-                 url_base=URL,
-                 env_key=DATA_KEY,
-                 timeout=60):
-        """Constructor of the class
-
-        :param project: name of the project, "silx" by default
-        :param url_base: base URL for the data, like http://www.silx.org/pub
-        :param env_key: name of the environment variable which contains the
-                        test_data directory
-        :param timeout: time in seconds before it breaks 
-        """
-        self.project = project
-        self._initialized = False
-        self._tempdir = None
-        self.sem = threading.Semaphore()
-        self.env_key = env_key
-        self.url_base = url_base
-        self.all_data = set()
-        self.timeout = timeout
-
-    def _initialize_tmpdir(self):
-        """Initialize the temporary directory"""
-        if not self._tempdir:
-            with self.sem:
-                if not self._tempdir:
-                    self._tempdir = tempfile.mkdtemp("_" + getpass.getuser(),
-                                                     self.project + "_")
-
-    def _initialize_data(self):
-        """Initialize for downloading test data"""
-        if not self._initialized:
-            with self.sem:
-                if not self._initialized:
-
-                    self.data_home = os.environ.get(self.env_key)
-                    if self.data_home is None:
-                        self.data_home = os.path.join(tempfile.gettempdir(),
-                                                      "%s_testdata_%s" % (self.project, getpass.getuser()))
-                    if not os.path.exists(self.data_home):
-                        os.makedirs(self.data_home)
-                    self.testdata = os.path.join(self.data_home, "all_testdata.json")
-                    if os.path.exists(self.testdata):
-                        with open(self.testdata) as f:
-                            self.all_data = set(json.load(f))
-                    self._initialized = True
-
-    @property
-    def tempdir(self):
-        if not self._tempdir:
-            self._initialize_tmpdir()
-        return self._tempdir
-
-    def clean_up(self):
-        """Removes the temporary directory (and all its content !)"""
-        with self.sem:
-            if not self._tempdir:
-                return
-            if not os.path.isdir(self._tempdir):
-                return
-            for root, dirs, files in os.walk(self._tempdir, topdown=False):
-                for name in files:
-                    os.remove(os.path.join(root, name))
-                for name in dirs:
-                    os.rmdir(os.path.join(root, name))
-            os.rmdir(self._tempdir)
-            self._tempdir=None
-
-    def getfile(self, filename):
-        """Downloads the requested file from web-server available at 
-        https://www.silx.org/pub/silx/
-
-        :param: relative name of the image.
-        :return: full path of the locally saved file.
-        """
-
-        if not self._initialized:
-            self._initialize_data()
-
-        from ..third_party.six.moves.urllib.request import urlopen, ProxyHandler, build_opener
-        from ..third_party.six.moves.urllib.error import URLError
-
-        if filename not in self.all_data:
-            self.all_data.add(filename)
-            image_list = list(self.all_data)
-            image_list.sort()
-            try:
-                with open(self.testdata, "w") as fp:
-                    json.dump(image_list, fp, indent=4)
-            except IOError:
-                logger.debug("Unable to save JSON list")
-        logger.info("UtilsTest.getimage('%s')", filename)
-        if not os.path.exists(self.data_home):
-            os.makedirs(self.data_home)
-
-        fullfilename = os.path.abspath(os.path.join(self.data_home, filename))
-        if not os.path.isfile(fullfilename):
-            logger.info("Trying to download image %s, timeout set to %ss",
-                        filename, self.timeout)
-            dictProxies = {}
-            if "http_proxy" in os.environ:
-                dictProxies['http'] = os.environ["http_proxy"]
-                dictProxies['https'] = os.environ["http_proxy"]
-            if "https_proxy" in os.environ:
-                dictProxies['https'] = os.environ["https_proxy"]
-            if dictProxies:
-                proxy_handler = ProxyHandler(dictProxies)
-                opener = build_opener(proxy_handler).open
-            else:
-                opener = urlopen
-
-            logger.info("wget %s/%s", self.url_base, filename)
-            try:
-                data = opener("%s/%s" % (self.url_base, filename),
-                              data=None, timeout=self.timeout).read()
-                logger.info("Image %s successfully downloaded.", filename)
-            except URLError:
-                raise unittest.SkipTest("network unreachable.")
-
-            try:
-                with open(fullfilename, "wb") as outfile:
-                    outfile.write(data)
-            except IOError:
-                raise IOError("unable to write downloaded \
-                    data to disk at %s" % self.data_home)
-
-            if not os.path.isfile(fullfilename):
-                raise RuntimeError("Could not automatically \
-                download test images %s!\n \ If you are behind a firewall, \
-                please set both environment variable http_proxy and https_proxy.\
-                This even works under windows ! \n \
-                Otherwise please try to download the images manually from \n%s/%s"\
-                 % (filename, self.url_base, filename))
-
-        return fullfilename
-
-    def getdir(self, dirname):
-        """Downloads the requested tarball from the server 
-                https://www.silx.org/pub/silx/
-        and unzips it into the data directory
-
-        :param: relative name of the image.
-        :return: full path of the locally saved file.
-
-        """
-        lodn = dirname.lower()
-        if (lodn.endswith("tar") or lodn.endswith("tgz") or
-            lodn.endswith("tbz2") or lodn.endswith("tar.gz") or
-            lodn.endswith("tar.bz2")):
-
-            import tarfile
-            engine = tarfile.TarFile
-        elif lodn.endswith("zip"):
-            import zipfile
-            engine = zipfile.ZipFile
-        else:
-            raise RuntimeError("Unsupported archive format. Only tar and zip "
-                               "are currently supported")
-        full_path = self.getfile(dirname)
-        with engine.open(full_path) as fd:
-            fd.extractall(self.data_home)
-        return full_path
-
-    def download_all(self, imgs=None):
-        """Download all data needed for the test/benchmarks
-
-        :param imgs: list of files to download
-        """
-        if not self._initialized:
-            self._initialize_data()
-        if not imgs:
-            imgs = self.all_data
-        for fn in imgs:
-            print("Downloading from silx.org: %s" % fn)
-            self.getimage(fn)
 
 
-utilstest = TestResources()
-"This is the instance to be used. Singleton like feature provided by module"
 
 
 # Temporary directory context #################################################
