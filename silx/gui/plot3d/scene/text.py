@@ -120,6 +120,7 @@ class Text2D(primitives.Geometry):
         self._overlay = False
         self._align = 'left'
         self._valign = 'baseline'
+        self._devicePixelRatio = 1.0  # Store it to check for changes
 
         self._texture = None
         self._textureDirty = True
@@ -203,9 +204,11 @@ class Text2D(primitives.Geometry):
 
         Either 'top', 'baseline' (default), 'center' or 'bottom'""")
 
-    def _raster(self):
+    def _raster(self, devicePixelRatio):
         """Raster current primitive to a bitmap
 
+        :param float devicePixelRatio:
+            The ratio between device and device-independent pixels
         :return: Corresponding image in grayscale and baseline offset from top
         :rtype: (HxW numpy.ndarray of uint8, int)
         """
@@ -213,7 +216,8 @@ class Text2D(primitives.Geometry):
                   self.font.name,
                   self.font.size,
                   self.font.weight,
-                  self.font.italic)
+                  self.font.italic,
+                  devicePixelRatio)
 
         if params not in self._rasterTextCache:  # Add to cache
             self._rasterTextCache[params] = _font.rasterText(*params)
@@ -225,6 +229,12 @@ class Text2D(primitives.Geometry):
         return None
 
     def prepareGL2(self, context):
+        # Check if devicePixelRatio has changed since last rendering
+        devicePixelRatio = context.glCtx.devicePixelRatio
+        if self._devicePixelRatio != devicePixelRatio:
+            self._devicePixelRatio = devicePixelRatio
+            self._dirtyTexture = True
+
         if self._dirtyTexture:
             self._dirtyTexture = False
 
@@ -234,7 +244,8 @@ class Text2D(primitives.Geometry):
             self._baselineOffset = 0
 
             if self.text:
-                image, self._baselineOffset = self._raster()
+                image, self._baselineOffset = self._raster(
+                    self._devicePixelRatio)
                 self._texture = _glutils.Texture(
                     gl.GL_R8, image, gl.GL_RED,
                     minFilter=gl.GL_NEAREST,

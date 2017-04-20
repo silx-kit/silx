@@ -67,7 +67,11 @@ ULTRA_BLACK = 99
 """Thickest characters: Maximum font weight"""
 
 
-def rasterText(text, font, size=-1, weight=-1, italic=False):
+def rasterText(text, font,
+               size=-1,
+               weight=-1,
+               italic=False,
+               devicePixelRatio=1.0):
     """Raster text using Qt.
 
     It supports multiple lines.
@@ -84,6 +88,9 @@ def rasterText(text, font, size=-1, weight=-1, italic=False):
     :param bool italic:
         True for italic font (default: False).
         Used only if font is given as name.
+    :param float devicePixelRatio:
+        The current ratio between device and device-independent pixel
+        (default: 1.0)
     :return: Corresponding image in gray scale and baseline offset from top
     :rtype: (HxW numpy.ndarray of uint8, int)
     """
@@ -101,12 +108,22 @@ def rasterText(text, font, size=-1, weight=-1, italic=False):
         qt.Qt.TextExpandTabs,
         text)
 
-    width = bounds.width() + 2  # Add extra border
+    if (devicePixelRatio != 1.0 and
+            not hasattr(qt.QImage, 'setDevicePixelRatio')):  # Qt 4
+        _logger.error('devicePixelRatio not supported')
+        devicePixelRatio = 1.0
+
+    # Add extra border and handle devicePixelRatio
+    width = bounds.width() * devicePixelRatio + 2
     # align line size to 32 bits to ease conversion to numpy array
     width = 4 * ((width + 3) // 4)
     image = qt.QImage(width,
-                      bounds.height(),
+                      bounds.height() * devicePixelRatio,
                       qt.QImage.Format_RGB888)
+    if (devicePixelRatio != 1.0 and
+            hasattr(image, 'setDevicePixelRatio')):  # Qt 5
+        image.setDevicePixelRatio(devicePixelRatio)
+
     # TODO if Qt5 use Format_Grayscale8 instead
     image.fill(0)
 
