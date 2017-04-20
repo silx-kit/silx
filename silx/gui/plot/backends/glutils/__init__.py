@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -21,24 +21,24 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# ###########################################################################*/
-"""This module provides convenient functions related to Qt.
+# ############################################################################*/
+"""This module provides convenient classes for the OpenGL rendering backend.
 """
 
-__authors__ = ["V. Valls"]
+__authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "30/11/2016"
-
-import sys
-from ._qt import BINDING, QImageReader
+__date__ = "03/04/2017"
 
 
-def supportedImageFormats():
-    """Return a set of string of file format extensions supported by the
-    Qt runtime."""
-    if sys.version_info[0] < 3 or BINDING == 'PySide':
-        convert = str
-    else:
-        convert = lambda data: str(data, 'ascii')
-    formats = QImageReader.supportedImageFormats()
-    return set([convert(data) for data in formats])
+import logging
+
+
+_logger = logging.getLogger(__name__)
+
+
+from .GLPlotCurve import *  # noqa
+from .GLPlotFrame import *  # noqa
+from .GLPlotImage import *  # noqa
+from .GLSupport import *  # noqa
+from .GLText import *  # noqa
+from .GLTexture import *  # noqa
