@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Utilities for writting tests.
+"""Utilities for writing tests.
 
 - :class:`ParametricTestCase` provides a :meth:`TestCase.subTest` replacement
   for Python < 3.4
@@ -34,9 +34,10 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "21/06/2016"
+__date__ = "20/04/2017"
 
 
+import os
 import contextlib
 import functools
 import logging
@@ -45,7 +46,15 @@ import shutil
 import sys
 import tempfile
 import unittest
+from ..resources import ExternalResources
 
+logger = logging.getLogger(__name__)
+
+utilstest = ExternalResources(project="silx",
+                              url_base="http://www.silx.org/pub/silx/",
+                              env_key="SILX_DATA",
+                              timeout=60)
+"This is the instance to be used. Singleton-like feature provided by module"
 
 # Parametric Test Base Class ##################################################
 
@@ -207,6 +216,10 @@ def test_logging(logger=None, critical=None, error=None,
             return result
         return wrapper
     return decorator
+
+
+
+
 
 
 # Temporary directory context #################################################
