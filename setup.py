@@ -199,7 +199,6 @@ class BuildMan(Command):
 
         env = dict((str(k), str(v)) for k, v in os.environ.items())
         env["PYTHONPATH"] = os.pathsep.join(path)
-        env["PYTHON"] = sys.executable
 
         import subprocess
 
@@ -207,10 +206,35 @@ class BuildMan(Command):
         if status != 0:
             raise RuntimeError("Fail to create build/man directory")
 
-        p = subprocess.Popen(["help2man", "scripts/silx", "-o", "build/man/silx.1"], env=env)
-        status = p.wait()
-        if status != 0:
-            raise RuntimeError("Fail to generate man documentation")
+        try:
+            import tempfile
+            import stat
+            script_name = None
+
+            # help2man expect a single executable file to extract the help
+            # we create it, execute it, and delete it at the end
+
+            # create a launcher using the right python interpreter
+            script_fid, script_name = tempfile.mkstemp(prefix="%s_" % PROJECT, text=True)
+            script = os.fdopen(script_fid, 'wt')
+            script.write("#!%s\n" % sys.executable)
+            script.write("import runpy\n")
+            script.write("runpy.run_module('%s', run_name='__main__')\n" % PROJECT)
+            script.close()
+
+            # make it executable
+            mode = os.stat(script_name).st_mode
+            os.chmod(script_name, mode + stat.S_IEXEC)
+
+            # execute help2man
+            p = subprocess.Popen(["help2man", script_name, "-o", "build/man/silx.1"], env=env)
+            status = p.wait()
+            if status != 0:
+                raise RuntimeError("Fail to generate man documentation")
+        finally:
+            # clean up the script
+            if script_name is not None:
+                os.remove(script_name)
 
 
 if sphinx is not None:
