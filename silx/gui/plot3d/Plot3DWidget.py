@@ -245,7 +245,7 @@ class Plot3DWidget(qt.QGLWidget):
             if self.viewport.dirty:
                 self.viewport.adjustCameraDepthExtent()
 
-            self.window.render(qt.QGLContext.currentContext())
+            self.window.render(self.context(), self._devicePixelRatio)
 
         if self._firstRender:  # TODO remove this ugly hack
             self._firstRender = False
