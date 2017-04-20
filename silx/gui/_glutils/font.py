@@ -108,6 +108,11 @@ def rasterText(text, font,
         qt.Qt.TextExpandTabs,
         text)
 
+    if (devicePixelRatio != 1.0 and
+            not hasattr(qt.QImage, 'setDevicePixelRatio')):  # Qt 4
+        _logger.error('devicePixelRatio not supported')
+        devicePixelRatio = 1.0
+
     # Add extra border and handle devicePixelRatio
     width = bounds.width() * devicePixelRatio + 2
     # align line size to 32 bits to ease conversion to numpy array
@@ -115,7 +120,10 @@ def rasterText(text, font,
     image = qt.QImage(width,
                       bounds.height() * devicePixelRatio,
                       qt.QImage.Format_RGB888)
-    image.setDevicePixelRatio(devicePixelRatio)
+    if (devicePixelRatio != 1.0 and
+            hasattr(image, 'setDevicePixelRatio')):  # Qt 5
+        image.setDevicePixelRatio(devicePixelRatio)
+
     # TODO if Qt5 use Format_Grayscale8 instead
     image.fill(0)
 
