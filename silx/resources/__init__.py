@@ -207,29 +207,21 @@ class ExternalResources(object):
         :param: relative name of the image.
         :return: full path of the locally saved file.
         """
+        logger.debug("ExternalResources.getfile('%s')", filename)
 
         if not self._initialized:
             self._initialize_data()
 
-        from ..third_party.six.moves.urllib.request import urlopen, ProxyHandler, build_opener
-        from ..third_party.six.moves.urllib.error import URLError
-
-        if filename not in self.all_data:
-            self.all_data.add(filename)
-            image_list = list(self.all_data)
-            image_list.sort()
-            try:
-                with open(self.testdata, "w") as fp:
-                    json.dump(image_list, fp, indent=4)
-            except IOError:
-                logger.debug("Unable to save JSON list")
-        logger.info("UtilsTest.getimage('%s')", filename)
         if not os.path.exists(self.data_home):
             os.makedirs(self.data_home)
 
         fullfilename = os.path.abspath(os.path.join(self.data_home, filename))
+
         if not os.path.isfile(fullfilename):
-            logger.info("Trying to download image %s, timeout set to %ss",
+            from ..third_party.six.moves.urllib.request import urlopen, ProxyHandler, build_opener
+            from ..third_party.six.moves.urllib.error import URLError
+
+            logger.debug("Trying to download image %s, timeout set to %ss",
                         filename, self.timeout)
             dictProxies = {}
             if "http_proxy" in os.environ:
@@ -243,7 +235,7 @@ class ExternalResources(object):
             else:
                 opener = urlopen
 
-            logger.info("wget %s/%s", self.url_base, filename)
+            logger.debug("wget %s/%s", self.url_base, filename)
             try:
                 data = opener("%s/%s" % (self.url_base, filename),
                               data=None, timeout=self.timeout).read()
@@ -266,6 +258,16 @@ class ExternalResources(object):
                 Otherwise please try to download the images manually from \n%s/%s"\
                  % (filename, self.url_base, filename))
 
+        if filename not in self.all_data:
+            self.all_data.add(filename)
+            image_list = list(self.all_data)
+            image_list.sort()
+            try:
+                with open(self.testdata, "w") as fp:
+                    json.dump(image_list, fp, indent=4)
+            except IOError:
+                logger.debug("Unable to save JSON list")
+
         return fullfilename
 
     def getdir(self, dirname):
@@ -275,7 +277,6 @@ class ExternalResources(object):
 
         :param: relative name of the image.
         :return: full path of the locally saved file.
-
         """
         lodn = dirname.lower()
         if (lodn.endswith("tar") or lodn.endswith("tgz") or
