@@ -876,7 +876,10 @@ class FabioReader(object):
                     # A float64 is accurate with about 16 digits
                     return numpy.float64(value)
                 else:
-                    return numpy.float128(value)
+                    if hasattr(numpy, "float128"):
+                        return numpy.float128(value)
+                    else:
+                        return numpy.float64(value)
             except ValueError:
                 return numpy.string_(value)
 
