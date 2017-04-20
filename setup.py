@@ -554,9 +554,6 @@ class sdist_debian(sdist):
                     self.filelist.exclude_pattern(pattern=base_file + ".cpp")
                     self.filelist.exclude_pattern(pattern=base_file + ".html")
 
-        # include scripts
-        self.filelist.include_pattern(pattern="scripts/*")
-
     def make_distribution(self):
         self.prune_file_list()
         sdist.make_distribution(self)
