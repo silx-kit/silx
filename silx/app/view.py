@@ -28,8 +28,10 @@ __license__ = "MIT"
 __date__ = "12/04/2017"
 
 import sys
+import os
 import argparse
 import logging
+import collections
 
 
 logging.basicConfig()
@@ -48,6 +50,11 @@ try:
 except ImportError:
     h5py = None
 
+try:
+    import fabio
+except ImportError:
+    fabio = None
+
 from silx.gui import qt
 from silx.gui.data.DataViewerFrame import DataViewerFrame
 
@@ -65,9 +72,10 @@ class Viewer(qt.QMainWindow):
             instances)
         """
         qt.QMainWindow.__init__(self)
-        self.setWindowTitle("Silx HDF5 widget example")
+        self.setWindowTitle("Silx viewer")
 
         self.__asyncload = False
+        self.__dialogState = None
         self.__treeview = silx.gui.hdf5.Hdf5TreeView(self)
         """Silx HDF5 TreeView"""
 
@@ -89,7 +97,7 @@ class Viewer(qt.QMainWindow):
 
         self.setCentralWidget(main_panel)
 
-        self.__treeview.activated.connect(self.displayData)
+        self.__treeview.selectionModel().selectionChanged.connect(self.displayData)
 
         self.__treeview.addContextMenuCallback(self.customContextMenu)
         # lambda function will never be called cause we store it as weakref
@@ -97,6 +105,123 @@ class Viewer(qt.QMainWindow):
         # you have to store it first
         self.__store_lambda = lambda event: self.closeAndSyncCustomContextMenu(event)
         self.__treeview.addContextMenuCallback(self.__store_lambda)
+
+        self.createActions()
+        self.createMenus()
+
+    def createActions(self):
+        action = qt.QAction("E&xit", self)
+        action.setShortcuts(qt.QKeySequence.Quit)
+        action.setStatusTip("Exit the application")
+        action.triggered.connect(self.close)
+        self._exitAction = action
+
+        action = qt.QAction("&Open", self)
+        action.setStatusTip("Open a file")
+        action.triggered.connect(self.open)
+        self._openAction = action
+
+        action = qt.QAction("&About", self)
+        action.setStatusTip("Show the application's About box")
+        action.triggered.connect(self.about)
+        self._aboutAction = action
+
+    def createMenus(self):
+        fileMenu = self.menuBar().addMenu("&File")
+        fileMenu.addAction(self._openAction)
+        fileMenu.addSeparator()
+        fileMenu.addAction(self._exitAction)
+        helpMenu = self.menuBar().addMenu("&Help")
+        helpMenu.addAction(self._aboutAction)
+
+    def open(self):
+        dialog = self.createFileDialog()
+        if self.__dialogState is None:
+            currentDirectory = os.getcwd()
+            dialog.setDirectory(currentDirectory)
+        else:
+            dialog.restoreState(self.__dialogState)
+
+        result = dialog.exec_()
+        if not result:
+            return
+
+        self.__dialogState = dialog.saveState()
+
+        filenames = dialog.selectedFiles()
+        for filename in filenames:
+            self.appendFile(filename)
+
+    def createFileDialog(self):
+        dialog = qt.QFileDialog(self)
+        dialog.setWindowTitle("Open")
+        dialog.setModal(True)
+
+        extensions = collections.OrderedDict()
+        # expect h5py
+        extensions["HDF5 files"] = "*.h5"
+        # no dependancy
+        extensions["Spec files"] = "*.dat *.spec *.mca"
+        # expect fabio
+        extensions["EDF files"] = "*.edf"
+        extensions["TIFF image files"] = "*.tif *.tiff"
+        extensions["NumPy binary files"] = "*.npy"
+        extensions["CBF files"] = "*.cbf"
+        extensions["MarCCD image files"] = "*.mccd"
+
+        filters = []
+        filters.append("All supported files (%s)" % " ".join(extensions.values()))
+        for name, extension in extensions.items():
+            filters.append("%s (%s)" % (name, extension))
+        filters.append("All files (*)")
+
+        dialog.setNameFilters(filters)
+        dialog.setFileMode(qt.QFileDialog.ExistingFiles)
+        return dialog
+
+    def about(self):
+        import silx._version
+        message = """<p align="center"><b>Silx viewer</b>
+        <br />
+        <br />{silx_version}
+        <br />
+        <br /><a href="{project_url}">Upstream project on GitHub</a>
+        </p>
+        <p align="left">
+        <dl>
+        <dt><b>Silx version</b></dt><dd>{silx_version}</dd>
+        <dt><b>Qt version</b></dt><dd>{qt_version}</dd>
+        <dt><b>Qt binding</b></dt><dd>{qt_binding}</dd>
+        <dt><b>Python version</b></dt><dd>{python_version}</dd>
+        <dt><b>Optional libraries</b></dt><dd>{optional_lib}</dd>
+        </dl>
+        </p>
+        <p>
+        Copyright (C) <a href="{esrf_url}">European Synchrotron Radiation Facility</a>
+        </p>
+        """
+        def format_optional_lib(name, isAvailable):
+            if isAvailable:
+                template = '<b>%s</b> is <font color="green">installed</font>'
+            else:
+                template = '<b>%s</b> is <font color="red">not installed</font>'
+            return template % name
+
+        optional_lib = []
+        optional_lib.append(format_optional_lib("FabIO", fabio is not None))
+        optional_lib.append(format_optional_lib("H5py", h5py is not None))
+        optional_lib.append(format_optional_lib("hdf5plugin", hdf5plugin is not None))
+
+        info = dict(
+            esrf_url="http://www.esrf.eu",
+            project_url="https://github.com/silx-kit/silx",
+            silx_version=silx._version.version,
+            qt_binding=qt.BINDING,
+            qt_version=qt.qVersion(),
+            python_version=sys.version.replace("\n", "<br />"),
+            optional_lib="<br />".join(optional_lib)
+        )
+        qt.QMessageBox.about(self, "About Menu", message.format(**info))
 
     def appendFile(self, filename):
         self.__treeview.findHdf5TreeModel().appendFile(filename)
@@ -108,9 +233,6 @@ class Viewer(qt.QMainWindow):
         if len(selected) == 1:
             # Update the viewer for a single selection
             data = selected[0]
-            # data is a hdf5.H5Node object
-            # data.h5py_object is a Group/Dataset object (from h5py, spech5, fabioh5)
-            # The dataviewer can display both
             self.__dataViewer.setData(data)
 
     def useAsyncLoad(self, useAsync):
