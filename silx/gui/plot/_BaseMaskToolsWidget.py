@@ -262,7 +262,7 @@ class BaseMask(qt.QObject):
         :param float max_: Upper threshold
         :param bool mask: True to mask (default), False to unmask.
         """
-        stencil = numpy.logical_and(min_ <= self._getValues(),
+        stencil = numpy.logical_and(min_ <= self.getDataValues(),
                                     self.getDataValues() <= max_)
         self.updateStencil(level, stencil, mask)
 
