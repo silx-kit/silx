@@ -398,7 +398,15 @@ class PlotWindow(PlotWidget):
         return self.getCurvesRoiDockWidget()
 
     def getCurvesRoiDockWidget(self):
-        """DockWidget with curves' ROI panel (lazy-loaded)."""
+        """DockWidget with curves' ROI panel (lazy-loaded).
+
+        The widget returned is a :class:`CurvesROIDockWidget`.
+        This widget has an attribute :attr:`CurvesROIDockWidget.roiWidget`
+        which is a :class:`CurvesROIWidget`.
+
+        :class:`silx.gui.plot.CurvesROIWidget.CurvesROIWidget` offers methods
+        and signals allowing you to access the ROI data.
+        """
         if self._curvesROIDockWidget is None:
             self._curvesROIDockWidget = CurvesROIDockWidget(
                 plot=self, name='Regions Of Interest')

@@ -101,6 +101,7 @@ class CurvesROIWidget(qt.QWidget):
         self.roiTable.setMinimumHeight(4 * rheight)
         self.fillFromROIDict = self.roiTable.fillFromROIDict
         self.getROIListAndDict = self.roiTable.getROIListAndDict
+        """Method :meth:`ROITable.getROIListAndDict`"""
         layout.addWidget(self.roiTable)
         self._roiFileDir = qt.QDir.home().absolutePath()
         #################
@@ -537,7 +538,7 @@ class ROITable(qt.QTableWidget):
 class CurvesROIDockWidget(qt.QDockWidget):
     """QDockWidget with a :class:`CurvesROIWidget` connected to a PlotWindow.
 
-    It makes the link between the CurvesROIWidget and the PlotWindow.
+    It makes the link between the :class:`CurvesROIWidget` and the PlotWindow.
 
     :param parent: See :class:`QDockWidget`
     :param plot: :class:`.PlotWindow` instance on which to operate
@@ -558,6 +559,8 @@ class CurvesROIDockWidget(qt.QDockWidget):
         self._isInit = False
 
         self.roiWidget = CurvesROIWidget(self, name)
+        """Underlying :class:`CurvesROIWidget`"""
+
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.setWidget(self.roiWidget)
 
