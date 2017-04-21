@@ -91,7 +91,7 @@ def run_file(filename, argv):
         logger.info("Execute target using subprocess")
         env = os.environ.copy()
         env.update({"PYTHONPATH": LIBPATH + os.pathsep + os.environ.get("PYTHONPATH", ""),
-                    "PATH": SCRIPTSPATH + os.pathsep + os.environ.get("PATH", "")})
+                    "PATH": os.environ.get("PATH", "")})
         print("########### SUBPROCESS ###########")
         run = subprocess.Popen(full_args, shell=False, env=env)
         run.wait()
@@ -169,7 +169,6 @@ def find_executable(target):
 
 
 home = os.path.dirname(os.path.abspath(__file__))
-SCRIPTSPATH = os.path.join(home, 'build', _distutils_scripts_name())
 LIBPATH = os.path.join(home, 'build', _distutils_dir_name('lib'))
 cwd = os.getcwd()
 os.chdir(home)
@@ -181,8 +180,6 @@ os.chdir(cwd)
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         logger.warning("usage: ./bootstrap.py <script>\n")
-        logger.warning("Available scripts : %s\n" %
-                        _get_available_scripts(SCRIPTSPATH))
         script = None
     else:
         script = sys.argv[1]
