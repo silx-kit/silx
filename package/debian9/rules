@@ -14,7 +14,7 @@ ALL_PYX := $(call rwildcard,silx/,*.pyx)
 
 override_dh_clean:
 	dh_clean
-# remove the cython generated file to force rebuild
+	# remove the cython generated file to force rebuild
 	rm -f $(patsubst %.pyx,%.cpp,${ALL_PYX})
 	rm -f $(patsubst %.pyx,%.c,${ALL_PYX})
 	rm -f $(patsubst %.pyx,%.html,${ALL_PYX})
