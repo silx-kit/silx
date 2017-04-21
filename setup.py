@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "18/04/2017"
+__date__ = "21/04/2017"
 __license__ = "MIT"
 
 
@@ -579,12 +579,8 @@ class sdist_debian(sdist):
 # setup #
 # ##### #
 
-def setup_package():
-    """Run setup(**kwargs)
-
-    Depending on the command, it either runs the complete setup which depends on numpy,
-    or a *dry run* setup with no dependency on numpy.
-    """
+def get_project_configuration(dry_run):
+    """Returns project arguments for setup"""
     install_requires = [
         # for most of the computation
         "numpy",
@@ -618,38 +614,18 @@ def setup_package():
         clean=CleanCommand,
         debian_src=sdist_debian)
 
-    # Check if action requires build/install
-    dry_run = len(sys.argv) == 1 or (len(sys.argv) >= 2 and (
-        '--help' in sys.argv[1:] or
-        sys.argv[1] in ('--help-commands', 'egg_info', '--version',
-                        'clean', '--name')))
-
     if dry_run:
         # DRY_RUN implies actions which do not require NumPy
         #
         # And they are required to succeed without Numpy for example when
         # pip is used to install silx when Numpy is not yet present in
         # the system.
-        try:
-            from setuptools import setup
-            logger.info("Use setuptools.setup")
-        except ImportError:
-            from distutils.core import setup
-            logger.info("Use distutils.core.setup")
         setup_kwargs = {}
     else:
         use_cython = check_cython(min_version='0.21.1')
 
         use_openmp = check_openmp()
         USE_OPENMP = use_openmp
-
-        try:
-            from setuptools import setup
-            logger.info("Use setuptools.setup")
-        except ImportError:
-            from numpy.distutils.core import setup
-            logger.info("Use numpydistutils.setup")
-
         config = configuration()
 
         if use_cython:
@@ -683,7 +659,38 @@ def setup_package():
                         zip_safe=False,
                         entry_points=entry_points,
                         )
+    return setup_kwargs
 
+
+def setup_package():
+    """Run setup(**kwargs)
+
+    Depending on the command, it either runs the complete setup which depends on numpy,
+    or a *dry run* setup with no dependency on numpy.
+    """
+
+    # Check if action requires build/install
+    dry_run = len(sys.argv) == 1 or (len(sys.argv) >= 2 and (
+        '--help' in sys.argv[1:] or
+        sys.argv[1] in ('--help-commands', 'egg_info', '--version',
+                        'clean', '--name')))
+
+    if dry_run:
+        # DRY_RUN implies actions which do not require dependancies, like NumPy
+        try:
+            from setuptools import setup
+            logger.info("Use setuptools.setup")
+        except ImportError:
+            from distutils.core import setup
+            logger.info("Use distutils.core.setup")
+    else:
+        try:
+            from setuptools import setup
+        except ImportError:
+            from numpy.distutils.core import setup
+            logger.info("Use numpydistutils.setup")
+
+    setup_kwargs = get_project_configuration(dry_run)
     setup(**setup_kwargs)
 
 if __name__ == "__main__":
