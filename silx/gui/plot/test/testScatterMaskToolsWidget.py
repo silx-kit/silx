@@ -263,6 +263,43 @@ class TestScatterMaskToolsWidget(TestCaseQt, ParametricTestCase):
     def testLoadSaveCsv(self):
         self.__loadSave("csv")
 
+    def testSigMaskChangedEmitted(self):
+        self.qapp.processEvents()
+        self.plot.addScatter(
+                x=numpy.arange(1000),
+                y=1000 * (numpy.arange(1000) % 20),
+                value=numpy.ones((1000,)),
+                legend='test')
+        self.plot._setActiveItem(kind="scatter", legend="test")
+        self.plot.resetZoom()
+        self.qapp.processEvents()
+
+        self.plot.remove('test', kind='scatter')
+        self.qapp.processEvents()
+
+        self.plot.addScatter(
+                x=numpy.arange(1000),
+                y=1000 * (numpy.arange(1000) % 20),
+                value=numpy.random.random(1000),
+                legend='test')
+
+        l = []
+
+        def slot():
+            l.append(1)
+
+        self.maskWidget.sigMaskChanged.connect(slot)
+
+        # rectangle mask
+        toolButton = getQToolButtonFromAction(self.maskWidget.rectAction)
+        self.assertIsNot(toolButton, None)
+        self.mouseClick(toolButton, qt.Qt.LeftButton)
+        self.maskWidget.maskStateGroup.button(1).click()
+        self.qapp.processEvents()
+        self._drag()
+
+        self.assertGreater(len(l), 0)
+
 
 def suite():
     test_suite = unittest.TestSuite()

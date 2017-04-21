@@ -259,6 +259,29 @@ class TestMaskToolsWidget(TestCaseQt, ParametricTestCase):
             self.skipTest("Fabio is missing")
         self.__loadSave("msk")
 
+    def testSigMaskChangedEmitted(self):
+        self.plot.addImage(numpy.arange(512**2).reshape(512, 512),
+                           legend='test')
+        self.plot.resetZoom()
+        self.qapp.processEvents()
+
+        l = []
+
+        def slot():
+            l.append(1)
+
+        self.maskWidget.sigMaskChanged.connect(slot)
+
+        # rectangle mask
+        toolButton = getQToolButtonFromAction(self.maskWidget.rectAction)
+        self.assertIsNot(toolButton, None)
+        self.mouseClick(toolButton, qt.Qt.LeftButton)
+        self.maskWidget.maskStateGroup.button(1).click()
+        self.qapp.processEvents()
+        self._drag()
+
+        self.assertGreater(len(l), 0)
+
 
 def suite():
     test_suite = unittest.TestSuite()

@@ -350,6 +350,7 @@ class BaseMaskToolsWidget(qt.QWidget):
     """Base class for :class:`MaskToolsWidget` (image mask) and
     :class:`scatterMaskToolsWidget`"""
 
+    sigMaskChanged = qt.Signal()
     _maxLevelNumber = 255
 
     def __init__(self, parent=None, plot=None):
@@ -371,6 +372,7 @@ class BaseMaskToolsWidget(qt.QWidget):
         self._setMaskColors(1, 0.5)
 
         self._mask.sigChanged.connect(self._updatePlotMask)
+        self._mask.sigChanged.connect(self._emitSigMaskChanged)
 
         self._drawingMode = None  # Store current drawing mode
         self._lastPencilPos = None
@@ -381,6 +383,10 @@ class BaseMaskToolsWidget(qt.QWidget):
         self._maskFileDir = qt.QDir.home().absolutePath()
         self.plot.sigInteractiveModeChanged.connect(
             self._interactiveModeChanged)
+
+    def _emitSigMaskChanged(self):
+        """Notify mask changes"""
+        self.sigMaskChanged.emit()
 
     def getSelectionMask(self, copy=True):
         """Get the current mask as a numpy array.
@@ -1061,6 +1067,8 @@ class BaseMaskToolsDockWidget(qt.QDockWidget):
     :paran str name: The title of this widget
     """
 
+    sigMaskChanged = qt.Signal()
+
     def __init__(self, parent=None, name='Mask'):
         super(BaseMaskToolsDockWidget, self).__init__(parent)
         self.setWindowTitle(name)
@@ -1068,6 +1076,11 @@ class BaseMaskToolsDockWidget(qt.QDockWidget):
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.dockLocationChanged.connect(self._dockLocationChanged)
         self.topLevelChanged.connect(self._topLevelChanged)
+
+    def _emitSigMaskChanged(self):
+        """Notify mask changes"""
+        # must be connected to self.widget().sigMaskChanged in child class
+        self.sigMaskChanged.emit()
 
     def getSelectionMask(self, copy=True):
         """Get the current mask as a 2D array.

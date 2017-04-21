@@ -612,3 +612,4 @@ class MaskToolsDockWidget(BaseMaskToolsDockWidget):
     def __init__(self, parent=None, plot=None, name='Mask'):
         super(MaskToolsDockWidget, self).__init__(parent, name)
         self.setWidget(MaskToolsWidget(plot=plot))
+        self.widget().sigMaskChanged.connect(self._emitSigMaskChanged)
