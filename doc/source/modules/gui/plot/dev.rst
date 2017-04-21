@@ -24,6 +24,7 @@ The :class:`PlotWindow` uses additional widgets:
 - :mod:`.CurvesROIWidget` to create regions of interest for curves
 - :mod:`.LegendSelector` to display a list of curves legends which provides some control on the curves (e.g., select, delete).
 - :mod:`.MaskToolsWidget` to provide tools to draw a mask on an image.
+- :mod:`.ScatterMaskToolsWidget` to provide tools to draw a mask on a scatter.
 - The :mod:`.PlotTools` module provides a set of additional widgets:
 
   - :class:`.PlotTools.PositionInfo`
@@ -122,6 +123,14 @@ The following modules are the modules used internally by the plot package.
 .. automodule:: silx.gui.plot.LegendSelector
    :members:
 
+:mod:`_BaseMaskToolsWidget`
++++++++++++++++++++++++++++
+
+.. currentmodule:: silx.gui.plot._BaseMaskToolsWidget
+
+.. automodule:: silx.gui.plot._BaseMaskToolsWidget
+   :members:
+
 :mod:`MaskToolsWidget`
 ++++++++++++++++++++++
 
@@ -129,6 +138,16 @@ The following modules are the modules used internally by the plot package.
 
 .. automodule:: silx.gui.plot.MaskToolsWidget
    :members:
+   :show-inheritance:
+
+:mod:`ScatterMaskToolsWidget`
++++++++++++++++++++++++++++++
+
+.. currentmodule:: silx.gui.plot.ScatterMaskToolsWidget
+
+.. automodule:: silx.gui.plot.ScatterMaskToolsWidget
+   :members:
+   :show-inheritance:
 
 :mod:`ModestImage`
 ++++++++++++++++++

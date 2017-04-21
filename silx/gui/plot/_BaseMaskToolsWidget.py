@@ -23,7 +23,7 @@
 #
 # ###########################################################################*/
 """This module is a collection of base classes used in modules
-:mod:`MaskToolsWidget` (images) and :mod:`ScatterMaskToolsWidget`
+:mod:`.MaskToolsWidget` (images) and :mod:`.ScatterMaskToolsWidget`
 """
 from __future__ import division
 

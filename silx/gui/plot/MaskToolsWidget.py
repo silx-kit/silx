@@ -26,7 +26,7 @@
 
 This widget is meant to work with :class:`silx.gui.plot.PlotWidget`.
 
-- :class:`Mask`: Handle mask bitmap update and history
+- :class:`ImageMask`: Handle mask bitmap update and history
 - :class:`MaskToolsWidget`: GUI for :class:`Mask`
 - :class:`MaskToolsDockWidget`: DockWidget to integrate in :class:`PlotWindow`
 """
@@ -45,7 +45,7 @@ import logging
 
 from silx.image import shapes
 
-from .BaseMaskToolsWidget import BaseMask, BaseMaskToolsWidget, BaseMaskToolsDockWidget
+from ._BaseMaskToolsWidget import BaseMask, BaseMaskToolsWidget, BaseMaskToolsDockWidget
 from . import items
 from .Colors import cursorColorForColormap, rgba
 from .. import qt
