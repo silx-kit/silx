@@ -28,12 +28,12 @@ override_dh_auto_build:
 override_dh_install:
 	dh_numpy
 	dh_numpy3
+
 	# move the scripts to right package
-	dh_install -p python-silx debian/python-silx/usr/bin usr/
-	dh_install -p python3-silx debian/python3-silx/usr/bin usr/
-	# remove all scripts installed by pybuild
-	rm -rf debian/python-pyfai/usr/bin
-	rm -rf debian/python3-pyfai/usr/bin
+	dh_install -p silx debian/python3-silx/usr/bin/* usr/bin
+	rm -rf debian/python-silx/usr/bin
+	rm -rf debian/python3-silx/usr/bin
+
 	dh_install
 
 override_dh_auto_test:

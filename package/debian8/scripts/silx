@@ -1,3 +1,0 @@
-#!/usr/bin/python3
-import runpy
-runpy.run_module("silx", run_name="__main__")

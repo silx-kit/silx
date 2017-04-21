@@ -53,6 +53,7 @@ Architecture: all
 Depends: ${misc:Depends},
          ${python:Depends},
          ${shlibs:Depends},
+         python3-setuptools,
          python3-silx (>= ${source:Version})
 Description: Toolbox for X-Ray data analysis - Executables
  .
