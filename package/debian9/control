@@ -53,10 +53,10 @@ Architecture: all
 Depends: ${misc:Depends},
          ${python:Depends},
          ${shlibs:Depends},
-         python-silx (>= ${source:Version})
+         python3-silx (>= ${source:Version})
 Description: Toolbox for X-Ray data analysis - Executables
  .
- This uses the Python 2 version of the package.
+ This uses the Python 3 version of the package.
 
 Package: python-silx
 Architecture: any
