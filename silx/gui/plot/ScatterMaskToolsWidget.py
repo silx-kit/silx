@@ -202,7 +202,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
         :param bool copy: True (the default) to copy the array,
                           False to use it as is if possible.
         :return: None if failed, shape of mask as 1-tuple if successful.
-                 The mask can be cropped or padded to fit active image,
+                 The mask can be cropped or padded to fit active scatter,
                  the returned shape is that of the scatter data.
         """
         mask = numpy.array(mask, copy=False, dtype=numpy.uint8)
@@ -231,6 +231,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
                                                     legend=self._maskName)
         elif self.plot._getItem(kind="scatter",
                                 legend=self._maskName) is not None:
+
             self.plot.remove(self._maskName, kind='scatter')
 
     # track widget visibility and plot active image changes
@@ -260,7 +261,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
         removed, otherwise it is adjusted to z.
         """
         # check that content changed was the active scatter
-        activeScatter = self.plot.getScatter()
+        activeScatter = self.plot.getScatter()      # fixme: this returns the last scatter added, which is the mask
 
         if activeScatter is None or activeScatter.getLegend() == self._maskName:
             # No active scatter or active scatter is the mask...
@@ -289,7 +290,8 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
 
     def _activeScatterChanged(self, previous, next):
         """Update widget and mask according to active scatter changes"""
-        activeScatter = self.plot.getScatter()
+        activeScatter = self.plot.getScatter()      # fixme: this returns the last scatter added, which is the mask
+
         if activeScatter is None or activeScatter.getLegend() == self._maskName:
             # No active image or active image is the mask...
             self.setEnabled(False)
@@ -319,7 +321,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
 
         self._updateInteractiveMode()
 
-    # Handle whole mask operations    # PK cp (checkpoint)
+    # Handle whole mask operations
 
     def load(self, filename):
         """Load a mask from an image file.
@@ -498,18 +500,17 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
 
     def _loadRangeFromColormapTriggered(self):
         """Set range from active scatter colormap range"""
-        activeScatter = self.plot._getActiveItem(kind="scatter")
-        if (activeScatter is not None and
-                activeScatter.getLegend() != self._maskName):
+        if self._data_scatter is not None:
             # Update thresholds according to colormap
-            colormap = activeScatter.getColormap()
+            colormap = self._data_scatter.getColormap()
             if colormap['autoscale']:
-                min_ = numpy.nanmin(activeScatter.getValueData(copy=False))
-                max_ = numpy.nanmax(activeScatter.getValueData(copy=False))
+                min_ = numpy.nanmin(self._data_scatter.getValueData(copy=False))
+                max_ = numpy.nanmax(self._data_scatter.getValueData(copy=False))
             else:
                 min_, max_ = colormap['vmin'], colormap['vmax']
             self.minLineEdit.setText(str(min_))
             self.maxLineEdit.setText(str(max_))
+
 
 
 class ScatterMaskToolsDockWidget(BaseMaskToolsDockWidget):
