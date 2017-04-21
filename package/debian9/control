@@ -41,7 +41,7 @@ Build-Depends: cython,
                python3-sphinx,
                python3-sphinxcontrib.programoutput,
                openstack-pkg-tools
-Standards-Version: 3.9.6
+Standards-Version: 3.9.8
 Vcs-Browser: https://anonscm.debian.org/cgit/debian-science/packages/silx.git
 Vcs-Git: git://anonscm.debian.org/debian-science/packages/silx.git
 Homepage: https://github.com/silx-kit/silx
