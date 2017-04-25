@@ -559,7 +559,7 @@ class CurvesROIDockWidget(qt.QDockWidget):
         self._isInit = False
 
         self.roiWidget = CurvesROIWidget(self, name)
-        """Underlying :class:`CurvesROIWidget`"""
+        """Main widget of type :class:`CurvesROIWidget`"""
 
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.setWidget(self.roiWidget)
