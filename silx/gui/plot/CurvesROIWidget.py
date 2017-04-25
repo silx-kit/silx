@@ -99,9 +99,6 @@ class CurvesROIWidget(qt.QWidget):
         self.roiTable = ROITable(self)
         rheight = self.roiTable.horizontalHeader().sizeHint().height()
         self.roiTable.setMinimumHeight(4 * rheight)
-        self.fillFromROIDict = self.roiTable.fillFromROIDict
-        self.getROIListAndDict = self.roiTable.getROIListAndDict
-        """Method :meth:`ROITable.getROIListAndDict`"""
         layout.addWidget(self.roiTable)
         self._roiFileDir = qt.QDir.home().absolutePath()
         #################
@@ -161,6 +158,24 @@ class CurvesROIWidget(qt.QWidget):
     @roiFileDir.setter
     def roiFileDir(self, roiFileDir):
         self._roiFileDir = str(roiFileDir)
+
+    def fillFromROIDict(self, roilist=(), roidict=None, currentroi=None):
+        """See :meth:`ROITable.fillFromROIDict`
+
+        :param roilist: List of ROI names (keys of roidict)
+        :type roilist: List
+        :param dict roidict: Dict of ROI information
+        :param currentroi: Name of the selected ROI or None (no selection)
+        """
+        return self.roiTable.fillFromROIDict(roilist, roidict, currentroi)
+
+    def getROIListAndDict(self):
+        """Return the currently defined ROIs
+
+        :return: ROIs information
+        :rtype: ordered dict as a tuple of (list of ROI names, dict of info)
+        """
+        return self.roiTable.getROIListAndDict()
 
     def _add(self):
         """Add button clicked handler"""
