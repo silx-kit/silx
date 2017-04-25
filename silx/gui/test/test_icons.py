@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "05/12/2016"
+__date__ = "25/04/2017"
 
 
 import gc
@@ -87,11 +87,11 @@ class TestAnimatedIcons(TestCaseQt):
         self.assertIs(icon1, icon2)
 
     def testIconExists(self):
-        icon = icons.AnimatedIcon("process-working")
+        icon = icons.MovieAnimatedIcon("process-working")
         self.assertIsNotNone(icon)
 
     def testIconNotExists(self):
-        self.assertRaises(ValueError, icons.AnimatedIcon, "not-exists")
+        self.assertRaises(ValueError, icons.MovieAnimatedIcon, "not-exists")
 
 
 def suite():
