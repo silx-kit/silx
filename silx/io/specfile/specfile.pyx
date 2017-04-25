@@ -80,6 +80,27 @@ Classes
 - :class:`SpecFile`
 - :class:`Scan`
 - :class:`MCA`
+
+Exceptions
+==========
+
+- :class:`SfError`
+- :class:`SfErrMemoryAlloc`
+- :class:`SfErrFileOpen`
+- :class:`SfErrFileClose`
+- :class:`SfErrFileRead`
+- :class:`SfErrFileWrite`
+- :class:`SfErrLineNotFound`
+- :class:`SfErrScanNotFound`
+- :class:`SfErrHeaderNotFound`
+- :class:`SfErrLabelNotFound`
+- :class:`SfErrMotorNotFound`
+- :class:`SfErrPositionNotFound`
+- :class:`SfErrLineEmpty`
+- :class:`SfErrUserNotFound`
+- :class:`SfErrColNotFound`
+- :class:`SfErrMcaNotFound`
+
 """
 
 __authors__ = ["P. Knobel"]
@@ -132,12 +153,12 @@ class SfErrMemoryAlloc(SfError): pass
 class SfErrFileOpen(SfError): pass
 class SfErrFileClose(SfError): pass
 class SfErrFileRead(SfError): pass
-class SfErrFileWrite(SfError):pass
+class SfErrFileWrite(SfError): pass
 class SfErrLineNotFound(SfError): pass
 class SfErrScanNotFound(SfError): pass
 class SfErrHeaderNotFound(SfError): pass
 class SfErrLabelNotFound(SfError): pass
-class SfErrMotorNotFound(SfError):pass
+class SfErrMotorNotFound(SfError): pass
 class SfErrPositionNotFound(SfError): pass
 class SfErrLineEmpty(SfError): pass
 class SfErrUserNotFound(SfError): pass
