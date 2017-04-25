@@ -190,6 +190,64 @@ class MovieAnimatedIcon(AbstractAnimatedIcon):
         self.__movie.setPaused(not self.hasRegistredObjects())
 
 
+class MultiImageAnimatedIcon(AbstractAnimatedIcon):
+    """Store a looping QMovie to provide icons for each frames.
+    Provides an event with the new icon everytime the movie frame
+    is updated."""
+
+    def __init__(self, filename, parent=None):
+        """Constructor
+
+        :param str filename: An icon name to an animated format
+        :param qt.QObject parent: Parent of the QObject
+        :raises: ValueError when name is not known
+        """
+        AbstractAnimatedIcon.__init__(self, parent)
+
+        self.__frames = []
+        for i in range(100):
+            try:
+                pixmap = getQPixmap("animated/%s-%02d" % (filename, i))
+            except ValueError:
+                break
+            icon = qt.QIcon(pixmap)
+            self.__frames.append(icon)
+
+        if len(self.__frames) == 0:
+            raise ValueError("Animated icon '%s' do not exists" % filename)
+
+        self.__frameId = -1
+        self.__timer = qt.QTimer(self)
+        self.__timer.timeout.connect(self.__increaseFrame)
+        self.__updateIconAtFrame(0)
+
+    def __increaseFrame(self):
+        """Callback called every timer timeout to change the current frame of
+        the animation
+        """
+        frameId = (self.__frameId + 1) % len(self.__frames)
+        self.__updateIconAtFrame(frameId)
+
+    def __updateIconAtFrame(self, frameId):
+        """
+        Update the current stored QIcon
+
+        :param int frameId: Current frame id
+        """
+        self.__frameId = frameId
+        icon = self.__frames[frameId]
+        self._setCurrentIcon(icon)
+
+    def _updateState(self):
+        """Update the object to wake up or sleep it according to its use."""
+        if self.hasRegistredObjects():
+            if not self.__timer.isActive():
+                self.__timer.start(100)
+        else:
+            if self.__timer.isActive():
+                self.__timer.stop()
+
+
 class AnimatedIcon(MovieAnimatedIcon):
     """Store a looping QMovie to provide icons for each frames.
     Provides an event with the new icon everytime the movie frame

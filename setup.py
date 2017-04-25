@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "21/04/2017"
+__date__ = "25/04/2017"
 __license__ = "MIT"
 
 
@@ -596,6 +596,7 @@ def get_project_configuration(dry_run):
             'gui/icons/*.svg',
             'gui/icons/*.mng',
             'gui/icons/*.gif',
+            'gui/icons/animated/*.png',
             'opencl/sift/*.cl']
     }
 
