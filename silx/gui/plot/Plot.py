@@ -600,7 +600,7 @@ class Plot(object):
         :param str histogram: if not None then the curve will be draw as an
             histogram. The step for each values of the curve can be set to the
             left, center or right of the original x curve values.
-            If histogram is not None and len(x) == len(y+1) then x is directly
+            If histogram is not None and len(x) == len(y)+1 then x is directly
             take as edges of the histogram.
             Type of histogram::
 
@@ -630,7 +630,7 @@ class Plot(object):
         curve = self.getCurve(legend)
         if curve is None:
             # No previous curve, create a default one and add it to the plot
-            curve = items.Curve()
+            curve = items.Curve() if histogram is None else items.Histogram()
             curve._setLegend(legend)
             # Set default color, linestyle and symbol
             default_color, default_linestyle = self._getColorAndStyle()
