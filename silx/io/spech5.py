@@ -959,20 +959,24 @@ def _dataset_builder(name, specfileh5, parent_group):
             try:
                 array_like = spec_date_to_iso8601(scan.scan_header_dict["D"])
             except (IndexError, ValueError):
-                logger1.warn("Could not parse date format in scan header. " +
-                             "Using original date not converted to ISO-8601")
+                logger1.warn("Could not parse date format in scan %s header." +
+                             " Using original date not converted to ISO-8601",
+                             scan_key)
                 array_like = scan.scan_header_dict["D"]
         elif "D" in scan.file_header_dict:
-            logger1.warn("No #D line in scan header. " +
-                         "Using file header for start_time.")
+            logger1.warn("No #D line in scan %s header. " +
+                         "Using file header for start_time.",
+                         scan_key)
             try:
                 array_like = spec_date_to_iso8601(scan.file_header_dict["D"])
             except (IndexError, ValueError):
-                logger1.warn("Could not parse date format in scan header. " +
-                             "Using original date not converted to ISO-8601")
+                logger1.warn("Could not parse date format in scan %s header. " +
+                             "Using original date not converted to ISO-8601",
+                             scan_key)
                 array_like = scan.file_header_dict["D"]
         else:
-            logger1.warn("No #D line in header. Setting date to empty string.")
+            logger1.warn("No #D line in %s header. Setting date to empty string.",
+                         scan_key)
             array_like = ""
 
     elif file_header_data_pattern.match(name):

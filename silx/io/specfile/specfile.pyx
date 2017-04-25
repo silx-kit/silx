@@ -537,7 +537,15 @@ class Scan(object):
         :return: Line data as a 1D array of doubles
         :rtype: numpy.ndarray
         """
-        return self._specfile.data_column_by_name(self._index, label)
+        try:
+            ret = self._specfile.data_column_by_name(self._index, label)
+        except IndexError:
+            # Could be a "#C Scan aborted after 0 points"
+            _logger.warning("Cannot get data column %s in scan %d.%d",
+                            label, self.number, self.order)
+            ret = numpy.empty((0, ), numpy.double)
+        return ret
+
 
     def motor_position_by_name(self, name):
         """Returns the position for a given motor
