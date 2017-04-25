@@ -193,3 +193,9 @@ class Histogram(Curve):
                 plot = self.getPlot()
                 if plot is not None:
                     plot._invalidateDataRange()
+
+    # overwrite function of Points class
+    def _checkXYLength(self, x, y):
+        print(len(x))
+        print(len(y))
+        assert len(x) in (len(y), len(y) + 1 )

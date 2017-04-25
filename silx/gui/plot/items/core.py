@@ -749,8 +749,8 @@ class Points(Item, SymbolMixIn, AlphaMixIn):
         """
         x = numpy.array(x, copy=copy)
         y = numpy.array(y, copy=copy)
-        assert x.ndim == y.ndim == 1
-        assert len(x) == len(y)
+        self._checkXYDim(x, y)
+        self._checkXYLength(x, y)
         if xerror is not None:
             xerror = numpy.array(xerror, copy=copy)
         if yerror is not None:
@@ -769,3 +769,9 @@ class Points(Item, SymbolMixIn, AlphaMixIn):
             plot = self.getPlot()
             if plot is not None:
                 plot._invalidateDataRange()
+
+    def _checkXYLength(self, x, y):
+        assert len(x) == len(y)
+
+    def _checkXYDim(self, x, y):
+        assert x.ndim == y.ndim == 1
