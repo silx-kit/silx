@@ -121,21 +121,28 @@ SF_ERR_SCAN_NOT_FOUND = 7
 
 
 # custom errors
-class SfErrMemoryAlloc(Exception): pass
-class SfErrFileOpen(Exception): pass
-class SfErrFileClose(Exception): pass
-class SfErrFileRead(Exception): pass
-class SfErrFileWrite(Exception):pass
-class SfErrLineNotFound(Exception): pass
-class SfErrScanNotFound(Exception): pass
-class SfErrHeaderNotFound(Exception): pass
-class SfErrLabelNotFound(Exception): pass
-class SfErrMotorNotFound(Exception):pass
-class SfErrPositionNotFound(Exception): pass
-class SfErrLineEmpty(Exception): pass
-class SfErrUserNotFound(Exception): pass
-class SfErrColNotFound(Exception): pass
-class SfErrMcaNotFound(Exception): pass
+class SfError(Exception):
+    """Base exception inherited by all exceptions raised when a
+    C function from the legacy SpecFile library returns an error
+    code.
+    """
+    pass
+
+class SfErrMemoryAlloc(SfError): pass
+class SfErrFileOpen(SfError): pass
+class SfErrFileClose(SfError): pass
+class SfErrFileRead(SfError): pass
+class SfErrFileWrite(SfError):pass
+class SfErrLineNotFound(SfError): pass
+class SfErrScanNotFound(SfError): pass
+class SfErrHeaderNotFound(SfError): pass
+class SfErrLabelNotFound(SfError): pass
+class SfErrMotorNotFound(SfError):pass
+class SfErrPositionNotFound(SfError): pass
+class SfErrLineEmpty(SfError): pass
+class SfErrUserNotFound(SfError): pass
+class SfErrColNotFound(SfError): pass
+class SfErrMcaNotFound(SfError): pass
 
 
 ERRORS = {
@@ -157,7 +164,7 @@ ERRORS = {
 }
 
 
-class SfNoMcaError(Exception):
+class SfNoMcaError(SfError):
     """Custom exception raised when ``SfNoMca()`` returns ``-1``
     """
     pass
