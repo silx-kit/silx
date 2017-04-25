@@ -93,6 +93,13 @@ class TestAnimatedIcons(TestCaseQt):
     def testIconNotExists(self):
         self.assertRaises(ValueError, icons.MovieAnimatedIcon, "not-exists")
 
+    def testMultiImageIconExists(self):
+        icon = icons.MultiImageAnimatedIcon("process-working")
+        self.assertIsNotNone(icon)
+
+    def testMultiImageIconNotExists(self):
+        self.assertRaises(ValueError, icons.MultiImageAnimatedIcon, "not-exists")
+
 
 def suite():
     test_suite = unittest.TestSuite()
