@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@
 
 __authors__ = ["P. Knobel", "V.A. Sole"]
 __license__ = "MIT"
-__date__ = "27/09/2016"
+__date__ = "24/04/2017"
 
 import gc
 import locale
@@ -40,6 +40,7 @@ logging.basicConfig()
 logger1 = logging.getLogger(__name__)
 
 from ..specfile import SpecFile, Scan
+from .. import specfile
 
 sftext = """#F /tmp/sf.dat
 #E 1455180875
@@ -177,7 +178,7 @@ class TestSpecFile(unittest.TestCase):
 
     def test_open(self):
         self.assertIsInstance(self.sf, SpecFile)
-        with self.assertRaises(IOError):
+        with self.assertRaises(specfile.SfErrFileOpen):
             sf2 = SpecFile("doesnt_exist.dat")
 
         # test filename types unicode and bytes
@@ -214,9 +215,9 @@ class TestSpecFile(unittest.TestCase):
         self.assertEqual(self.sf.index(1, 2), 2)  #sf["1.2"]==sf[2]
         self.assertEqual(self.sf.number(1), 25)   #sf[1]==sf["25"]
         self.assertEqual(self.sf.order(2), 2)     #sf[2]==sf["1.2"]
-        with self.assertRaises(IndexError):
+        with self.assertRaises(specfile.SfErrScanNotFound):
             self.sf.index(3, 2)
-        with self.assertRaises(IndexError):
+        with self.assertRaises(specfile.SfErrScanNotFound):
             self.sf.index(99)
         
     def test_getitem(self):
@@ -229,7 +230,7 @@ class TestSpecFile(unittest.TestCase):
         with self.assertRaisesRegexp(TypeError, 'The scan identification k'):
             self.sf[1.2]
         # non existant scan with "N.M" indexing 
-        with self.assertRaises(KeyError):
+        with self.assertRaises(specfile.SfErrScanNotFound):
             self.sf["3.2"]
 
     def test_specfile_iterator(self):
@@ -293,7 +294,7 @@ class TestSpecFile(unittest.TestCase):
         # Scan.data is transposed after readinq, so column is the first index
         self.assertAlmostEqual(numpy.sum(self.scan25.data_column_by_name("col2")),
                                numpy.sum(self.scan25.data[2, :]))
-        with self.assertRaises(KeyError):
+        with self.assertRaises(specfile.SfErrColNotFound):
             self.scan25.data_column_by_name("ygfxgfyxg")
 
     def test_motors(self):

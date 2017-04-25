@@ -33,6 +33,7 @@ from functools import partial
 
 from ..spech5 import (SpecH5, SpecH5Group,
                       SpecH5Dataset, spec_date_to_iso8601)
+from .. import specfile
 
 try:
     import h5py
@@ -499,7 +500,7 @@ class TestSpecH5(unittest.TestCase):
         fd, fname = tempfile.mkstemp()
         os.write(fd, b"Not a spec file!")
         os.close(fd)
-        self.assertRaises(IOError, SpecH5, fname)
+        self.assertRaises(specfile.SfErrFileOpen, SpecH5, fname)
         os.unlink(fname)
 
     def testSample(self):

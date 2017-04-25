@@ -114,27 +114,54 @@ if FALSE:
 
 numpy.import_array()
 
+
 SF_ERR_NO_ERRORS = 0
-SF_ERR_MEMORY_ALLOC = 1
 SF_ERR_FILE_OPEN = 2
-SF_ERR_FILE_CLOSE = 3
-SF_ERR_FILE_READ = 4
-SF_ERR_FILE_WRITE = 5
-SF_ERR_LINE_NOT_FOUND = 6
 SF_ERR_SCAN_NOT_FOUND = 7
-SF_ERR_HEADER_NOT_FOUND = 8
-SF_ERR_LABEL_NOT_FOUND = 9
-SF_ERR_MOTOR_NOT_FOUND = 10
-SF_ERR_POSITION_NOT_FOUND = 11
-SF_ERR_LINE_EMPTY = 12
-SF_ERR_USER_NOT_FOUND = 13
-SF_ERR_COL_NOT_FOUND = 14
-SF_ERR_MCA_NOT_FOUND = 15
+
+
+# custom errors
+class SfErrMemoryAlloc(Exception): pass
+class SfErrFileOpen(Exception): pass
+class SfErrFileClose(Exception): pass
+class SfErrFileRead(Exception): pass
+class SfErrFileWrite(Exception):pass
+class SfErrLineNotFound(Exception): pass
+class SfErrScanNotFound(Exception): pass
+class SfErrHeaderNotFound(Exception): pass
+class SfErrLabelNotFound(Exception): pass
+class SfErrMotorNotFound(Exception):pass
+class SfErrPositionNotFound(Exception): pass
+class SfErrLineEmpty(Exception): pass
+class SfErrUserNotFound(Exception): pass
+class SfErrColNotFound(Exception): pass
+class SfErrMcaNotFound(Exception): pass
+
+
+ERRORS = {
+    1: SfErrMemoryAlloc,
+    2: SfErrFileOpen,
+    3: SfErrFileClose,
+    4: SfErrFileRead,
+    5: SfErrFileWrite,
+    6: SfErrLineNotFound,
+    7: SfErrScanNotFound,
+    8: SfErrHeaderNotFound,
+    9: SfErrLabelNotFound,
+    10: SfErrMotorNotFound,
+    11: SfErrPositionNotFound,
+    12: SfErrLineEmpty,
+    13: SfErrUserNotFound,
+    14: SfErrColNotFound,
+    15: SfErrMcaNotFound,
+}
+
 
 class SfNoMcaError(Exception):
     """Custom exception raised when ``SfNoMca()`` returns ``-1``
     """
     pass
+
 
 class MCA(object):
     """
@@ -539,7 +566,7 @@ class Scan(object):
         """
         try:
             ret = self._specfile.data_column_by_name(self._index, label)
-        except IndexError:
+        except SfErrLineNotFound:
             # Could be a "#C Scan aborted after 0 points"
             _logger.warning("Cannot get data column %s in scan %d.%d",
                             label, self.number, self.order)
@@ -735,27 +762,8 @@ cdef class SpecFile(object):
         :type code: int
         """
         error_message = self._get_error_string(error_code)
-        if error_code in (SF_ERR_LINE_NOT_FOUND,
-                          SF_ERR_SCAN_NOT_FOUND,
-                          SF_ERR_HEADER_NOT_FOUND,
-                          SF_ERR_LABEL_NOT_FOUND,
-                          SF_ERR_MOTOR_NOT_FOUND,
-                          SF_ERR_USER_NOT_FOUND,
-                          SF_ERR_MCA_NOT_FOUND):
-            raise IndexError(error_message)
-        elif error_code in (SF_ERR_POSITION_NOT_FOUND,  #SfMotorPosByName
-                            SF_ERR_COL_NOT_FOUND):      #SfDataColByName
-            raise KeyError(error_message)
-        elif error_code in (SF_ERR_FILE_OPEN,
-                            SF_ERR_FILE_CLOSE,
-                            SF_ERR_FILE_READ,
-                            SF_ERR_FILE_WRITE):
-            raise IOError(error_message)  
-        elif error_code in (SF_ERR_LINE_EMPTY,):
-            raise ValueError(error_message)   
-        elif error_code in (SF_ERR_MEMORY_ALLOC,):
-            raise MemoryError(error_message) 
-        
+        if error_code in ERRORS:
+            raise ERRORS[error_code](error_message)
     
     def index(self, scan_number, scan_order=1):
         """Returns scan index from scan number and order.
