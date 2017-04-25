@@ -183,6 +183,7 @@ class TestSpecFile(unittest.TestCase):
         del self.scan1_no_fhdr
         del self.sf_no_fhdr_crash
         del self.scan1_no_fhdr_crash
+        del self.scan_aborted
         gc.collect()
 
     def test_open(self):
