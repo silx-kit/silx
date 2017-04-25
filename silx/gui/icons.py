@@ -52,21 +52,6 @@ _supported_formats = None
 """Order of file format extension to check"""
 
 
-_process_working = None
-"""Cache an AbstractAnimatedIcon for working process"""
-
-
-def getWaitIcon():
-    """Returns a cached version of the waiting AbstractAnimatedIcon.
-
-    :rtype: AbstractAnimatedIcon
-    """
-    global _process_working
-    if _process_working is None:
-        _process_working = MovieAnimatedIcon("process-working")
-    return _process_working
-
-
 class AbstractAnimatedIcon(qt.QObject):
     """Store an animated icon.
 
@@ -253,7 +238,7 @@ class AnimatedIcon(MovieAnimatedIcon):
     Provides an event with the new icon everytime the movie frame
     is updated.
 
-    It may be removed for the next release 0.6.
+    It may not be available anymore for the silx release 0.6.
 
     .. deprecated:: 0.5
        Use :class:`MovieAnimatedIcon` instead.
@@ -262,6 +247,47 @@ class AnimatedIcon(MovieAnimatedIcon):
     @deprecated
     def __init__(self, filename, parent=None):
         MovieAnimatedIcon.__init__(self, filename, parent=parent)
+
+
+def getWaitIcon():
+    """Returns a cached version of the waiting AbstractAnimatedIcon.
+
+    :rtype: AbstractAnimatedIcon
+    """
+    return getAnimatedIcon("process-working")
+
+
+def getAnimatedIcon(name):
+    """Create an AbstractAnimatedIcon from a name.
+
+    Try to load a mng or a gif file, then try to load a multi-image animated
+    icon.
+
+    :param str name: Name of the icon, in one of the defined icons
+                     in this module.
+    :return: Corresponding AbstractAnimatedIcon
+    :raises: ValueError when name is not known
+    """
+    key = name + "__anim"
+    if key not in _cached_icons:
+        try:
+            icon = MovieAnimatedIcon(name)
+        except ValueError:
+            icon = None
+
+        if icon is None:
+            try:
+                icon = MultiImageAnimatedIcon(name)
+            except ValueError:
+                icon = None
+
+        if icon is None:
+            raise ValueError("Not an animated icon name: %s", name)
+
+        _cached_icons[key] = icon
+    else:
+        icon = _cached_icons[key]
+    return icon
 
 
 def getQIcon(name):
