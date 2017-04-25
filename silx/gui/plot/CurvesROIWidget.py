@@ -160,7 +160,7 @@ class CurvesROIWidget(qt.QWidget):
         self._roiFileDir = str(roiFileDir)
 
     def fillFromROIDict(self, roilist=(), roidict=None, currentroi=None):
-        """See :meth:`ROITable.fillFromROIDict`
+        """Set the ROIs
 
         :param roilist: List of ROI names (keys of roidict)
         :type roilist: List

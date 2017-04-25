@@ -401,11 +401,14 @@ class PlotWindow(PlotWidget):
         """DockWidget with curves' ROI panel (lazy-loaded).
 
         The widget returned is a :class:`CurvesROIDockWidget`.
-        This widget has an attribute :attr:`CurvesROIDockWidget.roiWidget`
-        which is a :class:`CurvesROIWidget`.
+        Its central widget is a :class:`CurvesROIWidget`
+        accessible as :attr:`CurvesROIDockWidget.roiWidget`.
 
-        :class:`silx.gui.plot.CurvesROIWidget.CurvesROIWidget` offers methods
-        and signals allowing you to access the ROI data.
+        :class:`silx.gui.plot.CurvesROIWidget.CurvesROIWidget` offers a getter
+        and a setter for the ROI data:
+
+            - :meth:`CurvesROIWidget.fillFromROIDict`
+            - :meth:`CurvesROIWidget.getROIListAndDict`
         """
         if self._curvesROIDockWidget is None:
             self._curvesROIDockWidget = CurvesROIDockWidget(
