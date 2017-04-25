@@ -238,7 +238,7 @@ class TestSpecFile(unittest.TestCase):
         with self.assertRaisesRegexp(TypeError, 'The scan identification k'):
             self.sf[1.2]
         # non existant scan with "N.M" indexing 
-        with self.assertRaises(specfile.SfErrScanNotFound):
+        with self.assertRaises(KeyError):
             self.sf["3.2"]
 
     def test_specfile_iterator(self):

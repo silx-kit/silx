@@ -733,8 +733,7 @@ cdef class SpecFile(object):
             try:
                 (number, order) = map(int, key.split("."))
                 scan_index = self.index(number, order)
-            except (ValueError, IndexError):
-                # self.index can raise an index error
+            except (ValueError, SfErrScanNotFound, KeyError):
                 # int() can raise a value error
                 raise KeyError(msg + "\nValid keys: '" +
                                "', '".join( self.keys()) + "'")
