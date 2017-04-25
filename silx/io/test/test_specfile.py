@@ -142,9 +142,9 @@ class TestSpecFile(unittest.TestCase):
 
         fd2, cls.fname2 = tempfile.mkstemp(text=False)
         if sys.version < '3.0':
-            os.write(fd2, sftext[370:-97])
+            os.write(fd2, sftext[370:923])
         else:
-            os.write(fd2, bytes(sftext[370:-97], 'ascii'))
+            os.write(fd2, bytes(sftext[370:923], 'ascii'))
         os.close(fd2)
 
         fd3, cls.fname3 = tempfile.mkstemp(text=False)
