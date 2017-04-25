@@ -263,6 +263,9 @@ def getAnimatedIcon(name):
     Try to load a mng or a gif file, then try to load a multi-image animated
     icon.
 
+    In Qt5 mng or gif are not used. It does not take care very well of the
+    transparency.
+
     :param str name: Name of the icon, in one of the defined icons
                      in this module.
     :return: Corresponding AbstractAnimatedIcon
@@ -270,10 +273,16 @@ def getAnimatedIcon(name):
     """
     key = name + "__anim"
     if key not in _cached_icons:
-        try:
-            icon = MovieAnimatedIcon(name)
-        except ValueError:
-            icon = None
+
+        qtMajorVersion = int(qt.qVersion().split(".")[0])
+        icon = None
+
+        # ignore mng and gif in Qt5
+        if qtMajorVersion != 5:
+            try:
+                icon = MovieAnimatedIcon(name)
+            except ValueError:
+                icon = None
 
         if icon is None:
             try:
