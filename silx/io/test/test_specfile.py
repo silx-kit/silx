@@ -90,6 +90,14 @@ sftext = """#F /tmp/sf.dat
 2.0 2.1 2.2 2.3
 3.0 3.1 3.2 3.3
 
+#S 26  yyyyyy
+#D Thu Feb 11 09:55:20 2016
+#P0 80.005 -1.66875 1.87125
+#P1 4.74255 6.197579 2.238283
+#N 4
+#L first column  second column  3rd_col
+#C Sat Oct 31 15:51:47 1998.  Scan aborted after 0 points.
+
 #F /tmp/sf.dat
 #E 1455180876
 #D Thu Feb 11 09:54:36 2016
@@ -110,6 +118,7 @@ sftext = """#F /tmp/sf.dat
 5 6
 @A 6 7.7 8
 """
+
 
 loc = locale.getlocale(locale.LC_NUMERIC)
 try:
@@ -152,12 +161,12 @@ class TestSpecFile(unittest.TestCase):
         os.unlink(cls.fname2)
         os.unlink(cls.fname3)
 
-
     def setUp(self):
         self.sf = SpecFile(self.fname1)
         self.scan1 = self.sf[0]
         self.scan1_2 = self.sf["1.2"]
         self.scan25 = self.sf["25.1"]
+        self.scan_aborted = self.sf["26.1"]
 
         self.sf_no_fhdr = SpecFile(self.fname2)
         self.scan1_no_fhdr = self.sf_no_fhdr[0]
@@ -201,20 +210,19 @@ class TestSpecFile(unittest.TestCase):
             except TypeError:
                 self.fail("failed to handle filename as python3 bytes")
 
-        
     def test_number_of_scans(self):
-        self.assertEqual(3, len(self.sf))
+        self.assertEqual(4, len(self.sf))
         
     def test_list_of_scan_indices(self):
         self.assertEqual(self.sf.list(),
-                         [1, 25, 1])
+                         [1, 25, 26, 1])
         self.assertEqual(self.sf.keys(),
-                         ["1.1", "25.1", "1.2"])
+                         ["1.1", "25.1", "26.1", "1.2"])
 
     def test_index_number_order(self):
-        self.assertEqual(self.sf.index(1, 2), 2)  #sf["1.2"]==sf[2]
+        self.assertEqual(self.sf.index(1, 2), 3)  #sf["1.2"]==sf[3]
         self.assertEqual(self.sf.number(1), 25)   #sf[1]==sf["25"]
-        self.assertEqual(self.sf.order(2), 2)     #sf[2]==sf["1.2"]
+        self.assertEqual(self.sf.order(3), 2)     #sf[3]==sf["1.2"]
         with self.assertRaises(specfile.SfErrScanNotFound):
             self.sf.index(3, 2)
         with self.assertRaises(specfile.SfErrScanNotFound):
@@ -245,7 +253,7 @@ class TestSpecFile(unittest.TestCase):
 
     def test_scan_index(self):
         self.assertEqual(self.scan1.index, 0)
-        self.assertEqual(self.scan1_2.index, 2)
+        self.assertEqual(self.scan1_2.index, 3)
         self.assertEqual(self.scan25.index, 1)
 
     def test_scan_headers(self):
@@ -364,6 +372,12 @@ class TestSpecFile(unittest.TestCase):
         # absence of #@CHANN and spectra
         self.assertEqual(self.scan25.mca.channels,
                          [])
+
+    def test_aborted_scan(self):
+        self.assertEqual(len(self.scan_aborted.labels),
+                         3)
+        col1 = self.scan_aborted.data_column_by_name("second column")
+        self.assertEqual(col1.shape, (0, ))
 
 
 class TestSFLocale(unittest.TestCase):

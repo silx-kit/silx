@@ -395,7 +395,7 @@ class Scan(object):
         if self.record_exists_in_hdr('L'):
             try:
                 self._labels = self._specfile.labels(self._index)
-            except IndexError:
+            except SfErrLineNotFound:
                 # SpecFile.labels raises an IndexError when encountering
                 # a Scan with no data, even if the header exists.
                 L_header = re.sub(r" {2,}", "  ",             # max. 2 spaces
