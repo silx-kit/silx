@@ -36,7 +36,6 @@ class IconPreview(qt.QMainWindow):
 
     def __init__(self, *args, **kwargs):
         qt.QMainWindow.__init__(self, *args, **kwargs)
-        self.createIconPanel(self)
 
         widget = qt.QWidget(self)
         self.iconPanel = self.createIconPanel(widget)
