@@ -160,7 +160,18 @@ class CurvesROIWidget(qt.QWidget):
         self._roiFileDir = str(roiFileDir)
 
     def fillFromROIDict(self, roilist=(), roidict=None, currentroi=None):
-        """Set the ROIs
+        """Set the ROIs by providing a list of ROI names and a dictionary
+        of ROI information for each ROI.
+
+        The ROI names must match an existing dictionary key.
+        The name list is used to provide an order for the ROIs.
+
+        The dictionary's values are sub-dictionaries containing 3
+        mandatory fields:
+
+           - ``"from"``: x coordinate of the left limit, as a float
+           - ``"to"``: x coordinate of the right limit, as a float
+           - ``"type"``: type of ROI, as a string (e.g "channels", "energy")
 
         :param roilist: List of ROI names (keys of roidict)
         :type roilist: List
@@ -170,10 +181,24 @@ class CurvesROIWidget(qt.QWidget):
         return self.roiTable.fillFromROIDict(roilist, roidict, currentroi)
 
     def getROIListAndDict(self):
-        """Return the currently defined ROIs
+        """Return the currently defined ROIs, as a 2-tuple
+        ``(roiList, roiDict)``
 
-        :return: ROIs information
-        :rtype: ordered dict as a tuple of (list of ROI names, dict of info)
+        ``roiList`` is a list of ROI names.
+        ``roiDict`` is a dictionary of ROI info.
+
+        The ROI names must match an existing dictionary key.
+        The name list is used to provide an order for the ROIs.
+
+        The dictionary's values are sub-dictionaries containing 3
+        fields:
+
+           - ``"from"``: x coordinate of the left limit, as a float
+           - ``"to"``: x coordinate of the right limit, as a float
+           - ``"type"``: type of ROI, as a string (e.g "channels", "energy")
+
+
+        :return: ordered dict as a tuple of (list of ROI names, dict of info)
         """
         return self.roiTable.getROIListAndDict()
 
@@ -384,7 +409,18 @@ class ROITable(qt.QTableWidget):
             between the segment [maxPt, minPt] and the selected curve')
 
     def fillFromROIDict(self, roilist=(), roidict=None, currentroi=None):
-        """Set the ROIs
+        """Set the ROIs by providing a list of ROI names and a dictionary
+        of ROI information for each ROI.
+
+        The ROI names must match an existing dictionary key.
+        The name list is used to provide an order for the ROIs.
+
+        The dictionary's values are sub-dictionaries containing 3
+        mandatory fields:
+
+           - ``"from"``: x coordinate of the left limit, as a float
+           - ``"to"``: x coordinate of the right limit, as a float
+           - ``"type"``: type of ROI, as a string (e.g "channels", "energy")
 
         :param roilist: List of ROI names (keys of roidict)
         :type roilist: List
@@ -463,10 +499,24 @@ class ROITable(qt.QTableWidget):
         self.building = False
 
     def getROIListAndDict(self):
-        """Return the currently defined ROIs
+        """Return the currently defined ROIs, as a 2-tuple
+        ``(roiList, roiDict)``
 
-        :return: ROIs information
-        :rtype: ordered dict as a tuple of (list of ROI names, dict of info)
+        ``roiList`` is a list of ROI names.
+        ``roiDict`` is a dictionary of ROI info.
+
+        The ROI names must match an existing dictionary key.
+        The name list is used to provide an order for the ROIs.
+
+        The dictionary's values are sub-dictionaries containing 3
+        fields:
+
+           - ``"from"``: x coordinate of the left limit, as a float
+           - ``"to"``: x coordinate of the right limit, as a float
+           - ``"type"``: type of ROI, as a string (e.g "channels", "energy")
+
+
+        :return: ordered dict as a tuple of (list of ROI names, dict of info)
         """
         return self.roilist, self.roidict
 
