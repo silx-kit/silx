@@ -40,18 +40,24 @@ The :class:`PlotWindow` uses additional widgets:
 The widgets also use the following miscellaneous modules:
 
 - :mod:`.Colors` to convert colors from name to RGB(A)
-- :mod:`.ModestImage` to provide a faster matplotlib AxesImage class using nearest values.
 - :mod:`.MPLColormap` to embed recent matplotlib colormaps: 'magma', 'inferno', 'plasma' and 'viridis'.
 - :mod:`._utils`: utility functions
 
-:mod:`.BackendBase` defines the API any plot backend should provide in :class:`BackendBase`.
-:mod:`.BackendMatplotlib` implements a `matplotlib <http://matplotlib.org/>`_ backend.
-It is splitted in two classes:
+The :mod:`backends` package provide the implementation of the rendering used by the :class:`Plot`.
+It contains:
+:mod:`.backends.BackendBase` defines the API any plot backend should provide in :class:`BackendBase`.
+:mod:`.backends.BackendMatplotlib` implements a `matplotlib <http://matplotlib.org/>`_ backend.
+It uses :mod:`.backends.ModestImage` to provide a faster matplotlib AxesImage class using nearest values.
+The :mod:`.backends.BackendMatplotlib` the provides two classes:
 
-.. currentmodule:: silx.gui.plot.BackendMatplotlib
+.. currentmodule:: silx.gui.plot.backends.BackendMatplotlib
 
 - :class:`BackendMatplotlib` that provides a matplotlib backend without a specific canvas.
 - :class:`BackendMatplotlibQt` which inherits from :class:`BackendMatplotlib` and adds a Qt canvas, and Qt specific functionalities.
+
+The OpenGL-based backend is implemented in the :mod:`.backends.BackendOpenGL` module and
+the :mod:`.backends.glutils` package which provides the different primitives used for rendering and interaction.
+It is based on :mod:`silx.gui._glutils`, `PyOpenGL <http://pyopengl.sourceforge.net/>`_ and OpenGL >= 2.1.
 
 .. |Plot and backend| image:: img/plot_and_backend.png
    :align: middle
@@ -67,21 +73,30 @@ For :mod:`.PlotWidget` and :mod:`.Plot` modules, see their respective documentat
 
 The following modules are the modules used internally by the plot package.
 
-:mod:`BackendBase`
-++++++++++++++++++
+:mod:`backends.BackendBase`
++++++++++++++++++++++++++++
 
-.. currentmodule:: silx.gui.plot.BackendBase
+.. currentmodule:: silx.gui.plot.backends.BackendBase
 
-.. automodule:: silx.gui.plot.BackendBase
+.. automodule:: silx.gui.plot.backends.BackendBase
    :members:
 
-:mod:`BackendMatplotlib`
-++++++++++++++++++++++++
+:mod:`backends.BackendMatplotlib`
++++++++++++++++++++++++++++++++++
 
-.. currentmodule:: silx.gui.plot.BackendMatplotlib
+.. currentmodule:: silx.gui.plot.backends.BackendMatplotlib
 
-.. automodule:: silx.gui.plot.BackendMatplotlib
+.. automodule:: silx.gui.plot.backends.BackendMatplotlib
    :members:
+
+:mod:`backends.ModestImage`
++++++++++++++++++++++++++++
+
+.. currentmodule:: silx.gui.plot.backends.ModestImage
+
+.. automodule:: silx.gui.plot.backends.ModestImage
+   :members:
+   :undoc-members:
 
 :mod:`ColormapDialog`
 +++++++++++++++++++++
@@ -149,15 +164,6 @@ The following modules are the modules used internally by the plot package.
    :members:
    :show-inheritance:
 
-:mod:`ModestImage`
-++++++++++++++++++
-
-.. currentmodule:: silx.gui.plot.ModestImage
-
-.. automodule:: silx.gui.plot.ModestImage
-   :members:
-   :undoc-members:
-
 :mod:`MPLColormap`
 ++++++++++++++++++
 
@@ -189,4 +195,10 @@ The following modules are the modules used internally by the plot package.
 .. currentmodule:: silx.gui.plot._utils
 
 .. automodule:: silx.gui.plot._utils
+   :members:
+
+:mod:`ticklayout`
+-----------------
+
+.. automodule:: silx.gui.plot._utils.ticklayout
    :members:

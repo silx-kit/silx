@@ -252,6 +252,11 @@ class ImageView(PlotWindow):
 
     Use :meth:`setImage` to control the displayed image.
     This class also provides the :class:`silx.gui.plot.Plot` API.
+
+    :param parent: The parent of this widget or None.
+    :param backend: The backend to use for the plot (default: matplotlib).
+                    See :class:`.Plot` for the list of supported backend.
+    :type backend: str or :class:`BackendBase.BackendBase`
     """
 
     HISTOGRAMS_COLOR = 'blue'

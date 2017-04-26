@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "27/03/2017"
+__date__ = "21/04/2017"
 __license__ = "MIT"
 
 
@@ -39,6 +39,7 @@ import os
 import platform
 import shutil
 import logging
+import glob
 
 logging.basicConfig(level=logging.INFO)
 
@@ -180,6 +181,62 @@ if sphinx is None:
                 'Sphinx is required to build or test the documentation.\n'
                 'Please install Sphinx (http://www.sphinx-doc.org).')
 
+
+class BuildMan(Command):
+    """Command to build man pages"""
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        build = self.get_finalized_command('build')
+        path = sys.path
+        path.insert(0, os.path.abspath(build.build_lib))
+
+        env = dict((str(k), str(v)) for k, v in os.environ.items())
+        env["PYTHONPATH"] = os.pathsep.join(path)
+
+        import subprocess
+
+        status = subprocess.call(["mkdir", "-p", "build/man"])
+        if status != 0:
+            raise RuntimeError("Fail to create build/man directory")
+
+        try:
+            import tempfile
+            import stat
+            script_name = None
+
+            # help2man expect a single executable file to extract the help
+            # we create it, execute it, and delete it at the end
+
+            # create a launcher using the right python interpreter
+            script_fid, script_name = tempfile.mkstemp(prefix="%s_" % PROJECT, text=True)
+            script = os.fdopen(script_fid, 'wt')
+            script.write("#!%s\n" % sys.executable)
+            script.write("import runpy\n")
+            script.write("runpy.run_module('%s', run_name='__main__')\n" % PROJECT)
+            script.close()
+
+            # make it executable
+            mode = os.stat(script_name).st_mode
+            os.chmod(script_name, mode + stat.S_IEXEC)
+
+            # execute help2man
+            p = subprocess.Popen(["help2man", script_name, "-o", "build/man/silx.1"], env=env)
+            status = p.wait()
+            if status != 0:
+                raise RuntimeError("Fail to generate man documentation")
+        finally:
+            # clean up the script
+            if script_name is not None:
+                os.remove(script_name)
+
+
 if sphinx is not None:
     class BuildDocCommand(BuildDoc):
         """Command to build documentation using sphinx.
@@ -228,7 +285,6 @@ if sphinx is not None:
 
         http://www.sphinx-doc.org/en/1.4.8/ext/doctest.html
         """
-
         def run(self):
             # make sure the python path is pointing to the newly built
             # code so that the documentation is built on this and not a
@@ -244,6 +300,7 @@ if sphinx is not None:
                 self.mkpath(self.builder_target_dir)
                 BuildDoc.run(self)
             sys.path.pop(0)
+
 else:
     TestDocCommand = SphinxExpectedCommand
 
@@ -426,15 +483,39 @@ def fake_cythonize(extensions):
 class CleanCommand(Clean):
     description = "Remove build artifacts from the source tree"
 
+    def expand(self, path_list):
+        """Expand a list of path using glob magic.
+
+        :param list[str] path_list: A list of path which may contains magic
+        :rtype: list[str]
+        :returns: A list of path without magic
+        """
+        path_list2 = []
+        for path in path_list:
+            if glob.has_magic(path):
+                iterator = glob.iglob(path)
+                path_list2.extend(iterator)
+            else:
+                path_list2.append(path)
+        return path_list2
+
     def run(self):
         Clean.run(self)
-        # really remove the build directory
+        # really remove the directories
+        # and not only if they are empty
+        to_remove = [self.build_base]
+        to_remove = self.expand(to_remove)
+
         if not self.dry_run:
-            try:
-                shutil.rmtree(self.build_base)
-                logger.info("removing '%s'", self.build_base)
-            except OSError:
-                pass
+            for path in to_remove:
+                try:
+                    if os.path.isdir(path):
+                        shutil.rmtree(path)
+                    else:
+                        os.remove(path)
+                    logger.info("removing '%s'", path)
+                except OSError:
+                    pass
 
 ################################################################################
 # Debian source tree
@@ -446,6 +527,9 @@ class sdist_debian(sdist):
     Tailor made sdist for debian
     * remove auto-generated doc
     * remove cython generated .c files
+    * remove cython generated .c files
+    * remove .bat files
+    * include .l man files
     """
     @staticmethod
     def get_debian_name():
@@ -495,14 +579,15 @@ class sdist_debian(sdist):
 # setup #
 # ##### #
 
-def setup_package():
-    """Run setup(**kwargs)
+def get_project_configuration(dry_run):
+    """Returns project arguments for setup"""
+    install_requires = [
+        # for most of the computation
+        "numpy",
+        # for the script launcher
+        "setuptools"]
 
-    Depending on the command, it either runs the complete setup which depends on numpy,
-    or a *dry run* setup with no dependency on numpy.
-    """
-    install_requires = ["numpy"]
-    setup_requires = ["numpy"]
+    setup_requires = ["setuptools", "numpy"]
 
     package_data = {
         'silx.resources': [
@@ -514,20 +599,20 @@ def setup_package():
             'opencl/sift/*.cl']
     }
 
+    entry_points = {
+        'console_scripts': ['silx = silx.__main__:main'],
+        # 'gui_scripts': [],
+    }
+
     cmdclass = dict(
         build_py=build_py,
         test=PyTest,
         build_doc=BuildDocCommand,
         test_doc=TestDocCommand,
         build_ext=BuildExtFlags,
+        build_man=BuildMan,
         clean=CleanCommand,
         debian_src=sdist_debian)
-
-    # Check if action requires build/install
-    dry_run = len(sys.argv) == 1 or (len(sys.argv) >= 2 and (
-        '--help' in sys.argv[1:] or
-        sys.argv[1] in ('--help-commands', 'egg_info', '--version',
-                        'clean', '--name')))
 
     if dry_run:
         # DRY_RUN implies actions which do not require NumPy
@@ -535,26 +620,12 @@ def setup_package():
         # And they are required to succeed without Numpy for example when
         # pip is used to install silx when Numpy is not yet present in
         # the system.
-        try:
-            from setuptools import setup
-            logger.info("Use setuptools.setup")
-        except ImportError:
-            from distutils.core import setup
-            logger.info("Use distutils.core.setup")
         setup_kwargs = {}
     else:
         use_cython = check_cython(min_version='0.21.1')
 
         use_openmp = check_openmp()
         USE_OPENMP = use_openmp
-
-        try:
-            from setuptools import setup
-            logger.info("Use setuptools.setup")
-        except ImportError:
-            from numpy.distutils.core import setup
-            logger.info("Use numpydistutils.setup")
-
         config = configuration()
 
         if use_cython:
@@ -586,8 +657,40 @@ def setup_package():
                         cmdclass=cmdclass,
                         package_data=package_data,
                         zip_safe=False,
+                        entry_points=entry_points,
                         )
+    return setup_kwargs
 
+
+def setup_package():
+    """Run setup(**kwargs)
+
+    Depending on the command, it either runs the complete setup which depends on numpy,
+    or a *dry run* setup with no dependency on numpy.
+    """
+
+    # Check if action requires build/install
+    dry_run = len(sys.argv) == 1 or (len(sys.argv) >= 2 and (
+        '--help' in sys.argv[1:] or
+        sys.argv[1] in ('--help-commands', 'egg_info', '--version',
+                        'clean', '--name')))
+
+    if dry_run:
+        # DRY_RUN implies actions which do not require dependancies, like NumPy
+        try:
+            from setuptools import setup
+            logger.info("Use setuptools.setup")
+        except ImportError:
+            from distutils.core import setup
+            logger.info("Use distutils.core.setup")
+    else:
+        try:
+            from setuptools import setup
+        except ImportError:
+            from numpy.distutils.core import setup
+            logger.info("Use numpydistutils.setup")
+
+    setup_kwargs = get_project_configuration(dry_run)
     setup(**setup_kwargs)
 
 if __name__ == "__main__":

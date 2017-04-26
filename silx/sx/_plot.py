@@ -175,7 +175,7 @@ def plot(*args, **kwargs):
                 # Run twice to handle inversion symbol/linestyle
                 for _i in range(2):
                     # Handle linestyle
-                    for line in (' ', '-', '--', '-.', ':'):
+                    for line in (' ', '--', '-', '-.', ':'):
                         if style.endswith(line):
                             curve_linestyle = line
                             style = style[:-len(line)]

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg  PUBLIC '-//W3C//DTD SVG 1.1//EN'  'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd' [
+	<!ENTITY ns_flows "http://ns.adobe.com/Flows/1.0/">
+	<!ENTITY ns_extend "http://ns.adobe.com/Extensibility/1.0/">
+	<!ENTITY ns_ai "http://ns.adobe.com/AdobeIllustrator/10.0/">
+	<!ENTITY ns_graphs "http://ns.adobe.com/Graphs/1.0/">
+]>
+<svg enable-background="new 0 0 32 32" version="1.1" viewBox="0 0 32 32" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<path d="m18.462 31.115" stroke="#fff" stroke-miterlimit="10" stroke-width=".51"/>
+		<path d="m24.653 7.496c-10.964-0.107-10.073 10.653-10.266 10.974 0 0 0.193-7.139 10.267-6.713v-4.261z" fill="#F7941E" stroke="#F7941E" stroke-miterlimit="10" stroke-width=".1"/>
+			<path d="m24.653 5.819c0-0.17 0.122-0.243 0.271-0.16l6.169 3.403c0.149 0.083 0.157 0.23 0.018 0.328l-6.204 4.348c-0.14 0.098-0.254 0.038-0.254-0.132v-7.787z" fill="#F7941E"/>
+			<path d="m24.653 5.819c0-0.17 0.122-0.243 0.271-0.16l6.169 3.403c0.149 0.083 0.157 0.23 0.018 0.328l-6.204 4.348c-0.14 0.098-0.254 0.038-0.254-0.132v-7.787z" fill="none" stroke="#F7941E" stroke-miterlimit="10"/>
+		<defs>
+			<polygon id="b" points="23.478 18.148 29.488 13.594 29.488 28.585 2.505 29.804 0.69 7.484 16.967 6.267 12.083 13.194"/>
+		</defs>
+		<clipPath id="a">
+			<use overflow="visible" xlink:href="#b"/>
+		</clipPath>
+		<g clip-path="url(#a)">
+			<path d="m26.296 24.612c0 0.28-0.229 0.51-0.51 0.51h-19.578c-0.28 0-0.51-0.229-0.51-0.51v-14.116c0-0.28 0.229-0.51 0.51-0.51h19.579c0.28 0 0.51 0.229 0.51 0.51v14.116z" fill="none" stroke="#F7941E" stroke-miterlimit="10" stroke-width="2.5"/>
+		</g>
+</svg>

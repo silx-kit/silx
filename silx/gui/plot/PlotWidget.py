@@ -51,8 +51,8 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
     with arrow keys.
 
     :param parent: The parent of this widget or None.
-    :param backend: The backend to use for the plot.
-                    The default is to use matplotlib.
+    :param backend: The backend to use for the plot (default: matplotlib).
+                    See :class:`.Plot` for the list of supported backend.
     :type backend: str or :class:`BackendBase.BackendBase`
     """
 

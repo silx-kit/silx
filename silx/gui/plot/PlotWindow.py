@@ -64,8 +64,8 @@ class PlotWindow(PlotWidget):
     Initialiser parameters:
 
     :param parent: The parent of this widget or None.
-    :param backend: The backend to use for the plot.
-                    The default is to use matplotlib.
+    :param backend: The backend to use for the plot (default: matplotlib).
+                    See :class:`.Plot` for the list of supported backend.
     :type backend: str or :class:`BackendBase.BackendBase`
     :param bool resetzoom: Toggle visibility of reset zoom action.
     :param bool autoScale: Toggle visibility of axes autoscale actions.
@@ -244,6 +244,7 @@ class PlotWindow(PlotWidget):
             layout.setContentsMargins(0, 0, 0, 0)
             layout.addWidget(self.getWidgetHandle())
             layout.addWidget(bottomBar)
+            layout.setStretch(0, 1)
 
             centralWidget = qt.QWidget()
             centralWidget.setLayout(layout)
@@ -656,10 +657,13 @@ class Plot1D(PlotWindow):
     This widgets provides the plot API of :class:`.PlotWidget`.
 
     :param parent: The parent of this widget
+    :param backend: The backend to use for the plot (default: matplotlib).
+                    See :class:`.Plot` for the list of supported backend.
+    :type backend: str or :class:`BackendBase.BackendBase`
     """
 
-    def __init__(self, parent=None):
-        super(Plot1D, self).__init__(parent=parent, backend=None,
+    def __init__(self, parent=None, backend=None):
+        super(Plot1D, self).__init__(parent=parent, backend=backend,
                                      resetzoom=True, autoScale=True,
                                      logScale=True, grid=True,
                                      curveStyle=True, colormap=False,
@@ -676,19 +680,22 @@ class Plot1D(PlotWindow):
 class Plot2D(PlotWindow):
     """PlotWindow with a toolbar specific for images.
 
-    This widgets provides the plot API of :class:`.PlotWidget`.
+    This widgets provides the plot API of :~:`.PlotWidget`.
 
     :param parent: The parent of this widget
+    :param backend: The backend to use for the plot (default: matplotlib).
+                    See :class:`.Plot` for the list of supported backend.
+    :type backend: str or :class:`BackendBase.BackendBase`
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, backend=None):
         # List of information to display at the bottom of the plot
         posInfo = [
             ('X', lambda x, y: x),
             ('Y', lambda x, y: y),
             ('Data', self._getImageValue)]
 
-        super(Plot2D, self).__init__(parent=parent, backend=None,
+        super(Plot2D, self).__init__(parent=parent, backend=backend,
                                      resetzoom=True, autoScale=False,
                                      logScale=False, grid=False,
                                      curveStyle=False, colormap=True,

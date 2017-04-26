@@ -200,12 +200,6 @@ class Plot3DWidget(qt.QGLWidget):
         return qt.QSize(400, 300)
 
     def initializeGL(self):
-        if hasattr(self, 'windowHandle'):  # Qt 5
-            self._devicePixelRatio = self.windowHandle().devicePixelRatio()
-            if self._devicePixelRatio != 1.0:
-                _logger.info('High DPI support, devicePixelRatio = %f',
-                             self._devicePixelRatio)
-
         # Check if OpenGL2 is available
         versionflags = self.format().openGLVersionFlags()
         self._isOpenGL21 = bool(versionflags & qt.QGLFormat.OpenGL_Version_2_1)
@@ -228,6 +222,15 @@ class Plot3DWidget(qt.QGLWidget):
         # Mark as updating.
         self._updating = True
 
+        if hasattr(self, 'windowHandle'):  # Qt 5
+            devicePixelRatio = self.windowHandle().devicePixelRatio()
+            if devicePixelRatio != self._devicePixelRatio:
+                # Move window from one screen to another one
+                self._devicePixelRatio = devicePixelRatio
+                # Resize  might not be called, so call it explicitly
+                self.resizeGL(int(self.width() * devicePixelRatio),
+                              int(self.height() * devicePixelRatio))
+
         if not self._isOpenGL21:
             # Cannot render scene, just clear the color buffer.
             ox, oy = self.viewport.origin
@@ -242,7 +245,7 @@ class Plot3DWidget(qt.QGLWidget):
             if self.viewport.dirty:
                 self.viewport.adjustCameraDepthExtent()
 
-            self.window.render(qt.QGLContext.currentContext())
+            self.window.render(self.context(), self._devicePixelRatio)
 
         if self._firstRender:  # TODO remove this ugly hack
             self._firstRender = False

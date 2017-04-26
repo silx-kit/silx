@@ -14,7 +14,7 @@ ALL_PYX := $(call rwildcard,silx/,*.pyx)
 
 override_dh_clean:
 	dh_clean
-# remove the cython generated file to force rebuild
+	# remove the cython generated file to force rebuild
 	rm -f $(patsubst %.pyx,%.cpp,${ALL_PYX})
 	rm -f $(patsubst %.pyx,%.c,${ALL_PYX})
 	rm -f $(patsubst %.pyx,%.html,${ALL_PYX})
@@ -23,23 +23,24 @@ override_dh_clean:
 
 override_dh_auto_build:
 	dh_auto_build
-	python setup.py build build_doc
+	python setup.py build build_man build_doc
 
 override_dh_install:
 	dh_numpy
 	dh_numpy3
 
-	# remove all py/pyc/egg-info files from dbg packages
-	find debian/python-silx-dbg/usr -type f \( -not -name "*.so" \) -delete
-	find debian/python3-silx-dbg/usr -type f \( -not -name "*.so" \) -delete
+	# move the scripts to right package
+	dh_install -p silx debian/python3-silx/usr/bin/* usr/bin
+	rm -rf debian/python-silx/usr/bin
+	rm -rf debian/python3-silx/usr/bin
 
 	dh_install
 
 override_dh_auto_test:
-	dh_auto_test -- -s custom --test-args="env PYTHONPATH={build_dir} WITH_QT_TEST=False {interpreter} run_tests.py"
+	dh_auto_test -- -s custom --test-args="env PYTHONPATH={build_dir} WITH_QT_TEST=False {interpreter} run_tests.py -v"
 
-#override_dh_installman:
-#	dh_installman -p silx doc/*.1
+override_dh_installman:
+	dh_installman -p silx build/man/*.1
 
 override_dh_installdocs:
 	dh_installdocs "build/sphinx/html" -p python-silx-doc

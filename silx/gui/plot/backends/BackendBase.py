@@ -85,7 +85,7 @@ class BackendBase(object):
                  color, symbol, linewidth, linestyle,
                  yaxis,
                  xerror, yerror, z, selectable,
-                 fill, alpha):
+                 fill, alpha, symbolsize):
         """Add a 1D curve given by x an y to the graph.
 
         :param numpy.ndarray x: The data corresponding to the x axis
@@ -123,6 +123,8 @@ class BackendBase(object):
         :param bool selectable: indicate if the curve can be selected
         :param bool fill: True to fill the curve, False otherwise
         :param float alpha: Curve opacity, as a float in [0., 1.]
+        :param float symbolsize: Size of the symbol (if any) drawn
+                                 at each (x, y) position.
         :returns: The handle used by the backend to univocally access the curve
         """
         return legend
@@ -338,23 +340,6 @@ class BackendBase(object):
 
     # Graph limits
 
-    def resetZoom(self, dataMargins):
-        """Reset the displayed area of the plot.
-
-        Autoscale any axis that is in autoscale mode.
-        Keep current limits on axes not in autoscale mode
-
-        Extra margins can be added around the data inside the plot area.
-        Margins are given as one ratio of the data range per limit of the
-        data (xMin, xMax, yMin and yMax limits).
-        For log scale, extra margins are applied in log10 of the data.
-
-        :param dataMargins: Ratios of margins to add around the data inside
-                            the plot area for each side
-        :type dataMargins: A 4-tuple of float as (xMin, xMax, yMin, yMax).
-        """
-        pass
-
     def setLimits(self, xmin, xmax, ymin, ymax, y2min=None, y2max=None):
         """Set the limits of the X and Y axes at once.
 
@@ -448,16 +433,6 @@ class BackendBase(object):
                      'both' for major and minor grid
         """
         pass
-
-    # colormap
-
-    def getSupportedColormaps(self):
-        """Get a list of strings with the supported colormap names.
-
-        The list should at least contain and start by:
-        ['gray', 'reversed gray', 'temperature', 'red', 'green', 'blue']
-        """
-        return 'gray', 'reversed gray', 'temperature', 'red', 'green', 'blue'
 
     # Data <-> Pixel coordinates conversion
 
