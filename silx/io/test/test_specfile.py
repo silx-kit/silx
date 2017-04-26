@@ -166,7 +166,7 @@ class TestSpecFile(unittest.TestCase):
         self.scan1 = self.sf[0]
         self.scan1_2 = self.sf["1.2"]
         self.scan25 = self.sf["25.1"]
-        self.scan_aborted = self.sf["26.1"]
+        self.empty_scan = self.sf["26.1"]
 
         self.sf_no_fhdr = SpecFile(self.fname2)
         self.scan1_no_fhdr = self.sf_no_fhdr[0]
@@ -183,7 +183,7 @@ class TestSpecFile(unittest.TestCase):
         del self.scan1_no_fhdr
         del self.sf_no_fhdr_crash
         del self.scan1_no_fhdr_crash
-        del self.scan_aborted
+        del self.empty_scan
         gc.collect()
 
     def test_open(self):
@@ -374,10 +374,11 @@ class TestSpecFile(unittest.TestCase):
         self.assertEqual(self.scan25.mca.channels,
                          [])
 
-    def test_aborted_scan(self):
-        self.assertEqual(len(self.scan_aborted.labels),
+    def test_empty_scan(self):
+        """Test reading a scan with no data points"""
+        self.assertEqual(len(self.empty_scan.labels),
                          3)
-        col1 = self.scan_aborted.data_column_by_name("second column")
+        col1 = self.empty_scan.data_column_by_name("second column")
         self.assertEqual(col1.shape, (0, ))
 
 
