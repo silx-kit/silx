@@ -27,7 +27,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "19/01/2017"
+__date__ = "26/04/2017"
 
 from .. import qt
 from .. import icons
@@ -60,6 +60,7 @@ class WaitingPushButton(qt.QPushButton):
         self.__enabled = True
         self.__icon = icon
         self.__disabled_when_waiting = True
+        self.__waitingIcon = icons.getWaitIcon()
 
     def sizeHint(self):
         """Returns the recommended size for the widget.
@@ -167,8 +168,7 @@ class WaitingPushButton(qt.QPushButton):
         if not self.isWaiting():
             icon = self.__icon
         else:
-            animated_icon = icons.getWaitIcon()
-            icon = animated_icon.currentIcon()
+            icon = self.__waitingIcon.currentIcon()
         if icon is None:
             icon = qt.QIcon()
         qt.QPushButton.setIcon(self, icon)
@@ -210,13 +210,13 @@ class WaitingPushButton(qt.QPushButton):
             return
         self.__waiting = waiting
 
-        animated_icon = icons.getWaitIcon()
         if self.__waiting:
-            animated_icon.register(self)
-            animated_icon.iconChanged.connect(self.__setWaitingIcon)
+            self.__waitingIcon.register(self)
+            self.__waitingIcon.iconChanged.connect(self.__setWaitingIcon)
         else:
-            animated_icon.unregister(self)
-            animated_icon.iconChanged.disconnect(self.__setWaitingIcon)
+            # unregister only if the object is registred
+            self.__waitingIcon.unregister(self)
+            self.__waitingIcon.iconChanged.disconnect(self.__setWaitingIcon)
 
         self.__updateVisibleEnabled()
         self.__updateVisibleIcon()
