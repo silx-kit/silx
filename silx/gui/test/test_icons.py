@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "25/04/2017"
+__date__ = "26/04/2017"
 
 
 import gc
@@ -86,11 +86,13 @@ class TestAnimatedIcons(TestCaseQt):
         icon2 = icons.getWaitIcon()
         self.assertIs(icon1, icon2)
 
-    def testIconExists(self):
+    def testMovieIconExists(self):
+        if "mng" not in qt.supportedImageFormats():
+            self.skipTest("MNG not supported")
         icon = icons.MovieAnimatedIcon("process-working")
         self.assertIsNotNone(icon)
 
-    def testIconNotExists(self):
+    def testMovieIconNotExists(self):
         self.assertRaises(ValueError, icons.MovieAnimatedIcon, "not-exists")
 
     def testMultiImageIconExists(self):
