@@ -37,7 +37,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "12/01/2017"
+__date__ = "26/04/2017"
 
 
 import os
@@ -45,10 +45,6 @@ import unittest
 import time
 import logging
 import numpy
-try:
-    from silx.third_party import six
-except ImportError:
-    import six
 try:
     import scipy
 except ImportError:

@@ -30,13 +30,8 @@ See http://download.nexusformat.org/sphinx/classes/base_classes/NXdata.html
 """
 import logging
 import numpy
-
 from .utils import is_dataset, is_group
-
-try:
-    from silx.third_party import six
-except ImportError:
-    import six
+from silx.third_party import six
 
 _logger = logging.getLogger(__name__)
 

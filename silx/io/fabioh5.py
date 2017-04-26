@@ -36,13 +36,9 @@ import collections
 import numpy
 import numbers
 import logging
+from silx.third_party import six
 
 _logger = logging.getLogger(__name__)
-
-try:
-    from silx.third_party import six
-except ImportError:
-    import six
 
 try:
     import fabio

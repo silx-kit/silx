@@ -1,7 +1,10 @@
-# coding: utf-8
+# coding: ascii
+#
+# JK: Numpy.distutils which imports this does not handle utf-8 in version<1.12
+#
 # /*##########################################################################
 #
-# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,9 +30,15 @@ __authors__ = ["Valentin Valls"]
 __license__ = "MIT"
 __date__ = "26/04/2017"
 
-try:
-    # try to import our local version of six
-    from ._local.six import *  # noqa
-except ImportError:
-    # else try to import it from the python path
-    from six import *  # noqa
+from numpy.distutils.misc_util import Configuration
+
+
+def configuration(parent_package='', top_path=None):
+    config = Configuration('third_party', parent_package, top_path)
+    config.add_subpackage('_local')
+    return config
+
+
+if __name__ == "__main__":
+    from numpy.distutils.core import setup
+    setup(configuration=configuration)

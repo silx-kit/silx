@@ -33,14 +33,9 @@ import logging
 from silx.gui import qt
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
 
-try:
-    from silx.third_party import six
-except ImportError:
-    import six
-
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "10/04/2017"
+__date__ = "26/04/2017"
 
 
 _logger = logging.getLogger(__name__)

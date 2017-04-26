@@ -22,14 +22,15 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+"""
+Package containing external modules which can be available as it is as an
+external python library.
 
+They are stored here to reduce python library dependancies.
+
+This package can be removed if all dependancies are available in the target
+system as python libraries.
+"""
 __authors__ = ["Valentin Valls"]
 __license__ = "MIT"
 __date__ = "26/04/2017"
-
-try:
-    # try to import our local version of six
-    from ._local.six import *  # noqa
-except ImportError:
-    # else try to import it from the python path
-    from six import *  # noqa
