@@ -30,12 +30,16 @@ __authors__ = ["Valentin Valls"]
 __license__ = "MIT"
 __date__ = "26/04/2017"
 
+import os
 from numpy.distutils.misc_util import Configuration
 
 
 def configuration(parent_package='', top_path=None):
     config = Configuration('third_party', parent_package, top_path)
-    config.add_subpackage('_local')
+    # includes _local only if it is available
+    local_path = os.path.join(top_path, parent_package, "third_party", "_local")
+    if os.path.exists(local_path):
+        config.add_subpackage('_local')
     return config
 
 
