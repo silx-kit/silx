@@ -46,7 +46,7 @@ ROI are defined by :
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "19/12/2016"
+__date__ = "26/04/2017"
 
 from collections import OrderedDict
 
@@ -183,11 +183,8 @@ class CurvesROIWidget(qt.QWidget):
             roilist = list(roidict.keys())
         else:
             assert order in ["from", "to", "type"]
-
             roilist = sorted(roidict.keys(),
                              key=lambda roi_name: roidict[roi_name].get(order))
-
-        print(roilist)
 
         return self.roiTable.fillFromROIDict(roilist, roidict)
 
