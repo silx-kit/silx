@@ -80,6 +80,27 @@ Classes
 - :class:`SpecFile`
 - :class:`Scan`
 - :class:`MCA`
+
+Exceptions
+==========
+
+- :class:`SfError`
+- :class:`SfErrMemoryAlloc`
+- :class:`SfErrFileOpen`
+- :class:`SfErrFileClose`
+- :class:`SfErrFileRead`
+- :class:`SfErrFileWrite`
+- :class:`SfErrLineNotFound`
+- :class:`SfErrScanNotFound`
+- :class:`SfErrHeaderNotFound`
+- :class:`SfErrLabelNotFound`
+- :class:`SfErrMotorNotFound`
+- :class:`SfErrPositionNotFound`
+- :class:`SfErrLineEmpty`
+- :class:`SfErrUserNotFound`
+- :class:`SfErrColNotFound`
+- :class:`SfErrMcaNotFound`
+
 """
 
 __authors__ = ["P. Knobel"]
@@ -114,27 +135,61 @@ if FALSE:
 
 numpy.import_array()
 
-SF_ERR_NO_ERRORS = 0
-SF_ERR_MEMORY_ALLOC = 1
-SF_ERR_FILE_OPEN = 2
-SF_ERR_FILE_CLOSE = 3
-SF_ERR_FILE_READ = 4
-SF_ERR_FILE_WRITE = 5
-SF_ERR_LINE_NOT_FOUND = 6
-SF_ERR_SCAN_NOT_FOUND = 7
-SF_ERR_HEADER_NOT_FOUND = 8
-SF_ERR_LABEL_NOT_FOUND = 9
-SF_ERR_MOTOR_NOT_FOUND = 10
-SF_ERR_POSITION_NOT_FOUND = 11
-SF_ERR_LINE_EMPTY = 12
-SF_ERR_USER_NOT_FOUND = 13
-SF_ERR_COL_NOT_FOUND = 14
-SF_ERR_MCA_NOT_FOUND = 15
 
-class SfNoMcaError(Exception):
+SF_ERR_NO_ERRORS = 0
+SF_ERR_FILE_OPEN = 2
+SF_ERR_SCAN_NOT_FOUND = 7
+
+
+# custom errors
+class SfError(Exception):
+    """Base exception inherited by all exceptions raised when a
+    C function from the legacy SpecFile library returns an error
+    code.
+    """
+    pass
+
+class SfErrMemoryAlloc(SfError): pass
+class SfErrFileOpen(SfError): pass
+class SfErrFileClose(SfError): pass
+class SfErrFileRead(SfError): pass
+class SfErrFileWrite(SfError): pass
+class SfErrLineNotFound(SfError): pass
+class SfErrScanNotFound(SfError): pass
+class SfErrHeaderNotFound(SfError): pass
+class SfErrLabelNotFound(SfError): pass
+class SfErrMotorNotFound(SfError): pass
+class SfErrPositionNotFound(SfError): pass
+class SfErrLineEmpty(SfError): pass
+class SfErrUserNotFound(SfError): pass
+class SfErrColNotFound(SfError): pass
+class SfErrMcaNotFound(SfError): pass
+
+
+ERRORS = {
+    1: SfErrMemoryAlloc,
+    2: SfErrFileOpen,
+    3: SfErrFileClose,
+    4: SfErrFileRead,
+    5: SfErrFileWrite,
+    6: SfErrLineNotFound,
+    7: SfErrScanNotFound,
+    8: SfErrHeaderNotFound,
+    9: SfErrLabelNotFound,
+    10: SfErrMotorNotFound,
+    11: SfErrPositionNotFound,
+    12: SfErrLineEmpty,
+    13: SfErrUserNotFound,
+    14: SfErrColNotFound,
+    15: SfErrMcaNotFound,
+}
+
+
+class SfNoMcaError(SfError):
     """Custom exception raised when ``SfNoMca()`` returns ``-1``
     """
     pass
+
 
 class MCA(object):
     """
@@ -340,7 +395,7 @@ class Scan(object):
         if self.record_exists_in_hdr('L'):
             try:
                 self._labels = self._specfile.labels(self._index)
-            except IndexError:
+            except SfErrLineNotFound:
                 # SpecFile.labels raises an IndexError when encountering
                 # a Scan with no data, even if the header exists.
                 L_header = re.sub(r" {2,}", "  ",             # max. 2 spaces
@@ -537,7 +592,15 @@ class Scan(object):
         :return: Line data as a 1D array of doubles
         :rtype: numpy.ndarray
         """
-        return self._specfile.data_column_by_name(self._index, label)
+        try:
+            ret = self._specfile.data_column_by_name(self._index, label)
+        except SfErrLineNotFound:
+            # Could be a "#C Scan aborted after 0 points"
+            _logger.warning("Cannot get data column %s in scan %d.%d",
+                            label, self.number, self.order)
+            ret = numpy.empty((0, ), numpy.double)
+        return ret
+
 
     def motor_position_by_name(self, name):
         """Returns the position for a given motor
@@ -670,8 +733,7 @@ cdef class SpecFile(object):
             try:
                 (number, order) = map(int, key.split("."))
                 scan_index = self.index(number, order)
-            except (ValueError, IndexError):
-                # self.index can raise an index error
+            except (ValueError, SfErrScanNotFound, KeyError):
                 # int() can raise a value error
                 raise KeyError(msg + "\nValid keys: '" +
                                "', '".join( self.keys()) + "'")
@@ -727,27 +789,8 @@ cdef class SpecFile(object):
         :type code: int
         """
         error_message = self._get_error_string(error_code)
-        if error_code in (SF_ERR_LINE_NOT_FOUND,
-                          SF_ERR_SCAN_NOT_FOUND,
-                          SF_ERR_HEADER_NOT_FOUND,
-                          SF_ERR_LABEL_NOT_FOUND,
-                          SF_ERR_MOTOR_NOT_FOUND,
-                          SF_ERR_USER_NOT_FOUND,
-                          SF_ERR_MCA_NOT_FOUND):
-            raise IndexError(error_message)
-        elif error_code in (SF_ERR_POSITION_NOT_FOUND,  #SfMotorPosByName
-                            SF_ERR_COL_NOT_FOUND):      #SfDataColByName
-            raise KeyError(error_message)
-        elif error_code in (SF_ERR_FILE_OPEN,
-                            SF_ERR_FILE_CLOSE,
-                            SF_ERR_FILE_READ,
-                            SF_ERR_FILE_WRITE):
-            raise IOError(error_message)  
-        elif error_code in (SF_ERR_LINE_EMPTY,):
-            raise ValueError(error_message)   
-        elif error_code in (SF_ERR_MEMORY_ALLOC,):
-            raise MemoryError(error_message) 
-        
+        if error_code in ERRORS:
+            raise ERRORS[error_code](error_message)
     
     def index(self, scan_number, scan_order=1):
         """Returns scan index from scan number and order.
