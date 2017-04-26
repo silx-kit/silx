@@ -78,6 +78,7 @@ Depends: ${misc:Depends},
          python-pyqt5,
          python-pyqt5.qtopengl,
          python-scipy,
+         python-six,
 # Recommends:
 Suggests: python-rfoo
 Description: Toolbox for X-Ray data analysis - Python2 library
@@ -104,6 +105,7 @@ Depends: ${misc:Depends},
          python3-pyqt5,
          python3-pyqt5.qtopengl,
          python3-scipy,
+         python3-six,
 # Recommends:
 # Suggests: python3-rfoo
 Description: Toolbox for X-Ray data analysis - Python3

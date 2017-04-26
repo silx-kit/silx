@@ -98,6 +98,7 @@ Depends: ${misc:Depends},
          python-pyqt5,
          python-pyqt5.qtopengl,
          python-scipy,
+         python-six,
 # Recommends:
 Suggests: python-rfoo
 Description: Toolbox for X-Ray data analysis - Python2 library
@@ -125,6 +126,7 @@ Depends: ${misc:Depends},
          python-pyqt5-dbg,
          python-pyqt5.qtopengl-dbg,
          python-scipy-dbg,
+         python-six,
 Description: Toolbox for X-Ray data analysis - python2 debug
  .
  This package contains the extension built for the Python 2 debug
@@ -149,6 +151,7 @@ Depends: ${misc:Depends},
          python3-pyqt5,
          python3-pyqt5.qtopengl,
          python3-scipy,
+         python3-six,
 # Recommends:
 # Suggests: python3-rfoo
 Description: Toolbox for X-Ray data analysis - Python3
@@ -176,6 +179,7 @@ Depends: ${misc:Depends},
          python3-pyqt5-dbg,
          python3-pyqt5.qtopengl-dbg,
          python3-scipy-dbg,
+         python3-six,
 Description: Toolbox for X-Ray data analysis - Python3 debug
  .
  This package contains the extension built for the Python 3 debug
