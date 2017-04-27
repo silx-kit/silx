@@ -80,7 +80,7 @@ void median_filter(
     int x_pixel_range_max,
     int y_pixel_range_min,
     int y_pixel_range_max,
-    bool conditioannal){
+    bool conditional){
     
     assert(kernel_dim[0] > 0);
     assert(kernel_dim[1] > 0);
@@ -121,13 +121,13 @@ void median_filter(
             }
             const T* currentPixelValue = &input[image_dim[0]*pixel_y + pixel_x];
             // change value for the median, only if we don't intend to use the 
-            // conditionnal or if the value of the pixel is one of the extrema
+            // conditional or if the value of the pixel is one of the extrema
             // of the pixel value
-            if (conditioannal == true){
+            if (conditional == true){
                 T min = 0;
                 T max = 0;
                 getMinMax(window_values, min, max);
-                // In conditionnal point we are only setting the value to the pixel
+                // In conditional point we are only setting the value to the pixel
                 // if the value is the min or max and unique
                 if ((*currentPixelValue == max) || (*currentPixelValue == min)){
                     output[image_dim[0]*pixel_y + pixel_x] = *(median<T>(window_values));
