@@ -407,8 +407,8 @@ class PlotWindow(PlotWidget):
         :class:`silx.gui.plot.CurvesROIWidget.CurvesROIWidget` offers a getter
         and a setter for the ROI data:
 
-            - :meth:`CurvesROIWidget.fillFromROIDict`
-            - :meth:`CurvesROIWidget.getROIListAndDict`
+            - :meth:`CurvesROIWidget.getRois`
+            - :meth:`CurvesROIWidget.setRois`
         """
         if self._curvesROIDockWidget is None:
             self._curvesROIDockWidget = CurvesROIDockWidget(
