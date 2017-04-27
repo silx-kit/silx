@@ -75,8 +75,13 @@ class IconPreview(qt.QMainWindow):
         self.tools = []
 
         icons = pkg_resources.resource_listdir("silx.resources", "gui/icons")
+        # filter out sub-directories
+        icons = filter(lambda x: not pkg_resources.resource_isdir("silx.resources", "gui/icons/" + x), icons)
+        # remove extension
         icons = [i.split(".")[0] for i in icons]
+        # remove duplicated names
         icons = set(icons)
+        # sort by names
         icons = sorted(icons)
 
         for i, icon_name in enumerate(icons):
