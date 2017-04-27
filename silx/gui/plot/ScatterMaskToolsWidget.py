@@ -223,15 +223,17 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
         if len(mask):
             self.plot.addScatter(self._data_scatter.getXData(),
                                  self._data_scatter.getYData(),
-                                 mask,  # Fixme: colormap
+                                 mask,
                                  legend=self._maskName,
                                  colormap=self._colormap,
                                  z=self._z)
             self._mask_scatter = self.plot._getItem(kind="scatter",
                                                     legend=self._maskName)
+            self._mask_scatter.setSymbolSize(
+                self._data_scatter.getSymbolSize() * 4.0
+            )
         elif self.plot._getItem(kind="scatter",
                                 legend=self._maskName) is not None:
-
             self.plot.remove(self._maskName, kind='scatter')
 
     # track widget visibility and plot active image changes
@@ -510,7 +512,6 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
                 min_, max_ = colormap['vmin'], colormap['vmax']
             self.minLineEdit.setText(str(min_))
             self.maxLineEdit.setText(str(max_))
-
 
 
 class ScatterMaskToolsDockWidget(BaseMaskToolsDockWidget):
