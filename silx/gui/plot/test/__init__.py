@@ -38,6 +38,7 @@ from .testAlphaSlider import suite as testAlphaSliderSuite
 from .testInteraction import suite as testInteractionSuite
 from .testLegendSelector import suite as testLegendSelectorSuite
 from .testMaskToolsWidget import suite as testMaskToolsWidgetSuite
+from .testScatterMaskToolsWidget import suite as testScatterMaskToolsWidgetSuite
 from .testPlotInteraction import suite as testPlotInteractionSuite
 from .testPlotTools import suite as testPlotToolsSuite
 from .testPlotWidget import suite as testPlotWidgetSuite
@@ -59,6 +60,7 @@ def suite():
          testInteractionSuite(),
          testLegendSelectorSuite(),
          testMaskToolsWidgetSuite(),
+         testScatterMaskToolsWidgetSuite(),
          testPlotInteractionSuite(),
          testPlotSuite(),
          testPlotToolsSuite(),

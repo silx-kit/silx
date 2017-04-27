@@ -918,18 +918,21 @@ class Plot(object):
 
         # Set scatter data
         # If errors not provided, reuse previous ones
-        # TODO: Issue if size of data change but not that of errors
         if xerror is None:
             xerror = scatter.getXErrorData(copy=False)
+            if xerror is not None and len(xerror) != len(x):
+                xerror = None
         if yerror is None:
             yerror = scatter.getYErrorData(copy=False)
+            if yerror is not None and len(yerror) != len(y):
+                yerror = None
 
         scatter.setData(x, y, value, xerror, yerror, copy=copy)
 
         self.notify(
             'contentChanged', action='add', kind='scatter', legend=legend)
 
-        if wasActive:
+        if len(self._getItems(kind="scatter")) == 1 or wasActive:
             self._setActiveItem('scatter', scatter.getLegend())
 
         return legend
