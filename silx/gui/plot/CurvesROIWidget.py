@@ -46,8 +46,9 @@ ROI are defined by :
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "19/12/2016"
+__date__ = "26/04/2017"
 
+from collections import OrderedDict
 
 import logging
 import os
@@ -160,6 +161,56 @@ class CurvesROIWidget(qt.QWidget):
     @roiFileDir.setter
     def roiFileDir(self, roiFileDir):
         self._roiFileDir = str(roiFileDir)
+
+    def setRois(self, roidict, order=None):
+        """Set the ROIs by providing a dictionary of ROI information.
+
+        The dictionary keys are the ROI names.
+        Each value is a sub-dictionary of ROI info with the following fields:
+
+           - ``"from"``: x coordinate of the left limit, as a float
+           - ``"to"``: x coordinate of the right limit, as a float
+           - ``"type"``: type of ROI, as a string (e.g "channels", "energy")
+
+
+        :param roidict: Dictionary of ROIs
+        :param str order: Field used for ordering the ROIs.
+             One of "from", "to", "type".
+             None (default) for no ordering, or same order as specified
+             in parameter ``roidict`` if provided as an OrderedDict.
+        """
+        if order is None or order.lower() == "none":
+            roilist = list(roidict.keys())
+        else:
+            assert order in ["from", "to", "type"]
+            roilist = sorted(roidict.keys(),
+                             key=lambda roi_name: roidict[roi_name].get(order))
+
+        return self.roiTable.fillFromROIDict(roilist, roidict)
+
+    def getRois(self, order=None):
+        """Return the currently defined ROIs, as an ordered dict.
+
+        The dictionary keys are the ROI names.
+        Each value is a sub-dictionary of ROI info with the following fields:
+
+           - ``"from"``: x coordinate of the left limit, as a float
+           - ``"to"``: x coordinate of the right limit, as a float
+           - ``"type"``: type of ROI, as a string (e.g "channels", "energy")
+        :param order: Field used for ordering the ROIs.
+             One of "from", "to", "type", "netcounts", "rawcounts".
+             None (default) to get the same order as displayed in the widget.
+        :return: Ordered dictionary of ROI information
+        """
+        roilist, roidict = self.roiTable.getROIListAndDict()
+        if order is None or order.lower() == "none":
+            ordered_roilist = roilist
+        else:
+            assert order in ["from", "to", "type", "netcounts", "rawcounts"]
+            ordered_roilist = sorted(roidict.keys(),
+                                     key=lambda roi_name: roidict[roi_name].get(order))
+
+        return OrderedDict([(name, roidict[name]) for name in ordered_roilist])
 
     def _add(self):
         """Add button clicked handler"""
@@ -368,7 +419,18 @@ class ROITable(qt.QTableWidget):
             between the segment [maxPt, minPt] and the selected curve')
 
     def fillFromROIDict(self, roilist=(), roidict=None, currentroi=None):
-        """Set the ROIs
+        """Set the ROIs by providing a list of ROI names and a dictionary
+        of ROI information for each ROI.
+
+        The ROI names must match an existing dictionary key.
+        The name list is used to provide an order for the ROIs.
+
+        The dictionary's values are sub-dictionaries containing 3
+        mandatory fields:
+
+           - ``"from"``: x coordinate of the left limit, as a float
+           - ``"to"``: x coordinate of the right limit, as a float
+           - ``"type"``: type of ROI, as a string (e.g "channels", "energy")
 
         :param roilist: List of ROI names (keys of roidict)
         :type roilist: List
@@ -447,10 +509,24 @@ class ROITable(qt.QTableWidget):
         self.building = False
 
     def getROIListAndDict(self):
-        """Return the currently defined ROIs
+        """Return the currently defined ROIs, as a 2-tuple
+        ``(roiList, roiDict)``
 
-        :return: ROIs information
-        :rtype: ordered dict as a tuple of (list of ROI names, dict of info)
+        ``roiList`` is a list of ROI names.
+        ``roiDict`` is a dictionary of ROI info.
+
+        The ROI names must match an existing dictionary key.
+        The name list is used to provide an order for the ROIs.
+
+        The dictionary's values are sub-dictionaries containing 3
+        fields:
+
+           - ``"from"``: x coordinate of the left limit, as a float
+           - ``"to"``: x coordinate of the right limit, as a float
+           - ``"type"``: type of ROI, as a string (e.g "channels", "energy")
+
+
+        :return: ordered dict as a tuple of (list of ROI names, dict of info)
         """
         return self.roilist, self.roidict
 
@@ -537,7 +613,7 @@ class ROITable(qt.QTableWidget):
 class CurvesROIDockWidget(qt.QDockWidget):
     """QDockWidget with a :class:`CurvesROIWidget` connected to a PlotWindow.
 
-    It makes the link between the CurvesROIWidget and the PlotWindow.
+    It makes the link between the :class:`CurvesROIWidget` and the PlotWindow.
 
     :param parent: See :class:`QDockWidget`
     :param plot: :class:`.PlotWindow` instance on which to operate
@@ -558,6 +634,8 @@ class CurvesROIDockWidget(qt.QDockWidget):
         self._isInit = False
 
         self.roiWidget = CurvesROIWidget(self, name)
+        """Main widget of type :class:`CurvesROIWidget`"""
+
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.setWidget(self.roiWidget)
 

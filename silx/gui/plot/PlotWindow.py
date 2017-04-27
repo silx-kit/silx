@@ -30,7 +30,7 @@ It provides the plot API fully defined in :class:`.Plot`.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "07/03/2017"
+__date__ = "27/04/2017"
 
 import collections
 import logging
@@ -398,7 +398,18 @@ class PlotWindow(PlotWidget):
         return self.getCurvesRoiDockWidget()
 
     def getCurvesRoiDockWidget(self):
-        """DockWidget with curves' ROI panel (lazy-loaded)."""
+        """DockWidget with curves' ROI panel (lazy-loaded).
+
+        The widget returned is a :class:`CurvesROIDockWidget`.
+        Its central widget is a :class:`CurvesROIWidget`
+        accessible as :attr:`CurvesROIDockWidget.roiWidget`.
+
+        :class:`silx.gui.plot.CurvesROIWidget.CurvesROIWidget` offers a getter
+        and a setter for the ROI data:
+
+            - :meth:`CurvesROIWidget.getRois`
+            - :meth:`CurvesROIWidget.setRois`
+        """
         if self._curvesROIDockWidget is None:
             self._curvesROIDockWidget = CurvesROIDockWidget(
                 plot=self, name='Regions Of Interest')
