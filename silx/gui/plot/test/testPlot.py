@@ -476,6 +476,67 @@ class TestPlotGetCurveImage(unittest.TestCase):
         self.assertEqual(images[1].getLegend(), '2')
 
 
+class TestPlotAddScatter(unittest.TestCase):
+    """Test of plot addScatter"""
+
+    def testAddGetScatter(self):
+
+        plot = Plot(backend='none')
+
+        # No curve
+        scatter = plot._getItem(kind="scatter")
+        self.assertIsNone(scatter)  # No curve
+
+        plot.addScatter(x=(0, 1), y=(0, 1), value=(0, 1), legend='scatter 0')
+        plot.addScatter(x=(0, 1), y=(0, 1), value=(0, 1), legend='scatter 1')
+        plot.addScatter(x=(0, 1), y=(0, 1), value=(0, 1), legend='scatter 2')
+        plot._setActiveItem('scatter', 'scatter 0')
+
+        # Active scatter
+        active = plot._getActiveItem(kind='scatter')
+        self.assertEqual(active.getLegend(), 'scatter 0')
+
+        # check default values
+        self.assertAlmostEqual(active.getSymbolSize(), active._DEFAULT_SYMBOL_SIZE)
+        self.assertEqual(active.getSymbol(), "o")
+        self.assertAlmostEqual(active.getAlpha(), 1.0)
+
+        # modify parameters
+        active.setSymbolSize(20.5)
+        active.setSymbol("d")
+        active.setAlpha(0.777)
+
+        s0 = plot.getScatter("scatter 0")
+
+        self.assertAlmostEqual(s0.getSymbolSize(), 20.5)
+        self.assertEqual(s0.getSymbol(), "d")
+        self.assertAlmostEqual(s0.getAlpha(), 0.777)
+
+        scatter1 = plot._getItem(kind='scatter', legend='scatter 1')
+        self.assertEqual(scatter1.getLegend(), 'scatter 1')
+
+    def testGetAllScatters(self):
+        """Plot.getAllImages test"""
+
+        plot = Plot(backend='none')
+
+        scatters = plot._getItems(kind='scatter')
+        self.assertEqual(len(scatters), 0)
+
+        plot.addScatter(x=(0, 1), y=(0, 1), value=(0, 1), legend='scatter 0')
+        plot.addScatter(x=(0, 1), y=(0, 1), value=(0, 1), legend='scatter 1')
+        plot.addScatter(x=(0, 1), y=(0, 1), value=(0, 1), legend='scatter 2')
+
+        scatters = plot._getItems(kind='scatter')
+        self.assertEqual(len(scatters), 3)
+        self.assertEqual(scatters[0].getLegend(), 'scatter 0')
+        self.assertEqual(scatters[2].getLegend(), 'scatter 2')
+
+        scatters = plot._getItems(kind='scatter', just_legend=True)
+        self.assertEqual(len(scatters), 3)
+        self.assertEqual(list(scatters), ['scatter 0', 'scatter 1', 'scatter 2'])
+
+
 class TestPlotHistogram(unittest.TestCase):
     """Basic tests for histogram."""
 
@@ -523,7 +584,7 @@ class TestPlotHistogram(unittest.TestCase):
 def suite():
     test_suite = unittest.TestSuite()
     for TestClass in (TestPlot, TestPlotRanges, TestPlotGetCurveImage,
-                      TestPlotHistogram):
+                      TestPlotHistogram, TestPlotAddScatter):
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(TestClass))
     return test_suite

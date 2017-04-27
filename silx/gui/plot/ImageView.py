@@ -55,8 +55,7 @@ import numpy
 
 from .. import qt
 
-from . import PlotWindow, PlotWidget
-from . import PlotActions
+from . import items, PlotWindow, PlotWidget, PlotActions
 from .Colors import cursorColorForColormap
 from .PlotTools import LimitsToolBar
 from .Profile import ProfileToolBar
@@ -253,6 +252,11 @@ class ImageView(PlotWindow):
 
     Use :meth:`setImage` to control the displayed image.
     This class also provides the :class:`silx.gui.plot.Plot` API.
+
+    :param parent: The parent of this widget or None.
+    :param backend: The backend to use for the plot (default: matplotlib).
+                    See :class:`.Plot` for the list of supported backend.
+    :type backend: str or :class:`BackendBase.BackendBase`
     """
 
     HISTOGRAMS_COLOR = 'blue'
@@ -720,14 +724,10 @@ class ImageView(PlotWindow):
 
         self.setDefaultColormap(cmapDict)
 
+        # Update active image colormap
         activeImage = self.getActiveImage()
-        if activeImage is not None:  # Refresh image with new colormap
-            self.addImage(activeImage.getData(copy=False),
-                          legend=activeImage.getLegend(),
-                          info=activeImage.getInfo(),
-                          pixmap=activeImage.getPixmap(),
-                          colormap=self.getColormap(),
-                          replace=False)
+        if isinstance(activeImage, items.ColormapMixIn):
+            activeImage.setColormap(self.getColormap())
 
     def setImage(self, image, origin=(0, 0), scale=(1., 1.),
                  copy=True, reset=True):

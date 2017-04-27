@@ -130,6 +130,32 @@ class TestStackView(TestCaseQt):
         self.assertEqual(self.stackview._perspective, 2,
                          "Perspective not set in setStack(..., perspective=2).")
 
+    def testTitle(self):
+        """Test that the plot title contains the proper Z information"""
+        self.stackview.setStack(numpy.arange(24).reshape((4, 3, 2)),
+                                calibrations=[(0, 1), (-10, 10), (3.14, 3.14)])
+        self.assertEqual(self.stackview._plot.getGraphTitle(),
+                         "Image z=0")
+        self.stackview.setFrameNumber(2)
+        self.assertEqual(self.stackview._plot.getGraphTitle(),
+                         "Image z=2")
+
+        self.stackview._StackView__planeSelection.setPerspective(1)
+        self.stackview.setFrameNumber(0)
+        self.assertEqual(self.stackview._plot.getGraphTitle(),
+                         "Image z=-10")
+        self.stackview.setFrameNumber(2)
+        self.assertEqual(self.stackview._plot.getGraphTitle(),
+                         "Image z=10")
+
+        self.stackview._StackView__planeSelection.setPerspective(2)
+        self.stackview.setFrameNumber(0)
+        self.assertEqual(self.stackview._plot.getGraphTitle(),
+                         "Image z=3.14")
+        self.stackview.setFrameNumber(1)
+        self.assertEqual(self.stackview._plot.getGraphTitle(),
+                         "Image z=6.28")
+
 
 class TestStackViewMainWindow(TestCaseQt):
     """Base class for tests of StackView."""

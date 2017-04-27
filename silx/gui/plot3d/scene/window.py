@@ -42,8 +42,8 @@ __date__ = "10/01/2017"
 import weakref
 import numpy
 
-from ..glutils import gl
-from .. import glutils
+from ..._glutils import gl
+from ... import _glutils
 
 from . import event
 
@@ -60,6 +60,7 @@ class Context(object):
     def __init__(self, glContextHandle):
         self._context = glContextHandle
         self._isCurrent = False
+        self._devicePixelRatio = 1.0
 
     @property
     def isCurrent(self):
@@ -75,6 +76,19 @@ class Context(object):
         :param bool isCurrent: The state of the system OpenGL context.
         """
         self._isCurrent = bool(isCurrent)
+
+    @property
+    def devicePixelRatio(self):
+        """Ratio between device and device independent pixels (float)
+
+        This is useful for font rendering.
+        """
+        return self._devicePixelRatio
+
+    @devicePixelRatio.setter
+    def devicePixelRatio(self, ratio):
+        assert ratio > 0
+        self._devicePixelRatio = float(ratio)
 
     def __enter__(self):
         self.setCurrent(True)
@@ -119,7 +133,7 @@ class ContextGL2(Context):
         key = vertexShaderSrc, fragmentShaderSrc
         prog = self._programs.get(key, None)
         if prog is None:
-            prog = glutils.Program(vertexShaderSrc, fragmentShaderSrc)
+            prog = _glutils.Program(vertexShaderSrc, fragmentShaderSrc)
             self._programs[key] = prog
         return prog
 
@@ -145,7 +159,7 @@ class ContextGL2(Context):
         :return: The VertexBuffer created in this context.
         """
         assert self.isCurrent
-        vbo = glutils.VertexBuffer(data, sizeInBytes, usage, target)
+        vbo = _glutils.VertexBuffer(data, sizeInBytes, usage, target)
         vboref = weakref.ref(vbo, self._deadVbo)
         # weakref is hashable as far as target is
         self._vbos[vboref] = vbo.name
@@ -168,9 +182,9 @@ class ContextGL2(Context):
         assert len(data.shape) <= 2
         dimension = 1 if len(data.shape) == 1 else data.shape[1]
 
-        return glutils.VertexBufferAttrib(
+        return _glutils.VertexBufferAttrib(
             vbo,
-            type_=glutils.numpyToGLType(data.dtype),
+            type_=_glutils.numpyToGLType(data.dtype),
             size=data.shape[0],
             dimension=dimension,
             offset=0,
@@ -321,15 +335,18 @@ class Window(event.Notifier):
 
         return numpy.array(image, copy=False, order='C')
 
-    def render(self, glcontext):
+    def render(self, glcontext, devicePixelRatio):
         """Perform the rendering of attached viewports
 
         :param glcontext: System identifier of the OpenGL context
+        :param float devicePixelRatio:
+            Ratio between device and device-independent pixels
         """
         if glcontext not in self._contexts:
             self._contexts[glcontext] = ContextGL2(glcontext)  # New context
 
         with self._contexts[glcontext] as context:
+            context.devicePixelRatio = devicePixelRatio
             if self._isframebuffer:
                 self._renderWithOffscreenFramebuffer(context)
             else:
@@ -364,11 +381,11 @@ class Window(event.Notifier):
                 if context in self._framebuffers:
                     self._framebuffers[context].discard()
 
-                fbo = glutils.FramebufferTexture(gl.GL_RGBA,
-                                                 shape=self.shape,
-                                                 minFilter=gl.GL_NEAREST,
-                                                 magFilter=gl.GL_NEAREST,
-                                                 wrap=gl.GL_CLAMP_TO_EDGE)
+                fbo = _glutils.FramebufferTexture(gl.GL_RGBA,
+                                                  shape=self.shape,
+                                                  minFilter=gl.GL_NEAREST,
+                                                  magFilter=gl.GL_NEAREST,
+                                                  wrap=gl.GL_CLAMP_TO_EDGE)
                 self._framebuffers[context] = fbo
                 self._framebufferid = fbo.name
 

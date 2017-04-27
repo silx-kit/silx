@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "20/12/2016"
+__date__ = "12/04/2017"
 
 
 import numpy
@@ -92,6 +92,11 @@ class Group(Node):
 
     def create_group(self, name):
         return Group(name, self)
+
+    def create_NXentry(self, name):
+        group = Group(name, self)
+        group.attrs["NX_class"] = "NXentry"
+        return group
 
 
 class File(Group):

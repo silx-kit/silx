@@ -32,6 +32,9 @@ from numpy.distutils.misc_util import Configuration
 
 def configuration(parent_package='', top_path=None):
     config = Configuration('plot', parent_package, top_path)
+    config.add_subpackage('_utils')
+    config.add_subpackage('backends')
+    config.add_subpackage('backends.glutils')
     config.add_subpackage('items')
     config.add_subpackage('test')
 

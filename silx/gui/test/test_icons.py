@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,10 +26,13 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "05/12/2016"
+__date__ = "26/04/2017"
 
 
+import gc
 import unittest
+import weakref
+
 from silx.gui import qt
 from silx.gui.test.utils import TestCaseQt
 from silx.gui import icons
@@ -64,14 +67,11 @@ class TestIcons(TestCaseQt):
         self.assertIs(icon1, icon2)
 
     def testCacheReleased(self):
-        icon1 = icons.getQIcon("crop")
-        icon1_id = str(icon1.__repr__())
-        icon1 = None
-        # alloc another thing in case the old icon1 object is reused
-        _icon3 = icons.getQIcon("colormap")
-        icon2 = icons.getQIcon("crop")
-        icon2_id = str(icon2.__repr__())
-        self.assertNotEquals(icon1_id, icon2_id)
+        icon = icons.getQIcon("crop")
+        icon_ref = weakref.ref(icon)
+        del icon
+        gc.collect()
+        self.assertIsNone(icon_ref())
 
 
 class TestAnimatedIcons(TestCaseQt):
@@ -86,12 +86,21 @@ class TestAnimatedIcons(TestCaseQt):
         icon2 = icons.getWaitIcon()
         self.assertIs(icon1, icon2)
 
-    def testIconExists(self):
-        icon = icons.AnimatedIcon("process-working")
+    def testMovieIconExists(self):
+        if "mng" not in qt.supportedImageFormats():
+            self.skipTest("MNG not supported")
+        icon = icons.MovieAnimatedIcon("process-working")
         self.assertIsNotNone(icon)
 
-    def testIconNotExists(self):
-        self.assertRaises(ValueError, icons.AnimatedIcon, "not-exists")
+    def testMovieIconNotExists(self):
+        self.assertRaises(ValueError, icons.MovieAnimatedIcon, "not-exists")
+
+    def testMultiImageIconExists(self):
+        icon = icons.MultiImageAnimatedIcon("process-working")
+        self.assertIsNotNone(icon)
+
+    def testMultiImageIconNotExists(self):
+        self.assertRaises(ValueError, icons.MultiImageAnimatedIcon, "not-exists")
 
 
 def suite():

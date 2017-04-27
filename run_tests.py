@@ -32,7 +32,7 @@ Test coverage dependencies: coverage, lxml.
 """
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "29/11/2016"
+__date__ = "19/04/2017"
 __license__ = "MIT"
 
 import distutils.util
@@ -291,23 +291,26 @@ if options.low_mem:
 if options.coverage:
     logger.info("Running test-coverage")
     import coverage
+    omits = ["*test*", "*third_party*", "*/setup.py",
+             # temporary test modules (silx.math.fit.test.test_fitmanager)
+             "*customfun.py", ]
     try:
-        cov = coverage.Coverage(omit=["*test*", "*third_party*", "*/setup.py"])
+        cov = coverage.Coverage(omit=omits)
     except AttributeError:
-        cov = coverage.coverage(omit=["*test*", "*third_party*", "*/setup.py"])
+        cov = coverage.coverage(omit=omits)
     cov.start()
 
 if options.qt_binding:
     binding = options.qt_binding.lower()
     if binding == "pyqt4":
         logger.info("Force using PyQt4")
-        import PyQt4  #noqa
+        import PyQt4.QtCore  # noqa
     elif binding == "pyqt5":
         logger.info("Force using PyQt5")
-        import PyQt5  #noqa
+        import PyQt5.QtCore  # noqa
     elif binding == "pyside":
         logger.info("Force using PySide")
-        import PySide  #noqa
+        import PySide.QtCore  # noqa
     else:
         raise ValueError("Qt binding '%s' is unknown" % options.qt_binding)
 

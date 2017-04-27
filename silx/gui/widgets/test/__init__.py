@@ -27,10 +27,11 @@ import unittest
 from . import test_periodictable
 from . import test_tablewidget
 from . import test_threadpoolpushbutton
+from . import test_hierarchicaltableview
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "16/01/2017"
+__date__ = "07/04/2017"
 
 
 def suite():
@@ -39,5 +40,6 @@ def suite():
         [test_threadpoolpushbutton.suite(),
          test_tablewidget.suite(),
          test_periodictable.suite(),
+         test_hierarchicaltableview.suite(),
          ])
     return test_suite

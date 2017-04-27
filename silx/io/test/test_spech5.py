@@ -33,6 +33,7 @@ from functools import partial
 
 from ..spech5 import (SpecH5, SpecH5Group,
                       SpecH5Dataset, spec_date_to_iso8601)
+from .. import specfile
 
 try:
     import h5py
@@ -99,6 +100,13 @@ sftext = """#F /tmp/sf.dat
 @A 6 7.7 8
 @A 4 3 2
 @A 1 1 1
+
+#S 1000 bbbbb
+#G1 3.25 3.25 5.207 90 90 120 2.232368448 2.232368448 1.206680489 90 90 60 1 1 2 -1 2 2 26.132 7.41 -88.96 1.11 1.000012861 15.19 26.06 67.355 -88.96 1.11 1.000012861 15.11 0.723353 0.723353
+#G3 0.0106337923671 0.027529133 1.206191273 -1.43467075 0.7633438883 0.02401568018 -1.709143587 -2.097621783 0.02456954971
+#L a  b
+1 2
+
 """
 
 
@@ -382,7 +390,7 @@ class TestSpecH5(unittest.TestCase):
 
     def testListScanIndices(self):
         self.assertEqual(self.sfh5.keys(),
-                         ["1.1", "25.1", "1.2"])
+                         ["1.1", "25.1", "1.2", "1000.1"])
         self.assertEqual(self.sfh5["1.2"].attrs,
                          {"NX_class": "NXentry", })
 
@@ -475,7 +483,7 @@ class TestSpecH5(unittest.TestCase):
         self.sfh5.visit(name_list.append)
         self.assertIn('/1.2/instrument/positioners/Pslit HGap', name_list)
         self.assertIn("/1.2/instrument/specfile/scan_header", name_list)
-        self.assertEqual(len(name_list), 78)
+        self.assertEqual(len(name_list), 100)  #, "actual name list: %s" % "\n".join(name_list))
 
     def testVisitItems(self):
         dataset_name_list = []
@@ -486,14 +494,23 @@ class TestSpecH5(unittest.TestCase):
 
         self.sfh5.visititems(func)
         self.assertIn('/1.2/instrument/positioners/Pslit HGap', dataset_name_list)
-        self.assertEqual(len(dataset_name_list), 57)
+        self.assertEqual(len(dataset_name_list), 73)
 
     def testNotSpecH5(self):
         fd, fname = tempfile.mkstemp()
         os.write(fd, b"Not a spec file!")
         os.close(fd)
-        self.assertRaises(IOError, SpecH5, fname)
+        self.assertRaises(specfile.SfErrFileOpen, SpecH5, fname)
         os.unlink(fname)
+
+    def testSample(self):
+        self.assertNotIn("sample", self.sfh5["/1.1"])
+        self.assertIn("sample", self.sfh5["/1000.1"])
+        self.assertIn("ub", self.sfh5["/1000.1/sample"])
+        self.assertIn("unit_cell", self.sfh5["/1000.1/sample"])
+        self.assertIn("unit_cell_abc", self.sfh5["/1000.1/sample"])
+        self.assertIn("unit_cell_alphabetagamma", self.sfh5["/1000.1/sample"])
+
 
 sftext_multi_mca_headers = """
 #S 1 aaaaaa

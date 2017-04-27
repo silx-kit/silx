@@ -192,6 +192,9 @@ It provides the following keys:
 setting the interactive mode.
 """
 
+from __future__ import division
+
+
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "16/02/2017"
@@ -204,7 +207,13 @@ import logging
 import numpy
 
 # Import matplotlib backend here to init matplotlib our way
-from .BackendMatplotlib import BackendMatplotlibQt
+from .backends.BackendMatplotlib import BackendMatplotlibQt
+
+try:
+    from matplotlib import cm as matplotlib_cm
+except ImportError:
+    matplotlib_cm = None
+
 from . import Colors
 from . import PlotInteraction
 from . import PlotEvents
@@ -252,15 +261,16 @@ class Plot(object):
     Supported backends:
 
     - 'matplotlib' and 'mpl': Matplotlib with Qt.
+    - 'opengl' and 'gl': OpenGL backend (requires PyOpenGL and OpenGL >= 2.1)
     - 'none': No backend, to run headless for testing purpose.
 
     :param parent: The parent widget of the plot (Default: None)
     :param backend: The backend to use. A str in:
-                    'matplotlib', 'mpl', 'none'
+                    'matplotlib', 'mpl', 'opengl', 'gl', 'none'
                     or a :class:`BackendBase.BackendBase` class
     """
 
-    defaultBackend = 'matplotlib'
+    DEFAULT_BACKEND = 'matplotlib'
     """Class attribute setting the default backend for all instances."""
 
     colorList = _COLORLIST
@@ -272,7 +282,7 @@ class Plot(object):
         self._cursorInPlot = False
 
         if backend is None:
-            backend = self.defaultBackend
+            backend = self.DEFAULT_BACKEND
 
         if hasattr(backend, "__call__"):
             self._backend = backend(self, parent)
@@ -281,8 +291,11 @@ class Plot(object):
             lowerCaseString = backend.lower()
             if lowerCaseString in ("matplotlib", "mpl"):
                 backendClass = BackendMatplotlibQt
+            elif lowerCaseString in ('gl', 'opengl'):
+                from .backends.BackendOpenGL import BackendOpenGL
+                backendClass = BackendOpenGL
             elif lowerCaseString == 'none':
-                from .BackendBase import BackendBase as backendClass
+                from .backends.BackendBase import BackendBase as backendClass
             else:
                 raise ValueError("Backend not supported %s" % backend)
             self._backend = backendClass(self, parent)
@@ -307,7 +320,8 @@ class Plot(object):
 
         self._activeCurveHandling = True
         self._activeCurveColor = "#000000"
-        self._activeLegend = {'curve': None, 'image': None}
+        self._activeLegend = {'curve': None, 'image': None,
+                              'scatter': None}
 
         # default properties
         self._cursorConfiguration = None
@@ -441,8 +455,10 @@ class Plot(object):
         """
         if isinstance(item, items.Curve):
             kind = 'curve'
-        elif isinstance(item, items.Image):
+        elif isinstance(item, items.ImageBase):
             kind = 'image'
+        elif isinstance(item, items.Scatter):
+            kind = 'scatter'
         elif isinstance(item, (items.Marker,
                                items.XMarker, items.YMarker)):
             kind = 'marker'
@@ -467,7 +483,7 @@ class Plot(object):
         item._setPlot(self)
         if item.isVisible():
             self._itemRequiresUpdate(item)
-        if isinstance(item, (items.Curve, items.Image)):
+        if isinstance(item, (items.Curve, items.ImageBase)):
             self._invalidateDataRange()  # TODO handle this automatically
 
     def _remove(self, item):
@@ -761,12 +777,25 @@ class Plot(object):
         # Check if image was previously active
         wasActive = self.getActiveImage(just_legend=True) == legend
 
+        data = numpy.array(data, copy=False)
+        assert data.ndim in (2, 3)
+
         image = self.getImage(legend)
+        if image is not None and image.getData(copy=False).ndim != data.ndim:
+            # Update a data image with RGBA image or the other way around:
+            # Remove previous image
+            # In this case, we don't retrieve defaults from the previous image
+            self._remove(image)
+            image = None
+
         if image is None:
             # No previous image, create a default one and add it to the plot
-            image = items.Image()
+            if data.ndim == 2:
+                image = items.ImageData()
+                image.setColormap(self.getDefaultColormap())
+            else:
+                image = items.ImageRgba()
             image._setLegend(legend)
-            image.setColormap(self.getDefaultColormap())
             self._add(image)
 
         # Override previous/default values with provided ones
@@ -781,14 +810,20 @@ class Plot(object):
             image._setSelectable(selectable)
         if draggable is not None:
             image._setDraggable(draggable)
-        if colormap is not None:
+        if colormap is not None and isinstance(image, items.ColormapMixIn):
             image.setColormap(colormap)
         if xlabel is not None:
             image._setXLabel(xlabel)
         if ylabel is not None:
             image._setYLabel(ylabel)
 
-        image.setData(data, pixmap, copy=copy)
+        if data.ndim == 2:
+            image.setData(data, alternative=pixmap, copy=copy)
+        else:  # RGB(A) image
+            if pixmap is not None:
+                _logger.warning(
+                    'addImage: pixmap argument ignored when data is RGB(A)')
+            image.setData(data, copy=copy)
 
         if replace:
             for img in self.getAllImages():
@@ -806,6 +841,96 @@ class Plot(object):
             # if the user does not want that, autoscale of the different
             # axes has to be set to off.
             self.resetZoom()
+
+        return legend
+
+    def addScatter(self, x, y, value, legend=None, colormap=None,
+                   info=None, symbol=None, xerror=None, yerror=None,
+                   z=None, copy=True):
+        """Add a (x, y, value) scatter to the graph.
+
+        Scatters are uniquely identified by their legend.
+        To add multiple scatters, call :meth:`addScatter` multiple times with
+        different legend argument.
+        To replace/update an existing scatter, call :meth:`addScatter` with the
+        existing scatter legend.
+
+        When scatter parameters are not provided, if a scatter with the
+        same legend is displayed in the plot, its parameters are used.
+
+        :param numpy.ndarray x: The data corresponding to the x coordinates.
+        :param numpy.ndarray y: The data corresponding to the y coordinates
+        :param numpy.ndarray value: The data value associated with each point
+        :param str legend: The legend to be associated to the scatter (or None)
+        :param dict colormap: The colormap to be used for the scatter (or None)
+                              See :mod:`Plot` for the documentation
+                              of the colormap dict.
+        :param info: User-defined information associated to the curve
+        :param str symbol: Symbol to be drawn at each (x, y) position::
+
+            - 'o' circle
+            - '.' point
+            - ',' pixel
+            - '+' cross
+            - 'x' x-cross
+            - 'd' diamond
+            - 's' square
+            - None (the default) to use default symbol
+
+        :param xerror: Values with the uncertainties on the x values
+        :type xerror: A float, or a numpy.ndarray of float32.
+                      If it is an array, it can either be a 1D array of
+                      same length as the data or a 2D array with 2 rows
+                      of same length as the data: row 0 for positive errors,
+                      row 1 for negative errors.
+        :param yerror: Values with the uncertainties on the y values
+        :type yerror: A float, or a numpy.ndarray of float32. See xerror.
+        :param int z: Layer on which to draw the scatter (default: 1)
+                      This allows to control the overlay.
+
+        :param bool copy: True make a copy of the data (default),
+                          False to use provided arrays.
+        :returns: The key string identify this scatter
+        """
+        legend = 'Unnamed scatter 1.1' if legend is None else str(legend)
+
+        # Check if scatter was previously active
+        wasActive = self._getActiveItem(kind='scatter',
+                                        just_legend=True) == legend
+
+        # Create/Update curve object
+        scatter = self._getItem(kind='scatter', legend=legend)
+        if scatter is None:
+            # No previous scatter, create a default one and add it to the plot
+            scatter = items.Scatter()
+            scatter._setLegend(legend)
+            scatter.setColormap(self.getDefaultColormap())
+            self._add(scatter)
+
+        # Override previous/default values with provided ones
+        scatter.setInfo(info)
+        if symbol is not None:
+            scatter.setSymbol(symbol)
+        if z is not None:
+            scatter.setZValue(z)
+        if colormap is not None:
+            scatter.setColormap(colormap)
+
+        # Set scatter data
+        # If errors not provided, reuse previous ones
+        # TODO: Issue if size of data change but not that of errors
+        if xerror is None:
+            xerror = scatter.getXErrorData(copy=False)
+        if yerror is None:
+            yerror = scatter.getYErrorData(copy=False)
+
+        scatter.setData(x, y, value, xerror, yerror, copy=copy)
+
+        self.notify(
+            'contentChanged', action='add', kind='scatter', legend=legend)
+
+        if wasActive:
+            self._setActiveItem('scatter', scatter.getLegend())
 
         return legend
 
@@ -1112,7 +1237,7 @@ class Plot(object):
 
     # Remove
 
-    ITEM_KINDS = 'curve', 'image', 'item', 'marker'
+    ITEM_KINDS = 'curve', 'image', 'scatter', 'item', 'marker'
 
     def remove(self, legend=None, kind=ITEM_KINDS):
         """Remove one or all element(s) of the given legend and kind.
@@ -1382,9 +1507,9 @@ class Plot(object):
         :param bool just_legend: True to get the legend of the image,
                                  False (the default) to get the image data
                                  and info.
-        :return: Active image's legend or corresponding
-                 :class:`.items.Image`
-        :rtype: str or :class:`.items.Image` or None
+        :return: Active image's legend or corresponding image object
+        :rtype: str, :class:`.items.ImageData`, :class:`.items.ImageRgba`
+                or None
         """
         return self._getActiveItem(kind='image', just_legend=just_legend)
 
@@ -1402,12 +1527,12 @@ class Plot(object):
     def _getActiveItem(self, kind, just_legend=False):
         """Return the currently active item of that kind if any
 
-        :param str kind: Type of item: 'curve' or 'image'
+        :param str kind: Type of item: 'curve', 'scatter' or 'image'
         :param bool just_legend: True to get the legend,
                                  False (default) to get the item
         :return: legend or item or None if no active item
         """
-        assert kind in ('curve', 'image')
+        assert kind in ('curve', 'scatter', 'image')
 
         if self._activeLegend[kind] is None:
             return None
@@ -1429,7 +1554,7 @@ class Plot(object):
                        or None to have no active curve.
         :type legend: str or None
         """
-        assert kind in ('curve', 'image')
+        assert kind in ('curve', 'image', 'scatter')
 
         xLabel = self._defaultLabels['x']
         yLabel = self._defaultLabels['y']
@@ -1457,15 +1582,15 @@ class Plot(object):
                     item.setHighlightedColor(self.getActiveCurveColor())
                     item.setHighlighted(True)
 
-                if item.getXLabel() is not None:
-                    xLabel = item.getXLabel()
-                if item.getYLabel() is not None:
-                    if (isinstance(item, items.YAxisMixIn) and
-                            isinstance(item, items.LabelsMixIn) and
-                            item.getYAxis() == 'right'):
-                        yRightLabel = item.getYLabel()
-                    else:
-                        yLabel = item.getYLabel()
+                if isinstance(item, items.LabelsMixIn):
+                    if item.getXLabel() is not None:
+                        xLabel = item.getXLabel()
+                    if item.getYLabel() is not None:
+                        if (isinstance(item, items.YAxisMixIn) and
+                                item.getYAxis() == 'right'):
+                            yRightLabel = item.getYLabel()
+                        else:
+                            yLabel = item.getYLabel()
 
         # Store current labels and update plot
         self._currentLabels['x'] = xLabel
@@ -1533,15 +1658,15 @@ class Plot(object):
 
         It returns an empty list in case of not having any image.
 
-        If just_legend is False, it returns a list of :class:`items.Image`
+        If just_legend is False, it returns a list of :class:`items.ImageBase`
         objects describing the images.
         If just_legend is True, it returns a list of legends.
 
         :param bool just_legend: True to get the legend of the images,
                                  False (the default) to get the images'
                                  object.
-        :return: list of images' legend or :class:`.items.Image`
-        :rtype: list of str or list of :class:`.items.Image`
+        :return: list of images' legend or :class:`.items.ImageBase`
+        :rtype: list of str or list of :class:`.items.ImageBase`
         """
         return self._getItems(kind='image',
                               just_legend=just_legend,
@@ -1557,9 +1682,23 @@ class Plot(object):
             If not provided or None (the default), the active image is returned
             or if there is no active image, the latest updated image
             is returned if there are images in the plot.
-        :return: None or :class:`.items.Image` object
+        :return: None or :class:`.items.ImageBase` object
         """
         return self._getItem(kind='image', legend=legend)
+
+    def getScatter(self, legend=None):
+        """Get the object describing a specific scatter.
+
+        It returns None in case no matching scatter is found.
+
+        :param str legend:
+            The legend identifying the scatter.
+            If not provided or None (the default), the active scatter is returned
+            or if there is no active scatter, the latest updated scatter
+            is returned if there are scatters in the plot.
+        :return: None or :class:`.items.Scatter` object
+        """
+        return self._getItem(kind='scatter', legend=legend)
 
     def _getItems(self, kind, just_legend=False, withhidden=False):
         """Retrieve all items of a kind in the plot
@@ -1593,7 +1732,7 @@ class Plot(object):
         if legend is not None:
             return self._content.get((legend, kind), None)
         else:
-            if kind in ('curve', 'image'):
+            if kind in ('curve', 'image', 'scatter'):
                 item = self._getActiveItem(kind=kind)
                 if item is not None:  # Return active item if available
                     return item
@@ -1613,6 +1752,29 @@ class Plot(object):
             id(self.getWidgetHandle()), xRange, yRange, y2Range)
         self.notify(**event)
 
+    def _checkLimits(self, min_, max_, axis):
+        """Makes sure axis range is not empty
+
+        :param float min_: Min axis value
+        :param float max_: Max axis value
+        :param str axis: 'x', 'y' or 'y2' the axis to deal with
+        :return: (min, max) making sure min < max
+        :rtype: 2-tuple of float
+        """
+        if max_ < min_:
+            _logger.info('%s axis: max < min, inverting limits.', axis)
+            min_, max_ = max_, min_
+        elif max_ == min_:
+            _logger.info('%s axis: max == min, expanding limits.', axis)
+            if min_ == 0.:
+                min_, max_ = -0.1, 0.1
+            elif min_ < 0:
+                min_, max_ = min_ * 1.1, min_ * 0.9
+            else:  # xmin > 0
+                min_, max_ = min_ * 0.9, min_ * 1.1
+
+        return min_, max_
+
     def getGraphXLimits(self):
         """Get the graph X (bottom) limits.
 
@@ -1629,16 +1791,7 @@ class Plot(object):
         if replot is not None:
             _logger.warning('setGraphXLimits deprecated replot parameter')
 
-        # Deal with incorrect values
-        if xmax < xmin:
-            _logger.warning('setGraphXLimits xmax < xmin, inverting limits.')
-            xmin, xmax = xmax, xmin
-        elif xmax == xmin:
-            _logger.warning('setGraphXLimits xmax == xmin, expanding limits.')
-            if xmin == 0.:
-                xmin, xmax = -0.1, 0.1
-            else:
-                xmin, xmax = xmin * 1.1, xmax * 0.9
+        xmin, xmax = self._checkLimits(xmin, xmax, axis='x')
 
         self._backend.setGraphXLimits(xmin, xmax)
         self._setDirtyPlot()
@@ -1666,18 +1819,11 @@ class Plot(object):
         if replot is not None:
             _logger.warning('setGraphYLimits deprecated replot parameter')
 
-        # Deal with incorrect values
-        if ymax < ymin:
-            _logger.warning('setGraphYLimits ymax < ymin, inverting limits.')
-            ymin, ymax = ymax, ymin
-        elif ymax == ymin:
-            _logger.warning('setGraphXLimits ymax == ymin, expanding limits.')
-            if ymin == 0.:
-                ymin, ymax = -0.1, 0.1
-            else:
-                ymin, ymax = ymin * 1.1, ymax * 0.9
-
         assert axis in ('left', 'right')
+
+        ymin, ymax = self._checkLimits(ymin, ymax,
+                                       axis='y' if axis == 'left' else 'y2')
+
         self._backend.setGraphYLimits(ymin, ymax, axis)
         self._setDirtyPlot()
 
@@ -1696,39 +1842,14 @@ class Plot(object):
         :param float y2max: maximum right axis value or None (the default)
         """
         # Deal with incorrect values
-        if xmax < xmin:
-            _logger.warning('setLimits xmax < xmin, inverting limits.')
-            xmin, xmax = xmax, xmin
-        elif xmax == xmin:
-            _logger.warning('setLimits xmax == xmin, expanding limits.')
-            if xmin == 0.:
-                xmin, xmax = -0.1, 0.1
-            else:
-                xmin, xmax = xmin * 1.1, xmax * 0.9
-
-        if ymax < ymin:
-            _logger.warning('setLimits ymax < ymin, inverting limits.')
-            ymin, ymax = ymax, ymin
-        elif ymax == ymin:
-            _logger.warning('setLimits ymax == ymin, expanding limits.')
-            if ymin == 0.:
-                ymin, ymax = -0.1, 0.1
-            else:
-                ymin, ymax = ymin * 1.1, ymax * 0.9
+        xmin, xmax = self._checkLimits(xmin, xmax, axis='x')
+        ymin, ymax = self._checkLimits(ymin, ymax, axis='y')
 
         if y2min is None or y2max is None:
             # if one limit is None, both are ignored
             y2min, y2max = None, None
         else:
-            if y2max < y2min:
-                _logger.warning('setLimits y2max < y2min, inverting limits.')
-                y2min, y2max = y2max, y2min
-            elif y2max == y2min:
-                _logger.warning('setLimits y2max == y2min, expanding limits.')
-                if y2min == 0.:
-                    y2min, y2max = -0.1, 0.1
-                else:
-                    y2min, y2max = y2min * 1.1, y2max * 0.9
+            y2min, y2max = self._checkLimits(y2min, y2max, axis='y2')
 
         self._backend.setLimits(xmin, xmax, ymin, ymax, y2min, y2max)
         self._setDirtyPlot()
@@ -2005,7 +2126,15 @@ class Plot(object):
         The list should at least contain and start by:
         ('gray', 'reversed gray', 'temperature', 'red', 'green', 'blue')
         """
-        return self._backend.getSupportedColormaps()
+        default = ('gray', 'reversed gray',
+                   'temperature',
+                   'red', 'green', 'blue')
+        if matplotlib_cm is None:
+            return default
+        else:
+            maps = [m for m in matplotlib_cm.datad]
+            maps.sort()
+            return default + tuple(maps)
 
     def _getColorAndStyle(self):
         color = self.colorList[self._colorIndex]
@@ -2182,16 +2311,73 @@ class Plot(object):
         if dataMargins is None:
             dataMargins = self._defaultDataMargins
 
-        xlim = self.getGraphXLimits()
-        ylim = self.getGraphYLimits(axis='left')
-        y2lim = self.getGraphYLimits(axis='right')
+        xLimits = self.getGraphXLimits()
+        yLimits = self.getGraphYLimits(axis='left')
+        y2Limits = self.getGraphYLimits(axis='right')
 
-        self._backend.resetZoom(dataMargins)
+        xAuto = self.isXAxisAutoScale()
+        yAuto = self.isYAxisAutoScale()
+
+        if not xAuto and not yAuto:
+            _logger.debug("Nothing to autoscale")
+        else:  # Some axes to autoscale
+
+            # Get data range
+            ranges = self.getDataRange()
+            xmin, xmax = (1., 100.) if ranges.x is None else ranges.x
+            ymin, ymax = (1., 100.) if ranges.y is None else ranges.y
+            if ranges.yright is None:
+                ymin2, ymax2 = None, None
+            else:
+                ymin2, ymax2 = ranges.yright
+
+            # Add margins around data inside the plot area
+            newLimits = list(_utils.addMarginsToLimits(
+                dataMargins,
+                self.isXAxisLogarithmic(),
+                self.isYAxisLogarithmic(),
+                xmin, xmax, ymin, ymax, ymin2, ymax2))
+
+            if self.isKeepDataAspectRatio():
+                # Use limits with margins to keep ratio
+                xmin, xmax, ymin, ymax = newLimits[:4]
+
+                # Compute bbox wth figure aspect ratio
+                plotWidth, plotHeight = self.getPlotBoundsInPixels()[2:]
+                plotRatio = plotHeight / plotWidth
+
+                if plotRatio > 0.:
+                    dataRatio = (ymax - ymin) / (xmax - xmin)
+                    if dataRatio < plotRatio:
+                        # Increase y range
+                        ycenter = 0.5 * (ymax + ymin)
+                        yrange = (xmax - xmin) * plotRatio
+                        newLimits[2] = ycenter - 0.5 * yrange
+                        newLimits[3] = ycenter + 0.5 * yrange
+
+                    elif dataRatio > plotRatio:
+                        # Increase x range
+                        xcenter = 0.5 * (xmax + xmin)
+                        xrange_ = (ymax - ymin) / plotRatio
+                        newLimits[0] = xcenter - 0.5 * xrange_
+                        newLimits[1] = xcenter + 0.5 * xrange_
+
+            self.setLimits(*newLimits)
+
+            if not xAuto and yAuto:
+                self.setGraphXLimits(*xLimits)
+            elif xAuto and not yAuto:
+                if y2Limits is not None:
+                    self.setGraphYLimits(
+                        y2Limits[0], y2Limits[1], axis='right')
+                if yLimits is not None:
+                    self.setGraphYLimits(yLimits[0], yLimits[1], axis='left')
+
         self._setDirtyPlot()
 
-        if (xlim != self.getGraphXLimits() or
-                ylim != self.getGraphYLimits(axis='left') or
-                y2lim != self.getGraphYLimits(axis='right')):
+        if (xLimits != self.getGraphXLimits() or
+                yLimits != self.getGraphYLimits(axis='left') or
+                y2Limits != self.getGraphYLimits(axis='right')):
             self._notifyLimitsChanged()
 
     # Coord conversion
@@ -2353,8 +2539,8 @@ class Plot(object):
         :return: (x, y) in widget coord (in pixel) in the plot area
         """
         left, top, width, height = self.getPlotBoundsInPixels()
-        xPlot = _utils.clamp(x, left, left + width)
-        yPlot = _utils.clamp(y, top, top + height)
+        xPlot = numpy.clip(x, left, left + width)
+        yPlot = numpy.clip(y, top, top + height)
         return xPlot, yPlot
 
     def onMousePress(self, xPixel, yPixel, btn):

@@ -80,14 +80,14 @@ except ImportError:
 
 from silx.gui import qt
 from .. import icons
-from . import PlotWindow
-from . import PlotActions
+from . import items, PlotWindow, PlotActions
 from .Colors import cursorColorForColormap
 from .PlotTools import LimitsToolBar
 from .Profile import Profile3DToolBar
 from ..widgets.FrameBrowser import HorizontalSliderWithBrowser
 
 from silx.utils.array_like import DatasetView, ListOfImages
+from silx.math import calibration
 
 
 class StackView(qt.QMainWindow):
@@ -99,8 +99,8 @@ class StackView(qt.QMainWindow):
     and display the result as a slice.
 
     :param QWidget parent: the Qt parent, or None
-    :param backend: The backend to use for the plot.
-                    The default is to use matplotlib.
+    :param backend: The backend to use for the plot (default: matplotlib).
+                    See :class:`.Plot` for the list of supported backend.
     :type backend: str or :class:`BackendBase.BackendBase`
     :param bool resetzoom: Toggle visibility of reset zoom action.
     :param bool autoScale: Toggle visibility of axes autoscale actions.
@@ -178,6 +178,9 @@ class StackView(qt.QMainWindow):
         """These labels are displayed on the X and Y axes.
         :meth:`setLabels` updates this attribute."""
 
+        self._first_stack_dimension = 0
+        """Used for dimension labels and combobox"""
+
         central_widget = qt.QWidget(self)
 
         self._plot = PlotWindow(parent=central_widget, backend=backend,
@@ -199,18 +202,21 @@ class StackView(qt.QMainWindow):
         self._plot.setGraphYLabel('Rows')
         self._plot.sigPlotSignal.connect(self._plotCallback)
 
+        self.__planeSelection = PlanesWidget(self._plot)
+        self.__planeSelection.sigPlaneSelectionChanged.connect(self.__setPerspective)
+
+        self._browser_label = qt.QLabel("Image index (Dim0):")
+
         self._browser = HorizontalSliderWithBrowser(central_widget)
         self._browser.valueChanged[int].connect(self.__updateFrameNumber)
         self._browser.setEnabled(False)
 
-        self.__planeSelection = PlanesWidget(self._plot)
-        self.__planeSelection.sigPlaneSelectionChanged.connect(self.__setPerspective)
-
         layout = qt.QGridLayout()
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self._plot, 0, 0, 1, 2)
+        layout.addWidget(self._plot, 0, 0, 1, 3)
         layout.addWidget(self.__planeSelection, 1, 0)
-        layout.addWidget(self._browser, 1, 1)
+        layout.addWidget(self._browser_label, 1, 1)
+        layout.addWidget(self._browser, 1, 2)
 
         central_widget.setLayout(layout)
         self.setCentralWidget(central_widget)
@@ -259,7 +265,7 @@ class StackView(qt.QMainWindow):
         Updates :attr:`_perspective`, transposes data, updates the plot,
         emits :attr:`sigPlaneSelectionChanged` and :attr:`sigStackChanged`.
 
-        :param perspective: the new browsed dimension
+        :param int perspective: the new browsed dimension
         """
         if perspective == self._perspective:
             return
@@ -273,6 +279,8 @@ class StackView(qt.QMainWindow):
             self.__updateFrameNumber(self._browser.value())
             self._plot.resetZoom()
             self.__updatePlotLabels()
+            self._browser_label.setText("Image index (Dim%d):" %
+                                        (self._first_stack_dimension + perspective))
 
             self.sigPlaneSelectionChanged.emit(perspective)
             self.sigStackChanged.emit(self._stack.size if
@@ -327,11 +335,69 @@ class StackView(qt.QMainWindow):
         """
         assert self.__transposed_view is not None
         self._plot.addImage(self.__transposed_view[index, :, :],
+                            origin=self._getImageOrigin(),
+                            scale=self._getImageScale(),
                             legend=self.__imageLegend,
                             resetzoom=False, replace=False)
+        self._plot.setGraphTitle("Image z=%g" % self._getImageZ(index))
+
+    def _set3DScaleAndOrigin(self, calibrations):
+        """Set scale and origin for all 3 axes, to be used when plotting
+        an image.
+
+        See setStack for parameter documentation
+        """
+        if calibrations is None:
+            self.calibrations3D = (calibration.NoCalibration(),
+                                   calibration.NoCalibration(),
+                                   calibration.NoCalibration())
+        else:
+            self.calibrations3D = []
+            for calib in calibrations:
+                if hasattr(calib, "__len__") and len(calib) == 2:
+                    calib = calibration.LinearCalibration(calib[0], calib[1])
+                elif calib is None:
+                    calib = calibration.NoCalibration()
+                elif not isinstance(calib, calibration.AbstractCalibration):
+                    raise TypeError("calibration must be a 2-tuple, None or" +
+                                    " an instance of an AbstractCalibration " +
+                                    "subclass")
+                self.calibrations3D.append(calib)
+
+    def _getXYZCalibs(self):
+        xy_dims = [0, 1, 2]
+        xy_dims.remove(self._perspective)
+
+        xcalib = self.calibrations3D[max(xy_dims)]
+        ycalib = self.calibrations3D[min(xy_dims)]
+        zcalib = self.calibrations3D[self._perspective]
+
+        return xcalib, ycalib, zcalib
+
+    def _getImageScale(self):
+        """
+        :return: 2-tuple (XScale, YScale) for current image view
+        """
+        xcalib, ycalib, _zcalib = self._getXYZCalibs()
+        return xcalib.get_slope(), ycalib.get_slope()
+
+    def _getImageOrigin(self):
+        """
+        :return: 2-tuple (XOrigin, YOrigin) for current image view
+        """
+        xcalib, ycalib, _zcalib = self._getXYZCalibs()
+        return xcalib(0), ycalib(0)
+
+    def _getImageZ(self, index):
+        """
+        :param idx: 0-based image index in the stack
+        :return: calibrated Z value corresponding to the image idx
+        """
+        _xcalib, _ycalib, zcalib = self._getXYZCalibs()
+        return zcalib(index)
 
     # public API
-    def setStack(self, stack, perspective=0, reset=True):
+    def setStack(self, stack, perspective=0, reset=True, calibrations=None):
         """Set the 3D stack.
 
         The perspective parameter is used to define which dimension of the 3D
@@ -346,11 +412,17 @@ class StackView(qt.QMainWindow):
             By default, the dimension for the image index is the first
             dimension of the 3D stack (``perspective=0``).
         :param bool reset: Whether to reset zoom or not.
+        :param calibrations: Sequence of 3 calibration objects for each axis.
+            These objects can be a subclass of :class:`AbstractCalibration`,
+            or 2-tuples *(a, b)* where *a* is the y-intercept and *b* is the
+            slope of a linear calibration (:math:`x \mapsto a + b x`)
         """
         if stack is None:
             self.clear()
             self.sigStackChanged.emit(0)
             return
+
+        self._set3DScaleAndOrigin(calibrations)
 
         # stack as list of 2D arrays: must be converted into an array_like
         if not isinstance(stack, numpy.ndarray):
@@ -371,6 +443,9 @@ class StackView(qt.QMainWindow):
         self._stack = stack
         self.__createTransposedView()
 
+        if perspective != self._perspective:
+            self.__setPerspective(perspective)
+
         # This call to setColormap redefines the meaning of autoscale
         # for 3D volume: take global min/max rather than frame min/max
         if self.__autoscaleCmap:
@@ -380,8 +455,11 @@ class StackView(qt.QMainWindow):
         self._plot.addImage(self.__transposed_view[0, :, :],
                             legend=self.__imageLegend,
                             colormap=self.getColormap(),
+                            origin=self._getImageOrigin(),
+                            scale=self._getImageScale(),
                             resetzoom=False)
         self._plot.setActiveImage(self.__imageLegend)
+        self._plot.setGraphTitle("Image z=%g" % self._getImageZ(0))
         self.__updatePlotLabels()
 
         if reset:
@@ -418,6 +496,11 @@ class StackView(qt.QMainWindow):
         if image is None:
             return None
 
+        if isinstance(image, items.ColormapMixIn):
+            colormap = image.getColormap()
+        else:
+            colormap = None
+
         params = {
             'info': image.getInfo(),
             'origin': image.getOrigin(),
@@ -425,7 +508,7 @@ class StackView(qt.QMainWindow):
             'z': image.getZValue(),
             'selectable': image.isSelectable(),
             'draggable': image.isDraggable(),
-            'colormap': image.getColormap(),
+            'colormap': colormap,
             'xlabel': image.getXLabel(),
             'ylabel': image.getYLabel(),
         }
@@ -464,6 +547,11 @@ class StackView(qt.QMainWindow):
         if image is None:
             return None
 
+        if isinstance(image, items.ColormapMixIn):
+            colormap = image.getColormap()
+        else:
+            colormap = None
+
         params = {
             'info': image.getInfo(),
             'origin': image.getOrigin(),
@@ -471,7 +559,7 @@ class StackView(qt.QMainWindow):
             'z': image.getZValue(),
             'selectable': image.isSelectable(),
             'draggable': image.isDraggable(),
-            'colormap': image.getColormap(),
+            'colormap': colormap,
             'xlabel': image.getXLabel(),
             'ylabel': image.getYLabel(),
         }
@@ -532,9 +620,19 @@ class StackView(qt.QMainWindow):
         :param list(str) labels: 3 labels corresponding to the 3 dimensions
              of the data volumes.
         """
+
+        default_labels = ["Dimension %d" % self._first_stack_dimension,
+                          "Dimension %d" % (self._first_stack_dimension + 1),
+                          "Dimension %d" % (self._first_stack_dimension + 2)]
         if labels is None:
-            labels = ["Dimension 0", "Dimension 1", "Dimension 2"]
-        self.__dimensionsLabels = labels
+            new_labels = default_labels
+        else:
+            # filter-out None
+            new_labels = []
+            for i, label in enumerate(labels):
+                new_labels.append(label or default_labels[i])
+
+        self.__dimensionsLabels = new_labels
         self.__updatePlotLabels()
 
     def getGraphXLabel(self):
@@ -691,16 +789,10 @@ class StackView(qt.QMainWindow):
 
         self._plot.setDefaultColormap(cmapDict)
 
-        # Refresh image with new colormap
+        # Update active image colormap
         activeImage = self._plot.getActiveImage()
-        if activeImage is not None:
-            self._plot.addImage(
-                activeImage.getData(copy=False),
-                legend=activeImage.getLegend(),
-                info=activeImage.getInfo(),
-                pixmap=activeImage.getPixmap(copy=False),
-                colormap=self.getColormap(),
-                resetzoom=False)
+        if isinstance(activeImage, items.ColormapMixIn):
+            activeImage.setColormap(self.getColormap())
 
     def isKeepDataAspectRatio(self):
         """Returns whether the plot is keeping data aspect ratio or not."""
@@ -752,6 +844,23 @@ class StackView(qt.QMainWindow):
         """
         self._plot.addItem(*args, **kwargs)
 
+    def setFirstStackDimension(self, first_stack_dimension):
+        """When viewing the last 3 dimensions of an n-D array (n>3), you can
+        use this method to change the text in the combobox.
+
+        For instance, for a 7-D array, first stack dim is 4, so the default
+        "Dim1-Dim2" text should be replaced with "Dim5-Dim6" (dimensions
+        numbers are 0-based).
+
+        :param int first_stack_dim: First stack dimension (n-3) when viewing the
+            last 3 dimensions of an n-D array.
+        """
+        old_state = self.__planeSelection.blockSignals(True)
+        self.__planeSelection.setFirstStackDimension(first_stack_dimension)
+        self.__planeSelection.blockSignals(old_state)
+        self._first_stack_dimension = first_stack_dimension
+        self._browser_label.setText("Image index (Dim%d):" % first_stack_dimension)
+
 
 class PlanesWidget(qt.QWidget):
     """Widget for the plane/perspective selection
@@ -777,14 +886,8 @@ class PlanesWidget(qt.QWidget):
         # 1
         # | 0
         # |/__2
-
         self.qcbAxisSelection = qt.QComboBox(self)
-        self.qcbAxisSelection.addItem(icons.getQIcon("cube-front"),
-                                      'Dim1-Dim2')
-        self.qcbAxisSelection.addItem(icons.getQIcon("cube-bottom"),
-                                      'Dim0-Dim2')
-        self.qcbAxisSelection.addItem(icons.getQIcon("cube-left"),
-                                      'Dim0-Dim1')
+        self._setCBChoices(first_stack_dimension=0)
         self.qcbAxisSelection.currentIndexChanged[int].connect(
             self.__planeSelectionChanged)
 
@@ -801,6 +904,33 @@ class PlanesWidget(qt.QWidget):
           - slice plane Dim0-Dim1: perspective 2
         """
         self.sigPlaneSelectionChanged.emit(idx)
+
+    def _setCBChoices(self, first_stack_dimension):
+        self.qcbAxisSelection.clear()
+
+        dim1dim2 = 'Dim%d-Dim%d' % (first_stack_dimension + 1,
+                                    first_stack_dimension + 2)
+        dim0dim2 = 'Dim%d-Dim%d' % (first_stack_dimension,
+                                    first_stack_dimension + 2)
+        dim0dim1 = 'Dim%d-Dim%d' % (first_stack_dimension,
+                                    first_stack_dimension + 1)
+
+        self.qcbAxisSelection.addItem(icons.getQIcon("cube-front"), dim1dim2)
+        self.qcbAxisSelection.addItem(icons.getQIcon("cube-bottom"), dim0dim2)
+        self.qcbAxisSelection.addItem(icons.getQIcon("cube-left"), dim0dim1)
+
+    def setFirstStackDimension(self, first_stack_dim):
+        """When viewing the last 3 dimensions of an n-D array (n>3), you can
+        use this method to change the text in the combobox.
+
+        For instance, for a 7-D array, first stack dim is 4, so the default
+        "Dim1-Dim2" text should be replaced with "Dim5-Dim6" (dimensions
+        numbers are 0-based).
+
+        :param int first_stack_dim: First stack dimension (n-3) when viewing the
+            last 3 dimensions of an n-D array.
+        """
+        self._setCBChoices(first_stack_dim)
 
     def setPerspective(self, perspective):
         """Update the combobox selection.

@@ -197,7 +197,7 @@ string_types = (basestring,) if sys.version_info[0] == 2 else (str,)  # noqa
 
 # Static subitems: all groups and datasets that are present in any
 # scan (excludes list of scans, data columns, list of mca devices,
-# optional mca headers)
+# optional mca headers, optional sample group)
 static_items = {
     "scan": [u"title", u"start_time", u"instrument",
              u"measurement"],
@@ -211,11 +211,13 @@ static_items = {
 root_pattern = re.compile(r"/$")
 scan_pattern = re.compile(r"/[0-9]+\.[0-9]+/?$")
 instrument_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/?$")
+sample_pattern = re.compile(r"/[0-9]+\.[0-9]+/sample/?$")
 specfile_group_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/specfile/?$")
 positioners_group_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/positioners/?$")
 measurement_group_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/?$")
 measurement_mca_group_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_[0-9]+/?$")
 instrument_mca_group_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/?$")
+
 
 # Link to group
 measurement_mca_info_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_([0-9]+)/info/?$")
@@ -234,6 +236,10 @@ instrument_mca_chann_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_([0-9
 instrument_mca_preset_t_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/preset_time$")
 instrument_mca_elapsed_t_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/elapsed_time$")
 instrument_mca_live_t_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/live_time$")
+ub_pattern = re.compile(r"/[0-9]+\.[0-9]+/sample/ub$")
+unit_cell_pattern = re.compile(r"/[0-9]+\.[0-9]+/sample/unit_cell$")
+unit_cell_abc_pattern = re.compile(r"/[0-9]+\.[0-9]+/sample/unit_cell_abc$")
+unit_cell_alphabetagamma_pattern = re.compile(r"/[0-9]+\.[0-9]+/sample/unit_cell_alphabetagamma$")
 
 # Links to dataset
 measurement_mca_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_([0-9]+)/data$")
@@ -272,7 +278,7 @@ def is_group(name):
         root_pattern, scan_pattern, instrument_pattern,
         specfile_group_pattern, positioners_group_pattern,
         measurement_group_pattern, measurement_mca_group_pattern,
-        instrument_mca_group_pattern
+        instrument_mca_group_pattern, sample_pattern
     )
     return _bulk_match(name, group_patterns)
 
@@ -294,8 +300,8 @@ def is_dataset(name):
         - ``is_dataset("spam")`` returns ``False`` because :literal:`\"spam\"`
           is not at all a valid dataset name.
     """
-    # /1.1/measurement/mca_0 could be interpreted as a data column
-    # with label "mca_0"
+    # Check groups first because /1.1/measurement/mca_0 could be interpreted
+    # as a data column with label "mca_0"
     if measurement_mca_group_pattern.match(name):
         return False
 
@@ -306,7 +312,8 @@ def is_dataset(name):
         instrument_mca_data_pattern, instrument_mca_calib_pattern,
         instrument_mca_chann_pattern,
         instrument_mca_preset_t_pattern, instrument_mca_elapsed_t_pattern,
-        instrument_mca_live_t_pattern
+        instrument_mca_live_t_pattern,
+        ub_pattern, unit_cell_pattern, unit_cell_abc_pattern, unit_cell_alphabetagamma_pattern
     )
     return _bulk_match(name, data_patterns)
 
@@ -396,6 +403,16 @@ def _get_attrs_dict(name):
             {},
         measurement_mca_info_data_pattern:
             {"interpretation": "spectrum"},
+        sample_pattern:
+            {"NX_class": "NXsample", },
+        ub_pattern:
+            {"interpretation": "scalar"},
+        unit_cell_pattern:
+            {"interpretation": "scalar"},
+        unit_cell_abc_pattern:
+            {"interpretation": "scalar"},
+        unit_cell_alphabetagamma_pattern:
+            {"interpretation": "scalar"},
     }
 
     for pattern in pattern_attrs:
@@ -942,20 +959,24 @@ def _dataset_builder(name, specfileh5, parent_group):
             try:
                 array_like = spec_date_to_iso8601(scan.scan_header_dict["D"])
             except (IndexError, ValueError):
-                logger1.warn("Could not parse date format in scan header. " +
-                             "Using original date not converted to ISO-8601")
+                logger1.warn("Could not parse date format in scan %s header." +
+                             " Using original date not converted to ISO-8601",
+                             scan_key)
                 array_like = scan.scan_header_dict["D"]
         elif "D" in scan.file_header_dict:
-            logger1.warn("No #D line in scan header. " +
-                         "Using file header for start_time.")
+            logger1.warn("No #D line in scan %s header. " +
+                         "Using file header for start_time.",
+                         scan_key)
             try:
                 array_like = spec_date_to_iso8601(scan.file_header_dict["D"])
             except (IndexError, ValueError):
-                logger1.warn("Could not parse date format in scan header. " +
-                             "Using original date not converted to ISO-8601")
+                logger1.warn("Could not parse date format in scan %s header. " +
+                             "Using original date not converted to ISO-8601",
+                             scan_key)
                 array_like = scan.file_header_dict["D"]
         else:
-            logger1.warn("No #D line in header. Setting date to empty string.")
+            logger1.warn("No #D line in %s header. Setting date to empty string.",
+                         scan_key)
             array_like = ""
 
     elif file_header_data_pattern.match(name):
@@ -1005,6 +1026,29 @@ def _dataset_builder(name, specfileh5, parent_group):
             analyser_index = 0
         array_like = scan.mca.channels[analyser_index]
 
+    elif ub_pattern.match(name):
+        if not "G3" in scan.scan_header_dict:
+            raise KeyError("No UB matrix in a scan without a #G3 header line")
+        array_like = numpy.array(
+                list(map(float, scan.scan_header_dict["G3"].split()))).reshape((1, 3, 3))
+    elif unit_cell_pattern.match(name):
+        if not "G1" in scan.scan_header_dict:
+            raise KeyError(
+                    "No unit_cell matrix in a scan without a #G1 header line")
+        array_like = numpy.array(
+                list(map(float, scan.scan_header_dict["G1"].split()))[0:6]).reshape((1, 6))
+    elif unit_cell_abc_pattern.match(name):
+        if not "G1" in scan.scan_header_dict:
+            raise KeyError(
+                    "No unit_cell matrix in a scan without a #G1 header line")
+        array_like = numpy.array(
+                list(map(float, scan.scan_header_dict["G1"].split()))[0:3]).reshape((3,))
+    elif unit_cell_alphabetagamma_pattern.match(name):
+        if not "G1" in scan.scan_header_dict:
+            raise KeyError(
+                    "No unit_cell matrix in a scan without a #G1 header line")
+        array_like = numpy.array(
+                list(map(float, scan.scan_header_dict["G1"].split()))[3:6]).reshape((3,))
     elif "CTIME" in scan.mca_header_dict and "mca_" in name:
         m = re.compile(r"/.*/mca_([0-9]+)/.*").match(name)
         analyser_index = int(m.group(1))
@@ -1225,6 +1269,23 @@ class SpecH5Group(object):
            key.endswith("live_time"):
             return "CTIME" in self.file._sf[scan_key].mca_header_dict
 
+        if sample_pattern.match(key):
+            return ("G3" in self.file._sf[scan_key].scan_header_dict or
+                    "G1" in self.file._sf[scan_key].scan_header_dict)
+
+        if key.endswith("sample/ub"):
+            return "G3" in self.file._sf[scan_key].scan_header_dict
+
+        if key.endswith("sample/unit_cell"):
+            return "G1" in self.file._sf[scan_key].scan_header_dict
+
+        if key.endswith("sample/unit_cell_abc"):
+            return "G1" in self.file._sf[scan_key].scan_header_dict
+
+
+        if key.endswith("sample/unit_cell_alphabetagamma"):
+            return "G1" in self.file._sf[scan_key].scan_header_dict
+
         # header, title, start_time, existing scan/mca/motor/measurement
         return True
 
@@ -1311,7 +1372,7 @@ class SpecH5Group(object):
             yield key, self[key]
 
     def __len__(self):
-        """Return number of members,subgroups and datasets, attached to this
+        """Return number of members, subgroups and datasets, attached to this
          group.
          """
         return len(self.keys())
@@ -1327,7 +1388,10 @@ class SpecH5Group(object):
             return self.file.keys()
 
         if scan_pattern.match(self.name):
-            return static_items["scan"]
+            ret = static_items["scan"]
+            if "G1" in self._scan.scan_header_dict or "G3" in self._scan.scan_header_dict:
+                return ret + [u"sample"]
+            return ret
 
         if positioners_group_pattern.match(self.name):
             return self._scan.motor_names
@@ -1342,6 +1406,16 @@ class SpecH5Group(object):
             ret = static_items["scan/instrument/mca"]
             if "CTIME" in self._scan.mca_header_dict:
                 return ret + [u"preset_time", u"elapsed_time", u"live_time"]
+            return ret
+
+        if sample_pattern.match(self.name):
+            ret = []
+            if "G1" in self._scan.scan_header_dict:
+                ret.append(u"unit_cell")
+                ret.append(u"unit_cell_abc")
+                ret.append(u"unit_cell_alphabetagamma")
+            if "G3" in self._scan.scan_header_dict:
+                ret.append(u"ub")
             return ret
 
         number_of_MCA_spectra = len(self._scan.mca)

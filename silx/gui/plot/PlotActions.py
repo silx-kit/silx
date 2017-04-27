@@ -51,7 +51,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "16/02/2017"
+__date__ = "20/04/2017"
 
 
 from collections import OrderedDict
@@ -71,13 +71,13 @@ import numpy
 from .. import icons
 from .. import qt
 from .._utils import convertArrayToQImage
-from . import Colors
+from . import Colors, items
 from .ColormapDialog import ColormapDialog
 from ._utils import applyZoomToPlot as _applyZoomToPlot
 from silx.third_party.EdfFile import EdfFile
 from silx.third_party.TiffIO import TiffIO
 from silx.math.histogram import Histogramnd
-from silx.math.medianfilter import medianfilter
+from silx.math.medianfilter import medfilt2d
 from silx.gui.widgets.MedianFilterDialog import MedianFilterDialog
 
 from silx.io.utils import save1D, savespec
@@ -366,8 +366,9 @@ class ColormapAction(PlotAction):
             self._dialog = ColormapDialog()
 
         image = self.plot.getActiveImage()
-        if image is None:
-            # No active image, set dialog from default info
+        if not isinstance(image, items.ColormapMixIn):
+            # No active image or active image is RGBA,
+            # set dialog from default info
             colormap = self.plot.getDefaultColormap()
 
             self._dialog.setHistogram()  # Reset histogram and range if any
@@ -408,16 +409,10 @@ class ColormapAction(PlotAction):
         # Update default colormap
         self.plot.setDefaultColormap(colormap)
 
-        # Update active image
-        image = self.plot.getActiveImage()
-        if image is not None:
-            # Update image: This do not preserve pixmap
-            self.plot.addImage(image.getData(copy=False),
-                               legend=image.getLegend(),
-                               info=image.getInfo(),
-                               colormap=colormap,
-                               replace=False,
-                               resetzoom=False)
+        # Update active image colormap
+        activeImage = self.plot.getActiveImage()
+        if isinstance(activeImage, items.ColormapMixIn):
+            activeImage.setColormap(colormap)
 
 
 class KeepAspectRatioAction(PlotAction):
@@ -763,11 +758,8 @@ class SaveAction(PlotAction):
 
         elif nameFilter in (self.IMAGE_FILTER_RGB_PNG,
                             self.IMAGE_FILTER_RGB_TIFF):
-            # Apply colormap to data
-            colormap = image.getColormap()
-            scalarMappable = Colors.getMPLScalarMappable(colormap, data)
-            rgbaImage = scalarMappable.to_rgba(data, bytes=True)
-
+            # Get displayed image
+            rgbaImage = image.getRbgaImageData(copy=False)
             # Convert RGB QImage
             qimage = convertArrayToQImage(rgbaImage[:, :, :3])
 
@@ -1155,24 +1147,23 @@ class FitAction(PlotAction):
     def handle_signal(self, ddict):
         x_fit = self.x[self.xmin <= self.x]
         x_fit = x_fit[x_fit <= self.xmax]
-        if ddict["event"] == "EstimateFinished":
-            self.plot.removeCurve("Fit <%s>" % self.legend)
-            y_fit = self.fit_widget.fitmanager.gendata(estimated=True)
-            self.plot.addCurve(x_fit, y_fit,
-                               "Estimated <%s>" % self.legend,
-                               xlabel=self.xlabel, ylabel=self.ylabel,
-                               resetzoom=False)
+        fit_legend = "Fit <%s>" % self.legend
+        fit_curve = self.plot.getCurve(fit_legend)
+
         if ddict["event"] == "FitFinished":
-            self.plot.removeCurve("Estimated <%s>" % self.legend)
             y_fit = self.fit_widget.fitmanager.gendata()
-            self.plot.addCurve(x_fit, y_fit,
-                               "Fit <%s>" % self.legend,
-                               xlabel=self.xlabel, ylabel=self.ylabel,
-                               resetzoom=False)
-        if ddict["event"] in ["EstimateStarted", "EstimateFailed"]:
-            self.plot.removeCurve("Estimated <%s>" % self.legend)
+            if fit_curve is None:
+                self.plot.addCurve(x_fit, y_fit,
+                                   fit_legend,
+                                   xlabel=self.xlabel, ylabel=self.ylabel,
+                                   resetzoom=False)
+            else:
+                fit_curve.setData(x_fit, y_fit)
+                fit_curve.setVisible(True)
+
         if ddict["event"] in ["FitStarted", "FitFailed"]:
-            self.plot.removeCurve("Fit <%s>" % self.legend)
+            if fit_curve is not None:
+                fit_curve.setVisible(False)
 
 
 class PixelIntensitiesHistoAction(PlotAction):
@@ -1344,12 +1335,12 @@ class MedianFilterAction(PlotAction):
             self._originalImage = self.plot.getImage(self._activeImageLegend).getData(copy=False)
             self._legend = self.plot.getImage(self._activeImageLegend).getLegend()
 
-    def _updateFilter(self, kernelWidth, conditionnal=False):
+    def _updateFilter(self, kernelWidth, conditional=False):
         if self._originalImage is None:
             return
 
         self.plot.sigActiveImageChanged.disconnect(self._updateActiveImage)
-        filteredImage = self._computeFilteredImage(kernelWidth, conditionnal)
+        filteredImage = self._computeFilteredImage(kernelWidth, conditional)
         self.plot.addImage(data=filteredImage,
                            legend=self._legend,
                            replace=True)
@@ -1377,8 +1368,8 @@ class MedianFilter1DAction(MedianFilterAction):
 
     def _computeFilteredImage(self, kernelWidth, conditional):
         assert(self.plot is not None)
-        return medianfilter(self._originalImage,
-                            kernelWidth,
+        return medfilt2d(self._originalImage,
+                            (kernelWidth, 1),
                             conditional)
 
 
@@ -1395,6 +1386,6 @@ class MedianFilter2DAction(MedianFilterAction):
 
     def _computeFilteredImage(self, kernelWidth, conditional):
         assert(self.plot is not None)
-        return medianfilter(self._originalImage,
+        return medfilt2d(self._originalImage,
                             (kernelWidth, kernelWidth),
                             conditional)
