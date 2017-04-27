@@ -200,6 +200,7 @@ from . import items
 
 from .. import qt
 from ._utils.panzoom import ViewConstraints
+from . import PlotEvents
 
 
 _logger = logging.getLogger(__name__)
