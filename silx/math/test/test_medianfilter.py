@@ -47,7 +47,7 @@ class Test2DFilter(unittest.TestCase):
 
         dataOut = medfilt2d(input=dataIn,
                             kernel_size=(3, 3),
-                            conditionnal=False)
+                            conditional=False)
         
         self.assertTrue(dataOut[0, 0] == 10)
         self.assertTrue(dataOut[9, 0] == 90)
@@ -66,7 +66,7 @@ class Test2DFilter(unittest.TestCase):
         dataIn = dataIn.reshape((3, 3))
         dataOut = medfilt2d(input=dataIn,
                             kernel_size=(3, 3),
-                            conditionnal=False)
+                            conditional=False)
         self.assertTrue(dataOut.shape == dataIn.shape)
         self.assertTrue(dataOut[1, 1] == 4)
         self.assertTrue(dataOut[0, 0] == 6)
@@ -81,7 +81,7 @@ class Test2DFilter(unittest.TestCase):
 
         dataOut = medfilt2d(input=dataIn,
                             kernel_size=(1, 1),
-                            conditionnal=False)
+                            conditional=False)
 
         self.assertTrue(numpy.array_equal(dataIn, dataOut))
 
@@ -93,7 +93,7 @@ class Test2DFilter(unittest.TestCase):
 
         dataOut = medfilt2d(input=dataIn,
                             kernel_size=(3, 3),
-                            conditionnal=False)
+                            conditional=False)
         self.assertTrue(numpy.array_equal(dataIn, dataInCopy))
 
     def testThreads(self):
@@ -102,27 +102,27 @@ class Test2DFilter(unittest.TestCase):
 
         dataOut1Thr = medfilt2d(input=dataIn,
                                 kernel_size=(3, 3),
-                                conditionnal=False,
+                                conditional=False,
                                 nthread=1)
         dataOut2Thr = medfilt2d(input=dataIn,
                                 kernel_size=(3, 3),
-                                conditionnal=False,
+                                conditional=False,
                                 nthread=2)
         dataOut4Thr = medfilt2d(input=dataIn,
                                 kernel_size=(3, 3),
-                                conditionnal=False,
+                                conditional=False,
                                 nthread=4)
         dataOut8Thr = medfilt2d(input=dataIn,
                                 kernel_size=(3, 3),
-                                conditionnal=False,
+                                conditional=False,
                                 nthread=8)
 
         self.assertTrue(numpy.array_equal(dataOut1Thr, dataOut2Thr))
         self.assertTrue(numpy.array_equal(dataOut1Thr, dataOut4Thr))
         self.assertTrue(numpy.array_equal(dataOut1Thr, dataOut8Thr))
 
-class TestConditionnal2DFilter(unittest.TestCase):
-    """Test that the conditionnal filter apply correctly"""
+class Testconditional2DFilter(unittest.TestCase):
+    """Test that the conditional filter apply correctly"""
 
     def testFilter3(self):
         dataIn = numpy.arange(100, dtype=numpy.int32)
@@ -130,7 +130,7 @@ class TestConditionnal2DFilter(unittest.TestCase):
 
         dataOut = medfilt2d(input=dataIn,
                             kernel_size=(3, 3),
-                            conditionnal=True)
+                            conditional=True)
         
         self.assertTrue(dataOut[0, 0] == 10)
         self.assertTrue(dataOut[0, 1] == 1)
@@ -149,7 +149,7 @@ class Test2DFilterInputTypes(ParametricTestCase):
             data = numpy.random.rand(10, 10).astype(testType)
             out = medfilt2d(input=data,
                             kernel_size=(3, 3),
-                            conditionnal=False)
+                            conditional=False)
             self.assertTrue(out.dtype.type is testType)
 
 
@@ -162,7 +162,7 @@ class Test1DFilter(unittest.TestCase):
 
         dataOut = medfilt2d(input=dataIn,
                             kernel_size=(5),
-                            conditionnal=False)
+                            conditional=False)
         
         self.assertTrue(dataOut[0] == 1)
         self.assertTrue(dataOut[9] == 9)
@@ -171,7 +171,7 @@ class Test1DFilter(unittest.TestCase):
 
 def suite():
     test_suite = unittest.TestSuite()
-    for test in [Test2DFilter, TestConditionnal2DFilter, Test2DFilterInputTypes, 
+    for test in [Test2DFilter, Testconditional2DFilter, Test2DFilterInputTypes,
         Test1DFilter]:
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(test))
