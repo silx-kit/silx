@@ -647,7 +647,7 @@ class Points(Item, SymbolMixIn, AlphaMixIn):
                 # hack to avoid duplicating caching mechanism in Scatter
                 # (happens when cached data is used, caching done using
                 # Scatter._logFilterData)
-                x, y, xerror, yerror = data[0], data[1], data[2], data[3]
+                x, y, xerror, yerror = data[0], data[1], data[3], data[4]
             else:
                 x, y, xerror, yerror = data
 
