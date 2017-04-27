@@ -29,7 +29,7 @@ and NamedScatterAlphaSlider with a PlotWidget.
 import numpy
 
 from silx.gui import qt
-from silx.gui.plot import Plot1D
+from silx.gui.plot import PlotWidget
 
 from silx.gui.plot.AlphaSlider import NamedScatterAlphaSlider
 
@@ -54,29 +54,23 @@ class MaskScatterWidget(qt.QMainWindow):
         # widgets
         centralWidget = qt.QWidget(self)
 
-        self._plot = Plot1D(parent=centralWidget)
-        self._plot.setActiveCurveHandling(False)   # avoids color change when selecting scatter
+        self._plot = PlotWidget(parent=centralWidget)
 
         self._maskToolsWidget = ScatterMaskToolsWidget.ScatterMaskToolsWidget(
             plot=self._plot, parent=centralWidget)
 
+        self._alphaSlider = NamedScatterAlphaSlider(parent=self, plot=self._plot)
+        self._alphaSlider.setOrientation(qt.Qt.Horizontal)
+        self._alphaSlider.setToolTip("Adjust scatter opacity")
+
         # layout
         layout = qt.QVBoxLayout(centralWidget)
         layout.addWidget(self._plot)
+        layout.addWidget(self._alphaSlider)
         layout.addWidget(self._maskToolsWidget)
         centralWidget.setLayout(layout)
 
         self.setCentralWidget(centralWidget)
-
-        # Init toolbar actions and widgets
-        self._toolbar = qt.QToolBar("Plot", self._plot)
-
-        self._alphaSlider = NamedScatterAlphaSlider(parent=self, plot=self._plot)
-        self._alphaSlider.setOrientation(qt.Qt.Horizontal)
-
-        self.alphaSliderAction = self._toolbar.addWidget(self._alphaSlider)
-
-        self._plot.addToolBar(self._toolbar)
 
     def setSelectionMask(self, mask, copy=True):
         """Set the mask to a new array.
@@ -132,6 +126,9 @@ class MaskScatterWidget(qt.QMainWindow):
         """
         self._plot.addScatter(x, y, v, legend=self._activeScatterLegend,
                               info=info, colormap=colormap)
+        # the mask is associated with the active scatter
+        self._plot._setActiveItem(kind="scatter",
+                                  legend=self._activeScatterLegend)
 
         self._alphaSlider.setLegend(self._activeScatterLegend)
 

@@ -261,7 +261,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
         removed, otherwise it is adjusted to z.
         """
         # check that content changed was the active scatter
-        activeScatter = self.plot.getScatter()      # fixme: this returns the last scatter added, which is the mask
+        activeScatter = self.plot._getActiveItem(kind="scatter")
 
         if activeScatter is None or activeScatter.getLegend() == self._maskName:
             # No active scatter or active scatter is the mask...
@@ -290,10 +290,10 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
 
     def _activeScatterChanged(self, previous, next):
         """Update widget and mask according to active scatter changes"""
-        activeScatter = self.plot.getScatter()      # fixme: this returns the last scatter added, which is the mask
+        activeScatter = self.plot._getActiveItem(kind="scatter")
 
         if activeScatter is None or activeScatter.getLegend() == self._maskName:
-            # No active image or active image is the mask...
+            # No active scatter or active scatter is the mask...
             self.setEnabled(False)
 
             self._data_scatter = None
