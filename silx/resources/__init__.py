@@ -56,7 +56,7 @@ of this modules to ensure access accross different distribution schemes:
 
 __authors__ = ["V.A. Sole", "Thomas Vincent", "J. Kieffer"]
 __license__ = "MIT"
-__date__ = "20/04/2017"
+__date__ = "26/04/2017"
 
 
 import os
@@ -67,6 +67,7 @@ import getpass
 import logging
 import tempfile
 import unittest
+from silx.third_party import six
 logger = logging.getLogger(__name__)
 
 
@@ -218,9 +219,6 @@ class ExternalResources(object):
         fullfilename = os.path.abspath(os.path.join(self.data_home, filename))
 
         if not os.path.isfile(fullfilename):
-            from ..third_party.six.moves.urllib.request import urlopen, ProxyHandler, build_opener
-            from ..third_party.six.moves.urllib.error import URLError
-
             logger.debug("Trying to download image %s, timeout set to %ss",
                         filename, self.timeout)
             dictProxies = {}
@@ -230,17 +228,17 @@ class ExternalResources(object):
             if "https_proxy" in os.environ:
                 dictProxies['https'] = os.environ["https_proxy"]
             if dictProxies:
-                proxy_handler = ProxyHandler(dictProxies)
-                opener = build_opener(proxy_handler).open
+                proxy_handler = six.moves.urllib.request.ProxyHandler(dictProxies)
+                opener = six.moves.urllib.request.build_opener(proxy_handler).open
             else:
-                opener = urlopen
+                opener = six.moves.urllib.request.urlopen
 
             logger.debug("wget %s/%s", self.url_base, filename)
             try:
                 data = opener("%s/%s" % (self.url_base, filename),
                               data=None, timeout=self.timeout).read()
                 logger.info("Image %s successfully downloaded.", filename)
-            except URLError:
+            except six.moves.urllib.error.URLError:
                 raise unittest.SkipTest("network unreachable.")
 
             try:

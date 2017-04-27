@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "25/04/2017"
+__date__ = "26/04/2017"
 __license__ = "MIT"
 
 
@@ -553,6 +553,9 @@ class sdist_debian(sdist):
                     self.filelist.exclude_pattern(pattern=base_file + ".c")
                     self.filelist.exclude_pattern(pattern=base_file + ".cpp")
                     self.filelist.exclude_pattern(pattern=base_file + ".html")
+
+        # do not include third_party/_local files
+        self.filelist.exclude_pattern(pattern="*", prefix="silx/third_party/_local")
 
     def make_distribution(self):
         self.prune_file_list()

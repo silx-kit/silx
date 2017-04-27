@@ -27,7 +27,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "13/10/2016"
+__date__ = "26/04/2017"
 
 
 import logging
@@ -35,11 +35,7 @@ import numpy
 
 from ..gui.plot import Plot1D, Plot2D
 from ..gui.plot.Colors import COLORDICT
-
-try:
-    from ..third_party import six
-except ImportError:
-    import six
+from silx.third_party import six
 
 
 _logger = logging.getLogger(__name__)
