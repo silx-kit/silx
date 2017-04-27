@@ -42,7 +42,7 @@ ctypedef unsigned long uint64
 ctypedef unsigned int uint32
 ctypedef unsigned short uint16
 
-def medfilt2d(input, kernel_size=3, bool conditionnal=False, int nthread=4):
+def medfilt2d(input, kernel_size=3, bool conditional=False, int nthread=4):
     """Function computing the median filter of the given input.
     Behavior at boundaries: the algorithm is reducing the size of the
     window/kernel for pixels at boundaries (there is no mirroring).
@@ -52,7 +52,7 @@ def medfilt2d(input, kernel_size=3, bool conditionnal=False, int nthread=4):
     :param kernel_size: the dimension of the kernel.
     :type kernel_size: For 1D should be an int for 2D should be a tuple or 
         a list of (kernel_height, kernel_width)
-    :param bool conditionnal: True if we want to apply a conditionnal median 
+    :param bool conditional: True if we want to apply a conditional median
         filtering.
     :param int nthread: the number of threads we want to launch to solve the
         median filtering.
@@ -108,7 +108,7 @@ def medfilt2d(input, kernel_size=3, bool conditionnal=False, int nthread=4):
                 kernel_size=ker_dim,
                 ranges=ranges,
                 image_dim=image_dim,
-                conditionnal=conditionnal)
+                conditional=conditional)
 
     if reshaped : 
       input = input.reshape(input.shape[0])
@@ -147,7 +147,7 @@ def _median_filter_float32(
       cnumpy.ndarray[cnumpy.int32_t, ndim=1, mode='c'] kernel_size not None,
       cnumpy.ndarray[cnumpy.int32_t, ndim=1, mode='c'] ranges not None,
       cnumpy.ndarray[cnumpy.int32_t, ndim=1, mode='c'] image_dim not None,
-      bool conditionnal):
+      bool conditional):
 
     # init x range
     cdef int nthread = len(ranges) -1
@@ -164,7 +164,7 @@ def _median_filter_float32(
                                                ranges[x+1]-1,
                                                0,
                                                image_dim[1]-1,
-                                               conditionnal);
+                                               conditional);
 
 @cython.cdivision(True)
 @cython.boundscheck(False)
@@ -175,7 +175,7 @@ def _median_filter_float64(
       cnumpy.ndarray[cnumpy.int32_t, ndim=1, mode='c'] kernel_size not None,
       cnumpy.ndarray[cnumpy.int32_t, ndim=1, mode='c'] ranges not None,
       cnumpy.ndarray[cnumpy.int32_t, ndim=1, mode='c'] image_dim not None,
-      bool conditionnal):
+      bool conditional):
 
     # init x range
     cdef int nthread = len(ranges) -1
@@ -192,7 +192,7 @@ def _median_filter_float64(
                                                 ranges[x+1]-1,
                                                 0,
                                                 image_dim[1]-1,
-                                                conditionnal);
+                                                conditional);
 
 @cython.cdivision(True)
 @cython.boundscheck(False)
@@ -203,7 +203,7 @@ def _median_filter_int64(
       cnumpy.ndarray[cnumpy.int32_t, ndim=1, mode='c'] kernel_size not None,
       cnumpy.ndarray[cnumpy.int32_t, ndim=1, mode='c'] ranges not None,
       cnumpy.ndarray[cnumpy.int32_t, ndim=1, mode='c'] image_dim not None,
-      bool conditionnal):
+      bool conditional):
 
     # init x range
     cdef int nthread = len(ranges) -1
@@ -220,7 +220,7 @@ def _median_filter_int64(
                                                 ranges[x+1]-1,
                                                 0,
                                                 image_dim[1]-1,
-                                                conditionnal);
+                                                conditional);
 @cython.cdivision(True)
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -230,7 +230,7 @@ def _median_filter_uint64(
       cnumpy.ndarray[cnumpy.int32_t, ndim=1, mode='c'] kernel_size not None,
       cnumpy.ndarray[cnumpy.int32_t, ndim=1, mode='c'] ranges not None,
       cnumpy.ndarray[cnumpy.int32_t, ndim=1, mode='c'] image_dim not None,
-      bool conditionnal):
+      bool conditional):
 
     # init x range
     cdef int nthread = len(ranges) -1
@@ -247,7 +247,7 @@ def _median_filter_uint64(
                                                 ranges[x+1]-1,
                                                 0,
                                                 image_dim[1]-1,
-                                                conditionnal);
+                                                conditional);
 
 @cython.cdivision(True)
 @cython.boundscheck(False)
@@ -258,7 +258,7 @@ def _median_filter_int32(
       cnumpy.ndarray[cnumpy.int32_t, ndim=1, mode='c'] kernel_size not None,
       cnumpy.ndarray[cnumpy.int32_t, ndim=1, mode='c'] ranges not None,
       cnumpy.ndarray[cnumpy.int32_t, ndim=1, mode='c'] image_dim not None,
-      bool conditionnal):
+      bool conditional):
 
     # init x range
     cdef int nthread = len(ranges) -1
@@ -275,7 +275,7 @@ def _median_filter_int32(
                                              ranges[x+1]-1,
                                              0,
                                              image_dim[1]-1,
-                                             conditionnal);
+                                             conditional);
 
 @cython.cdivision(True)
 @cython.boundscheck(False)
@@ -286,7 +286,7 @@ def _median_filter_uint32(
       cnumpy.ndarray[cnumpy.int32_t, ndim=1, mode='c'] kernel_size not None,
       cnumpy.ndarray[cnumpy.int32_t, ndim=1, mode='c'] ranges not None,
       cnumpy.ndarray[cnumpy.int32_t, ndim=1, mode='c'] image_dim not None,
-      bool conditionnal):
+      bool conditional):
 
     # init x range
     cdef int nthread = len(ranges) -1
@@ -303,7 +303,7 @@ def _median_filter_uint32(
                                                 ranges[x+1]-1,
                                                 0,
                                                 image_dim[1]-1,
-                                                conditionnal);
+                                                conditional);
 
 @cython.cdivision(True)
 @cython.boundscheck(False)
@@ -314,7 +314,7 @@ def _median_filter_int16(
       cnumpy.ndarray[cnumpy.int32_t, ndim=1, mode='c'] kernel_size not None,
       cnumpy.ndarray[cnumpy.int32_t, ndim=1, mode='c'] ranges not None,
       cnumpy.ndarray[cnumpy.int32_t, ndim=1, mode='c'] image_dim not None,
-      bool conditionnal):
+      bool conditional):
 
     # init x range
     cdef int nthread = len(ranges) -1
@@ -331,7 +331,7 @@ def _median_filter_int16(
                                                ranges[x+1]-1,
                                                0,
                                                image_dim[1]-1,
-                                               conditionnal);
+                                               conditional);
 
 @cython.cdivision(True)
 @cython.boundscheck(False)
@@ -342,7 +342,7 @@ def _median_filter_uint16(
       cnumpy.ndarray[cnumpy.int32_t, ndim=1, mode='c'] kernel_size not None,
       cnumpy.ndarray[cnumpy.int32_t, ndim=1, mode='c'] ranges not None,
       cnumpy.ndarray[cnumpy.int32_t, ndim=1, mode='c'] image_dim not None,
-      bool conditionnal):
+      bool conditional):
 
     # init x range
     cdef int nthread = len(ranges) -1
@@ -359,4 +359,4 @@ def _median_filter_uint16(
                                                 ranges[x+1]-1,
                                                 0,
                                                 image_dim[1]-1,
-                                                conditionnal);                                                          
+                                                conditional);

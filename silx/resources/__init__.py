@@ -270,7 +270,7 @@ class ExternalResources(object):
 
     def getdir(self, dirname):
         """Downloads the requested tarball from the server 
-                https://www.silx.org/pub/silx/
+        https://www.silx.org/pub/silx/
         and unzips it into the data directory
 
         :param: relative name of the image.

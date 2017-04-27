@@ -1335,12 +1335,12 @@ class MedianFilterAction(PlotAction):
             self._originalImage = self.plot.getImage(self._activeImageLegend).getData(copy=False)
             self._legend = self.plot.getImage(self._activeImageLegend).getLegend()
 
-    def _updateFilter(self, kernelWidth, conditionnal=False):
+    def _updateFilter(self, kernelWidth, conditional=False):
         if self._originalImage is None:
             return
 
         self.plot.sigActiveImageChanged.disconnect(self._updateActiveImage)
-        filteredImage = self._computeFilteredImage(kernelWidth, conditionnal)
+        filteredImage = self._computeFilteredImage(kernelWidth, conditional)
         self.plot.addImage(data=filteredImage,
                            legend=self._legend,
                            replace=True)

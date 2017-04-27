@@ -694,7 +694,7 @@ typedef unsigned int __pyx_t_12medianfilter_uint32;
  * ctypedef unsigned int uint32
  * ctypedef unsigned short uint16             # <<<<<<<<<<<<<<
  * 
- * def medfilt2d(input, kernel_size=3, bool conditionnal=False, int nthread=4):
+ * def medfilt2d(input, kernel_size=3, bool conditional=False, int nthread=4):
  */
 typedef unsigned short __pyx_t_12medianfilter_uint16;
 #if CYTHON_CCOMPLEX
@@ -1136,16 +1136,16 @@ int __pyx_module_is_main_medianfilter = 0;
 static PyObject *__pyx_builtin_range;
 static PyObject *__pyx_builtin_ValueError;
 static PyObject *__pyx_builtin_RuntimeError;
-static PyObject *__pyx_pf_12medianfilter_medfilt2d(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_input, PyObject *__pyx_v_kernel_size, bool __pyx_v_conditionnal, int __pyx_v_nthread); /* proto */
+static PyObject *__pyx_pf_12medianfilter_medfilt2d(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_input, PyObject *__pyx_v_kernel_size, bool __pyx_v_conditional, int __pyx_v_nthread); /* proto */
 static PyObject *__pyx_pf_12medianfilter_2check(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_input_buffer, PyObject *__pyx_v_output_buffer); /* proto */
-static PyObject *__pyx_pf_12medianfilter_4_median_filter_float32(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_input_buffer, PyArrayObject *__pyx_v_output_buffer, PyArrayObject *__pyx_v_kernel_size, PyArrayObject *__pyx_v_ranges, PyArrayObject *__pyx_v_image_dim, bool __pyx_v_conditionnal); /* proto */
-static PyObject *__pyx_pf_12medianfilter_6_median_filter_float64(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_input_buffer, PyArrayObject *__pyx_v_output_buffer, PyArrayObject *__pyx_v_kernel_size, PyArrayObject *__pyx_v_ranges, PyArrayObject *__pyx_v_image_dim, bool __pyx_v_conditionnal); /* proto */
-static PyObject *__pyx_pf_12medianfilter_8_median_filter_int64(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_input_buffer, PyArrayObject *__pyx_v_output_buffer, PyArrayObject *__pyx_v_kernel_size, PyArrayObject *__pyx_v_ranges, PyArrayObject *__pyx_v_image_dim, bool __pyx_v_conditionnal); /* proto */
-static PyObject *__pyx_pf_12medianfilter_10_median_filter_uint64(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_input_buffer, PyArrayObject *__pyx_v_output_buffer, PyArrayObject *__pyx_v_kernel_size, PyArrayObject *__pyx_v_ranges, PyArrayObject *__pyx_v_image_dim, bool __pyx_v_conditionnal); /* proto */
-static PyObject *__pyx_pf_12medianfilter_12_median_filter_int32(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_input_buffer, PyArrayObject *__pyx_v_output_buffer, PyArrayObject *__pyx_v_kernel_size, PyArrayObject *__pyx_v_ranges, PyArrayObject *__pyx_v_image_dim, bool __pyx_v_conditionnal); /* proto */
-static PyObject *__pyx_pf_12medianfilter_14_median_filter_uint32(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_input_buffer, PyArrayObject *__pyx_v_output_buffer, PyArrayObject *__pyx_v_kernel_size, PyArrayObject *__pyx_v_ranges, PyArrayObject *__pyx_v_image_dim, bool __pyx_v_conditionnal); /* proto */
-static PyObject *__pyx_pf_12medianfilter_16_median_filter_int16(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_input_buffer, PyArrayObject *__pyx_v_output_buffer, PyArrayObject *__pyx_v_kernel_size, PyArrayObject *__pyx_v_ranges, PyArrayObject *__pyx_v_image_dim, bool __pyx_v_conditionnal); /* proto */
-static PyObject *__pyx_pf_12medianfilter_18_median_filter_uint16(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_input_buffer, PyArrayObject *__pyx_v_output_buffer, PyArrayObject *__pyx_v_kernel_size, PyArrayObject *__pyx_v_ranges, PyArrayObject *__pyx_v_image_dim, bool __pyx_v_conditionnal); /* proto */
+static PyObject *__pyx_pf_12medianfilter_4_median_filter_float32(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_input_buffer, PyArrayObject *__pyx_v_output_buffer, PyArrayObject *__pyx_v_kernel_size, PyArrayObject *__pyx_v_ranges, PyArrayObject *__pyx_v_image_dim, bool __pyx_v_conditional); /* proto */
+static PyObject *__pyx_pf_12medianfilter_6_median_filter_float64(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_input_buffer, PyArrayObject *__pyx_v_output_buffer, PyArrayObject *__pyx_v_kernel_size, PyArrayObject *__pyx_v_ranges, PyArrayObject *__pyx_v_image_dim, bool __pyx_v_conditional); /* proto */
+static PyObject *__pyx_pf_12medianfilter_8_median_filter_int64(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_input_buffer, PyArrayObject *__pyx_v_output_buffer, PyArrayObject *__pyx_v_kernel_size, PyArrayObject *__pyx_v_ranges, PyArrayObject *__pyx_v_image_dim, bool __pyx_v_conditional); /* proto */
+static PyObject *__pyx_pf_12medianfilter_10_median_filter_uint64(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_input_buffer, PyArrayObject *__pyx_v_output_buffer, PyArrayObject *__pyx_v_kernel_size, PyArrayObject *__pyx_v_ranges, PyArrayObject *__pyx_v_image_dim, bool __pyx_v_conditional); /* proto */
+static PyObject *__pyx_pf_12medianfilter_12_median_filter_int32(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_input_buffer, PyArrayObject *__pyx_v_output_buffer, PyArrayObject *__pyx_v_kernel_size, PyArrayObject *__pyx_v_ranges, PyArrayObject *__pyx_v_image_dim, bool __pyx_v_conditional); /* proto */
+static PyObject *__pyx_pf_12medianfilter_14_median_filter_uint32(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_input_buffer, PyArrayObject *__pyx_v_output_buffer, PyArrayObject *__pyx_v_kernel_size, PyArrayObject *__pyx_v_ranges, PyArrayObject *__pyx_v_image_dim, bool __pyx_v_conditional); /* proto */
+static PyObject *__pyx_pf_12medianfilter_16_median_filter_int16(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_input_buffer, PyArrayObject *__pyx_v_output_buffer, PyArrayObject *__pyx_v_kernel_size, PyArrayObject *__pyx_v_ranges, PyArrayObject *__pyx_v_image_dim, bool __pyx_v_conditional); /* proto */
+static PyObject *__pyx_pf_12medianfilter_18_median_filter_uint16(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_input_buffer, PyArrayObject *__pyx_v_output_buffer, PyArrayObject *__pyx_v_kernel_size, PyArrayObject *__pyx_v_ranges, PyArrayObject *__pyx_v_image_dim, bool __pyx_v_conditional); /* proto */
 static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info); /* proto */
 static char __pyx_k_B[] = "B";
@@ -1201,11 +1201,11 @@ static char __pyx_k_maxThread[] = "maxThread";
 static char __pyx_k_medfilt2d[] = "medfilt2d";
 static char __pyx_k_13_02_2017[] = "13/02/2017";
 static char __pyx_k_ValueError[] = "ValueError";
+static char __pyx_k_conditional[] = "conditional";
 static char __pyx_k_kernel_size[] = "kernel_size";
 static char __pyx_k_medfilterfc[] = "medfilterfc";
 static char __pyx_k_C_CONTIGUOUS[] = "C_CONTIGUOUS";
 static char __pyx_k_RuntimeError[] = "RuntimeError";
-static char __pyx_k_conditionnal[] = "conditionnal";
 static char __pyx_k_input_buffer[] = "input_buffer";
 static char __pyx_k_medianfilter[] = "medianfilter";
 static char __pyx_k_output_buffer[] = "output_buffer";
@@ -1244,7 +1244,7 @@ static PyObject *__pyx_n_s_ValueError;
 static PyObject *__pyx_n_s_array;
 static PyObject *__pyx_n_s_authors;
 static PyObject *__pyx_n_s_check;
-static PyObject *__pyx_n_s_conditionnal;
+static PyObject *__pyx_n_s_conditional;
 static PyObject *__pyx_n_s_date;
 static PyObject *__pyx_n_s_dtype;
 static PyObject *__pyx_n_s_flags;
@@ -1336,19 +1336,19 @@ static PyObject *__pyx_codeobj__32;
 /* "medianfilter.pyx":45
  * ctypedef unsigned short uint16
  * 
- * def medfilt2d(input, kernel_size=3, bool conditionnal=False, int nthread=4):             # <<<<<<<<<<<<<<
+ * def medfilt2d(input, kernel_size=3, bool conditional=False, int nthread=4):             # <<<<<<<<<<<<<<
  *     """Function computing the median filter of the given input.
  *     Behavior at boundaries: the algorithm is reducing the size of the
  */
 
 /* Python wrapper */
 static PyObject *__pyx_pw_12medianfilter_1medfilt2d(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_12medianfilter_medfilt2d[] = "medfilt2d(input, kernel_size=3, bool conditionnal=False, int nthread=4)\nFunction computing the median filter of the given input.\n    Behavior at boundaries: the algorithm is reducing the size of the\n    window/kernel for pixels at boundaries (there is no mirroring).\n\n    :param numpy.ndarray input: the array for which we want to apply \n        the median filter\n    :param kernel_size: the dimension of the kernel.\n    :type kernel_size: For 1D should be an int for 2D should be a tuple or \n        a list of (kernel_height, kernel_width)\n    :param bool conditionnal: True if we want to apply a conditionnal median \n        filtering.\n    :param int nthread: the number of threads we want to launch to solve the\n        median filtering.\n\n    :returns: the array with the median value for each pixel.\n    ";
+static char __pyx_doc_12medianfilter_medfilt2d[] = "medfilt2d(input, kernel_size=3, bool conditional=False, int nthread=4)\nFunction computing the median filter of the given input.\n    Behavior at boundaries: the algorithm is reducing the size of the\n    window/kernel for pixels at boundaries (there is no mirroring).\n\n    :param numpy.ndarray input: the array for which we want to apply \n        the median filter\n    :param kernel_size: the dimension of the kernel.\n    :type kernel_size: For 1D should be an int for 2D should be a tuple or \n        a list of (kernel_height, kernel_width)\n    :param bool conditional: True if we want to apply a conditional median\n        filtering.\n    :param int nthread: the number of threads we want to launch to solve the\n        median filtering.\n\n    :returns: the array with the median value for each pixel.\n    ";
 static PyMethodDef __pyx_mdef_12medianfilter_1medfilt2d = {"medfilt2d", (PyCFunction)__pyx_pw_12medianfilter_1medfilt2d, METH_VARARGS|METH_KEYWORDS, __pyx_doc_12medianfilter_medfilt2d};
 static PyObject *__pyx_pw_12medianfilter_1medfilt2d(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_input = 0;
   PyObject *__pyx_v_kernel_size = 0;
-  bool __pyx_v_conditionnal;
+  bool __pyx_v_conditional;
   int __pyx_v_nthread;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
@@ -1357,7 +1357,7 @@ static PyObject *__pyx_pw_12medianfilter_1medfilt2d(PyObject *__pyx_self, PyObje
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("medfilt2d (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_input,&__pyx_n_s_kernel_size,&__pyx_n_s_conditionnal,&__pyx_n_s_nthread,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_input,&__pyx_n_s_kernel_size,&__pyx_n_s_conditional,&__pyx_n_s_nthread,0};
     PyObject* values[4] = {0,0,0,0};
     values[1] = ((PyObject *)__pyx_int_3);
     if (unlikely(__pyx_kwds)) {
@@ -1383,7 +1383,7 @@ static PyObject *__pyx_pw_12medianfilter_1medfilt2d(PyObject *__pyx_self, PyObje
         }
         case  2:
         if (kw_args > 0) {
-          PyObject* value = PyDict_GetItem(__pyx_kwds, __pyx_n_s_conditionnal);
+          PyObject* value = PyDict_GetItem(__pyx_kwds, __pyx_n_s_conditional);
           if (value) { values[2] = value; kw_args--; }
         }
         case  3:
@@ -1408,9 +1408,9 @@ static PyObject *__pyx_pw_12medianfilter_1medfilt2d(PyObject *__pyx_self, PyObje
     __pyx_v_input = values[0];
     __pyx_v_kernel_size = values[1];
     if (values[2]) {
-      __pyx_v_conditionnal = __Pyx_PyObject_IsTrue(values[2]); if (unlikely((__pyx_v_conditionnal == (bool)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 45; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+      __pyx_v_conditional = __Pyx_PyObject_IsTrue(values[2]); if (unlikely((__pyx_v_conditional == (bool)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 45; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
     } else {
-      __pyx_v_conditionnal = ((bool)0);
+      __pyx_v_conditional = ((bool)0);
     }
     if (values[3]) {
       __pyx_v_nthread = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_nthread == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 45; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
@@ -1426,14 +1426,14 @@ static PyObject *__pyx_pw_12medianfilter_1medfilt2d(PyObject *__pyx_self, PyObje
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_12medianfilter_medfilt2d(__pyx_self, __pyx_v_input, __pyx_v_kernel_size, __pyx_v_conditionnal, __pyx_v_nthread);
+  __pyx_r = __pyx_pf_12medianfilter_medfilt2d(__pyx_self, __pyx_v_input, __pyx_v_kernel_size, __pyx_v_conditional, __pyx_v_nthread);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_12medianfilter_medfilt2d(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_input, PyObject *__pyx_v_kernel_size, bool __pyx_v_conditionnal, int __pyx_v_nthread) {
+static PyObject *__pyx_pf_12medianfilter_medfilt2d(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_input, PyObject *__pyx_v_kernel_size, bool __pyx_v_conditional, int __pyx_v_nthread) {
   int __pyx_v_reshaped;
   PyObject *__pyx_v_output_buffer = NULL;
   PyObject *__pyx_v_image_dim = NULL;
@@ -2325,7 +2325,7 @@ static PyObject *__pyx_pf_12medianfilter_medfilt2d(CYTHON_UNUSED PyObject *__pyx
  *                 kernel_size=ker_dim,
  *                 ranges=ranges,             # <<<<<<<<<<<<<<
  *                 image_dim=image_dim,
- *                 conditionnal=conditionnal)
+ *                 conditional=conditional)
  */
   if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_ranges, __pyx_v_ranges) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 106; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
@@ -2333,7 +2333,7 @@ static PyObject *__pyx_pf_12medianfilter_medfilt2d(CYTHON_UNUSED PyObject *__pyx
  *                 kernel_size=ker_dim,
  *                 ranges=ranges,
  *                 image_dim=image_dim,             # <<<<<<<<<<<<<<
- *                 conditionnal=conditionnal)
+ *                 conditional=conditional)
  * 
  */
   if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_image_dim, __pyx_v_image_dim) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 106; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -2341,13 +2341,13 @@ static PyObject *__pyx_pf_12medianfilter_medfilt2d(CYTHON_UNUSED PyObject *__pyx
   /* "medianfilter.pyx":111
  *                 ranges=ranges,
  *                 image_dim=image_dim,
- *                 conditionnal=conditionnal)             # <<<<<<<<<<<<<<
+ *                 conditional=conditional)             # <<<<<<<<<<<<<<
  * 
  *     if reshaped :
  */
-  __pyx_t_7 = __Pyx_PyBool_FromLong(__pyx_v_conditionnal); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 111; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_7 = __Pyx_PyBool_FromLong(__pyx_v_conditional); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 111; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_7);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_conditionnal, __pyx_t_7) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 106; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_conditional, __pyx_t_7) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 106; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
   /* "medianfilter.pyx":106
@@ -2363,7 +2363,7 @@ static PyObject *__pyx_pf_12medianfilter_medfilt2d(CYTHON_UNUSED PyObject *__pyx
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
   /* "medianfilter.pyx":113
- *                 conditionnal=conditionnal)
+ *                 conditional=conditional)
  * 
  *     if reshaped :             # <<<<<<<<<<<<<<
  *       input = input.reshape(input.shape[0])
@@ -2476,7 +2476,7 @@ static PyObject *__pyx_pf_12medianfilter_medfilt2d(CYTHON_UNUSED PyObject *__pyx
   /* "medianfilter.pyx":45
  * ctypedef unsigned short uint16
  * 
- * def medfilt2d(input, kernel_size=3, bool conditionnal=False, int nthread=4):             # <<<<<<<<<<<<<<
+ * def medfilt2d(input, kernel_size=3, bool conditional=False, int nthread=4):             # <<<<<<<<<<<<<<
  *     """Function computing the median filter of the given input.
  *     Behavior at boundaries: the algorithm is reducing the size of the
  */
@@ -2806,7 +2806,7 @@ static PyObject *__pyx_pf_12medianfilter_2check(CYTHON_UNUSED PyObject *__pyx_se
 
 /* Python wrapper */
 static PyObject *__pyx_pw_12medianfilter_5_median_filter_float32(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_12medianfilter_4_median_filter_float32[] = "_median_filter_float32(ndarray input_buffer, ndarray output_buffer, ndarray kernel_size, ndarray ranges, ndarray image_dim, bool conditionnal)";
+static char __pyx_doc_12medianfilter_4_median_filter_float32[] = "_median_filter_float32(ndarray input_buffer, ndarray output_buffer, ndarray kernel_size, ndarray ranges, ndarray image_dim, bool conditional)";
 static PyMethodDef __pyx_mdef_12medianfilter_5_median_filter_float32 = {"_median_filter_float32", (PyCFunction)__pyx_pw_12medianfilter_5_median_filter_float32, METH_VARARGS|METH_KEYWORDS, __pyx_doc_12medianfilter_4_median_filter_float32};
 static PyObject *__pyx_pw_12medianfilter_5_median_filter_float32(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyArrayObject *__pyx_v_input_buffer = 0;
@@ -2814,7 +2814,7 @@ static PyObject *__pyx_pw_12medianfilter_5_median_filter_float32(PyObject *__pyx
   PyArrayObject *__pyx_v_kernel_size = 0;
   PyArrayObject *__pyx_v_ranges = 0;
   PyArrayObject *__pyx_v_image_dim = 0;
-  bool __pyx_v_conditionnal;
+  bool __pyx_v_conditional;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -2822,7 +2822,7 @@ static PyObject *__pyx_pw_12medianfilter_5_median_filter_float32(PyObject *__pyx
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("_median_filter_float32 (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_input_buffer,&__pyx_n_s_output_buffer,&__pyx_n_s_kernel_size,&__pyx_n_s_ranges,&__pyx_n_s_image_dim,&__pyx_n_s_conditionnal,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_input_buffer,&__pyx_n_s_output_buffer,&__pyx_n_s_kernel_size,&__pyx_n_s_ranges,&__pyx_n_s_image_dim,&__pyx_n_s_conditional,0};
     PyObject* values[6] = {0,0,0,0,0,0};
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
@@ -2863,7 +2863,7 @@ static PyObject *__pyx_pw_12medianfilter_5_median_filter_float32(PyObject *__pyx
           __Pyx_RaiseArgtupleInvalid("_median_filter_float32", 1, 6, 6, 4); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 144; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
         case  5:
-        if (likely((values[5] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_conditionnal)) != 0)) kw_args--;
+        if (likely((values[5] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_conditional)) != 0)) kw_args--;
         else {
           __Pyx_RaiseArgtupleInvalid("_median_filter_float32", 1, 6, 6, 5); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 144; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
@@ -2886,7 +2886,7 @@ static PyObject *__pyx_pw_12medianfilter_5_median_filter_float32(PyObject *__pyx
     __pyx_v_kernel_size = ((PyArrayObject *)values[2]);
     __pyx_v_ranges = ((PyArrayObject *)values[3]);
     __pyx_v_image_dim = ((PyArrayObject *)values[4]);
-    __pyx_v_conditionnal = __Pyx_PyObject_IsTrue(values[5]); if (unlikely((__pyx_v_conditionnal == (bool)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 150; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+    __pyx_v_conditional = __Pyx_PyObject_IsTrue(values[5]); if (unlikely((__pyx_v_conditional == (bool)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 150; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
@@ -2901,7 +2901,7 @@ static PyObject *__pyx_pw_12medianfilter_5_median_filter_float32(PyObject *__pyx
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_kernel_size), __pyx_ptype_5numpy_ndarray, 0, "kernel_size", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 147; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_ranges), __pyx_ptype_5numpy_ndarray, 0, "ranges", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 148; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_image_dim), __pyx_ptype_5numpy_ndarray, 0, "image_dim", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 149; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_r = __pyx_pf_12medianfilter_4_median_filter_float32(__pyx_self, __pyx_v_input_buffer, __pyx_v_output_buffer, __pyx_v_kernel_size, __pyx_v_ranges, __pyx_v_image_dim, __pyx_v_conditionnal);
+  __pyx_r = __pyx_pf_12medianfilter_4_median_filter_float32(__pyx_self, __pyx_v_input_buffer, __pyx_v_output_buffer, __pyx_v_kernel_size, __pyx_v_ranges, __pyx_v_image_dim, __pyx_v_conditional);
 
   /* function exit code */
   goto __pyx_L0;
@@ -2912,7 +2912,7 @@ static PyObject *__pyx_pw_12medianfilter_5_median_filter_float32(PyObject *__pyx
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_12medianfilter_4_median_filter_float32(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_input_buffer, PyArrayObject *__pyx_v_output_buffer, PyArrayObject *__pyx_v_kernel_size, PyArrayObject *__pyx_v_ranges, PyArrayObject *__pyx_v_image_dim, bool __pyx_v_conditionnal) {
+static PyObject *__pyx_pf_12medianfilter_4_median_filter_float32(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_input_buffer, PyArrayObject *__pyx_v_output_buffer, PyArrayObject *__pyx_v_kernel_size, PyArrayObject *__pyx_v_ranges, PyArrayObject *__pyx_v_image_dim, bool __pyx_v_conditional) {
   CYTHON_UNUSED int __pyx_v_nthread;
   int __pyx_v_x;
   __Pyx_LocalBuf_ND __pyx_pybuffernd_image_dim;
@@ -3024,7 +3024,7 @@ static PyObject *__pyx_pf_12medianfilter_4_median_filter_float32(CYTHON_UNUSED P
                 #define unlikely(x) (x)
             #endif
             #ifdef _OPENMP
-            #pragma omp parallel  private(__pyx_t_5, __pyx_t_7, __pyx_t_4, __pyx_t_6, __pyx_t_2, __pyx_t_3)
+            #pragma omp parallel  private(__pyx_t_2, __pyx_t_6, __pyx_t_5, __pyx_t_7, __pyx_t_4, __pyx_t_3)
             #endif /* _OPENMP */
             {
 
@@ -3070,7 +3070,7 @@ static PyObject *__pyx_pf_12medianfilter_4_median_filter_float32(CYTHON_UNUSED P
  *                                                ranges[x+1]-1,
  *                                                0,
  *                                                image_dim[1]-1,             # <<<<<<<<<<<<<<
- *                                                conditionnal);
+ *                                                conditional);
  * 
  */
                                 __pyx_t_7 = 1;
@@ -3082,7 +3082,7 @@ static PyObject *__pyx_pf_12medianfilter_4_median_filter_float32(CYTHON_UNUSED P
  *                                                <float*> output_buffer.data,
  *                                                <int*>kernel_size.data,
  */
-                                median_filter<float>(((float *)__pyx_v_input_buffer->data), ((float *)__pyx_v_output_buffer->data), ((int *)__pyx_v_kernel_size->data), ((int *)__pyx_v_image_dim->data), (*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_ranges.rcbuffer->pybuffer.buf, __pyx_t_5, __pyx_pybuffernd_ranges.diminfo[0].strides)), ((*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_ranges.rcbuffer->pybuffer.buf, __pyx_t_6, __pyx_pybuffernd_ranges.diminfo[0].strides)) - 1), 0, ((*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_image_dim.rcbuffer->pybuffer.buf, __pyx_t_7, __pyx_pybuffernd_image_dim.diminfo[0].strides)) - 1), __pyx_v_conditionnal);
+                                median_filter<float>(((float *)__pyx_v_input_buffer->data), ((float *)__pyx_v_output_buffer->data), ((int *)__pyx_v_kernel_size->data), ((int *)__pyx_v_image_dim->data), (*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_ranges.rcbuffer->pybuffer.buf, __pyx_t_5, __pyx_pybuffernd_ranges.diminfo[0].strides)), ((*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_ranges.rcbuffer->pybuffer.buf, __pyx_t_6, __pyx_pybuffernd_ranges.diminfo[0].strides)) - 1), 0, ((*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_image_dim.rcbuffer->pybuffer.buf, __pyx_t_7, __pyx_pybuffernd_image_dim.diminfo[0].strides)) - 1), __pyx_v_conditional);
                             }
                         }
                     }
@@ -3160,7 +3160,7 @@ static PyObject *__pyx_pf_12medianfilter_4_median_filter_float32(CYTHON_UNUSED P
 
 /* Python wrapper */
 static PyObject *__pyx_pw_12medianfilter_7_median_filter_float64(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_12medianfilter_6_median_filter_float64[] = "_median_filter_float64(ndarray input_buffer, ndarray output_buffer, ndarray kernel_size, ndarray ranges, ndarray image_dim, bool conditionnal)";
+static char __pyx_doc_12medianfilter_6_median_filter_float64[] = "_median_filter_float64(ndarray input_buffer, ndarray output_buffer, ndarray kernel_size, ndarray ranges, ndarray image_dim, bool conditional)";
 static PyMethodDef __pyx_mdef_12medianfilter_7_median_filter_float64 = {"_median_filter_float64", (PyCFunction)__pyx_pw_12medianfilter_7_median_filter_float64, METH_VARARGS|METH_KEYWORDS, __pyx_doc_12medianfilter_6_median_filter_float64};
 static PyObject *__pyx_pw_12medianfilter_7_median_filter_float64(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyArrayObject *__pyx_v_input_buffer = 0;
@@ -3168,7 +3168,7 @@ static PyObject *__pyx_pw_12medianfilter_7_median_filter_float64(PyObject *__pyx
   PyArrayObject *__pyx_v_kernel_size = 0;
   PyArrayObject *__pyx_v_ranges = 0;
   PyArrayObject *__pyx_v_image_dim = 0;
-  bool __pyx_v_conditionnal;
+  bool __pyx_v_conditional;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -3176,7 +3176,7 @@ static PyObject *__pyx_pw_12medianfilter_7_median_filter_float64(PyObject *__pyx
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("_median_filter_float64 (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_input_buffer,&__pyx_n_s_output_buffer,&__pyx_n_s_kernel_size,&__pyx_n_s_ranges,&__pyx_n_s_image_dim,&__pyx_n_s_conditionnal,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_input_buffer,&__pyx_n_s_output_buffer,&__pyx_n_s_kernel_size,&__pyx_n_s_ranges,&__pyx_n_s_image_dim,&__pyx_n_s_conditional,0};
     PyObject* values[6] = {0,0,0,0,0,0};
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
@@ -3217,7 +3217,7 @@ static PyObject *__pyx_pw_12medianfilter_7_median_filter_float64(PyObject *__pyx
           __Pyx_RaiseArgtupleInvalid("_median_filter_float64", 1, 6, 6, 4); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 172; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
         case  5:
-        if (likely((values[5] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_conditionnal)) != 0)) kw_args--;
+        if (likely((values[5] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_conditional)) != 0)) kw_args--;
         else {
           __Pyx_RaiseArgtupleInvalid("_median_filter_float64", 1, 6, 6, 5); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 172; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
@@ -3240,7 +3240,7 @@ static PyObject *__pyx_pw_12medianfilter_7_median_filter_float64(PyObject *__pyx
     __pyx_v_kernel_size = ((PyArrayObject *)values[2]);
     __pyx_v_ranges = ((PyArrayObject *)values[3]);
     __pyx_v_image_dim = ((PyArrayObject *)values[4]);
-    __pyx_v_conditionnal = __Pyx_PyObject_IsTrue(values[5]); if (unlikely((__pyx_v_conditionnal == (bool)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 178; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+    __pyx_v_conditional = __Pyx_PyObject_IsTrue(values[5]); if (unlikely((__pyx_v_conditional == (bool)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 178; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
@@ -3255,7 +3255,7 @@ static PyObject *__pyx_pw_12medianfilter_7_median_filter_float64(PyObject *__pyx
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_kernel_size), __pyx_ptype_5numpy_ndarray, 0, "kernel_size", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_ranges), __pyx_ptype_5numpy_ndarray, 0, "ranges", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 176; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_image_dim), __pyx_ptype_5numpy_ndarray, 0, "image_dim", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 177; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_r = __pyx_pf_12medianfilter_6_median_filter_float64(__pyx_self, __pyx_v_input_buffer, __pyx_v_output_buffer, __pyx_v_kernel_size, __pyx_v_ranges, __pyx_v_image_dim, __pyx_v_conditionnal);
+  __pyx_r = __pyx_pf_12medianfilter_6_median_filter_float64(__pyx_self, __pyx_v_input_buffer, __pyx_v_output_buffer, __pyx_v_kernel_size, __pyx_v_ranges, __pyx_v_image_dim, __pyx_v_conditional);
 
   /* function exit code */
   goto __pyx_L0;
@@ -3266,7 +3266,7 @@ static PyObject *__pyx_pw_12medianfilter_7_median_filter_float64(PyObject *__pyx
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_12medianfilter_6_median_filter_float64(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_input_buffer, PyArrayObject *__pyx_v_output_buffer, PyArrayObject *__pyx_v_kernel_size, PyArrayObject *__pyx_v_ranges, PyArrayObject *__pyx_v_image_dim, bool __pyx_v_conditionnal) {
+static PyObject *__pyx_pf_12medianfilter_6_median_filter_float64(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_input_buffer, PyArrayObject *__pyx_v_output_buffer, PyArrayObject *__pyx_v_kernel_size, PyArrayObject *__pyx_v_ranges, PyArrayObject *__pyx_v_image_dim, bool __pyx_v_conditional) {
   CYTHON_UNUSED int __pyx_v_nthread;
   int __pyx_v_x;
   __Pyx_LocalBuf_ND __pyx_pybuffernd_image_dim;
@@ -3378,7 +3378,7 @@ static PyObject *__pyx_pf_12medianfilter_6_median_filter_float64(CYTHON_UNUSED P
                 #define unlikely(x) (x)
             #endif
             #ifdef _OPENMP
-            #pragma omp parallel  private(__pyx_t_5, __pyx_t_7, __pyx_t_4, __pyx_t_6, __pyx_t_2, __pyx_t_3)
+            #pragma omp parallel  private(__pyx_t_2, __pyx_t_6, __pyx_t_5, __pyx_t_7, __pyx_t_4, __pyx_t_3)
             #endif /* _OPENMP */
             {
 
@@ -3424,7 +3424,7 @@ static PyObject *__pyx_pf_12medianfilter_6_median_filter_float64(CYTHON_UNUSED P
  *                                                 ranges[x+1]-1,
  *                                                 0,
  *                                                 image_dim[1]-1,             # <<<<<<<<<<<<<<
- *                                                 conditionnal);
+ *                                                 conditional);
  * 
  */
                                 __pyx_t_7 = 1;
@@ -3436,7 +3436,7 @@ static PyObject *__pyx_pf_12medianfilter_6_median_filter_float64(CYTHON_UNUSED P
  *                                                 <double*> output_buffer.data,
  *                                                 <int*>kernel_size.data,
  */
-                                median_filter<double>(((double *)__pyx_v_input_buffer->data), ((double *)__pyx_v_output_buffer->data), ((int *)__pyx_v_kernel_size->data), ((int *)__pyx_v_image_dim->data), (*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_ranges.rcbuffer->pybuffer.buf, __pyx_t_5, __pyx_pybuffernd_ranges.diminfo[0].strides)), ((*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_ranges.rcbuffer->pybuffer.buf, __pyx_t_6, __pyx_pybuffernd_ranges.diminfo[0].strides)) - 1), 0, ((*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_image_dim.rcbuffer->pybuffer.buf, __pyx_t_7, __pyx_pybuffernd_image_dim.diminfo[0].strides)) - 1), __pyx_v_conditionnal);
+                                median_filter<double>(((double *)__pyx_v_input_buffer->data), ((double *)__pyx_v_output_buffer->data), ((int *)__pyx_v_kernel_size->data), ((int *)__pyx_v_image_dim->data), (*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_ranges.rcbuffer->pybuffer.buf, __pyx_t_5, __pyx_pybuffernd_ranges.diminfo[0].strides)), ((*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_ranges.rcbuffer->pybuffer.buf, __pyx_t_6, __pyx_pybuffernd_ranges.diminfo[0].strides)) - 1), 0, ((*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_image_dim.rcbuffer->pybuffer.buf, __pyx_t_7, __pyx_pybuffernd_image_dim.diminfo[0].strides)) - 1), __pyx_v_conditional);
                             }
                         }
                     }
@@ -3514,7 +3514,7 @@ static PyObject *__pyx_pf_12medianfilter_6_median_filter_float64(CYTHON_UNUSED P
 
 /* Python wrapper */
 static PyObject *__pyx_pw_12medianfilter_9_median_filter_int64(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_12medianfilter_8_median_filter_int64[] = "_median_filter_int64(ndarray input_buffer, ndarray output_buffer, ndarray kernel_size, ndarray ranges, ndarray image_dim, bool conditionnal)";
+static char __pyx_doc_12medianfilter_8_median_filter_int64[] = "_median_filter_int64(ndarray input_buffer, ndarray output_buffer, ndarray kernel_size, ndarray ranges, ndarray image_dim, bool conditional)";
 static PyMethodDef __pyx_mdef_12medianfilter_9_median_filter_int64 = {"_median_filter_int64", (PyCFunction)__pyx_pw_12medianfilter_9_median_filter_int64, METH_VARARGS|METH_KEYWORDS, __pyx_doc_12medianfilter_8_median_filter_int64};
 static PyObject *__pyx_pw_12medianfilter_9_median_filter_int64(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyArrayObject *__pyx_v_input_buffer = 0;
@@ -3522,7 +3522,7 @@ static PyObject *__pyx_pw_12medianfilter_9_median_filter_int64(PyObject *__pyx_s
   PyArrayObject *__pyx_v_kernel_size = 0;
   PyArrayObject *__pyx_v_ranges = 0;
   PyArrayObject *__pyx_v_image_dim = 0;
-  bool __pyx_v_conditionnal;
+  bool __pyx_v_conditional;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -3530,7 +3530,7 @@ static PyObject *__pyx_pw_12medianfilter_9_median_filter_int64(PyObject *__pyx_s
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("_median_filter_int64 (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_input_buffer,&__pyx_n_s_output_buffer,&__pyx_n_s_kernel_size,&__pyx_n_s_ranges,&__pyx_n_s_image_dim,&__pyx_n_s_conditionnal,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_input_buffer,&__pyx_n_s_output_buffer,&__pyx_n_s_kernel_size,&__pyx_n_s_ranges,&__pyx_n_s_image_dim,&__pyx_n_s_conditional,0};
     PyObject* values[6] = {0,0,0,0,0,0};
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
@@ -3571,7 +3571,7 @@ static PyObject *__pyx_pw_12medianfilter_9_median_filter_int64(PyObject *__pyx_s
           __Pyx_RaiseArgtupleInvalid("_median_filter_int64", 1, 6, 6, 4); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 200; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
         case  5:
-        if (likely((values[5] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_conditionnal)) != 0)) kw_args--;
+        if (likely((values[5] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_conditional)) != 0)) kw_args--;
         else {
           __Pyx_RaiseArgtupleInvalid("_median_filter_int64", 1, 6, 6, 5); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 200; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
@@ -3594,7 +3594,7 @@ static PyObject *__pyx_pw_12medianfilter_9_median_filter_int64(PyObject *__pyx_s
     __pyx_v_kernel_size = ((PyArrayObject *)values[2]);
     __pyx_v_ranges = ((PyArrayObject *)values[3]);
     __pyx_v_image_dim = ((PyArrayObject *)values[4]);
-    __pyx_v_conditionnal = __Pyx_PyObject_IsTrue(values[5]); if (unlikely((__pyx_v_conditionnal == (bool)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 206; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+    __pyx_v_conditional = __Pyx_PyObject_IsTrue(values[5]); if (unlikely((__pyx_v_conditional == (bool)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 206; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
@@ -3609,7 +3609,7 @@ static PyObject *__pyx_pw_12medianfilter_9_median_filter_int64(PyObject *__pyx_s
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_kernel_size), __pyx_ptype_5numpy_ndarray, 0, "kernel_size", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 203; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_ranges), __pyx_ptype_5numpy_ndarray, 0, "ranges", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 204; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_image_dim), __pyx_ptype_5numpy_ndarray, 0, "image_dim", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 205; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_r = __pyx_pf_12medianfilter_8_median_filter_int64(__pyx_self, __pyx_v_input_buffer, __pyx_v_output_buffer, __pyx_v_kernel_size, __pyx_v_ranges, __pyx_v_image_dim, __pyx_v_conditionnal);
+  __pyx_r = __pyx_pf_12medianfilter_8_median_filter_int64(__pyx_self, __pyx_v_input_buffer, __pyx_v_output_buffer, __pyx_v_kernel_size, __pyx_v_ranges, __pyx_v_image_dim, __pyx_v_conditional);
 
   /* function exit code */
   goto __pyx_L0;
@@ -3620,7 +3620,7 @@ static PyObject *__pyx_pw_12medianfilter_9_median_filter_int64(PyObject *__pyx_s
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_12medianfilter_8_median_filter_int64(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_input_buffer, PyArrayObject *__pyx_v_output_buffer, PyArrayObject *__pyx_v_kernel_size, PyArrayObject *__pyx_v_ranges, PyArrayObject *__pyx_v_image_dim, bool __pyx_v_conditionnal) {
+static PyObject *__pyx_pf_12medianfilter_8_median_filter_int64(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_input_buffer, PyArrayObject *__pyx_v_output_buffer, PyArrayObject *__pyx_v_kernel_size, PyArrayObject *__pyx_v_ranges, PyArrayObject *__pyx_v_image_dim, bool __pyx_v_conditional) {
   CYTHON_UNUSED int __pyx_v_nthread;
   int __pyx_v_x;
   __Pyx_LocalBuf_ND __pyx_pybuffernd_image_dim;
@@ -3732,7 +3732,7 @@ static PyObject *__pyx_pf_12medianfilter_8_median_filter_int64(CYTHON_UNUSED PyO
                 #define unlikely(x) (x)
             #endif
             #ifdef _OPENMP
-            #pragma omp parallel  private(__pyx_t_5, __pyx_t_7, __pyx_t_4, __pyx_t_6, __pyx_t_2, __pyx_t_3)
+            #pragma omp parallel  private(__pyx_t_2, __pyx_t_6, __pyx_t_5, __pyx_t_7, __pyx_t_4, __pyx_t_3)
             #endif /* _OPENMP */
             {
 
@@ -3778,7 +3778,7 @@ static PyObject *__pyx_pf_12medianfilter_8_median_filter_int64(CYTHON_UNUSED PyO
  *                                                 ranges[x+1]-1,
  *                                                 0,
  *                                                 image_dim[1]-1,             # <<<<<<<<<<<<<<
- *                                                 conditionnal);
+ *                                                 conditional);
  * @cython.cdivision(True)
  */
                                 __pyx_t_7 = 1;
@@ -3790,7 +3790,7 @@ static PyObject *__pyx_pf_12medianfilter_8_median_filter_int64(CYTHON_UNUSED PyO
  *                                                 <long*> output_buffer.data,
  *                                                 <int*>kernel_size.data,
  */
-                                median_filter<long>(((long *)__pyx_v_input_buffer->data), ((long *)__pyx_v_output_buffer->data), ((int *)__pyx_v_kernel_size->data), ((int *)__pyx_v_image_dim->data), (*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_ranges.rcbuffer->pybuffer.buf, __pyx_t_5, __pyx_pybuffernd_ranges.diminfo[0].strides)), ((*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_ranges.rcbuffer->pybuffer.buf, __pyx_t_6, __pyx_pybuffernd_ranges.diminfo[0].strides)) - 1), 0, ((*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_image_dim.rcbuffer->pybuffer.buf, __pyx_t_7, __pyx_pybuffernd_image_dim.diminfo[0].strides)) - 1), __pyx_v_conditionnal);
+                                median_filter<long>(((long *)__pyx_v_input_buffer->data), ((long *)__pyx_v_output_buffer->data), ((int *)__pyx_v_kernel_size->data), ((int *)__pyx_v_image_dim->data), (*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_ranges.rcbuffer->pybuffer.buf, __pyx_t_5, __pyx_pybuffernd_ranges.diminfo[0].strides)), ((*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_ranges.rcbuffer->pybuffer.buf, __pyx_t_6, __pyx_pybuffernd_ranges.diminfo[0].strides)) - 1), 0, ((*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_image_dim.rcbuffer->pybuffer.buf, __pyx_t_7, __pyx_pybuffernd_image_dim.diminfo[0].strides)) - 1), __pyx_v_conditional);
                             }
                         }
                     }
@@ -3868,7 +3868,7 @@ static PyObject *__pyx_pf_12medianfilter_8_median_filter_int64(CYTHON_UNUSED PyO
 
 /* Python wrapper */
 static PyObject *__pyx_pw_12medianfilter_11_median_filter_uint64(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_12medianfilter_10_median_filter_uint64[] = "_median_filter_uint64(ndarray input_buffer, ndarray output_buffer, ndarray kernel_size, ndarray ranges, ndarray image_dim, bool conditionnal)";
+static char __pyx_doc_12medianfilter_10_median_filter_uint64[] = "_median_filter_uint64(ndarray input_buffer, ndarray output_buffer, ndarray kernel_size, ndarray ranges, ndarray image_dim, bool conditional)";
 static PyMethodDef __pyx_mdef_12medianfilter_11_median_filter_uint64 = {"_median_filter_uint64", (PyCFunction)__pyx_pw_12medianfilter_11_median_filter_uint64, METH_VARARGS|METH_KEYWORDS, __pyx_doc_12medianfilter_10_median_filter_uint64};
 static PyObject *__pyx_pw_12medianfilter_11_median_filter_uint64(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyArrayObject *__pyx_v_input_buffer = 0;
@@ -3876,7 +3876,7 @@ static PyObject *__pyx_pw_12medianfilter_11_median_filter_uint64(PyObject *__pyx
   PyArrayObject *__pyx_v_kernel_size = 0;
   PyArrayObject *__pyx_v_ranges = 0;
   PyArrayObject *__pyx_v_image_dim = 0;
-  bool __pyx_v_conditionnal;
+  bool __pyx_v_conditional;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -3884,7 +3884,7 @@ static PyObject *__pyx_pw_12medianfilter_11_median_filter_uint64(PyObject *__pyx
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("_median_filter_uint64 (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_input_buffer,&__pyx_n_s_output_buffer,&__pyx_n_s_kernel_size,&__pyx_n_s_ranges,&__pyx_n_s_image_dim,&__pyx_n_s_conditionnal,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_input_buffer,&__pyx_n_s_output_buffer,&__pyx_n_s_kernel_size,&__pyx_n_s_ranges,&__pyx_n_s_image_dim,&__pyx_n_s_conditional,0};
     PyObject* values[6] = {0,0,0,0,0,0};
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
@@ -3925,7 +3925,7 @@ static PyObject *__pyx_pw_12medianfilter_11_median_filter_uint64(PyObject *__pyx
           __Pyx_RaiseArgtupleInvalid("_median_filter_uint64", 1, 6, 6, 4); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 227; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
         case  5:
-        if (likely((values[5] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_conditionnal)) != 0)) kw_args--;
+        if (likely((values[5] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_conditional)) != 0)) kw_args--;
         else {
           __Pyx_RaiseArgtupleInvalid("_median_filter_uint64", 1, 6, 6, 5); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 227; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
@@ -3948,7 +3948,7 @@ static PyObject *__pyx_pw_12medianfilter_11_median_filter_uint64(PyObject *__pyx
     __pyx_v_kernel_size = ((PyArrayObject *)values[2]);
     __pyx_v_ranges = ((PyArrayObject *)values[3]);
     __pyx_v_image_dim = ((PyArrayObject *)values[4]);
-    __pyx_v_conditionnal = __Pyx_PyObject_IsTrue(values[5]); if (unlikely((__pyx_v_conditionnal == (bool)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 233; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+    __pyx_v_conditional = __Pyx_PyObject_IsTrue(values[5]); if (unlikely((__pyx_v_conditional == (bool)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 233; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
@@ -3963,7 +3963,7 @@ static PyObject *__pyx_pw_12medianfilter_11_median_filter_uint64(PyObject *__pyx
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_kernel_size), __pyx_ptype_5numpy_ndarray, 0, "kernel_size", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 230; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_ranges), __pyx_ptype_5numpy_ndarray, 0, "ranges", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 231; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_image_dim), __pyx_ptype_5numpy_ndarray, 0, "image_dim", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 232; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_r = __pyx_pf_12medianfilter_10_median_filter_uint64(__pyx_self, __pyx_v_input_buffer, __pyx_v_output_buffer, __pyx_v_kernel_size, __pyx_v_ranges, __pyx_v_image_dim, __pyx_v_conditionnal);
+  __pyx_r = __pyx_pf_12medianfilter_10_median_filter_uint64(__pyx_self, __pyx_v_input_buffer, __pyx_v_output_buffer, __pyx_v_kernel_size, __pyx_v_ranges, __pyx_v_image_dim, __pyx_v_conditional);
 
   /* function exit code */
   goto __pyx_L0;
@@ -3974,7 +3974,7 @@ static PyObject *__pyx_pw_12medianfilter_11_median_filter_uint64(PyObject *__pyx
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_12medianfilter_10_median_filter_uint64(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_input_buffer, PyArrayObject *__pyx_v_output_buffer, PyArrayObject *__pyx_v_kernel_size, PyArrayObject *__pyx_v_ranges, PyArrayObject *__pyx_v_image_dim, bool __pyx_v_conditionnal) {
+static PyObject *__pyx_pf_12medianfilter_10_median_filter_uint64(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_input_buffer, PyArrayObject *__pyx_v_output_buffer, PyArrayObject *__pyx_v_kernel_size, PyArrayObject *__pyx_v_ranges, PyArrayObject *__pyx_v_image_dim, bool __pyx_v_conditional) {
   CYTHON_UNUSED int __pyx_v_nthread;
   int __pyx_v_x;
   __Pyx_LocalBuf_ND __pyx_pybuffernd_image_dim;
@@ -4086,7 +4086,7 @@ static PyObject *__pyx_pf_12medianfilter_10_median_filter_uint64(CYTHON_UNUSED P
                 #define unlikely(x) (x)
             #endif
             #ifdef _OPENMP
-            #pragma omp parallel  private(__pyx_t_5, __pyx_t_7, __pyx_t_4, __pyx_t_6, __pyx_t_2, __pyx_t_3)
+            #pragma omp parallel  private(__pyx_t_2, __pyx_t_6, __pyx_t_5, __pyx_t_7, __pyx_t_4, __pyx_t_3)
             #endif /* _OPENMP */
             {
 
@@ -4132,7 +4132,7 @@ static PyObject *__pyx_pf_12medianfilter_10_median_filter_uint64(CYTHON_UNUSED P
  *                                                 ranges[x+1]-1,
  *                                                 0,
  *                                                 image_dim[1]-1,             # <<<<<<<<<<<<<<
- *                                                 conditionnal);
+ *                                                 conditional);
  * 
  */
                                 __pyx_t_7 = 1;
@@ -4144,7 +4144,7 @@ static PyObject *__pyx_pf_12medianfilter_10_median_filter_uint64(CYTHON_UNUSED P
  *                                                 <uint64*> output_buffer.data,
  *                                                 <int*>kernel_size.data,
  */
-                                median_filter<__pyx_t_12medianfilter_uint64>(((__pyx_t_12medianfilter_uint64 *)__pyx_v_input_buffer->data), ((__pyx_t_12medianfilter_uint64 *)__pyx_v_output_buffer->data), ((int *)__pyx_v_kernel_size->data), ((int *)__pyx_v_image_dim->data), (*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_ranges.rcbuffer->pybuffer.buf, __pyx_t_5, __pyx_pybuffernd_ranges.diminfo[0].strides)), ((*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_ranges.rcbuffer->pybuffer.buf, __pyx_t_6, __pyx_pybuffernd_ranges.diminfo[0].strides)) - 1), 0, ((*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_image_dim.rcbuffer->pybuffer.buf, __pyx_t_7, __pyx_pybuffernd_image_dim.diminfo[0].strides)) - 1), __pyx_v_conditionnal);
+                                median_filter<__pyx_t_12medianfilter_uint64>(((__pyx_t_12medianfilter_uint64 *)__pyx_v_input_buffer->data), ((__pyx_t_12medianfilter_uint64 *)__pyx_v_output_buffer->data), ((int *)__pyx_v_kernel_size->data), ((int *)__pyx_v_image_dim->data), (*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_ranges.rcbuffer->pybuffer.buf, __pyx_t_5, __pyx_pybuffernd_ranges.diminfo[0].strides)), ((*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_ranges.rcbuffer->pybuffer.buf, __pyx_t_6, __pyx_pybuffernd_ranges.diminfo[0].strides)) - 1), 0, ((*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_image_dim.rcbuffer->pybuffer.buf, __pyx_t_7, __pyx_pybuffernd_image_dim.diminfo[0].strides)) - 1), __pyx_v_conditional);
                             }
                         }
                     }
@@ -4222,7 +4222,7 @@ static PyObject *__pyx_pf_12medianfilter_10_median_filter_uint64(CYTHON_UNUSED P
 
 /* Python wrapper */
 static PyObject *__pyx_pw_12medianfilter_13_median_filter_int32(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_12medianfilter_12_median_filter_int32[] = "_median_filter_int32(ndarray input_buffer, ndarray output_buffer, ndarray kernel_size, ndarray ranges, ndarray image_dim, bool conditionnal)";
+static char __pyx_doc_12medianfilter_12_median_filter_int32[] = "_median_filter_int32(ndarray input_buffer, ndarray output_buffer, ndarray kernel_size, ndarray ranges, ndarray image_dim, bool conditional)";
 static PyMethodDef __pyx_mdef_12medianfilter_13_median_filter_int32 = {"_median_filter_int32", (PyCFunction)__pyx_pw_12medianfilter_13_median_filter_int32, METH_VARARGS|METH_KEYWORDS, __pyx_doc_12medianfilter_12_median_filter_int32};
 static PyObject *__pyx_pw_12medianfilter_13_median_filter_int32(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyArrayObject *__pyx_v_input_buffer = 0;
@@ -4230,7 +4230,7 @@ static PyObject *__pyx_pw_12medianfilter_13_median_filter_int32(PyObject *__pyx_
   PyArrayObject *__pyx_v_kernel_size = 0;
   PyArrayObject *__pyx_v_ranges = 0;
   PyArrayObject *__pyx_v_image_dim = 0;
-  bool __pyx_v_conditionnal;
+  bool __pyx_v_conditional;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -4238,7 +4238,7 @@ static PyObject *__pyx_pw_12medianfilter_13_median_filter_int32(PyObject *__pyx_
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("_median_filter_int32 (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_input_buffer,&__pyx_n_s_output_buffer,&__pyx_n_s_kernel_size,&__pyx_n_s_ranges,&__pyx_n_s_image_dim,&__pyx_n_s_conditionnal,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_input_buffer,&__pyx_n_s_output_buffer,&__pyx_n_s_kernel_size,&__pyx_n_s_ranges,&__pyx_n_s_image_dim,&__pyx_n_s_conditional,0};
     PyObject* values[6] = {0,0,0,0,0,0};
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
@@ -4279,7 +4279,7 @@ static PyObject *__pyx_pw_12medianfilter_13_median_filter_int32(PyObject *__pyx_
           __Pyx_RaiseArgtupleInvalid("_median_filter_int32", 1, 6, 6, 4); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 255; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
         case  5:
-        if (likely((values[5] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_conditionnal)) != 0)) kw_args--;
+        if (likely((values[5] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_conditional)) != 0)) kw_args--;
         else {
           __Pyx_RaiseArgtupleInvalid("_median_filter_int32", 1, 6, 6, 5); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 255; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
@@ -4302,7 +4302,7 @@ static PyObject *__pyx_pw_12medianfilter_13_median_filter_int32(PyObject *__pyx_
     __pyx_v_kernel_size = ((PyArrayObject *)values[2]);
     __pyx_v_ranges = ((PyArrayObject *)values[3]);
     __pyx_v_image_dim = ((PyArrayObject *)values[4]);
-    __pyx_v_conditionnal = __Pyx_PyObject_IsTrue(values[5]); if (unlikely((__pyx_v_conditionnal == (bool)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 261; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+    __pyx_v_conditional = __Pyx_PyObject_IsTrue(values[5]); if (unlikely((__pyx_v_conditional == (bool)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 261; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
@@ -4317,7 +4317,7 @@ static PyObject *__pyx_pw_12medianfilter_13_median_filter_int32(PyObject *__pyx_
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_kernel_size), __pyx_ptype_5numpy_ndarray, 0, "kernel_size", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 258; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_ranges), __pyx_ptype_5numpy_ndarray, 0, "ranges", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 259; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_image_dim), __pyx_ptype_5numpy_ndarray, 0, "image_dim", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 260; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_r = __pyx_pf_12medianfilter_12_median_filter_int32(__pyx_self, __pyx_v_input_buffer, __pyx_v_output_buffer, __pyx_v_kernel_size, __pyx_v_ranges, __pyx_v_image_dim, __pyx_v_conditionnal);
+  __pyx_r = __pyx_pf_12medianfilter_12_median_filter_int32(__pyx_self, __pyx_v_input_buffer, __pyx_v_output_buffer, __pyx_v_kernel_size, __pyx_v_ranges, __pyx_v_image_dim, __pyx_v_conditional);
 
   /* function exit code */
   goto __pyx_L0;
@@ -4328,7 +4328,7 @@ static PyObject *__pyx_pw_12medianfilter_13_median_filter_int32(PyObject *__pyx_
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_12medianfilter_12_median_filter_int32(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_input_buffer, PyArrayObject *__pyx_v_output_buffer, PyArrayObject *__pyx_v_kernel_size, PyArrayObject *__pyx_v_ranges, PyArrayObject *__pyx_v_image_dim, bool __pyx_v_conditionnal) {
+static PyObject *__pyx_pf_12medianfilter_12_median_filter_int32(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_input_buffer, PyArrayObject *__pyx_v_output_buffer, PyArrayObject *__pyx_v_kernel_size, PyArrayObject *__pyx_v_ranges, PyArrayObject *__pyx_v_image_dim, bool __pyx_v_conditional) {
   CYTHON_UNUSED int __pyx_v_nthread;
   int __pyx_v_x;
   __Pyx_LocalBuf_ND __pyx_pybuffernd_image_dim;
@@ -4440,7 +4440,7 @@ static PyObject *__pyx_pf_12medianfilter_12_median_filter_int32(CYTHON_UNUSED Py
                 #define unlikely(x) (x)
             #endif
             #ifdef _OPENMP
-            #pragma omp parallel  private(__pyx_t_5, __pyx_t_7, __pyx_t_4, __pyx_t_6, __pyx_t_2, __pyx_t_3)
+            #pragma omp parallel  private(__pyx_t_2, __pyx_t_6, __pyx_t_5, __pyx_t_7, __pyx_t_4, __pyx_t_3)
             #endif /* _OPENMP */
             {
 
@@ -4486,7 +4486,7 @@ static PyObject *__pyx_pf_12medianfilter_12_median_filter_int32(CYTHON_UNUSED Py
  *                                              ranges[x+1]-1,
  *                                              0,
  *                                              image_dim[1]-1,             # <<<<<<<<<<<<<<
- *                                              conditionnal);
+ *                                              conditional);
  * 
  */
                                 __pyx_t_7 = 1;
@@ -4498,7 +4498,7 @@ static PyObject *__pyx_pf_12medianfilter_12_median_filter_int32(CYTHON_UNUSED Py
  *                                              <int*> output_buffer.data,
  *                                              <int*>kernel_size.data,
  */
-                                median_filter<int>(((int *)__pyx_v_input_buffer->data), ((int *)__pyx_v_output_buffer->data), ((int *)__pyx_v_kernel_size->data), ((int *)__pyx_v_image_dim->data), (*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_ranges.rcbuffer->pybuffer.buf, __pyx_t_5, __pyx_pybuffernd_ranges.diminfo[0].strides)), ((*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_ranges.rcbuffer->pybuffer.buf, __pyx_t_6, __pyx_pybuffernd_ranges.diminfo[0].strides)) - 1), 0, ((*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_image_dim.rcbuffer->pybuffer.buf, __pyx_t_7, __pyx_pybuffernd_image_dim.diminfo[0].strides)) - 1), __pyx_v_conditionnal);
+                                median_filter<int>(((int *)__pyx_v_input_buffer->data), ((int *)__pyx_v_output_buffer->data), ((int *)__pyx_v_kernel_size->data), ((int *)__pyx_v_image_dim->data), (*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_ranges.rcbuffer->pybuffer.buf, __pyx_t_5, __pyx_pybuffernd_ranges.diminfo[0].strides)), ((*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_ranges.rcbuffer->pybuffer.buf, __pyx_t_6, __pyx_pybuffernd_ranges.diminfo[0].strides)) - 1), 0, ((*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_image_dim.rcbuffer->pybuffer.buf, __pyx_t_7, __pyx_pybuffernd_image_dim.diminfo[0].strides)) - 1), __pyx_v_conditional);
                             }
                         }
                     }
@@ -4576,7 +4576,7 @@ static PyObject *__pyx_pf_12medianfilter_12_median_filter_int32(CYTHON_UNUSED Py
 
 /* Python wrapper */
 static PyObject *__pyx_pw_12medianfilter_15_median_filter_uint32(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_12medianfilter_14_median_filter_uint32[] = "_median_filter_uint32(ndarray input_buffer, ndarray output_buffer, ndarray kernel_size, ndarray ranges, ndarray image_dim, bool conditionnal)";
+static char __pyx_doc_12medianfilter_14_median_filter_uint32[] = "_median_filter_uint32(ndarray input_buffer, ndarray output_buffer, ndarray kernel_size, ndarray ranges, ndarray image_dim, bool conditional)";
 static PyMethodDef __pyx_mdef_12medianfilter_15_median_filter_uint32 = {"_median_filter_uint32", (PyCFunction)__pyx_pw_12medianfilter_15_median_filter_uint32, METH_VARARGS|METH_KEYWORDS, __pyx_doc_12medianfilter_14_median_filter_uint32};
 static PyObject *__pyx_pw_12medianfilter_15_median_filter_uint32(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyArrayObject *__pyx_v_input_buffer = 0;
@@ -4584,7 +4584,7 @@ static PyObject *__pyx_pw_12medianfilter_15_median_filter_uint32(PyObject *__pyx
   PyArrayObject *__pyx_v_kernel_size = 0;
   PyArrayObject *__pyx_v_ranges = 0;
   PyArrayObject *__pyx_v_image_dim = 0;
-  bool __pyx_v_conditionnal;
+  bool __pyx_v_conditional;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -4592,7 +4592,7 @@ static PyObject *__pyx_pw_12medianfilter_15_median_filter_uint32(PyObject *__pyx
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("_median_filter_uint32 (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_input_buffer,&__pyx_n_s_output_buffer,&__pyx_n_s_kernel_size,&__pyx_n_s_ranges,&__pyx_n_s_image_dim,&__pyx_n_s_conditionnal,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_input_buffer,&__pyx_n_s_output_buffer,&__pyx_n_s_kernel_size,&__pyx_n_s_ranges,&__pyx_n_s_image_dim,&__pyx_n_s_conditional,0};
     PyObject* values[6] = {0,0,0,0,0,0};
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
@@ -4633,7 +4633,7 @@ static PyObject *__pyx_pw_12medianfilter_15_median_filter_uint32(PyObject *__pyx
           __Pyx_RaiseArgtupleInvalid("_median_filter_uint32", 1, 6, 6, 4); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 283; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
         case  5:
-        if (likely((values[5] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_conditionnal)) != 0)) kw_args--;
+        if (likely((values[5] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_conditional)) != 0)) kw_args--;
         else {
           __Pyx_RaiseArgtupleInvalid("_median_filter_uint32", 1, 6, 6, 5); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 283; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
@@ -4656,7 +4656,7 @@ static PyObject *__pyx_pw_12medianfilter_15_median_filter_uint32(PyObject *__pyx
     __pyx_v_kernel_size = ((PyArrayObject *)values[2]);
     __pyx_v_ranges = ((PyArrayObject *)values[3]);
     __pyx_v_image_dim = ((PyArrayObject *)values[4]);
-    __pyx_v_conditionnal = __Pyx_PyObject_IsTrue(values[5]); if (unlikely((__pyx_v_conditionnal == (bool)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 289; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+    __pyx_v_conditional = __Pyx_PyObject_IsTrue(values[5]); if (unlikely((__pyx_v_conditional == (bool)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 289; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
@@ -4671,7 +4671,7 @@ static PyObject *__pyx_pw_12medianfilter_15_median_filter_uint32(PyObject *__pyx
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_kernel_size), __pyx_ptype_5numpy_ndarray, 0, "kernel_size", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 286; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_ranges), __pyx_ptype_5numpy_ndarray, 0, "ranges", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 287; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_image_dim), __pyx_ptype_5numpy_ndarray, 0, "image_dim", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 288; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_r = __pyx_pf_12medianfilter_14_median_filter_uint32(__pyx_self, __pyx_v_input_buffer, __pyx_v_output_buffer, __pyx_v_kernel_size, __pyx_v_ranges, __pyx_v_image_dim, __pyx_v_conditionnal);
+  __pyx_r = __pyx_pf_12medianfilter_14_median_filter_uint32(__pyx_self, __pyx_v_input_buffer, __pyx_v_output_buffer, __pyx_v_kernel_size, __pyx_v_ranges, __pyx_v_image_dim, __pyx_v_conditional);
 
   /* function exit code */
   goto __pyx_L0;
@@ -4682,7 +4682,7 @@ static PyObject *__pyx_pw_12medianfilter_15_median_filter_uint32(PyObject *__pyx
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_12medianfilter_14_median_filter_uint32(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_input_buffer, PyArrayObject *__pyx_v_output_buffer, PyArrayObject *__pyx_v_kernel_size, PyArrayObject *__pyx_v_ranges, PyArrayObject *__pyx_v_image_dim, bool __pyx_v_conditionnal) {
+static PyObject *__pyx_pf_12medianfilter_14_median_filter_uint32(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_input_buffer, PyArrayObject *__pyx_v_output_buffer, PyArrayObject *__pyx_v_kernel_size, PyArrayObject *__pyx_v_ranges, PyArrayObject *__pyx_v_image_dim, bool __pyx_v_conditional) {
   CYTHON_UNUSED int __pyx_v_nthread;
   int __pyx_v_x;
   __Pyx_LocalBuf_ND __pyx_pybuffernd_image_dim;
@@ -4794,7 +4794,7 @@ static PyObject *__pyx_pf_12medianfilter_14_median_filter_uint32(CYTHON_UNUSED P
                 #define unlikely(x) (x)
             #endif
             #ifdef _OPENMP
-            #pragma omp parallel  private(__pyx_t_5, __pyx_t_7, __pyx_t_4, __pyx_t_6, __pyx_t_2, __pyx_t_3)
+            #pragma omp parallel  private(__pyx_t_2, __pyx_t_6, __pyx_t_5, __pyx_t_7, __pyx_t_4, __pyx_t_3)
             #endif /* _OPENMP */
             {
 
@@ -4840,7 +4840,7 @@ static PyObject *__pyx_pf_12medianfilter_14_median_filter_uint32(CYTHON_UNUSED P
  *                                                 ranges[x+1]-1,
  *                                                 0,
  *                                                 image_dim[1]-1,             # <<<<<<<<<<<<<<
- *                                                 conditionnal);
+ *                                                 conditional);
  * 
  */
                                 __pyx_t_7 = 1;
@@ -4852,7 +4852,7 @@ static PyObject *__pyx_pf_12medianfilter_14_median_filter_uint32(CYTHON_UNUSED P
  *                                                 <uint32*> output_buffer.data,
  *                                                 <int*>kernel_size.data,
  */
-                                median_filter<__pyx_t_12medianfilter_uint32>(((__pyx_t_12medianfilter_uint32 *)__pyx_v_input_buffer->data), ((__pyx_t_12medianfilter_uint32 *)__pyx_v_output_buffer->data), ((int *)__pyx_v_kernel_size->data), ((int *)__pyx_v_image_dim->data), (*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_ranges.rcbuffer->pybuffer.buf, __pyx_t_5, __pyx_pybuffernd_ranges.diminfo[0].strides)), ((*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_ranges.rcbuffer->pybuffer.buf, __pyx_t_6, __pyx_pybuffernd_ranges.diminfo[0].strides)) - 1), 0, ((*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_image_dim.rcbuffer->pybuffer.buf, __pyx_t_7, __pyx_pybuffernd_image_dim.diminfo[0].strides)) - 1), __pyx_v_conditionnal);
+                                median_filter<__pyx_t_12medianfilter_uint32>(((__pyx_t_12medianfilter_uint32 *)__pyx_v_input_buffer->data), ((__pyx_t_12medianfilter_uint32 *)__pyx_v_output_buffer->data), ((int *)__pyx_v_kernel_size->data), ((int *)__pyx_v_image_dim->data), (*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_ranges.rcbuffer->pybuffer.buf, __pyx_t_5, __pyx_pybuffernd_ranges.diminfo[0].strides)), ((*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_ranges.rcbuffer->pybuffer.buf, __pyx_t_6, __pyx_pybuffernd_ranges.diminfo[0].strides)) - 1), 0, ((*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_image_dim.rcbuffer->pybuffer.buf, __pyx_t_7, __pyx_pybuffernd_image_dim.diminfo[0].strides)) - 1), __pyx_v_conditional);
                             }
                         }
                     }
@@ -4930,7 +4930,7 @@ static PyObject *__pyx_pf_12medianfilter_14_median_filter_uint32(CYTHON_UNUSED P
 
 /* Python wrapper */
 static PyObject *__pyx_pw_12medianfilter_17_median_filter_int16(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_12medianfilter_16_median_filter_int16[] = "_median_filter_int16(ndarray input_buffer, ndarray output_buffer, ndarray kernel_size, ndarray ranges, ndarray image_dim, bool conditionnal)";
+static char __pyx_doc_12medianfilter_16_median_filter_int16[] = "_median_filter_int16(ndarray input_buffer, ndarray output_buffer, ndarray kernel_size, ndarray ranges, ndarray image_dim, bool conditional)";
 static PyMethodDef __pyx_mdef_12medianfilter_17_median_filter_int16 = {"_median_filter_int16", (PyCFunction)__pyx_pw_12medianfilter_17_median_filter_int16, METH_VARARGS|METH_KEYWORDS, __pyx_doc_12medianfilter_16_median_filter_int16};
 static PyObject *__pyx_pw_12medianfilter_17_median_filter_int16(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyArrayObject *__pyx_v_input_buffer = 0;
@@ -4938,7 +4938,7 @@ static PyObject *__pyx_pw_12medianfilter_17_median_filter_int16(PyObject *__pyx_
   PyArrayObject *__pyx_v_kernel_size = 0;
   PyArrayObject *__pyx_v_ranges = 0;
   PyArrayObject *__pyx_v_image_dim = 0;
-  bool __pyx_v_conditionnal;
+  bool __pyx_v_conditional;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -4946,7 +4946,7 @@ static PyObject *__pyx_pw_12medianfilter_17_median_filter_int16(PyObject *__pyx_
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("_median_filter_int16 (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_input_buffer,&__pyx_n_s_output_buffer,&__pyx_n_s_kernel_size,&__pyx_n_s_ranges,&__pyx_n_s_image_dim,&__pyx_n_s_conditionnal,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_input_buffer,&__pyx_n_s_output_buffer,&__pyx_n_s_kernel_size,&__pyx_n_s_ranges,&__pyx_n_s_image_dim,&__pyx_n_s_conditional,0};
     PyObject* values[6] = {0,0,0,0,0,0};
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
@@ -4987,7 +4987,7 @@ static PyObject *__pyx_pw_12medianfilter_17_median_filter_int16(PyObject *__pyx_
           __Pyx_RaiseArgtupleInvalid("_median_filter_int16", 1, 6, 6, 4); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 311; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
         case  5:
-        if (likely((values[5] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_conditionnal)) != 0)) kw_args--;
+        if (likely((values[5] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_conditional)) != 0)) kw_args--;
         else {
           __Pyx_RaiseArgtupleInvalid("_median_filter_int16", 1, 6, 6, 5); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 311; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
@@ -5010,7 +5010,7 @@ static PyObject *__pyx_pw_12medianfilter_17_median_filter_int16(PyObject *__pyx_
     __pyx_v_kernel_size = ((PyArrayObject *)values[2]);
     __pyx_v_ranges = ((PyArrayObject *)values[3]);
     __pyx_v_image_dim = ((PyArrayObject *)values[4]);
-    __pyx_v_conditionnal = __Pyx_PyObject_IsTrue(values[5]); if (unlikely((__pyx_v_conditionnal == (bool)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 317; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+    __pyx_v_conditional = __Pyx_PyObject_IsTrue(values[5]); if (unlikely((__pyx_v_conditional == (bool)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 317; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
@@ -5025,7 +5025,7 @@ static PyObject *__pyx_pw_12medianfilter_17_median_filter_int16(PyObject *__pyx_
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_kernel_size), __pyx_ptype_5numpy_ndarray, 0, "kernel_size", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 314; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_ranges), __pyx_ptype_5numpy_ndarray, 0, "ranges", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 315; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_image_dim), __pyx_ptype_5numpy_ndarray, 0, "image_dim", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 316; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_r = __pyx_pf_12medianfilter_16_median_filter_int16(__pyx_self, __pyx_v_input_buffer, __pyx_v_output_buffer, __pyx_v_kernel_size, __pyx_v_ranges, __pyx_v_image_dim, __pyx_v_conditionnal);
+  __pyx_r = __pyx_pf_12medianfilter_16_median_filter_int16(__pyx_self, __pyx_v_input_buffer, __pyx_v_output_buffer, __pyx_v_kernel_size, __pyx_v_ranges, __pyx_v_image_dim, __pyx_v_conditional);
 
   /* function exit code */
   goto __pyx_L0;
@@ -5036,7 +5036,7 @@ static PyObject *__pyx_pw_12medianfilter_17_median_filter_int16(PyObject *__pyx_
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_12medianfilter_16_median_filter_int16(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_input_buffer, PyArrayObject *__pyx_v_output_buffer, PyArrayObject *__pyx_v_kernel_size, PyArrayObject *__pyx_v_ranges, PyArrayObject *__pyx_v_image_dim, bool __pyx_v_conditionnal) {
+static PyObject *__pyx_pf_12medianfilter_16_median_filter_int16(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_input_buffer, PyArrayObject *__pyx_v_output_buffer, PyArrayObject *__pyx_v_kernel_size, PyArrayObject *__pyx_v_ranges, PyArrayObject *__pyx_v_image_dim, bool __pyx_v_conditional) {
   CYTHON_UNUSED int __pyx_v_nthread;
   int __pyx_v_x;
   __Pyx_LocalBuf_ND __pyx_pybuffernd_image_dim;
@@ -5148,7 +5148,7 @@ static PyObject *__pyx_pf_12medianfilter_16_median_filter_int16(CYTHON_UNUSED Py
                 #define unlikely(x) (x)
             #endif
             #ifdef _OPENMP
-            #pragma omp parallel  private(__pyx_t_5, __pyx_t_7, __pyx_t_4, __pyx_t_6, __pyx_t_2, __pyx_t_3)
+            #pragma omp parallel  private(__pyx_t_2, __pyx_t_6, __pyx_t_5, __pyx_t_7, __pyx_t_4, __pyx_t_3)
             #endif /* _OPENMP */
             {
 
@@ -5194,7 +5194,7 @@ static PyObject *__pyx_pf_12medianfilter_16_median_filter_int16(CYTHON_UNUSED Py
  *                                                ranges[x+1]-1,
  *                                                0,
  *                                                image_dim[1]-1,             # <<<<<<<<<<<<<<
- *                                                conditionnal);
+ *                                                conditional);
  * 
  */
                                 __pyx_t_7 = 1;
@@ -5206,7 +5206,7 @@ static PyObject *__pyx_pf_12medianfilter_16_median_filter_int16(CYTHON_UNUSED Py
  *                                                <short*> output_buffer.data,
  *                                                <int*>kernel_size.data,
  */
-                                median_filter<short>(((short *)__pyx_v_input_buffer->data), ((short *)__pyx_v_output_buffer->data), ((int *)__pyx_v_kernel_size->data), ((int *)__pyx_v_image_dim->data), (*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_ranges.rcbuffer->pybuffer.buf, __pyx_t_5, __pyx_pybuffernd_ranges.diminfo[0].strides)), ((*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_ranges.rcbuffer->pybuffer.buf, __pyx_t_6, __pyx_pybuffernd_ranges.diminfo[0].strides)) - 1), 0, ((*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_image_dim.rcbuffer->pybuffer.buf, __pyx_t_7, __pyx_pybuffernd_image_dim.diminfo[0].strides)) - 1), __pyx_v_conditionnal);
+                                median_filter<short>(((short *)__pyx_v_input_buffer->data), ((short *)__pyx_v_output_buffer->data), ((int *)__pyx_v_kernel_size->data), ((int *)__pyx_v_image_dim->data), (*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_ranges.rcbuffer->pybuffer.buf, __pyx_t_5, __pyx_pybuffernd_ranges.diminfo[0].strides)), ((*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_ranges.rcbuffer->pybuffer.buf, __pyx_t_6, __pyx_pybuffernd_ranges.diminfo[0].strides)) - 1), 0, ((*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_image_dim.rcbuffer->pybuffer.buf, __pyx_t_7, __pyx_pybuffernd_image_dim.diminfo[0].strides)) - 1), __pyx_v_conditional);
                             }
                         }
                     }
@@ -5284,7 +5284,7 @@ static PyObject *__pyx_pf_12medianfilter_16_median_filter_int16(CYTHON_UNUSED Py
 
 /* Python wrapper */
 static PyObject *__pyx_pw_12medianfilter_19_median_filter_uint16(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_12medianfilter_18_median_filter_uint16[] = "_median_filter_uint16(ndarray input_buffer, ndarray output_buffer, ndarray kernel_size, ndarray ranges, ndarray image_dim, bool conditionnal)";
+static char __pyx_doc_12medianfilter_18_median_filter_uint16[] = "_median_filter_uint16(ndarray input_buffer, ndarray output_buffer, ndarray kernel_size, ndarray ranges, ndarray image_dim, bool conditional)";
 static PyMethodDef __pyx_mdef_12medianfilter_19_median_filter_uint16 = {"_median_filter_uint16", (PyCFunction)__pyx_pw_12medianfilter_19_median_filter_uint16, METH_VARARGS|METH_KEYWORDS, __pyx_doc_12medianfilter_18_median_filter_uint16};
 static PyObject *__pyx_pw_12medianfilter_19_median_filter_uint16(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyArrayObject *__pyx_v_input_buffer = 0;
@@ -5292,7 +5292,7 @@ static PyObject *__pyx_pw_12medianfilter_19_median_filter_uint16(PyObject *__pyx
   PyArrayObject *__pyx_v_kernel_size = 0;
   PyArrayObject *__pyx_v_ranges = 0;
   PyArrayObject *__pyx_v_image_dim = 0;
-  bool __pyx_v_conditionnal;
+  bool __pyx_v_conditional;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -5300,7 +5300,7 @@ static PyObject *__pyx_pw_12medianfilter_19_median_filter_uint16(PyObject *__pyx
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("_median_filter_uint16 (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_input_buffer,&__pyx_n_s_output_buffer,&__pyx_n_s_kernel_size,&__pyx_n_s_ranges,&__pyx_n_s_image_dim,&__pyx_n_s_conditionnal,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_input_buffer,&__pyx_n_s_output_buffer,&__pyx_n_s_kernel_size,&__pyx_n_s_ranges,&__pyx_n_s_image_dim,&__pyx_n_s_conditional,0};
     PyObject* values[6] = {0,0,0,0,0,0};
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
@@ -5341,7 +5341,7 @@ static PyObject *__pyx_pw_12medianfilter_19_median_filter_uint16(PyObject *__pyx
           __Pyx_RaiseArgtupleInvalid("_median_filter_uint16", 1, 6, 6, 4); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 339; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
         case  5:
-        if (likely((values[5] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_conditionnal)) != 0)) kw_args--;
+        if (likely((values[5] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_conditional)) != 0)) kw_args--;
         else {
           __Pyx_RaiseArgtupleInvalid("_median_filter_uint16", 1, 6, 6, 5); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 339; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
@@ -5364,7 +5364,7 @@ static PyObject *__pyx_pw_12medianfilter_19_median_filter_uint16(PyObject *__pyx
     __pyx_v_kernel_size = ((PyArrayObject *)values[2]);
     __pyx_v_ranges = ((PyArrayObject *)values[3]);
     __pyx_v_image_dim = ((PyArrayObject *)values[4]);
-    __pyx_v_conditionnal = __Pyx_PyObject_IsTrue(values[5]); if (unlikely((__pyx_v_conditionnal == (bool)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 345; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+    __pyx_v_conditional = __Pyx_PyObject_IsTrue(values[5]); if (unlikely((__pyx_v_conditional == (bool)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 345; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
@@ -5379,7 +5379,7 @@ static PyObject *__pyx_pw_12medianfilter_19_median_filter_uint16(PyObject *__pyx
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_kernel_size), __pyx_ptype_5numpy_ndarray, 0, "kernel_size", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 342; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_ranges), __pyx_ptype_5numpy_ndarray, 0, "ranges", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 343; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_image_dim), __pyx_ptype_5numpy_ndarray, 0, "image_dim", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 344; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_r = __pyx_pf_12medianfilter_18_median_filter_uint16(__pyx_self, __pyx_v_input_buffer, __pyx_v_output_buffer, __pyx_v_kernel_size, __pyx_v_ranges, __pyx_v_image_dim, __pyx_v_conditionnal);
+  __pyx_r = __pyx_pf_12medianfilter_18_median_filter_uint16(__pyx_self, __pyx_v_input_buffer, __pyx_v_output_buffer, __pyx_v_kernel_size, __pyx_v_ranges, __pyx_v_image_dim, __pyx_v_conditional);
 
   /* function exit code */
   goto __pyx_L0;
@@ -5390,7 +5390,7 @@ static PyObject *__pyx_pw_12medianfilter_19_median_filter_uint16(PyObject *__pyx
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_12medianfilter_18_median_filter_uint16(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_input_buffer, PyArrayObject *__pyx_v_output_buffer, PyArrayObject *__pyx_v_kernel_size, PyArrayObject *__pyx_v_ranges, PyArrayObject *__pyx_v_image_dim, bool __pyx_v_conditionnal) {
+static PyObject *__pyx_pf_12medianfilter_18_median_filter_uint16(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_input_buffer, PyArrayObject *__pyx_v_output_buffer, PyArrayObject *__pyx_v_kernel_size, PyArrayObject *__pyx_v_ranges, PyArrayObject *__pyx_v_image_dim, bool __pyx_v_conditional) {
   CYTHON_UNUSED int __pyx_v_nthread;
   int __pyx_v_x;
   __Pyx_LocalBuf_ND __pyx_pybuffernd_image_dim;
@@ -5502,7 +5502,7 @@ static PyObject *__pyx_pf_12medianfilter_18_median_filter_uint16(CYTHON_UNUSED P
                 #define unlikely(x) (x)
             #endif
             #ifdef _OPENMP
-            #pragma omp parallel  private(__pyx_t_5, __pyx_t_7, __pyx_t_4, __pyx_t_6, __pyx_t_2, __pyx_t_3)
+            #pragma omp parallel  private(__pyx_t_2, __pyx_t_6, __pyx_t_5, __pyx_t_7, __pyx_t_4, __pyx_t_3)
             #endif /* _OPENMP */
             {
 
@@ -5548,7 +5548,7 @@ static PyObject *__pyx_pf_12medianfilter_18_median_filter_uint16(CYTHON_UNUSED P
  *                                                 ranges[x+1]-1,
  *                                                 0,
  *                                                 image_dim[1]-1,             # <<<<<<<<<<<<<<
- *                                                 conditionnal);
+ *                                                 conditional);
  */
                                 __pyx_t_7 = 1;
 
@@ -5559,7 +5559,7 @@ static PyObject *__pyx_pf_12medianfilter_18_median_filter_uint16(CYTHON_UNUSED P
  *                                                 <uint16*> output_buffer.data,
  *                                                 <int*>kernel_size.data,
  */
-                                median_filter<__pyx_t_12medianfilter_uint16>(((__pyx_t_12medianfilter_uint16 *)__pyx_v_input_buffer->data), ((__pyx_t_12medianfilter_uint16 *)__pyx_v_output_buffer->data), ((int *)__pyx_v_kernel_size->data), ((int *)__pyx_v_image_dim->data), (*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_ranges.rcbuffer->pybuffer.buf, __pyx_t_5, __pyx_pybuffernd_ranges.diminfo[0].strides)), ((*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_ranges.rcbuffer->pybuffer.buf, __pyx_t_6, __pyx_pybuffernd_ranges.diminfo[0].strides)) - 1), 0, ((*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_image_dim.rcbuffer->pybuffer.buf, __pyx_t_7, __pyx_pybuffernd_image_dim.diminfo[0].strides)) - 1), __pyx_v_conditionnal);
+                                median_filter<__pyx_t_12medianfilter_uint16>(((__pyx_t_12medianfilter_uint16 *)__pyx_v_input_buffer->data), ((__pyx_t_12medianfilter_uint16 *)__pyx_v_output_buffer->data), ((int *)__pyx_v_kernel_size->data), ((int *)__pyx_v_image_dim->data), (*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_ranges.rcbuffer->pybuffer.buf, __pyx_t_5, __pyx_pybuffernd_ranges.diminfo[0].strides)), ((*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_ranges.rcbuffer->pybuffer.buf, __pyx_t_6, __pyx_pybuffernd_ranges.diminfo[0].strides)) - 1), 0, ((*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_image_dim.rcbuffer->pybuffer.buf, __pyx_t_7, __pyx_pybuffernd_image_dim.diminfo[0].strides)) - 1), __pyx_v_conditional);
                             }
                         }
                     }
@@ -7660,7 +7660,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_array, __pyx_k_array, sizeof(__pyx_k_array), 0, 0, 1, 1},
   {&__pyx_n_s_authors, __pyx_k_authors, sizeof(__pyx_k_authors), 0, 0, 1, 1},
   {&__pyx_n_s_check, __pyx_k_check, sizeof(__pyx_k_check), 0, 0, 1, 1},
-  {&__pyx_n_s_conditionnal, __pyx_k_conditionnal, sizeof(__pyx_k_conditionnal), 0, 0, 1, 1},
+  {&__pyx_n_s_conditional, __pyx_k_conditional, sizeof(__pyx_k_conditional), 0, 0, 1, 1},
   {&__pyx_n_s_date, __pyx_k_date, sizeof(__pyx_k_date), 0, 0, 1, 1},
   {&__pyx_n_s_dtype, __pyx_k_dtype, sizeof(__pyx_k_dtype), 0, 0, 1, 1},
   {&__pyx_n_s_flags, __pyx_k_flags, sizeof(__pyx_k_flags), 0, 0, 1, 1},
@@ -7864,11 +7864,11 @@ static int __Pyx_InitCachedConstants(void) {
   /* "medianfilter.pyx":45
  * ctypedef unsigned short uint16
  * 
- * def medfilt2d(input, kernel_size=3, bool conditionnal=False, int nthread=4):             # <<<<<<<<<<<<<<
+ * def medfilt2d(input, kernel_size=3, bool conditional=False, int nthread=4):             # <<<<<<<<<<<<<<
  *     """Function computing the median filter of the given input.
  *     Behavior at boundaries: the algorithm is reducing the size of the
  */
-  __pyx_tuple__13 = PyTuple_Pack(12, __pyx_n_s_input, __pyx_n_s_kernel_size, __pyx_n_s_conditionnal, __pyx_n_s_nthread, __pyx_n_s_reshaped, __pyx_n_s_output_buffer, __pyx_n_s_image_dim, __pyx_n_s_ker_dim, __pyx_n_s_maxThread, __pyx_n_s_ranges, __pyx_n_s_medfilterfc, __pyx_n_s_x); if (unlikely(!__pyx_tuple__13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 45; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__13 = PyTuple_Pack(12, __pyx_n_s_input, __pyx_n_s_kernel_size, __pyx_n_s_conditional, __pyx_n_s_nthread, __pyx_n_s_reshaped, __pyx_n_s_output_buffer, __pyx_n_s_image_dim, __pyx_n_s_ker_dim, __pyx_n_s_maxThread, __pyx_n_s_ranges, __pyx_n_s_medfilterfc, __pyx_n_s_x); if (unlikely(!__pyx_tuple__13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 45; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__13);
   __Pyx_GIVEREF(__pyx_tuple__13);
   __pyx_codeobj__14 = (PyObject*)__Pyx_PyCode_New(4, 0, 12, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__13, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_payno_Documents_dev_esrf, __pyx_n_s_medfilt2d, 45, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 45; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -7892,7 +7892,7 @@ static int __Pyx_InitCachedConstants(void) {
  *       cnumpy.ndarray[cnumpy.float32_t, ndim=2, mode='c'] input_buffer not None,
  *       cnumpy.ndarray[cnumpy.float32_t, ndim=2, mode='c'] output_buffer not None,
  */
-  __pyx_tuple__17 = PyTuple_Pack(8, __pyx_n_s_input_buffer, __pyx_n_s_output_buffer, __pyx_n_s_kernel_size, __pyx_n_s_ranges, __pyx_n_s_image_dim, __pyx_n_s_conditionnal, __pyx_n_s_nthread, __pyx_n_s_x); if (unlikely(!__pyx_tuple__17)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 144; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__17 = PyTuple_Pack(8, __pyx_n_s_input_buffer, __pyx_n_s_output_buffer, __pyx_n_s_kernel_size, __pyx_n_s_ranges, __pyx_n_s_image_dim, __pyx_n_s_conditional, __pyx_n_s_nthread, __pyx_n_s_x); if (unlikely(!__pyx_tuple__17)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 144; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__17);
   __Pyx_GIVEREF(__pyx_tuple__17);
   __pyx_codeobj__18 = (PyObject*)__Pyx_PyCode_New(6, 0, 8, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__17, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_payno_Documents_dev_esrf, __pyx_n_s_median_filter_float32, 144, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__18)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 144; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -7904,7 +7904,7 @@ static int __Pyx_InitCachedConstants(void) {
  *       cnumpy.ndarray[cnumpy.float64_t, ndim=2, mode='c'] input_buffer not None,
  *       cnumpy.ndarray[cnumpy.float64_t, ndim=2, mode='c'] output_buffer not None,
  */
-  __pyx_tuple__19 = PyTuple_Pack(8, __pyx_n_s_input_buffer, __pyx_n_s_output_buffer, __pyx_n_s_kernel_size, __pyx_n_s_ranges, __pyx_n_s_image_dim, __pyx_n_s_conditionnal, __pyx_n_s_nthread, __pyx_n_s_x); if (unlikely(!__pyx_tuple__19)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 172; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__19 = PyTuple_Pack(8, __pyx_n_s_input_buffer, __pyx_n_s_output_buffer, __pyx_n_s_kernel_size, __pyx_n_s_ranges, __pyx_n_s_image_dim, __pyx_n_s_conditional, __pyx_n_s_nthread, __pyx_n_s_x); if (unlikely(!__pyx_tuple__19)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 172; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__19);
   __Pyx_GIVEREF(__pyx_tuple__19);
   __pyx_codeobj__20 = (PyObject*)__Pyx_PyCode_New(6, 0, 8, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__19, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_payno_Documents_dev_esrf, __pyx_n_s_median_filter_float64, 172, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__20)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 172; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -7916,7 +7916,7 @@ static int __Pyx_InitCachedConstants(void) {
  *       cnumpy.ndarray[cnumpy.int64_t, ndim=2, mode='c'] input_buffer not None,
  *       cnumpy.ndarray[cnumpy.int64_t, ndim=2, mode='c'] output_buffer not None,
  */
-  __pyx_tuple__21 = PyTuple_Pack(8, __pyx_n_s_input_buffer, __pyx_n_s_output_buffer, __pyx_n_s_kernel_size, __pyx_n_s_ranges, __pyx_n_s_image_dim, __pyx_n_s_conditionnal, __pyx_n_s_nthread, __pyx_n_s_x); if (unlikely(!__pyx_tuple__21)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 200; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__21 = PyTuple_Pack(8, __pyx_n_s_input_buffer, __pyx_n_s_output_buffer, __pyx_n_s_kernel_size, __pyx_n_s_ranges, __pyx_n_s_image_dim, __pyx_n_s_conditional, __pyx_n_s_nthread, __pyx_n_s_x); if (unlikely(!__pyx_tuple__21)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 200; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__21);
   __Pyx_GIVEREF(__pyx_tuple__21);
   __pyx_codeobj__22 = (PyObject*)__Pyx_PyCode_New(6, 0, 8, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__21, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_payno_Documents_dev_esrf, __pyx_n_s_median_filter_int64, 200, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__22)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 200; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -7928,7 +7928,7 @@ static int __Pyx_InitCachedConstants(void) {
  *       cnumpy.ndarray[cnumpy.uint64_t, ndim=2, mode='c'] input_buffer not None,
  *       cnumpy.ndarray[cnumpy.uint64_t, ndim=2, mode='c'] output_buffer not None,
  */
-  __pyx_tuple__23 = PyTuple_Pack(8, __pyx_n_s_input_buffer, __pyx_n_s_output_buffer, __pyx_n_s_kernel_size, __pyx_n_s_ranges, __pyx_n_s_image_dim, __pyx_n_s_conditionnal, __pyx_n_s_nthread, __pyx_n_s_x); if (unlikely(!__pyx_tuple__23)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 227; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__23 = PyTuple_Pack(8, __pyx_n_s_input_buffer, __pyx_n_s_output_buffer, __pyx_n_s_kernel_size, __pyx_n_s_ranges, __pyx_n_s_image_dim, __pyx_n_s_conditional, __pyx_n_s_nthread, __pyx_n_s_x); if (unlikely(!__pyx_tuple__23)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 227; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__23);
   __Pyx_GIVEREF(__pyx_tuple__23);
   __pyx_codeobj__24 = (PyObject*)__Pyx_PyCode_New(6, 0, 8, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__23, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_payno_Documents_dev_esrf, __pyx_n_s_median_filter_uint64, 227, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__24)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 227; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -7940,7 +7940,7 @@ static int __Pyx_InitCachedConstants(void) {
  *       cnumpy.ndarray[cnumpy.int32_t, ndim=2, mode='c'] input_buffer not None,
  *       cnumpy.ndarray[cnumpy.int32_t, ndim=2, mode='c'] output_buffer not None,
  */
-  __pyx_tuple__25 = PyTuple_Pack(8, __pyx_n_s_input_buffer, __pyx_n_s_output_buffer, __pyx_n_s_kernel_size, __pyx_n_s_ranges, __pyx_n_s_image_dim, __pyx_n_s_conditionnal, __pyx_n_s_nthread, __pyx_n_s_x); if (unlikely(!__pyx_tuple__25)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 255; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__25 = PyTuple_Pack(8, __pyx_n_s_input_buffer, __pyx_n_s_output_buffer, __pyx_n_s_kernel_size, __pyx_n_s_ranges, __pyx_n_s_image_dim, __pyx_n_s_conditional, __pyx_n_s_nthread, __pyx_n_s_x); if (unlikely(!__pyx_tuple__25)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 255; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__25);
   __Pyx_GIVEREF(__pyx_tuple__25);
   __pyx_codeobj__26 = (PyObject*)__Pyx_PyCode_New(6, 0, 8, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__25, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_payno_Documents_dev_esrf, __pyx_n_s_median_filter_int32, 255, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__26)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 255; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -7952,7 +7952,7 @@ static int __Pyx_InitCachedConstants(void) {
  *       cnumpy.ndarray[cnumpy.uint32_t, ndim=2, mode='c'] input_buffer not None,
  *       cnumpy.ndarray[cnumpy.uint32_t, ndim=2, mode='c'] output_buffer not None,
  */
-  __pyx_tuple__27 = PyTuple_Pack(8, __pyx_n_s_input_buffer, __pyx_n_s_output_buffer, __pyx_n_s_kernel_size, __pyx_n_s_ranges, __pyx_n_s_image_dim, __pyx_n_s_conditionnal, __pyx_n_s_nthread, __pyx_n_s_x); if (unlikely(!__pyx_tuple__27)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 283; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__27 = PyTuple_Pack(8, __pyx_n_s_input_buffer, __pyx_n_s_output_buffer, __pyx_n_s_kernel_size, __pyx_n_s_ranges, __pyx_n_s_image_dim, __pyx_n_s_conditional, __pyx_n_s_nthread, __pyx_n_s_x); if (unlikely(!__pyx_tuple__27)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 283; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__27);
   __Pyx_GIVEREF(__pyx_tuple__27);
   __pyx_codeobj__28 = (PyObject*)__Pyx_PyCode_New(6, 0, 8, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__27, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_payno_Documents_dev_esrf, __pyx_n_s_median_filter_uint32, 283, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__28)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 283; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -7964,7 +7964,7 @@ static int __Pyx_InitCachedConstants(void) {
  *       cnumpy.ndarray[cnumpy.int16_t, ndim=2, mode='c'] input_buffer not None,
  *       cnumpy.ndarray[cnumpy.int16_t, ndim=2, mode='c'] output_buffer not None,
  */
-  __pyx_tuple__29 = PyTuple_Pack(8, __pyx_n_s_input_buffer, __pyx_n_s_output_buffer, __pyx_n_s_kernel_size, __pyx_n_s_ranges, __pyx_n_s_image_dim, __pyx_n_s_conditionnal, __pyx_n_s_nthread, __pyx_n_s_x); if (unlikely(!__pyx_tuple__29)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 311; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__29 = PyTuple_Pack(8, __pyx_n_s_input_buffer, __pyx_n_s_output_buffer, __pyx_n_s_kernel_size, __pyx_n_s_ranges, __pyx_n_s_image_dim, __pyx_n_s_conditional, __pyx_n_s_nthread, __pyx_n_s_x); if (unlikely(!__pyx_tuple__29)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 311; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__29);
   __Pyx_GIVEREF(__pyx_tuple__29);
   __pyx_codeobj__30 = (PyObject*)__Pyx_PyCode_New(6, 0, 8, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__29, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_payno_Documents_dev_esrf, __pyx_n_s_median_filter_int16, 311, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__30)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 311; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -7976,7 +7976,7 @@ static int __Pyx_InitCachedConstants(void) {
  *       cnumpy.ndarray[cnumpy.uint16_t, ndim=2, mode='c'] input_buffer not None,
  *       cnumpy.ndarray[cnumpy.uint16_t, ndim=2, mode='c'] output_buffer not None,
  */
-  __pyx_tuple__31 = PyTuple_Pack(8, __pyx_n_s_input_buffer, __pyx_n_s_output_buffer, __pyx_n_s_kernel_size, __pyx_n_s_ranges, __pyx_n_s_image_dim, __pyx_n_s_conditionnal, __pyx_n_s_nthread, __pyx_n_s_x); if (unlikely(!__pyx_tuple__31)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 339; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__31 = PyTuple_Pack(8, __pyx_n_s_input_buffer, __pyx_n_s_output_buffer, __pyx_n_s_kernel_size, __pyx_n_s_ranges, __pyx_n_s_image_dim, __pyx_n_s_conditional, __pyx_n_s_nthread, __pyx_n_s_x); if (unlikely(!__pyx_tuple__31)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 339; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__31);
   __Pyx_GIVEREF(__pyx_tuple__31);
   __pyx_codeobj__32 = (PyObject*)__Pyx_PyCode_New(6, 0, 8, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__31, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_payno_Documents_dev_esrf, __pyx_n_s_median_filter_uint16, 339, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__32)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 339; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -8157,7 +8157,7 @@ PyMODINIT_FUNC PyInit_medianfilter(void)
   /* "medianfilter.pyx":45
  * ctypedef unsigned short uint16
  * 
- * def medfilt2d(input, kernel_size=3, bool conditionnal=False, int nthread=4):             # <<<<<<<<<<<<<<
+ * def medfilt2d(input, kernel_size=3, bool conditional=False, int nthread=4):             # <<<<<<<<<<<<<<
  *     """Function computing the median filter of the given input.
  *     Behavior at boundaries: the algorithm is reducing the size of the
  */
