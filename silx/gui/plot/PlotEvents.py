@@ -53,6 +53,9 @@ class Type(enum.Enum):
     ItemClicked = 'itemClicked'
     """Type of the `ItemClickedEvent` when an item is clicked"""
 
+    ItemHovered = 'itemHovered'
+    """Type of the `ItemHoveredEvent` when an item is hovered"""
+
     RegionChangeStarted = "regionChangeStarted"
     """Type of the `RegionChangeStartedEvent` when the shape of an item start
     changing."""
@@ -354,17 +357,62 @@ class MouseDoubleClickedEvent(MouseEvent):
                             screenPos)
 
 
-def prepareHoverSignal(label, type_, posData, posPixel, draggable, selectable):
-    """See Plot documentation for content of events"""
-    return {'event': 'hover',
-            'label': label,
-            'type': type_,
-            'x': posData[0],
-            'y': posData[1],
-            'xpixel': posPixel[0],
-            'ypixel': posPixel[1],
-            'draggable': draggable,
-            'selectable': selectable}
+class ItemHoveredEvent(MouseEvent):
+    """The ItemHoveredEvent provides an event when an item is hovered by the
+    mouse."""
+
+    def __init__(self, item, scenePos, screenPos):
+        MouseEvent.__init__(self, Type.ItemHovered, qt.Qt.NoButton, scenePos, screenPos)
+        self.__item = item
+
+    def getItem(self):
+        """Returns the hovered item
+
+        :rtype: silx.gui.plot.items.Item
+        """
+        return self.__item
+
+    def __getitem__(self, key):
+        """Returns event content using the old dictionary-key mapping.
+
+        This is deprecated. Look at the source code to have a description of
+        available key names.
+
+        :param str key: Name of the old key.
+        :rtype: object
+        :raises KeyError: If the requested key is not available
+        """
+        if key == 'event':
+            return "hover"
+        elif key == 'type':
+            if isinstance(self.__item, items.marker._BaseMarker):
+                return "marker"
+            else:
+                # NOTE it is not part of the compatibility layer
+                # But it have to work, then we returns something else
+                return "unknown"
+        elif key == "label":
+            return self.__item.getLegend()
+        elif key == "x":
+            return self.getScenePos()[0]
+        elif key == "y":
+            return self.getScenePos()[1]
+        elif key == 'xpixel':
+            return self.getScreenPos()[0]
+        elif key == 'ypixel':
+            return self.getScreenPos()[1]
+        elif key == 'draggable':
+            if isinstance(self.__item, items.marker._BaseMarker):
+                return self.__item.isDraggable()
+            else:
+                return False
+        elif key == 'selectable':
+            if isinstance(self.__item, items.marker._BaseMarker):
+                return self.__item.isSelectable()
+            else:
+                return False
+        else:
+            raise KeyError("Key %s not found" % key)
 
 
 def prepareMarkerSignal(eventType, button, label, type_,

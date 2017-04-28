@@ -39,8 +39,7 @@ from . import items
 from .Interaction import (ClickOrDrag, LEFT_BTN, RIGHT_BTN,
                           State, StateMachine)
 from . import PlotEvents
-from .PlotEvents import (prepareHoverSignal,
-                         prepareMarkerSignal)
+from .PlotEvents import prepareMarkerSignal
 
 from .backends.BackendBase import (CURSOR_POINTING, CURSOR_SIZE_HOR,
                                    CURSOR_SIZE_VER, CURSOR_SIZE_ALL)
@@ -966,12 +965,11 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
             if marker is not None:
                 dataPos = self.machine.plot.pixelToData(x, y)
                 assert dataPos is not None
-                eventDict = prepareHoverSignal(
-                    marker.getLegend(), 'marker',
-                    dataPos, (x, y),
-                    marker.isDraggable(),
-                    marker.isSelectable())
-                self.machine.plot.notify(**eventDict)
+                event = PlotEvents.ItemHoveredEvent(
+                    marker,
+                    dataPos,
+                    (x, y))
+                self.machine.plot.notify(event)
 
             if marker != self._hoverMarker:
                 self._hoverMarker = marker

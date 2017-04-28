@@ -130,6 +130,16 @@ class TestEvents(unittest.TestCase):
         event = PlotEvents.ItemRegionChangedEvent("item")
         self.assertEquals(event.getType(), PlotEvents.Type.RegionChanged)
 
+    def testItemHoverdEvent(self):
+        posData = [10, 11]
+        posPixel = [12, 13]
+        item = "a"
+        event = PlotEvents.ItemHoveredEvent(item, posData, posPixel)
+        self.assertEquals(event.getType(), PlotEvents.Type.ItemHovered)
+        self.assertEquals(event.getItem(), item)
+        self.assertEquals(event.getScenePos(), posData)
+        self.assertEquals(event.getScreenPos(), posPixel)
+
 
 class TestDictionaryLikeGetter(unittest.TestCase):
     """Test old getter in plot events. Events have to support a set of
@@ -181,20 +191,21 @@ class TestDictionaryLikeGetter(unittest.TestCase):
 
     def testHoverEvent(self):
         label = "a"
-        eventType = "b"
-        posData = ["c0", "c1"]
-        posPixel = ["d0", "d1"]
-        draggable = "e"
-        selectable = "f"
-        event = PlotEvents.prepareHoverSignal(label, eventType, posData, posPixel, draggable, selectable)
+        posData = [10, 11]
+        posPixel = [12, 13]
+        item = items.YMarker()
+        item._setLegend(label)
+        item._setSelectable(True)
+        item._setDraggable(False)
+        event = PlotEvents.ItemHoveredEvent(item, posData, posPixel)
         self.assertEquals(event['event'], "hover")
         self.assertEquals(event['label'], label)
         self.assertEquals(event['x'], posData[0])
         self.assertEquals(event['y'], posData[1])
         self.assertEquals(event['xpixel'], posPixel[0])
         self.assertEquals(event['ypixel'], posPixel[1])
-        self.assertEquals(event['draggable'], draggable)
-        self.assertEquals(event['selectable'], selectable)
+        self.assertEquals(event['draggable'], False)
+        self.assertEquals(event['selectable'], True)
 
     def testImageEvent(self):
         button = qt.Qt.LeftButton
