@@ -493,51 +493,6 @@ class ItemHoveredEvent(MouseEvent):
             raise KeyError("Key %s not found" % key)
 
 
-def prepareMarkerSignal(eventType, button, label, type_,
-                        draggable, selectable,
-                        posDataMarker,
-                        posPixelCursor=None, posDataCursor=None):
-    """See Plot documentation for content of events"""
-    if eventType == 'markerClicked':
-        assert posPixelCursor is not None
-        assert posDataCursor is None
-
-        posDataCursor = list(posDataMarker)
-        if hasattr(posDataCursor[0], "__len__"):
-            posDataCursor[0] = posDataCursor[0][-1]
-        if hasattr(posDataCursor[1], "__len__"):
-            posDataCursor[1] = posDataCursor[1][-1]
-
-    elif eventType == 'markerMoving':
-        assert posPixelCursor is not None
-        assert posDataCursor is not None
-
-    elif eventType == 'markerMoved':
-        assert posPixelCursor is None
-        assert posDataCursor is None
-
-        posDataCursor = posDataMarker
-    else:
-        raise NotImplementedError("Unknown event type {0}".format(eventType))
-
-    eventDict = {'event': eventType,
-                 'button': button,
-                 'label': label,
-                 'type': type_,
-                 'x': posDataCursor[0],
-                 'y': posDataCursor[1],
-                 'xdata': posDataMarker[0],
-                 'ydata': posDataMarker[1],
-                 'draggable': draggable,
-                 'selectable': selectable}
-
-    if eventType in ('markerMoving', 'markerClicked'):
-        eventDict['xpixel'] = posPixelCursor[0]
-        eventDict['ypixel'] = posPixelCursor[1]
-
-    return eventDict
-
-
 class ItemClickedEvent(MouseClickedEvent):
     """The ItemClickedEvent provides an event that is generated when the mouse
     is clicked on an item of the plot. It is a `MouseClickedEvent` which also
