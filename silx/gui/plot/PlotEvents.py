@@ -497,27 +497,6 @@ class ItemClickedEvent(MouseClickedEvent):
         :rtype: object
         :raises KeyError: If the requested key is not available
         """
-        if key == 'label':
-            return self.__item.getLegend()
-        elif key == "x":
-            return self.getScenePos()[0]
-        elif key == "y":
-            return self.getScenePos()[1]
-        elif key == 'xpixel':
-            return self.getScreenPos()[0]
-        elif key == 'ypixel':
-            return self.getScreenPos()[1]
-        elif key == 'button':
-            buttons = {
-                'left': 'left',
-                'right': 'right',
-                'middle': 'middle',
-                qt.Qt.LeftButton: 'left',
-                qt.Qt.RightButton: 'right',
-                qt.Qt.MiddleButton: 'middle',
-                qt.Qt.NoButton: None,
-            }
-            return buttons[self.getButton()]
 
         if isinstance(self.__item, items.ImageBase):
             if key == 'event':
@@ -540,6 +519,70 @@ class ItemClickedEvent(MouseClickedEvent):
             elif key == 'ydata':
                 index = self.__itemIndices
                 return self.__item.getYData(copy=False)[index]
+
+        elif isinstance(self.__item, items.marker._BaseMarker):
+            if key == 'event':
+                return "markerClicked"
+            elif key == "type":
+                return "marker"
+            elif key == "x":
+                # NOTE: x is not about the mouse (like other items)
+                # but about the marker position
+                xData = self.__item.getXPosition()
+                if xData is None:
+                    xData = [0, 1]
+                return xData
+            elif key == 'y':
+                # NOTE: y is not about the mouse (like other items)
+                # but about the marker position
+                yData = self.__item.getYPosition()
+                if yData is None:
+                    yData = [0, 1]
+                return yData
+            elif key == "xdata":
+                xData = self.__item.getXPosition()
+                if xData is None:
+                    xData = [0, 1]
+                return xData
+            elif key == 'ydata':
+                yData = self.__item.getYPosition()
+                if yData is None:
+                    yData = [0, 1]
+                return yData
+            elif key == 'draggable':
+                return self.__item.isDraggable()
+            elif key == 'selectable':
+                return self.__item.isSelectable()
+
+        else:
+            # NOTE it is not part of the compatibility layer
+            # But it have to work, then we returns something else
+            if key == 'event':
+                return "unknownMoving"
+            elif key == "type":
+                return "unknown"
+
+        if key == 'label':
+            return self.__item.getLegend()
+        elif key == "x":
+            return self.getScenePos()[0]
+        elif key == "y":
+            return self.getScenePos()[1]
+        elif key == 'xpixel':
+            return self.getScreenPos()[0]
+        elif key == 'ypixel':
+            return self.getScreenPos()[1]
+        elif key == 'button':
+            buttons = {
+                'left': 'left',
+                'right': 'right',
+                'middle': 'middle',
+                qt.Qt.LeftButton: 'left',
+                qt.Qt.RightButton: 'right',
+                qt.Qt.MiddleButton: 'middle',
+                qt.Qt.NoButton: None,
+            }
+            return buttons[self.getButton()]
 
         raise KeyError("Key %s not found" % key)
 

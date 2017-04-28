@@ -1033,21 +1033,12 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
             marker = self.plot._pickMarker(
                 x, y, lambda m: m.isSelectable())
             if marker is not None:
-                xData, yData = marker.getPosition()
-                if xData is None:
-                    xData = [0, 1]
-                if yData is None:
-                    yData = [0, 1]
+                dataPos = self.plot.pixelToData(x, y)
+                assert dataPos is not None
 
-                eventDict = prepareMarkerSignal('markerClicked',
-                                                'left',
-                                                marker.getLegend(),
-                                                'marker',
-                                                marker.isDraggable(),
-                                                marker.isSelectable(),
-                                                (xData, yData),
-                                                (x, y), None)
-                return eventDict
+                event = PlotEvents.ItemClickedEvent(
+                    "left", marker, None, dataPos, (x, y))
+                return event
 
             else:
                 picked = self.plot._pickImageOrCurve(

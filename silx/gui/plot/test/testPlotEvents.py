@@ -308,6 +308,60 @@ class TestDictionaryLikeGetter(unittest.TestCase):
         self.assertEquals(event['xpixel'], posPixelCursor[0])
         self.assertEquals(event['ypixel'], posPixelCursor[1])
 
+    def testMarkerClicked(self):
+        button = "left"
+        label = "l"
+        draggable = True
+        selectable = False
+        posDataMarker = (10, 11)
+        posPixelCursor = (12, 13)
+        scenePos = (14, 15)
+        index = "foo"
+        item = items.marker.Marker()
+        item._setLegend(label)
+        item.setPosition(posDataMarker[0], posDataMarker[1])
+        item._setDraggable(draggable)
+        item._setSelectable(selectable)
+
+        event = PlotEvents.ItemClickedEvent(button, item, index, scenePos, posPixelCursor)
+        self.assertEquals(event['event'], "markerClicked")
+        self.assertEquals(event['button'], button)
+        self.assertEquals(event['label'], label)
+        self.assertEquals(event['type'], "marker")
+        self.assertEquals(event['x'], posDataMarker[0])
+        self.assertEquals(event['y'], posDataMarker[1])
+        self.assertEquals(event['xdata'], posDataMarker[0])
+        self.assertEquals(event['ydata'], posDataMarker[1])
+        self.assertEquals(event['draggable'], draggable)
+        self.assertEquals(event['selectable'], selectable)
+        self.assertEquals(event['xpixel'], posPixelCursor[0])
+        self.assertEquals(event['ypixel'], posPixelCursor[1])
+
+    def testMarkerClickedOld(self):
+        eventType = "markerClicked"
+        button = "b"
+        label = "l"
+        type_ = "t"
+        draggable = "d"
+        selectable = "s"
+        posDataMarker = (10, 11)
+        posPixelCursor = (12, 13)
+        event = PlotEvents.prepareMarkerSignal(
+            eventType, button, label, type_, draggable, selectable,
+            posDataMarker, posPixelCursor, posDataCursor=None)
+        self.assertEquals(event['event'], eventType)
+        self.assertEquals(event['button'], button)
+        self.assertEquals(event['label'], label)
+        self.assertEquals(event['type'], type_)
+        self.assertEquals(event['x'], posDataMarker[0])
+        self.assertEquals(event['y'], posDataMarker[1])
+        self.assertEquals(event['xdata'], posDataMarker[0])
+        self.assertEquals(event['ydata'], posDataMarker[1])
+        self.assertEquals(event['draggable'], draggable)
+        self.assertEquals(event['selectable'], selectable)
+        self.assertEquals(event['xpixel'], posPixelCursor[0])
+        self.assertEquals(event['ypixel'], posPixelCursor[1])
+
 
 def suite():
     test_suite = unittest.TestSuite()
