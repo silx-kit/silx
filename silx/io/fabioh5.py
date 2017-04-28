@@ -598,13 +598,8 @@ class SampleGroup(LazyLoadableGroup):
             unit_cell_data[0, 3:] = data
             data = Dataset("unit_cell", unit_cell_data, attrs=scalar)
             self.add_node(data)
-            # According to this issue the UB matrix is not yet available
-            # in the Nexus specification (it only can describe the U matrix)
-            # We are using "ub" temporarly as proposed by Armando
-            # https://github.com/nexusformat/definitions/issues/559
-            # TODO update it when the specification is fixed (valls 2017-04)
             data = self.__fabio_reader.get_ub_matrix()
-            data = Dataset("ub", data, attrs=scalar)
+            data = Dataset("ub_matrix", data, attrs=scalar)
             self.add_node(data)
 
 
