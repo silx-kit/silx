@@ -39,8 +39,7 @@ from . import items
 from .Interaction import (ClickOrDrag, LEFT_BTN, RIGHT_BTN,
                           State, StateMachine)
 from . import PlotEvents
-from .PlotEvents import (prepareDrawingSignal,
-                         prepareHoverSignal,
+from .PlotEvents import (prepareHoverSignal,
                          prepareMarkerSignal)
 
 from .backends.BackendBase import (CURSOR_POINTING, CURSOR_SIZE_HOR,
@@ -443,11 +442,11 @@ class SelectPolygon(Select):
             self.machine.setSelectionArea(self.points,
                                           fill='hatch',
                                           color=self.machine.color)
-            eventDict = prepareDrawingSignal('drawingProgress',
-                                             'polygon',
-                                             self.points,
-                                             self.machine.parameters)
-            self.machine.plot.notify(**eventDict)
+            item = items.PolygonDrawItem()
+            points = numpy.array(self.points)
+            item.setData(points[:, 0], points[:, 1])
+            event = PlotEvents.ItemRegionChangedEvent(item)
+            self.machine.plot.notify(event)
 
         def onWheel(self, x, y, angle):
             self.machine.onWheel(x, y, angle)
@@ -469,11 +468,11 @@ class SelectPolygon(Select):
 
                     self.points[-1] = self.points[0]
 
-                    eventDict = prepareDrawingSignal('drawingFinished',
-                                                     'polygon',
-                                                     self.points,
-                                                     self.machine.parameters)
-                    self.machine.plot.notify(**eventDict)
+                    item = items.PolygonDrawItem()
+                    points = numpy.array(self.points)
+                    item.setData(points[:, 0], points[:, 1])
+                    event = PlotEvents.ItemRegionChangeFinishedEvent(item)
+                    self.machine.plot.notify(event)
                     self.goto('idle')
                     return False
 
@@ -602,11 +601,10 @@ class SelectRectangle(Select2Points):
                               fill='hatch',
                               color=self.color)
 
-        eventDict = prepareDrawingSignal('drawingProgress',
-                                         'rectangle',
-                                         (self.startPt, dataPos),
-                                         self.parameters)
-        self.plot.notify(**eventDict)
+        item = items.RectangleDrawItem()
+        item.setData([self.startPt[0], dataPos[0]], [self.startPt[1], dataPos[1]])
+        event = PlotEvents.ItemRegionChangedEvent(item)
+        self.plot.notify(event)
 
     def endSelect(self, x, y):
         self.resetSelectionArea()
@@ -614,11 +612,10 @@ class SelectRectangle(Select2Points):
         dataPos = self.plot.pixelToData(x, y)
         assert dataPos is not None
 
-        eventDict = prepareDrawingSignal('drawingFinished',
-                                         'rectangle',
-                                         (self.startPt, dataPos),
-                                         self.parameters)
-        self.plot.notify(**eventDict)
+        item = items.RectangleDrawItem()
+        item.setData([self.startPt[0], dataPos[0]], [self.startPt[1], dataPos[1]])
+        event = PlotEvents.ItemRegionChangeFinishedEvent(item)
+        self.plot.notify(event)
 
     def cancelSelect(self):
         self.resetSelectionArea()
@@ -638,11 +635,10 @@ class SelectLine(Select2Points):
                               fill='hatch',
                               color=self.color)
 
-        eventDict = prepareDrawingSignal('drawingProgress',
-                                         'line',
-                                         (self.startPt, dataPos),
-                                         self.parameters)
-        self.plot.notify(**eventDict)
+        item = items.LineDrawItem()
+        item.setData([self.startPt[0], dataPos[0]], [self.startPt[1], dataPos[1]])
+        event = PlotEvents.ItemRegionChangedEvent(item)
+        self.plot.notify(event)
 
     def endSelect(self, x, y):
         self.resetSelectionArea()
@@ -650,11 +646,10 @@ class SelectLine(Select2Points):
         dataPos = self.plot.pixelToData(x, y)
         assert dataPos is not None
 
-        eventDict = prepareDrawingSignal('drawingFinished',
-                                         'line',
-                                         (self.startPt, dataPos),
-                                         self.parameters)
-        self.plot.notify(**eventDict)
+        item = items.LineDrawItem()
+        item.setData([self.startPt[0], dataPos[0]], [self.startPt[1], dataPos[1]])
+        event = PlotEvents.ItemRegionChangeFinishedEvent(item)
+        self.plot.notify(event)
 
     def cancelSelect(self):
         self.resetSelectionArea()
@@ -720,22 +715,23 @@ class SelectHLine(Select1Point):
 
     def select(self, x, y):
         points = self._hLine(y)
+        points = numpy.array(points)
         self.setSelectionArea(points, fill='hatch', color=self.color)
 
-        eventDict = prepareDrawingSignal('drawingProgress',
-                                         'hline',
-                                         points,
-                                         self.parameters)
-        self.plot.notify(**eventDict)
+        item = items.HLineDrawItem()
+        item.setData(points[:, 0], points[:, 1])
+        event = PlotEvents.ItemRegionChangedEvent(item)
+        self.plot.notify(event)
 
     def endSelect(self, x, y):
         self.resetSelectionArea()
+        points = self._hLine(y)
+        points = numpy.array(points)
 
-        eventDict = prepareDrawingSignal('drawingFinished',
-                                         'hline',
-                                         self._hLine(y),
-                                         self.parameters)
-        self.plot.notify(**eventDict)
+        item = items.HLineDrawItem()
+        item.setData(points[:, 0], points[:, 1])
+        event = PlotEvents.ItemRegionChangeFinishedEvent(item)
+        self.plot.notify(event)
 
     def cancelSelect(self):
         self.resetSelectionArea()
@@ -756,22 +752,23 @@ class SelectVLine(Select1Point):
 
     def select(self, x, y):
         points = self._vLine(x)
+        points = numpy.array(points)
         self.setSelectionArea(points, fill='hatch', color=self.color)
 
-        eventDict = prepareDrawingSignal('drawingProgress',
-                                         'vline',
-                                         points,
-                                         self.parameters)
-        self.plot.notify(**eventDict)
+        item = items.VLineDrawItem()
+        item.setData(points[:, 0], points[:, 1])
+        event = PlotEvents.ItemRegionChangedEvent(item)
+        self.plot.notify(event)
 
     def endSelect(self, x, y):
         self.resetSelectionArea()
+        points = self._vLine(x)
+        points = numpy.array(points)
 
-        eventDict = prepareDrawingSignal('drawingFinished',
-                                         'vline',
-                                         self._vLine(x),
-                                         self.parameters)
-        self.plot.notify(**eventDict)
+        item = items.VLineDrawItem()
+        item.setData(points[:, 0], points[:, 1])
+        event = PlotEvents.ItemRegionChangeFinishedEvent(item)
+        self.plot.notify(event)
 
     def cancelSelect(self):
         self.resetSelectionArea()
@@ -852,11 +849,12 @@ class DrawFreeHand(Select):
                 # Skip same points
                 return
         self._points.append(pos)
-        eventDict = prepareDrawingSignal('drawingProgress',
-                                         'polylines',
-                                         self._points,
-                                         self.parameters)
-        self.plot.notify(**eventDict)
+
+        item = items.PolylinesDrawItem()
+        points = numpy.array(self._points)
+        item.setData(points[:, 0], points[:, 1])
+        event = PlotEvents.ItemRegionChangedEvent(item)
+        self.plot.notify(event)
 
     def endSelect(self, x, y):
         pos = self.plot.pixelToData(x, y, check=False)
@@ -865,11 +863,12 @@ class DrawFreeHand(Select):
                 # Append if different
                 self._points.append(pos)
 
-        eventDict = prepareDrawingSignal('drawingFinished',
-                                         'polylines',
-                                         self._points,
-                                         self.parameters)
-        self.plot.notify(**eventDict)
+        item = items.PolylinesDrawItem()
+        points = numpy.array(self._points)
+        item.setData(points[:, 0], points[:, 1])
+        event = PlotEvents.ItemRegionChangeFinishedEvent(item)
+        self.plot.notify(event)
+
         self._points = None
 
     def cancelSelect(self):
@@ -928,12 +927,13 @@ class SelectFreeLine(ClickOrDrag, _PlotInteraction):
             self._points.append(dataPos)
 
         if isNewPoint or isLast:
-            eventDict = prepareDrawingSignal(
-                'drawingFinished' if isLast else 'drawingProgress',
-                'polylines',
-                self._points,
-                self.parameters)
-            self.plot.notify(**eventDict)
+            item = items.PolylinesDrawItem()
+            item.setData(self._points[:, 0], self._points[:, 1])
+            if isLast:
+                event = PlotEvents.ItemRegionChangeFinishedEvent(item)
+            else:
+                event = PlotEvents.ItemRegionChangedEvent(item)
+            self.plot.notify(event)
 
         if not isLast:
             self.setSelectionArea(self._points, fill='none', color=self.color,

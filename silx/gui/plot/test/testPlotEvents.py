@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "27/04/2017"
+__date__ = "28/04/2017"
 
 
 import unittest
@@ -111,46 +111,59 @@ class TestEvents(unittest.TestCase):
         self.assertEquals(event.getItem(), item)
         self.assertEquals(event.getItemIndices(), itemIndices)
 
+    def testItemRegionChangeEvent(self):
+        item = "foo"
+        eventType = "e"
+        event = PlotEvents.ItemRegionChangeEvent(eventType, item)
+        self.assertEquals(event.getType(), eventType)
+        self.assertEquals(event.getItem(), item)
+
+    def testItemRegionChangeFinishedEvent(self):
+        event = PlotEvents.ItemRegionChangeFinishedEvent("item")
+        self.assertEquals(event.getType(), PlotEvents.Type.RegionChangeFinished)
+
+    def testItemRegionChangeStrartedEvent(self):
+        event = PlotEvents.ItemRegionChangeStartedEvent("item")
+        self.assertEquals(event.getType(), PlotEvents.Type.RegionChangeStarted)
+
+    def testItemRegionChangedEvent(self):
+        event = PlotEvents.ItemRegionChangedEvent("item")
+        self.assertEquals(event.getType(), PlotEvents.Type.RegionChanged)
+
 
 class TestDictionaryLikeGetter(unittest.TestCase):
     """Test old getter in plot events. Events have to support a set of
     dictionnary-like getter"""
 
     def testDrawingProgressEvent(self):
-        eventName = "drawingProgress"
-        eventType = "rectangle"
-        points = [[-1, 0], [1, 1], [2, 2]]
-        params = {"foobar"}
-        event = PlotEvents.prepareDrawingSignal(eventName, eventType, points, params)
+        points = numpy.array([[-1, 0], [1, 1], [2, 2]])
+        item = items.RectangleDrawItem()
+        item.setData(points[:, 0], points[:, 1])
+        event = PlotEvents.ItemRegionChangedEvent(item)
 
-        self.assertEquals(event['event'], eventName)
-        self.assertEquals(event['type'], eventType)
-        numpy.testing.assert_almost_equal(event['points'], numpy.array(points))
-        numpy.testing.assert_almost_equal(event['xdata'], numpy.array(points)[:, 0])
-        numpy.testing.assert_almost_equal(event['ydata'], numpy.array(points)[:, 1])
+        self.assertEquals(event['event'], "drawingProgress")
+        self.assertEquals(event['type'], "rectangle")
+        numpy.testing.assert_almost_equal(event['points'], points)
+        numpy.testing.assert_almost_equal(event['xdata'], points[:, 0])
+        numpy.testing.assert_almost_equal(event['ydata'], points[:, 1])
         self.assertEquals(event['x'], -1)
         self.assertEquals(event['y'], 0)
         self.assertEquals(event['width'], 3)
         self.assertEquals(event['height'], 2)
-        self.assertEquals(event['parameters'], params)
+        self.assertEquals(event['parameters'], {})
 
     def testDrawingFinishedEvent(self):
-        eventName = "drawingFinished"
-        eventType = "rectangle"
-        points = [[-1, 0], [1, 1], [2, 2]]
-        params = {"foobar"}
-        event = PlotEvents.prepareDrawingSignal(eventName, eventType, points, params)
+        points = numpy.array([[0, 1], [1, 1]])
+        item = items.VLineDrawItem()
+        item.setData(points[:, 0], points[:, 1])
+        event = PlotEvents.ItemRegionChangeFinishedEvent(item)
 
-        self.assertEquals(event['event'], eventName)
-        self.assertEquals(event['type'], eventType)
-        numpy.testing.assert_almost_equal(event['points'], numpy.array(points))
-        numpy.testing.assert_almost_equal(event['xdata'], numpy.array(points)[:, 0])
-        numpy.testing.assert_almost_equal(event['ydata'], numpy.array(points)[:, 1])
-        self.assertEquals(event['x'], -1)
-        self.assertEquals(event['y'], 0)
-        self.assertEquals(event['width'], 3)
-        self.assertEquals(event['height'], 2)
-        self.assertEquals(event['parameters'], params)
+        self.assertEquals(event['event'], "drawingFinished")
+        self.assertEquals(event['type'], "vline")
+        numpy.testing.assert_almost_equal(event['points'], points)
+        numpy.testing.assert_almost_equal(event['xdata'], points[:, 0])
+        numpy.testing.assert_almost_equal(event['ydata'], points[:, 1])
+        self.assertEquals(event['parameters'], {})
 
     def testMouseEvent(self):
         button = qt.Qt.LeftButton
