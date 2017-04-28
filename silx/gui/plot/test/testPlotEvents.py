@@ -26,12 +26,13 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "13/04/2017"
+__date__ = "27/04/2017"
 
 
 import unittest
 import numpy
 from silx.gui import qt
+from .. import items
 from .. import PlotEvents
 
 
@@ -91,6 +92,24 @@ class TestEvents(unittest.TestCase):
         event = PlotEvents.MouseMovedEvent([xData, yData], [xPixel, yPixel])
         self.assertEquals(event.getType(), PlotEvents.Type.MouseMoved)
         self.assertEquals(event.getButton(), qt.Qt.NoButton)
+
+    def testItemClickedEvent(self):
+        button = "b"
+        xData = "xd"
+        yData = "yd"
+        xPixel = "xp"
+        yPixel = "yp"
+        item = "foo"
+        itemIndices = [10]
+        event = PlotEvents.ItemClickedEvent(button, item, itemIndices, [xData, yData], [xPixel, yPixel])
+        self.assertEquals(event.getType(), PlotEvents.Type.ItemClicked)
+        self.assertEquals(event.getButton(), "b")
+        self.assertEquals(event.getScenePos()[0], xData)
+        self.assertEquals(event.getScenePos()[1], yData)
+        self.assertEquals(event.getScreenPos()[0], xPixel)
+        self.assertEquals(event.getScreenPos()[1], yPixel)
+        self.assertEquals(event.getItem(), item)
+        self.assertEquals(event.getItemIndices(), itemIndices)
 
 
 class TestDictionaryLikeGetter(unittest.TestCase):
@@ -165,19 +184,25 @@ class TestDictionaryLikeGetter(unittest.TestCase):
         self.assertEquals(event['selectable'], selectable)
 
     def testImageEvent(self):
-        button = "a"
+        button = qt.Qt.LeftButton
         label = "b"
-        eventType = "c"
+        eventType = "image"
         col = "d"
         row = "e"
         x = "f"
         y = "g"
         xPixel = "h"
         yPixel = "i"
-        event = PlotEvents.prepareImageSignal(
-            button, label, eventType, col, row, x, y, xPixel, yPixel)
+        image = items.ImageBase()
+        image._setLegend(label)
+        event = PlotEvents.ItemClickedEvent(
+            button,
+            image,
+            [(row, col)],
+            (x, y),
+            (xPixel, yPixel))
         self.assertEquals(event['event'], "imageClicked")
-        self.assertEquals(event['button'], button)
+        self.assertEquals(event['button'], "left")
         self.assertEquals(event['label'], label)
         self.assertEquals(event['type'], eventType)
         self.assertEquals(event['col'], col)
@@ -188,23 +213,33 @@ class TestDictionaryLikeGetter(unittest.TestCase):
         self.assertEquals(event['ypixel'], yPixel)
 
     def testCurveEvent(self):
-        button = "a"
+        button = qt.Qt.RightButton
         label = "b"
-        eventType = "c"
-        xData = "d"
-        yData = "e"
+        eventType = "curve"
+        xData2 = 11
+        yData2 = 12
         x = "f"
         y = "g"
         xPixel = "h"
         yPixel = "i"
-        event = PlotEvents.prepareCurveSignal(
-            button, label, eventType, xData, yData, x, y, xPixel, yPixel)
+        index = 2
+        xData = [0, 0, xData2, 0, 0]
+        yData = [0, 0, yData2, 0, 0]
+        curve = items.Curve()
+        curve._setLegend(label)
+        curve.setData(xData, yData)
+        event = PlotEvents.ItemClickedEvent(
+            button,
+            curve,
+            index,
+            (x, y),
+            (xPixel, yPixel))
         self.assertEquals(event['event'], "curveClicked")
-        self.assertEquals(event['button'], button)
+        self.assertEquals(event['button'], "right")
         self.assertEquals(event['label'], label)
         self.assertEquals(event['type'], eventType)
-        self.assertEquals(event['xdata'], xData)
-        self.assertEquals(event['ydata'], yData)
+        self.assertEquals(event['xdata'], xData2)
+        self.assertEquals(event['ydata'], yData2)
         self.assertEquals(event['x'], x)
         self.assertEquals(event['y'], y)
         self.assertEquals(event['xpixel'], xPixel)

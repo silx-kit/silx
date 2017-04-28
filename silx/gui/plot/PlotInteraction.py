@@ -39,8 +39,8 @@ from . import items
 from .Interaction import (ClickOrDrag, LEFT_BTN, RIGHT_BTN,
                           State, StateMachine)
 from . import PlotEvents
-from .PlotEvents import (prepareCurveSignal, prepareDrawingSignal,
-                         prepareHoverSignal, prepareImageSignal,
+from .PlotEvents import (prepareDrawingSignal,
+                         prepareHoverSignal,
                          prepareMarkerSignal)
 
 from .backends.BackendBase import (CURSOR_POINTING, CURSOR_SIZE_HOR,
@@ -1065,13 +1065,13 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                     dataPos = self.plot.pixelToData(x, y)
                     assert dataPos is not None
 
-                    eventDict = prepareCurveSignal('left',
-                                                   curve.getLegend(),
-                                                   'curve',
-                                                   indices[0], indices[1],
-                                                   dataPos[0], dataPos[1],
-                                                   x, y)
-                    return eventDict
+                    event = PlotEvents.ItemClickedEvent(
+                        'left',
+                        curve,
+                        indices,
+                        (dataPos[0], dataPos[1]),
+                        (x, y))
+                    return event
 
                 elif picked[0] == 'image':
                     image = picked[1]
@@ -1084,13 +1084,15 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                     scale = image.getScale()
                     column = int((dataPos[0] - origin[0]) / float(scale[0]))
                     row = int((dataPos[1] - origin[1]) / float(scale[1]))
-                    eventDict = prepareImageSignal('left',
-                                                   image.getLegend(),
-                                                   'image',
-                                                   column, row,
-                                                   dataPos[0], dataPos[1],
-                                                   x, y)
-                    return eventDict
+                    index = (row, column)
+
+                    event = PlotEvents.ItemClickedEvent(
+                        'left',
+                        image,
+                        [index],
+                        (dataPos[0], dataPos[1]),
+                        (x, y))
+                    return event
 
         return None
 

@@ -26,12 +26,13 @@
 
 __author__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "13/04/2017"
+__date__ = "27/04/2017"
 
 
 import numpy as np
 import enum
 from silx.gui import qt
+from silx.gui.plot import items
 
 
 class Type(enum.Enum):
@@ -48,6 +49,9 @@ class Type(enum.Enum):
 
     MouseDoubleClicked = 'mouseDoubleClicked'
     """Type of the `MouseEvent` when mouse is double clicked"""
+
+    ItemClicked = 'itemClicked'
+    """Type of the `ItemClickedEvent` when an item is clicked"""
 
 
 class PlotEvent(object):
@@ -287,34 +291,88 @@ def prepareMarkerSignal(eventType, button, label, type_,
     return eventDict
 
 
-def prepareImageSignal(button, label, type_, col, row,
-                       x, y, xPixel, yPixel):
-    """See Plot documentation for content of events"""
-    return {'event': 'imageClicked',
-            'button': button,
-            'label': label,
-            'type': type_,
-            'col': col,
-            'row': row,
-            'x': x,
-            'y': y,
-            'xpixel': xPixel,
-            'ypixel': yPixel}
+class ItemClickedEvent(MouseClickedEvent):
+    """The ItemClickedEvent provides an event that is generated when the mouse
+    is clicked on an item of the plot. It is a `MouseClickedEvent` which also
+    contains information of the clicked item and clicked item index.
+    """
 
+    def __init__(self, button, item, itemIndices, scenePos, screenPos):
+        MouseEvent.__init__(self, Type.ItemClicked, button, scenePos, screenPos)
+        self.__item = item
+        self.__itemIndices = itemIndices
 
-def prepareCurveSignal(button, label, type_, xData, yData,
-                       x, y, xPixel, yPixel):
-    """See Plot documentation for content of events"""
-    return {'event': 'curveClicked',
-            'button': button,
-            'label': label,
-            'type': type_,
-            'xdata': xData,
-            'ydata': yData,
-            'x': x,
-            'y': y,
-            'xpixel': xPixel,
-            'ypixel': yPixel}
+    def getItem(self):
+        """Returns the clicked item
+
+        :rtype: silx.gui.plot.items.Item
+        """
+        return self.__item
+
+    def getItemIndices(self):
+        """
+        Returns the list of indices of item's data under the mouse clicked.
+
+        For an image it is a list of (row, col) of the clicked pixel.
+        For a curve it is a list of point indices of the line clicked.
+        """
+        return self.__itemIndices
+
+    def __getitem__(self, key):
+        """Returns event content using the old dictionary-key mapping.
+
+        This is deprecated. Look at the source code to have a description of
+        available key names.
+
+        :param str key: Name of the old key.
+        :rtype: object
+        :raises KeyError: If the requested key is not available
+        """
+        if key == 'label':
+            return self.__item.getLegend()
+        elif key == "x":
+            return self.getScenePos()[0]
+        elif key == "y":
+            return self.getScenePos()[1]
+        elif key == 'xpixel':
+            return self.getScreenPos()[0]
+        elif key == 'ypixel':
+            return self.getScreenPos()[1]
+        elif key == 'button':
+            buttons = {
+                'left': 'left',
+                'right': 'right',
+                'middle': 'middle',
+                qt.Qt.LeftButton: 'left',
+                qt.Qt.RightButton: 'right',
+                qt.Qt.MiddleButton: 'middle',
+                qt.Qt.NoButton: None,
+            }
+            return buttons[self.getButton()]
+
+        if isinstance(self.__item, items.ImageBase):
+            if key == 'event':
+                return "imageClicked"
+            elif key == "type":
+                return "image"
+            elif key == "col":
+                return self.__itemIndices[0][1]
+            elif key == 'row':
+                return self.__itemIndices[0][0]
+
+        elif isinstance(self.__item, items.Curve):
+            if key == 'event':
+                return "curveClicked"
+            elif key == "type":
+                return "curve"
+            elif key == "xdata":
+                index = self.__itemIndices
+                return self.__item.getXData(copy=False)[index]
+            elif key == 'ydata':
+                index = self.__itemIndices
+                return self.__item.getYData(copy=False)[index]
+
+        raise KeyError("Key %s not found" % key)
 
 
 class LimitsChangedEvent(PlotEvent):
