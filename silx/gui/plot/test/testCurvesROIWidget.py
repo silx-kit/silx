@@ -106,6 +106,40 @@ class TestCurvesROIWidget(TestCaseQt):
 
             del self.tmpFile
 
+    def testCalculation(self):
+        x = numpy.arange(100.)
+        y = numpy.arange(100.)
+
+        # Add two curves
+        self.plot.addCurve(x, y, legend="positive")
+        self.plot.addCurve(-x, y, legend="negative")
+
+        # Make sure there is an active curve and it is the positive one
+        self.plot.setActiveCurve("positive")
+
+        # Add two ROIs
+        ddict = {}
+        ddict["positive"] = {"from": 10, "to": 20, "type":"X"}
+        ddict["negative"] = {"from": -20, "to": -10, "type":"X"}
+        self.widget.roiWidget.setRois(ddict)
+
+        # And calculate the expected output
+        self.widget.calculateROIs()
+
+        output = self.widget.roiWidget.getRois()
+        self.assertEqual(output["positive"]["rawcounts"],
+                         y[ddict["positive"]["from"]:ddict["positive"]["to"]+1].sum(),
+                         "Calculation failed on positive X coordinates")
+
+        # Set the curve with negative X coordinates as active
+        self.plot.setActiveCurve("negative")
+
+        # the ROIs should have been automatically updated
+        output = self.widget.roiWidget.getRois()
+        selection = numpy.nonzero((-x >= output["negative"]["from"]) & \
+                                  (-x <= output["negative"]["to"]))[0]
+        self.assertEqual(output["negative"]["rawcounts"],
+                         y[selection].sum(), "Calculation failed on negative X coordinates")
 
 def suite():
     test_suite = unittest.TestSuite()

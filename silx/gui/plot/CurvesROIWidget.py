@@ -636,6 +636,12 @@ class CurvesROIDockWidget(qt.QDockWidget):
         self.roiWidget = CurvesROIWidget(self, name)
         """Main widget of type :class:`CurvesROIWidget`"""
 
+        # convenience methods to offer a simpler API allowing to ignore
+        # the details of the underlying implementation
+        self.calculateROIs = self.calculateRois
+        self.setRois = self.roiWidget.setRois
+        self.getRois = self.roiWidget.getRois
+
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.setWidget(self.roiWidget)
 
@@ -860,7 +866,7 @@ class CurvesROIDockWidget(qt.QDockWidget):
         """Recompute ROIs when active curve changed."""
         self.calculateROIs()
 
-    def calculateROIs(self, roiList=None, roiDict=None):
+    def calculateRois(self, roiList=None, roiDict=None):
         """Compute ROI information"""
         if roiList is None or roiDict is None:
             roiList, roiDict = self.roiWidget.getROIListAndDict()
@@ -868,6 +874,7 @@ class CurvesROIDockWidget(qt.QDockWidget):
         activeCurve = self.plot.getActiveCurve(just_legend=False)
         if activeCurve is None:
             xproc = None
+            yproc = None
             self.roiWidget.setHeader()
         else:
             x = activeCurve.getXData(copy=False)
@@ -875,6 +882,7 @@ class CurvesROIDockWidget(qt.QDockWidget):
             legend = activeCurve.getLegend()
             idx = numpy.argsort(x, kind='mergesort')
             xproc = numpy.take(x, idx)
+            yproc = numpy.take(y, idx)
             self.roiWidget.setHeader('ROIs of %s' % legend)
 
         for key in roiList:
@@ -891,8 +899,8 @@ class CurvesROIDockWidget(qt.QDockWidget):
                 idx = numpy.nonzero((fromData <= xproc) &
                                     (xproc <= toData))[0]
                 if len(idx):
-                    xw = x[idx]
-                    yw = y[idx]
+                    xw = xproc[idx]
+                    yw = yproc[idx]
                     rawCounts = yw.sum(dtype=numpy.float)
                     deltaX = xw[-1] - xw[0]
                     deltaY = yw[-1] - yw[0]
