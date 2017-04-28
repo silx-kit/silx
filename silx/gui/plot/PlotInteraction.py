@@ -39,7 +39,6 @@ from . import items
 from .Interaction import (ClickOrDrag, LEFT_BTN, RIGHT_BTN,
                           State, StateMachine)
 from . import PlotEvents
-from .PlotEvents import prepareMarkerSignal
 
 from .backends.BackendBase import (CURSOR_POINTING, CURSOR_SIZE_HOR,
                                    CURSOR_SIZE_VER, CURSOR_SIZE_ALL)
@@ -1085,28 +1084,18 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
 
         return None
 
-    def _signalMarkerMovingEvent(self, eventType, marker, x, y):
+    def _signalMarkerMovingEvent(self, marker, x, y):
         assert marker is not None
-
-        xData, yData = marker.getPosition()
-        if xData is None:
-            xData = [0, 1]
-        if yData is None:
-            yData = [0, 1]
 
         posDataCursor = self.plot.pixelToData(x, y)
         assert posDataCursor is not None
 
-        eventDict = prepareMarkerSignal(eventType,
-                                        'left',
-                                        marker.getLegend(),
-                                        'marker',
-                                        marker.isDraggable(),
-                                        marker.isSelectable(),
-                                        (xData, yData),
-                                        (x, y),
-                                        posDataCursor)
-        self.plot.notify(**eventDict)
+        event = PlotEvents.ItemRegionChangedEvent(
+            marker,
+            posDataCursor,
+            (x, y))
+
+        self.plot.notify(event)
 
     def beginDrag(self, x, y):
         """Handle begining of drag interaction
@@ -1125,7 +1114,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
 
         if marker is not None:
             self.markerLegend = marker.getLegend()
-            self._signalMarkerMovingEvent('markerMoving', marker, x, y)
+            self._signalMarkerMovingEvent(marker, x, y)
         else:
             picked = self.plot._pickImageOrCurve(
                 x,
@@ -1151,8 +1140,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
             if marker is not None:
                 marker.setPosition(xData, yData)
 
-                self._signalMarkerMovingEvent(
-                    'markerMoving', marker, x, y)
+                self._signalMarkerMovingEvent(marker, x, y)
 
         if self.imageLegend is not None:
             image = self.plot.getImage(self.imageLegend)
@@ -1166,21 +1154,14 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
     def endDrag(self, startPos, endPos):
         if self.markerLegend is not None:
             marker = self.plot._getMarker(self.markerLegend)
-            posData = list(marker.getPosition())
-            if posData[0] is None:
-                posData[0] = [0, 1]
-            if posData[1] is None:
-                posData[1] = [0, 1]
-
-            eventDict = prepareMarkerSignal(
-                'markerMoved',
-                'left',
-                marker.getLegend(),
-                'marker',
-                marker.isDraggable(),
-                marker.isSelectable(),
-                posData)
-            self.plot.notify(**eventDict)
+            x, y = endPos[0], endPos[1]
+            posDataCursor = self.plot.pixelToData(x, y)
+            assert posDataCursor is not None
+            event = PlotEvents.ItemRegionChangeFinishedEvent(
+                marker,
+                posDataCursor,
+                (x, y))
+            self.plot.notify(event)
 
         self.plot.setGraphCursorShape()
 

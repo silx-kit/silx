@@ -93,13 +93,18 @@ class ItemRegionChangeEvent(PlotEvent):
     """The ItemRegionChangeEvent provides an abstract event that is generated
     when an item shape change."""
 
-    def __init__(self, eventType, item):
+    def __init__(self, eventType, item, scenePos=None, screenPos=None):
         """Constructor
 
         :param silx.gui.plot.items.Item item: The changed item
+        :param tuple(int,int) scenePos: Scene position of the mouse
+        :param tuple(int,int) screenPos: Screen position (pixels relative to
+            widget) of the mouse.
         """
         super(ItemRegionChangeEvent, self).__init__(eventType)
         self.__item = item
+        self.__scenePos = scenePos
+        self.__screenPos = screenPos
 
     def getItem(self):
         """
@@ -108,6 +113,21 @@ class ItemRegionChangeEvent(PlotEvent):
         :rtype: silx.gui.plot.items.Item
         """
         return self.__item
+
+    def getScenePos(self):
+        """Returns the current scene position of the mouse (x, y).
+
+        :rtype: tuple(float,float)
+        """
+        return self.__scenePos
+
+    def getScreenPos(self):
+        """Return the current screen position (pixels relative to widget) of
+        the mouse.
+
+        :rtype: tuple(int,int)
+        """
+        return self.__screenPos
 
     def __getitem__(self, key):
         """Returns event content using the old dictionary-key mapping.
@@ -119,58 +139,107 @@ class ItemRegionChangeEvent(PlotEvent):
         :rtype: object
         :raises KeyError: If the requested key is not available
         """
-        if not isinstance(self.__item, items.DrawItem):
-            raise KeyError("%s not available" % key)
+        if isinstance(self.__item, items.DrawItem):
+            if key == 'event':
+                t = self.getType()
+                if t == Type.RegionChangeStarted:
+                    # NOTE: It was not part of the compatibility layer
+                    # But we have to return something
+                    return "drawingStarted"
+                elif t == Type.RegionChanged:
+                    return "drawingProgress"
+                elif t == Type.RegionChangeFinished:
+                    return "drawingFinished"
+                else:
+                    raise RuntimeError("Unexpected type %s" % t.__class__)
+            elif key == "type":
+                if isinstance(self.getItem(), items.LineDrawItem):
+                    return "line"
+                elif isinstance(self.getItem(), items.HLineDrawItem):
+                    return "hline"
+                elif isinstance(self.getItem(), items.VLineDrawItem):
+                    return "vline"
+                elif isinstance(self.getItem(), items.PolylinesDrawItem):
+                    return "polylines"
+                elif isinstance(self.getItem(), items.PolygonDrawItem):
+                    return "polygon"
+                elif isinstance(self.getItem(), items.RectangleDrawItem):
+                    return "rectangle"
+                else:
+                    raise RuntimeError("Unexpected type %s" % self.__item.__class__)
+            elif key == "points":
+                x = self.getItem().getXData(copy=False)
+                y = self.getItem().getYData(copy=False)
+                return numpy.array([x, y]).T
+            elif key == "xdata":
+                return self.getItem().getXData()
+            elif key == "ydata":
+                return self.getItem().getYData()
+            elif key == "parameters":
+                return {}
 
-        if key == 'event':
-            t = self.getType()
-            if t == Type.RegionChangeStarted:
-                # NOTE: It was not part of the compatibility layer
-                # But we have to return something
-                return "drawingStarted"
-            elif t == Type.RegionChanged:
-                return "drawingProgress"
-            elif t == Type.RegionChangeFinished:
-                return "drawingFinished"
-            else:
-                raise RuntimeError("Unexpected type %s" % t.__class__)
-        elif key == "type":
-            if isinstance(self.getItem(), items.LineDrawItem):
-                return "line"
-            elif isinstance(self.getItem(), items.HLineDrawItem):
-                return "hline"
-            elif isinstance(self.getItem(), items.VLineDrawItem):
-                return "vline"
-            elif isinstance(self.getItem(), items.PolylinesDrawItem):
-                return "polylines"
-            elif isinstance(self.getItem(), items.PolygonDrawItem):
-                return "polygon"
-            elif isinstance(self.getItem(), items.RectangleDrawItem):
-                return "rectangle"
-            else:
-                raise RuntimeError("Unexpected type %s" % self.__item.__class__)
-        elif key == "points":
-            x = self.getItem().getXData(copy=False)
-            y = self.getItem().getYData(copy=False)
-            return numpy.array([x, y]).T
-        elif key == "xdata":
-            return self.getItem().getXData()
-        elif key == "ydata":
-            return self.getItem().getYData()
-        elif key == "parameters":
-            return {}
+            if isinstance(self.getItem(), items.RectangleDrawItem):
+                if key == "x":
+                    return self.getItem().getXData(copy=False).min()
+                elif key == "y":
+                    return self.getItem().getYData(copy=False).min()
+                elif key == "width":
+                    data = self.getItem().getXData(copy=False)
+                    return data.max() - data.min()
+                elif key == "height":
+                    data = self.getItem().getYData(copy=False)
+                    return data.max() - data.min()
 
-        if isinstance(self.getItem(), items.RectangleDrawItem):
-            if key == "x":
-                return self.getItem().getXData(copy=False).min()
-            elif key == "y":
-                return self.getItem().getYData(copy=False).min()
-            elif key == "width":
-                data = self.getItem().getXData(copy=False)
-                return data.max() - data.min()
-            elif key == "height":
-                data = self.getItem().getYData(copy=False)
-                return data.max() - data.min()
+        elif isinstance(self.__item, items.marker._BaseMarker):
+            if key == 'event':
+                t = self.getType()
+                if t == Type.RegionChangeStarted:
+                    # NOTE: It was not part of the compatibility layer
+                    # But we have to return something
+                    return "markerStarted"
+                elif t == Type.RegionChanged:
+                    return "markerMoving"
+                elif t == Type.RegionChangeFinished:
+                    return "markerMoved"
+                else:
+                    raise RuntimeError("Unexpected type %s" % t.__class__)
+            elif key == "type":
+                return "marker"
+            elif key == "label":
+                return self.getItem().getLegend()
+            elif key == "button":
+                # NOTE: We hardcode something, that's pointless here
+                return "left"
+            elif key == "x":
+                return self.getScenePos()[0]
+            elif key == 'y':
+                return self.getScenePos()[1]
+            elif key == "xpixel":
+                return self.getScreenPos()[0]
+            elif key == "ypixel":
+                return self.getScreenPos()[1]
+            elif key == 'xdata':
+                xData = self.__item.getXPosition()
+                if xData is None:
+                    xData = [0, 1]
+                return xData
+            elif key == 'ydata':
+                yData = self.__item.getYPosition()
+                if yData is None:
+                    yData = [0, 1]
+                return yData
+            elif key == 'draggable':
+                return self.__item.isDraggable()
+            elif key == 'selectable':
+                return self.__item.isSelectable()
+
+        else:
+            # NOTE it is not part of the compatibility layer
+            # But it have to work, then we returns something else
+            if key == 'event':
+                return "unknownRegionChange"
+            elif key == "type":
+                return "unknown"
 
         raise KeyError("Key %s not found" % key)
 
@@ -183,42 +252,51 @@ class ItemRegionChangeStartedEvent(ItemRegionChangeEvent):
     `ItemRegionChangedEvent` and `ItemRegionChangeFinishedEvent`.
     """
 
-    def __init__(self, item):
+    def __init__(self, item, scenePos=None, screenPos=None):
         """Constructor
 
         :param silx.gui.plot.items.Item item: The changed item
+        :param tuple(int,int) scenePos: Scene position of the mouse
+        :param tuple(int,int) screenPos: Screen position (pixels relative to
+            widget) of the mouse.
         """
         super(ItemRegionChangeStartedEvent, self).__init__(
             Type.RegionChangeStarted,
-            item)
+            item, scenePos, screenPos)
 
 
 class ItemRegionChangedEvent(ItemRegionChangeEvent):
     """The ItemRegionChangedEvent provides an event that is generated
     when an item shape was changed."""
 
-    def __init__(self, item):
+    def __init__(self, item, scenePos=None, screenPos=None):
         """Constructor
 
         :param silx.gui.plot.items.Item item: The changed item
+        :param tuple(int,int) scenePos: Scene position of the mouse
+        :param tuple(int,int) screenPos: Screen position (pixels relative to
+            widget) of the mouse.
         """
         super(ItemRegionChangedEvent, self).__init__(
             Type.RegionChanged,
-            item)
+            item, scenePos, screenPos)
 
 
 class ItemRegionChangeFinishedEvent(ItemRegionChangeEvent):
     """The ItemRegionChangeFinishedEvent provides an event that is generated
     when an item shape finished changing."""
 
-    def __init__(self, item):
+    def __init__(self, item, scenePos=None, screenPos=None):
         """Constructor
 
         :param silx.gui.plot.items.Item item: The changed item
+        :param tuple(int,int) scenePos: Scene position of the mouse
+        :param tuple(int,int) screenPos: Screen position (pixels relative to
+            widget) of the mouse.
         """
         super(ItemRegionChangeFinishedEvent, self).__init__(
             Type.RegionChangeFinished,
-            item)
+            item, scenePos, screenPos)
 
 
 class MouseEvent(PlotEvent):

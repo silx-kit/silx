@@ -282,23 +282,26 @@ class TestDictionaryLikeGetter(unittest.TestCase):
         self.assertEquals(event['ydata'], yRange)
         self.assertEquals(event['y2data'], y2Range)
 
-    def testMarkerEvent(self):
+    def testMarkerMovingEvent(self):
         eventType = "markerMoving"
-        button = "b"
         label = "l"
-        type_ = "t"
-        draggable = "d"
-        selectable = "s"
-        posDataMarker = ["dm0", "dm1"]
-        posPixelCursor = ["pc0", "pc1"]
-        posDataCursor = ["dc0", "dc1"]
-        event = PlotEvents.prepareMarkerSignal(
-            eventType, button, label, type_, draggable, selectable,
-            posDataMarker, posPixelCursor, posDataCursor)
+        draggable = True
+        selectable = False
+        posDataMarker = [10, 11]
+        posPixelCursor = [12, 13]
+        posDataCursor = [14, 15]
+
+        item = items.marker.Marker()
+        item._setLegend(label)
+        item.setPosition(posDataMarker[0], posDataMarker[1])
+        item._setDraggable(draggable)
+        item._setSelectable(selectable)
+
+        event = PlotEvents.ItemRegionChangedEvent(item, posDataCursor, posPixelCursor)
         self.assertEquals(event['event'], eventType)
-        self.assertEquals(event['button'], button)
+        self.assertEquals(event['button'], "left")
         self.assertEquals(event['label'], label)
-        self.assertEquals(event['type'], type_)
+        self.assertEquals(event['type'], "marker")
         self.assertEquals(event['x'], posDataCursor[0])
         self.assertEquals(event['y'], posDataCursor[1])
         self.assertEquals(event['xdata'], posDataMarker[0])
@@ -330,6 +333,32 @@ class TestDictionaryLikeGetter(unittest.TestCase):
         self.assertEquals(event['type'], "marker")
         self.assertEquals(event['x'], posDataMarker[0])
         self.assertEquals(event['y'], posDataMarker[1])
+        self.assertEquals(event['xdata'], posDataMarker[0])
+        self.assertEquals(event['ydata'], posDataMarker[1])
+        self.assertEquals(event['draggable'], draggable)
+        self.assertEquals(event['selectable'], selectable)
+        self.assertEquals(event['xpixel'], posPixelCursor[0])
+        self.assertEquals(event['ypixel'], posPixelCursor[1])
+
+    def testMarkerMovingOld(self):
+        eventType = "markerMoving"
+        button = "b"
+        label = "l"
+        type_ = "t"
+        draggable = "d"
+        selectable = "s"
+        posDataMarker = ["dm0", "dm1"]
+        posPixelCursor = ["pc0", "pc1"]
+        posDataCursor = ["dc0", "dc1"]
+        event = PlotEvents.prepareMarkerSignal(
+            eventType, button, label, type_, draggable, selectable,
+            posDataMarker, posPixelCursor, posDataCursor)
+        self.assertEquals(event['event'], eventType)
+        self.assertEquals(event['button'], button)
+        self.assertEquals(event['label'], label)
+        self.assertEquals(event['type'], type_)
+        self.assertEquals(event['x'], posDataCursor[0])
+        self.assertEquals(event['y'], posDataCursor[1])
         self.assertEquals(event['xdata'], posDataMarker[0])
         self.assertEquals(event['ydata'], posDataMarker[1])
         self.assertEquals(event['draggable'], draggable)
