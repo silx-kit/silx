@@ -22,6 +22,20 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+"""Wrapper module for the `six` library.
+
+Feed this module using a local silx copy of `six` if it exists.
+Else it expect to have an available `six` library installed in the Python path.
+
+It should be used like that:
+
+.. code-block::
+
+    from silx.third_party import six
+
+"""
+
+from __future__ import absolute_import
 
 __authors__ = ["Valentin Valls"]
 __license__ = "MIT"
