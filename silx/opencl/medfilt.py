@@ -228,13 +228,13 @@ class _MedFilt2d(object):
     median_filter = None
 
     @classmethod
-    def medfilt2d(cls, ary, kernel_size=3, conditional=False):
+    def medfilt2d(cls, image, kernel_size=3, conditional=False):
         """Median filter a 2-dimensional array.
 
         Apply a median filter to the `input` array using a local window-size
         given by `kernel_size` (must be odd).
 
-        :param ary: A 2-dimensional input array.
+        :param image: A 2-dimensional input array.
         :param kernel_size: A scalar or a list of length 2, giving the size of the
                             median filter window in each dimension.  Elements of
                             `kernel_size` should be odd.  If `kernel_size` is a scalar,
@@ -248,10 +248,10 @@ class _MedFilt2d(object):
 
         * The filling mode in scipy.signal.medfilt2d is zero-padding
         * This implementation is equivalent to:
-            scipy.ndimage.filters.median_filter(ary, kernel_size, mode="nearest")
+            scipy.ndimage.filters.median_filter(image, kernel_size, mode="nearest")
 
         """
-        image = numpy.atleast_2d(ary)
+        image = numpy.atleast_2d(image)
         shape = numpy.array(image.shape)
         if cls.median_filter is None:
             cls.median_filter = MedianFilter2D(image.shape, kernel_size)
