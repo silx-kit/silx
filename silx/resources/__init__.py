@@ -25,13 +25,13 @@
 """Access project's data and documentation files.
 
 All access to data and documentation files MUST be made through the functions
-of this modules to ensure access accross different distribution schemes:
+of this modules to ensure access across different distribution schemes:
 
 - Installing from source or from wheel
 - Installing package as a zip (through the use of pkg_resources)
 - Linux packaging willing to install data files (and doc files) in
   alternative folders. In this case, this file must be patched.
-- Frozen fat binary application using silx (forzen with cx_Freeze or py2app).
+- Frozen fat binary application using silx (frozen with cx_Freeze or py2app).
   This needs special care for the resource files in the setup:
 
   - With cx_Freeze, add silx/resources to include_files:
@@ -56,7 +56,7 @@ of this modules to ensure access accross different distribution schemes:
 
 __authors__ = ["V.A. Sole", "Thomas Vincent", "J. Kieffer"]
 __license__ = "MIT"
-__date__ = "26/04/2017"
+__date__ = "02/05/2017"
 
 
 import os
@@ -202,8 +202,8 @@ class ExternalResources(object):
             self._tempdir = None
 
     def getfile(self, filename):
-        """Downloads the requested file from web-server available at 
-        https://www.silx.org/pub/silx/
+        """Downloads the requested file from web-server available 
+        at https://www.silx.org/pub/silx/
 
         :param: relative name of the image.
         :return: full path of the locally saved file.
@@ -220,7 +220,7 @@ class ExternalResources(object):
 
         if not os.path.isfile(fullfilename):
             logger.debug("Trying to download image %s, timeout set to %ss",
-                        filename, self.timeout)
+                         filename, self.timeout)
             dictProxies = {}
             if "http_proxy" in os.environ:
                 dictProxies['http'] = os.environ["http_proxy"]
