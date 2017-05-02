@@ -36,7 +36,7 @@ from __future__ import absolute_import, print_function, with_statement, division
 
 __author__ = "Jerome Kieffer"
 __license__ = "MIT"
-__date__ = "15/03/2017"
+__date__ = "02/05/2017"
 __copyright__ = "2012-2017, ESRF, Grenoble"
 __contact__ = "jerome.kieffer@esrf.fr"
 
@@ -112,8 +112,8 @@ class MedianFilter2D(OpenclProcessing):
                                                         ("khs1", numpy.int32(self.kernel_size[0] // 2)),  # Kernel half-size along dim1 (lines)
                                                         ("khs2", numpy.int32(self.kernel_size[1] // 2)),  # Kernel half-size along dim2 (columns)
                                                         ("height", numpy.int32(self.shape[0])),  # Image size along dim1 (lines)
-                                                        ("width", numpy.int32(self.shape[1]))))
-#                                                         ('debug', self.cl_mem["debug"])))  # Image size along dim2 (columns))
+                                                        ("width", numpy.int32(self.shape[1])),
+                                                        ("cond", numpy.int32(0))))
 
     def get_local_mem(self, wg):
         return pyopencl.LocalMemory(wg * 32)  # 4byte per float, 8 element per thread
@@ -150,20 +150,18 @@ class MedianFilter2D(OpenclProcessing):
             wg = 1 << (int(needed_threads).bit_length())
         return wg
 
-    def medfilt2d(self, image, kernel_size=None):
+    def medfilt2d(self, image, kernel_size=None, conditional=False):
         """Actually apply the median filtering on the image
 
         :param image: numpy array with the image
-        :param kernel_size: 2-tuple if
+        :param kernel_size: 2-tuple of int, shape of the median window
+        :param conditional: set to True to get the conditional filter
         :return: median-filtered  2D image
 
 
         Nota: for window size 1x1 -> 7x7     up to 49  /  64 elements in   8 threads, 8elt/th
                               9x9 -> 15x15   up to 225 / 256 elements in  32 threads, 8elt/th
                               17x17 -> 21x21 up to 441 / 512 elements in  64 threads, 8elt/th
-
-        TODO: change window size on the fly,
-
 
         """
         events = []
@@ -177,7 +175,7 @@ class MedianFilter2D(OpenclProcessing):
 
         # check for valid work group size:
         amws = kernel_workgroup_size(self.program, "medfilt2d")
-        logger.warning("max actual workgroup size: %s, expected: %s", amws, wg)
+        logger.debug("max actual workgroup size: %s, expected: %s", amws, wg)
         if wg > amws:
             raise RuntimeError("Workgroup size is too big for medfilt2d: %s>%s" % (wg, amws))
 
@@ -196,6 +194,7 @@ class MedianFilter2D(OpenclProcessing):
             kwargs["khs2"] = kernel_half_size[1]
             kwargs["height"] = numpy.int32(image.shape[0])
             kwargs["width"] = numpy.int32(image.shape[1])
+            kwargs["cond"] = numpy.int32(conditional)
 #             for k, v in kwargs.items():
 #                 print("%s: %s (%s)" % (k, v, type(v)))
             mf2d = self.program.medfilt2d(self.queue,
@@ -229,7 +228,7 @@ class _MedFilt2d(object):
     median_filter = None
 
     @classmethod
-    def medfilt2d(cls, ary, kernel_size=3):
+    def medfilt2d(cls, ary, kernel_size=3, conditional=False):
         """Median filter a 2-dimensional array.
 
         Apply a median filter to the `input` array using a local window-size
@@ -241,6 +240,7 @@ class _MedFilt2d(object):
                             `kernel_size` should be odd.  If `kernel_size` is a scalar,
                             then this scalar is used as the size in each dimension.
                             Default is a kernel of size (3, 3).
+        :param conditional: set to True to get the conditional filter
         :return: An array the same size as input containing the median filtered
                 result. always work on float32 values
 
