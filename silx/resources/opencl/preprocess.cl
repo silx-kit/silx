@@ -297,7 +297,7 @@ corrections(const __global float  *image,
             )
 {
     size_t i= get_global_id(0);
-    float3 result = (float3)(0.0, 0.0, 0.0);
+    float3 result = (float3)(0.0f, 0.0f, 0.0f);
     if (i < NIMAGE)
     {
         result = _preproc3(image,
@@ -379,7 +379,7 @@ corrections2(const __global float  *image,
             )
 {
     size_t i= get_global_id(0);
-    float3 result = (float3)(0.0, 0.0, 0.0);
+    float3 result = (float3)(0.0f, 0.0f, 0.0f);
     if (i < NIMAGE)
     {
         result = _preproc3(image,
@@ -456,7 +456,7 @@ corrections3Poisson( const __global float  *image,
             )
 {
     size_t i= get_global_id(0);
-    float3 result = (float3)(0.0, 0.0, 0.0);
+    float3 result = (float3)(0.0f, 0.0f, 0.0f);
     if (i < NIMAGE)
     {
         result = _preproc3(image,
@@ -537,7 +537,7 @@ corrections3(const __global float  *image,
             )
 {
     size_t i= get_global_id(0);
-    float3 result = (float3)(0.0, 0.0, 0.0);
+    float3 result = (float3)(0.0f, 0.0f, 0.0f);
     if (i < NIMAGE)
     {
         result = _preproc3( image,

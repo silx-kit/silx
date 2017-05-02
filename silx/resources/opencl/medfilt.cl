@@ -61,11 +61,12 @@ __kernel void medfilt2d(__global float *image,  // input image
                                  int khs1,      // Kernel half-size along dim1 (nb lines)
                                  int khs2,      // Kernel half-size along dim2 (nb columns)
                                  int height,    // Image size along dim1 (nb lines)
-                                 int width)     // Image size along dim2 (nb columns)
+                                 int width,     // Image size along dim2 (nb columns)
+								 int cond)      // use a conditional filter
 {
     int threadid = get_local_id(0);
-    int wg = get_local_size(0);
     int x = get_global_id(1);
+    __local float2 minmax;
 
     if (x < width)
     {
@@ -78,6 +79,7 @@ __kernel void medfilt2d(__global float *image,  // input image
         int kfs1 = 2 * khs1 + 1; //definition of kernel full size
         int kfs2 = 2 * khs2 + 1;
         int nbands = (kfs1 + 7) / 8; // 8 elements per thread, aligned vertically in 1 column
+        int target;
         for (int y=0; y<height; y++)
         {
             //Select only the active threads, some may remain inactive
@@ -128,13 +130,41 @@ __kernel void medfilt2d(__global float *image,  // input image
             //This function is defined in bitonic.cl
             output.vec = my_sort_file(get_local_id(0), get_group_id(0), get_local_size(0),
                                        input.vec, l_data);
-
-            size_t target = (kfs1 * kfs2) / 2;
+            if (cond)
+            {            
+            	if (threadid == 0)
+            	{
+            		minmax.x = output.ary[0];
+            	}
+            	target = (kfs1 * kfs2) - 1;
+            	if (threadid == target / 8 )
+            	{
+            		minmax.y = output.ary[target % 8];
+            	}
+                barrier(CLK_LOCAL_MEM_FENCE);
+            }
+            
+            target = (kfs1 * kfs2) / 2;
             if (threadid == (target / 8))
             {
-                result[y * width + x] = output.ary[target % 8];
+            	
+            	if (cond)
+            	{
+            		float current = image[y * width + x];
+            		if ((current == minmax.x) || (current == minmax.y))
+            		{		
+            			result[y * width + x] = output.ary[target % 8];
+            		}
+            		else
+            		{
+            			result[y * width + x] = current;
+            		}
+            	}
+            	else
+            	{
+            		result[y * width + x] = output.ary[target % 8];
+            	}            	
             }
-
         }
     }
 }

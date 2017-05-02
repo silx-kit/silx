@@ -1,7 +1,7 @@
 /*
- *   Project: SIFT: An algorithm for image alignement
+ *   Project: SILX: General purpose data analysis library
  *
- *   Copyright (C) 2013-2017 European Synchrotron Radiation Facility
+ *   Copyright (C) 2015-2017 European Synchrotron Radiation Facility
  *                           Grenoble, France
  *
  *   Principal authors: J. Kieffer (kieffer@esrf.fr)
@@ -29,7 +29,7 @@
  */
 __kernel void addition(__global float* a, __global float* b, __global float* res, int N)
 {
-    unsigned int i = get_global_id(0);
+    size_t i = get_global_id(0);
     if( i<N ){
         res[i] = a[i] + b[i];
     }
