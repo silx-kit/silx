@@ -34,6 +34,13 @@ import os
 from  silx.math.medianfilter import medfilt2d
 from silx.test.utils import ParametricTestCase
 
+try:
+    import scipy
+except:
+    scipy = None
+else:
+    import scipy.ndimage
+
 import logging
 _logger = logging.getLogger(__name__)
 
@@ -41,25 +48,25 @@ _logger = logging.getLogger(__name__)
 class Test2DFilter(unittest.TestCase):
     """Some unit tests for the median filter"""
 
-    def testFilter3(self):
-        """Simple test of a three by three kernel median filter"""
+    def testFilter3_100(self):
+        """Test median filter on a 10x10 matrix with a 3x3 kernel."""
         dataIn = numpy.arange(100, dtype=numpy.int32)
         dataIn = dataIn.reshape((10,10))
 
         dataOut = medfilt2d(image=dataIn,
                             kernel_size=(3, 3),
                             conditional=False)
-        
-        self.assertTrue(dataOut[0, 0] == 10)
+        self.assertTrue(dataOut[0, 0] == 1)
         self.assertTrue(dataOut[9, 0] == 90)
         self.assertTrue(dataOut[9, 9] == 98)
-        self.assertTrue(dataOut[0, 9] == 18)
 
-        self.assertTrue(dataOut[0, 4] == 13)
+        self.assertTrue(dataOut[0, 9] == 9)
+        self.assertTrue(dataOut[0, 4] == 5)
         self.assertTrue(dataOut[9, 4] == 93)
         self.assertTrue(dataOut[4, 4] == 44)
 
-
+    def testFilter3_9(self):
+        "Test median filter on a 3x3 matrix a 3x3 kernel."
         dataIn = numpy.array([0, -1, 1,
                               12, 6, -2,
                               100, 4, 12],
@@ -70,8 +77,8 @@ class Test2DFilter(unittest.TestCase):
                             conditional=False)
         self.assertTrue(dataOut.shape == dataIn.shape)
         self.assertTrue(dataOut[1, 1] == 4)
-        self.assertTrue(dataOut[0, 0] == 6)
-        self.assertTrue(dataOut[0, 1] == 1)
+        self.assertTrue(dataOut[0, 0] == 0)
+        self.assertTrue(dataOut[0, 1] == 0)
         self.assertTrue(dataOut[1, 0] == 6)
 
 
@@ -139,7 +146,7 @@ class Testconditional2DFilter(unittest.TestCase):
         dataOut = medfilt2d(image=dataIn,
                             kernel_size=(3, 3),
                             conditional=True)
-        self.assertTrue(dataOut[0, 0] == 10)
+        self.assertTrue(dataOut[0, 0] == 1)
         self.assertTrue(dataOut[0, 1] == 1)
         self.assertTrue(numpy.array_equal(dataOut[1:8, 1:8], dataIn[1:8, 1:8]))
         self.assertTrue(dataOut[9, 9] == 98)
@@ -170,28 +177,50 @@ class Test1DFilter(unittest.TestCase):
                             kernel_size=(5),
                             conditional=False)
         
-        self.assertTrue(dataOut[0] == 1)
+        self.assertTrue(dataOut[0] == 0)
         self.assertTrue(dataOut[9] == 9)
-        self.assertTrue(dataOut[99] == 98)
+        self.assertTrue(dataOut[99] == 99)
 
-# @skipif(scipy)
+@unittest.skipUnless(scipy, "scipy not available")
 class TestCompareScipy(unittest.TestCase):
+    """Make sure the result between scipy and medfilt2d are equivalent"""
 
-    def test(self):
-        data = (numpy.random.rand(10, 10) * 65000).astype(numpy.float32)
-        from scipy.signal import median_filter
-        resScipy = median_filter(data, kernel_size=5, mode='nearest')
+    def test100(self):
+        data = numpy.arange(100, dtype=numpy.int32)
+        data = data.reshape(10, 10)
+        resScipy = scipy.ndimage.median_filter(data, size=5, mode='nearest')
         resSilx = medfilt2d(image=data,
                             kernel_size=(5),
                             conditional=False)
 
         self.assertTrue(numpy.array_equal(resScipy, resSilx))
 
+    def test1000(self):
+        data = numpy.arange(10000, dtype=numpy.int32)
+        data = data.reshape(100, 100)
+        resScipy = scipy.ndimage.median_filter(data, size=(3, 7), mode='nearest')
+        resSilx = medfilt2d(image=data,
+                            kernel_size=(3, 7),
+                            conditional=False)
+
+        self.assertTrue(numpy.array_equal(resScipy, resSilx))
+
+    def test25(self):
+        data = numpy.arange(25, dtype=numpy.int32)
+        data = data.reshape(5, 5)
+        resScipy = scipy.ndimage.median_filter(data, size=(9, 7), mode='nearest')
+        resSilx = medfilt2d(image=data,
+                            kernel_size=(9, 7),
+                            conditional=False)
+
+        self.assertTrue(numpy.array_equal(resScipy, resSilx))
+
+
 
 def suite():
     test_suite = unittest.TestSuite()
     for test in [Test2DFilter, Testconditional2DFilter, Test2DFilterInputTypes,
-        Test1DFilter]:
+        Test1DFilter, TestCompareScipy]:
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(test))
     return test_suite

@@ -33,5 +33,4 @@ from .test_medianfilter import suite as test_medianfilter
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(test_medianfilter())
-    print('SUITE !!!!!!')
     return test_suite

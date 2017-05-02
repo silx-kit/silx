@@ -28,17 +28,17 @@
 #ifndef MEDIAN_FILTER
 #define MEDIAN_FILTER
 
-#include <vector>
+#include <deque>
 #include <assert.h>
 #include <algorithm>
 #include <signal.h>
 
-// Simple function browsing a vector and registring the min and max values
+// Simple function browsing a deque and registring the min and max values
 // and if those values are unique or not
 template<typename T>
-void getMinMax(std::vector<const T*>& v, T& min, T&max){
+void getMinMax(std::deque<const T*>& v, T& min, T&max){
     // init min and max values
-    typename std::vector<const T*>::const_iterator it = v.begin();
+    typename std::deque<const T*>::const_iterator it = v.begin();
     if (v.size() == 0){
         raise(SIGINT);
     }else{
@@ -46,7 +46,7 @@ void getMinMax(std::vector<const T*>& v, T& min, T&max){
     }
     it++;
 
-    // Browse all the vector
+    // Browse all the deque
     while(it!=v.end()){
         // check if repeated (should always be before min/max setting)
         if(*(*it) > max) max = *(*it);
@@ -54,6 +54,7 @@ void getMinMax(std::vector<const T*>& v, T& min, T&max){
 
         it++;
     }
+    // std::cout << " get min ax end" << std::endl;
 }
 
 
@@ -63,7 +64,7 @@ bool cmp(const T* a, const T* b){
 }
 
 template<typename T>
-const T* median(std::vector<const T*>& v) {
+const T* median(std::deque<const T*>& v) {
     std::nth_element(v.begin(), v.begin() + v.size()/2, v.end(), cmp<T>);
     return v[v.size()/2];
 }
@@ -98,24 +99,34 @@ void median_filter(
     int halfKernel_x = (kernel_dim[1] - 1) / 2;
     int halfKernel_y = (kernel_dim[0] - 1) / 2;
 
-    for(int pixel_y=y_pixel_range_min; pixel_y <= y_pixel_range_max; pixel_y ++ ){
-        // define the window size
-        int xmin = std::max(0, x_pixel-halfKernel_x);
-        int xmax = std::min(image_dim[0]-1, x_pixel+halfKernel_x);
+    // init buffer
+    // fill the buffer for the first iteration
+    // we are treating
+    // TODO : reserve size
+    std::deque<const T*> window_values;
 
-        int ymin = std::max(0, pixel_y-halfKernel_y);
-        int ymax = std::min(image_dim[1]-1, pixel_y+halfKernel_y);
-
-        // vector containing all the pixels in the neighbourhood
-        std::vector<const T*> window_values;
-
-        for(int win_x = xmin; win_x <= xmax; win_x++)
+    for(int win_x = x_pixel-halfKernel_x; win_x <= x_pixel+halfKernel_x; win_x++)
+    {
+        // -1 to let the next iteration fill the buffer
+        for(int win_y=-halfKernel_y; win_y<= halfKernel_y-1; win_y++)
         {
-            for(int win_y=ymin; win_y<= ymax; win_y++)
-            {
-                window_values.push_back(&input[win_y*image_dim[0] + win_x]);
-            }
+            int index_x = std::min(std::max(win_x, 0), image_dim[0] - 1);
+            int index_y = std::min(std::max(win_y, 0), image_dim[1] - 1);
+            window_values.push_back(&input[index_y*image_dim[0] + index_x]);
         }
+    }
+
+    for(int pixel_y=y_pixel_range_min; pixel_y <= y_pixel_range_max; pixel_y ++ ){
+        // deque containing all the pixels in the neighbourhood
+        int y_to_add = std::min(std::max(pixel_y + halfKernel_y, 0), image_dim[1] -1);
+        
+        // add new values to the buffer
+        for(int win_x=x_pixel-halfKernel_x; win_x <= x_pixel+halfKernel_x; win_x++)
+        {
+            int index_x = std::min(std::max(win_x, 0), image_dim[0] -1);
+            window_values.push_back(&input[y_to_add*image_dim[0] + index_x]);
+        }
+
         const T* currentPixelValue = &input[image_dim[0]*pixel_y + x_pixel];
         // change value for the median, only if we don't intend to use the 
         // conditional or if the value of the pixel is one of the extrema
@@ -133,6 +144,12 @@ void median_filter(
             }
         }else{
             output[image_dim[0]*pixel_y + x_pixel] = *(median<T>(window_values));
+        }
+
+        // remove the last line one the buffer
+        for(int win_x=x_pixel-halfKernel_x; win_x <= x_pixel+halfKernel_x; win_x++)
+        {
+            window_values.pop_front();
         }
     }
 }

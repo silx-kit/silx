@@ -34,7 +34,7 @@ from .test_histogramnd_vs_np import suite as test_histo_vs_np
 from .test_HistogramndLut_nominal import suite as test_histolut_nominal
 from ..fit.test import suite as test_fit_suite
 from .test_marchingcubes import suite as test_marchingcubes_suite
-from .medianfilter.test import suite as test_medianfilter_suite
+from ..medianfilter.test import suite as test_medianfilter_suite
 from .test_combo import suite as test_combo_suite
 
 
