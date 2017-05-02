@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,28 +24,40 @@
 
 __authors__ = ["D. Naudet"]
 __license__ = "MIT"
-__date__ = "04/07/2016"
+__date__ = "02/05/2017"
 
-import unittest
+import os.path
 
-from .test_histogramnd_error import suite as test_histo_error
-from .test_histogramnd_nominal import suite as test_histo_nominal
-from .test_histogramnd_vs_np import suite as test_histo_vs_np
-from .test_HistogramndLut_nominal import suite as test_histolut_nominal
-from ..fit.test import suite as test_fit_suite
-from .test_marchingcubes import suite as test_marchingcubes_suite
-from .medianfilter.test import suite as test_medianfilter_suite
-from .test_combo import suite as test_combo_suite
+import numpy
+
+from numpy.distutils.misc_util import Configuration
+
+# TODO : look at the PyFAI use open mp function
+# TODO : do a benchmark of perf
+# TODO : remove one parameter on the cpp side ( x... )
+
+def configuration(parent_package='', top_path=None):
+    config = Configuration('medianfilter', parent_package, top_path)
+    config.add_subpackage('test')
+    
+    # =====================================
+    # median filter
+    # =====================================
+    medfilt_src = ['medianfilter.pyx']
+    medfilt_inc = ['include', numpy.get_include()]
+    extra_link_args = ['-fopenmp']
+    extra_compile_args = ['-fopenmp']
+    config.add_extension('medianfilter',
+                         sources=medfilt_src,
+                         include_dirs=[medfilt_inc],
+                         language='c++',
+                         extra_link_args=extra_link_args,
+                         extra_compile_args=extra_compile_args)
+
+    return config
 
 
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(test_histo_nominal())
-    test_suite.addTest(test_histo_error())
-    test_suite.addTest(test_histo_vs_np())
-    test_suite.addTest(test_fit_suite())
-    test_suite.addTest(test_histolut_nominal())
-    test_suite.addTest(test_marchingcubes_suite())
-    test_suite.addTest(test_medianfilter_suite())
-    test_suite.addTest(test_combo_suite())
-    return test_suite
+if __name__ == "__main__":
+    from numpy.distutils.core import setup
+
+    setup(configuration=configuration)

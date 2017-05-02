@@ -25,7 +25,7 @@
 """This module provides median filter function for 1D and 2D arrays.
 """
 
-__authors__ = ["H. PAyno"]
+__authors__ = ["H. Payno", "J. Kieffer"]
 __license__ = "MIT"
 __date__ = "02/05/2017"
 
@@ -151,7 +151,6 @@ def _median_filter_float32(float[:, ::1] input_buffer not None,
                                                <int*>& kernel_size[0],
                                                <int*>buffer_shape,
                                                x,
-                                               x,
                                                0,
                                                image_dim,
                                                conditional)
@@ -178,7 +177,6 @@ def _median_filter_float64(double[:, ::1] input_buffer not None,
                                                 <double*> & output_buffer[0, 0], 
                                                 <int*>&kernel_size[0],
                                                 <int*>buffer_shape,
-                                                x,
                                                 x,
                                                 0,
                                                 image_dim,
@@ -207,7 +205,6 @@ def _median_filter_int64(cnumpy.int64_t[:, ::1] input_buffer not None,
                                               <int*>&kernel_size[0],
                                                 <int*>buffer_shape,
                                                 x,
-                                                x,
                                                 0,
                                                 image_dim,
                                                 conditional);
@@ -234,7 +231,6 @@ def _median_filter_uint64(
                                                 <uint64*> & output_buffer[0, 0],
                                                 <int*>&kernel_size[0],
                                                 <int*>buffer_shape,
-                                                x,
                                                 x,
                                                 0,
                                                 image_dim,
@@ -263,7 +259,6 @@ def _median_filter_int32(cnumpy.int32_t[:, ::1] input_buffer not None,
                                              <int*>&kernel_size[0],
                                              <int*>buffer_shape,
                                              x,
-                                             x,
                                              0,
                                              image_dim,
                                              conditional)
@@ -290,7 +285,6 @@ def _median_filter_uint32(cnumpy.uint32_t[:, ::1] input_buffer not None,
                                                 <uint32*>  & output_buffer[0, 0],
                                                 <int*>&kernel_size[0],
                                                 <int*>buffer_shape,
-                                                x,
                                                 x,
                                                 0,
                                                 image_dim,
@@ -319,7 +313,6 @@ def _median_filter_int16(cnumpy.int16_t[:, ::1] input_buffer not None,
                                                <int*>&kernel_size[0],
                                                <int*>buffer_shape,
                                                x,
-                                               x,
                                                0,
                                                image_dim,
                                                conditional)
@@ -347,7 +340,6 @@ def _median_filter_uint16(
                                                 <uint16*> & output_buffer[0, 0],
                                                 <int*>&kernel_size[0],
                                                 <int*>buffer_shape,
-                                                x,
                                                 x,
                                                 0,
                                                 image_dim,
