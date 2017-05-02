@@ -628,17 +628,11 @@ def get_project_configuration(dry_run):
     else:
         use_cython = check_cython(min_version='0.21.1')
 
+        global use_openmp
+        global USE_OPENMP
         use_openmp = check_openmp()
         USE_OPENMP = use_openmp
-        print('  ===> user open MP is %s' % USE_OPENMP)
-        print('  ===> use_openmp is %s' % use_openmp)
-
         config = configuration()
-        for ext_module in config.ext_modules:
-            print('  ===> config.ext_modules is %s' % ext_module.name)
-            print('  ===> %s' % ext_module.extra_compile_args)
-            print('  ===> %s' % ext_module.extra_link_args)
-        # exit(0)
 
         if use_cython:
             # Cythonize extensions
