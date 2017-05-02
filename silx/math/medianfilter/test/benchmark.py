@@ -1,0 +1,85 @@
+# coding: utf-8
+# /*##########################################################################
+# Copyright (C) 2017 European Synchrotron Radiation Facility
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+# ############################################################################*/
+"""Tests of the median filter"""
+
+__authors__ = ["H. Payno"]
+__license__ = "MIT"
+__date__ = "02/05/2017"
+
+from silx.math.medianfilter import medfilt2d as medfilt2d_silx 
+from scipy.signal import medfilt2d as medfilt2d_scipy
+import scipy.misc
+import numpy
+from timeit import Timer
+
+def benchmark(width=5):
+
+    def testSilx20Thread():
+        os.environ['OMP_NUM_THREADS'] = '20'
+        medfilt2d_silx(img, width)
+
+
+    def testSilx4Thread():
+        os.environ['OMP_NUM_THREADS'] = '4'
+        medfilt2d_silx(img, width)
+
+        
+    def testSilx2Thread():
+        os.environ['OMP_NUM_THREADS'] = '2'
+        medfilt2d_silx(img, width)
+
+        
+    def testSilx1Thread():
+        os.environ['OMP_NUM_THREADS'] = '1'
+        medfilt2d_silx(img, width)
+
+        
+    def testScipy():
+        medfilt2d_scipy(img, width)
+
+    img = scipy.misc.ascent().astype(numpy.float32)
+
+    print('scipy perf')
+    t = Timer(testScipy)
+    print(t.timeit(5))
+
+    print('silx - 1 thread')
+    t = Timer(testSilx1Thread)
+    print(t.timeit(5))
+
+    print('silx - 2 thread')
+    t = Timer(testSilx2Thread)
+    print(t.timeit(5))
+
+    print('silx - 4 thread')
+    t = Timer(testSilx4Thread)
+    print(t.timeit(5))
+
+    print('silx - 20 thread')
+    t = Timer(testSilx20Thread)
+    print(t.timeit(5))
+
+
+if __name__ == '__main__':
+    benchmark()
