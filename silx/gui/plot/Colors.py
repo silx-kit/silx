@@ -26,18 +26,19 @@
 
 __authors__ = ["V.A. Sole", "T. VINCENT"]
 __license__ = "MIT"
-__date__ = "16/01/2017"
+__date__ = "03/05/2017"
 
 
 import logging
 
 import numpy
 
-import matplotlib
+# First of all init matplotlib and set its backend
+from ..matplotlib import matplotlib  # noqa
 import matplotlib.colors
 import matplotlib.cm
 
-from . import MPLColormap
+from ..matplotlib import MPLColormap
 
 
 _logger = logging.getLogger(__name__)
@@ -146,7 +147,7 @@ def cursorColorForColormap(colormapName):
 _CMAPS = {}  # Store additional colormaps
 
 
-def getMPLColormap(name):
+def getColormap(name):
     """Returns matplotlib colormap corresponding to given name
 
     :param str name: The name of the colormap
@@ -220,7 +221,7 @@ def getMPLColormap(name):
         return matplotlib.cm.get_cmap(name)
 
 
-def getMPLScalarMappable(colormap, data=None):
+def getScalarMappable(colormap, data=None):
     """Returns matplotlib ScalarMappable corresponding to colormap
 
     :param dict colormap: The colormap to convert
@@ -233,7 +234,7 @@ def getMPLScalarMappable(colormap, data=None):
     assert colormap is not None
 
     if colormap['name'] is not None:
-        cmap = getMPLColormap(colormap['name'])
+        cmap = getColormap(colormap['name'])
 
     else:  # No name, use custom colors
         if 'colors' not in colormap:
@@ -353,7 +354,7 @@ def applyColormapToData(data,
                     vmin=vmin,
                     vmax=vmax,
                     colors=colors)
-    scalarMappable = getMPLScalarMappable(colormap, data)
+    scalarMappable = getScalarMappable(colormap, data)
     rgbaImage = scalarMappable.to_rgba(data, bytes=True)
 
     return rgbaImage

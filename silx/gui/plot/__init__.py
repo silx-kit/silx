@@ -56,11 +56,8 @@ when creating the widgets (See :class:`.Plot`).
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "22/02/2016"
+__date__ = "03/05/2017"
 
-
-# First of all init matplotlib and set its backend
-from .backends import _matplotlib  # noqa
 
 from .PlotWidget import PlotWidget  # noqa
 from .PlotWindow import PlotWindow, Plot1D, Plot2D  # noqa

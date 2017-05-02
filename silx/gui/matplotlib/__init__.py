@@ -46,7 +46,7 @@ if 'matplotlib' in sys.modules:
         'matplotlib already loaded, setting its backend may not work')
 
 
-from ... import qt
+from .. import qt
 
 import matplotlib
 

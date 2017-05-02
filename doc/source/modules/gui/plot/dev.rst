@@ -89,15 +89,6 @@ The following modules are the modules used internally by the plot package.
 .. automodule:: silx.gui.plot.backends.BackendMatplotlib
    :members:
 
-:mod:`backends.ModestImage`
-+++++++++++++++++++++++++++
-
-.. currentmodule:: silx.gui.plot.backends.ModestImage
-
-.. automodule:: silx.gui.plot.backends.ModestImage
-   :members:
-   :undoc-members:
-
 :mod:`ColormapDialog`
 +++++++++++++++++++++
 
