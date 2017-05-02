@@ -1520,7 +1520,7 @@ static PyObject *__pyx_builtin_TypeError;
 static PyObject *__pyx_builtin_xrange;
 static PyObject *__pyx_builtin_id;
 static PyObject *__pyx_builtin_IndexError;
-static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_input, PyObject *__pyx_v_kernel_size, bool __pyx_v_conditional); /* proto */
+static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_image, PyObject *__pyx_v_kernel_size, bool __pyx_v_conditional); /* proto */
 static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_2check(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_input_buffer, PyObject *__pyx_v_output_buffer); /* proto */
 static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_4_median_filter_float32(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_input_buffer, __Pyx_memviewslice __pyx_v_output_buffer, __Pyx_memviewslice __pyx_v_kernel_size, bool __pyx_v_conditional); /* proto */
 static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_6_median_filter_float64(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_input_buffer, __Pyx_memviewslice __pyx_v_output_buffer, __Pyx_memviewslice __pyx_v_kernel_size, bool __pyx_v_conditional); /* proto */
@@ -1607,7 +1607,7 @@ static char __pyx_k_class[] = "__class__";
 static char __pyx_k_dtype[] = "dtype";
 static char __pyx_k_error[] = "error";
 static char __pyx_k_flags[] = "flags";
-static char __pyx_k_input[] = "input";
+static char __pyx_k_image[] = "image";
 static char __pyx_k_int16[] = "int16";
 static char __pyx_k_int32[] = "int32";
 static char __pyx_k_int64[] = "int64";
@@ -1760,9 +1760,9 @@ static PyObject *__pyx_n_u_fortran;
 static PyObject *__pyx_kp_s_got_differing_extents_in_dimensi;
 static PyObject *__pyx_kp_s_home_payno_Documents_dev_esrf_s;
 static PyObject *__pyx_n_s_id;
+static PyObject *__pyx_n_s_image;
 static PyObject *__pyx_n_s_image_dim;
 static PyObject *__pyx_n_s_import;
-static PyObject *__pyx_n_s_input;
 static PyObject *__pyx_n_s_input_buffer;
 static PyObject *__pyx_kp_s_input_buffer_and_output_buffer_m;
 static PyObject *__pyx_kp_s_input_buffer_and_output_buffer_m_2;
@@ -1883,17 +1883,17 @@ static PyObject *__pyx_codeobj__43;
 /* "silx/math/medianfilter/medianfilter.pyx":46
  * 
  * 
- * def medfilt2d(input, kernel_size=3, bool conditional=False):             # <<<<<<<<<<<<<<
+ * def medfilt2d(image, kernel_size=3, bool conditional=False):             # <<<<<<<<<<<<<<
  *     """Function computing the median filter of the given input.
  *     Behavior at boundaries: the algorithm is reducing the size of the
  */
 
 /* Python wrapper */
 static PyObject *__pyx_pw_4silx_4math_12medianfilter_12medianfilter_1medfilt2d(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_4silx_4math_12medianfilter_12medianfilter_medfilt2d[] = "medfilt2d(input, kernel_size=3, bool conditional=False)\nFunction computing the median filter of the given input.\n    Behavior at boundaries: the algorithm is reducing the size of the\n    window/kernel for pixels at boundaries (there is no mirroring).\n\n    :param numpy.ndarray input: the array for which we want to apply \n        the median filter\n    :param kernel_size: the dimension of the kernel.\n    :type kernel_size: For 1D should be an int for 2D should be a tuple or \n        a list of (kernel_height, kernel_width)\n    :param bool conditional: True if we want to apply a conditional median\n        filtering.\n\n    :returns: the array with the median value for each pixel.\n    ";
+static char __pyx_doc_4silx_4math_12medianfilter_12medianfilter_medfilt2d[] = "medfilt2d(image, kernel_size=3, bool conditional=False)\nFunction computing the median filter of the given input.\n    Behavior at boundaries: the algorithm is reducing the size of the\n    window/kernel for pixels at boundaries (there is no mirroring).\n\n    :param numpy.ndarray image: the array for which we want to apply \n        the median filter\n    :param kernel_size: the dimension of the kernel.\n    :type kernel_size: For 1D should be an int for 2D should be a tuple or \n        a list of (kernel_height, kernel_width)\n    :param bool conditional: True if we want to apply a conditional median\n        filtering.\n\n    :returns: the array with the median value for each pixel.\n    ";
 static PyMethodDef __pyx_mdef_4silx_4math_12medianfilter_12medianfilter_1medfilt2d = {"medfilt2d", (PyCFunction)__pyx_pw_4silx_4math_12medianfilter_12medianfilter_1medfilt2d, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_12medianfilter_12medianfilter_medfilt2d};
 static PyObject *__pyx_pw_4silx_4math_12medianfilter_12medianfilter_1medfilt2d(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
-  PyObject *__pyx_v_input = 0;
+  PyObject *__pyx_v_image = 0;
   PyObject *__pyx_v_kernel_size = 0;
   bool __pyx_v_conditional;
   int __pyx_lineno = 0;
@@ -1903,7 +1903,7 @@ static PyObject *__pyx_pw_4silx_4math_12medianfilter_12medianfilter_1medfilt2d(P
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("medfilt2d (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_input,&__pyx_n_s_kernel_size,&__pyx_n_s_conditional,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_image,&__pyx_n_s_kernel_size,&__pyx_n_s_conditional,0};
     PyObject* values[3] = {0,0,0};
     values[1] = ((PyObject *)__pyx_int_3);
     if (unlikely(__pyx_kwds)) {
@@ -1919,7 +1919,7 @@ static PyObject *__pyx_pw_4silx_4math_12medianfilter_12medianfilter_1medfilt2d(P
       kw_args = PyDict_Size(__pyx_kwds);
       switch (pos_args) {
         case  0:
-        if (likely((values[0] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_input)) != 0)) kw_args--;
+        if (likely((values[0] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_image)) != 0)) kw_args--;
         else goto __pyx_L5_argtuple_error;
         case  1:
         if (kw_args > 0) {
@@ -1944,7 +1944,7 @@ static PyObject *__pyx_pw_4silx_4math_12medianfilter_12medianfilter_1medfilt2d(P
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_input = values[0];
+    __pyx_v_image = values[0];
     __pyx_v_kernel_size = values[1];
     if (values[2]) {
       __pyx_v_conditional = __Pyx_PyObject_IsTrue(values[2]); if (unlikely((__pyx_v_conditional == (bool)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 46; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
@@ -1960,14 +1960,14 @@ static PyObject *__pyx_pw_4silx_4math_12medianfilter_12medianfilter_1medfilt2d(P
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(__pyx_self, __pyx_v_input, __pyx_v_kernel_size, __pyx_v_conditional);
+  __pyx_r = __pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(__pyx_self, __pyx_v_image, __pyx_v_kernel_size, __pyx_v_conditional);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_input, PyObject *__pyx_v_kernel_size, bool __pyx_v_conditional) {
+static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_image, PyObject *__pyx_v_kernel_size, bool __pyx_v_conditional) {
   int __pyx_v_reshaped;
   PyObject *__pyx_v_output_buffer = NULL;
   PyObject *__pyx_v_ker_dim = NULL;
@@ -1986,25 +1986,25 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CY
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("medfilt2d", 0);
-  __Pyx_INCREF(__pyx_v_input);
+  __Pyx_INCREF(__pyx_v_image);
 
   /* "silx/math/medianfilter/medianfilter.pyx":61
  *     :returns: the array with the median value for each pixel.
  *     """
  *     reshaped = False             # <<<<<<<<<<<<<<
- *     if len(input.shape) < 2:
- *         input = input.reshape(input.shape[0], 1)
+ *     if len(image.shape) < 2:
+ *         image = image.reshape(image.shape[0], 1)
  */
   __pyx_v_reshaped = 0;
 
   /* "silx/math/medianfilter/medianfilter.pyx":62
  *     """
  *     reshaped = False
- *     if len(input.shape) < 2:             # <<<<<<<<<<<<<<
- *         input = input.reshape(input.shape[0], 1)
+ *     if len(image.shape) < 2:             # <<<<<<<<<<<<<<
+ *         image = image.reshape(image.shape[0], 1)
  *         reshaped = True
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_input, __pyx_n_s_shape); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 62; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_image, __pyx_n_s_shape); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 62; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_2 = PyObject_Length(__pyx_t_1); if (unlikely(__pyx_t_2 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 62; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -2013,14 +2013,14 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CY
 
     /* "silx/math/medianfilter/medianfilter.pyx":63
  *     reshaped = False
- *     if len(input.shape) < 2:
- *         input = input.reshape(input.shape[0], 1)             # <<<<<<<<<<<<<<
+ *     if len(image.shape) < 2:
+ *         image = image.reshape(image.shape[0], 1)             # <<<<<<<<<<<<<<
  *         reshaped = True
  * 
  */
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_input, __pyx_n_s_reshape); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_image, __pyx_n_s_reshape); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_input, __pyx_n_s_shape); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_image, __pyx_n_s_shape); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
     __pyx_t_6 = __Pyx_GetItemInt(__pyx_t_5, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_6 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
     __Pyx_GOTREF(__pyx_t_6);
@@ -2052,12 +2052,12 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CY
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __Pyx_DECREF_SET(__pyx_v_input, __pyx_t_1);
+    __Pyx_DECREF_SET(__pyx_v_image, __pyx_t_1);
     __pyx_t_1 = 0;
 
     /* "silx/math/medianfilter/medianfilter.pyx":64
- *     if len(input.shape) < 2:
- *         input = input.reshape(input.shape[0], 1)
+ *     if len(image.shape) < 2:
+ *         image = image.reshape(image.shape[0], 1)
  *         reshaped = True             # <<<<<<<<<<<<<<
  * 
  *     # simple median filter apply into a 2D buffer
@@ -2070,8 +2070,8 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CY
   /* "silx/math/medianfilter/medianfilter.pyx":67
  * 
  *     # simple median filter apply into a 2D buffer
- *     output_buffer = numpy.zeros_like(input)             # <<<<<<<<<<<<<<
- *     check(input, output_buffer)
+ *     output_buffer = numpy.zeros_like(image)             # <<<<<<<<<<<<<<
+ *     check(image, output_buffer)
  * 
  */
   __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 67; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -2090,15 +2090,15 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CY
     }
   }
   if (!__pyx_t_4) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_v_input); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 67; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_v_image); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 67; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
   } else {
     __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 67; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_6);
     PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_4); __Pyx_GIVEREF(__pyx_t_4); __pyx_t_4 = NULL;
-    __Pyx_INCREF(__pyx_v_input);
-    PyTuple_SET_ITEM(__pyx_t_6, 0+1, __pyx_v_input);
-    __Pyx_GIVEREF(__pyx_v_input);
+    __Pyx_INCREF(__pyx_v_image);
+    PyTuple_SET_ITEM(__pyx_t_6, 0+1, __pyx_v_image);
+    __Pyx_GIVEREF(__pyx_v_image);
     __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_t_6, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 67; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
@@ -2109,8 +2109,8 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CY
 
   /* "silx/math/medianfilter/medianfilter.pyx":68
  *     # simple median filter apply into a 2D buffer
- *     output_buffer = numpy.zeros_like(input)
- *     check(input, output_buffer)             # <<<<<<<<<<<<<<
+ *     output_buffer = numpy.zeros_like(image)
+ *     check(image, output_buffer)             # <<<<<<<<<<<<<<
  * 
  *     if type(kernel_size) in (tuple, list):
  */
@@ -2133,9 +2133,9 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CY
   if (__pyx_t_6) {
     PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_6); __Pyx_GIVEREF(__pyx_t_6); __pyx_t_6 = NULL;
   }
-  __Pyx_INCREF(__pyx_v_input);
-  PyTuple_SET_ITEM(__pyx_t_4, 0+__pyx_t_2, __pyx_v_input);
-  __Pyx_GIVEREF(__pyx_v_input);
+  __Pyx_INCREF(__pyx_v_image);
+  PyTuple_SET_ITEM(__pyx_t_4, 0+__pyx_t_2, __pyx_v_image);
+  __Pyx_GIVEREF(__pyx_v_image);
   __Pyx_INCREF(__pyx_v_output_buffer);
   PyTuple_SET_ITEM(__pyx_t_4, 1+__pyx_t_2, __pyx_v_output_buffer);
   __Pyx_GIVEREF(__pyx_v_output_buffer);
@@ -2146,7 +2146,7 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CY
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "silx/math/medianfilter/medianfilter.pyx":70
- *     check(input, output_buffer)
+ *     check(image, output_buffer)
  * 
  *     if type(kernel_size) in (tuple, list):             # <<<<<<<<<<<<<<
  *         if(len(kernel_size) == 1):
@@ -2273,7 +2273,7 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CY
  *     else:
  *         ker_dim = numpy.array([kernel_size, kernel_size], dtype=numpy.int32)             # <<<<<<<<<<<<<<
  * 
- *     if input.dtype == numpy.float64:
+ *     if image.dtype == numpy.float64:
  */
     __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 76; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_6);
@@ -2315,11 +2315,11 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CY
   /* "silx/math/medianfilter/medianfilter.pyx":78
  *         ker_dim = numpy.array([kernel_size, kernel_size], dtype=numpy.int32)
  * 
- *     if input.dtype == numpy.float64:             # <<<<<<<<<<<<<<
+ *     if image.dtype == numpy.float64:             # <<<<<<<<<<<<<<
  *         medfilterfc = _median_filter_float64
- *     elif input.dtype == numpy.float32:
+ *     elif image.dtype == numpy.float32:
  */
-  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_input, __pyx_n_s_dtype); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 78; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_image, __pyx_n_s_dtype); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 78; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_7);
   __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 78; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_6);
@@ -2335,9 +2335,9 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CY
 
     /* "silx/math/medianfilter/medianfilter.pyx":79
  * 
- *     if input.dtype == numpy.float64:
+ *     if image.dtype == numpy.float64:
  *         medfilterfc = _median_filter_float64             # <<<<<<<<<<<<<<
- *     elif input.dtype == numpy.float32:
+ *     elif image.dtype == numpy.float32:
  *         medfilterfc = _median_filter_float32
  */
     __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_median_filter_float64); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 79; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -2348,13 +2348,13 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CY
   }
 
   /* "silx/math/medianfilter/medianfilter.pyx":80
- *     if input.dtype == numpy.float64:
+ *     if image.dtype == numpy.float64:
  *         medfilterfc = _median_filter_float64
- *     elif input.dtype == numpy.float32:             # <<<<<<<<<<<<<<
+ *     elif image.dtype == numpy.float32:             # <<<<<<<<<<<<<<
  *         medfilterfc = _median_filter_float32
- *     elif input.dtype == numpy.int64:
+ *     elif image.dtype == numpy.int64:
  */
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_input, __pyx_n_s_dtype); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 80; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_image, __pyx_n_s_dtype); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 80; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_6);
   __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 80; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
@@ -2370,9 +2370,9 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CY
 
     /* "silx/math/medianfilter/medianfilter.pyx":81
  *         medfilterfc = _median_filter_float64
- *     elif input.dtype == numpy.float32:
+ *     elif image.dtype == numpy.float32:
  *         medfilterfc = _median_filter_float32             # <<<<<<<<<<<<<<
- *     elif input.dtype == numpy.int64:
+ *     elif image.dtype == numpy.int64:
  *         medfilterfc = _median_filter_int64
  */
     __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_median_filter_float32); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 81; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -2383,13 +2383,13 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CY
   }
 
   /* "silx/math/medianfilter/medianfilter.pyx":82
- *     elif input.dtype == numpy.float32:
+ *     elif image.dtype == numpy.float32:
  *         medfilterfc = _median_filter_float32
- *     elif input.dtype == numpy.int64:             # <<<<<<<<<<<<<<
+ *     elif image.dtype == numpy.int64:             # <<<<<<<<<<<<<<
  *         medfilterfc = _median_filter_int64
- *     elif input.dtype == numpy.uint64:
+ *     elif image.dtype == numpy.uint64:
  */
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_input, __pyx_n_s_dtype); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 82; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_image, __pyx_n_s_dtype); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 82; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_7 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 82; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_7);
@@ -2405,9 +2405,9 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CY
 
     /* "silx/math/medianfilter/medianfilter.pyx":83
  *         medfilterfc = _median_filter_float32
- *     elif input.dtype == numpy.int64:
+ *     elif image.dtype == numpy.int64:
  *         medfilterfc = _median_filter_int64             # <<<<<<<<<<<<<<
- *     elif input.dtype == numpy.uint64:
+ *     elif image.dtype == numpy.uint64:
  *         medfilterfc = _median_filter_uint64
  */
     __pyx_t_7 = __Pyx_GetModuleGlobalName(__pyx_n_s_median_filter_int64); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 83; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -2418,13 +2418,13 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CY
   }
 
   /* "silx/math/medianfilter/medianfilter.pyx":84
- *     elif input.dtype == numpy.int64:
+ *     elif image.dtype == numpy.int64:
  *         medfilterfc = _median_filter_int64
- *     elif input.dtype == numpy.uint64:             # <<<<<<<<<<<<<<
+ *     elif image.dtype == numpy.uint64:             # <<<<<<<<<<<<<<
  *         medfilterfc = _median_filter_uint64
- *     elif input.dtype == numpy.int32:
+ *     elif image.dtype == numpy.int32:
  */
-  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_input, __pyx_n_s_dtype); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 84; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_image, __pyx_n_s_dtype); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 84; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_7);
   __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 84; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_6);
@@ -2440,9 +2440,9 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CY
 
     /* "silx/math/medianfilter/medianfilter.pyx":85
  *         medfilterfc = _median_filter_int64
- *     elif input.dtype == numpy.uint64:
+ *     elif image.dtype == numpy.uint64:
  *         medfilterfc = _median_filter_uint64             # <<<<<<<<<<<<<<
- *     elif input.dtype == numpy.int32:
+ *     elif image.dtype == numpy.int32:
  *         medfilterfc = _median_filter_int32
  */
     __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_median_filter_uint64); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 85; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -2453,13 +2453,13 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CY
   }
 
   /* "silx/math/medianfilter/medianfilter.pyx":86
- *     elif input.dtype == numpy.uint64:
+ *     elif image.dtype == numpy.uint64:
  *         medfilterfc = _median_filter_uint64
- *     elif input.dtype == numpy.int32:             # <<<<<<<<<<<<<<
+ *     elif image.dtype == numpy.int32:             # <<<<<<<<<<<<<<
  *         medfilterfc = _median_filter_int32
- *     elif input.dtype == numpy.uint32:
+ *     elif image.dtype == numpy.uint32:
  */
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_input, __pyx_n_s_dtype); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 86; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_image, __pyx_n_s_dtype); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 86; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_6);
   __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 86; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
@@ -2475,9 +2475,9 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CY
 
     /* "silx/math/medianfilter/medianfilter.pyx":87
  *         medfilterfc = _median_filter_uint64
- *     elif input.dtype == numpy.int32:
+ *     elif image.dtype == numpy.int32:
  *         medfilterfc = _median_filter_int32             # <<<<<<<<<<<<<<
- *     elif input.dtype == numpy.uint32:
+ *     elif image.dtype == numpy.uint32:
  *         medfilterfc = _median_filter_uint32
  */
     __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_median_filter_int32); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -2488,13 +2488,13 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CY
   }
 
   /* "silx/math/medianfilter/medianfilter.pyx":88
- *     elif input.dtype == numpy.int32:
+ *     elif image.dtype == numpy.int32:
  *         medfilterfc = _median_filter_int32
- *     elif input.dtype == numpy.uint32:             # <<<<<<<<<<<<<<
+ *     elif image.dtype == numpy.uint32:             # <<<<<<<<<<<<<<
  *         medfilterfc = _median_filter_uint32
- *     elif input.dtype == numpy.int16:
+ *     elif image.dtype == numpy.int16:
  */
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_input, __pyx_n_s_dtype); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 88; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_image, __pyx_n_s_dtype); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 88; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_7 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 88; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_7);
@@ -2510,9 +2510,9 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CY
 
     /* "silx/math/medianfilter/medianfilter.pyx":89
  *         medfilterfc = _median_filter_int32
- *     elif input.dtype == numpy.uint32:
+ *     elif image.dtype == numpy.uint32:
  *         medfilterfc = _median_filter_uint32             # <<<<<<<<<<<<<<
- *     elif input.dtype == numpy.int16:
+ *     elif image.dtype == numpy.int16:
  *         medfilterfc = _median_filter_int16
  */
     __pyx_t_7 = __Pyx_GetModuleGlobalName(__pyx_n_s_median_filter_uint32); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 89; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -2523,13 +2523,13 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CY
   }
 
   /* "silx/math/medianfilter/medianfilter.pyx":90
- *     elif input.dtype == numpy.uint32:
+ *     elif image.dtype == numpy.uint32:
  *         medfilterfc = _median_filter_uint32
- *     elif input.dtype == numpy.int16:             # <<<<<<<<<<<<<<
+ *     elif image.dtype == numpy.int16:             # <<<<<<<<<<<<<<
  *         medfilterfc = _median_filter_int16
- *     elif input.dtype == numpy.uint16:
+ *     elif image.dtype == numpy.uint16:
  */
-  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_input, __pyx_n_s_dtype); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 90; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_image, __pyx_n_s_dtype); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 90; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_7);
   __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 90; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_6);
@@ -2545,9 +2545,9 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CY
 
     /* "silx/math/medianfilter/medianfilter.pyx":91
  *         medfilterfc = _median_filter_uint32
- *     elif input.dtype == numpy.int16:
+ *     elif image.dtype == numpy.int16:
  *         medfilterfc = _median_filter_int16             # <<<<<<<<<<<<<<
- *     elif input.dtype == numpy.uint16:
+ *     elif image.dtype == numpy.uint16:
  *         medfilterfc = _median_filter_uint16
  */
     __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_median_filter_int16); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 91; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -2558,13 +2558,13 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CY
   }
 
   /* "silx/math/medianfilter/medianfilter.pyx":92
- *     elif input.dtype == numpy.int16:
+ *     elif image.dtype == numpy.int16:
  *         medfilterfc = _median_filter_int16
- *     elif input.dtype == numpy.uint16:             # <<<<<<<<<<<<<<
+ *     elif image.dtype == numpy.uint16:             # <<<<<<<<<<<<<<
  *         medfilterfc = _median_filter_uint16
  *     else:
  */
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_input, __pyx_n_s_dtype); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 92; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_image, __pyx_n_s_dtype); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 92; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_6);
   __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 92; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
@@ -2580,10 +2580,10 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CY
 
     /* "silx/math/medianfilter/medianfilter.pyx":93
  *         medfilterfc = _median_filter_int16
- *     elif input.dtype == numpy.uint16:
+ *     elif image.dtype == numpy.uint16:
  *         medfilterfc = _median_filter_uint16             # <<<<<<<<<<<<<<
  *     else:
- *         raise ValueError("%s type is not managed by the median filter" % input.dtype)
+ *         raise ValueError("%s type is not managed by the median filter" % image.dtype)
  */
     __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_median_filter_uint16); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 93; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
@@ -2596,11 +2596,11 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CY
     /* "silx/math/medianfilter/medianfilter.pyx":95
  *         medfilterfc = _median_filter_uint16
  *     else:
- *         raise ValueError("%s type is not managed by the median filter" % input.dtype)             # <<<<<<<<<<<<<<
+ *         raise ValueError("%s type is not managed by the median filter" % image.dtype)             # <<<<<<<<<<<<<<
  * 
- *     medfilterfc(input_buffer=input,
+ *     medfilterfc(input_buffer=image,
  */
-    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_input, __pyx_n_s_dtype); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 95; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_image, __pyx_n_s_dtype); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 95; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
     __pyx_t_7 = __Pyx_PyString_Format(__pyx_kp_s_s_type_is_not_managed_by_the_me, __pyx_t_5); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 95; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_7);
@@ -2620,19 +2620,19 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CY
   __pyx_L8:;
 
   /* "silx/math/medianfilter/medianfilter.pyx":97
- *         raise ValueError("%s type is not managed by the median filter" % input.dtype)
+ *         raise ValueError("%s type is not managed by the median filter" % image.dtype)
  * 
- *     medfilterfc(input_buffer=input,             # <<<<<<<<<<<<<<
+ *     medfilterfc(input_buffer=image,             # <<<<<<<<<<<<<<
  *                 output_buffer=output_buffer,
  *                 kernel_size=ker_dim,
  */
   __pyx_t_7 = PyDict_New(); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 97; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_7);
-  if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_input_buffer, __pyx_v_input) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 97; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_input_buffer, __pyx_v_image) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 97; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
   /* "silx/math/medianfilter/medianfilter.pyx":98
  * 
- *     medfilterfc(input_buffer=input,
+ *     medfilterfc(input_buffer=image,
  *                 output_buffer=output_buffer,             # <<<<<<<<<<<<<<
  *                 kernel_size=ker_dim,
  *                 conditional=conditional)
@@ -2640,7 +2640,7 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CY
   if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_output_buffer, __pyx_v_output_buffer) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 97; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
   /* "silx/math/medianfilter/medianfilter.pyx":99
- *     medfilterfc(input_buffer=input,
+ *     medfilterfc(input_buffer=image,
  *                 output_buffer=output_buffer,
  *                 kernel_size=ker_dim,             # <<<<<<<<<<<<<<
  *                 conditional=conditional)
@@ -2661,9 +2661,9 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CY
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
   /* "silx/math/medianfilter/medianfilter.pyx":97
- *         raise ValueError("%s type is not managed by the median filter" % input.dtype)
+ *         raise ValueError("%s type is not managed by the median filter" % image.dtype)
  * 
- *     medfilterfc(input_buffer=input,             # <<<<<<<<<<<<<<
+ *     medfilterfc(input_buffer=image,             # <<<<<<<<<<<<<<
  *                 output_buffer=output_buffer,
  *                 kernel_size=ker_dim,
  */
@@ -2676,8 +2676,8 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CY
  *                 conditional=conditional)
  * 
  *     if reshaped:             # <<<<<<<<<<<<<<
- *         input = input.reshape(input.shape[0])
- *         output_buffer = output_buffer.reshape(input.shape[0])
+ *         image = image.reshape(image.shape[0])
+ *         output_buffer = output_buffer.reshape(image.shape[0])
  */
   __pyx_t_8 = (__pyx_v_reshaped != 0);
   if (__pyx_t_8) {
@@ -2685,13 +2685,13 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CY
     /* "silx/math/medianfilter/medianfilter.pyx":103
  * 
  *     if reshaped:
- *         input = input.reshape(input.shape[0])             # <<<<<<<<<<<<<<
- *         output_buffer = output_buffer.reshape(input.shape[0])
+ *         image = image.reshape(image.shape[0])             # <<<<<<<<<<<<<<
+ *         output_buffer = output_buffer.reshape(image.shape[0])
  * 
  */
-    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_input, __pyx_n_s_reshape); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 103; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_image, __pyx_n_s_reshape); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 103; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_7);
-    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_input, __pyx_n_s_shape); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 103; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_image, __pyx_n_s_shape); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 103; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_6);
     __pyx_t_1 = __Pyx_GetItemInt(__pyx_t_6, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_1 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 103; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
     __Pyx_GOTREF(__pyx_t_1);
@@ -2722,19 +2722,19 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CY
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     }
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __Pyx_DECREF_SET(__pyx_v_input, __pyx_t_5);
+    __Pyx_DECREF_SET(__pyx_v_image, __pyx_t_5);
     __pyx_t_5 = 0;
 
     /* "silx/math/medianfilter/medianfilter.pyx":104
  *     if reshaped:
- *         input = input.reshape(input.shape[0])
- *         output_buffer = output_buffer.reshape(input.shape[0])             # <<<<<<<<<<<<<<
+ *         image = image.reshape(image.shape[0])
+ *         output_buffer = output_buffer.reshape(image.shape[0])             # <<<<<<<<<<<<<<
  * 
  *     return output_buffer
  */
     __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_output_buffer, __pyx_n_s_reshape); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 104; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_7);
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_input, __pyx_n_s_shape); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 104; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_image, __pyx_n_s_shape); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 104; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __pyx_t_1 = __Pyx_GetItemInt(__pyx_t_4, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_1 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 104; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
     __Pyx_GOTREF(__pyx_t_1);
@@ -2772,7 +2772,7 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CY
   __pyx_L9:;
 
   /* "silx/math/medianfilter/medianfilter.pyx":106
- *         output_buffer = output_buffer.reshape(input.shape[0])
+ *         output_buffer = output_buffer.reshape(image.shape[0])
  * 
  *     return output_buffer             # <<<<<<<<<<<<<<
  * 
@@ -2786,7 +2786,7 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CY
   /* "silx/math/medianfilter/medianfilter.pyx":46
  * 
  * 
- * def medfilt2d(input, kernel_size=3, bool conditional=False):             # <<<<<<<<<<<<<<
+ * def medfilt2d(image, kernel_size=3, bool conditional=False):             # <<<<<<<<<<<<<<
  *     """Function computing the median filter of the given input.
  *     Behavior at boundaries: the algorithm is reducing the size of the
  */
@@ -2804,7 +2804,7 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_medfilt2d(CY
   __Pyx_XDECREF(__pyx_v_output_buffer);
   __Pyx_XDECREF(__pyx_v_ker_dim);
   __Pyx_XDECREF(__pyx_v_medfilterfc);
-  __Pyx_XDECREF(__pyx_v_input);
+  __Pyx_XDECREF(__pyx_v_image);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
@@ -18715,9 +18715,9 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_got_differing_extents_in_dimensi, __pyx_k_got_differing_extents_in_dimensi, sizeof(__pyx_k_got_differing_extents_in_dimensi), 0, 0, 1, 0},
   {&__pyx_kp_s_home_payno_Documents_dev_esrf_s, __pyx_k_home_payno_Documents_dev_esrf_s, sizeof(__pyx_k_home_payno_Documents_dev_esrf_s), 0, 0, 1, 0},
   {&__pyx_n_s_id, __pyx_k_id, sizeof(__pyx_k_id), 0, 0, 1, 1},
+  {&__pyx_n_s_image, __pyx_k_image, sizeof(__pyx_k_image), 0, 0, 1, 1},
   {&__pyx_n_s_image_dim, __pyx_k_image_dim, sizeof(__pyx_k_image_dim), 0, 0, 1, 1},
   {&__pyx_n_s_import, __pyx_k_import, sizeof(__pyx_k_import), 0, 0, 1, 1},
-  {&__pyx_n_s_input, __pyx_k_input, sizeof(__pyx_k_input), 0, 0, 1, 1},
   {&__pyx_n_s_input_buffer, __pyx_k_input_buffer, sizeof(__pyx_k_input_buffer), 0, 0, 1, 1},
   {&__pyx_kp_s_input_buffer_and_output_buffer_m, __pyx_k_input_buffer_and_output_buffer_m, sizeof(__pyx_k_input_buffer_and_output_buffer_m), 0, 0, 1, 0},
   {&__pyx_kp_s_input_buffer_and_output_buffer_m_2, __pyx_k_input_buffer_and_output_buffer_m_2, sizeof(__pyx_k_input_buffer_and_output_buffer_m_2), 0, 0, 1, 0},
@@ -19064,11 +19064,11 @@ static int __Pyx_InitCachedConstants(void) {
   /* "silx/math/medianfilter/medianfilter.pyx":46
  * 
  * 
- * def medfilt2d(input, kernel_size=3, bool conditional=False):             # <<<<<<<<<<<<<<
+ * def medfilt2d(image, kernel_size=3, bool conditional=False):             # <<<<<<<<<<<<<<
  *     """Function computing the median filter of the given input.
  *     Behavior at boundaries: the algorithm is reducing the size of the
  */
-  __pyx_tuple__24 = PyTuple_Pack(7, __pyx_n_s_input, __pyx_n_s_kernel_size, __pyx_n_s_conditional, __pyx_n_s_reshaped, __pyx_n_s_output_buffer, __pyx_n_s_ker_dim, __pyx_n_s_medfilterfc); if (unlikely(!__pyx_tuple__24)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 46; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__24 = PyTuple_Pack(7, __pyx_n_s_image, __pyx_n_s_kernel_size, __pyx_n_s_conditional, __pyx_n_s_reshaped, __pyx_n_s_output_buffer, __pyx_n_s_ker_dim, __pyx_n_s_medfilterfc); if (unlikely(!__pyx_tuple__24)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 46; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__24);
   __Pyx_GIVEREF(__pyx_tuple__24);
   __pyx_codeobj__25 = (PyObject*)__Pyx_PyCode_New(3, 0, 7, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__24, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_payno_Documents_dev_esrf_s, __pyx_n_s_medfilt2d, 46, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__25)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 46; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -19449,7 +19449,7 @@ PyMODINIT_FUNC PyInit_medianfilter(void)
   /* "silx/math/medianfilter/medianfilter.pyx":46
  * 
  * 
- * def medfilt2d(input, kernel_size=3, bool conditional=False):             # <<<<<<<<<<<<<<
+ * def medfilt2d(image, kernel_size=3, bool conditional=False):             # <<<<<<<<<<<<<<
  *     """Function computing the median filter of the given input.
  *     Behavior at boundaries: the algorithm is reducing the size of the
  */

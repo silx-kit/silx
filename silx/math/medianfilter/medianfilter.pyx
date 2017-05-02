@@ -43,12 +43,12 @@ ctypedef unsigned int uint32
 ctypedef unsigned short uint16
 
 
-def medfilt2d(input, kernel_size=3, bool conditional=False):
+def medfilt2d(image, kernel_size=3, bool conditional=False):
     """Function computing the median filter of the given input.
     Behavior at boundaries: the algorithm is reducing the size of the
     window/kernel for pixels at boundaries (there is no mirroring).
 
-    :param numpy.ndarray input: the array for which we want to apply 
+    :param numpy.ndarray image: the array for which we want to apply 
         the median filter
     :param kernel_size: the dimension of the kernel.
     :type kernel_size: For 1D should be an int for 2D should be a tuple or 
@@ -59,13 +59,13 @@ def medfilt2d(input, kernel_size=3, bool conditional=False):
     :returns: the array with the median value for each pixel.
     """
     reshaped = False
-    if len(input.shape) < 2:
-        input = input.reshape(input.shape[0], 1)
+    if len(image.shape) < 2:
+        image = image.reshape(image.shape[0], 1)
         reshaped = True
 
     # simple median filter apply into a 2D buffer
-    output_buffer = numpy.zeros_like(input)
-    check(input, output_buffer)
+    output_buffer = numpy.zeros_like(image)
+    check(image, output_buffer)
 
     if type(kernel_size) in (tuple, list):
         if(len(kernel_size) == 1):
@@ -75,33 +75,33 @@ def medfilt2d(input, kernel_size=3, bool conditional=False):
     else:
         ker_dim = numpy.array([kernel_size, kernel_size], dtype=numpy.int32)
 
-    if input.dtype == numpy.float64:
+    if image.dtype == numpy.float64:
         medfilterfc = _median_filter_float64
-    elif input.dtype == numpy.float32:
+    elif image.dtype == numpy.float32:
         medfilterfc = _median_filter_float32
-    elif input.dtype == numpy.int64:
+    elif image.dtype == numpy.int64:
         medfilterfc = _median_filter_int64
-    elif input.dtype == numpy.uint64:
+    elif image.dtype == numpy.uint64:
         medfilterfc = _median_filter_uint64
-    elif input.dtype == numpy.int32:
+    elif image.dtype == numpy.int32:
         medfilterfc = _median_filter_int32
-    elif input.dtype == numpy.uint32:
+    elif image.dtype == numpy.uint32:
         medfilterfc = _median_filter_uint32
-    elif input.dtype == numpy.int16:
+    elif image.dtype == numpy.int16:
         medfilterfc = _median_filter_int16
-    elif input.dtype == numpy.uint16:
+    elif image.dtype == numpy.uint16:
         medfilterfc = _median_filter_uint16
     else:
-        raise ValueError("%s type is not managed by the median filter" % input.dtype)
+        raise ValueError("%s type is not managed by the median filter" % image.dtype)
 
-    medfilterfc(input_buffer=input,
+    medfilterfc(input_buffer=image,
                 output_buffer=output_buffer,
                 kernel_size=ker_dim,
                 conditional=conditional)
 
     if reshaped:
-        input = input.reshape(input.shape[0])
-        output_buffer = output_buffer.reshape(input.shape[0])
+        image = image.reshape(image.shape[0])
+        output_buffer = output_buffer.reshape(image.shape[0])
 
     return output_buffer
 

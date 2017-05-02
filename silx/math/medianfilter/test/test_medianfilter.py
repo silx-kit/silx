@@ -46,7 +46,7 @@ class Test2DFilter(unittest.TestCase):
         dataIn = numpy.arange(100, dtype=numpy.int32)
         dataIn = dataIn.reshape((10,10))
 
-        dataOut = medfilt2d(input=dataIn,
+        dataOut = medfilt2d(image=dataIn,
                             kernel_size=(3, 3),
                             conditional=False)
         
@@ -65,7 +65,7 @@ class Test2DFilter(unittest.TestCase):
                               100, 4, 12],
                              dtype=numpy.int16)
         dataIn = dataIn.reshape((3, 3))
-        dataOut = medfilt2d(input=dataIn,
+        dataOut = medfilt2d(image=dataIn,
                             kernel_size=(3, 3),
                             conditional=False)
         self.assertTrue(dataOut.shape == dataIn.shape)
@@ -80,7 +80,7 @@ class Test2DFilter(unittest.TestCase):
         dataIn = numpy.arange(100, dtype=numpy.int32)
         dataIn = dataIn.reshape((10,10))
 
-        dataOut = medfilt2d(input=dataIn,
+        dataOut = medfilt2d(image=dataIn,
                             kernel_size=(1, 1),
                             conditional=False)
 
@@ -92,7 +92,7 @@ class Test2DFilter(unittest.TestCase):
         dataIn = dataIn.reshape((10,10))
         dataInCopy = dataIn.copy()
 
-        dataOut = medfilt2d(input=dataIn,
+        dataOut = medfilt2d(image=dataIn,
                             kernel_size=(3, 3),
                             conditional=False)
         self.assertTrue(numpy.array_equal(dataIn, dataInCopy))
@@ -103,20 +103,20 @@ class Test2DFilter(unittest.TestCase):
 
         former = os.environ.get("OMP_NUM_THREADS")
         os.environ["OMP_NUM_THREADS"] = "1"
-        dataOut1Thr = medfilt2d(input=dataIn,
+        dataOut1Thr = medfilt2d(image=dataIn,
                                 kernel_size=(3, 3),
                                 conditional=False,
                                 )
         os.environ["OMP_NUM_THREADS"] = "2"
-        dataOut2Thr = medfilt2d(input=dataIn,
+        dataOut2Thr = medfilt2d(image=dataIn,
                                 kernel_size=(3, 3),
                                 conditional=False)
         os.environ["OMP_NUM_THREADS"] = "4"
-        dataOut4Thr = medfilt2d(input=dataIn,
+        dataOut4Thr = medfilt2d(image=dataIn,
                                 kernel_size=(3, 3),
                                 conditional=False)
         os.environ["OMP_NUM_THREADS"] = "8"
-        dataOut8Thr = medfilt2d(input=dataIn,
+        dataOut8Thr = medfilt2d(image=dataIn,
                                 kernel_size=(3, 3),
                                 conditional=False)
         if former is None:
@@ -136,7 +136,7 @@ class Testconditional2DFilter(unittest.TestCase):
         dataIn = numpy.arange(100, dtype=numpy.int32)
         dataIn = dataIn.reshape((10, 10))
 
-        dataOut = medfilt2d(input=dataIn,
+        dataOut = medfilt2d(image=dataIn,
                             kernel_size=(3, 3),
                             conditional=True)
         self.assertTrue(dataOut[0, 0] == 10)
@@ -153,7 +153,7 @@ class Test2DFilterInputTypes(ParametricTestCase):
         for testType in [numpy.float32, numpy.float64, numpy.int16, numpy.uint16,
                          numpy.int32, numpy.int64, numpy.uint64]:
             data = (numpy.random.rand(10, 10) * 65000).astype(testType)
-            out = medfilt2d(input=data,
+            out = medfilt2d(image=data,
                             kernel_size=(3, 3),
                             conditional=False)
             self.assertTrue(out.dtype.type is testType)
@@ -166,13 +166,26 @@ class Test1DFilter(unittest.TestCase):
         """Simple test of a three by three kernel median filter"""
         dataIn = numpy.arange(100, dtype=numpy.int32)
 
-        dataOut = medfilt2d(input=dataIn,
+        dataOut = medfilt2d(image=dataIn,
                             kernel_size=(5),
                             conditional=False)
         
         self.assertTrue(dataOut[0] == 1)
         self.assertTrue(dataOut[9] == 9)
         self.assertTrue(dataOut[99] == 98)
+
+# @skipif(scipy)
+class TestCompareScipy(unittest.TestCase):
+
+    def test(self):
+        data = (numpy.random.rand(10, 10) * 65000).astype(numpy.float32)
+        from scipy.signal import median_filter
+        resScipy = median_filter(data, kernel_size=5, mode='nearest')
+        resSilx = medfilt2d(image=data,
+                            kernel_size=(5),
+                            conditional=False)
+
+        self.assertTrue(numpy.array_equal(resScipy, resSilx))
 
 
 def suite():
