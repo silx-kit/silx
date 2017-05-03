@@ -36,14 +36,14 @@ import numpy
 
 from .. import Colors
 from .core import (Points, LabelsMixIn, SymbolMixIn,
-                   ColorMixIn, YAxisMixIn, FillMixIn)
+                   ColorMixIn, YAxisMixIn, FillMixIn, LineMixIn)
 from ....utils.decorators import deprecated
 
 
 _logger = logging.getLogger(__name__)
 
 
-class Curve(Points, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn):
+class Curve(Points, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixIn):
     """Description of a curve"""
 
     _DEFAULT_Z_LAYER = 1
@@ -67,10 +67,7 @@ class Curve(Points, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn):
         YAxisMixIn.__init__(self)
         FillMixIn.__init__(self)
         LabelsMixIn.__init__(self)
-
-        self._linewidth = self._DEFAULT_LINEWIDTH
-        self._linestyle = self._DEFAULT_LINESTYLE
-        self._histogram = None
+        LineMixIn.__init__(self)
 
         self._highlightColor = self._DEFAULT_HIGHLIGHT_COLOR
         self._highlighted = False
@@ -195,49 +192,3 @@ class Curve(Points, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn):
             return self.getHighlightedColor()
         else:
             return self.getColor()
-
-    def getLineWidth(self):
-        """Return the curve line width in pixels (int)"""
-        return self._linewidth
-
-    def setLineWidth(self, width):
-        """Set the width in pixel of the curve line
-
-        See :meth:`getLineWidth`.
-
-        :param float width: Width in pixels
-        """
-        width = float(width)
-        if width != self._linewidth:
-            self._linewidth = width
-            self._updated()
-
-    def getLineStyle(self):
-        """Return the type of the line
-
-        Type of line::
-
-            - ' '  no line
-            - '-'  solid line
-            - '--' dashed line
-            - '-.' dash-dot line
-            - ':'  dotted line
-
-        :rtype: str
-        """
-        return self._linestyle
-
-    def setLineStyle(self, style):
-        """Set the style of the curve line.
-
-        See :meth:`getLineStyle`.
-
-        :param str style: Line style
-        """
-        style = str(style)
-        assert style in ('', ' ', '-', '--', '-.', ':', None)
-        if style is None:
-            style = self._DEFAULT_LINESTYLE
-        if style != self._linestyle:
-            self._linestyle = style
-            self._updated()

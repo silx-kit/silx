@@ -22,21 +22,20 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides the :class:`Curve` item of the :class:`Plot`.
+"""This module provides the :class:`Histogram` item of the :class:`Plot`.
 """
 
-__authors__ = ["T. Vincent"]
+__authors__ = ["H. Payno", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "06/03/2017"
+__date__ = "02/05/2017"
 
 
 import logging
 
 import numpy
 
-from .. import Colors
-from .curve import Curve
-from ....utils.decorators import deprecated
+from .core import (Item, AlphaMixIn, ColorMixIn, FillMixIn,
+                   LineMixIn, YAxisMixIn)
 
 
 _logger = logging.getLogger(__name__)
@@ -77,125 +76,213 @@ def _computeEdges(x, histogramType):
     return edges
 
 
-def _getHistogramValue(x, y, histogramType):
+def _getHistogramCurve(histogram, edges):
     """Returns the x and y value of a curve corresponding to the histogram
 
-    :param x: the x value of the curve to transform in an histogram
-    :param y: the y value of the curve to transform in an histogram
-    :param histogramType: the type of histogram we wan't to generate.
-         This define the way to center the histogram values compared to the
-         curve value. Possible values can be::
-
-         - 'left'
-         - 'right'
-         - 'center'
-
-    :return: a tuple(x, y) which are the value of the histogram to be
-         displayed as a curve
+    :param numpy.ndarray histogram: The values of the histogram
+    :param numpy.ndarray edges: The bin edges of the histogram
+    :return: a tuple(x, y) which contains the value of the curve to use
+             to display the histogram
     """
-    assert histogramType in ('left', 'right', 'center')
-    if len(x) == len(y) + 1:
-        edges = x
-    else:
-        edges = _computeEdges(x, histogramType)
-    assert len(edges) > 1
+    assert len(histogram) + 1 == len(edges)
+    x = numpy.empty(len(histogram) * 2, dtype=edges.dtype)
+    y = numpy.empty(len(histogram) * 2, dtype=histogram.dtype)
+    # Make a curve with stairs
+    x[:-1:2] = edges[:-1]
+    x[1::2] = edges[1:]
+    y[:-1:2] = histogram
+    y[1::2] = histogram
 
-    resx = numpy.empty((len(edges) - 1) * 2, dtype=edges.dtype)
-    resy = numpy.empty((len(edges) - 1) * 2, dtype=edges.dtype)
-    # duplicate x and y values with a small shift to get the stairs effect
-    resx[:-1:2] = edges[:-1]
-    resx[1::2] = edges[1:]
-    resy[:-1:2] = y
-    resy[1::2] = y
-
-    assert len(resx) == len(resy)
-    return resx, resy
+    return x, y
 
 
-class Histogram(Curve):
-    """Description of a curve"""
+# TODO: Yerror, test log scale
+class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
+                LineMixIn, YAxisMixIn):
+    """Description of an histogram"""
 
     _DEFAULT_Z_LAYER = 1
-    """Default overlay layer for curves"""
+    """Default overlay layer for histograms"""
 
-    _DEFAULT_SELECTABLE = True
-    """Default selectable state for curves"""
+    _DEFAULT_SELECTABLE = False
+    """Default selectable state for histograms"""
 
     _DEFAULT_LINEWIDTH = 1.
-    """Default line width of the curve"""
+    """Default line width of the histogram"""
 
     _DEFAULT_LINESTYLE = '-'
-    """Default line style of the curve"""
-
-    _DEFAULT_HIGHLIGHT_COLOR = (0, 0, 0, 255)
-    """Default highlight color of the item"""
+    """Default line style of the histogram"""
 
     def __init__(self):
-        Curve.__init__(self)
-        self._histogram = None
+        Item.__init__(self)
+        AlphaMixIn.__init__(self)
+        ColorMixIn.__init__(self)
+        FillMixIn.__init__(self)
+        LineMixIn.__init__(self)
+        YAxisMixIn.__init__(self)
+
+        self._histogram = ()
+        self._edges = ()
 
     def _addBackendRenderer(self, backend):
         """Update backend renderer"""
-        # Filter-out values <= 0
-        xFiltered, yFiltered, xerror, yerror = self.getData(
-            copy=False, displayed=True)
+        values, edges = self.getData(copy=False)
 
-        if len(xFiltered) == 0:
+        if values.size == 0:
+            return None  # No data to display, do not add renderer
+
+        if values.size == 0:
             return None  # No data to display, do not add renderer to backend
 
-        assert len(xFiltered) in (len(yFiltered), len(yFiltered)+1)
-        # FIXME: setData does not allow len(yFiltered)+1 for now
+        x, y = _getHistogramCurve(values, edges)
 
-        # TODO move this in Histogram class and avoid histo if
-        xFiltered, yFiltered = _getHistogramValue(
-            xFiltered,  yFiltered, histogramType=self.getHistogramType())
-        if (self.getXErrorData(copy=False) is not None or
-                self.getYErrorData(copy=False) is not None):
-            _logger.warning("xerror and yerror won't be displayed"
-                            " for histogram display")
-        xerror, yerror = None, None
+        # Filter-out values <= 0
+        plot = self.getPlot()
+        if plot is not None:
+            xPositive = plot.isXAxisLogarithmic()
+            yPositive = plot.isYAxisLogarithmic()
+        else:
+            xPositive = False
+            yPositive = False
 
-        return backend.addCurve(xFiltered, yFiltered, self.getLegend(),
-                                color=self.getCurrentColor(),
-                                symbol=self.getSymbol(),
+        if xPositive or yPositive:
+            clipped = numpy.logical_or(
+                (x <= 0) if xPositive else False,
+                (y <= 0) if yPositive else False)
+            # Make a copy and replace negative points by NaN
+            x = numpy.array(x, dtype=numpy.float)
+            y = numpy.array(y, dtype=numpy.float)
+            x[clipped] = numpy.nan
+            y[clipped] = numpy.nan
+
+        return backend.addCurve(x, y, self.getLegend(),
+                                color=self.getColor(),
+                                symbol='',
                                 linestyle=self.getLineStyle(),
                                 linewidth=self.getLineWidth(),
                                 yaxis=self.getYAxis(),
-                                xerror=xerror,
-                                yerror=yerror,
+                                xerror=None,
+                                yerror=None,
                                 z=self.getZValue(),
                                 selectable=self.isSelectable(),
                                 fill=self.isFill(),
                                 alpha=self.getAlpha(),
-                                symbolsize=self.getSymbolSize())
+                                symbolsize=1)
 
-    def getHistogramType(self):
-        """Histogram curve rendering style.
+    def _getBounds(self):
+        values, edges = self.getData(copy=False)
 
-        Histogram type::
+        plot = self.getPlot()
+        if plot is not None:
+            xPositive = plot.isXAxisLogarithmic()
+            yPositive = plot.isYAxisLogarithmic()
+        else:
+            xPositive = False
+            yPositive = False
 
-            - None (default)
-            - 'left'
-            - 'right'
-            - 'center'
+        if xPositive or yPositive:
+            values = numpy.array(values, copy=True, dtype=numpy.float)
 
-        :rtype: str or None
+            if xPositive:
+                # Replace edges <= 0 by NaN and corresponding values by NaN
+                clipped = (edges <= 0)
+                edges = numpy.array(edges, copy=True, dtype=numpy.float)
+                edges[clipped] = numpy.nan
+                values[numpy.logical_or(clipped[:-1], clipped[1:])] = numpy.nan
+
+            if yPositive:
+                # Replace values <= 0 by NaN, do not modify edges
+                values[values <= 0] = numpy.nan
+
+        if xPositive or yPositive:
+            return (numpy.nanmin(edges),
+                    numpy.nanmax(edges),
+                    numpy.nanmin(values),
+                    numpy.nanmax(values))
+
+        else:  # No log scale, include 0 in bounds
+            return (numpy.nanmin(edges),
+                    numpy.nanmax(edges),
+                    min(0, numpy.nanmin(values)),
+                    max(0, numpy.nanmax(values)))
+
+    def setVisible(self, visible):
+        """Set visibility of item.
+
+        :param bool visible: True to display it, False otherwise
         """
-        return self._histogram
+        visibleChanged = self.isVisible() != bool(visible)
+        super(Histogram, self).setVisible(visible)
 
-    def setHistogramType(self, histogram):
-        assert histogram in ('left', 'right', 'center', None)
-        if histogram != self._histogram:
+        # TODO hackish data range implementation
+        if visibleChanged:
+            plot = self.getPlot()
+            if plot is not None:
+                plot._invalidateDataRange()
+
+    def getValueData(self, copy=True):
+        """The values of the histogram
+
+        :param copy: True (Default) to get a copy,
+                     False to use internal representation (do not modify!)
+        :returns: The bin edges of the histogram
+        :rtype: numpy.ndarray
+        """
+        return numpy.array(self._histogram, copy=copy)
+
+    def getBinEdgesData(self, copy=True):
+        """The bin edges of the histogram (number of histogram values + 1)
+
+        :param copy: True (Default) to get a copy,
+                     False to use internal representation (do not modify!)
+        :returns: The bin edges of the histogram
+        :rtype: numpy.ndarray
+        """
+        return numpy.array(self._edges, copy=copy)
+
+    def getData(self, copy=True):
+        """Return the histogram values and the bin edges
+
+        :param copy: True (Default) to get a copy,
+                     False to use internal representation (do not modify!)
+        :returns: (N histogram value, N+1 bin edges)
+        :rtype: 2-tuple of numpy.nadarray
+        """
+        return (self.getValueData(copy), self.getBinEdgesData(copy))
+
+    def setData(self, histogram, edges, align='center', copy=True):
+        """Set the histogram values and bin edges.
+
+        :param numpy.ndarray histogram: The values of the histogram.
+        :param numpy.ndarray edges:
+            The bin edges of the histogram.
+            If histogram and edges have the same length, the bin edges
+            are computed according to the align parameter.
+        :param str align:
+            In case histogram values and edges have the same length N,
+            the N+1 bin edges are computed according to the alignment in:
+            'center' (default), 'left', 'right'.
+        :param bool copy: True make a copy of the data (default),
+                          False to use provided arrays.
+        """
+        histogram = numpy.array(histogram, copy=copy)
+        edges = numpy.array(edges, copy=copy)
+
+        assert histogram.ndim == 1
+        assert edges.ndim == 1
+        assert edges.size in (histogram.size, histogram.size + 1)
+        assert align in ('center', 'left', 'right')
+
+        if histogram.size == 0:  # No data
+            self._histogram = ()
+            self._edges = ()
+        else:
+            if edges.size == histogram.size:  # Compute true bin edges
+                edges = _computeEdges(edges, align)
+
+            # Check that bin edges are monotonic
+            edgesDiff = numpy.diff(edges)
+            assert numpy.all(edgesDiff >= 0) or numpy.all(edgesDiff <= 0)
+
             self._histogram = histogram
-            self._updated()
-            # TODO hackish data range implementation
-            if self.isVisible():
-                plot = self.getPlot()
-                if plot is not None:
-                    plot._invalidateDataRange()
-
-    # overwrite function of Points class
-    def _checkXYLength(self, x, y):
-        print(len(x))
-        print(len(y))
-        assert len(x) in (len(y), len(y) + 1 )
+            self._edges = edges

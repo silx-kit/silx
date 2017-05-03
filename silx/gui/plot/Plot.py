@@ -464,6 +464,8 @@ class Plot(object):
             kind = 'marker'
         elif isinstance(item, items.Shape):
             kind = 'item'
+        elif isinstance(item, items.Histogram):
+            kind = 'histogram'
         else:
             raise ValueError('Unsupported item type %s' % type(item))
 
@@ -537,10 +539,10 @@ class Plot(object):
         Curves are uniquely identified by their legend.
         To add multiple curves, call :meth:`addCurve` multiple times with
         different legend argument.
-        To replace/update an existing curve, call :meth:`addCurve` with the
+        To replace an existing curve, call :meth:`addCurve` with the
         existing curve legend.
-        If you wan't to display the curve values as an histogram see the
-        histogram parameter.
+        If you want to display the curve values as an histogram see the
+        histogram parameter or :meth:`addHistogram`.
 
         When curve parameters are not provided, if a curve with the
         same legend is displayed in the plot, its parameters are used.
@@ -621,6 +623,37 @@ class Plot(object):
         if kw:
             _logger.warning('addCurve: deprecated extra arguments')
 
+        # This is an histogram, use addHistogram
+        if histogram is not None:
+            histoLegend = self.addHistogram(y, x,
+                                            legend=legend,
+                                            color=color,
+                                            fill=fill,
+                                            align=histogram,
+                                            copy=copy)
+            histo = self.getHistogram(histoLegend)
+
+            histo.setInfo(info)
+            if linewidth is not None:
+                histo.setLineWidth(linewidth)
+            if linestyle is not None:
+                histo.setLineStyle(linestyle)
+            if xlabel is not None:
+                _logger.warning(
+                    'addCurve: Histogram does not support xlabel argument')
+            if ylabel is not None:
+                _logger.warning(
+                    'addCurve: Histogram does not support ylabel argument')
+            if yaxis is not None:
+                histo.setYAxis(yaxis)
+            if z is not None:
+                histo.setZValue(z)
+            if selectable is not None:
+                _logger.warning(
+                    'addCurve: Histogram does not support selectable argument')
+
+            return
+
         legend = 'Unnamed curve 1.1' if legend is None else str(legend)
 
         # Check if curve was previously active
@@ -661,8 +694,6 @@ class Plot(object):
             curve._setSelectable(selectable)
         if fill is not None:
             curve.setFill(fill)
-        if histogram is not None:
-            curve.setHistogramType(histogram)
 
         # Set curve data
         # If errors not provided, reuse previous ones
@@ -690,6 +721,71 @@ class Plot(object):
             # if the user does not want that, autoscale of the different
             # axes has to be set to off.
             self.resetZoom()
+
+        return legend
+
+    def addHistogram(self,
+                     histogram,
+                     edges,
+                     legend=None,
+                     color=None,
+                     fill=None,
+                     align='center',
+                     copy=True):
+        """Add an histogram to the graph.
+
+        This is NOT computing the histogram, this method takes as parameter
+        already computed histogram values.
+
+        Histogram are uniquely identified by their legend.
+        To add multiple histograms, call :meth:`addHistogram` multiple times with
+        different legend argument.
+
+        When histogram parameters are not provided, if an histogram with the
+        same legend is displayed in the plot, its parameters are used.
+
+        :param numpy.ndarray histogram: The values of the histogram.
+        :param numpy.ndarray edges:
+            The bin edges of the histogram.
+            If histogram and edges have the same length, the bin edges
+            are computed according to the align parameter.
+        :param str legend:
+            The legend to be associated to the histogram (or None)
+        :param info: User-defined information associated to the histogram
+        :param color: color to be used
+        :type color: str ("#RRGGBB") or RGB unsigned byte array or
+                     one of the predefined color names defined in Colors.py
+        :param bool fill: True to fill the curve, False otherwise (default).
+        :param str align:
+            In case histogram values and edges have the same length N,
+            the N+1 bin edges are computed according to the alignment in:
+            'center' (default), 'left', 'right'.
+        :param bool copy: True make a copy of the data (default),
+                          False to use provided arrays.
+        :returns: The key string identify this histogram
+        """
+        legend = 'Unnamed histogram' if legend is None else str(legend)
+
+        # Create/Update histogram object
+        histo = self.getHistogram(legend)
+        if histo is None:
+            # No previous histogram, create a default one and add it to the plot
+            histo = items.Histogram()
+            histo._setLegend(legend)
+            histo.setColor(self._getColorAndStyle()[0])
+            self._add(histo)
+
+        # Override previous/default values with provided ones
+        if color is not None:
+            histo.setColor(color)
+        if fill is not None:
+            histo.setFill(fill)
+
+        # Set histogram data
+        histo.setData(histogram, edges, align=align, copy=copy)
+
+        self.notify(
+            'contentChanged', action='add', kind='histogram', legend=legend)
 
         return legend
 
@@ -1237,7 +1333,7 @@ class Plot(object):
 
     # Remove
 
-    ITEM_KINDS = 'curve', 'image', 'scatter', 'item', 'marker'
+    ITEM_KINDS = 'curve', 'image', 'scatter', 'item', 'marker', 'histogram'
 
     def remove(self, legend=None, kind=ITEM_KINDS):
         """Remove one or all element(s) of the given legend and kind.
@@ -1699,6 +1795,19 @@ class Plot(object):
         :return: None or :class:`.items.Scatter` object
         """
         return self._getItem(kind='scatter', legend=legend)
+
+    def getHistogram(self, legend=None):
+        """Get the object describing a specific histogram.
+
+        It returns None in case no matching histogram is found.
+
+        :param str legend:
+            The legend identifying the histogram.
+            If not provided or None (the default), the latest updated scatter
+            is returned if there are histograms in the plot.
+        :return: None or :class:`.items.Histogram` object
+        """
+        return self._getItem(kind='histogram', legend=legend)
 
     def _getItems(self, kind, just_legend=False, withhidden=False):
         """Retrieve all items of a kind in the plot

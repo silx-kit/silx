@@ -34,6 +34,8 @@ Those methods allow to add and update plotted data:
 
 .. automethod:: PlotWidget.addCurve
 .. automethod:: PlotWidget.addImage
+.. automethod:: PlotWidget.addScatter
+.. automethod:: PlotWidget.addHistogram
 
 Plot markers
 ............
@@ -160,7 +162,8 @@ The :class:`PlotWidget` provides the following Qt signals:
    getActiveCurve, setActiveCurve,
    isCurveHidden, hideCurve,
    getActiveImage, setActiveImage,
-   getAllCurves, getCurve, getMonotonicCurves, getImage,
+   getAllCurves, getCurve, getImage, getAllImages,
+   getScatter, getHistogram,
    setDefaultPlotPoints, setDefaultPlotLines,
    getWidgetHandle, notify, setCallback, graphCallback,
    dataToPixel, pixelToData, getPlotBoundsInPixels,
