@@ -45,8 +45,16 @@ import logging
 _logger = logging.getLogger(__name__)
 
 
-class Test2DFilter(unittest.TestCase):
-    """Some unit tests for the median filter"""
+class TestMedianFilterNearest(ParametricTestCase):
+    """Unit tests for the median filter in nearest mode"""
+
+    random_mat = numpy.array([
+        [ 0.05564293,  0.62717157,  0.75002406,  0.40555336,  0.70278975],
+        [ 0.76532598,  0.02839148,  0.05272484,  0.65166994,  0.42161216],
+        [ 0.23067427,  0.74219128,  0.56049024,  0.4440632 ,  0.28773158],
+        [ 0.81025249,  0.20303021,  0.68382382,  0.46372299,  0.81281709],
+        [ 0.94691602,  0.07813661,  0.81651256,  0.84220106,  0.33623165]])
+
 
     def testFilter3_100(self):
         """Test median filter on a 10x10 matrix with a 3x3 kernel."""
@@ -80,7 +88,6 @@ class Test2DFilter(unittest.TestCase):
         self.assertTrue(dataOut[0, 0] == 0)
         self.assertTrue(dataOut[0, 1] == 0)
         self.assertTrue(dataOut[1, 0] == 6)
-
 
     def testFilterWidthOne(self):
         """Make sure a filter of one by one give the same result as the input"""
@@ -135,11 +142,8 @@ class Test2DFilter(unittest.TestCase):
         self.assertTrue(numpy.array_equal(dataOut1Thr, dataOut4Thr))
         self.assertTrue(numpy.array_equal(dataOut1Thr, dataOut8Thr))
 
-
-class Testconditional2DFilter(unittest.TestCase):
-    """Test that the conditional filter apply correctly"""
-
-    def testFilter3(self):
+    def testFilter3Conditionnal(self):
+        """Test that the conditional filter apply correctly"""
         dataIn = numpy.arange(100, dtype=numpy.int32)
         dataIn = dataIn.reshape((10, 10))
 
@@ -151,12 +155,9 @@ class Testconditional2DFilter(unittest.TestCase):
         self.assertTrue(numpy.array_equal(dataOut[1:8, 1:8], dataIn[1:8, 1:8]))
         self.assertTrue(dataOut[9, 9] == 98)
 
-
-class Test2DFilterInputTypes(ParametricTestCase):
-    """Test that all needed types have their implementation of the median filter
-    """
-
     def testTypes(self):
+        """Test that all needed types have their implementation of the median filter
+        """
         for testType in [numpy.float32, numpy.float64, numpy.int16, numpy.uint16,
                          numpy.int32, numpy.int64, numpy.uint64]:
             data = (numpy.random.rand(10, 10) * 65000).astype(testType)
@@ -166,10 +167,7 @@ class Test2DFilterInputTypes(ParametricTestCase):
             self.assertTrue(out.dtype.type is testType)
 
 
-class Test1DFilter(unittest.TestCase):
-    """Some unit tests for the median filter"""
-
-    def testFilter3(self):
+    def testFilter3_1D(self):
         """Simple test of a three by three kernel median filter"""
         dataIn = numpy.arange(100, dtype=numpy.int32)
 
@@ -181,76 +179,41 @@ class Test1DFilter(unittest.TestCase):
         self.assertTrue(dataOut[9] == 9)
         self.assertTrue(dataOut[99] == 99)
 
-@unittest.skipUnless(scipy, "scipy not available")
-class TestCompareScipy(unittest.TestCase):
-    """Make sure the result between scipy and medfilt2d are equivalent"""
+    @unittest.skipUnless(scipy, "scipy not available")
+    def testWithArange(self):
+        data = numpy.arange(10000, dtype=numpy.int32)
+        data = data.reshape(100, 100)
 
-    random_mat = numpy.array([
-        [ 0.05564293,  0.62717157,  0.75002406,  0.40555336,  0.70278975],
-        [ 0.76532598,  0.02839148,  0.05272484,  0.65166994,  0.42161216],
-        [ 0.23067427,  0.74219128,  0.56049024,  0.4440632 ,  0.28773158],
-        [ 0.81025249,  0.20303021,  0.68382382,  0.46372299,  0.81281709],
-        [ 0.94691602,  0.07813661,  0.81651256,  0.84220106,  0.33623165]])
+        kernels = [(3, 7), (7, 5), (1, 1), (3, 3)]
+        for kernel in kernels:
+            with self.subTest(kernel=kernel):
+                resScipy = scipy.ndimage.median_filter(data, size=kernel, mode='nearest')
+                resSilx = medfilt2d(image=data,
+                                    kernel_size=kernel,
+                                    conditional=False)
 
-    # def test100(self):
-    #     data = numpy.arange(100, dtype=numpy.int32)
-    #     data = data.reshape(10, 10)
-    #     resScipy = scipy.ndimage.median_filter(data, size=5, mode='nearest')
-    #     resSilx = medfilt2d(image=data,
-    #                         kernel_size=(5),
-    #                         conditional=False)
+                self.assertTrue(numpy.array_equal(resScipy, resSilx))
 
-    #     self.assertTrue(numpy.array_equal(resScipy, resSilx))
-
-    # def test1000(self):
-    #     data = numpy.arange(10000, dtype=numpy.int32)
-    #     data = data.reshape(100, 100)
-    #     resScipy = scipy.ndimage.median_filter(data, size=(3, 7), mode='nearest')
-    #     resSilx = medfilt2d(image=data,
-    #                         kernel_size=(3, 7),
-    #                         conditional=False)
-
-    #     self.assertTrue(numpy.array_equal(resScipy, resSilx))
-
-    # def test25(self):
-    #     data = numpy.arange(25, dtype=numpy.int32)
-    #     data = data.reshape(5, 5)
-    #     resScipy = scipy.ndimage.median_filter(data, size=(9, 7), mode='nearest')
-    #     resSilx = medfilt2d(image=data,
-    #                         kernel_size=(9, 7),
-    #                         conditional=False)
-
-    #     self.assertTrue(numpy.array_equal(resScipy, resSilx))
-
+    
+    @unittest.skipUnless(scipy, "scipy not available")
     def testRandomMatrice(self):
-        # TODO : add sub test
-        resScipy = scipy.ndimage.median_filter(input=TestCompareScipy.random_mat,
-                                               size=(3, 3),
-                                               mode='nearest')
+        kernels = [(3, 7), (7, 5), (1, 1), (3, 3)]
+        for kernel in kernels:
+            with self.subTest(kernel=kernel):
+                resScipy = scipy.ndimage.median_filter(input=self.random_mat,
+                                                       size=kernel,
+                                                       mode='nearest')
 
-        resSilx = medfilt2d(image=TestCompareScipy.random_mat,
-                            kernel_size=(3, 3),
-                            conditional=False)
-        
-        print('----- inital mat')
-        print(self.random_mat)
-        print('----- resScipy')
-        print(resScipy)
-        print('----- resSilx')
-        print(resSilx)
-        print('---med')
-        # print(TestCompareScipy.random_mat[0:5, 0:5].flatten())
-        print(numpy.sort(TestCompareScipy.random_mat[1:4, 1:4].flatten()))
-        print(numpy.median(TestCompareScipy.random_mat[1:4, 1:4].flatten()))
-        self.assertTrue(numpy.array_equal(resScipy, resSilx))
-
+                resSilx = medfilt2d(image=self.random_mat,
+                                    kernel_size=kernel,
+                                    conditional=False)
+                
+                self.assertTrue(numpy.array_equal(resScipy, resSilx))
 
 
 def suite():
     test_suite = unittest.TestSuite()
-    # for test in [Test2DFilter, Testconditional2DFilter, Test2DFilterInputTypes,
-    #     Test1DFilter, TestCompareScipy]:
-    for test in [TestCompareScipy, ]:
+    for test in [TestMedianFilterNearest, ]:
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(test))
     return test_suite
