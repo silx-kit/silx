@@ -66,7 +66,6 @@ def medfilt(data, kernel_size=3, bool conditional=False):
 
     :returns: the array with the median value for each pixel.
     """
-
     reshaped = False
     if len(data.shape) == 1:
         data = data.reshape(data.shape[0], 1)
