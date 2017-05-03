@@ -27,59 +27,94 @@ __authors__ = ["H. Payno"]
 __license__ = "MIT"
 __date__ = "02/05/2017"
 
+from silx.gui import qt
 from silx.math.medianfilter import medfilt2d as medfilt2d_silx 
 from scipy.signal import medfilt2d as medfilt2d_scipy
-import scipy.misc
 import numpy
+import numpy.random
 from timeit import Timer
+from silx.gui.plot import Plot1D
+import logging
 
-def benchmark(width=5):
+try:
+    import scipy
+except:
+    scipy = None
+else:
+    import scipy.ndimage
 
-    def testSilx20Thread():
-        os.environ['OMP_NUM_THREADS'] = '20'
-        medfilt2d_silx(img, width)
+try:
+    import PyMca5.PyMca as pymca
+except:
+    pymca = None
+else:
+    from PyMca5.PyMca.median import medfilt2d as medfilt2d_pymca
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+class BenchmarkMedianFilter(object):
+    """Simple benchmark of the median fiter silx vs scipy"""
+
+    NB_ITER = 3
+
+    def __init__(self, imageWidth, kernels):
+        self.img = numpy.random.rand(imageWidth, imageWidth)
+        self.kernels = kernels
+
+        self.run()
+
+    def run(self):
+        self.execTime = {}
+        for kernel in self.kernels:
+            self.execTime[kernel] = self.bench(kernel)
+
+    def bench(self, width):
+        def execSilx():
+            medfilt2d_silx(self.img, width)
+
+        def execScipy():
+            scipy.ndimage.median_filter(input=self.img,
+                                        size=width,
+                                        mode='nearest')
+
+        def execPymca():
+            medfilt2d_pymca(self.img, width)
+
+        execTime = {}
+
+        t = Timer(execSilx)
+        execTime["silx"] = t.timeit(BenchmarkMedianFilter.NB_ITER)
+        logger.info(
+            'exec time silx (kernel size = %s) is %s' % (width, execTime["silx"]))
+
+        if scipy is not None:
+            t = Timer(execScipy)
+            execTime["scipy"] = t.timeit(BenchmarkMedianFilter.NB_ITER)
+            logger.info(
+                'exec time scipy (kernel size = %s) is %s' % (width, execTime["scipy"]))
+        if pymca is not None:
+            t = Timer(execPymca)
+            execTime["pymca"] = t.timeit(BenchmarkMedianFilter.NB_ITER)
+            logger.info(
+                'exec time pymca (kernel size = %s) is %s' % (width, execTime["pymca"]))
+
+        return execTime
+
+    def getExecTimeFor(self, id):
+        res = []
+        for k in self.kernels:
+            res.append(self.execTime[k][id])
+        return res
 
 
-    def testSilx4Thread():
-        os.environ['OMP_NUM_THREADS'] = '4'
-        medfilt2d_silx(img, width)
-
-        
-    def testSilx2Thread():
-        os.environ['OMP_NUM_THREADS'] = '2'
-        medfilt2d_silx(img, width)
-
-        
-    def testSilx1Thread():
-        os.environ['OMP_NUM_THREADS'] = '1'
-        medfilt2d_silx(img, width)
-
-        
-    def testScipy():
-        medfilt2d_scipy(img, width)
-
-    img = scipy.misc.ascent().astype(numpy.float32)
-
-    print('scipy perf')
-    t = Timer(testScipy)
-    print(t.timeit(5))
-
-    print('silx - 1 thread')
-    t = Timer(testSilx1Thread)
-    print(t.timeit(5))
-
-    print('silx - 2 thread')
-    t = Timer(testSilx2Thread)
-    print(t.timeit(5))
-
-    print('silx - 4 thread')
-    t = Timer(testSilx4Thread)
-    print(t.timeit(5))
-
-    print('silx - 20 thread')
-    t = Timer(testSilx20Thread)
-    print(t.timeit(5))
-
-
-if __name__ == '__main__':
-    benchmark()
+global app  # QApplication must be global to avoid seg fault on quit
+app = qt.QApplication([])
+kernels = [3, 5, 7, 11, 15]
+benchmark = BenchmarkMedianFilter(imageWidth=1000, kernels=kernels)
+plot = Plot1D()
+plot.addCurve(x=kernels, y=benchmark.getExecTimeFor("silx"), legend='silx')
+plot.addCurve(x=kernels, y=benchmark.getExecTimeFor("scipy"), legend='scipy')
+plot.addCurve(x=kernels, y=benchmark.getExecTimeFor("pymca"), legend='pymca')
+plot.show()
+app.exec_()
