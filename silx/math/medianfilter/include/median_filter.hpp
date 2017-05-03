@@ -29,15 +29,30 @@
 #define MEDIAN_FILTER
 
 #include <deque>
+#include <queue>
 #include <assert.h>
 #include <algorithm>
 #include <signal.h>
 # include <iostream>
 
+template<typename T, typename Container=std::deque<T> >
+class iterable_queue : public std::queue<T, Container>
+{
+public:
+    typedef typename Container::iterator iterator;
+    typedef typename Container::const_iterator const_iterator;
+
+    iterator begin() { return this->c.begin(); }
+    iterator end() { return this->c.end(); }
+    const_iterator begin() const { return this->c.begin(); }
+    const_iterator end() const { return this->c.end(); }
+    const T& operator [] (unsigned int index) const { return this->c[index]; }
+};
+
 // Simple function browsing a deque and registring the min and max values
 // and if those values are unique or not
 template<typename T>
-void getMinMax(std::deque<const T*>& v, T& min, T&max){
+void getMinMax(iterable_queue<const T*>& v, T& min, T&max){
     // init min and max values
     typename std::deque<const T*>::const_iterator it = v.begin();
     if (v.size() == 0){
@@ -57,16 +72,26 @@ void getMinMax(std::deque<const T*>& v, T& min, T&max){
     }
 }
 
-
 template<typename T>
 bool cmp(const T* a, const T* b){
     return *a < *b;
 }
 
 template<typename T>
-const T* median(std::deque<const T*>& v) {
-    std::nth_element(v.begin(), v.begin() + v.size()/2, v.end(), cmp<T>);
-    return v[v.size()/2];
+const T* median(iterable_queue<const T*>& v) {
+    iterable_queue<const T*> v_copy(v);
+    std::nth_element(v_copy.begin(), v_copy.begin() + v_copy.size()/2, v_copy.end(), cmp<T>);
+    return v_copy[v_copy.size()/2];
+}
+
+template<typename T>
+void printWindow(iterable_queue<const T*>& v){
+    typename iterable_queue<const T*>::const_iterator it = v.begin();
+    while(it!=v.end()){
+        std::cout << *(*it) << ", ";
+        it++;
+    }
+    std::cout << std::endl;
 }
 
 // Browse all pixels in the range of (pixel_x_min, pixel_y_min) to 
@@ -102,17 +127,16 @@ void median_filter(
     // init buffer
     // fill the buffer for the first iteration
     // we are treating
-    // TODO : reserve size
-    std::deque<const T*> window_values;
+    iterable_queue<const T*> window_values;
 
-    for(int win_x = x_pixel-halfKernel_x; win_x <= x_pixel+halfKernel_x; win_x++)
+    // -1 to let the next iteration fill the buffer
+    for(int win_y=-halfKernel_y; win_y<= halfKernel_y-1; win_y++)
     {
-        // -1 to let the next iteration fill the buffer
-        for(int win_y=-halfKernel_y; win_y<= halfKernel_y-1; win_y++)
+        for(int win_x = x_pixel-halfKernel_x; win_x <= x_pixel+halfKernel_x; win_x++)
         {
             int index_x = std::min(std::max(win_x, 0), image_dim[0] - 1);
             int index_y = std::min(std::max(win_y, 0), image_dim[1] - 1);
-            window_values.push_back(&input[index_y*image_dim[0] + index_x]);
+            window_values.push(&input[index_y*image_dim[0] + index_x]);
         }
     }
 
@@ -124,7 +148,7 @@ void median_filter(
         for(int win_x=x_pixel-halfKernel_x; win_x <= x_pixel+halfKernel_x; win_x++)
         {
             int index_x = std::min(std::max(win_x, 0), image_dim[0] -1);
-            window_values.push_back(&input[y_to_add*image_dim[0] + index_x]);
+            window_values.push(&input[y_to_add*image_dim[0] + index_x]);
         }
 
         const T* currentPixelValue = &input[image_dim[0]*pixel_y + x_pixel];
@@ -146,10 +170,11 @@ void median_filter(
             output[image_dim[0]*pixel_y + x_pixel] = *(median<T>(window_values));
         }
 
+
         // remove the last line one the buffer
         for(int win_x=x_pixel-halfKernel_x; win_x <= x_pixel+halfKernel_x; win_x++)
         {
-            window_values.pop_front();
+            window_values.pop();
         }
     }
 }
