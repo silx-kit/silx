@@ -34,9 +34,9 @@ __date__ = "06/03/2017"
 
 from .core import (Item, LabelsMixIn, DraggableMixIn, ColormapMixIn,  # noqa
                    SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn,  # noqa
-                   AlphaMixIn)  # noqa
+                   AlphaMixIn, LineMixIn)  # noqa
 from .curve import Curve  # noqa
-from .histogram import Histogram
+from .histogram import Histogram  # noqa
 from .image import ImageBase, ImageData, ImageRgba  # noqa
 from .shape import Shape  # noqa
 from .scatter import Scatter  # noqa
