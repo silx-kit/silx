@@ -1241,21 +1241,16 @@ class PixelIntensitiesHistoAction(PlotAction):
 
             data = image.ravel().astype(numpy.float32)
             histogram = Histogramnd(data, n_bins=nbins, histo_range=data_range)
-            assert(len(histogram.edges) == 1)
+            assert len(histogram.edges) == 1
             self._histo = histogram.histo
-            x = numpy.arange(nbins) * (xmax - xmin) / nbins + xmin
-            y = self._histo
+            edges = histogram.edges[0]
             plot = self.getHistogramPlotWidget()
-            plot.addCurve(
-                x=x,
-                y=y,
-                legend='pixel intensity',
-                fill=True,
-                color='red',
-                histogram='center')
-
-            colormap = self.plot.getDefaultColormap()
-            plot.setXAxisLogarithmic(colormap["normalization"] == "log")
+            plot.addHistogram(histogram=self._histo,
+                              edges=edges,
+                              legend='pixel intensity',
+                              fill=True,
+                              color='red')
+            plot.resetZoom()
 
     def eventFilter(self, qobject, event):
         """Observe when the close event is emitted then
