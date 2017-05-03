@@ -25,7 +25,7 @@
 
 __authors__ = ["H. Payno"]
 __license__ = "MIT"
-__date__ = "10/02/2017"
+__date__ = "02/05/2017"
 
 import unittest
 import numpy
@@ -36,6 +36,7 @@ from silx.test.utils import ParametricTestCase
 
 import logging
 _logger = logging.getLogger(__name__)
+
 
 class Test2DFilter(unittest.TestCase):
     """Some unit tests for the median filter"""
@@ -100,42 +101,49 @@ class Test2DFilter(unittest.TestCase):
         """Make sure the result doesn't depends on the number of threads used"""
         dataIn = numpy.random.rand(100, 100)
 
+        former = os.environ.get("OMP_NUM_THREADS")
+        os.environ["OMP_NUM_THREADS"] = "1"
         dataOut1Thr = medfilt2d(input=dataIn,
                                 kernel_size=(3, 3),
                                 conditional=False,
-                                nthread=1)
+                                )
+        os.environ["OMP_NUM_THREADS"] = "2"
         dataOut2Thr = medfilt2d(input=dataIn,
                                 kernel_size=(3, 3),
-                                conditional=False,
-                                nthread=2)
+                                conditional=False)
+        os.environ["OMP_NUM_THREADS"] = "4"
         dataOut4Thr = medfilt2d(input=dataIn,
                                 kernel_size=(3, 3),
-                                conditional=False,
-                                nthread=4)
+                                conditional=False)
+        os.environ["OMP_NUM_THREADS"] = "8"
         dataOut8Thr = medfilt2d(input=dataIn,
                                 kernel_size=(3, 3),
-                                conditional=False,
-                                nthread=8)
+                                conditional=False)
+        if former is None:
+            os.environ.pop("OMP_NUM_THREADS")
+        else:
+            os.environ["OMP_NUM_THREADS"] = former
 
         self.assertTrue(numpy.array_equal(dataOut1Thr, dataOut2Thr))
         self.assertTrue(numpy.array_equal(dataOut1Thr, dataOut4Thr))
         self.assertTrue(numpy.array_equal(dataOut1Thr, dataOut8Thr))
+
 
 class Testconditional2DFilter(unittest.TestCase):
     """Test that the conditional filter apply correctly"""
 
     def testFilter3(self):
         dataIn = numpy.arange(100, dtype=numpy.int32)
-        dataIn = dataIn.reshape((10,10))
+        dataIn = dataIn.reshape((10, 10))
 
         dataOut = medfilt2d(input=dataIn,
                             kernel_size=(3, 3),
                             conditional=True)
-        
         self.assertTrue(dataOut[0, 0] == 10)
         self.assertTrue(dataOut[0, 1] == 1)
         self.assertTrue(numpy.array_equal(dataOut[1:8, 1:8], dataIn[1:8, 1:8]))
         self.assertTrue(dataOut[9, 9] == 98)
+
 
 class Test2DFilterInputTypes(ParametricTestCase):
     """Test that all needed types have their implementation of the median filter
@@ -143,10 +151,8 @@ class Test2DFilterInputTypes(ParametricTestCase):
 
     def testTypes(self):
         for testType in [numpy.float32, numpy.float64, numpy.int16, numpy.uint16,
-            numpy.int32, numpy.int64, numpy.uint64]:
-
-
-            data = numpy.random.rand(10, 10).astype(testType)
+                         numpy.int32, numpy.int64, numpy.uint64]:
+            data = (numpy.random.rand(10, 10) * 65000).astype(testType)
             out = medfilt2d(input=data,
                             kernel_size=(3, 3),
                             conditional=False)
