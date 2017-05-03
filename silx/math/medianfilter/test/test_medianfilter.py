@@ -185,42 +185,72 @@ class Test1DFilter(unittest.TestCase):
 class TestCompareScipy(unittest.TestCase):
     """Make sure the result between scipy and medfilt2d are equivalent"""
 
-    def test100(self):
-        data = numpy.arange(100, dtype=numpy.int32)
-        data = data.reshape(10, 10)
-        resScipy = scipy.ndimage.median_filter(data, size=5, mode='nearest')
-        resSilx = medfilt2d(image=data,
-                            kernel_size=(5),
+    random_mat = numpy.array([
+        [ 0.05564293,  0.62717157,  0.75002406,  0.40555336,  0.70278975],
+        [ 0.76532598,  0.02839148,  0.05272484,  0.65166994,  0.42161216],
+        [ 0.23067427,  0.74219128,  0.56049024,  0.4440632 ,  0.28773158],
+        [ 0.81025249,  0.20303021,  0.68382382,  0.46372299,  0.81281709],
+        [ 0.94691602,  0.07813661,  0.81651256,  0.84220106,  0.33623165]])
+
+    # def test100(self):
+    #     data = numpy.arange(100, dtype=numpy.int32)
+    #     data = data.reshape(10, 10)
+    #     resScipy = scipy.ndimage.median_filter(data, size=5, mode='nearest')
+    #     resSilx = medfilt2d(image=data,
+    #                         kernel_size=(5),
+    #                         conditional=False)
+
+    #     self.assertTrue(numpy.array_equal(resScipy, resSilx))
+
+    # def test1000(self):
+    #     data = numpy.arange(10000, dtype=numpy.int32)
+    #     data = data.reshape(100, 100)
+    #     resScipy = scipy.ndimage.median_filter(data, size=(3, 7), mode='nearest')
+    #     resSilx = medfilt2d(image=data,
+    #                         kernel_size=(3, 7),
+    #                         conditional=False)
+
+    #     self.assertTrue(numpy.array_equal(resScipy, resSilx))
+
+    # def test25(self):
+    #     data = numpy.arange(25, dtype=numpy.int32)
+    #     data = data.reshape(5, 5)
+    #     resScipy = scipy.ndimage.median_filter(data, size=(9, 7), mode='nearest')
+    #     resSilx = medfilt2d(image=data,
+    #                         kernel_size=(9, 7),
+    #                         conditional=False)
+
+    #     self.assertTrue(numpy.array_equal(resScipy, resSilx))
+
+    def testRandomMatrice(self):
+        # TODO : add sub test
+        resScipy = scipy.ndimage.median_filter(input=TestCompareScipy.random_mat,
+                                               size=(3, 3),
+                                               mode='nearest')
+
+        resSilx = medfilt2d(image=TestCompareScipy.random_mat,
+                            kernel_size=(3, 3),
                             conditional=False)
-
-        self.assertTrue(numpy.array_equal(resScipy, resSilx))
-
-    def test1000(self):
-        data = numpy.arange(10000, dtype=numpy.int32)
-        data = data.reshape(100, 100)
-        resScipy = scipy.ndimage.median_filter(data, size=(3, 7), mode='nearest')
-        resSilx = medfilt2d(image=data,
-                            kernel_size=(3, 7),
-                            conditional=False)
-
-        self.assertTrue(numpy.array_equal(resScipy, resSilx))
-
-    def test25(self):
-        data = numpy.arange(25, dtype=numpy.int32)
-        data = data.reshape(5, 5)
-        resScipy = scipy.ndimage.median_filter(data, size=(9, 7), mode='nearest')
-        resSilx = medfilt2d(image=data,
-                            kernel_size=(9, 7),
-                            conditional=False)
-
+        
+        print('----- inital mat')
+        print(self.random_mat)
+        print('----- resScipy')
+        print(resScipy)
+        print('----- resSilx')
+        print(resSilx)
+        print('---med')
+        # print(TestCompareScipy.random_mat[0:5, 0:5].flatten())
+        print(numpy.sort(TestCompareScipy.random_mat[1:4, 1:4].flatten()))
+        print(numpy.median(TestCompareScipy.random_mat[1:4, 1:4].flatten()))
         self.assertTrue(numpy.array_equal(resScipy, resSilx))
 
 
 
 def suite():
     test_suite = unittest.TestSuite()
-    for test in [Test2DFilter, Testconditional2DFilter, Test2DFilterInputTypes,
-        Test1DFilter, TestCompareScipy]:
+    # for test in [Test2DFilter, Testconditional2DFilter, Test2DFilterInputTypes,
+    #     Test1DFilter, TestCompareScipy]:
+    for test in [TestCompareScipy, ]:
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(test))
     return test_suite

@@ -32,6 +32,7 @@
 #include <assert.h>
 #include <algorithm>
 #include <signal.h>
+# include <iostream>
 
 // Simple function browsing a deque and registring the min and max values
 // and if those values are unique or not
@@ -54,7 +55,6 @@ void getMinMax(std::deque<const T*>& v, T& min, T&max){
 
         it++;
     }
-    // std::cout << " get min ax end" << std::endl;
 }
 
 
