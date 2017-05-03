@@ -625,7 +625,8 @@ class Plot(object):
 
         # This is an histogram, use addHistogram
         if histogram is not None:
-            histoLegend = self.addHistogram(y, x,
+            histoLegend = self.addHistogram(histogram=y,
+                                            edges=x,
                                             legend=legend,
                                             color=color,
                                             fill=fill,
@@ -751,7 +752,6 @@ class Plot(object):
             are computed according to the align parameter.
         :param str legend:
             The legend to be associated to the histogram (or None)
-        :param info: User-defined information associated to the histogram
         :param color: color to be used
         :type color: str ("#RRGGBB") or RGB unsigned byte array or
                      one of the predefined color names defined in Colors.py
