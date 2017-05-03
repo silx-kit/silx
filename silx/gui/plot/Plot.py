@@ -739,8 +739,8 @@ class Plot(object):
         already computed histogram values.
 
         Histogram are uniquely identified by their legend.
-        To add multiple histograms, call :meth:`addHistogram` multiple times with
-        different legend argument.
+        To add multiple histograms, call :meth:`addHistogram` multiple times
+        with different legend argument.
 
         When histogram parameters are not provided, if an histogram with the
         same legend is displayed in the plot, its parameters are used.
@@ -769,7 +769,8 @@ class Plot(object):
         # Create/Update histogram object
         histo = self.getHistogram(legend)
         if histo is None:
-            # No previous histogram, create a default one and add it to the plot
+            # No previous histogram, create a default one and
+            # add it to the plot
             histo = items.Histogram()
             histo._setLegend(legend)
             histo.setColor(self._getColorAndStyle()[0])
@@ -1789,9 +1790,9 @@ class Plot(object):
 
         :param str legend:
             The legend identifying the scatter.
-            If not provided or None (the default), the active scatter is returned
-            or if there is no active scatter, the latest updated scatter
-            is returned if there are scatters in the plot.
+            If not provided or None (the default), the active scatter is
+            returned or if there is no active scatter, the latest updated
+            scatter is returned if there are scatters in the plot.
         :return: None or :class:`.items.Scatter` object
         """
         return self._getItem(kind='scatter', legend=legend)
