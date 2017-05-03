@@ -26,7 +26,6 @@ Images
    :members:
    :inherited-members:
 
-
 Scatter
 -------
 
@@ -34,6 +33,12 @@ Scatter
    :members:
    :inherited-members:
 
+Histogram
+---------
+
+.. autoclass:: Histogram
+   :members:
+   :inherited-members:
 
 Markers
 -------
