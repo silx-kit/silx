@@ -732,6 +732,7 @@ class Plot(object):
                      color=None,
                      fill=None,
                      align='center',
+                     resetzoom=True,
                      copy=True):
         """Add an histogram to the graph.
 
@@ -760,6 +761,7 @@ class Plot(object):
             In case histogram values and edges have the same length N,
             the N+1 bin edges are computed according to the alignment in:
             'center' (default), 'left', 'right'.
+        :param bool resetzoom: True (the default) to reset the zoom.
         :param bool copy: True make a copy of the data (default),
                           False to use provided arrays.
         :returns: The key string identify this histogram
@@ -787,6 +789,12 @@ class Plot(object):
 
         self.notify(
             'contentChanged', action='add', kind='histogram', legend=legend)
+
+        if resetzoom:
+            # We ask for a zoom reset in order to handle the plot scaling
+            # if the user does not want that, autoscale of the different
+            # axes has to be set to off.
+            self.resetZoom()
 
         return legend
 
