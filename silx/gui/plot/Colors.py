@@ -24,7 +24,7 @@
 # ###########################################################################*/
 """Color conversion function, color dictionary and colormap tools."""
 
-__authors__ = ["V.A. Sole", "T. VINCENT"]
+__authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "03/05/2017"
 
