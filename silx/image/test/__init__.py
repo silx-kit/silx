@@ -30,11 +30,13 @@ __date__ = "25/08/2016"
 import unittest
 from . import test_bilinear
 from . import test_shapes
+from . import test_medianfilter
 
 
 def suite():
     """Test suite for module silx.image.test"""
     test_suite = unittest.TestSuite()
     test_suite.addTest(test_bilinear.suite())
+    test_suite.addTest(test_medianfilter.suite())
     test_suite.addTest(test_shapes.suite())
     return test_suite
