@@ -39,11 +39,11 @@ try:
     import scipy.ndimage
 except:
     scipy = None
-# from silx.opencl.common import ocl
-# if ocl:
-#     import pyopencl
-#     import pyopencl.array
-#     from .. import medfilt
+from silx.opencl.common import ocl
+if ocl:
+    import pyopencl
+    import pyopencl.array
+    from .. import medfilt
 ocl = None
 
 
@@ -59,11 +59,6 @@ class TestMedianFilterEngines(unittest.TestCase):
 
     KERNEL = (1, 1)
 
-    @unittest.skipUnless(ocl, "PyOpenCl is missing")
-    def testOpenCLMedFilt(self):
-        """test opencl engine"""
-        pass
-
     def testCppMedFilt(self):
         """test cpp engine for medfilt"""
         resCpp = medianfilter_cpp.medfilt(
@@ -71,6 +66,16 @@ class TestMedianFilterEngines(unittest.TestCase):
             kernel_size=TestMedianFilterEngines.KERNEL,
             conditional=False,
             engine='cpp')
+        self.assertTrue(numpy.array_equal(resCpp, TestMedianFilterEngines.IMG))
+
+    @unittest.skipUnless(ocl, "PyOpenCl is missing")
+    def testOpenCLMedFilt(self):
+        """test opencl engine"""
+        resCpp = medianfilter_cpp.medfilt(
+            data=TestMedianFilterEngines.IMG,
+            kernel_size=TestMedianFilterEngines.KERNEL,
+            conditional=False,
+            engine='opencl')
         self.assertTrue(numpy.array_equal(resCpp, TestMedianFilterEngines.IMG))
 
     def testCppMedFilt2d(self):
@@ -82,6 +87,16 @@ class TestMedianFilterEngines(unittest.TestCase):
             engine='cpp')
         self.assertTrue(numpy.array_equal(resCpp, TestMedianFilterEngines.IMG))
 
+    @unittest.skipUnless(ocl, "PyOpenCl is missing")
+    def testOpenCLMedFilt2d(self):
+        """test cpp engine for medfilt2d"""
+        resCpp = medianfilter_cpp.medfilt2d(
+            image=TestMedianFilterEngines.IMG,
+            kernel_size=TestMedianFilterEngines.KERNEL,
+            conditional=False,
+            engine='opencl')
+        self.assertTrue(numpy.array_equal(resCpp, TestMedianFilterEngines.IMG))
+
     def testCppMedFilt1d(self):
         """test cpp engine for medfilt1d"""
         # test medfilt
@@ -90,6 +105,18 @@ class TestMedianFilterEngines(unittest.TestCase):
             kernel_size=TestMedianFilterEngines.KERNEL,
             conditional=False,
             engine='cpp')
+        self.assertTrue(
+            numpy.array_equal(resCpp, TestMedianFilterEngines.IMG.ravel()))
+
+    @unittest.skipUnless(ocl, "PyOpenCl is missing")
+    def testOpenCLMedFilt1d(self):
+        """test cpp engine for medfilt1d"""
+        # test medfilt
+        resCpp = medianfilter_cpp.medfilt1d(
+            data=TestMedianFilterEngines.IMG.ravel(),
+            kernel_size=TestMedianFilterEngines.KERNEL,
+            conditional=False,
+            engine='opencl')
         self.assertTrue(
             numpy.array_equal(resCpp, TestMedianFilterEngines.IMG.ravel()))
 
