@@ -187,6 +187,7 @@ class OpenclProcessing(object):
 
         :param kernel_files: list of path to the kernel
             (by default use the one declared in the class)
+        :param compile_options: string of compile options
         """
         # concatenate all needed source files into a single openCL module
         kernel_files = kernel_files or self.kernel_files
