@@ -30,7 +30,6 @@ __date__ = "25/08/2016"
 import unittest
 from . import test_bilinear
 from . import test_shapes
-from ..sift import test as test_sift
 
 
 def suite():
@@ -38,5 +37,4 @@ def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(test_bilinear.suite())
     test_suite.addTest(test_shapes.suite())
-    test_suite.addTest(test_sift.suite())
     return test_suite
