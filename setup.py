@@ -628,6 +628,8 @@ def get_project_configuration(dry_run):
     else:
         use_cython = check_cython(min_version='0.21.1')
 
+        global use_openmp
+        global USE_OPENMP
         use_openmp = check_openmp()
         USE_OPENMP = use_openmp
         config = configuration()

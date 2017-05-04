@@ -22,30 +22,9 @@
 #
 # ############################################################################*/
 
-__authors__ = ["D. Naudet"]
+__authors__ = ["H. Payno"]
 __license__ = "MIT"
-__date__ = "04/07/2016"
-
-import unittest
-
-from .test_histogramnd_error import suite as test_histo_error
-from .test_histogramnd_nominal import suite as test_histo_nominal
-from .test_histogramnd_vs_np import suite as test_histo_vs_np
-from .test_HistogramndLut_nominal import suite as test_histolut_nominal
-from ..fit.test import suite as test_fit_suite
-from .test_marchingcubes import suite as test_marchingcubes_suite
-from ..medianfilter.test import suite as test_medianfilter_suite
-from .test_combo import suite as test_combo_suite
+__date__ = "02/05/2017"
 
 
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(test_histo_nominal())
-    test_suite.addTest(test_histo_error())
-    test_suite.addTest(test_histo_vs_np())
-    test_suite.addTest(test_fit_suite())
-    test_suite.addTest(test_histolut_nominal())
-    test_suite.addTest(test_marchingcubes_suite())
-    test_suite.addTest(test_medianfilter_suite())
-    test_suite.addTest(test_combo_suite())
-    return test_suite
+from .medianfilter import *

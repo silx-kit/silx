@@ -81,23 +81,6 @@ def configuration(parent_package='', top_path=None):
                          include_dirs=[mc_dir, numpy.get_include()],
                          language='c++')
 
-    # =====================================
-    # median filter
-    # =====================================
-    medfilt_dir = 'medianfilter'
-    medfilt_src = [os.path.join(medfilt_dir, srcf)
-                   for srcf in ['medianfilter.pyx']]
-    medfilt_inc = [os.path.join(medfilt_dir, 'include'), numpy.get_include()]
-    extra_link_args = ['-fopenmp'] if os.environ["WITH_OPENMP"] else []
-    extra_compile_args = ["-fopenmp"] if os.environ["WITH_OPENMP"] else []
-    config.add_extension('medianfilter',
-                         sources=medfilt_src,
-                         include_dirs=[medfilt_inc],
-                         language='c++',
-                         extra_link_args=extra_link_args,
-                         extra_compile_args=extra_compile_args)
-
-
     # min/max
     combo_dir = 'combo'
     config.add_extension('combo',

@@ -27,7 +27,7 @@ from libcpp cimport bool
 
 # pyx
 cdef extern from "median_filter.hpp":
-    cdef extern void median_filter[T](const T* input, 
+    cdef extern void median_filter[T](const T* image, 
                                       T* output,
                                       int* kernel_dim,
                                       int* image_dim,
