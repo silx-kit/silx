@@ -300,83 +300,6 @@ if sphinx is not None:
 else:
     TestDocCommand = SphinxExpectedCommand
 
-
-# ############## #
-# OpenMP support #
-# ############## #
-
-def check_openmp():
-    """Do we compile with OpenMP?
-
-    Store the result in WITH_OPENMP environment variable
-
-    TODO: It would be much better to take care of command line arguments in the
-          initialize_options and finalize_options.
-
-    :return: True if available and not disabled.
-    """
-
-    if ("--openmp" in sys.argv):
-        result = True
-    elif "--no-openmp" in sys.argv:
-        result = False
-    elif "WITH_OPENMP" in os.environ:
-        result = True
-    else:
-        result = True
-
-    if platform.system() == "Darwin":
-        # By default Xcode5 & XCode6 do not support OpenMP, Xcode4 is OK.
-        osx = tuple([int(i) for i in platform.mac_ver()[0].split(".")])
-        if osx >= (10, 8):
-            # FIXME Add a comment
-            result = False
-
-    return result
-
-
-# ############## #
-# Cython support #
-# ############## #
-
-def check_cython(min_version=None):
-    """
-    Check if cython must be activated fron te command line or the environment.
-
-    Store the result in WITH_CYTHON environment variable.
-
-    TODO: It would be much better to take care of command line arguments in the
-          initialize_options and finalize_options.
-
-    :param string min_version: Minimum version of Cython requested
-    :return: True if available and not disabled.
-    """
-
-    if "--force-cython" in sys.argv:
-        result = "force"
-    elif "--no-cython" in sys.argv:
-        result = "no"
-    elif "FORCE_CYTHON" in os.environ:
-        result = "force"
-    elif "WITH_CYTHON" in os.environ:
-        result = "yes"
-    else:
-        result = "yes"
-
-    if result in ["force", "yes"]:
-        try:
-            import Cython.Compiler.Version
-            if min_version and Cython.Compiler.Version.version < min_version:
-                msg = "Cython version too old. Version %s expected. Cythonization is skipped."
-                logger.warning(msg, str(min_version))
-                result = "no"
-        except ImportError:
-            msg = "Cython is not available. Cythonization is skipped."
-            logger.warning(msg)
-            result = "no"
-
-    return result
-
 # ############################# #
 # numpy.distutils Configuration #
 # ############################# #
@@ -427,21 +350,85 @@ class Build(_build):
     def initialize_options(self):
         _build.initialize_options(self)
         self.no_openmp = None
+        self.openmp = None
         self.no_cython = None
         self.force_cython = None
-        self.use_openmp = None
 
     def finalize_options(self):
         _build.finalize_options(self)
-        self.use_openmp = check_openmp()
-        self.use_cython = check_openmp() in ["yes", "force"]
+        self.finalize_cython_options(min_version='0.21.1')
+        self.finalize_openmp_options()
+
+    def finalize_openmp_options(self):
+        """Check if extensions must be compiled with OpenMP.
+
+        The result is stored into the object.
+        """
+        if self.openmp:
+            use_openmp = True
+        elif self.no_openmp:
+            use_openmp = False
+        elif "WITH_OPENMP" in os.environ:
+            use_openmp = True
+        else:
+            # Use it by default
+            use_openmp = True
+
+        if use_openmp:
+            if platform.system() == "Darwin":
+                # By default Xcode5 & XCode6 do not support OpenMP, Xcode4 is OK.
+                osx = tuple([int(i) for i in platform.mac_ver()[0].split(".")])
+                if osx >= (10, 8):
+                    logger.warning("OpenMP support ignored. Your platform do not support it")
+                    use_openmp = False
+
+        del self.no_openmp
+        self.use_openmp = use_openmp
+
+    def finalize_cython_options(self, min_version=None):
+        """
+        Check if cythonization must be used for the extensions.
+
+        The result is stored into the object.
+        """
+        if "--force-cython" in sys.argv:
+            use_cython = "force"
+        elif "--no-cython" in sys.argv:
+            use_cython = "no"
+        elif "FORCE_CYTHON" in os.environ:
+            use_cython = "force"
+        elif "WITH_CYTHON" in os.environ:
+            use_cython = "yes"
+        else:
+            # Use it by default
+            use_cython = "yes"
+
+        if use_cython in ["force", "yes"]:
+            try:
+                import Cython.Compiler.Version
+                if min_version and Cython.Compiler.Version.version < min_version:
+                    msg = "Cython version is too old. At least version is %s \
+                        expected. Cythonization is skipped."
+                    logger.warning(msg, str(min_version))
+                    use_cython = "no"
+            except ImportError:
+                msg = "Cython is not available. Cythonization is skipped."
+                logger.warning(msg)
+                use_cython = "no"
+
+        del self.no_cython
+        self.force_cython = use_cython == "force"
+        self.use_cython = use_cython in ["force", "yes"]
 
 
 class BuildExt(build_ext):
-    """Handle compiler and linker flags.
+    """Handle extension compilation.
 
-    If OpenMP is disabled, it removes OpenMP compile flags.
-    If building with MSVC, compiler flags are converted from gcc flags.
+    Command-line argument and environment can custom:
+
+    - The use of cython to cythonize files, else a default version is used
+    - Build extension with support of OpenMP (by default it is enabled)
+    - If building with MSVC, compiler flags are converted from gcc flags.
     """
 
     COMPILE_ARGS_CONVERTER = {'-fopenmp': '/openmp'}
@@ -450,50 +437,74 @@ class BuildExt(build_ext):
 
     description = 'Build silx extensions'
 
-    def build_extensions(self):
+    def finalize_options(self):
+        build_ext.finalize_options(self)
         build_obj = self.distribution.get_command_obj("build")
+        self.use_openmp = build_obj.use_openmp
+        self.use_cython = build_obj.use_cython
+        self.force_cython = build_obj.force_cython
+
+    def patch_with_default_cythonized_files(self, ext):
+        """Replace cython files by .c or .cpp files in extension's sources.
+
+        It replaces the *.pyx and *.py source files of the extensions
+        to either *.cpp or *.c source files.
+        No compilation is performed.
+
+        :param Extension ext: An extension to patch.
+        """
+        new_sources = []
+        for source in ext.sources:
+            base, file_ext = os.path.splitext(source)
+            if file_ext in ('.pyx', '.py'):
+                if ext.language == 'c++':
+                    cythonized = base + '.cpp'
+                else:
+                    cythonized = base + '.c'
+                if not os.path.isfile(cythonized):
+                    raise RuntimeError("Source file not found: %s. Cython is needed" % cythonized)
+                print("Use default cythonized file for %s" % source)
+            new_sources.append(source)
+        ext.sources = new_sources
+
+    def patch_extension(self, ext):
+        """
+        Patch an extension according to requested Cython and OpenMP usage.
+
+        :param Extension ext: An extension
+        """
+        # Cytonize
+        if not self.use_cython:
+            self.patch_with_default_cythonized_files(ext)
+        else:
+            from Cython.Build import cythonize
+            patched_exts = cythonize(
+                [ext],
+                compiler_directives={'embedsignature': True},
+                force=self.force_cython,
+                compile_time_env={"HAVE_OPENMP": self.use_openmp}
+            )
+            ext.sources = patched_exts[0].sources
 
         # Remove OpenMP flags if OpenMP is disabled
-        if not build_obj.use_openmp:
-            for ext in self.extensions:
-                ext.extra_compile_args = [
-                    f for f in ext.extra_compile_args if f != '-fopenmp']
-                ext.extra_link_args = [
-                    f for f in ext.extra_link_args if f != '-fopenmp']
+        if not self.use_openmp:
+            ext.extra_compile_args = [
+                f for f in ext.extra_compile_args if f != '-fopenmp']
+            ext.extra_link_args = [
+                f for f in ext.extra_link_args if f != '-fopenmp']
 
         # Convert flags from gcc to MSVC if required
         if self.compiler.compiler_type == 'msvc':
-            for ext in self.extensions:
-                ext.extra_compile_args = [self.COMPILE_ARGS_CONVERTER.get(f, f)
-                                          for f in ext.extra_compile_args]
-                ext.extra_link_args = [self.LINK_ARGS_CONVERTER.get(f, f)
-                                       for f in ext.extra_link_args]
+            ext.extra_compile_args = [self.COMPILE_ARGS_CONVERTER.get(f, f)
+                                      for f in ext.extra_compile_args]
+            ext.extra_link_args = [self.LINK_ARGS_CONVERTER.get(f, f)
+                                   for f in ext.extra_link_args]
 
+    def build_extensions(self):
+        for ext in self.extensions:
+            self.patch_extension(ext)
         build_ext.build_extensions(self)
 
-
-def fake_cythonize(extensions):
-    """Replace cython files by .c or .cpp files in extension's sources.
-
-    It replaces the *.pyx and *.py source files of the extensions
-    to either *.cpp or *.c source files.
-    No compilation is performed.
-
-    :param iterable extensions: List of extensions to patch.
-    """
-    for ext_module in extensions:
-        new_sources = []
-        for source in ext_module.sources:
-            base, ext = os.path.splitext(source)
-            if ext in ('.pyx', '.py'):
-                if ext_module.language == 'c++':
-                    source = base + '.cpp'
-                else:
-                    source = base + '.c'
-                if not os.path.isfile(source):
-                    raise RuntimeError("Source file not found: %s" % source)
-            new_sources.append(source)
-        ext_module.sources = new_sources
 
 ################################################################################
 # Clean command
@@ -648,25 +659,6 @@ def get_project_configuration(dry_run):
         setup_kwargs = {}
     else:
         config = configuration()
-        check = check_cython(min_version='0.21.1')
-        use_cython = check in ["yes", "force"]
-        force_cython = check == "force"
-        use_openmp = check_openmp()
-
-        if use_cython:
-            # Cythonize extensions
-            from Cython.Build import cythonize
-
-            config.ext_modules = cythonize(
-                config.ext_modules,
-                compiler_directives={'embedsignature': True},
-                force=force_cython,
-                compile_time_env={"HAVE_OPENMP": use_openmp}
-            )
-        else:
-            # Do not use Cython but convert source names from .pyx to .c or .cpp
-            fake_cythonize(config.ext_modules)
-
         setup_kwargs = config.todict()
 
     setup_kwargs.update(name=PROJECT,
