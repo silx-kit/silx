@@ -140,7 +140,11 @@ class MedianFilter2D(OpenclProcessing):
 
     def calc_wg(self, kernel_size):
         """calculate and return the optimal workgroup size for the first dimension, taking into account
-        the 8-height band"""
+        the 8-height band
+
+        :param kernel_size: 2-tuple of int, shape of the median window
+        :return: optimal workgroup size
+        """
         needed_threads = ((kernel_size[0] + 7) // 8) * kernel_size[1]
         if needed_threads < 8:
             wg = 8
