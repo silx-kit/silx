@@ -28,7 +28,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent, H. Payno"]
 __license__ = "MIT"
-__date__ = "03/05/2017"
+__date__ = "15/05/2017"
 
 
 import logging
@@ -42,7 +42,8 @@ _logger = logging.getLogger(__name__)
 from ... import qt
 
 # First of all init matplotlib and set its backend
-from ...matplotlib import FigureCanvasQTAgg
+from ..matplotlib import Colormap as MPLColormap
+from ..matplotlib import FigureCanvasQTAgg
 import matplotlib
 from matplotlib.container import Container
 from matplotlib.figure import Figure
@@ -52,9 +53,8 @@ from matplotlib.backend_bases import MouseEvent
 from matplotlib.lines import Line2D
 from matplotlib.collections import PathCollection, LineCollection
 
-from ...matplotlib.ModestImage import ModestImage
+from ..matplotlib.ModestImage import ModestImage
 from . import BackendBase
-from .. import Colors
 from .._utils import FLOAT32_MINPOS
 
 
@@ -265,7 +265,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         else:
             # Convert colormap argument to matplotlib colormap
-            scalarMappable = Colors.getScalarMappable(colormap, data)
+            scalarMappable = MPLColormap.getScalarMappable(colormap, data)
 
             # try as data
             image = imageClass(self.ax,
