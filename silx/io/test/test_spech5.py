@@ -33,6 +33,7 @@ from functools import partial
 
 from ..spech5 import (SpecH5, SpecH5Group,
                       SpecH5Dataset, spec_date_to_iso8601)
+from .. import specfile
 
 try:
     import h5py
@@ -482,7 +483,7 @@ class TestSpecH5(unittest.TestCase):
         self.sfh5.visit(name_list.append)
         self.assertIn('/1.2/instrument/positioners/Pslit HGap', name_list)
         self.assertIn("/1.2/instrument/specfile/scan_header", name_list)
-        self.assertEqual(len(name_list), 98)  #, "actual name list: %s" % "\n".join(name_list))
+        self.assertEqual(len(name_list), 100)  #, "actual name list: %s" % "\n".join(name_list))
 
     def testVisitItems(self):
         dataset_name_list = []
@@ -493,13 +494,13 @@ class TestSpecH5(unittest.TestCase):
 
         self.sfh5.visititems(func)
         self.assertIn('/1.2/instrument/positioners/Pslit HGap', dataset_name_list)
-        self.assertEqual(len(dataset_name_list), 71)
+        self.assertEqual(len(dataset_name_list), 73)
 
     def testNotSpecH5(self):
         fd, fname = tempfile.mkstemp()
         os.write(fd, b"Not a spec file!")
         os.close(fd)
-        self.assertRaises(IOError, SpecH5, fname)
+        self.assertRaises(specfile.SfErrFileOpen, SpecH5, fname)
         os.unlink(fname)
 
     def testSample(self):
@@ -507,6 +508,8 @@ class TestSpecH5(unittest.TestCase):
         self.assertIn("sample", self.sfh5["/1000.1"])
         self.assertIn("ub_matrix", self.sfh5["/1000.1/sample"])
         self.assertIn("unit_cell", self.sfh5["/1000.1/sample"])
+        self.assertIn("unit_cell_abc", self.sfh5["/1000.1/sample"])
+        self.assertIn("unit_cell_alphabetagamma", self.sfh5["/1000.1/sample"])
 
 
 sftext_multi_mca_headers = """
