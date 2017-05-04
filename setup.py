@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "26/04/2017"
+__date__ = "04/05/2017"
 __license__ = "MIT"
 
 
@@ -47,6 +47,7 @@ logger = logging.getLogger("silx.setup")
 
 
 from distutils.command.clean import clean as Clean
+from distutils.command.build import build as _build
 try:
     from setuptools import Command
     from setuptools.command.build_py import build_py as _build_py
@@ -70,11 +71,6 @@ try:
     from sphinx.setup_command import BuildDoc
 except ImportError:
     sphinx = None
-
-
-USE_OPENMP = None
-"""Refere if the compilation will use OpenMP or not.
-It have to be initialized before the setup."""
 
 
 PROJECT = "silx"
@@ -319,30 +315,24 @@ def check_openmp():
 
     :return: True if available and not disabled.
     """
-    if "WITH_OPENMP" in os.environ:
-        return os.environ["WITH_OPENMP"] == "False"
 
+    if ("--openmp" in sys.argv):
+        result = True
     elif "--no-openmp" in sys.argv:
-        sys.argv.remove("--no-openmp")
-        os.environ["WITH_OPENMP"] = "False"
-        print("No OpenMP requested by command line")
-        return False
-
-    elif ("--openmp" in sys.argv):
-        sys.argv.remove("--openmp")
-        os.environ["WITH_OPENMP"] = "True"
-        print("OpenMP requested by command line")
-        return True
+        result = False
+    elif "WITH_OPENMP" in os.environ:
+        result = True
+    else:
+        result = True
 
     if platform.system() == "Darwin":
         # By default Xcode5 & XCode6 do not support OpenMP, Xcode4 is OK.
         osx = tuple([int(i) for i in platform.mac_ver()[0].split(".")])
         if osx >= (10, 8):
-            os.environ["WITH_OPENMP"] = "False"
-            return False
+            # FIXME Add a comment
+            result = False
 
-    os.environ["WITH_OPENMP"] = "True"
-    return True
+    return result
 
 
 # ############## #
@@ -362,35 +352,30 @@ def check_cython(min_version=None):
     :return: True if available and not disabled.
     """
 
-    if "WITH_CYTHON" in os.environ:
-        if os.environ["WITH_CYTHON"] in ["False", "0", 0]:
-            os.environ["WITH_CYTHON"] = "False"
-            return False
-
-    if "--no-cython" in sys.argv:
-        sys.argv.remove("--no-cython")
-        print("No Cython requested by command line")
-        os.environ["WITH_CYTHON"] = "False"
-        return False
-
-    try:
-        import Cython.Compiler.Version
-    except ImportError:
-        os.environ["WITH_CYTHON"] = "False"
-        return False
-    else:
-        if min_version and Cython.Compiler.Version.version < min_version:
-            os.environ["WITH_CYTHON"] = "False"
-            return False
-
-    os.environ["WITH_CYTHON"] = "True"
-
     if "--force-cython" in sys.argv:
-        sys.argv.remove("--force-cython")
-        print("Force Cython re-generation requested by command line")
-        os.environ["FORCE_CYTHON"] = "True"
-    return True
+        result = "force"
+    elif "--no-cython" in sys.argv:
+        result = "no"
+    elif "FORCE_CYTHON" in os.environ:
+        result = "force"
+    elif "WITH_CYTHON" in os.environ:
+        result = "yes"
+    else:
+        result = "yes"
 
+    if result in ["force", "yes"]:
+        try:
+            import Cython.Compiler.Version
+            if min_version and Cython.Compiler.Version.version < min_version:
+                msg = "Cython version too old. Version %s expected. Cythonization is skipped."
+                logger.warning(msg, str(min_version))
+                result = "no"
+        except ImportError:
+            msg = "Cython is not available. Cythonization is skipped."
+            logger.warning(msg)
+            result = "no"
+
+    return result
 
 # ############################# #
 # numpy.distutils Configuration #
@@ -421,7 +406,38 @@ def configuration(parent_package='', top_path=None):
 # ############## #
 
 
-class BuildExtFlags(build_ext):
+class Build(_build):
+    """Command to support more user options for the build."""
+
+    user_options = [
+        ('no-openmp', None,
+         "do not use OpenMP for compiled extension modules"),
+        ('openmp', None,
+         "use OpenMP for the compiled extension modules"),
+        ('no-cython', None,
+         "do not compile Cython extension modules (use default compiled c-files)"),
+        ('force-cython', None,
+         "recompile all Cython extension modules"),
+    ]
+    user_options.extend(_build.user_options)
+
+    boolean_options = ['no-openmp', 'openmp', 'no-cython', 'force-cython']
+    boolean_options.extend(_build.boolean_options)
+
+    def initialize_options(self):
+        _build.initialize_options(self)
+        self.no_openmp = None
+        self.no_cython = None
+        self.force_cython = None
+        self.use_openmp = None
+
+    def finalize_options(self):
+        _build.finalize_options(self)
+        self.use_openmp = check_openmp()
+        self.use_cython = check_openmp() in ["yes", "force"]
+
+
+class BuildExt(build_ext):
     """Handle compiler and linker flags.
 
     If OpenMP is disabled, it removes OpenMP compile flags.
@@ -432,9 +448,13 @@ class BuildExtFlags(build_ext):
 
     LINK_ARGS_CONVERTER = {'-fopenmp': ' '}
 
+    description = 'Build silx extensions'
+
     def build_extensions(self):
+        build_obj = self.distribution.get_command_obj("build")
+
         # Remove OpenMP flags if OpenMP is disabled
-        if not USE_OPENMP:
+        if not build_obj.use_openmp:
             for ext in self.extensions:
                 ext.extra_compile_args = [
                     f for f in ext.extra_compile_args if f != '-fopenmp']
@@ -609,11 +629,12 @@ def get_project_configuration(dry_run):
     }
 
     cmdclass = dict(
+        build=Build,
         build_py=build_py,
         test=PyTest,
         build_doc=BuildDocCommand,
         test_doc=TestDocCommand,
-        build_ext=BuildExtFlags,
+        build_ext=BuildExt,
         build_man=BuildMan,
         clean=CleanCommand,
         debian_src=sdist_debian)
@@ -626,13 +647,11 @@ def get_project_configuration(dry_run):
         # the system.
         setup_kwargs = {}
     else:
-        use_cython = check_cython(min_version='0.21.1')
-
-        global use_openmp
-        global USE_OPENMP
-        use_openmp = check_openmp()
-        USE_OPENMP = use_openmp
         config = configuration()
+        check = check_cython(min_version='0.21.1')
+        use_cython = check in ["yes", "force"]
+        force_cython = check == "force"
+        use_openmp = check_openmp()
 
         if use_cython:
             # Cythonize extensions
@@ -641,7 +660,7 @@ def get_project_configuration(dry_run):
             config.ext_modules = cythonize(
                 config.ext_modules,
                 compiler_directives={'embedsignature': True},
-                force=(os.environ.get("FORCE_CYTHON") is "True"),
+                force=force_cython,
                 compile_time_env={"HAVE_OPENMP": use_openmp}
             )
         else:
