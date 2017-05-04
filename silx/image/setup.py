@@ -38,7 +38,6 @@ def configuration(parent_package='', top_path=None):
     config.add_extension('shapes',
                          sources=["shapes.pyx"],
                          language='c')
-    config.add_subpackage('sift')
     return config
 
 
