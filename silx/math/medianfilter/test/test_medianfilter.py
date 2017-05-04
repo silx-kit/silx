@@ -213,10 +213,10 @@ class TestMedianFilterNearest(ParametricTestCase):
 
     @unittest.skipUnless(scipy, "scipy not available")
     def testAscentOrLena(self):
-        if hasattr(scipy.misc, 'lena'):
-            img = scipy.misc.lena()
-        else:
+        if hasattr(scipy.misc, 'ascent'):
             img = scipy.misc.ascent()
+        else:
+            img = scipy.misc.lena()
 
         kernels = [(3, 1), (3, 5), (5, 9), (9, 3)]
         for kernel in kernels:
