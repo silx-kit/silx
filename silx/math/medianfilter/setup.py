@@ -26,15 +26,11 @@ __authors__ = ["D. Naudet"]
 __license__ = "MIT"
 __date__ = "02/05/2017"
 
-import os.path
 
 import numpy
 
 from numpy.distutils.misc_util import Configuration
 
-# TODO : look at the PyFAI use open mp function
-# TODO : do a benchmark of perf
-# TODO : remove one parameter on the cpp side ( x... )
 
 def configuration(parent_package='', top_path=None):
     config = Configuration('medianfilter', parent_package, top_path)
