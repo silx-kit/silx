@@ -503,8 +503,8 @@ package_data = {
             'gui/icons/*.mng',
             'gui/icons/*.gif',
             'gui/icons/animated/*.png',
-            'opencl/sift/*.cl',
-            'opencl/*.cl']
+            'opencl/*.cl',
+            'opencl/sift/*.cl']
     }
 setup_kwargs.update(name=PROJECT,
                     version=get_version(),
