@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "03/04/2017"
+__date__ = "04/05/2017"
 __license__ = "MIT"
 
 
@@ -574,6 +574,7 @@ def setup_package():
             'gui/icons/*.svg',
             'gui/icons/*.mng',
             'gui/icons/*.gif',
+            'opencl/*.cl'
             'opencl/sift/*.cl']
     }
 
