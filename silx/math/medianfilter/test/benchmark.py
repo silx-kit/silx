@@ -28,8 +28,7 @@ __license__ = "MIT"
 __date__ = "02/05/2017"
 
 from silx.gui import qt
-from silx.math.medianfilter import medfilt2d as medfilt2d_silx 
-from scipy.signal import medfilt2d as medfilt2d_scipy
+from silx.math.medianfilter import medfilt2d as medfilt2d_silx
 import numpy
 import numpy.random
 from timeit import Timer
@@ -52,6 +51,7 @@ else:
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+
 
 class BenchmarkMedianFilter(object):
     """Simple benchmark of the median fiter silx vs scipy"""
@@ -114,7 +114,9 @@ kernels = [3, 5, 7, 11, 15]
 benchmark = BenchmarkMedianFilter(imageWidth=1000, kernels=kernels)
 plot = Plot1D()
 plot.addCurve(x=kernels, y=benchmark.getExecTimeFor("silx"), legend='silx')
-plot.addCurve(x=kernels, y=benchmark.getExecTimeFor("scipy"), legend='scipy')
-plot.addCurve(x=kernels, y=benchmark.getExecTimeFor("pymca"), legend='pymca')
+if scipy is not None:
+    plot.addCurve(x=kernels, y=benchmark.getExecTimeFor("scipy"), legend='scipy')
+if pymca is not None:
+    plot.addCurve(x=kernels, y=benchmark.getExecTimeFor("pymca"), legend='pymca')
 plot.show()
 app.exec_()
