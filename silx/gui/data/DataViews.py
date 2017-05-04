@@ -66,6 +66,21 @@ def _normalizeData(data):
     return data
 
 
+def _normalizeComplex(data):
+    """Returns a normalized complex data.
+
+    If the data is a numpy data with complex, returns the
+    absolute value.
+    Else returns the input data."""
+    if hasattr(data, "dtype"):
+        isComplex = numpy.issubdtype(data.dtype, numpy.complex)
+    else:
+        isComplex = isinstance(data, numbers.Complex)
+    if isComplex:
+        data = numpy.absolute(data)
+    return data
+
+
 class DataInfo(object):
     """Store extracted information from a data"""
 
@@ -74,6 +89,7 @@ class DataInfo(object):
         self.isArray = False
         self.interpretation = None
         self.isNumeric = False
+        self.isComplex = False
         self.isRecord = False
         self.isNXdata = False
         self.shape = tuple()
@@ -103,11 +119,14 @@ class DataInfo(object):
         if hasattr(data, "dtype"):
             self.isNumeric = numpy.issubdtype(data.dtype, numpy.number)
             self.isRecord = data.dtype.fields is not None
+            self.isComplex = numpy.issubdtype(data.dtype, numpy.complex)
         elif self.isNXdata:
             self.isNumeric = numpy.issubdtype(nxd.signal.dtype,
                                               numpy.number)
+            self.isComplex = numpy.issubdtype(nxd.signal.dtype, numpy.complex)
         else:
             self.isNumeric = isinstance(data, numbers.Number)
+            self.isComplex = isinstance(data, numbers.Complex)
             self.isRecord = False
 
         if hasattr(data, "shape"):
@@ -370,6 +389,11 @@ class _Plot1dView(DataView):
         self.getWidget().clear()
         self.__resetZoomNextTime = True
 
+    def normalizeData(self, data):
+        data = DataView.normalizeData(self, data)
+        data = _normalizeComplex(data)
+        return data
+
     def setData(self, data):
         data = self.normalizeData(data)
         self.getWidget().addCurve(legend="data",
@@ -418,6 +442,11 @@ class _Plot2dView(DataView):
     def clear(self):
         self.getWidget().clear()
         self.__resetZoomNextTime = True
+
+    def normalizeData(self, data):
+        data = DataView.normalizeData(self, data)
+        data = _normalizeComplex(data)
+        return data
 
     def setData(self, data):
         data = self.normalizeData(data)
@@ -482,6 +511,11 @@ class _Plot3dView(DataView):
     def clear(self):
         self.getWidget().setData(None)
         self.__resetZoomNextTime = True
+
+    def normalizeData(self, data):
+        data = DataView.normalizeData(self, data)
+        data = _normalizeComplex(data)
+        return data
 
     def setData(self, data):
         data = self.normalizeData(data)
@@ -569,6 +603,11 @@ class _StackView(DataView):
     def clear(self):
         self.getWidget().clear()
         self.__resetZoomNextTime = True
+
+    def normalizeData(self, data):
+        data = DataView.normalizeData(self, data)
+        data = _normalizeComplex(data)
+        return data
 
     def setData(self, data):
         data = self.normalizeData(data)

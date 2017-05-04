@@ -29,11 +29,13 @@ __date__ = "15/03/2017"
 import unittest
 from . import test_addition
 from . import test_medfilt
+from ..sift import test as test_sift
 
 
 def suite():
-    testSuite = unittest.TestSuite()
-    testSuite.addTests(test_addition.suite())
-    testSuite.addTests(test_medfilt.suite())
+    test_suite = unittest.TestSuite()
+    test_suite.addTests(test_addition.suite())
+    test_suite.addTests(test_medfilt.suite())
+    test_suite.addTests(test_sift.suite())
 
-    return testSuite
+    return test_suite

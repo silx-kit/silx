@@ -1,7 +1,8 @@
+#!/usr/bin/env python
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,17 +23,40 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+"""
+Example to show the use of `ColorBarWidget` widget.
+It can be associated to a plot.
 
-from libcpp cimport bool
+In this exqmple the `ColorBarWidget` widget will display the colormap of the
+active image.
 
-# pyx
-cdef extern from "median_filter.hpp":
-    cdef extern void median_filter[T](const T* image, 
-                                      T* output,
-                                      int* kernel_dim,
-                                      int* image_dim,
-                                      int x_pixel_range_min,
-                                      int x_pixel_range_max,
-                                      int y_pixel_range_min,
-                                      int y_pixel_range_max,
-                                      bool conditioannal) nogil;
+To change the active image slick on the image you want to set active.
+"""
+
+__authors__ = ["H. Payno"]
+__license__ = "MIT"
+__date__ = "03/05/2017"
+
+
+from silx.gui import qt
+import numpy
+from silx.gui.plot import Plot2D
+from silx.gui.plot.ColorBar import ColorBarWidget
+
+image = numpy.exp(numpy.random.rand(100, 100) * 10)
+
+app = qt.QApplication([])
+
+plot = Plot2D()
+colorbar = ColorBarWidget(parent=None, plot=plot)
+colorbar.setLegend('my colormap')
+colorbar.show()
+plot.show()
+
+clm = plot.getDefaultColormap()
+clm['normalization'] = 'log'
+clm['name'] = 'viridis'
+plot.addImage(data=image, colormap=clm, legend='image')
+plot.setActiveImage('image')
+
+app.exec_()

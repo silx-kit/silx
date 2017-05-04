@@ -36,13 +36,9 @@ import collections
 import numpy
 import numbers
 import logging
+from silx.third_party import six
 
 _logger = logging.getLogger(__name__)
-
-try:
-    from silx.third_party import six
-except ImportError:
-    import six
 
 try:
     import fabio
@@ -594,16 +590,16 @@ class SampleGroup(LazyLoadableGroup):
             data = self.__fabio_reader.get_unit_cell_abc()
             data = Dataset("unit_cell_abc", data, attrs=scalar)
             self.add_node(data)
+            unit_cell_data = numpy.zeros((1, 6), numpy.float32)
+            unit_cell_data[0, :3] = data
             data = self.__fabio_reader.get_unit_cell_alphabetagamma()
             data = Dataset("unit_cell_alphabetagamma", data, attrs=scalar)
             self.add_node(data)
-            # According to this issue the UB matrix is not yet available
-            # in the Nexus specification (it only can describe the U matrix)
-            # We are using "ub" temporarly as proposed by Armando
-            # https://github.com/nexusformat/definitions/issues/559
-            # TODO update it when the specification is fixed (valls 2017-04)
+            unit_cell_data[0, 3:] = data
+            data = Dataset("unit_cell", unit_cell_data, attrs=scalar)
+            self.add_node(data)
             data = self.__fabio_reader.get_ub_matrix()
-            data = Dataset("ub", data, attrs=scalar)
+            data = Dataset("ub_matrix", data, attrs=scalar)
             self.add_node(data)
 
 
@@ -876,7 +872,10 @@ class FabioReader(object):
                     # A float64 is accurate with about 16 digits
                     return numpy.float64(value)
                 else:
-                    return numpy.float128(value)
+                    if hasattr(numpy, "float128"):
+                        return numpy.float128(value)
+                    else:
+                        return numpy.float64(value)
             except ValueError:
                 return numpy.string_(value)
 

@@ -1,7 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-#
-# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -21,18 +20,17 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# ###########################################################################*/
+# ############################################################################*/
+__authors__ = ["H. Payno"]
+__license__ = "MIT"
+__date__ = "22/06/2016"
 
-from libcpp cimport bool
+import unittest
 
-# pyx
-cdef extern from "median_filter.hpp":
-    cdef extern void median_filter[T](const T* image, 
-                                      T* output,
-                                      int* kernel_dim,
-                                      int* image_dim,
-                                      int x_pixel_range_min,
-                                      int x_pixel_range_max,
-                                      int y_pixel_range_min,
-                                      int y_pixel_range_max,
-                                      bool conditioannal) nogil;
+from .test_medianfilter import suite as test_medianfilter
+
+
+def suite():
+    test_suite = unittest.TestSuite()
+    test_suite.addTest(test_medianfilter())
+    return test_suite

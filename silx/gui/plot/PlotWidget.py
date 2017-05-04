@@ -118,6 +118,15 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
     - legend: The legend of the new active image or None if no image is active
     """
 
+    sigActiveScatterChanged = qt.Signal(object, object)
+    """Signal emitted when the active Scatter has changed.
+
+    It provides following information:
+
+    - previous: The legend of the previous active scatter or None
+    - legend: The legend of the new active image or None if no image is active
+    """
+
     sigInteractiveModeChanged = qt.Signal(object)
     """Signal emitted when the interactive mode has changed
 
@@ -185,6 +194,9 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
                 kwargs['previous'], kwargs['legend'])
         elif event == 'activeImageChanged':
             self.sigActiveImageChanged.emit(
+                kwargs['previous'], kwargs['legend'])
+        elif event == 'activeScatterChanged':
+            self.sigActiveScatterChanged.emit(
                 kwargs['previous'], kwargs['legend'])
         elif event == 'interactiveModeChanged':
             self.sigInteractiveModeChanged.emit(kwargs['source'])

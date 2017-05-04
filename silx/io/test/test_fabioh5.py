@@ -215,7 +215,7 @@ class TestFabioH5(unittest.TestCase):
         self.assertIn(d.dtype.char, ['d', 'f'])
         numpy.testing.assert_array_almost_equal(d[...], expected)
 
-        d = sample['ub']
+        d = sample['ub_matrix']
         expected = numpy.array([[[1.99593e-16, 2.73682e-16, -1.54],
                                  [-1.08894, 1.08894, 1.6083e-16],
                                  [1.08894, 1.08894, 9.28619e-17]]])

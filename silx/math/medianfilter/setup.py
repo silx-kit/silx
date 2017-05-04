@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,25 +22,42 @@
 #
 # ############################################################################*/
 
-__authors__ = ["J. Kieffer"]
+__authors__ = ["D. Naudet"]
 __license__ = "MIT"
-__date__ = "18/07/2016"
+__date__ = "02/05/2017"
+
+import os.path
+
+import numpy
 
 from numpy.distutils.misc_util import Configuration
 
+# TODO : look at the PyFAI use open mp function
+# TODO : do a benchmark of perf
+# TODO : remove one parameter on the cpp side ( x... )
 
 def configuration(parent_package='', top_path=None):
-    config = Configuration('image', parent_package, top_path)
+    config = Configuration('medianfilter', parent_package, top_path)
     config.add_subpackage('test')
-    config.add_extension('bilinear',
-                         sources=["bilinear.pyx"],
-                         language='c')
-    config.add_extension('shapes',
-                         sources=["shapes.pyx"],
-                         language='c')
+    
+    # =====================================
+    # median filter
+    # =====================================
+    medfilt_src = ['medianfilter.pyx']
+    medfilt_inc = ['include', numpy.get_include()]
+    extra_link_args = ['-fopenmp']
+    extra_compile_args = ['-fopenmp']
+    config.add_extension('medianfilter',
+                         sources=medfilt_src,
+                         include_dirs=[medfilt_inc],
+                         language='c++',
+                         extra_link_args=extra_link_args,
+                         extra_compile_args=extra_compile_args)
+
     return config
 
 
 if __name__ == "__main__":
     from numpy.distutils.core import setup
+
     setup(configuration=configuration)

@@ -505,7 +505,7 @@ class TestSpecH5(unittest.TestCase):
     def testSample(self):
         self.assertNotIn("sample", self.sfh5["/1.1"])
         self.assertIn("sample", self.sfh5["/1000.1"])
-        self.assertIn("ub", self.sfh5["/1000.1/sample"])
+        self.assertIn("ub_matrix", self.sfh5["/1000.1/sample"])
         self.assertIn("unit_cell", self.sfh5["/1000.1/sample"])
 
 

@@ -33,7 +33,7 @@
 #include <algorithm>
 #include <signal.h>
 
-// Simple function browsing a vector and registring the min and max values
+// Simple function browsing a deque and registring the min and max values
 // and if those values are unique or not
 template<typename T>
 void getMinMax(std::vector<const T*>& v, T& min, T&max){
@@ -46,7 +46,7 @@ void getMinMax(std::vector<const T*>& v, T& min, T&max){
     }
     it++;
 
-    // Browse all the vector
+    // Browse all the deque
     while(it!=v.end()){
         // check if repeated (should always be before min/max setting)
         if(*(*it) > max) max = *(*it);
@@ -55,7 +55,6 @@ void getMinMax(std::vector<const T*>& v, T& min, T&max){
         it++;
     }
 }
-
 
 template<typename T>
 bool cmp(const T* a, const T* b){
@@ -68,24 +67,21 @@ const T* median(std::vector<const T*>& v) {
     return v[v.size()/2];
 }
 
-// Browse all pixels in the range of (pixel_x_min, pixel_y_min) to 
-// (pixel_x_min, pixel_y_max)
+// Browse the column of pixel_x
 template<typename T>
 void median_filter(
     const T* input, 
     T* output,
     int* kernel_dim,        // two values : 0:width, 1:height
     int* image_dim,         // two values : 0:width, 1:height
-    int x_pixel_range_min,
-    int x_pixel_range_max,
+    int x_pixel,            // the x pixel to process
     int y_pixel_range_min,
     int y_pixel_range_max,
-    bool conditioannal){
+    bool conditional){
     
     assert(kernel_dim[0] > 0);
     assert(kernel_dim[1] > 0);
-    assert(x_pixel_range_min >= 0);
-    assert(y_pixel_range_min >= 0);
+    assert(x_pixel >= 0);
     assert(image_dim[0] > 0);
     assert(image_dim[1] > 0);
     assert(x_pixel_range_max < image_dim[0]);
@@ -100,43 +96,42 @@ void median_filter(
     int halfKernel_x = (kernel_dim[1] - 1) / 2;
     int halfKernel_y = (kernel_dim[0] - 1) / 2;
 
-    for(int pixel_x=x_pixel_range_min; pixel_x <= x_pixel_range_max; pixel_x ++ ){
-        for(int pixel_y=y_pixel_range_min; pixel_y <= y_pixel_range_max; pixel_y ++ ){
-            // define the window size
-            int xmin = std::max(0, pixel_x-halfKernel_x);
-            int xmax = std::min(image_dim[0]-1, pixel_x+halfKernel_x);
+    // init buffer
+    // fill the buffer for the first iteration
+    // we are treating
+    std::vector<const T*> window_values(kernel_dim[0]*kernel_dim[1]);
 
-            int ymin = std::max(0, pixel_y-halfKernel_y);
-            int ymax = std::min(image_dim[1]-1, pixel_y+halfKernel_y);
-
-            // vector containing all the pixels in the neighbourhood
-            std::vector<const T*> window_values;
-
-            for(int win_x = xmin; win_x <= xmax; win_x++)
+    for(int pixel_y=y_pixel_range_min; pixel_y <= y_pixel_range_max; pixel_y ++ ){
+        typename std::vector<const T*>::iterator it = window_values.begin();
+        // fill the vector
+        for(int win_y=pixel_y-halfKernel_y; win_y<= pixel_y+halfKernel_y; win_y++)
+        {
+            for(int win_x = x_pixel-halfKernel_x; win_x <= x_pixel+halfKernel_x; win_x++)
             {
-                for(int win_y=ymin; win_y<= ymax; win_y++)
-                {
-                    window_values.push_back(&input[win_y*image_dim[0] + win_x]);
-                }
+                int index_x = std::min(std::max(win_x, 0), image_dim[0] - 1);
+                int index_y = std::min(std::max(win_y, 0), image_dim[1] - 1);
+                *it = (&input[index_y*image_dim[0] + index_x]);
+                ++it;
             }
-            const T* currentPixelValue = &input[image_dim[0]*pixel_y + pixel_x];
-            // change value for the median, only if we don't intend to use the 
-            // conditionnal or if the value of the pixel is one of the extrema
-            // of the pixel value
-            if (conditioannal == true){
-                T min = 0;
-                T max = 0;
-                getMinMax(window_values, min, max);
-                // In conditionnal point we are only setting the value to the pixel
-                // if the value is the min or max and unique
-                if ((*currentPixelValue == max) || (*currentPixelValue == min)){
-                    output[image_dim[0]*pixel_y + pixel_x] = *(median<T>(window_values));
-                }else{
-                    output[image_dim[0]*pixel_y + pixel_x] = *currentPixelValue;
-                }
+        }
+
+        const T* currentPixelValue = &input[image_dim[0]*pixel_y + x_pixel];
+        // change value for the median, only if we don't intend to use the 
+        // conditional or if the value of the pixel is one of the extrema
+        // of the pixel value
+        if (conditional == true){
+            T min = 0;
+            T max = 0;
+            getMinMax(window_values, min, max);
+            // In conditional point we are only setting the value to the pixel
+            // if the value is the min or max and unique
+            if ((*currentPixelValue == max) || (*currentPixelValue == min)){
+                output[image_dim[0]*pixel_y + x_pixel] = *(median<T>(window_values));
             }else{
-                output[image_dim[0]*pixel_y + pixel_x] = *(median<T>(window_values));
+                output[image_dim[0]*pixel_y + x_pixel] = *currentPixelValue;
             }
+        }else{
+            output[image_dim[0]*pixel_y + x_pixel] = *(median<T>(window_values));
         }
     }
 }

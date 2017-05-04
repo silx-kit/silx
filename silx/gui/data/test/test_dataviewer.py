@@ -34,12 +34,15 @@ from contextlib import contextmanager
 import numpy
 from ..DataViewer import DataViewer
 from ..DataViews import DataView
+from .. import DataViews
 
 from silx.gui import qt
 
 from silx.gui.data.DataViewerFrame import DataViewerFrame
 from silx.gui.test.utils import SignalListener
 from silx.gui.test.utils import TestCaseQt
+
+from silx.gui.hdf5.test import _mock
 
 try:
     import h5py
@@ -205,7 +208,6 @@ class AbstractDataViewerTests(TestCaseQt):
         self.assertTrue(view not in widget.availableViews())
         self.assertTrue(view not in widget.currentAvailableViews())
 
-
 class TestDataViewer(AbstractDataViewerTests):
     def create_widget(self):
         return DataViewer()
@@ -216,11 +218,58 @@ class TestDataViewerFrame(AbstractDataViewerTests):
         return DataViewerFrame()
 
 
+class TestDataView(TestCaseQt):
+
+    def createComplexData(self):
+        line = [1, 2j, 3+3j, 4]
+        image = [line, line, line, line]
+        cube = [image, image, image, image]
+        data = numpy.array(cube,
+            dtype=numpy.complex)
+        return data
+
+    def createDataViewWithData(self, dataViewClass, data):
+        viewer = dataViewClass(None)
+        widget = viewer.getWidget()
+        viewer.setData(data)
+        return widget
+
+    def testCurveWithComplex(self):
+        data = self.createComplexData()
+        dataViewClass = DataViews._Plot1dView
+        widget = self.createDataViewWithData(dataViewClass, data[0, 0])
+        self.qWaitForWindowExposed(widget)
+
+    def testImageWithComplex(self):
+        data = self.createComplexData()
+        dataViewClass = DataViews._Plot2dView
+        widget = self.createDataViewWithData(dataViewClass, data[0])
+        self.qWaitForWindowExposed(widget)
+
+    def testCubeWithComplex(self):
+        self.skipTest("OpenGL widget not yet tested")
+        try:
+            import silx.gui.plot3d  # noqa
+        except ImportError:
+            self.skipTest("OpenGL not available")
+        data = self.createComplexData()
+        dataViewClass = DataViews._Plot3dView
+        widget = self.createDataViewWithData(dataViewClass, data)
+        self.qWaitForWindowExposed(widget)
+
+    def testImageStackWithComplex(self):
+        data = self.createComplexData()
+        dataViewClass = DataViews._StackView
+        widget = self.createDataViewWithData(dataViewClass, data)
+        self.qWaitForWindowExposed(widget)
+
+
 def suite():
     test_suite = unittest.TestSuite()
     loadTestsFromTestCase = unittest.defaultTestLoader.loadTestsFromTestCase
     test_suite.addTest(loadTestsFromTestCase(TestDataViewer))
     test_suite.addTest(loadTestsFromTestCase(TestDataViewerFrame))
+    test_suite.addTest(loadTestsFromTestCase(TestDataView))
     return test_suite
 
 
