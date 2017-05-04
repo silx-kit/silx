@@ -574,7 +574,7 @@ def setup_package():
             'gui/icons/*.svg',
             'gui/icons/*.mng',
             'gui/icons/*.gif',
-            'opencl/*.cl'
+            'opencl/*.cl',
             'opencl/sift/*.cl']
     }
 
