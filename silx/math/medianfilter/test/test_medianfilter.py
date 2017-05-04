@@ -34,6 +34,7 @@ from silx.math.medianfilter import medfilt2d
 from silx.test.utils import ParametricTestCase
 try:
     import scipy
+    import scipy.misc
 except:
     scipy = None
 else:
@@ -205,6 +206,26 @@ class TestMedianFilterNearest(ParametricTestCase):
                                                        mode='nearest')
 
                 resSilx = medfilt2d(image=self.random_mat,
+                                    kernel_size=kernel,
+                                    conditional=False)
+
+                self.assertTrue(numpy.array_equal(resScipy, resSilx))
+
+    @unittest.skipUnless(scipy, "scipy not available")
+    def testAscentOrLena(self):
+        if hasattr(scipy.misc, 'lena'):
+            img = scipy.misc.lena()
+        else:
+            img = scipy.misc.ascent()
+
+        kernels = [(3, 1), (3, 5), (5, 9), (9, 3)]
+        for kernel in kernels:
+            with self.subTest(kernel=kernel):
+                resScipy = scipy.ndimage.median_filter(input=img,
+                                                       size=kernel,
+                                                       mode='nearest')
+
+                resSilx = medfilt2d(image=img,
                                     kernel_size=kernel,
                                     conditional=False)
 
