@@ -359,6 +359,20 @@ class Build(_build):
         self.finalize_cython_options(min_version='0.21.1')
         self.finalize_openmp_options()
 
+    def _parse_env_as_bool(self, key):
+        content = os.environ.get(key, "")
+        value = content.lower()
+        if value in ["1", "true", "yes", "y"]:
+            return True
+        if value in ["0", "false", "no", "n"]:
+            return False
+        if value in ["none", ""]:
+            return None
+        msg = "Env variable '%s' contains '%s'. But a boolean or an empty \
+            string was expected. Variable ignored."
+        logger.warning(msg, key, content)
+        return None
+
     def finalize_openmp_options(self):
         """Check if extensions must be compiled with OpenMP.
 
@@ -368,11 +382,13 @@ class Build(_build):
             use_openmp = True
         elif self.no_openmp:
             use_openmp = False
-        elif "WITH_OPENMP" in os.environ:
-            use_openmp = True
         else:
-            # Use it by default
-            use_openmp = True
+            env_force_cython = self._parse_env_as_bool("WITH_OPENMP")
+            if env_force_cython is not None:
+                use_openmp = env_force_cython
+            else:
+                # Use it by default
+                use_openmp = True
 
         if use_openmp:
             if platform.system() == "Darwin":
@@ -391,17 +407,23 @@ class Build(_build):
 
         The result is stored into the object.
         """
+
         if "--force-cython" in sys.argv:
             use_cython = "force"
         elif "--no-cython" in sys.argv:
             use_cython = "no"
-        elif "FORCE_CYTHON" in os.environ:
-            use_cython = "force"
-        elif "WITH_CYTHON" in os.environ:
-            use_cython = "yes"
         else:
-            # Use it by default
-            use_cython = "yes"
+            env_force_cython = self._parse_env_as_bool("FORCE_CYTHON")
+            env_with_cython = self._parse_env_as_bool("WITH_CYTHON")
+            if env_force_cython is True:
+                use_cython = "force"
+            elif env_with_cython is True:
+                use_cython = "yes"
+            elif env_with_cython is False:
+                use_cython = "no"
+            else:
+                # Use it by default
+                use_cython = "yes"
 
         if use_cython in ["force", "yes"]:
             try:
