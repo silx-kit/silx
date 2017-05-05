@@ -84,9 +84,9 @@ void median_filter(
     assert(x_pixel >= 0);
     assert(image_dim[0] > 0);
     assert(image_dim[1] > 0);
-    assert(x_pixel_range_max < image_dim[0]);
+    assert(x_pixel >= 0);
+    assert(x_pixel < image_dim[0]);
     assert(y_pixel_range_max < image_dim[1]);
-    assert(x_pixel_range_min <= x_pixel_range_max);
     assert(y_pixel_range_min <= y_pixel_range_max);
     // # kernel odd
     assert((kernel_dim[0] - 1)%2 == 0);
