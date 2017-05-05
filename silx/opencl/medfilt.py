@@ -97,7 +97,7 @@ class MedianFilter2D(OpenclProcessing):
                         for i in self.__class__.buffers]
 
         self.allocate_buffers()
-        self.local_mem = self.get_local_mem(self.workgroup_size[0])
+        self.local_mem = self._get_local_mem(self.workgroup_size[0])
         OpenclProcessing.compile_kernels(self, self.kernel_files, "-D NIMAGE=%i" % self.size)
         self.set_kernel_arguments()
 
@@ -115,7 +115,7 @@ class MedianFilter2D(OpenclProcessing):
                                                         ("width", numpy.int32(self.shape[1]))))
 #                                                         ('debug', self.cl_mem["debug"])))  # Image size along dim2 (columns))
 
-    def get_local_mem(self, wg):
+    def _get_local_mem(self, wg):
         return pyopencl.LocalMemory(wg * 32)  # 4byte per float, 8 element per thread
 
     def send_buffer(self, data, dest):
@@ -140,7 +140,11 @@ class MedianFilter2D(OpenclProcessing):
 
     def calc_wg(self, kernel_size):
         """calculate and return the optimal workgroup size for the first dimension, taking into account
-        the 8-height band"""
+        the 8-height band
+
+        :param kernel_size: 2-tuple of int, shape of the median window
+        :return: optimal workgroup size
+        """
         needed_threads = ((kernel_size[0] + 7) // 8) * kernel_size[1]
         if needed_threads < 8:
             wg = 8
@@ -181,7 +185,7 @@ class MedianFilter2D(OpenclProcessing):
         if wg > amws:
             raise RuntimeError("Workgroup size is too big for medfilt2d: %s>%s" % (wg, amws))
 
-        localmem = self.get_local_mem(wg)
+        localmem = self._get_local_mem(wg)
 
         assert image.ndim == 2, "Treat only 2D images"
         assert image.shape[0] <= self.shape[0], "height is OK"

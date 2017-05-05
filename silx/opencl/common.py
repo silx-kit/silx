@@ -41,7 +41,6 @@ __all__ = ["ocl", "pyopencl", "mf", "release_cl_buffers", "allocate_cl_buffers",
 
 import os
 import logging
-import gc
 
 import numpy
 logger = logging.getLogger("silx.opencl")
@@ -127,7 +126,7 @@ class Device(object):
         :param available: is the device deactivated or not
         :param cores: number of SM/cores
         :param frequency: frequency of the device
-        :param flop_cores: Flopating Point operation per core per cycle
+        :param flop_core: Flopating Point operation per core per cycle
         :param idx: index of the device within the platform
         :param workgroup: max workgroup size
         """
@@ -180,7 +179,7 @@ class Platform(object):
         :param name: platform name
         :param vendor: name of the brand/vendor
         :param version:
-        :param extension: list of the extension provided by the platform to all of its devices
+        :param extensions: list of the extension provided by the platform to all of its devices
         :param idx: index of the platform
         """
         self.name = name.strip()
@@ -224,8 +223,8 @@ class Platform(object):
 def _measure_workgroup_size(device_or_context, fast=False):
     """Mesure the maximal work group size of the given device
 
-    :param device: instance of pyopencl.Device or pyopencl.Context or 2-tuple
-                   (platformid,deviceid)
+    :param device_or_context: instance of pyopencl.Device or pyopencl.Context
+                    or 2-tuple (platformid,deviceid)
     :param fast: ask the kernel the valid value, don't probe it
     :return: maximum size for the workgroup
     """
@@ -369,7 +368,7 @@ class OpenCL(object):
         """
         Select a device based on few parameters (at the end, keep the one with most memory)
 
-        :param type: "gpu" or "cpu" or "all" ....
+        :param dtype: "gpu" or "cpu" or "all" ....
         :param memory: minimum amount of memory (int)
         :param extensions: list of extensions to be present
         :param best: shall we look for the
@@ -415,7 +414,8 @@ class OpenCL(object):
         :param devicetype: string in ["cpu","gpu", "all", "acc"]
         :param useFp64: boolean specifying if double precision will be used
         :param platformid: integer
-        :param devid: integer
+        :param deviceid: integer
+        :param cached: True if we want to cache the context
         :return: OpenCL context on the selected device
         """
         if (platformid is not None) and (deviceid is not None):
@@ -464,8 +464,8 @@ else:
 
 def release_cl_buffers(cl_buffers):
     """
-    :param cl_buffer: the buffer you want to release
-    :type cl_buffer: dict(str, pyopencl.Buffer)
+    :param cl_buffers: the buffer you want to release
+    :type cl_buffers: dict(str, pyopencl.Buffer)
 
     This method release the memory of the buffers store in the dict
     """
@@ -489,6 +489,8 @@ def allocate_cl_buffers(buffers, device=None, context=None):
     """
     :param buffers: the buffers info use to create the pyopencl.Buffer
     :type buffer: list(std, flag, numpy.dtype, int)
+    :param device: one of the context device
+    :param context: opencl contextdevice
     :return: a dict containing the instanciated pyopencl.Buffer
     :rtype: dict(str, pyopencl.Buffer)
 
@@ -566,5 +568,4 @@ def kernel_workgroup_size(program, kernel):
     device = program.devices[0]
     query_wg = pyopencl.kernel_work_group_info.WORK_GROUP_SIZE
     return kernel.get_work_group_info(query_wg, device)
-
 

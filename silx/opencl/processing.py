@@ -37,7 +37,6 @@ Common OpenCL abstract base classes for different processing
 from __future__ import absolute_import, print_function, division
 
 
-
 __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
@@ -52,7 +51,7 @@ import gc
 from collections import namedtuple
 import numpy
 import threading
-from .common import ocl, pyopencl
+from .common import ocl, pyopencl, release_cl_buffers
 from .utils import concatenate_cl_kernel
 
 
@@ -98,16 +97,14 @@ class OpenclProcessing(object):
         self.cl_kernel_args = {}  # dict with all kernel arguments
         if ctx:
             self.ctx = ctx
-            device_name = self.ctx.devices[0].name.strip()
-            platform_name = self.ctx.devices[0].platform.name.strip()
-            platform = ocl.get_platform(platform_name)
-            self.device = platform.get_device(device_name)
         else:
             self.ctx = ocl.create_context(devicetype=devicetype, platformid=platformid, deviceid=deviceid)
-            device_name = self.ctx.devices[0].name.strip()
-            platform_name = self.ctx.devices[0].platform.name.strip()
-            platform = ocl.get_platform(platform_name)
-            self.device = platform.get_device(device_name)
+        device_name = self.ctx.devices[0].name.strip()
+        platform_name = self.ctx.devices[0].platform.name.strip()
+        platform = ocl.get_platform(platform_name)
+        self.device = platform.get_device(device_name)
+        self.cl_kernel_args = {}  # dict with all kernel arguments
+
         self.set_profiling(profile)
         self.block_size = block_size
         self.program = None
@@ -190,6 +187,7 @@ class OpenclProcessing(object):
 
         :param kernel_files: list of path to the kernel
             (by default use the one declared in the class)
+        :param compile_options: string of compile options
         """
         # concatenate all needed source files into a single openCL module
         kernel_files = kernel_files or self.kernel_files
