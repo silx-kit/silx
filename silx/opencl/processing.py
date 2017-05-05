@@ -37,7 +37,6 @@ Common OpenCL abstract base classes for different processing
 from __future__ import absolute_import, print_function, division
 
 
-
 __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
@@ -52,7 +51,7 @@ import gc
 from collections import namedtuple
 import numpy
 import threading
-from .common import ocl, pyopencl
+from .common import ocl, pyopencl, release_cl_buffers
 from .utils import concatenate_cl_kernel
 
 
@@ -160,7 +159,7 @@ class OpenclProcessing(object):
                     size = numpy.dtype(buf.dtype).itemsize * buf.size
                     mem[buf.name] = pyopencl.Buffer(self.ctx, buf.flags, size)
             except pyopencl.MemoryError as error:
-                self.free_buffers()
+                release_cl_buffers(mem)
                 raise MemoryError(error)
 
         self.cl_mem.update(mem)
