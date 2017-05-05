@@ -96,7 +96,8 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
     It provides 3 informations:
 
     - action: The change of the plot: 'add' or 'remove'
-    - kind: The kind of primitive changed: 'curve', 'image', 'item' or 'marker'
+    - kind: The kind of primitive changed:
+      'curve', 'image', 'scatter', 'histogram', 'item' or 'marker'
     - legend: The legend of the primitive changed.
     """
 

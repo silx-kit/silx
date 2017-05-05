@@ -36,7 +36,7 @@ from silx.test.utils import ParametricTestCase
 import numpy
 
 from silx.gui.plot.Plot import Plot
-from silx.gui.plot.items.curve import _getHistogramValue
+from silx.gui.plot.items.histogram import _getHistogramCurve, _computeEdges
 
 
 class TestPlot(unittest.TestCase):
@@ -540,45 +540,35 @@ class TestPlotAddScatter(unittest.TestCase):
 class TestPlotHistogram(unittest.TestCase):
     """Basic tests for histogram."""
 
-    def testPlotCurveColorFloat(self):
+    def testEdges(self):
         x = numpy.array([0, 1, 2])
-        x2 = numpy.array([0, 1, 2, 3])
-        x3 = numpy.array([-1, 0, 1, 2])
-        x4 = numpy.array([-0.5, 0.5, 1.5, 2.5])
-        y = numpy.array([3, 2, 5])
+        edgesRight = numpy.array([0, 1, 2, 3])
+        edgesLeft = numpy.array([-1, 0, 1, 2])
+        edgesCenter = numpy.array([-0.5, 0.5, 1.5, 2.5])
 
         # testing x values for right
-        xHisto, yHisto = _getHistogramValue(x, y, 'right')
-        numpy.testing.assert_array_equal(
-            xHisto, numpy.array([0, 1, 1, 2, 2, 3]))
+        edges = _computeEdges(x, 'right')
+        numpy.testing.assert_array_equal(edges, edgesRight)
+
+        edges = _computeEdges(x, 'center')
+        numpy.testing.assert_array_equal(edges, edgesCenter)
+
+        edges = _computeEdges(x, 'left')
+        numpy.testing.assert_array_equal(edges, edgesLeft)
+
+    def testHistogramCurve(self):
+        y = numpy.array([3, 2, 5])
+        edges = numpy.array([0, 1, 2, 3])
+
+        xHisto, yHisto = _getHistogramCurve(y, edges)
         numpy.testing.assert_array_equal(
             yHisto, numpy.array([3, 3, 2, 2, 5, 5]))
 
-        xHistoFromEdges, yHistoFromEdges = _getHistogramValue(x2, y, 'right')
-        numpy.testing.assert_array_equal(xHisto, xHistoFromEdges)
-        numpy.testing.assert_array_equal(yHisto, yHistoFromEdges)
-        numpy.testing.assert_array_equal(yHisto, yHistoFromEdges)
-
-        # testing y values for left
-        xHisto, yHisto = _getHistogramValue(x, y, 'left')
+        y = numpy.array([-3, 2, 5, 0])
+        edges = numpy.array([-2, -1, 0, 1, 2])
+        xHisto, yHisto = _getHistogramCurve(y, edges)
         numpy.testing.assert_array_equal(
-            xHisto, numpy.array([-1, 0, 0, 1, 1, 2]))
-        numpy.testing.assert_array_equal(
-            yHisto, numpy.array([3, 3, 2, 2, 5, 5]))
-
-        xHistoFromEdges, yHistoFromEdges = _getHistogramValue(x3, y, 'left')
-        numpy.testing.assert_array_equal(xHisto, xHistoFromEdges)
-        numpy.testing.assert_array_equal(yHisto, yHistoFromEdges)
-
-        # testing y values for center
-        xHisto, yHisto = _getHistogramValue(x, y, 'center')
-        numpy.testing.assert_array_equal(
-            xHisto, numpy.array([-0.5, 0.5, 0.5, 1.5, 1.5, 2.5]))
-        numpy.testing.assert_array_equal(
-            yHisto, numpy.array([3, 3, 2, 2, 5, 5]))
-
-        xHistoFromEdges, yHistoFromEdges = _getHistogramValue(x4, y, 'center')
-        numpy.testing.assert_array_equal(xHisto, xHistoFromEdges)
+            yHisto, numpy.array([-3, -3, 2, 2, 5, 5, 0, 0]))
 
 
 def suite():

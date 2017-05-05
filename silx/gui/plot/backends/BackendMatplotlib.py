@@ -54,6 +54,7 @@ from matplotlib.collections import PathCollection, LineCollection
 from .ModestImage import ModestImage
 from . import BackendBase
 from .. import Colors
+from .._utils import FLOAT32_MINPOS
 
 
 class BackendMatplotlib(BackendBase.BackendBase):
@@ -178,7 +179,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
             if fill:
                 artists.append(axes.fill_between(
-                    x, 1.0e-8, y, facecolor=actualColor[0], linestyle=''))
+                    x, FLOAT32_MINPOS, y, facecolor=actualColor[0], linestyle=''))
 
         else:  # Curve
             curveList = axes.plot(x, y,
@@ -193,7 +194,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
             if fill:
                 artists.append(
-                    axes.fill_between(x, 1.0e-8, y, facecolor=color))
+                    axes.fill_between(x, FLOAT32_MINPOS, y, facecolor=color))
 
         for artist in artists:
             artist.set_zorder(z)

@@ -378,6 +378,66 @@ class SymbolMixIn(object):
             self._updated()
 
 
+class LineMixIn(object):
+    """Mix-in class for item with line"""
+
+    _DEFAULT_LINEWIDTH = 1.
+    """Default line width"""
+
+    _DEFAULT_LINESTYLE = '-'
+    """Default line style"""
+
+    def __init__(self):
+        self._linewidth = self._DEFAULT_LINEWIDTH
+        self._linestyle = self._DEFAULT_LINESTYLE
+
+    def getLineWidth(self):
+        """Return the curve line width in pixels (int)"""
+        return self._linewidth
+
+    def setLineWidth(self, width):
+        """Set the width in pixel of the curve line
+
+        See :meth:`getLineWidth`.
+
+        :param float width: Width in pixels
+        """
+        width = float(width)
+        if width != self._linewidth:
+            self._linewidth = width
+            self._updated()
+
+    def getLineStyle(self):
+        """Return the type of the line
+
+        Type of line::
+
+            - ' '  no line
+            - '-'  solid line
+            - '--' dashed line
+            - '-.' dash-dot line
+            - ':'  dotted line
+
+        :rtype: str
+        """
+        return self._linestyle
+
+    def setLineStyle(self, style):
+        """Set the style of the curve line.
+
+        See :meth:`getLineStyle`.
+
+        :param str style: Line style
+        """
+        style = str(style)
+        assert style in ('', ' ', '-', '--', '-.', ':', None)
+        if style is None:
+            style = self._DEFAULT_LINESTYLE
+        if style != self._linestyle:
+            self._linestyle = style
+            self._updated()
+
+
 class ColorMixIn(object):
     """Mix-in class for item with color"""
 
@@ -756,8 +816,9 @@ class Points(Item, SymbolMixIn, AlphaMixIn):
         """
         x = numpy.array(x, copy=copy)
         y = numpy.array(y, copy=copy)
-        assert x.ndim == y.ndim == 1
         assert len(x) == len(y)
+        assert x.ndim == y.ndim == 1
+
         if xerror is not None:
             xerror = numpy.array(xerror, copy=copy)
         if yerror is not None:
