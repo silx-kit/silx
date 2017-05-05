@@ -160,8 +160,7 @@ def niceNumbersForLog10(minLog, maxLog, nTicks=5):
     :param float minLog: log10 of the min value on the axis
     :param float maxLog: log10 of the max value on the axis
     :param int nTicks: The number of ticks to position
-    :returns: log10 of min, max, increment value of tick positions and
-              number of fractional digit to show
+    :returns: log10 of min, max and increment value of tick positions
     :rtype: tuple of int
     """
     graphminlog = math.floor(minLog)
@@ -175,6 +174,7 @@ def niceNumbersForLog10(minLog, maxLog, nTicks=5):
 
         graphminlog = math.floor(graphminlog / spacing) * spacing
         graphmaxlog = math.ceil(graphmaxlog / spacing) * spacing
+
 
     nfrac = numberOfDigits(spacing)
 
@@ -191,7 +191,7 @@ def niceNumbersAdaptativeForLog10(vMin, vMax, axisLength, tickDensity):
     :param float vMax: The max value on the axis
     :param float axisLength: The length of the axis.
     :param float tickDensity: The density of ticks along the axis.
-    :returns: log10 of min, max, increment value of tick positions and
+    :returns: min, max, increment value of tick positions and
               number of fractional digit to show
     :rtype: tuple
     """
@@ -200,7 +200,6 @@ def niceNumbersAdaptativeForLog10(vMin, vMax, axisLength, tickDensity):
     tickmin, tickmax, step, nfrac = niceNumbersForLog10(vMin, vMax, nticks)
 
     return tickmin, tickmax, step, nfrac
-
 
 def computeLogSubTicks(ticks, lowBound, highBound):
     """Return the sub ticks for the log scale for all given ticks if subtick

@@ -60,7 +60,6 @@ class Context(object):
     def __init__(self, glContextHandle):
         self._context = glContextHandle
         self._isCurrent = False
-        self._devicePixelRatio = 1.0
 
     @property
     def isCurrent(self):
@@ -76,19 +75,6 @@ class Context(object):
         :param bool isCurrent: The state of the system OpenGL context.
         """
         self._isCurrent = bool(isCurrent)
-
-    @property
-    def devicePixelRatio(self):
-        """Ratio between device and device independent pixels (float)
-
-        This is useful for font rendering.
-        """
-        return self._devicePixelRatio
-
-    @devicePixelRatio.setter
-    def devicePixelRatio(self, ratio):
-        assert ratio > 0
-        self._devicePixelRatio = float(ratio)
 
     def __enter__(self):
         self.setCurrent(True)
@@ -335,18 +321,15 @@ class Window(event.Notifier):
 
         return numpy.array(image, copy=False, order='C')
 
-    def render(self, glcontext, devicePixelRatio):
+    def render(self, glcontext):
         """Perform the rendering of attached viewports
 
         :param glcontext: System identifier of the OpenGL context
-        :param float devicePixelRatio:
-            Ratio between device and device-independent pixels
         """
         if glcontext not in self._contexts:
             self._contexts[glcontext] = ContextGL2(glcontext)  # New context
 
         with self._contexts[glcontext] as context:
-            context.devicePixelRatio = devicePixelRatio
             if self._isframebuffer:
                 self._renderWithOffscreenFramebuffer(context)
             else:

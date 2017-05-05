@@ -90,6 +90,11 @@ class Program(object):
         if gl.glGetProgramiv(program, gl.GL_LINK_STATUS) != gl.GL_TRUE:
             raise RuntimeError(gl.glGetProgramInfoLog(program))
 
+        gl.glValidateProgram(program)
+        if gl.glGetProgramiv(program, gl.GL_VALIDATE_STATUS) != gl.GL_TRUE:
+            _logger.error(
+                'Cannot validate program: %s', gl.glGetProgramInfoLog(program))
+
         attributes = {}
         for index in range(gl.glGetProgramiv(program,
                                              gl.GL_ACTIVE_ATTRIBUTES)):
@@ -156,13 +161,6 @@ class Program(object):
                 self._vertexShader,
                 self._fragmentShader,
                 self._attrib0)
-
-        if _logger.getEffectiveLevel() <= logging.DEBUG:
-            gl.glValidateProgram(self.program)
-            if gl.glGetProgramiv(
-                    self.program, gl.GL_VALIDATE_STATUS) != gl.GL_TRUE:
-                _logger.debug('Cannot validate program: %s',
-                              gl.glGetProgramInfoLog(self.program))
 
         gl.glUseProgram(self.program)
 

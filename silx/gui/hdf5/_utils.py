@@ -28,7 +28,7 @@ package `silx.gui.hdf5` package.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "26/04/2017"
+__date__ = "20/01/2017"
 
 
 import logging
@@ -44,6 +44,11 @@ try:
 except ImportError as e:
     _logger.error("Module %s requires h5py", __name__)
     raise e
+
+try:
+    from silx.third_party import six
+except ImportError:
+    import six
 
 
 class Hdf5ContextMenuEvent(object):

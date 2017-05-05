@@ -55,10 +55,6 @@ The :mod:`.backends.BackendMatplotlib` the provides two classes:
 - :class:`BackendMatplotlib` that provides a matplotlib backend without a specific canvas.
 - :class:`BackendMatplotlibQt` which inherits from :class:`BackendMatplotlib` and adds a Qt canvas, and Qt specific functionalities.
 
-The OpenGL-based backend is implemented in the :mod:`.backends.BackendOpenGL` module and
-the :mod:`.backends.glutils` package which provides the different primitives used for rendering and interaction.
-It is based on :mod:`silx.gui._glutils`, `PyOpenGL <http://pyopengl.sourceforge.net/>`_ and OpenGL >= 2.1.
-
 .. |Plot and backend| image:: img/plot_and_backend.png
    :align: middle
 

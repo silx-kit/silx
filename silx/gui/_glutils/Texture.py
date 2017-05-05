@@ -234,6 +234,10 @@ class Texture(object):
         if texUnit is None:
             texUnit = self.texUnit
         gl.glActiveTexture(gl.GL_TEXTURE0 + texUnit)
+        if self.ndim == 3:
+            gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
+        else:
+            gl.glBindTexture(gl.GL_TEXTURE_3D, 0)
         gl.glBindTexture(self.target, self.name)
 
     # with statement
@@ -242,8 +246,10 @@ class Texture(object):
         self.bind()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        gl.glActiveTexture(gl.GL_TEXTURE0 + self.texUnit)
-        gl.glBindTexture(self.target, 0)
+        if self.ndim == 2:
+            gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
+        else:
+            gl.glBindTexture(gl.GL_TEXTURE_3D, 0)
 
     def update(self,
                format_,

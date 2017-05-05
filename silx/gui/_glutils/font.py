@@ -67,11 +67,7 @@ ULTRA_BLACK = 99
 """Thickest characters: Maximum font weight"""
 
 
-def rasterText(text, font,
-               size=-1,
-               weight=-1,
-               italic=False,
-               devicePixelRatio=1.0):
+def rasterText(text, font, size=-1, weight=-1, italic=False):
     """Raster text using Qt.
 
     It supports multiple lines.
@@ -88,9 +84,6 @@ def rasterText(text, font,
     :param bool italic:
         True for italic font (default: False).
         Used only if font is given as name.
-    :param float devicePixelRatio:
-        The current ratio between device and device-independent pixel
-        (default: 1.0)
     :return: Corresponding image in gray scale and baseline offset from top
     :rtype: (HxW numpy.ndarray of uint8, int)
     """
@@ -108,22 +101,12 @@ def rasterText(text, font,
         qt.Qt.TextExpandTabs,
         text)
 
-    if (devicePixelRatio != 1.0 and
-            not hasattr(qt.QImage, 'setDevicePixelRatio')):  # Qt 4
-        _logger.error('devicePixelRatio not supported')
-        devicePixelRatio = 1.0
-
-    # Add extra border and handle devicePixelRatio
-    width = bounds.width() * devicePixelRatio + 2
+    width = bounds.width() + 2  # Add extra border
     # align line size to 32 bits to ease conversion to numpy array
     width = 4 * ((width + 3) // 4)
     image = qt.QImage(width,
-                      bounds.height() * devicePixelRatio,
+                      bounds.height(),
                       qt.QImage.Format_RGB888)
-    if (devicePixelRatio != 1.0 and
-            hasattr(image, 'setDevicePixelRatio')):  # Qt 5
-        image.setDevicePixelRatio(devicePixelRatio)
-
     # TODO if Qt5 use Format_Grayscale8 instead
     image.fill(0)
 
@@ -140,13 +123,4 @@ def rasterText(text, font,
     # RGB to R
     array = numpy.ascontiguousarray(array[:, :, 0])
 
-    # Remove leading and trailing empty columns but one on each side
-    column_cumsum = numpy.cumsum(numpy.sum(array, axis=0))
-    array = array[:, column_cumsum.argmin():column_cumsum.argmax() + 2]
-
-    # Remove leading and trailing empty rows but one on each side
-    row_cumsum = numpy.cumsum(numpy.sum(array, axis=1))
-    min_row = row_cumsum.argmin()
-    array = array[min_row:row_cumsum.argmax() + 2, :]
-
-    return array, metrics.ascent() - min_row
+    return array, metrics.ascent()

@@ -27,12 +27,17 @@ data module to format data as text in the same way."""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "26/04/2017"
+__date__ = "26/01/2017"
 
 import numpy
 import numbers
 import binascii
-from silx.third_party import six
+
+try:
+    from silx.third_party import six
+except ImportError:
+    import six
+
 from silx.gui import qt
 
 

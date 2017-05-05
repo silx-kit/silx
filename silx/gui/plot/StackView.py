@@ -99,8 +99,8 @@ class StackView(qt.QMainWindow):
     and display the result as a slice.
 
     :param QWidget parent: the Qt parent, or None
-    :param backend: The backend to use for the plot (default: matplotlib).
-                    See :class:`.Plot` for the list of supported backend.
+    :param backend: The backend to use for the plot.
+                    The default is to use matplotlib.
     :type backend: str or :class:`BackendBase.BackendBase`
     :param bool resetzoom: Toggle visibility of reset zoom action.
     :param bool autoScale: Toggle visibility of axes autoscale actions.
@@ -339,7 +339,6 @@ class StackView(qt.QMainWindow):
                             scale=self._getImageScale(),
                             legend=self.__imageLegend,
                             resetzoom=False, replace=False)
-        self._plot.setGraphTitle("Image z=%g" % self._getImageZ(index))
 
     def _set3DScaleAndOrigin(self, calibrations):
         """Set scale and origin for all 3 axes, to be used when plotting
@@ -348,11 +347,11 @@ class StackView(qt.QMainWindow):
         See setStack for parameter documentation
         """
         if calibrations is None:
-            self.calibrations3D = (calibration.NoCalibration(),
-                                   calibration.NoCalibration(),
-                                   calibration.NoCalibration())
+            self.origin3D = (0., 0., 0.)
+            self.scale3D = (1., 1., 1.)
         else:
-            self.calibrations3D = []
+            self.origin3D = []
+            self.scale3D = []
             for calib in calibrations:
                 if hasattr(calib, "__len__") and len(calib) == 2:
                     calib = calibration.LinearCalibration(calib[0], calib[1])
@@ -362,39 +361,31 @@ class StackView(qt.QMainWindow):
                     raise TypeError("calibration must be a 2-tuple, None or" +
                                     " an instance of an AbstractCalibration " +
                                     "subclass")
-                self.calibrations3D.append(calib)
-
-    def _getXYZCalibs(self):
-        xy_dims = [0, 1, 2]
-        xy_dims.remove(self._perspective)
-
-        xcalib = self.calibrations3D[max(xy_dims)]
-        ycalib = self.calibrations3D[min(xy_dims)]
-        zcalib = self.calibrations3D[self._perspective]
-
-        return xcalib, ycalib, zcalib
+                self.origin3D.append(calib(0))
+                self.scale3D.append(calib.get_slope())
 
     def _getImageScale(self):
         """
         :return: 2-tuple (XScale, YScale) for current image view
         """
-        xcalib, ycalib, _zcalib = self._getXYZCalibs()
-        return xcalib.get_slope(), ycalib.get_slope()
+        if self._perspective == 0:
+            return self.scale3D[2], self.scale3D[1]
+        if self._perspective == 1:
+            return self.scale3D[2], self.scale3D[0]
+        if self._perspective == 2:
+            return self.scale3D[1], self.scale3D[0]
 
     def _getImageOrigin(self):
         """
         :return: 2-tuple (XOrigin, YOrigin) for current image view
         """
-        xcalib, ycalib, _zcalib = self._getXYZCalibs()
-        return xcalib(0), ycalib(0)
+        if self._perspective == 0:
+            return self.origin3D[2], self.origin3D[1]
+        if self._perspective == 1:
+            return self.origin3D[2], self.origin3D[0]
+        if self._perspective == 2:
+            return self.origin3D[1], self.origin3D[0]
 
-    def _getImageZ(self, index):
-        """
-        :param idx: 0-based image index in the stack
-        :return: calibrated Z value corresponding to the image idx
-        """
-        _xcalib, _ycalib, zcalib = self._getXYZCalibs()
-        return zcalib(index)
 
     # public API
     def setStack(self, stack, perspective=0, reset=True, calibrations=None):
@@ -459,7 +450,6 @@ class StackView(qt.QMainWindow):
                             scale=self._getImageScale(),
                             resetzoom=False)
         self._plot.setActiveImage(self.__imageLegend)
-        self._plot.setGraphTitle("Image z=%g" % self._getImageZ(0))
         self.__updatePlotLabels()
 
         if reset:

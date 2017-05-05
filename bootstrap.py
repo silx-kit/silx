@@ -10,7 +10,7 @@ example: ./bootstrap.py ipython
 __authors__ = ["Frédéric-Emmanuel Picca", "Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
-__date__ = "21/04/2017"
+__date__ = "07/04/2017"
 
 
 import sys
@@ -91,84 +91,40 @@ def run_file(filename, argv):
         logger.info("Execute target using subprocess")
         env = os.environ.copy()
         env.update({"PYTHONPATH": LIBPATH + os.pathsep + os.environ.get("PYTHONPATH", ""),
-                    "PATH": os.environ.get("PATH", "")})
+                    "PATH": SCRIPTSPATH + os.pathsep + os.environ.get("PATH", "")})
         print("########### SUBPROCESS ###########")
         run = subprocess.Popen(full_args, shell=False, env=env)
         run.wait()
 
 
-def run_entry_point(entry_point, argv):
-    """
-    Execute an entry_point using the current python context
-    (http://setuptools.readthedocs.io/en/latest/setuptools.html#automatic-script-creation)
-
-    :param str entry_point: A string identifying a function from a module
-        (NAME = PACKAGE.MODULE:FUNCTION)
-    """
-    import importlib
-    elements = entry_point.split("=")
-    target_name = elements[0].strip()
-    elements = elements[1].split(":")
-    module_name = elements[0].strip()
-    function_name = elements[1].strip()
-
-    logger.info("Execute target %s (function %s from module %s) using importlib", target_name, function_name, module_name)
-    full_args = [target_name]
-    full_args.extend(argv)
-    try:
-        old_argv = sys.argv
-        sys.argv = full_args
-        module = importlib.import_module(module_name)
-        if hasattr(module, function_name):
-            func = getattr(module, function_name)
-            print("########### IMPORTLIB ###########")
-            func()
-        else:
-            logger.info("Function %s not found", function_name)
-    finally:
-        sys.argv = old_argv
-
-
-def find_executable(target):
+def find_executable_file(script_name):
     """Find a filename from a script name.
 
-    - Check the script name as file path,
-    - Then checks if the name is a target of the setup.py
-    - Then search the script from the PATH environment variable.
+    Check the script name as file path, then checks files from the 'scripts'
+    directory, then search the script from the PATH environment variable.
 
-    :param str target: Name of the script
-    :returns: Returns a tuple: kind, name.
+    :param str script_name: Name of the script
+    :returns: An absolute file path, else None if nothing found.
     """
-    if os.path.isfile(target):
-        return ("path", os.path.abspath(target))
+    if os.path.isfile(script_name):
+        return os.path.abspath(script_name)
 
-    # search the file from setup.py
-    import setup
-    config = setup.get_project_configuration(dry_run=True)
-    # scripts from project configuration
-    if "scripts" in config:
-        for script_name in config["scripts"]:
-            if os.path.basename(script) == target:
-                return ("path", os.path.abspath(script_name))
-    # entry-points from project configuration
-    if "entry_points" in config:
-        for kind in config["entry_points"]:
-            for entry_point in config["entry_points"][kind]:
-                elements = entry_point.split("=")
-                name = elements[0].strip()
-                if name == target:
-                    return ("entry_point", entry_point)
+    # search the file from the script path
+    path = os.path.join(SCRIPTSPATH, script_name)
+    if os.path.isfile(path):
+        return path
 
     # search the file from env PATH
     for dirname in os.environ.get("PATH", "").split(os.pathsep):
-        path = os.path.join(dirname, target)
+        path = os.path.join(dirname, script_name)
         if os.path.isfile(path):
-            return ("path", path)
+            return path
 
-    return None, None
+    return None
 
 
 home = os.path.dirname(os.path.abspath(__file__))
+SCRIPTSPATH = os.path.join(home, 'build', _distutils_scripts_name())
 LIBPATH = os.path.join(home, 'build', _distutils_dir_name('lib'))
 cwd = os.getcwd()
 os.chdir(home)
@@ -180,6 +136,8 @@ os.chdir(cwd)
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         logger.warning("usage: ./bootstrap.py <script>\n")
+        logger.warning("Available scripts : %s\n" %
+                        _get_available_scripts(SCRIPTSPATH))
         script = None
     else:
         script = sys.argv[1]
@@ -193,11 +151,9 @@ if __name__ == "__main__":
 
     if script:
         argv = sys.argv[2:]
-        kind, target = find_executable(script)
-        if kind == "path":
-            run_file(target, argv)
-        elif kind == "entry_point":
-            run_entry_point(target, argv)
+        fullpath = find_executable_file(script)
+        if fullpath is not None:
+            run_file(fullpath, argv)
         else:
             logger.error("Script %s not found", script)
     else:

@@ -27,7 +27,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "26/04/2017"
+__date__ = "13/10/2016"
 
 
 import logging
@@ -35,7 +35,11 @@ import numpy
 
 from ..gui.plot import Plot1D, Plot2D
 from ..gui.plot.Colors import COLORDICT
-from silx.third_party import six
+
+try:
+    from ..third_party import six
+except ImportError:
+    import six
 
 
 _logger = logging.getLogger(__name__)
@@ -171,7 +175,7 @@ def plot(*args, **kwargs):
                 # Run twice to handle inversion symbol/linestyle
                 for _i in range(2):
                     # Handle linestyle
-                    for line in (' ', '--', '-', '-.', ':'):
+                    for line in (' ', '-', '--', '-.', ':'):
                         if style.endswith(line):
                             curve_linestyle = line
                             style = style[:-len(line)]

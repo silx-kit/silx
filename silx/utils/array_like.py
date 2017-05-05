@@ -50,11 +50,15 @@ Functions:
 from __future__ import absolute_import, print_function, division
 import numpy
 import sys
-from silx.third_party import six
+
+try:
+    from silx.third_party.six import string_types, binary_type
+except ImportError:
+    from six import string_types, binary_type
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "26/04/2017"
+__date__ = "04/01/2017"
 
 
 def is_array(obj):
@@ -123,7 +127,7 @@ def is_nested_sequence(obj):
         if is_array(subsequence):
             return False
         # strings cause infinite loops
-        if isinstance(subsequence, six.string_types + (six.binary_type, )):
+        if isinstance(subsequence, string_types + (binary_type, )):
             return True
         subsequence = subsequence[0]
 
@@ -150,7 +154,7 @@ def get_shape(array_like):
     while hasattr(subsequence, "__len__"):
         shape.append(len(subsequence))
         # strings cause infinite loops
-        if isinstance(subsequence, six.string_types + (six.binary_type, )):
+        if isinstance(subsequence, string_types + (binary_type, )):
             break
         subsequence = subsequence[0]
 
@@ -173,7 +177,7 @@ def get_dtype(array_like):
     subsequence = array_like
     while hasattr(subsequence, "__len__"):
         # strings cause infinite loops
-        if isinstance(subsequence, six.string_types + (six.binary_type, )):
+        if isinstance(subsequence, string_types + (binary_type, )):
             break
         subsequence = subsequence[0]
 

@@ -192,9 +192,6 @@ It provides the following keys:
 setting the interactive mode.
 """
 
-from __future__ import division
-
-
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "16/02/2017"
@@ -208,12 +205,6 @@ import numpy
 
 # Import matplotlib backend here to init matplotlib our way
 from .backends.BackendMatplotlib import BackendMatplotlibQt
-
-try:
-    from matplotlib import cm as matplotlib_cm
-except ImportError:
-    matplotlib_cm = None
-
 from . import Colors
 from . import PlotInteraction
 from . import PlotEvents
@@ -261,16 +252,15 @@ class Plot(object):
     Supported backends:
 
     - 'matplotlib' and 'mpl': Matplotlib with Qt.
-    - 'opengl' and 'gl': OpenGL backend (requires PyOpenGL and OpenGL >= 2.1)
     - 'none': No backend, to run headless for testing purpose.
 
     :param parent: The parent widget of the plot (Default: None)
     :param backend: The backend to use. A str in:
-                    'matplotlib', 'mpl', 'opengl', 'gl', 'none'
+                    'matplotlib', 'mpl', 'none'
                     or a :class:`BackendBase.BackendBase` class
     """
 
-    DEFAULT_BACKEND = 'matplotlib'
+    defaultBackend = 'matplotlib'
     """Class attribute setting the default backend for all instances."""
 
     colorList = _COLORLIST
@@ -282,7 +272,7 @@ class Plot(object):
         self._cursorInPlot = False
 
         if backend is None:
-            backend = self.DEFAULT_BACKEND
+            backend = self.defaultBackend
 
         if hasattr(backend, "__call__"):
             self._backend = backend(self, parent)
@@ -291,9 +281,6 @@ class Plot(object):
             lowerCaseString = backend.lower()
             if lowerCaseString in ("matplotlib", "mpl"):
                 backendClass = BackendMatplotlibQt
-            elif lowerCaseString in ('gl', 'opengl'):
-                from .backends.BackendOpenGL import BackendOpenGL
-                backendClass = BackendOpenGL
             elif lowerCaseString == 'none':
                 from .backends.BackendBase import BackendBase as backendClass
             else:
@@ -1873,29 +1860,6 @@ class Plot(object):
             id(self.getWidgetHandle()), xRange, yRange, y2Range)
         self.notify(**event)
 
-    def _checkLimits(self, min_, max_, axis):
-        """Makes sure axis range is not empty
-
-        :param float min_: Min axis value
-        :param float max_: Max axis value
-        :param str axis: 'x', 'y' or 'y2' the axis to deal with
-        :return: (min, max) making sure min < max
-        :rtype: 2-tuple of float
-        """
-        if max_ < min_:
-            _logger.info('%s axis: max < min, inverting limits.', axis)
-            min_, max_ = max_, min_
-        elif max_ == min_:
-            _logger.info('%s axis: max == min, expanding limits.', axis)
-            if min_ == 0.:
-                min_, max_ = -0.1, 0.1
-            elif min_ < 0:
-                min_, max_ = min_ * 1.1, min_ * 0.9
-            else:  # xmin > 0
-                min_, max_ = min_ * 0.9, min_ * 1.1
-
-        return min_, max_
-
     def getGraphXLimits(self):
         """Get the graph X (bottom) limits.
 
@@ -1912,7 +1876,16 @@ class Plot(object):
         if replot is not None:
             _logger.warning('setGraphXLimits deprecated replot parameter')
 
-        xmin, xmax = self._checkLimits(xmin, xmax, axis='x')
+        # Deal with incorrect values
+        if xmax < xmin:
+            _logger.warning('setGraphXLimits xmax < xmin, inverting limits.')
+            xmin, xmax = xmax, xmin
+        elif xmax == xmin:
+            _logger.warning('setGraphXLimits xmax == xmin, expanding limits.')
+            if xmin == 0.:
+                xmin, xmax = -0.1, 0.1
+            else:
+                xmin, xmax = xmin * 1.1, xmax * 0.9
 
         self._backend.setGraphXLimits(xmin, xmax)
         self._setDirtyPlot()
@@ -1940,11 +1913,18 @@ class Plot(object):
         if replot is not None:
             _logger.warning('setGraphYLimits deprecated replot parameter')
 
+        # Deal with incorrect values
+        if ymax < ymin:
+            _logger.warning('setGraphYLimits ymax < ymin, inverting limits.')
+            ymin, ymax = ymax, ymin
+        elif ymax == ymin:
+            _logger.warning('setGraphXLimits ymax == ymin, expanding limits.')
+            if ymin == 0.:
+                ymin, ymax = -0.1, 0.1
+            else:
+                ymin, ymax = ymin * 1.1, ymax * 0.9
+
         assert axis in ('left', 'right')
-
-        ymin, ymax = self._checkLimits(ymin, ymax,
-                                       axis='y' if axis == 'left' else 'y2')
-
         self._backend.setGraphYLimits(ymin, ymax, axis)
         self._setDirtyPlot()
 
@@ -1963,14 +1943,39 @@ class Plot(object):
         :param float y2max: maximum right axis value or None (the default)
         """
         # Deal with incorrect values
-        xmin, xmax = self._checkLimits(xmin, xmax, axis='x')
-        ymin, ymax = self._checkLimits(ymin, ymax, axis='y')
+        if xmax < xmin:
+            _logger.warning('setLimits xmax < xmin, inverting limits.')
+            xmin, xmax = xmax, xmin
+        elif xmax == xmin:
+            _logger.warning('setLimits xmax == xmin, expanding limits.')
+            if xmin == 0.:
+                xmin, xmax = -0.1, 0.1
+            else:
+                xmin, xmax = xmin * 1.1, xmax * 0.9
+
+        if ymax < ymin:
+            _logger.warning('setLimits ymax < ymin, inverting limits.')
+            ymin, ymax = ymax, ymin
+        elif ymax == ymin:
+            _logger.warning('setLimits ymax == ymin, expanding limits.')
+            if ymin == 0.:
+                ymin, ymax = -0.1, 0.1
+            else:
+                ymin, ymax = ymin * 1.1, ymax * 0.9
 
         if y2min is None or y2max is None:
             # if one limit is None, both are ignored
             y2min, y2max = None, None
         else:
-            y2min, y2max = self._checkLimits(y2min, y2max, axis='y2')
+            if y2max < y2min:
+                _logger.warning('setLimits y2max < y2min, inverting limits.')
+                y2min, y2max = y2max, y2min
+            elif y2max == y2min:
+                _logger.warning('setLimits y2max == y2min, expanding limits.')
+                if y2min == 0.:
+                    y2min, y2max = -0.1, 0.1
+                else:
+                    y2min, y2max = y2min * 1.1, y2max * 0.9
 
         self._backend.setLimits(xmin, xmax, ymin, ymax, y2min, y2max)
         self._setDirtyPlot()
@@ -2247,15 +2252,7 @@ class Plot(object):
         The list should at least contain and start by:
         ('gray', 'reversed gray', 'temperature', 'red', 'green', 'blue')
         """
-        default = ('gray', 'reversed gray',
-                   'temperature',
-                   'red', 'green', 'blue')
-        if matplotlib_cm is None:
-            return default
-        else:
-            maps = [m for m in matplotlib_cm.datad]
-            maps.sort()
-            return default + tuple(maps)
+        return self._backend.getSupportedColormaps()
 
     def _getColorAndStyle(self):
         color = self.colorList[self._colorIndex]
@@ -2432,73 +2429,16 @@ class Plot(object):
         if dataMargins is None:
             dataMargins = self._defaultDataMargins
 
-        xLimits = self.getGraphXLimits()
-        yLimits = self.getGraphYLimits(axis='left')
-        y2Limits = self.getGraphYLimits(axis='right')
+        xlim = self.getGraphXLimits()
+        ylim = self.getGraphYLimits(axis='left')
+        y2lim = self.getGraphYLimits(axis='right')
 
-        xAuto = self.isXAxisAutoScale()
-        yAuto = self.isYAxisAutoScale()
-
-        if not xAuto and not yAuto:
-            _logger.debug("Nothing to autoscale")
-        else:  # Some axes to autoscale
-
-            # Get data range
-            ranges = self.getDataRange()
-            xmin, xmax = (1., 100.) if ranges.x is None else ranges.x
-            ymin, ymax = (1., 100.) if ranges.y is None else ranges.y
-            if ranges.yright is None:
-                ymin2, ymax2 = None, None
-            else:
-                ymin2, ymax2 = ranges.yright
-
-            # Add margins around data inside the plot area
-            newLimits = list(_utils.addMarginsToLimits(
-                dataMargins,
-                self.isXAxisLogarithmic(),
-                self.isYAxisLogarithmic(),
-                xmin, xmax, ymin, ymax, ymin2, ymax2))
-
-            if self.isKeepDataAspectRatio():
-                # Use limits with margins to keep ratio
-                xmin, xmax, ymin, ymax = newLimits[:4]
-
-                # Compute bbox wth figure aspect ratio
-                plotWidth, plotHeight = self.getPlotBoundsInPixels()[2:]
-                plotRatio = plotHeight / plotWidth
-
-                if plotRatio > 0.:
-                    dataRatio = (ymax - ymin) / (xmax - xmin)
-                    if dataRatio < plotRatio:
-                        # Increase y range
-                        ycenter = 0.5 * (ymax + ymin)
-                        yrange = (xmax - xmin) * plotRatio
-                        newLimits[2] = ycenter - 0.5 * yrange
-                        newLimits[3] = ycenter + 0.5 * yrange
-
-                    elif dataRatio > plotRatio:
-                        # Increase x range
-                        xcenter = 0.5 * (xmax + xmin)
-                        xrange_ = (ymax - ymin) / plotRatio
-                        newLimits[0] = xcenter - 0.5 * xrange_
-                        newLimits[1] = xcenter + 0.5 * xrange_
-
-            self.setLimits(*newLimits)
-
-            if not xAuto and yAuto:
-                self.setGraphXLimits(*xLimits)
-            elif xAuto and not yAuto:
-                if y2Limits is not None:
-                    self.setGraphYLimits(
-                        y2Limits[0], y2Limits[1], axis='right')
-                if yLimits is not None:
-                    self.setGraphYLimits(yLimits[0], yLimits[1], axis='left')
-
+        self._backend.resetZoom(dataMargins)
         self._setDirtyPlot()
 
-        if (xLimits != self.getGraphXLimits() or
-                yLimits != self.getGraphYLimits(axis='left') or
-                y2Limits != self.getGraphYLimits(axis='right')):
+        if (xlim != self.getGraphXLimits() or
+                ylim != self.getGraphYLimits(axis='left') or
+                y2lim != self.getGraphYLimits(axis='right')):
             self._notifyLimitsChanged()
 
     # Coord conversion
@@ -2660,8 +2600,8 @@ class Plot(object):
         :return: (x, y) in widget coord (in pixel) in the plot area
         """
         left, top, width, height = self.getPlotBoundsInPixels()
-        xPlot = numpy.clip(x, left, left + width)
-        yPlot = numpy.clip(y, top, top + height)
+        xPlot = _utils.clamp(x, left, left + width)
+        yPlot = _utils.clamp(y, top, top + height)
         return xPlot, yPlot
 
     def onMousePress(self, xPixel, yPixel, btn):

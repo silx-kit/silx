@@ -98,18 +98,14 @@ class AbstractDataViewerTests(TestCaseQt):
         data.shape = [3] * 1
         widget = self.create_widget()
         widget.setData(data)
-        availableModes = set([v.modeId() for v in widget.currentAvailableViews()])
-        self.assertEqual(DataViewer.RAW_MODE, widget.displayMode())
-        self.assertIn(DataViewer.PLOT1D_MODE, availableModes)
+        self.assertEqual(DataViewer.PLOT1D_MODE, widget.displayMode())
 
     def test_plot_2d_data(self):
         data = numpy.arange(3 ** 2)
         data.shape = [3] * 2
         widget = self.create_widget()
         widget.setData(data)
-        availableModes = set([v.modeId() for v in widget.currentAvailableViews()])
-        self.assertEqual(DataViewer.RAW_MODE, widget.displayMode())
-        self.assertIn(DataViewer.PLOT2D_MODE, availableModes)
+        self.assertEqual(DataViewer.PLOT2D_MODE, widget.displayMode())
 
     def test_plot_3d_data(self):
         data = numpy.arange(3 ** 3)
@@ -122,7 +118,7 @@ class AbstractDataViewerTests(TestCaseQt):
             self.assertIn(DataViewer.PLOT3D_MODE, availableModes)
         except ImportError:
             self.assertIn(DataViewer.STACK_MODE, availableModes)
-        self.assertEqual(DataViewer.RAW_MODE, widget.displayMode())
+        self.assertEqual(DataViewer.PLOT2D_MODE, widget.displayMode())
 
     def test_array_1d_data(self):
         data = numpy.array(["aaa"] * (3 ** 1))

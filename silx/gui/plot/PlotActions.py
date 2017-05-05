@@ -51,7 +51,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "20/04/2017"
+__date__ = "16/02/2017"
 
 
 from collections import OrderedDict
@@ -1147,23 +1147,24 @@ class FitAction(PlotAction):
     def handle_signal(self, ddict):
         x_fit = self.x[self.xmin <= self.x]
         x_fit = x_fit[x_fit <= self.xmax]
-        fit_legend = "Fit <%s>" % self.legend
-        fit_curve = self.plot.getCurve(fit_legend)
-
+        if ddict["event"] == "EstimateFinished":
+            self.plot.removeCurve("Fit <%s>" % self.legend)
+            y_fit = self.fit_widget.fitmanager.gendata(estimated=True)
+            self.plot.addCurve(x_fit, y_fit,
+                               "Estimated <%s>" % self.legend,
+                               xlabel=self.xlabel, ylabel=self.ylabel,
+                               resetzoom=False)
         if ddict["event"] == "FitFinished":
+            self.plot.removeCurve("Estimated <%s>" % self.legend)
             y_fit = self.fit_widget.fitmanager.gendata()
-            if fit_curve is None:
-                self.plot.addCurve(x_fit, y_fit,
-                                   fit_legend,
-                                   xlabel=self.xlabel, ylabel=self.ylabel,
-                                   resetzoom=False)
-            else:
-                fit_curve.setData(x_fit, y_fit)
-                fit_curve.setVisible(True)
-
+            self.plot.addCurve(x_fit, y_fit,
+                               "Fit <%s>" % self.legend,
+                               xlabel=self.xlabel, ylabel=self.ylabel,
+                               resetzoom=False)
+        if ddict["event"] in ["EstimateStarted", "EstimateFailed"]:
+            self.plot.removeCurve("Estimated <%s>" % self.legend)
         if ddict["event"] in ["FitStarted", "FitFailed"]:
-            if fit_curve is not None:
-                fit_curve.setVisible(False)
+            self.plot.removeCurve("Fit <%s>" % self.legend)
 
 
 class PixelIntensitiesHistoAction(PlotAction):
@@ -1330,12 +1331,12 @@ class MedianFilterAction(PlotAction):
             self._originalImage = self.plot.getImage(self._activeImageLegend).getData(copy=False)
             self._legend = self.plot.getImage(self._activeImageLegend).getLegend()
 
-    def _updateFilter(self, kernelWidth, conditional=False):
+    def _updateFilter(self, kernelWidth, conditionnal=False):
         if self._originalImage is None:
             return
 
         self.plot.sigActiveImageChanged.disconnect(self._updateActiveImage)
-        filteredImage = self._computeFilteredImage(kernelWidth, conditional)
+        filteredImage = self._computeFilteredImage(kernelWidth, conditionnal)
         self.plot.addImage(data=filteredImage,
                            legend=self._legend,
                            replace=True)

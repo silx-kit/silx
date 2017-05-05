@@ -28,7 +28,7 @@ and stacks of images"""
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel", "H. Payno"]
 __license__ = "MIT"
-__date__ = "24/04/2017"
+__date__ = "21/02/2017"
 
 
 import numpy
@@ -405,7 +405,7 @@ class ProfileToolBar(qt.QToolBar):
         self.lineAction.toggled[bool].connect(self._lineActionToggled)
 
         self.clearAction = qt.QAction(
-            icons.getQIcon('profile-clear'),
+            icons.getQIcon('image'),
             'Clear Profile', None)
         self.clearAction.setToolTip(
             'Clear the profile Region of interest')

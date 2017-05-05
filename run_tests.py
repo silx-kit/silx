@@ -304,13 +304,13 @@ if options.qt_binding:
     binding = options.qt_binding.lower()
     if binding == "pyqt4":
         logger.info("Force using PyQt4")
-        import PyQt4.QtCore  # noqa
+        import PyQt4  #noqa
     elif binding == "pyqt5":
         logger.info("Force using PyQt5")
-        import PyQt5.QtCore  # noqa
+        import PyQt5  #noqa
     elif binding == "pyside":
         logger.info("Force using PySide")
-        import PySide.QtCore  # noqa
+        import PySide  #noqa
     else:
         raise ValueError("Qt binding '%s' is unknown" % options.qt_binding)
 

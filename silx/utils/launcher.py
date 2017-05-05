@@ -295,7 +295,7 @@ class Launcher(object):
             command_argv[0] = "%s %s" % (self.prog, command_argv[0])
 
         if command_name not in self._commands:
-            print("Unknown command: %s" % command_name)
+            print("Unknown command: %s", command_name)
             self.print_help()
             return -1
 

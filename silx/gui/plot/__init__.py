@@ -40,18 +40,9 @@ List of Qt widgets:
 - :class:`.ImageView`: A widget with tools for images and a side histogram.
 - :class:`.StackView`: A widget with tools for a stack of images.
 
-By default, those widget are using matplotlib_.
-They can optionally use a faster OpenGL-based rendering (beta feature),
-which is enabled by setting the ``backend`` argument to ``'gl'``
-when creating the widgets (See :class:`.Plot`).
-
 .. note::
 
-    This package depends on matplotlib_.
-    The OpenGL backend further depends on
-    `PyOpenGL <http://pyopengl.sourceforge.net/>`_ and OpenGL >= 2.1.
-
-.. _matplotlib: http://matplotlib.org/
+    This package currently depends on *matplotlib*.
 """
 
 __authors__ = ["T. Vincent"]

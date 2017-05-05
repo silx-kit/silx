@@ -101,8 +101,7 @@ class TestPlotWidget(_PlotWidgetTest, ParametricTestCase):
                 self.assertEqual(expectedYLim, ylim)
 
             if expectedRatio is not None:
-                self.assertTrue(
-                    numpy.allclose(expectedRatio, ratio, atol=0.01))
+                self.assertTrue(numpy.allclose(expectedRatio, ratio))
 
         self.plot.setKeepDataAspectRatio()
         self.qapp.processEvents()

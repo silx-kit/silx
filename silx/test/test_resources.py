@@ -26,14 +26,13 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "20/04/2017"
+__date__ = "13/05/2016"
 
 
 import os
 import unittest
 
 import silx.resources
-from .utils import utilstest
 
 
 class TestResources(unittest.TestCase):
@@ -53,43 +52,10 @@ class TestResources(unittest.TestCase):
         self.assertFalse(os.path.exists(filename))
 
 
-class TestExternalResources(unittest.TestCase):
-    "This is a test for the TestResources"
-    def test_tempdir(self):
-        "test the temporary directory creation"
-        myutilstest = silx.resources.ExternalResources("toto", "http://www.silx.org")
-        d = myutilstest.tempdir
-        self.assertTrue(os.path.isdir(d))
-        self.assertEqual(d, myutilstest.tempdir, 'tmpdir is stable')
-        myutilstest.clean_up()
-        self.assertFalse(os.path.isdir(d))
-        e = myutilstest.tempdir
-        self.assertTrue(os.path.isdir(e))
-        self.assertEqual(e, myutilstest.tempdir, 'tmpdir is stable')
-        self.assertNotEqual(d, e, "tempdir changed")
-        myutilstest.clean_up()
-
-    def test_download(self):
-        "test the download from silx.org"
-        f = utilstest.getfile("lena.png")
-        self.assertTrue(os.path.exists(f))
-        f = utilstest.getdir("source.tar.gz")
-        self.assertTrue(os.path.isfile(f))
-        self.assertTrue(os.path.isdir(f[:-7]))
-
-    def test_dowload_all(self):
-        "test the download of all files from silx.org"
-        l = utilstest.download_all()
-        self.assertGreater(len(l), 1, "At least 2 items were downloaded")
-
-
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(
         unittest.defaultTestLoader.loadTestsFromTestCase(TestResources))
-    test_suite.addTest(TestExternalResources("test_tempdir"))
-    test_suite.addTest(TestExternalResources("test_download")) # order matters !
-    test_suite.addTest(TestExternalResources("test_dowload_all"))
     return test_suite
 
 

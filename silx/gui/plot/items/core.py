@@ -27,16 +27,17 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "26/04/2017"
+__date__ = "06/03/2017"
 
 from copy import deepcopy
 import logging
 import weakref
+
 import numpy
-from silx.third_party import six
 
 from .. import Colors
 
+from ....third_party.six import string_types
 
 
 _logger = logging.getLogger(__name__)
@@ -463,7 +464,7 @@ class ColorMixIn(object):
         :param bool copy: True (Default) to get a copy,
                          False to use internal representation (do not modify!)
         """
-        if isinstance(color, six.string_types):
+        if isinstance(color, string_types):
             color = Colors.rgba(color)
         else:
             color = numpy.array(color, copy=copy)

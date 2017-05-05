@@ -24,6 +24,7 @@ dirname = os.path.dirname
 root_dir = dirname(dirname(dirname(os.path.abspath(__file__))))
 import silx
 source_dir = dirname(dirname(silx.__file__))
+os.environ["PATH"] = os.path.join(root_dir, "scripts") + os.pathsep + os.environ.get("PATH", "")
 os.environ["PYTHONPATH"] = source_dir + os.pathsep + os.environ.get("PYTHONPATH", "")
 
 # -- General configuration -----------------------------------------------------

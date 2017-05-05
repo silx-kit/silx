@@ -28,12 +28,7 @@
 # Script that builds a debian package from this library
 
 PROJECT=silx
-VERSION=$(python -c"import version; print(version.version)")
-STRICT_VERSION=$(python -c"import version; print(version.strictversion)")
-DEBIAN_VERSION=$(python -c"import version; print(version.debianversion)")
-TARNAME=${PROJECT}-${STRICT_VERSION}.tar.gz
-DEB_NAME=$(echo "$PROJECT" | tr '[:upper:]' '[:lower:]')
-
+ 
 if [ -d /usr/lib/ccache ];
 then 
    CCPATH=/usr/lib/ccache:$PATH
@@ -90,19 +85,20 @@ do
 done
 
 
-BUILD_DIRECTORY=build/debian7
-DIST_DIRECTORY=dist/debian7
+build_directory=build/debian7
 
 # clean up previous build
-rm -rf ${BUILD_DIRECTORY}
+rm -rf ${build_directory}
 
 # create the build context
-mkdir -p ${BUILD_DIRECTORY}
+mkdir -p ${build_directory}
+#python setup.py debian_src
 python setup.py sdist
-cp -f dist/${TARNAME} ${BUILD_DIRECTORY}
-cd ${BUILD_DIRECTORY}
-tar -xzf ${TARNAME}
-cd ${PROJECT}-${STRICT_VERSION}
+tar -xzf dist/${PROJECT}-*.tar.gz --directory ${build_directory}
+cd ${build_directory}/${PROJECT}*
+
+# clean up windows files
+rm scripts/*.bat
 
 if [ $use_python3 = 1 ]
 then
@@ -111,15 +107,14 @@ then
   rc=$?
 else
   echo Using Python 2
-  # bdist_deb feed /usr/bin using setup.py entry-points
   PATH=$CCPATH python setup.py --command-packages=stdeb.command bdist_deb --no-cython
   rc=$?
 fi
 
 # move packages to dist directory
-rm -rf ../../../${DIST_DIRECTORY}
-mkdir -p ../../../${DIST_DIRECTORY}
-mv -f deb_dist/*.deb ../../../${DIST_DIRECTORY}
+rm -rf ../../../dist/debian7
+mkdir -p ../../../dist
+mv deb_dist ../../../dist/debian7
 
 # back to the root
 cd ../../..
