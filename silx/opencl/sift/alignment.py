@@ -37,9 +37,10 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "12/01/2017"
+__date__ = "15/03/2017"
 __status__ = "production"
 
+import os
 import gc
 from threading import Semaphore
 import numpy
@@ -209,7 +210,7 @@ class LinearAlign(object):
         Call the OpenCL compiler
         """
         for kernel in list(self.kernels.keys()):
-            kernel_src = get_opencl_code(kernel)
+            kernel_src = get_opencl_code(os.path.join("sift",kernel))
             try:
                 program = pyopencl.Program(self.ctx, kernel_src).build()
             except pyopencl.MemoryError as error:

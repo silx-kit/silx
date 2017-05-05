@@ -52,9 +52,10 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "12/01/2017"
-__status__ = "beta"
+__date__ = "15/03/2017"
+__status__ = "production"
 
+import os
 import time
 import math
 import logging
@@ -359,7 +360,7 @@ class SiftPlan(object):
         """Call the OpenCL compiler
         """
         for kernel, wg_size in list(self.kernels.items()):
-            kernel_src = get_opencl_code(kernel)
+            kernel_src = get_opencl_code(os.path.join("sift", kernel))
             if isinstance(wg_size, tuple):
                 wg_size = self.max_workgroup_size
             try:

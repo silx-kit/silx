@@ -35,13 +35,13 @@ __authors__ = ["Henri Payno, Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "23/01/2017"
+__date__ = "15/03/2017"
 
 import logging
 import numpy
 
 import unittest
-from silx.opencl import ocl, _measure_workgroup_size
+from ..common import ocl, _measure_workgroup_size
 if ocl:
     import pyopencl
     import pyopencl.array
