@@ -40,8 +40,9 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "12/01/2017"
+__date__ = "15/03/2017"
 
+import os
 import unittest
 import time
 import logging
@@ -140,7 +141,7 @@ class test_keypoints(ParameterisedTestCase):
                 for i in self.wg_orient:
                     prod_wg *= i
 
-                kernel_src = get_opencl_code(kernel_file)
+                kernel_src = get_opencl_code(os.path.join("sift", kernel_file))
                 try:
                     self.program_orient = pyopencl.Program(self.ctx, kernel_src).build()
                 except:
@@ -149,7 +150,7 @@ class test_keypoints(ParameterisedTestCase):
                     return
             elif kernel_file.startswith("keypoint"):
                 self.wg_keypoint = self.param[kernel_file]
-                kernel_src = get_opencl_code(kernel_file)
+                kernel_src = get_opencl_code(os.path.join("sift", kernel_file))
                 prod_wg = 1
                 for i in self.wg_keypoint:
                     prod_wg *= i

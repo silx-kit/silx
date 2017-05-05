@@ -37,8 +37,9 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "12/01/2017"
+__date__ = "15/03/2017"
 
+import os
 import time
 import numpy
 import unittest
@@ -109,7 +110,7 @@ class TestGaussian(unittest.TestCase):
         cls.max_wg = maxwg
 
         for kernel in list(cls.kernels.keys()):
-            kernel_src = get_opencl_code(kernel)
+            kernel_src = get_opencl_code(os.path.join("sift", kernel))
             program = pyopencl.Program(cls.ctx, kernel_src).build("-D WORKGROUP=%s" % cls.kernels[kernel])
             cls.kernels[kernel] = program
 

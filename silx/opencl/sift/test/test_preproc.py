@@ -37,8 +37,9 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "12/01/2017"
+__date__ = "15/03/2017"
 
+import os
 import time
 import logging
 import numpy
@@ -156,8 +157,8 @@ class TestPreproc(unittest.TestCase):
             testdata = scipy.misc.lena()
         self.input = numpy.ascontiguousarray(testdata[:510, :511])
         self.gpudata = pyopencl.array.empty(self.queue, self.input.shape, dtype=numpy.float32, order="C")
-        kernel_src = get_opencl_code("preprocess")
-        reduct_src = get_opencl_code("reductions")
+        kernel_src = get_opencl_code(os.path.join("sift", "preprocess"))
+        reduct_src = get_opencl_code(os.path.join("sift", "reductions"))
         self.program = pyopencl.Program(self.ctx, kernel_src).build()
         self.reduction = pyopencl.Program(self.ctx, reduct_src).build()
         self.IMAGE_W = numpy.int32(self.input.shape[-1])
