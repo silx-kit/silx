@@ -57,25 +57,6 @@ class TestMedianFilterEngines(unittest.TestCase):
 
     KERNEL = (1, 1)
 
-    def testCppMedFilt(self):
-        """test cpp engine for medfilt"""
-        res = medianfilter.medfilt(
-            data=TestMedianFilterEngines.IMG,
-            kernel_size=TestMedianFilterEngines.KERNEL,
-            conditional=False,
-            engine='cpp')
-        self.assertTrue(numpy.array_equal(res, TestMedianFilterEngines.IMG))
-
-    @unittest.skipUnless(ocl, "PyOpenCl is missing")
-    def testOpenCLMedFilt(self):
-        """test opencl engine"""
-        res = medianfilter.medfilt(
-            data=TestMedianFilterEngines.IMG,
-            kernel_size=TestMedianFilterEngines.KERNEL,
-            conditional=False,
-            engine='opencl')
-        self.assertTrue(numpy.array_equal(res, TestMedianFilterEngines.IMG))
-
     def testCppMedFilt2d(self):
         """test cpp engine for medfilt2d"""
         res = medianfilter.medfilt2d(
@@ -94,30 +75,6 @@ class TestMedianFilterEngines(unittest.TestCase):
             conditional=False,
             engine='opencl')
         self.assertTrue(numpy.array_equal(res, TestMedianFilterEngines.IMG))
-
-    def testCppMedFilt1d(self):
-        """test cpp engine for medfilt1d"""
-        # test medfilt
-        res = medianfilter.medfilt1d(
-            data=TestMedianFilterEngines.IMG.ravel(),
-            kernel_size=TestMedianFilterEngines.KERNEL,
-            conditional=False,
-            engine='cpp')
-        self.assertTrue(
-            numpy.array_equal(res, TestMedianFilterEngines.IMG.ravel()))
-
-    @unittest.skipUnless(ocl, "PyOpenCl is missing")
-    def testOpenCLMedFilt1d(self):
-        """test cpp engine for medfilt1d"""
-        initialShape = TestMedianFilterEngines.IMG.flatten().shape
-        res = medianfilter.medfilt1d(
-            data=TestMedianFilterEngines.IMG.flatten(),
-            kernel_size=TestMedianFilterEngines.KERNEL,
-            conditional=False,
-            engine='opencl')
-        self.assertTrue(
-            numpy.array_equal(res, TestMedianFilterEngines.IMG.ravel()))
-        self.assertTrue(initialShape, res.shape )
 
 
 def suite():

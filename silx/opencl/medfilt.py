@@ -89,11 +89,7 @@ class MedianFilter2D(OpenclProcessing):
         OpenclProcessing.__init__(self, ctx=ctx, devicetype=devicetype,
                                   platformid=platformid, deviceid=deviceid,
                                   block_size=block_size, profile=profile)
-        # hack to deal with 1D data
-        if len(shape) is 1:
-            self.shape = shape[0], 1
-        else:
-            self.shape = shape
+        self.shape = shape
         self.size = self.shape[0] * self.shape[1]
         self.kernel_size = self.calc_kernel_size(kernel_size)
         self.workgroup_size = (self.calc_wg(self.kernel_size), 1)  # 3D kernel
@@ -219,21 +215,6 @@ class MedianFilter2D(OpenclProcessing):
             self.events += events
         return result
     __call__ = medfilt2d
-
-    def medfilt1d(self, data, kernel_size=None):
-        """Actually apply the median filtering on the image
-
-        :param data: 1D numpy array with the data
-        :param kernel_size: int
-        :return: median-filtered  1D array
-
-        """
-        assert data.ndim == 1, "Treat only 2D images"
-        data = data.reshape(data.shape[0], 1)
-        res = self.medfilt2d(image=data, kernel_size=kernel_size)
-        res = res.reshape(res.shape[0])
-        data = data.reshape(data.shape[0])
-        return res
 
     @staticmethod
     def calc_kernel_size(kernel_size):

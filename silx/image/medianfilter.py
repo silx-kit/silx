@@ -42,7 +42,7 @@ _logger = logging.getLogger(__name__)
 MEDFILT_ENGINES = ['cpp', 'opencl']
 
 
-def medfilt(data, kernel_size=3, conditional=False, engine='cpp'):
+def medfilt2d(image, kernel_size=3, conditional=False, engine='cpp'):
     """Apply a 'nearest' median filter on the data.
 
     :param numpy.ndarray data: the array for which we want to apply
@@ -66,11 +66,11 @@ def medfilt(data, kernel_size=3, conditional=False, engine='cpp'):
         err += '%s' % engine
         raise ValueError(err)
 
-    if len(data.shape) > 2:
-        raise ValueError('medfilt deal with arrays of dimension <= 2')
+    if len(image.shape) is not 2:
+        raise ValueError('medfilt deal with arrays of dimension 2 only')
 
     if engine == 'cpp':
-        return medianfilter_cpp.medfilt(data=data,
+        return medianfilter_cpp.medfilt(data=image,
                                         kernel_size=kernel_size,
                                         conditional=conditional)
     elif engine == 'opencl':
@@ -79,18 +79,14 @@ def medfilt(data, kernel_size=3, conditional=False, engine='cpp'):
             wrn += 'Launching cpp implementation.'
             _logger.warning(wrn)
             # instead call the cpp implementation
-            return medianfilter_cpp.medfilt(data=data,
+            return medianfilter_cpp.medfilt(data=image,
                                             kernel_size=kernel_size,
                                             conditional=conditional)
         else:
             try:
-                medianfilter = medfilt_opencl.MedianFilter2D(data.shape,
+                medianfilter = medfilt_opencl.MedianFilter2D(image.shape,
                                                              devicetype="gpu")
-                print(data.shape)
-                if len(data.shape) == 1:
-                    res = medianfilter.medfilt1d(data, kernel_size)
-                else:
-                    res = medianfilter.medfilt2d(data, kernel_size)
+                res = medianfilter.medfilt2d(image, kernel_size)
             except(RuntimeError, MemoryError, ImportError):
                 wrn = 'Exception occured opencl median filter. '
                 wrn += 'To get more information see debug log.'
@@ -99,52 +95,8 @@ def medfilt(data, kernel_size=3, conditional=False, engine='cpp'):
                 _logger.debug("median filter - openCL implementation issue.",
                               exc_info=True)
                 # instead call the cpp implementation
-                res = medianfilter_cpp.medfilt(data=data,
+                res = medianfilter_cpp.medfilt(data=image,
                                                kernel_size=kernel_size,
                                                conditional=conditional)
 
         return res
-
-
-def medfilt1d(data, kernel_size=3, conditional=False, engine='cpp'):
-    """Apply a 'nearest' median filter on the data.
-
-    :param numpy.ndarray data: the array for which we want to apply
-        the median filter. Should be 1D.
-    :param kernel_size: the dimension of the kernel.
-    :type kernel_size: For 1D should be an int for 2D should be a tuple or
-        a list of (kernel_height, kernel_width)
-    :param bool conditional: True if we want to apply a conditional median
-        filtering.
-    :param engine: the type of implementation we want to execute. Valid
-        values are :attr:'MEDFILT_IMP'
-
-    :returns: the array with the median value for each pixel.
-
-    .. note::  if the opencl implementation is requested then it will be
-        surrounded by a try-except statement and if failed
-        (bad opencl installation ?) then the cpp implementation we be called.
-    """
-    return medfilt(data, kernel_size, conditional, engine)
-
-
-def medfilt2d(image, kernel_size=(3, 3), conditional=False, engine='cpp'):
-    """Apply a 'nearest' median filter on the data.
-
-    :param numpy.ndarray data: the array for which we want to apply
-        the median filter. Should be 2D.
-    :param kernel_size: the dimension of the kernel.
-    :type kernel_size: For 1D should be an int for 2D should be a tuple or
-        a list of (kernel_height, kernel_width)
-    :param bool conditional: True if we want to apply a conditional median
-        filtering.
-    :param engine: the type of implementation we want to execute. Valid
-        values are :attr:'MEDFILT_IMP'
-
-    :returns: the array with the median value for each pixel.
-
-    .. note::  if the opencl implementation is requested then it will be
-        surrounded by a try-except statement and if failed
-        (bad opencl installation ?) then the cpp implementation we be called.
-    """
-    return medfilt(image, kernel_size, conditional, engine)
