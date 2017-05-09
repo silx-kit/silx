@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "04/05/2017"
+__date__ = "10/05/2017"
 __license__ = "MIT"
 
 
@@ -530,7 +530,34 @@ class BuildExt(build_ext):
             ext.extra_link_args = [self.LINK_ARGS_CONVERTER.get(f, f)
                                    for f in ext.extra_link_args]
 
+    def patch_compiler(self):
+        """
+        Patch the compiler to:
+        - always compile extensions with debug symboles (-g)
+        - only compile asserts in debug mode (-DNDEBUG)
+
+        Plus numpy.distutils/setuptools/distutils inject a lot of duplicated
+        flags. This function tries to clean up default debug options.
+        """
+        build_obj = self.distribution.get_command_obj("build")
+
+        if self.compiler.compiler_type == "unix":
+            args = list(self.compiler.compiler_so)
+            # clean up debug flags -g is included later in another way
+            must_be_cleaned = ["-DNDEBUG", "-g"]
+            args = filter(lambda x: x not in must_be_cleaned, args)
+            args = list(args)
+
+            # always insert symbols
+            args.append("-g")
+            # only strip asserts in release mode
+            if not build_obj.debug:
+                args.append('-DNDEBUG')
+            # patch options
+            self.compiler.compiler_so = list(args)
+
     def build_extensions(self):
+        self.patch_compiler()
         for ext in self.extensions:
             self.patch_extension(ext)
         build_ext.build_extensions(self)
