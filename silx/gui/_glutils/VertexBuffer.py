@@ -179,7 +179,8 @@ class VertexBufferAttrib(object):
                  size,
                  dimension=1,
                  offset=0,
-                 stride=0):
+                 stride=0,
+                 normalisation=False):
         self.vbo = vbo
         assert type_ in self._GL_TYPES
         self.type_ = type_
@@ -188,6 +189,7 @@ class VertexBufferAttrib(object):
         self.dimension = dimension
         self.offset = offset
         self.stride = stride
+        self.normalisation = bool(normalisation)
 
     @property
     def itemsize(self):
@@ -198,11 +200,12 @@ class VertexBufferAttrib(object):
 
     def setVertexAttrib(self, attribute):
         """Call glVertexAttribPointer with objects information"""
+        normalisation = gl.GL_TRUE if self.normalisation else gl.GL_FALSE
         with self.vbo:
             gl.glVertexAttribPointer(attribute,
                                      self.dimension,
                                      self.type_,
-                                     gl.GL_FALSE,
+                                     normalisation,
                                      self.stride,
                                      c_void_p(self.offset))
 
@@ -212,7 +215,8 @@ class VertexBufferAttrib(object):
                                   self.size,
                                   self.dimension,
                                   self.offset,
-                                  self.stride)
+                                  self.stride,
+                                  self.normalisation)
 
 
 def vertexBuffer(arrays, prefix=None, suffix=None, usage=None):
