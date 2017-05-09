@@ -44,7 +44,7 @@ import logging
 import numpy
 from collections import OrderedDict
 
-from .common import ocl, pyopencl, kernel_workgroup_size
+from .common import pyopencl, kernel_workgroup_size
 from .processing import EventDescription, OpenclProcessing, BufferDescription
 
 if pyopencl:
