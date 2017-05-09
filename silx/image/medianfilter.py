@@ -31,7 +31,10 @@ __license__ = "MIT"
 __date__ = "04/05/2017"
 
 from silx.math import medianfilter as medianfilter_cpp
-from silx.opencl import medfilt as medfilt_opencl
+try:
+    from silx.opencl import medfilt as medfilt_opencl
+except ImportError:
+    medfilt_opencl = None
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -71,24 +74,34 @@ def medfilt(data, kernel_size=3, conditional=False, engine='cpp'):
                                         kernel_size=kernel_size,
                                         conditional=conditional)
     elif engine == 'opencl':
-        try:
-            medianfilter = medfilt_opencl.MedianFilter2D(data.shape,
-                                                         devicetype="gpu")
-            print(data.shape)
-            if len(data.shape) == 1:
-                res = medianfilter.medfilt1d(data, kernel_size)
-            else:
-                res = medianfilter.medfilt2d(data, kernel_size)
-        except(RuntimeError, MemoryError, ImportError):
-            wrn = 'Exception occured opencl median filter. '
-            wrn += 'To get more information see debug log.'
+        if medfilt_opencl is None:
+            wrn = 'opencl median filter module importation failed'
+            wrn += 'Launching cpp implementation.'
             _logger.warning(wrn)
-            _logger.debug("median filter - openCL implementation issue.",
-                          exc_info=True)
             # instead call the cpp implementation
-            res = medianfilter_cpp.medfilt(data=data,
-                                           kernel_size=kernel_size,
-                                           conditional=conditional)
+            return medianfilter_cpp.medfilt(data=data,
+                                            kernel_size=kernel_size,
+                                            conditional=conditional)
+        else:
+            try:
+                medianfilter = medfilt_opencl.MedianFilter2D(data.shape,
+                                                             devicetype="gpu")
+                print(data.shape)
+                if len(data.shape) == 1:
+                    res = medianfilter.medfilt1d(data, kernel_size)
+                else:
+                    res = medianfilter.medfilt2d(data, kernel_size)
+            except(RuntimeError, MemoryError, ImportError):
+                wrn = 'Exception occured opencl median filter. '
+                wrn += 'To get more information see debug log.'
+                wrn += 'Launching cpp implementation.'
+                _logger.warning(wrn)
+                _logger.debug("median filter - openCL implementation issue.",
+                              exc_info=True)
+                # instead call the cpp implementation
+                res = medianfilter_cpp.medfilt(data=data,
+                                               kernel_size=kernel_size,
+                                               conditional=conditional)
 
         return res
 
