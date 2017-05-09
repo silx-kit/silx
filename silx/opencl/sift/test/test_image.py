@@ -37,11 +37,13 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "12/01/2017"
+__date__ = "15/03/2017"
 
 import time
 import logging
 import numpy
+import os
+
 
 from silx.opencl import ocl, kernel_workgroup_size
 if ocl:
@@ -82,7 +84,7 @@ class TestImage(unittest.TestCase):
         cls.queue = None
 
     def setUp(self):
-        kernel_src = get_opencl_code("image")
+        kernel_src = get_opencl_code(os.path.join("sift", "image"))
         self.program = pyopencl.Program(self.ctx, kernel_src).build()
         self.wg = (8, 1)
 

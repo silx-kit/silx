@@ -32,7 +32,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "23/01/2017"
+__date__ = "15/03/2017"
 __status__ = "Production" 
 
 import os
@@ -77,30 +77,36 @@ def sizeof(shape, dtype="uint8"):
     return cnt * itemsize
 
 
-def get_opencl_code(name):
-    """Read the kernel source code  and return it.
+def get_cl_file(filename):
+    """get the full path of a openCL file
 
-    :param str name: Filename of the kernel source,
-    :return: Corresponding source code
-    :raises: ValueError when name is not known
+    :return: the full path of the openCL source file
     """
-    if not name.endswith(".cl"):
-        name += ".cl"
-    try:
-        filename = resource_filename('opencl/sift/' + name)
-    except ValueError:
-        raise ValueError('Not an OpenCL kernel file: %s' % filename)
-    with open(filename, "r") as fileobj:
-        res = fileobj.read()
-    return res.strip()
+    if not filename.endswith(".cl"):
+        filename += ".cl"
+    return resource_filename(os.path.join("opencl", filename))
+
+
+def read_cl_file(filename):
+    """
+    :param filename: read an OpenCL file and apply a preprocessor
+    :return: preprocessed source code
+    """
+    with open(get_cl_file(filename), "r") as f:
+        # Dummy preprocessor which removes the #include
+        lines = [i for i in f.readlines() if not i.startswith("#include ")]
+    return "".join(lines)
+
+get_opencl_code = read_cl_file
 
 
 def concatenate_cl_kernel(filenames):
     """Concatenates all the kernel from the list of files
-    
-    :param list filenames: filenames containing the various kernels to read and
-                           concatenate
-    :return 
+
+    :param filenames: filenames containing the kernels
+    :type filenames: list of str which can be filename of kernel as a string.
+    :return: a string with all kernels concatenated
+
+    this method concatenates all the kernel from the list
     """
-    kernel = os.linesep.join(get_opencl_code(filename) for filename in filenames)
-    return kernel
+    return  os.linesep.join(read_cl_file(fn) for fn in filenames)

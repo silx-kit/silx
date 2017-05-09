@@ -37,7 +37,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "26/04/2017"
+__date__ = "15/03/2017"
 
 
 import os
@@ -45,6 +45,10 @@ import unittest
 import time
 import logging
 import numpy
+try:
+    from silx.third_party import six
+except ImportError:
+    import six
 try:
     import scipy
 except ImportError:
@@ -95,7 +99,7 @@ class TestTransform(unittest.TestCase):
         cls.queue = None
 
     def setUp(self):
-        kernel_src = get_opencl_code("transform")
+        kernel_src = get_opencl_code(os.path.join("sift", "transform"))
         self.program = pyopencl.Program(self.ctx, kernel_src).build()  # .build('-D WORKGROUP_SIZE=%s' % wg_size)
         self.wg = (1, 128)
 

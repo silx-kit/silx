@@ -653,6 +653,7 @@ def get_project_configuration(dry_run):
             'gui/icons/*.mng',
             'gui/icons/*.gif',
             'gui/icons/animated/*.png',
+            'opencl/*.cl',
             'opencl/sift/*.cl']
     }
 
