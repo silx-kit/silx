@@ -398,7 +398,10 @@ class Build(_build):
                     logger.warning("OpenMP support ignored. Your platform do not support it")
                     use_openmp = False
 
+        # Remove attributes used by distutils parsing
+        # use 'use_openmp' instead
         del self.no_openmp
+        del self.openmp
         self.use_openmp = use_openmp
 
     def finalize_cython_options(self, min_version=None):
@@ -408,9 +411,9 @@ class Build(_build):
         The result is stored into the object.
         """
 
-        if "--force-cython" in sys.argv:
+        if self.force_cython:
             use_cython = "force"
-        elif "--no-cython" in sys.argv:
+        elif self.no_cython:
             use_cython = "no"
         else:
             env_force_cython = self._parse_env_as_bool("FORCE_CYTHON")
@@ -438,6 +441,9 @@ class Build(_build):
                 logger.warning(msg)
                 use_cython = "no"
 
+
+        # Remove attribute used by distutils parsing
+        # use 'use_cython' and 'force_cython' instead
         del self.no_cython
         self.force_cython = use_cython == "force"
         self.use_cython = use_cython in ["force", "yes"]
@@ -486,7 +492,9 @@ class BuildExt(build_ext):
                 if not os.path.isfile(cythonized):
                     raise RuntimeError("Source file not found: %s. Cython is needed" % cythonized)
                 print("Use default cythonized file for %s" % source)
-            new_sources.append(source)
+                new_sources.append(cythonized)
+            else:
+                new_sources.append(source)
         ext.sources = new_sources
 
     def patch_extension(self, ext):
