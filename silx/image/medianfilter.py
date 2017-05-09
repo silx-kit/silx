@@ -74,7 +74,11 @@ def medfilt(data, kernel_size=3, conditional=False, engine='cpp'):
         try:
             medianfilter = medfilt_opencl.MedianFilter2D(data.shape,
                                                          devicetype="gpu")
-            res = medianfilter.medfilt2d(data, kernel_size)
+            print(data.shape)
+            if len(data.shape) == 1:
+                res = medianfilter.medfilt1d(data, kernel_size)
+            else:
+                res = medianfilter.medfilt2d(data, kernel_size)
         except(RuntimeError, MemoryError, ImportError):
             wrn = 'Exception occured opencl median filter. '
             wrn += 'To get more information see debug log.'
