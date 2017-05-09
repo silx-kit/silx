@@ -31,7 +31,7 @@ __license__ = "MIT"
 __date__ = "05/05/2017"
 
 import unittest
-from silx.image import medianfilter as medianfilter_cpp
+from silx.image import medianfilter
 import numpy
 try:
     import scipy
@@ -39,12 +39,10 @@ try:
     import scipy.ndimage
 except:
     scipy = None
-from silx.opencl.common import ocl
-if ocl:
-    import pyopencl
-    import pyopencl.array
-    from .. import medfilt
-ocl = None
+try:
+    from silx.opencl.common import ocl
+except:
+    ocl = None
 
 
 @unittest.skipUnless(scipy, "scipy not available")
@@ -61,7 +59,7 @@ class TestMedianFilterEngines(unittest.TestCase):
 
     def testCppMedFilt(self):
         """test cpp engine for medfilt"""
-        resCpp = medianfilter_cpp.medfilt(
+        resCpp = medianfilter.medfilt(
             data=TestMedianFilterEngines.IMG,
             kernel_size=TestMedianFilterEngines.KERNEL,
             conditional=False,
@@ -71,7 +69,7 @@ class TestMedianFilterEngines(unittest.TestCase):
     @unittest.skipUnless(ocl, "PyOpenCl is missing")
     def testOpenCLMedFilt(self):
         """test opencl engine"""
-        resCpp = medianfilter_cpp.medfilt(
+        resCpp = medianfilter.medfilt(
             data=TestMedianFilterEngines.IMG,
             kernel_size=TestMedianFilterEngines.KERNEL,
             conditional=False,
@@ -80,7 +78,7 @@ class TestMedianFilterEngines(unittest.TestCase):
 
     def testCppMedFilt2d(self):
         """test cpp engine for medfilt2d"""
-        resCpp = medianfilter_cpp.medfilt2d(
+        resCpp = medianfilter.medfilt2d(
             image=TestMedianFilterEngines.IMG,
             kernel_size=TestMedianFilterEngines.KERNEL,
             conditional=False,
@@ -90,7 +88,7 @@ class TestMedianFilterEngines(unittest.TestCase):
     @unittest.skipUnless(ocl, "PyOpenCl is missing")
     def testOpenCLMedFilt2d(self):
         """test cpp engine for medfilt2d"""
-        resCpp = medianfilter_cpp.medfilt2d(
+        resCpp = medianfilter.medfilt2d(
             image=TestMedianFilterEngines.IMG,
             kernel_size=TestMedianFilterEngines.KERNEL,
             conditional=False,
@@ -100,7 +98,7 @@ class TestMedianFilterEngines(unittest.TestCase):
     def testCppMedFilt1d(self):
         """test cpp engine for medfilt1d"""
         # test medfilt
-        resCpp = medianfilter_cpp.medfilt1d(
+        resCpp = medianfilter.medfilt1d(
             data=TestMedianFilterEngines.IMG.ravel(),
             kernel_size=TestMedianFilterEngines.KERNEL,
             conditional=False,
@@ -112,7 +110,7 @@ class TestMedianFilterEngines(unittest.TestCase):
     def testOpenCLMedFilt1d(self):
         """test cpp engine for medfilt1d"""
         # test medfilt
-        resCpp = medianfilter_cpp.medfilt1d(
+        resCpp = medianfilter.medfilt1d(
             data=TestMedianFilterEngines.IMG.ravel(),
             kernel_size=TestMedianFilterEngines.KERNEL,
             conditional=False,

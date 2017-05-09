@@ -31,7 +31,7 @@ __license__ = "MIT"
 __date__ = "04/05/2017"
 
 from silx.math import medianfilter as medianfilter_cpp
-from silx.opencl import medianfilter as medianfilter_opencl
+from silx.opencl import medfilt as medfilt_opencl
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -72,8 +72,8 @@ def medfilt(data, kernel_size=3, conditional=False, engine='cpp'):
                                         conditional=conditional)
     elif engine == 'opencl':
         try:
-            medianfilter = medianfilter_opencl.MedianFilter2D(data.shape,
-                                                              devicetype="gpu")
+            medianfilter = medfilt_opencl.MedianFilter2D(data.shape,
+                                                         devicetype="gpu")
             res = medianfilter.medfilt2d(data, kernel_size)
         except(RuntimeError, MemoryError, ImportError):
             wrn = 'Exception occured opencl median filter. '
@@ -111,7 +111,7 @@ def medfilt1d(data, kernel_size=3, conditional=False, engine='cpp'):
     return medfilt(data, kernel_size, conditional, engine)
 
 
-def medfilt2d(image, kernel_size=3, conditional=False, engine='cpp'):
+def medfilt2d(image, kernel_size=(3, 3), conditional=False, engine='cpp'):
     """Apply a 'nearest' median filter on the data.
 
     :param numpy.ndarray data: the array for which we want to apply
