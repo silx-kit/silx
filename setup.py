@@ -486,7 +486,9 @@ class BuildExt(build_ext):
                 if not os.path.isfile(cythonized):
                     raise RuntimeError("Source file not found: %s. Cython is needed" % cythonized)
                 print("Use default cythonized file for %s" % source)
-            new_sources.append(source)
+                new_sources.append(cythonized)
+            else:
+                new_sources.append(source)
         ext.sources = new_sources
 
     def patch_extension(self, ext):
