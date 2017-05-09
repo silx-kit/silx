@@ -411,9 +411,9 @@ class Build(_build):
         The result is stored into the object.
         """
 
-        if "--force-cython" in sys.argv:
+        if self.force_cython:
             use_cython = "force"
-        elif "--no-cython" in sys.argv:
+        elif self.no_cython:
             use_cython = "no"
         else:
             env_force_cython = self._parse_env_as_bool("FORCE_CYTHON")
