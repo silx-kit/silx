@@ -398,7 +398,10 @@ class Build(_build):
                     logger.warning("OpenMP support ignored. Your platform do not support it")
                     use_openmp = False
 
+        # Remove attributes used by distutils parsing
+        # use 'use_openmp' instead
         del self.no_openmp
+        del self.openmp
         self.use_openmp = use_openmp
 
     def finalize_cython_options(self, min_version=None):
@@ -438,6 +441,9 @@ class Build(_build):
                 logger.warning(msg)
                 use_cython = "no"
 
+
+        # Remove attribute used by distutils parsing
+        # use 'use_cython' and 'force_cython' instead
         del self.no_cython
         self.force_cython = use_cython == "force"
         self.use_cython = use_cython in ["force", "yes"]
