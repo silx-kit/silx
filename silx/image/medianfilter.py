@@ -23,7 +23,8 @@
 # ############################################################################*/
 
 """
-Expose the median filter implementation (cpp, opencl ) under a common API
+This module provides :func:`medfilt2d`, a 2D median filter function
+with the choice between 2 implementations: 'cpp' and 'opencl'.
 """
 
 __authors__ = ["H. Payno"]
@@ -37,37 +38,43 @@ except ImportError:
     medfilt_opencl = None
 import logging
 
+
 _logger = logging.getLogger(__name__)
+
 
 MEDFILT_ENGINES = ['cpp', 'opencl']
 
 
 def medfilt2d(image, kernel_size=3, conditional=False, engine='cpp'):
-    """Apply a 'nearest' median filter on the data.
+    """Apply a median filter on an image.
 
-    :param numpy.ndarray data: the array for which we want to apply
-        the median filter. Should be 1D or 2D.
+    This median filter is using a 'nearest' padding for values
+    past the array edges.
+
+    :param numpy.ndarray image: the 2D array for which we want to apply
+        the median filter.
     :param kernel_size: the dimension of the kernel.
-    :type kernel_size: For 1D should be an int for 2D should be a tuple or
-        a list of (kernel_height, kernel_width)
+        Kernel size must be odd.
+        If a scalar is given, then it is used as the size in both dimension.
+        Default: (3, 3)
+    :type kernel_size: A int or a list of 2 int (kernel_height, kernel_width)
     :param bool conditional: True if we want to apply a conditional median
         filtering.
-    :param engine: the type of implementation we want to execute. Valid
-        values are :attr:'MEDFILT_IMP'
+    :param engine: the type of implementation to use.
+        Valid values are: 'cpp' (default) and 'opencl'
 
     :returns: the array with the median value for each pixel.
 
-    .. note::  if the opencl implementation is requested then it will be
-        surrounded by a try-except statement and if failed
-        (bad opencl installation ?) then the cpp implementation we be called.
+    .. note::  if the opencl implementation is requested but
+        is not present or fails, the cpp implementation is called.
     """
     if engine not in MEDFILT_ENGINES:
-        err = 'Silx doesn\'t have an implementation for the Requested engine: '
+        err = 'silx doesn\'t have an implementation for the requested engine: '
         err += '%s' % engine
         raise ValueError(err)
 
     if len(image.shape) is not 2:
-        raise ValueError('medfilt deal with arrays of dimension 2 only')
+        raise ValueError('medfilt2d deals with arrays of dimension 2 only')
 
     if engine == 'cpp':
         return medianfilter_cpp.medfilt(data=image,
@@ -75,7 +82,7 @@ def medfilt2d(image, kernel_size=3, conditional=False, engine='cpp'):
                                         conditional=conditional)
     elif engine == 'opencl':
         if medfilt_opencl is None:
-            wrn = 'opencl median filter module importation failed'
+            wrn = 'opencl median filter module import failed'
             wrn += 'Launching cpp implementation.'
             _logger.warning(wrn)
             # instead call the cpp implementation
@@ -88,7 +95,7 @@ def medfilt2d(image, kernel_size=3, conditional=False, engine='cpp'):
                                                              devicetype="gpu")
                 res = medianfilter.medfilt2d(image, kernel_size)
             except(RuntimeError, MemoryError, ImportError):
-                wrn = 'Exception occured opencl median filter. '
+                wrn = 'Exception occured in opencl median filter. '
                 wrn += 'To get more information see debug log.'
                 wrn += 'Launching cpp implementation.'
                 _logger.warning(wrn)
