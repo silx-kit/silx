@@ -539,6 +539,15 @@ class BuildExt(build_ext):
         flags. This function tries to clean up default debug options.
         """
         build_obj = self.distribution.get_command_obj("build")
+        if build_obj.debug:
+            debug_mode = build_obj.debug
+        else:
+            # Also in debug_mode if we compile with python-dbg
+            # It is needed for debian packaging
+            if sys.version_info >= (3, 0):
+                debug_mode = "d" in sys.abiflags
+            else:
+                debug_mode = sys.pydebug
 
         if self.compiler.compiler_type == "unix":
             args = list(self.compiler.compiler_so)
@@ -550,7 +559,7 @@ class BuildExt(build_ext):
             # always insert symbols
             args.append("-g")
             # only strip asserts in release mode
-            if not build_obj.debug:
+            if not debug_mode:
                 args.append('-DNDEBUG')
             # patch options
             self.compiler.compiler_so = list(args)
