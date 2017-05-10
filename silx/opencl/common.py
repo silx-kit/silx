@@ -43,7 +43,12 @@ import os
 import logging
 
 import numpy
+
+from .utils import get_opencl_code
+
+
 logger = logging.getLogger("silx.opencl")
+
 
 if os.environ.get("SILX_OPENCL") in ["0", "False"]:
     logger.warning("Use of OpenCL has been disables from environment variable: SILX_OPENCL=0")
@@ -59,26 +64,6 @@ else:
         import pyopencl.array as array
         mf = pyopencl.mem_flags
 
-
-logger = logging.getLogger("pyFAI.opencl.common")
-from .utils import get_opencl_code, concatenate_cl_kernel
-
-if os.environ.get("PYFAI_OPENCL") in ["0", "False"]:
-    logger.warning("Use of OpenCL has been disables from environment variable: SILX_OPENCL=0")
-    pyopencl = None
-else:
-    try:
-        import pyopencl
-    except ImportError:
-        logger.warning("Unable to import pyOpenCl. Please install it from: http://pypi.python.org/pypi/pyopencl")
-        pyopencl = None
-        class mf(object):
-            WRITE_ONLY = 1
-            READ_ONLY = 1
-            READ_WRITE = 1
-    else:
-        import pyopencl.array as array
-        mf = pyopencl.mem_flags
 
 FLOP_PER_CORE = {"GPU": 64,  # GPU, Fermi at least perform 64 flops per cycle/multicore, G80 were at 24 or 48 ...
                  "CPU": 4,  # CPU, at least intel's have 4 operation per cycle
@@ -261,11 +246,12 @@ def _measure_workgroup_size(device_or_context, fast=False):
             d_res = pyopencl.array.empty_like(d_data)
             wg = 1 << i
             try:
-                evt = program.addition(queue, (shape,), (wg,),
-                       d_data.data, d_data_1.data, d_res.data, numpy.int32(shape))
+                evt = program.addition(
+                    queue, (shape,), (wg,),
+                    d_data.data, d_data_1.data, d_res.data, numpy.int32(shape))
                 evt.wait()
             except Exception as error:
-                logger.info("%s on device %s for WG=%s/%s" , error, device.name, wg, shape)
+                logger.info("%s on device %s for WG=%s/%s", error, device.name, wg, shape)
                 program = queue = d_res = d_data_1 = d_data = None
                 break
             else:
@@ -278,6 +264,7 @@ def _measure_workgroup_size(device_or_context, fast=False):
                     logger.warning("ArithmeticError on %s for WG=%s/%s", wg, device.name, shape)
 
     return max_valid_wg
+
 
 def _is_nvidia_gpu(vendor, devtype):
     return (vendor == "NVIDIA Corporation") and (devtype == "GPU")
@@ -340,8 +327,8 @@ class OpenCL(object):
     def __repr__(self):
         out = ["OpenCL devices:"]
         for platformid, platform in enumerate(self.platforms):
-            deviceids = ["(%s,%s) %s" % (platformid, deviceid, dev.name) \
-                for deviceid, dev in enumerate(platform.devices)]
+            deviceids = ["(%s,%s) %s" % (platformid, deviceid, dev.name)
+                         for deviceid, dev in enumerate(platform.devices)]
             out.append("[%s] %s: " % (platformid, platform.name) + ", ".join(deviceids))
         return os.linesep.join(out)
 
@@ -488,7 +475,7 @@ def release_cl_buffers(cl_buffers):
 def allocate_cl_buffers(buffers, device=None, context=None):
     """
     :param buffers: the buffers info use to create the pyopencl.Buffer
-    :type buffer: list(std, flag, numpy.dtype, int)
+    :type buffers: list(std, flag, numpy.dtype, int)
     :param device: one of the context device
     :param context: opencl contextdevice
     :return: a dict containing the instanciated pyopencl.Buffer
