@@ -45,7 +45,7 @@ _logger = logging.getLogger(__name__)
 MEDFILT_ENGINES = ['cpp', 'opencl']
 
 
-def medfilt2d(image, kernel_size=3, conditional=False, engine='cpp'):
+def medfilt2d(image, kernel_size=3, engine='cpp'):
     """Apply a median filter on an image.
 
     This median filter is using a 'nearest' padding for values
@@ -58,8 +58,6 @@ def medfilt2d(image, kernel_size=3, conditional=False, engine='cpp'):
         If a scalar is given, then it is used as the size in both dimension.
         Default: (3, 3)
     :type kernel_size: A int or a list of 2 int (kernel_height, kernel_width)
-    :param bool conditional: True if we want to apply a conditional median
-        filtering.
     :param engine: the type of implementation to use.
         Valid values are: 'cpp' (default) and 'opencl'
 
@@ -79,7 +77,7 @@ def medfilt2d(image, kernel_size=3, conditional=False, engine='cpp'):
     if engine == 'cpp':
         return medianfilter_cpp.medfilt(data=image,
                                         kernel_size=kernel_size,
-                                        conditional=conditional)
+                                        conditional=False)
     elif engine == 'opencl':
         if medfilt_opencl is None:
             wrn = 'opencl median filter module import failed'
@@ -88,7 +86,7 @@ def medfilt2d(image, kernel_size=3, conditional=False, engine='cpp'):
             # instead call the cpp implementation
             return medianfilter_cpp.medfilt(data=image,
                                             kernel_size=kernel_size,
-                                            conditional=conditional)
+                                            conditional=False)
         else:
             try:
                 medianfilter = medfilt_opencl.MedianFilter2D(image.shape,
@@ -104,6 +102,6 @@ def medfilt2d(image, kernel_size=3, conditional=False, engine='cpp'):
                 # instead call the cpp implementation
                 res = medianfilter_cpp.medfilt(data=image,
                                                kernel_size=kernel_size,
-                                               conditional=conditional)
+                                               conditional=False)
 
         return res

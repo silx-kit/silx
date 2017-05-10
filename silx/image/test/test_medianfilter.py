@@ -60,7 +60,6 @@ class TestMedianFilterEngines(unittest.TestCase):
         res = medianfilter.medfilt2d(
             image=TestMedianFilterEngines.IMG,
             kernel_size=TestMedianFilterEngines.KERNEL,
-            conditional=False,
             engine='cpp')
         self.assertTrue(numpy.array_equal(res, TestMedianFilterEngines.IMG))
 
@@ -70,7 +69,6 @@ class TestMedianFilterEngines(unittest.TestCase):
         res = medianfilter.medfilt2d(
             image=TestMedianFilterEngines.IMG,
             kernel_size=TestMedianFilterEngines.KERNEL,
-            conditional=False,
             engine='opencl')
         self.assertTrue(numpy.array_equal(res, TestMedianFilterEngines.IMG))
 
