@@ -246,11 +246,12 @@ def _measure_workgroup_size(device_or_context, fast=False):
             d_res = pyopencl.array.empty_like(d_data)
             wg = 1 << i
             try:
-                evt = program.addition(queue, (shape,), (wg,),
-                       d_data.data, d_data_1.data, d_res.data, numpy.int32(shape))
+                evt = program.addition(
+                    queue, (shape,), (wg,),
+                    d_data.data, d_data_1.data, d_res.data, numpy.int32(shape))
                 evt.wait()
             except Exception as error:
-                logger.info("%s on device %s for WG=%s/%s" , error, device.name, wg, shape)
+                logger.info("%s on device %s for WG=%s/%s", error, device.name, wg, shape)
                 program = queue = d_res = d_data_1 = d_data = None
                 break
             else:
@@ -263,6 +264,7 @@ def _measure_workgroup_size(device_or_context, fast=False):
                     logger.warning("ArithmeticError on %s for WG=%s/%s", wg, device.name, shape)
 
     return max_valid_wg
+
 
 def _is_nvidia_gpu(vendor, devtype):
     return (vendor == "NVIDIA Corporation") and (devtype == "GPU")
@@ -325,8 +327,8 @@ class OpenCL(object):
     def __repr__(self):
         out = ["OpenCL devices:"]
         for platformid, platform in enumerate(self.platforms):
-            deviceids = ["(%s,%s) %s" % (platformid, deviceid, dev.name) \
-                for deviceid, dev in enumerate(platform.devices)]
+            deviceids = ["(%s,%s) %s" % (platformid, deviceid, dev.name)
+                         for deviceid, dev in enumerate(platform.devices)]
             out.append("[%s] %s: " % (platformid, platform.name) + ", ".join(deviceids))
         return os.linesep.join(out)
 
@@ -473,7 +475,7 @@ def release_cl_buffers(cl_buffers):
 def allocate_cl_buffers(buffers, device=None, context=None):
     """
     :param buffers: the buffers info use to create the pyopencl.Buffer
-    :type buffer: list(std, flag, numpy.dtype, int)
+    :type buffers: list(std, flag, numpy.dtype, int)
     :param device: one of the context device
     :param context: opencl contextdevice
     :return: a dict containing the instanciated pyopencl.Buffer
