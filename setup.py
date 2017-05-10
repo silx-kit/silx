@@ -441,7 +441,6 @@ class Build(_build):
                 logger.warning(msg)
                 use_cython = "no"
 
-
         # Remove attribute used by distutils parsing
         # use 'use_cython' and 'force_cython' instead
         del self.no_cython
