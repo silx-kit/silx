@@ -37,12 +37,10 @@ __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 __date__ = "15/03/2017"
 __status__ = "stable"
 
-import os
 import logging
-import threading
-import gc
 
-import numpy
 
 logger = logging.getLogger("silx.opencl")
+
+
 from .common import *
