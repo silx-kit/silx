@@ -37,7 +37,6 @@ import numpy
 from .. import Colors
 from .core import (Points, LabelsMixIn, SymbolMixIn,
                    ColorMixIn, YAxisMixIn, FillMixIn, LineMixIn)
-from ....utils.decorators import deprecated
 
 
 _logger = logging.getLogger(__name__)
@@ -95,7 +94,6 @@ class Curve(Points, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixIn):
                                 alpha=self.getAlpha(),
                                 symbolsize=self.getSymbolSize())
 
-    @deprecated
     def __getitem__(self, item):
         """Compatibility with PyMca and silx <= 0.4.0"""
         if isinstance(item, slice):
