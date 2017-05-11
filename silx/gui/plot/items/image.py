@@ -38,7 +38,6 @@ import numpy
 
 from .core import Item, LabelsMixIn, DraggableMixIn, ColormapMixIn, AlphaMixIn
 from ..Colors import applyColormapToData
-from ....utils.decorators import deprecated
 
 
 _logger = logging.getLogger(__name__)
@@ -97,7 +96,6 @@ class ImageBase(Item, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         self._origin = (0., 0.)
         self._scale = (1., 1.)
 
-    @deprecated
     def __getitem__(self, item):
         """Compatibility with PyMca and silx <= 0.4.0"""
         if isinstance(item, slice):
@@ -263,7 +261,6 @@ class ImageData(ImageBase, ColormapMixIn):
                                 colormap=self.getColormap(),
                                 alpha=self.getAlpha())
 
-    @deprecated
     def __getitem__(self, item):
         """Compatibility with PyMca and silx <= 0.4.0"""
         if item == 3:
