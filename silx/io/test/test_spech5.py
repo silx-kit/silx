@@ -42,7 +42,7 @@ except ImportError:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "12/01/2017"
+__date__ = "11/05/2017"
 
 sftext = """#F /tmp/sf.dat
 #E 1455180875
@@ -722,6 +722,85 @@ class TestSpecH5NoDataCols(unittest.TestCase):
                          self.sfh5["3.1/instrument/"])
 
 
+sf_text_slash = r"""#F /data/id09/archive/logspecfiles/laue/2016/scan_231_laue_16-11-29.dat
+#D Sat Dec 10 22:20:59 2016
+#O0 Pslit/HGap  MRTSlit%UP
+
+#S 1 laue_16-11-29.log 231.1 PD3/A
+#D Sat Dec 10 22:20:59 2016
+#P0 180.005 -0.66875
+#N 2
+#L GONY/mm  PD3%A
+-2.015  5.250424e-05
+-2.01  5.30798e-05
+-2.005  5.281903e-05
+-2  5.220436e-05
+"""
+
+
+class TestSpecH5SlashInLabels(unittest.TestCase):
+    """Test reading SPEC files with labels containing a / character
+
+    The / character must be substituted with a %
+    """
+    @classmethod
+    def setUpClass(cls):
+        fd, cls.fname = tempfile.mkstemp()
+        if sys.version < '3.0':
+            os.write(fd, sf_text_slash)
+        else:
+            os.write(fd, bytes(sf_text_slash, 'ascii'))
+        os.close(fd)
+
+    @classmethod
+    def tearDownClass(cls):
+        os.unlink(cls.fname)
+
+    def setUp(self):
+        self.sfh5 = SpecH5(self.fname)
+
+    def tearDown(self):
+        # fix Win32 permission error when deleting temp file
+        del self.sfh5
+        gc.collect()
+
+    def testLabels(self):
+        """Ensure `/` is substituted with `%` and
+        ensure legitimate `%` in names are still working"""
+        self.assertEqual(self.sfh5["1.1/measurement/"].keys(),
+                         ["GONY%mm", "PD3%A"])
+
+        # substituted "%"
+        self.assertIn("GONY%mm",
+                      self.sfh5["1.1/measurement/"])
+        self.assertNotIn("GONY/mm",
+                         self.sfh5["1.1/measurement/"])
+        self.assertAlmostEqual(self.sfh5["1.1/measurement/GONY%mm"][0],
+                               -2.015, places=4)
+        # legitimate "%"
+        self.assertIn("PD3%A",
+                      self.sfh5["1.1/measurement/"])
+
+    def testMotors(self):
+        """Ensure `/` is substituted with `%` and
+        ensure legitimate `%` in names are still working"""
+        self.assertEqual(self.sfh5["1.1/instrument/positioners"].keys(),
+                         ["Pslit%HGap", "MRTSlit%UP"])
+        # substituted "%"
+        self.assertIn("Pslit%HGap",
+                      self.sfh5["1.1/instrument/positioners"])
+        self.assertNotIn("Pslit/HGap",
+                         self.sfh5["1.1/instrument/positioners"])
+        self.assertAlmostEqual(
+                self.sfh5["1.1/instrument/positioners/Pslit%HGap"],
+                180.005, places=4)
+        # legitimate "%"
+        self.assertIn("MRTSlit%UP",
+                      self.sfh5["1.1/instrument/positioners"])
+
+
+
+
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(
@@ -732,6 +811,8 @@ def suite():
         unittest.defaultTestLoader.loadTestsFromTestCase(TestSpecH5MultiMca))
     test_suite.addTest(
         unittest.defaultTestLoader.loadTestsFromTestCase(TestSpecH5NoDataCols))
+    test_suite.addTest(
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestSpecH5SlashInLabels))
     return test_suite
 
 
