@@ -49,8 +49,9 @@ def medfilt2d(image, kernel_size=3, engine='cpp'):
     """Apply a median filter on an image.
 
     This median filter is using a 'nearest' padding for values
-    past the array edges. If you want more option for the median filter
-    (conditional filter for example) please have a look at
+    past the array edges. If you want more padding options or
+    functionalities for the median filter (conditional filter 
+    for example) please have a look at
     :mod:`silx.math.medianfilter`.
 
     :param numpy.ndarray image: the 2D array for which we want to apply
