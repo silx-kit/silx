@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "10/05/2017"
+__date__ = "11/05/2017"
 __license__ = "MIT"
 
 
@@ -529,6 +529,29 @@ class BuildExt(build_ext):
             ext.extra_link_args = [self.LINK_ARGS_CONVERTER.get(f, f)
                                    for f in ext.extra_link_args]
 
+    def is_debug_interpreter(self):
+        """
+        Returns true if the script is executed with a debug interpreter.
+
+        It looks to be a non-standard code. It is not working for Windows and
+        Mac. But it have to work at least for Debian interpreters.
+
+        :rtype: bool
+        """
+        if sys.version_info >= (3, 0):
+            # It is normalized on Python 3
+            # But it is not available on Windows CPython
+            if hasattr(sys, "abiflags"):
+                return "d" in sys.abiflags
+        else:
+            # It's a Python 2 interpreter
+            # pydebug is not available on Windows/Mac OS interpreters
+            if hasattr(sys, "pydebug"):
+                return sys.pydebug
+
+        # We can't know if we uses debug interpreter
+        return False
+
     def patch_compiler(self):
         """
         Patch the compiler to:
@@ -542,12 +565,9 @@ class BuildExt(build_ext):
         if build_obj.debug:
             debug_mode = build_obj.debug
         else:
-            # Also in debug_mode if we compile with python-dbg
-            # It is needed for debian packaging
-            if sys.version_info >= (3, 0):
-                debug_mode = "d" in sys.abiflags
-            else:
-                debug_mode = sys.pydebug
+            # Force debug_mode also when it uses python-dbg
+            # It is needed for Debian packaging
+            debug_mode = self.is_debug_interpreter()
 
         if self.compiler.compiler_type == "unix":
             args = list(self.compiler.compiler_so)
