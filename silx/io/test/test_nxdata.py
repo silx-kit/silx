@@ -244,7 +244,8 @@ class TestNXdata(unittest.TestCase):
 
         nxd = nxdata.NXdata(self.h5f["images/2D_irregular_data"])
         self.assertTrue(nxd.signal_is_2d)
-        self.assertTrue(numpy.array_equal(nxd.axes_dataset_names, nxd.axes_names))
+
+        self.assertEqual(nxd.axes_dataset_names, nxd.axes_names)
         self.assertEqual(list(nxd.axes_dataset_names),
                          ["rows_coordinates", "columns_coordinates"])
         self.assertEqual(len(nxd.axes), 2)
