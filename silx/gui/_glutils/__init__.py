@@ -33,6 +33,7 @@ __date__ = "25/07/2016"
 
 
 # OpenGL convenient functions
+from .OpenGLWidget import OpenGLWidget  # noqa
 from .Context import getGLContext, setGLContextGetter  # noqa
 from .FramebufferTexture import FramebufferTexture  # noqa
 from .Program import Program  # noqa
