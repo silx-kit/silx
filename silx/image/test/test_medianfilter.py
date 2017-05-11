@@ -28,30 +28,21 @@
 
 __authors__ = ["H. Payno"]
 __license__ = "MIT"
-__date__ = "05/05/2017"
+__date__ = "11/05/2017"
 
 import unittest
 from silx.image import medianfilter
 import numpy
-try:
-    import scipy
-    import scipy.misc
-    import scipy.ndimage
-except:
-    scipy = None
 
 from silx.opencl.common import ocl
 
 
-@unittest.skipUnless(scipy, "scipy not available")
 class TestMedianFilterEngines(unittest.TestCase):
     """Make sure we have access to all the different implementation of
     median filter from image medfilt"""
 
-    if hasattr(scipy.misc, 'ascent'):
-        IMG = scipy.misc.ascent()
-    else:
-        IMG = scipy.misc.lena()
+
+    IMG = numpy.arange(10000.).reshape(100, 100)
 
     KERNEL = (1, 1)
 
