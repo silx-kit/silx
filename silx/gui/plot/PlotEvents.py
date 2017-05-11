@@ -26,7 +26,7 @@
 
 __author__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "28/04/2017"
+__date__ = "11/05/2017"
 
 
 import enum
@@ -689,3 +689,48 @@ class LimitsChangedEvent(PlotEvent):
         """
         mapping = self.__getDictionaryMapping()
         return mapping[key](self)
+
+
+def prepareInteractiveModeChanged(source):
+    return {'event': 'interactiveModeChanged', 'source': source}
+
+
+def prepareContentChanged(action, kind, legend):
+    return {'event': 'contentChanged', 'action': action, 'kind': kind, 'legend': legend}
+
+
+def prepareSetGraphCursor(state):
+    return {'event': 'setGraphCursor', 'state': state}
+
+
+def prepareActiveItemChanged(kind, updated, previous, legend):
+    event = 'active' + kind[0].upper() + kind[1:] + 'Changed'
+    return {'event': event, 'updated': updated, 'previous': previous, 'legend': legend}
+
+
+def prepareSetYAxisInverted(state):
+    return {'event': 'setYAxisInverted', 'state': state}
+
+
+def prepareSetXAxisLogarithmic(state):
+    return {'event': 'setXAxisLogarithmic', 'state': state}
+
+
+def prepareSetYAxisLogarithmic(state):
+    return {'event': 'setYAxisLogarithmic', 'state': state}
+
+
+def prepareSetXAxisAutoScale(state):
+    return {'event': 'setXAxisAutoScale', 'state': state}
+
+
+def prepareSetYAxisAutoScale(state):
+    return {'event': 'setYAxisAutoScale', 'state': state}
+
+
+def prepareSetKeepDataAspectRatio(state):
+    return {'event': 'setKeepDataAspectRatio', 'state': state}
+
+
+def prepareSetGraphGrid(which):
+    return {'event': 'setGraphGrid', 'which': which}

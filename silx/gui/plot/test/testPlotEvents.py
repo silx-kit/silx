@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "28/04/2017"
+__date__ = "11/05/2017"
 
 
 import unittest
@@ -339,6 +339,81 @@ class TestDictionaryLikeGetter(unittest.TestCase):
         self.assertEquals(event['selectable'], selectable)
         self.assertEquals(event['xpixel'], posPixelCursor[0])
         self.assertEquals(event['ypixel'], posPixelCursor[1])
+
+    def testInteractiveModeChanged(self):
+        source = "a"
+        event = PlotEvents.prepareInteractiveModeChanged(source)
+        self.assertEquals(event['event'], "interactiveModeChanged")
+        self.assertEquals(event['source'], source)
+
+    def testContentChanged(self):
+        action = "a"
+        kind = "k"
+        legend = "l"
+        event = PlotEvents.prepareContentChanged(action, kind, legend)
+        self.assertEquals(event['event'], "contentChanged")
+        self.assertEquals(event['action'], action)
+        self.assertEquals(event['kind'], kind)
+        self.assertEquals(event['legend'], legend)
+
+    def testSetGraphCursor(self):
+        state = "s"
+        event = PlotEvents.prepareSetGraphCursor(state)
+        self.assertEquals(event['event'], "setGraphCursor")
+        self.assertEquals(event['state'], state)
+
+    def testActiveItemChanged(self):
+        kind = "kk"
+        updated = "u"
+        previous = "p"
+        legend = "l"
+        event = PlotEvents.prepareActiveItemChanged(kind, updated, previous, legend)
+        self.assertEquals(event['event'], "activeKkChanged")
+        self.assertEquals(event['updated'], updated)
+        self.assertEquals(event['previous'], previous)
+        self.assertEquals(event['legend'], legend)
+
+    def testSetYAxisInverted(self):
+        state = "s"
+        event = PlotEvents.prepareSetYAxisInverted(state)
+        self.assertEquals(event['event'], "setYAxisInverted")
+        self.assertEquals(event['state'], state)
+
+    def testSetXAxisLogarithmic(self):
+        state = "s"
+        event = PlotEvents.prepareSetXAxisLogarithmic(state)
+        self.assertEquals(event['event'], "setXAxisLogarithmic")
+        self.assertEquals(event['state'], state)
+
+    def testSetYAxisLogarithmic(self):
+        state = "s"
+        event = PlotEvents.prepareSetYAxisLogarithmic(state)
+        self.assertEquals(event['event'], "setYAxisLogarithmic")
+        self.assertEquals(event['state'], state)
+
+    def testSetXAxisAutoScale(self):
+        state = "s"
+        event = PlotEvents.prepareSetXAxisAutoScale(state)
+        self.assertEquals(event['event'], "setXAxisAutoScale")
+        self.assertEquals(event['state'], state)
+
+    def testSetYAxisAutoScale(self):
+        state = "s"
+        event = PlotEvents.prepareSetYAxisAutoScale(state)
+        self.assertEquals(event['event'], "setYAxisAutoScale")
+        self.assertEquals(event['state'], state)
+
+    def testSetKeepDataAspectRatio(self):
+        state = "s"
+        event = PlotEvents.prepareSetKeepDataAspectRatio(state)
+        self.assertEquals(event['event'], "setKeepDataAspectRatio")
+        self.assertEquals(event['state'], state)
+
+    def testSetGraphGrid(self):
+        which = "w"
+        event = PlotEvents.prepareSetGraphGrid(which)
+        self.assertEquals(event['event'], "setGraphGrid")
+        self.assertEquals(event['which'], which)
 
 
 def suite():
