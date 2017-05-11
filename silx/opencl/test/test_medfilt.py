@@ -60,9 +60,11 @@ except:
     def ascent():
         """Dummy image from random data"""
         return numpy.random.random((512, 512))
-
-from scipy.ndimage import filters
-
+try:
+    from scipy.ndimage import filters
+    median_filter = filters.median_filter
+except:
+    from silx.math import medfilt2d as median_filter
 
 @unittest.skipUnless(ocl, "PyOpenCl is missing")
 class TestMedianFilter(unittest.TestCase):
