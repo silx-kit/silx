@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,8 @@
 
 __authors__ = ["D. Naudet", "V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "26/05/2016"
+__date__ = "11/05/2017"
 
 from .histogram import Histogramnd  # noqa
 from .histogram import HistogramndLut  # noqa
+from .medianfilter import medfilt, medfilt1d, medfilt2d
