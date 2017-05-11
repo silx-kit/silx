@@ -44,6 +44,10 @@ import logging
 import numpy
 import unittest
 from collections import namedtuple
+try:
+    import mako
+except ImportError:
+    mako = None
 from ..common import ocl
 if ocl:
     import pyopencl
@@ -66,7 +70,7 @@ try:
 except:
     from silx.math import medfilt2d as median_filter
 
-@unittest.skipUnless(ocl, "PyOpenCl is missing")
+@unittest.skipUnless(ocl and mako, "PyOpenCl is missing")
 class TestMedianFilter(unittest.TestCase):
 
     def setUp(self):
@@ -93,7 +97,7 @@ class TestMedianFilter(unittest.TestCase):
         delta = abs(got - ref).max()
         return Result(size, delta, t1 - t0, t2 - t1)
 
-    @unittest.skipUnless(ocl, "pyopencl is missing")
+    @unittest.skipUnless(ocl and mako, "pyopencl is missing")
     def test_medfilt(self):
         """
         tests the median filter kernel

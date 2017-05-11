@@ -51,6 +51,11 @@ except ImportError:
     scipy = None
 else:
     import scipy.misc, scipy.ndimage
+try:
+    import mako
+except ImportError:
+    mako = None
+
 
 from ..utils import get_opencl_code
 logger = logging.getLogger(__file__)
@@ -80,7 +85,7 @@ def gaussian_cpu(sigma, size=None, PROFILE=False):
     return g
 
 
-@unittest.skipUnless(ocl and scipy, "ocl or scipy is missing")
+@unittest.skipUnless(mako and ocl and scipy, "ocl or scipy is missing")
 class TestGaussian(unittest.TestCase):
 
     @classmethod
