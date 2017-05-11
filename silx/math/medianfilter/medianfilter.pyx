@@ -44,10 +44,37 @@ ctypedef unsigned short uint16
 
 
 def medfilt1d(data, kernel_size=3, bool conditional=False):
+    """Function computing the median filter of the given input.
+    Behavior at boundaries: the algorithm is reducing the size of the
+    window/kernel for pixels at boundaries (there is no mirroring).
+
+    :param numpy.ndarray data: the array for which we want to apply
+        the median filter. Should be 1d.
+    :param kernel_size: the dimension of the kernel.
+    :type kernel_size: int
+    :param bool conditional: True if we want to apply a conditional median
+        filtering.
+
+    :returns: the array with the median value for each pixel.
+    """
     return medfilt(data, kernel_size, conditional)
 
 
 def medfilt2d(image, kernel_size=3, bool conditional=False):
+    """Function computing the median filter of the given input.
+    Behavior at boundaries: the algorithm is reducing the size of the
+    window/kernel for pixels at boundaries (there is no mirroring).
+
+    :param numpy.ndarray data: the array for which we want to apply
+        the median filter. Should be 2d.
+    :param kernel_size: the dimension of the kernel.
+    :type kernel_size: For 1D should be an int for 2D should be a tuple or
+        a list of (kernel_height, kernel_width)
+    :param bool conditional: True if we want to apply a conditional median
+        filtering.
+
+    :returns: the array with the median value for each pixel.
+    """
     return medfilt(image, kernel_size, conditional)
 
 
@@ -57,7 +84,7 @@ def medfilt(data, kernel_size=3, bool conditional=False):
     window/kernel for pixels at boundaries (there is no mirroring).
 
     :param numpy.ndarray data: the array for which we want to apply 
-        the median filter
+        the median filter. Should be 1d or 2d.
     :param kernel_size: the dimension of the kernel.
     :type kernel_size: For 1D should be an int for 2D should be a tuple or 
         a list of (kernel_height, kernel_width)

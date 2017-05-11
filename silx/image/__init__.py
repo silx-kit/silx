@@ -25,6 +25,3 @@
 __authors__ = ["H. Payno"]
 __license__ = "MIT"
 __date__ = "14/02/2017"
-
-# exposing medianfilter (math) to the image module
-from silx.math.medianfilter import medfilt2d

@@ -44,7 +44,7 @@ import logging
 import numpy
 from collections import OrderedDict
 
-from .common import ocl, pyopencl, kernel_workgroup_size
+from .common import pyopencl, kernel_workgroup_size
 from .processing import EventDescription, OpenclProcessing, BufferDescription
 
 if pyopencl:
@@ -90,7 +90,7 @@ class MedianFilter2D(OpenclProcessing):
                                   platformid=platformid, deviceid=deviceid,
                                   block_size=block_size, profile=profile)
         self.shape = shape
-        self.size = shape[0] * shape[1]
+        self.size = self.shape[0] * self.shape[1]
         self.kernel_size = self.calc_kernel_size(kernel_size)
         self.workgroup_size = (self.calc_wg(self.kernel_size), 1)  # 3D kernel
         self.buffers = [BufferDescription(i.name, i.size * self.size, i.dtype, i.flags)

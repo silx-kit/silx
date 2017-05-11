@@ -8,5 +8,6 @@
    :maxdepth: 1
    
    bilinear.rst
+   medianfilter.rst
    shapes.rst
    sift.rst
