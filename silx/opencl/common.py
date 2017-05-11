@@ -59,7 +59,10 @@ else:
     except ImportError:
         logger.warning("Unable to import pyOpenCl. Please install it from: http://pypi.python.org/pypi/pyopencl")
         pyopencl = None
-        mf = None
+        class mf(object):
+            WRITE_ONLY = 1
+            READ_ONLY = 1
+            READ_WRITE = 1
     else:
         import pyopencl.array as array
         mf = pyopencl.mem_flags
