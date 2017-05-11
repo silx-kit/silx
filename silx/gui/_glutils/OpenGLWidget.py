@@ -47,6 +47,7 @@ _logger = logging.getLogger(__name__)
 # TODO convert openGLVersionFlags to version
 # TODO split _OpenGLWidgetBase and OpenGL2.1 specific stuff
 # TODO different modes for message box, set color of clear...
+# TODO handle OpenGLWidget = None: raise exception or handle elsewhere...
 class _OpenGLWidgetBase(object):
     """Base class for OpenGL widget wrapper over QGLWidget and QOpenGLWidget
 
@@ -184,23 +185,36 @@ if qt.BINDING == 'PyQt5' and hasattr(qt, 'QOpenGLWidget'):  # PyQt>=5.4
 
 elif qt.HAS_OPENGL:  # Using QtOpenGL.QGLwidget
 
-    class _QGLWidget(qt.QGLWidget):
-        """Class with QGLWidget method shared for Qt4 and Qt5"""
-        def _checkOpenGL2_1(self):
-            versionFlags = self.format().openGLVersionFlags()
-            return bool(versionFlags & qt.QGLFormat.OpenGL_Version_2_1)
+    if not qt.QGLFormat.hasOpenGL():  # Check if any OpenGL is available
+        _logger.error(
+            'OpenGL is not available on this platform')
+        OpenGLWidget = None
 
-    if qt.BINDING == 'PyQt5':
-        class OpenGLWidget(_QGLWidget, _OpenGLWidgetQt5):
-            def __init__(self, parent=None, f=qt.Qt.WindowFlags()):
-                _OpenGLWidgetQt5.__init__(self)
-                _QGLWidget.__init__(self, parent, None, f)
+    else:
+        class _QGLWidget(qt.QGLWidget):
+            """Class with QGLWidget method shared for Qt4 and Qt5"""
+            def _checkOpenGL2_1(self):
+                versionFlags = self.format().openGLVersionFlags()
+                return bool(versionFlags & qt.QGLFormat.OpenGL_Version_2_1)
 
-    else:  # Qt4
-        class OpenGLWidget(_QGLWidget, _OpenGLWidgetBase):
-            def __init__(self, parent=None, f=qt.Qt.WindowFlags()):
-                _OpenGLWidgetBase.__init__(self)
-                _QGLWidget.__init__(self, parent, None, f)
+            def defaultFramebufferObject(self):
+                """Returns the framebuffer object handle = 0
+
+                Compatibility with QOpenGLWidget
+                """
+                return 0
+
+        if qt.BINDING == 'PyQt5':
+            class OpenGLWidget(_QGLWidget, _OpenGLWidgetQt5):
+                def __init__(self, parent=None, f=qt.Qt.WindowFlags()):
+                    _OpenGLWidgetQt5.__init__(self)
+                    _QGLWidget.__init__(self, parent, None, f)
+
+        else:  # Qt4
+            class OpenGLWidget(_QGLWidget, _OpenGLWidgetBase):
+                def __init__(self, parent=None, f=qt.Qt.WindowFlags()):
+                    _OpenGLWidgetBase.__init__(self)
+                    _QGLWidget.__init__(self, parent, None, f)
 
 else:
     _logger.error('QtOpenGL is not available!')
@@ -208,4 +222,5 @@ else:
 
 
 # Set docstring
-OpenGLWidget.__doc__ = _OpenGLWidgetBase.__doc__
+if OpenGLWidget is not None:
+    OpenGLWidget.__doc__ = _OpenGLWidgetBase.__doc__

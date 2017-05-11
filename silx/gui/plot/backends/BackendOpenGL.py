@@ -1330,7 +1330,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             (self._plotFrame.size[1], self._plotFrame.size[0], 3),
             dtype=numpy.uint8, order='C')
 
-        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
+        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER,
+                             self.defaultFramebufferObject())
         gl.glPixelStorei(gl.GL_PACK_ALIGNMENT, 1)
         gl.glReadPixels(0, 0, self._plotFrame.size[0], self._plotFrame.size[1],
                         gl.GL_RGB, gl.GL_UNSIGNED_BYTE, data)
