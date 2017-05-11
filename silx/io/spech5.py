@@ -83,6 +83,10 @@ Scan data  (e.g. ``/1.1/measurement/colname0``) is accessed by column,
 the dataset name ``colname0`` being the column label as defined in the ``#L``
 scan header line.
 
+If a ``/`` character is present in a column label or in a motor name in the
+original SPEC file, it will be substituted with a ``%`` character in the
+corresponding dataset name.
+
 MCA data is exposed as a 2D numpy array containing all spectra for a given
 analyser. The number of analysers is calculated as the number of MCA spectra
 per scan data line. Demultiplexing is then performed to assign the correct
@@ -181,7 +185,7 @@ from .specfile import SpecFile
 
 __authors__ = ["P. Knobel", "D. Naudet"]
 __license__ = "MIT"
-__date__ = "06/02/2017"
+__date__ = "11/05/2017"
 
 logging.basicConfig()
 logger1 = logging.getLogger(__name__)
@@ -529,7 +533,11 @@ def _motor_in_scan(sf, scan_key, motor_name):
     if scan_key not in sf:
         raise KeyError("Scan key %s " % scan_key +
                        "does not exist in SpecFile %s" % sf.filename)
-    return motor_name in sf[scan_key].motor_names
+    ret = motor_name in sf[scan_key].motor_names
+    if not ret and "%" in motor_name:
+        motor_name = motor_name.replace("%", "/")
+        ret = motor_name in sf[scan_key].motor_names
+    return ret
 
 
 def _column_label_in_scan(sf, scan_key, column_label):
@@ -543,7 +551,11 @@ def _column_label_in_scan(sf, scan_key, column_label):
     if scan_key not in sf:
         raise KeyError("Scan key %s " % scan_key +
                        "does not exist in SpecFile %s" % sf.filename)
-    return column_label in sf[scan_key].labels
+    ret = column_label in sf[scan_key].labels
+    if not ret and "%" in column_label:
+        column_label = column_label.replace("%", "/")
+        ret = column_label in sf[scan_key].labels
+    return ret
 
 
 def _parse_ctime(ctime_lines, analyser_index=0):
@@ -990,6 +1002,9 @@ def _dataset_builder(name, specfileh5, parent_group):
     elif positioners_data_pattern.match(name):
         m = positioners_data_pattern.match(name)
         motor_name = m.group(1)
+        if motor_name not in (scan.labels + scan.motor_names):
+            if "%" in motor_name:
+                motor_name = motor_name.replace("%", "/")
         # if a motor is recorded as a data column, ignore its position in
         # header and return the data column instead
         if motor_name in scan.labels and scan.data.shape[0] > 0:
@@ -1001,6 +1016,9 @@ def _dataset_builder(name, specfileh5, parent_group):
     elif measurement_data_pattern.match(name):
         m = measurement_data_pattern.match(name)
         column_name = m.group(1)
+        if column_name not in scan.labels:
+            if "%" in column_name:
+                column_name = column_name.replace("%", "/")
         array_like = scan.data_column_by_name(column_name)
 
     elif instrument_mca_data_pattern.match(name):
@@ -1394,7 +1412,8 @@ class SpecH5Group(object):
             return ret
 
         if positioners_group_pattern.match(self.name):
-            return self._scan.motor_names
+            motor_names = self._scan.motor_names
+            return [name.replace("/", "%") for name in motor_names]
 
         if specfile_group_pattern.match(self.name):
             return static_items["scan/instrument/specfile"]
@@ -1436,7 +1455,8 @@ class SpecH5Group(object):
         mca_list = ["mca_%d" % i for i in range(number_of_MCA_analysers)]
 
         if measurement_group_pattern.match(self.name):
-            return self._scan.labels + mca_list
+            scan_labels = self._scan.labels
+            return [label.replace("/", "%") for label in scan_labels] + mca_list
 
         if instrument_pattern.match(self.name):
             return static_items["scan/instrument"] + mca_list
