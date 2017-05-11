@@ -1014,9 +1014,9 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
         event = PlotEvents.MouseClickedEvent(btn, dataPos, [x, y])
         self.plot.notify(event)
 
-        eventDict = self._handleClick(x, y, btn)
-        if eventDict is not None:
-            self.plot.notify(**eventDict)
+        event = self._handleClick(x, y, btn)
+        if event is not None:
+            self.plot.notify(event)
 
     def _handleClick(self, x, y, btn):
         """Perform picking and prepare event if click is handled here
