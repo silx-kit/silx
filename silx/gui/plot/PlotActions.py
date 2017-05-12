@@ -236,7 +236,7 @@ class YAxisAutoScaleAction(PlotAction):
                     'If unchecked, y-axis does not change when reseting zoom.',
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
-        self.setChecked(plot.isXAxisAutoScale())
+        self.setChecked(plot.isYAxisAutoScale())
         plot.sigSetYAxisAutoScale.connect(self.setChecked)
 
     def _actionTriggered(self, checked=False):
