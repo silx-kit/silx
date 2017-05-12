@@ -561,8 +561,8 @@ class PlotWidget(qt.QMainWindow):
         self._notifyContentChanged(item)
 
     def _notifyContentChanged(self, item):
-        legend, kind = self._itemKey(item)
-        self.notify('contentChanged', action='add', kind=kind, legend=legend)
+        event = PlotEvents.ChildAddedEvent(item)
+        self.notify(event)
 
     def _remove(self, item):
         """Remove the given :class:`Item` from the plot.
@@ -596,8 +596,8 @@ class PlotWidget(qt.QMainWindow):
             self._colorIndex = 0
             self._styleIndex = 0
 
-        self.notify('contentChanged', action='remove',
-                    kind=kind, legend=legend)
+        event = PlotEvents.ChildRemovedEvent(item)
+        self.notify(event)
 
     def _itemRequiresUpdate(self, item):
         """Called by items in the plot for asynchronous update
@@ -1618,8 +1618,8 @@ class PlotWidget(qt.QMainWindow):
         self._backend.setGraphCursor(flag=flag, color=color,
                                      linewidth=linewidth, linestyle=linestyle)
         self._setDirtyPlot()
-        self.notify('setGraphCursor',
-                    state=self._cursorConfiguration is not None)
+        event = PlotEvents.CursorChangedEvent(state=self._cursorConfiguration is not None)
+        self.notify(event)
 
     def pan(self, direction, factor=0.1):
         """Pan the graph in the given direction by the given factor.
@@ -1794,6 +1794,7 @@ class PlotWidget(qt.QMainWindow):
 
         if legend is None:
             self._activeLegend[kind] = None
+            item = None
         else:
             legend = str(legend)
             item = self._getItem(kind, legend)
@@ -1829,16 +1830,13 @@ class PlotWidget(qt.QMainWindow):
         self._setDirtyPlot()
 
         activeLegend = self._activeLegend[kind]
+        # FIXME why no event are emitted when oldActiveItem is none?
         if oldActiveItem is not None or activeLegend is not None:
-            if oldActiveItem is None:
-                oldActiveLegend = None
-            else:
-                oldActiveLegend = oldActiveItem.getLegend()
-            self.notify(
-                'active' + kind[0].upper() + kind[1:] + 'Changed',
-                updated=oldActiveLegend != activeLegend,
-                previous=oldActiveLegend,
-                legend=activeLegend)
+            event = PlotEvents.ActiveItemChangedEvent(
+                newActiveItem=item,
+                previousActiveItem=oldActiveItem,
+                updated=item is not oldActiveItem)
+            self.notify(event)
 
         return activeLegend
 
@@ -2336,7 +2334,8 @@ class PlotWidget(qt.QMainWindow):
         self._grid = which
         self._backend.setGraphGrid(which)
         self._setDirtyPlot()
-        self.notify('setGraphGrid', which=str(which))
+        event = PlotEvents.GridChangedEvent(which=str(which))
+        self.notify(event)
 
     # Defaults
 
@@ -2469,25 +2468,25 @@ class PlotWidget(qt.QMainWindow):
         self.sigPlotSignal.emit(event)
 
         if eventName == 'setKeepDataAspectRatio':
-            self.sigSetKeepDataAspectRatio.emit(kwargs['state'])
+            self.sigSetKeepDataAspectRatio.emit(event['state'])
         elif eventName == 'setGraphGrid':
-            self.sigSetGraphGrid.emit(kwargs['which'])
+            self.sigSetGraphGrid.emit(event['which'])
         elif eventName == 'setGraphCursor':
-            self.sigSetGraphCursor.emit(kwargs['state'])
+            self.sigSetGraphCursor.emit(event['state'])
         elif eventName == 'contentChanged':
             self.sigContentChanged.emit(
-                kwargs['action'], kwargs['kind'], kwargs['legend'])
+                event['action'], event['kind'], event['legend'])
         elif eventName == 'activeCurveChanged':
             self.sigActiveCurveChanged.emit(
-                kwargs['previous'], kwargs['legend'])
+                event['previous'], event['legend'])
         elif eventName == 'activeImageChanged':
             self.sigActiveImageChanged.emit(
-                kwargs['previous'], kwargs['legend'])
+                event['previous'], event['legend'])
         elif eventName == 'activeScatterChanged':
             self.sigActiveScatterChanged.emit(
-                kwargs['previous'], kwargs['legend'])
+                event['previous'], event['legend'])
         elif eventName == 'interactiveModeChanged':
-            self.sigInteractiveModeChanged.emit(kwargs['source'])
+            self.sigInteractiveModeChanged.emit(event['source'])
 
         self._callback(event)
 
@@ -2971,8 +2970,8 @@ class PlotWidget(qt.QMainWindow):
         self._eventHandler.setInteractiveMode(mode, color, shape, label, width)
         self._eventHandler.zoomOnWheel = zoomOnWheel
 
-        self.notify(
-            'interactiveModeChanged', source=source)
+        event = PlotEvents.InteractiveModeChangedEvent(source=source)
+        self.notify(event)
 
     # Panning with arrow keys
 
