@@ -67,7 +67,9 @@ except:
 try:
     from scipy.ndimage import filters
     median_filter = filters.median_filter
+    HAS_SCIPY = True
 except:
+    HAS_SCIPY = False
     from silx.math import medfilt2d as median_filter
 
 @unittest.skipUnless(ocl and mako, "PyOpenCl is missing")
@@ -86,7 +88,10 @@ class TestMedianFilter(unittest.TestCase):
     def measure(self, size):
         "Common measurement of accuracy and timings"
         t0 = time.time()
-        ref = filters.median_filter(self.data, size, mode="nearest"),
+        if HAS_SCIPY:
+            ref = median_filter(self.data, size, mode="nearest")
+        else:
+            ref = median_filter(self.data, size)
         t1 = time.time()
         try:
             got = self.medianfilter.medfilt2d(self.data, size)
