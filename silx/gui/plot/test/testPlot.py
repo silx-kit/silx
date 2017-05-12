@@ -422,6 +422,35 @@ class TestPlotGetCurveImage(unittest.TestCase):
         curve = plot.getCurve()
         self.assertIsNone(curve)
 
+    def testGetCurveOldApi(self):
+        """old API Plot.getCurve and Plot.getActiveCurve tests"""
+
+        plot = Plot(backend='none')
+
+        # No curve
+        curve = plot.getCurve()
+        self.assertIsNone(curve)  # No curve
+
+        plot.setActiveCurveHandling(True)
+        x = numpy.arange(10.).astype(numpy.float32)
+        y = x * x;
+        plot.addCurve(x=x, y=y, legend='curve 0', info=["whatever"])
+        plot.addCurve(x=x, y=2*x, legend='curve 1', info="anything")
+        plot.setActiveCurve('curve 0')
+
+        # Active curve (4 elements)
+        xOut, yOut, legend, info = plot.getActiveCurve()[:4]
+        self.assertEqual(legend, 'curve 0')
+        self.assertTrue(numpy.allclose(xOut, x), 'curve 0 wrong x data')
+        self.assertTrue(numpy.allclose(yOut, y), 'curve 0 wrong y data')
+
+        # Active curve (5 elements)
+        xOut, yOut, legend, info, params = plot.getCurve("curve 1")
+        self.assertEqual(legend, 'curve 1')
+        self.assertEqual(info, 'anything')
+        self.assertTrue(numpy.allclose(xOut, x), 'curve 1 wrong x data')
+        self.assertTrue(numpy.allclose(yOut, 2*x), 'curve 1 wrong y data')
+
     def testGetImage(self):
         """Plot.getImage and Plot.getActiveImage tests"""
 
@@ -454,6 +483,26 @@ class TestPlotGetCurveImage(unittest.TestCase):
         self.assertEqual(active.getLegend(), 'image 1')
         image = plot.getImage()
         self.assertEqual(image.getLegend(), 'image 1')
+
+    def testGetImageOldApi(self):
+        """Plot.getImage and Plot.getActiveImage old API tests"""
+
+        plot = Plot(backend='none')
+
+        # No image
+        image = plot.getImage()
+        self.assertIsNone(image)
+
+        image = numpy.arange(10).astype(numpy.float32)
+        image.shape = 5, 2
+
+        plot.addImage(image, legend='image 0', info=["Hi!"], replace=False)
+
+        # Active image
+        data, legend, info, something, params = plot.getActiveImage()
+        self.assertEqual(legend, 'image 0')
+        self.assertEqual(info, ["Hi!"])
+        self.assertTrue(numpy.allclose(data, image), "image 0 data not correct")
 
     def testGetAllImages(self):
         """Plot.getAllImages test"""
