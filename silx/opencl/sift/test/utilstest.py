@@ -37,7 +37,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "12/01/2017"
+__date__ = "15/05/2017"
 
 import os
 import imp
@@ -55,7 +55,6 @@ except ImportError:  # Python2
 # import gzip
 import numpy
 import shutil
-logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
 
 

@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "05/12/2016"
+__date__ = "15/05/2017"
 
 
 import logging
@@ -41,7 +41,6 @@ from silx.gui.test.utils import TestCaseQt
 from silx.gui.plot import PlotWindow, CurvesROIWidget
 
 
-logging.basicConfig()
 _logger = logging.getLogger(__name__)
 
 

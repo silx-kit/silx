@@ -105,7 +105,7 @@ Exceptions
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "27/09/2016"
+__date__ = "15/05/2017"
 
 import os.path
 import logging
@@ -113,7 +113,6 @@ import numpy
 import re
 import sys
 
-logging.basicConfig()
 _logger = logging.getLogger(__name__)
 
 cimport numpy

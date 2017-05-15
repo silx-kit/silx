@@ -185,9 +185,8 @@ from .specfile import SpecFile
 
 __authors__ = ["P. Knobel", "D. Naudet"]
 __license__ = "MIT"
-__date__ = "11/05/2017"
+__date__ = "15/05/2017"
 
-logging.basicConfig()
 logger1 = logging.getLogger(__name__)
 
 try:

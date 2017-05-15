@@ -27,14 +27,13 @@ analysis.
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "17/06/2016"
+__date__ = "15/05/2017"
 
 import logging
 import numpy
 
 from . import filters
 
-logging.basicConfig()
 _logger = logging.getLogger(__name__)
 
 cimport cython

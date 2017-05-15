@@ -34,7 +34,7 @@ This module is a refactored version of PyMca Gefit.py module.
 """
 __authors__ = ["V.A. Sole"]
 __license__ = "MIT"
-__date__ = "24/01/2017"
+__date__ = "15/05/2017"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 
 import numpy
@@ -44,7 +44,6 @@ import time
 import logging
 import copy
 
-logging.basicConfig()
 _logger = logging.getLogger(__name__)
 
 # codes understood by the routine

@@ -27,7 +27,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "05/12/2016"
+__date__ = "15/05/2017"
 
 
 import logging
@@ -37,7 +37,6 @@ import numpy
 from silx.test.utils import ParametricTestCase
 from silx.image import shapes
 
-logging.basicConfig()
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.WARNING)
 

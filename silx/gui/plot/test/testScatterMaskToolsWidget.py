@@ -46,7 +46,6 @@ except ImportError:
     fabio = None
 
 
-logging.basicConfig()
 _logger = logging.getLogger(__name__)
 
 
