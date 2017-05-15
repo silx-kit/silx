@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "04/05/2017"
+__date__ = "11/05/2017"
 __license__ = "MIT"
 
 
@@ -441,7 +441,6 @@ class Build(_build):
                 logger.warning(msg)
                 use_cython = "no"
 
-
         # Remove attribute used by distutils parsing
         # use 'use_cython' and 'force_cython' instead
         del self.no_cython
@@ -530,7 +529,63 @@ class BuildExt(build_ext):
             ext.extra_link_args = [self.LINK_ARGS_CONVERTER.get(f, f)
                                    for f in ext.extra_link_args]
 
+    def is_debug_interpreter(self):
+        """
+        Returns true if the script is executed with a debug interpreter.
+
+        It looks to be a non-standard code. It is not working for Windows and
+        Mac. But it have to work at least for Debian interpreters.
+
+        :rtype: bool
+        """
+        if sys.version_info >= (3, 0):
+            # It is normalized on Python 3
+            # But it is not available on Windows CPython
+            if hasattr(sys, "abiflags"):
+                return "d" in sys.abiflags
+        else:
+            # It's a Python 2 interpreter
+            # pydebug is not available on Windows/Mac OS interpreters
+            if hasattr(sys, "pydebug"):
+                return sys.pydebug
+
+        # We can't know if we uses debug interpreter
+        return False
+
+    def patch_compiler(self):
+        """
+        Patch the compiler to:
+        - always compile extensions with debug symboles (-g)
+        - only compile asserts in debug mode (-DNDEBUG)
+
+        Plus numpy.distutils/setuptools/distutils inject a lot of duplicated
+        flags. This function tries to clean up default debug options.
+        """
+        build_obj = self.distribution.get_command_obj("build")
+        if build_obj.debug:
+            debug_mode = build_obj.debug
+        else:
+            # Force debug_mode also when it uses python-dbg
+            # It is needed for Debian packaging
+            debug_mode = self.is_debug_interpreter()
+
+        if self.compiler.compiler_type == "unix":
+            args = list(self.compiler.compiler_so)
+            # clean up debug flags -g is included later in another way
+            must_be_cleaned = ["-DNDEBUG", "-g"]
+            args = filter(lambda x: x not in must_be_cleaned, args)
+            args = list(args)
+
+            # always insert symbols
+            args.append("-g")
+            # only strip asserts in release mode
+            if not debug_mode:
+                args.append('-DNDEBUG')
+            # patch options
+            self.compiler.compiler_so = list(args)
+
     def build_extensions(self):
+        self.patch_compiler()
         for ext in self.extensions:
             self.patch_extension(ext)
         build_ext.build_extensions(self)

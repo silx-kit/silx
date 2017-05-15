@@ -16,6 +16,7 @@ matrix:
           env:
               - BUILD_COMMAND=sdist
               - WITH_QT_TEST=False
+              - PIP_INSTALL_EXTRA_ARGS="--global-option build --global-option --debug"
 
         - python: 3.5
           os: linux
@@ -95,7 +96,7 @@ script:
     # Make sure silx does not come from cache or pypi
     # At this point all install_requires dependencies MUST be installed
     # as this is installing only from dist
-    - pip install --pre --find-links dist/ --no-cache-dir --no-index silx
+    - pip install --pre --find-links dist/ --no-cache-dir --no-index silx $PIP_INSTALL_EXTRA_ARGS
 
     # Print Python info
     - python ci/info_platform.py
