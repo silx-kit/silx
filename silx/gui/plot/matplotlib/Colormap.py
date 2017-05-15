@@ -20,10 +20,6 @@ import matplotlib.colors
 import matplotlib.cm
 import silx.resources
 
-try:
-    from matplotlib import cm as matplotlib_cm
-except ImportError:
-    matplotlib_cm = None
 
 _logger = logging.getLogger(__name__)
 
@@ -274,6 +270,6 @@ def applyColormapToData(data,
 def getSupportedColormaps():
     """Get the supported colormap names as a tuple of str.
     """
-    maps = [m for m in matplotlib_cm.datad]
+    maps = [m for m in matplotlib.cm.datad]
     maps.sort()
     return tuple(maps)
