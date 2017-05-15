@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "24/01/2017"
+__date__ = "15/05/2017"
 
 
 import logging
@@ -46,7 +46,6 @@ except ImportError:
     fabio = None
 
 
-logging.basicConfig()
 _logger = logging.getLogger(__name__)
 
 

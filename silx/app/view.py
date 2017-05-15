@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "12/04/2017"
+__date__ = "15/05/2017"
 
 import sys
 import os
@@ -33,8 +33,6 @@ import argparse
 import logging
 import collections
 
-
-logging.basicConfig()
 _logger = logging.getLogger(__name__)
 """Module logger"""
 

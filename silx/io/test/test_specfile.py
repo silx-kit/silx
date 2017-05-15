@@ -25,7 +25,7 @@
 
 __authors__ = ["P. Knobel", "V.A. Sole"]
 __license__ = "MIT"
-__date__ = "24/04/2017"
+__date__ = "15/05/2017"
 
 import gc
 import locale
@@ -36,7 +36,6 @@ import sys
 import tempfile
 import unittest
 
-logging.basicConfig()
 logger1 = logging.getLogger(__name__)
 
 from ..specfile import SpecFile, Scan

@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "11/04/2017"
+__date__ = "15/05/2017"
 
 
 import gc
@@ -36,7 +36,6 @@ import time
 import functools
 import sys
 
-logging.basicConfig()
 _logger = logging.getLogger(__name__)
 
 from silx.gui import qt

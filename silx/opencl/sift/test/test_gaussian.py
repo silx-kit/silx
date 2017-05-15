@@ -37,7 +37,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "15/03/2017"
+__date__ = "15/05/2017"
 
 import os
 import time
@@ -59,7 +59,6 @@ except ImportError:
 
 from ..utils import get_opencl_code
 logger = logging.getLogger(__file__)
-#logger.setLevel(logging.INFO)
 
 if ocl:
     import pyopencl, pyopencl.array

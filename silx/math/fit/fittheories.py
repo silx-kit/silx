@@ -89,12 +89,11 @@ from silx.math.fit.filters import strip, savitsky_golay
 from silx.math.fit.leastsq import leastsq
 from silx.math.fit.fittheory import FitTheory
 
-logging.basicConfig()
 _logger = logging.getLogger(__name__)
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "06/01/2017"
+__date__ = "15/05/2017"
 
 
 DEFAULT_CONFIG = {
