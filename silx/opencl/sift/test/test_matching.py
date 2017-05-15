@@ -37,7 +37,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013-2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "15/03/2017"
+__date__ = "15/05/2017"
 
 import os
 import unittest
@@ -64,7 +64,6 @@ if ocl:
 
 logger = logging.getLogger(__name__)
 
-#logger.setLevel(logging.DEBUG)
 try:
     import feature
 except:

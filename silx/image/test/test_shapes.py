@@ -38,7 +38,6 @@ from silx.test.utils import ParametricTestCase
 from silx.image import shapes
 
 _logger = logging.getLogger(__name__)
-_logger.setLevel(logging.WARNING)
 
 
 class TestPolygonFill(ParametricTestCase):

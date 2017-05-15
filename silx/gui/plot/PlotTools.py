@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "03/03/2017"
+__date__ = "15/05/2017"
 
 
 import logging
@@ -42,7 +42,6 @@ import numpy
 from .. import qt
 
 _logger = logging.getLogger(__name__)
-_logger.setLevel(logging.DEBUG)
 
 
 # PositionInfo ################################################################
