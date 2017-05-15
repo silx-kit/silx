@@ -38,6 +38,11 @@ import numpy
 from .matplotlib import matplotlib  #noqa
 from .matplotlib import Colormap as MPLColormap
 
+try:
+    from matplotlib import cm as matplotlib_cm
+except ImportError:
+    matplotlib_cm = None
+
 
 _logger = logging.getLogger(__name__)
 
@@ -203,3 +208,20 @@ def applyColormapToData(data,
     rgbaImage = scalarMappable.to_rgba(data, bytes=True)
 
     return rgbaImage
+
+
+def getSupportedColormaps():
+    """Get the supported colormap names as a tuple of str.
+
+    The list should at least contain and start by:
+    ('gray', 'reversed gray', 'temperature', 'red', 'green', 'blue')
+    """
+    default = ('gray', 'reversed gray',
+               'temperature',
+               'red', 'green', 'blue')
+    if matplotlib_cm is None:
+        return default
+    else:
+        maps = [m for m in matplotlib_cm.datad]
+        maps.sort()
+        return default + tuple(maps)
