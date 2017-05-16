@@ -1631,6 +1631,7 @@ static char __pyx_k_format[] = "format";
 static char __pyx_k_import[] = "__import__";
 static char __pyx_k_mirror[] = "mirror";
 static char __pyx_k_name_2[] = "__name__";
+static char __pyx_k_shrink[] = "shrink";
 static char __pyx_k_struct[] = "struct";
 static char __pyx_k_uint16[] = "uint16";
 static char __pyx_k_uint32[] = "uint32";
@@ -1839,6 +1840,7 @@ static PyObject *__pyx_n_s_reshape;
 static PyObject *__pyx_n_s_reshaped;
 static PyObject *__pyx_kp_s_s_type_is_not_managed_by_the_me;
 static PyObject *__pyx_n_s_shape;
+static PyObject *__pyx_n_s_shrink;
 static PyObject *__pyx_n_s_silx_math_medianfilter_medianfil;
 static PyObject *__pyx_n_s_size;
 static PyObject *__pyx_n_s_start;
@@ -19581,6 +19583,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_reshaped, __pyx_k_reshaped, sizeof(__pyx_k_reshaped), 0, 0, 1, 1},
   {&__pyx_kp_s_s_type_is_not_managed_by_the_me, __pyx_k_s_type_is_not_managed_by_the_me, sizeof(__pyx_k_s_type_is_not_managed_by_the_me), 0, 0, 1, 0},
   {&__pyx_n_s_shape, __pyx_k_shape, sizeof(__pyx_k_shape), 0, 0, 1, 1},
+  {&__pyx_n_s_shrink, __pyx_k_shrink, sizeof(__pyx_k_shrink), 0, 0, 1, 1},
   {&__pyx_n_s_silx_math_medianfilter_medianfil, __pyx_k_silx_math_medianfilter_medianfil, sizeof(__pyx_k_silx_math_medianfilter_medianfil), 0, 0, 1, 1},
   {&__pyx_n_s_size, __pyx_k_size, sizeof(__pyx_k_size), 0, 0, 1, 1},
   {&__pyx_n_s_start, __pyx_k_start, sizeof(__pyx_k_start), 0, 0, 1, 1},
@@ -20319,7 +20322,7 @@ PyMODINIT_FUNC PyInit_medianfilter(void)
   /* "silx/math/medianfilter/medianfilter.pyx":45
  * 
  * 
- * MODES = {'nearest':0, 'reflect':1, 'mirror':2}             # <<<<<<<<<<<<<<
+ * MODES = {'nearest':0, 'reflect':1, 'mirror':2, 'shrink':3}             # <<<<<<<<<<<<<<
  * 
  * 
  */
@@ -20328,6 +20331,7 @@ PyMODINIT_FUNC PyInit_medianfilter(void)
   if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_nearest, __pyx_int_0) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 45; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_reflect, __pyx_int_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 45; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_mirror, __pyx_int_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 45; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_shrink, __pyx_int_3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 45; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_MODES, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 45; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 

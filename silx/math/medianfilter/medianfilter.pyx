@@ -42,7 +42,7 @@ ctypedef unsigned int uint32
 ctypedef unsigned short uint16
 
 
-MODES = {'nearest':0, 'reflect':1, 'mirror':2}
+MODES = {'nearest':0, 'reflect':1, 'mirror':2, 'shrink':3}
 
 
 def medfilt1d(data, kernel_size=3, bool conditional=False, mode='nearest'):

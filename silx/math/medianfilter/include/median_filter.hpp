@@ -38,13 +38,15 @@
 enum MODE{
     NEAREST=0,  
     REFLECT=1,
-    MIRROR=2
+    MIRROR=2,
+    SHRINK=3
 };
 
 // Simple function browsing a deque and registring the min and max values
 // and if those values are unique or not
 template<typename T>
-void getMinMax(std::vector<const T*>& v, T& min, T&max){
+void getMinMax(std::vector<const T*>& v, T& min, T&max,
+    typename std::vector<const T*>::const_iterator end){
     // init min and max values
     typename std::vector<const T*>::const_iterator it = v.begin();
     if (v.size() == 0){
@@ -55,7 +57,7 @@ void getMinMax(std::vector<const T*>& v, T& min, T&max){
     it++;
 
     // Browse all the deque
-    while(it!=v.end()){
+    while(it!=end){
         // check if repeated (should always be before min/max setting)
         if(*(*it) > max) max = *(*it);
         if(*(*it) < min) min = *(*it);
@@ -75,10 +77,18 @@ const T* median(std::vector<const T*>& v) {
     return v[v.size()/2];
 }
 
+// apply the median filter only on limited part of the vector
 template<typename T>
-void print_window(std::vector<const T*>& v){
+const T* limited_median(std::vector<const T*>& v, int size_to_apply) {
+    std::nth_element(v.begin(), v.begin() + size_to_apply/2, v.begin()+size_to_apply, cmp<T>);
+    return v[size_to_apply/2];
+}
+
+template<typename T>
+void print_window(std::vector<const T*>& v,
+    typename std::vector<const T*>::const_iterator end){
     typename std::vector<const T*>::const_iterator it;
-    for(it = v.begin(); it != v.end(); ++it){
+    for(it = v.begin(); it != end; ++it){
         std::cout << *(*it) << " ";
     }
     std::cout << std::endl;
@@ -154,49 +164,83 @@ void median_filter(
     // init buffer
     std::vector<const T*> window_values(kernel_dim[0]*kernel_dim[1]);
 
-    for(int pixel_y=y_pixel_range_min; pixel_y <= y_pixel_range_max; pixel_y ++ ){
+    for(int y_pixel=y_pixel_range_min; y_pixel <= y_pixel_range_max; y_pixel ++ ){
         typename std::vector<const T*>::iterator it = window_values.begin();
         // fill the vector
-        for(int win_y=pixel_y-halfKernel_y; win_y<= pixel_y+halfKernel_y; win_y++)
+        for(int win_y=y_pixel-halfKernel_y; win_y<= y_pixel+halfKernel_y; win_y++)
         {
             for(int win_x = x_pixel-halfKernel_x; win_x <= x_pixel+halfKernel_x; win_x++)
             {
-                if(mode == NEAREST){
-                    int index_x = std::min(std::max(win_x, 0), image_dim[0] - 1);
-                    int index_y = std::min(std::max(win_y, 0), image_dim[1] - 1);
-                    *it = (&input[index_y*image_dim[0] + index_x]);
+                int index_x = win_x;
+                int index_y = win_y;
+                switch(mode){
+                    case NEAREST:
+                        index_x = std::min(std::max(win_x, 0), image_dim[0] - 1);
+                        index_y = std::min(std::max(win_y, 0), image_dim[1] - 1);
+                        break;
+
+                    case REFLECT:
+                        index_x = reflect(win_x, image_dim[0]);
+                        index_y = reflect(win_y, image_dim[1]);
+                        break;
+
+                    case MIRROR:
+                        index_x = mirror(win_x, image_dim[0]);
+                        index_y = mirror(win_y, image_dim[1]);
+                        break;
+                    case SHRINK:
+                        if((index_x < 0) || (index_x > image_dim[0] -1)){
+                            continue;
+                        }
+                        if((index_y < 0) || (index_y > image_dim[1] -1)){
+                            continue;
+                        }
+                        break;
                 }
-                if(mode == REFLECT){
-                    int index_x = reflect(win_x, image_dim[0]);
-                    int index_y = reflect(win_y, image_dim[1]);
-                    *it = (&input[index_y*image_dim[0] + index_x]);
-                }
-                if(mode == MIRROR){
-                    int index_x = mirror(win_x, image_dim[0]);
-                    int index_y = mirror(win_y, image_dim[1]);
-                    *it = (&input[index_y*image_dim[0] + index_x]);
-                }
+                *it = (&input[index_y*image_dim[0] + index_x]);
                 ++it;
             }
         }
 
-        const T* currentPixelValue = &input[image_dim[0]*pixel_y + x_pixel];
+        const T* currentPixelValue = &input[image_dim[0]*y_pixel + x_pixel];
         // change value for the median, only if we don't intend to use the 
         // conditional or if the value of the pixel is one of the extrema
         // of the pixel value
+        // TODO : group this in an other function
         if (conditional == true){
             T min = 0;
             T max = 0;
-            getMinMax(window_values, min, max);
+
+            if(mode == SHRINK){
+                int x_shrink_ker_dim = std::min(x_pixel+halfKernel_x, image_dim[0]-1) - std::max(0, x_pixel-halfKernel_x) + 1;
+                int y_shrink_ker_dim = std::min(y_pixel+halfKernel_y, image_dim[1]-1) - std::max(0, y_pixel-halfKernel_y) + 1;
+                typename std::vector<const T*>::iterator it2 = window_values.begin() +x_shrink_ker_dim*y_shrink_ker_dim;
+                getMinMax(window_values, min, max, it2);
+            }else{
+                getMinMax(window_values, min, max, window_values.end());
+            }
             // In conditional point we are only setting the value to the pixel
             // if the value is the min or max and unique
             if ((*currentPixelValue == max) || (*currentPixelValue == min)){
-                output[image_dim[0]*pixel_y + x_pixel] = *(median<T>(window_values));
+                if(mode == SHRINK){
+                    int x_shrink_ker_dim = std::min(x_pixel+halfKernel_x, image_dim[0]-1) - std::max(0, x_pixel-halfKernel_x) + 1;
+                    int y_shrink_ker_dim = std::min(y_pixel+halfKernel_y, image_dim[1]-1) - std::max(0, y_pixel-halfKernel_y) + 1;
+                    output[image_dim[0]*y_pixel + x_pixel] = *(limited_median<T>(window_values, x_shrink_ker_dim*y_shrink_ker_dim));
+
+                }else{
+                    output[image_dim[0]*y_pixel + x_pixel] = *(median<T>(window_values));
+                }
             }else{
-                output[image_dim[0]*pixel_y + x_pixel] = *currentPixelValue;
+                output[image_dim[0]*y_pixel + x_pixel] = *currentPixelValue;
             }
         }else{
-            output[image_dim[0]*pixel_y + x_pixel] = *(median<T>(window_values));
+            if(mode == SHRINK){
+                int x_shrink_ker_dim = std::min(x_pixel+halfKernel_x, image_dim[0]-1) - std::max(0, x_pixel-halfKernel_x) + 1;
+                int y_shrink_ker_dim = std::min(y_pixel+halfKernel_y, image_dim[1]-1) - std::max(0, y_pixel-halfKernel_y) + 1;
+                output[image_dim[0]*y_pixel + x_pixel] = *(limited_median<T>(window_values, x_shrink_ker_dim*y_shrink_ker_dim));
+            }else{
+                output[image_dim[0]*y_pixel + x_pixel] = *(median<T>(window_values));
+            }
         }
     }
 }

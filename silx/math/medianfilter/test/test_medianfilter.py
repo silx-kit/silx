@@ -424,10 +424,59 @@ class TestMedianFilterMirror(ParametricTestCase):
         self.assertTrue(numpy.array_equal(thRes, res))
 
 
+class TestMedianFilterShrink(ParametricTestCase):
+    """Unit test for the median filter in mirror mode
+    """
+
+    def testRandom_3x3(self):
+        """Test the median filter in shrink mode and with the conditionnal
+        option"""
+        kernel = (3, 3)
+
+        thRes = numpy.array([
+            [0.62717157, 0.62717157, 0.62717157, 0.65166994, 0.65166994],
+            [0.62717157, 0.56049024, 0.56049024, 0.44406320, 0.44406320],
+            [0.74219128, 0.56049024, 0.46372299, 0.46372299, 0.46372299],
+            [0.74219128, 0.68382382, 0.56049024, 0.56049024, 0.46372299],
+            [0.81025249, 0.81025249, 0.68382382, 0.81281709, 0.81281709]])
+
+        res = medfilt2d(image=RANDOM_MAT,
+                        kernel_size=kernel,
+                        conditional=False,
+                        mode='shrink')
+
+        self.assertTrue(numpy.array_equal(thRes, res))
+
+    # [0.05564293, 0.62717157, 0.75002406, 0.40555336, 0.70278975],
+    # [0.76532598, 0.02839148, 0.05272484, 0.65166994, 0.42161216],
+    # [0.23067427, 0.74219128, 0.56049024, 0.44406320, 0.28773158],
+    # [0.81025249, 0.20303021, 0.68382382, 0.46372299, 0.81281709],
+    # [0.94691602, 0.07813661, 0.81651256, 0.84220106, 0.33623165]])
+
+
+    # def testRandom_3x3Conditionnal(self):
+    #     """Test the median filter in reflect mode and with the conditionnal
+    #     option"""
+    #     kernel = (3, 3)
+    #
+    #     thRes = numpy.array([
+    #         [0.05564293, 0.62717157, 0.62717157, 0.70278975, 0.40555336],
+    #         [0.02839148, 0.05272484, 0.05272484, 0.42161216, 0.65166994],
+    #         [0.74219128, 0.56049024, 0.56049024, 0.44406320, 0.44406320],
+    #         [0.20303021, 0.68382382, 0.46372299, 0.68382382, 0.46372299],
+    #         [0.07813661, 0.81651256, 0.81651256, 0.81651256, 0.84220106]])
+    #
+    #     res = medfilt2d(image=RANDOM_MAT,
+    #                     kernel_size=kernel,
+    #                     conditional=True,
+    #                     mode='shrink')
+
+
+
 def suite():
     test_suite = unittest.TestSuite()
     for test in [TestMedianFilterNearest, TestMedianFilterReflect,
-                 TestMedianFilterMirror]:
+                 TestMedianFilterMirror, TestMedianFilterShrink]:
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(test))
     return test_suite
