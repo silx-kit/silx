@@ -663,7 +663,7 @@ class LimitsChangedEvent(PlotEvent):
         """
         Constructor
 
-        :param object source: Source of the event (only used for compatibility)
+        :param object source: Source of the event (the plot)
         :param tuple xRange: Range min,max of the x-axis
         :param tuple yRange: Range min,max of the y-axis
         :param tuple y2Range: Range min,max of the second y-axis
@@ -675,6 +675,10 @@ class LimitsChangedEvent(PlotEvent):
         # stored for compatibility, but not anymore provided
         self._source = source
 
+    def getSource(self):
+        """Returns the plot source of the event."""
+        return self._source
+
     def getXRange(self):
         """Returns a tuple min,max of the range of the current x-axis.
 
@@ -682,19 +686,17 @@ class LimitsChangedEvent(PlotEvent):
         """
         return self._xRange
 
-    def getYRange(self):
+    def getYRange(self, axis='left'):
         """Returns a tuple min,max of the range of the current y-axis.
 
         :rtype: tuple(float, float)
         """
-        return self._yRange
-
-    def getY2Range(self):
-        """Returns a tuple min,max of the range of the current second y-axis.
-
-        :rtype: tuple(float, float)
-        """
-        return self._y2Range
+        if axis == 'left':
+            return self._yRange
+        elif axis == 'right':
+            return self._y2Range
+        else:
+            raise Exception("Unexpected axis name %s" % axis)
 
     @classmethod
     def __getDictionaryMapping(cls):
@@ -704,10 +706,10 @@ class LimitsChangedEvent(PlotEvent):
             return cls._mapping
         mapping = {
             'event': lambda self: "limitsChanged",
-            'source': lambda self: id(self._source),
+            'source': lambda self: id(self._source.getWidgetHandle()),
             'xdata': lambda self: self.getXRange(),
-            'ydata': lambda self: self.getYRange(),
-            'y2data': lambda self: self.getY2Range(),
+            'ydata': lambda self: self.getYRange(axis='left'),
+            'y2data': lambda self: self.getYRange(axis='right'),
         }
         cls.__mapping = mapping
         return cls.__mapping

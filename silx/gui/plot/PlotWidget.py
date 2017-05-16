@@ -2020,7 +2020,7 @@ class PlotWidget(qt.QMainWindow):
             for axis, limits in zip(axes, ranges):
                 axis.sigLimitsChanged.emit(*limits)
         event = PlotEvents.LimitsChangedEvent(
-            id(self.getWidgetHandle()), xRange, yRange, y2Range)
+            self, xRange, yRange, y2Range)
         self.notify(event)
 
     def getLimitsHistory(self):

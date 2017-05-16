@@ -40,16 +40,18 @@ class TestEvents(unittest.TestCase):
     """Test object events"""
 
     def testLimitsChangedEvent(self):
-        sourceObj = "a"
+        source = "a"
         xRange = "b"
         yRange = "c"
         y2Range = "d"
         event = PlotEvents.LimitsChangedEvent(
-            sourceObj, xRange, yRange, y2Range)
+            source, xRange, yRange, y2Range)
         self.assertEquals(event.getType(), PlotEvents.Type.LimitChanged)
+        self.assertEquals(event.getSource(), source)
         self.assertEquals(event.getXRange(), xRange)
         self.assertEquals(event.getYRange(), yRange)
-        self.assertEquals(event.getY2Range(), y2Range)
+        self.assertEquals(event.getYRange('left'), yRange)
+        self.assertEquals(event.getYRange('right'), y2Range)
 
     def testMouseEvent(self):
         event = "e"
@@ -318,14 +320,19 @@ class TestDictionaryLikeGetter(unittest.TestCase):
         self.assertEquals(event['ypixel'], yPixel)
 
     def testLimitsChangedEvent(self):
-        sourceObj = "a"
+        source = "a"
+
+        class Source(object):
+            def getWidgetHandle(self):
+                return source
+
         xRange = "b"
         yRange = "c"
         y2Range = "d"
         event = PlotEvents.LimitsChangedEvent(
-            sourceObj, xRange, yRange, y2Range)
+            Source(), xRange, yRange, y2Range)
         self.assertEquals(event['event'], "limitsChanged")
-        self.assertEquals(event['source'], id(sourceObj))
+        self.assertEquals(event['source'], id(source))
         self.assertEquals(event['xdata'], xRange)
         self.assertEquals(event['ydata'], yRange)
         self.assertEquals(event['y2data'], y2Range)
