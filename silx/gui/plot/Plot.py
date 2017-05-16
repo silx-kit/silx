@@ -197,7 +197,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "16/02/2017"
+__date__ = "15/05/2017"
 
 
 from collections import OrderedDict, namedtuple
@@ -208,11 +208,6 @@ import numpy
 
 # Import matplotlib backend here to init matplotlib our way
 from .backends.BackendMatplotlib import BackendMatplotlibQt
-
-try:
-    from matplotlib import cm as matplotlib_cm
-except ImportError:
-    matplotlib_cm = None
 
 from . import Colors
 from . import PlotInteraction
@@ -2241,21 +2236,15 @@ class Plot(object):
                         'autoscale': True, 'vmin': 0.0, 'vmax': 1.0}
         self._defaultColormap = colormap.copy()
 
-    def getSupportedColormaps(self):
+    @staticmethod
+    def getSupportedColormaps():
         """Get the supported colormap names as a tuple of str.
 
-        The list should at least contain and start by:
-        ('gray', 'reversed gray', 'temperature', 'red', 'green', 'blue')
+        The list contains at least:
+        ('gray', 'reversed gray', 'temperature', 'red', 'green', 'blue',
+         'magma', 'inferno', 'plasma', 'viridis')
         """
-        default = ('gray', 'reversed gray',
-                   'temperature',
-                   'red', 'green', 'blue')
-        if matplotlib_cm is None:
-            return default
-        else:
-            maps = [m for m in matplotlib_cm.datad]
-            maps.sort()
-            return default + tuple(maps)
+        return Colors.getSupportedColormaps()
 
     def _getColorAndStyle(self):
         color = self.colorList[self._colorIndex]

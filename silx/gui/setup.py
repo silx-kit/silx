@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "16/01/2017"
+__date__ = "04/05/2017"
 
 
 from numpy.distutils.misc_util import Configuration

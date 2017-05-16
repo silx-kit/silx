@@ -717,7 +717,8 @@ def get_project_configuration(dry_run):
             'gui/icons/*.gif',
             'gui/icons/animated/*.png',
             'opencl/*.cl',
-            'opencl/sift/*.cl']
+            'opencl/sift/*.cl',
+            'gui/colormaps/*.npy']
     }
 
     entry_points = {
