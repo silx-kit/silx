@@ -1829,15 +1829,17 @@ class PlotWidget(qt.QMainWindow):
 
         self._setDirtyPlot()
 
-        activeLegend = self._activeLegend[kind]
-        # FIXME why no event are emitted when oldActiveItem is none?
-        if oldActiveItem is not None or activeLegend is not None:
+        # TODO think about sending event only whem selected item changed.
+        # And not when the item data changed.
+        # if item is not oldActiveItem:
+        if not (oldActiveItem is None and item is None):
             event = PlotEvents.ActiveItemChangedEvent(
                 newActiveItem=item,
                 previousActiveItem=oldActiveItem,
                 updated=item is not oldActiveItem)
             self.notify(event)
 
+        activeLegend = self._activeLegend[kind]
         return activeLegend
 
     def _activeItemChanged(self, type_):
