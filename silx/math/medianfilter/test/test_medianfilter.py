@@ -1,5 +1,5 @@
 # coding: utf-8
-# /*##########################################################################
+# ##########################################################################
 # Copyright (C) 2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# ############################################################################*/
+# ############################################################################
 """Tests of the median filter"""
 
 __authors__ = ["H. Payno"]
@@ -282,7 +282,8 @@ class TestMedianFilterReflect(ParametricTestCase):
                         kernel_size=kernel,
                         conditional=False,
                         mode='reflect')
-        self.assertTrue(numpy.array_equal(res.ravel(), [1, 2, 2, 3, 4, 5, 6, 6, 7]))
+        self.assertTrue(
+            numpy.array_equal(res.ravel(), [1, 2, 2, 3, 4, 5, 6, 6, 7]))
 
     def testRandom10(self):
         """Test a (5, 3) window to a random array"""
@@ -303,7 +304,8 @@ class TestMedianFilterReflect(ParametricTestCase):
         self.assertTrue(numpy.array_equal(thRes, res))
 
     def testApplyReflect1D(self):
-        """Test the reflect function used for the median filter in reflect mode"""
+        """Test the reflect function used for the median filter in reflect mode
+        """
         # test for inside values
         self.assertTrue(reflect(2, 3) == 2)
         # test for boundaries values
@@ -321,7 +323,8 @@ class TestMedianFilterReflect(ParametricTestCase):
         self.assertTrue(reflect(-7, 3) == 0)
 
     def testRandom10Conditionnal(self):
-        """Test the median filter in reflect mode and with the conditionnal option"""
+        """Test the median filter in reflect mode and with the conditionnal
+        option"""
         kernel = (3, 1)
 
         thRes = numpy.array([
@@ -343,7 +346,8 @@ class TestMedianFilterMirror(ParametricTestCase):
     """
 
     def testApplyMirror1D(self):
-        """Test the reflect function used for the median filter in mirror mode"""
+        """Test the reflect function used for the median filter in mirror mode
+        """
         # test for inside values
         self.assertTrue(mirror(2, 3) == 2)
         # test for boundaries values
@@ -401,7 +405,8 @@ class TestMedianFilterMirror(ParametricTestCase):
                 self.assertTrue(numpy.array_equal(resScipy, resSilx))
 
     def testRandom10Conditionnal(self):
-        """Test the median filter in reflect mode and with the conditionnal option"""
+        """Test the median filter in reflect mode and with the conditionnal
+        option"""
         kernel = (1, 3)
 
         thRes = numpy.array([
@@ -421,7 +426,8 @@ class TestMedianFilterMirror(ParametricTestCase):
 
 def suite():
     test_suite = unittest.TestSuite()
-    for test in [TestMedianFilterNearest, TestMedianFilterReflect, TestMedianFilterMirror]:
+    for test in [TestMedianFilterNearest, TestMedianFilterReflect,
+                 TestMedianFilterMirror]:
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(test))
     return test_suite

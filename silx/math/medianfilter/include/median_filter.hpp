@@ -101,7 +101,6 @@ int reflect(int index, int length_max){
     return res;
 }
 
-
 // return the index into 0, (length_max - 1) in mirror mode
 int mirror(int index, int length_max){
     int res = index;
