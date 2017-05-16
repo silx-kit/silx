@@ -26,6 +26,10 @@ _logger = logging.getLogger(__name__)
 _AVAILABLE_AS_RESOURCE = ('magma', 'inferno', 'plasma', 'viridis')
 """List available colormap name as resources"""
 
+_AVAILABLE_AS_BUILTINS = ('gray', 'reversed gray',
+                          'temperature', 'red', 'green', 'blue')
+"""List of colormaps available through built-in declarations"""
+
 _CMAPS = {}
 """Cache colormaps"""
 
@@ -270,6 +274,7 @@ def applyColormapToData(data,
 def getSupportedColormaps():
     """Get the supported colormap names as a tuple of str.
     """
-    maps = [m for m in matplotlib.cm.datad]
-    maps.sort()
-    return tuple(maps)
+    colormaps = set(matplotlib.cm.datad.keys())
+    colormaps.update(_AVAILABLE_AS_BUILTINS)
+    colormaps.update(_AVAILABLE_AS_RESOURCE)
+    return tuple(sorted(colormaps))

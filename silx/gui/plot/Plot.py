@@ -2236,11 +2236,13 @@ class Plot(object):
                         'autoscale': True, 'vmin': 0.0, 'vmax': 1.0}
         self._defaultColormap = colormap.copy()
 
-    def getSupportedColormaps(self):
+    @staticmethod
+    def getSupportedColormaps():
         """Get the supported colormap names as a tuple of str.
 
-        The list should at least contain and start by:
-        ('gray', 'reversed gray', 'temperature', 'red', 'green', 'blue')
+        The list contains at least:
+        ('gray', 'reversed gray', 'temperature', 'red', 'green', 'blue',
+         'magma', 'inferno', 'plasma', 'viridis')
         """
         return Colors.getSupportedColormaps()
 
