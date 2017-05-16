@@ -44,12 +44,18 @@ else:
 import logging
 _logger = logging.getLogger(__name__)
 
-RANDOM_MAT = numpy.array([
+RANDOM_FLOAT_MAT = numpy.array([
     [0.05564293, 0.62717157, 0.75002406, 0.40555336, 0.70278975],
     [0.76532598, 0.02839148, 0.05272484, 0.65166994, 0.42161216],
     [0.23067427, 0.74219128, 0.56049024, 0.44406320, 0.28773158],
     [0.81025249, 0.20303021, 0.68382382, 0.46372299, 0.81281709],
     [0.94691602, 0.07813661, 0.81651256, 0.84220106, 0.33623165]])
+
+RANDOM_INT_MAT = numpy.array([
+    [0, 5, 2, 6, 1],
+    [2, 3, 1, 7, 1],
+    [9, 8, 6, 7, 8],
+    [5, 6, 8, 2, 4]])
 
 
 class TestMedianFilterNearest(ParametricTestCase):
@@ -214,11 +220,11 @@ class TestMedianFilterNearest(ParametricTestCase):
         kernels = [(3, 7), (7, 5), (1, 1), (3, 3)]
         for kernel in kernels:
             with self.subTest(kernel=kernel):
-                resScipy = scipy.ndimage.median_filter(input=RANDOM_MAT,
+                resScipy = scipy.ndimage.median_filter(input=RANDOM_FLOAT_MAT,
                                                        size=kernel,
                                                        mode='nearest')
 
-                resSilx = medfilt2d(image=RANDOM_MAT,
+                resSilx = medfilt2d(image=RANDOM_FLOAT_MAT,
                                     kernel_size=kernel,
                                     conditional=False,
                                     mode='nearest')
@@ -296,7 +302,7 @@ class TestMedianFilterReflect(ParametricTestCase):
             [0.76532598, 0.68382382, 0.56049024, 0.56049024, 0.42161216],
             [0.81025249, 0.68382382, 0.56049024, 0.68382382, 0.46372299]])
 
-        res = medfilt2d(image=RANDOM_MAT,
+        res = medfilt2d(image=RANDOM_FLOAT_MAT,
                         kernel_size=kernel,
                         conditional=False,
                         mode='reflect')
@@ -334,7 +340,7 @@ class TestMedianFilterReflect(ParametricTestCase):
             [0.81025249, 0.20303021, 0.68382382, 0.46372299, 0.33623165],
             [0.94691602, 0.07813661, 0.81651256, 0.84220106, 0.33623165]])
 
-        res = medfilt2d(image=RANDOM_MAT,
+        res = medfilt2d(image=RANDOM_FLOAT_MAT,
                         kernel_size=kernel,
                         conditional=True,
                         mode='reflect')
@@ -374,7 +380,7 @@ class TestMedianFilterMirror(ParametricTestCase):
             [0.68382382, 0.56049024, 0.56049024, 0.46372299, 0.56049024],
             [0.68382382, 0.46372299, 0.68382382, 0.46372299, 0.68382382]])
 
-        res = medfilt2d(image=RANDOM_MAT,
+        res = medfilt2d(image=RANDOM_FLOAT_MAT,
                         kernel_size=kernel,
                         conditional=False,
                         mode='mirror')
@@ -416,7 +422,7 @@ class TestMedianFilterMirror(ParametricTestCase):
             [0.20303021, 0.68382382, 0.46372299, 0.68382382, 0.46372299],
             [0.07813661, 0.81651256, 0.81651256, 0.81651256, 0.84220106]])
 
-        res = medfilt2d(image=RANDOM_MAT,
+        res = medfilt2d(image=RANDOM_FLOAT_MAT,
                         kernel_size=kernel,
                         conditional=True,
                         mode='mirror')
@@ -440,37 +446,81 @@ class TestMedianFilterShrink(ParametricTestCase):
             [0.74219128, 0.68382382, 0.56049024, 0.56049024, 0.46372299],
             [0.81025249, 0.81025249, 0.68382382, 0.81281709, 0.81281709]])
 
-        res = medfilt2d(image=RANDOM_MAT,
+        res = medfilt2d(image=RANDOM_FLOAT_MAT,
                         kernel_size=kernel,
                         conditional=False,
                         mode='shrink')
 
         self.assertTrue(numpy.array_equal(thRes, res))
 
-    # [0.05564293, 0.62717157, 0.75002406, 0.40555336, 0.70278975],
-    # [0.76532598, 0.02839148, 0.05272484, 0.65166994, 0.42161216],
-    # [0.23067427, 0.74219128, 0.56049024, 0.44406320, 0.28773158],
-    # [0.81025249, 0.20303021, 0.68382382, 0.46372299, 0.81281709],
-    # [0.94691602, 0.07813661, 0.81651256, 0.84220106, 0.33623165]])
+    def testBounds(self):
+        """Test the median filter in shrink mode with 3 different kernels
+        which should return the same result due to the large values of kernels
+        used.
+        """
+        kernel1 = (1, 9)
+        kernel2 = (1, 11)
+        kernel3 = (1, 21)
 
+        thRes = numpy.array([[2, 2, 2, 2, 2],
+                             [2, 2, 2, 2, 2],
+                             [8, 8, 8, 8, 8],
+                             [5, 5, 5, 5, 5]])
 
-    # def testRandom_3x3Conditionnal(self):
-    #     """Test the median filter in reflect mode and with the conditionnal
-    #     option"""
-    #     kernel = (3, 3)
-    #
-    #     thRes = numpy.array([
-    #         [0.05564293, 0.62717157, 0.62717157, 0.70278975, 0.40555336],
-    #         [0.02839148, 0.05272484, 0.05272484, 0.42161216, 0.65166994],
-    #         [0.74219128, 0.56049024, 0.56049024, 0.44406320, 0.44406320],
-    #         [0.20303021, 0.68382382, 0.46372299, 0.68382382, 0.46372299],
-    #         [0.07813661, 0.81651256, 0.81651256, 0.81651256, 0.84220106]])
-    #
-    #     res = medfilt2d(image=RANDOM_MAT,
-    #                     kernel_size=kernel,
-    #                     conditional=True,
-    #                     mode='shrink')
+        resK1 = medfilt2d(image=RANDOM_INT_MAT,
+                          kernel_size=kernel1,
+                          conditional=False,
+                          mode='shrink')
 
+        resK2 = medfilt2d(image=RANDOM_INT_MAT,
+                          kernel_size=kernel2,
+                          conditional=False,
+                          mode='shrink')
+
+        resK3 = medfilt2d(image=RANDOM_INT_MAT,
+                          kernel_size=kernel3,
+                          conditional=False,
+                          mode='shrink')
+
+        self.assertTrue(numpy.array_equal(resK1, thRes))
+        self.assertTrue(numpy.array_equal(resK2, resK1))
+        self.assertTrue(numpy.array_equal(resK3, resK1))
+
+    def testRandom_3x3Conditionnal(self):
+        """Test the median filter in reflect mode and with the conditionnal
+        option"""
+        kernel = (3, 3)
+
+        thRes = numpy.array([
+            [0.05564293, 0.62717157, 0.62717157, 0.40555336, 0.65166994],
+            [0.62717157, 0.56049024, 0.05272484, 0.65166994, 0.42161216],
+            [0.23067427, 0.74219128, 0.56049024, 0.44406320, 0.46372299],
+            [0.81025249, 0.20303021, 0.68382382, 0.46372299, 0.81281709],
+            [0.81025249, 0.81025249, 0.81651256, 0.81281709, 0.81281709]])
+
+        res = medfilt2d(image=RANDOM_FLOAT_MAT,
+                        kernel_size=kernel,
+                        conditional=True,
+                        mode='shrink')
+
+        self.assertTrue(numpy.array_equal(res, thRes))
+
+    def testRandomInt(self):
+        """Test 3x3 kernel on RANDOM_INT_MAT
+        """
+        kernel = (3, 3)
+
+        thRes = numpy.array([[3, 2, 5, 2, 6],
+                             [5, 3, 6, 6, 7],
+                             [6, 6, 6, 6, 7],
+                             [8, 8, 7, 7, 7]])
+
+        resK1 = medfilt2d(image=RANDOM_INT_MAT,
+                          kernel_size=kernel,
+                          conditional=False,
+                          mode='shrink')
+
+        self.assertTrue(numpy.array_equal(resK1, thRes))
 
 
 def suite():
