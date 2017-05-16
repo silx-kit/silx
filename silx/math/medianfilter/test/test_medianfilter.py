@@ -44,16 +44,16 @@ else:
 import logging
 _logger = logging.getLogger(__name__)
 
+RANDOM_MAT = numpy.array([
+    [0.05564293, 0.62717157, 0.75002406, 0.40555336, 0.70278975],
+    [0.76532598, 0.02839148, 0.05272484, 0.65166994, 0.42161216],
+    [0.23067427, 0.74219128, 0.56049024, 0.44406320, 0.28773158],
+    [0.81025249, 0.20303021, 0.68382382, 0.46372299, 0.81281709],
+    [0.94691602, 0.07813661, 0.81651256, 0.84220106, 0.33623165]])
+
 
 class TestMedianFilterNearest(ParametricTestCase):
     """Unit tests for the median filter in nearest mode"""
-
-    random_mat = numpy.array([
-        [0.05564293,  0.62717157,  0.75002406,  0.40555336,  0.70278975],
-        [0.76532598,  0.02839148,  0.05272484,  0.65166994,  0.42161216],
-        [0.23067427,  0.74219128,  0.56049024,  0.44406320,  0.28773158],
-        [0.81025249,  0.20303021,  0.68382382,  0.46372299,  0.81281709],
-        [0.94691602,  0.07813661,  0.81651256,  0.84220106,  0.33623165]])
 
     def testFilter3_100(self):
         """Test median filter on a 10x10 matrix with a 3x3 kernel."""
@@ -214,11 +214,11 @@ class TestMedianFilterNearest(ParametricTestCase):
         kernels = [(3, 7), (7, 5), (1, 1), (3, 3)]
         for kernel in kernels:
             with self.subTest(kernel=kernel):
-                resScipy = scipy.ndimage.median_filter(input=self.random_mat,
+                resScipy = scipy.ndimage.median_filter(input=RANDOM_MAT,
                                                        size=kernel,
                                                        mode='nearest')
 
-                resSilx = medfilt2d(image=self.random_mat,
+                resSilx = medfilt2d(image=RANDOM_MAT,
                                     kernel_size=kernel,
                                     conditional=False,
                                     mode='nearest')
@@ -249,12 +249,6 @@ class TestMedianFilterNearest(ParametricTestCase):
 
 class TestMedianFilterReflect(ParametricTestCase):
     """Unit test for the median filter in reflect mode"""
-    random_mat = numpy.array([
-        [0.05564293, 0.62717157, 0.75002406, 0.40555336, 0.70278975],
-        [0.76532598, 0.02839148, 0.05272484, 0.65166994, 0.42161216],
-        [0.23067427, 0.74219128, 0.56049024, 0.44406320, 0.28773158],
-        [0.81025249, 0.20303021, 0.68382382, 0.46372299, 0.81281709],
-        [0.94691602, 0.07813661, 0.81651256, 0.84220106, 0.33623165]])
 
     @unittest.skipUnless(scipy, "scipy not available")
     def testAscentOrLena(self):
@@ -301,7 +295,7 @@ class TestMedianFilterReflect(ParametricTestCase):
             [0.76532598, 0.68382382, 0.56049024, 0.56049024, 0.42161216],
             [0.81025249, 0.68382382, 0.56049024, 0.68382382, 0.46372299]])
 
-        res = medfilt2d(image=self.random_mat,
+        res = medfilt2d(image=RANDOM_MAT,
                         kernel_size=kernel,
                         conditional=False,
                         mode='reflect')
@@ -337,11 +331,12 @@ class TestMedianFilterReflect(ParametricTestCase):
             [0.81025249, 0.20303021, 0.68382382, 0.46372299, 0.33623165],
             [0.94691602, 0.07813661, 0.81651256, 0.84220106, 0.33623165]])
 
-        res = medfilt2d(image=self.random_mat,
+        res = medfilt2d(image=RANDOM_MAT,
                         kernel_size=kernel,
                         conditional=True,
                         mode='reflect')
         self.assertTrue(numpy.array_equal(thRes, res))
+
 
 
 def suite():
