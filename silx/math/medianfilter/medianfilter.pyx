@@ -35,7 +35,6 @@ cimport cython
 cimport median_filter
 import numpy
 cimport numpy as cnumpy
-cdef Py_ssize_t size = 10
 from libcpp cimport bool
 
 ctypedef unsigned long uint64
@@ -43,7 +42,7 @@ ctypedef unsigned int uint32
 ctypedef unsigned short uint16
 
 
-def medfilt1d(data, kernel_size=3, bool conditional=False):
+def medfilt1d(data, kernel_size=3, bool conditional=False, mode='nearest'):
     """Function computing the median filter of the given input.
     Behavior at boundaries: the algorithm is reducing the size of the
     window/kernel for pixels at boundaries (there is no mirroring).
@@ -57,10 +56,10 @@ def medfilt1d(data, kernel_size=3, bool conditional=False):
 
     :returns: the array with the median value for each pixel.
     """
-    return medfilt(data, kernel_size, conditional)
+    return medfilt(data, kernel_size, conditional, mode)
 
 
-def medfilt2d(image, kernel_size=3, bool conditional=False):
+def medfilt2d(image, kernel_size=3, bool conditional=False, mode='nearest'):
     """Function computing the median filter of the given input.
     Behavior at boundaries: the algorithm is reducing the size of the
     window/kernel for pixels at boundaries (there is no mirroring).
@@ -75,10 +74,10 @@ def medfilt2d(image, kernel_size=3, bool conditional=False):
 
     :returns: the array with the median value for each pixel.
     """
-    return medfilt(image, kernel_size, conditional)
+    return medfilt(image, kernel_size, conditional, mode)
 
 
-def medfilt(data, kernel_size=3, bool conditional=False):
+def medfilt(data, kernel_size=3, bool conditional=False, mode='nearest'):
     """Function computing the median filter of the given input.
     Behavior at boundaries: the algorithm is reducing the size of the
     window/kernel for pixels at boundaries (there is no mirroring).
@@ -90,6 +89,8 @@ def medfilt(data, kernel_size=3, bool conditional=False):
         a list of (kernel_height, kernel_width)
     :param bool conditional: True if we want to apply a conditional median
         filtering.
+    :param str mode: the algorithm used to determine how values at borders
+        are determined.
 
     :returns: the array with the median value for each pixel.
     """
