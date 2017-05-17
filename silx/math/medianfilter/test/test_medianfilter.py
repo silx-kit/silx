@@ -121,42 +121,6 @@ class TestMedianFilterNearest(ParametricTestCase):
                   mode='nearest')
         self.assertTrue(numpy.array_equal(dataIn, dataInCopy))
 
-    def testThreads(self):
-        """Make sure the result doesn't depends on the number of threads used
-        """
-        dataIn = numpy.random.rand(100, 100)
-
-        former = os.environ.get("OMP_NUM_THREADS")
-        os.environ["OMP_NUM_THREADS"] = "1"
-        dataOut1Thr = medfilt2d(image=dataIn,
-                                kernel_size=(3, 3),
-                                conditional=False,
-                                mode='nearest',
-                                )
-        os.environ["OMP_NUM_THREADS"] = "2"
-        dataOut2Thr = medfilt2d(image=dataIn,
-                                kernel_size=(3, 3),
-                                conditional=False,
-                                mode='nearest')
-        os.environ["OMP_NUM_THREADS"] = "4"
-        dataOut4Thr = medfilt2d(image=dataIn,
-                                kernel_size=(3, 3),
-                                conditional=False,
-                                mode='nearest')
-        os.environ["OMP_NUM_THREADS"] = "8"
-        dataOut8Thr = medfilt2d(image=dataIn,
-                                kernel_size=(3, 3),
-                                conditional=False,
-                                mode='nearest')
-        if former is None:
-            os.environ.pop("OMP_NUM_THREADS")
-        else:
-            os.environ["OMP_NUM_THREADS"] = former
-
-        self.assertTrue(numpy.array_equal(dataOut1Thr, dataOut2Thr))
-        self.assertTrue(numpy.array_equal(dataOut1Thr, dataOut4Thr))
-        self.assertTrue(numpy.array_equal(dataOut1Thr, dataOut8Thr))
-
     def testFilter3Conditionnal(self):
         """Test that the conditional filter apply correctly"""
         dataIn = numpy.arange(100, dtype=numpy.int32)
