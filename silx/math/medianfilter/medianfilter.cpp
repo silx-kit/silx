@@ -1591,7 +1591,7 @@ static char __pyx_k_h[] = "h";
 static char __pyx_k_i[] = "i";
 static char __pyx_k_l[] = "l";
 static char __pyx_k_q[] = "q";
-static char __pyx_k_x[] = "x";
+static char __pyx_k_y[] = "y";
 static char __pyx_k_Zd[] = "Zd";
 static char __pyx_k_Zf[] = "Zf";
 static char __pyx_k_Zg[] = "Zg";
@@ -1858,8 +1858,8 @@ static PyObject *__pyx_kp_s_unable_to_allocate_array_data;
 static PyObject *__pyx_kp_s_unable_to_allocate_shape_and_str;
 static PyObject *__pyx_kp_u_unknown_dtype_code_in_numpy_pxd;
 static PyObject *__pyx_n_s_unpack;
-static PyObject *__pyx_n_s_x;
 static PyObject *__pyx_n_s_xrange;
+static PyObject *__pyx_n_s_y;
 static PyObject *__pyx_n_s_zeros_like;
 static PyObject *__pyx_int_0;
 static PyObject *__pyx_int_1;
@@ -3951,7 +3951,7 @@ static PyObject *__pyx_pw_4silx_4math_12medianfilter_12medianfilter_13_median_fi
 }
 
 static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_12_median_filter_float32(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_input_buffer, __Pyx_memviewslice __pyx_v_output_buffer, __Pyx_memviewslice __pyx_v_kernel_size, bool __pyx_v_conditional, int __pyx_v_mode) {
-  int __pyx_v_x;
+  int __pyx_v_y;
   int __pyx_v_image_dim;
   int __pyx_v_buffer_shape[2];
   PyObject *__pyx_r = NULL;
@@ -3969,15 +3969,15 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_12_median_fi
   /* "silx/math/medianfilter/medianfilter.pyx":215
  * 
  *     cdef:
- *         int x = 0             # <<<<<<<<<<<<<<
+ *         int y = 0             # <<<<<<<<<<<<<<
  *         int image_dim = input_buffer.shape[1] - 1
  *         int[2] buffer_shape
  */
-  __pyx_v_x = 0;
+  __pyx_v_y = 0;
 
   /* "silx/math/medianfilter/medianfilter.pyx":216
  *     cdef:
- *         int x = 0
+ *         int y = 0
  *         int image_dim = input_buffer.shape[1] - 1             # <<<<<<<<<<<<<<
  *         int[2] buffer_shape
  *     buffer_shape[0] = input_buffer.shape[0]
@@ -3998,14 +3998,14 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_12_median_fi
  *     buffer_shape[0] = input_buffer.shape[0]
  *     buffer_shape[1] = input_buffer.shape[1]             # <<<<<<<<<<<<<<
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):
+ *     for y in prange(input_buffer.shape[0], nogil=True):
  */
   (__pyx_v_buffer_shape[1]) = (__pyx_v_input_buffer.shape[1]);
 
   /* "silx/math/medianfilter/medianfilter.pyx":221
  *     buffer_shape[1] = input_buffer.shape[1]
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):             # <<<<<<<<<<<<<<
+ *     for y in prange(input_buffer.shape[0], nogil=True):             # <<<<<<<<<<<<<<
  *             median_filter.median_filter[float](<float*> & input_buffer[0,0],
  *                                                <float*> & output_buffer[0,0],
  */
@@ -4032,15 +4032,15 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_12_median_fi
                 #endif /* _OPENMP */
                 {
                     #ifdef _OPENMP
-                    #pragma omp for firstprivate(__pyx_v_x) lastprivate(__pyx_v_x)
+                    #pragma omp for firstprivate(__pyx_v_y) lastprivate(__pyx_v_y)
                     #endif /* _OPENMP */
                     for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_3; __pyx_t_2++){
                         {
-                            __pyx_v_x = 0 + 1 * __pyx_t_2;
+                            __pyx_v_y = 0 + 1 * __pyx_t_2;
 
                             /* "silx/math/medianfilter/medianfilter.pyx":222
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):
+ *     for y in prange(input_buffer.shape[0], nogil=True):
  *             median_filter.median_filter[float](<float*> & input_buffer[0,0],             # <<<<<<<<<<<<<<
  *                                                <float*> & output_buffer[0,0],
  *                                                <int*>& kernel_size[0],
@@ -4049,7 +4049,7 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_12_median_fi
                             __pyx_t_5 = 0;
 
                             /* "silx/math/medianfilter/medianfilter.pyx":223
- *     for x in prange(input_buffer.shape[0], nogil=True):
+ *     for y in prange(input_buffer.shape[0], nogil=True):
  *             median_filter.median_filter[float](<float*> & input_buffer[0,0],
  *                                                <float*> & output_buffer[0,0],             # <<<<<<<<<<<<<<
  *                                                <int*>& kernel_size[0],
@@ -4063,18 +4063,18 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_12_median_fi
  *                                                <float*> & output_buffer[0,0],
  *                                                <int*>& kernel_size[0],             # <<<<<<<<<<<<<<
  *                                                <int*>buffer_shape,
- *                                                x,
+ *                                                y,
  */
                             __pyx_t_8 = 0;
 
                             /* "silx/math/medianfilter/medianfilter.pyx":222
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):
+ *     for y in prange(input_buffer.shape[0], nogil=True):
  *             median_filter.median_filter[float](<float*> & input_buffer[0,0],             # <<<<<<<<<<<<<<
  *                                                <float*> & output_buffer[0,0],
  *                                                <int*>& kernel_size[0],
  */
-                            median_filter<float>(((float *)(&(*((float *) ( /* dim=1 */ ((char *) (((float *) ( /* dim=0 */ (__pyx_v_input_buffer.data + __pyx_t_4 * __pyx_v_input_buffer.strides[0]) )) + __pyx_t_5)) ))))), ((float *)(&(*((float *) ( /* dim=1 */ ((char *) (((float *) ( /* dim=0 */ (__pyx_v_output_buffer.data + __pyx_t_6 * __pyx_v_output_buffer.strides[0]) )) + __pyx_t_7)) ))))), ((int *)(&(*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ ((char *) (((__pyx_t_5numpy_int32_t *) __pyx_v_kernel_size.data) + __pyx_t_8)) ))))), ((int *)__pyx_v_buffer_shape), __pyx_v_x, 0, __pyx_v_image_dim, __pyx_v_conditional, __pyx_v_mode);
+                            median_filter<float>(((float *)(&(*((float *) ( /* dim=1 */ ((char *) (((float *) ( /* dim=0 */ (__pyx_v_input_buffer.data + __pyx_t_4 * __pyx_v_input_buffer.strides[0]) )) + __pyx_t_5)) ))))), ((float *)(&(*((float *) ( /* dim=1 */ ((char *) (((float *) ( /* dim=0 */ (__pyx_v_output_buffer.data + __pyx_t_6 * __pyx_v_output_buffer.strides[0]) )) + __pyx_t_7)) ))))), ((int *)(&(*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ ((char *) (((__pyx_t_5numpy_int32_t *) __pyx_v_kernel_size.data) + __pyx_t_8)) ))))), ((int *)__pyx_v_buffer_shape), __pyx_v_y, 0, __pyx_v_image_dim, __pyx_v_conditional, __pyx_v_mode);
                         }
                     }
                 }
@@ -4091,7 +4091,7 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_12_median_fi
       /* "silx/math/medianfilter/medianfilter.pyx":221
  *     buffer_shape[1] = input_buffer.shape[1]
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):             # <<<<<<<<<<<<<<
+ *     for y in prange(input_buffer.shape[0], nogil=True):             # <<<<<<<<<<<<<<
  *             median_filter.median_filter[float](<float*> & input_buffer[0,0],
  *                                                <float*> & output_buffer[0,0],
  */
@@ -4236,7 +4236,7 @@ static PyObject *__pyx_pw_4silx_4math_12medianfilter_12medianfilter_15_median_fi
 }
 
 static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_14_median_filter_float64(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_input_buffer, __Pyx_memviewslice __pyx_v_output_buffer, __Pyx_memviewslice __pyx_v_kernel_size, bool __pyx_v_conditional, int __pyx_v_mode) {
-  int __pyx_v_x;
+  int __pyx_v_y;
   int __pyx_v_image_dim;
   int __pyx_v_buffer_shape[2];
   PyObject *__pyx_r = NULL;
@@ -4254,15 +4254,15 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_14_median_fi
   /* "silx/math/medianfilter/medianfilter.pyx":244
  * 
  *     cdef:
- *         int x = 0             # <<<<<<<<<<<<<<
+ *         int y = 0             # <<<<<<<<<<<<<<
  *         int image_dim = input_buffer.shape[1] - 1
  *         int[2] buffer_shape
  */
-  __pyx_v_x = 0;
+  __pyx_v_y = 0;
 
   /* "silx/math/medianfilter/medianfilter.pyx":245
  *     cdef:
- *         int x = 0
+ *         int y = 0
  *         int image_dim = input_buffer.shape[1] - 1             # <<<<<<<<<<<<<<
  *         int[2] buffer_shape
  *     buffer_shape[0] = input_buffer.shape[0]
@@ -4283,14 +4283,14 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_14_median_fi
  *     buffer_shape[0] = input_buffer.shape[0]
  *     buffer_shape[1] = input_buffer.shape[1]             # <<<<<<<<<<<<<<
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):
+ *     for y in prange(input_buffer.shape[0], nogil=True):
  */
   (__pyx_v_buffer_shape[1]) = (__pyx_v_input_buffer.shape[1]);
 
   /* "silx/math/medianfilter/medianfilter.pyx":250
  *     buffer_shape[1] = input_buffer.shape[1]
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):             # <<<<<<<<<<<<<<
+ *     for y in prange(input_buffer.shape[0], nogil=True):             # <<<<<<<<<<<<<<
  *             median_filter.median_filter[double](<double*> & input_buffer[0, 0],
  *                                                 <double*> & output_buffer[0, 0],
  */
@@ -4317,15 +4317,15 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_14_median_fi
                 #endif /* _OPENMP */
                 {
                     #ifdef _OPENMP
-                    #pragma omp for firstprivate(__pyx_v_x) lastprivate(__pyx_v_x)
+                    #pragma omp for firstprivate(__pyx_v_y) lastprivate(__pyx_v_y)
                     #endif /* _OPENMP */
                     for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_3; __pyx_t_2++){
                         {
-                            __pyx_v_x = 0 + 1 * __pyx_t_2;
+                            __pyx_v_y = 0 + 1 * __pyx_t_2;
 
                             /* "silx/math/medianfilter/medianfilter.pyx":251
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):
+ *     for y in prange(input_buffer.shape[0], nogil=True):
  *             median_filter.median_filter[double](<double*> & input_buffer[0, 0],             # <<<<<<<<<<<<<<
  *                                                 <double*> & output_buffer[0, 0],
  *                                                 <int*>&kernel_size[0],
@@ -4334,7 +4334,7 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_14_median_fi
                             __pyx_t_5 = 0;
 
                             /* "silx/math/medianfilter/medianfilter.pyx":252
- *     for x in prange(input_buffer.shape[0], nogil=True):
+ *     for y in prange(input_buffer.shape[0], nogil=True):
  *             median_filter.median_filter[double](<double*> & input_buffer[0, 0],
  *                                                 <double*> & output_buffer[0, 0],             # <<<<<<<<<<<<<<
  *                                                 <int*>&kernel_size[0],
@@ -4348,18 +4348,18 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_14_median_fi
  *                                                 <double*> & output_buffer[0, 0],
  *                                                 <int*>&kernel_size[0],             # <<<<<<<<<<<<<<
  *                                                 <int*>buffer_shape,
- *                                                 x,
+ *                                                 y,
  */
                             __pyx_t_8 = 0;
 
                             /* "silx/math/medianfilter/medianfilter.pyx":251
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):
+ *     for y in prange(input_buffer.shape[0], nogil=True):
  *             median_filter.median_filter[double](<double*> & input_buffer[0, 0],             # <<<<<<<<<<<<<<
  *                                                 <double*> & output_buffer[0, 0],
  *                                                 <int*>&kernel_size[0],
  */
-                            median_filter<double>(((double *)(&(*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_input_buffer.data + __pyx_t_4 * __pyx_v_input_buffer.strides[0]) )) + __pyx_t_5)) ))))), ((double *)(&(*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_output_buffer.data + __pyx_t_6 * __pyx_v_output_buffer.strides[0]) )) + __pyx_t_7)) ))))), ((int *)(&(*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ ((char *) (((__pyx_t_5numpy_int32_t *) __pyx_v_kernel_size.data) + __pyx_t_8)) ))))), ((int *)__pyx_v_buffer_shape), __pyx_v_x, 0, __pyx_v_image_dim, __pyx_v_conditional, __pyx_v_mode);
+                            median_filter<double>(((double *)(&(*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_input_buffer.data + __pyx_t_4 * __pyx_v_input_buffer.strides[0]) )) + __pyx_t_5)) ))))), ((double *)(&(*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_output_buffer.data + __pyx_t_6 * __pyx_v_output_buffer.strides[0]) )) + __pyx_t_7)) ))))), ((int *)(&(*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ ((char *) (((__pyx_t_5numpy_int32_t *) __pyx_v_kernel_size.data) + __pyx_t_8)) ))))), ((int *)__pyx_v_buffer_shape), __pyx_v_y, 0, __pyx_v_image_dim, __pyx_v_conditional, __pyx_v_mode);
                         }
                     }
                 }
@@ -4376,7 +4376,7 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_14_median_fi
       /* "silx/math/medianfilter/medianfilter.pyx":250
  *     buffer_shape[1] = input_buffer.shape[1]
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):             # <<<<<<<<<<<<<<
+ *     for y in prange(input_buffer.shape[0], nogil=True):             # <<<<<<<<<<<<<<
  *             median_filter.median_filter[double](<double*> & input_buffer[0, 0],
  *                                                 <double*> & output_buffer[0, 0],
  */
@@ -4521,7 +4521,7 @@ static PyObject *__pyx_pw_4silx_4math_12medianfilter_12medianfilter_17_median_fi
 }
 
 static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_16_median_filter_int64(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_input_buffer, __Pyx_memviewslice __pyx_v_output_buffer, __Pyx_memviewslice __pyx_v_kernel_size, bool __pyx_v_conditional, int __pyx_v_mode) {
-  int __pyx_v_x;
+  int __pyx_v_y;
   int __pyx_v_image_dim;
   int __pyx_v_buffer_shape[2];
   PyObject *__pyx_r = NULL;
@@ -4539,15 +4539,15 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_16_median_fi
   /* "silx/math/medianfilter/medianfilter.pyx":273
  * 
  *     cdef:
- *         int x = 0             # <<<<<<<<<<<<<<
+ *         int y = 0             # <<<<<<<<<<<<<<
  *         int image_dim = input_buffer.shape[1] - 1
  *         int[2] buffer_shape
  */
-  __pyx_v_x = 0;
+  __pyx_v_y = 0;
 
   /* "silx/math/medianfilter/medianfilter.pyx":274
  *     cdef:
- *         int x = 0
+ *         int y = 0
  *         int image_dim = input_buffer.shape[1] - 1             # <<<<<<<<<<<<<<
  *         int[2] buffer_shape
  *     buffer_shape[0] = input_buffer.shape[0]
@@ -4568,14 +4568,14 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_16_median_fi
  *     buffer_shape[0] = input_buffer.shape[0]
  *     buffer_shape[1] = input_buffer.shape[1]             # <<<<<<<<<<<<<<
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):
+ *     for y in prange(input_buffer.shape[0], nogil=True):
  */
   (__pyx_v_buffer_shape[1]) = (__pyx_v_input_buffer.shape[1]);
 
   /* "silx/math/medianfilter/medianfilter.pyx":279
  *     buffer_shape[1] = input_buffer.shape[1]
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):             # <<<<<<<<<<<<<<
+ *     for y in prange(input_buffer.shape[0], nogil=True):             # <<<<<<<<<<<<<<
  *             median_filter.median_filter[long](<long*> & input_buffer[0,0],
  *                                               <long*>  & output_buffer[0, 0],
  */
@@ -4602,15 +4602,15 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_16_median_fi
                 #endif /* _OPENMP */
                 {
                     #ifdef _OPENMP
-                    #pragma omp for firstprivate(__pyx_v_x) lastprivate(__pyx_v_x)
+                    #pragma omp for firstprivate(__pyx_v_y) lastprivate(__pyx_v_y)
                     #endif /* _OPENMP */
                     for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_3; __pyx_t_2++){
                         {
-                            __pyx_v_x = 0 + 1 * __pyx_t_2;
+                            __pyx_v_y = 0 + 1 * __pyx_t_2;
 
                             /* "silx/math/medianfilter/medianfilter.pyx":280
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):
+ *     for y in prange(input_buffer.shape[0], nogil=True):
  *             median_filter.median_filter[long](<long*> & input_buffer[0,0],             # <<<<<<<<<<<<<<
  *                                               <long*>  & output_buffer[0, 0],
  *                                               <int*>&kernel_size[0],
@@ -4619,7 +4619,7 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_16_median_fi
                             __pyx_t_5 = 0;
 
                             /* "silx/math/medianfilter/medianfilter.pyx":281
- *     for x in prange(input_buffer.shape[0], nogil=True):
+ *     for y in prange(input_buffer.shape[0], nogil=True):
  *             median_filter.median_filter[long](<long*> & input_buffer[0,0],
  *                                               <long*>  & output_buffer[0, 0],             # <<<<<<<<<<<<<<
  *                                               <int*>&kernel_size[0],
@@ -4633,18 +4633,18 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_16_median_fi
  *                                               <long*>  & output_buffer[0, 0],
  *                                               <int*>&kernel_size[0],             # <<<<<<<<<<<<<<
  *                                                 <int*>buffer_shape,
- *                                                 x,
+ *                                                 y,
  */
                             __pyx_t_8 = 0;
 
                             /* "silx/math/medianfilter/medianfilter.pyx":280
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):
+ *     for y in prange(input_buffer.shape[0], nogil=True):
  *             median_filter.median_filter[long](<long*> & input_buffer[0,0],             # <<<<<<<<<<<<<<
  *                                               <long*>  & output_buffer[0, 0],
  *                                               <int*>&kernel_size[0],
  */
-                            median_filter<long>(((long *)(&(*((__pyx_t_5numpy_int64_t *) ( /* dim=1 */ ((char *) (((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_input_buffer.data + __pyx_t_4 * __pyx_v_input_buffer.strides[0]) )) + __pyx_t_5)) ))))), ((long *)(&(*((__pyx_t_5numpy_int64_t *) ( /* dim=1 */ ((char *) (((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_output_buffer.data + __pyx_t_6 * __pyx_v_output_buffer.strides[0]) )) + __pyx_t_7)) ))))), ((int *)(&(*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ ((char *) (((__pyx_t_5numpy_int32_t *) __pyx_v_kernel_size.data) + __pyx_t_8)) ))))), ((int *)__pyx_v_buffer_shape), __pyx_v_x, 0, __pyx_v_image_dim, __pyx_v_conditional, __pyx_v_mode);
+                            median_filter<long>(((long *)(&(*((__pyx_t_5numpy_int64_t *) ( /* dim=1 */ ((char *) (((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_input_buffer.data + __pyx_t_4 * __pyx_v_input_buffer.strides[0]) )) + __pyx_t_5)) ))))), ((long *)(&(*((__pyx_t_5numpy_int64_t *) ( /* dim=1 */ ((char *) (((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_output_buffer.data + __pyx_t_6 * __pyx_v_output_buffer.strides[0]) )) + __pyx_t_7)) ))))), ((int *)(&(*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ ((char *) (((__pyx_t_5numpy_int32_t *) __pyx_v_kernel_size.data) + __pyx_t_8)) ))))), ((int *)__pyx_v_buffer_shape), __pyx_v_y, 0, __pyx_v_image_dim, __pyx_v_conditional, __pyx_v_mode);
                         }
                     }
                 }
@@ -4661,7 +4661,7 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_16_median_fi
       /* "silx/math/medianfilter/medianfilter.pyx":279
  *     buffer_shape[1] = input_buffer.shape[1]
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):             # <<<<<<<<<<<<<<
+ *     for y in prange(input_buffer.shape[0], nogil=True):             # <<<<<<<<<<<<<<
  *             median_filter.median_filter[long](<long*> & input_buffer[0,0],
  *                                               <long*>  & output_buffer[0, 0],
  */
@@ -4806,7 +4806,7 @@ static PyObject *__pyx_pw_4silx_4math_12medianfilter_12medianfilter_19_median_fi
 }
 
 static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_18_median_filter_uint64(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_input_buffer, __Pyx_memviewslice __pyx_v_output_buffer, __Pyx_memviewslice __pyx_v_kernel_size, bool __pyx_v_conditional, int __pyx_v_mode) {
-  int __pyx_v_x;
+  int __pyx_v_y;
   int __pyx_v_image_dim;
   int __pyx_v_buffer_shape[2];
   PyObject *__pyx_r = NULL;
@@ -4824,15 +4824,15 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_18_median_fi
   /* "silx/math/medianfilter/medianfilter.pyx":302
  * 
  *     cdef:
- *         int x = 0             # <<<<<<<<<<<<<<
+ *         int y = 0             # <<<<<<<<<<<<<<
  *         int image_dim = input_buffer.shape[1] - 1
  *         int[2] buffer_shape
  */
-  __pyx_v_x = 0;
+  __pyx_v_y = 0;
 
   /* "silx/math/medianfilter/medianfilter.pyx":303
  *     cdef:
- *         int x = 0
+ *         int y = 0
  *         int image_dim = input_buffer.shape[1] - 1             # <<<<<<<<<<<<<<
  *         int[2] buffer_shape
  *     buffer_shape[0] = input_buffer.shape[0]
@@ -4853,14 +4853,14 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_18_median_fi
  *     buffer_shape[0] = input_buffer.shape[0]
  *     buffer_shape[1] = input_buffer.shape[1]             # <<<<<<<<<<<<<<
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):
+ *     for y in prange(input_buffer.shape[0], nogil=True):
  */
   (__pyx_v_buffer_shape[1]) = (__pyx_v_input_buffer.shape[1]);
 
   /* "silx/math/medianfilter/medianfilter.pyx":308
  *     buffer_shape[1] = input_buffer.shape[1]
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):             # <<<<<<<<<<<<<<
+ *     for y in prange(input_buffer.shape[0], nogil=True):             # <<<<<<<<<<<<<<
  *             median_filter.median_filter[uint64](<uint64*> & input_buffer[0,0],
  *                                                 <uint64*> & output_buffer[0, 0],
  */
@@ -4887,15 +4887,15 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_18_median_fi
                 #endif /* _OPENMP */
                 {
                     #ifdef _OPENMP
-                    #pragma omp for firstprivate(__pyx_v_x) lastprivate(__pyx_v_x)
+                    #pragma omp for firstprivate(__pyx_v_y) lastprivate(__pyx_v_y)
                     #endif /* _OPENMP */
                     for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_3; __pyx_t_2++){
                         {
-                            __pyx_v_x = 0 + 1 * __pyx_t_2;
+                            __pyx_v_y = 0 + 1 * __pyx_t_2;
 
                             /* "silx/math/medianfilter/medianfilter.pyx":309
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):
+ *     for y in prange(input_buffer.shape[0], nogil=True):
  *             median_filter.median_filter[uint64](<uint64*> & input_buffer[0,0],             # <<<<<<<<<<<<<<
  *                                                 <uint64*> & output_buffer[0, 0],
  *                                                 <int*>&kernel_size[0],
@@ -4904,7 +4904,7 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_18_median_fi
                             __pyx_t_5 = 0;
 
                             /* "silx/math/medianfilter/medianfilter.pyx":310
- *     for x in prange(input_buffer.shape[0], nogil=True):
+ *     for y in prange(input_buffer.shape[0], nogil=True):
  *             median_filter.median_filter[uint64](<uint64*> & input_buffer[0,0],
  *                                                 <uint64*> & output_buffer[0, 0],             # <<<<<<<<<<<<<<
  *                                                 <int*>&kernel_size[0],
@@ -4918,18 +4918,18 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_18_median_fi
  *                                                 <uint64*> & output_buffer[0, 0],
  *                                                 <int*>&kernel_size[0],             # <<<<<<<<<<<<<<
  *                                                 <int*>buffer_shape,
- *                                                 x,
+ *                                                 y,
  */
                             __pyx_t_8 = 0;
 
                             /* "silx/math/medianfilter/medianfilter.pyx":309
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):
+ *     for y in prange(input_buffer.shape[0], nogil=True):
  *             median_filter.median_filter[uint64](<uint64*> & input_buffer[0,0],             # <<<<<<<<<<<<<<
  *                                                 <uint64*> & output_buffer[0, 0],
  *                                                 <int*>&kernel_size[0],
  */
-                            median_filter<__pyx_t_4silx_4math_12medianfilter_12medianfilter_uint64>(((__pyx_t_4silx_4math_12medianfilter_12medianfilter_uint64 *)(&(*((__pyx_t_5numpy_uint64_t *) ( /* dim=1 */ ((char *) (((__pyx_t_5numpy_uint64_t *) ( /* dim=0 */ (__pyx_v_input_buffer.data + __pyx_t_4 * __pyx_v_input_buffer.strides[0]) )) + __pyx_t_5)) ))))), ((__pyx_t_4silx_4math_12medianfilter_12medianfilter_uint64 *)(&(*((__pyx_t_5numpy_uint64_t *) ( /* dim=1 */ ((char *) (((__pyx_t_5numpy_uint64_t *) ( /* dim=0 */ (__pyx_v_output_buffer.data + __pyx_t_6 * __pyx_v_output_buffer.strides[0]) )) + __pyx_t_7)) ))))), ((int *)(&(*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ ((char *) (((__pyx_t_5numpy_int32_t *) __pyx_v_kernel_size.data) + __pyx_t_8)) ))))), ((int *)__pyx_v_buffer_shape), __pyx_v_x, 0, __pyx_v_image_dim, __pyx_v_conditional, __pyx_v_mode);
+                            median_filter<__pyx_t_4silx_4math_12medianfilter_12medianfilter_uint64>(((__pyx_t_4silx_4math_12medianfilter_12medianfilter_uint64 *)(&(*((__pyx_t_5numpy_uint64_t *) ( /* dim=1 */ ((char *) (((__pyx_t_5numpy_uint64_t *) ( /* dim=0 */ (__pyx_v_input_buffer.data + __pyx_t_4 * __pyx_v_input_buffer.strides[0]) )) + __pyx_t_5)) ))))), ((__pyx_t_4silx_4math_12medianfilter_12medianfilter_uint64 *)(&(*((__pyx_t_5numpy_uint64_t *) ( /* dim=1 */ ((char *) (((__pyx_t_5numpy_uint64_t *) ( /* dim=0 */ (__pyx_v_output_buffer.data + __pyx_t_6 * __pyx_v_output_buffer.strides[0]) )) + __pyx_t_7)) ))))), ((int *)(&(*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ ((char *) (((__pyx_t_5numpy_int32_t *) __pyx_v_kernel_size.data) + __pyx_t_8)) ))))), ((int *)__pyx_v_buffer_shape), __pyx_v_y, 0, __pyx_v_image_dim, __pyx_v_conditional, __pyx_v_mode);
                         }
                     }
                 }
@@ -4946,7 +4946,7 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_18_median_fi
       /* "silx/math/medianfilter/medianfilter.pyx":308
  *     buffer_shape[1] = input_buffer.shape[1]
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):             # <<<<<<<<<<<<<<
+ *     for y in prange(input_buffer.shape[0], nogil=True):             # <<<<<<<<<<<<<<
  *             median_filter.median_filter[uint64](<uint64*> & input_buffer[0,0],
  *                                                 <uint64*> & output_buffer[0, 0],
  */
@@ -5091,7 +5091,7 @@ static PyObject *__pyx_pw_4silx_4math_12medianfilter_12medianfilter_21_median_fi
 }
 
 static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_20_median_filter_int32(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_input_buffer, __Pyx_memviewslice __pyx_v_output_buffer, __Pyx_memviewslice __pyx_v_kernel_size, bool __pyx_v_conditional, int __pyx_v_mode) {
-  int __pyx_v_x;
+  int __pyx_v_y;
   int __pyx_v_image_dim;
   int __pyx_v_buffer_shape[2];
   PyObject *__pyx_r = NULL;
@@ -5109,15 +5109,15 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_20_median_fi
   /* "silx/math/medianfilter/medianfilter.pyx":331
  * 
  *     cdef:
- *         int x = 0             # <<<<<<<<<<<<<<
+ *         int y = 0             # <<<<<<<<<<<<<<
  *         int image_dim = input_buffer.shape[1] - 1
  *         int[2] buffer_shape
  */
-  __pyx_v_x = 0;
+  __pyx_v_y = 0;
 
   /* "silx/math/medianfilter/medianfilter.pyx":332
  *     cdef:
- *         int x = 0
+ *         int y = 0
  *         int image_dim = input_buffer.shape[1] - 1             # <<<<<<<<<<<<<<
  *         int[2] buffer_shape
  *     buffer_shape[0] = input_buffer.shape[0]
@@ -5138,14 +5138,14 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_20_median_fi
  *     buffer_shape[0] = input_buffer.shape[0]
  *     buffer_shape[1] = input_buffer.shape[1]             # <<<<<<<<<<<<<<
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):
+ *     for y in prange(input_buffer.shape[0], nogil=True):
  */
   (__pyx_v_buffer_shape[1]) = (__pyx_v_input_buffer.shape[1]);
 
   /* "silx/math/medianfilter/medianfilter.pyx":337
  *     buffer_shape[1] = input_buffer.shape[1]
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):             # <<<<<<<<<<<<<<
+ *     for y in prange(input_buffer.shape[0], nogil=True):             # <<<<<<<<<<<<<<
  *             median_filter.median_filter[int](<int*> & input_buffer[0,0],
  *                                              <int*>  & output_buffer[0, 0],
  */
@@ -5172,15 +5172,15 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_20_median_fi
                 #endif /* _OPENMP */
                 {
                     #ifdef _OPENMP
-                    #pragma omp for firstprivate(__pyx_v_x) lastprivate(__pyx_v_x)
+                    #pragma omp for firstprivate(__pyx_v_y) lastprivate(__pyx_v_y)
                     #endif /* _OPENMP */
                     for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_3; __pyx_t_2++){
                         {
-                            __pyx_v_x = 0 + 1 * __pyx_t_2;
+                            __pyx_v_y = 0 + 1 * __pyx_t_2;
 
                             /* "silx/math/medianfilter/medianfilter.pyx":338
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):
+ *     for y in prange(input_buffer.shape[0], nogil=True):
  *             median_filter.median_filter[int](<int*> & input_buffer[0,0],             # <<<<<<<<<<<<<<
  *                                              <int*>  & output_buffer[0, 0],
  *                                              <int*>&kernel_size[0],
@@ -5189,7 +5189,7 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_20_median_fi
                             __pyx_t_5 = 0;
 
                             /* "silx/math/medianfilter/medianfilter.pyx":339
- *     for x in prange(input_buffer.shape[0], nogil=True):
+ *     for y in prange(input_buffer.shape[0], nogil=True):
  *             median_filter.median_filter[int](<int*> & input_buffer[0,0],
  *                                              <int*>  & output_buffer[0, 0],             # <<<<<<<<<<<<<<
  *                                              <int*>&kernel_size[0],
@@ -5203,18 +5203,18 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_20_median_fi
  *                                              <int*>  & output_buffer[0, 0],
  *                                              <int*>&kernel_size[0],             # <<<<<<<<<<<<<<
  *                                              <int*>buffer_shape,
- *                                              x,
+ *                                              y,
  */
                             __pyx_t_8 = 0;
 
                             /* "silx/math/medianfilter/medianfilter.pyx":338
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):
+ *     for y in prange(input_buffer.shape[0], nogil=True):
  *             median_filter.median_filter[int](<int*> & input_buffer[0,0],             # <<<<<<<<<<<<<<
  *                                              <int*>  & output_buffer[0, 0],
  *                                              <int*>&kernel_size[0],
  */
-                            median_filter<int>(((int *)(&(*((__pyx_t_5numpy_int32_t *) ( /* dim=1 */ ((char *) (((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_input_buffer.data + __pyx_t_4 * __pyx_v_input_buffer.strides[0]) )) + __pyx_t_5)) ))))), ((int *)(&(*((__pyx_t_5numpy_int32_t *) ( /* dim=1 */ ((char *) (((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_output_buffer.data + __pyx_t_6 * __pyx_v_output_buffer.strides[0]) )) + __pyx_t_7)) ))))), ((int *)(&(*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ ((char *) (((__pyx_t_5numpy_int32_t *) __pyx_v_kernel_size.data) + __pyx_t_8)) ))))), ((int *)__pyx_v_buffer_shape), __pyx_v_x, 0, __pyx_v_image_dim, __pyx_v_conditional, __pyx_v_mode);
+                            median_filter<int>(((int *)(&(*((__pyx_t_5numpy_int32_t *) ( /* dim=1 */ ((char *) (((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_input_buffer.data + __pyx_t_4 * __pyx_v_input_buffer.strides[0]) )) + __pyx_t_5)) ))))), ((int *)(&(*((__pyx_t_5numpy_int32_t *) ( /* dim=1 */ ((char *) (((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_output_buffer.data + __pyx_t_6 * __pyx_v_output_buffer.strides[0]) )) + __pyx_t_7)) ))))), ((int *)(&(*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ ((char *) (((__pyx_t_5numpy_int32_t *) __pyx_v_kernel_size.data) + __pyx_t_8)) ))))), ((int *)__pyx_v_buffer_shape), __pyx_v_y, 0, __pyx_v_image_dim, __pyx_v_conditional, __pyx_v_mode);
                         }
                     }
                 }
@@ -5231,7 +5231,7 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_20_median_fi
       /* "silx/math/medianfilter/medianfilter.pyx":337
  *     buffer_shape[1] = input_buffer.shape[1]
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):             # <<<<<<<<<<<<<<
+ *     for y in prange(input_buffer.shape[0], nogil=True):             # <<<<<<<<<<<<<<
  *             median_filter.median_filter[int](<int*> & input_buffer[0,0],
  *                                              <int*>  & output_buffer[0, 0],
  */
@@ -5376,7 +5376,7 @@ static PyObject *__pyx_pw_4silx_4math_12medianfilter_12medianfilter_23_median_fi
 }
 
 static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_22_median_filter_uint32(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_input_buffer, __Pyx_memviewslice __pyx_v_output_buffer, __Pyx_memviewslice __pyx_v_kernel_size, bool __pyx_v_conditional, int __pyx_v_mode) {
-  int __pyx_v_x;
+  int __pyx_v_y;
   int __pyx_v_image_dim;
   int __pyx_v_buffer_shape[2];
   PyObject *__pyx_r = NULL;
@@ -5394,15 +5394,15 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_22_median_fi
   /* "silx/math/medianfilter/medianfilter.pyx":360
  * 
  *     cdef:
- *         int x = 0             # <<<<<<<<<<<<<<
+ *         int y = 0             # <<<<<<<<<<<<<<
  *         int image_dim = input_buffer.shape[1] - 1
  *         int[2] buffer_shape
  */
-  __pyx_v_x = 0;
+  __pyx_v_y = 0;
 
   /* "silx/math/medianfilter/medianfilter.pyx":361
  *     cdef:
- *         int x = 0
+ *         int y = 0
  *         int image_dim = input_buffer.shape[1] - 1             # <<<<<<<<<<<<<<
  *         int[2] buffer_shape
  *     buffer_shape[0] = input_buffer.shape[0]
@@ -5423,14 +5423,14 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_22_median_fi
  *     buffer_shape[0] = input_buffer.shape[0]
  *     buffer_shape[1] = input_buffer.shape[1]             # <<<<<<<<<<<<<<
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):
+ *     for y in prange(input_buffer.shape[0], nogil=True):
  */
   (__pyx_v_buffer_shape[1]) = (__pyx_v_input_buffer.shape[1]);
 
   /* "silx/math/medianfilter/medianfilter.pyx":366
  *     buffer_shape[1] = input_buffer.shape[1]
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):             # <<<<<<<<<<<<<<
+ *     for y in prange(input_buffer.shape[0], nogil=True):             # <<<<<<<<<<<<<<
  *             median_filter.median_filter[uint32](<uint32*> & input_buffer[0,0],
  *                                                 <uint32*>  & output_buffer[0, 0],
  */
@@ -5457,15 +5457,15 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_22_median_fi
                 #endif /* _OPENMP */
                 {
                     #ifdef _OPENMP
-                    #pragma omp for firstprivate(__pyx_v_x) lastprivate(__pyx_v_x)
+                    #pragma omp for firstprivate(__pyx_v_y) lastprivate(__pyx_v_y)
                     #endif /* _OPENMP */
                     for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_3; __pyx_t_2++){
                         {
-                            __pyx_v_x = 0 + 1 * __pyx_t_2;
+                            __pyx_v_y = 0 + 1 * __pyx_t_2;
 
                             /* "silx/math/medianfilter/medianfilter.pyx":367
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):
+ *     for y in prange(input_buffer.shape[0], nogil=True):
  *             median_filter.median_filter[uint32](<uint32*> & input_buffer[0,0],             # <<<<<<<<<<<<<<
  *                                                 <uint32*>  & output_buffer[0, 0],
  *                                                 <int*>&kernel_size[0],
@@ -5474,7 +5474,7 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_22_median_fi
                             __pyx_t_5 = 0;
 
                             /* "silx/math/medianfilter/medianfilter.pyx":368
- *     for x in prange(input_buffer.shape[0], nogil=True):
+ *     for y in prange(input_buffer.shape[0], nogil=True):
  *             median_filter.median_filter[uint32](<uint32*> & input_buffer[0,0],
  *                                                 <uint32*>  & output_buffer[0, 0],             # <<<<<<<<<<<<<<
  *                                                 <int*>&kernel_size[0],
@@ -5488,18 +5488,18 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_22_median_fi
  *                                                 <uint32*>  & output_buffer[0, 0],
  *                                                 <int*>&kernel_size[0],             # <<<<<<<<<<<<<<
  *                                                 <int*>buffer_shape,
- *                                                 x,
+ *                                                 y,
  */
                             __pyx_t_8 = 0;
 
                             /* "silx/math/medianfilter/medianfilter.pyx":367
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):
+ *     for y in prange(input_buffer.shape[0], nogil=True):
  *             median_filter.median_filter[uint32](<uint32*> & input_buffer[0,0],             # <<<<<<<<<<<<<<
  *                                                 <uint32*>  & output_buffer[0, 0],
  *                                                 <int*>&kernel_size[0],
  */
-                            median_filter<__pyx_t_4silx_4math_12medianfilter_12medianfilter_uint32>(((__pyx_t_4silx_4math_12medianfilter_12medianfilter_uint32 *)(&(*((__pyx_t_5numpy_uint32_t *) ( /* dim=1 */ ((char *) (((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_input_buffer.data + __pyx_t_4 * __pyx_v_input_buffer.strides[0]) )) + __pyx_t_5)) ))))), ((__pyx_t_4silx_4math_12medianfilter_12medianfilter_uint32 *)(&(*((__pyx_t_5numpy_uint32_t *) ( /* dim=1 */ ((char *) (((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_output_buffer.data + __pyx_t_6 * __pyx_v_output_buffer.strides[0]) )) + __pyx_t_7)) ))))), ((int *)(&(*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ ((char *) (((__pyx_t_5numpy_int32_t *) __pyx_v_kernel_size.data) + __pyx_t_8)) ))))), ((int *)__pyx_v_buffer_shape), __pyx_v_x, 0, __pyx_v_image_dim, __pyx_v_conditional, __pyx_v_mode);
+                            median_filter<__pyx_t_4silx_4math_12medianfilter_12medianfilter_uint32>(((__pyx_t_4silx_4math_12medianfilter_12medianfilter_uint32 *)(&(*((__pyx_t_5numpy_uint32_t *) ( /* dim=1 */ ((char *) (((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_input_buffer.data + __pyx_t_4 * __pyx_v_input_buffer.strides[0]) )) + __pyx_t_5)) ))))), ((__pyx_t_4silx_4math_12medianfilter_12medianfilter_uint32 *)(&(*((__pyx_t_5numpy_uint32_t *) ( /* dim=1 */ ((char *) (((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_output_buffer.data + __pyx_t_6 * __pyx_v_output_buffer.strides[0]) )) + __pyx_t_7)) ))))), ((int *)(&(*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ ((char *) (((__pyx_t_5numpy_int32_t *) __pyx_v_kernel_size.data) + __pyx_t_8)) ))))), ((int *)__pyx_v_buffer_shape), __pyx_v_y, 0, __pyx_v_image_dim, __pyx_v_conditional, __pyx_v_mode);
                         }
                     }
                 }
@@ -5516,7 +5516,7 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_22_median_fi
       /* "silx/math/medianfilter/medianfilter.pyx":366
  *     buffer_shape[1] = input_buffer.shape[1]
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):             # <<<<<<<<<<<<<<
+ *     for y in prange(input_buffer.shape[0], nogil=True):             # <<<<<<<<<<<<<<
  *             median_filter.median_filter[uint32](<uint32*> & input_buffer[0,0],
  *                                                 <uint32*>  & output_buffer[0, 0],
  */
@@ -5661,7 +5661,7 @@ static PyObject *__pyx_pw_4silx_4math_12medianfilter_12medianfilter_25_median_fi
 }
 
 static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_24_median_filter_int16(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_input_buffer, __Pyx_memviewslice __pyx_v_output_buffer, __Pyx_memviewslice __pyx_v_kernel_size, bool __pyx_v_conditional, int __pyx_v_mode) {
-  int __pyx_v_x;
+  int __pyx_v_y;
   int __pyx_v_image_dim;
   int __pyx_v_buffer_shape[2];
   PyObject *__pyx_r = NULL;
@@ -5679,15 +5679,15 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_24_median_fi
   /* "silx/math/medianfilter/medianfilter.pyx":389
  * 
  *     cdef:
- *         int x = 0             # <<<<<<<<<<<<<<
+ *         int y = 0             # <<<<<<<<<<<<<<
  *         int image_dim = input_buffer.shape[1] - 1
  *         int[2] buffer_shape
  */
-  __pyx_v_x = 0;
+  __pyx_v_y = 0;
 
   /* "silx/math/medianfilter/medianfilter.pyx":390
  *     cdef:
- *         int x = 0
+ *         int y = 0
  *         int image_dim = input_buffer.shape[1] - 1             # <<<<<<<<<<<<<<
  *         int[2] buffer_shape
  *     buffer_shape[0] = input_buffer.shape[0]
@@ -5708,14 +5708,14 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_24_median_fi
  *     buffer_shape[0] = input_buffer.shape[0]
  *     buffer_shape[1] = input_buffer.shape[1]             # <<<<<<<<<<<<<<
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):
+ *     for y in prange(input_buffer.shape[0], nogil=True):
  */
   (__pyx_v_buffer_shape[1]) = (__pyx_v_input_buffer.shape[1]);
 
   /* "silx/math/medianfilter/medianfilter.pyx":395
  *     buffer_shape[1] = input_buffer.shape[1]
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):             # <<<<<<<<<<<<<<
+ *     for y in prange(input_buffer.shape[0], nogil=True):             # <<<<<<<<<<<<<<
  *             median_filter.median_filter[short](<short*> & input_buffer[0,0],
  *                                                <short*>  & output_buffer[0, 0],
  */
@@ -5742,15 +5742,15 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_24_median_fi
                 #endif /* _OPENMP */
                 {
                     #ifdef _OPENMP
-                    #pragma omp for firstprivate(__pyx_v_x) lastprivate(__pyx_v_x)
+                    #pragma omp for firstprivate(__pyx_v_y) lastprivate(__pyx_v_y)
                     #endif /* _OPENMP */
                     for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_3; __pyx_t_2++){
                         {
-                            __pyx_v_x = 0 + 1 * __pyx_t_2;
+                            __pyx_v_y = 0 + 1 * __pyx_t_2;
 
                             /* "silx/math/medianfilter/medianfilter.pyx":396
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):
+ *     for y in prange(input_buffer.shape[0], nogil=True):
  *             median_filter.median_filter[short](<short*> & input_buffer[0,0],             # <<<<<<<<<<<<<<
  *                                                <short*>  & output_buffer[0, 0],
  *                                                <int*>&kernel_size[0],
@@ -5759,7 +5759,7 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_24_median_fi
                             __pyx_t_5 = 0;
 
                             /* "silx/math/medianfilter/medianfilter.pyx":397
- *     for x in prange(input_buffer.shape[0], nogil=True):
+ *     for y in prange(input_buffer.shape[0], nogil=True):
  *             median_filter.median_filter[short](<short*> & input_buffer[0,0],
  *                                                <short*>  & output_buffer[0, 0],             # <<<<<<<<<<<<<<
  *                                                <int*>&kernel_size[0],
@@ -5773,18 +5773,18 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_24_median_fi
  *                                                <short*>  & output_buffer[0, 0],
  *                                                <int*>&kernel_size[0],             # <<<<<<<<<<<<<<
  *                                                <int*>buffer_shape,
- *                                                x,
+ *                                                y,
  */
                             __pyx_t_8 = 0;
 
                             /* "silx/math/medianfilter/medianfilter.pyx":396
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):
+ *     for y in prange(input_buffer.shape[0], nogil=True):
  *             median_filter.median_filter[short](<short*> & input_buffer[0,0],             # <<<<<<<<<<<<<<
  *                                                <short*>  & output_buffer[0, 0],
  *                                                <int*>&kernel_size[0],
  */
-                            median_filter<short>(((short *)(&(*((__pyx_t_5numpy_int16_t *) ( /* dim=1 */ ((char *) (((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_input_buffer.data + __pyx_t_4 * __pyx_v_input_buffer.strides[0]) )) + __pyx_t_5)) ))))), ((short *)(&(*((__pyx_t_5numpy_int16_t *) ( /* dim=1 */ ((char *) (((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_output_buffer.data + __pyx_t_6 * __pyx_v_output_buffer.strides[0]) )) + __pyx_t_7)) ))))), ((int *)(&(*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ ((char *) (((__pyx_t_5numpy_int32_t *) __pyx_v_kernel_size.data) + __pyx_t_8)) ))))), ((int *)__pyx_v_buffer_shape), __pyx_v_x, 0, __pyx_v_image_dim, __pyx_v_conditional, __pyx_v_mode);
+                            median_filter<short>(((short *)(&(*((__pyx_t_5numpy_int16_t *) ( /* dim=1 */ ((char *) (((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_input_buffer.data + __pyx_t_4 * __pyx_v_input_buffer.strides[0]) )) + __pyx_t_5)) ))))), ((short *)(&(*((__pyx_t_5numpy_int16_t *) ( /* dim=1 */ ((char *) (((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_output_buffer.data + __pyx_t_6 * __pyx_v_output_buffer.strides[0]) )) + __pyx_t_7)) ))))), ((int *)(&(*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ ((char *) (((__pyx_t_5numpy_int32_t *) __pyx_v_kernel_size.data) + __pyx_t_8)) ))))), ((int *)__pyx_v_buffer_shape), __pyx_v_y, 0, __pyx_v_image_dim, __pyx_v_conditional, __pyx_v_mode);
                         }
                     }
                 }
@@ -5801,7 +5801,7 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_24_median_fi
       /* "silx/math/medianfilter/medianfilter.pyx":395
  *     buffer_shape[1] = input_buffer.shape[1]
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):             # <<<<<<<<<<<<<<
+ *     for y in prange(input_buffer.shape[0], nogil=True):             # <<<<<<<<<<<<<<
  *             median_filter.median_filter[short](<short*> & input_buffer[0,0],
  *                                                <short*>  & output_buffer[0, 0],
  */
@@ -5940,7 +5940,7 @@ static PyObject *__pyx_pw_4silx_4math_12medianfilter_12medianfilter_27_median_fi
 }
 
 static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_26_median_filter_uint16(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_input_buffer, PyArrayObject *__pyx_v_output_buffer, PyArrayObject *__pyx_v_kernel_size, bool __pyx_v_conditional, int __pyx_v_mode) {
-  int __pyx_v_x;
+  int __pyx_v_y;
   int __pyx_v_image_dim;
   int __pyx_v_buffer_shape[2];
   __Pyx_LocalBuf_ND __pyx_pybuffernd_input_buffer;
@@ -5994,15 +5994,15 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_26_median_fi
   /* "silx/math/medianfilter/medianfilter.pyx":419
  * 
  *     cdef:
- *         int x = 0             # <<<<<<<<<<<<<<
+ *         int y = 0             # <<<<<<<<<<<<<<
  *         int image_dim = input_buffer.shape[1] - 1
  *         int[2] buffer_shape,
  */
-  __pyx_v_x = 0;
+  __pyx_v_y = 0;
 
   /* "silx/math/medianfilter/medianfilter.pyx":420
  *     cdef:
- *         int x = 0
+ *         int y = 0
  *         int image_dim = input_buffer.shape[1] - 1             # <<<<<<<<<<<<<<
  *         int[2] buffer_shape,
  *     buffer_shape[0] = input_buffer.shape[0]
@@ -6023,14 +6023,14 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_26_median_fi
  *     buffer_shape[0] = input_buffer.shape[0]
  *     buffer_shape[1] = input_buffer.shape[1]             # <<<<<<<<<<<<<<
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):
+ *     for y in prange(input_buffer.shape[0], nogil=True):
  */
   (__pyx_v_buffer_shape[1]) = (__pyx_v_input_buffer->dimensions[1]);
 
   /* "silx/math/medianfilter/medianfilter.pyx":425
  *     buffer_shape[1] = input_buffer.shape[1]
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):             # <<<<<<<<<<<<<<
+ *     for y in prange(input_buffer.shape[0], nogil=True):             # <<<<<<<<<<<<<<
  *             median_filter.median_filter[uint16](<uint16*> & input_buffer[0, 0],
  *                                                 <uint16*> & output_buffer[0, 0],
  */
@@ -6057,15 +6057,15 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_26_median_fi
                 #endif /* _OPENMP */
                 {
                     #ifdef _OPENMP
-                    #pragma omp for firstprivate(__pyx_v_x) lastprivate(__pyx_v_x)
+                    #pragma omp for firstprivate(__pyx_v_y) lastprivate(__pyx_v_y)
                     #endif /* _OPENMP */
                     for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_3; __pyx_t_2++){
                         {
-                            __pyx_v_x = 0 + 1 * __pyx_t_2;
+                            __pyx_v_y = 0 + 1 * __pyx_t_2;
 
                             /* "silx/math/medianfilter/medianfilter.pyx":426
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):
+ *     for y in prange(input_buffer.shape[0], nogil=True):
  *             median_filter.median_filter[uint16](<uint16*> & input_buffer[0, 0],             # <<<<<<<<<<<<<<
  *                                                 <uint16*> & output_buffer[0, 0],
  *                                                 <int*>&kernel_size[0],
@@ -6074,7 +6074,7 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_26_median_fi
                             __pyx_t_5 = 0;
 
                             /* "silx/math/medianfilter/medianfilter.pyx":427
- *     for x in prange(input_buffer.shape[0], nogil=True):
+ *     for y in prange(input_buffer.shape[0], nogil=True):
  *             median_filter.median_filter[uint16](<uint16*> & input_buffer[0, 0],
  *                                                 <uint16*> & output_buffer[0, 0],             # <<<<<<<<<<<<<<
  *                                                 <int*>&kernel_size[0],
@@ -6088,18 +6088,18 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_26_median_fi
  *                                                 <uint16*> & output_buffer[0, 0],
  *                                                 <int*>&kernel_size[0],             # <<<<<<<<<<<<<<
  *                                                 <int*>buffer_shape,
- *                                                 x,
+ *                                                 y,
  */
                             __pyx_t_8 = 0;
 
                             /* "silx/math/medianfilter/medianfilter.pyx":426
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):
+ *     for y in prange(input_buffer.shape[0], nogil=True):
  *             median_filter.median_filter[uint16](<uint16*> & input_buffer[0, 0],             # <<<<<<<<<<<<<<
  *                                                 <uint16*> & output_buffer[0, 0],
  *                                                 <int*>&kernel_size[0],
  */
-                            median_filter<__pyx_t_4silx_4math_12medianfilter_12medianfilter_uint16>(((__pyx_t_4silx_4math_12medianfilter_12medianfilter_uint16 *)(&(*__Pyx_BufPtrCContig2d(__pyx_t_5numpy_uint16_t *, __pyx_pybuffernd_input_buffer.rcbuffer->pybuffer.buf, __pyx_t_4, __pyx_pybuffernd_input_buffer.diminfo[0].strides, __pyx_t_5, __pyx_pybuffernd_input_buffer.diminfo[1].strides)))), ((__pyx_t_4silx_4math_12medianfilter_12medianfilter_uint16 *)(&(*__Pyx_BufPtrCContig2d(__pyx_t_5numpy_uint16_t *, __pyx_pybuffernd_output_buffer.rcbuffer->pybuffer.buf, __pyx_t_6, __pyx_pybuffernd_output_buffer.diminfo[0].strides, __pyx_t_7, __pyx_pybuffernd_output_buffer.diminfo[1].strides)))), ((int *)(&(*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_kernel_size.rcbuffer->pybuffer.buf, __pyx_t_8, __pyx_pybuffernd_kernel_size.diminfo[0].strides)))), ((int *)__pyx_v_buffer_shape), __pyx_v_x, 0, __pyx_v_image_dim, __pyx_v_conditional, __pyx_v_mode);
+                            median_filter<__pyx_t_4silx_4math_12medianfilter_12medianfilter_uint16>(((__pyx_t_4silx_4math_12medianfilter_12medianfilter_uint16 *)(&(*__Pyx_BufPtrCContig2d(__pyx_t_5numpy_uint16_t *, __pyx_pybuffernd_input_buffer.rcbuffer->pybuffer.buf, __pyx_t_4, __pyx_pybuffernd_input_buffer.diminfo[0].strides, __pyx_t_5, __pyx_pybuffernd_input_buffer.diminfo[1].strides)))), ((__pyx_t_4silx_4math_12medianfilter_12medianfilter_uint16 *)(&(*__Pyx_BufPtrCContig2d(__pyx_t_5numpy_uint16_t *, __pyx_pybuffernd_output_buffer.rcbuffer->pybuffer.buf, __pyx_t_6, __pyx_pybuffernd_output_buffer.diminfo[0].strides, __pyx_t_7, __pyx_pybuffernd_output_buffer.diminfo[1].strides)))), ((int *)(&(*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_kernel_size.rcbuffer->pybuffer.buf, __pyx_t_8, __pyx_pybuffernd_kernel_size.diminfo[0].strides)))), ((int *)__pyx_v_buffer_shape), __pyx_v_y, 0, __pyx_v_image_dim, __pyx_v_conditional, __pyx_v_mode);
                         }
                     }
                 }
@@ -6116,7 +6116,7 @@ static PyObject *__pyx_pf_4silx_4math_12medianfilter_12medianfilter_26_median_fi
       /* "silx/math/medianfilter/medianfilter.pyx":425
  *     buffer_shape[1] = input_buffer.shape[1]
  * 
- *     for x in prange(input_buffer.shape[0], nogil=True):             # <<<<<<<<<<<<<<
+ *     for y in prange(input_buffer.shape[0], nogil=True):             # <<<<<<<<<<<<<<
  *             median_filter.median_filter[uint16](<uint16*> & input_buffer[0, 0],
  *                                                 <uint16*> & output_buffer[0, 0],
  */
@@ -19601,8 +19601,8 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_unable_to_allocate_shape_and_str, __pyx_k_unable_to_allocate_shape_and_str, sizeof(__pyx_k_unable_to_allocate_shape_and_str), 0, 0, 1, 0},
   {&__pyx_kp_u_unknown_dtype_code_in_numpy_pxd, __pyx_k_unknown_dtype_code_in_numpy_pxd, sizeof(__pyx_k_unknown_dtype_code_in_numpy_pxd), 0, 1, 0, 0},
   {&__pyx_n_s_unpack, __pyx_k_unpack, sizeof(__pyx_k_unpack), 0, 0, 1, 1},
-  {&__pyx_n_s_x, __pyx_k_x, sizeof(__pyx_k_x), 0, 0, 1, 1},
   {&__pyx_n_s_xrange, __pyx_k_xrange, sizeof(__pyx_k_xrange), 0, 0, 1, 1},
+  {&__pyx_n_s_y, __pyx_k_y, sizeof(__pyx_k_y), 0, 0, 1, 1},
   {&__pyx_n_s_zeros_like, __pyx_k_zeros_like, sizeof(__pyx_k_zeros_like), 0, 0, 1, 1},
   {0, 0, 0, 0, 0, 0, 0}
 };
@@ -19973,7 +19973,7 @@ static int __Pyx_InitCachedConstants(void) {
  *                            float[:, ::1] output_buffer not None,
  *                            cnumpy.int32_t[::1] kernel_size not None,
  */
-  __pyx_tuple__37 = PyTuple_Pack(8, __pyx_n_s_input_buffer, __pyx_n_s_output_buffer, __pyx_n_s_kernel_size, __pyx_n_s_conditional, __pyx_n_s_mode, __pyx_n_s_x, __pyx_n_s_image_dim, __pyx_n_s_buffer_shape); if (unlikely(!__pyx_tuple__37)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 208; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__37 = PyTuple_Pack(8, __pyx_n_s_input_buffer, __pyx_n_s_output_buffer, __pyx_n_s_kernel_size, __pyx_n_s_conditional, __pyx_n_s_mode, __pyx_n_s_y, __pyx_n_s_image_dim, __pyx_n_s_buffer_shape); if (unlikely(!__pyx_tuple__37)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 208; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__37);
   __Pyx_GIVEREF(__pyx_tuple__37);
   __pyx_codeobj__38 = (PyObject*)__Pyx_PyCode_New(5, 0, 8, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__37, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_mnt_vg_unused_payno_dev_esrf_si, __pyx_n_s_median_filter_float32, 208, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__38)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 208; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -19985,7 +19985,7 @@ static int __Pyx_InitCachedConstants(void) {
  *                            double[:, ::1] output_buffer not None,
  *                            cnumpy.int32_t[::1] kernel_size not None,
  */
-  __pyx_tuple__39 = PyTuple_Pack(8, __pyx_n_s_input_buffer, __pyx_n_s_output_buffer, __pyx_n_s_kernel_size, __pyx_n_s_conditional, __pyx_n_s_mode, __pyx_n_s_x, __pyx_n_s_image_dim, __pyx_n_s_buffer_shape); if (unlikely(!__pyx_tuple__39)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 237; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__39 = PyTuple_Pack(8, __pyx_n_s_input_buffer, __pyx_n_s_output_buffer, __pyx_n_s_kernel_size, __pyx_n_s_conditional, __pyx_n_s_mode, __pyx_n_s_y, __pyx_n_s_image_dim, __pyx_n_s_buffer_shape); if (unlikely(!__pyx_tuple__39)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 237; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__39);
   __Pyx_GIVEREF(__pyx_tuple__39);
   __pyx_codeobj__40 = (PyObject*)__Pyx_PyCode_New(5, 0, 8, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__39, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_mnt_vg_unused_payno_dev_esrf_si, __pyx_n_s_median_filter_float64, 237, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__40)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 237; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -19997,7 +19997,7 @@ static int __Pyx_InitCachedConstants(void) {
  *                          cnumpy.int64_t[:, ::1] output_buffer not None,
  *                          cnumpy.int32_t[::1] kernel_size not None,
  */
-  __pyx_tuple__41 = PyTuple_Pack(8, __pyx_n_s_input_buffer, __pyx_n_s_output_buffer, __pyx_n_s_kernel_size, __pyx_n_s_conditional, __pyx_n_s_mode, __pyx_n_s_x, __pyx_n_s_image_dim, __pyx_n_s_buffer_shape); if (unlikely(!__pyx_tuple__41)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 266; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__41 = PyTuple_Pack(8, __pyx_n_s_input_buffer, __pyx_n_s_output_buffer, __pyx_n_s_kernel_size, __pyx_n_s_conditional, __pyx_n_s_mode, __pyx_n_s_y, __pyx_n_s_image_dim, __pyx_n_s_buffer_shape); if (unlikely(!__pyx_tuple__41)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 266; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__41);
   __Pyx_GIVEREF(__pyx_tuple__41);
   __pyx_codeobj__42 = (PyObject*)__Pyx_PyCode_New(5, 0, 8, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__41, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_mnt_vg_unused_payno_dev_esrf_si, __pyx_n_s_median_filter_int64, 266, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__42)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 266; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -20009,7 +20009,7 @@ static int __Pyx_InitCachedConstants(void) {
  *                           cnumpy.uint64_t[:, ::1] input_buffer not None,
  *                           cnumpy.uint64_t[:, ::1] output_buffer not None,
  */
-  __pyx_tuple__43 = PyTuple_Pack(8, __pyx_n_s_input_buffer, __pyx_n_s_output_buffer, __pyx_n_s_kernel_size, __pyx_n_s_conditional, __pyx_n_s_mode, __pyx_n_s_x, __pyx_n_s_image_dim, __pyx_n_s_buffer_shape); if (unlikely(!__pyx_tuple__43)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 294; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__43 = PyTuple_Pack(8, __pyx_n_s_input_buffer, __pyx_n_s_output_buffer, __pyx_n_s_kernel_size, __pyx_n_s_conditional, __pyx_n_s_mode, __pyx_n_s_y, __pyx_n_s_image_dim, __pyx_n_s_buffer_shape); if (unlikely(!__pyx_tuple__43)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 294; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__43);
   __Pyx_GIVEREF(__pyx_tuple__43);
   __pyx_codeobj__44 = (PyObject*)__Pyx_PyCode_New(5, 0, 8, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__43, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_mnt_vg_unused_payno_dev_esrf_si, __pyx_n_s_median_filter_uint64, 294, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__44)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 294; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -20021,7 +20021,7 @@ static int __Pyx_InitCachedConstants(void) {
  *                          cnumpy.int32_t[:, ::1] output_buffer not None,
  *                          cnumpy.int32_t[::1] kernel_size not None,
  */
-  __pyx_tuple__45 = PyTuple_Pack(8, __pyx_n_s_input_buffer, __pyx_n_s_output_buffer, __pyx_n_s_kernel_size, __pyx_n_s_conditional, __pyx_n_s_mode, __pyx_n_s_x, __pyx_n_s_image_dim, __pyx_n_s_buffer_shape); if (unlikely(!__pyx_tuple__45)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 324; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__45 = PyTuple_Pack(8, __pyx_n_s_input_buffer, __pyx_n_s_output_buffer, __pyx_n_s_kernel_size, __pyx_n_s_conditional, __pyx_n_s_mode, __pyx_n_s_y, __pyx_n_s_image_dim, __pyx_n_s_buffer_shape); if (unlikely(!__pyx_tuple__45)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 324; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__45);
   __Pyx_GIVEREF(__pyx_tuple__45);
   __pyx_codeobj__46 = (PyObject*)__Pyx_PyCode_New(5, 0, 8, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__45, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_mnt_vg_unused_payno_dev_esrf_si, __pyx_n_s_median_filter_int32, 324, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__46)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 324; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -20033,7 +20033,7 @@ static int __Pyx_InitCachedConstants(void) {
  *                           cnumpy.uint32_t[:, ::1] output_buffer not None,
  *                           cnumpy.int32_t[::1] kernel_size not None,
  */
-  __pyx_tuple__47 = PyTuple_Pack(8, __pyx_n_s_input_buffer, __pyx_n_s_output_buffer, __pyx_n_s_kernel_size, __pyx_n_s_conditional, __pyx_n_s_mode, __pyx_n_s_x, __pyx_n_s_image_dim, __pyx_n_s_buffer_shape); if (unlikely(!__pyx_tuple__47)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 353; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__47 = PyTuple_Pack(8, __pyx_n_s_input_buffer, __pyx_n_s_output_buffer, __pyx_n_s_kernel_size, __pyx_n_s_conditional, __pyx_n_s_mode, __pyx_n_s_y, __pyx_n_s_image_dim, __pyx_n_s_buffer_shape); if (unlikely(!__pyx_tuple__47)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 353; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__47);
   __Pyx_GIVEREF(__pyx_tuple__47);
   __pyx_codeobj__48 = (PyObject*)__Pyx_PyCode_New(5, 0, 8, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__47, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_mnt_vg_unused_payno_dev_esrf_si, __pyx_n_s_median_filter_uint32, 353, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__48)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 353; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -20045,7 +20045,7 @@ static int __Pyx_InitCachedConstants(void) {
  *                          cnumpy.int16_t[:, ::1] output_buffer not None,
  *                          cnumpy.int32_t[::1] kernel_size not None,
  */
-  __pyx_tuple__49 = PyTuple_Pack(8, __pyx_n_s_input_buffer, __pyx_n_s_output_buffer, __pyx_n_s_kernel_size, __pyx_n_s_conditional, __pyx_n_s_mode, __pyx_n_s_x, __pyx_n_s_image_dim, __pyx_n_s_buffer_shape); if (unlikely(!__pyx_tuple__49)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 382; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__49 = PyTuple_Pack(8, __pyx_n_s_input_buffer, __pyx_n_s_output_buffer, __pyx_n_s_kernel_size, __pyx_n_s_conditional, __pyx_n_s_mode, __pyx_n_s_y, __pyx_n_s_image_dim, __pyx_n_s_buffer_shape); if (unlikely(!__pyx_tuple__49)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 382; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__49);
   __Pyx_GIVEREF(__pyx_tuple__49);
   __pyx_codeobj__50 = (PyObject*)__Pyx_PyCode_New(5, 0, 8, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__49, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_mnt_vg_unused_payno_dev_esrf_si, __pyx_n_s_median_filter_int16, 382, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__50)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 382; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -20057,7 +20057,7 @@ static int __Pyx_InitCachedConstants(void) {
  *       cnumpy.ndarray[cnumpy.uint16_t, ndim=2, mode='c'] input_buffer not None,
  *       cnumpy.ndarray[cnumpy.uint16_t, ndim=2, mode='c'] output_buffer not None,
  */
-  __pyx_tuple__51 = PyTuple_Pack(8, __pyx_n_s_input_buffer, __pyx_n_s_output_buffer, __pyx_n_s_kernel_size, __pyx_n_s_conditional, __pyx_n_s_mode, __pyx_n_s_x, __pyx_n_s_image_dim, __pyx_n_s_buffer_shape); if (unlikely(!__pyx_tuple__51)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 411; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__51 = PyTuple_Pack(8, __pyx_n_s_input_buffer, __pyx_n_s_output_buffer, __pyx_n_s_kernel_size, __pyx_n_s_conditional, __pyx_n_s_mode, __pyx_n_s_y, __pyx_n_s_image_dim, __pyx_n_s_buffer_shape); if (unlikely(!__pyx_tuple__51)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 411; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__51);
   __Pyx_GIVEREF(__pyx_tuple__51);
   __pyx_codeobj__52 = (PyObject*)__Pyx_PyCode_New(5, 0, 8, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__51, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_mnt_vg_unused_payno_dev_esrf_si, __pyx_n_s_median_filter_uint16, 411, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__52)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 411; __pyx_clineno = __LINE__; goto __pyx_L1_error;}

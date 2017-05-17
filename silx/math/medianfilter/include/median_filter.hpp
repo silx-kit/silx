@@ -130,21 +130,21 @@ void median_filter(
     T* output,
     int* kernel_dim,        // two values : 0:width, 1:height
     int* image_dim,         // two values : 0:width, 1:height
-    int x_pixel,            // the x pixel to process
-    int y_pixel_range_min,
-    int y_pixel_range_max,
+    int y_pixel,            // the x pixel to process
+    int x_pixel_range_min,
+    int x_pixel_range_max,
     bool conditional,
     int pMode){
     
     assert(kernel_dim[0] > 0);
     assert(kernel_dim[1] > 0);
-    assert(x_pixel >= 0);
+    assert(y_pixel >= 0);
     assert(image_dim[0] > 0);
     assert(image_dim[1] > 0);
-    assert(x_pixel >= 0);
-    assert(x_pixel < image_dim[0]);
-    assert(y_pixel_range_max < image_dim[1]);
-    assert(y_pixel_range_min <= y_pixel_range_max);
+    assert(y_pixel >= 0);
+    assert(y_pixel < image_dim[0]);
+    assert(x_pixel_range_max < image_dim[1]);
+    assert(x_pixel_range_min <= x_pixel_range_max);
     // kernel odd assertion
     assert((kernel_dim[0] - 1)%2 == 0);
     assert((kernel_dim[1] - 1)%2 == 0);
@@ -158,7 +158,7 @@ void median_filter(
     // init buffer
     std::vector<const T*> window_values(kernel_dim[0]*kernel_dim[1]);
 
-    for(int y_pixel=y_pixel_range_min; y_pixel <= y_pixel_range_max; y_pixel ++ ){
+    for(int x_pixel=x_pixel_range_min; x_pixel <= x_pixel_range_max; x_pixel ++ ){
         typename std::vector<const T*>::iterator it = window_values.begin();
         // fill the vector
         for(int win_y=y_pixel-halfKernel_y; win_y<= y_pixel+halfKernel_y; win_y++)
@@ -169,29 +169,29 @@ void median_filter(
                 int index_y = win_y;
                 switch(mode){
                     case NEAREST:
-                        index_x = std::min(std::max(win_x, 0), image_dim[0] - 1);
-                        index_y = std::min(std::max(win_y, 0), image_dim[1] - 1);
+                        index_x = std::min(std::max(win_x, 0), image_dim[1] - 1);
+                        index_y = std::min(std::max(win_y, 0), image_dim[0] - 1);
                         break;
 
                     case REFLECT:
-                        index_x = reflect(win_x, image_dim[0]);
-                        index_y = reflect(win_y, image_dim[1]);
+                        index_x = reflect(win_x, image_dim[1]);
+                        index_y = reflect(win_y, image_dim[0]);
                         break;
 
                     case MIRROR:
-                        index_x = mirror(win_x, image_dim[0]);
-                        index_y = mirror(win_y, image_dim[1]);
+                        index_x = mirror(win_x, image_dim[1]);
+                        index_y = mirror(win_y, image_dim[0]);
                         break;
                     case SHRINK:
-                        if((index_x < 0) || (index_x > image_dim[0] -1)){
+                        if((index_x < 0) || (index_x > image_dim[1] -1)){
                             continue;
                         }
-                        if((index_y < 0) || (index_y > image_dim[1] -1)){
+                        if((index_y < 0) || (index_y > image_dim[0] -1)){
                             continue;
                         }
                         break;
                 }
-                *it = (&input[index_y*image_dim[0] + index_x]);
+                *it = (&input[index_y*image_dim[1] + index_x]);
                 ++it;
             }
         }
@@ -201,8 +201,8 @@ void median_filter(
         typename std::vector<const T*>::iterator window_end;
         int window_size = kernel_dim[0]*kernel_dim[1];
         if(mode == SHRINK){
-            int x_shrink_ker_dim = std::min(x_pixel+halfKernel_x, image_dim[0]-1) - std::max(0, x_pixel-halfKernel_x)+1;
-            int y_shrink_ker_dim = std::min(y_pixel+halfKernel_y, image_dim[1]-1) - std::max(0, y_pixel-halfKernel_y)+1;
+            int x_shrink_ker_dim = std::min(x_pixel+halfKernel_x, image_dim[1]-1) - std::max(0, x_pixel-halfKernel_x)+1;
+            int y_shrink_ker_dim = std::min(y_pixel+halfKernel_y, image_dim[0]-1) - std::max(0, y_pixel-halfKernel_y)+1;
             window_size = x_shrink_ker_dim*y_shrink_ker_dim;
             window_end = window_values.begin() + window_size;
         }else{
@@ -210,18 +210,18 @@ void median_filter(
         }
 
         // apply the median value if needed for this pixel
-        const T* currentPixelValue = &input[image_dim[0]*y_pixel + x_pixel];
+        const T* currentPixelValue = &input[image_dim[1]*y_pixel + x_pixel];
         if (conditional == true){
             T min = 0;
             T max = 0;
             getMinMax(window_values, min, max, window_end);
             if ((*currentPixelValue == max) || (*currentPixelValue == min)){
-                output[image_dim[0]*y_pixel + x_pixel] = *(median<T>(window_values, window_size));
+                output[image_dim[1]*y_pixel + x_pixel] = *(median<T>(window_values, window_size));
             }else{
-                output[image_dim[0]*y_pixel + x_pixel] = *currentPixelValue;
+                output[image_dim[1]*y_pixel + x_pixel] = *currentPixelValue;
             }
         }else{
-            output[image_dim[0]*y_pixel + x_pixel] = *(median<T>(window_values, window_size));
+            output[image_dim[1]*y_pixel + x_pixel] = *(median<T>(window_values, window_size));
         }
     }
 }

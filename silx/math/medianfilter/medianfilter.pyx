@@ -212,18 +212,18 @@ def _median_filter_float32(float[:, ::1] input_buffer not None,
                            int mode):
 
     cdef:
-        int x = 0
+        int y = 0
         int image_dim = input_buffer.shape[1] - 1
         int[2] buffer_shape
     buffer_shape[0] = input_buffer.shape[0]
     buffer_shape[1] = input_buffer.shape[1]
 
-    for x in prange(input_buffer.shape[0], nogil=True):
+    for y in prange(input_buffer.shape[0], nogil=True):
             median_filter.median_filter[float](<float*> & input_buffer[0,0], 
                                                <float*> & output_buffer[0,0], 
                                                <int*>& kernel_size[0],
                                                <int*>buffer_shape,
-                                               x,
+                                               y,
                                                0,
                                                image_dim,
                                                conditional,
@@ -241,18 +241,18 @@ def _median_filter_float64(double[:, ::1] input_buffer not None,
                            int mode):
 
     cdef:
-        int x = 0
+        int y = 0
         int image_dim = input_buffer.shape[1] - 1
         int[2] buffer_shape
     buffer_shape[0] = input_buffer.shape[0]
     buffer_shape[1] = input_buffer.shape[1]
 
-    for x in prange(input_buffer.shape[0], nogil=True):
+    for y in prange(input_buffer.shape[0], nogil=True):
             median_filter.median_filter[double](<double*> & input_buffer[0, 0], 
                                                 <double*> & output_buffer[0, 0], 
                                                 <int*>&kernel_size[0],
                                                 <int*>buffer_shape,
-                                                x,
+                                                y,
                                                 0,
                                                 image_dim,
                                                 conditional,
@@ -270,18 +270,18 @@ def _median_filter_int64(cnumpy.int64_t[:, ::1] input_buffer not None,
                          int mode):
 
     cdef:
-        int x = 0
+        int y = 0
         int image_dim = input_buffer.shape[1] - 1
         int[2] buffer_shape
     buffer_shape[0] = input_buffer.shape[0]
     buffer_shape[1] = input_buffer.shape[1]
 
-    for x in prange(input_buffer.shape[0], nogil=True):
+    for y in prange(input_buffer.shape[0], nogil=True):
             median_filter.median_filter[long](<long*> & input_buffer[0,0], 
                                               <long*>  & output_buffer[0, 0], 
                                               <int*>&kernel_size[0],
                                                 <int*>buffer_shape,
-                                                x,
+                                                y,
                                                 0,
                                                 image_dim,
                                                 conditional,
@@ -299,18 +299,18 @@ def _median_filter_uint64(
                           int mode):
 
     cdef: 
-        int x = 0
+        int y = 0
         int image_dim = input_buffer.shape[1] - 1
         int[2] buffer_shape
     buffer_shape[0] = input_buffer.shape[0]
     buffer_shape[1] = input_buffer.shape[1]
 
-    for x in prange(input_buffer.shape[0], nogil=True):
+    for y in prange(input_buffer.shape[0], nogil=True):
             median_filter.median_filter[uint64](<uint64*> & input_buffer[0,0], 
                                                 <uint64*> & output_buffer[0, 0],
                                                 <int*>&kernel_size[0],
                                                 <int*>buffer_shape,
-                                                x,
+                                                y,
                                                 0,
                                                 image_dim,
                                                 conditional,
@@ -328,18 +328,18 @@ def _median_filter_int32(cnumpy.int32_t[:, ::1] input_buffer not None,
                          int mode):
 
     cdef:
-        int x = 0
+        int y = 0
         int image_dim = input_buffer.shape[1] - 1
         int[2] buffer_shape
     buffer_shape[0] = input_buffer.shape[0]
     buffer_shape[1] = input_buffer.shape[1]
 
-    for x in prange(input_buffer.shape[0], nogil=True):
+    for y in prange(input_buffer.shape[0], nogil=True):
             median_filter.median_filter[int](<int*> & input_buffer[0,0], 
                                              <int*>  & output_buffer[0, 0],
                                              <int*>&kernel_size[0],
                                              <int*>buffer_shape,
-                                             x,
+                                             y,
                                              0,
                                              image_dim,
                                              conditional,
@@ -357,18 +357,18 @@ def _median_filter_uint32(cnumpy.uint32_t[:, ::1] input_buffer not None,
                           int mode):
 
     cdef:
-        int x = 0
+        int y = 0
         int image_dim = input_buffer.shape[1] - 1
         int[2] buffer_shape
     buffer_shape[0] = input_buffer.shape[0]
     buffer_shape[1] = input_buffer.shape[1]
 
-    for x in prange(input_buffer.shape[0], nogil=True):
+    for y in prange(input_buffer.shape[0], nogil=True):
             median_filter.median_filter[uint32](<uint32*> & input_buffer[0,0], 
                                                 <uint32*>  & output_buffer[0, 0],
                                                 <int*>&kernel_size[0],
                                                 <int*>buffer_shape,
-                                                x,
+                                                y,
                                                 0,
                                                 image_dim,
                                                 conditional,
@@ -386,18 +386,18 @@ def _median_filter_int16(cnumpy.int16_t[:, ::1] input_buffer not None,
                          int mode):
 
     cdef:
-        int x = 0
+        int y = 0
         int image_dim = input_buffer.shape[1] - 1
         int[2] buffer_shape
     buffer_shape[0] = input_buffer.shape[0]
     buffer_shape[1] = input_buffer.shape[1]
 
-    for x in prange(input_buffer.shape[0], nogil=True):
+    for y in prange(input_buffer.shape[0], nogil=True):
             median_filter.median_filter[short](<short*> & input_buffer[0,0], 
                                                <short*>  & output_buffer[0, 0],
                                                <int*>&kernel_size[0],
                                                <int*>buffer_shape,
-                                               x,
+                                               y,
                                                0,
                                                image_dim,
                                                conditional,
@@ -416,18 +416,18 @@ def _median_filter_uint16(
       int mode):
 
     cdef:
-        int x = 0
+        int y = 0
         int image_dim = input_buffer.shape[1] - 1
         int[2] buffer_shape, 
     buffer_shape[0] = input_buffer.shape[0]
     buffer_shape[1] = input_buffer.shape[1]
 
-    for x in prange(input_buffer.shape[0], nogil=True):
+    for y in prange(input_buffer.shape[0], nogil=True):
             median_filter.median_filter[uint16](<uint16*> & input_buffer[0, 0],
                                                 <uint16*> & output_buffer[0, 0],
                                                 <int*>&kernel_size[0],
                                                 <int*>buffer_shape,
-                                                x,
+                                                y,
                                                 0,
                                                 image_dim,
                                                 conditional,
