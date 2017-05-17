@@ -228,7 +228,6 @@ class TestMedianFilterReflect(ParametricTestCase):
         else:
             img = scipy.misc.lena()
 
-        img = img[0:10, 0:10].copy()
         kernels = [(3, 1), (3, 5), (5, 9), (9, 3)]
         for kernel in kernels:
             with self.subTest(kernel=kernel):
@@ -359,7 +358,6 @@ class TestMedianFilterMirror(ParametricTestCase):
         else:
             img = scipy.misc.lena()
 
-        img = img[0:10, 0:10].copy()
         kernels = [(3, 1), (3, 5), (5, 9), (9, 3)]
         for kernel in kernels:
             with self.subTest(kernel=kernel):
