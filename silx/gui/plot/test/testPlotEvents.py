@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "11/05/2017"
+__date__ = "17/05/2017"
 
 
 import unittest
@@ -352,7 +352,8 @@ class TestDictionaryLikeGetter(unittest.TestCase):
         item._setDraggable(draggable)
         item._setSelectable(selectable)
 
-        event = PlotEvents.ItemRegionChangedEvent(item, posDataCursor, posPixelCursor)
+        event = PlotEvents.ItemRegionChangedEvent(item)
+        event._setMousePosition(posDataCursor, posPixelCursor)
         self.assertEquals(event['event'], eventType)
         self.assertEquals(event['button'], "left")
         self.assertEquals(event['label'], label)

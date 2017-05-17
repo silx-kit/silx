@@ -1099,11 +1099,9 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
         posDataCursor = self.plot.pixelToData(x, y)
         assert posDataCursor is not None
 
-        event = PlotEvents.ItemRegionChangedEvent(
-            marker,
-            posDataCursor,
-            (x, y))
-
+        event = PlotEvents.ItemRegionChangedEvent(marker)
+        # to have retrocompatibility with PyMCA
+        event._setMousePosition(posDataCursor, (x, y))
         self.plot.notify(event)
 
     def beginDrag(self, x, y):
@@ -1166,10 +1164,9 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
             x, y = endPos[0], endPos[1]
             posDataCursor = self.plot.pixelToData(x, y)
             assert posDataCursor is not None
-            event = PlotEvents.ItemRegionChangeFinishedEvent(
-                marker,
-                posDataCursor,
-                (x, y))
+            event = PlotEvents.ItemRegionChangeFinishedEvent(marker)
+            # to have retrocompatibility with PyMCA
+            event._setMousePosition(posDataCursor, (x, y))
             self.plot.notify(event)
 
         self.plot.setGraphCursorShape()

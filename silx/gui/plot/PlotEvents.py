@@ -128,16 +128,24 @@ class ItemRegionChangeEvent(PlotEvent):
     """The ItemRegionChangeEvent provides an abstract event that is generated
     when an item shape change."""
 
-    def __init__(self, eventType, item, scenePos=None, screenPos=None):
+    def __init__(self, eventType, item):
         """Constructor
 
         :param silx.gui.plot.items.Item item: The changed item
+        """
+        super(ItemRegionChangeEvent, self).__init__(eventType)
+        self.__item = item
+        self.__scenePos = None
+        self.__screenPos = None
+
+    def _setMousePosition(self, scenePos=None, screenPos=None):
+        """Set extra mouse position. Used to create retrocompatibility.
+        This event should not need mouse position.
+
         :param tuple(int,int) scenePos: Scene position of the mouse
         :param tuple(int,int) screenPos: Screen position (pixels relative to
             widget) of the mouse.
         """
-        super(ItemRegionChangeEvent, self).__init__(eventType)
-        self.__item = item
         self.__scenePos = scenePos
         self.__screenPos = screenPos
 
@@ -148,21 +156,6 @@ class ItemRegionChangeEvent(PlotEvent):
         :rtype: silx.gui.plot.items.Item
         """
         return self.__item
-
-    def getScenePos(self):
-        """Returns the current scene position of the mouse (x, y).
-
-        :rtype: tuple(float,float)
-        """
-        return self.__scenePos
-
-    def getScreenPos(self):
-        """Return the current screen position (pixels relative to widget) of
-        the mouse.
-
-        :rtype: tuple(int,int)
-        """
-        return self.__screenPos
 
     def __getitem__(self, key):
         """Returns event content using the old dictionary-key mapping.
@@ -236,13 +229,13 @@ class ItemRegionChangeEvent(PlotEvent):
                 # NOTE: We hardcode something, that's pointless here
                 return "left"
             elif key == "x":
-                return self.getScenePos()[0]
+                return self.__scenePos[0]
             elif key == 'y':
-                return self.getScenePos()[1]
+                return self.__scenePos[1]
             elif key == "xpixel":
-                return self.getScreenPos()[0]
+                return self.__screenPos[0]
             elif key == "ypixel":
-                return self.getScreenPos()[1]
+                return self.__screenPos[1]
             elif key == 'xdata':
                 xData = self.__item.getXPosition()
                 if xData is None:
@@ -277,51 +270,42 @@ class ItemRegionChangeStartedEvent(ItemRegionChangeEvent):
     `ItemRegionChangedEvent` and `ItemRegionChangeFinishedEvent`.
     """
 
-    def __init__(self, item, scenePos=None, screenPos=None):
+    def __init__(self, item):
         """Constructor
 
         :param silx.gui.plot.items.Item item: The changed item
-        :param tuple(int,int) scenePos: Scene position of the mouse
-        :param tuple(int,int) screenPos: Screen position (pixels relative to
-            widget) of the mouse.
         """
         super(ItemRegionChangeStartedEvent, self).__init__(
             Type.RegionChangeStarted,
-            item, scenePos, screenPos)
+            item)
 
 
 class ItemRegionChangedEvent(ItemRegionChangeEvent):
     """The ItemRegionChangedEvent provides an event that is generated
     when an item shape was changed."""
 
-    def __init__(self, item, scenePos=None, screenPos=None):
+    def __init__(self, item):
         """Constructor
 
         :param silx.gui.plot.items.Item item: The changed item
-        :param tuple(int,int) scenePos: Scene position of the mouse
-        :param tuple(int,int) screenPos: Screen position (pixels relative to
-            widget) of the mouse.
         """
         super(ItemRegionChangedEvent, self).__init__(
             Type.RegionChanged,
-            item, scenePos, screenPos)
+            item)
 
 
 class ItemRegionChangeFinishedEvent(ItemRegionChangeEvent):
     """The ItemRegionChangeFinishedEvent provides an event that is generated
     when an item shape finished changing."""
 
-    def __init__(self, item, scenePos=None, screenPos=None):
+    def __init__(self, item):
         """Constructor
 
         :param silx.gui.plot.items.Item item: The changed item
-        :param tuple(int,int) scenePos: Scene position of the mouse
-        :param tuple(int,int) screenPos: Screen position (pixels relative to
-            widget) of the mouse.
         """
         super(ItemRegionChangeFinishedEvent, self).__init__(
             Type.RegionChangeFinished,
-            item, scenePos, screenPos)
+            item)
 
 
 class MouseEvent(PlotEvent):
