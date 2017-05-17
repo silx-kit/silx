@@ -197,8 +197,8 @@ class TestDictionaryLikeGetter(unittest.TestCase):
 
     def testDrawingProgressEvent(self):
         points = numpy.array([[-1, 0], [1, 1], [2, 2]])
-        item = items.RectangleDrawItem()
-        item.setData(points[:, 0], points[:, 1])
+        item = items.Shape('rectangle')
+        item.setPoints(points)
         event = PlotEvents.ItemRegionChangedEvent(item)
 
         self.assertEquals(event['event'], "drawingProgress")
@@ -214,8 +214,8 @@ class TestDictionaryLikeGetter(unittest.TestCase):
 
     def testDrawingFinishedEvent(self):
         points = numpy.array([[0, 1], [1, 1]])
-        item = items.VLineDrawItem()
-        item.setData(points[:, 0], points[:, 1])
+        item = items.Shape('vline')
+        item.setPoints(points)
         event = PlotEvents.ItemRegionChangeFinishedEvent(item)
 
         self.assertEquals(event['event'], "drawingFinished")

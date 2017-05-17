@@ -26,7 +26,7 @@
 
 __author__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "11/05/2017"
+__date__ = "17/05/2017"
 
 
 import enum
@@ -174,7 +174,7 @@ class ItemRegionChangeEvent(PlotEvent):
         :rtype: object
         :raises KeyError: If the requested key is not available
         """
-        if isinstance(self.__item, items.DrawItem):
+        if isinstance(self.__item, items.Shape):
             if key == 'event':
                 t = self.getType()
                 if t == Type.RegionChangeStarted:
@@ -188,42 +188,32 @@ class ItemRegionChangeEvent(PlotEvent):
                 else:
                     raise RuntimeError("Unexpected type %s" % t.__class__)
             elif key == "type":
-                if isinstance(self.getItem(), items.LineDrawItem):
-                    return "line"
-                elif isinstance(self.getItem(), items.HLineDrawItem):
-                    return "hline"
-                elif isinstance(self.getItem(), items.VLineDrawItem):
-                    return "vline"
-                elif isinstance(self.getItem(), items.PolylinesDrawItem):
-                    return "polylines"
-                elif isinstance(self.getItem(), items.PolygonDrawItem):
-                    return "polygon"
-                elif isinstance(self.getItem(), items.RectangleDrawItem):
-                    return "rectangle"
+                if isinstance(self.getItem(), items.Shape):
+                    return self.getItem().getType()
                 else:
-                    raise RuntimeError("Unexpected type %s" % self.__item.__class__)
+                    # It was to work on the old client side
+                    return "silxShape"
             elif key == "points":
-                x = self.getItem().getXData(copy=False)
-                y = self.getItem().getYData(copy=False)
-                return numpy.array([x, y]).T
+                return self.getItem().getPoints()
             elif key == "xdata":
-                return self.getItem().getXData()
+                return self.getItem().getPoints()[:, 0]
             elif key == "ydata":
-                return self.getItem().getYData()
+                return self.getItem().getPoints()[:, 1]
             elif key == "parameters":
                 return {}
 
-            if isinstance(self.getItem(), items.RectangleDrawItem):
-                if key == "x":
-                    return self.getItem().getXData(copy=False).min()
-                elif key == "y":
-                    return self.getItem().getYData(copy=False).min()
-                elif key == "width":
-                    data = self.getItem().getXData(copy=False)
-                    return data.max() - data.min()
-                elif key == "height":
-                    data = self.getItem().getYData(copy=False)
-                    return data.max() - data.min()
+            item = self.getItem()
+            if isinstance(item, items.Shape):
+                if item.getType() in ["rectangle", "polygon", "polyline"]:
+                    points = self.getItem().getPoints(copy=False)
+                    if key == "x":
+                        return points[:, 0].min()
+                    elif key == "y":
+                        return points[:, 1].min()
+                    elif key == "width":
+                        return points[:, 0].max() - points[:, 0].min()
+                    elif key == "height":
+                        return points[:, 1].max() - points[:, 1].min()
 
         elif isinstance(self.__item, items.marker._BaseMarker):
             if key == 'event':

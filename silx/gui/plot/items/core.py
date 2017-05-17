@@ -931,31 +931,3 @@ class Points(Item, SymbolMixIn, AlphaMixIn):
                 plot._invalidateDataRange()
         self._updated(ItemChangedType.DATA)
 
-
-class DrawItem(Points):
-    pass
-
-
-class RectangleDrawItem(DrawItem):
-    pass
-
-
-class LineDrawItem(DrawItem):
-    pass
-
-
-class HLineDrawItem(DrawItem):
-    pass
-
-
-class VLineDrawItem(DrawItem):
-    pass
-
-
-class PolygonDrawItem(DrawItem):
-    pass
-
-
-class PolylinesDrawItem(DrawItem):
-    pass
-
