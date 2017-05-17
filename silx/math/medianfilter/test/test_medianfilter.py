@@ -29,9 +29,9 @@ __date__ = "02/05/2017"
 
 import unittest
 import numpy
-import os
 from silx.math.medianfilter import medfilt2d
 from silx.math.medianfilter.medianfilter import reflect, mirror
+from silx.math.medianfilter.medianfilter import MODES as silx_mf_modes
 from silx.test.utils import ParametricTestCase
 try:
     import scipy
@@ -80,7 +80,7 @@ class TestMedianFilterNearest(ParametricTestCase):
         self.assertTrue(dataOut[4, 4] == 44)
 
     def testFilter3_9(self):
-        "Test median filter on a 3x3 matrix a 3x3 kernel."
+        "Test median filter on a 3x3 matrix with a 3x3 kernel."
         dataIn = numpy.array([0, -1, 1,
                               12, 6, -2,
                               100, 4, 12],
@@ -109,20 +109,10 @@ class TestMedianFilterNearest(ParametricTestCase):
 
         self.assertTrue(numpy.array_equal(dataIn, dataOut))
 
-    def testInputDataIsNotModify(self):
-        """Make sure input data is not modify by the median filter"""
-        dataIn = numpy.arange(100, dtype=numpy.int32)
-        dataIn = dataIn.reshape((10, 10))
-        dataInCopy = dataIn.copy()
-
-        medfilt2d(image=dataIn,
-                  kernel_size=(3, 3),
-                  conditional=False,
-                  mode='nearest')
-        self.assertTrue(numpy.array_equal(dataIn, dataInCopy))
-
     def testFilter3Conditionnal(self):
-        """Test that the conditional filter apply correctly"""
+        """Test that the conditional filter apply correctly in a 10x10 matrix
+        with a 3x3 kernel
+        """
         dataIn = numpy.arange(100, dtype=numpy.int32)
         dataIn = dataIn.reshape((10, 10))
 
@@ -135,21 +125,8 @@ class TestMedianFilterNearest(ParametricTestCase):
         self.assertTrue(numpy.array_equal(dataOut[1:8, 1:8], dataIn[1:8, 1:8]))
         self.assertTrue(dataOut[9, 9] == 98)
 
-    def testTypes(self):
-        """Test that all needed types have their implementation of the median
-        filter
-        """
-        for testType in [numpy.float32, numpy.float64, numpy.int16,
-                         numpy.uint16, numpy.int32, numpy.int64, numpy.uint64]:
-            data = (numpy.random.rand(10, 10) * 65000).astype(testType)
-            out = medfilt2d(image=data,
-                            kernel_size=(3, 3),
-                            conditional=False,
-                            mode='nearest')
-            self.assertTrue(out.dtype.type is testType)
-
     def testFilter3_1D(self):
-        """Simple test of a three by three kernel median filter"""
+        """Simple test of a 3x3 median filter on a 1D array"""
         dataIn = numpy.arange(100, dtype=numpy.int32)
 
         dataOut = medfilt2d(image=dataIn,
@@ -161,89 +138,12 @@ class TestMedianFilterNearest(ParametricTestCase):
         self.assertTrue(dataOut[9] == 9)
         self.assertTrue(dataOut[99] == 99)
 
-    @unittest.skipUnless(scipy, "scipy not available")
-    def testWithArange(self):
-        data = numpy.arange(10000, dtype=numpy.int32)
-        data = data.reshape(100, 100)
-
-        kernels = [(3, 7), (7, 5), (1, 1), (3, 3)]
-        for kernel in kernels:
-            with self.subTest(kernel=kernel):
-                resScipy = scipy.ndimage.median_filter(input=data,
-                                                       size=kernel,
-                                                       mode='nearest')
-                resSilx = medfilt2d(image=data,
-                                    kernel_size=kernel,
-                                    conditional=False,
-                                    mode='nearest')
-
-                self.assertTrue(numpy.array_equal(resScipy, resSilx))
-
-    @unittest.skipUnless(scipy, "scipy not available")
-    def testRandomMatrice(self):
-        kernels = [(3, 7), (7, 5), (1, 1), (3, 3)]
-        for kernel in kernels:
-            with self.subTest(kernel=kernel):
-                resScipy = scipy.ndimage.median_filter(input=RANDOM_FLOAT_MAT,
-                                                       size=kernel,
-                                                       mode='nearest')
-
-                resSilx = medfilt2d(image=RANDOM_FLOAT_MAT,
-                                    kernel_size=kernel,
-                                    conditional=False,
-                                    mode='nearest')
-
-                self.assertTrue(numpy.array_equal(resScipy, resSilx))
-
-    @unittest.skipUnless(scipy, "scipy not available")
-    def testAscentOrLena(self):
-        if hasattr(scipy.misc, 'ascent'):
-            img = scipy.misc.ascent()
-        else:
-            img = scipy.misc.lena()
-
-        kernels = [(3, 1), (3, 5), (5, 9), (9, 3)]
-        for kernel in kernels:
-            with self.subTest(kernel=kernel):
-                resScipy = scipy.ndimage.median_filter(input=img,
-                                                       size=kernel,
-                                                       mode='nearest')
-
-                resSilx = medfilt2d(image=img,
-                                    kernel_size=kernel,
-                                    conditional=False,
-                                    mode='nearest')
-
-                self.assertTrue(numpy.array_equal(resScipy, resSilx))
-
 
 class TestMedianFilterReflect(ParametricTestCase):
     """Unit test for the median filter in reflect mode"""
 
-    @unittest.skipUnless(scipy, "scipy not available")
-    def testAscentOrLena(self):
-        """Simple test vs scipy"""
-        if hasattr(scipy.misc, 'ascent'):
-            img = scipy.misc.ascent()
-        else:
-            img = scipy.misc.lena()
-
-        kernels = [(3, 1), (3, 5), (5, 9), (9, 3)]
-        for kernel in kernels:
-            with self.subTest(kernel=kernel):
-                resScipy = scipy.ndimage.median_filter(input=img,
-                                                       size=kernel,
-                                                       mode='reflect')
-
-                resSilx = medfilt2d(image=img,
-                                    kernel_size=kernel,
-                                    conditional=False,
-                                    mode='reflect')
-
-                self.assertTrue(numpy.array_equal(resScipy, resSilx))
-
     def testArange9(self):
-        """Test from a 3x3 window to an arange array"""
+        """Test from a 3x3 window to RANDOM_FLOAT_MAT"""
         img = numpy.arange(9, dtype=numpy.int32)
         img = img.reshape(3, 3)
         kernel = (3, 3)
@@ -255,7 +155,7 @@ class TestMedianFilterReflect(ParametricTestCase):
             numpy.array_equal(res.ravel(), [1, 2, 2, 3, 4, 5, 6, 6, 7]))
 
     def testRandom10(self):
-        """Test a (5, 3) window to a random array"""
+        """Test a (5, 3) window to a RANDOM_FLOAT_MAT"""
         kernel = (5, 3)
 
         thRes = numpy.array([
@@ -349,28 +249,6 @@ class TestMedianFilterMirror(ParametricTestCase):
                         mode='mirror')
 
         self.assertTrue(numpy.array_equal(thRes, res))
-
-    @unittest.skipUnless(scipy, "scipy not available")
-    def testAscentOrLena(self):
-        """Simple test vs scipy"""
-        if hasattr(scipy.misc, 'ascent'):
-            img = scipy.misc.ascent()
-        else:
-            img = scipy.misc.lena()
-
-        kernels = [(3, 1), (3, 5), (5, 9), (9, 3)]
-        for kernel in kernels:
-            with self.subTest(kernel=kernel):
-                resScipy = scipy.ndimage.median_filter(input=img,
-                                                       size=kernel,
-                                                       mode='mirror')
-
-                resSilx = medfilt2d(image=img,
-                                    kernel_size=kernel,
-                                    conditional=False,
-                                    mode='mirror')
-
-                self.assertTrue(numpy.array_equal(resScipy, resSilx))
 
     def testRandom10Conditionnal(self):
         """Test the median filter in reflect mode and with the conditionnal
@@ -485,9 +363,119 @@ class TestMedianFilterShrink(ParametricTestCase):
         self.assertTrue(numpy.array_equal(resK1, thRes))
 
 
+class TestGeneralExecution(ParametricTestCase):
+    """Some general test on median filter application"""
+
+    def testTypes(self):
+        """Test that all needed types have their implementation of the median
+        filter
+        """
+        for mode in silx_mf_modes:
+            for testType in [numpy.float32, numpy.float64, numpy.int16,
+                             numpy.uint16, numpy.int32, numpy.int64,
+                             numpy.uint64]:
+                with self.subTest(mode=mode, type=testType):
+                    data = (numpy.random.rand(10, 10) * 65000).astype(testType)
+                    out = medfilt2d(image=data,
+                                    kernel_size=(3, 3),
+                                    conditional=False,
+                                    mode=mode)
+                    self.assertTrue(out.dtype.type is testType)
+
+    def testInputDataIsNotModify(self):
+        """Make sure input data is not modify by the median filter"""
+        dataIn = numpy.arange(100, dtype=numpy.int32)
+        dataIn = dataIn.reshape((10, 10))
+        dataInCopy = dataIn.copy()
+
+        for mode in silx_mf_modes:
+            with self.subTest(mode=mode):
+                medfilt2d(image=dataIn,
+                          kernel_size=(3, 3),
+                          conditional=False,
+                          mode=mode)
+                self.assertTrue(numpy.array_equal(dataIn, dataInCopy))
+
+
+def _getScipyAndSilxCommonModes():
+    """return the mode which are comparable between silx and scipy"""
+    modes = silx_mf_modes.copy()
+    del modes['shrink']
+    return modes
+
+
+@unittest.skipUnless(scipy is not None, "scipy not available")
+class TestVsScipy(ParametricTestCase):
+    """Compare scipy.ndimage.median_filter vs silx.math.medianfilter
+    on comparable 
+    """
+    def testWithArange(self):
+        """Test vs scipy with different kernels on arange matrix"""
+        data = numpy.arange(10000, dtype=numpy.int32)
+        data = data.reshape(100, 100)
+
+        kernels = [(3, 7), (7, 5), (1, 1), (3, 3)]
+        modesToTest = _getScipyAndSilxCommonModes()
+        for kernel in kernels:
+            for mode in modesToTest:
+                with self.subTest(kernel=kernel, mode=mode):
+                    resScipy = scipy.ndimage.median_filter(input=data,
+                                                           size=kernel,
+                                                           mode=mode)
+                    resSilx = medfilt2d(image=data,
+                                        kernel_size=kernel,
+                                        conditional=False,
+                                        mode=mode)
+
+                    self.assertTrue(numpy.array_equal(resScipy, resSilx))
+
+    def testRandomMatrice(self):
+        """Test vs scipy with different kernels on RANDOM_FLOAT_MAT"""
+        kernels = [(3, 7), (7, 5), (1, 1), (3, 3)]
+        modesToTest = _getScipyAndSilxCommonModes()
+        for kernel in kernels:
+            for mode in modesToTest:
+                with self.subTest(kernel=kernel, mode=mode):
+                    resScipy = scipy.ndimage.median_filter(input=RANDOM_FLOAT_MAT,
+                                                           size=kernel,
+                                                           mode=mode)
+
+                    resSilx = medfilt2d(image=RANDOM_FLOAT_MAT,
+                                        kernel_size=kernel,
+                                        conditional=False,
+                                        mode=mode)
+
+                    self.assertTrue(numpy.array_equal(resScipy, resSilx))
+
+    def testAscentOrLena(self):
+        """Test vs scipy with """
+        if hasattr(scipy.misc, 'ascent'):
+            img = scipy.misc.ascent()
+        else:
+            img = scipy.misc.lena()
+
+        kernels = [(3, 1), (3, 5), (5, 9), (9, 3)]
+        modesToTest = _getScipyAndSilxCommonModes()
+
+        for kernel in kernels:
+            for mode in modesToTest:
+                with self.subTest(kernel=kernel, mode=mode):
+                    resScipy = scipy.ndimage.median_filter(input=img,
+                                                           size=kernel,
+                                                           mode=mode)
+
+                    resSilx = medfilt2d(image=img,
+                                        kernel_size=kernel,
+                                        conditional=False,
+                                        mode=mode)
+
+                    self.assertTrue(numpy.array_equal(resScipy, resSilx))
+
+
 def suite():
     test_suite = unittest.TestSuite()
-    for test in [TestMedianFilterNearest, TestMedianFilterReflect,
+    for test in [TestGeneralExecution, TestVsScipy,
+                 TestMedianFilterNearest, TestMedianFilterReflect,
                  TestMedianFilterMirror, TestMedianFilterShrink]:
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(test))
