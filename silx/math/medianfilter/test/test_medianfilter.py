@@ -31,6 +31,7 @@ import unittest
 import numpy
 import os
 from silx.math.medianfilter import medfilt2d
+from silx.math.medianfilter.medianfilter import reflect
 from silx.test.utils import ParametricTestCase
 try:
     import scipy
@@ -61,7 +62,8 @@ class TestMedianFilterNearest(ParametricTestCase):
 
         dataOut = medfilt2d(image=dataIn,
                             kernel_size=(3, 3),
-                            conditional=False)
+                            conditional=False,
+                            mode='nearest')
         self.assertTrue(dataOut[0, 0] == 1)
         self.assertTrue(dataOut[9, 0] == 90)
         self.assertTrue(dataOut[9, 9] == 98)
@@ -80,7 +82,8 @@ class TestMedianFilterNearest(ParametricTestCase):
         dataIn = dataIn.reshape((3, 3))
         dataOut = medfilt2d(image=dataIn,
                             kernel_size=(3, 3),
-                            conditional=False)
+                            conditional=False,
+                            mode='nearest')
         self.assertTrue(dataOut.shape == dataIn.shape)
         self.assertTrue(dataOut[1, 1] == 4)
         self.assertTrue(dataOut[0, 0] == 0)
@@ -95,7 +98,8 @@ class TestMedianFilterNearest(ParametricTestCase):
 
         dataOut = medfilt2d(image=dataIn,
                             kernel_size=(1, 1),
-                            conditional=False)
+                            conditional=False,
+                            mode='nearest')
 
         self.assertTrue(numpy.array_equal(dataIn, dataOut))
 
@@ -107,7 +111,8 @@ class TestMedianFilterNearest(ParametricTestCase):
 
         medfilt2d(image=dataIn,
                   kernel_size=(3, 3),
-                  conditional=False)
+                  conditional=False,
+                  mode='nearest')
         self.assertTrue(numpy.array_equal(dataIn, dataInCopy))
 
     def testThreads(self):
@@ -120,19 +125,23 @@ class TestMedianFilterNearest(ParametricTestCase):
         dataOut1Thr = medfilt2d(image=dataIn,
                                 kernel_size=(3, 3),
                                 conditional=False,
+                                mode='nearest',
                                 )
         os.environ["OMP_NUM_THREADS"] = "2"
         dataOut2Thr = medfilt2d(image=dataIn,
                                 kernel_size=(3, 3),
-                                conditional=False)
+                                conditional=False,
+                                mode='nearest')
         os.environ["OMP_NUM_THREADS"] = "4"
         dataOut4Thr = medfilt2d(image=dataIn,
                                 kernel_size=(3, 3),
-                                conditional=False)
+                                conditional=False,
+                                mode='nearest')
         os.environ["OMP_NUM_THREADS"] = "8"
         dataOut8Thr = medfilt2d(image=dataIn,
                                 kernel_size=(3, 3),
-                                conditional=False)
+                                conditional=False,
+                                mode='nearest')
         if former is None:
             os.environ.pop("OMP_NUM_THREADS")
         else:
@@ -149,7 +158,8 @@ class TestMedianFilterNearest(ParametricTestCase):
 
         dataOut = medfilt2d(image=dataIn,
                             kernel_size=(3, 3),
-                            conditional=True)
+                            conditional=True,
+                            mode='nearest')
         self.assertTrue(dataOut[0, 0] == 1)
         self.assertTrue(dataOut[0, 1] == 1)
         self.assertTrue(numpy.array_equal(dataOut[1:8, 1:8], dataIn[1:8, 1:8]))
@@ -164,7 +174,8 @@ class TestMedianFilterNearest(ParametricTestCase):
             data = (numpy.random.rand(10, 10) * 65000).astype(testType)
             out = medfilt2d(image=data,
                             kernel_size=(3, 3),
-                            conditional=False)
+                            conditional=False,
+                            mode='nearest')
             self.assertTrue(out.dtype.type is testType)
 
     def testFilter3_1D(self):
@@ -173,7 +184,8 @@ class TestMedianFilterNearest(ParametricTestCase):
 
         dataOut = medfilt2d(image=dataIn,
                             kernel_size=(5),
-                            conditional=False)
+                            conditional=False,
+                            mode='nearest')
 
         self.assertTrue(dataOut[0] == 0)
         self.assertTrue(dataOut[9] == 9)
@@ -192,7 +204,8 @@ class TestMedianFilterNearest(ParametricTestCase):
                                                        mode='nearest')
                 resSilx = medfilt2d(image=data,
                                     kernel_size=kernel,
-                                    conditional=False)
+                                    conditional=False,
+                                    mode='nearest')
 
                 self.assertTrue(numpy.array_equal(resScipy, resSilx))
 
@@ -207,7 +220,8 @@ class TestMedianFilterNearest(ParametricTestCase):
 
                 resSilx = medfilt2d(image=self.random_mat,
                                     kernel_size=kernel,
-                                    conditional=False)
+                                    conditional=False,
+                                    mode='nearest')
 
                 self.assertTrue(numpy.array_equal(resScipy, resSilx))
 
@@ -227,15 +241,113 @@ class TestMedianFilterNearest(ParametricTestCase):
 
                 resSilx = medfilt2d(image=img,
                                     kernel_size=kernel,
-                                    conditional=False)
+                                    conditional=False,
+                                    mode='nearest')
 
                 self.assertTrue(numpy.array_equal(resScipy, resSilx))
 
 
+class TestMedianFilterReflect(ParametricTestCase):
+    """Unit test for the median filter in reflect mode"""
+    random_mat = numpy.array([
+        [0.05564293, 0.62717157, 0.75002406, 0.40555336, 0.70278975],
+        [0.76532598, 0.02839148, 0.05272484, 0.65166994, 0.42161216],
+        [0.23067427, 0.74219128, 0.56049024, 0.44406320, 0.28773158],
+        [0.81025249, 0.20303021, 0.68382382, 0.46372299, 0.81281709],
+        [0.94691602, 0.07813661, 0.81651256, 0.84220106, 0.33623165]])
+
+    @unittest.skipUnless(scipy, "scipy not available")
+    def testAscentOrLena(self):
+        """Simple test vs scipy"""
+        if hasattr(scipy.misc, 'ascent'):
+            img = scipy.misc.ascent()
+        else:
+            img = scipy.misc.lena()
+
+        img = img[0:10, 0:10].copy()
+        kernels = [(3, 1), (3, 5), (5, 9), (9, 3)]
+        for kernel in kernels:
+            with self.subTest(kernel=kernel):
+                resScipy = scipy.ndimage.median_filter(input=img,
+                                                       size=kernel,
+                                                       mode='reflect')
+
+                resSilx = medfilt2d(image=img,
+                                    kernel_size=kernel,
+                                    conditional=False,
+                                    mode='reflect')
+
+                self.assertTrue(numpy.array_equal(resScipy, resSilx))
+
+    def testArange9(self):
+        """Test from a 3x3 window to an arange array"""
+        img = numpy.arange(9, dtype=numpy.int32)
+        img = img.reshape(3, 3)
+        kernel = (3, 3)
+        res = medfilt2d(image=img,
+                        kernel_size=kernel,
+                        conditional=False,
+                        mode='reflect')
+        self.assertTrue(numpy.array_equal(res.ravel(), [1, 2, 2, 3, 4, 5, 6, 6, 7]))
+
+    def testRandom10(self):
+        """Test a (5, 3) window to a random array"""
+        kernel = (5, 3)
+
+        thRes = numpy.array([
+            [0.23067427, 0.56049024, 0.56049024, 0.4440632, 0.42161216],
+            [0.23067427, 0.62717157, 0.56049024, 0.56049024, 0.46372299],
+            [0.62717157, 0.62717157, 0.56049024, 0.56049024, 0.4440632],
+            [0.76532598, 0.68382382, 0.56049024, 0.56049024, 0.42161216],
+            [0.81025249, 0.68382382, 0.56049024, 0.68382382, 0.46372299]])
+
+        res = medfilt2d(image=self.random_mat,
+                        kernel_size=kernel,
+                        conditional=False,
+                        mode='reflect')
+
+        self.assertTrue(numpy.array_equal(thRes, res))
+
+    def testApplyReflect1D(self):
+        """Test the reflect function used for the median filter in reflect mode"""
+        # test for inside values
+        self.assertTrue(reflect(2, 3) == 2)
+        # test for boundaries values
+        self.assertTrue(reflect(3, 3) == 2)
+        self.assertTrue(reflect(4, 3) == 1)
+        self.assertTrue(reflect(5, 3) == 0)
+        self.assertTrue(reflect(6, 3) == 0)
+        self.assertTrue(reflect(7, 3) == 1)
+        self.assertTrue(reflect(-1, 3) == 0)
+        self.assertTrue(reflect(-2, 3) == 1)
+        self.assertTrue(reflect(-3, 3) == 2)
+        self.assertTrue(reflect(-4, 3) == 2)
+        self.assertTrue(reflect(-5, 3) == 1)
+        self.assertTrue(reflect(-6, 3) == 0)
+        self.assertTrue(reflect(-7, 3) == 0)
+
+    def testRandom10Conditionnal(self):
+        """Test the median filter in reflect mode and with the conditionnal option"""
+        kernel = (3, 1)
+
+        thRes = numpy.array([
+            [0.05564293, 0.62717157, 0.75002406, 0.40555336, 0.70278975],
+            [0.23067427, 0.62717157, 0.56049024, 0.44406320, 0.42161216],
+            [0.76532598, 0.20303021, 0.56049024, 0.46372299, 0.42161216],
+            [0.81025249, 0.20303021, 0.68382382, 0.46372299, 0.33623165],
+            [0.94691602, 0.07813661, 0.81651256, 0.84220106, 0.33623165]])
+
+        res = medfilt2d(image=self.random_mat,
+                        kernel_size=kernel,
+                        conditional=True,
+                        mode='reflect')
+        self.assertTrue(numpy.array_equal(thRes, res))
+
+
 def suite():
     test_suite = unittest.TestSuite()
-    for test in [TestMedianFilterNearest, ]:
-        test_suite.addTest(
+    for test in [TestMedianFilterNearest, TestMedianFilterReflect]:
+            test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(test))
     return test_suite
 

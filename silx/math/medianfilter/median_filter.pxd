@@ -36,3 +36,5 @@ cdef extern from "median_filter.hpp":
                                       int y_pixel_range_min,
                                       int y_pixel_range_max,
                                       bool conditional) nogil;
+
+    cdef extern int reflect(int index, int length_max);

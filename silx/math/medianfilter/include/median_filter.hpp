@@ -32,6 +32,13 @@
 #include <assert.h>
 #include <algorithm>
 #include <signal.h>
+#include <iostream>
+
+// Modes for the median filter
+enum MODE{
+    NEAREST=0,  
+    REFLECT=1
+};
 
 // Simple function browsing a deque and registring the min and max values
 // and if those values are unique or not
@@ -67,6 +74,31 @@ const T* median(std::vector<const T*>& v) {
     return v[v.size()/2];
 }
 
+template<typename T>
+void print_window(std::vector<const T*>& v){
+    typename std::vector<const T*>::const_iterator it;
+    for(it = v.begin(); it != v.end(); ++it){
+        std::cout << *(*it) << " ";
+    }
+    std::cout << std::endl;
+}
+
+int reflect(int index, int length_max){
+    int res = index;
+    // if the index is negative get the positive symetrical value
+    if(res < 0){
+        res += 1;
+        res = -res;
+    }
+    // then apply the reflect algorithm. Frequence is 2 max length
+    res = res % (2*length_max);
+    if(res >= length_max){
+        res = 2*length_max - res -1;
+        res = res % length_max;
+    }
+    return res;
+}
+
 // Browse the column of pixel_x
 template<typename T>
 void median_filter(
@@ -77,7 +109,8 @@ void median_filter(
     int x_pixel,            // the x pixel to process
     int y_pixel_range_min,
     int y_pixel_range_max,
-    bool conditional){
+    bool conditional,
+    int pMode){
     
     assert(kernel_dim[0] > 0);
     assert(kernel_dim[1] > 0);
@@ -88,7 +121,7 @@ void median_filter(
     assert(x_pixel < image_dim[0]);
     assert(y_pixel_range_max < image_dim[1]);
     assert(y_pixel_range_min <= y_pixel_range_max);
-    // # kernel odd
+    // kernel odd assertion
     assert((kernel_dim[0] - 1)%2 == 0);
     assert((kernel_dim[1] - 1)%2 == 0);
 
@@ -96,9 +129,9 @@ void median_filter(
     int halfKernel_x = (kernel_dim[1] - 1) / 2;
     int halfKernel_y = (kernel_dim[0] - 1) / 2;
 
+    MODE mode = static_cast<MODE>(pMode);
+
     // init buffer
-    // fill the buffer for the first iteration
-    // we are treating
     std::vector<const T*> window_values(kernel_dim[0]*kernel_dim[1]);
 
     for(int pixel_y=y_pixel_range_min; pixel_y <= y_pixel_range_max; pixel_y ++ ){
@@ -108,9 +141,16 @@ void median_filter(
         {
             for(int win_x = x_pixel-halfKernel_x; win_x <= x_pixel+halfKernel_x; win_x++)
             {
-                int index_x = std::min(std::max(win_x, 0), image_dim[0] - 1);
-                int index_y = std::min(std::max(win_y, 0), image_dim[1] - 1);
-                *it = (&input[index_y*image_dim[0] + index_x]);
+                if(mode == NEAREST){
+                    int index_x = std::min(std::max(win_x, 0), image_dim[0] - 1);
+                    int index_y = std::min(std::max(win_y, 0), image_dim[1] - 1);
+                    *it = (&input[index_y*image_dim[0] + index_x]);
+                }
+                if(mode == REFLECT){
+                    int index_x = reflect(win_x, image_dim[0]);
+                    int index_y = reflect(win_y, image_dim[1]);
+                    *it = (&input[index_y*image_dim[0] + index_x]);
+                }
                 ++it;
             }
         }
