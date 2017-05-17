@@ -38,3 +38,4 @@ cdef extern from "median_filter.hpp":
                                       bool conditional) nogil;
 
     cdef extern int reflect(int index, int length_max);
+    cdef extern int mirror(int index, int length_max);

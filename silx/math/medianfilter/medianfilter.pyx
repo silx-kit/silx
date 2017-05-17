@@ -42,7 +42,7 @@ ctypedef unsigned int uint32
 ctypedef unsigned short uint16
 
 
-MODES = {'nearest':0, 'reflect':1}
+MODES = {'nearest':0, 'reflect':1, 'mirror':2}
 
 
 def medfilt1d(data, kernel_size=3, bool conditional=False, mode='nearest'):
@@ -98,7 +98,7 @@ def medfilt(data, kernel_size=3, bool conditional=False, mode='nearest'):
     :returns: the array with the median value for each pixel.
     """
     if mode not in MODES:
-        err = 'Requested mode %s is unknowed.' %mode
+        err = 'Requested mode %s is unknowed.' % mode
         raise ValueError(err)
 
     reshaped = False
@@ -186,6 +186,19 @@ def reflect(int index, int length_max):
     :param int length_max: the higher bound limit
     """
     return median_filter.reflect(index, length_max)
+
+
+@cython.cdivision(True)
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.initializedcheck(False)
+def mirror(int index, int length_max):
+    """find the correct index into [0, length_max-1] for index in mirror mode
+
+    :param int index: the index to move into [0, length_max-1] in mirror mode
+    :param int length_max: the higher bound limit
+    """
+    return median_filter.mirror(index, length_max)
 
 
 @cython.cdivision(True)

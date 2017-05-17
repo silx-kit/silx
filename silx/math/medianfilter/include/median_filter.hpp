@@ -37,7 +37,8 @@
 // Modes for the median filter
 enum MODE{
     NEAREST=0,  
-    REFLECT=1
+    REFLECT=1,
+    MIRROR=2
 };
 
 // Simple function browsing a deque and registring the min and max values
@@ -83,6 +84,7 @@ void print_window(std::vector<const T*>& v){
     std::cout << std::endl;
 }
 
+// return the index into 0, (length_max - 1) in reflect mode
 int reflect(int index, int length_max){
     int res = index;
     // if the index is negative get the positive symetrical value
@@ -95,6 +97,25 @@ int reflect(int index, int length_max){
     if(res >= length_max){
         res = 2*length_max - res -1;
         res = res % length_max;
+    }
+    return res;
+}
+
+
+// return the index into 0, (length_max - 1) in mirror mode
+int mirror(int index, int length_max){
+    int res = index;
+    // if the index is negative get the positive symetrical value
+    if(res < 0){
+        res = -res;
+    }
+
+    int rightLimit = length_max -1;
+    // apply the redundancy each two right limit
+    res = res % (2*rightLimit);
+    if(res >= length_max){
+        int distToRedundancy = (2*rightLimit) - res;
+        res = distToRedundancy;
     }
     return res;
 }
@@ -149,6 +170,11 @@ void median_filter(
                 if(mode == REFLECT){
                     int index_x = reflect(win_x, image_dim[0]);
                     int index_y = reflect(win_y, image_dim[1]);
+                    *it = (&input[index_y*image_dim[0] + index_x]);
+                }
+                if(mode == MIRROR){
+                    int index_x = mirror(win_x, image_dim[0]);
+                    int index_y = mirror(win_y, image_dim[1]);
                     *it = (&input[index_y*image_dim[0] + index_x]);
                 }
                 ++it;

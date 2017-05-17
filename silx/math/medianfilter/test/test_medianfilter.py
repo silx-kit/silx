@@ -31,7 +31,7 @@ import unittest
 import numpy
 import os
 from silx.math.medianfilter import medfilt2d
-from silx.math.medianfilter.medianfilter import reflect
+from silx.math.medianfilter.medianfilter import reflect, mirror
 from silx.test.utils import ParametricTestCase
 try:
     import scipy
@@ -338,11 +338,91 @@ class TestMedianFilterReflect(ParametricTestCase):
         self.assertTrue(numpy.array_equal(thRes, res))
 
 
+class TestMedianFilterMirror(ParametricTestCase):
+    """Unit test for the median filter in mirror mode
+    """
+
+    def testApplyMirror1D(self):
+        """Test the reflect function used for the median filter in mirror mode"""
+        # test for inside values
+        self.assertTrue(mirror(2, 3) == 2)
+        # test for boundaries values
+        self.assertTrue(mirror(4, 4) == 2)
+        self.assertTrue(mirror(5, 4) == 1)
+        self.assertTrue(mirror(6, 4) == 0)
+        self.assertTrue(mirror(7, 4) == 1)
+        self.assertTrue(mirror(8, 4) == 2)
+        self.assertTrue(mirror(-1, 4) == 1)
+        self.assertTrue(mirror(-2, 4) == 2)
+        self.assertTrue(mirror(-3, 4) == 3)
+        self.assertTrue(mirror(-4, 4) == 2)
+        self.assertTrue(mirror(-5, 4) == 1)
+        self.assertTrue(mirror(-6, 4) == 0)
+
+    def testRandom10(self):
+        """Test a (5, 3) window to a random array"""
+        kernel = (3, 5)
+
+        thRes = numpy.array([
+            [0.05272484, 0.40555336, 0.42161216, 0.42161216, 0.42161216],
+            [0.56049024, 0.56049024, 0.4440632, 0.4440632, 0.4440632],
+            [0.56049024, 0.46372299, 0.46372299, 0.46372299, 0.46372299],
+            [0.68382382, 0.56049024, 0.56049024, 0.46372299, 0.56049024],
+            [0.68382382, 0.46372299, 0.68382382, 0.46372299, 0.68382382]])
+
+        res = medfilt2d(image=RANDOM_MAT,
+                        kernel_size=kernel,
+                        conditional=False,
+                        mode='mirror')
+
+        self.assertTrue(numpy.array_equal(thRes, res))
+
+    @unittest.skipUnless(scipy, "scipy not available")
+    def testAscentOrLena(self):
+        """Simple test vs scipy"""
+        if hasattr(scipy.misc, 'ascent'):
+            img = scipy.misc.ascent()
+        else:
+            img = scipy.misc.lena()
+
+        img = img[0:10, 0:10].copy()
+        kernels = [(3, 1), (3, 5), (5, 9), (9, 3)]
+        for kernel in kernels:
+            with self.subTest(kernel=kernel):
+                resScipy = scipy.ndimage.median_filter(input=img,
+                                                       size=kernel,
+                                                       mode='mirror')
+
+                resSilx = medfilt2d(image=img,
+                                    kernel_size=kernel,
+                                    conditional=False,
+                                    mode='mirror')
+
+                self.assertTrue(numpy.array_equal(resScipy, resSilx))
+
+    def testRandom10Conditionnal(self):
+        """Test the median filter in reflect mode and with the conditionnal option"""
+        kernel = (1, 3)
+
+        thRes = numpy.array([
+            [0.62717157, 0.62717157, 0.62717157, 0.70278975, 0.40555336],
+            [0.02839148, 0.05272484, 0.05272484, 0.42161216, 0.65166994],
+            [0.74219128, 0.56049024, 0.56049024, 0.44406320, 0.44406320],
+            [0.20303021, 0.68382382, 0.46372299, 0.68382382, 0.46372299],
+            [0.07813661, 0.81651256, 0.81651256, 0.81651256, 0.84220106]])
+
+        res = medfilt2d(image=RANDOM_MAT,
+                        kernel_size=kernel,
+                        conditional=True,
+                        mode='mirror')
+
+        self.assertTrue(numpy.array_equal(thRes, res))
+
 
 def suite():
     test_suite = unittest.TestSuite()
-    for test in [TestMedianFilterNearest, TestMedianFilterReflect]:
-            test_suite.addTest(
+    for test in [TestMedianFilterNearest, TestMedianFilterReflect, TestMedianFilterMirror]:
+        test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(test))
     return test_suite
 
