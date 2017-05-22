@@ -292,7 +292,10 @@ class ExternalResources(object):
         root = os.path.dirname(full_path)
         with engine.open(full_path) as fd:
             fd.extractall(self.data_home)
-            result = [os.path.join(root, i.name) for i in fd.getmembers()]
+            if lodn.endswith("zip"):
+                result = [os.path.join(root, i) for i in fd.namelist()]
+            else:
+                result = [os.path.join(root, i) for i in fd.getnames()]
         return result
 
     def download_all(self, imgs=None):
