@@ -290,7 +290,7 @@ class ExternalResources(object):
                                "are currently supported")
         full_path = self.getfile(dirname)
         root = os.path.dirname(full_path)
-        with engine.open(full_path, mode="r") as fd:
+        with engine(full_path, mode="r") as fd:
             fd.extractall(self.data_home)
             if lodn.endswith("zip"):
                 result = [os.path.join(root, i) for i in fd.namelist()]
