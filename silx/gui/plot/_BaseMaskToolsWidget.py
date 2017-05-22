@@ -1059,7 +1059,13 @@ class BaseMaskToolsWidget(qt.QWidget):
 
 class BaseMaskToolsDockWidget(qt.QDockWidget):
     """Base class for :class:`MaskToolsWidget` and
-    :class:`ScatterMaskToolsWidget`
+    :class:`ScatterMaskToolsWidget`.
+
+    Inheritor must call :meth:`setWidget` with an instance of
+    a subclass of :class:`BaseMaskToolsWidget`, before trying to use
+    methods :meth:`resetSelectionMask`, :meth:`setSelectionMask`
+    or :meth:`getSelectionMask`, and before adding the dock widget to
+    a dock area.
 
     For integration in a :class:`PlotWindow`.
 
@@ -1106,6 +1112,11 @@ class BaseMaskToolsDockWidget(qt.QDockWidget):
                  the returned shape is that of the active image.
         """
         return self.widget().setSelectionMask(mask, copy=copy)
+
+    def resetSelectionMask(self):
+        """Reset the mask to an array of zeros with the shape of the
+        current data."""
+        self.widget().resetSelectionMask()
 
     def toggleViewAction(self):
         """Returns a checkable action that shows or closes this widget.
