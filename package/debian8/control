@@ -37,6 +37,7 @@ Build-Depends: cython,
                python-scipy-dbg,
                python-sphinx,
                python-sphinxcontrib.programoutput,
+               python-enum34,
                python3-all-dev,
                python3-all-dbg,
                python3-numpy,
@@ -99,6 +100,7 @@ Depends: ${misc:Depends},
          python-pyqt5.qtopengl,
          python-scipy,
          python-six,
+         python-enum34,
 # Recommends:
 Suggests: python-rfoo
 Description: Toolbox for X-Ray data analysis - Python2 library
@@ -127,6 +129,7 @@ Depends: ${misc:Depends},
          python-pyqt5.qtopengl-dbg,
          python-scipy-dbg,
          python-six,
+         python-enum34,
 Description: Toolbox for X-Ray data analysis - python2 debug
  .
  This package contains the extension built for the Python 2 debug
