@@ -118,10 +118,10 @@ def run_entry_point(entry_point, argv):
     try:
         old_argv = sys.argv
         sys.argv = full_args
+        print("########### IMPORTLIB ###########")
         module = importlib.import_module(module_name)
         if hasattr(module, function_name):
             func = getattr(module, function_name)
-            print("########### IMPORTLIB ###########")
             func()
         else:
             logger.info("Function %s not found", function_name)
