@@ -281,7 +281,7 @@ class ExternalResources(object):
             lodn.endswith("tbz2") or lodn.endswith("tar.gz") or
                 lodn.endswith("tar.bz2")):
             import tarfile
-            engine = tarfile.TarFile
+            engine = tarfile.TarFile.open
         elif lodn.endswith("zip"):
             import zipfile
             engine = zipfile.ZipFile
@@ -290,7 +290,7 @@ class ExternalResources(object):
                                "are currently supported")
         full_path = self.getfile(dirname)
         root = os.path.dirname(full_path)
-        with engine.open(full_path) as fd:
+        with engine.open(full_path, mode="r") as fd:
             fd.extractall(self.data_home)
             if lodn.endswith("zip"):
                 result = [os.path.join(root, i) for i in fd.namelist()]
