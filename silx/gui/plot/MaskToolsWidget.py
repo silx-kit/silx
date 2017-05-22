@@ -226,6 +226,8 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         """Set the mask to a new array.
 
         :param numpy.ndarray mask: The array to use for the mask.
+                                   If None or an empty array, this is
+                                   equivalent to :meth:`resetMask`
         :type mask: numpy.ndarray of uint8 of dimension 2, C-contiguous.
                     Array of other types are converted.
         :param bool copy: True (the default) to copy the array,
@@ -234,8 +236,14 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                  The mask can be cropped or padded to fit active image,
                  the returned shape is that of the active image.
         """
+        if mask is None:
+            mask = []
         mask = numpy.array(mask, copy=False, dtype=numpy.uint8)
-        if len(mask.shape) != 2:
+
+        if mask.shape == numpy.array([]).shape:
+            self.resetSelectionMask()
+            return self.getSelectionMask().shape
+        elif len(mask.shape) != 2:
             _logger.error('Not an image, shape: %d', len(mask.shape))
             return None
 
@@ -507,7 +515,8 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             msg.exec_()
 
     def resetSelectionMask(self):
-        """Reset the mask"""
+        """Reset the mask to an array of zeros with the shape of the
+        current data."""
         self._mask.reset(shape=self._data.shape[:2])
         self._mask.commit()
 
