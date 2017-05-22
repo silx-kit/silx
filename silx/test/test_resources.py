@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "20/04/2017"
+__date__ = "22/05/2017"
 
 
 import os
@@ -73,9 +73,9 @@ class TestExternalResources(unittest.TestCase):
         "test the download from silx.org"
         f = utilstest.getfile("lena.png")
         self.assertTrue(os.path.exists(f))
-        f = utilstest.getdir("source.tar.gz")
-        self.assertTrue(os.path.isfile(f))
-        self.assertTrue(os.path.isdir(f[:-7]))
+        di = utilstest.getdir("source.tar.gz")
+        for fi in di:
+            self.assertTrue(os.path.exists(fi))
 
     def test_dowload_all(self):
         "test the download of all files from silx.org"
@@ -88,7 +88,7 @@ def suite():
     test_suite.addTest(
         unittest.defaultTestLoader.loadTestsFromTestCase(TestResources))
     test_suite.addTest(TestExternalResources("test_tempdir"))
-    test_suite.addTest(TestExternalResources("test_download")) # order matters !
+    test_suite.addTest(TestExternalResources("test_download"))  # order matters !
     test_suite.addTest(TestExternalResources("test_dowload_all"))
     return test_suite
 
