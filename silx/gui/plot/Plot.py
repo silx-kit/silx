@@ -2242,7 +2242,7 @@ class Plot(object):
 
         The list contains at least:
         ('gray', 'reversed gray', 'temperature', 'red', 'green', 'blue',
-         'magma', 'inferno', 'plasma', 'viridis')
+        'magma', 'inferno', 'plasma', 'viridis')
         """
         return Colors.getSupportedColormaps()
 
