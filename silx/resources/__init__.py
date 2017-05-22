@@ -56,7 +56,7 @@ of this modules to ensure access across different distribution schemes:
 
 __authors__ = ["V.A. Sole", "Thomas Vincent", "J. Kieffer"]
 __license__ = "MIT"
-__date__ = "02/05/2017"
+__date__ = "22/05/2017"
 
 
 import os
@@ -149,7 +149,7 @@ class ExternalResources(object):
         self._initialized = False
         self._tempdir = None
         self.sem = threading.Semaphore()
-        self.env_key = env_key
+        self.env_key = env_key or (self.project.upper() + "_DATA")
         self.url_base = url_base
         self.all_data = set()
         self.timeout = timeout
