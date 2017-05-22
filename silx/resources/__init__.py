@@ -274,7 +274,7 @@ class ExternalResources(object):
         and unzips it into the data directory
 
         :param: relative name of the image.
-        :return: full path of the locally saved file.
+        :return: list of files with their full path.
         """
         lodn = dirname.lower()
         if (lodn.endswith("tar") or lodn.endswith("tgz") or
@@ -289,9 +289,11 @@ class ExternalResources(object):
             raise RuntimeError("Unsupported archive format. Only tar and zip "
                                "are currently supported")
         full_path = self.getfile(dirname)
+        root = os.path.dirname(full_path)
         with engine.open(full_path) as fd:
             fd.extractall(self.data_home)
-        return full_path
+            result = [os.path.join(root, i.name) for i in fd.getmembers()]
+        return result
 
     def download_all(self, imgs=None):
         """Download all data needed for the test/benchmarks
