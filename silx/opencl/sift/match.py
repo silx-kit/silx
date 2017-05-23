@@ -50,7 +50,7 @@ import numpy
 from .param import par
 from silx.opencl import ocl, pyopencl
 from .utils import calc_size, get_opencl_code
-logger = logging.getLogger("sift.match")
+logger = logging.getLogger(__name__)
 if not pyopencl:
     logger.warning("No PyOpenCL, no sift")
 

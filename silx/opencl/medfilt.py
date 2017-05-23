@@ -51,7 +51,7 @@ if pyopencl:
     mf = pyopencl.mem_flags
 else:
     raise ImportError("pyopencl is not installed")
-logger = logging.getLogger("silx.opencl.medfilt")
+logger = logging.getLogger(__name__)
 
 
 class MedianFilter2D(OpenclProcessing):

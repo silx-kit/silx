@@ -47,7 +47,7 @@ import numpy
 from silx.opencl import ocl, pyopencl, kernel_workgroup_size
 from .utils import calc_size, matching_correction, get_opencl_code
 import logging
-logger = logging.getLogger("sift.alignment")
+logger = logging.getLogger(__name__)
 if not pyopencl:
     logger.warning("No PyOpenCL, no sift")
 

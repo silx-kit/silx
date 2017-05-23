@@ -47,7 +47,7 @@ import numpy
 from .utils import get_opencl_code
 
 
-logger = logging.getLogger("silx.opencl")
+logger = logging.getLogger(__name__)
 
 
 if os.environ.get("SILX_OPENCL") in ["0", "False"]:
