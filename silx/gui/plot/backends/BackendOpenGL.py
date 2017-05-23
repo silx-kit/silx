@@ -1324,21 +1324,26 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         if fileFormat not in ['png', 'ppm', 'svg', 'tiff']:
             raise NotImplementedError('Unsupported format: %s' % fileFormat)
 
-        self.makeCurrent()
+        if not self.isOpenGL2_1():
+            _logger.error('OpenGL 2.1 not available, cannot save OpenGL image')
+            width, height = self._plotFrame.size
+            data = numpy.zeros((height, width, 3), dtype=numpy.uint8)
+        else:
+            self.makeCurrent()
 
-        data = numpy.empty(
-            (self._plotFrame.size[1], self._plotFrame.size[0], 3),
-            dtype=numpy.uint8, order='C')
+            data = numpy.empty(
+                (self._plotFrame.size[1], self._plotFrame.size[0], 3),
+                dtype=numpy.uint8, order='C')
 
-        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER,
-                             self.defaultFramebufferObject())
-        gl.glPixelStorei(gl.GL_PACK_ALIGNMENT, 1)
-        gl.glReadPixels(0, 0, self._plotFrame.size[0], self._plotFrame.size[1],
-                        gl.GL_RGB, gl.GL_UNSIGNED_BYTE, data)
+            gl.glBindFramebuffer(gl.GL_FRAMEBUFFER,
+                                 self.defaultFramebufferObject())
+            gl.glPixelStorei(gl.GL_PACK_ALIGNMENT, 1)
+            gl.glReadPixels(0, 0, self._plotFrame.size[0], self._plotFrame.size[1],
+                            gl.GL_RGB, gl.GL_UNSIGNED_BYTE, data)
 
-        # glReadPixels gives bottom to top,
-        # while images are stored as top to bottom
-        data = numpy.flipud(data)
+            # glReadPixels gives bottom to top,
+            # while images are stored as top to bottom
+            data = numpy.flipud(data)
 
         # fileName is either a file-like object or a str
         saveImageToFile(data, fileName, fileFormat)
