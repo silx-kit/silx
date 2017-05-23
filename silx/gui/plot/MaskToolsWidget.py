@@ -610,6 +610,5 @@ class MaskToolsDockWidget(BaseMaskToolsDockWidget):
     :paran str name: The title of this widget
     """
     def __init__(self, parent=None, plot=None, name='Mask'):
-        super(MaskToolsDockWidget, self).__init__(parent, name)
-        self.setWidget(MaskToolsWidget(plot=plot))
-        self.widget().sigMaskChanged.connect(self._emitSigMaskChanged)
+        widget = MaskToolsWidget(plot=plot)
+        super(MaskToolsDockWidget, self).__init__(parent, name, widget)

@@ -1061,12 +1061,6 @@ class BaseMaskToolsDockWidget(qt.QDockWidget):
     """Base class for :class:`MaskToolsWidget` and
     :class:`ScatterMaskToolsWidget`.
 
-    Inheritor must call :meth:`setWidget` with an instance of
-    a subclass of :class:`BaseMaskToolsWidget`, before trying to use
-    methods :meth:`resetSelectionMask`, :meth:`setSelectionMask`
-    or :meth:`getSelectionMask`, and before adding the dock widget to
-    a dock area.
-
     For integration in a :class:`PlotWindow`.
 
     :param parent: See :class:`QDockWidget`
@@ -1075,9 +1069,14 @@ class BaseMaskToolsDockWidget(qt.QDockWidget):
 
     sigMaskChanged = qt.Signal()
 
-    def __init__(self, parent=None, name='Mask'):
+    def __init__(self, parent=None, name='Mask', widget=None):
         super(BaseMaskToolsDockWidget, self).__init__(parent)
         self.setWindowTitle(name)
+
+        if not isinstance(widget, BaseMaskToolsWidget):
+            raise TypeError("BaseMaskToolsDockWidget requires a MaskToolsWidget")
+        self.setWidget(widget)
+        self.widget().sigMaskChanged.connect(self._emitSigMaskChanged)
 
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.dockLocationChanged.connect(self._dockLocationChanged)
