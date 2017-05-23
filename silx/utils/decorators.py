@@ -37,7 +37,7 @@ import logging
 import functools
 
 
-depreclog = logging.getLogger("DEPRECATION")
+depreclog = logging.getLogger("silx.DEPRECATION")
 
 
 def deprecated(func=None, reason=None, replacement=None, since_version=None):
