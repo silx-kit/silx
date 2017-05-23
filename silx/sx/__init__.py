@@ -44,6 +44,10 @@ import sys as _sys
 _logger = logging.getLogger(__name__)
 
 
+# Init logging when used from the console
+if hasattr(_sys, 'ps1'):
+    logging.basicConfig()
+
 # Probe ipython
 try:
     from IPython import get_ipython as _get_ipython
