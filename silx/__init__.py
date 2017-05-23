@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,10 @@ __date__ = "23/05/2016"
 import os as _os
 import logging as _logging
 
-_logging.basicConfig()  # Make sure logging is initialised
+
+# Attach a do nothing logging handler for silx
+_logging.getLogger(__name__).addHandler(_logging.NullHandler())
+
 
 project = _os.path.basename(_os.path.dirname(_os.path.abspath(__file__)))
 
