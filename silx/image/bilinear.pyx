@@ -33,7 +33,7 @@ from cython.view cimport array as cvarray
 import numpy
 from libc.math cimport floor, ceil, sin, cos, sqrt, atan2
 import logging
-logger = logging.getLogger("silx.image.bilinear")
+logger = logging.getLogger(__name__)
 
 
 cdef class BilinearImage:

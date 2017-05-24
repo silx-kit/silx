@@ -40,7 +40,7 @@ __status__ = "stable"
 import logging
 
 
-logger = logging.getLogger("silx.opencl")
+logger = logging.getLogger(__name__)
 
 
 from .common import *

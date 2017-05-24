@@ -67,7 +67,7 @@ from silx.opencl import ocl, pyopencl, kernel_workgroup_size
 from silx.opencl.utils import get_opencl_code, nextpower
 
 from .utils import calc_size, kernel_size
-logger = logging.getLogger("sift.plan")
+logger = logging.getLogger(__name__)
 
 
 class SiftPlan(object):
