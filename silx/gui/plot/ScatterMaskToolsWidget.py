@@ -181,17 +181,13 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
     :class:`PlotWidget`."""
 
     def __init__(self, parent=None, plot=None):
+        super(ScatterMaskToolsWidget, self).__init__(parent, plot,
+                                                     mask=ScatterMask())
         self._z = 2  # Mask layer in plot
         self._data_scatter = None
         """plot Scatter item for data"""
         self._mask_scatter = None
         """plot Scatter item for representing the mask"""
-
-        self._mask = ScatterMask()
-
-        super(ScatterMaskToolsWidget, self).__init__(parent, plot)
-
-        self._initWidgets()
 
     def setSelectionMask(self, mask, copy=True):
         """Set the mask to a new array.
