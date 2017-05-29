@@ -56,7 +56,7 @@ of this modules to ensure access across different distribution schemes:
 
 __authors__ = ["V.A. Sole", "Thomas Vincent", "J. Kieffer"]
 __license__ = "MIT"
-__date__ = "02/05/2017"
+__date__ = "22/05/2017"
 
 
 import os
@@ -139,17 +139,22 @@ class ExternalResources(object):
                  timeout=60):
         """Constructor of the class
 
-        :param project: name of the project, like "silx"
-        :param url_base: base URL for the data, like "http://www.silx.org/pub"
-        :param env_key: name of the environment variable which contains the
-                        test_data directory like "SILX_DATA"
+        :param str project: name of the project, like "silx"
+        :param str url_base: base URL for the data, like "http://www.silx.org/pub"
+        :param str env_key: name of the environment variable which contains the
+                            test_data directory, like "SILX_DATA".
+                            If None (default), then the name of the
+                            environment variable is built from the project argument:
+                            "<PROJECT>_DATA".
+                            The environment variable is optional: in case it is not set,
+                            a directory in the temporary folder is used.
         :param timeout: time in seconds before it breaks
         """
         self.project = project
         self._initialized = False
         self._tempdir = None
         self.sem = threading.Semaphore()
-        self.env_key = env_key
+        self.env_key = env_key or (self.project.upper() + "_DATA")
         self.url_base = url_base
         self.all_data = set()
         self.timeout = timeout
@@ -274,14 +279,14 @@ class ExternalResources(object):
         and unzips it into the data directory
 
         :param: relative name of the image.
-        :return: full path of the locally saved file.
+        :return: list of files with their full path.
         """
         lodn = dirname.lower()
         if (lodn.endswith("tar") or lodn.endswith("tgz") or
             lodn.endswith("tbz2") or lodn.endswith("tar.gz") or
                 lodn.endswith("tar.bz2")):
             import tarfile
-            engine = tarfile.TarFile
+            engine = tarfile.TarFile.open
         elif lodn.endswith("zip"):
             import zipfile
             engine = zipfile.ZipFile
@@ -289,9 +294,14 @@ class ExternalResources(object):
             raise RuntimeError("Unsupported archive format. Only tar and zip "
                                "are currently supported")
         full_path = self.getfile(dirname)
-        with engine.open(full_path) as fd:
+        root = os.path.dirname(full_path)
+        with engine(full_path, mode="r") as fd:
             fd.extractall(self.data_home)
-        return full_path
+            if lodn.endswith("zip"):
+                result = [os.path.join(root, i) for i in fd.namelist()]
+            else:
+                result = [os.path.join(root, i) for i in fd.getnames()]
+        return result
 
     def download_all(self, imgs=None):
         """Download all data needed for the test/benchmarks
