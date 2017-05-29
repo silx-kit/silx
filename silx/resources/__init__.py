@@ -139,10 +139,15 @@ class ExternalResources(object):
                  timeout=60):
         """Constructor of the class
 
-        :param project: name of the project, like "silx"
-        :param url_base: base URL for the data, like "http://www.silx.org/pub"
-        :param env_key: name of the environment variable which contains the
-                        test_data directory like "SILX_DATA"
+        :param str project: name of the project, like "silx"
+        :param str url_base: base URL for the data, like "http://www.silx.org/pub"
+        :param str env_key: name of the environment variable which contains the
+                            test_data directory, like "SILX_DATA".
+                            If None (default), then the name of the
+                            environment variable is built from the project argument:
+                            "<PROJECT>_DATA".
+                            The environment variable is optional: in case it is not set,
+                            a directory in the temporary folder is used.
         :param timeout: time in seconds before it breaks
         """
         self.project = project
