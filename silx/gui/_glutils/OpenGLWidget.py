@@ -26,7 +26,6 @@
 
 It provides a compatibility layer for Qt OpenGL widget used in silx
 across Qt<=5.3 QtOpenGL.QGLWidget and QOpenGLWidget.
-
 """
 
 __authors__ = ["T. Vincent"]
@@ -43,25 +42,98 @@ from .._glutils import gl
 _logger = logging.getLogger(__name__)
 
 
-# TODO setFormat
-# TODO convert openGLVersionFlags to version
-# TODO split _OpenGLWidgetBase and OpenGL2.1 specific stuff
 # TODO different modes for message box, set color of clear...
-# TODO handle OpenGLWidget = None: raise exception or handle elsewhere...
-class _OpenGLWidgetBase(object):
-    """Base class for OpenGL widget wrapper over QGLWidget and QOpenGLWidget
+# TODO pop-up once when using fallback QWidget
+
+if qt.BINDING == 'PyQt5' and hasattr(qt, 'QOpenGLWidget'):  # PyQt>=5.4
+    _BaseOpenGLWidget = qt.QOpenGLWidget
+    _BASE_WIDGET = 'QOpenGLWidget'
+
+elif qt.HAS_OPENGL and qt.QGLFormat.hasOpenGL():  # Using QtOpenGL.QGLwidget
+    _BaseOpenGLWidget = qt.QGLWidget
+    _BASE_WIDGET = 'QGLWidget'
+
+else: # No OpenGL widget available, fallback to a dummy widget
+    if not qt.HAS_OPENGL:
+         _logger.error(
+            'QtOpenGL is not available: OpenGL-based widget disabled')
+    elif not qt.QGLFormat.hasOpenGL():
+        _logger.error(
+            'OpenGL is not available: OpenGL-based widget disabled')
+    else:
+        _logger.error('OpenGL-based widget disabled')
+
+    _BaseOpenGLWidget = qt.QWidget
+    _BASE_WIDGET = ''
+
+
+class OpenGLWidget(_BaseOpenGLWidget):
+    """OpenGL widget wrapper over QGLWidget and QOpenGLWidget
 
     This wrapper API follows QOpenGLWidget API as much as possible.
+    The constructor takes a different set of arguments.
     Methods to override to implement rendering are named differently:
 
     - :meth:`initializeOpenGL` instead of :meth:`initializeGL`,
     - :meth:`paintOpenGL` instead of :meth:`paintGL` and
     - :meth:`resizeOpenGL` instead of :meth:`resizeGL`.
+
+    :param parent: Parent widget see :class:`QWidget`
+    :param int alphaBufferSize:
+        Size in bits of the alpha channel (default: 0).
+        Set to 0 to disable alpha channel.
+    :param int depthBufferSize:
+        Size in bits of the depth buffer (default: 24).
+        Set to 0 to disable depth buffer.
+    :param int stencilBufferSize:
+        Size in bits of the stencil buffer (default: 8).
+        Set to 0 to disable stencil buffer
+    :param version: Requested OpenGL version (default: (2, 0)).
+    :type version: 2-tuple of int
+    :param f: see :class:`QWidget`
     """
 
-    def __init__(self):
-        self._devicePixelRatio = 1.0
-        self._isOpenGL21 = False
+    BASE_WIDGET = _BASE_WIDGET
+    """Name of the underlying OpenGL widget"""
+
+    # Only display no OpenGL pop-up once for all widgets.
+    _noOpenGLErrorMessageDisplayed = False
+
+    def __init__(self, parent=None,
+                 alphaBufferSize=0,
+                 depthBufferSize=24,
+                 stencilBufferSize=8,
+                 version=(2, 0),
+                 f=qt.Qt.WindowFlags()):
+        self.__devicePixelRatio = 1.0
+        self.__requestedOpenGLVersion = tuple(version)
+        self.__requestedOpenGLVersionAvailable = False
+
+        if self.BASE_WIDGET == 'QOpenGLWidget':
+            super(OpenGLWidget, self).__init__(parent, f)
+
+            format_ = qt.QSurfaceFormat()
+            format_.setAlphaBufferSize(alphaBufferSize)
+            format_.setDepthBufferSize(depthBufferSize)
+            format_.setStencilBufferSize(stencilBufferSize)
+            format_.setVersion(*self.__requestedOpenGLVersion)
+            format_.setSwapBehavior(qt.QSurfaceFormat.DoubleBuffer)
+            self.setFormat(format_)
+
+        elif self.BASE_WIDGET == 'QGLWidget':
+            format_ = qt.QGLFormat()
+            format_.setAlphaBufferSize(alphaBufferSize)
+            format_.setAlpha(alphaBufferSize != 0)
+            format_.setDepthBufferSize(depthBufferSize)
+            format_.setDepth(depthBufferSize != 0)
+            format_.setStencilBufferSize(stencilBufferSize)
+            format_.setStencil(stencilBufferSize != 0)
+            format_.setVersion(*self.__requestedOpenGLVersion)
+            format_.setDoubleBuffer(True)
+
+            super(OpenGLWidget, self).__init__(format_, parent, None, f)
+        else:  # Fallback
+            super(OpenGLWidget, self).__init__(parent, f)
 
     def getDevicePixelRatio(self):
         """Returns the ratio device-independent / device pixel size
@@ -71,60 +143,98 @@ class _OpenGLWidgetBase(object):
         :return: Scale factor between screen and Qt units
         :rtype: float
         """
-        return self._devicePixelRatio
+        return self.__devicePixelRatio
 
-    def _updateDevicePixelRatio(self):
-        """Run in :meth:`paintGL` to update devicePixelRatio value.
-        """
-        pass
+    def getRequestedOpenGLVersion(self):
+        """Returns the requested OpenGL version.
 
-    def isOpenGL2_1(self):
-        """Returns whether OpenGL 2.1 is available or not.
+        :return: (major, minor)
+        :rtype: 2-tuple of int"""
+        return self.__requestedOpenGLVersion
 
-        This is only valid after the OpenGL context has been initialised.
+    def isRequestedOpenGLVersionAvailable(self):
+        """Returns True if requested OpenGL version is available.
 
-        :return: True if OpenGL2.1 is supported, False otherwise
         :rtype: bool
         """
-        return self._isOpenGL21
+        return self.__requestedOpenGLVersionAvailable
 
-    def _checkOpenGL2_1(self):
-        """Override to implement the check of OpenGL version.
+    def getOpenGLVersion(self):
+        """Returns the available OpenGL version.
 
-         This is run in :meth:`initializeGL`.
+        :return: (major, minor)
+        :rtype: 2-tuple of int"""
+        if self.BASE_WIDGET == 'QOpenGLWidget':
+            return self.format().version()
+        elif self.BASE_WIDGET == 'QGLWidget':
+            supportedVersion = 0, 0
 
-        :return: True if OpenGL 2.1 is available, False otherwise
-        :rtype: bool
+            # Go through all OpenGL version flags checking support
+            flags = self.format().openGLVersionFlags()
+            for version in ((1, 1), (1, 2), (1, 3), (1, 4), (1, 5),
+                            (2, 0), (2, 1),
+                            (3, 0), (3, 1), (3, 2), (3, 3),
+                            (4, 0)):
+                versionFlag = getattr(qt.QGLFormat, 'OpenGL_Version_%d_%d' % version)
+                if not versionFlag & flags:
+                    break
+                supportedVersion = version
+            return supportedVersion
+        else:
+            return 0, 0
+
+    def defaultFramebufferObject(self):
+        """Returns the framebuffer object handle.
+
+        See :meth:`QOpenGLWidget.defaultFramebufferObject`
         """
-        return False
+        if self.BASE_WIDGET == 'QOpenGLWidget':
+            return super(OpenGLWidget, self).defaultFramebufferObject()
+        elif self.BASE_WIDGET == 'QGLWidget':
+            return 0
+        else:
+            return 0
 
     # Implementation of *GL methods
 
     def initializeGL(self):
-        # Check if OpenGL2.1 is available
-        self._isOpenGL21 = self._checkOpenGL2_1()
+        # Check OpenGL version
+        self.__requestedOpenGLVersionAvailable = \
+            self.getRequestedOpenGLVersion() >= self.getOpenGLVersion()
 
-        if not self.isOpenGL2_1():
+        if not self.isRequestedOpenGLVersionAvailable():
             _logger.error(
-                'OpenGL widget disabled: OpenGL 2.1 not available')
+                'OpenGL widget disabled: OpenGL %d.%d not available' %
+                self.getRequestedOpenGLVersion())
 
-            messageBox = qt.QMessageBox(parent=self)
-            messageBox.setIcon(qt.QMessageBox.Critical)
-            messageBox.setWindowTitle('Error')
-            messageBox.setText('OpenGL widget disabled.\n\n'
-                               'Reason: OpenGL 2.1 is not available.')
-            messageBox.addButton(qt.QMessageBox.Ok)
-            messageBox.setWindowModality(qt.Qt.WindowModal)
-            messageBox.setAttribute(qt.Qt.WA_DeleteOnClose)
-            messageBox.show()
+            if not self._noOpenGLErrorMessageDisplayed:
+                self.__class__._noOpenGLErrorMessageDisplayed = True
+                messageBox = qt.QMessageBox(parent=self)
+                messageBox.setIcon(qt.QMessageBox.Critical)
+                messageBox.setWindowTitle('Error')
+                messageBox.setText('OpenGL widgets disabled.\n\n'
+                                   'Reason: OpenGL %d.%d is not available.' %
+                                   self.getRequestedOpenGLVersion())
+                messageBox.addButton(qt.QMessageBox.Ok)
+                messageBox.setWindowModality(qt.Qt.WindowModal)
+                messageBox.setAttribute(qt.Qt.WA_DeleteOnClose)
+                messageBox.show()
 
-        self.initializeOpenGL()
+        else:
+            self.initializeOpenGL()
 
     def paintGL(self):
-        self._updateDevicePixelRatio()
+        if qt.BINDING == 'PyQt5':
+            devicePixelRatio = self.context().screen().devicePixelRatio()
+            if devicePixelRatio != self.getDevicePixelRatio():
+                # Update devicePixelRatio and call resizeOpenGL
+                # as resizeGL is not always called.
+                self.__devicePixelRatio = devicePixelRatio
+                self.makeCurrent()
+                self.resizeOpenGL(self.width(), self.height())
 
-        if not self.isOpenGL2_1():
-            # Cannot render scene, just clear the color buffer.
+        if not self.isRequestedOpenGLVersionAvailable():
+            # Requested OpenGL version not available, just clear the color buffer.
             gl.glViewport(0,
                           0,
                           self.width() * self.getDevicePixelRatio(),
@@ -137,9 +247,10 @@ class _OpenGLWidgetBase(object):
             self.paintOpenGL()
 
     def resizeGL(self, width, height):
-        # Call resizeOpenGL with device-independent pixel unit
-        # This works over both QGLWidget and QOpenGLWidget
-        self.resizeOpenGL(self.width(), self.height())
+        if self.isRequestedOpenGLVersionAvailable():
+            # Call resizeOpenGL with device-independent pixel unit
+            # This works over both QGLWidget and QOpenGLWidget
+            self.resizeOpenGL(self.width(), self.height())
 
     # API to override, replacing *GL methods
 
@@ -158,69 +269,3 @@ class _OpenGLWidgetBase(object):
         :param int height: Height in device-independent pixels
         """
         pass
-
-
-class _OpenGLWidgetQt5(_OpenGLWidgetBase):
-    """Base class for OpenGL widget wrapper for PyQt5"""
-
-    def _updateDevicePixelRatio(self):
-        devicePixelRatio = self.context().screen().devicePixelRatio()
-        if devicePixelRatio != self.getDevicePixelRatio():
-            # Update devicePixelRatio and call resizeOpenGL
-            # as resizeGL is not always called.
-            self._devicePixelRatio = devicePixelRatio
-            self.makeCurrent()
-            self.resizeOpenGL(self.width(), self.height())
-
-
-if qt.BINDING == 'PyQt5' and hasattr(qt, 'QOpenGLWidget'):  # PyQt>=5.4
-    class OpenGLWidget(qt.QOpenGLWidget, _OpenGLWidgetQt5):
-
-        def __init__(self, parent=None, f=qt.Qt.WindowFlags()):
-            _OpenGLWidgetQt5.__init__(self)
-            qt.QOpenGLWidget.__init__(self, parent, f)
-
-        def _checkOpenGL2_1(self):
-            return self.format().version() >= (2, 1)
-
-elif qt.HAS_OPENGL:  # Using QtOpenGL.QGLwidget
-
-    if not qt.QGLFormat.hasOpenGL():  # Check if any OpenGL is available
-        _logger.error(
-            'OpenGL is not available on this platform')
-        OpenGLWidget = None
-
-    else:
-        class _QGLWidget(qt.QGLWidget):
-            """Class with QGLWidget method shared for Qt4 and Qt5"""
-            def _checkOpenGL2_1(self):
-                versionFlags = self.format().openGLVersionFlags()
-                return bool(versionFlags & qt.QGLFormat.OpenGL_Version_2_1)
-
-            def defaultFramebufferObject(self):
-                """Returns the framebuffer object handle = 0
-
-                Compatibility with QOpenGLWidget
-                """
-                return 0
-
-        if qt.BINDING == 'PyQt5':
-            class OpenGLWidget(_QGLWidget, _OpenGLWidgetQt5):
-                def __init__(self, parent=None, f=qt.Qt.WindowFlags()):
-                    _OpenGLWidgetQt5.__init__(self)
-                    _QGLWidget.__init__(self, parent, None, f)
-
-        else:  # Qt4
-            class OpenGLWidget(_QGLWidget, _OpenGLWidgetBase):
-                def __init__(self, parent=None, f=qt.Qt.WindowFlags()):
-                    _OpenGLWidgetBase.__init__(self)
-                    _QGLWidget.__init__(self, parent, None, f)
-
-else:
-    _logger.error('QtOpenGL is not available!')
-    OpenGLWidget = None
-
-
-# Set docstring
-if OpenGLWidget is not None:
-    OpenGLWidget.__doc__ = _OpenGLWidgetBase.__doc__
