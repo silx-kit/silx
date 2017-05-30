@@ -225,7 +225,8 @@ class OpenGLWidget(_BaseOpenGLWidget):
 
     def paintGL(self):
         if qt.BINDING == 'PyQt5':
-            devicePixelRatio = self.context().screen().devicePixelRatio()
+            devicePixelRatio = self.window().windowHandle().devicePixelRatio()
+
             if devicePixelRatio != self.getDevicePixelRatio():
                 # Update devicePixelRatio and call resizeOpenGL
                 # as resizeGL is not always called.
