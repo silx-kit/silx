@@ -194,15 +194,6 @@ class OpenGLWidget(_BaseOpenGLWidget):
         else:
             return 0, 0
 
-    def makeCurrent(self):
-        """Make this widget's OpenGL context current.
-
-        See :meth:`QopenGLWidget.makeCurrent`
-        """
-        # Here to provide a fallback in case OpenGL widget is not available
-        if self.BASE_WIDGET:
-            return super(OpenGLWidget, self).makeCurrent()
-
     def defaultFramebufferObject(self):
         """Returns the framebuffer object handle.
 
@@ -214,6 +205,32 @@ class OpenGLWidget(_BaseOpenGLWidget):
             return 0
         else:
             return 0
+
+    # Method useful for no QtOpenGL widgets
+
+    def showEvent(self, event):
+        """Handle show events for the no OpenGL fallback to display an error
+        """
+        if not self.BASE_WIDGET and not self._noOpenGLErrorMessageDisplayed:
+            self.__class__._noOpenGLErrorMessageDisplayed = True
+            messageBox = qt.QMessageBox(parent=self)
+            messageBox.setIcon(qt.QMessageBox.Critical)
+            messageBox.setWindowTitle('Error')
+            messageBox.setText('OpenGL widgets disabled.\n\n'
+                               'Reason: QtOpenGL widgets not available.')
+            messageBox.addButton(qt.QMessageBox.Ok)
+            messageBox.setWindowModality(qt.Qt.WindowModal)
+            messageBox.setAttribute(qt.Qt.WA_DeleteOnClose)
+            messageBox.show()
+
+    def makeCurrent(self):
+        """Make this widget's OpenGL context current.
+
+        See :meth:`QopenGLWidget.makeCurrent`
+        """
+        # Here to provide a fallback in case OpenGL widget is not available
+        if self.BASE_WIDGET:
+            return super(OpenGLWidget, self).makeCurrent()
 
     # Implementation of *GL methods
 
