@@ -759,7 +759,7 @@ class SaveAction(PlotAction):
         elif nameFilter in (self.IMAGE_FILTER_RGB_PNG,
                             self.IMAGE_FILTER_RGB_TIFF):
             # Get displayed image
-            rgbaImage = image.getRbgaImageData(copy=False)
+            rgbaImage = image.getRgbaImageData(copy=False)
             # Convert RGB QImage
             qimage = convertArrayToQImage(rgbaImage[:, :, :3])
 
