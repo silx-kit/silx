@@ -38,7 +38,7 @@ from silx.gui.plot.Colors import rgba
 from silx.gui.plot3d import Plot3DActions
 from .._utils import convertArrayToQImage
 
-from .._glutils import gl
+from .. import _glutils as glu
 from .scene import interaction, primitives, transform
 from . import scene
 
@@ -79,26 +79,20 @@ class _OverviewViewport(scene.Viewport):
             source.extrinsic.direction, source.extrinsic.up)
 
 
-class Plot3DWidget(qt.QGLWidget):
+class Plot3DWidget(glu.OpenGLWidget):
     """QGLWidget with a 3D viewport and an overview."""
 
-    def __init__(self, parent=None):
-        if not qt.QGLFormat.hasOpenGL():  # Check if any OpenGL is available
-            raise RuntimeError(
-                'OpenGL is not available on this platform: 3D disabled')
-
-        self._devicePixelRatio = 1.0  # Store GL canvas/QWidget ratio
-        self._isOpenGL21 = False
+    def __init__(self, parent=None, f=qt.Qt.WindowFlags()):
         self._firstRender = True
 
-        format_ = qt.QGLFormat()
-        format_.setRgba(True)
-        format_.setDepth(False)
-        format_.setStencil(False)
-        format_.setVersion(2, 1)
-        format_.setDoubleBuffer(True)
+        super(Plot3DWidget, self).__init__(
+            parent,
+            alphaBufferSize=8,
+            depthBufferSize=0,
+            stencilBufferSize=0,
+            version=(2, 1),
+            f=f)
 
-        super(Plot3DWidget, self).__init__(format_, parent)
         self.setAutoFillBackground(False)
         self.setMouseTracking(True)
 
@@ -199,62 +193,30 @@ class Plot3DWidget(qt.QGLWidget):
     def sizeHint(self):
         return qt.QSize(400, 300)
 
-    def initializeGL(self):
-        # Check if OpenGL2 is available
-        versionflags = self.format().openGLVersionFlags()
-        self._isOpenGL21 = bool(versionflags & qt.QGLFormat.OpenGL_Version_2_1)
-        if not self._isOpenGL21:
-            _logger.error(
-                '3D rendering is disabled: OpenGL 2.1 not available')
+    def initializeOpenGL(self):
+        pass
 
-            messageBox = qt.QMessageBox(parent=self)
-            messageBox.setIcon(qt.QMessageBox.Critical)
-            messageBox.setWindowTitle('Error')
-            messageBox.setText('3D rendering is disabled.\n\n'
-                               'Reason: OpenGL 2.1 is not available.')
-            messageBox.addButton(qt.QMessageBox.Ok)
-            messageBox.setWindowModality(qt.Qt.WindowModal)
-            messageBox.setAttribute(qt.Qt.WA_DeleteOnClose)
-            messageBox.show()
-
-    def paintGL(self):
+    def paintOpenGL(self):
         # In case paintGL is called by the system and not through _redraw,
         # Mark as updating.
         self._updating = True
 
-        if hasattr(self, 'windowHandle'):  # Qt 5
-            devicePixelRatio = self.windowHandle().devicePixelRatio()
-            if devicePixelRatio != self._devicePixelRatio:
-                # Move window from one screen to another one
-                self._devicePixelRatio = devicePixelRatio
-                # Resize  might not be called, so call it explicitly
-                self.resizeGL(int(self.width() * devicePixelRatio),
-                              int(self.height() * devicePixelRatio))
+        # Update near and far planes only if viewport needs refresh
+        if self.viewport.dirty:
+            self.viewport.adjustCameraDepthExtent()
 
-        if not self._isOpenGL21:
-            # Cannot render scene, just clear the color buffer.
-            ox, oy = self.viewport.origin
-            w, h = self.viewport.size
-            gl.glViewport(ox, oy, w, h)
-
-            gl.glClearColor(*self.viewport.background)
-            gl.glClear(gl.GL_COLOR_BUFFER_BIT)
-
-        else:
-            # Update near and far planes only if viewport needs refresh
-            if self.viewport.dirty:
-                self.viewport.adjustCameraDepthExtent()
-
-            self.window.render(self.context(), self._devicePixelRatio)
+        self.window.render(self.context(), self.getDevicePixelRatio())
 
         if self._firstRender:  # TODO remove this ugly hack
             self._firstRender = False
             self.centerScene()
         self._updating = False
 
-    def resizeGL(self, width, height):
+    def resizeOpenGL(self, width, height):
+        width *= self.getDevicePixelRatio()
+        height *= self.getDevicePixelRatio()
         self.window.size = width, height
-        self.viewport.size = width, height
+        self.viewport.size = self.window.size
         overviewWidth, overviewHeight = self.overview.size
         self.overview.origin = width - overviewWidth, height - overviewHeight
 
@@ -264,7 +226,7 @@ class Plot3DWidget(qt.QGLWidget):
         :returns: OpenGL scene RGB rasterization
         :rtype: QImage
         """
-        if not self._isOpenGL21:
+        if not self.isRequestedOpenGLVersionAvailable():
             _logger.error('OpenGL 2.1 not available, cannot save OpenGL image')
             height, width = self.window.shape
             image = numpy.zeros((height, width, 3), dtype=numpy.uint8)
@@ -276,8 +238,8 @@ class Plot3DWidget(qt.QGLWidget):
         return convertArrayToQImage(image)
 
     def wheelEvent(self, event):
-        xpixel = event.x() * self._devicePixelRatio
-        ypixel = event.y() * self._devicePixelRatio
+        xpixel = event.x() * self.getDevicePixelRatio()
+        ypixel = event.y() * self.getDevicePixelRatio()
         if hasattr(event, 'delta'):  # Qt4
             angle = event.delta() / 8.
         else:  # Qt5
@@ -315,8 +277,8 @@ class Plot3DWidget(qt.QGLWidget):
     _MOUSE_BTNS = {1: 'left', 2: 'right', 4: 'middle'}
 
     def mousePressEvent(self, event):
-        xpixel = event.x() * self._devicePixelRatio
-        ypixel = event.y() * self._devicePixelRatio
+        xpixel = event.x() * self.getDevicePixelRatio()
+        ypixel = event.y() * self.getDevicePixelRatio()
         btn = self._MOUSE_BTNS[event.button()]
         event.accept()
 
@@ -324,16 +286,16 @@ class Plot3DWidget(qt.QGLWidget):
         self.eventHandler.handleEvent('press', xpixel, ypixel, btn)
 
     def mouseMoveEvent(self, event):
-        xpixel = event.x() * self._devicePixelRatio
-        ypixel = event.y() * self._devicePixelRatio
+        xpixel = event.x() * self.getDevicePixelRatio()
+        ypixel = event.y() * self.getDevicePixelRatio()
         event.accept()
 
         self.makeCurrent()
         self.eventHandler.handleEvent('move', xpixel, ypixel)
 
     def mouseReleaseEvent(self, event):
-        xpixel = event.x() * self._devicePixelRatio
-        ypixel = event.y() * self._devicePixelRatio
+        xpixel = event.x() * self.getDevicePixelRatio()
+        ypixel = event.y() * self.getDevicePixelRatio()
         btn = self._MOUSE_BTNS[event.button()]
         event.accept()
 
