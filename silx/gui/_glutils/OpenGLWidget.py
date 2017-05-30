@@ -107,8 +107,13 @@ class OpenGLWidget(_BaseOpenGLWidget):
     BASE_WIDGET = _BASE_WIDGET
     """Name of the underlying OpenGL widget"""
 
-    # Only display no OpenGL pop-up once for all widgets.
-    _noOpenGLErrorMessageDisplayed = False
+    DISPLAY_NO_OPENGL_POP_UP = True
+    """Control the display of a pop-up when OpenGL is not available.
+
+    True (default) to display a pop-up once if a problem occurs.
+    Once the pop-up is displayed, this is set to False.
+    Set to False to disable OpenGL availability pop-up.
+    """
 
     def __init__(self, parent=None,
                  alphaBufferSize=0,
@@ -211,8 +216,8 @@ class OpenGLWidget(_BaseOpenGLWidget):
     def showEvent(self, event):
         """Handle show events for the no OpenGL fallback to display an error
         """
-        if not self.BASE_WIDGET and not self._noOpenGLErrorMessageDisplayed:
-            self.__class__._noOpenGLErrorMessageDisplayed = True
+        if not self.BASE_WIDGET and self.DISPLAY_NO_OPENGL_POP_UP:
+            self.__class__.DISPLAY_NO_OPENGL_POP_UP = False
             messageBox = qt.QMessageBox(parent=self)
             messageBox.setIcon(qt.QMessageBox.Critical)
             messageBox.setWindowTitle('Error')
@@ -244,8 +249,8 @@ class OpenGLWidget(_BaseOpenGLWidget):
                 'OpenGL widget disabled: OpenGL %d.%d not available' %
                 self.getRequestedOpenGLVersion())
 
-            if not self._noOpenGLErrorMessageDisplayed:
-                self.__class__._noOpenGLErrorMessageDisplayed = True
+            if self.DISPLAY_NO_OPENGL_POP_UP:
+                self.__class__.DISPLAY_NO_OPENGL_POP_UP = False
                 messageBox = qt.QMessageBox(parent=self)
                 messageBox.setIcon(qt.QMessageBox.Critical)
                 messageBox.setWindowTitle('Error')
