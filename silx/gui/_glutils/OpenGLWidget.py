@@ -200,7 +200,7 @@ class OpenGLWidget(_BaseOpenGLWidget):
     def initializeGL(self):
         # Check OpenGL version
         self.__requestedOpenGLVersionAvailable = \
-            self.getRequestedOpenGLVersion() >= self.getOpenGLVersion()
+            self.getOpenGLVersion() >= self.getRequestedOpenGLVersion()
 
         if not self.isRequestedOpenGLVersionAvailable():
             _logger.error(
