@@ -36,7 +36,7 @@ __date__ = "09/05/2017"
 import logging
 
 from .. import qt
-from .._glutils import gl
+from . import gl
 
 
 _logger = logging.getLogger(__name__)
@@ -45,11 +45,19 @@ _logger = logging.getLogger(__name__)
 # TODO different modes for message box, set color of clear...
 # TODO pop-up once when using fallback QWidget
 
-if qt.BINDING == 'PyQt5' and hasattr(qt, 'QOpenGLWidget'):  # PyQt>=5.4
+
+if qt.BINDING == 'PyQt5' and hasattr(qt, 'QOpenGLWidget'):
+    # PyQt>=5.4
+    _logger.info('Using QOpenGLWidget')
     _BaseOpenGLWidget = qt.QOpenGLWidget
     _BASE_WIDGET = 'QOpenGLWidget'
 
-elif qt.HAS_OPENGL and qt.QGLFormat.hasOpenGL():  # Using QtOpenGL.QGLwidget
+elif qt.HAS_OPENGL and (
+        not qt.QApplication.instance() or qt.QGLFormat.hasOpenGL()):
+    # Using QtOpenGL.QGLwidget
+    # qt.QGLFormat.hasOpenGL MUST be called with a QApplication created
+    # so this is only checked if the QApplication is already created
+    _logger.info('Using QGLWidget')
     _BaseOpenGLWidget = qt.QGLWidget
     _BASE_WIDGET = 'QGLWidget'
 
@@ -57,12 +65,15 @@ else: # No OpenGL widget available, fallback to a dummy widget
     if not qt.HAS_OPENGL:
          _logger.error(
             'QtOpenGL is not available: OpenGL-based widget disabled')
-    elif not qt.QGLFormat.hasOpenGL():
+    elif qt.QApplication.instance() and not qt.QGLFormat.hasOpenGL():
+        # qt.QGLFormat.hasOpenGL MUST be called with a QApplication created
+        # so this is only checked if the QApplication is already created
         _logger.error(
             'OpenGL is not available: OpenGL-based widget disabled')
     else:
         _logger.error('OpenGL-based widget disabled')
 
+    _logger.info('Using QWidget')
     _BaseOpenGLWidget = qt.QWidget
     _BASE_WIDGET = ''
 
