@@ -80,7 +80,7 @@ class _OverviewViewport(scene.Viewport):
 
 
 class Plot3DWidget(glu.OpenGLWidget):
-    """QGLWidget with a 3D viewport and an overview."""
+    """OpenGL widget with a 3D viewport and an overview."""
 
     def __init__(self, parent=None, f=qt.Qt.WindowFlags()):
         self._firstRender = True
@@ -233,7 +233,7 @@ class Plot3DWidget(glu.OpenGLWidget):
 
         else:
             self.makeCurrent()
-            image = self._window.grab(qt.QGLContext.currentContext())
+            image = self._window.grab(self.context())
 
         return convertArrayToQImage(image)
 
