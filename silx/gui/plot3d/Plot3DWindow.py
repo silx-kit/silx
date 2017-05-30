@@ -40,7 +40,7 @@ from .ViewpointToolBar import ViewpointToolBar
 
 
 class Plot3DWindow(qt.QMainWindow):
-    """QGLWidget with a 3D viewport and an overview."""
+    """OpenGL widget with a 3D viewport and an overview."""
 
     def __init__(self, parent=None):
         super(Plot3DWindow, self).__init__(parent)

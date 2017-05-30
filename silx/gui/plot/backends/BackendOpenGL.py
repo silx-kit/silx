@@ -427,7 +427,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     def leaveEvent(self, _):
         self._plot.onMouseLeaveWidget()
 
-    # QGLWidget API
+    # OpenGLWidget API
 
     @staticmethod
     def _setBlendFuncGL():
