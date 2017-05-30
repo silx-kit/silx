@@ -116,8 +116,8 @@ class Plot3DWidget(glu.OpenGLWidget):
         self.setBackgroundColor((0.2, 0.2, 0.2, 1.))
 
         # Window describing on screen area to render
-        self.window = scene.Window(mode='framebuffer')
-        self.window.viewports = [self.viewport, self.overview]
+        self._window = scene.Window(mode='framebuffer')
+        self._window.viewports = [self.viewport, self.overview]
 
         self.eventHandler = interaction.CameraControl(
             self.viewport, orbitAroundCenter=False,
@@ -205,7 +205,7 @@ class Plot3DWidget(glu.OpenGLWidget):
         if self.viewport.dirty:
             self.viewport.adjustCameraDepthExtent()
 
-        self.window.render(self.context(), self.getDevicePixelRatio())
+        self._window.render(self.context(), self.getDevicePixelRatio())
 
         if self._firstRender:  # TODO remove this ugly hack
             self._firstRender = False
@@ -215,8 +215,8 @@ class Plot3DWidget(glu.OpenGLWidget):
     def resizeOpenGL(self, width, height):
         width *= self.getDevicePixelRatio()
         height *= self.getDevicePixelRatio()
-        self.window.size = width, height
-        self.viewport.size = self.window.size
+        self._window.size = width, height
+        self.viewport.size = self._window.size
         overviewWidth, overviewHeight = self.overview.size
         self.overview.origin = width - overviewWidth, height - overviewHeight
 
@@ -228,12 +228,12 @@ class Plot3DWidget(glu.OpenGLWidget):
         """
         if not self.isRequestedOpenGLVersionAvailable():
             _logger.error('OpenGL 2.1 not available, cannot save OpenGL image')
-            height, width = self.window.shape
+            height, width = self._window.shape
             image = numpy.zeros((height, width, 3), dtype=numpy.uint8)
 
         else:
             self.makeCurrent()
-            image = self.window.grab(qt.QGLContext.currentContext())
+            image = self._window.grab(qt.QGLContext.currentContext())
 
         return convertArrayToQImage(image)
 
