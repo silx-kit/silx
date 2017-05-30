@@ -194,6 +194,15 @@ class OpenGLWidget(_BaseOpenGLWidget):
         else:
             return 0, 0
 
+    def makeCurrent(self):
+        """Make this widget's OpenGL context current.
+
+        See :meth:`QopenGLWidget.makeCurrent`
+        """
+        # Here to provide a fallback in case OpenGL widget is not available
+        if self.BASE_WIDGET:
+            return super(OpenGLWidget, self).makeCurrent()
+
     def defaultFramebufferObject(self):
         """Returns the framebuffer object handle.
 
