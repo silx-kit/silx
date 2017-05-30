@@ -249,8 +249,8 @@ class OpenGLWidget(_BaseOpenGLWidget):
             # Requested OpenGL version not available, just clear the color buffer.
             gl.glViewport(0,
                           0,
-                          self.width() * self.getDevicePixelRatio(),
-                          self.height() * self.getDevicePixelRatio())
+                          int(self.width() * self.getDevicePixelRatio()),
+                          int(self.height() * self.getDevicePixelRatio()))
 
             gl.glClearColor(0., 0., 0., 1.)
             gl.glClear(gl.GL_COLOR_BUFFER_BIT)
