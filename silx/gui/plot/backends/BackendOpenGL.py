@@ -328,8 +328,13 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     _sigPostRedisplay = qt.Signal()
     """Signal handling automatic asynchronous replot"""
 
-    def __init__(self, plot, parent=None):
-        glu.OpenGLWidget.__init__(self, parent)
+    def __init__(self, plot, parent=None, f=qt.Qt.WindowFlags()):
+        glu.OpenGLWidget.__init__(self, parent,
+                                  alphaBufferSize=8,
+                                  depthBufferSize=0,
+                                  stencilBufferSize=0,
+                                  version=(2, 1),
+                                  f=f)
         BackendBase.BackendBase.__init__(self, plot, parent)
 
         self.matScreenProj = mat4Identity()
@@ -1324,7 +1329,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         if fileFormat not in ['png', 'ppm', 'svg', 'tiff']:
             raise NotImplementedError('Unsupported format: %s' % fileFormat)
 
-        if not self.isOpenGL2_1():
+        if not self.isRequestedOpenGLVersionAvailable():
             _logger.error('OpenGL 2.1 not available, cannot save OpenGL image')
             width, height = self._plotFrame.size
             data = numpy.zeros((height, width, 3), dtype=numpy.uint8)
