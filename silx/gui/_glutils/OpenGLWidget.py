@@ -262,7 +262,32 @@ class OpenGLWidget(_BaseOpenGLWidget):
                             bgColor.alphaF())
             gl.glClear(gl.GL_COLOR_BUFFER_BIT)
 
-            if self.__errorImage is not None:
+            if self.width() != 0 and self.height() != 0:
+                if self.__errorImage is None:  # Update background image
+                    devicePixelRatio = self.getDevicePixelRatio()
+
+                    image = qt.QImage(
+                        self.width() * devicePixelRatio,
+                        self.height() * devicePixelRatio,
+                        qt.QImage.Format_RGB888)
+                    image.fill(self.palette().color(qt.QPalette.Window))
+                    if hasattr(image, 'setDevicePixelRatio'):  # Qt5
+                        image.setDevicePixelRatio(devicePixelRatio)
+
+                    painter = qt.QPainter()
+                    painter.begin(image)
+                    painter.setBrush(self.palette().windowText())
+                    painter.setFont(self.font())
+                    painter.drawText(0, 0, self.width(), self.height(),
+                                     qt.Qt.AlignCenter | qt.Qt.TextWordWrap,
+                                     'OpenGL-based widget disabled:\n'
+                                     'OpenGL %d.%d is not available.' %
+                                     self.getRequestedOpenGLVersion())
+                    painter.end()
+
+                    self.__errorImage = numpy.flipud(
+                        _utils.convertQImageToArray(image))
+
                 height, width = self.__errorImage.shape[:2]
                 gl.glPixelStorei(gl.GL_UNPACK_ALIGNMENT, 1)
                 gl.glRasterPos2f(-1., -1.)
@@ -278,27 +303,7 @@ class OpenGLWidget(_BaseOpenGLWidget):
             # This works over both QGLWidget and QOpenGLWidget
             self.resizeOpenGL(self.width(), self.height())
         else:
-            if width == 0 or height == 0:
-                self.__errorImage = None
-            else:
-                # Update backgroud image
-                devicePixelRatio = self.getDevicePixelRatio()
-
-                label = qt.QLabel('OpenGL-based widget disabled:\n'
-                                  'OpenGL %d.%d is not available.' %
-                                  self.getRequestedOpenGLVersion())
-                label.setAlignment(qt.Qt.AlignCenter)
-                label.setWordWrap(True)
-                label.resize(self.width(), self.height())
-
-                image = qt.QImage(label.size(), qt.QImage.Format_RGB888)
-                if hasattr(image, 'setDevicePixelRatio'):  # Qt5
-                    image.setDevicePixelRatio(devicePixelRatio)
-
-                label.render(image)
-
-                self.__errorImage = numpy.flipud(
-                    _utils.convertQImageToArray(image))
+            self.__errorImage = None  # Dirty flag the error image
 
     # API to override, replacing *GL methods
 
