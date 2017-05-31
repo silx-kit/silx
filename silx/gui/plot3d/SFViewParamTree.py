@@ -882,7 +882,7 @@ class PlaneMinRangeItem(ColormapBase):
 
     def getEditor(self, parent, option, index):
         editor = qt.QLineEdit(parent)
-        editor.setValidator(qt.QDoubleValidator())
+        editor.setValidator(qt.QDoubleValidator(editor))
         return editor
 
     def setEditorData(self, editor):
@@ -924,7 +924,7 @@ class PlaneMaxRangeItem(ColormapBase):
 
     def getEditor(self, parent, option, index):
         editor = qt.QLineEdit(parent)
-        editor.setValidator(qt.QDoubleValidator())
+        editor.setValidator(qt.QDoubleValidator(editor))
         return editor
 
     def setEditorData(self, editor):

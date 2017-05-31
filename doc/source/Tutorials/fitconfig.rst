@@ -122,7 +122,7 @@ used by our fit function to scale the *y* values.
             self.scalingFactorEdit.setToolTip(
                 "Enter the scaling factor"
             )
-            self.scalingFactorEdit.setValidator(qt.QDoubleValidator())
+            self.scalingFactorEdit.setValidator(qt.QDoubleValidator(self))
 
             self.ok = qt.QPushButton("ok", self)
             self.ok.clicked.connect(self.accept)

@@ -83,7 +83,7 @@ class _FloatEdit(qt.QLineEdit):
     """
     def __init__(self, parent=None, value=None):
         qt.QLineEdit.__init__(self, parent)
-        self.setValidator(qt.QDoubleValidator())
+        self.setValidator(qt.QDoubleValidator(self))
         self.setAlignment(qt.Qt.AlignRight)
         if value is not None:
             self.setValue(value)
