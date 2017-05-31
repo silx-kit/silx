@@ -34,8 +34,11 @@ __date__ = "09/05/2017"
 
 
 import logging
+import numpy
 
 from .. import qt
+from .. import _utils
+
 from . import gl
 
 
@@ -73,8 +76,8 @@ else: # No OpenGL widget available, fallback to a dummy widget
         _ERROR_MSG += ':\nOpenGL not available'
 
     _logger.error(_ERROR_MSG)
-    _logger.info('Using QWidget')
-    _BaseOpenGLWidget = qt.QWidget
+    _logger.info('Using QLabel')
+    _BaseOpenGLWidget = qt.QLabel
     _BASE_WIDGET = ''
 
 
@@ -107,14 +110,6 @@ class OpenGLWidget(_BaseOpenGLWidget):
     BASE_WIDGET = _BASE_WIDGET
     """Name of the underlying OpenGL widget"""
 
-    DISPLAY_NO_OPENGL_POP_UP = True
-    """Control the display of a pop-up when OpenGL is not available.
-
-    True (default) to display a pop-up once if a problem occurs.
-    Once the pop-up is displayed, this is set to False.
-    Set to False to disable OpenGL availability pop-up.
-    """
-
     def __init__(self, parent=None,
                  alphaBufferSize=0,
                  depthBufferSize=24,
@@ -124,6 +119,7 @@ class OpenGLWidget(_BaseOpenGLWidget):
         self.__devicePixelRatio = 1.0
         self.__requestedOpenGLVersion = tuple(version)
         self.__requestedOpenGLVersionAvailable = False
+        self.__errorImage = None
 
         if self.BASE_WIDGET == 'QOpenGLWidget':
             super(OpenGLWidget, self).__init__(parent, f)
@@ -150,11 +146,9 @@ class OpenGLWidget(_BaseOpenGLWidget):
             super(OpenGLWidget, self).__init__(format_, parent, None, f)
         else:  # Fallback
             super(OpenGLWidget, self).__init__(parent, f)
-            layout = qt.QHBoxLayout()
-            label = qt.QLabel(_ERROR_MSG)
-            label.setAlignment(qt.Qt.AlignCenter)
-            layout.addWidget(label)
-            self.setLayout(layout)
+            self.setText(_ERROR_MSG)
+            self.setAlignment(qt.Qt.AlignCenter)
+            self.setWordWrap(True)
 
     def getDevicePixelRatio(self):
         """Returns the ratio device-independent / device pixel size
@@ -234,26 +228,12 @@ class OpenGLWidget(_BaseOpenGLWidget):
         self.__requestedOpenGLVersionAvailable = \
             self.getOpenGLVersion() >= self.getRequestedOpenGLVersion()
 
-        if not self.isRequestedOpenGLVersionAvailable():
+        if self.isRequestedOpenGLVersionAvailable():
+            self.initializeOpenGL()
+        else:
             _logger.error(
                 'OpenGL widget disabled: OpenGL %d.%d not available' %
                 self.getRequestedOpenGLVersion())
-
-            if self.DISPLAY_NO_OPENGL_POP_UP:
-                self.__class__.DISPLAY_NO_OPENGL_POP_UP = False
-                messageBox = qt.QMessageBox(parent=self)
-                messageBox.setIcon(qt.QMessageBox.Critical)
-                messageBox.setWindowTitle('Error')
-                messageBox.setText('OpenGL widgets disabled.\n\n'
-                                   'Reason: OpenGL %d.%d is not available.' %
-                                   self.getRequestedOpenGLVersion())
-                messageBox.addButton(qt.QMessageBox.Ok)
-                messageBox.setWindowModality(qt.Qt.WindowModal)
-                messageBox.setAttribute(qt.Qt.WA_DeleteOnClose)
-                messageBox.show()
-
-        else:
-            self.initializeOpenGL()
 
     def paintGL(self):
         if qt.BINDING == 'PyQt5':
@@ -266,24 +246,59 @@ class OpenGLWidget(_BaseOpenGLWidget):
                 self.makeCurrent()
                 self.resizeOpenGL(self.width(), self.height())
 
-        if not self.isRequestedOpenGLVersionAvailable():
-            # Requested OpenGL version not available, just clear the color buffer.
+        if self.isRequestedOpenGLVersionAvailable():
+            self.paintOpenGL()
+        else:
+            # Requested OpenGL version not available.
             gl.glViewport(0,
                           0,
                           int(self.width() * self.getDevicePixelRatio()),
                           int(self.height() * self.getDevicePixelRatio()))
 
-            gl.glClearColor(0., 0., 0., 1.)
+            bgColor = self.palette().color(qt.QPalette.Window)
+            gl.glClearColor(bgColor.redF(),
+                            bgColor.greenF(),
+                            bgColor.blueF(),
+                            bgColor.alphaF())
             gl.glClear(gl.GL_COLOR_BUFFER_BIT)
 
-        else:
-            self.paintOpenGL()
+            if self.__errorImage is not None:
+                height, width = self.__errorImage.shape[:2]
+                gl.glPixelStorei(gl.GL_UNPACK_ALIGNMENT, 1)
+                gl.glRasterPos2f(-1., -1.)
+                gl.glDrawPixels(width,
+                                height,
+                                gl.GL_RGB,
+                                gl.GL_UNSIGNED_BYTE,
+                                self.__errorImage)
 
     def resizeGL(self, width, height):
         if self.isRequestedOpenGLVersionAvailable():
             # Call resizeOpenGL with device-independent pixel unit
             # This works over both QGLWidget and QOpenGLWidget
             self.resizeOpenGL(self.width(), self.height())
+        else:
+            if width == 0 or height == 0:
+                self.__errorImage = None
+            else:
+                # Update backgroud image
+                devicePixelRatio = self.getDevicePixelRatio()
+
+                label = qt.QLabel('OpenGL-based widget disabled:\n'
+                                  'OpenGL %d.%d is not available.' %
+                                  self.getRequestedOpenGLVersion())
+                label.setAlignment(qt.Qt.AlignCenter)
+                label.setWordWrap(True)
+                label.resize(self.width(), self.height())
+
+                image = qt.QImage(label.size(), qt.QImage.Format_RGB888)
+                if hasattr(image, 'setDevicePixelRatio'):  # Qt5
+                    image.setDevicePixelRatio(devicePixelRatio)
+
+                label.render(image)
+
+                self.__errorImage = numpy.flipud(
+                    _utils.convertQImageToArray(image))
 
     # API to override, replacing *GL methods
 
