@@ -307,7 +307,7 @@ class SearchPage(qt.QWidget):
         self.yScalingEntry.setToolTip(
                 "Data values will be multiplied by this value prior to peak" +
                 " search")
-        self.yScalingEntry.setValidator(qt.QDoubleValidator())
+        self.yScalingEntry.setValidator(qt.QDoubleValidator(self))
         layout3.addWidget(self.yScalingEntry)
         # ----------------------------------------------------
 
@@ -324,7 +324,7 @@ class SearchPage(qt.QWidget):
             "Peak search sensitivity threshold, expressed as a multiple " +
             "of the standard deviation of the noise.\nMinimum value is 1 " +
             "(to be detected, peak must be higher than the estimated noise)")
-        sensivalidator = qt.QDoubleValidator()
+        sensivalidator = qt.QDoubleValidator(self)
         sensivalidator.setBottom(1.0)
         self.sensitivityEntry.setValidator(sensivalidator)
         layout4.addWidget(self.sensitivityEntry)
@@ -418,7 +418,7 @@ class BackgroundPage(qt.QGroupBox):
             "Factor used by the strip algorithm to decide whether a sample" +
             "value should be stripped.\nThe value must be higher than the " +
             "average of the 2 samples at +- w times this factor.\n")
-        self.thresholdFactorEntry.setValidator(qt.QDoubleValidator())
+        self.thresholdFactorEntry.setValidator(qt.QDoubleValidator(self))
         layout.addWidget(self.thresholdFactorEntry, 2, 1)
 
         self.smoothStripGB = qt.QGroupBox("Apply smoothing prior to strip", self)

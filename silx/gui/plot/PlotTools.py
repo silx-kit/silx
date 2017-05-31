@@ -229,7 +229,7 @@ class LimitsToolBar(qt.QToolBar):
         """Field to edit a float value."""
         def __init__(self, value=None, *args, **kwargs):
             qt.QLineEdit.__init__(self, *args, **kwargs)
-            self.setValidator(qt.QDoubleValidator())
+            self.setValidator(qt.QDoubleValidator(self))
             self.setFixedWidth(100)
             self.setAlignment(qt.Qt.AlignLeft)
             if value is not None:

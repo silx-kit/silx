@@ -754,13 +754,13 @@ class BaseMaskToolsWidget(qt.QWidget):
 
         self.minLineEdit = qt.QLineEdit()
         self.minLineEdit.setText('0')
-        self.minLineEdit.setValidator(qt.QDoubleValidator())
+        self.minLineEdit.setValidator(qt.QDoubleValidator(self))
         self.minLineEdit.setEnabled(False)
         form.addRow('Min:', self.minLineEdit)
 
         self.maxLineEdit = qt.QLineEdit()
         self.maxLineEdit.setText('0')
-        self.maxLineEdit.setValidator(qt.QDoubleValidator())
+        self.maxLineEdit.setValidator(qt.QDoubleValidator(self))
         self.maxLineEdit.setEnabled(False)
         form.addRow('Max:', self.maxLineEdit)
 
