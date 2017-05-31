@@ -218,21 +218,6 @@ class OpenGLWidget(_BaseOpenGLWidget):
 
     # Method useful for no QtOpenGL widgets
 
-    def showEvent(self, event):
-        """Handle show events for the no OpenGL fallback to display an error
-        """
-        if not self.BASE_WIDGET and self.DISPLAY_NO_OPENGL_POP_UP:
-            self.__class__.DISPLAY_NO_OPENGL_POP_UP = False
-            messageBox = qt.QMessageBox(parent=self)
-            messageBox.setIcon(qt.QMessageBox.Critical)
-            messageBox.setWindowTitle('Error')
-            messageBox.setText('OpenGL widgets disabled.\n\n'
-                               'Reason: QtOpenGL widgets not available.')
-            messageBox.addButton(qt.QMessageBox.Ok)
-            messageBox.setWindowModality(qt.Qt.WindowModal)
-            messageBox.setAttribute(qt.Qt.WA_DeleteOnClose)
-            messageBox.show()
-
     def makeCurrent(self):
         """Make this widget's OpenGL context current.
 
