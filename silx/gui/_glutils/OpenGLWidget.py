@@ -51,6 +51,7 @@ if qt.BINDING == 'PyQt5' and hasattr(qt, 'QOpenGLWidget'):
     _logger.info('Using QOpenGLWidget')
     _BaseOpenGLWidget = qt.QOpenGLWidget
     _BASE_WIDGET = 'QOpenGLWidget'
+    _ERROR_MSG = ''
 
 elif qt.HAS_OPENGL and (
         not qt.QApplication.instance() or qt.QGLFormat.hasOpenGL()):
@@ -60,19 +61,18 @@ elif qt.HAS_OPENGL and (
     _logger.info('Using QGLWidget')
     _BaseOpenGLWidget = qt.QGLWidget
     _BASE_WIDGET = 'QGLWidget'
+    _ERROR_MSG = ''
 
 else: # No OpenGL widget available, fallback to a dummy widget
+    _ERROR_MSG = 'OpenGL-based widget disabled'
     if not qt.HAS_OPENGL:
-         _logger.error(
-            'QtOpenGL is not available: OpenGL-based widget disabled')
+        _ERROR_MSG += ':\n%s.QtOpenGL not available' % qt.BINDING
     elif qt.QApplication.instance() and not qt.QGLFormat.hasOpenGL():
         # qt.QGLFormat.hasOpenGL MUST be called with a QApplication created
         # so this is only checked if the QApplication is already created
-        _logger.error(
-            'OpenGL is not available: OpenGL-based widget disabled')
-    else:
-        _logger.error('OpenGL-based widget disabled')
+        _ERROR_MSG += ':\nOpenGL not available'
 
+    _logger.error(_ERROR_MSG)
     _logger.info('Using QWidget')
     _BaseOpenGLWidget = qt.QWidget
     _BASE_WIDGET = ''
@@ -150,6 +150,11 @@ class OpenGLWidget(_BaseOpenGLWidget):
             super(OpenGLWidget, self).__init__(format_, parent, None, f)
         else:  # Fallback
             super(OpenGLWidget, self).__init__(parent, f)
+            layout = qt.QHBoxLayout()
+            label = qt.QLabel(_ERROR_MSG)
+            label.setAlignment(qt.Qt.AlignCenter)
+            layout.addWidget(label)
+            self.setLayout(layout)
 
     def getDevicePixelRatio(self):
         """Returns the ratio device-independent / device pixel size
