@@ -55,7 +55,7 @@ import numpy
 
 from .. import qt
 
-from . import items, PlotWindow, PlotWidget, PlotActions
+from . import items, PlotWindow, PlotWidget, actions
 from .Colors import cursorColorForColormap
 from .PlotTools import LimitsToolBar
 from .Profile import ProfileToolBar
@@ -814,8 +814,8 @@ class ImageViewMainWindow(ImageView):
         menu.addSeparator()
         menu.addAction(self.resetZoomAction)
         menu.addAction(self.colormapAction)
-        menu.addAction(PlotActions.KeepAspectRatioAction(self, self))
-        menu.addAction(PlotActions.YAxisInvertedAction(self, self))
+        menu.addAction(actions.control.KeepAspectRatioAction(self, self))
+        menu.addAction(actions.control.YAxisInvertedAction(self, self))
 
         menu = self.menuBar().addMenu('Profile')
         menu.addAction(self.profile.browseAction)

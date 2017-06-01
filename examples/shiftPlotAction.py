@@ -37,7 +37,7 @@ __date__ = "12/01/2017"
 import sys
 from silx.gui import qt
 from silx.gui.plot import PlotWindow
-from silx.gui.plot.PlotActions import PlotAction
+from silx.gui.plot.actions import PlotAction
 
 
 class ShiftUpAction(PlotAction):

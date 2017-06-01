@@ -38,7 +38,7 @@ import weakref
 import numpy
 
 from silx.gui import qt
-from silx.gui.plot.PlotActions import PrintAction as _PrintAction
+from silx.gui.plot.actions.io import PrintAction as _PrintAction
 from silx.gui.icons import getQIcon
 from .utils import mng
 from .._utils import convertQImageToArray

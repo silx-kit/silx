@@ -39,7 +39,7 @@ from .. import icons
 from .. import qt
 from . import items
 from .Colors import cursorColorForColormap
-from .PlotActions import PlotAction
+from .actions import PlotAction
 from .PlotToolButtons import ProfileToolButton
 from .ProfileMainWindow import ProfileMainWindow
 

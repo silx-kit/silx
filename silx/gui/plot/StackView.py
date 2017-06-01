@@ -80,7 +80,7 @@ except ImportError:
 
 from silx.gui import qt
 from .. import icons
-from . import items, PlotWindow, PlotActions
+from . import items, PlotWindow, actions
 from .Colors import cursorColorForColormap
 from .PlotTools import LimitsToolBar
 from .Profile import Profile3DToolBar
@@ -1014,8 +1014,8 @@ class StackViewMainWindow(StackView):
         menu.addSeparator()
         menu.addAction(self._plot.resetZoomAction)
         menu.addAction(self._plot.colormapAction)
-        menu.addAction(PlotActions.KeepAspectRatioAction(self._plot, self))
-        menu.addAction(PlotActions.YAxisInvertedAction(self._plot, self))
+        menu.addAction(actions.control.KeepAspectRatioAction(self._plot, self))
+        menu.addAction(actions.control.YAxisInvertedAction(self._plot, self))
 
         menu = self.menuBar().addMenu('Profile')
         menu.addAction(self._plot.profile.browseAction)
