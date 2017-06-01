@@ -45,9 +45,6 @@ from . import gl
 _logger = logging.getLogger(__name__)
 
 
-# TODO different modes for message box, set color of clear...
-# TODO pop-up once when using fallback QWidget
-
 
 if qt.BINDING == 'PyQt5' and hasattr(qt, 'QOpenGLWidget'):
     # PyQt>=5.4
@@ -276,7 +273,7 @@ class OpenGLWidget(_BaseOpenGLWidget):
 
                     painter = qt.QPainter()
                     painter.begin(image)
-                    painter.setBrush(self.palette().windowText())
+                    painter.setPen(self.palette().color(qt.QPalette.WindowText))
                     painter.setFont(self.font())
                     painter.drawText(0, 0, self.width(), self.height(),
                                      qt.Qt.AlignCenter | qt.Qt.TextWordWrap,
