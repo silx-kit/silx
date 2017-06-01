@@ -10,7 +10,7 @@ This package is structured as follows.
 :class:`PlotWidget` is a Qt widget (actually a :class:`QMainWindow`) displaying a 1D, 2D plot area.
 It provides different interaction modes.
 :class:`PlotWindow` is a Qt widget (actually a :class:`QMainWindow`) which adds a set of toolbar buttons and associated functionalities to :class:`PlotWidget`.
-The toolbar QActions are implemented in :mod:`.PlotActions`.
+The toolbar QActions are implemented in :mod:`.actions`.
 
 :mod:`.Plot`, :mod:`.PlotEvents` and :mod:`.PlotInteraction` implement the plotting API regardless of the rendering backend and regardless of its integration in Qt.
 The plotting API in defined in :mod:`.Plot`.

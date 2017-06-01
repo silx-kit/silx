@@ -1,10 +1,10 @@
 
 .. currentmodule:: silx.gui.plot
 
-:mod:`PlotActions`: Actions for PlotWidget
+:mod:`actions`: Actions for PlotWidget
 ===========================================
 
-.. currentmodule:: silx.gui.plot.PlotActions
+.. currentmodule:: silx.gui.plot.actions
 
 The :class:`PlotAction` is a base class used to define plot actions.
 
@@ -13,8 +13,8 @@ that can interact with the associated :class:`PlotWidget`.
 
 For an introduction to creating custom plot actions, see :doc:`plotactions_examples`.
 
-PlotActions API
----------------
+actions API
+-----------
 
-.. automodule:: silx.gui.plot.PlotActions
+.. automodule:: silx.gui.plot.actions
    :members:

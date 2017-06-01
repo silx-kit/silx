@@ -17,7 +17,7 @@ Simple example: Shift a curve
 
 The following script is a simplistic example to show the basic required steps:
 
- - create a new class inheriting from :class:`silx.gui.plot.PlotActions.PlotAction`
+ - create a new class inheriting from :class:`silx.gui.plot.actions.PlotAction`
  - define basic parameters such as the icon, the tooltip...
  - write a method that will be triggered by the action
  - initialize the new plot action by passing a reference to a plot window
