@@ -286,3 +286,5 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
 
             self._histogram = histogram
             self._edges = edges
+
+        self._updated()
