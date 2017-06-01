@@ -269,7 +269,7 @@ class OpenGLWidget(_BaseOpenGLWidget):
                     image = qt.QImage(
                         self.width() * devicePixelRatio,
                         self.height() * devicePixelRatio,
-                        qt.QImage.Format_RGB888)
+                        qt.QImage.Format_RGB32)
                     image.fill(self.palette().color(qt.QPalette.Window))
                     if hasattr(image, 'setDevicePixelRatio'):  # Qt5
                         image.setDevicePixelRatio(devicePixelRatio)
