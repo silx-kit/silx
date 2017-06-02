@@ -1461,7 +1461,7 @@ class SpecH5Group(object):
         if instrument_pattern.match(self.name):
             return static_items["scan/instrument"] + mca_list
 
-    def visit(self, func, follow_links=False, base_name=None):
+    def visit(self, func, follow_links=False):
         """Recursively visit all names in this group and subgroups.
 
         :param func: Callable (function, method or callable object)
@@ -1486,8 +1486,19 @@ class SpecH5Group(object):
             f = File('foo.dat')
             f.visit(mylist.append)
         """
-        if base_name is None:
-            base_name = self.name
+        base_name = self.name
+        return self._visit(func, base_name, follow_links)
+
+    def _visit(self, func, base_name, follow_links=False):
+        """
+
+        :param func:
+        :param base_name: name of first group that initiated the recursion
+            This is used to compute the relative path from each item's
+            absolute path.
+        :param follow_links:
+        :return:
+        """
         for member_name in self.keys():
             member = self[member_name]
             ret = None
@@ -1504,9 +1515,9 @@ class SpecH5Group(object):
             # recurse into subgroups
             if isinstance(member, SpecH5Group):
                 if not isinstance(member, SpecH5LinkToGroup) or follow_links:
-                    self[member_name].visit(func, follow_links, base_name)
+                    self[member_name]._visit(func, base_name, follow_links)
 
-    def visititems(self, func, follow_links=False, base_name=None):
+    def visititems(self, func, follow_links=False):
         """Recursively visit names and objects in this group.
 
         :param func: Callable (function, method or callable object)
@@ -1536,8 +1547,19 @@ class SpecH5Group(object):
             f = File('foo.dat')
             f["1.1"].visititems(func)
         """
-        if base_name is None:
-            base_name = self.name
+        base_name = self.name
+        return self._visititems(func, base_name, follow_links)
+
+    def _visititems(self, func, base_name, follow_links=False):
+        """
+
+        :param func:
+        :param base_name: Name of first group that initiated the recursion.
+            This is used to compute the relative path from each item's
+            absolute path.
+        :param follow_links:
+        :return:
+        """
         for member_name in self.keys():
             member = self[member_name]
             ret = None
@@ -1554,7 +1576,7 @@ class SpecH5Group(object):
             # recurse into subgroups
             if isinstance(self[member_name], SpecH5Group):
                 if not isinstance(self[member_name], SpecH5LinkToGroup) or follow_links:
-                    self[member_name].visititems(func, follow_links, base_name)
+                    self[member_name]._visititems(func, base_name, follow_links)
 
 
 class SpecH5LinkToGroup(SpecH5Group):

@@ -67,7 +67,7 @@ from .spech5 import SpecH5, SpecH5Group, SpecH5Dataset, \
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "07/02/2017"
+__date__ = "02/06/2017"
 
 
 def _create_link(h5f, link_name, target_name,
@@ -287,6 +287,7 @@ def convert(specfile, h5file, mode="w-",
     group.
 
     :param specfile: Path of input SpecFile or :class:`SpecH5` object
+        or :class:`SpecH5Group` object
     :param h5file: Path of output HDF5 file, or h5py.File object
     :param mode: Can be ``"w"`` (write, existing file is
         lost), ``"w-"`` (write, fail if exists). This is ignored
