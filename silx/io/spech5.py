@@ -181,6 +181,7 @@ import posixpath
 import re
 import sys
 
+from silx.third_party import six
 from .specfile import SpecFile
 
 __authors__ = ["P. Knobel", "D. Naudet"]
@@ -1585,7 +1586,14 @@ class SpecH5(SpecH5Group):
     or dataset in the entire SpecFile tree by specifying the full path.
     """
     def __init__(self, filename):
-        self.filename = filename
+        if isinstance(filename, six.string_types + (six.binary_type, )):
+            # silx.io.SpecFile can process unicode and bytes
+            self.filename = filename
+        elif isinstance(filename, file):
+            self.filename = filename.name
+        else:
+            raise TypeError("SpecH5 filename must be a string or a " +
+                            "file handle.")
         self.attrs = _get_attrs_dict("/")
         self._sf = SpecFile(filename)
 
