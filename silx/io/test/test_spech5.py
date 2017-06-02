@@ -481,20 +481,62 @@ class TestSpecH5(unittest.TestCase):
     def testVisit(self):
         name_list = []
         self.sfh5.visit(name_list.append)
-        self.assertIn('/1.2/instrument/positioners/Pslit HGap', name_list)
-        self.assertIn("/1.2/instrument/specfile/scan_header", name_list)
+        self.assertIn('1.2/instrument/positioners/Pslit HGap', name_list)
+        self.assertIn("1.2/instrument/specfile/scan_header", name_list)
         self.assertEqual(len(name_list), 100)  #, "actual name list: %s" % "\n".join(name_list))
+
+        # test also visit of a subgroup, with various group name formats
+        name_list_leading_and_trailing_slash = []
+        self.sfh5['/1.2/instrument/'].visit(name_list_leading_and_trailing_slash.append)
+        name_list_leading_slash = []
+        self.sfh5['/1.2/instrument'].visit(name_list_leading_slash.append)
+        name_list_trailing_slash = []
+        self.sfh5['1.2/instrument/'].visit(name_list_trailing_slash.append)
+        name_list_no_slash = []
+        self.sfh5['1.2/instrument'].visit(name_list_no_slash.append)
+
+        # no differences expected in the output names
+        self.assertEqual(name_list_leading_and_trailing_slash,
+                         name_list_leading_slash)
+        self.assertEqual(name_list_leading_slash,
+                         name_list_trailing_slash)
+        self.assertEqual(name_list_leading_slash,
+                         name_list_no_slash)
+        self.assertIn("positioners/Pslit HGap", name_list_no_slash)
+        self.assertIn("positioners", name_list_no_slash)
 
     def testVisitItems(self):
         dataset_name_list = []
 
-        def func(name, obj):
-            if isinstance(obj, SpecH5Dataset):
-                dataset_name_list.append(name)
+        def func_generator(l):
+            """return a function appending names to list l"""
+            def func(name, obj):
+                if isinstance(obj, SpecH5Dataset):
+                    l.append(name)
+            return func
 
-        self.sfh5.visititems(func)
-        self.assertIn('/1.2/instrument/positioners/Pslit HGap', dataset_name_list)
+        self.sfh5.visititems(func_generator(dataset_name_list))
+        self.assertIn('1.2/instrument/positioners/Pslit HGap', dataset_name_list)
         self.assertEqual(len(dataset_name_list), 73)
+
+        # test also visit of a subgroup, with various group name formats
+        name_list_leading_and_trailing_slash = []
+        self.sfh5['/1.2/instrument/'].visititems(func_generator(name_list_leading_and_trailing_slash))
+        name_list_leading_slash = []
+        self.sfh5['/1.2/instrument'].visititems(func_generator(name_list_leading_slash))
+        name_list_trailing_slash = []
+        self.sfh5['1.2/instrument/'].visititems(func_generator(name_list_trailing_slash))
+        name_list_no_slash = []
+        self.sfh5['1.2/instrument'].visititems(func_generator(name_list_no_slash))
+
+        # no differences expected in the output names
+        self.assertEqual(name_list_leading_and_trailing_slash,
+                         name_list_leading_slash)
+        self.assertEqual(name_list_leading_slash,
+                         name_list_trailing_slash)
+        self.assertEqual(name_list_leading_slash,
+                         name_list_no_slash)
+        self.assertIn("positioners/Pslit HGap", name_list_no_slash)
 
     def testNotSpecH5(self):
         fd, fname = tempfile.mkstemp()

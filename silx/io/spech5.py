@@ -1461,7 +1461,7 @@ class SpecH5Group(object):
         if instrument_pattern.match(self.name):
             return static_items["scan/instrument"] + mca_list
 
-    def visit(self, func, follow_links=False):
+    def visit(self, func, follow_links=False, base_name=None):
         """Recursively visit all names in this group and subgroups.
 
         :param func: Callable (function, method or callable object)
@@ -1486,20 +1486,27 @@ class SpecH5Group(object):
             f = File('foo.dat')
             f.visit(mylist.append)
         """
+        if base_name is None:
+            base_name = self.name
         for member_name in self.keys():
             member = self[member_name]
             ret = None
             if (not is_link_to_dataset(member.name) and
                     not is_link_to_group(member.name)) or follow_links:
-                ret = func(member.name)
+                assert member.name.startswith(base_name)
+                # left strip to remove the base name
+                relative_name = member.name[len(base_name):]
+                # remove leading slash and unnecessary trailing slash
+                relative_name = relative_name.strip("/")
+                ret = func(relative_name)
             if ret is not None:
                 return ret
             # recurse into subgroups
             if isinstance(member, SpecH5Group):
                 if not isinstance(member, SpecH5LinkToGroup) or follow_links:
-                    self[member_name].visit(func, follow_links)
+                    self[member_name].visit(func, follow_links, base_name)
 
-    def visititems(self, func, follow_links=False):
+    def visititems(self, func, follow_links=False, base_name=None):
         """Recursively visit names and objects in this group.
 
         :param func: Callable (function, method or callable object)
@@ -1529,18 +1536,25 @@ class SpecH5Group(object):
             f = File('foo.dat')
             f["1.1"].visititems(func)
         """
+        if base_name is None:
+            base_name = self.name
         for member_name in self.keys():
             member = self[member_name]
             ret = None
             if (not is_link_to_dataset(member.name) and
                     not is_link_to_group(member.name)) or follow_links:
-                ret = func(member.name, member)
+                assert member.name.startswith(base_name)
+                # left strip to remove the base name
+                relative_name = member.name[len(base_name):]
+                # remove leading slash and unnecessary trailing slash
+                relative_name = relative_name.strip("/")
+                ret = func(relative_name, member)
             if ret is not None:
                 return ret
             # recurse into subgroups
             if isinstance(self[member_name], SpecH5Group):
                 if not isinstance(self[member_name], SpecH5LinkToGroup) or follow_links:
-                    self[member_name].visititems(func, follow_links)
+                    self[member_name].visititems(func, follow_links, base_name)
 
 
 class SpecH5LinkToGroup(SpecH5Group):
