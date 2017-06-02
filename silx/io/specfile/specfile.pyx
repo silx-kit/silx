@@ -655,20 +655,19 @@ cdef class SpecFile(object):
     cdef:
         specfile_wrapper.SpecFileHandle *handle
         str filename
-        int __open_failed
    
     def __cinit__(self, filename):
         cdef int error = SF_ERR_NO_ERRORS
-        self.__open_failed = 1
+        self.handle = NULL
 
         if is_specfile(filename):
             filename = _string_to_char_star(filename)
             self.handle =  specfile_wrapper.SfOpen(filename, &error)
             if error:
                 self._handle_error(error)
-            else:
-                self.__open_failed = 0   # destructor may safely call SfClose
         else:
+            # handle_error takes care of raising the correct error,
+            # this causes the destructor to be called
             self._handle_error(SF_ERR_FILE_OPEN)
 
     def __init__(self, filename):
@@ -684,8 +683,8 @@ cdef class SpecFile(object):
         
     def __dealloc__(self):
         """Destructor: Calls SfClose(self.handle)"""
-        #SfClose makes a segmentation fault if file failed to open
-        if not self.__open_failed:            
+        # handle is NULL if SfOpen failed
+        if self.handle:
             if specfile_wrapper.SfClose(self.handle):
                 _logger.warning("Error while closing SpecFile")
                                         
