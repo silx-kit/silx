@@ -237,6 +237,7 @@ def write_spec_to_h5(specfile, h5file, h5path='/',
     """Write content of a SpecFile in a HDF5 file.
 
     :param specfile: Path of input SpecFile or :class:`SpecH5` object
+        or :class:`SpecH5Group` object
     :param h5file: Path of output HDF5 file or HDF5 file handle
         (`h5py.File` object)
     :param h5path: Target path in HDF5 file in which scan groups are created.
@@ -257,7 +258,9 @@ def write_spec_to_h5(specfile, h5file, h5path='/',
     The structure of the spec data in an HDF5 file is described in the
     documentation of :mod:`silx.io.spech5`.
     """
-    if not isinstance(specfile, SpecH5):
+    # SpecH5 is a subclass of SpecH5Group
+    if not isinstance(specfile, SpecH5Group):
+        # assume that it is a string and let SpecH5 test the type
         sfh5 = SpecH5(specfile)
     else:
         sfh5 = specfile

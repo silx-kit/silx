@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -36,12 +36,12 @@ except ImportError:
     h5py_missing = True
 else:
     h5py_missing = False
-    from ..spech5 import SpecH5
+    from ..spech5 import SpecH5, SpecH5Group
     from ..spectoh5 import convert, write_spec_to_h5
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "05/10/2016"
+__date__ = "02/06/2017"
 
 
 sftext = """#F /tmp/sf.dat
@@ -112,7 +112,7 @@ class TestConvertSpecHDF5(unittest.TestCase):
         convert(self.spec_fname, self.h5_fname)
 
         self.sfh5 = SpecH5(self.spec_fname)
-        self.h5f = h5py.File(self.h5_fname)
+        self.h5f = h5py.File(self.h5_fname, "a")
 
     def tearDown(self):
         del self.sfh5
@@ -128,6 +128,17 @@ class TestConvertSpecHDF5(unittest.TestCase):
             array_equal(self.h5f["/1.2/measurement/mca_1/data"],
                         self.h5f["/foo/bar/spam/1.2/measurement/mca_1/data"])
         )
+
+    def testWriteSpecH5Group(self):
+        """Test passing a SpecH5Group as parameter, instead of a Spec filename
+        or a SpecH5."""
+        g = self.sfh5["1.1/instrument"]
+        self.assertIsInstance(g, SpecH5Group)        # let's be paranoid
+        write_spec_to_h5(g, self.h5f,
+                         h5path="my instruments")
+
+        self.assertAlmostEqual(self.h5f["my instruments/positioners/Sslit1 HOff"][tuple()],
+                               16.197579, places=4)
 
     def testTitle(self):
         """Test the value of a dataset"""
