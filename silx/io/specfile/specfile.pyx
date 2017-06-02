@@ -659,18 +659,18 @@ cdef class SpecFile(object):
    
     def __cinit__(self, filename):
         cdef int error = SF_ERR_NO_ERRORS
-        self.__open_failed = 0
+        self.__open_failed = 1
 
         if is_specfile(filename):
             filename = _string_to_char_star(filename)
             self.handle =  specfile_wrapper.SfOpen(filename, &error)
+            if error:
+                self._handle_error(error)
+            else:
+                self.__open_failed = 0   # destructor may safely call SfClose
         else:
-            self.__open_failed = 1
             self._handle_error(SF_ERR_FILE_OPEN)
-        if error:
-            self.__open_failed = 1
-            self._handle_error(error)
-       
+
     def __init__(self, filename):
         if not isinstance(filename, str):
             # encode unicode to str in python 2
