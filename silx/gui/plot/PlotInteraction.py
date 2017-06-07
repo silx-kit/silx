@@ -296,13 +296,21 @@ class Zoom(_ZoomOnWheel):
             try:
                 xMin, xMax, yMin, yMax, y2Min, y2Max = self.zoomStack.pop()
             except IndexError:
-                # Signal mouse clicked event
-                dataPos = self.plot.pixelToData(x, y)
-                assert dataPos is not None
-                eventDict = prepareMouseSignal('mouseClicked', 'right',
-                                               dataPos[0], dataPos[1],
-                                               x, y)
-                self.plot.notify(**eventDict)
+                previousLimits = (self.plot.getGraphXLimits(),
+                                  self.plot.getGraphYLimits(),
+                                  self.plot.getGraphYLimits(axis='right'))
+                self.plot.resetZoom()
+                newLimits = (self.plot.getGraphXLimits(),
+                             self.plot.getGraphYLimits(),
+                             self.plot.getGraphYLimits(axis='right'))
+                if previousLimits == newLimits:
+                    # Signal mouse clicked event
+                    dataPos = self.plot.pixelToData(x, y)
+                    assert dataPos is not None
+                    eventDict = prepareMouseSignal('mouseClicked', 'right',
+                                                   dataPos[0], dataPos[1],
+                                                   x, y)
+                    self.plot.notify(**eventDict)
             else:
                 self.plot.setLimits(xMin, xMax, yMin, yMax, y2Min, y2Max)
 
