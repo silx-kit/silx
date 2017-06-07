@@ -181,6 +181,7 @@ import posixpath
 import re
 import sys
 
+from silx.third_party import six
 from .specfile import SpecFile
 
 __authors__ = ["P. Knobel", "D. Naudet"]
@@ -1485,18 +1486,36 @@ class SpecH5Group(object):
             f = File('foo.dat')
             f.visit(mylist.append)
         """
+        base_name = self.name
+        return self._visit(func, base_name, follow_links)
+
+    def _visit(self, func, base_name, follow_links=False):
+        """
+
+        :param func:
+        :param base_name: name of first group that initiated the recursion
+            This is used to compute the relative path from each item's
+            absolute path.
+        :param follow_links:
+        :return:
+        """
         for member_name in self.keys():
             member = self[member_name]
             ret = None
             if (not is_link_to_dataset(member.name) and
                     not is_link_to_group(member.name)) or follow_links:
-                ret = func(member.name)
+                assert member.name.startswith(base_name)
+                # left strip to remove the base name
+                relative_name = member.name[len(base_name):]
+                # remove leading slash and unnecessary trailing slash
+                relative_name = relative_name.strip("/")
+                ret = func(relative_name)
             if ret is not None:
                 return ret
             # recurse into subgroups
             if isinstance(member, SpecH5Group):
                 if not isinstance(member, SpecH5LinkToGroup) or follow_links:
-                    self[member_name].visit(func, follow_links)
+                    self[member_name]._visit(func, base_name, follow_links)
 
     def visititems(self, func, follow_links=False):
         """Recursively visit names and objects in this group.
@@ -1528,18 +1547,36 @@ class SpecH5Group(object):
             f = File('foo.dat')
             f["1.1"].visititems(func)
         """
+        base_name = self.name
+        return self._visititems(func, base_name, follow_links)
+
+    def _visititems(self, func, base_name, follow_links=False):
+        """
+
+        :param func:
+        :param base_name: Name of first group that initiated the recursion.
+            This is used to compute the relative path from each item's
+            absolute path.
+        :param follow_links:
+        :return:
+        """
         for member_name in self.keys():
             member = self[member_name]
             ret = None
             if (not is_link_to_dataset(member.name) and
                     not is_link_to_group(member.name)) or follow_links:
-                ret = func(member.name, member)
+                assert member.name.startswith(base_name)
+                # left strip to remove the base name
+                relative_name = member.name[len(base_name):]
+                # remove leading slash and unnecessary trailing slash
+                relative_name = relative_name.strip("/")
+                ret = func(relative_name, member)
             if ret is not None:
                 return ret
             # recurse into subgroups
             if isinstance(self[member_name], SpecH5Group):
                 if not isinstance(self[member_name], SpecH5LinkToGroup) or follow_links:
-                    self[member_name].visititems(func, follow_links)
+                    self[member_name]._visititems(func, base_name, follow_links)
 
 
 class SpecH5LinkToGroup(SpecH5Group):
@@ -1585,7 +1622,14 @@ class SpecH5(SpecH5Group):
     or dataset in the entire SpecFile tree by specifying the full path.
     """
     def __init__(self, filename):
-        self.filename = filename
+        if isinstance(filename, six.string_types + (six.binary_type, )):
+            # silx.io.SpecFile can process unicode and bytes
+            self.filename = filename
+        elif isinstance(filename, file):
+            self.filename = filename.name
+        else:
+            raise TypeError("SpecH5 filename must be a string or a " +
+                            "file handle.")
         self.attrs = _get_attrs_dict("/")
         self._sf = SpecFile(filename)
 
