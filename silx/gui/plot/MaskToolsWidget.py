@@ -240,17 +240,11 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             return None
 
         # ensure all mask attributes are synchronized with the active image
+        # and connect listener
         activeImage = self.plot.getActiveImage()
         if activeImage is not None and activeImage.getLegend() != self._maskName:
-            self._setOverlayColorForImage(activeImage)
-            self._setMaskColors(self.levelSpinBox.value(),
-                                self.transparencySlider.value() /
-                                self.transparencySlider.maximum())
-            self._origin = activeImage.getOrigin()
-            self._scale = activeImage.getScale()
-            self._z = activeImage.getZValue() + 1
-            self._data = activeImage.getData(copy=False)
-            self._mask.setDataItem(activeImage)
+            self._activeImageChanged()
+            self.plot.sigActiveImageChanged.connect(self._activeImageChanged)
 
         if self._data.shape[0:2] == (0, 0) or mask.shape == self._data.shape[0:2]:
             self._mask.setMask(mask, copy=copy)
