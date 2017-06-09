@@ -460,7 +460,7 @@ class BuildExt(build_ext):
 
     COMPILE_ARGS_CONVERTER = {'-fopenmp': '/openmp'}
 
-    LINK_ARGS_CONVERTER = {'-fopenmp': ' '}
+    LINK_ARGS_CONVERTER = {'-fopenmp': ''}
 
     description = 'Build silx extensions'
 
