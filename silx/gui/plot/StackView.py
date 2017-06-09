@@ -884,10 +884,13 @@ class StackView(qt.QMainWindow):
         :param callback: Callback function generating the stack title based
             on the frame number.
         """
+
         if callback is None:
             self._titleCallback = self._defaultTitleCallback
-        else:
+        elif callable(callback):
             self._titleCallback = callback
+        else:
+            raise TypeError("Provided callback is not callable")
         self._updateTitle()
 
     def _updateTitle(self):
