@@ -180,6 +180,13 @@ class TestStackView(TestCaseQt):
         self.assertEqual(self.stackview._plot.getGraphTitle(),
                          "Cubed index title 8")
 
+        with self.assertRaises(TypeError):
+            # setTitleCallback should not accept non-callable objects like strings
+            self.stackview.setTitleCallback(
+                    "Là, vous faites sirop de vingt-et-un et vous dites : "
+                    "beau sirop, mi-sirop, siroté, gagne-sirop, sirop-grelot,"
+                    " passe-montagne, sirop au bon goût.")
+
 
 class TestStackViewMainWindow(TestCaseQt):
     """Base class for tests of StackView."""
