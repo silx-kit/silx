@@ -69,7 +69,7 @@ Example::
 
 __authors__ = ["P. Knobel", "H. Payno"]
 __license__ = "MIT"
-__date__ = "20/01/2017"
+__date__ = "09/06/2017"
 
 import numpy
 
@@ -180,6 +180,10 @@ class StackView(qt.QMainWindow):
 
         self._first_stack_dimension = 0
         """Used for dimension labels and combobox"""
+
+        self._titleCallback = self._defaultTitleCallback
+        """Function returning the plot title based on the frame index.
+        It can be set to a custom function using :meth:`setTitleCallback`"""
 
         central_widget = qt.QWidget(self)
 
@@ -339,7 +343,7 @@ class StackView(qt.QMainWindow):
                             scale=self._getImageScale(),
                             legend=self.__imageLegend,
                             resetzoom=False, replace=False)
-        self._plot.setGraphTitle("Image z=%g" % self._getImageZ(index))
+        self._updateTitle()
 
     def _set3DScaleAndOrigin(self, calibrations):
         """Set scale and origin for all 3 axes, to be used when plotting
@@ -860,6 +864,42 @@ class StackView(qt.QMainWindow):
         self.__planeSelection.blockSignals(old_state)
         self._first_stack_dimension = first_stack_dimension
         self._browser_label.setText("Image index (Dim%d):" % first_stack_dimension)
+
+    def setTitleCallback(self, callback):
+        """Set a user defined function to generate the plot title based on the
+        image/frame index.
+
+        The callback function must accept an integer as a its first positional
+        parameter and must not require any other mandatory parameter.
+        It must return a string.
+
+        To switch back the default behavior, you can pass ``None``::
+
+            mystackview.setTitleCallback(None)
+
+        To have no title, pass a function that returns an empty string::
+
+            mystackview.setTitleCallback(lambda idx: "")
+
+        :param callback: Callback function generating the stack title based
+            on the frame number.
+        """
+
+        if callback is None:
+            self._titleCallback = self._defaultTitleCallback
+        elif callable(callback):
+            self._titleCallback = callback
+        else:
+            raise TypeError("Provided callback is not callable")
+        self._updateTitle()
+
+    def _updateTitle(self):
+        frame_idx = self._browser.value()
+        self._plot.setGraphTitle(self._titleCallback(frame_idx))
+
+    def _defaultTitleCallback(self, index):
+        return "Image z=%g" % self._getImageZ(index)
+
 
 
 class PlanesWidget(qt.QWidget):
