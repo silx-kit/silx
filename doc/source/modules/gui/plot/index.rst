@@ -15,7 +15,7 @@
 
 For an introduction to the widgets of this package, see :doc:`getting_started`.
 
-For examples of custom plot actions, see :doc:`plotactions/examples`.
+For examples of custom plot actions, see :doc:`actions/examples`.
 
 Widgets gallery
 ---------------
@@ -116,7 +116,7 @@ Public modules
    stackview.rst
    plot.rst
    items.rst
-   plotactions/index.rst
+   actions/index.rst
    plottools.rst
    profile.rst
    roi.rst
