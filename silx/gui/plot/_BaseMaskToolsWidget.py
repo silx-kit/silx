@@ -353,7 +353,15 @@ class BaseMaskToolsWidget(qt.QWidget):
     sigMaskChanged = qt.Signal()
     _maxLevelNumber = 255
 
-    def __init__(self, parent=None, plot=None):
+    def __init__(self, parent=None, plot=None, mask=None):
+        """
+
+        :param parent: Parent QWidget
+        :param plot: Plot widget on which to operate
+        :param mask: Instance of subclass of :class:`BaseMask`
+            (e.g. :class:`ImageMask`)
+        """
+        super(BaseMaskToolsWidget, self).__init__(parent)
         # register if the user as force a color for the corresponding mask level
         self._defaultColors = numpy.ones((self._maxLevelNumber + 1), dtype=numpy.bool)
         # overlays colors set by the user
@@ -371,6 +379,10 @@ class BaseMaskToolsWidget(qt.QWidget):
         self._defaultOverlayColor = rgba('gray')  # Color of the mask
         self._setMaskColors(1, 0.5)
 
+        if not isinstance(mask, BaseMask):
+            raise TypeError("mask is not an instance of BaseMask")
+        self._mask = mask
+
         self._mask.sigChanged.connect(self._updatePlotMask)
         self._mask.sigChanged.connect(self._emitSigMaskChanged)
 
@@ -378,11 +390,11 @@ class BaseMaskToolsWidget(qt.QWidget):
         self._lastPencilPos = None
         self._multipleMasks = 'exclusive'
 
-        super(BaseMaskToolsWidget, self).__init__(parent)
-
         self._maskFileDir = qt.QDir.home().absolutePath()
         self.plot.sigInteractiveModeChanged.connect(
             self._interactiveModeChanged)
+
+        self._initWidgets()
 
     def _emitSigMaskChanged(self):
         """Notify mask changes"""
@@ -1059,7 +1071,7 @@ class BaseMaskToolsWidget(qt.QWidget):
 
 class BaseMaskToolsDockWidget(qt.QDockWidget):
     """Base class for :class:`MaskToolsWidget` and
-    :class:`ScatterMaskToolsWidget`
+    :class:`ScatterMaskToolsWidget`.
 
     For integration in a :class:`PlotWindow`.
 
@@ -1069,9 +1081,14 @@ class BaseMaskToolsDockWidget(qt.QDockWidget):
 
     sigMaskChanged = qt.Signal()
 
-    def __init__(self, parent=None, name='Mask'):
+    def __init__(self, parent=None, name='Mask', widget=None):
         super(BaseMaskToolsDockWidget, self).__init__(parent)
         self.setWindowTitle(name)
+
+        if not isinstance(widget, BaseMaskToolsWidget):
+            raise TypeError("BaseMaskToolsDockWidget requires a MaskToolsWidget")
+        self.setWidget(widget)
+        self.widget().sigMaskChanged.connect(self._emitSigMaskChanged)
 
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.dockLocationChanged.connect(self._dockLocationChanged)
@@ -1106,6 +1123,11 @@ class BaseMaskToolsDockWidget(qt.QDockWidget):
                  the returned shape is that of the active image.
         """
         return self.widget().setSelectionMask(mask, copy=copy)
+
+    def resetSelectionMask(self):
+        """Reset the mask to an array of zeros with the shape of the
+        current data."""
+        self.widget().resetSelectionMask()
 
     def toggleViewAction(self):
         """Returns a checkable action that shows or closes this widget.

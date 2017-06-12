@@ -211,16 +211,12 @@ class MaskToolsWidget(BaseMaskToolsWidget):
     _maxLevelNumber = 255
 
     def __init__(self, parent=None, plot=None):
+        super(MaskToolsWidget, self).__init__(parent, plot,
+                                              mask=ImageMask())
         self._origin = (0., 0.)  # Mask origin in plot
         self._scale = (1., 1.)  # Mask scale in plot
         self._z = 1  # Mask layer in plot
         self._data = numpy.zeros((0, 0), dtype=numpy.uint8)  # Store image
-
-        self._mask = ImageMask()
-
-        super(MaskToolsWidget, self).__init__(parent, plot)
-
-        self._initWidgets()
 
     def setSelectionMask(self, mask, copy=True):
         """Set the mask to a new array.
@@ -610,6 +606,5 @@ class MaskToolsDockWidget(BaseMaskToolsDockWidget):
     :paran str name: The title of this widget
     """
     def __init__(self, parent=None, plot=None, name='Mask'):
-        super(MaskToolsDockWidget, self).__init__(parent, name)
-        self.setWidget(MaskToolsWidget(plot=plot))
-        self.widget().sigMaskChanged.connect(self._emitSigMaskChanged)
+        widget = MaskToolsWidget(plot=plot)
+        super(MaskToolsDockWidget, self).__init__(parent, name, widget)

@@ -181,17 +181,13 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
     :class:`PlotWidget`."""
 
     def __init__(self, parent=None, plot=None):
+        super(ScatterMaskToolsWidget, self).__init__(parent, plot,
+                                                     mask=ScatterMask())
         self._z = 2  # Mask layer in plot
         self._data_scatter = None
         """plot Scatter item for data"""
         self._mask_scatter = None
         """plot Scatter item for representing the mask"""
-
-        self._mask = ScatterMask()
-
-        super(ScatterMaskToolsWidget, self).__init__(parent, plot)
-
-        self._initWidgets()
 
     def setSelectionMask(self, mask, copy=True):
         """Set the mask to a new array.
@@ -524,6 +520,5 @@ class ScatterMaskToolsDockWidget(BaseMaskToolsDockWidget):
     :paran str name: The title of this widget
     """
     def __init__(self, parent=None, plot=None, name='Mask'):
-        super(ScatterMaskToolsDockWidget, self).__init__(parent, name)
-        self.setWidget(ScatterMaskToolsWidget(plot=plot))
-        self.widget().sigMaskChanged.connect(self._emitSigMaskChanged)
+        widget = ScatterMaskToolsWidget(plot=plot)
+        super(ScatterMaskToolsDockWidget, self).__init__(parent, name, widget)
