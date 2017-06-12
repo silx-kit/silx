@@ -235,6 +235,13 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             _logger.error('Not an image, shape: %d', len(mask.shape))
             return None
 
+        # ensure all mask attributes are synchronized with the active image
+        # and connect listener
+        activeImage = self.plot.getActiveImage()
+        if activeImage is not None and activeImage.getLegend() != self._maskName:
+            self._activeImageChanged()
+            self.plot.sigActiveImageChanged.connect(self._activeImageChanged)
+
         if self._data.shape[0:2] == (0, 0) or mask.shape == self._data.shape[0:2]:
             self._mask.setMask(mask, copy=copy)
             self._mask.commit()
