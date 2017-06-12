@@ -2080,10 +2080,8 @@ class Plot(object):
         self._backend.setXAxisLogarithmic(self._logX)
 
         # TODO hackish way of forcing update of curves and images
-        for curve in self.getAllCurves():
-            curve._updated()
-        for image in self.getAllImages():
-            image._updated()
+        for item in self._getItems(withhidden=True):
+            item._updated()
         self._invalidateDataRange()
 
         self.resetZoom()
@@ -2105,10 +2103,8 @@ class Plot(object):
         self._backend.setYAxisLogarithmic(self._logY)
 
         # TODO hackish way of forcing update of curves and images
-        for curve in self.getAllCurves():
-            curve._updated()
-        for image in self.getAllImages():
-            image._updated()
+        for item in self._getItems(withhidden=True):
+            item._updated()
         self._invalidateDataRange()
 
         self.resetZoom()
