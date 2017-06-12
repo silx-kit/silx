@@ -15,7 +15,7 @@
 
 For an introduction to the widgets of this package, see :doc:`getting_started`.
 
-For examples of custom plot actions, see :doc:`plotactions_examples`.
+For examples of custom plot actions, see :doc:`plotactions/examples`.
 
 Widgets gallery
 ---------------

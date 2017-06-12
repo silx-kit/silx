@@ -27,7 +27,7 @@ The method implemented in this action interacts with the plot in a basic way. It
 then it creates a new data array based on the curve data, and finally it replaces the original curve
 with a new one using the modified data array.
 
-.. literalinclude:: ../../../../../examples/shiftPlotAction.py
+.. literalinclude:: ../../../../../../examples/shiftPlotAction.py
    :lines: 36-
 
 .. |imgShiftAction0| image:: img/shiftAction0.png
@@ -66,7 +66,7 @@ the amplitude spectrum. However, the inverse FFT requires  the complete FFT data
 We are therefore required to store the complex array of FFT data as curve metadata,
 in order to be able to reverse the process when the action is unchecked.
 
-.. literalinclude:: ../../../../../examples/fftPlotAction.py
+.. literalinclude:: ../../../../../../examples/fftPlotAction.py
    :lines: 44-
 
 .. |imgFftAction0| image:: img/fftAction0.png
