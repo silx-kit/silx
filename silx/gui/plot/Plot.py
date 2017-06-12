@@ -1341,6 +1341,7 @@ class Plot(object):
     # Remove
 
     ITEM_KINDS = 'curve', 'image', 'scatter', 'item', 'marker', 'histogram'
+    """List of supported kind of items in the plot."""
 
     def remove(self, legend=None, kind=ITEM_KINDS):
         """Remove one or all element(s) of the given legend and kind.
@@ -1359,7 +1360,7 @@ class Plot(object):
         :param str legend: The legend associated to the element to remove,
                            or None to remove
         :param kind: The kind of elements to remove from the plot.
-                     In: 'all', 'curve', 'image', 'item', 'marker'.
+                     See :attr:`.Plot.ITEM_KINDS`.
                      By default, it removes all kind of elements.
         :type kind: str or tuple of str to specify multiple kinds.
         """
@@ -1816,9 +1817,13 @@ class Plot(object):
         """
         return self._getItem(kind='histogram', legend=legend)
 
-    def _getItems(self, kind, just_legend=False, withhidden=False):
+    def _getItems(self, kind=ITEM_KINDS, just_legend=False, withhidden=False):
         """Retrieve all items of a kind in the plot
 
+        :param kind: The kind of elements to retrieve from the plot.
+                     See :attr:`.Plot.ITEM_KINDS`.
+                     By default, it removes all kind of elements.
+        :type kind: str or tuple of str to specify multiple kinds.
         :param str kind: Type of item: 'curve' or 'image'
         :param bool just_legend: True to get the legend of the curves,
                                  False (the default) to get the curves' data
@@ -1826,19 +1831,28 @@ class Plot(object):
         :param bool withhidden: False (default) to skip hidden curves.
         :return: list of legends or item objects
         """
-        assert kind in self.ITEM_KINDS
+        if kind is 'all':  # Replace all by tuple of all kinds
+            kind = self.ITEM_KINDS
+
+        if kind in self.ITEM_KINDS:  # Kind is a str, make it a tuple
+            kind = (kind,)
+
+        for aKind in kind:
+            assert aKind in self.ITEM_KINDS
+
         output = []
         for (legend, type_), item in self._content.items():
-            if type_ == kind and (withhidden or item.isVisible()):
+            if type_ in kind and (withhidden or item.isVisible()):
                 output.append(legend if just_legend else item)
         return output
 
     def _getItem(self, kind, legend=None):
         """Get an item from the plot: either an image or a curve.
 
-        Returns None if no match found
+        Returns None if no match found.
 
-        :param str kind: Type of item: 'curve' or 'image'
+        :param str kind: Type of item to retrieve,
+                         see :attr:`.Plot.ITEM_KINDS`.
         :param str legend: Legend of the item or
                            None to get active or last item
         :return: Object describing the item or None
