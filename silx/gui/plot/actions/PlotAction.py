@@ -22,11 +22,9 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""TODO
-
-The class :class:`PlotAction` help the creation of a qt.QAction associated
+"""
+The class :class:`.PlotAction` help the creation of a qt.QAction associated
 with a :class:`.PlotWidget`.
-
 """
 
 from __future__ import division

@@ -22,10 +22,10 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This package provides classes that describes :class:`.Plot` content.
+"""This package provides a set of QActions to use with :class:`PlotWidget`
 
-Instances of those classes are returned by :class:`.Plot` methods that give
-access to its content such as :meth:`.Plot.getCurve`, :meth:`.Plot.getImage`.
+It also contains the :class:'.PlotAction' (Base class for QAction that operates
+on a PlotWidget)
 """
 
 __authors__ = ["H. Payno"]

@@ -116,7 +116,7 @@ Public modules
    stackview.rst
    plot.rst
    items.rst
-   plotactions.rst
+   plotactions/index.rst
    plottools.rst
    profile.rst
    roi.rst

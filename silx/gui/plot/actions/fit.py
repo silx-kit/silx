@@ -22,11 +22,14 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides actions relative to fit for a :class:`.PlotWidget`.
+"""
+:mod:`silx.gui.plot.actions.fit` module provides actions relative to fit.
 
 The following QAction are available:
 
-- :class:`FitAction`
+- :class:`.FitAction`
+
+.. autoclass:`.FitAction`
 """
 
 from __future__ import division

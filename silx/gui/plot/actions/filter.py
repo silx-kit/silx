@@ -22,8 +22,9 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides a set of QAction to apply filter on data contained in
- a :class:`.PlotWidget`.
+"""
+:mod:`silx.gui.plot.actions.filter` provides a set of QAction to apply filter
+on data contained in a :class:`.PlotWidget`.
 
 The following QAction are available:
 

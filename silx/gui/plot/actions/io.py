@@ -22,8 +22,9 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides a set of QAction relative of inputs and outputs for
-a :class:`.PlotWidget`.
+"""
+:mod:`silx.gui.plot.actions.io` provides a set of QAction relative of inputs
+and outputs for a :class:`.PlotWidget`.
 
 The following QAction are available:
 

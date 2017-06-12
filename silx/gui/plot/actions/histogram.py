@@ -22,8 +22,9 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides actions relative to histograms for
-:class:`.PlotWidget`.
+"""
+:mod:`silx.gui.plot.actions.histogram` provides actions relative to histograms
+for :class:`.PlotWidget`.
 
 The following QAction are available:
 

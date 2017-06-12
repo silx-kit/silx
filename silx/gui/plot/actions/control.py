@@ -22,8 +22,9 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides a set of QAction relative to control of
-a :class:`.PlotWidget`.
+"""
+:mod:`silx.gui.plot.actions.control` provides a set of QAction relative to control
+of a :class:`.PlotWidget`.
 
 The following QAction are available:
 
