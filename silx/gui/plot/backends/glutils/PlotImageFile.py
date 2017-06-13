@@ -96,7 +96,11 @@ def saveImageToFile(data, fileNameOrObj, fileFormat):
         if sys.version < "3.0":
             fileObj = open(fileNameOrObj, "wb")
         else:
-            fileObj = open(fileNameOrObj, "w", newline='')
+            if fileFormat in ('png', 'ppm', 'tiff'):
+                # Open in binary mode
+                fileObj = open(fileNameOrObj, 'wb')
+            else:
+                fileObj = open(fileNameOrObj, 'w', newline='')
     else:  # Use as a file-like object
         fileObj = fileNameOrObj
 
@@ -127,9 +131,9 @@ def saveImageToFile(data, fileNameOrObj, fileFormat):
     elif fileFormat == 'ppm':
         height, width = data.shape[:2]
 
-        fileObj.write('P6\n')
-        fileObj.write('%d %d\n' % (width, height))
-        fileObj.write('255\n')
+        fileObj.write(b'P6\n')
+        fileObj.write(b'%d %d\n' % (width, height))
+        fileObj.write(b'255\n')
         fileObj.write(data.tostring())
 
     elif fileFormat == 'png':
@@ -143,7 +147,7 @@ def saveImageToFile(data, fileNameOrObj, fileFormat):
         from silx.third_party.TiffIO import TiffIO
 
         tif = TiffIO(fileNameOrObj, mode='wb+')
-        tif.writeImage(data, info={'Title': 'PyMCA GL Snapshot'})
+        tif.writeImage(data, info={'Title': 'OpenGL Plot Snapshot'})
 
     if fileObj != fileNameOrObj:
         fileObj.close()
