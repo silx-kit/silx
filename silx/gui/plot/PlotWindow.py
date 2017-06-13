@@ -39,6 +39,9 @@ from silx.utils.decorators import deprecated
 
 from . import PlotWidget
 from . import actions
+from .actions import medfilt as actions_medfilt
+from .actions import fit as actions_fit
+from .actions import histogram as actions_histogram
 from . import PlotToolButtons
 from .PlotTools import PositionInfo
 from .Profile import ProfileToolBar
@@ -174,15 +177,15 @@ class PlotWindow(PlotWidget):
         self.getMaskAction().setVisible(mask)
 
         self._intensityHistoAction = self.group.addAction(
-            actions.histogram.PixelIntensitiesHistoAction(self))
+            actions_histogram.PixelIntensitiesHistoAction(self))
         self._intensityHistoAction.setVisible(False)
 
         self._medianFilter2DAction = self.group.addAction(
-            actions.medfilt.MedianFilter2DAction(self))
+            actions_medfilt.MedianFilter2DAction(self))
         self._medianFilter2DAction.setVisible(False)
 
         self._medianFilter1DAction = self.group.addAction(
-            actions.medfilt.MedianFilter1DAction(self))
+            actions_medfilt.MedianFilter1DAction(self))
         self._medianFilter1DAction.setVisible(False)
 
         self._separator = qt.QAction('separator', self)
@@ -201,7 +204,7 @@ class PlotWindow(PlotWidget):
         self.printAction.setVisible(print_)
         self.addAction(self.printAction)
 
-        self.fitAction = self.group.addAction(actions.fit.FitAction(self))
+        self.fitAction = self.group.addAction(actions_fit.FitAction(self))
         self.fitAction.setVisible(fit)
         self.addAction(self.fitAction)
 

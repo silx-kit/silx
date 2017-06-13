@@ -34,7 +34,4 @@ __date__ = "24/05/2017"
 
 from .PlotAction import PlotAction
 from . import control
-from . import medfilt
-from . import fit
-from . import histogram
 from . import io
