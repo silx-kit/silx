@@ -72,6 +72,7 @@ class ColorBarWidget(qt.QWidget):
     def __init__(self, parent=None, plot=None, legend=None):
         super(ColorBarWidget, self).__init__(parent)
         self._plot = None
+        self._viewAction = None
 
         self.__buildGUI()
         self.setLegend(legend)
@@ -206,6 +207,28 @@ class ColorBarWidget(qt.QWidget):
         :return: return the :class:`ColorScaleBar` used to display ColorScale
             and ticks"""
         return self._colorScale
+
+    def showEvent(self, event):
+        if self._viewAction is not None:
+            self._viewAction.setChecked(True)
+
+    def hideEvent(self, event):
+        if self._viewAction is not None:
+            self._viewAction.setChecked(False)
+
+    def getVisibilityAction(self):
+        """Returns a checkable action controlling this widget's visibility.
+
+        :rtype: QAction
+        """
+        if self._viewAction is None:
+            self._viewAction = qt.QAction(self)
+            self._viewAction.setText('Colorbar')
+            self._viewAction.setToolTip('Show/Hide the colorbar')
+            self._viewAction.setCheckable(True)
+            self._viewAction.setChecked(self.isVisible())
+            self._viewAction.toggled[bool].connect(self.setVisible)
+        return self._viewAction
 
 
 class _VerticalLegend(qt.QLabel):
