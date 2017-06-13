@@ -307,6 +307,8 @@ class BackendBase(object):
     def saveGraph(self, fileName, fileFormat, dpi):
         """Save the graph to a file (or a StringIO)
 
+        At least "png", "svg" are supported.
+
         :param fileName: Destination
         :type fileName: String or StringIO or BytesIO
         :param str fileFormat: String specifying the format
