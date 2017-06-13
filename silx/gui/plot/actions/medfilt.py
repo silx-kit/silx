@@ -23,7 +23,7 @@
 #
 # ###########################################################################*/
 """
-:mod:`silx.gui.plot.actions.filter` provides a set of QAction to apply filter
+:mod:`silx.gui.plot.actions.medfilt` provides a set of QAction to apply filter
 on data contained in a :class:`.PlotWidget`.
 
 The following QAction are available:

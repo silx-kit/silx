@@ -58,9 +58,9 @@ from .actions.control import YAxisInvertedAction
 from .actions.control import ZoomInAction
 from .actions.control import ZoomOutAction
 
-from .actions.filter import MedianFilter1DAction
-from .actions.filter import MedianFilter2DAction
-from .actions.filter import MedianFilterAction
+from .actions.medfilt import MedianFilter1DAction
+from .actions.medfilt import MedianFilter2DAction
+from .actions.medfilt import MedianFilterAction
 
 from .actions.histogram import PixelIntensitiesHistoAction
 

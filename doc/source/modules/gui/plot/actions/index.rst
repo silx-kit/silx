@@ -22,7 +22,7 @@ Actions are divided into the following sub-modules:
    :maxdepth: 1
 
    control.rst
-   filter.rst
+   medfilt.rst
    fit.rst
    histogram.rst
    io.rst

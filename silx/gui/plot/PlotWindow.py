@@ -178,11 +178,11 @@ class PlotWindow(PlotWidget):
         self._intensityHistoAction.setVisible(False)
 
         self._medianFilter2DAction = self.group.addAction(
-            actions.filter.MedianFilter2DAction(self))
+            actions.medfilt.MedianFilter2DAction(self))
         self._medianFilter2DAction.setVisible(False)
 
         self._medianFilter1DAction = self.group.addAction(
-            actions.filter.MedianFilter1DAction(self))
+            actions.medfilt.MedianFilter1DAction(self))
         self._medianFilter1DAction.setVisible(False)
 
         self._separator = qt.QAction('separator', self)
