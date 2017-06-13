@@ -91,7 +91,6 @@ class ColorBarWidget(qt.QWidget):
 
         self.layout().setSizeConstraint(qt.QLayout.SetMinAndMaxSize)
         self.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Expanding)
-        self.layout().setContentsMargins(0, 0, 0, 0)
 
     def getPlot(self):
         """Returns the :class:`Plot` associated to this widget or None"""
@@ -488,7 +487,7 @@ class _ColorScale(qt.QWidget):
 
         painter.setBrush(gradient)
         painter.drawRect(
-            qt.QRect(0, self.margin, self.width(), self.height() - 2.*self.margin))
+            qt.QRect(0, self.margin, self.width() - 1., self.height() - 2.*self.margin - 1.))
 
     def mouseMoveEvent(self, event):
         """"""
@@ -584,7 +583,6 @@ class _TickBar(qt.QWidget):
         self._norm = norm
         self.displayValues = displayValues
         self.setTicksNumber(nticks)
-        self.setMargin(margin)
 
         self.setLayout(qt.QVBoxLayout())
         self.setMargin(margin)
@@ -720,7 +718,7 @@ class _TickBar(qt.QWidget):
             with a smaller width
         """
         fm = qt.QFontMetrics(painter.font())
-        viewportHeight = self.rect().height() - self.margin * 2
+        viewportHeight = self.rect().height() - self.margin * 2 - 1
         relativePos = self._getRelativePosition(val)
         height = viewportHeight * relativePos
         height += self.margin
