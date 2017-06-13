@@ -524,7 +524,7 @@ class PlotWindow(PlotWidget):
 
         :rtype: actions.PlotAction
         """
-        return self.zPlotActionsoomInAction
+        return self.zoomInAction
 
     def getZoomOutAction(self):
         """Action to zoom out
