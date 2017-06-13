@@ -48,6 +48,7 @@ from .Profile import ProfileToolBar
 from .LegendSelector import LegendsDockWidget
 from .CurvesROIWidget import CurvesROIDockWidget
 from .MaskToolsWidget import MaskToolsDockWidget
+from .ColorBar import ColorBarWidget
 try:
     from ..console import IPythonDockWidget
 except ImportError:
@@ -213,6 +214,30 @@ class PlotWindow(PlotWidget):
         self._panWithArrowKeysAction = None
         self._crosshairAction = None
 
+        # Create color bar
+        self._colorbar = ColorBarWidget(
+            parent=self, plot=self, legend='Colorbar')
+        # Hidden by default for backward compatibility
+        self._colorbar.setVisible(False)
+
+        # Make colorbar background white
+        self._colorbar.setAutoFillBackground(True)
+        palette = self._colorbar.palette()
+        palette.setColor(qt.QPalette.Background, qt.Qt.white)
+        palette.setColor(qt.QPalette.Window, qt.Qt.white)
+        self._colorbar.setPalette(palette)
+
+        gridLayout = qt.QGridLayout()
+        gridLayout.setSpacing(0)
+        gridLayout.setContentsMargins(0, 0, 0, 0)
+        gridLayout.addWidget(self.getWidgetHandle(), 0, 0)
+        gridLayout.addWidget(self._colorbar, 0, 1)
+        gridLayout.setRowStretch(0, 1)
+        gridLayout.setColumnStretch(0, 1)
+        centralWidget = qt.QWidget()
+        centralWidget.setLayout(gridLayout)
+        self.setCentralWidget(centralWidget)
+
         if control or position:
             hbox = qt.QHBoxLayout()
             hbox.setContentsMargins(0, 0, 0, 0)
@@ -245,16 +270,7 @@ class PlotWindow(PlotWidget):
             bottomBar = qt.QWidget()
             bottomBar.setLayout(hbox)
 
-            layout = qt.QVBoxLayout()
-            layout.setSpacing(0)
-            layout.setContentsMargins(0, 0, 0, 0)
-            layout.addWidget(self.getWidgetHandle())
-            layout.addWidget(bottomBar)
-            layout.setStretch(0, 1)
-
-            centralWidget = qt.QWidget()
-            centralWidget.setLayout(layout)
-            self.setCentralWidget(centralWidget)
+            gridLayout.addWidget(bottomBar, 1, 0, 1, -1)
 
         # Creating the toolbar also create actions for toolbuttons
         self._toolbar = self._createToolBar(title='Plot', parent=None)
@@ -383,6 +399,12 @@ class PlotWindow(PlotWidget):
             # Other dock widgets are added as tabs to the same widget area
             self.tabifyDockWidget(self._dockWidgets[0],
                                   dock_widget)
+
+    def getColorBar(self):
+        """Returns the embedded :class:`ColorBar` widget.
+
+        :rtype: ColorBar"""
+        return self._colorbar
 
     # getters for dock widgets
     @property
@@ -726,8 +748,9 @@ class Plot2D(PlotWindow):
         self.setGraphYLabel('Rows')
 
         self.profile = ProfileToolBar(plot=self)
-
         self.addToolBar(self.profile)
+
+        self.getColorBar().setVisible(True)
 
     def _getImageValue(self, x, y):
         """Get value of top most image at position (x, y)
