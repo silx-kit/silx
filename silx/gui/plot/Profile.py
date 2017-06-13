@@ -43,7 +43,7 @@ from .actions import PlotAction
 from .PlotToolButtons import ProfileToolButton
 from .ProfileMainWindow import ProfileMainWindow
 
-from silx.utils.decorators import deprecated
+from silx.utils.deprecation import deprecated
 
 
 def _alignedFullProfile(data, origin, scale, position, roiWidth, axis):

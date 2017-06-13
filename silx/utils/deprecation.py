@@ -54,7 +54,6 @@ def deprecated(func=None, reason=None, replacement=None, since_version=None):
         def wrapper(*args, **kwargs):
             name = func.func_name if sys.version_info[0] < 3 else func.__name__
 
-            # TODO : move out for consistancy
             deprecated_warning(type='function',
                                name=name,
                                reason=reason,

@@ -37,7 +37,7 @@ import weakref
 from . import qt
 from silx.resources import resource_filename
 from silx.utils import weakref as silxweakref
-from silx.utils.decorators import deprecated
+from silx.utils.deprecation import deprecated
 
 
 _logger = logging.getLogger(__name__)

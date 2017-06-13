@@ -28,7 +28,7 @@ import os.path
 import sys
 import time
 import logging
-from silx.utils.decorators import deprecated
+from silx.utils.deprecation import deprecated
 
 try:
     import h5py

@@ -35,7 +35,7 @@ __date__ = "27/04/2017"
 import collections
 import logging
 
-from silx.utils.decorators import deprecated
+from silx.utils.deprecation import deprecated
 
 from . import PlotWidget
 from . import actions
