@@ -33,7 +33,6 @@ __date__ = "01/03/2017"
 import sys
 import logging
 import functools
-from .warning import deprecated_warning
 
 depreclog = logging.getLogger("silx.DEPRECATION")
 
@@ -64,3 +63,28 @@ def deprecated(func=None, reason=None, replacement=None, since_version=None):
     if func is not None:
         return decorator(func)
     return decorator
+
+
+def deprecated_warning(type_, name, reason=None, replacement=None,
+                       since_version=None):
+    """
+    Decorator that deprecates the use of a function
+
+    :param str type_: Module, function, class ...
+    :param str reason: Reason for deprecating this function
+        (e.g. "feature no longer provided",
+    :param str replacement: Name of replacement function (if the reason for
+        deprecating was to rename the function)
+    :param str since_version: First *silx* version for which the function was
+        deprecated (e.g. "0.5.0").
+    """
+    msg = "%s, %s is deprecated"
+    if since_version is not None:
+        msg += " since silx version %s" % since_version
+    msg += "!"
+    if reason is not None:
+        msg += " Reason: %s." % reason
+    if replacement is not None:
+        msg += " Use '%s' instead." % replacement
+    depreclog.warning(msg + " %s", type_, name,
+                      os.linesep.join([""] + traceback.format_stack()[:-1]))

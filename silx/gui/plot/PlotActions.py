@@ -29,7 +29,7 @@ __author__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "01/06/2017"
 
-from silx.utils.warning import deprecated_warning
+from silx.utils.deprecation import deprecated_warning
 
 deprecated_warning(type_='module',
                    name=__file__,
