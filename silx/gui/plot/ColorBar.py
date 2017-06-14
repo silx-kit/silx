@@ -215,7 +215,7 @@ class ColorBarWidget(qt.QWidget):
         if self._viewAction is not None:
             self._viewAction.setChecked(False)
 
-    def getVisibilityAction(self):
+    def getToggleViewAction(self):
         """Returns a checkable action controlling this widget's visibility.
 
         :rtype: QAction

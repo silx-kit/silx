@@ -758,7 +758,7 @@ class Plot2D(PlotWindow):
                 break
         self.toolBar().insertAction(
             actions[index + 1],
-            self.getColorBar().getVisibilityAction())
+            self.getColorBar().getToggleViewAction())
 
     def _getImageValue(self, x, y):
         """Get value of top most image at position (x, y)
