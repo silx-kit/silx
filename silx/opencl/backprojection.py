@@ -49,7 +49,7 @@ logger = logging.getLogger(__name__)
 # put in .common ?
 try:
     from pyfft.cl import Plan as pyfft_Plan
-    _has_pyfft = True
+    _has_pyfft = True*0
 except ImportError:
     _has_pyfft = False
 
@@ -316,13 +316,12 @@ class Backprojection(OpenclProcessing):
             )
             events.append(EventDescription("backprojection", event_bpj))
 
-            result = np.empty((self.num_bins, self.num_bins), np.float32)
-            ev = pyopencl.enqueue_copy(self.queue, result, self.cl_mem["d_slice"])
+            ev = pyopencl.enqueue_copy(self.queue, self.slice, self.cl_mem["d_slice"])
             events.append(EventDescription("copy D->H result", ev))
             ev.wait()
         if self.profile:
             self.events += events
-        return result
+        return self.slice
 
 
 
@@ -345,7 +344,7 @@ class Backprojection(OpenclProcessing):
             #  cl.enqueue_copy(queue, dst, src, host_origin=(0,0), buffer_origin=(0,0), region=shape, host_pitches=(sino.shape[1],), buffer_pitches=(self.fft_size,))
             # However it does not work properly, and raises an error for pyopencl < 2017.1
             sino_zeropadded = np.zeros((sino.shape[0], self.fft_size), dtype=np.complex64)
-            sino_zeropadded[:, :self.num_bins] = sino
+            sino_zeropadded[:, :self.num_bins] = sino.astype(np.float32)
             sino_zeropadded = np.ascontiguousarray(sino_zeropadded, dtype=np.complex64)
             # send to GPU
             ev = pyopencl.enqueue_copy(self.queue, self.d_sino_z.data, sino_zeropadded)
@@ -378,7 +377,7 @@ class Backprojection(OpenclProcessing):
         else: # no pyfft
             # Zero-padding of the sinogram
             sino_zeropadded = np.zeros((sino.shape[0], self.fft_size), dtype=np.complex64)
-            sino_zeropadded[:, :self.num_bins] = np.copy(sino)
+            sino_zeropadded[:, :self.num_bins] = sino.astype(np.float32)
             # Linear convolution
             sino_f = np.fft.fft(sino, self.fft_size)
             sino_f = sino_f * self.filter
@@ -386,9 +385,6 @@ class Backprojection(OpenclProcessing):
             # Send the filtered sinogram to device
             sino_filtered = np.ascontiguousarray(sino_filtered, dtype=np.float32)
             pyopencl.enqueue_copy(self.queue, self.d_sino, sino_filtered)
-
-        pyopencl.enqueue_copy(self.queue, self.slice, self.d_sino)
-        return self.slice
 
 
     def filtered_backprojection(self, sino):
