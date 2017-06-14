@@ -35,8 +35,7 @@ import numpy
 from ._utils import ticklayout
 from ._utils import clipColormapLogRange
 
-
-from .. import qt
+from .. import qt, icons
 from silx.gui.plot import Colors
 
 _logger = logging.getLogger(__name__)
@@ -224,6 +223,7 @@ class ColorBarWidget(qt.QWidget):
         if self._viewAction is None:
             self._viewAction = qt.QAction(self)
             self._viewAction.setText('Colorbar')
+            self._viewAction.setIcon(icons.getQIcon('colorbar'))
             self._viewAction.setToolTip('Show/Hide the colorbar')
             self._viewAction.setCheckable(True)
             self._viewAction.setChecked(self.isVisible())

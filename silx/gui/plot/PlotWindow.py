@@ -214,10 +214,8 @@ class PlotWindow(PlotWidget):
         self._panWithArrowKeysAction = None
         self._crosshairAction = None
 
-        # Create color bar
-        self._colorbar = ColorBarWidget(
-            parent=self, plot=self, legend='Colorbar')
-        # Hidden by default for backward compatibility
+        # Create color bar, hidden by default for backward compatibility
+        self._colorbar = ColorBarWidget(parent=self, plot=self)
         self._colorbar.setVisible(False)
 
         # Make colorbar background white
@@ -403,7 +401,8 @@ class PlotWindow(PlotWidget):
     def getColorBar(self):
         """Returns the embedded :class:`ColorBar` widget.
 
-        :rtype: ColorBar"""
+        :rtype: ColorBarWidget
+        """
         return self._colorbar
 
     # getters for dock widgets
@@ -751,6 +750,15 @@ class Plot2D(PlotWindow):
         self.addToolBar(self.profile)
 
         self.getColorBar().setVisible(True)
+
+        # Put colorbar action after colormap action
+        actions = self.toolBar().actions()
+        for index, action in enumerate(actions):
+            if action is self.getColormapAction():
+                break
+        self.toolBar().insertAction(
+            actions[index + 1],
+            self.getColorBar().getVisibilityAction())
 
     def _getImageValue(self, x, y):
         """Get value of top most image at position (x, y)
