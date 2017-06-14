@@ -42,6 +42,7 @@ import os
 import sys
 import numpy
 import logging
+import collections
 
 from silx.image import shapes
 
@@ -434,14 +435,21 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         dialog = qt.QFileDialog(self)
         dialog.setWindowTitle("Load Mask")
         dialog.setModal(1)
-        filters = [
-            'EDF (*.edf)',
-            'TIFF (*.tif)',
-            'NumPy binary file (*.npy)',
-            # Fit2D mask is displayed anyway fabio is here or not
-            # to show to the user that the option exists
-            'Fit2D mask (*.msk)',
-        ]
+
+        extensions = collections.OrderedDict()
+        extensions["EDF files"] = "*.edf"
+        extensions["TIFF files"] = "*.tif *.tiff"
+        extensions["NumPy binary files"] = "*.npy"
+        # Fit2D mask is displayed anyway fabio is here or not
+        # to show to the user that the option exists
+        extensions["Fit2D mask files"] = "*.msk"
+
+        filters = []
+        filters.append("All supported files (%s)" % " ".join(extensions.values()))
+        for name, extension in extensions.items():
+            filters.append("%s (%s)" % (name, extension))
+        filters.append("All files (*)")
+
         dialog.setNameFilters(filters)
         dialog.setFileMode(qt.QFileDialog.ExistingFile)
         dialog.setDirectory(self.maskFileDir)
