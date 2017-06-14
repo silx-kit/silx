@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,28 +22,16 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-__authors__ = ["T. Vincent"]
+"""This package provides a set of QActions to use with :class:`PlotWidget`
+
+It also contains the :class:'.PlotAction' (Base class for QAction that operates
+on a PlotWidget)
+"""
+
+__authors__ = ["H. Payno"]
 __license__ = "MIT"
-__date__ = "04/05/2017"
+__date__ = "24/05/2017"
 
-
-from numpy.distutils.misc_util import Configuration
-
-
-def configuration(parent_package='', top_path=None):
-    config = Configuration('plot', parent_package, top_path)
-    config.add_subpackage('_utils')
-    config.add_subpackage('matplotlib')
-    config.add_subpackage('backends')
-    config.add_subpackage('backends.glutils')
-    config.add_subpackage('items')
-    config.add_subpackage('test')
-    config.add_subpackage('actions')
-
-    return config
-
-
-if __name__ == "__main__":
-    from numpy.distutils.core import setup
-
-    setup(configuration=configuration)
+from .PlotAction import PlotAction
+from . import control
+from . import io

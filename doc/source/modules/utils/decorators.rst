@@ -1,7 +1,7 @@
 .. currentmodule:: silx.utils
 
-:mod:`decorators`
+:mod:`deprecation`
 ------------------
 
-.. automodule:: silx.utils.decorators
-   :members:
+.. automodule:: silx.utils.deprecation
+   :members: deprecated

@@ -1,0 +1,486 @@
+# coding: utf-8
+# /*##########################################################################
+#
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+# ###########################################################################*/
+"""
+:mod:`silx.gui.plot.actions.control` provides a set of QAction relative to control
+of a :class:`.PlotWidget`.
+
+The following QAction are available:
+
+- :class:`ColormapAction`
+- :class:`CrosshairAction`
+- :class:`CurveStyleAction`
+- :class:`GridAction`
+- :class:`KeepAspectRatioAction`
+- :class:`PanWithArrowKeysAction`
+- :class:`ResetZoomAction`
+- :class:`XAxisLogarithmicAction`
+- :class:`XAxisAutoScaleAction`
+- :class:`YAxisInvertedAction`
+- :class:`YAxisLogarithmicAction`
+- :class:`YAxisAutoScaleAction`
+- :class:`ZoomInAction`
+- :class:`ZoomOutAction`
+"""
+
+from __future__ import division
+
+__authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
+__license__ = "MIT"
+__date__ = "24/05/2017"
+
+from . import PlotAction
+import logging
+import numpy
+from silx.gui.plot import items
+from silx.gui.plot.ColormapDialog import ColormapDialog
+from silx.gui.plot._utils import applyZoomToPlot as _applyZoomToPlot
+from silx.gui import qt
+from silx.gui import icons
+
+_logger = logging.getLogger(__name__)
+
+
+class ResetZoomAction(PlotAction):
+    """QAction controlling reset zoom on a :class:`.PlotWidget`.
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
+
+    def __init__(self, plot, parent=None):
+        super(ResetZoomAction, self).__init__(
+            plot, icon='zoom-original', text='Reset Zoom',
+            tooltip='Auto-scale the graph',
+            triggered=self._actionTriggered,
+            checkable=False, parent=parent)
+        self._autoscaleChanged(True)
+        plot.sigSetXAxisAutoScale.connect(self._autoscaleChanged)
+        plot.sigSetYAxisAutoScale.connect(self._autoscaleChanged)
+
+    def _autoscaleChanged(self, enabled):
+        self.setEnabled(
+            self.plot.isXAxisAutoScale() or self.plot.isYAxisAutoScale())
+
+        if self.plot.isXAxisAutoScale() and self.plot.isYAxisAutoScale():
+            tooltip = 'Auto-scale the graph'
+        elif self.plot.isXAxisAutoScale():  # And not Y axis
+            tooltip = 'Auto-scale the x-axis of the graph only'
+        elif self.plot.isYAxisAutoScale():  # And not X axis
+            tooltip = 'Auto-scale the y-axis of the graph only'
+        else:  # no axis in autoscale
+            tooltip = 'Auto-scale the graph'
+        self.setToolTip(tooltip)
+
+    def _actionTriggered(self, checked=False):
+        self.plot.resetZoom()
+
+
+class ZoomInAction(PlotAction):
+    """QAction performing a zoom-in on a :class:`.PlotWidget`.
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
+
+    def __init__(self, plot, parent=None):
+        super(ZoomInAction, self).__init__(
+            plot, icon='zoom-in', text='Zoom In',
+            tooltip='Zoom in the plot',
+            triggered=self._actionTriggered,
+            checkable=False, parent=parent)
+        self.setShortcut(qt.QKeySequence.ZoomIn)
+        self.setShortcutContext(qt.Qt.WidgetShortcut)
+
+    def _actionTriggered(self, checked=False):
+        _applyZoomToPlot(self.plot, 1.1)
+
+
+class ZoomOutAction(PlotAction):
+    """QAction performing a zoom-out on a :class:`.PlotWidget`.
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
+
+    def __init__(self, plot, parent=None):
+        super(ZoomOutAction, self).__init__(
+            plot, icon='zoom-out', text='Zoom Out',
+            tooltip='Zoom out the plot',
+            triggered=self._actionTriggered,
+            checkable=False, parent=parent)
+        self.setShortcut(qt.QKeySequence.ZoomOut)
+        self.setShortcutContext(qt.Qt.WidgetShortcut)
+
+    def _actionTriggered(self, checked=False):
+        _applyZoomToPlot(self.plot, 1. / 1.1)
+
+
+class XAxisAutoScaleAction(PlotAction):
+    """QAction controlling X axis autoscale on a :class:`.PlotWidget`.
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
+
+    def __init__(self, plot, parent=None):
+        super(XAxisAutoScaleAction, self).__init__(
+            plot, icon='plot-xauto', text='X Autoscale',
+            tooltip='Enable x-axis auto-scale when checked.\n'
+                    'If unchecked, x-axis does not change when reseting zoom.',
+            triggered=self._actionTriggered,
+            checkable=True, parent=parent)
+        self.setChecked(plot.isXAxisAutoScale())
+        plot.sigSetXAxisAutoScale.connect(self.setChecked)
+
+    def _actionTriggered(self, checked=False):
+        self.plot.setXAxisAutoScale(checked)
+        if checked:
+            self.plot.resetZoom()
+
+
+class YAxisAutoScaleAction(PlotAction):
+    """QAction controlling Y axis autoscale on a :class:`.PlotWidget`.
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
+
+    def __init__(self, plot, parent=None):
+        super(YAxisAutoScaleAction, self).__init__(
+            plot, icon='plot-yauto', text='Y Autoscale',
+            tooltip='Enable y-axis auto-scale when checked.\n'
+                    'If unchecked, y-axis does not change when reseting zoom.',
+            triggered=self._actionTriggered,
+            checkable=True, parent=parent)
+        self.setChecked(plot.isYAxisAutoScale())
+        plot.sigSetYAxisAutoScale.connect(self.setChecked)
+
+    def _actionTriggered(self, checked=False):
+        self.plot.setYAxisAutoScale(checked)
+        if checked:
+            self.plot.resetZoom()
+
+
+class XAxisLogarithmicAction(PlotAction):
+    """QAction controlling X axis log scale on a :class:`.PlotWidget`.
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
+
+    def __init__(self, plot, parent=None):
+        super(XAxisLogarithmicAction, self).__init__(
+            plot, icon='plot-xlog', text='X Log. scale',
+            tooltip='Logarithmic x-axis when checked',
+            triggered=self._actionTriggered,
+            checkable=True, parent=parent)
+        self.setChecked(plot.isXAxisLogarithmic())
+        plot.sigSetXAxisLogarithmic.connect(self.setChecked)
+
+    def _actionTriggered(self, checked=False):
+        self.plot.setXAxisLogarithmic(checked)
+
+
+class YAxisLogarithmicAction(PlotAction):
+    """QAction controlling Y axis log scale on a :class:`.PlotWidget`.
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
+
+    def __init__(self, plot, parent=None):
+        super(YAxisLogarithmicAction, self).__init__(
+            plot, icon='plot-ylog', text='Y Log. scale',
+            tooltip='Logarithmic y-axis when checked',
+            triggered=self._actionTriggered,
+            checkable=True, parent=parent)
+        self.setChecked(plot.isYAxisLogarithmic())
+        plot.sigSetYAxisLogarithmic.connect(self.setChecked)
+
+    def _actionTriggered(self, checked=False):
+        self.plot.setYAxisLogarithmic(checked)
+
+
+class GridAction(PlotAction):
+    """QAction controlling grid mode on a :class:`.PlotWidget`.
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param str gridMode: The grid mode to use in 'both', 'major'.
+                         See :meth:`.PlotWidget.setGraphGrid`
+    :param parent: See :class:`QAction`
+    """
+
+    def __init__(self, plot, gridMode='both', parent=None):
+        assert gridMode in ('both', 'major')
+        self._gridMode = gridMode
+
+        super(GridAction, self).__init__(
+            plot, icon='plot-grid', text='Grid',
+            tooltip='Toggle grid (on/off)',
+            triggered=self._actionTriggered,
+            checkable=True, parent=parent)
+        self.setChecked(plot.getGraphGrid() is not None)
+        plot.sigSetGraphGrid.connect(self._gridChanged)
+
+    def _gridChanged(self, which):
+        """Slot listening for PlotWidget grid mode change."""
+        self.setChecked(which != 'None')
+
+    def _actionTriggered(self, checked=False):
+        self.plot.setGraphGrid(self._gridMode if checked else None)
+
+
+class CurveStyleAction(PlotAction):
+    """QAction controlling curve style on a :class:`.PlotWidget`.
+
+    It changes the default line and markers style which updates all
+    curves on the plot.
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
+
+    def __init__(self, plot, parent=None):
+        super(CurveStyleAction, self).__init__(
+            plot, icon='plot-toggle-points', text='Curve style',
+            tooltip='Change curve line and markers style',
+            triggered=self._actionTriggered,
+            checkable=False, parent=parent)
+
+    def _actionTriggered(self, checked=False):
+        currentState = (self.plot.isDefaultPlotLines(),
+                        self.plot.isDefaultPlotPoints())
+
+        # line only, line and symbol, symbol only
+        states = (True, False), (True, True), (False, True)
+        newState = states[(states.index(currentState) + 1) % 3]
+
+        self.plot.setDefaultPlotLines(newState[0])
+        self.plot.setDefaultPlotPoints(newState[1])
+
+
+class ColormapAction(PlotAction):
+    """QAction opening a ColormapDialog to update the colormap.
+
+    Both the active image colormap and the default colormap are updated.
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
+    def __init__(self, plot, parent=None):
+        self._dialog = None  # To store an instance of ColormapDialog
+        super(ColormapAction, self).__init__(
+            plot, icon='colormap', text='Colormap',
+            tooltip="Change colormap",
+            triggered=self._actionTriggered,
+            checkable=False, parent=parent)
+
+    def _actionTriggered(self, checked=False):
+        """Create a cmap dialog and update active image and default cmap."""
+        # Create the dialog if not already existing
+        if self._dialog is None:
+            self._dialog = ColormapDialog()
+
+        image = self.plot.getActiveImage()
+        if not isinstance(image, items.ColormapMixIn):
+            # No active image or active image is RGBA,
+            # set dialog from default info
+            colormap = self.plot.getDefaultColormap()
+
+            self._dialog.setHistogram()  # Reset histogram and range if any
+
+        else:
+            # Set dialog from active image
+            colormap = image.getColormap()
+
+            data = image.getData(copy=False)
+
+            goodData = data[numpy.isfinite(data)]
+            if goodData.size > 0:
+                dataMin = goodData.min()
+                dataMax = goodData.max()
+            else:
+                qt.QMessageBox.warning(
+                    self, "No Data",
+                    "Image data does not contain any real value")
+                dataMin, dataMax = 1., 10.
+
+            self._dialog.setHistogram()  # Reset histogram if any
+            self._dialog.setDataRange(dataMin, dataMax)
+            # The histogram should be done in a worker thread
+            # hist, bin_edges = numpy.histogram(goodData, bins=256)
+            # self._dialog.setHistogram(hist, bin_edges)
+
+        self._dialog.setColormap(**colormap)
+
+        # Run the dialog listening to colormap change
+        self._dialog.sigColormapChanged.connect(self._colormapChanged)
+        result = self._dialog.exec_()
+        self._dialog.sigColormapChanged.disconnect(self._colormapChanged)
+
+        if not result:  # Restore the previous colormap
+            self._colormapChanged(colormap)
+
+    def _colormapChanged(self, colormap):
+        # Update default colormap
+        self.plot.setDefaultColormap(colormap)
+
+        # Update active image colormap
+        activeImage = self.plot.getActiveImage()
+        if isinstance(activeImage, items.ColormapMixIn):
+            activeImage.setColormap(colormap)
+
+
+class KeepAspectRatioAction(PlotAction):
+    """QAction controlling aspect ratio on a :class:`.PlotWidget`.
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
+
+    def __init__(self, plot, parent=None):
+        # Uses two images for checked/unchecked states
+        self._states = {
+            False: (icons.getQIcon('shape-circle-solid'),
+                    "Keep data aspect ratio"),
+            True: (icons.getQIcon('shape-ellipse-solid'),
+                   "Do no keep data aspect ratio")
+        }
+
+        icon, tooltip = self._states[plot.isKeepDataAspectRatio()]
+        super(KeepAspectRatioAction, self).__init__(
+            plot,
+            icon=icon,
+            text='Toggle keep aspect ratio',
+            tooltip=tooltip,
+            triggered=self._actionTriggered,
+            checkable=False,
+            parent=parent)
+        plot.sigSetKeepDataAspectRatio.connect(
+            self._keepDataAspectRatioChanged)
+
+    def _keepDataAspectRatioChanged(self, aspectRatio):
+        """Handle Plot set keep aspect ratio signal"""
+        icon, tooltip = self._states[aspectRatio]
+        self.setIcon(icon)
+        self.setToolTip(tooltip)
+
+    def _actionTriggered(self, checked=False):
+        # This will trigger _keepDataAspectRatioChanged
+        self.plot.setKeepDataAspectRatio(not self.plot.isKeepDataAspectRatio())
+
+
+class YAxisInvertedAction(PlotAction):
+    """QAction controlling Y orientation on a :class:`.PlotWidget`.
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
+
+    def __init__(self, plot, parent=None):
+        # Uses two images for checked/unchecked states
+        self._states = {
+            False: (icons.getQIcon('plot-ydown'),
+                    "Orient Y axis downward"),
+            True: (icons.getQIcon('plot-yup'),
+                   "Orient Y axis upward"),
+        }
+
+        icon, tooltip = self._states[plot.isYAxisInverted()]
+        super(YAxisInvertedAction, self).__init__(
+            plot,
+            icon=icon,
+            text='Invert Y Axis',
+            tooltip=tooltip,
+            triggered=self._actionTriggered,
+            checkable=False,
+            parent=parent)
+        plot.sigSetYAxisInverted.connect(self._yAxisInvertedChanged)
+
+    def _yAxisInvertedChanged(self, inverted):
+        """Handle Plot set y axis inverted signal"""
+        icon, tooltip = self._states[inverted]
+        self.setIcon(icon)
+        self.setToolTip(tooltip)
+
+    def _actionTriggered(self, checked=False):
+        # This will trigger _yAxisInvertedChanged
+        self.plot.setYAxisInverted(not self.plot.isYAxisInverted())
+
+
+class CrosshairAction(PlotAction):
+    """QAction toggling crosshair cursor on a :class:`.PlotWidget`.
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param str color: Color to use to draw the crosshair
+    :param int linewidth: Width of the crosshair cursor
+    :param str linestyle: Style of line. See :meth:`.Plot.setGraphCursor`
+    :param parent: See :class:`QAction`
+    """
+
+    def __init__(self, plot, color='black', linewidth=1, linestyle='-',
+                 parent=None):
+        self.color = color
+        """Color used to draw the crosshair (str)."""
+
+        self.linewidth = linewidth
+        """Width of the crosshair cursor (int)."""
+
+        self.linestyle = linestyle
+        """Style of line of the cursor (str)."""
+
+        super(CrosshairAction, self).__init__(
+            plot, icon='crosshair', text='Crosshair Cursor',
+            tooltip='Enable crosshair cursor when checked',
+            triggered=self._actionTriggered,
+            checkable=True, parent=parent)
+        self.setChecked(plot.getGraphCursor() is not None)
+        plot.sigSetGraphCursor.connect(self.setChecked)
+
+    def _actionTriggered(self, checked=False):
+        self.plot.setGraphCursor(checked,
+                                 color=self.color,
+                                 linestyle=self.linestyle,
+                                 linewidth=self.linewidth)
+
+
+class PanWithArrowKeysAction(PlotAction):
+    """QAction toggling pan with arrow keys on a :class:`.PlotWidget`.
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
+
+    def __init__(self, plot, parent=None):
+
+        super(PanWithArrowKeysAction, self).__init__(
+            plot, icon='arrow-keys', text='Pan with arrow keys',
+            tooltip='Enable pan with arrow keys when checked',
+            triggered=self._actionTriggered,
+            checkable=True, parent=parent)
+        self.setChecked(plot.isPanWithArrowKeys())
+        plot.sigSetPanWithArrowKeys.connect(self.setChecked)
+
+    def _actionTriggered(self, checked=False):
+        self.plot.setPanWithArrowKeys(checked)

@@ -35,10 +35,13 @@ __date__ = "27/04/2017"
 import collections
 import logging
 
-from silx.utils.decorators import deprecated
+from silx.utils.deprecation import deprecated
 
 from . import PlotWidget
-from . import PlotActions
+from . import actions
+from .actions import medfilt as actions_medfilt
+from .actions import fit as actions_fit
+from .actions import histogram as actions_histogram
 from . import PlotToolButtons
 from .PlotTools import PositionInfo
 from .Profile import ProfileToolBar
@@ -113,46 +116,49 @@ class PlotWindow(PlotWidget):
         self.group = qt.QActionGroup(self)
         self.group.setExclusive(False)
 
-        self.resetZoomAction = self.group.addAction(PlotActions.ResetZoomAction(self))
+        self.resetZoomAction = self.group.addAction(
+            actions.control.ResetZoomAction(self))
         self.resetZoomAction.setVisible(resetzoom)
         self.addAction(self.resetZoomAction)
 
-        self.zoomInAction = PlotActions.ZoomInAction(self)
+        self.zoomInAction = actions.control.ZoomInAction(self)
         self.addAction(self.zoomInAction)
 
-        self.zoomOutAction = PlotActions.ZoomOutAction(self)
+        self.zoomOutAction = actions.control.ZoomOutAction(self)
         self.addAction(self.zoomOutAction)
 
         self.xAxisAutoScaleAction = self.group.addAction(
-            PlotActions.XAxisAutoScaleAction(self))
+            actions.control.XAxisAutoScaleAction(self))
         self.xAxisAutoScaleAction.setVisible(autoScale)
         self.addAction(self.xAxisAutoScaleAction)
 
         self.yAxisAutoScaleAction = self.group.addAction(
-            PlotActions.YAxisAutoScaleAction(self))
+            actions.control.YAxisAutoScaleAction(self))
         self.yAxisAutoScaleAction.setVisible(autoScale)
         self.addAction(self.yAxisAutoScaleAction)
 
         self.xAxisLogarithmicAction = self.group.addAction(
-            PlotActions.XAxisLogarithmicAction(self))
+            actions.control.XAxisLogarithmicAction(self))
         self.xAxisLogarithmicAction.setVisible(logScale)
         self.addAction(self.xAxisLogarithmicAction)
 
         self.yAxisLogarithmicAction = self.group.addAction(
-            PlotActions.YAxisLogarithmicAction(self))
+            actions.control.YAxisLogarithmicAction(self))
         self.yAxisLogarithmicAction.setVisible(logScale)
         self.addAction(self.yAxisLogarithmicAction)
 
         self.gridAction = self.group.addAction(
-            PlotActions.GridAction(self, gridMode='both'))
+            actions.control.GridAction(self, gridMode='both'))
         self.gridAction.setVisible(grid)
         self.addAction(self.gridAction)
 
-        self.curveStyleAction = self.group.addAction(PlotActions.CurveStyleAction(self))
+        self.curveStyleAction = self.group.addAction(
+            actions.control.CurveStyleAction(self))
         self.curveStyleAction.setVisible(curveStyle)
         self.addAction(self.curveStyleAction)
 
-        self.colormapAction = self.group.addAction(PlotActions.ColormapAction(self))
+        self.colormapAction = self.group.addAction(
+            actions.control.ColormapAction(self))
         self.colormapAction.setVisible(colormap)
         self.addAction(self.colormapAction)
 
@@ -171,34 +177,34 @@ class PlotWindow(PlotWidget):
         self.getMaskAction().setVisible(mask)
 
         self._intensityHistoAction = self.group.addAction(
-            PlotActions.PixelIntensitiesHistoAction(self))
+            actions_histogram.PixelIntensitiesHistoAction(self))
         self._intensityHistoAction.setVisible(False)
 
         self._medianFilter2DAction = self.group.addAction(
-            PlotActions.MedianFilter2DAction(self))
+            actions_medfilt.MedianFilter2DAction(self))
         self._medianFilter2DAction.setVisible(False)
 
         self._medianFilter1DAction = self.group.addAction(
-            PlotActions.MedianFilter1DAction(self))
+            actions_medfilt.MedianFilter1DAction(self))
         self._medianFilter1DAction.setVisible(False)
 
         self._separator = qt.QAction('separator', self)
         self._separator.setSeparator(True)
         self.group.addAction(self._separator)
 
-        self.copyAction = self.group.addAction(PlotActions.CopyAction(self))
+        self.copyAction = self.group.addAction(actions.io.CopyAction(self))
         self.copyAction.setVisible(copy)
         self.addAction(self.copyAction)
 
-        self.saveAction = self.group.addAction(PlotActions.SaveAction(self))
+        self.saveAction = self.group.addAction(actions.io.SaveAction(self))
         self.saveAction.setVisible(save)
         self.addAction(self.saveAction)
 
-        self.printAction = self.group.addAction(PlotActions.PrintAction(self))
+        self.printAction = self.group.addAction(actions.io.PrintAction(self))
         self.printAction.setVisible(print_)
         self.addAction(self.printAction)
 
-        self.fitAction = self.group.addAction(PlotActions.FitAction(self))
+        self.fitAction = self.group.addAction(actions_fit.FitAction(self))
         self.fitAction.setVisible(fit)
         self.addAction(self.fitAction)
 
@@ -464,10 +470,10 @@ class PlotWindow(PlotWidget):
     def getCrosshairAction(self):
         """Action toggling crosshair cursor mode.
 
-        :rtype: PlotActions.PlotAction
+        :rtype: actions.PlotAction
         """
         if self._crosshairAction is None:
-            self._crosshairAction = PlotActions.CrosshairAction(self, color='red')
+            self._crosshairAction = actions.control.CrosshairAction(self, color='red')
         return self._crosshairAction
 
     @property
@@ -491,10 +497,10 @@ class PlotWindow(PlotWidget):
     def getPanWithArrowKeysAction(self):
         """Action toggling pan with arrow keys.
 
-        :rtype: PlotActions.PlotAction
+        :rtype: actions.PlotAction
         """
         if self._panWithArrowKeysAction is None:
-            self._panWithArrowKeysAction = PlotActions.PanWithArrowKeysAction(self)
+            self._panWithArrowKeysAction = actions.control.PanWithArrowKeysAction(self)
         return self._panWithArrowKeysAction
 
     @property
@@ -512,63 +518,63 @@ class PlotWindow(PlotWidget):
     def getResetZoomAction(self):
         """Action resetting the zoom
 
-        :rtype: PlotActions.PlotAction
+        :rtype: actions.PlotAction
         """
         return self.resetZoomAction
 
     def getZoomInAction(self):
         """Action to zoom in
 
-        :rtype: PlotActions.PlotAction
+        :rtype: actions.PlotAction
         """
         return self.zoomInAction
 
     def getZoomOutAction(self):
         """Action to zoom out
 
-        :rtype: PlotActions.PlotAction
+        :rtype: actions.PlotAction
         """
         return self.zoomOutAction
 
     def getXAxisAutoScaleAction(self):
         """Action to toggle the X axis autoscale on zoom reset
 
-        :rtype: PlotActions.PlotAction
+        :rtype: actions.PlotAction
         """
         return self.xAxisAutoScaleAction
 
     def getYAxisAutoScaleAction(self):
         """Action to toggle the Y axis autoscale on zoom reset
 
-        :rtype: PlotActions.PlotAction
+        :rtype: actions.PlotAction
         """
         return self.yAxisAutoScaleAction
 
     def getXAxisLogarithmicAction(self):
         """Action to toggle logarithmic X axis
 
-        :rtype: PlotActions.PlotAction
+        :rtype: actions.PlotAction
         """
         return self.xAxisLogarithmicAction
 
     def getYAxisLogarithmicAction(self):
         """Action to toggle logarithmic Y axis
 
-        :rtype: PlotActions.PlotAction
+        :rtype: actions.PlotAction
         """
         return self.yAxisLogarithmicAction
 
     def getGridAction(self):
         """Action to toggle the grid visibility in the plot
 
-        :rtype: PlotActions.PlotAction
+        :rtype: actions.PlotAction
         """
         return self.gridAction
 
     def getCurveStyleAction(self):
         """Action to change curve line and markers styles
 
-        :rtype: PlotActions.PlotAction
+        :rtype: actions.PlotAction
         """
         return self.curveStyleAction
 
@@ -576,7 +582,7 @@ class PlotWindow(PlotWidget):
         """Action open a colormap dialog to change active image
         and default colormap.
 
-        :rtype: PlotActions.PlotAction
+        :rtype: actions.PlotAction
         """
         return self.colormapAction
 
@@ -592,7 +598,7 @@ class PlotWindow(PlotWidget):
         Use this to change the visibility of keepDataAspectRatioButton in the
         toolbar (See :meth:`QToolBar.addWidget` documentation).
 
-        :rtype: PlotActions.PlotAction
+        :rtype: actions.PlotAction
         """
         return self.keepDataAspectRatioButton
 
@@ -608,56 +614,56 @@ class PlotWindow(PlotWidget):
         Use this to change the visibility yAxisInvertedButton in the toolbar.
         (See :meth:`QToolBar.addWidget` documentation).
 
-        :rtype: PlotActions.PlotAction
+        :rtype: actions.PlotAction
         """
         return self.yAxisInvertedAction
 
     def getIntensityHistogramAction(self):
         """Action toggling the histogram intensity Plot widget
 
-        :rtype: PlotActions.PlotAction
+        :rtype: actions.PlotAction
         """
         return self._intensityHistoAction
 
     def getCopyAction(self):
         """Action to copy plot snapshot to clipboard
 
-        :rtype: PlotActions.PlotAction
+        :rtype: actions.PlotAction
         """
         return self.copyAction
 
     def getSaveAction(self):
         """Action to save plot
 
-        :rtype: PlotActions.PlotAction
+        :rtype: actions.PlotAction
         """
         return self.saveAction
 
     def getPrintAction(self):
         """Action to print plot
 
-        :rtype: PlotActions.PlotAction
+        :rtype: actions.PlotAction
         """
         return self.printAction
 
     def getFitAction(self):
         """Action to fit selected curve
 
-        :rtype: PlotActions.PlotAction
+        :rtype: actions.PlotAction
         """
         return self.fitAction
 
     def getMedianFilter1DAction(self):
         """Action toggling the 1D median filter
 
-        :rtype: PlotActions.PlotAction
+        :rtype: actions.PlotAction
         """
         return self._medianFilter1DAction
 
     def getMedianFilter2DAction(self):
         """Action toggling the 2D median filter
 
-        :rtype: PlotActions.PlotAction
+        :rtype: actions.PlotAction
         """
         return self._medianFilter2DAction
 

@@ -48,7 +48,7 @@ import sys
 
 from silx.gui import qt
 from silx.gui.plot import PlotWindow
-from silx.gui.plot.PlotActions import PlotAction
+from silx.gui.plot.actions import PlotAction
 
 # Custom icon
 # make sure there is a "fft.png" file saved in the same folder as this script
