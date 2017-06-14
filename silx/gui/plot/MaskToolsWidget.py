@@ -35,7 +35,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "20/04/2017"
+__date__ = "14/06/2017"
 
 
 import os
@@ -393,6 +393,14 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                 _logger.error("Can't load filename '%s'", filename)
                 _logger.debug("Backtrace", exc_info=True)
                 raise RuntimeError('File "%s" is not a numpy file.', filename)
+        elif extension in ["tif", "tiff"]:
+            try:
+                image = TiffIO(filename, mode="r")
+                mask = image.getImage(0)
+            except Exception as e:
+                _logger.error("Can't load filename %s", filename)
+                _logger.debug("Backtrace", exc_info=True)
+                raise e
         elif extension == "edf":
             try:
                 mask = EdfFile(filename, access='r').GetData(0)
