@@ -398,8 +398,8 @@ class PlotWindow(PlotWidget):
             self.tabifyDockWidget(self._dockWidgets[0],
                                   dock_widget)
 
-    def getColorBar(self):
-        """Returns the embedded :class:`ColorBar` widget.
+    def getColorBarWidget(self):
+        """Returns the embedded :class:`ColorBarWidget` widget.
 
         :rtype: ColorBarWidget
         """
@@ -749,7 +749,7 @@ class Plot2D(PlotWindow):
         self.profile = ProfileToolBar(plot=self)
         self.addToolBar(self.profile)
 
-        self.getColorBar().setVisible(True)
+        self.getColorBarWidget().setVisible(True)
 
         # Put colorbar action after colormap action
         actions = self.toolBar().actions()
@@ -758,7 +758,7 @@ class Plot2D(PlotWindow):
                 break
         self.toolBar().insertAction(
             actions[index + 1],
-            self.getColorBar().getToggleViewAction())
+            self.getColorBarWidget().getToggleViewAction())
 
     def _getImageValue(self, x, y):
         """Get value of top most image at position (x, y)
