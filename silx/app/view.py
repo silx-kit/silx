@@ -157,7 +157,7 @@ class Viewer(qt.QMainWindow):
 
         extensions = collections.OrderedDict()
         # expect h5py
-        extensions["HDF5 files"] = "*.h5"
+        extensions["HDF5 files"] = "*.h5 *.hdf"
         extensions["NeXus files"] = "*.nx *.nxs"
         # no dependancy
         extensions["Spec files"] = "*.dat *.spec *.mca"
