@@ -66,49 +66,48 @@ class FramebufferTexture(object):
         self._previousFramebuffer = 0  # Used by with statement
 
         self._name = gl.glGenFramebuffers(1)
-        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self._name)
 
-        # Attachments
-        gl.glFramebufferTexture2D(gl.GL_FRAMEBUFFER,
-                                  gl.GL_COLOR_ATTACHMENT0,
-                                  gl.GL_TEXTURE_2D,
-                                  self._texture.name,
-                                  0)
+        with self:  # Bind FBO
+            # Attachments
+            gl.glFramebufferTexture2D(gl.GL_FRAMEBUFFER,
+                                      gl.GL_COLOR_ATTACHMENT0,
+                                      gl.GL_TEXTURE_2D,
+                                      self._texture.name,
+                                      0)
 
-        height, width = self._texture.shape
+            height, width = self._texture.shape
 
-        if stencilFormat is not None:
-            self._stencilId = gl.glGenRenderbuffers(1)
-            gl.glBindRenderbuffer(gl.GL_RENDERBUFFER, self._stencilId)
-            gl.glRenderbufferStorage(gl.GL_RENDERBUFFER,
-                                     stencilFormat,
-                                     width, height)
-            gl.glFramebufferRenderbuffer(gl.GL_FRAMEBUFFER,
-                                         gl.GL_STENCIL_ATTACHMENT,
-                                         gl.GL_RENDERBUFFER,
-                                         self._stencilId)
-        else:
-            self._stencilId = None
-
-        if depthFormat is not None:
-            if self._stencilId and depthFormat in self._PACKED_FORMAT:
-                self._depthId = self._stencilId
-            else:
-                self._depthId = gl.glGenRenderbuffers(1)
-                gl.glBindRenderbuffer(gl.GL_RENDERBUFFER, self._depthId)
+            if stencilFormat is not None:
+                self._stencilId = gl.glGenRenderbuffers(1)
+                gl.glBindRenderbuffer(gl.GL_RENDERBUFFER, self._stencilId)
                 gl.glRenderbufferStorage(gl.GL_RENDERBUFFER,
-                                         depthFormat,
+                                         stencilFormat,
                                          width, height)
-            gl.glFramebufferRenderbuffer(gl.GL_FRAMEBUFFER,
-                                         gl.GL_DEPTH_ATTACHMENT,
-                                         gl.GL_RENDERBUFFER,
-                                         self._depthId)
-        else:
-            self._depthId = None
+                gl.glFramebufferRenderbuffer(gl.GL_FRAMEBUFFER,
+                                             gl.GL_STENCIL_ATTACHMENT,
+                                             gl.GL_RENDERBUFFER,
+                                             self._stencilId)
+            else:
+                self._stencilId = None
 
-        assert gl.glCheckFramebufferStatus(gl.GL_FRAMEBUFFER) == \
-            gl.GL_FRAMEBUFFER_COMPLETE
-        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
+            if depthFormat is not None:
+                if self._stencilId and depthFormat in self._PACKED_FORMAT:
+                    self._depthId = self._stencilId
+                else:
+                    self._depthId = gl.glGenRenderbuffers(1)
+                    gl.glBindRenderbuffer(gl.GL_RENDERBUFFER, self._depthId)
+                    gl.glRenderbufferStorage(gl.GL_RENDERBUFFER,
+                                             depthFormat,
+                                             width, height)
+                gl.glFramebufferRenderbuffer(gl.GL_FRAMEBUFFER,
+                                             gl.GL_DEPTH_ATTACHMENT,
+                                             gl.GL_RENDERBUFFER,
+                                             self._depthId)
+            else:
+                self._depthId = None
+
+            assert (gl.glCheckFramebufferStatus(gl.GL_FRAMEBUFFER) ==
+                gl.GL_FRAMEBUFFER_COMPLETE)
 
     @property
     def shape(self):
@@ -143,6 +142,7 @@ class FramebufferTexture(object):
 
     def __exit__(self, exctype, excvalue, traceback):
         gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self._previousFramebuffer)
+        self._previousFramebuffer = None
 
     def discard(self):
         """Delete associated OpenGL resources including texture"""

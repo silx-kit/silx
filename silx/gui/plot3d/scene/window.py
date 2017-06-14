@@ -323,11 +323,12 @@ class Window(event.Notifier):
         height, width = self.shape
         image = numpy.empty((height, width, 3), dtype=numpy.uint8)
 
+        previousFramebuffer = gl.glGetInteger(gl.GL_FRAMEBUFFER_BINDING)
         gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.framebufferid)
         gl.glPixelStorei(gl.GL_PACK_ALIGNMENT, 1)
         gl.glReadPixels(
             0, 0, width, height, gl.GL_RGB, gl.GL_UNSIGNED_BYTE, image)
-        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
+        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, previousFramebuffer)
 
         # glReadPixels gives bottom to top,
         # while images are stored as top to bottom

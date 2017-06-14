@@ -313,7 +313,7 @@ def _getContext():
     return _current_context
 
 
-class BackendOpenGL(BackendBase.BackendBase, qt.QGLWidget):
+class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     """OpenGL-based Plot backend.
 
     WARNINGS:
@@ -328,8 +328,13 @@ class BackendOpenGL(BackendBase.BackendBase, qt.QGLWidget):
     _sigPostRedisplay = qt.Signal()
     """Signal handling automatic asynchronous replot"""
 
-    def __init__(self, plot, parent=None):
-        qt.QGLWidget.__init__(self, parent)
+    def __init__(self, plot, parent=None, f=qt.Qt.WindowFlags()):
+        glu.OpenGLWidget.__init__(self, parent,
+                                  alphaBufferSize=8,
+                                  depthBufferSize=0,
+                                  stencilBufferSize=0,
+                                  version=(2, 1),
+                                  f=f)
         BackendBase.BackendBase.__init__(self, plot, parent)
 
         self.matScreenProj = mat4Identity()
@@ -341,8 +346,6 @@ class BackendOpenGL(BackendBase.BackendBase, qt.QGLWidget):
         self._plotFBOs = {}
 
         self._keepDataAspectRatio = False
-
-        self._devicePixelRatio = 1.0
 
         self._crosshairCursor = None
         self._mousePosInPixels = None
@@ -377,15 +380,15 @@ class BackendOpenGL(BackendBase.BackendBase, qt.QGLWidget):
         return qt.QSize(8 * 80, 6 * 80)  # Mimic MatplotlibBackend
 
     def mousePressEvent(self, event):
-        xPixel = event.x() * self._devicePixelRatio
-        yPixel = event.y() * self._devicePixelRatio
+        xPixel = event.x() * self.getDevicePixelRatio()
+        yPixel = event.y() * self.getDevicePixelRatio()
         btn = self._MOUSE_BTNS[event.button()]
         self._plot.onMousePress(xPixel, yPixel, btn)
         event.accept()
 
     def mouseMoveEvent(self, event):
-        xPixel = event.x() * self._devicePixelRatio
-        yPixel = event.y() * self._devicePixelRatio
+        xPixel = event.x() * self.getDevicePixelRatio()
+        yPixel = event.y() * self.getDevicePixelRatio()
 
         # Handle crosshair
         inXPixel, inYPixel = self._mouseInPlotArea(xPixel, yPixel)
@@ -402,16 +405,16 @@ class BackendOpenGL(BackendBase.BackendBase, qt.QGLWidget):
         event.accept()
 
     def mouseReleaseEvent(self, event):
-        xPixel = event.x() * self._devicePixelRatio
-        yPixel = event.y() * self._devicePixelRatio
+        xPixel = event.x() * self.getDevicePixelRatio()
+        yPixel = event.y() * self.getDevicePixelRatio()
 
         btn = self._MOUSE_BTNS[event.button()]
         self._plot.onMouseRelease(xPixel, yPixel, btn)
         event.accept()
 
     def wheelEvent(self, event):
-        xPixel = event.x() * self._devicePixelRatio
-        yPixel = event.y() * self._devicePixelRatio
+        xPixel = event.x() * self.getDevicePixelRatio()
+        yPixel = event.y() * self.getDevicePixelRatio()
 
         if hasattr(event, 'angleDelta'):  # Qt 5
             delta = event.angleDelta().y()
@@ -424,7 +427,7 @@ class BackendOpenGL(BackendBase.BackendBase, qt.QGLWidget):
     def leaveEvent(self, _):
         self._plot.onMouseLeaveWidget()
 
-    # QGLWidget API
+    # OpenGLWidget API
 
     @staticmethod
     def _setBlendFuncGL():
@@ -434,7 +437,7 @@ class BackendOpenGL(BackendBase.BackendBase, qt.QGLWidget):
                                gl.GL_ONE,
                                gl.GL_ONE)
 
-    def initializeGL(self):
+    def initializeOpenGL(self):
         gl.testGL()
 
         gl.glClearColor(1., 1., 1., 1.)
@@ -520,18 +523,11 @@ class BackendOpenGL(BackendBase.BackendBase, qt.QGLWidget):
         self._renderMarkersGL()
         self._renderOverlayGL()
 
-    def paintGL(self):
+    def paintOpenGL(self):
         global _current_context
         _current_context = self.context()
 
         glu.setGLContextGetter(_getContext)
-
-        if hasattr(self, 'windowHandle'):  # Qt 5
-            devicePixelRatio = self.windowHandle().devicePixelRatio()
-            if devicePixelRatio != self._devicePixelRatio:
-                self._devicePixelRatio = devicePixelRatio
-                self.resizeGL(int(self.width() * devicePixelRatio),
-                              int(self.height() * devicePixelRatio))
 
         # Release OpenGL resources
         for item in self._glGarbageCollector:
@@ -913,10 +909,13 @@ class BackendOpenGL(BackendBase.BackendBase, qt.QGLWidget):
 
         gl.glDisable(gl.GL_SCISSOR_TEST)
 
-    def resizeGL(self, width, height):
+    def resizeOpenGL(self, width, height):
         if width == 0 or height == 0:  # Do not resize
             return
-        self._plotFrame.size = width, height
+
+        self._plotFrame.size = (
+            int(self.getDevicePixelRatio() * width),
+            int(self.getDevicePixelRatio() * height))
 
         self.matScreenProj = mat4Ortho(0, self._plotFrame.size[0],
                                        self._plotFrame.size[1], 0,
@@ -1330,20 +1329,26 @@ class BackendOpenGL(BackendBase.BackendBase, qt.QGLWidget):
         if fileFormat not in ['png', 'ppm', 'svg', 'tiff']:
             raise NotImplementedError('Unsupported format: %s' % fileFormat)
 
-        self.makeCurrent()
+        if not self.isRequestedOpenGLVersionAvailable():
+            _logger.error('OpenGL 2.1 not available, cannot save OpenGL image')
+            width, height = self._plotFrame.size
+            data = numpy.zeros((height, width, 3), dtype=numpy.uint8)
+        else:
+            self.makeCurrent()
 
-        data = numpy.empty(
-            (self._plotFrame.size[1], self._plotFrame.size[0], 3),
-            dtype=numpy.uint8, order='C')
+            data = numpy.empty(
+                (self._plotFrame.size[1], self._plotFrame.size[0], 3),
+                dtype=numpy.uint8, order='C')
 
-        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
-        gl.glPixelStorei(gl.GL_PACK_ALIGNMENT, 1)
-        gl.glReadPixels(0, 0, self._plotFrame.size[0], self._plotFrame.size[1],
-                        gl.GL_RGB, gl.GL_UNSIGNED_BYTE, data)
+            gl.glBindFramebuffer(gl.GL_FRAMEBUFFER,
+                                 self.defaultFramebufferObject())
+            gl.glPixelStorei(gl.GL_PACK_ALIGNMENT, 1)
+            gl.glReadPixels(0, 0, self._plotFrame.size[0], self._plotFrame.size[1],
+                            gl.GL_RGB, gl.GL_UNSIGNED_BYTE, data)
 
-        # glReadPixels gives bottom to top,
-        # while images are stored as top to bottom
-        data = numpy.flipud(data)
+            # glReadPixels gives bottom to top,
+            # while images are stored as top to bottom
+            data = numpy.flipud(data)
 
         # fileName is either a file-like object or a str
         saveImageToFile(data, fileName, fileFormat)
