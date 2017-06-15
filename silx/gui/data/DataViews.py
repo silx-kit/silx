@@ -287,7 +287,6 @@ class CompositeDataView(DataView):
 
     def getBestView(self, data, info):
         """Returns the best view according to priorities."""
-        info = DataInfo(data)
         views = [(v.getDataPriority(data, info), v) for v in self.__views.keys()]
         views = filter(lambda t: t[0] > DataView.UNSUPPORTED, views)
         views = sorted(views, reverse=True)
