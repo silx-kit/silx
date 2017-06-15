@@ -116,6 +116,9 @@ class Backprojection(OpenclProcessing):
             self.axis_pos = np.float32((shape[1]-1.)/2)
         # TODO: add axis correction front-end
         self.axis_array = None
+        self.is_cpu = False
+        if self.device.type == "CPU":
+            self.is_cpu = True
 
         self.compute_fft_plans()
         self.buffers = [
@@ -126,7 +129,8 @@ class Backprojection(OpenclProcessing):
                     BufferDescription("d_axes", self.num_projs, np.float32, mf.READ_ONLY),
                    ]
         self.allocate_buffers()
-        self.allocate_textures()
+        if not(self.is_cpu):
+            self.allocate_textures()
         self.compute_filter()
         if self.pyfft_plan:
             self.add_to_cl_mem({"d_filter": self.d_filter, "d_sino_z": self.d_sino_z})
@@ -283,23 +287,28 @@ class Backprojection(OpenclProcessing):
             #~ )
 
         with self.sem:
-            # Copy d_sino to texture
-            ev = pyopencl.enqueue_copy(
-                self.queue,
-                self.d_sino_tex,
-                self.d_sino,
-                offset=0,
-                origin=(0, 0),
-                region=self.shape[::-1]#(np.int32(self.shape[1]), np.int32(self.shape[0]))
-            )
-            events.append(EventDescription("Buffer to Image d_sino", ev))
+            # Copy d_sino to texture, for GPU
+            if not(self.is_cpu):
+                ev = pyopencl.enqueue_copy(
+                    self.queue,
+                    self.d_sino_tex,
+                    self.d_sino,
+                    offset=0,
+                    origin=(0, 0),
+                    region=self.shape[::-1]#(np.int32(self.shape[1]), np.int32(self.shape[0]))
+                )
+                events.append(EventDescription("Buffer to Image d_sino", ev))
             # Prepare arguments for the kernel call
+            if self.is_cpu:
+                d_sino_ref = self.d_sino
+            else:
+                d_sino_ref = self.d_sino_tex
             kernel_args = (
                 self.num_projs, # num of projections (int32)
                 self.num_bins,  # num of bins (int32)
                 self.axis_pos,  # axis position (float32)
                 self.cl_mem["d_slice"], # d_slice (__global float32*)
-                self.d_sino_tex, #  d_sino (__read_only image2d_t)
+                d_sino_ref, #  d_sino (__read_only image2d_t or float*)
                 np.float32(0),   # gpu_offset_x (float32)
                 np.float32(0),   # gpu_offset_y (float32)
                 self.cl_mem["d_cos"],  # d_cos (__global float32*)
@@ -308,12 +317,20 @@ class Backprojection(OpenclProcessing):
                 self._get_local_mem()  # shared mem (__local float32*)
             )
             # Call the kernel
-            event_bpj = self.program.backproj_kernel(
-                self.queue,
-                self.ndrange,
-                self.wg,
-                *kernel_args
-            )
+            if self.is_cpu:
+                event_bpj = self.program.backproj_cpu_kernel(
+                    self.queue,
+                    self.ndrange,
+                    self.wg,
+                    *kernel_args
+                )
+            else:
+                event_bpj = self.program.backproj_kernel(
+                    self.queue,
+                    self.ndrange,
+                    self.wg,
+                    *kernel_args
+                )
             events.append(EventDescription("backprojection", event_bpj))
 
             ev = pyopencl.enqueue_copy(self.queue, self.slice, self.cl_mem["d_slice"])
