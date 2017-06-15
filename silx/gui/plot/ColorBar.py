@@ -806,7 +806,6 @@ class _TickBar(qt.QWidget):
 
         :param QFont font: the font we want want to use durint the painting
         """
-        assert(type(self._vmin) == type(self._vmax))
         form = self._getStandardFormat()
 
         fm = qt.QFontMetrics(font)
