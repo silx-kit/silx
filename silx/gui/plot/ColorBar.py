@@ -33,7 +33,6 @@ __date__ = "11/04/2017"
 import logging
 import numpy
 from ._utils import ticklayout
-from ._utils import clipColormapLogRange
 
 from .. import qt, icons
 from silx.gui.plot import Colors
@@ -65,7 +64,7 @@ class ColorBarWidget(qt.QWidget):
 
     :param parent: See :class:`QWidget`
     :param plot: PlotWidget the colorbar is attached to (optional)
-    :param str legend: the label to set to the colormap
+    :param str legend: the label to set to the colorbar
     """
 
     def __init__(self, parent=None, plot=None, legend=None):
@@ -126,26 +125,14 @@ class ColorBarWidget(qt.QWidget):
         See :class:`silx.gui.plot.Plot` documentation for the description of the colormap
         dict description.
         """
-        return self._colormap.copy()
+        return self.getColorScaleBar().getColormap()
 
     def setColormap(self, colormap):
         """Set the colormap to be displayed.
 
         :param dict colormap: The colormap to apply on the ColorBarWidget
         """
-        self._colormap = colormap
-        if self._colormap is None:
-            return
-
-        if self._colormap['normalization'] not in ('log', 'linear'):
-            raise ValueError('Wrong normalization %s' % self._colormap['normalization'])
-
-        if self._colormap['normalization'] is 'log':
-            if self._colormap['vmin'] < 1. or self._colormap['vmax'] < 1.:
-                _logger.warning('Log colormap with bound <= 1: changing bounds.')
-            clipColormapLogRange(colormap)
-
-        self.getColorScaleBar().setColormap(self._colormap)
+        self.getColorScaleBar().setColormap(colormap)
 
     def setLegend(self, legend):
         """Set the legend displayed along the colorbar
@@ -364,6 +351,13 @@ class ColorScaleBar(qt.QWidget):
         """
         return self.colorScale
 
+    def getColormap(self):
+        """Returns the colormap.
+
+        :rtype: dict
+        """
+        return self.colorScale.getColormap()
+
     def setColormap(self, colormap):
         """Set the new colormap to be displayed
 
@@ -455,7 +449,7 @@ class _ColorScale(qt.QWidget):
 
     def __init__(self, colormap, parent=None, margin=5):
         qt.QWidget.__init__(self, parent)
-        self.colormap = None
+        self._colormap = None
         self.setColormap(colormap)
 
         self.setLayout(qt.QVBoxLayout())
@@ -473,26 +467,34 @@ class _ColorScale(qt.QWidget):
         if colormap is None:
             return
 
-        if colormap['normalization'] not in ('log', 'linear'):
-            raise ValueError("Unrecognized normalization, should be 'linear' or 'log'")
+        assert colormap['normalization'] in ('log', 'linear')
 
-        if colormap['normalization'] is 'log':
-            if not (colormap['vmin'] > 0 and colormap['vmax'] > 0):
-                raise ValueError('vmin and vmax should be positives')
-        self.colormap = colormap
-        self._computeColorGradient()
+        if colormap['normalization'] == 'log':
+            if colormap['vmin'] <= 0. or colormap['vmax'] <= 0.:
+                _logger.warning('Log colormap with bound <= 0: changing bounds.')
+                colormap['vmin'], colormap['vmax'] = 1., 10  # TODO same fallback as plot
+
+        self._colormap = colormap
+        self._updateColorGradient()
         self.update()
 
-    def _computeColorGradient(self):
-        """Compute the color gradient
+    def getColormap(self):
+        """Returns the colormap
+
+        :rtype: dict
         """
-        if self.colormap is None:
+        return self._colormap.copy()
+
+    def _updateColorGradient(self):
+        """Compute the color gradient"""
+        colormap = self.getColormap()
+        if colormap is None:
             return
 
         indices = numpy.linspace(0., 1., self._NB_CONTROL_POINTS)
         colors = Colors.applyColormapToData(
             indices,
-            name=self.colormap['name'],
+            name=colormap['name'],
             normalization='linear',
             autoscale=True,
             vmin=0.,
@@ -506,11 +508,10 @@ class _ColorScale(qt.QWidget):
     def paintEvent(self, event):
         """"""
         qt.QWidget.paintEvent(self, event)
-        if self.colormap is None:
+        if self.getColormap() is None:
             return
 
         painter = qt.QPainter(self)
-        self._computeColorGradient()
         painter.setBrush(self._gradient)
         painter.drawRect(qt.QRect(
             0,
@@ -538,15 +539,16 @@ class _ColorScale(qt.QWidget):
         """
         value = max(0.0, value)
         value = min(value, 1.0)
-        vmin = self.colormap['vmin']
-        vmax = self.colormap['vmax']
-        if self.colormap['normalization'] is 'linear':
+        colormap = self.getColormap()
+        vmin = colormap['vmin']
+        vmax = colormap['vmax']
+        if colormap['normalization'] is 'linear':
             return vmin + (vmax - vmin) * value
-        elif self.colormap['normalization'] is 'log':
+        elif colormap['normalization'] is 'log':
             rpos = (numpy.log10(vmax) - numpy.log10(vmin)) * value + numpy.log10(vmin)
             return numpy.power(10., rpos)
         else:
-            err = "normalization type (%s) is not managed by the _ColorScale Widget" % self.colormap['normalization']
+            err = "normalization type (%s) is not managed by the _ColorScale Widget" % colormap['normalization']
             raise ValueError(err)
 
     def setMargin(self, margin):
