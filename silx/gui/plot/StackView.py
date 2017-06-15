@@ -830,6 +830,13 @@ class StackView(qt.QMainWindow):
         """
         return self._plot.profile.getProfileWindow2D()
 
+    def getColorBarWidget(self):
+        """Returns the colorbar widget from the plot
+
+        :rtype: :class:`silx.gui.plot.ColorBar.ColorBarWidget`
+        """
+        return self._plot.getColorBarWidget()
+
     # kind of private methods, but needed by Profile
     def remove(self, legend=None,
                kind=('curve', 'image', 'item', 'marker')):
