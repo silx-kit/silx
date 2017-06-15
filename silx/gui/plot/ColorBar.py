@@ -99,18 +99,20 @@ class ColorBarWidget(qt.QWidget):
     def setPlot(self, plot):
         """Associate a plot to the ColorBar
 
-        :param plot: the plot to associate with the colorbar. If None will remove
-            any connection with a previous plot.
+        :param plot: the plot to associate with the colorbar.
+                     If None will remove any connection with a previous plot.
         """
         # removing previous plot if any
         if self._plot is not None:
-            self._plot.sigActiveImageChanged.disconnect(self._activeImageChanged)
+            self._plot.sigActiveImageChanged.disconnect(
+                self._activeImageChanged)
 
         # setting the new plot
         self._plot = plot
         if self._plot is not None:
+            self._activeImageChanged(
+                None, self._plot.getActiveImage(just_legend=True))
             self._plot.sigActiveImageChanged.connect(self._activeImageChanged)
-            self._activeImageChanged(self._plot.getActiveImage(just_legend=True))
 
     def getColormap(self):
         """Return the colormap displayed in the colorbar as a dict.
@@ -162,7 +164,7 @@ class ColorBarWidget(qt.QWidget):
         """
         return self.legend.getText()
 
-    def _activeImageChanged(self, legend):
+    def _activeImageChanged(self, previous, legend):
         """Handle plot active curve changed"""
         if legend is None:  # No active image, display default colormap
             self._syncWithDefaultColormap()
