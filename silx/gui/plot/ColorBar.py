@@ -480,30 +480,28 @@ class _ColorScale(qt.QWidget):
             if not (colormap['vmin'] > 0 and colormap['vmax'] > 0):
                 raise ValueError('vmin and vmax should be positives')
         self.colormap = colormap
-        self._computeColorPoints()
+        self._computeColorGradient()
         self.update()
 
-    def _computeColorPoints(self):
-        """Compute the color points for the gradient
+    def _computeColorGradient(self):
+        """Compute the color gradient
         """
         if self.colormap is None:
             return
 
-        vmin = self.colormap['vmin']
-        vmax = self.colormap['vmax']
-        if vmin != vmax:
-            steps = (vmax - vmin)/float(_ColorScale._NB_CONTROL_POINTS)
-            self.ctrPoints = numpy.arange(vmin, vmax, steps)
-            self.colorsCtrPts = Colors.applyColormapToData(
-                self.ctrPoints,
-                name=self.colormap['name'],
-                normalization='linear',
-                autoscale=self.colormap['autoscale'],
-                vmin=vmin,
-                vmax=vmax)
-        else:
-            self.ctrPoints = ()
-            self.colorsCtrPts = ()
+        indices = numpy.linspace(0., 1., self._NB_CONTROL_POINTS)
+        colors = Colors.applyColormapToData(
+            indices,
+            name=self.colormap['name'],
+            normalization='linear',
+            autoscale=True,
+            vmin=0.,
+            vmax=1.)
+        self._gradient = qt.QLinearGradient(0, 1, 0, 0)
+        self._gradient.setCoordinateMode(qt.QGradient.StretchToDeviceMode)
+        self._gradient.setStops(
+            [(i, qt.QColor(*color)) for i, color in zip(indices, colors)]
+        )
 
     def paintEvent(self, event):
         """"""
@@ -511,20 +509,14 @@ class _ColorScale(qt.QWidget):
         if self.colormap is None:
             return
 
-        vmin = self.colormap['vmin']
-        vmax = self.colormap['vmax']
-
         painter = qt.QPainter(self)
-        gradient = qt.QLinearGradient(0, 0, 0, self.rect().height() - 2*self.margin)
-        for iPt, pt in enumerate(self.ctrPoints):
-            colormapPosition = 1 - (pt-vmin) / (vmax-vmin)
-            assert(colormapPosition >= 0.0)
-            assert(colormapPosition <= 1.0)
-            gradient.setColorAt(colormapPosition, qt.QColor(*(self.colorsCtrPts[iPt])))
-
-        painter.setBrush(gradient)
-        painter.drawRect(
-            qt.QRect(0, self.margin, self.width() - 1., self.height() - 2.*self.margin - 1.))
+        self._computeColorGradient()
+        painter.setBrush(self._gradient)
+        painter.drawRect(qt.QRect(
+            0,
+            self.margin,
+            self.width() - 1.,
+            self.height() - 2. * self.margin - 1.))
 
     def mouseMoveEvent(self, event):
         """"""
