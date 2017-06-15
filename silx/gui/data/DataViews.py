@@ -38,7 +38,7 @@ from silx.io.nxdata import NXdata
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "07/04/2017"
+__date__ = "15/06/2017"
 
 _logger = logging.getLogger(__name__)
 
@@ -62,6 +62,8 @@ def _normalizeData(data):
     If the data embed a numpy data or a dataset it is returned.
     Else returns the input data."""
     if isinstance(data, H5Node):
+        if data.is_broken:
+            return None
         return data.h5py_object
     return data
 

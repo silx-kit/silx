@@ -170,6 +170,15 @@ class H5Node(object):
         return self.__h5py_object.name.split("/")[-1]
 
     @property
+    def is_broken(self):
+        """Returns true if the node is a broken link.
+
+        :rtype: bool
+        """
+        if self.__h5py_item is None:
+            raise RuntimeError("h5py_item is not defined")
+        return self.__h5py_item.isBrokenObj()
+
     def local_name(self):
         """Returns the local path of this h5py node.
 
