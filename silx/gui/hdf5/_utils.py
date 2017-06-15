@@ -28,7 +28,7 @@ package `silx.gui.hdf5` package.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "26/04/2017"
+__date__ = "15/06/2017"
 
 
 import logging
@@ -179,8 +179,9 @@ class H5Node(object):
             raise RuntimeError("h5py_item is not defined")
         return self.__h5py_item.isBrokenObj()
 
+    @property
     def local_name(self):
-        """Returns the local path of this h5py node.
+        """Returns the path from the master file root to this node.
 
         For links, this path is not equal to the h5py one.
 
@@ -219,7 +220,7 @@ class H5Node(object):
 
     @property
     def local_file(self):
-        """Returns the local :class:`h5py.File` object.
+        """Returns the master file in which is this node.
 
         For path containing external links, this file is not equal to the h5py
         one.
@@ -232,7 +233,7 @@ class H5Node(object):
 
     @property
     def local_filename(self):
-        """Returns the local filename of the h5py node.
+        """Returns the filename from the master file of this node.
 
         For path containing external links, this path is not equal to the
         filename provided by h5py.
@@ -244,7 +245,7 @@ class H5Node(object):
 
     @property
     def local_basename(self):
-        """Returns the local filename of the h5py node.
+        """Returns the basename from the master file root to this node.
 
         For path containing links, this basename can be different than the
         basename provided by h5py.
@@ -254,3 +255,46 @@ class H5Node(object):
         if issubclass(self.__h5py_item.h5pyClass, h5py.File):
             return ""
         return self.__h5py_item.basename
+
+    @property
+    def physical_name(self):
+        """Returns the path from the location this h5py node is physically
+        stored.
+
+        For broken links, this filename can be different from the
+        filename provided by h5py.
+
+        :rtype: str
+        """
+        if isinstance(self.__h5py_object, h5py.ExternalLink):
+            return self.__h5py_object.path
+        if isinstance(self.__h5py_object, h5py.SoftLink):
+            return self.__h5py_object.path
+        return self.__h5py_object.name
+
+    @property
+    def physical_filename(self):
+        """Returns the filename from the location this h5py node is physically
+        stored.
+
+        For broken links, this filename can be different from the
+        filename provided by h5py.
+
+        :rtype: str
+        """
+        if isinstance(self.__h5py_object, h5py.ExternalLink):
+            return self.__h5py_object.filename
+        else:
+            return self.__h5py_object.file.filename
+
+    @property
+    def physical_basename(self):
+        """Returns the basename from the location this h5py node is physically
+        stored.
+
+        For broken links, this basename can be different from the
+        basename provided by h5py.
+
+        :rtype: str
+        """
+        return self.physical_name.split("/")[-1]
