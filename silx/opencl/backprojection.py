@@ -138,8 +138,8 @@ class Backprojection(OpenclProcessing):
         # Workgroup and ndrange sizes are always the same
         self.wg = (16, 16)
         self.ndrange = (
-            _idivup(self.num_bins, 32)*self.wg[0],
-            _idivup(self.num_bins, 32)*self.wg[1]
+            _idivup(int(self.num_bins), 32)*self.wg[0], # int(): pyopencl <= 2015.1
+            _idivup(int(self.num_bins), 32)*self.wg[1]  # int(): pyopencl <= 2015.1
         )
 
     def compute_angles(self):
@@ -290,7 +290,7 @@ class Backprojection(OpenclProcessing):
                 self.d_sino,
                 offset=0,
                 origin=(0, 0),
-                region=(np.int32(self.shape[1]), np.int32(self.shape[0]))
+                region=self.shape[::-1]#(np.int32(self.shape[1]), np.int32(self.shape[0]))
             )
             events.append(EventDescription("Buffer to Image d_sino", ev))
             # Prepare arguments for the kernel call
