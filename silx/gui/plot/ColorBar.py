@@ -481,6 +481,7 @@ class _ColorScale(qt.QWidget):
                 raise ValueError('vmin and vmax should be positives')
         self.colormap = colormap
         self._computeColorPoints()
+        self.update()
 
     def _computeColorPoints(self):
         """Compute the color points for the gradient
@@ -564,6 +565,7 @@ class _ColorScale(qt.QWidget):
         :param int margin: the margin to apply on the top and bottom.
         """
         self.margin = margin
+        self.update()
 
 
 class _TickBar(qt.QWidget):
