@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "11/04/2017"
+__date__ = "14/06/2017"
 
 import logging
 import numpy
@@ -95,12 +95,72 @@ class TestFabioH5(unittest.TestCase):
         # result tested with a default h5py file
         self.assertRaises(KeyError, lambda: self.h5_image["foo/foo"])
 
-    def test_frames(self):
-        dataset = self.h5_image["/scan_0/instrument/detector_0/data"]
+    def test_single_frame(self):
+        data = numpy.arange(2 * 3)
+        data.shape = 2, 3
+        fabio_image = fabio.edfimage.edfimage(data=data)
+        h5_image = fabioh5.File(fabio_image=fabio_image)
+
+        dataset = h5_image["/scan_0/instrument/detector_0/data"]
         self.assertEquals(dataset.h5py_class, h5py.Dataset)
         self.assertTrue(isinstance(dataset[()], numpy.ndarray))
         self.assertEquals(dataset.dtype.kind, "i")
-        self.assertEquals(dataset.shape, (1, 3, 2))
+        self.assertEquals(dataset.shape, (2, 3))
+        self.assertEquals(dataset[...][0, 0], 0)
+        self.assertEquals(dataset.attrs["interpretation"], "image")
+
+    def test_multi_frames(self):
+        data = numpy.arange(2 * 3)
+        data.shape = 2, 3
+        fabio_image = fabio.edfimage.edfimage(data=data)
+        fabio_image.appendFrame(data=data)
+        h5_image = fabioh5.File(fabio_image=fabio_image)
+
+        dataset = h5_image["/scan_0/instrument/detector_0/data"]
+        self.assertEquals(dataset.h5py_class, h5py.Dataset)
+        self.assertTrue(isinstance(dataset[()], numpy.ndarray))
+        self.assertEquals(dataset.dtype.kind, "i")
+        self.assertEquals(dataset.shape, (2, 2, 3))
+        self.assertEquals(dataset[...][0, 0, 0], 0)
+        self.assertEquals(dataset.attrs["interpretation"], "image")
+
+    def test_heterogeneous_frames(self):
+        """Frames containing 2 images with different sizes and a cube"""
+        data1 = numpy.arange(2 * 3)
+        data1.shape = 2, 3
+        data2 = numpy.arange(2 * 5)
+        data2.shape = 2, 5
+        data3 = numpy.arange(2 * 5 * 1)
+        data3.shape = 2, 5, 1
+        fabio_image = fabio.edfimage.edfimage(data=data1)
+        fabio_image.appendFrame(data=data2)
+        fabio_image.appendFrame(data=data3)
+        h5_image = fabioh5.File(fabio_image=fabio_image)
+
+        dataset = h5_image["/scan_0/instrument/detector_0/data"]
+        self.assertEquals(dataset.h5py_class, h5py.Dataset)
+        self.assertTrue(isinstance(dataset[()], numpy.ndarray))
+        self.assertEquals(dataset.dtype.kind, "i")
+        self.assertEquals(dataset.shape, (3, 2, 5, 1))
+        self.assertEquals(dataset[...][0, 0, 0], 0)
+        self.assertEquals(dataset.attrs["interpretation"], "image")
+
+    def test_single_3d_frame(self):
+        """Image source contains a cube"""
+        data = numpy.arange(2 * 3 * 4)
+        data.shape = 2, 3, 4
+        # Do not provide the data to the constructor to avoid slicing of the
+        # data. In this way the result stay a cube, and not a multi-frame
+        fabio_image = fabio.edfimage.edfimage()
+        fabio_image.data = data
+        h5_image = fabioh5.File(fabio_image=fabio_image)
+
+        dataset = h5_image["/scan_0/instrument/detector_0/data"]
+        self.assertEquals(dataset.h5py_class, h5py.Dataset)
+        self.assertTrue(isinstance(dataset[()], numpy.ndarray))
+        self.assertEquals(dataset.dtype.kind, "i")
+        self.assertEquals(dataset.shape, (2, 3, 4))
+        self.assertEquals(dataset[...][0, 0, 0], 0)
         self.assertEquals(dataset.attrs["interpretation"], "image")
 
     def test_metadata_int(self):

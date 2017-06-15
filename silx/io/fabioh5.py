@@ -667,22 +667,29 @@ class FabioReader(object):
                 image = self.__fabio_file.getframe(frame).data
             images.append(image)
 
+        # returns the data without extra dim in case of single frame
+        if len(images) == 1:
+            return images[0]
+
         # get the max size
-        max_shape = [0, 0]
+        max_dim = max([i.ndim for i in images])
+        max_shape = [0] * max_dim
         for image in images:
-            if image.shape[0] > max_shape[0]:
-                max_shape[0] = image.shape[0]
-            if image.shape[1] > max_shape[1]:
-                max_shape[1] = image.shape[1]
+            for dim in range(image.ndim):
+                if image.shape[dim] > max_shape[dim]:
+                    max_shape[dim] = image.shape[dim]
         max_shape = tuple(max_shape)
 
         # fix smallest images
         for index, image in enumerate(images):
             if image.shape == max_shape:
                 continue
-            right_image = numpy.zeros(max_shape)
-            right_image[0:image.shape[0], 0:image.shape[1]] = image
-            images[index] = right_image
+            location = [slice(0, i) for i in image.shape]
+            while len(location) < max_dim:
+                location.append(0)
+            normalized_image = numpy.zeros(max_shape, dtype=image.dtype)
+            normalized_image[location] = image
+            images[index] = normalized_image
 
         # create a cube
         return numpy.array(images)
