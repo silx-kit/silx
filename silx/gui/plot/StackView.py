@@ -195,6 +195,7 @@ class StackView(qt.QMainWindow):
                                 copy=copy, save=save, print_=print_,
                                 control=control, position=position,
                                 roi=False, mask=mask)
+        self._plot.getColorBarWidget().setVisible(True)
         self.sigInteractiveModeChanged = self._plot.sigInteractiveModeChanged
         self.sigActiveImageChanged = self._plot.sigActiveImageChanged
         self.sigPlotSignal = self._plot.sigPlotSignal

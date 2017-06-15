@@ -484,14 +484,19 @@ class _ColorScale(qt.QWidget):
 
         vmin = self.colormap['vmin']
         vmax = self.colormap['vmax']
-        steps = (vmax - vmin)/float(_ColorScale._NB_CONTROL_POINTS)
-        self.ctrPoints = numpy.arange(vmin, vmax, steps)
-        self.colorsCtrPts = Colors.applyColormapToData(self.ctrPoints,
-                                                       name=self.colormap['name'],
-                                                       normalization='linear',
-                                                       autoscale=self.colormap['autoscale'],
-                                                       vmin=vmin,
-                                                       vmax=vmax)
+        if vmin != vmax:
+            steps = (vmax - vmin)/float(_ColorScale._NB_CONTROL_POINTS)
+            self.ctrPoints = numpy.arange(vmin, vmax, steps)
+            self.colorsCtrPts = Colors.applyColormapToData(
+                self.ctrPoints,
+                name=self.colormap['name'],
+                normalization='linear',
+                autoscale=self.colormap['autoscale'],
+                vmin=vmin,
+                vmax=vmax)
+        else:
+            self.ctrPoints = ()
+            self.colorsCtrPts = ()
 
     def paintEvent(self, event):
         """"""
@@ -667,7 +672,11 @@ class _TickBar(qt.QWidget):
         if nticks is None:
             nticks = self._getOptimalNbTicks()
 
-        if self._norm == 'log':
+        if self._vmin == self._vmax:
+            # No range: no ticks
+            self.ticks = ()
+            self.subTicks = ()
+        elif self._norm == 'log':
             self._computeTicksLog(nticks)
         elif self._norm == 'linear':
             self._computeTicksLin(nticks)
