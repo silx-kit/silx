@@ -69,6 +69,7 @@ class ColorBarWidget(qt.QWidget):
 
     def __init__(self, parent=None, plot=None, legend=None):
         super(ColorBarWidget, self).__init__(parent)
+        self._isConnected = False
         self._plot = None
         self._viewAction = None
 
@@ -91,6 +92,7 @@ class ColorBarWidget(qt.QWidget):
         self.layout().setSizeConstraint(qt.QLayout.SetMinAndMaxSize)
         self.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Expanding)
 
+
     def getPlot(self):
         """Returns the :class:`Plot` associated to this widget or None"""
         return self._plot
@@ -101,15 +103,21 @@ class ColorBarWidget(qt.QWidget):
         :param plot: the plot to associate with the colorbar.
                      If None will remove any connection with a previous plot.
         """
-        # removing previous plot if any
-        if self._plot is not None:
+        self._disconnectPlot()
+        self._plot = plot
+        self._connectPlot()
+
+    def _disconnectPlot(self):
+        """Disconnect from Plot signals"""
+        if self._plot is not None and self._isConnected:
+            self._isConnected = False
             self._plot.sigActiveImageChanged.disconnect(
                 self._activeImageChanged)
             self._plot.sigPlotSignal.disconnect(self._defaultColormapChanged)
 
-        # setting the new plot
-        self._plot = plot
-        if self._plot is not None:
+    def _connectPlot(self):
+        """Connect to Plot signals"""
+        if self._plot is not None and not self._isConnected:
             activeImageLegend = self._plot.getActiveImage(just_legend=True)
             if activeImageLegend is None:  # Show plot default colormap
                 self._syncWithDefaultColormap()
@@ -117,6 +125,17 @@ class ColorBarWidget(qt.QWidget):
                 self._activeImageChanged(None, activeImageLegend)
             self._plot.sigActiveImageChanged.connect(self._activeImageChanged)
             self._plot.sigPlotSignal.connect(self._defaultColormapChanged)
+            self._isConnected = True
+
+    def showEvent(self, event):
+        self._connectPlot()
+        if self._viewAction is not None:
+            self._viewAction.setChecked(True)
+
+    def hideEvent(self, event):
+        self._disconnectPlot()
+        if self._viewAction is not None:
+            self._viewAction.setChecked(False)
 
     def getColormap(self):
         """Return the colormap displayed in the colorbar as a dict.
@@ -201,14 +220,6 @@ class ColorBarWidget(qt.QWidget):
         :return: return the :class:`ColorScaleBar` used to display ColorScale
             and ticks"""
         return self._colorScale
-
-    def showEvent(self, event):
-        if self._viewAction is not None:
-            self._viewAction.setChecked(True)
-
-    def hideEvent(self, event):
-        if self._viewAction is not None:
-            self._viewAction.setChecked(False)
 
     def getToggleViewAction(self):
         """Returns a checkable action controlling this widget's visibility.
