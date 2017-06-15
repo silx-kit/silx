@@ -106,13 +106,18 @@ class ColorBarWidget(qt.QWidget):
         if self._plot is not None:
             self._plot.sigActiveImageChanged.disconnect(
                 self._activeImageChanged)
+            self._plot.sigPlotSignal.disconnect(self._defaultColormapChanged)
 
         # setting the new plot
         self._plot = plot
         if self._plot is not None:
-            self._activeImageChanged(
-                None, self._plot.getActiveImage(just_legend=True))
+            activeImageLegend = self._plot.getActiveImage(just_legend=True)
+            if activeImageLegend is None:  # Show plot default colormap
+                self._syncWithDefaultColormap()
+            else:  # Show active image colormap
+                self._activeImageChanged(None, activeImageLegend)
             self._plot.sigActiveImageChanged.connect(self._activeImageChanged)
+            self._plot.sigPlotSignal.connect(self._defaultColormapChanged)
 
     def getColormap(self):
         """Return the colormap displayed in the colorbar as a dict.
@@ -192,9 +197,10 @@ class ColorBarWidget(qt.QWidget):
 
         self.setColormap(cmap)
 
-    def _defaultColormapChanged(self):
+    def _defaultColormapChanged(self, event):
         """Handle plot default colormap changed"""
-        if self._plot.getActiveImage() is None:
+        if (event['event'] == 'defaultColormapChanged' and
+                self._plot.getActiveImage() is None):
             # No active image, take default colormap update into account
             self._syncWithDefaultColormap()
 
