@@ -192,7 +192,8 @@ class H5Node(object):
         result = []
         item = self.__h5py_item
         while item is not None:
-            if issubclass(item.h5pyClass, h5py.File):
+            # stop before the root item (item without parent)
+            if item.parent.parent is None:
                 break
             result.append(item.basename)
             item = item.parent
@@ -212,7 +213,8 @@ class H5Node(object):
         """
         item = self.__h5py_item
         while item is not None:
-            if issubclass(item.h5pyClass, h5py.File):
+            class_ = item.h5pyClass
+            if class_ is not None and issubclass(class_, h5py.File):
                 return item
             item = item.parent
         raise RuntimeError("The item does not have parent holding h5py.File")
@@ -251,7 +253,8 @@ class H5Node(object):
 
         :rtype: str
         """
-        if issubclass(self.__h5py_item.h5pyClass, h5py.File):
+        class_ = self.__h5py_item.h5pyClass
+        if class_ is not None and issubclass(class_, h5py.File):
             return ""
         return self.__h5py_item.basename
 
