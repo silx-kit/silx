@@ -35,6 +35,7 @@ import logging
 import functools
 import os
 import traceback
+
 depreclog = logging.getLogger("silx.DEPRECATION")
 
 
