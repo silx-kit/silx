@@ -105,14 +105,16 @@ class _SafeH5FileWrite(object):
             exists) or ``"a"`` (read/write if exists, create otherwise).
             This parameter is ignored if ``h5file`` is a file handle.
         """
-        if not isinstance(h5file, h5py.File):
-            self.h5file = h5py.File(h5file, mode)
-            self.close_when_finished = True
-        else:
-            self.h5file = h5file
-            self.close_when_finished = False
+        self.raw_h5file = h5file
+        self.mode = mode
 
     def __enter__(self):
+        if not isinstance(self.raw_h5file, h5py.File):
+            self.h5file = h5py.File(self.raw_h5file, self.mode)
+            self.close_when_finished = True
+        else:
+            self.h5file = self.raw_h5file
+            self.close_when_finished = False
         return self.h5file
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -133,14 +135,16 @@ class _SafeH5FileRead(object):
 
         :param h5file:  HDF5 file path or h5py.File-like object
         """
-        if not is_h5_file_like(h5file):
-            self.h5file = h5open(h5file)
-            self.close_when_finished = True
-        else:
-            self.h5file = h5file
-            self.close_when_finished = False
+        self.raw_h5file = h5file
 
     def __enter__(self):
+        if not is_h5_file_like(self.raw_h5file):
+            self.h5file = h5open(self.raw_h5file)
+            self.close_when_finished = True
+        else:
+            self.h5file = self.raw_h5file
+            self.close_when_finished = False
+
         return self.h5file
 
     def __exit__(self, exc_type, exc_val, exc_tb):
