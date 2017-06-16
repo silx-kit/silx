@@ -423,9 +423,9 @@ class Hdf5Item(Hdf5Node):
         if role == qt.Qt.TextAlignmentRole:
             return qt.Qt.AlignTop | qt.Qt.AlignLeft
         if role == qt.Qt.DisplayRole:
-            class_ = self.h5pyClass
-            if class_ is None:
+            if self.isBrokenObj():
                 return ""
+            class_ = self.h5pyClass
             text = class_.__name__.split(".")[-1]
             return text
         if role == qt.Qt.ToolTipRole:
