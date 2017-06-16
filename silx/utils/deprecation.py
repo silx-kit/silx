@@ -28,11 +28,13 @@ from __future__ import absolute_import, print_function, division
 
 __authors__ = ["Jerome Kieffer"]
 __license__ = "MIT"
-__date__ = "01/03/2017"
+__date__ = "16/06/2017"
 
 import sys
 import logging
 import functools
+import os
+import traceback
 
 depreclog = logging.getLogger("silx.DEPRECATION")
 
