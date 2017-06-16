@@ -62,8 +62,8 @@ class TestFBP(unittest.TestCase):
         # Create a dummy sinogram
         self.sino = np.random.randn(500, 512)
         self.fbp = backprojection.Backprojection(self.sino.shape)
-        if self.fbp.device.type == "CPU":
-            self.skipTest("Backprojection is not implemented on CPU yet")
+        #~ if self.fbp.device.type == "CPU":
+            #~ self.skipTest("Backprojection is not implemented on CPU yet")
 
     def tearDown(self):
         self.sino = None
