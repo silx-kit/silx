@@ -90,6 +90,7 @@ class Hdf5HeaderView(qt.QHeaderView):
             setResizeMode(Hdf5TreeModel.VALUE_COLUMN, qt.QHeaderView.Interactive)
             setResizeMode(Hdf5TreeModel.DESCRIPTION_COLUMN, qt.QHeaderView.Interactive)
             setResizeMode(Hdf5TreeModel.NODE_COLUMN, qt.QHeaderView.ResizeToContents)
+            setResizeMode(Hdf5TreeModel.LINK_COLUMN, qt.QHeaderView.ResizeToContents)
         else:
             setResizeMode(Hdf5TreeModel.NAME_COLUMN, qt.QHeaderView.Interactive)
             setResizeMode(Hdf5TreeModel.TYPE_COLUMN, qt.QHeaderView.Interactive)
@@ -97,6 +98,7 @@ class Hdf5HeaderView(qt.QHeaderView):
             setResizeMode(Hdf5TreeModel.VALUE_COLUMN, qt.QHeaderView.Interactive)
             setResizeMode(Hdf5TreeModel.DESCRIPTION_COLUMN, qt.QHeaderView.Interactive)
             setResizeMode(Hdf5TreeModel.NODE_COLUMN, qt.QHeaderView.Interactive)
+            setResizeMode(Hdf5TreeModel.LINK_COLUMN, qt.QHeaderView.Interactive)
 
     def setAutoResizeColumns(self, autoResize):
         """Enable/disable auto-resize. When auto-resized, the header take care

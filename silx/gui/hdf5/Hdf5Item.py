@@ -434,3 +434,30 @@ class Hdf5Item(Hdf5Node):
                 return ""
             return "Class name: %s" % self.__class__
         return None
+
+    def dataLink(self, role):
+        """Data for the link column
+
+        Overwrite it to implement the content of the 'link' column.
+
+        :rtype: qt.QVariant
+        """
+        if role == qt.Qt.DecorationRole:
+            return None
+        if role == qt.Qt.TextAlignmentRole:
+            return qt.Qt.AlignTop | qt.Qt.AlignLeft
+        if role == qt.Qt.DisplayRole:
+            link = self.linkClass
+            if link is None:
+                return ""
+            elif link is h5py.ExternalLink:
+                return "External"
+            elif link is h5py.SoftLink:
+                return "Soft"
+            elif link is h5py.HardLink:
+                return ""
+            else:
+                return link.__name__
+        if role == qt.Qt.ToolTipRole:
+            return None
+        return None

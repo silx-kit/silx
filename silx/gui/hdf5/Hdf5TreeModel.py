@@ -174,6 +174,9 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
     NODE_COLUMN = 5
     """Column id containing HDF5 node type"""
 
+    LINK_COLUMN = 6
+    """Column id containing HDF5 link type"""
+
     COLUMN_IDS = [
         NAME_COLUMN,
         TYPE_COLUMN,
@@ -181,6 +184,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         VALUE_COLUMN,
         DESCRIPTION_COLUMN,
         NODE_COLUMN,
+        LINK_COLUMN,
     ]
     """List of logical columns available"""
 
@@ -195,6 +199,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         self.header_labels[self.VALUE_COLUMN] = 'Value'
         self.header_labels[self.DESCRIPTION_COLUMN] = 'Description'
         self.header_labels[self.NODE_COLUMN] = 'Node'
+        self.header_labels[self.LINK_COLUMN] = 'Link'
 
         # Create items
         self.__root = Hdf5Node()
@@ -423,6 +428,8 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             return node.dataDescription(role)
         elif index.column() == self.NODE_COLUMN:
             return node.dataNode(role)
+        elif index.column() == self.LINK_COLUMN:
+            return node.dataLink(role)
         else:
             return None
 
