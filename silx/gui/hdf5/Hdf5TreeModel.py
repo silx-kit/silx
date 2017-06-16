@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "19/12/2016"
+__date__ = "16/06/2017"
 
 
 import os
@@ -188,7 +188,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         super(Hdf5TreeModel, self).__init__(parent)
 
         self.treeView = parent
-        self.header_labels = [None] * 6
+        self.header_labels = [None] * len(self.COLUMN_IDS)
         self.header_labels[self.NAME_COLUMN] = 'Name'
         self.header_labels[self.TYPE_COLUMN] = 'Type'
         self.header_labels[self.SHAPE_COLUMN] = 'Shape'
@@ -427,7 +427,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             return None
 
     def columnCount(self, parent=qt.QModelIndex()):
-        return len(self.header_labels)
+        return len(self.COLUMN_IDS)
 
     def hasChildren(self, parent=qt.QModelIndex()):
         node = self.nodeFromIndex(parent)
