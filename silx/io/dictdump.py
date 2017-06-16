@@ -41,13 +41,13 @@ else:
     h5py_missing = False
 
 from .configdict import ConfigDict
-from .utils import is_group, is_file
-
-from silx.io import open as h5open
+from .utils import is_group
+from .utils import is_file as is_h5_file_like
+from .utils import open as h5open
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "10/02/2017"
+__date__ = "16/06/2017"
 
 logger = logging.getLogger(__name__)
 
@@ -80,6 +80,72 @@ def _prepare_hdf5_dataset(array_like):
             array = numpy.asarray(array, dtype=numpy.string_)
 
     return array
+
+
+class _SafeH5FileWrite(object):
+    """Context manager returning a :class:`h5py.File` object.
+
+    If this object is initialized with a file path, we open the file
+    and then we close it on exiting.
+
+    If a :class:`h5py.File` instance is provided to :meth:`__init__` rather
+    than a path, we assume that the user is responsible for closing the
+    file.
+
+    This behavior is well suited for handling h5py file in a recursive
+    function. The object is created in the initial call if a path is provided,
+    and it is closed only at the end when all the processing is finished.
+    """
+    def __init__(self, h5file, mode="w"):
+        """
+
+        :param h5file:  HDF5 file path or :class:`h5py.File` instance
+        :param str mode:  Can be ``"r+"`` (read/write, file must exist),
+            ``"w"`` (write, existing file is lost), ``"w-"`` (write, fail if
+            exists) or ``"a"`` (read/write if exists, create otherwise).
+            This parameter is ignored if ``h5file`` is a file handle.
+        """
+        if not isinstance(h5file, h5py.File):
+            self.h5file = h5py.File(h5file, mode)
+            self.close_when_finished = True
+        else:
+            self.h5file = h5file
+            self.close_when_finished = False
+
+    def __enter__(self):
+        return self.h5file
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.close_when_finished:
+            self.h5file.close()
+
+
+class _SafeH5FileRead(object):
+    """Context manager returning a :class:`h5py.File` or a
+    :class:`silx.io.spech5.SpecH5` or a :class:`silx.io.fabioh5.File` object.
+
+    The general behavior is the same as :class:`_SafeH5FileWrite` except
+    that SPEC files and all formats supported by fabio can also be opened,
+    but in read-only mode.
+    """
+    def __init__(self, h5file):
+        """
+
+        :param h5file:  HDF5 file path or h5py.File-like object
+        """
+        if not is_h5_file_like(h5file):
+            self.h5file = h5open(h5file)
+            self.close_when_finished = True
+        else:
+            self.h5file = h5file
+            self.close_when_finished = False
+
+    def __enter__(self):
+        return self.h5file
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.close_when_finished:
+            self.h5file.close()
 
 
 def dicttoh5(treedict, h5file, h5path='/',
@@ -142,40 +208,32 @@ def dicttoh5(treedict, h5file, h5path='/',
     if h5py_missing:
         raise h5py_import_error
 
-    if not isinstance(h5file, h5py.File):
-        h5f = h5py.File(h5file, mode)
-    else:
-        h5f = h5file
-
     if not h5path.endswith("/"):
         h5path += "/"
 
-    for key in treedict:
+    with _SafeH5FileWrite(h5file, mode=mode) as h5f:
+        for key in treedict:
+            if isinstance(treedict[key], dict) and len(treedict[key]):
+                # non-empty group: recurse
+                dicttoh5(treedict[key], h5f, h5path + key,
+                         overwrite_data=overwrite_data,
+                         create_dataset_args=create_dataset_args)
 
-        if isinstance(treedict[key], dict) and len(treedict[key]):
-            # non-empty group: recurse
-            dicttoh5(treedict[key], h5f, h5path + key,
-                     overwrite_data=overwrite_data,
-                     create_dataset_args=create_dataset_args)
+            elif treedict[key] is None or (isinstance(treedict[key], dict) and
+                                           not len(treedict[key])):
+                # Create empty group
+                h5f.create_group(h5path + key)
 
-        elif treedict[key] is None or (isinstance(treedict[key], dict) and
-                                       not len(treedict[key])):
-            # Create empty group
-            h5f.create_group(h5path + key)
-
-        else:
-            ds = _prepare_hdf5_dataset(treedict[key])
-            # can't apply filters on scalars (datasets with shape == () )
-            if ds.shape == () or create_dataset_args is None:
-                h5f.create_dataset(h5path + key,
-                                   data=ds)
             else:
-                h5f.create_dataset(h5path + key,
-                                   data=ds,
-                                   **create_dataset_args)
-
-    if isinstance(h5file, string_types):
-        h5f.close()
+                ds = _prepare_hdf5_dataset(treedict[key])
+                # can't apply filters on scalars (datasets with shape == () )
+                if ds.shape == () or create_dataset_args is None:
+                    h5f.create_dataset(h5path + key,
+                                       data=ds)
+                else:
+                    h5f.create_dataset(h5path + key,
+                                       data=ds,
+                                       **create_dataset_args)
 
 
 def _name_contains_string_in_list(name, strlist):
@@ -228,26 +286,18 @@ def h5todict(h5file, path="/", exclude_names=None):
     if h5py_missing:
         raise h5py_import_error
 
-    if not is_file(h5file):
-        h5f = h5open(h5file)
-    else:
-        h5f = h5file
-
-    ddict = {}
-    for key in h5f[path]:
-        if _name_contains_string_in_list(key, exclude_names):
-            continue
-        if is_group(h5f[path + "/" + key]):
-            ddict[key] = h5todict(h5f,
-                                  path + "/" + key,
-                                  exclude_names=exclude_names)
-        else:
-            # Convert HDF5 dataset to numpy array
-            ddict[key] = h5f[path + "/" + key][...]
-
-    if not is_file(h5file):
-        # close file, if we opened it
-        h5f.close()
+    with _SafeH5FileRead(h5file) as h5f:
+        ddict = {}
+        for key in h5f[path]:
+            if _name_contains_string_in_list(key, exclude_names):
+                continue
+            if is_group(h5f[path + "/" + key]):
+                ddict[key] = h5todict(h5f,
+                                      path + "/" + key,
+                                      exclude_names=exclude_names)
+            else:
+                # Convert HDF5 dataset to numpy array
+                ddict[key] = h5f[path + "/" + key][...]
 
     return ddict
 
