@@ -28,11 +28,10 @@ package `silx.gui.hdf5` package.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "15/06/2017"
+__date__ = "16/06/2017"
 
 
 import logging
-import numpy
 from .. import qt
 import silx.io.utils
 from silx.utils.html import escape
