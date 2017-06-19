@@ -28,11 +28,13 @@
 from __future__ import absolute_import
 
 __authors__ = ["T. Vincent", "H.Payno"]
+__license__ = "MIT"
+__date__ = "05/12/2016"
 
 from silx.gui import qt
 
 
-_COLORMAPS = {
+_OGL_COLORMAPS = {
     'gray': 0,
     'reversed gray': 1,
     'red': 2,
@@ -41,11 +43,14 @@ _COLORMAPS = {
     'temperature': 5
 }
 
-COLORMAPS = tuple(_COLORMAPS.keys())
+OGL_COLORMAPS = tuple(_OGL_COLORMAPS.keys())
 """Tuple of supported colormap names."""
 
 NORMS = 'linear', 'log'
 """Tuple of supported normalizations."""
+
+NORMALIZATIONS = ('linear', 'log')
+"""Tuple of managed normalizations"""
 
 
 class Colormap(object):
@@ -66,11 +71,10 @@ class Colormap(object):
     sigChanged = qt.Signal()
 
     def __init__(self, name, colors=None, norm='linear', vmin=None, vmax=None):
-        assert name in COLORMAPS
         self._name = str(name) if name is not None else None
         self._colors = colors
 
-        assert norm in ('linear', 'log')
+        assert norm in NORMALIZATIONS
         self._norm = str(norm)
 
         self._vmin = float(vmin) if vmin is not None else None
@@ -169,3 +173,11 @@ class Colormap(object):
         """
         self._vmin = vmin
         self._vmax = vmax
+        self.sigChanged.emit()
+
+    def __getitem__(self, item):
+        attr = '_' + item
+        if not hasattr(self, attr):
+            raise KeyError(item)
+        else:
+            return getattr(self, attr)
