@@ -271,14 +271,16 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
             objectType = obj.__class__.__name__
         self.__data.addHeaderRow(headerLabel="HDF5 %s" % objectType)
 
+        SEPARATOR = "::"
+
         self.__data.addHeaderRow(headerLabel="Path info")
         if isinstance(obj, silx.gui.hdf5.H5Node):
             # helpful informations if the object come from an HDF5 tree
             self.__data.addHeaderValueRow("Basename", lambda x: x.local_basename)
-            self.__data.addHeaderValueRow("Path", lambda x: x.local_name)
-            local = lambda x: x.local_filename + " :: " + x.local_name
+            self.__data.addHeaderValueRow("Name", lambda x: x.local_name)
+            local = lambda x: x.local_filename + SEPARATOR + x.local_name
             self.__data.addHeaderValueRow("Local", local)
-            physical = lambda x: x.physical_filename + " :: " + x.physical_name
+            physical = lambda x: x.physical_filename + SEPARATOR + x.physical_name
             self.__data.addHeaderValueRow("Physical", physical)
         else:
             # it's a real H5py object
@@ -289,15 +291,15 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
             if hasattr(obj, "path"):
                 # That's a link
                 if hasattr(obj, "filename"):
-                    link = lambda x: x.filename + " :: " + x.path
+                    link = lambda x: x.filename + SEPARATOR + x.path
                 else:
                     link = lambda x: x.path
                 self.__data.addHeaderValueRow("Link", link)
             else:
                 if silx.io.is_file(obj):
-                    physical = lambda x: x.filename + " :: " + x.name
+                    physical = lambda x: x.filename + SEPARATOR + x.name
                 else:
-                    physical = lambda x: x.file.filename + " :: " + x.name
+                    physical = lambda x: x.file.filename + SEPARATOR + x.name
                 self.__data.addHeaderValueRow("Physical", physical)
 
         if hasattr(obj, "dtype"):
