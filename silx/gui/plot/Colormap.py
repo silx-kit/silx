@@ -54,7 +54,7 @@ NORMALIZATIONS = ('linear', 'log')
 """Tuple of managed normalizations"""
 
 
-class Colormap(object):
+class Colormap(qt.QObject):
     """Description of a colormap
 
     :param str name: Name of the colormap
@@ -72,6 +72,7 @@ class Colormap(object):
     sigChanged = qt.Signal()
 
     def __init__(self, name, colors=None, norm='linear', vmin=None, vmax=None):
+        qt.QObject.__init__(self)
         self._name = str(name) if name is not None else None
         self._colors = colors
 
