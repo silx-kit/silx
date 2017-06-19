@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "12/04/2017"
+__date__ = "16/06/2017"
 
 
 import logging
@@ -86,7 +86,8 @@ class NexusSortFilterProxyModel(qt.QSortFilterProxyModel):
 
     def __isNXentry(self, node):
         """Returns true if the node is an NXentry"""
-        if not issubclass(node.h5pyClass, h5py.Group):
+        class_ = node.h5pyClass
+        if class_ is None or not issubclass(node.h5pyClass, h5py.Group):
             return False
         nxClass = node.obj.attrs.get("NX_class", None)
         return nxClass == "NXentry"

@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "15/05/2017"
+__date__ = "16/06/2017"
 
 import sys
 import os
@@ -103,6 +103,12 @@ class Viewer(qt.QMainWindow):
         # you have to store it first
         self.__store_lambda = lambda event: self.closeAndSyncCustomContextMenu(event)
         self.__treeview.addContextMenuCallback(self.__store_lambda)
+
+        treeModel = self.__treeview.findHdf5TreeModel()
+        columns = list(treeModel.COLUMN_IDS)
+        columns.remove(treeModel.DESCRIPTION_COLUMN)
+        columns.remove(treeModel.NODE_COLUMN)
+        self.__treeview.header().setSections(columns)
 
         self.createActions()
         self.createMenus()
@@ -228,7 +234,7 @@ class Viewer(qt.QMainWindow):
     def displayData(self):
         """Called to update the dataviewer with the selected data.
         """
-        selected = list(self.__treeview.selectedH5Nodes())
+        selected = list(self.__treeview.selectedH5Nodes(ignoreBrokenLinks=False))
         if len(selected) == 1:
             # Update the viewer for a single selection
             data = selected[0]
@@ -243,7 +249,7 @@ class Viewer(qt.QMainWindow):
         :param silx.gui.hdf5.Hdf5ContextMenuEvent event: Event
             containing expected information to populate the context menu
         """
-        selectedObjects = event.source().selectedH5Nodes()
+        selectedObjects = event.source().selectedH5Nodes(ignoreBrokenLinks=False)
         menu = event.menu()
 
         hasDataset = False
@@ -265,7 +271,7 @@ class Viewer(qt.QMainWindow):
         :param silx.gui.hdf5.Hdf5ContextMenuEvent event: Event
             containing expected information to populate the context menu
         """
-        selectedObjects = event.source().selectedH5Nodes()
+        selectedObjects = event.source().selectedH5Nodes(ignoreBrokenLinks=False)
         menu = event.menu()
 
         if len(menu.children()):

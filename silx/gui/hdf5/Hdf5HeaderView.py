@@ -25,10 +25,11 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "08/11/2016"
+__date__ = "16/06/2017"
 
 
 from .. import qt
+from .Hdf5TreeModel import Hdf5TreeModel
 
 QTVERSION = qt.qVersion()
 
@@ -83,19 +84,21 @@ class Hdf5HeaderView(qt.QHeaderView):
             setResizeMode = self.setSectionResizeMode
 
         if self.__auto_resize:
-            setResizeMode(0, qt.QHeaderView.ResizeToContents)
-            setResizeMode(1, qt.QHeaderView.ResizeToContents)
-            setResizeMode(2, qt.QHeaderView.ResizeToContents)
-            setResizeMode(3, qt.QHeaderView.Interactive)
-            setResizeMode(4, qt.QHeaderView.Interactive)
-            setResizeMode(5, qt.QHeaderView.ResizeToContents)
+            setResizeMode(Hdf5TreeModel.NAME_COLUMN, qt.QHeaderView.ResizeToContents)
+            setResizeMode(Hdf5TreeModel.TYPE_COLUMN, qt.QHeaderView.ResizeToContents)
+            setResizeMode(Hdf5TreeModel.SHAPE_COLUMN, qt.QHeaderView.ResizeToContents)
+            setResizeMode(Hdf5TreeModel.VALUE_COLUMN, qt.QHeaderView.Interactive)
+            setResizeMode(Hdf5TreeModel.DESCRIPTION_COLUMN, qt.QHeaderView.Interactive)
+            setResizeMode(Hdf5TreeModel.NODE_COLUMN, qt.QHeaderView.ResizeToContents)
+            setResizeMode(Hdf5TreeModel.LINK_COLUMN, qt.QHeaderView.ResizeToContents)
         else:
-            setResizeMode(0, qt.QHeaderView.Interactive)
-            setResizeMode(1, qt.QHeaderView.Interactive)
-            setResizeMode(2, qt.QHeaderView.Interactive)
-            setResizeMode(3, qt.QHeaderView.Interactive)
-            setResizeMode(4, qt.QHeaderView.Interactive)
-            setResizeMode(5, qt.QHeaderView.Interactive)
+            setResizeMode(Hdf5TreeModel.NAME_COLUMN, qt.QHeaderView.Interactive)
+            setResizeMode(Hdf5TreeModel.TYPE_COLUMN, qt.QHeaderView.Interactive)
+            setResizeMode(Hdf5TreeModel.SHAPE_COLUMN, qt.QHeaderView.Interactive)
+            setResizeMode(Hdf5TreeModel.VALUE_COLUMN, qt.QHeaderView.Interactive)
+            setResizeMode(Hdf5TreeModel.DESCRIPTION_COLUMN, qt.QHeaderView.Interactive)
+            setResizeMode(Hdf5TreeModel.NODE_COLUMN, qt.QHeaderView.Interactive)
+            setResizeMode(Hdf5TreeModel.LINK_COLUMN, qt.QHeaderView.Interactive)
 
     def setAutoResizeColumns(self, autoResize):
         """Enable/disable auto-resize. When auto-resized, the header take care

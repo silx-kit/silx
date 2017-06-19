@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "19/12/2016"
+__date__ = "16/06/2017"
 
 
 import os
@@ -174,6 +174,9 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
     NODE_COLUMN = 5
     """Column id containing HDF5 node type"""
 
+    LINK_COLUMN = 6
+    """Column id containing HDF5 link type"""
+
     COLUMN_IDS = [
         NAME_COLUMN,
         TYPE_COLUMN,
@@ -181,6 +184,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         VALUE_COLUMN,
         DESCRIPTION_COLUMN,
         NODE_COLUMN,
+        LINK_COLUMN,
     ]
     """List of logical columns available"""
 
@@ -188,13 +192,14 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         super(Hdf5TreeModel, self).__init__(parent)
 
         self.treeView = parent
-        self.header_labels = [None] * 6
+        self.header_labels = [None] * len(self.COLUMN_IDS)
         self.header_labels[self.NAME_COLUMN] = 'Name'
         self.header_labels[self.TYPE_COLUMN] = 'Type'
         self.header_labels[self.SHAPE_COLUMN] = 'Shape'
         self.header_labels[self.VALUE_COLUMN] = 'Value'
         self.header_labels[self.DESCRIPTION_COLUMN] = 'Description'
         self.header_labels[self.NODE_COLUMN] = 'Node'
+        self.header_labels[self.LINK_COLUMN] = 'Link'
 
         # Create items
         self.__root = Hdf5Node()
@@ -423,11 +428,13 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             return node.dataDescription(role)
         elif index.column() == self.NODE_COLUMN:
             return node.dataNode(role)
+        elif index.column() == self.LINK_COLUMN:
+            return node.dataLink(role)
         else:
             return None
 
     def columnCount(self, parent=qt.QModelIndex()):
-        return len(self.header_labels)
+        return len(self.COLUMN_IDS)
 
     def hasChildren(self, parent=qt.QModelIndex()):
         node = self.nodeFromIndex(parent)

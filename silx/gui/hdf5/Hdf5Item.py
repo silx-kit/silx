@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "20/01/2017"
+__date__ = "16/06/2017"
 
 
 import numpy
@@ -55,7 +55,7 @@ class Hdf5Item(Hdf5Node):
     tree structure.
     """
 
-    def __init__(self, text, obj, parent, key=None, h5pyClass=None, isBroken=False, populateAll=False):
+    def __init__(self, text, obj, parent, key=None, h5pyClass=None, linkClass=None, populateAll=False):
         """
         :param str text: text displayed
         :param object obj: Pointer to h5py data. See the `obj` attribute.
@@ -63,9 +63,10 @@ class Hdf5Item(Hdf5Node):
         self.__obj = obj
         self.__key = key
         self.__h5pyClass = h5pyClass
-        self.__isBroken = isBroken
+        self.__isBroken = obj is None and h5pyClass is None
         self.__error = None
         self.__text = text
+        self.__linkClass = linkClass
         Hdf5Node.__init__(self, parent, populateAll=populateAll)
 
     @property
@@ -88,9 +89,17 @@ class Hdf5Item(Hdf5Node):
 
         :rtype: h5py.File or h5py.Dataset or h5py.Group
         """
-        if self.__h5pyClass is None:
+        if self.__h5pyClass is None and self.obj is not None:
             self.__h5pyClass = silx.io.utils.get_h5py_class(self.obj)
         return self.__h5pyClass
+
+    @property
+    def linkClass(self):
+        """Returns the link class object of this node
+
+        :type: h5py.SoftLink or h5py.HardLink or h5py.ExternalLink or None
+        """
+        return self.__linkClass
 
     def isGroupObj(self):
         """Returns true if the stored HDF5 object is a group (contains sub
@@ -98,6 +107,8 @@ class Hdf5Item(Hdf5Node):
 
         :rtype: bool
         """
+        if self.h5pyClass is None:
+            return False
         return issubclass(self.h5pyClass, h5py.Group)
 
     def isBrokenObj(self):
@@ -166,15 +177,15 @@ class Hdf5Item(Hdf5Node):
             for name in self.obj:
                 try:
                     class_ = self.obj.get(name, getclass=True)
-                    has_error = False
+                    link = self.obj.get(name, getclass=True, getlink=True)
                 except Exception as e:
-                    _logger.error("Internal h5py error", exc_info=True)
+                    _logger.warn("Internal h5py error", exc_info=True)
+                    class_ = None
                     try:
-                        class_ = self.obj.get(name, getclass=True, getlink=True)
+                        link = self.obj.get(name, getclass=True, getlink=True)
                     except Exception as e:
-                        class_ = h5py.HardLink
-                    has_error = True
-                item = Hdf5Item(text=name, obj=None, parent=self, key=name, h5pyClass=class_, isBroken=has_error)
+                        link = h5py.HardLink
+                item = Hdf5Item(text=name, obj=None, parent=self, key=name, h5pyClass=class_, linkClass=link)
                 self.appendChild(item)
 
     def hasChildren(self):
@@ -412,10 +423,41 @@ class Hdf5Item(Hdf5Node):
         if role == qt.Qt.TextAlignmentRole:
             return qt.Qt.AlignTop | qt.Qt.AlignLeft
         if role == qt.Qt.DisplayRole:
+            if self.isBrokenObj():
+                return ""
             class_ = self.h5pyClass
             text = class_.__name__.split(".")[-1]
             return text
         if role == qt.Qt.ToolTipRole:
             class_ = self.h5pyClass
+            if class_ is None:
+                return ""
             return "Class name: %s" % self.__class__
+        return None
+
+    def dataLink(self, role):
+        """Data for the link column
+
+        Overwrite it to implement the content of the 'link' column.
+
+        :rtype: qt.QVariant
+        """
+        if role == qt.Qt.DecorationRole:
+            return None
+        if role == qt.Qt.TextAlignmentRole:
+            return qt.Qt.AlignTop | qt.Qt.AlignLeft
+        if role == qt.Qt.DisplayRole:
+            link = self.linkClass
+            if link is None:
+                return ""
+            elif link is h5py.ExternalLink:
+                return "External"
+            elif link is h5py.SoftLink:
+                return "Soft"
+            elif link is h5py.HardLink:
+                return ""
+            else:
+                return link.__name__
+        if role == qt.Qt.ToolTipRole:
+            return None
         return None
