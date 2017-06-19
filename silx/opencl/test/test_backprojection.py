@@ -47,8 +47,45 @@ if ocl:
     import pyopencl
     import pyopencl.array
     from .. import backprojection
+from silx.test.utils import utilstest
 
-logger = logging.getLogger(__name__)
+#~ logger = logging.getLogger(__name__)
+logging.basicConfig(filename='results.log', filemode='w',
+                    format='%(asctime)s %(levelname)s %(message)s',
+                    datefmt='%m/%d/%Y %I:%M:%S', level=logging.DEBUG)
+logger = logging.getLogger()
+
+
+
+
+
+def generate_coords(img_shp, center=None):
+    """
+    Return two 2D arrays containing the indexes of an image.
+    The zero is at the center of the image.
+    """
+    l_r, l_c = float(img_shp[0]), float(img_shp[1])
+    R, C = np.mgrid[:l_r, :l_c]
+    if center is None:
+        center0, center1 = l_r / 2., l_c / 2.
+    else:
+        center0, center1 = center
+    R = R + 0.5 - center0
+    C = C + 0.5 - center1
+    return R, C
+
+
+def clip_circle(img, center=None, radius=None):
+    """
+    Puts zeros outside the inscribed circle of the image support.
+    """
+    R, C = generate_coords(img.shape, center)
+    M = R**2+C**2
+    res = np.zeros_like(img)
+    if radius is None:
+        radius = img.shape[0]/2.-1
+    res[M<radius**2] = img[M<radius**2]
+    return res
 
 
 
@@ -59,17 +96,24 @@ class TestFBP(unittest.TestCase):
     def setUp(self):
         if ocl is None:
             return
-        # Create a dummy sinogram
-        self.sino = np.random.randn(500, 512)
+        self.getfiles()
         self.fbp = backprojection.Backprojection(self.sino.shape)
-        #~ if self.fbp.device.type == "CPU":
-            #~ self.skipTest("Backprojection is not implemented on CPU yet")
         if sys.platform.startswith('darwin'):
             self.skipTest("Backprojection is not implemented on CPU for OS X yet")
+
+
 
     def tearDown(self):
         self.sino = None
         self.fbp = None
+
+
+    def getfiles(self):
+        # load sinogram of 512x512 MRI phantom
+        self.sino = np.load(utilstest.getfile("sino500.npz"))["data"]
+        # load reconstruction made with ASTRA FBP (with filter designed in spatial domain)
+        self.reference_rec = np.load(utilstest.getfile("rec_astra_500.npz"))["data"]
+
 
     def measure(self):
         "Common measurement of timings"
@@ -80,19 +124,37 @@ class TestFBP(unittest.TestCase):
             logger.error(msg)
             return
         t2 = time.time()
-        return t2 - t1
+        return t2 - t1, result
+
+
+    def compare(self, res):
+        """
+        Compare a result with the reference reconstruction.
+        Only the valid reconstruction zone (inscribed circle) is taken into account
+        """
+        res_clipped = clip_circle(res)
+        ref_clipped = clip_circle(self.reference_rec)
+        from spire.io import edf_write
+        edf_write(res_clipped, "res.edf")
+        edf_write(ref_clipped, "rec_astra.edf")
+        return np.max(np.abs(res_clipped - ref_clipped))
+
 
     @unittest.skipUnless(ocl and mako, "pyopencl is missing")
     def test_fbp(self):
         """
         tests FBP
         """
-        r = self.measure()
-        if r is None:
+        t, res = self.measure()
+        if t is None:
             logger.info("test_fp: skipped")
         else:
-            logger.info("test_medfilt: time = %.3fs" % r)
-
+            logger.info("test_backproj: time = %.3fs" % t)
+            err = self.compare(res)
+            msg = str("Max error = %e" % err)
+            # TODO: cannot do better than 1e0 ?
+            # The plain backprojection was much better, so it must be an issue in the filtering process
+            self.assertTrue(err < 1., "Max error is too high")
 
 
 def suite():
