@@ -37,14 +37,25 @@ from silx.gui import qt
 import numpy
 
 
-class TestColorScale(unittest.TestCase):
+class TestColorScale(TestCaseQt):
     """Test that interaction with the colorScale is correct"""
     def setUp(self):
+        super(TestColorScale, self).setUp()
         self.colorScaleWidget = _ColorScale(colormap=None, parent=None)
+        self.colorScaleWidget.show()
+        self.qWaitForWindowExposed(self.colorScaleWidget)
 
     def tearDown(self):
-        self.colorScaleWidget.deleteLater()
-        self.colorScaleWidget = None
+        self.qapp.processEvents()
+        self.colorScaleWidget.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.colorScaleWidget.close()
+        del self.colorScaleWidget
+        super(TestColorScale, self).tearDown()
+
+    def testNoColormap(self):
+        """Test _ColorScale without a colormap"""
+        colormap = self.colorScaleWidget.getColormap()
+        self.assertIsNone(colormap)
 
     def testRelativePositionLinear(self):
         self.colorMapLin1 = {'name': 'gray', 'normalization': 'linear',
@@ -83,6 +94,27 @@ class TestColorScale(unittest.TestCase):
         
         val = self.colorScaleWidget.getValueFromRelativePosition(0.0)
         self.assertTrue(val == 1.0)
+
+    def testToolTip(self):
+        """Test value displayed in tool tip"""
+        colormap = {'name': 'gray', 'normalization': 'linear',
+                    'autoscale': False, 'vmin': 1.0, 'vmax': 100.0}
+        self.colorScaleWidget.setColormap(colormap)
+
+        xCenter = self.colorScaleWidget.width() / 2.
+        height = self.colorScaleWidget.height()
+
+        self.mouseMove(self.colorScaleWidget, (xCenter, height - 1))
+        self.assertEqual(self.colorScaleWidget.toolTip(),
+                         str(colormap['vmin']))
+
+        self.mouseMove(self.colorScaleWidget, (xCenter, height // 2))
+        self.assertEqual(self.colorScaleWidget.toolTip(),
+                         str((colormap['vmax'] + colormap['vmin'])/2.))
+
+        self.mouseMove(self.colorScaleWidget, (xCenter, 0))
+        self.assertEqual(self.colorScaleWidget.toolTip(),
+                         str(colormap['vmax']))
 
 
 class TestNoAutoscale(TestCaseQt):
@@ -156,11 +188,11 @@ class TestNoAutoscale(TestCaseQt):
         self.assertTrue(val == -4.0)
 
 
-class TestColorbarWidget(TestCaseQt):
-    """Test interaction with the ColorScaleBar"""
+class TestColorBarWidget(TestCaseQt):
+    """Test interaction with the ColorBarWidget"""
 
     def setUp(self):
-        super(TestColorbarWidget, self).setUp()
+        super(TestColorBarWidget, self).setUp()
         self.plot = Plot2D()
         self.colorBar = self.plot.getColorBarWidget()
         self.colorBar.setVisible(True)  # Makes sure the colormap is visible
@@ -174,7 +206,7 @@ class TestColorbarWidget(TestCaseQt):
         self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot.close()
         del self.plot
-        super(TestColorbarWidget, self).tearDown()
+        super(TestColorBarWidget, self).tearDown()
 
     def testEmptyColorBar(self):
         colorBar = ColorBarWidget(parent=None)
@@ -212,7 +244,7 @@ class TestColorbarWidget(TestCaseQt):
         self.assertTrue(self.colorBar.getColormap()['vmax'] == 10)
 
     def testPlotAssocation(self):
-        """Make sure the ColorBarWidget is proparly connected with the plot"""
+        """Make sure the ColorBarWidget is properly connected to the plot"""
         colormap = {'name': 'gray', 'normalization': 'linear',
                     'autoscale': True, 'vmin': -1.0, 'vmax': 1.0}
 
@@ -228,10 +260,26 @@ class TestColorbarWidget(TestCaseQt):
         self.assertFalse(
             self.colorBar.getColormap() == self.plot.getDefaultColormap())
 
+        # test that colorbar is updated when default plot colormap changes
+        self.plot.clear()
+        self.assertEqual(self.colorBar.getColormap(),
+                         self.plot.getDefaultColormap())
+        plotColormap = {'name': 'gray', 'normalization': 'log',
+                        'autoscale': True, 'vmin': 1.0, 'vmax': 2.0}
+        self.plot.setDefaultColormap(plotColormap)
+        self.assertEqual(self.colorBar.getColormap(),
+                         plotColormap)
+
+    def testColormapWithoutRange(self):
+        """Test with a colormap with vmin==vmax"""
+        colormap = {'name': 'gray', 'normalization': 'linear',
+                    'autoscale': False, 'vmin': 1.0, 'vmax': 1.0}
+        self.colorBar.setColormap(colormap)
+
 
 def suite():
     test_suite = unittest.TestSuite()
-    for ui in (TestColorScale, TestNoAutoscale, TestColorbarWidget):
+    for ui in (TestColorScale, TestNoAutoscale, TestColorBarWidget):
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(ui))
 
