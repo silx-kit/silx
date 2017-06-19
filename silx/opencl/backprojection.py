@@ -282,26 +282,27 @@ class Backprojection(OpenclProcessing):
         :return: backprojection of sinogram
         """
         events = []
-        if sino is not None:
-            assert sino.ndim == 2, "Treat only 2D images"
-            assert sino.shape[0] == self.num_projs, "num_projs is OK"
-            assert sino.shape[1] == self.num_bins, "num_bins is OK"
-            # We can either
-            #  (1) do the conversion on host, and directly send to the device texture, or
-            #  (2) send to the device Buffer d_sino, make the conversion on device, and then transfer to texture
-            # ------
-            # (2) without device conversion
-            pyopencl.enqueue_copy(self.queue, self.d_sino, np.ascontiguousarray(sino, dtype=np.float32))
-            # (1)
-            #~ pyopencl.enqueue_copy(
-                #~ self.queue,
-                #~ self.d_sino_tex,
-                #~ np.ascontiguousarray(sino.astype(np.float32)),
-                #~ origin=(0, 0),
-                #~ region=(np.int32(sino.shape[1]), np.int32(sino.shape[0]))
-            #~ )
-
         with self.sem:
+
+            if sino is not None:
+                assert sino.ndim == 2, "Treat only 2D images"
+                assert sino.shape[0] == self.num_projs, "num_projs is OK"
+                assert sino.shape[1] == self.num_bins, "num_bins is OK"
+                # We can either
+                #  (1) do the conversion on host, and directly send to the device texture, or
+                #  (2) send to the device Buffer d_sino, make the conversion on device, and then transfer to texture
+                # ------
+                # (2) without device conversion
+                pyopencl.enqueue_copy(self.queue, self.d_sino, np.ascontiguousarray(sino, dtype=np.float32))
+                # (1)
+                #~ pyopencl.enqueue_copy(
+                    #~ self.queue,
+                    #~ self.d_sino_tex,
+                    #~ np.ascontiguousarray(sino.astype(np.float32)),
+                    #~ origin=(0, 0),
+                    #~ region=(np.int32(sino.shape[1]), np.int32(sino.shape[0]))
+                #~ )
+            # /sino is not None
             # Copy d_sino to texture, for GPU
             if not(self.is_cpu):
                 ev = pyopencl.enqueue_copy(
@@ -347,10 +348,10 @@ class Backprojection(OpenclProcessing):
                     *kernel_args
                 )
             events.append(EventDescription("backprojection", event_bpj))
-
             ev = pyopencl.enqueue_copy(self.queue, self.slice, self.cl_mem["d_slice"])
             events.append(EventDescription("copy D->H result", ev))
             ev.wait()
+        # /with self.sem
         if self.profile:
             self.events += events
         if self.dimrec_shape[0] > self.slice_shape[0] or self.dimrec_shape[1] > self.slice_shape[1]:
@@ -383,31 +384,32 @@ class Backprojection(OpenclProcessing):
             sino_zeropadded = np.zeros((sino.shape[0], self.fft_size), dtype=np.complex64)
             sino_zeropadded[:, :self.num_bins] = sino.astype(np.float32)
             sino_zeropadded = np.ascontiguousarray(sino_zeropadded, dtype=np.complex64)
-            # send to GPU
-            ev = pyopencl.enqueue_copy(self.queue, self.d_sino_z.data, sino_zeropadded)
-            #~ del sino_zeropadded
-            events.append(EventDescription("Send sino H->D", ev))
-            # FFT (in-place)
-            self.pyfft_plan.execute(self.d_sino_z.data, batch=self.num_projs)
-            # Multiply (complex-wise) with the the filter
-            ev = self.prg_mult.mult(self.queue, self.d_sino_z.shape[::-1], None,
-                           self.d_sino_z.data,
-                           self.d_filter.data,
-                           np.int32(self.fft_size),
-                           self.num_projs
-                         )
-            events.append(EventDescription("complex 2D-1D multiplication", ev))
-            # Inverse FFT (in-place)
-            self.pyfft_plan.execute(self.d_sino_z.data, batch=self.num_projs, inverse=True)
-            # Copy the real part of d_sino_z[:, :self.num_bins] (complex64) to d_sino (float32)
-            ev = self.prg_cpy2d.cpy2d(self.queue, self.shape[::-1], None,
-                           self.d_sino,
-                           self.d_sino_z.data,
-                           self.num_bins,
-                           self.num_projs,
-                           np.int32(self.fft_size)
-                         )
-            events.append(EventDescription("conversion from complex padded sinogram to sinogram", ev))
+            with self.sem:
+                # send to GPU
+                ev = pyopencl.enqueue_copy(self.queue, self.d_sino_z.data, sino_zeropadded)
+                #~ del sino_zeropadded
+                events.append(EventDescription("Send sino H->D", ev))
+                # FFT (in-place)
+                self.pyfft_plan.execute(self.d_sino_z.data, batch=self.num_projs)
+                # Multiply (complex-wise) with the the filter
+                ev = self.prg_mult.mult(self.queue, self.d_sino_z.shape[::-1], None,
+                               self.d_sino_z.data,
+                               self.d_filter.data,
+                               np.int32(self.fft_size),
+                               self.num_projs
+                             )
+                events.append(EventDescription("complex 2D-1D multiplication", ev))
+                # Inverse FFT (in-place)
+                self.pyfft_plan.execute(self.d_sino_z.data, batch=self.num_projs, inverse=True)
+                # Copy the real part of d_sino_z[:, :self.num_bins] (complex64) to d_sino (float32)
+                ev = self.prg_cpy2d.cpy2d(self.queue, self.shape[::-1], None,
+                               self.d_sino,
+                               self.d_sino_z.data,
+                               self.num_bins,
+                               self.num_projs,
+                               np.int32(self.fft_size)
+                             )
+                events.append(EventDescription("conversion from complex padded sinogram to sinogram", ev))
             if self.profile:
                 self.events += events
             # ------
@@ -421,7 +423,8 @@ class Backprojection(OpenclProcessing):
             sino_filtered = np.fft.ifft(sino_f)[:, :self.num_bins].real
             # Send the filtered sinogram to device
             sino_filtered = np.ascontiguousarray(sino_filtered, dtype=np.float32)
-            pyopencl.enqueue_copy(self.queue, self.d_sino, sino_filtered)
+            with self.sem:
+                pyopencl.enqueue_copy(self.queue, self.d_sino, sino_filtered)
 
 
     def filtered_backprojection(self, sino):
