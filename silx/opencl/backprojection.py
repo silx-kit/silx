@@ -83,14 +83,17 @@ class Backprojection(OpenclProcessing):
     kernel_files = ["backproj.cl"]
 
 
-    def __init__(self, shape, axis_position=None, angles=None, filter_name=None,
+    def __init__(self, sino_shape, slice_shape=None, axis_position=None, angles=None, filter_name=None,
                  ctx=None, devicetype="all", platformid=None, deviceid=None,
                  profile=False
                  ):
         """Constructor of the OpenCL (filtered) backprojection
 
-        :param shape: shape of the sinogram. The sinogram is in the format (n_b, n_a) where
+        :param sino_shape: shape of the sinogram. The sinogram is in the format (n_b, n_a) where
                       n_b is the number of detector bins and n_a is the number of angles.
+        :param slice_shape: Optional, shape of the reconstructed slice. By default, it is a
+                    square slice where the dimension is the "x dimension" of the sinogram (number
+                    of bins).
         :param axis_position: Optional, axis position. Default is `(shape[1]-1)/2.0`.
         :param angles: Optional, a list of custom angles in radian.
         :param filter_name: Optional, name of the filter for FBP. Default is the Ram-Lak filter.
@@ -108,25 +111,33 @@ class Backprojection(OpenclProcessing):
         OpenclProcessing.__init__(self, ctx=ctx, devicetype=devicetype,
                                   platformid=platformid, deviceid=deviceid,
                                   profile=profile)
-        self.shape = shape
-        self.num_bins = np.int32(shape[1])
-        self.num_projs = np.int32(shape[0])
+        self.shape = sino_shape
+
+        self.num_bins = np.int32(sino_shape[1])
+        self.num_projs = np.int32(sino_shape[0])
         self.angles = angles
-        self.slice = np.zeros((self.num_bins, self.num_bins), dtype=np.float32)
+        if slice_shape is None:
+            self.slice_shape = (self.num_bins, self.num_bins)
+        else:
+            self.slice_shape = slice_shape
+        self.dimrec_shape = (
+            _idivup(self.slice_shape[0], 32)*32,
+            _idivup(self.slice_shape[1], 32)*32
+        )
+        self.slice = np.zeros(self.dimrec_shape, dtype=np.float32)
         self.filter_name = filter_name if filter_name else "Ram-Lak"
         if axis_position:
             self.axis_pos = np.float32(axis_position)
         else:
-            self.axis_pos = np.float32((shape[1]-1.)/2)
-        # TODO: add axis correction front-end
-        self.axis_array = None
+            self.axis_pos = np.float32((sino_shape[1]-1.)/2)
+        self.axis_array = None # TODO: add axis correction front-end
         self.is_cpu = False
         if self.device.type == "CPU":
             self.is_cpu = True
 
         self.compute_fft_plans()
         self.buffers = [
-                    BufferDescription("d_slice", self.num_bins*self.num_bins, np.float32, mf.READ_WRITE),
+                    BufferDescription("d_slice", np.prod(self.dimrec_shape), np.float32, mf.READ_WRITE),
                     BufferDescription("d_sino", self.num_projs*self.num_bins, np.float32, mf.READ_WRITE), # before transferring to texture (if available)
                     BufferDescription("d_cos", self.num_projs, np.float32, mf.READ_ONLY),
                     BufferDescription("d_sin", self.num_projs, np.float32, mf.READ_ONLY),
@@ -342,6 +353,8 @@ class Backprojection(OpenclProcessing):
             ev.wait()
         if self.profile:
             self.events += events
+        if self.slice_shape[0] != self.dimrec_shape[0] or self.slice_shape[1] != self.dimrec_shape[1]: # DEBUG
+            return np.copy(self.slice[:self.slice_shape[0], :self.slice_shape[1]]) # copy ?
         return self.slice
 
 
@@ -421,7 +434,7 @@ class Backprojection(OpenclProcessing):
 
 
 
-    __call__ = filtered_backprojection # or fbp ?
+    __call__ = filtered_backprojection
 
 
 
@@ -430,48 +443,3 @@ class Backprojection(OpenclProcessing):
 
 
 
-
-
-
-
-'''
-
-class _MedFilt2d(object):
-    median_filter = None
-
-    @classmethod
-    def medfilt2d(cls, ary, kernel_size=3):
-        """Median filter a 2-dimensional array.
-
-        Apply a median filter to the `input` array using a local window-size
-        given by `kernel_size` (must be odd).
-
-        :param ary: A 2-dimensional input array.
-        :param kernel_size: A scalar or a list of length 2, giving the size of the
-                            median filter window in each dimension.  Elements of
-                            `kernel_size` should be odd.  If `kernel_size` is a scalar,
-                            then this scalar is used as the size in each dimension.
-                            Default is a kernel of size (3, 3).
-        :return: An array the same size as input containing the median filtered
-                result. always work on float32 values
-
-        About the padding:
-
-        * The filling mode in scipy.signal.medfilt2d is zero-padding
-        * This implementation is equivalent to:
-            scipy.ndimage.filters.median_filter(ary, kernel_size, mode="nearest")
-
-        """
-        image = np.atleast_2d(ary)
-        shape = np.array(image.shape)
-        if cls.median_filter is None:
-            cls.median_filter = MedianFilter2D(image.shape, kernel_size)
-        elif (np.array(cls.median_filter.shape) < shape).any():
-            # enlarger the buffer size
-            new_shape = np.maximum(np.array(cls.median_filter.shape), shape)
-            ctx = cls.median_filter.ctx
-            cls.median_filter = MedianFilter2D(new_shape, kernel_size, ctx=ctx)
-        return cls.median_filter.medfilt2d(image)
-
-medfilt2d = _MedFilt2d.medfilt2d
-'''
