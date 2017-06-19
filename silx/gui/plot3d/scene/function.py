@@ -363,20 +363,6 @@ class Colormap(event.Notifier, ProgramFunction):
 
     call = "colormap"
 
-    _COLORMAPS = {
-        'gray': 0,
-        'reversed gray': 1,
-        'red': 2,
-        'green': 3,
-        'blue': 4,
-        'temperature': 5
-    }
-
-    COLORMAPS = tuple(_COLORMAPS.keys())
-    """Tuple of supported colormap names."""
-
-    NORMS = 'linear', 'log'
-    """Tuple of supported normalizations."""
 
     def __init__(self, name='gray', norm='linear', range_=(1., 10.)):
         """Shader function to apply a colormap to a value.

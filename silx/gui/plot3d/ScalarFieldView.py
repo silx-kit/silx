@@ -43,6 +43,7 @@ import numpy
 
 from silx.gui import qt
 from silx.gui.plot.Colors import rgba
+from silx.gui.plot.Colormap import Colormap
 
 from silx.math.marchingcubes import MarchingCubes
 
@@ -263,48 +264,6 @@ class Isosurface(qt.QObject):
                                          mode='triangles',
                                          indices=indices)
                 self._group.children = [mesh]
-
-
-class Colormap(object):
-    """Description of a colormap
-
-    :param str name: Name of the colormap
-    :param str norm: Normalization: 'linear' (default) or 'log'
-    :param float vmin:
-        Lower bound of the colormap or None for autoscale (default)
-    :param float vmax:
-        Upper bounds of the colormap or None for autoscale (default)
-    """
-
-    def __init__(self, name, norm='linear', vmin=None, vmax=None):
-        assert name in function.Colormap.COLORMAPS
-        self._name = str(name)
-
-        assert norm in ('linear', 'log')
-        self._norm = str(norm)
-
-        self._vmin = float(vmin) if vmin is not None else None
-        self._vmax = float(vmax) if vmax is not None else None
-
-    def isAutoscale(self):
-        """True if both min and max are in autoscale mode"""
-        return self._vmin is None or self._vmax is None
-
-    def getName(self):
-        """Return the name of the colormap (str)"""
-        return self._name
-
-    def getNorm(self):
-        """Return the normalization of the colormap (str)"""
-        return self._norm
-
-    def getVMin(self):
-        """Return the lower bound of the colormap or None"""
-        return self._vmin
-
-    def getVMax(self):
-        """Return the upper bounds of the colormap or None"""
-        return self._vmax
 
 
 class SelectedRegion(object):
