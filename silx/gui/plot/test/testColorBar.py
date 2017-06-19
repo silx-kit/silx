@@ -33,6 +33,7 @@ from silx.gui.test.utils import TestCaseQt
 from silx.gui.plot.ColorBar import _ColorScale
 from silx.gui.plot.ColorBar import ColorBarWidget
 from silx.gui.plot import Plot2D
+from silx.gui import qt
 import numpy
 
 
@@ -84,23 +85,31 @@ class TestColorScale(unittest.TestCase):
         self.assertTrue(val == 1.0)
 
 
-class TestNoAutoscale(unittest.TestCase):
+class TestNoAutoscale(TestCaseQt):
     """Test that ticks and color displayed are correct in the case of a colormap
     with no autoscale
     """
 
     def setUp(self):
+        super(TestNoAutoscale, self).setUp()
         self.plot = Plot2D()
-        self.colorBar = ColorBarWidget(parent=None, plot=self.plot)
+        self.colorBar = self.plot.getColorBarWidget()
+        self.colorBar.setVisible(True)  # Makes sure the colormap is visible
         self.tickBar = self.colorBar.getColorScaleBar().getTickBar()
         self.colorScale = self.colorBar.getColorScaleBar().getColorScale()
 
+        self.plot.show()
+        self.qWaitForWindowExposed(self.plot)
+
     def tearDown(self):
+        self.qapp.processEvents()
         self.tickBar = None
         self.colorScale = None
         del self.colorBar
+        self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot.close()
         del self.plot
+        super(TestNoAutoscale, self).tearDown()
 
     def testLogNormNoAutoscale(self):
         colormapLog = { 'name': 'gray', 'normalization': 'log',
@@ -146,19 +155,25 @@ class TestNoAutoscale(unittest.TestCase):
         val = self.colorScale.getValueFromRelativePosition(0.0)
         self.assertTrue(val == -4.0)
 
+
 class TestColorbarWidget(TestCaseQt):
     """Test interaction with the ColorScaleBar"""
 
     def setUp(self):
         super(TestColorbarWidget, self).setUp()
         self.plot = Plot2D()
-        self.colorBar = ColorBarWidget(parent=None, plot=self.plot)
+        self.colorBar = self.plot.getColorBarWidget()
+        self.colorBar.setVisible(True)  # Makes sure the colormap is visible
+
+        self.plot.show()
+        self.qWaitForWindowExposed(self.plot)
 
     def tearDown(self):
+        self.qapp.processEvents()
         del self.colorBar
+        self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot.close()
         del self.plot
-
         super(TestColorbarWidget, self).tearDown()
 
     def testEmptyColorBar(self):
