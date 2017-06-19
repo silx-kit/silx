@@ -83,20 +83,7 @@ class TestColorScale(unittest.TestCase):
         val = self.colorScaleWidget.getValueFromRelativePosition(0.0)
         self.assertTrue(val == 1.0)
 
-    def testNegativeLogMin(self):
-        colormap = { 'name': 'gray', 'normalization': 'log',
-                    'autoscale': False, 'vmin': -1.0, 'vmax': 1.0 }
 
-        with self.assertRaises(ValueError):
-            self.colorScaleWidget.setColormap(colormap)
-
-    def testNegativeLogMax(self):
-        colormap = { 'name': 'gray', 'normalization': 'log',
-                    'autoscale': False, 'vmin': 1.0, 'vmax': -1.0 }
-
-        with self.assertRaises(ValueError):
-            self.colorScaleWidget.setColormap(colormap)
-        
 class TestNoAutoscale(unittest.TestCase):
     """Test that ticks and color displayed are correct in the case of a colormap
     with no autoscale
@@ -198,16 +185,16 @@ class TestColorbarWidget(TestCaseQt):
 
         # default behavior when autoscale : set to minmal positive value
         data[data<1] = data.max()
-        self.assertTrue(self.colorBar._colormap['vmin'] == data.min())
-        self.assertTrue(self.colorBar._colormap['vmax'] == data.max())
+        self.assertTrue(self.colorBar.getColormap()['vmin'] == data.min())
+        self.assertTrue(self.colorBar.getColormap()['vmax'] == data.max())
 
         data = numpy.linspace(-9, -2, 100).reshape(10, 10)
 
         self.plot.addImage(data=data, colormap=colormapLog2, legend='toto')
         self.plot.setActiveImage('toto')
         # if negative values, changing bounds for default : 1, 10
-        self.assertTrue(self.colorBar._colormap['vmin'] == 1)
-        self.assertTrue(self.colorBar._colormap['vmax'] == 10)
+        self.assertTrue(self.colorBar.getColormap()['vmin'] == 1)
+        self.assertTrue(self.colorBar.getColormap()['vmax'] == 10)
 
     def testPlotAssocation(self):
         """Make sure the ColorBarWidget is proparly connected with the plot"""
