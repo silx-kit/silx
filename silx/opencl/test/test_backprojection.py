@@ -134,9 +134,6 @@ class TestFBP(unittest.TestCase):
         """
         res_clipped = clip_circle(res)
         ref_clipped = clip_circle(self.reference_rec)
-        from spire.io import edf_write
-        edf_write(res_clipped, "res.edf")
-        edf_write(ref_clipped, "rec_astra.edf")
         return np.max(np.abs(res_clipped - ref_clipped))
 
 

@@ -157,8 +157,8 @@ class Backprojection(OpenclProcessing):
         # Workgroup and ndrange sizes are always the same
         self.wg = (16, 16)
         self.ndrange = (
-            _idivup(int(self.num_bins), 32)*self.wg[0], # int(): pyopencl <= 2015.1
-            _idivup(int(self.num_bins), 32)*self.wg[1]  # int(): pyopencl <= 2015.1
+            _idivup(int(self.dimrec_shape[1]), 32)*self.wg[0], # int(): pyopencl <= 2015.1
+            _idivup(int(self.dimrec_shape[0]), 32)*self.wg[1]  # int(): pyopencl <= 2015.1
         )
 
     def compute_angles(self):
@@ -353,10 +353,13 @@ class Backprojection(OpenclProcessing):
             ev.wait()
         if self.profile:
             self.events += events
-        if self.slice_shape[0] != self.dimrec_shape[0] or self.slice_shape[1] != self.dimrec_shape[1]: # DEBUG
-            return np.copy(self.slice[:self.slice_shape[0], :self.slice_shape[1]]) # copy ?
-        return self.slice
-
+        if self.dimrec_shape[0] > self.slice_shape[0] or self.dimrec_shape[1] > self.slice_shape[1]:
+            self.slice = self.slice[:self.slice_shape[0], :self.slice_shape[1]]
+        # if the slice is backprojected onto a bigger grid
+        if self.slice_shape[1] > self.num_bins:
+            return self.slice[:self.slice_shape[0], :self.slice_shape[1]]
+        else:
+            return self.slice
 
 
     def filter_projections(self, sino, rescale=True):
