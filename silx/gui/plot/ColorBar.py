@@ -494,7 +494,7 @@ class _ColorScale(qt.QWidget):
 
         :rtype: dict
         """
-        return self._colormap.copy()
+        return None if self._colormap is None else self._colormap.copy()
 
     def _updateColorGradient(self):
         """Compute the color gradient"""
