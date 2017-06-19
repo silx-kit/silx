@@ -64,6 +64,8 @@ class TestFBP(unittest.TestCase):
         self.fbp = backprojection.Backprojection(self.sino.shape)
         #~ if self.fbp.device.type == "CPU":
             #~ self.skipTest("Backprojection is not implemented on CPU yet")
+        if sys.platform.startswith('darwin'):
+            self.skipTest("Backprojection is not implemented on CPU for OS X yet")
 
     def tearDown(self):
         self.sino = None

@@ -53,7 +53,8 @@ try:
 except ImportError:
     _has_pyfft = False
 
-
+# for Mac OS X
+import sys
 
 
 
@@ -101,6 +102,9 @@ class Backprojection(OpenclProcessing):
         :param profile: switch on profiling to be able to profile at the kernel level,
                         store profiling elements (makes code slightly slower)
         """
+        if sys.platform.startswith('darwin'): # assuming no discrete GPU
+            raise NotImplementedError("Backprojection is not implemented on CPU for OS X yet")
+
         OpenclProcessing.__init__(self, ctx=ctx, devicetype=devicetype,
                                   platformid=platformid, deviceid=deviceid,
                                   profile=profile)
