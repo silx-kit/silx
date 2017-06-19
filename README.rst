@@ -34,8 +34,7 @@ To install silx locally, run::
  
     pip install silx --user
 
-On Linux, to install silx with pip, you must install numpy first. Unofficial packages
-for different distributions are available :
+Unofficial packages for different distributions are available :
 
 - Unofficial Debian8 packages are available at http://www.silx.org/pub/debian/
 - CentOS 7 rpm packages are provided by Max IV at the following url: http://pubrepo.maxiv.lu.se/rpm/el7/x86_64/
