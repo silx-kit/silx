@@ -31,6 +31,7 @@ import unittest
 
 from .._utils.test import suite as testUtilsSuite
 from .testColorBar import suite as testColorBarSuite
+from .testColormap import suite as testColormap
 from .testColormapDialog import suite as testColormapDialogSuite
 from .testColors import suite as testColorsSuite
 from .testCurvesROIWidget import suite as testCurvesROIWidgetSuite
@@ -67,5 +68,6 @@ def suite():
          testPlotWidgetSuite(),
          testPlotWindowSuite(),
          testProfileSuite(),
-         testStackViewSuite()])
+         testStackViewSuite(),
+         testColormap()])
     return test_suite

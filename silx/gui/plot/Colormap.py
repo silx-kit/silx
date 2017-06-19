@@ -102,12 +102,13 @@ class Colormap(qt.QObject):
         self._colors = None
         self.sigChanged.emit()
 
-    def getColors(self):
+    def getColorMapLUT(self):
         """
+        
         :return tuple: the list of colors for the colormap"""
         return self._colors
 
-    def setColors(self, colors):
+    def setColorMapLUT(self, colors):
         """
         Set the colors of the colormap.
 
