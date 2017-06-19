@@ -47,8 +47,8 @@ class TestColorScale(unittest.TestCase):
         self.colorScaleWidget = None
 
     def testRelativePositionLinear(self):
-        self.colorMapLin1 = { 'name': 'gray', 'normalization': 'linear',
-                    'autoscale': False, 'vmin': 0.0, 'vmax': 1.0 }
+        self.colorMapLin1 = {'name': 'gray', 'normalization': 'linear',
+                             'autoscale': False, 'vmin': 0.0, 'vmax': 1.0}
         self.colorScaleWidget.setColormap(self.colorMapLin1)
         
         self.assertTrue(
@@ -58,8 +58,8 @@ class TestColorScale(unittest.TestCase):
         self.assertTrue(
             self.colorScaleWidget.getValueFromRelativePosition(1.0) == 1.0)
 
-        self.colorMapLin2 = { 'name': 'viridis', 'normalization': 'linear',
-                    'autoscale': False, 'vmin': -10, 'vmax': 0 }
+        self.colorMapLin2 = {'name': 'viridis', 'normalization': 'linear',
+                             'autoscale': False, 'vmin': -10, 'vmax': 0}
         self.colorScaleWidget.setColormap(self.colorMapLin2)
         
         self.assertTrue(
@@ -70,8 +70,8 @@ class TestColorScale(unittest.TestCase):
             self.colorScaleWidget.getValueFromRelativePosition(1.0) == 0.0)
 
     def testRelativePositionLog(self):
-        self.colorMapLog1 = { 'name': 'temperature', 'normalization': 'log',
-                    'autoscale': False, 'vmin': 1.0, 'vmax': 100.0 }
+        self.colorMapLog1 = {'name': 'temperature', 'normalization': 'log',
+                             'autoscale': False, 'vmin': 1.0, 'vmax': 100.0}
 
         self.colorScaleWidget.setColormap(self.colorMapLog1)
 
@@ -112,8 +112,8 @@ class TestNoAutoscale(TestCaseQt):
         super(TestNoAutoscale, self).tearDown()
 
     def testLogNormNoAutoscale(self):
-        colormapLog = { 'name': 'gray', 'normalization': 'log',
-                    'autoscale': False, 'vmin': 1.0, 'vmax': 100.0 }
+        colormapLog = {'name': 'gray', 'normalization': 'log',
+                       'autoscale': False, 'vmin': 1.0, 'vmax': 100.0}
 
         data = numpy.linspace(10, 1e10, 9).reshape(3, 3)
         self.plot.addImage(data=data, colormap=colormapLog, legend='toto')
@@ -135,8 +135,8 @@ class TestNoAutoscale(TestCaseQt):
         self.assertTrue(val == 1.0)
 
     def testLinearNormNoAutoscale(self):
-        colormapLog = { 'name': 'gray', 'normalization': 'linear',
-                    'autoscale': False, 'vmin': -4, 'vmax': 5 }
+        colormapLog = {'name': 'gray', 'normalization': 'linear',
+                       'autoscale': False, 'vmin': -4, 'vmax': 5}
 
         data = numpy.linspace(1, 9, 9).reshape(3, 3)
         self.plot.addImage(data=data, colormap=colormapLog, legend='toto')
@@ -187,11 +187,11 @@ class TestColorbarWidget(TestCaseQt):
 
         Note : colorbar is modified by the Plot directly not ColorBarWidget
         """
-        colormapLog = { 'name': 'gray', 'normalization': 'log',
-                    'autoscale': True, 'vmin': -1.0, 'vmax': 1.0 }
+        colormapLog = {'name': 'gray', 'normalization': 'log',
+                       'autoscale': True, 'vmin': -1.0, 'vmax': 1.0}
 
-        colormapLog2 = { 'name': 'gray', 'normalization': 'log',
-                    'autoscale': False, 'vmin': -1.0, 'vmax': 1.0 }
+        colormapLog2 = {'name': 'gray', 'normalization': 'log',
+                        'autoscale': False, 'vmin': -1.0, 'vmax': 1.0}
 
         data = numpy.array([-5, -4, 0, 2, 3, 5, 10, 20, 30])
         data = data.reshape(3, 3)
@@ -199,7 +199,7 @@ class TestColorbarWidget(TestCaseQt):
         self.plot.setActiveImage('toto')
 
         # default behavior when autoscale : set to minmal positive value
-        data[data<1] = data.max()
+        data[data < 1] = data.max()
         self.assertTrue(self.colorBar.getColormap()['vmin'] == data.min())
         self.assertTrue(self.colorBar.getColormap()['vmax'] == data.max())
 
@@ -213,8 +213,8 @@ class TestColorbarWidget(TestCaseQt):
 
     def testPlotAssocation(self):
         """Make sure the ColorBarWidget is proparly connected with the plot"""
-        colormap = { 'name': 'gray', 'normalization': 'linear',
-                    'autoscale': True, 'vmin': -1.0, 'vmax': 1.0 }
+        colormap = {'name': 'gray', 'normalization': 'linear',
+                    'autoscale': True, 'vmin': -1.0, 'vmax': 1.0}
 
         # make sure that default settings are the same
         self.assertTrue(
