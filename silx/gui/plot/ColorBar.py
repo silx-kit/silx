@@ -470,6 +470,8 @@ class _ColorScale(qt.QWidget):
         self.setMargin(margin)
         self.setContentsMargins(0, 0, 0, 0)
 
+        self.setMinimumSize(10, self._NB_CONTROL_POINTS // 2 + 2 * self.margin)
+
     def setColormap(self, colormap):
         """Set the new colormap to be displayed
 
@@ -519,11 +521,10 @@ class _ColorScale(qt.QWidget):
     def paintEvent(self, event):
         """"""
         qt.QWidget.paintEvent(self, event)
-        if self.getColormap() is None:
-            return
 
         painter = qt.QPainter(self)
-        painter.setBrush(self._gradient)
+        if self.getColormap() is not None:
+            painter.setBrush(self._gradient)
         painter.drawRect(qt.QRect(
             0,
             self.margin,
@@ -548,9 +549,13 @@ class _ColorScale(qt.QWidget):
         :param value: float value in [0, 1]
         :return: the value in [colormap['vmin'], colormap['vmax']]
         """
+        colormap = self.getColormap()
+        if colormap is None:
+            return
+
         value = max(0.0, value)
         value = min(value, 1.0)
-        colormap = self.getColormap()
+
         vmin = colormap['vmin']
         vmax = colormap['vmax']
         if colormap['normalization'] is 'linear':
