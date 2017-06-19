@@ -247,3 +247,14 @@ class Colormap(qt.QObject):
         colormap = Colormap(name="")
         colormap.setFromDict(dic)
         return colormap
+
+    def copy(self):
+        """
+        
+        :return: a copy of the Colormap object
+        """
+        return Colormap(name=self._name,
+                        colors=copy.copy(self._colors),
+                        vmin=self._vmin,
+                        vmax=self._vmax,
+                        norm=self._norm)
