@@ -32,6 +32,7 @@ __license__ = "MIT"
 __date__ = "05/12/2016"
 
 from silx.gui import qt
+import copy
 
 
 _OGL_COLORMAPS = {
@@ -181,3 +182,67 @@ class Colormap(object):
             raise KeyError(item)
         else:
             return getattr(self, attr)
+
+    def getDict(self):
+        """Return the equivalent colormap as a dictionnary
+        (old colormap representation)
+        
+        :return dict: the representation of the Colormap as a dictionnary
+        """
+        return {
+            'name': self._name,
+            'colors': copy.copy(self._colors),
+            'vmin': self._vmin,
+            'vmax': self._vmax,
+            'autoscale': self.isAutoscale(),
+            'normalization': self._norm
+        }
+
+    def setFromDict(self, dic):
+        """Set values to the colormap from a dictionnary
+        
+        :param dict dic: the colormap as a dictionnary
+        """
+        _name = dic['name'] if 'name' in dic else None
+        _colors = dic['colors'] if 'colors' in dic else None
+        _vmin = dic['vmin'] if 'vmin' in dic else None
+        _vmax = dic['vmax'] if 'vmax' in dic else None
+        _norm = dic['normalization'] if 'normalization' in dic else None
+
+        if _name is None and _colors is None:
+            err = 'The colormap should have a name defined or a tuple of colors'
+            raise ValueError(err)
+        if _norm not in NORMALIZATIONS:
+            err = 'Given normalization is not recoginized (%s)' % _norm
+            raise ValueError(err)
+
+        if 'autoscale' in dic:
+            if dic['autoscale'] is True:
+                if _vmin is not None or _vmax is not None:
+                    err = "Can't set the colormap from the dictionnary because"
+                    err += " autoscale is requested but vmin and vmax are also"
+                    err += " defined (!= None)"
+                    raise ValueError(err)
+            elif dic['autoscale'] is False:
+                if _vmin is None and _vmax is None:
+                    err = "Can't set the colormap from the dictionnary because"
+                    err += " autoscale is not requested but vmin and vmax are"
+                    err += " both set to None"
+                    raise ValueError(err)
+            else:
+                raise ValueError('Autoscale value should be True or False')
+
+        self._name = _name
+        self._colors = _colors
+        self._vmin = _vmin
+        self._vmax = _vmax
+        self._autoscale = True if (_vmin is None and _vmax is None ) else False
+        self._norm = _norm
+
+        self.sigChanged.emit()
+
+    @staticmethod
+    def getFromDict(dic):
+        colormap = Colormap(name="")
+        colormap.setFromDict(dic)
+        return colormap
