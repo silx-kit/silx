@@ -96,10 +96,11 @@ class TestFBP(unittest.TestCase):
     def setUp(self):
         if ocl is None:
             return
-        self.getfiles()
-        self.fbp = backprojection.Backprojection(self.sino.shape)
         if sys.platform.startswith('darwin'):
             self.skipTest("Backprojection is not implemented on CPU for OS X yet")
+        self.getfiles()
+        self.fbp = backprojection.Backprojection(self.sino.shape)
+
 
 
 
