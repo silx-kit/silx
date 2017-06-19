@@ -2,17 +2,23 @@
 silx toolkit
 ============
 
-The silx project aims at providing a collection of Python packages to support the development of data assessment, reduction and analysis applications at synchrotron radiation facilities.
-It aims at providing reading/writing different file formats, data reduction routines and a set of Qt widgets to browse and visualize data.
+The silx project aims at providing a collection of Python packages to support the
+development of data assessment, reduction and analysis applications at synchrotron
+radiation facilities.
+It aims at providing reading/writing different file formats, data reduction routines
+and a set of Qt widgets to browse and visualize data.
 
 The current version provides :
 
-* reading `HDF5 <https://www.hdfgroup.org/HDF5/>`_  file format (with support of `SPEC <https://certif.com/spec.html>`_ file format)
+* reading `HDF5 <https://www.hdfgroup.org/HDF5/>`_  file format (with support of
+  `SPEC <https://certif.com/spec.html>`_ file format)
 * histogramming
 * fitting
 * 1D and 2D visualization using multiple backends (matplotlib or OpenGL)
-* image plot widget with a set of associated tools (See `changelog file <https://github.com/silx-kit/silx/blob/master/CHANGELOG.rst>`_).
-* Unified browser for HDF5, SPEC and image file formats supporting inspection and visualization of n-dimensional datasets.
+* image plot widget with a set of associated tools (See
+  `changelog file <https://github.com/silx-kit/silx/blob/master/CHANGELOG.rst>`_).
+* Unified browser for HDF5, SPEC and image file formats supporting inspection and
+  visualization of n-dimensional datasets.
 * Unified viewer (silx view filename) for HDF5, SPEC and image file formats
 * OpenGL-based widget to display 3D scalar field with isosurface and cutting plane.
 * image alignement (sift - OpenCL implementation)
@@ -28,7 +34,7 @@ To install silx locally, run::
  
     pip install silx --user
 
-On Linux, to install silx with pip, you must install numpy first. Unofficial packages for different distributions are available :
+Unofficial packages for different distributions are available :
 
 - Unofficial Debian8 packages are available at http://www.silx.org/pub/debian/
 - CentOS 7 rpm packages are provided by Max IV at the following url: http://pubrepo.maxiv.lu.se/rpm/el7/x86_64/
@@ -104,7 +110,14 @@ License
 The source code of silx is licensed under the MIT and LGPL licenses.
 See the `copyright file <https://github.com/silx-kit/silx/blob/master/copyright>`_ for details.
 
+Citation
+--------
+
+silx releases can be cited by their DOI on Zenodo: |DOI:10.5281/zenodo.576042|
+
 .. |Travis Status| image:: https://travis-ci.org/silx-kit/silx.svg?branch=master
    :target: https://travis-ci.org/silx-kit/silx
 .. |Appveyor Status| image:: https://ci.appveyor.com/api/projects/status/qgox9ei0wxwfagrb/branch/master?svg=true
    :target: https://ci.appveyor.com/project/ESRF/silx
+.. |DOI:10.5281/zenodo.576042| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.576042.svg
+   :target: https://doi.org/10.5281/zenodo.576042
