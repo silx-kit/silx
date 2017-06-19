@@ -92,7 +92,6 @@ class ColorBarWidget(qt.QWidget):
         self.layout().setSizeConstraint(qt.QLayout.SetMinAndMaxSize)
         self.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Expanding)
 
-
     def getPlot(self):
         """Returns the :class:`Plot` associated to this widget or None"""
         return self._plot
@@ -320,15 +319,16 @@ class ColorScaleBar(qt.QWidget):
 
         # create the left side group (ColorScale)
         self.colorScale = _ColorScale(colormap=colormap,
-                                     parent=self,
-                                     margin=ColorScaleBar._TEXT_MARGIN)
+                                      parent=self,
+                                      margin=ColorScaleBar._TEXT_MARGIN)
 
-        self.tickbar = _TickBar(vmin=colormap['vmin'] if colormap else 0.0,
-                               vmax=colormap['vmax'] if colormap else 1.0,
-                               norm=colormap['normalization'] if colormap else 'linear',
-                               parent=self,
-                               displayValues=displayTicksValues,
-                               margin=ColorScaleBar._TEXT_MARGIN)
+        self.tickbar = _TickBar(
+            vmin=colormap['vmin'] if colormap else 0.0,
+            vmax=colormap['vmax'] if colormap else 1.0,
+            norm=colormap['normalization'] if colormap else 'linear',
+            parent=self,
+            displayValues=displayTicksValues,
+            margin=ColorScaleBar._TEXT_MARGIN)
 
         self.layout().addWidget(self.tickbar, 1, 0)
         self.layout().addWidget(self.colorScale, 1, 1)
@@ -441,8 +441,8 @@ class _ColorScale(qt.QWidget):
     ...       'vmax':100000,
     ...       'autoscale':False
     ...       }
-    >>> colorscale = ColorScale(parent=None,
-    ...                         colormap=colormap)
+    >>> colorscale = _ColorScale(parent=None,
+    ...                          colormap=colormap)
     >>> colorscale.show()
 
     Initializer parameters :
@@ -461,6 +461,7 @@ class _ColorScale(qt.QWidget):
     def __init__(self, colormap, parent=None, margin=5):
         qt.QWidget.__init__(self, parent)
         self._colormap = None
+        self.margin = 0
         self.setColormap(colormap)
 
         self.setLayout(qt.QVBoxLayout())
@@ -583,7 +584,7 @@ class _TickBar(qt.QWidget):
 
     To run the following sample code, a QApplication must be initialized.
 
-    >>> bar = TickBar(1, 1000, norm='log', parent=None, displayValues=True)
+    >>> bar = _TickBar(1, 1000, norm='log', parent=None, displayValues=True)
     >>> bar.show()
 
     .. image:: img/tickbar.png
@@ -616,6 +617,10 @@ class _TickBar(qt.QWidget):
     def __init__(self, vmin, vmax, norm, parent=None, displayValues=True,
                  nticks=None, margin=5):
         super(_TickBar, self).__init__(parent)
+        self.margin = 0
+        self._nticks = None
+        self.ticks = ()
+        self.subTicks = ()
         self._forcedDisplayType = None
         self.ticksDensity = _TickBar.DEFAULT_TICK_DENSITY
 
@@ -669,7 +674,6 @@ class _TickBar(qt.QWidget):
             optimal number of ticks from the tick density.
         """
         self._nticks = nticks
-        self.ticks = None
         self.computeTicks()
         qt.QWidget.update(self)
 
@@ -743,13 +747,12 @@ class _TickBar(qt.QWidget):
         painter.setFont(font)
 
         # paint ticks
-        if self.ticks is not None:
-            for val in self.ticks:
-                self._paintTick(val, painter, majorTick=True)
+        for val in self.ticks:
+            self._paintTick(val, painter, majorTick=True)
 
-            # paint subticks
-            for val in self.subTicks:
-                self._paintTick(val, painter, majorTick=False)
+        # paint subticks
+        for val in self.subTicks:
+            self._paintTick(val, painter, majorTick=False)
 
         qt.QWidget.paintEvent(self, event)
 
