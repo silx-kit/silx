@@ -52,6 +52,10 @@ class Colormap(object):
     """Description of a colormap
 
     :param str name: Name of the colormap
+    :param tuple colors: optional, custom colormap.
+            Nx3 or Nx4 numpy array of RGB(A) colors,
+            either uint8 or float in [0, 1].
+            If 'name' is None, then this array is used as the colormap.
     :param str norm: Normalization: 'linear' (default) or 'log'
     :param float vmin:
         Lower bound of the colormap or None for autoscale (default)
@@ -61,9 +65,10 @@ class Colormap(object):
 
     sigChanged = qt.Signal()
 
-    def __init__(self, name, norm='linear', vmin=None, vmax=None):
+    def __init__(self, name, colors=None, norm='linear', vmin=None, vmax=None):
         assert name in COLORMAPS
-        self._name = str(name)
+        self._name = str(name) if name is not None else None
+        self._colors = colors
 
         assert norm in ('linear', 'log')
         self._norm = str(norm)
@@ -79,14 +84,88 @@ class Colormap(object):
         """Return the name of the colormap (str)"""
         return self._name
 
+    def setName(self, name):
+        """Set the name of the colormap and load the colors corresponding to
+        the name
+
+        :param str name: the name of the colormap (should be in ['gray',
+            'reversed gray', 'temperature', 'red', 'green', 'blue', 'jet',
+            'viridis', 'magma', 'inferno', 'plasma']
+        """
+        self._name = str(name)
+        self._colors = None
+        self.sigChanged.emit()
+
+    def getColors(self):
+        """
+        :return tuple: the list of colors for the colormap"""
+        return self._colors
+
+    def setColors(self, colors):
+        """
+        Set the colors of the colormap.
+
+        .. warning: this will set the value of name to an empty string
+        """
+        self._colors = colors
+        self._name = ""
+        self.sigChanged.emit()
+
     def getNorm(self):
         """Return the normalization of the colormap (str)"""
         return self._norm
+
+    def setNorm(self, norm):
+        """Set the norm ('log', 'linear')
+
+        :param str norm: the norm to set
+        """
+        self._norm = str(norm)
+        self.sigChanged.emit()
 
     def getVMin(self):
         """Return the lower bound of the colormap or None"""
         return self._vmin
 
+    def setVMin(self, vmin):
+        """Set the minimal value of the colormap
+
+        :param float vmin: Lower bound of the colormap or None for autoscale
+            (default)
+            value)
+        """
+        self._vmin = vmin
+        self.sigChanged.emit()
+
     def getVMax(self):
-        """Return the upper bounds of the colormap or None"""
+        """
+        :return: the upper bounds of the colormap or None"""
         return self._vmax
+
+    def setVMax(self, vmax):
+        """Set the maximal value of the colormap
+
+        :param float vmax: Upper bounds of the colormap or None for autoscale
+            (default)
+        """
+        self._vmax = vmax
+        self.sigChanged.emit()
+
+    def getColorMapRange(self):
+        """
+
+        :return: the tuple vmin, vmax
+        """
+        return (self._vmin, self._vmax)
+
+    def setColorMapRange(self, vmin, vmax):
+        """
+        Set bounds to the colormap
+
+        :param vmin: Lower bound of the colormap or None for autoscale
+            (default)
+        :param vmax: Upper bounds of the colormap or None for autoscale
+            (default)
+        """
+        self._vmin = vmin
+        self._vmax = vmax
