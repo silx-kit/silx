@@ -539,7 +539,7 @@ class _ColorScale(qt.QWidget):
         """yPixel : pixel position into _ColorScale widget reference
         """
         # widgets are bottom-top referencial but we display in top-bottom referential
-        return 1 - float(yPixel)/float(self.height() - 2*self.margin)
+        return 1. - (yPixel - self.margin) / float(self.height() - 2 * self.margin)
 
     def getValueFromRelativePosition(self, value):
         """Return the value in the colorMap from a relative position in the
