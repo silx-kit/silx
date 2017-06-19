@@ -108,3 +108,5 @@ See the `copyright file <https://github.com/silx-kit/silx/blob/master/copyright>
    :target: https://travis-ci.org/silx-kit/silx
 .. |Appveyor Status| image:: https://ci.appveyor.com/api/projects/status/qgox9ei0wxwfagrb/branch/master?svg=true
    :target: https://ci.appveyor.com/project/ESRF/silx
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.576042.svg
+   :target: https://doi.org/10.5281/zenodo.576042
