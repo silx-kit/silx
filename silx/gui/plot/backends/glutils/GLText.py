@@ -88,10 +88,11 @@ class Text2D(object):
                        attrib0='position')
 
     _textures = {}
-
-    _rasterTextCache = {}
-    """Internal cache storing already rasterized text"""
+    """Cache already created textures"""
     # TODO limit cache size and discard least recent used
+
+    _sizes = {}
+    """Cache already computed sizes"""
 
     def __init__(self, text, x=0, y=0,
                  color=(0., 0., 0., 1.),
@@ -117,31 +118,37 @@ class Text2D(object):
 
         self._rotate = numpy.radians(rotate)
 
-    @classmethod
-    def _getTexture(cls, text):
+    def _getTexture(self, text):
         key = getGLContext(), text
-        if key not in cls._textures:
+
+        if key not in self._textures:
             image, offset = font.rasterText(text,
                                             font.getDefaultFontFamily())
-            cls._textures[key] = (Texture(gl.GL_RED,
-                                          data=image,
-                                          minFilter=gl.GL_NEAREST,
-                                          magFilter=gl.GL_NEAREST,
-                                          wrap=(gl.GL_CLAMP_TO_EDGE,
-                                                gl.GL_CLAMP_TO_EDGE)),
-                                  offset)
+            if text not in self._sizes:
+                self._sizes[text] = image.shape[1], image.shape[0]
 
-        return cls._textures[key]
+            self._textures[key] = (
+                Texture(gl.GL_RED,
+                        data=image,
+                        minFilter=gl.GL_NEAREST,
+                        magFilter=gl.GL_NEAREST,
+                        wrap=(gl.GL_CLAMP_TO_EDGE,
+                              gl.GL_CLAMP_TO_EDGE)),
+                offset)
+
+        return self._textures[key]
 
     @property
     def text(self):
         return self._text
 
     @property
-    def size(self):  # TODO very poor implementation
-        image, offset = font.rasterText(self.text,
-                                        font.getDefaultFontFamily())
-        return image.shape[1], image.shape[0]
+    def size(self):
+        if self.text not in self._sizes:
+            image, offset = font.rasterText(self.text,
+                                            font.getDefaultFontFamily())
+            self._sizes[self.text] = image.shape[1], image.shape[0]
+        return self._sizes[self.text]
 
     def getVertices(self, offset, shape):
         height, width = shape

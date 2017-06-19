@@ -98,27 +98,39 @@ def rasterText(text, font,
         _logger.info("Trying to raster empty text, replaced by white space")
         text = ' '  # Replace empty text by white space to produce an image
 
-    if not isinstance(font, qt.QFont):
-        font = qt.QFont(font, size, weight, italic)
-
-    metrics = qt.QFontMetrics(font)
-    size = metrics.size(qt.Qt.TextExpandTabs, text)
-    bounds = metrics.boundingRect(
-        qt.QRect(0, 0, size.width(), size.height()),
-        qt.Qt.TextExpandTabs,
-        text)
-
     if (devicePixelRatio != 1.0 and
             not hasattr(qt.QImage, 'setDevicePixelRatio')):  # Qt 4
         _logger.error('devicePixelRatio not supported')
         devicePixelRatio = 1.0
+
+    if not isinstance(font, qt.QFont):
+        font = qt.QFont(font, size, weight, italic)
+
+    # get text size
+    image = qt.QImage(1, 1, qt.QImage.Format_RGB888)
+    painter = qt.QPainter()
+    painter.begin(image)
+    painter.setPen(qt.Qt.white)
+    painter.setFont(font)
+    bounds = painter.boundingRect(
+        qt.QRect(0, 0, 4096, 4096), qt.Qt.TextExpandTabs, text)
+    painter.end()
+
+    metrics = qt.QFontMetrics(font)
+
+    # This does not provide the correct text bbox on macOS
+    # size = metrics.size(qt.Qt.TextExpandTabs, text)
+    # bounds = metrics.boundingRect(
+    #     qt.QRect(0, 0, size.width(), size.height()),
+    #     qt.Qt.TextExpandTabs,
+    #     text)
 
     # Add extra border and handle devicePixelRatio
     width = bounds.width() * devicePixelRatio + 2
     # align line size to 32 bits to ease conversion to numpy array
     width = 4 * ((width + 3) // 4)
     image = qt.QImage(width,
-                      bounds.height() * devicePixelRatio,
+                      bounds.height() * devicePixelRatio + 2,
                       qt.QImage.Format_RGB888)
     if (devicePixelRatio != 1.0 and
             hasattr(image, 'setDevicePixelRatio')):  # Qt 5
