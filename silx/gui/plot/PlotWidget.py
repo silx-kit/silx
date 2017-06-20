@@ -593,6 +593,12 @@ class PlotWidget(qt.QMainWindow):
         if isinstance(item, (items.Curve, items.ImageBase)):
             self._invalidateDataRange()  # TODO handle this automatically
 
+        self._notifyContentChanged(item)
+
+    def _notifyContentChanged(self, item):
+        legend, kind = self._itemKey(item)
+        self.notify('contentChanged', action='add', kind=kind, legend=legend)
+
     def _remove(self, item):
         """Remove the given :class:`Item` from the plot.
 
@@ -767,6 +773,7 @@ class PlotWidget(qt.QMainWindow):
 
         # Create/Update curve object
         curve = self.getCurve(legend)
+        mustBeAdded = curve is None
         if curve is None:
             # No previous curve, create a default one and add it to the plot
             curve = items.Curve() if histogram is None else items.Histogram()
@@ -776,7 +783,6 @@ class PlotWidget(qt.QMainWindow):
             curve.setColor(default_color)
             curve.setLineStyle(default_linestyle)
             curve.setSymbol(self._defaultPlotPoints)
-            self._add(curve)
 
         # Override previous/default values with provided ones
         curve.setInfo(info)
@@ -816,8 +822,10 @@ class PlotWidget(qt.QMainWindow):
                 if c is not curve:
                     self._remove(c)
 
-        self.notify(
-            'contentChanged', action='add', kind='curve', legend=legend)
+        if mustBeAdded:
+            self._add(curve)
+        else:
+            self._notifyContentChanged(curve)
 
         if wasActive:
             self.setActiveCurve(curve.getLegend())
@@ -875,13 +883,13 @@ class PlotWidget(qt.QMainWindow):
 
         # Create/Update histogram object
         histo = self.getHistogram(legend)
+        mustBeAdded = histo is None
         if histo is None:
             # No previous histogram, create a default one and
             # add it to the plot
             histo = items.Histogram()
             histo._setLegend(legend)
             histo.setColor(self._getColorAndStyle()[0])
-            self._add(histo)
 
         # Override previous/default values with provided ones
         if color is not None:
@@ -892,8 +900,10 @@ class PlotWidget(qt.QMainWindow):
         # Set histogram data
         histo.setData(histogram, edges, align=align, copy=copy)
 
-        self.notify(
-            'contentChanged', action='add', kind='histogram', legend=legend)
+        if mustBeAdded:
+            self._add(histo)
+        else:
+            self._notifyContentChanged(histo)
 
         if resetzoom:
             # We ask for a zoom reset in order to handle the plot scaling
@@ -998,6 +1008,7 @@ class PlotWidget(qt.QMainWindow):
             self._remove(image)
             image = None
 
+        mustBeAdded = image is None
         if image is None:
             # No previous image, create a default one and add it to the plot
             if data.ndim == 2:
@@ -1006,7 +1017,6 @@ class PlotWidget(qt.QMainWindow):
             else:
                 image = items.ImageRgba()
             image._setLegend(legend)
-            self._add(image)
 
         # Override previous/default values with provided ones
         image.setInfo(info)
@@ -1043,8 +1053,10 @@ class PlotWidget(qt.QMainWindow):
         if len(self.getAllImages()) == 1 or wasActive:
             self.setActiveImage(legend)
 
-        self.notify(
-            'contentChanged', action='add', kind='image', legend=legend)
+        if mustBeAdded:
+            self._add(image)
+        else:
+            self._notifyContentChanged(image)
 
         if resetzoom:
             # We ask for a zoom reset in order to handle the plot scaling
@@ -1110,12 +1122,12 @@ class PlotWidget(qt.QMainWindow):
 
         # Create/Update curve object
         scatter = self._getItem(kind='scatter', legend=legend)
+        mustBeAdded = scatter is None
         if scatter is None:
             # No previous scatter, create a default one and add it to the plot
             scatter = items.Scatter()
             scatter._setLegend(legend)
             scatter.setColormap(self.getDefaultColormap())
-            self._add(scatter)
 
         # Override previous/default values with provided ones
         scatter.setInfo(info)
@@ -1139,8 +1151,10 @@ class PlotWidget(qt.QMainWindow):
 
         scatter.setData(x, y, value, xerror, yerror, copy=copy)
 
-        self.notify(
-            'contentChanged', action='add', kind='scatter', legend=legend)
+        if mustBeAdded:
+            self._add(scatter)
+        else:
+            self._notifyContentChanged(scatter)
 
         if len(self._getItems(kind="scatter")) == 1 or wasActive:
             self._setActiveItem('scatter', scatter.getLegend())
@@ -1200,8 +1214,6 @@ class PlotWidget(qt.QMainWindow):
         item.setPoints(numpy.array((xdata, ydata)).T)
 
         self._add(item)
-
-        self.notify('contentChanged', action='add', kind='item', legend=legend)
 
         return legend
 
@@ -1389,11 +1401,11 @@ class PlotWidget(qt.QMainWindow):
             self._remove(marker)
             marker = None
 
+        mustBeAdded = marker is None
         if marker is None:
             # No previous marker, create one
             marker = markerClass()
             marker._setLegend(legend)
-            self._add(marker)
 
         if text is not None:
             marker.setText(text)
@@ -1412,8 +1424,10 @@ class PlotWidget(qt.QMainWindow):
             marker._setConstraint(constraint)
         marker.setPosition(x, y)
 
-        self.notify(
-            'contentChanged', action='add', kind='marker', legend=legend)
+        if mustBeAdded:
+            self._add(marker)
+        else:
+            self._notifyContentChanged(marker)
 
         return legend
 

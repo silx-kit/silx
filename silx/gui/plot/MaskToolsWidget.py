@@ -268,16 +268,22 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         if len(mask):
             # get the mask from the plot
             maskItem = self.plot.getImage(self._maskName)
+            mustBeAdded = maskItem is None
             if maskItem is None:
                 maskItem = items.MaskImageData()
                 maskItem._setLegend(self._maskName)
-                self.plot._add(maskItem)
             # update the items
             maskItem.setData(mask, copy=False)
             maskItem.setColormap(self._colormap)
             maskItem.setOrigin(self._origin)
             maskItem.setScale(self._scale)
             maskItem.setZValue(self._z)
+
+            if mustBeAdded:
+                self.plot._add(maskItem)
+            else:
+                self.plot._notifyContentChanged(maskItem)
+
         elif self.plot.getImage(self._maskName):
             self.plot.remove(self._maskName, kind='image')
 
