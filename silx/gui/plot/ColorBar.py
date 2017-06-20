@@ -277,11 +277,11 @@ class ColorScaleBar(qt.QWidget):
 
     To run the following sample code, a QApplication must be initialized.
 
-    >>> colormap={'name':'gray',
-    ...       'normalization':'log',
-    ...       'vmin':1,
-    ...       'vmax':100000,
-    ...       'autoscale':False
+    >>> colormap={'name': 'gray',
+    ...       'normalization': 'log',
+    ...       'vmin': 1,
+    ...       'vmax': 100000,
+    ...       'autoscale': False
     ...       }
     >>> colorscale = ColorScaleBar(parent=None,
     ...                            colormap=colormap )
@@ -434,11 +434,11 @@ class _ColorScale(qt.QWidget):
 
     To run the following sample code, a QApplication must be initialized.
 
-    >>> colormap={'name':'viridis',
-    ...       'normalization':'log',
-    ...       'vmin':1,
-    ...       'vmax':100000,
-    ...       'autoscale':False
+    >>> colormap={'name': 'viridis',
+    ...       'normalization': 'log',
+    ...       'vmin': 1,
+    ...       'vmax': 100000,
+    ...       'autoscale': False
     ...       }
     >>> colorscale = _ColorScale(parent=None,
     ...                          colormap=colormap)
