@@ -184,6 +184,10 @@ class Colormap(qt.QObject):
         self.sigChanged.emit()
 
     def __getitem__(self, item):
+        if item == 'autoscale':
+            return self.isAutoscale()
+        if type(item) is not str:
+            raise KeyError(item)
         attr = '_' + item
         if not hasattr(self, attr):
             raise KeyError(item)
