@@ -32,7 +32,7 @@ __license__ = "MIT"
 __date__ = "05/12/2016"
 
 from silx.gui import qt
-import copy
+import copy as copy_mdl
 import numpy
 
 # First of all init matplotlib and set its backend
@@ -128,15 +128,17 @@ class Colormap(qt.QObject):
         :return numpy.ndarray: the list of colors for the colormap. None if not setted
         """
         if copy:
-            return copy.copy(self._colors)
+            return copy_mdl.copy(self._colors)
         else:
             return self._colors
 
-    def setColorMapLUT(self, colors):
+    def setColorMapLUT(self, colors, keepName=False):
         """
         Set the colors of the colormap.
         
         :param numpy.ndarray colors: the colors of the LUT
+        :param bool keepName: should we keep the name of the colormap.
+            This might bring conflicts with existing colormaps
 
         .. warning: this will set the value of name to an empty string
         """
@@ -144,7 +146,8 @@ class Colormap(qt.QObject):
         self._colors = colors
         if len(colors) is 0:
             self._colors = None
-        self._name = ""
+        if keepName is False:
+            self._name = ""
         self.sigChanged.emit()
 
     def getNormalization(self):
@@ -238,7 +241,7 @@ class Colormap(qt.QObject):
         """
         return {
             'name': self._name,
-            'colors': copy.copy(self._colors),
+            'colors': copy_mdl.copy(self._colors),
             'vmin': self._vmin,
             'vmax': self._vmax,
             'autoscale': self.isAutoscale(),
@@ -300,7 +303,7 @@ class Colormap(qt.QObject):
         :return: a copy of the Colormap object
         """
         return Colormap(name=self._name,
-                        colors=copy.copy(self._colors),
+                        colors=copy_mdl.copy(self._colors),
                         vmin=self._vmin,
                         vmax=self._vmax,
                         normalization=self._normalization)
