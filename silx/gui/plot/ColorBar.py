@@ -337,10 +337,12 @@ class ColorScaleBar(qt.QWidget):
 
         # max label
         self._maxLabel = qt.QLabel(str(1.0), parent=self)
+        self._maxLabel.setToolTip(str(0.0))
         self.layout().addWidget(self._maxLabel, 0, 0, 1, 2, qt.Qt.AlignRight)
 
         # min label
         self._minLabel = qt.QLabel(str(0.0), parent=self)
+        self._minLabel.setToolTip(str(0.0))
         self.layout().addWidget(self._minLabel, 2, 0, 1, 2, qt.Qt.AlignRight)
 
         self.layout().setSizeConstraint(qt.QLayout.SetMinAndMaxSize)
@@ -399,11 +401,14 @@ class ColorScaleBar(qt.QWidget):
                     self._minLabel.setText(str(self.minVal))
                 else:
                     self._minLabel.setText("{0:.0e}".format(self.minVal))
+                self._minLabel.setToolTip(str(self.minVal))
+
             if self.maxVal is not None:
                 if ColorScaleBar._MIN_LIM_SCI_FORM <= self.maxVal <= ColorScaleBar._MAX_LIM_SCI_FORM:
                     self._maxLabel.setText(str(self.maxVal))
                 else:
                     self._maxLabel.setText("{0:.0e}".format(self.maxVal))
+                self._maxLabel.setToolTip(str(self.maxVal))
 
     def _setMinMaxLabels(self, minVal, maxVal):
         """Change the value of the min and max labels to be displayed.
