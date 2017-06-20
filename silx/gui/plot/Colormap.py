@@ -87,21 +87,27 @@ class Colormap(qt.QObject):
 
     def __init__(self, name, colors=None, normalization='linear', vmin=None, vmax=None):
         qt.QObject.__init__(self)
+        assert normalization in NORMALIZATIONS
+        if normalization is 'log':
+            if (vmin is not None and vmin < 1.0) or (vmax is not None and vmax < 1.0):
+                raise ValueError("Unsuported vmin (%s) or vmax (%s) given for a log scale" % (vmin, vmax))
+
         self._name = str(name) if name is not None else None
         self._colors = colors
-
-        assert normalization in NORMALIZATIONS
         self._normalization = str(normalization)
-
         self._vmin = float(vmin) if vmin is not None else None
         self._vmax = float(vmax) if vmax is not None else None
 
     def isAutoscale(self):
-        """True if both min and max are in autoscale mode"""
+        """
+
+        :return:True if both min and max are in autoscale mode"""
         return self._vmin is None or self._vmax is None
 
     def getName(self):
-        """Return the name of the colormap (str)"""
+        """
+
+        :return: the name of the colormap (str)"""
         return self._name
 
     def setName(self, name):
