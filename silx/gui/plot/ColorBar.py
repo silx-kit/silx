@@ -90,7 +90,6 @@ class ColorBarWidget(qt.QWidget):
         self.layout().addWidget(self.legend)
 
         self.layout().setSizeConstraint(qt.QLayout.SetMinAndMaxSize)
-        self.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Expanding)
 
     def getPlot(self):
         """Returns the :class:`Plot` associated to this widget or None"""
@@ -330,23 +329,23 @@ class ColorScaleBar(qt.QWidget):
             displayValues=displayTicksValues,
             margin=ColorScaleBar._TEXT_MARGIN)
 
-        self.layout().addWidget(self.tickbar, 1, 0)
-        self.layout().addWidget(self.colorScale, 1, 1)
+        self.layout().addWidget(self.tickbar, 1, 0, 1, 1, qt.Qt.AlignRight)
+        self.layout().addWidget(self.colorScale, 1, 1, qt.Qt.AlignLeft)
 
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.layout().setSpacing(0)
 
         # max label
         self._maxLabel = qt.QLabel(str(1.0), parent=self)
-        self._maxLabel.setAlignment(qt.Qt.AlignHCenter)
-        self._maxLabel.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Minimum)
-        self.layout().addWidget(self._maxLabel, 0, 1)
+        self.layout().addWidget(self._maxLabel, 0, 0, 1, 2, qt.Qt.AlignRight)
 
         # min label
         self._minLabel = qt.QLabel(str(0.0), parent=self)
-        self._minLabel.setAlignment(qt.Qt.AlignHCenter)
-        self._minLabel.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Minimum)
-        self.layout().addWidget(self._minLabel, 2, 1)
+        self.layout().addWidget(self._minLabel, 2, 0, 1, 2, qt.Qt.AlignRight)
+
+        self.layout().setSizeConstraint(qt.QLayout.SetMinAndMaxSize)
+        self.layout().setColumnStretch(0, 1)
+        self.layout().setRowStretch(1, 1)
 
     def getTickBar(self):
         """
@@ -465,13 +464,14 @@ class _ColorScale(qt.QWidget):
         self.setColormap(colormap)
 
         self.setLayout(qt.QVBoxLayout())
-        self.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
+        self.setSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Expanding)
         # needed to get the mouse event without waiting for button click
         self.setMouseTracking(True)
         self.setMargin(margin)
         self.setContentsMargins(0, 0, 0, 0)
 
-        self.setMinimumSize(10, self._NB_CONTROL_POINTS // 2 + 2 * self.margin)
+        self.setMinimumHeight(self._NB_CONTROL_POINTS // 2 + 2 * self.margin)
+        self.setFixedWidth(25)
 
     def setColormap(self, colormap):
         """Set the new colormap to be displayed
@@ -637,7 +637,6 @@ class _TickBar(qt.QWidget):
         self.displayValues = displayValues
         self.setTicksNumber(nticks)
 
-        self.setLayout(qt.QVBoxLayout())
         self.setMargin(margin)
         self.setContentsMargins(0, 0, 0, 0)
 
@@ -648,8 +647,8 @@ class _TickBar(qt.QWidget):
         self._resetWidth()
 
     def _resetWidth(self):
-        self.width = _TickBar._WIDTH_DISP_VAL if self.displayValues else _TickBar._WIDTH_NO_DISP_VAL
-        self.setFixedWidth(self.width)
+        width = self._WIDTH_DISP_VAL if self.displayValues else self._WIDTH_NO_DISP_VAL
+        self.setFixedWidth(width)
 
     def update(self, vmin, vmax, norm):
         self._vmin = vmin
@@ -754,8 +753,6 @@ class _TickBar(qt.QWidget):
         for val in self.subTicks:
             self._paintTick(val, painter, majorTick=False)
 
-        qt.QWidget.paintEvent(self, event)
-
     def _getRelativePosition(self, val):
         """Return the relative position of val according to min and max value
         """
@@ -781,9 +778,9 @@ class _TickBar(qt.QWidget):
         if majorTick is False:
             lineWidth /= 2
 
-        painter.drawLine(qt.QLine(self.width - lineWidth,
+        painter.drawLine(qt.QLine(self.width() - lineWidth,
                                   height,
-                                  self.width,
+                                  self.width(),
                                   height))
 
         if self.displayValues and majorTick is True:
