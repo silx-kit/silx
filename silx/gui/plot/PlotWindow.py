@@ -30,7 +30,7 @@ It provides the plot API fully defined in :class:`.Plot`.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "27/04/2017"
+__date__ = "20/06/2017"
 
 import collections
 import logging
@@ -39,6 +39,7 @@ from silx.utils.deprecation import deprecated
 
 from . import PlotWidget
 from . import actions
+from . import items
 from .actions import medfilt as actions_medfilt
 from .actions import fit as actions_fit
 from .actions import histogram as actions_histogram
@@ -730,18 +731,26 @@ class Plot2D(PlotWindow):
         self.addToolBar(self.profile)
 
     def _getImageValue(self, x, y):
-        """Get value of top most image at position (x, y)
+        """Get status bar value of top most image at position (x, y)
 
         :param float x: X position in plot coordinates
         :param float y: Y position in plot coordinates
         :return: The value at that point or '-'
         """
         value = '-'
-        valueZ = - float('inf')
+        valueZ = -float('inf')
+        mask = 0
+        maskZ = -float('inf')
 
         for image in self.getAllImages():
             data = image.getData(copy=False)
-            if image.getZValue() >= valueZ:  # This image is over the previous one
+            isMask = isinstance(image, items.MaskImageData)
+            if isMask:
+                zIndex = maskZ
+            else:
+                zIndex = valueZ
+            if image.getZValue() >= zIndex:
+                # This image is over the previous one
                 ox, oy = image.getOrigin()
                 sx, sy = image.getScale()
                 row, col = (y - oy) / sy, (x - ox) / sx
@@ -749,8 +758,15 @@ class Plot2D(PlotWindow):
                     # Test positive before cast otherwise issue with int(-0.5) = 0
                     row, col = int(row), int(col)
                     if (row < data.shape[0] and col < data.shape[1]):
-                        value = data[row, col]
-                        valueZ = image.getZValue()
+                        v, z = data[row, col], image.getZValue()
+                        if not isMask:
+                            value = v
+                            valueZ = z
+                        else:
+                            mask = v
+                            maskZ = z
+        if maskZ > valueZ and mask > 0:
+            return value, "Masked"
         return value
 
     def getProfileToolbar(self):
