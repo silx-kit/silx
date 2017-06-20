@@ -34,8 +34,13 @@ __date__ = "05/12/2016"
 from silx.gui import qt
 import copy
 
+# First of all init matplotlib and set its backend
+try:
+    from .matplotlib import Colormap as MPLColormap
+except ImportError:
+    MPLColormap = None
 
-_OGL_COLORMAPS = {
+_DEFAULT_COLORMAPS = {
     'gray': 0,
     'reversed gray': 1,
     'red': 2,
@@ -44,7 +49,7 @@ _OGL_COLORMAPS = {
     'temperature': 5
 }
 
-OGL_COLORMAPS = tuple(_OGL_COLORMAPS.keys())
+DEFAULT_COLORMAPS = tuple(_DEFAULT_COLORMAPS.keys())
 """Tuple of supported colormap names."""
 
 NORMS = 'linear', 'log'
@@ -259,3 +264,32 @@ class Colormap(qt.QObject):
                         vmin=self._vmin,
                         vmax=self._vmax,
                         norm=self._norm)
+
+    def applyToData(self, data):
+        """Apply the colormap to the data
+
+        :param numpy.ndarray data: The data to convert.
+        """
+        # TODO : what appen if matplotlib not here ?
+        rgbaImage = MPLColormap.applyColormapToData(
+            data,
+            self._name,
+            self._norm,
+            self.isAutoscale(),
+            self._vmin,
+            self._vmax,
+            self._colors)
+        return rgbaImage
+
+    @staticmethod
+    def getSupportedColormaps():
+        """Get the supported colormap names as a tuple of str.
+
+        The list should at least contain and start by:
+        ('gray', 'reversed gray', 'temperature', 'red', 'green', 'blue')
+        """
+        if MPLColormap is None:
+            return DEFAULT_COLORMAPS
+        else:
+            maps = MPLColormap.getSupportedColormaps()
+            return DEFAULT_COLORMAPS + maps

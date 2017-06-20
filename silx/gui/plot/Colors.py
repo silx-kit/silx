@@ -31,6 +31,7 @@ __license__ = "MIT"
 __date__ = "15/05/2017"
 
 
+from silx.utils.deprecation import deprecated
 import logging
 import numpy
 
@@ -143,6 +144,7 @@ def cursorColorForColormap(colormapName):
     return _COLORMAP_CURSOR_COLORS.get(colormapName, 'black')
 
 
+@deprecated(replacement='silx.gui.plot.Colormap.applyColormap')
 def applyColormapToData(data,
                         name='gray',
                         normalization='linear',
@@ -171,28 +173,19 @@ def applyColormapToData(data,
     :return: The computed RGBA image
     :rtype: numpy.ndarray of uint8
     """
-    rgbaImage = MPLColormap.applyColormapToData(
-        data,
-        name,
-        normalization,
-        autoscale,
-        vmin,
-        vmax,
-        colors)
-    return rgbaImage
+    colormap = Colormap(name=name,
+                        norm=normalization,
+                        vmin=vmin,
+                        vmax=vmax,
+                        colors=colors)
+    return colormap.applyToData(data)
 
 
+@deprecated(replacement='silx.gui.plot.Colormap.getSupportedColormaps')
 def getSupportedColormaps():
     """Get the supported colormap names as a tuple of str.
 
     The list should at least contain and start by:
     ('gray', 'reversed gray', 'temperature', 'red', 'green', 'blue')
     """
-    default = ('gray', 'reversed gray',
-               'temperature',
-               'red', 'green', 'blue')
-    if MPLColormap is None:
-        return default
-    else:
-        maps = MPLColormap.getSupportedColormaps()
-        return default + maps
+    return Colormap.getSupportedColormaps()
