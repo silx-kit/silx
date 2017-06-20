@@ -180,6 +180,7 @@ import numpy
 import posixpath
 import re
 import sys
+import io
 
 from silx.third_party import six
 from .specfile import SpecFile
@@ -1625,7 +1626,7 @@ class SpecH5(SpecH5Group):
         if isinstance(filename, six.string_types + (six.binary_type, )):
             # silx.io.SpecFile can process unicode and bytes
             self.filename = filename
-        elif hasattr(filename, "name"):
+        elif isinstance(filename, io.IOBase):
             self.filename = filename.name
         else:
             raise TypeError("SpecH5 filename must be a string or a " +
