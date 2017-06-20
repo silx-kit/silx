@@ -33,12 +33,13 @@ __date__ = "05/12/2016"
 
 from silx.gui import qt
 import copy
+import numpy
 
 # First of all init matplotlib and set its backend
-try:
-    from .matplotlib import Colormap as MPLColormap
-except ImportError:
-    MPLColormap = None
+# try:
+from .matplotlib import Colormap as MPLColormap
+# except ImportError:
+#     MPLColormap = None
 
 _DEFAULT_COLORMAPS = {
     'gray': 0,
@@ -58,6 +59,14 @@ NORMS = 'linear', 'log'
 NORMALIZATIONS = ('linear', 'log')
 """Tuple of managed normalizations"""
 
+DEFAULT_MIN_LIN = 0
+"""Default min value if in linear normalization"""
+DEFAULT_MAX_LIN = 1
+"""Default max value if in linear normalization"""
+DEFAULT_MIN_LOG = 1
+"""Default min value if in log normalization"""
+DEFAULT_MAX_LOG = 10
+"""Default max value if in log normalization"""
 
 class Colormap(qt.QObject):
     """Description of a colormap
@@ -107,19 +116,28 @@ class Colormap(qt.QObject):
         self._colors = None
         self.sigChanged.emit()
 
-    def getColorMapLUT(self):
+    def getColorMapLUT(self, copy=True):
         """
         
-        :return tuple: the list of colors for the colormap"""
-        return self._colors
+        :return numpy.ndarray: the list of colors for the colormap. None if not setted
+        """
+        if copy:
+            return copy.copy(self._colors)
+        else:
+            return self._colors
 
     def setColorMapLUT(self, colors):
         """
         Set the colors of the colormap.
+        
+        :param numpy.ndarray colors: the colors of the LUT
 
         .. warning: this will set the value of name to an empty string
         """
+        assert(type(colors) is numpy.ndarray or colors is None)
         self._colors = colors
+        if len(colors) is 0:
+            self._colors = None
         self._name = ""
         self.sigChanged.emit()
 
@@ -163,12 +181,21 @@ class Colormap(qt.QObject):
         self._vmax = vmax
         self.sigChanged.emit()
 
-    def getColorMapRange(self):
+    def getColorMapRange(self, data=None):
         """
 
-        :return: the tuple vmin, vmax
+        :return: the tuple vmin, vmax fitting vmin, vmax, normalization and
+            data if any given
         """
-        return (self._vmin, self._vmax)
+        vmin = self._vmin
+        vmax = self._vmax
+
+        if vmin is None:
+            vmin = data.min() if data is not None else self._getDefaultMin()
+        if vmax is None:
+            vmax = data.max() if data is not None else self._getDefaultMax()
+
+        return (vmin, vmax)
 
     def setColorMapRange(self, vmin, vmax):
         """
@@ -275,14 +302,7 @@ class Colormap(qt.QObject):
         :param numpy.ndarray data: The data to convert.
         """
         # TODO : what appen if matplotlib not here ?
-        rgbaImage = MPLColormap.applyColormapToData(
-            data,
-            self._name,
-            self._normalization,
-            self.isAutoscale(),
-            self._vmin,
-            self._vmax,
-            self._colors)
+        rgbaImage = MPLColormap.applyColormapToData(colormap=self, data=data)
         return rgbaImage
 
     @staticmethod
@@ -297,3 +317,18 @@ class Colormap(qt.QObject):
         else:
             maps = MPLColormap.getSupportedColormaps()
             return DEFAULT_COLORMAPS + maps
+
+        # # logScale displayer to make sure we have the same behavior everywhere
+        # if self._vmin < 1. or self._vmax < 1.:
+        #     _logger.warning(
+        #         'Log colormap with bound <= 1: changing bounds.')
+        #     self._vmin, self._vmax = 1., 10.
+
+    def __str__(self):
+        return str(self.getDict())
+
+    def _getDefaultMin(self):
+        return DEFAULT_MIN_LIN if self._normalization == 'linear' else DEFAULT_MIN_LOG
+
+    def _getDefaultMax(self):
+        return DEFAULT_MAX_LIN if self._normalization == 'linear' else DEFAULT_MAx_LOG
