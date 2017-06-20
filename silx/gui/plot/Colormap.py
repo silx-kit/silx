@@ -197,7 +197,7 @@ class Colormap(qt.QObject):
 
         return (vmin, vmax)
 
-    def setColorMapRange(self, vmin, vmax):
+    def setVMinVMax(self, vmin, vmax):
         """
         Set bounds to the colormap
 
