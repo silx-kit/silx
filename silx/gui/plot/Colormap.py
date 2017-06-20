@@ -195,6 +195,9 @@ class Colormap(qt.QObject):
         if vmax is None:
             vmax = data.max() if data is not None else self._getDefaultMax()
 
+        if self.getNormalization() == 'log':
+            if vmin < 1.0 or vmax < 1.0:
+                vmin, vmax = self._getDefaultMin(), self._getDefaultMax()
         return (vmin, vmax)
 
     def setVMinVMax(self, vmin, vmax):
@@ -331,4 +334,4 @@ class Colormap(qt.QObject):
         return DEFAULT_MIN_LIN if self._normalization == 'linear' else DEFAULT_MIN_LOG
 
     def _getDefaultMax(self):
-        return DEFAULT_MAX_LIN if self._normalization == 'linear' else DEFAULT_MAx_LOG
+        return DEFAULT_MAX_LIN if self._normalization == 'linear' else DEFAULT_MAX_LOG
