@@ -49,13 +49,7 @@ if ocl:
     from .. import backprojection
 from silx.test.utils import utilstest
 
-#~ logger = logging.getLogger(__name__)
-logging.basicConfig(filename='results.log', filemode='w',
-                    format='%(asctime)s %(levelname)s %(message)s',
-                    datefmt='%m/%d/%Y %I:%M:%S', level=logging.DEBUG)
-logger = logging.getLogger()
-
-
+logger = logging.getLogger(__name__)
 
 
 
