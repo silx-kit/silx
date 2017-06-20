@@ -21,19 +21,20 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 # ###########################################################################*/
-"""Plot API for 1D and 2D data.
+"""Qt widget providing plot API for 1D and 2D data.
 
-The :class:`Plot` implements the plot API initially provided in PyMca.
+Widget with plot API for 1D and 2D data.
 
+The :class:`PlotWidget` implements the plot API initially provided in PyMca.
 
 Colormap
 --------
 
-The :class:`Plot` uses a dictionary to describe a colormap.
+The :class:`PlotWidget` uses a dictionary to describe a colormap.
 This dictionary has the following keys:
 
 - 'name': str, name of the colormap. Available colormap are returned by
-          :meth:`Plot.getSupportedColormaps`.
+          :meth:`PlotWidget.getSupportedColormaps`.
           At least 'gray', 'reversed gray', 'temperature',
           'red', 'green', 'blue' are supported.
 - 'normalization': Either 'linear' or 'log'
@@ -50,8 +51,8 @@ This dictionary has the following keys:
 Plot Events
 -----------
 
-The Plot sends some event to the registered callback
-(See :meth:`Plot.setCallback`).
+The :class:`PlotWidget` sends some event to the registered callback
+(See :meth:`PlotWidget.setCallback`).
 Those events are sent as a dictionary with a key 'event' describing the kind
 of event.
 
@@ -59,12 +60,12 @@ Drawing events
 ..............
 
 'drawingProgress' and 'drawingFinished' events are sent during drawing
-interaction (See :meth:`Plot.setInteractiveMode`).
+interaction (See :meth:`PlotWidget.setInteractiveMode`).
 
 - 'event': 'drawingProgress' or 'drawingFinished'
 - 'parameters': dict of parameters used by the drawing mode.
                 It has the following keys: 'shape', 'label', 'color'.
-                See :meth:`Plot.setInteractiveMode`.
+                See :meth:`PlotWidget.setInteractiveMode`.
 - 'points': Points (x, y) in data coordinates of the drawn shape.
             For 'hline' and 'vline', it is the 2 points defining the line.
             For 'line' and 'rectangle', it is the coordinates of the start
@@ -216,6 +217,8 @@ from . import _utils
 
 from . import items
 
+from .. import qt
+
 
 _logger = logging.getLogger(__name__)
 
@@ -250,8 +253,11 @@ _PlotDataRange = namedtuple('PlotDataRange',
                             ['x', 'y', 'yright'])
 
 
-class Plot(object):
-    """This class implements the plot API initially provided in PyMca.
+class PlotWidget(qt.QMainWindow):
+    """Qt Widget providing a 1D/2D plot.
+
+    This widget is a QMainWindow.
+    This class implements the plot API initially provided in PyMca.
 
     Supported backends:
 
@@ -259,10 +265,11 @@ class Plot(object):
     - 'opengl' and 'gl': OpenGL backend (requires PyOpenGL and OpenGL >= 2.1)
     - 'none': No backend, to run headless for testing purpose.
 
-    :param parent: The parent widget of the plot (Default: None)
-    :param backend: The backend to use. A str in:
-                    'matplotlib', 'mpl', 'opengl', 'gl', 'none'
+    :param parent: The parent of this widget or None (default).
+    :param backend: The backend to use, in:
+                    'matplotlib' (default), 'mpl', 'opengl', 'gl', 'none'
                     or a :class:`BackendBase.BackendBase` class
+    :type backend: str or :class:`BackendBase.BackendBase`
     """
 
     DEFAULT_BACKEND = 'matplotlib'
@@ -271,10 +278,106 @@ class Plot(object):
     colorList = _COLORLIST
     colorDict = _COLORDICT
 
-    def __init__(self, parent=None, backend=None):
+    sigPlotSignal = qt.Signal(object)
+    """Signal for all events of the plot.
+
+    The signal information is provided as a dict.
+    See :class:`PlotWidget` for documentation of the content of the dict.
+    """
+
+    sigSetYAxisInverted = qt.Signal(bool)
+    """Signal emitted when Y axis orientation has changed"""
+
+    sigSetXAxisLogarithmic = qt.Signal(bool)
+    """Signal emitted when X axis scale has changed"""
+
+    sigSetYAxisLogarithmic = qt.Signal(bool)
+    """Signal emitted when Y axis scale has changed"""
+
+    sigSetXAxisAutoScale = qt.Signal(bool)
+    """Signal emitted when X axis autoscale has changed"""
+
+    sigSetYAxisAutoScale = qt.Signal(bool)
+    """Signal emitted when Y axis autoscale has changed"""
+
+    sigSetKeepDataAspectRatio = qt.Signal(bool)
+    """Signal emitted when plot keep aspect ratio has changed"""
+
+    sigSetGraphGrid = qt.Signal(str)
+    """Signal emitted when plot grid has changed"""
+
+    sigSetGraphCursor = qt.Signal(bool)
+    """Signal emitted when plot crosshair cursor has changed"""
+
+    sigSetPanWithArrowKeys = qt.Signal(bool)
+    """Signal emitted when pan with arrow keys has changed"""
+
+    sigContentChanged = qt.Signal(str, str, str)
+    """Signal emitted when the content of the plot is changed.
+
+    It provides the following information:
+
+    - action: The change of the plot: 'add' or 'remove'
+    - kind: The kind of primitive changed:
+      'curve', 'image', 'scatter', 'histogram', 'item' or 'marker'
+    - legend: The legend of the primitive changed.
+    """
+
+    sigActiveCurveChanged = qt.Signal(object, object)
+    """Signal emitted when the active curve has changed.
+
+    It provides the following information:
+
+    - previous: The legend of the previous active curve or None
+    - legend: The legend of the new active curve or None if no curve is active
+    """
+
+    sigActiveImageChanged = qt.Signal(object, object)
+    """Signal emitted when the active image has changed.
+
+    It provides the following information:
+
+    - previous: The legend of the previous active image or None
+    - legend: The legend of the new active image or None if no image is active
+    """
+
+    sigActiveScatterChanged = qt.Signal(object, object)
+    """Signal emitted when the active Scatter has changed.
+
+    It provides the following information:
+
+    - previous: The legend of the previous active scatter or None
+    - legend: The legend of the new active image or None if no image is active
+    """
+
+    sigInteractiveModeChanged = qt.Signal(object)
+    """Signal emitted when the interactive mode has changed
+
+    It provides the source as passed to :meth:`setInteractiveMode`.
+    """
+
+    def __init__(self, parent=None, backend=None,
+                 legends=False, callback=None, **kw):
         self._autoreplot = False
         self._dirty = False
         self._cursorInPlot = False
+
+        if kw:
+            _logger.warning(
+                'deprecated: __init__ extra arguments: %s', str(kw))
+        if legends:
+            _logger.warning('deprecated: __init__ legend argument')
+        if callback:
+            _logger.warning('deprecated: __init__ callback argument')
+
+        self._panWithArrowKeys = True
+
+        super(PlotWidget, self).__init__(parent)
+        if parent is not None:
+            # behave as a widget
+            self.setWindowFlags(qt.Qt.Widget)
+        else:
+            self.setWindowTitle('PlotWidget')
 
         if backend is None:
             backend = self.DEFAULT_BACKEND
@@ -297,8 +400,6 @@ class Plot(object):
 
         else:
             raise ValueError("Backend not supported %s" % str(backend))
-
-        super(Plot, self).__init__()
 
         self.setCallback()  # set _callback
 
@@ -357,6 +458,15 @@ class Plot(object):
         self._dirty = False
         self._autoreplot = True
 
+        widget = self.getWidgetHandle()
+        if widget is not None:
+            self.setCentralWidget(widget)
+        else:
+            _logger.warning("PlotWidget backend does not support widget")
+
+        self.setFocusPolicy(qt.Qt.StrongFocus)
+        self.setFocus(qt.Qt.OtherFocusReason)
+
     def _getDirtyPlot(self):
         """Return the plot dirty flag.
 
@@ -388,14 +498,14 @@ class Plot(object):
 
     def _invalidateDataRange(self):
         """
-        Notifies this Plot instance that the range has changed and will have
-        to be recomputed.
+        Notifies this PlotWidget instance that the range has changed
+        and will have to be recomputed.
         """
         self._dataRange = None
 
     def _updateDataRange(self):
         """
-        Recomputes the range of the data displayed on this Plot.
+        Recomputes the range of the data displayed on this PlotWidget.
         """
         xMin = yMinLeft = yMinRight = float('nan')
         xMax = yMaxLeft = yMaxRight = float('nan')
@@ -427,7 +537,7 @@ class Plot(object):
 
     def getDataRange(self):
         """
-        Returns this Plot's data range.
+        Returns this PlotWidget's data range.
 
         :return: a namedtuple with the following members :
                 x, y (left y axis), yright. Each member is a tuple (min, max)
@@ -827,7 +937,7 @@ class Plot(object):
                                (default: False)
         :param dict colormap: Description of the colormap to use (or None)
                               This is ignored if data is a RGB(A) image.
-                              See :mod:`Plot` for the documentation
+                              See :mod:`PlotWidget` for the documentation
                               of the colormap dict.
         :param pixmap: Pixmap representation of the data (if any)
         :type pixmap: (nrows, ncolumns, RGBA) ubyte array or None (default)
@@ -963,7 +1073,7 @@ class Plot(object):
         :param numpy.ndarray value: The data value associated with each point
         :param str legend: The legend to be associated to the scatter (or None)
         :param dict colormap: The colormap to be used for the scatter (or None)
-                              See :mod:`Plot` for the documentation
+                              See :mod:`PlotWidget` for the documentation
                               of the colormap dict.
         :param info: User-defined information associated to the curve
         :param str symbol: Symbol to be drawn at each (x, y) position::
@@ -1360,7 +1470,7 @@ class Plot(object):
         :param str legend: The legend associated to the element to remove,
                            or None to remove
         :param kind: The kind of elements to remove from the plot.
-                     See :attr:`.Plot.ITEM_KINDS`.
+                     See :attr:`ITEM_KINDS`.
                      By default, it removes all kind of elements.
         :type kind: str or tuple of str to specify multiple kinds.
         """
@@ -1821,7 +1931,7 @@ class Plot(object):
         """Retrieve all items of a kind in the plot
 
         :param kind: The kind of elements to retrieve from the plot.
-                     See :attr:`.Plot.ITEM_KINDS`.
+                     See :attr:`ITEM_KINDS`.
                      By default, it removes all kind of elements.
         :type kind: str or tuple of str to specify multiple kinds.
         :param str kind: Type of item: 'curve' or 'image'
@@ -1852,7 +1962,7 @@ class Plot(object):
         Returns None if no match found.
 
         :param str kind: Type of item to retrieve,
-                         see :attr:`.Plot.ITEM_KINDS`.
+                         see :attr:`ITEM_KINDS`.
         :param str legend: Legend of the item or
                            None to get active or last item
         :return: Object describing the item or None
@@ -2223,7 +2333,7 @@ class Plot(object):
     def getDefaultColormap(self):
         """Return the default colormap used by :meth:`addImage` as a dict.
 
-        See :mod:`Plot` for the documentation of the colormap dict.
+        See :mod:`PlotWidget` for the documentation of the colormap dict.
         """
         return self._defaultColormap.copy()
 
@@ -2238,7 +2348,7 @@ class Plot(object):
         :param dict colormap: The description of the default colormap, or
                             None to set the colormap to a linear autoscale
                             gray colormap.
-                            See :mod:`Plot` for the documentation
+                            See :mod:`PlotWidget` for the documentation
                             of the colormap dict.
         """
         if colormap is None:
@@ -2285,7 +2395,7 @@ class Plot(object):
         return self._backend.getWidgetHandle()
 
     def notify(self, event, **kwargs):
-        """Send an event to the listeners.
+        """Send an event to the listeners and send signals.
 
         Event are passed to the registered callback as a dict with an 'event'
         key for backward compatibility with PyMca.
@@ -2293,6 +2403,41 @@ class Plot(object):
         :param str event: The type of event
         :param kwargs: The information of the event.
         """
+        eventDict = kwargs.copy()
+        eventDict['event'] = event
+        self.sigPlotSignal.emit(eventDict)
+
+        if event == 'setYAxisInverted':
+            self.sigSetYAxisInverted.emit(kwargs['state'])
+        elif event == 'setXAxisLogarithmic':
+            self.sigSetXAxisLogarithmic.emit(kwargs['state'])
+        elif event == 'setYAxisLogarithmic':
+            self.sigSetYAxisLogarithmic.emit(kwargs['state'])
+        elif event == 'setXAxisAutoScale':
+            self.sigSetXAxisAutoScale.emit(kwargs['state'])
+        elif event == 'setYAxisAutoScale':
+            self.sigSetYAxisAutoScale.emit(kwargs['state'])
+        elif event == 'setKeepDataAspectRatio':
+            self.sigSetKeepDataAspectRatio.emit(kwargs['state'])
+        elif event == 'setGraphGrid':
+            self.sigSetGraphGrid.emit(kwargs['which'])
+        elif event == 'setGraphCursor':
+            self.sigSetGraphCursor.emit(kwargs['state'])
+        elif event == 'contentChanged':
+            self.sigContentChanged.emit(
+                kwargs['action'], kwargs['kind'], kwargs['legend'])
+        elif event == 'activeCurveChanged':
+            self.sigActiveCurveChanged.emit(
+                kwargs['previous'], kwargs['legend'])
+        elif event == 'activeImageChanged':
+            self.sigActiveImageChanged.emit(
+                kwargs['previous'], kwargs['legend'])
+        elif event == 'activeScatterChanged':
+            self.sigActiveScatterChanged.emit(
+                kwargs['previous'], kwargs['legend'])
+        elif event == 'interactiveModeChanged':
+            self.sigInteractiveModeChanged.emit(kwargs['source'])
+
         eventDict = kwargs.copy()
         eventDict['event'] = event
         self._callback(eventDict)
@@ -2778,6 +2923,69 @@ class Plot(object):
 
         self.notify(
             'interactiveModeChanged', source=source)
+
+    # Panning with arrow keys
+
+    def isPanWithArrowKeys(self):
+        """Returns whether or not panning the graph with arrow keys is enable.
+
+        See :meth:`setPanWithArrowKeys`.
+        """
+        return self._panWithArrowKeys
+
+    def setPanWithArrowKeys(self, pan=False):
+        """Enable/Disable panning the graph with arrow keys.
+
+        This grabs the keyboard.
+
+        :param bool pan: True to enable panning, False to disable.
+        """
+        pan = bool(pan)
+        panHasChanged = self._panWithArrowKeys != pan
+
+        self._panWithArrowKeys = pan
+        if not self._panWithArrowKeys:
+            self.setFocusPolicy(qt.Qt.NoFocus)
+        else:
+            self.setFocusPolicy(qt.Qt.StrongFocus)
+            self.setFocus(qt.Qt.OtherFocusReason)
+
+        if panHasChanged:
+            self.sigSetPanWithArrowKeys.emit(pan)
+
+    # Dict to convert Qt arrow key code to direction str.
+    _ARROWS_TO_PAN_DIRECTION = {
+        qt.Qt.Key_Left: 'left',
+        qt.Qt.Key_Right: 'right',
+        qt.Qt.Key_Up: 'up',
+        qt.Qt.Key_Down: 'down'
+    }
+
+    def keyPressEvent(self, event):
+        """Key event handler handling panning on arrow keys.
+
+        Overrides base class implementation.
+        """
+        key = event.key()
+        if self._panWithArrowKeys and key in self._ARROWS_TO_PAN_DIRECTION:
+            self.pan(self._ARROWS_TO_PAN_DIRECTION[key], factor=0.1)
+
+            # Send a mouse move event to the plot widget to take into account
+            # that even if mouse didn't move on the screen, it moved relative
+            # to the plotted data.
+            qapp = qt.QApplication.instance()
+            event = qt.QMouseEvent(
+                qt.QEvent.MouseMove,
+                self.getWidgetHandle().mapFromGlobal(qt.QCursor.pos()),
+                qt.Qt.NoButton,
+                qapp.mouseButtons(),
+                qapp.keyboardModifiers())
+            qapp.sendEvent(self.getWidgetHandle(), event)
+
+        else:
+            # Only call base class implementation when key is not handled.
+            # See QWidget.keyPressEvent for details.
+            super(PlotWidget, self).keyPressEvent(event)
 
     # Deprecated #
 
