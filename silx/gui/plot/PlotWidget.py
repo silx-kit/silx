@@ -198,7 +198,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "15/05/2017"
+__date__ = "20/06/2017"
 
 
 from collections import OrderedDict, namedtuple
@@ -462,7 +462,7 @@ class PlotWidget(qt.QMainWindow):
         if widget is not None:
             self.setCentralWidget(widget)
         else:
-            _logger.warning("PlotWidget backend does not support widget")
+            _logger.info("PlotWidget backend does not support widget")
 
         self.setFocusPolicy(qt.Qt.StrongFocus)
         self.setFocus(qt.Qt.OtherFocusReason)
