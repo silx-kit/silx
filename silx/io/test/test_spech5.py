@@ -25,6 +25,7 @@
 import gc
 from numpy import array_equal
 import os
+import io
 import sys
 import tempfile
 import unittest
@@ -42,7 +43,7 @@ except ImportError:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "11/05/2017"
+__date__ = "20/06/2017"
 
 sftext = """#F /tmp/sf.dat
 #E 1455180875
@@ -553,6 +554,14 @@ class TestSpecH5(unittest.TestCase):
         self.assertIn("unit_cell_abc", self.sfh5["/1000.1/sample"])
         self.assertIn("unit_cell_alphabetagamma", self.sfh5["/1000.1/sample"])
 
+    def testOpenFileDescriptor(self):
+        """Open a SpecH5 file from a file descriptor"""
+        with io.open(self.sfh5.filename) as f:
+            sfh5 = SpecH5(f)
+            self.assertIsNotNone(sfh5)
+            name_list = []
+            # check if the object is working
+            self.sfh5.visit(name_list.append)
 
 sftext_multi_mca_headers = """
 #S 1 aaaaaa
