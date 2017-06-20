@@ -204,7 +204,10 @@ class PositionInfo(qt.QWidget):
                 _logger.error(traceback.format_exc())
 
     def valueToString(self, value):
-        if isinstance(value, numbers.Real):
+        if isinstance(value, (tuple, list)):
+            value = [self.valueToString(v) for v in value]
+            return ", ".join(value)
+        elif isinstance(value, numbers.Real):
             # Use this for floats and int
             return '%.7g' % value
         else:
