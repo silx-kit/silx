@@ -46,11 +46,11 @@ class TestDictAPI(unittest.TestCase):
     def testGetItem(self):
         """test the item getter API ([xxx])"""
         colormap = Colormap(name='viridis',
-                            norm='linear',
+                            normalization='linear',
                             vmin=self.vmin,
                             vmax=self.vmax)
         self.assertTrue(colormap['name'] == 'viridis')
-        self.assertTrue(colormap['norm'] == 'linear')
+        self.assertTrue(colormap['normalization'] == 'linear')
         self.assertTrue(colormap['vmin'] == self.vmin)
         self.assertTrue(colormap['vmax'] == self.vmax)
         with self.assertRaises(KeyError):
@@ -59,9 +59,9 @@ class TestDictAPI(unittest.TestCase):
     def testGetDict(self):
         """Test the getDict function API"""
         clmObject = Colormap(name='viridis',
-                            norm='linear',
-                            vmin=self.vmin,
-                            vmax=self.vmax)
+                             normalization='linear',
+                             vmin=self.vmin,
+                             vmax=self.vmax)
         clmDict = clmObject.getDict()
         self.assertTrue(clmDict['name'] == 'viridis')
         self.assertTrue(clmDict['autoscale'] is False)
@@ -179,7 +179,7 @@ class TestObjectAPI(unittest.TestCase):
         colormapObject = Colormap(name='viridis',
                                   vmin=vmin,
                                   vmax=vmax,
-                                  norm='linear')
+                                  normalization='linear')
 
         self.assertTrue(colormapObject.getColorMapRange() == (1.0, 2.0))
         self.assertTrue(colormapObject.isAutoscale() is False)
@@ -193,7 +193,7 @@ class TestObjectAPI(unittest.TestCase):
                                   colors=[12, 13, 14],
                                   vmin=None,
                                   vmax=None,
-                                  norm='log')
+                                  normalization='log')
 
         colormapObject2 = colormapObject.copy()
         self.assertTrue(colormapObject.getDict() == colormapObject2.getDict())
@@ -202,7 +202,7 @@ class TestObjectAPI(unittest.TestCase):
 
         colormapObject2 = colormapObject.copy()
         self.assertTrue(colormapObject.getDict() == colormapObject2.getDict())
-        colormapObject.setNorm('linear')
+        colormapObject.setNormalization('linear')
         self.assertFalse(colormapObject.getDict() == colormapObject2.getDict())
 
 

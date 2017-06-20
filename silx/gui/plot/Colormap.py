@@ -76,13 +76,13 @@ class Colormap(qt.QObject):
 
     sigChanged = qt.Signal()
 
-    def __init__(self, name, colors=None, norm='linear', vmin=None, vmax=None):
+    def __init__(self, name, colors=None, normalization='linear', vmin=None, vmax=None):
         qt.QObject.__init__(self)
         self._name = str(name) if name is not None else None
         self._colors = colors
 
-        assert norm in NORMALIZATIONS
-        self._norm = str(norm)
+        assert normalization in NORMALIZATIONS
+        self._normalization = str(normalization)
 
         self._vmin = float(vmin) if vmin is not None else None
         self._vmax = float(vmax) if vmax is not None else None
@@ -123,16 +123,16 @@ class Colormap(qt.QObject):
         self._name = ""
         self.sigChanged.emit()
 
-    def getNorm(self):
+    def getNormalization(self):
         """Return the normalization of the colormap (str)"""
-        return self._norm
+        return self._normalization
 
-    def setNorm(self, norm):
+    def setNormalization(self, norm):
         """Set the norm ('log', 'linear')
 
         :param str norm: the norm to set
         """
-        self._norm = str(norm)
+        self._normalization = str(norm)
         self.sigChanged.emit()
 
     def getVMin(self):
@@ -202,7 +202,7 @@ class Colormap(qt.QObject):
             'vmin': self._vmin,
             'vmax': self._vmax,
             'autoscale': self.isAutoscale(),
-            'normalization': self._norm
+            'normalization': self._normalization
         }
 
     def setFromDict(self, dic):
@@ -214,13 +214,13 @@ class Colormap(qt.QObject):
         _colors = dic['colors'] if 'colors' in dic else None
         _vmin = dic['vmin'] if 'vmin' in dic else None
         _vmax = dic['vmax'] if 'vmax' in dic else None
-        _norm = dic['normalization'] if 'normalization' in dic else None
+        _normalization = dic['normalization'] if 'normalization' in dic else None
 
         if _name is None and _colors is None:
             err = 'The colormap should have a name defined or a tuple of colors'
             raise ValueError(err)
-        if _norm not in NORMALIZATIONS:
-            err = 'Given normalization is not recoginized (%s)' % _norm
+        if _normalization not in NORMALIZATIONS:
+            err = 'Given normalization is not recoginized (%s)' % _normalization
             raise ValueError(err)
 
         if 'autoscale' in dic:
@@ -244,7 +244,7 @@ class Colormap(qt.QObject):
         self._vmin = _vmin
         self._vmax = _vmax
         self._autoscale = True if (_vmin is None and _vmax is None ) else False
-        self._norm = _norm
+        self._normalization = _normalization
 
         self.sigChanged.emit()
 
@@ -263,7 +263,7 @@ class Colormap(qt.QObject):
                         colors=copy.copy(self._colors),
                         vmin=self._vmin,
                         vmax=self._vmax,
-                        norm=self._norm)
+                        normalization=self._normalization)
 
     def applyToData(self, data):
         """Apply the colormap to the data
@@ -274,7 +274,7 @@ class Colormap(qt.QObject):
         rgbaImage = MPLColormap.applyColormapToData(
             data,
             self._name,
-            self._norm,
+            self._normalization,
             self.isAutoscale(),
             self._vmin,
             self._vmax,
