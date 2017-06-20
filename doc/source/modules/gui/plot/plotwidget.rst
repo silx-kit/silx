@@ -14,13 +14,8 @@ It is the basis of other plot widget, thus all plot widgets share the same API.
 
 For an introduction and examples of the plot API, see :doc:`getting_started`.
 
-Plot API
---------
-
-.. currentmodule:: silx.gui.plot.Plot
-
-This is a choosen subset of the complete plot API, the full API is
-documented in :class:`silx.gui.plot.Plot`.
+:class:`PlotWidget`
+-------------------
 
 .. currentmodule:: silx.gui.plot.PlotWidget
 
