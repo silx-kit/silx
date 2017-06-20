@@ -157,6 +157,7 @@ a module from :mod:`silx.gui`:
 
 
 .. warning::
+
    :mod:`silx.gui.plot` widgets are not thread-safe.
    All calls to :mod:`silx.gui.plot` widgets must be made from the main thread.
 
