@@ -123,23 +123,6 @@ class TestDictAPI(unittest.TestCase):
         with self.assertRaises(ValueError):
             colormapObject = Colormap.getFromDict(clm_dict)
 
-    # Not sure this test is correct.
-    # Can we create a Colormap then set letter the colors ?
-    # def testUnknowName(self):
-    #     """Make sure an error is raised if the given name is not
-    #     knowed
-    #     """
-    #     clm_dict = {
-    #         'name': 'temperaturesTOTO',
-    #         'vmin': 1.0,
-    #         'vmax': 2.0,
-    #         'normalization': 'linear',
-    #         'colors': None,
-    #         'autoscale': False
-    #     }
-    #     with self.assertRaises(ValueError):
-    #         colormapObject = Colormap.getFromDict(clm_dict)
-
     def testIncoherentAutoscale(self):
         """Make sure an error is raised if the values given for vmin, vmax and
         autoscale are incoherent 
