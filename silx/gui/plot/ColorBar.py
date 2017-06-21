@@ -68,10 +68,11 @@ class ColorBarWidget(qt.QWidget):
     """
 
     def __init__(self, parent=None, plot=None, legend=None):
-        super(ColorBarWidget, self).__init__(parent)
         self._isConnected = False
         self._plot = None
         self._viewAction = None
+
+        super(ColorBarWidget, self).__init__(parent)
 
         self.__buildGUI()
         self.setLegend(legend)
@@ -298,14 +299,6 @@ class ColorScaleBar(qt.QWidget):
     """The tick bar need a margin to display all labels at the correct place.
     So the ColorScale should have the same margin in order for both to fit"""
 
-    _MIN_LIM_SCI_FORM = -1000
-    """Used for the min and max label to know when we should display it under
-    the scientific form"""
-
-    _MAX_LIM_SCI_FORM = 1000
-    """Used for the min and max label to know when we should display it under
-    the scientific form"""
-
     def __init__(self, parent=None, colormap=None, displayTicksValues=True):
         super(ColorScaleBar, self).__init__(parent)
 
@@ -395,20 +388,29 @@ class ColorScaleBar(qt.QWidget):
     def _updateMinMax(self):
         """Update the min and max label if we are in the case of the
         configuration 'minMaxValueOnly'"""
-        if self._minLabel is not None and self._maxLabel is not None:
-            if self.minVal is not None:
-                if ColorScaleBar._MIN_LIM_SCI_FORM <= self.minVal <= ColorScaleBar._MAX_LIM_SCI_FORM:
-                    self._minLabel.setText(str(self.minVal))
-                else:
-                    self._minLabel.setText("{0:.0e}".format(self.minVal))
-                self._minLabel.setToolTip(str(self.minVal))
+        if self._minLabel is None:
+            text, tooltip = '', ''
+        else:
+            if self.minVal == 0 or 0 <= numpy.log10(abs(self.minVal)) < 7:
+                text = '%.7g' % self.minVal
+            else:
+                text = '%.2e' % self.minVal
+            tooltip = repr(self.minVal)
 
-            if self.maxVal is not None:
-                if ColorScaleBar._MIN_LIM_SCI_FORM <= self.maxVal <= ColorScaleBar._MAX_LIM_SCI_FORM:
-                    self._maxLabel.setText(str(self.maxVal))
-                else:
-                    self._maxLabel.setText("{0:.0e}".format(self.maxVal))
-                self._maxLabel.setToolTip(str(self.maxVal))
+        self._minLabel.setText(text)
+        self._minLabel.setToolTip(tooltip)
+
+        if self._maxLabel is None:
+            text, tooltip = '', ''
+        else:
+            if self.maxVal == 0 or 0 <= numpy.log10(abs(self.maxVal)) < 7:
+                text = '%.7g' % self.maxVal
+            else:
+                text = '%.2e' % self.maxVal
+            tooltip = repr(self.maxVal)
+
+        self._maxLabel.setText(text)
+        self._maxLabel.setToolTip(tooltip)
 
     def _setMinMaxLabels(self, minVal, maxVal):
         """Change the value of the min and max labels to be displayed.
