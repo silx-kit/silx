@@ -366,7 +366,7 @@ class CutPlane(qt.QObject):
         super(CutPlane, self).__init__(parent=sfView)
 
         self._colormap = Colormap(
-            name='gray', norm='linear', vmin=None, vmax=None)
+            name='gray', normalization='linear', vmin=None, vmax=None)
 
         self._dataRange = None
         self._positiveMin = None
@@ -548,7 +548,7 @@ class CutPlane(qt.QObject):
                       name, norm, str(vmin), str(vmax))
 
         self._colormap = Colormap(
-            name=name, norm=norm, vmin=vmin, vmax=vmax)
+            name=name, normalization=norm, vmin=vmin, vmax=vmax)
 
         self._updateColormapRange()
         self.sigColormapChanged.emit(self.getColormap())
@@ -575,7 +575,7 @@ class CutPlane(qt.QObject):
         else:
             range_ = colormap.getVMin(), colormap.getVMax()
 
-        if colormap.getNorm() == 'linear':
+        if colormap.getNormalization() == 'linear':
             self._plane.colormap.norm = 'linear'
             self._plane.colormap.range_ = range_
 
@@ -591,7 +591,7 @@ class CutPlane(qt.QObject):
                               max(range_[1], self._positiveMin))
 
             self._plane.colormap.range_ = range_
-            self._plane.colormap.norm = colormap.getNorm()
+            self._plane.colormap.norm = colormap.getNormalization()
 
 
 class _CutPlaneImage(object):
@@ -725,7 +725,7 @@ class ScalarFieldView(Plot3DWindow):
     def __init__(self, parent=None):
         super(ScalarFieldView, self).__init__(parent)
         self._colormap = Colormap(
-            name='gray', norm='linear', vmin=None, vmax=None)
+            name='gray', normalization='linear', vmin=None, vmax=None)
         self._selectedRange = None
 
         # Store iso-surfaces

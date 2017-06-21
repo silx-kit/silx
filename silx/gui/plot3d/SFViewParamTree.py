@@ -876,7 +876,7 @@ class PlaneMinRangeItem(ColormapBase):
             vMin = vMax
             vMax = value
         cutPlane.setColormap(name=colormap.getName(),
-                             norm=colormap.getNorm(),
+                             norm=colormap.getNormalization(),
                              vmin=vMin,
                              vmax=vMax)
 
@@ -918,7 +918,7 @@ class PlaneMaxRangeItem(ColormapBase):
             vMax = vMin
             vMin = value
         cutPlane.setColormap(name=colormap.getName(),
-                             norm=colormap.getNorm(),
+                             norm=colormap.getNormalization(),
                              vmin=vMin,
                              vmax=vMax)
 
@@ -1041,7 +1041,7 @@ class PlaneColormapItem(ColormapBase):
         colorMapName = self.listValues[index]
         colorMap = self.subject.getCutPlanes()[0].getColormap()
         self.subject.getCutPlanes()[0].setColormap(name=colorMapName,
-                                                   norm=colorMap.getNorm(),
+                                                   norm=colorMap.getNormalization(),
                                                    vmin=colorMap.getVMin(),
                                                    vmax=colorMap.getVMax())
 
@@ -1091,7 +1091,7 @@ class PlaneAutoScaleItem(ColormapBase):
                 else:
                     vMin, vMax = dataRange
             cutPlane.setColormap(colormap.getName(),
-                                 colormap.getNorm(),
+                                 colormap.getNormalization(),
                                  vMin,
                                  vMax)
 
@@ -1129,7 +1129,7 @@ class NormalizationNode(ColormapBase):
                                                    vmax=colorMap.getVMax())
 
     def setEditorData(self, editor):
-        normalization = self.subject.getCutPlanes()[0].getColormap().getNorm()
+        normalization = self.subject.getCutPlanes()[0].getColormap().getNormalization()
         index = self.listValues.index(normalization)
         editor.setCurrentIndex(index)
         return True
@@ -1139,7 +1139,7 @@ class NormalizationNode(ColormapBase):
         return True
 
     def _pullData(self):
-        return self.subject.getCutPlanes()[0].getColormap().getNorm()
+        return self.subject.getCutPlanes()[0].getColormap().getNormalization()
 
 
 class PlaneGroup(SubjectItem):
