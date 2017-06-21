@@ -170,27 +170,40 @@ class TestObjectAPI(unittest.TestCase):
         self.assertTrue(colormapObject.getColorMapRange() == (1.0, 2.0))
         self.assertTrue(colormapObject.isAutoscale() is False)
         colormapObject.setVMinVMax(None, None)
-        self.assertTrue(colormapObject.getVMin() == None)
-        self.assertTrue(colormapObject.getVMax() == None)
+        self.assertTrue(colormapObject.getVMin() is None)
+        self.assertTrue(colormapObject.getVMax() is None)
         self.assertTrue(colormapObject.isAutoscale() is True)
 
     def testCopy(self):
+        """Make sure the copy function is correctly processing
+        """
         colormapObject = Colormap(name='toto',
-                                  colors=[12, 13, 14],
+                                  colors=numpy.array([12, 13, 14]),
                                   vmin=None,
                                   vmax=None,
                                   normalization='log')
 
         colormapObject2 = colormapObject.copy()
-        self.assertTrue(colormapObject.getDict() == colormapObject2.getDict())
-        colormapObject.setColorMapLUT(numpy.ndarray([0, 1]))
-        self.assertFalse(colormapObject.getDict() == colormapObject2.getDict())
+        self.assertTrue(
+            self._colormapsAreIdentical(colormapObject,colormapObject2))
+        colormapObject.setColorMapLUT(numpy.array([0, 1]))
+        self.assertFalse(
+            self._colormapsAreIdentical(colormapObject, colormapObject2))
 
         colormapObject2 = colormapObject.copy()
-        self.assertTrue(colormapObject.getDict() == colormapObject2.getDict())
+        self.assertTrue(
+            self._colormapsAreIdentical(colormapObject, colormapObject2))
         colormapObject.setNormalization('linear')
-        self.assertFalse(colormapObject.getDict() == colormapObject2.getDict())
+        self.assertFalse(
+            self._colormapsAreIdentical(colormapObject, colormapObject2))
 
+    def _colormapsAreIdentical(self, c1, c2):
+        return (c1.getName() == c2.getName() and
+                c1.getNormalization() == c2.getNormalization() and
+                c1.getVMin() == c2.getVMin() and
+                c1.getVMax() == c2.getVMax() and
+                numpy.array_equal(c1.getColorMapLUT(), c2.getColorMapLUT())
+                )
 
 # TODO : add test for getColorMapRange
 
