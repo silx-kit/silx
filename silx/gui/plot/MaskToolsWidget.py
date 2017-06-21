@@ -35,7 +35,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "14/06/2017"
+__date__ = "20/06/2017"
 
 
 import os
@@ -266,12 +266,22 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         """Update mask image in plot"""
         mask = self.getSelectionMask(copy=False)
         if len(mask):
-            self.plot.addImage(mask, legend=self._maskName,
-                               colormap=self._colormap,
-                               origin=self._origin,
-                               scale=self._scale,
-                               z=self._z,
-                               replace=False, resetzoom=False)
+            # get the mask from the plot
+            maskItem = self.plot.getImage(self._maskName)
+            mustBeAdded = maskItem is None
+            if mustBeAdded:
+                maskItem = items.MaskImageData()
+                maskItem._setLegend(self._maskName)
+            # update the items
+            maskItem.setData(mask, copy=False)
+            maskItem.setColormap(self._colormap)
+            maskItem.setOrigin(self._origin)
+            maskItem.setScale(self._scale)
+            maskItem.setZValue(self._z)
+
+            if mustBeAdded:
+                self.plot._add(maskItem)
+
         elif self.plot.getImage(self._maskName):
             self.plot.remove(self._maskName, kind='image')
 

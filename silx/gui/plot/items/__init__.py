@@ -30,14 +30,14 @@ access to its content such as :meth:`.Plot.getCurve`, :meth:`.Plot.getImage`.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "06/03/2017"
+__date__ = "20/06/2017"
 
 from .core import (Item, LabelsMixIn, DraggableMixIn, ColormapMixIn,  # noqa
                    SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn,  # noqa
                    AlphaMixIn, LineMixIn)  # noqa
 from .curve import Curve  # noqa
 from .histogram import Histogram  # noqa
-from .image import ImageBase, ImageData, ImageRgba  # noqa
+from .image import ImageBase, ImageData, ImageRgba, MaskImageData  # noqa
 from .shape import Shape  # noqa
 from .scatter import Scatter  # noqa
 from .marker import Marker, XMarker, YMarker  # noqa

@@ -28,7 +28,7 @@ of the :class:`Plot`.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "06/03/2017"
+__date__ = "20/06/2017"
 
 
 from collections import Sequence
@@ -383,3 +383,12 @@ class ImageRgba(ImageBase):
             plot = self.getPlot()
             if plot is not None:
                 plot._invalidateDataRange()
+
+
+class MaskImageData(ImageData):
+    """Description of an image used as a mask.
+
+    This class is used to flag mask items. This information is used to improve
+    internal silx widgets.
+    """
+    pass

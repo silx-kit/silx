@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "15/05/2017"
+__date__ = "20/06/2017"
 
 
 import logging
@@ -149,56 +149,70 @@ class PositionInfo(qt.QWidget):
         :param dict event: Plot event
         """
         if event['event'] == 'mouseMoved':
-            x, y = event['x'], event['y']  # Position in data
-            styleSheet = "color: rgb(0, 0, 0);"  # Default style
+            x, y = event['x'], event['y']
+            self._updateStatusBar(x, y)
 
-            if self.autoSnapToActiveCurve and self.plot.getGraphCursor():
-                # Check if near active curve with symbols.
+    def _updateStatusBar(self, x, y):
+        """Update information from the status bar using the definitions.
 
-                styleSheet = "color: rgb(255, 0, 0);"  # Style far from curve
+        :param float x: Position-x in data
+        :param float y: Position-y in data
+        """
+        styleSheet = "color: rgb(0, 0, 0);"  # Default style
 
-                activeCurve = self.plot.getActiveCurve()
-                if activeCurve:
-                    xData = activeCurve.getXData(copy=False)
-                    yData = activeCurve.getYData(copy=False)
-                    if activeCurve.getSymbol():  # Only handled if symbols on curve
-                        closestIndex = numpy.argmin(
-                            pow(xData - x, 2) + pow(yData - y, 2))
+        if self.autoSnapToActiveCurve and self.plot.getGraphCursor():
+            # Check if near active curve with symbols.
 
-                        xClosest = xData[closestIndex]
-                        yClosest = yData[closestIndex]
+            styleSheet = "color: rgb(255, 0, 0);"  # Style far from curve
 
-                        closestInPixels = self.plot.dataToPixel(
-                            xClosest, yClosest, axis=activeCurve.getYAxis())
-                        if closestInPixels is not None:
-                            xPixel, yPixel = event['xpixel'], event['ypixel']
+            activeCurve = self.plot.getActiveCurve()
+            if activeCurve:
+                xData = activeCurve.getXData(copy=False)
+                yData = activeCurve.getYData(copy=False)
+                if activeCurve.getSymbol():  # Only handled if symbols on curve
+                    closestIndex = numpy.argmin(
+                        pow(xData - x, 2) + pow(yData - y, 2))
 
-                            if (abs(closestInPixels[0] - xPixel) < 5 and
-                                    abs(closestInPixels[1] - yPixel) < 5):
-                                # Update label style sheet
-                                styleSheet = "color: rgb(0, 0, 0);"
+                    xClosest = xData[closestIndex]
+                    yClosest = yData[closestIndex]
 
-                                # if close enough, wrap to data point coords
-                                x, y = xClosest, yClosest
+                    closestInPixels = self.plot.dataToPixel(
+                        xClosest, yClosest, axis=activeCurve.getYAxis())
+                    if closestInPixels is not None:
+                        xPixel, yPixel = event['xpixel'], event['ypixel']
 
-            for label, name, func in self._fields:
-                label.setStyleSheet(styleSheet)
+                        if (abs(closestInPixels[0] - xPixel) < 5 and
+                                abs(closestInPixels[1] - yPixel) < 5):
+                            # Update label style sheet
+                            styleSheet = "color: rgb(0, 0, 0);"
 
-                try:
-                    value = func(x, y)
-                except:
-                    label.setText('Error')
-                    _logger.error(
-                        "Error while converting coordinates (%f, %f)"
-                        "with converter '%s'" % (x, y, name))
-                    _logger.error(traceback.format_exc())
-                else:
-                    if isinstance(value, numbers.Real):
-                        value = '%.7g' % value  # Use this for floats and int
-                    else:
-                        value = str(value)  # Fallback for other types
-                    label.setText(value)
+                            # if close enough, wrap to data point coords
+                            x, y = xClosest, yClosest
 
+        for label, name, func in self._fields:
+            label.setStyleSheet(styleSheet)
+
+            try:
+                value = func(x, y)
+                text = self.valueToString(value)
+                label.setText(text)
+            except:
+                label.setText('Error')
+                _logger.error(
+                    "Error while converting coordinates (%f, %f)"
+                    "with converter '%s'" % (x, y, name))
+                _logger.error(traceback.format_exc())
+
+    def valueToString(self, value):
+        if isinstance(value, (tuple, list)):
+            value = [self.valueToString(v) for v in value]
+            return ", ".join(value)
+        elif isinstance(value, numbers.Real):
+            # Use this for floats and int
+            return '%.7g' % value
+        else:
+            # Fallback for other types
+            return str(value)
 
 # LimitsToolBar ##############################################################
 
