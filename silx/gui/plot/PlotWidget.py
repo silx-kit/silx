@@ -27,27 +27,6 @@ Widget with plot API for 1D and 2D data.
 
 The :class:`PlotWidget` implements the plot API initially provided in PyMca.
 
-Colormap
---------
-
-The :class:`PlotWidget` uses a dictionary to describe a colormap.
-This dictionary has the following keys:
-
-- 'name': str, name of the colormap. Available colormap are returned by
-          :meth:`PlotWidget.getSupportedColormaps`.
-          At least 'gray', 'reversed gray', 'temperature',
-          'red', 'green', 'blue' are supported.
-- 'normalization': Either 'linear' or 'log'
-- 'autoscale': bool, True to get bounds from the min and max of the
-               data, False to use [vmin, vmax]
-- 'vmin': float, min value, ignored if autoscale is True
-- 'vmax': float, max value, ignored if autoscale is True
-- 'colors': optional, custom colormap.
-            Nx3 or Nx4 numpy array of RGB(A) colors,
-            either uint8 or float in [0, 1].
-            If 'name' is None, then this array is used as the colormap.
-
-
 Plot Events
 -----------
 
@@ -213,6 +192,7 @@ import numpy
 # Import matplotlib backend here to init matplotlib our way
 from .backends.BackendMatplotlib import BackendMatplotlibQt
 
+from .Colormap import Colormap
 from . import Colors
 from . import PlotInteraction
 from . import PlotEvents
@@ -948,10 +928,9 @@ class PlotWidget(qt.QMainWindow):
                                 (default: False)
         :param bool draggable: Indicate if the image can be moved.
                                (default: False)
-        :param dict colormap: Description of the colormap to use (or None)
-                              This is ignored if data is a RGB(A) image.
-                              See :mod:`PlotWidget` for the documentation
-                              of the colormap dict.
+        :param Colormap colormap: Description of the :class:`.Colormap` to use
+                                  (or None)
+                                  This is ignored if data is a RGB(A) image.
         :param pixmap: Pixmap representation of the data (if any)
         :type pixmap: (nrows, ncolumns, RGBA) ubyte array or None (default)
         :param str xlabel: X axis label to show when this curve is active,
@@ -1087,9 +1066,8 @@ class PlotWidget(qt.QMainWindow):
         :param numpy.ndarray y: The data corresponding to the y coordinates
         :param numpy.ndarray value: The data value associated with each point
         :param str legend: The legend to be associated to the scatter (or None)
-        :param dict colormap: The colormap to be used for the scatter (or None)
-                              See :mod:`PlotWidget` for the documentation
-                              of the colormap dict.
+        :param Colormap colormap: The :class:`.Colormap`. to be used for the
+                                  scatter (or None)
         :param info: User-defined information associated to the curve
         :param str symbol: Symbol to be drawn at each (x, y) position::
 
@@ -2348,9 +2326,8 @@ class PlotWidget(qt.QMainWindow):
                 curve.setLineStyle(linestyle)
 
     def getDefaultColormap(self):
-        """Return the default colormap used by :meth:`addImage` as a dict.
+        """Return the default :class:`.Colormap` used by :meth:`addImage`.
 
-        See :mod:`PlotWidget` for the documentation of the colormap dict.
         """
         return self._defaultColormap.copy()
 
@@ -2362,15 +2339,15 @@ class PlotWidget(qt.QMainWindow):
         It only affects future calls to :meth:`addImage` without the colormap
         parameter.
 
-        :param dict colormap: The description of the default colormap, or
-                            None to set the colormap to a linear autoscale
-                            gray colormap.
-                            See :mod:`PlotWidget` for the documentation
-                            of the colormap dict.
+        :param Colormap colormap: The description of the default colormap, or
+                            None to set the :class:`.Colormap` to a linear
+                            autoscale gray colormap.
         """
         if colormap is None:
-            colormap = {'name': 'gray', 'normalization': 'linear',
-                        'autoscale': True, 'vmin': 0.0, 'vmax': 1.0}
+            colormap = Colormap(name='gray',
+                                normalization='linear',
+                                vmin=0.0,
+                                vmax=1.0)
         self._defaultColormap = colormap.copy()
         self.notify('defaultColormapChanged')
 
@@ -2382,7 +2359,7 @@ class PlotWidget(qt.QMainWindow):
         ('gray', 'reversed gray', 'temperature', 'red', 'green', 'blue',
         'magma', 'inferno', 'plasma', 'viridis')
         """
-        return Colors.getSupportedColormaps()
+        return Colormap.getSupportedColormaps()
 
     def _getColorAndStyle(self):
         color = self.colorList[self._colorIndex]
