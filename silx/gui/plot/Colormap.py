@@ -93,7 +93,7 @@ class Colormap(qt.QObject):
                 raise ValueError("Unsuported vmin (%s) or vmax (%s) given for a log scale" % (vmin, vmax))
 
         self._name = str(name) if name is not None else None
-        self._colors = colors
+        self._setColors(colors)
         self._normalization = str(normalization)
         self._vmin = float(vmin) if vmin is not None else None
         self._vmax = float(vmax) if vmax is not None else None
@@ -109,6 +109,16 @@ class Colormap(qt.QObject):
 
         :return: the name of the colormap (str)"""
         return self._name
+
+    def _setColors(self, colors):
+        if not (type(colors) in (numpy.ndarray, list, tuple) or colors is None):
+            m = "colors should be None or a numpy.ndarray or a list or a tuple"
+            raise ValueError(m)
+
+        if type(colors) in (list, tuple):
+            self._colors = numpy.array(colors)
+        else:
+            self._colors = colors
 
     def setName(self, name):
         """Set the name of the colormap and load the colors corresponding to
@@ -142,8 +152,7 @@ class Colormap(qt.QObject):
 
         .. warning: this will set the value of name to an empty string
         """
-        assert(type(colors) is numpy.ndarray or colors is None)
-        self._colors = colors
+        self._setColors(colors)
         if len(colors) is 0:
             self._colors = None
         if keepName is False:
