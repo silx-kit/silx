@@ -32,6 +32,7 @@ import unittest
 import datetime
 from functools import partial
 
+from .. import spech5
 from ..spech5 import (SpecH5, SpecH5Group,
                       SpecH5Dataset, spec_date_to_iso8601)
 from .. import specfile
@@ -43,7 +44,7 @@ except ImportError:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "20/06/2017"
+__date__ = "21/06/2017"
 
 sftext = """#F /tmp/sf.dat
 #E 1455180875
@@ -306,6 +307,16 @@ class TestSpecH5(unittest.TestCase):
 
         # spech5 does not define external link, so there is no way
         # a group can *get* a SpecH5 class
+
+    def testGetApi(self):
+        result = self.sfh5.get("1.1", getclass=True, getlink=True)
+        self.assertIs(result, h5py.HardLink)
+        result = self.sfh5.get("1.1", getclass=False, getlink=True)
+        self.assertIsInstance(result, h5py.HardLink)
+        result = self.sfh5.get("1.1", getclass=True, getlink=False)
+        self.assertIs(result, h5py.Group)
+        result = self.sfh5.get("1.1", getclass=False, getlink=False)
+        self.assertIsInstance(result, spech5.SpecH5Group)
 
     def testGetItemGroup(self):
         group = self.sfh5["25.1"]["instrument"]
