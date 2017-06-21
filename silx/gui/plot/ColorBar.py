@@ -35,8 +35,7 @@ import numpy
 from ._utils import ticklayout
 from ._utils import clipColormapLogRange
 
-
-from .. import qt
+from .. import qt, icons
 from silx.gui.plot import Colors
 
 _logger = logging.getLogger(__name__)
@@ -72,6 +71,7 @@ class ColorBarWidget(qt.QWidget):
     def __init__(self, parent=None, plot=None, legend=None):
         super(ColorBarWidget, self).__init__(parent)
         self._plot = None
+        self._viewAction = None
 
         self.__buildGUI()
         self.setLegend(legend)
@@ -91,7 +91,6 @@ class ColorBarWidget(qt.QWidget):
 
         self.layout().setSizeConstraint(qt.QLayout.SetMinAndMaxSize)
         self.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Expanding)
-        self.layout().setContentsMargins(0, 0, 0, 0)
 
     def getPlot(self):
         """Returns the :class:`Plot` associated to this widget or None"""
@@ -100,18 +99,20 @@ class ColorBarWidget(qt.QWidget):
     def setPlot(self, plot):
         """Associate a plot to the ColorBar
 
-        :param plot: the plot to associate with the colorbar. If None will remove
-            any connection with a previous plot.
+        :param plot: the plot to associate with the colorbar.
+                     If None will remove any connection with a previous plot.
         """
         # removing previous plot if any
         if self._plot is not None:
-            self._plot.sigActiveImageChanged.disconnect(self._activeImageChanged)
+            self._plot.sigActiveImageChanged.disconnect(
+                self._activeImageChanged)
 
         # setting the new plot
         self._plot = plot
         if self._plot is not None:
+            self._activeImageChanged(
+                None, self._plot.getActiveImage(just_legend=True))
             self._plot.sigActiveImageChanged.connect(self._activeImageChanged)
-            self._activeImageChanged(self._plot.getActiveImage(just_legend=True))
 
     def getColormap(self):
         """Return the colormap displayed in the colorbar as a dict.
@@ -163,7 +164,7 @@ class ColorBarWidget(qt.QWidget):
         """
         return self.legend.getText()
 
-    def _activeImageChanged(self, legend):
+    def _activeImageChanged(self, previous, legend):
         """Handle plot active curve changed"""
         if legend is None:  # No active image, display default colormap
             self._syncWithDefaultColormap()
@@ -207,6 +208,29 @@ class ColorBarWidget(qt.QWidget):
         :return: return the :class:`ColorScaleBar` used to display ColorScale
             and ticks"""
         return self._colorScale
+
+    def showEvent(self, event):
+        if self._viewAction is not None:
+            self._viewAction.setChecked(True)
+
+    def hideEvent(self, event):
+        if self._viewAction is not None:
+            self._viewAction.setChecked(False)
+
+    def getToggleViewAction(self):
+        """Returns a checkable action controlling this widget's visibility.
+
+        :rtype: QAction
+        """
+        if self._viewAction is None:
+            self._viewAction = qt.QAction(self)
+            self._viewAction.setText('Colorbar')
+            self._viewAction.setIcon(icons.getQIcon('colorbar'))
+            self._viewAction.setToolTip('Show/Hide the colorbar')
+            self._viewAction.setCheckable(True)
+            self._viewAction.setChecked(self.isVisible())
+            self._viewAction.toggled[bool].connect(self.setVisible)
+        return self._viewAction
 
 
 class _VerticalLegend(qt.QLabel):
@@ -460,14 +484,19 @@ class _ColorScale(qt.QWidget):
 
         vmin = self.colormap['vmin']
         vmax = self.colormap['vmax']
-        steps = (vmax - vmin)/float(_ColorScale._NB_CONTROL_POINTS)
-        self.ctrPoints = numpy.arange(vmin, vmax, steps)
-        self.colorsCtrPts = Colors.applyColormapToData(self.ctrPoints,
-                                                       name=self.colormap['name'],
-                                                       normalization='linear',
-                                                       autoscale=self.colormap['autoscale'],
-                                                       vmin=vmin,
-                                                       vmax=vmax)
+        if vmin != vmax:
+            steps = (vmax - vmin)/float(_ColorScale._NB_CONTROL_POINTS)
+            self.ctrPoints = numpy.arange(vmin, vmax, steps)
+            self.colorsCtrPts = Colors.applyColormapToData(
+                self.ctrPoints,
+                name=self.colormap['name'],
+                normalization='linear',
+                autoscale=self.colormap['autoscale'],
+                vmin=vmin,
+                vmax=vmax)
+        else:
+            self.ctrPoints = ()
+            self.colorsCtrPts = ()
 
     def paintEvent(self, event):
         """"""
@@ -488,7 +517,7 @@ class _ColorScale(qt.QWidget):
 
         painter.setBrush(gradient)
         painter.drawRect(
-            qt.QRect(0, self.margin, self.width(), self.height() - 2.*self.margin))
+            qt.QRect(0, self.margin, self.width() - 1., self.height() - 2.*self.margin - 1.))
 
     def mouseMoveEvent(self, event):
         """"""
@@ -584,7 +613,6 @@ class _TickBar(qt.QWidget):
         self._norm = norm
         self.displayValues = displayValues
         self.setTicksNumber(nticks)
-        self.setMargin(margin)
 
         self.setLayout(qt.QVBoxLayout())
         self.setMargin(margin)
@@ -644,7 +672,11 @@ class _TickBar(qt.QWidget):
         if nticks is None:
             nticks = self._getOptimalNbTicks()
 
-        if self._norm == 'log':
+        if self._vmin == self._vmax:
+            # No range: no ticks
+            self.ticks = ()
+            self.subTicks = ()
+        elif self._norm == 'log':
             self._computeTicksLog(nticks)
         elif self._norm == 'linear':
             self._computeTicksLin(nticks)
@@ -720,7 +752,7 @@ class _TickBar(qt.QWidget):
             with a smaller width
         """
         fm = qt.QFontMetrics(painter.font())
-        viewportHeight = self.rect().height() - self.margin * 2
+        viewportHeight = self.rect().height() - self.margin * 2 - 1
         relativePos = self._getRelativePosition(val)
         height = viewportHeight * relativePos
         height += self.margin

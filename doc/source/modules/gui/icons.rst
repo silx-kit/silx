@@ -35,6 +35,8 @@ Available icons
      - clipboard
    * - |close|
      - close
+   * - |colorbar|
+     - colorbar
    * - |colormap|
      - colormap
    * - |crop|
@@ -127,6 +129,8 @@ Available icons
      - math-swap-sign
    * - |math-ymin-to-zero|
      - math-ymin-to-zero
+   * - |median-filter|
+     - median-filter
    * - |next|
      - next
    * - |normal|
@@ -167,6 +171,8 @@ Available icons
      - plot-yup
    * - |previous|
      - previous
+   * - |profile-clear|
+     - profile-clear
    * - |profile1D|
      - profile1D
    * - |profile2D|
@@ -217,6 +223,10 @@ Available icons
      - view-3d
    * - |view-fullscreen|
      - view-fullscreen
+   * - |view-hdf5|
+     - view-hdf5
+   * - |view-nexus|
+     - view-nexus
    * - |view-nofullscreen|
      - view-nofullscreen
    * - |view-raw|
@@ -244,6 +254,7 @@ Available icons
 .. |camera| image:: ../../../../silx/resources/gui/icons/camera.png
 .. |clipboard| image:: ../../../../silx/resources/gui/icons/clipboard.png
 .. |close| image:: ../../../../silx/resources/gui/icons/close.png
+.. |colorbar| image:: ../../../../silx/resources/gui/icons/colorbar.png
 .. |colormap| image:: ../../../../silx/resources/gui/icons/colormap.png
 .. |crop| image:: ../../../../silx/resources/gui/icons/crop.png
 .. |crosshair| image:: ../../../../silx/resources/gui/icons/crosshair.png
@@ -290,6 +301,7 @@ Available icons
 .. |math-substract| image:: ../../../../silx/resources/gui/icons/math-substract.png
 .. |math-swap-sign| image:: ../../../../silx/resources/gui/icons/math-swap-sign.png
 .. |math-ymin-to-zero| image:: ../../../../silx/resources/gui/icons/math-ymin-to-zero.png
+.. |median-filter| image:: ../../../../silx/resources/gui/icons/median-filter.png
 .. |next| image:: ../../../../silx/resources/gui/icons/next.png
 .. |normal| image:: ../../../../silx/resources/gui/icons/normal.png
 .. |pixel-intensities| image:: ../../../../silx/resources/gui/icons/pixel-intensities.png
@@ -310,6 +322,7 @@ Available icons
 .. |plot-ylog| image:: ../../../../silx/resources/gui/icons/plot-ylog.png
 .. |plot-yup| image:: ../../../../silx/resources/gui/icons/plot-yup.png
 .. |previous| image:: ../../../../silx/resources/gui/icons/previous.png
+.. |profile-clear| image:: ../../../../silx/resources/gui/icons/profile-clear.png
 .. |profile1D| image:: ../../../../silx/resources/gui/icons/profile1D.png
 .. |profile2D| image:: ../../../../silx/resources/gui/icons/profile2D.png
 .. |remove| image:: ../../../../silx/resources/gui/icons/remove.png
@@ -335,6 +348,8 @@ Available icons
 .. |view-2d| image:: ../../../../silx/resources/gui/icons/view-2d.png
 .. |view-3d| image:: ../../../../silx/resources/gui/icons/view-3d.png
 .. |view-fullscreen| image:: ../../../../silx/resources/gui/icons/view-fullscreen.png
+.. |view-hdf5| image:: ../../../../silx/resources/gui/icons/view-hdf5.png
+.. |view-nexus| image:: ../../../../silx/resources/gui/icons/view-nexus.png
 .. |view-nofullscreen| image:: ../../../../silx/resources/gui/icons/view-nofullscreen.png
 .. |view-raw| image:: ../../../../silx/resources/gui/icons/view-raw.png
 .. |view-refresh| image:: ../../../../silx/resources/gui/icons/view-refresh.png

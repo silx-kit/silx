@@ -199,6 +199,8 @@ class StackView(qt.QMainWindow):
         self.sigActiveImageChanged = self._plot.sigActiveImageChanged
         self.sigPlotSignal = self._plot.sigPlotSignal
 
+        self._addColorBarAction()
+        
         self._plot.profile = Profile3DToolBar(parent=self._plot,
                                               plot=self)
         self._plot.addToolBar(self._plot.profile)
@@ -230,6 +232,16 @@ class StackView(qt.QMainWindow):
             self._plot.profile.getProfilePlot().clear)
         self.__planeSelection.sigPlaneSelectionChanged.connect(
             self._plot.profile.clearProfile)
+
+    def _addColorBarAction(self):
+        self._plot.getColorBarWidget().setVisible(True)
+        actions = self._plot.toolBar().actions()
+        for index, action in enumerate(actions):
+            if action is self._plot.getColormapAction():
+                break
+        self._plot.toolBar().insertAction(
+            actions[index + 1],
+            self.getColorBarWidget().getToggleViewAction())
 
     def setOptionVisible(self, isVisible):
         """
@@ -830,6 +842,13 @@ class StackView(qt.QMainWindow):
         """
         return self._plot.profile.getProfileWindow2D()
 
+    def getColorBarWidget(self):
+        """Returns the colorbar widget from the plot
+
+        :rtype: :class:`silx.gui.plot.ColorBar.ColorBarWidget`
+        """
+        return self._plot.getColorBarWidget()
+
     # kind of private methods, but needed by Profile
     def remove(self, legend=None,
                kind=('curve', 'image', 'item', 'marker')):
@@ -1014,6 +1033,8 @@ class StackViewMainWindow(StackView):
         menu.addSeparator()
         menu.addAction(self._plot.resetZoomAction)
         menu.addAction(self._plot.colormapAction)
+        menu.addAction(self._plot.getColorBarWidget().getToggleViewAction())
+
         menu.addAction(actions.control.KeepAspectRatioAction(self._plot, self))
         menu.addAction(actions.control.YAxisInvertedAction(self._plot, self))
 
