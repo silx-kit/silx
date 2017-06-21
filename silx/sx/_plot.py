@@ -241,15 +241,11 @@ def imshow(data=None, cmap=None, norm='linear',
     # Update default colormap with input parameters
     colormap = plt.getDefaultColormap()
     if cmap is not None:
-        colormap['name'] = cmap
+        colormap.setName(cmap)
     assert norm in ('linear', 'log')
-    colormap['normalization'] = norm
-    if vmin is not None:
-        colormap['vmin'] = vmin
-    if vmax is not None:
-        colormap['vmax'] = vmax
-    if vmin is not None and vmax is not None:
-        colormap['autoscale'] = False
+    colormap.setNormalization(norm)
+    colormap.setVMin(vmin)
+    colormap.setVMax(vmax)
     plt.setDefaultColormap(colormap)
 
     # Handle aspect
