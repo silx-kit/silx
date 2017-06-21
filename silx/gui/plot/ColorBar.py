@@ -388,7 +388,7 @@ class ColorScaleBar(qt.QWidget):
     def _updateMinMax(self):
         """Update the min and max label if we are in the case of the
         configuration 'minMaxValueOnly'"""
-        if self._minLabel is None:
+        if self.minVal is None:
             text, tooltip = '', ''
         else:
             if self.minVal == 0 or 0 <= numpy.log10(abs(self.minVal)) < 7:
@@ -400,7 +400,7 @@ class ColorScaleBar(qt.QWidget):
         self._minLabel.setText(text)
         self._minLabel.setToolTip(tooltip)
 
-        if self._maxLabel is None:
+        if self.maxVal is None:
             text, tooltip = '', ''
         else:
             if self.maxVal == 0 or 0 <= numpy.log10(abs(self.maxVal)) < 7:
