@@ -34,12 +34,10 @@ __date__ = "05/12/2016"
 from silx.gui import qt
 import copy as copy_mdl
 import numpy
-
-# First of all init matplotlib and set its backend
-# try:
 from .matplotlib import Colormap as MPLColormap
-# except ImportError:
-#     MPLColormap = None
+import logging
+
+_logger = logging.getLogger(__file__)
 
 _DEFAULT_COLORMAPS = {
     'gray': 0,
@@ -91,7 +89,12 @@ class Colormap(qt.QObject):
         assert normalization in NORMALIZATIONS
         if normalization is 'log':
             if (vmin is not None and vmin < 1.0) or (vmax is not None and vmax < 1.0):
-                raise ValueError("Unsuported vmin (%s) or vmax (%s) given for a log scale" % (vmin, vmax))
+                m = "Unsuported vmin (%s) and/or vmax (%s) given for a log scale" % (
+                vmin, vmax)
+                m += 'Autoscale will be performed'
+                _logger.warning(m)
+                vmin = None
+                vmax = None
 
         self._name = str(name) if name is not None else None
         self._setColors(colors)
