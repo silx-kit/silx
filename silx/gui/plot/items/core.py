@@ -36,6 +36,7 @@ import numpy
 from silx.third_party import six
 
 from .. import Colors
+from ..Colormap import Colormap
 
 
 
@@ -292,8 +293,10 @@ class DraggableMixIn(object):
 class ColormapMixIn(object):
     """Mix-in class for items with colormap"""
 
-    _DEFAULT_COLORMAP = {'name': 'gray', 'normalization': 'linear',
-                         'autoscale': True, 'vmin': 0.0, 'vmax': 1.0}
+    _DEFAULT_COLORMAP = Colormap(name='gray',
+                                 normalization='linear',
+                                 vmin=None,
+                                 vmax=None)
     """Default colormap of the item"""
 
     def __init__(self):
