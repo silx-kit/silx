@@ -293,14 +293,8 @@ class DraggableMixIn(object):
 class ColormapMixIn(object):
     """Mix-in class for items with colormap"""
 
-    _DEFAULT_COLORMAP = Colormap(name='gray',
-                                 normalization='linear',
-                                 vmin=None,
-                                 vmax=None)
-    """Default colormap of the item"""
-
     def __init__(self):
-        self._colormap = self._DEFAULT_COLORMAP
+        self._colormap = Colormap()
 
     def getColormap(self):
         """Return the used colormap"""
