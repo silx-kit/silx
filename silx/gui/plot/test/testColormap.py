@@ -87,7 +87,7 @@ class TestDictAPI(unittest.TestCase):
         }
 
         # Test that the colormap is correctly created
-        colormapObject = Colormap.getFromDict(clm_dict)
+        colormapObject = Colormap.fromDict(clm_dict)
         self.assertTrue(colormapObject.getName() == clm_dict['name'])
         self.assertTrue(colormapObject.getColorMapLUT() == clm_dict['colors'])
         self.assertTrue(colormapObject.getVMin() == clm_dict['vmin'])
@@ -121,7 +121,7 @@ class TestDictAPI(unittest.TestCase):
             'autoscale': False
         }
         with self.assertRaises(ValueError):
-            colormapObject = Colormap.getFromDict(clm_dict)
+            colormapObject = Colormap.fromDict(clm_dict)
 
     def testIncoherentAutoscale(self):
         """Make sure an error is raised if the values given for vmin, vmax and
@@ -136,7 +136,7 @@ class TestDictAPI(unittest.TestCase):
             'autoscale': False
         }
         with self.assertRaises(ValueError):
-            colormapObject = Colormap.getFromDict(clm_dict)
+            colormapObject = Colormap.fromDict(clm_dict)
 
         clm_dict = {
             'name': 'temperature',
@@ -147,7 +147,7 @@ class TestDictAPI(unittest.TestCase):
             'autoscale': True
         }
         with self.assertRaises(ValueError):
-            colormapObject = Colormap.getFromDict(clm_dict)
+            colormapObject = Colormap.fromDict(clm_dict)
 
     # TODO : missing code and test for dealing with negative vmin/vmax on log norm...
 
