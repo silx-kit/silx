@@ -205,7 +205,34 @@ class TestObjectAPI(unittest.TestCase):
                 numpy.array_equal(c1.getColorMapLUT(), c2.getColorMapLUT())
                 )
 
-# TODO : add test for getColorMapRange
+    def testGetColorMapRange(self):
+        """Make sure the getColorMapRange function of colormap is correctly
+        applying
+        """
+        # test linear scale
+        data = numpy.array([-1, 1, 2, 3])
+        cl1 = Colormap(name='gray', normalization='linear', vmin=0, vmax=2)
+        cl2 = Colormap(name='gray', normalization='linear', vmin=None, vmax=2)
+        cl3 = Colormap(name='gray', normalization='linear', vmin=0, vmax=None)
+        cl4 = Colormap(name='gray', normalization='linear', vmin=None, vmax=None)
+
+        self.assertTrue(cl1.getColorMapRange(data) == (0, 2))
+        self.assertTrue(cl2.getColorMapRange(data) == (-1, 2))
+        self.assertTrue(cl3.getColorMapRange(data) == (0, 3))
+        self.assertTrue(cl4.getColorMapRange(data) == (-1, 3))
+
+        # test log scale
+        data = numpy.array([1, 10, 100, 1000])
+        cl1 = Colormap(name='gray', normalization='log', vmin=1, vmax=100)
+        cl2 = Colormap(name='gray', normalization='log', vmin=None, vmax=100)
+        cl3 = Colormap(name='gray', normalization='log', vmin=1, vmax=None)
+        cl4 = Colormap(name='gray', normalization='log', vmin=None, vmax=None)
+
+        self.assertTrue(cl1.getColorMapRange(data) == (1, 100))
+        self.assertTrue(cl2.getColorMapRange(data) == (1, 100))
+        self.assertTrue(cl3.getColorMapRange(data) == (1, 1000))
+        self.assertTrue(cl4.getColorMapRange(data) == (1, 1000))
+
 
 def suite():
     test_suite = unittest.TestSuite()
