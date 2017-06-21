@@ -85,7 +85,7 @@ class Colormap(qt.QObject):
 
     sigChanged = qt.Signal()
 
-    def __init__(self, name, colors=None, normalization='linear', vmin=None, vmax=None):
+    def __init__(self, name='gray', colors=None, normalization='linear', vmin=None, vmax=None):
         qt.QObject.__init__(self)
         assert normalization in NORMALIZATIONS
         if normalization is 'log':
