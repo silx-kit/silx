@@ -81,6 +81,7 @@ except ImportError:
 from silx.gui import qt
 from .. import icons
 from . import items, PlotWindow, actions
+from .Colormap import Colormap
 from .Colors import cursorColorForColormap
 from .PlotTools import LimitsToolBar
 from .Profile import Profile3DToolBar
@@ -736,7 +737,7 @@ class StackView(qt.QMainWindow):
 
         :param colormap: Name of the colormap in
             'gray', 'reversed gray', 'temperature', 'red', 'green', 'blue'.
-            Or the description of the colormap as a dict.
+            Or a :class`.Colormap` object.
         :type colormap: dict or str.
         :param str normalization: Colormap mapping: 'linear' or 'log'.
         :param bool autoscale: Whether to use autoscale or [vmin, vmax] range.
@@ -751,7 +752,7 @@ class StackView(qt.QMainWindow):
         """
         cmapDict = self.getColormap()
 
-        if isinstance(colormap, dict):
+        if isinstance(colormap, Colormap):
             # Support colormap parameter as a dict
             errmsg = "If colormap is provided as a dict, all other parameters"
             errmsg += " must not be specified when calling setColormap"
@@ -764,17 +765,11 @@ class StackView(qt.QMainWindow):
 
         else:
             if colormap is not None:
-                cmapDict['name'] = colormap
+                cmapDict.setName(colormap)
             if normalization is not None:
-                cmapDict['normalization'] = normalization
+                cmapDict.setNormalization(normalization)
             if colors is not None:
-                cmapDict['colors'] = colors
-
-            # Default meaning of autoscale is to reset min and max
-            # each time a new image is added to the plot.
-            # We want to use min and max of global volume,
-            # and not change them when browsing slides
-            cmapDict['autoscale'] = False
+                cmapDict.setColors(colors)
 
             if autoscale is None:
                 # set default
@@ -792,15 +787,15 @@ class StackView(qt.QMainWindow):
                 autoscale = autoscale
             self.__autoscaleCmap = autoscale
             if autoscale and (self._stack is not None):
-                cmapDict['vmin'] = self._stack.min()
-                cmapDict['vmax'] = self._stack.max()
+                cmapDict.setVMin(self._stack.min())
+                cmapDict.setVMax(self._stack.max())
             else:
                 if vmin is not None:
-                    cmapDict['vmin'] = vmin
+                    cmapDict.setVMin(vmin)
                 if vmax is not None:
-                    cmapDict['vmax'] = vmax
+                    cmapDict.setVMax(vmax)
 
-        cursorColor = cursorColorForColormap(cmapDict['name'])
+        cursorColor = cursorColorForColormap(cmapDict.getName())
         self._plot.setInteractiveMode('zoom', color=cursorColor)
 
         self._plot.setDefaultColormap(cmapDict)
