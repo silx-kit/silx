@@ -63,7 +63,7 @@ class TestDictAPI(unittest.TestCase):
                              normalization='linear',
                              vmin=self.vmin,
                              vmax=self.vmax)
-        clmDict = clmObject.getDict()
+        clmDict = clmObject._toDict()
         self.assertTrue(clmDict['name'] == 'viridis')
         self.assertTrue(clmDict['autoscale'] is False)
         self.assertTrue(clmDict['vmin'] == self.vmin)
@@ -71,7 +71,7 @@ class TestDictAPI(unittest.TestCase):
         self.assertTrue(clmDict['normalization'] == 'linear')
 
         clmObject.setVMinVMax(None, None)
-        self.assertTrue(clmObject.getDict()['autoscale'] is True)
+        self.assertTrue(clmObject._toDict()['autoscale'] is True)
 
     def testSetValidDict(self):
         """Test that if a colormap is created fron a dict then it is correctly

@@ -242,7 +242,7 @@ class Colormap(qt.QObject):
         else:
             return getattr(self, attr)
 
-    def getDict(self):
+    def _toDict(self):
         """Return the equivalent colormap as a dictionnary
         (old colormap representation)
         
@@ -346,7 +346,7 @@ class Colormap(qt.QObject):
         #     self._vmin, self._vmax = 1., 10.
 
     def __str__(self):
-        return str(self.getDict())
+        return str(self._toDict())
 
     def _getDefaultMin(self):
         return DEFAULT_MIN_LIN if self._normalization == 'linear' else DEFAULT_MIN_LOG

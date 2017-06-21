@@ -265,7 +265,7 @@ class TestColorBarWidget(TestCaseQt):
         self.assertFalse(
             self.colorBar.getColormap() == self.plot.getDefaultColormap())
         self.assertTrue(
-            self.colorBar.getColormap().getDict() == self.plot.getDefaultColormap().getDict())
+            self.colorBar.getColormap()._toDict() == self.plot.getDefaultColormap()._toDict())
 
         data = numpy.linspace(0, 10, 100).reshape(10, 10)
         self.plot.addImage(data=data, colormap=colormap, legend='toto')
