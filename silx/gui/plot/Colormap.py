@@ -234,14 +234,19 @@ class Colormap(qt.QObject):
     def __getitem__(self, item):
         if item == 'autoscale':
             return self.isAutoscale()
-        if type(item) is not str:
-            raise KeyError(item)
-        attr = '_' + item
-        if not hasattr(self, attr):
-            raise KeyError(item)
+        elif item == 'name':
+            return self.getName()
+        elif item == 'normalization':
+            return self.getNormalization()
+        elif item == 'vmin':
+            return self.getVMin()
+        elif item == 'vmax':
+            return self.getVMax()
+        elif item == 'colors':
+            return self.getColorMapLUT(copy=False)
         else:
-            return getattr(self, attr)
-
+            raise KeyError(item)
+        
     def _toDict(self):
         """Return the equivalent colormap as a dictionnary
         (old colormap representation)
