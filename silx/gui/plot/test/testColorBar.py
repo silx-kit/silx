@@ -102,22 +102,6 @@ class TestColorScale(TestCaseQt):
         val = self.colorScaleWidget.getValueFromRelativePosition(0.0)
         self.assertTrue(val == 1.0)
 
-class TestNoAutoscale(TestCaseQt):
-    # TODO : should be moved on the colormap test
-    def testNegativeLogMin(self):
-        with self.assertRaises(ValueError):
-            colormap = Colormap(name='gray',
-                                normalization='log',
-                                vmin=-1.0,
-                                vmax=1.0)
-
-    # TODO : should be moved on the colormap test
-    def testNegativeLogMax(self):
-        with self.assertRaises(ValueError):
-            colormap = Colormap(name='gray',
-                                normalization='log',
-                                vmin=1.0,
-                                vmax=-1.0)
 
 class TestNoAutoscale(unittest.TestCase):
     """Test that ticks and color displayed are correct in the case of a colormap

@@ -149,8 +149,6 @@ class TestDictAPI(unittest.TestCase):
         with self.assertRaises(ValueError):
             colormapObject = Colormap.fromDict(clm_dict)
 
-    # TODO : missing code and test for dealing with negative vmin/vmax on log norm...
-
 
 class TestObjectAPI(unittest.TestCase):
     """Test the new Object API of the colormap"""
@@ -232,6 +230,22 @@ class TestObjectAPI(unittest.TestCase):
         self.assertTrue(cl2.getColorMapRange(data) == (1, 100))
         self.assertTrue(cl3.getColorMapRange(data) == (1, 1000))
         self.assertTrue(cl4.getColorMapRange(data) == (1, 1000))
+
+    def testNegativeLog(self):
+        """Test that the creation of a colormap with lognaormalization and
+        negative vmin, vmax raises an error
+        """
+        with self.assertRaises(ValueError):
+            colormap = Colormap(name='gray',
+                                normalization='log',
+                                vmin=-1.0,
+                                vmax=1.0)
+
+        with self.assertRaises(ValueError):
+            colormap = Colormap(name='gray',
+                                normalization='log',
+                                vmin=1.0,
+                                vmax=-1.0)
 
 
 def suite():
