@@ -383,7 +383,10 @@ class Group(Node):
             node = self._get_items()[name]
 
         if getclass:
-            obj = node.h5py_class
+            if hasattr(node, "h5py_class"):
+                obj = node.h5py_class
+            else:
+                obj = node.__class__
         else:
             obj = node
         return obj

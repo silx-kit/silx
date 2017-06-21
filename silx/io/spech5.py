@@ -187,7 +187,7 @@ from .specfile import SpecFile
 
 __authors__ = ["P. Knobel", "D. Naudet"]
 __license__ = "MIT"
-__date__ = "15/05/2017"
+__date__ = "21/06/2017"
 
 logger1 = logging.getLogger(__name__)
 
@@ -1322,9 +1322,8 @@ class SpecH5Group(object):
         :param default: Default value returned if the name is not found
         :param bool getclass: if *True*, the returned object is the class of
             the item, instead of the item instance.
-        :param bool getlink: Not implemented. This method always returns
-            an instance of the original class of the requested item (or
-            just the class, if *getclass* is *True*)
+        :param bool getlink: if *True*, the returned object is based on links
+            instead of the hdf5 items.
         :return: The requested item, or its class if *getclass* is *True*,
             or the specified *default* value if the group does not contain
             an item with the requested name.
@@ -1332,13 +1331,18 @@ class SpecH5Group(object):
         if name not in self:
             return default
 
-        if getlink and getclass:
-            pass
+        if getlink:
+            node = h5py.HardLink()
+        else:
+            node = self[name]
 
         if getclass:
-            return self[name].h5py_class
-
-        return self[name]
+            if hasattr(node, "h5py_class"):
+                return node.h5py_class
+            else:
+                return node.__class__
+        else:
+            return node
 
     def __getitem__(self, key):
         """Return a :class:`SpecH5Group` or a :class:`SpecH5Dataset`
