@@ -95,27 +95,6 @@ class TestColorScale(TestCaseQt):
         val = self.colorScaleWidget.getValueFromRelativePosition(0.0)
         self.assertTrue(val == 1.0)
 
-    def testToolTip(self):
-        """Test value displayed in tool tip"""
-        colormap = {'name': 'gray', 'normalization': 'linear',
-                    'autoscale': False, 'vmin': 1.0, 'vmax': 100.0}
-        self.colorScaleWidget.setColormap(colormap)
-
-        xCenter = self.colorScaleWidget.width() / 2.
-        height = self.colorScaleWidget.height()
-
-        self.mouseMove(self.colorScaleWidget, (xCenter, height - 1))
-        self.assertEqual(self.colorScaleWidget.toolTip(),
-                         str(colormap['vmin']))
-
-        self.mouseMove(self.colorScaleWidget, (xCenter, height // 2))
-        self.assertEqual(self.colorScaleWidget.toolTip(),
-                         str((colormap['vmax'] + colormap['vmin'])/2.))
-
-        self.mouseMove(self.colorScaleWidget, (xCenter, 0))
-        self.assertEqual(self.colorScaleWidget.toolTip(),
-                         str(colormap['vmax']))
-
 
 class TestNoAutoscale(TestCaseQt):
     """Test that ticks and color displayed are correct in the case of a colormap
