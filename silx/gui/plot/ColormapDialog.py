@@ -42,7 +42,7 @@ Create the colormap dialog and set the colormap description and data range:
 Get the colormap description (compatible with :class:`Plot`) from the dialog:
 
 >>> cmap = dialog.getColormap()
->>> cmap['name']
+>>> cmap.getName()
 'red'
 
 It is also possible to display an histogram of the image in the dialog.
@@ -69,6 +69,7 @@ import logging
 import numpy
 
 from .. import qt
+from .Colormap import Colormap
 from . import PlotWidget
 
 
@@ -107,7 +108,7 @@ class ColormapDialog(qt.QDialog):
     :param str title: The QDialog title
     """
 
-    sigColormapChanged = qt.Signal(dict)
+    sigColormapChanged = qt.Signal(Colormap)
     """Signal triggered when the colormap is changed.
 
     It provides a dict describing the colormap to the slot.
@@ -392,19 +393,23 @@ class ColormapDialog(qt.QDialog):
                 self._plotUpdate()
 
     def getColormap(self):
-        """Return the colormap description as a dict.
+        """Return the colormap description as a :class:`.Colormap`.
 
-        See :class:`Plot` for documentation on the colormap dict.
         """
         isNormLinear = self._normButtonLinear.isChecked()
-        colormap = {
-            'name': str(self._comboBoxColormap.currentText()).lower(),
-            'normalization': 'linear' if isNormLinear else 'log',
-            'autoscale': self._rangeAutoscaleButton.isChecked(),
-            'vmin': self._minValue.value(),
-            'vmax': self._maxValue.value()}
+        if self._rangeAutoscaleButton.isChecked():
+            vmin = None
+            vmax = None
+        else:
+            vmin = self._minValue.value()
+            vmax = self._maxValue.value()
+        colormap = Colormap(name=str(self._comboBoxColormap.currentText()).lower(),
+                            normalization='linear' if isNormLinear else 'log',
+                            vmin=vmin,
+                            vmax=vmax)
         return colormap
 
+    # TODO : remove autoscale here
     def setColormap(self, name=None, normalization=None,
                     autoscale=None, vmin=None, vmax=None, colors=None):
         """Set the colormap description

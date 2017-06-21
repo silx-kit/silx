@@ -333,7 +333,7 @@ class ColormapAction(PlotAction):
             # hist, bin_edges = numpy.histogram(goodData, bins=256)
             # self._dialog.setHistogram(hist, bin_edges)
 
-        self._dialog.setColormap(**colormap)
+        self._dialog.setColormap(name=colormap.getName())
 
         # Run the dialog listening to colormap change
         self._dialog.sigColormapChanged.connect(self._colormapChanged)
