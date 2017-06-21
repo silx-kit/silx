@@ -147,9 +147,9 @@ class BackendBase(object):
         :param int z: Layer on which to draw the image
         :param bool selectable: indicate if the image can be selected
         :param bool draggable: indicate if the image can be moved
-        :param colormap: Dictionary describing the colormap to use.
+        :param colormap: :class:`.Colormap` describing the colormap to use.
                          Ignored if data is RGB(A).
-        :type colormap: dict or None
+        :type colormap: :class:`.Colormap`
         :param float alpha: Opacity of the image, as a float in range [0, 1].
         :returns: The handle used by the backend to univocally access the image
         """
