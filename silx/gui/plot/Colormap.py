@@ -68,6 +68,7 @@ DEFAULT_MIN_LOG = 1
 DEFAULT_MAX_LOG = 10
 """Default max value if in log normalization"""
 
+
 class Colormap(qt.QObject):
     """Description of a colormap
 
@@ -134,7 +135,7 @@ class Colormap(qt.QObject):
 
     def getColorMapLUT(self, copy=True):
         """
-        
+
         :return numpy.ndarray: the list of colors for the colormap. None if not setted
         """
         if copy:
@@ -145,7 +146,7 @@ class Colormap(qt.QObject):
     def setColorMapLUT(self, colors, keepName=False):
         """
         Set the colors of the colormap.
-        
+
         :param numpy.ndarray colors: the colors of the LUT
         :param bool keepName: should we keep the name of the colormap.
             This might bring conflicts with existing colormaps
@@ -246,12 +247,12 @@ class Colormap(qt.QObject):
             return self.getColorMapLUT(copy=False)
         else:
             raise KeyError(item)
-        
+
     def _toDict(self):
-        """Return the equivalent colormap as a dictionnary
+        """Return the equivalent colormap as a dictionary
         (old colormap representation)
-        
-        :return dict: the representation of the Colormap as a dictionnary
+
+        :return dict: the representation of the Colormap as a dictionary
         """
         return {
             'name': self._name,
@@ -263,9 +264,9 @@ class Colormap(qt.QObject):
         }
 
     def setFromDict(self, dic):
-        """Set values to the colormap from a dictionnary
-        
-        :param dict dic: the colormap as a dictionnary
+        """Set values to the colormap from a dictionary
+
+        :param dict dic: the colormap as a dictionary
         """
         _name = dic['name'] if 'name' in dic else None
         _colors = dic['colors'] if 'colors' in dic else None
@@ -283,13 +284,13 @@ class Colormap(qt.QObject):
         if 'autoscale' in dic:
             if dic['autoscale'] is True:
                 if _vmin is not None or _vmax is not None:
-                    err = "Can't set the colormap from the dictionnary because"
+                    err = "Can't set the colormap from the dictionary because"
                     err += " autoscale is requested but vmin and vmax are also"
                     err += " defined (!= None)"
                     raise ValueError(err)
             elif dic['autoscale'] is False:
                 if _vmin is None and _vmax is None:
-                    err = "Can't set the colormap from the dictionnary because"
+                    err = "Can't set the colormap from the dictionary because"
                     err += " autoscale is not requested but vmin and vmax are"
                     err += " both set to None"
                     raise ValueError(err)
@@ -300,7 +301,7 @@ class Colormap(qt.QObject):
         self._colors = _colors
         self._vmin = _vmin
         self._vmax = _vmax
-        self._autoscale = True if (_vmin is None and _vmax is None ) else False
+        self._autoscale = True if (_vmin is None and _vmax is None) else False
         self._normalization = _normalization
 
         self.sigChanged.emit()
@@ -313,7 +314,7 @@ class Colormap(qt.QObject):
 
     def copy(self):
         """
-        
+
         :return: a copy of the Colormap object
         """
         return Colormap(name=self._name,
@@ -343,12 +344,6 @@ class Colormap(qt.QObject):
         else:
             maps = MPLColormap.getSupportedColormaps()
             return DEFAULT_COLORMAPS + maps
-
-        # # logScale displayer to make sure we have the same behavior everywhere
-        # if self._vmin < 1. or self._vmax < 1.:
-        #     _logger.warning(
-        #         'Log colormap with bound <= 1: changing bounds.')
-        #     self._vmin, self._vmax = 1., 10.
 
     def __str__(self):
         return str(self._toDict())
