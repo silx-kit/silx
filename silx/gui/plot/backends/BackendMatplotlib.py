@@ -227,17 +227,17 @@ class BackendMatplotlib(BackendBase.BackendBase):
         # Add support for transparent colormap for uint8 data with
         # colormap with 256 colors, linear norm, [0, 255] range
         if matplotlib.__version__ < '1.2.0':
-            if (len(data.shape) == 2 and colormap['name'] is None and
-                    'colors' in colormap):
-                colors = numpy.array(colormap['colors'], copy=False)
+            if (len(data.shape) == 2 and colormap.getName() is None and
+                    colormap.getColorMapLUT()is not None):
+                colors = colormap.getColorMapLUT(copy=False)
                 if (colors.shape[-1] == 4 and
                         not numpy.all(numpy.equal(colors[3], 255))):
                     # This is a transparent colormap
                     if (colors.shape == (256, 4) and
-                            colormap['normalization'] == 'linear' and
-                            not colormap['autoscale'] and
-                            colormap['vmin'] == 0 and
-                            colormap['vmax'] == 255 and
+                            colormap.getNormalization() == 'linear' and
+                            not colormap.isAutoscale() and
+                            colormap.getVMin() == 0 and
+                            colormap.getVMax() == 255 and
                             data.dtype == numpy.uint8):
                         # Supported case, convert data to RGBA
                         data = colors[data.reshape(-1)].reshape(
