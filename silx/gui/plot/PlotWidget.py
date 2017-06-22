@@ -2325,11 +2325,16 @@ class PlotWidget(qt.QMainWindow):
             for curve in curves:
                 curve.setLineStyle(linestyle)
 
-    def getDefaultColormap(self):
+    def getDefaultColormap(self, copy=True):
         """Return the default :class:`.Colormap` used by :meth:`addImage`.
 
+        :param copy: True (Default) to get a copy of the :class:`.Colormap`
+                     else return the pointer
         """
-        return self._defaultColormap.copy()
+        if copy is True:
+            return self._defaultColormap.copy()
+        else:
+            return self._defaultColormap
 
     def setDefaultColormap(self, colormap=None):
         """Set the default colormap used by :meth:`addImage`.
@@ -2348,7 +2353,7 @@ class PlotWidget(qt.QMainWindow):
                                 normalization='linear',
                                 vmin=0.0,
                                 vmax=1.0)
-        self._defaultColormap = colormap.copy()
+        self._defaultColormap = colormap
         self.notify('defaultColormapChanged')
 
     @staticmethod

@@ -139,6 +139,7 @@ class Colormap(qt.QObject):
 
     def getColorMapLUT(self, copy=True):
         """
+        :param copy: True (Default) to get a copy, False to get the pointer
 
         :return numpy.ndarray: the list of colors for the colormap. None if not setted
         """
