@@ -467,7 +467,7 @@ class _ColorScale(qt.QWidget):
     def __init__(self, colormap, parent=None, margin=5):
         qt.QWidget.__init__(self, parent)
         self._colormap = None
-        self.margin = 0
+        self.margin = margin
         self.setColormap(colormap)
 
         self.setLayout(qt.QVBoxLayout())
@@ -625,7 +625,7 @@ class _TickBar(qt.QWidget):
     def __init__(self, vmin, vmax, norm, parent=None, displayValues=True,
                  nticks=None, margin=5):
         super(_TickBar, self).__init__(parent)
-        self.margin = 0
+        self.margin = margin
         self._nticks = None
         self.ticks = ()
         self.subTicks = ()
