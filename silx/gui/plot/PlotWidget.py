@@ -1766,9 +1766,9 @@ class PlotWidget(qt.QMainWindow):
         """
         assert kind in ('curve', 'image', 'scatter')
 
-        xLabel = self._xAxis.getLabel()
-        yLabel = self._yAxis.getLabel()
-        yRightLabel = self._yRightAxis.getLabel()
+        xLabel = None
+        yLabel = None
+        yRightLabel = None
 
         oldActiveItem = self._getActiveItem(kind=kind)
 
@@ -1803,12 +1803,9 @@ class PlotWidget(qt.QMainWindow):
                             yLabel = item.getYLabel()
 
         # Store current labels and update plot
-        self._xAxis.setCurrentLabel(xLabel)
-        self._yAxis.setCurrentLabel(yLabel)
-        self._yRightAxis.setCurrentLabel(yRightLabel)
-        self._backend.setGraphXLabel(xLabel)
-        self._backend.setGraphYLabel(yLabel, axis='left')
-        self._backend.setGraphYLabel(yRightLabel, axis='right')
+        self._xAxis._setCurrentLabel(xLabel)
+        self._yAxis._setCurrentLabel(yLabel)
+        self._yRightAxis._setCurrentLabel(yRightLabel)
 
         self._setDirtyPlot()
 

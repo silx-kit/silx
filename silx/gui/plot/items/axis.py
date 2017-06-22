@@ -70,20 +70,38 @@ class Axis(qt.QObject):
         raise NotImplementedError()
 
     def getLabel(self):
-        raise NotImplementedError()
+        """Return the current Y axis label as a str.
+
+        :param str axis: The Y axis for which to get the label (left or right)
+        """
+        return self._currentLabel
 
     def setLabel(self, label):
-        raise NotImplementedError()
+        """Set the plot Y axis label.
 
-    def setCurrentLabel(self, label):
+        The provided label can be temporarily replaced by the label of the
+        active curve if any.
+
+        :param str label: The axis label
+        """
+        self._defaultLabel = label
+        self._setCurrentLabel(label)
+        self._plot._setDirtyPlot()
+
+    def _setCurrentLabel(self, label):
         """Define the label currently displayed.
 
-        In some cases the default label can be overrided by a label defined by
-        an item.
+        If the label is none or empty the default label is used.
 
         :param str label: Currently displayed label
+        :returns: str
         """
+        if label is None or label == '':
+            label = self._defaultLabel
+        if label is None:
+            label = ''
         self._currentLabel = label
+        return label
 
     def isLogarithmic(self):
         raise NotImplementedError()
@@ -94,22 +112,10 @@ class Axis(qt.QObject):
 
 class XAxis(Axis):
 
-    def getLabel(self):
-        """Return the current X axis label as a str."""
-        return self._currentLabel
-
-    def setLabel(self, label="X"):
-        """Set the plot X axis label.
-
-        The provided label can be temporarily replaced by the X label of the
-        active curve if any.
-
-        :param str label: The X axis label (default: 'X')
-        """
-        self._defaultLabel = label
-        self._currentLabel = label
+    def _setCurrentLabel(self, label):
+        label = Axis._setCurrentLabel(self, label)
         self._plot._backend.setGraphXLabel(label)
-        self._plot._setDirtyPlot()
+        return label
 
     def getLimits(self):
         """Get the graph X (bottom) limits.
@@ -170,27 +176,10 @@ class XAxis(Axis):
 
 class YAxis(Axis):
 
-    def getLabel(self):
-        """Return the current Y axis label as a str.
-
-        :param str axis: The Y axis for which to get the label (left or right)
-        """
-        return self._currentLabel
-
-    def setLabel(self, label="Y"):
-        """Set the plot Y axis label.
-
-        The provided label can be temporarily replaced by the Y label of the
-        active curve if any.
-
-        :param str label: The Y axis label (default: 'Y')
-        :param str axis: The Y axis for which to set the label (left or right)
-        """
-        self._defaultLabel = label
-        self._currentLabel = label
-
+    def _setCurrentLabel(self, label):
+        label = Axis._setCurrentLabel(self, label)
         self._plot._backend.setGraphYLabel(label, axis='left')
-        self._plot._setDirtyPlot()
+        return label
 
     def getLimits(self):
         """Get the graph Y limits.
@@ -288,26 +277,10 @@ class YRightAxis(Axis):
         """Signal emitted when axis autoscale has changed"""
         return self.__mainAxis.sigAutoScaleChanged
 
-    def getLabel(self):
-        """Return the current Y axis label as a str.
-
-        :param str axis: The Y axis for which to get the label (left or right)
-        """
-        return self._currentLabel
-
-    def setLabel(self, label="Y"):
-        """Set the plot Y axis label.
-
-        The provided label can be temporarily replaced by the Y label of the
-        active curve if any.
-
-        :param str label: The Y axis label (default: 'Y')
-        :param str axis: The Y axis for which to set the label (left or right)
-        """
-        self._defaultLabel = label
-        self._currentLabel = label
+    def _setCurrentLabel(self, label):
+        label = Axis._setCurrentLabel(self, label)
         self._plot._backend.setGraphYLabel(label, axis='right')
-        self._plot._setDirtyPlot()
+        return label
 
     def getLimits(self):
         """Get the graph Y limits.
