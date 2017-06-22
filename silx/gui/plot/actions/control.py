@@ -48,7 +48,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "24/05/2017"
+__date__ = "22/06/2017"
 
 from . import PlotAction
 import logging
@@ -76,8 +76,8 @@ class ResetZoomAction(PlotAction):
             triggered=self._actionTriggered,
             checkable=False, parent=parent)
         self._autoscaleChanged(True)
-        plot.sigSetXAxisAutoScale.connect(self._autoscaleChanged)
-        plot.sigSetYAxisAutoScale.connect(self._autoscaleChanged)
+        plot.getXAxis().sigAutoScaleChanged.connect(self._autoscaleChanged)
+        plot.getYAxis().sigAutoScaleChanged.connect(self._autoscaleChanged)
 
     def _autoscaleChanged(self, enabled):
         self.setEnabled(
@@ -152,7 +152,7 @@ class XAxisAutoScaleAction(PlotAction):
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
         self.setChecked(plot.isXAxisAutoScale())
-        plot.sigSetXAxisAutoScale.connect(self.setChecked)
+        plot.getXAxis().sigAutoScaleChanged.connect(self.setChecked)
 
     def _actionTriggered(self, checked=False):
         self.plot.setXAxisAutoScale(checked)
@@ -175,7 +175,7 @@ class YAxisAutoScaleAction(PlotAction):
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
         self.setChecked(plot.isYAxisAutoScale())
-        plot.sigSetYAxisAutoScale.connect(self.setChecked)
+        plot.getYAxis().sigAutoScaleChanged.connect(self.setChecked)
 
     def _actionTriggered(self, checked=False):
         self.plot.setYAxisAutoScale(checked)
@@ -197,7 +197,7 @@ class XAxisLogarithmicAction(PlotAction):
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
         self.setChecked(plot.isXAxisLogarithmic())
-        plot.sigSetXAxisLogarithmic.connect(self.setChecked)
+        plot.getXAxis().sigLogarithmicChanged.connect(self.setChecked)
 
     def _actionTriggered(self, checked=False):
         self.plot.setXAxisLogarithmic(checked)
@@ -217,7 +217,7 @@ class YAxisLogarithmicAction(PlotAction):
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
         self.setChecked(plot.isYAxisLogarithmic())
-        plot.sigSetYAxisLogarithmic.connect(self.setChecked)
+        plot.getYAxis().sigLogarithmicChanged.connect(self.setChecked)
 
     def _actionTriggered(self, checked=False):
         self.plot.setYAxisLogarithmic(checked)
@@ -416,7 +416,7 @@ class YAxisInvertedAction(PlotAction):
             triggered=self._actionTriggered,
             checkable=False,
             parent=parent)
-        plot.sigSetYAxisInverted.connect(self._yAxisInvertedChanged)
+        plot.getYAxis().sigInvertedChanged.connect(self._yAxisInvertedChanged)
 
     def _yAxisInvertedChanged(self, inverted):
         """Handle Plot set y axis inverted signal"""

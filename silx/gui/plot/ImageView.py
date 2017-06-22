@@ -47,7 +47,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "13/10/2016"
+__date__ = "22/06/2017"
 
 
 import logging
@@ -326,7 +326,7 @@ class ImageView(PlotWindow):
 
         self.setInteractiveMode('zoom')  # Color set in setColormap
         self.sigPlotSignal.connect(self._imagePlotCB)
-        self.sigSetYAxisInverted.connect(self._updateYAxisInverted)
+        self.getYAxis().sigInvertedChanged.connect(self._updateYAxisInverted)
         self.sigActiveImageChanged.connect(self._activeImageChangedSlot)
 
         self._histoVPlot = PlotWidget(backend=backend)

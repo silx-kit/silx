@@ -2395,17 +2395,7 @@ class PlotWidget(qt.QMainWindow):
         eventDict['event'] = event
         self.sigPlotSignal.emit(eventDict)
 
-        if event == 'setYAxisInverted':
-            self._yAxis.sigInvertedChanged.emit(kwargs['state'])
-        elif event == 'setXAxisLogarithmic':
-            self._xAxis.sigLogarithmicChanged.emit(kwargs['state'])
-        elif event == 'setYAxisLogarithmic':
-            self._yAxis.sigLogarithmicChanged.emit(kwargs['state'])
-        elif event == 'setXAxisAutoScale':
-            self._xAxis.sigAutoScaleChanged.emit(kwargs['state'])
-        elif event == 'setYAxisAutoScale':
-            self._yAxis.sigAutoScaleChanged.emit(kwargs['state'])
-        elif event == 'setKeepDataAspectRatio':
+        if event == 'setKeepDataAspectRatio':
             self.sigSetKeepDataAspectRatio.emit(kwargs['state'])
         elif event == 'setGraphGrid':
             self.sigSetGraphGrid.emit(kwargs['which'])

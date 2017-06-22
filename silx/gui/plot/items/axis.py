@@ -158,7 +158,7 @@ class XAxis(Axis):
         self._plot._invalidateDataRange()
 
         self._plot.resetZoom()
-        self._plot.notify('setXAxisLogarithmic', state=self._isLog)
+        self.sigLogarithmicChanged.emit(self._isLog)
 
     def isAutoScale(self):
         """Return True if X axis is automatically adjusting its limits."""
@@ -171,7 +171,7 @@ class XAxis(Axis):
                           False to disable it.
         """
         self._isAutoScale = bool(flag)
-        self._plot.notify('setXAxisAutoScale', state=self._isAutoScale)
+        self.sigAutoScaleChanged.emit(self._isAutoScale)
 
 
 class YAxis(Axis):
@@ -213,7 +213,7 @@ class YAxis(Axis):
         flag = bool(flag)
         self._plot._backend.setYAxisInverted(flag)
         self._plot._setDirtyPlot()
-        self._plot.notify('setYAxisInverted', state=flag)
+        self.sigInvertedChanged.emit(flag)
 
     def isInverted(self):
         """Return True if Y axis goes from top to bottom, False otherwise."""
@@ -240,7 +240,7 @@ class YAxis(Axis):
         self._plot._invalidateDataRange()
 
         self._plot.resetZoom()
-        self._plot.notify('setYAxisLogarithmic', state=self._isLog)
+        self.sigLogarithmicChanged.emit(self._isLog)
 
     def isAutoScale(self):
         """Return True if Y axes are automatically adjusting its limits."""
@@ -253,7 +253,7 @@ class YAxis(Axis):
                           False to disable it.
         """
         self._isAutoScale = bool(flag)
-        self._plot.notify('setYAxisAutoScale', state=self._isAutoScale)
+        self.sigAutoScaleChanged.emit(self._isAutoScale)
 
 
 class YRightAxis(Axis):

@@ -34,7 +34,7 @@ The following QToolButton are available:
 
 __authors__ = ["V. Valls", "H. Payno"]
 __license__ = "MIT"
-__date__ = "26/01/2017"
+__date__ = "22/06/2017"
 
 
 import logging
@@ -197,11 +197,11 @@ class YAxisOriginToolButton(PlotToolButton):
         return qt.QAction(icon, text, self)
 
     def _connectPlot(self, plot):
-        plot.sigSetYAxisInverted.connect(self._yAxisInvertedChanged)
+        plot.getYAxis().sigInvertedChanged.connect(self._yAxisInvertedChanged)
         self._yAxisInvertedChanged(plot.isYAxisInverted())
 
     def _disconnectPlot(self, plot):
-        plot.sigSetYAxisInverted.disconnect(self._yAxisInvertedChanged)
+        plot.getYAxis().sigInvertedChanged.disconnect(self._yAxisInvertedChanged)
 
     def setYAxisUpward(self):
         """Configure the plot to use y-axis upward"""
