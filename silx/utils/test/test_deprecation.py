@@ -45,6 +45,14 @@ class TestDeprecation(unittest.TestCase):
     def deprecatedWithParams(self):
         pass
 
+    @deprecation.deprecated(reason="r", replacement="r", since_version="v", only_once=True)
+    def deprecatedOnlyOnce(self):
+        pass
+
+    @deprecation.deprecated(reason="r", replacement="r", since_version="v", only_once=False)
+    def deprecatedEveryTime(self):
+        pass
+
     @utils.test_logging(deprecation.depreclog.name, warning=1)
     def testAnnotationWithoutParam(self):
         self.deprecatedWithoutParam()
@@ -52,6 +60,18 @@ class TestDeprecation(unittest.TestCase):
     @utils.test_logging(deprecation.depreclog.name, warning=1)
     def testAnnotationWithParams(self):
         self.deprecatedWithParams()
+
+    @utils.test_logging(deprecation.depreclog.name, warning=1)
+    def testLoggedOnlyOnce(self):
+        self.deprecatedOnlyOnce()
+        self.deprecatedOnlyOnce()
+        self.deprecatedOnlyOnce()
+
+    @utils.test_logging(deprecation.depreclog.name, warning=3)
+    def testLoggedEveryTime(self):
+        self.deprecatedEveryTime()
+        self.deprecatedEveryTime()
+        self.deprecatedEveryTime()
 
     @utils.test_logging(deprecation.depreclog.name, warning=1)
     def testWarning(self):
