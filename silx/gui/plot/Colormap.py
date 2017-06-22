@@ -266,7 +266,7 @@ class Colormap(qt.QObject):
             'normalization': self._normalization
         }
 
-    def setFromDict(self, dic):
+    def _setFromDict(self, dic):
         """Set values to the colormap from a dictionary
 
         :param dict dic: the colormap as a dictionary
@@ -312,7 +312,7 @@ class Colormap(qt.QObject):
     @staticmethod
     def fromDict(dic):
         colormap = Colormap(name="")
-        colormap.setFromDict(dic)
+        colormap._setFromDict(dic)
         return colormap
 
     def copy(self):
