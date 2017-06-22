@@ -245,7 +245,7 @@ class TestColorBarWidget(TestCaseQt):
                             vmax=None)
 
         # make sure that default settings are the same (but a copy of the
-        # default colormap have been made)
+        self.colorBar.setPlot(self.plot)
         self.assertFalse(
             self.colorBar.getColormap() == self.plot.getDefaultColormap())
         self.assertTrue(
@@ -263,16 +263,20 @@ class TestColorBarWidget(TestCaseQt):
         self.plot.clear()
         self.assertEqual(self.colorBar.getColormap(),
                          self.plot.getDefaultColormap())
-        plotColormap = {'name': 'gray', 'normalization': 'log',
-                        'autoscale': True, 'vmin': 1.0, 'vmax': 2.0}
+        plotColormap = Colormap(name='gray',
+                                normalization='log',
+                                vmin=None,
+                                vmax=None)
         self.plot.setDefaultColormap(plotColormap)
         self.assertEqual(self.colorBar.getColormap(),
                          plotColormap)
 
     def testColormapWithoutRange(self):
         """Test with a colormap with vmin==vmax"""
-        colormap = {'name': 'gray', 'normalization': 'linear',
-                    'autoscale': False, 'vmin': 1.0, 'vmax': 1.0}
+        colormap = Colormap(name='gray',
+                            normalization='linear',
+                            vmin=1.0,
+                            vmax=1.0)
         self.colorBar.setColormap(colormap)
 
 
