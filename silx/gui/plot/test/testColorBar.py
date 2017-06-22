@@ -103,7 +103,7 @@ class TestColorScale(TestCaseQt):
         self.assertTrue(val == 1.0)
 
 
-class TestNoAutoscale(unittest.TestCase):
+class TestNoAutoscale(TestCaseQt):
     """Test that ticks and color displayed are correct in the case of a colormap
     with no autoscale
     """
