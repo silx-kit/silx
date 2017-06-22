@@ -221,8 +221,8 @@ class TestColorBarWidget(TestCaseQt):
 
         # default behavior when with log and negative values: should set vmin
         # to 1 and vmax to 10
-        self.assertTrue(self.colorBar.getColorScaleBar().minVal == 1)
-        self.assertTrue(self.colorBar.getColorScaleBar().maxVal == 10)
+        self.assertTrue(self.colorBar.getColorScaleBar().minVal == 2)
+        self.assertTrue(self.colorBar.getColorScaleBar().maxVal == 30)
 
         # if data is positive
         data[data<1] = data.max()
