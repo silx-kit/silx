@@ -22,24 +22,48 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-__authors__ = ["T. Vincent", "P. Knobel"]
+"""Tests for html module"""
+
+__authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "22/06/2017"
 
 
 import unittest
-from . import test_weakref
-from . import test_html
-from . import test_array_like
-from . import test_launcher
-from . import test_deprecation
+from .. import deprecation
+from silx.test import utils
+
+
+class TestDeprecation(unittest.TestCase):
+    """Tests for deprecation module."""
+
+    @deprecation.deprecated
+    def deprecatedWithoutParam(self):
+        pass
+
+    @deprecation.deprecated(reason="r", replacement="r", since_version="v")
+    def deprecatedWithParams(self):
+        pass
+
+    @utils.test_logging(deprecation.depreclog.name, warning=1)
+    def testAnnotationWithoutParam(self):
+        self.deprecatedWithoutParam()
+
+    @utils.test_logging(deprecation.depreclog.name, warning=1)
+    def testAnnotationWithParams(self):
+        self.deprecatedWithParams()
+
+    @utils.test_logging(deprecation.depreclog.name, warning=1)
+    def testWarning(self):
+        deprecation.deprecated_warning(type_="t", name="n")
 
 
 def suite():
     test_suite = unittest.TestSuite()
-    test_suite.addTest(test_weakref.suite())
-    test_suite.addTest(test_html.suite())
-    test_suite.addTest(test_array_like.suite())
-    test_suite.addTest(test_launcher.suite())
-    test_suite.addTest(test_deprecation.suite())
+    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
+    test_suite.addTest(loadTests(TestDeprecation))
     return test_suite
+
+
+if __name__ == '__main__':
+    unittest.main(defaultTest='suite')
