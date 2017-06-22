@@ -191,6 +191,9 @@ It provides the following keys:
 
 'interactiveModeChanged' event with a 'source' key identifying the object
 setting the interactive mode.
+
+'defaultColormapChanged' event is triggered when the default colormap of
+the plot is updated.
 """
 
 from __future__ import division
@@ -2369,6 +2372,7 @@ class PlotWidget(qt.QMainWindow):
             colormap = {'name': 'gray', 'normalization': 'linear',
                         'autoscale': True, 'vmin': 0.0, 'vmax': 1.0}
         self._defaultColormap = colormap.copy()
+        self.notify('defaultColormapChanged')
 
     @staticmethod
     def getSupportedColormaps():

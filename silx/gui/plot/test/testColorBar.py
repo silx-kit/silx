@@ -33,21 +33,33 @@ from silx.gui.test.utils import TestCaseQt
 from silx.gui.plot.ColorBar import _ColorScale
 from silx.gui.plot.ColorBar import ColorBarWidget
 from silx.gui.plot import Plot2D
+from silx.gui import qt
 import numpy
 
 
-class TestColorScale(unittest.TestCase):
+class TestColorScale(TestCaseQt):
     """Test that interaction with the colorScale is correct"""
     def setUp(self):
+        super(TestColorScale, self).setUp()
         self.colorScaleWidget = _ColorScale(colormap=None, parent=None)
+        self.colorScaleWidget.show()
+        self.qWaitForWindowExposed(self.colorScaleWidget)
 
     def tearDown(self):
-        self.colorScaleWidget.deleteLater()
-        self.colorScaleWidget = None
+        self.qapp.processEvents()
+        self.colorScaleWidget.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.colorScaleWidget.close()
+        del self.colorScaleWidget
+        super(TestColorScale, self).tearDown()
+
+    def testNoColormap(self):
+        """Test _ColorScale without a colormap"""
+        colormap = self.colorScaleWidget.getColormap()
+        self.assertIsNone(colormap)
 
     def testRelativePositionLinear(self):
-        self.colorMapLin1 = { 'name': 'gray', 'normalization': 'linear',
-                    'autoscale': False, 'vmin': 0.0, 'vmax': 1.0 }
+        self.colorMapLin1 = {'name': 'gray', 'normalization': 'linear',
+                             'autoscale': False, 'vmin': 0.0, 'vmax': 1.0}
         self.colorScaleWidget.setColormap(self.colorMapLin1)
         
         self.assertTrue(
@@ -57,8 +69,8 @@ class TestColorScale(unittest.TestCase):
         self.assertTrue(
             self.colorScaleWidget.getValueFromRelativePosition(1.0) == 1.0)
 
-        self.colorMapLin2 = { 'name': 'viridis', 'normalization': 'linear',
-                    'autoscale': False, 'vmin': -10, 'vmax': 0 }
+        self.colorMapLin2 = {'name': 'viridis', 'normalization': 'linear',
+                             'autoscale': False, 'vmin': -10, 'vmax': 0}
         self.colorScaleWidget.setColormap(self.colorMapLin2)
         
         self.assertTrue(
@@ -69,8 +81,8 @@ class TestColorScale(unittest.TestCase):
             self.colorScaleWidget.getValueFromRelativePosition(1.0) == 0.0)
 
     def testRelativePositionLog(self):
-        self.colorMapLog1 = { 'name': 'temperature', 'normalization': 'log',
-                    'autoscale': False, 'vmin': 1.0, 'vmax': 100.0 }
+        self.colorMapLog1 = {'name': 'temperature', 'normalization': 'log',
+                             'autoscale': False, 'vmin': 1.0, 'vmax': 100.0}
 
         self.colorScaleWidget.setColormap(self.colorMapLog1)
 
@@ -83,41 +95,36 @@ class TestColorScale(unittest.TestCase):
         val = self.colorScaleWidget.getValueFromRelativePosition(0.0)
         self.assertTrue(val == 1.0)
 
-    def testNegativeLogMin(self):
-        colormap = { 'name': 'gray', 'normalization': 'log',
-                    'autoscale': False, 'vmin': -1.0, 'vmax': 1.0 }
 
-        with self.assertRaises(ValueError):
-            self.colorScaleWidget.setColormap(colormap)
-
-    def testNegativeLogMax(self):
-        colormap = { 'name': 'gray', 'normalization': 'log',
-                    'autoscale': False, 'vmin': 1.0, 'vmax': -1.0 }
-
-        with self.assertRaises(ValueError):
-            self.colorScaleWidget.setColormap(colormap)
-        
-class TestNoAutoscale(unittest.TestCase):
+class TestNoAutoscale(TestCaseQt):
     """Test that ticks and color displayed are correct in the case of a colormap
     with no autoscale
     """
 
     def setUp(self):
+        super(TestNoAutoscale, self).setUp()
         self.plot = Plot2D()
-        self.colorBar = ColorBarWidget(parent=None, plot=self.plot)
+        self.colorBar = self.plot.getColorBarWidget()
+        self.colorBar.setVisible(True)  # Makes sure the colormap is visible
         self.tickBar = self.colorBar.getColorScaleBar().getTickBar()
         self.colorScale = self.colorBar.getColorScaleBar().getColorScale()
 
+        self.plot.show()
+        self.qWaitForWindowExposed(self.plot)
+
     def tearDown(self):
+        self.qapp.processEvents()
         self.tickBar = None
         self.colorScale = None
         del self.colorBar
+        self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot.close()
         del self.plot
+        super(TestNoAutoscale, self).tearDown()
 
     def testLogNormNoAutoscale(self):
-        colormapLog = { 'name': 'gray', 'normalization': 'log',
-                    'autoscale': False, 'vmin': 1.0, 'vmax': 100.0 }
+        colormapLog = {'name': 'gray', 'normalization': 'log',
+                       'autoscale': False, 'vmin': 1.0, 'vmax': 100.0}
 
         data = numpy.linspace(10, 1e10, 9).reshape(3, 3)
         self.plot.addImage(data=data, colormap=colormapLog, legend='toto')
@@ -139,8 +146,8 @@ class TestNoAutoscale(unittest.TestCase):
         self.assertTrue(val == 1.0)
 
     def testLinearNormNoAutoscale(self):
-        colormapLog = { 'name': 'gray', 'normalization': 'linear',
-                    'autoscale': False, 'vmin': -4, 'vmax': 5 }
+        colormapLog = {'name': 'gray', 'normalization': 'linear',
+                       'autoscale': False, 'vmin': -4, 'vmax': 5}
 
         data = numpy.linspace(1, 9, 9).reshape(3, 3)
         self.plot.addImage(data=data, colormap=colormapLog, legend='toto')
@@ -159,20 +166,26 @@ class TestNoAutoscale(unittest.TestCase):
         val = self.colorScale.getValueFromRelativePosition(0.0)
         self.assertTrue(val == -4.0)
 
-class TestColorbarWidget(TestCaseQt):
-    """Test interaction with the ColorScaleBar"""
+
+class TestColorBarWidget(TestCaseQt):
+    """Test interaction with the ColorBarWidget"""
 
     def setUp(self):
-        super(TestColorbarWidget, self).setUp()
+        super(TestColorBarWidget, self).setUp()
         self.plot = Plot2D()
-        self.colorBar = ColorBarWidget(parent=None, plot=self.plot)
+        self.colorBar = self.plot.getColorBarWidget()
+        self.colorBar.setVisible(True)  # Makes sure the colormap is visible
+
+        self.plot.show()
+        self.qWaitForWindowExposed(self.plot)
 
     def tearDown(self):
+        self.qapp.processEvents()
         del self.colorBar
+        self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot.close()
         del self.plot
-
-        super(TestColorbarWidget, self).tearDown()
+        super(TestColorBarWidget, self).tearDown()
 
     def testEmptyColorBar(self):
         colorBar = ColorBarWidget(parent=None)
@@ -185,11 +198,11 @@ class TestColorbarWidget(TestCaseQt):
 
         Note : colorbar is modified by the Plot directly not ColorBarWidget
         """
-        colormapLog = { 'name': 'gray', 'normalization': 'log',
-                    'autoscale': True, 'vmin': -1.0, 'vmax': 1.0 }
+        colormapLog = {'name': 'gray', 'normalization': 'log',
+                       'autoscale': True, 'vmin': -1.0, 'vmax': 1.0}
 
-        colormapLog2 = { 'name': 'gray', 'normalization': 'log',
-                    'autoscale': False, 'vmin': -1.0, 'vmax': 1.0 }
+        colormapLog2 = {'name': 'gray', 'normalization': 'log',
+                        'autoscale': False, 'vmin': -1.0, 'vmax': 1.0}
 
         data = numpy.array([-5, -4, 0, 2, 3, 5, 10, 20, 30])
         data = data.reshape(3, 3)
@@ -197,22 +210,22 @@ class TestColorbarWidget(TestCaseQt):
         self.plot.setActiveImage('toto')
 
         # default behavior when autoscale : set to minmal positive value
-        data[data<1] = data.max()
-        self.assertTrue(self.colorBar._colormap['vmin'] == data.min())
-        self.assertTrue(self.colorBar._colormap['vmax'] == data.max())
+        data[data < 1] = data.max()
+        self.assertTrue(self.colorBar.getColormap()['vmin'] == data.min())
+        self.assertTrue(self.colorBar.getColormap()['vmax'] == data.max())
 
         data = numpy.linspace(-9, -2, 100).reshape(10, 10)
 
         self.plot.addImage(data=data, colormap=colormapLog2, legend='toto')
         self.plot.setActiveImage('toto')
         # if negative values, changing bounds for default : 1, 10
-        self.assertTrue(self.colorBar._colormap['vmin'] == 1)
-        self.assertTrue(self.colorBar._colormap['vmax'] == 10)
+        self.assertTrue(self.colorBar.getColormap()['vmin'] == 1)
+        self.assertTrue(self.colorBar.getColormap()['vmax'] == 10)
 
     def testPlotAssocation(self):
-        """Make sure the ColorBarWidget is proparly connected with the plot"""
-        colormap = { 'name': 'gray', 'normalization': 'linear',
-                    'autoscale': True, 'vmin': -1.0, 'vmax': 1.0 }
+        """Make sure the ColorBarWidget is properly connected to the plot"""
+        colormap = {'name': 'gray', 'normalization': 'linear',
+                    'autoscale': True, 'vmin': -1.0, 'vmax': 1.0}
 
         # make sure that default settings are the same
         self.assertTrue(
@@ -226,10 +239,26 @@ class TestColorbarWidget(TestCaseQt):
         self.assertFalse(
             self.colorBar.getColormap() == self.plot.getDefaultColormap())
 
+        # test that colorbar is updated when default plot colormap changes
+        self.plot.clear()
+        self.assertEqual(self.colorBar.getColormap(),
+                         self.plot.getDefaultColormap())
+        plotColormap = {'name': 'gray', 'normalization': 'log',
+                        'autoscale': True, 'vmin': 1.0, 'vmax': 2.0}
+        self.plot.setDefaultColormap(plotColormap)
+        self.assertEqual(self.colorBar.getColormap(),
+                         plotColormap)
+
+    def testColormapWithoutRange(self):
+        """Test with a colormap with vmin==vmax"""
+        colormap = {'name': 'gray', 'normalization': 'linear',
+                    'autoscale': False, 'vmin': 1.0, 'vmax': 1.0}
+        self.colorBar.setColormap(colormap)
+
 
 def suite():
     test_suite = unittest.TestSuite()
-    for ui in (TestColorScale, TestNoAutoscale, TestColorbarWidget):
+    for ui in (TestColorScale, TestNoAutoscale, TestColorBarWidget):
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(ui))
 
