@@ -36,6 +36,7 @@ import copy as copy_mdl
 import numpy
 from .matplotlib import Colormap as MPLColormap
 import logging
+from silx.math.combo import min_max
 
 _logger = logging.getLogger(__file__)
 
@@ -212,14 +213,22 @@ class Colormap(qt.QObject):
         vmin = self._vmin
         vmax = self._vmax
 
-        if vmin is None:
-            vmin = data.min() if data is not None else self._getDefaultMin()
-        if vmax is None:
-            vmax = data.max() if data is not None else self._getDefaultMax()
+        if data is not None:
+            result = min_max(data, min_positive=True)
 
-        if self.getNormalization() == 'log':
-            if vmin < 1.0 or vmax < 1.0:
-                vmin, vmax = self._getDefaultMin(), self._getDefaultMax()
+        if vmin is None:
+            vmin = result.minimum if data is not None else self._getDefaultMin()
+        if vmax is None:
+            vmax = result.maximum if data is not None else self._getDefaultMax()
+
+        if data is not None:
+            if self.getNormalization() == 'log':
+                if vmin < 0:
+                    vmin = result.min_positive
+
+                if vmax < 0:
+                   vmax = result.min_positive, result.maximum
+
         return (vmin, vmax)
 
     def setVMinVMax(self, vmin, vmax):
