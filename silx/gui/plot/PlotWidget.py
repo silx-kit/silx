@@ -2128,6 +2128,23 @@ class PlotWidget(qt.QMainWindow):
 
     # Axes
 
+    def getXAxis(self):
+        """Returns the X axis
+
+        :rtype: items.Axis
+        """
+        return self._xAxis
+
+    def getYAxis(self, axis="left"):
+        """Returns an Y axis
+
+        :param str axis: The Y axis to return
+                         ('left' or 'right').
+        :rtype: items.Axis
+        """
+        assert(axis in ["left", "right"])
+        return self._yAxis if axis == "left" else self._yRightAxis
+
     @property
     @deprecated(since_version='0.6')
     def sigSetYAxisInverted(self):
