@@ -561,8 +561,8 @@ class _ColorScale(qt.QWidget):
         value = max(0.0, value)
         value = min(value, 1.0)
 
-        vmin = colormap.getVMin()
-        vmax = colormap.getVMax()
+        vmin = self.vmin
+        vmax = self.vmax
         if colormap.getNormalization() is 'linear':
             return vmin + (vmax - vmin) * value
         elif colormap.getNormalization() is 'log':
