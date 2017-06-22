@@ -92,6 +92,6 @@ def deprecated_warning(type_, name, reason=None, replacement=None,
     if replacement is not None:
         msg += " Use '%s' instead." % replacement
     msg = msg + "\n%s"
-    backtrace = "".join([""] + traceback.format_stack()[:-1])
+    backtrace = "".join([""] + traceback.format_stack()[-2:-1])
     backtrace = backtrace.rstrip()
     depreclog.warning(msg, type_, name, backtrace)
