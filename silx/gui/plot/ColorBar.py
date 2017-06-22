@@ -70,6 +70,7 @@ class ColorBarWidget(qt.QWidget):
         self._isConnected = False
         self._plot = None
         self._viewAction = None
+        self._colormap = None
 
         super(ColorBarWidget, self).__init__(parent)
 
@@ -153,6 +154,21 @@ class ColorBarWidget(qt.QWidget):
         """
         self.getColorScaleBar().setColormap(colormap=colormap,
                                             data=data)
+        if self._colormap is not None:
+            self._colormap.sigChanged.disconnect(self._colormapHasChanged)
+        self._colormap = colormap
+        if self._colormap is not None:
+            self._colormap.sigChanged.connect(self._colormapHasChanged)
+
+    def _colormapHasChanged(self):
+        """handler of the Colormap.sigChanged signal
+        """
+        assert(self._colormap is not None)
+        data = None
+        if self._plot is not None:
+            data = self._plot.getActiveImage().getData(copy=False)
+        self.setColormap(colormap=self._colormap,
+                         data=data)
 
     def setLegend(self, legend):
         """Set the legend displayed along the colorbar
