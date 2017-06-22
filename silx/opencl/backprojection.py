@@ -143,6 +143,8 @@ class Backprojection(OpenclProcessing):
 
         self.local_mem = 256 * 3 * _sizeof(np.float32)  # constant for all image sizes
         OpenclProcessing.compile_kernels(self, self.kernel_files)
+        # check that workgroup can actually be (16, 16)
+        self.check_workgroup_size()
         # Workgroup and ndrange sizes are always the same
         self.wg = (16, 16)
         self.ndrange = (
@@ -255,6 +257,10 @@ class Backprojection(OpenclProcessing):
         else:
             self.filter = np.fft.fft(h).astype(np.complex64)
             self.d_filter = None
+
+    def check_workgroup_size(self):
+        kernel = self.program.all_kernels()[1]  # CPU kernel
+        self.compiletime_workgroup_size = kernel_workgroup_size(self.program, kernel)
 
     def _get_local_mem(self):
         return pyopencl.LocalMemory(self.local_mem)  # constant for all image sizes
