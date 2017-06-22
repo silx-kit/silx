@@ -365,3 +365,13 @@ class Colormap(qt.QObject):
 
     def _getDefaultMax(self):
         return DEFAULT_MAX_LIN if self._normalization == 'linear' else DEFAULT_MAX_LOG
+
+    @staticmethod
+    def compare(c1, c2):
+        """Compare colormap values and not pointers"""
+        return (c1.getName() == c2.getName() and
+                c1.getNormalization() == c2.getNormalization() and
+                c1.getVMin() == c2.getVMin() and
+                c1.getVMax() == c2.getVMax() and
+                numpy.array_equal(c1.getColorMapLUT(), c2.getColorMapLUT())
+                )
