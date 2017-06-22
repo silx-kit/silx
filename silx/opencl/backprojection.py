@@ -49,7 +49,7 @@ logger = logging.getLogger(__name__)
 # put in .common ?
 try:
     from pyfft.cl import Plan as pyfft_Plan
-    _has_pyfft = True*0
+    _has_pyfft = True
 except ImportError:
     _has_pyfft = False
 
@@ -62,11 +62,7 @@ def _sizeof(Type):
     """
     return the size (in bytes) of a scalar type, like the C behavior
     """
-    if issubclass(Type, np.inexact):
-        bits = np.finfo(Type).bits
-    else:
-        bits = np.iinfo(Type).bits
-    return bits//8
+    return np.dtype(Type).itemsize
 
 
 def _idivup(a, b):
@@ -105,6 +101,7 @@ class Backprojection(OpenclProcessing):
         :param profile: switch on profiling to be able to profile at the kernel level,
                         store profiling elements (makes code slightly slower)
         """
+        # OS X enforces a workgroup size of 1 when the kernel has synchronization barriers
         if sys.platform.startswith('darwin'): # assuming no discrete GPU
             raise NotImplementedError("Backprojection is not implemented on CPU for OS X yet")
 
