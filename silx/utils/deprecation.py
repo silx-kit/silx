@@ -33,7 +33,6 @@ __date__ = "22/06/2017"
 import sys
 import logging
 import functools
-import os
 import traceback
 
 depreclog = logging.getLogger("silx.DEPRECATION")
@@ -92,5 +91,7 @@ def deprecated_warning(type_, name, reason=None, replacement=None,
         msg += " Reason: %s." % reason
     if replacement is not None:
         msg += " Use '%s' instead." % replacement
-    depreclog.warning(msg + " %s", type_, name,
-                      os.linesep.join([""] + traceback.format_stack()[:-1]))
+    msg = msg + "\n%s"
+    backtrace = "".join([""] + traceback.format_stack()[:-1])
+    backtrace = backtrace.rstrip()
+    depreclog.warning(msg, type_, name, backtrace)
