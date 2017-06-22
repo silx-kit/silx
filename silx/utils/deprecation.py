@@ -28,7 +28,7 @@ from __future__ import absolute_import, print_function, division
 
 __authors__ = ["Jerome Kieffer"]
 __license__ = "MIT"
-__date__ = "16/06/2017"
+__date__ = "22/06/2017"
 
 import sys
 import logging
@@ -80,6 +80,10 @@ def deprecated_warning(type_, name, reason=None, replacement=None,
     :param str since_version: First *silx* version for which the function was
         deprecated (e.g. "0.5.0").
     """
+    if not depreclog.isEnabledFor(logging.WARNING):
+        # Avoid computation when it is not logged
+        return
+
     msg = "%s, %s is deprecated"
     if since_version is not None:
         msg += " since silx version %s" % since_version
