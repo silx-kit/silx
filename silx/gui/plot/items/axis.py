@@ -30,7 +30,6 @@ __license__ = "MIT"
 __date__ = "22/06/2017"
 
 from ... import qt
-from silx.utils import deprecation
 
 
 class Axis(qt.QObject):
