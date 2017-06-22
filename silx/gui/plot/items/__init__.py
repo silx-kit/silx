@@ -30,7 +30,7 @@ access to its content such as :meth:`.PlotWidget.getCurve`, :meth:`.PlotWidget.g
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "20/06/2017"
+__date__ = "22/06/2017"
 
 from .core import (Item, LabelsMixIn, DraggableMixIn, ColormapMixIn,  # noqa
                    SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn,  # noqa
@@ -41,3 +41,4 @@ from .image import ImageBase, ImageData, ImageRgba, MaskImageData  # noqa
 from .shape import Shape  # noqa
 from .scatter import Scatter  # noqa
 from .marker import Marker, XMarker, YMarker  # noqa
+from .axis import Axis, XAxis, YAxis, YRightAxis

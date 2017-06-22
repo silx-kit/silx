@@ -201,7 +201,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "20/06/2017"
+__date__ = "22/06/2017"
 
 
 from collections import OrderedDict, namedtuple
@@ -210,6 +210,7 @@ import logging
 
 import numpy
 
+from silx.utils.deprecation import deprecated
 # Import matplotlib backend here to init matplotlib our way
 from .backends.BackendMatplotlib import BackendMatplotlibQt
 
@@ -287,21 +288,6 @@ class PlotWidget(qt.QMainWindow):
     The signal information is provided as a dict.
     See :class:`PlotWidget` for documentation of the content of the dict.
     """
-
-    sigSetYAxisInverted = qt.Signal(bool)
-    """Signal emitted when Y axis orientation has changed"""
-
-    sigSetXAxisLogarithmic = qt.Signal(bool)
-    """Signal emitted when X axis scale has changed"""
-
-    sigSetYAxisLogarithmic = qt.Signal(bool)
-    """Signal emitted when Y axis scale has changed"""
-
-    sigSetXAxisAutoScale = qt.Signal(bool)
-    """Signal emitted when X axis autoscale has changed"""
-
-    sigSetYAxisAutoScale = qt.Signal(bool)
-    """Signal emitted when Y axis autoscale has changed"""
 
     sigSetKeepDataAspectRatio = qt.Signal(bool)
     """Signal emitted when plot keep aspect ratio has changed"""
@@ -425,18 +411,11 @@ class PlotWidget(qt.QMainWindow):
         # default properties
         self._cursorConfiguration = None
 
-        self._logY = False
-        self._logX = False
-        self._xAutoScale = True
-        self._yAutoScale = True
+        self._xAxis = items.XAxis(self)
+        self._yAxis = items.YAxis(self)
+        self._yRightAxis = items.YRightAxis(self, self._yAxis)
+
         self._grid = None
-
-        # Store default labels provided to setGraph[X|Y]Label
-        self._defaultLabels = {'x': '', 'y': '', 'yright': ''}
-        # Store currently displayed labels
-        # Current label can differ from input one with active curve handling
-        self._currentLabels = {'x': '', 'y': '', 'yright': ''}
-
         self._graphTitle = ''
 
         self.setGraphTitle()
@@ -1787,9 +1766,9 @@ class PlotWidget(qt.QMainWindow):
         """
         assert kind in ('curve', 'image', 'scatter')
 
-        xLabel = self._defaultLabels['x']
-        yLabel = self._defaultLabels['y']
-        yRightLabel = self._defaultLabels['yright']
+        xLabel = self._xAxis.getLabel()
+        yLabel = self._yAxis.getLabel()
+        yRightLabel = self._yRightAxis.getLabel()
 
         oldActiveItem = self._getActiveItem(kind=kind)
 
@@ -1824,10 +1803,9 @@ class PlotWidget(qt.QMainWindow):
                             yLabel = item.getYLabel()
 
         # Store current labels and update plot
-        self._currentLabels['x'] = xLabel
-        self._currentLabels['y'] = yLabel
-        self._currentLabels['yright'] = yRightLabel
-
+        self._xAxis.setCurrentLabel(xLabel)
+        self._yAxis.setCurrentLabel(yLabel)
+        self._yRightAxis.setCurrentLabel(yRightLabel)
         self._backend.setGraphXLabel(xLabel)
         self._backend.setGraphYLabel(yLabel, axis='left')
         self._backend.setGraphYLabel(yRightLabel, axis='right')
@@ -2047,13 +2025,7 @@ class PlotWidget(qt.QMainWindow):
         """
         if replot is not None:
             _logger.warning('setGraphXLimits deprecated replot parameter')
-
-        xmin, xmax = self._checkLimits(xmin, xmax, axis='x')
-
-        self._backend.setGraphXLimits(xmin, xmax)
-        self._setDirtyPlot()
-
-        self._notifyLimitsChanged()
+        self._xAxis.setLimits(xmin, xmax)
 
     def getGraphYLimits(self, axis='left'):
         """Get the graph Y limits.
@@ -2063,7 +2035,8 @@ class PlotWidget(qt.QMainWindow):
         :return: Minimum and maximum values of the X axis
         """
         assert axis in ('left', 'right')
-        return self._backend.getGraphYLimits(axis)
+        yAxis = self._yAxis if axis == 'left' else self._yRightAxis
+        return yAxis.getLimits()
 
     def setGraphYLimits(self, ymin, ymax, axis='left', replot=None):
         """Set the graph Y limits.
@@ -2075,16 +2048,9 @@ class PlotWidget(qt.QMainWindow):
         """
         if replot is not None:
             _logger.warning('setGraphYLimits deprecated replot parameter')
-
         assert axis in ('left', 'right')
-
-        ymin, ymax = self._checkLimits(ymin, ymax,
-                                       axis='y' if axis == 'left' else 'y2')
-
-        self._backend.setGraphYLimits(ymin, ymax, axis)
-        self._setDirtyPlot()
-
-        self._notifyLimitsChanged()
+        yAxis = self._yAxis if axis == 'left' else self._yRightAxis
+        return yAxis.setLimits(ymin, ymax)
 
     def setLimits(self, xmin, xmax, ymin, ymax, y2min=None, y2max=None):
         """Set the limits of the X and Y axes at once.
@@ -2129,7 +2095,7 @@ class PlotWidget(qt.QMainWindow):
 
     def getGraphXLabel(self):
         """Return the current X axis label as a str."""
-        return self._currentLabels['x']
+        return self._xAxis.getLabel()
 
     def setGraphXLabel(self, label="X"):
         """Set the plot X axis label.
@@ -2139,10 +2105,7 @@ class PlotWidget(qt.QMainWindow):
 
         :param str label: The X axis label (default: 'X')
         """
-        self._defaultLabels['x'] = label
-        self._currentLabels['x'] = label
-        self._backend.setGraphXLabel(label)
-        self._setDirtyPlot()
+        self._xAxis.setLabel(label)
 
     def getGraphYLabel(self, axis='left'):
         """Return the current Y axis label as a str.
@@ -2150,8 +2113,8 @@ class PlotWidget(qt.QMainWindow):
         :param str axis: The Y axis for which to get the label (left or right)
         """
         assert axis in ('left', 'right')
-
-        return self._currentLabels['y' if axis == 'left' else 'yright']
+        yAxis = self._yAxis if axis == 'left' else self._yRightAxis
+        return yAxis.getLabel()
 
     def setGraphYLabel(self, label="Y", axis='left'):
         """Set the plot Y axis label.
@@ -2163,18 +2126,40 @@ class PlotWidget(qt.QMainWindow):
         :param str axis: The Y axis for which to set the label (left or right)
         """
         assert axis in ('left', 'right')
-
-        if axis == 'left':
-            self._defaultLabels['y'] = label
-            self._currentLabels['y'] = label
-        else:
-            self._defaultLabels['yright'] = label
-            self._currentLabels['yright'] = label
-
-        self._backend.setGraphYLabel(label, axis=axis)
-        self._setDirtyPlot()
+        yAxis = self._yAxis if axis == 'left' else self._yRightAxis
+        return yAxis.setLabel(label)
 
     # Axes
+
+    @property
+    @deprecated(since_version='0.6')
+    def sigSetYAxisInverted(self):
+        """Signal emitted when Y axis orientation has changed"""
+        return self._yAxis.sigInvertedChanged
+
+    @property
+    @deprecated(since_version='0.6')
+    def sigSetXAxisLogarithmic(self):
+        """Signal emitted when X axis scale has changed"""
+        return self._xAxis.sigLogarithmicChanged
+
+    @property
+    @deprecated(since_version='0.6')
+    def sigSetYAxisLogarithmic(self):
+        """Signal emitted when Y axis scale has changed"""
+        return self._yAxis.sigLogarithmicChanged
+
+    @property
+    @deprecated(since_version='0.6')
+    def sigSetXAxisAutoScale(self):
+        """Signal emitted when X axis autoscale has changed"""
+        return self._xAxis.sigAutoScaleChanged
+
+    @property
+    @deprecated(since_version='0.6')
+    def sigSetYAxisAutoScale(self):
+        """Signal emitted when Y axis autoscale has changed"""
+        return self._yAxis.sigAutoScaleChanged
 
     def setYAxisInverted(self, flag=True):
         """Set the Y axis orientation.
@@ -2182,64 +2167,37 @@ class PlotWidget(qt.QMainWindow):
         :param bool flag: True for Y axis going from top to bottom,
                           False for Y axis going from bottom to top
         """
-        flag = bool(flag)
-        self._backend.setYAxisInverted(flag)
-        self._setDirtyPlot()
-        self.notify('setYAxisInverted', state=flag)
+        self._yAxis.setInverted(flag)
 
     def isYAxisInverted(self):
         """Return True if Y axis goes from top to bottom, False otherwise."""
-        return self._backend.isYAxisInverted()
+        return self._yAxis.isInverted()
 
     def isXAxisLogarithmic(self):
         """Return True if X axis scale is logarithmic, False if linear."""
-        return self._logX
+        return self._xAxis.isLogarithmic()
 
     def setXAxisLogarithmic(self, flag):
         """Set the bottom X axis scale (either linear or logarithmic).
 
         :param bool flag: True to use a logarithmic scale, False for linear.
         """
-        if bool(flag) == self._logX:
-            return
-        self._logX = bool(flag)
-
-        self._backend.setXAxisLogarithmic(self._logX)
-
-        # TODO hackish way of forcing update of curves and images
-        for item in self._getItems(withhidden=True):
-            item._updated()
-        self._invalidateDataRange()
-
-        self.resetZoom()
-        self.notify('setXAxisLogarithmic', state=self._logX)
+        self._xAxis.setLogarithmic(flag)
 
     def isYAxisLogarithmic(self):
         """Return True if Y axis scale is logarithmic, False if linear."""
-        return self._logY
+        return self._yAxis.isLogarithmic()
 
     def setYAxisLogarithmic(self, flag):
         """Set the Y axes scale (either linear or logarithmic).
 
         :param bool flag: True to use a logarithmic scale, False for linear.
         """
-        if bool(flag) == self._logY:
-            return
-        self._logY = bool(flag)
-
-        self._backend.setYAxisLogarithmic(self._logY)
-
-        # TODO hackish way of forcing update of curves and images
-        for item in self._getItems(withhidden=True):
-            item._updated()
-        self._invalidateDataRange()
-
-        self.resetZoom()
-        self.notify('setYAxisLogarithmic', state=self._logY)
+        return self._yAxis.setLogarithmic(flag)
 
     def isXAxisAutoScale(self):
         """Return True if X axis is automatically adjusting its limits."""
-        return self._xAutoScale
+        return self._xAxis.isAutoScale()
 
     def setXAxisAutoScale(self, flag=True):
         """Set the X axis limits adjusting behavior of :meth:`resetZoom`.
@@ -2247,12 +2205,11 @@ class PlotWidget(qt.QMainWindow):
         :param bool flag: True to resize limits automatically,
                           False to disable it.
         """
-        self._xAutoScale = bool(flag)
-        self.notify('setXAxisAutoScale', state=self._xAutoScale)
+        self._xAxis.setAutoScale(flag)
 
     def isYAxisAutoScale(self):
         """Return True if Y axes are automatically adjusting its limits."""
-        return self._yAutoScale
+        return self._yAxis.isAutoScale()
 
     def setYAxisAutoScale(self, flag=True):
         """Set the Y axis limits adjusting behavior of :meth:`resetZoom`.
@@ -2260,8 +2217,7 @@ class PlotWidget(qt.QMainWindow):
         :param bool flag: True to resize limits automatically,
                           False to disable it.
         """
-        self._yAutoScale = bool(flag)
-        self.notify('setYAxisAutoScale', state=self._yAutoScale)
+        self._yAxis.setAutoScale(flag)
 
     def isKeepDataAspectRatio(self):
         """Returns whether the plot is keeping data aspect ratio or not."""
@@ -2426,15 +2382,15 @@ class PlotWidget(qt.QMainWindow):
         self.sigPlotSignal.emit(eventDict)
 
         if event == 'setYAxisInverted':
-            self.sigSetYAxisInverted.emit(kwargs['state'])
+            self._yAxis.sigInvertedChanged.emit(kwargs['state'])
         elif event == 'setXAxisLogarithmic':
-            self.sigSetXAxisLogarithmic.emit(kwargs['state'])
+            self._xAxis.sigLogarithmicChanged.emit(kwargs['state'])
         elif event == 'setYAxisLogarithmic':
-            self.sigSetYAxisLogarithmic.emit(kwargs['state'])
+            self._yAxis.sigLogarithmicChanged.emit(kwargs['state'])
         elif event == 'setXAxisAutoScale':
-            self.sigSetXAxisAutoScale.emit(kwargs['state'])
+            self._xAxis.sigAutoScaleChanged.emit(kwargs['state'])
         elif event == 'setYAxisAutoScale':
-            self.sigSetYAxisAutoScale.emit(kwargs['state'])
+            self._yAxis.sigAutoScaleChanged.emit(kwargs['state'])
         elif event == 'setKeepDataAspectRatio':
             self.sigSetKeepDataAspectRatio.emit(kwargs['state'])
         elif event == 'setGraphGrid':
