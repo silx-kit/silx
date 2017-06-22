@@ -492,8 +492,8 @@ class _ColorScale(qt.QWidget):
 
         assert colormap.getNormalization() in ('log', 'linear')
 
-        self.colormap = colormap
-        self.vmin, self.vmax = self.colormap.getColorMapRange(data=data)
+        self._colormap = colormap
+        self.vmin, self.vmax = self._colormap.getColorMapRange(data=data)
         self._updateColorGradient()
         self.update()
 
@@ -511,11 +511,11 @@ class _ColorScale(qt.QWidget):
             return
 
         indices = numpy.linspace(0., 1., self._NB_CONTROL_POINTS)
-        colormapDisp = Colormap(name=colormap.getName(),
-                                normalization='linear',
-                                vmin=None,
-                                vmax=None)
-        colors = colormapDisp.setNormalization('linear')
+        colormapDisp = Colormap.Colormap(name=colormap.getName(),
+                                         normalization='linear',
+                                         vmin=None,
+                                         vmax=None)
+        colors = colormapDisp.applyToData(indices)
         self._gradient = qt.QLinearGradient(0, 1, 0, 0)
         self._gradient.setCoordinateMode(qt.QGradient.StretchToDeviceMode)
         self._gradient.setStops(
