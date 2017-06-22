@@ -157,7 +157,7 @@ class OpenclProcessing(object):
             try:
                 for buf in buffers:
                     size = numpy.dtype(buf.dtype).itemsize * buf.size
-                    mem[buf.name] = pyopencl.Buffer(self.ctx, buf.flags, size)
+                    mem[buf.name] = pyopencl.Buffer(self.ctx, buf.flags, int(size))
             except pyopencl.MemoryError as error:
                 release_cl_buffers(mem)
                 raise MemoryError(error)

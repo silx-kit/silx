@@ -29,6 +29,7 @@ __date__ = "15/03/2017"
 import unittest
 from . import test_addition
 from . import test_medfilt
+from . import test_backprojection
 from ..sift import test as test_sift
 
 
@@ -36,6 +37,7 @@ def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTests(test_addition.suite())
     test_suite.addTests(test_medfilt.suite())
+    test_suite.addTests(test_backprojection.suite())
     test_suite.addTests(test_sift.suite())
 
     return test_suite
