@@ -183,25 +183,17 @@ class TestObjectAPI(unittest.TestCase):
 
         colormapObject2 = colormapObject.copy()
         self.assertTrue(
-            self._colormapsAreIdentical(colormapObject,colormapObject2))
+            Colormap.compare(colormapObject,colormapObject2))
         colormapObject.setColorMapLUT(numpy.array([0, 1]))
         self.assertFalse(
-            self._colormapsAreIdentical(colormapObject, colormapObject2))
+            Colormap.compare(colormapObject, colormapObject2))
 
         colormapObject2 = colormapObject.copy()
         self.assertTrue(
-            self._colormapsAreIdentical(colormapObject, colormapObject2))
+            Colormap.compare(colormapObject, colormapObject2))
         colormapObject.setNormalization('linear')
         self.assertFalse(
-            self._colormapsAreIdentical(colormapObject, colormapObject2))
-
-    def _colormapsAreIdentical(self, c1, c2):
-        return (c1.getName() == c2.getName() and
-                c1.getNormalization() == c2.getNormalization() and
-                c1.getVMin() == c2.getVMin() and
-                c1.getVMax() == c2.getVMax() and
-                numpy.array_equal(c1.getColorMapLUT(), c2.getColorMapLUT())
-                )
+            Colormap.compare(colormapObject, colormapObject2))
 
     def testGetColorMapRange(self):
         """Make sure the getColorMapRange function of colormap is correctly
