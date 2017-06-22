@@ -310,7 +310,7 @@ class Colormap(qt.QObject):
         self.sigChanged.emit()
 
     @staticmethod
-    def fromDict(dic):
+    def _fromDict(dic):
         colormap = Colormap(name="")
         colormap._setFromDict(dic)
         return colormap
