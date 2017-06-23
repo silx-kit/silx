@@ -1,5 +1,5 @@
 
-.. currentmodule:: silx.gui.plot.colormap
+.. currentmodule:: silx.gui.plot.Colormap
 
 :mod:`Colormap`: Colormap API
 =============================

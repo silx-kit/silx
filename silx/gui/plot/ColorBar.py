@@ -150,7 +150,7 @@ class ColorBarWidget(qt.QWidget):
     def setColormap(self, colormap, data=None):
         """Set the colormap to be displayed.
 
-        :param :class:`Colormap` colormap: The colormap to apply on the
+        :param :class:`.Colormap` colormap: The colormap to apply on the
             ColorBarWidget
         :param numpy.ndarray data: the data to display, needed if the colormap
             require an autoscale

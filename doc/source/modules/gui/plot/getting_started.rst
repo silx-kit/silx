@@ -343,7 +343,7 @@ When updating an image, if ``origin`` and ``scale`` are not provided, the previo
 Colormap
 ++++++++
 
-A ``colormap`` is described with a :class:`Colormap` as follows:
+A ``colormap`` is described with a :class:`.Colormap` class as follows:
 
 .. code-block:: python
 
@@ -380,7 +380,7 @@ It is possible to change the default colormap of :meth:`.PlotWidget.addImage` fo
    data = numpy.arange(512 * 512.).reshape(512, -1)
    plot.addImage(data)  # Rendered with the default colormap set before
 
-It is also possible to provide a ``colormap`` to :meth:`.PlotWidget.addImage` to override this default for an image:
+It is also possible to provide a :class:`.Colormap` to :meth:`.PlotWidget.addImage` to override this default for an image:
 
 .. code-block:: python
 
