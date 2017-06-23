@@ -295,6 +295,7 @@ class ColormapMixIn(object):
 
     def __init__(self):
         self._colormap = Colormap()
+        self._colormap.sigChanged.connect(self._updated)
 
     def getColormap(self):
         """Return the used colormap
@@ -309,7 +310,11 @@ class ColormapMixIn(object):
 
         :param :class:`.Colormap`: colormap description
         """
+        if self._colormap is not None:
+            self._colormap.sigChanged.disconnect(self._updated)
         self._colormap = colormap
+        if self._colormap is not None:
+            self._colormap.sigChanged.connect(self._updated)
         self._updated()
 
 
