@@ -39,6 +39,7 @@ from ..._glutils import gl
 
 from . import event
 from . import utils
+from silx.gui.plot import Colormap as genColormap
 
 
 _logger = logging.getLogger(__name__)
@@ -390,7 +391,7 @@ class Colormap(event.Notifier, ProgramFunction):
     @name.setter
     def name(self, name):
         if name != self._name:
-            assert name in self.COLORMAPS
+            assert name in genColormap.DEFAULT_COLORMAPS
             self._name = name
             self.notify()
 
@@ -406,7 +407,7 @@ class Colormap(event.Notifier, ProgramFunction):
     @norm.setter
     def norm(self, norm):
         if norm != self._norm:
-            assert norm in self.NORMS
+            assert norm in genColormap.NORMS
             self._norm = norm
             if norm == 'log':
                 self.range_ = self.range_  # To test for positive range_
@@ -445,7 +446,7 @@ class Colormap(event.Notifier, ProgramFunction):
         :param GLProgram program: The program to set-up.
                                   It MUST be in use and using this function.
         """
-        gl.glUniform1i(program.uniforms['cmap.id'], self._COLORMAPS[self.name])
+        gl.glUniform1i(program.uniforms['cmap.id'], genColormap._DEFAULT_COLORMAPS[self.name])
         gl.glUniform1i(program.uniforms['cmap.isLog'], self._norm == 'log')
 
         min_, max_ = self.range_
