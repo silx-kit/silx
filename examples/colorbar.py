@@ -40,7 +40,7 @@ __date__ = "03/05/2017"
 
 from silx.gui import qt
 import numpy
-from silx.gui.plot.Colormap import Colormap
+from silx.gui.plot import Colormap
 from silx.gui.plot.ColorBar import ColorBarWidget
 from silx.gui.plot.PlotWidget import PlotWidget
 
@@ -48,17 +48,22 @@ IMG_WIDTH = 100
 
 
 class ColorBarShower(qt.QWidget):
-
+    """
+    Simple widget displaying n image with different colormap,
+    an active colorbar
+    """
     def __init__(self):
         qt.QWidget.__init__(self)
 
         self.setLayout(qt.QHBoxLayout())
-        self.build_active_image_selector()
+        self._buildActiveImageSelector()
         self.layout().addWidget(self.image_selector)
-        self.build_plot()
+        self._buildPlot()
         self.layout().addWidget(self.plot)
-        self.build_colorbar()
+        self._buildColorbar()
         self.layout().addWidget(self.colorbar)
+        self._buildColormapEditors()
+        self.layout().addWidget(self._cmpEditor)
 
         # connect radio button with the plot
         self.image_selector._qr1.toggled.connect(self.activateImageChanged)
@@ -68,9 +73,9 @@ class ColorBarShower(qt.QWidget):
         self.image_selector._qr5.toggled.connect(self.activateImageChanged)
         self.image_selector._qr6.toggled.connect(self.activateImageChanged)
 
-    def build_active_image_selector(self):
+    def _buildActiveImageSelector(self):
         """Build the image selector widget"""
-        self.image_selector = qt.QGroupBox()
+        self.image_selector = qt.QGroupBox(parent=self)
         self.image_selector.setLayout(qt.QVBoxLayout())
         self.image_selector._qr1 = qt.QRadioButton('image1')
         self.image_selector._qr2 = qt.QRadioButton('image2')
@@ -99,11 +104,11 @@ class ColorBarShower(qt.QWidget):
         if self.image_selector._qr6.isChecked():
             self.plot.setActiveImage('image6')
 
-    def build_colorbar(self):
-        self.colorbar = ColorBarWidget(parent=None)
+    def _buildColorbar(self):
+        self.colorbar = ColorBarWidget(parent=self)
         self.colorbar.setPlot(self.plot)
 
-    def build_plot(self):
+    def _buildPlot(self):
         image1 = numpy.exp(numpy.random.rand(IMG_WIDTH, IMG_WIDTH) * 10)
         image2 = numpy.linspace(-1000, 1000, IMG_WIDTH * IMG_WIDTH).reshape(IMG_WIDTH,
                                                                             IMG_WIDTH)
@@ -115,52 +120,116 @@ class ColorBarShower(qt.QWidget):
         image6 = image4
 
         # viridis colormap
-        colormapViridis = Colormap(name='viridis',
-                                   normalization='log',
-                                   vmin=None,
-                                   vmax=None)
-        self.plot = PlotWidget()
+        self.colormapViridis = Colormap.Colormap(name='viridis',
+                                                 normalization='log',
+                                                 vmin=None,
+                                                 vmax=None)
+        self.plot = PlotWidget(parent=self)
         self.plot.addImage(data=image1,
                       origin=(0, 0),
                       replace=False,
                       legend='image1',
-                      colormap=colormapViridis)
+                      colormap=self.colormapViridis)
         self.plot.addImage(data=image2,
                       origin=(100, 0),
                       replace=False,
                       legend='image2',
-                      colormap=colormapViridis)
+                      colormap=self.colormapViridis)
 
         # red colormap
-        colormapRed = Colormap(name='red',
-                               normalization='linear',
-                               vmin=None,
-                               vmax=None)
+        self.colormapRed = Colormap.Colormap(name='red',
+                                             normalization='linear',
+                                             vmin=None,
+                                             vmax=None)
         self.plot.addImage(data=image3,
                            origin=(0, 100),
                            replace=False,
                            legend='image3',
-                           colormap=colormapRed)
+                           colormap=self.colormapRed)
         self.plot.addImage(data=image4,
                            origin=(100, 100),
                            replace=False,
                            legend='image4',
-                           colormap=colormapRed)
+                           colormap=self.colormapRed)
         # gray colormap
-        colormapGray = Colormap(name='gray',
-                               normalization='linear',
-                               vmin=1.0,
-                               vmax=20.0)
+        self.colormapGray = Colormap.Colormap(name='gray',
+                                              normalization='linear',
+                                              vmin=1.0,
+                                              vmax=20.0)
         self.plot.addImage(data=image5,
                            origin=(0, 200),
                            replace=False,
                            legend='image5',
-                           colormap=colormapGray)
+                           colormap=self.colormapGray)
         self.plot.addImage(data=image6,
                            origin=(100, 200),
                            replace=False,
                            legend='image6',
-                           colormap=colormapGray)
+                           colormap=self.colormapGray)
+
+    def _buildColormapEditors(self):
+        self._cmpEditor = qt.QWidget(parent=self)
+        self._cmpEditor.setLayout(qt.QVBoxLayout())
+        self._cmpEditor.layout().addWidget(_ColormapEditor(self.colormapGray))
+        self._cmpEditor.layout().addWidget(_ColormapEditor(self.colormapRed))
+        self._cmpEditor.layout().addWidget(_ColormapEditor(self.colormapViridis))
+
+
+class _ColormapEditor(qt.QWidget):
+    """Simple colormap editor"""
+
+    def __init__(self, colormap):
+        qt.QWidget.__init__(self)
+        self.setLayout(qt.QVBoxLayout())
+        self._colormap = colormap
+        self._buildGUI()
+
+        self.setColormap(colormap)
+
+        # connect GUI and colormap
+        self._qcbName.currentIndexChanged.connect(self._nameChanged)
+
+    def _buildGUI(self):
+        # build name
+        wName = qt.QWidget(self)
+        wName.setLayout(qt.QHBoxLayout())
+
+        wName.layout().addWidget(qt.QLabel('name'))
+        self._qcbName = qt.QComboBox(wName)
+        for val in Colormap.Colormap.getSupportedColormaps():
+            self._qcbName.addItem(val)
+
+        self.layout().addWidget(self._qcbName)
+
+        # build vmin
+        # TODO
+        # build vmax
+        # TODO
+        # build vnorm
+        # TODO
+
+    def setColormap(self, colormap):
+        self._colormap = colormap
+        self._setName(colormap.getName())
+        self._setVMin(colormap.getVMin())
+        self._setVMax(colormap.getVMax())
+        self._setNorm(colormap.getNormalization())
+
+    def _setName(self, name):
+        assert name in Colormap.Colormap.getSupportedColormaps()
+        self._qcbName.setCurrentIndex(self._qcbName.findText(name))
+
+    def _nameChanged(self, name):
+        self._colormap.setName(self._qcbName.currentText())
+
+    def _setVMin(self, vmin):
+        pass
+
+    def _setVMax(self, max):
+        pass
+
+    def _setNorm(self, norm):
+        pass
 
 
 if __name__ == '__main__':
