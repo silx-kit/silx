@@ -110,8 +110,8 @@ class ColorBarShower(qt.QWidget):
 
     def _buildPlot(self):
         image1 = numpy.exp(numpy.random.rand(IMG_WIDTH, IMG_WIDTH) * 10)
-        image2 = numpy.linspace(-1000, 1000, IMG_WIDTH * IMG_WIDTH).reshape(IMG_WIDTH,
-                                                                            IMG_WIDTH)
+        image2 = numpy.linspace(-100, 1000, IMG_WIDTH * IMG_WIDTH).reshape(IMG_WIDTH,
+                                                                           IMG_WIDTH)
         image3 = numpy.linspace(-1, 1, IMG_WIDTH * IMG_WIDTH).reshape(IMG_WIDTH,
                                                                       IMG_WIDTH)
         image4 = numpy.linspace(-20, 50, IMG_WIDTH * IMG_WIDTH).reshape(IMG_WIDTH,
@@ -183,30 +183,47 @@ class _ColormapEditor(qt.QWidget):
         self.setLayout(qt.QVBoxLayout())
         self._colormap = colormap
         self._buildGUI()
+        # TODO : add colormap name
 
         self.setColormap(colormap)
 
         # connect GUI and colormap
         self._qcbName.currentIndexChanged.connect(self._nameChanged)
+        self._qgbNorm._qrbLinear.toggled.connect(self._normalizationHaschanged)
+        self._qgbNorm._qrbLog.toggled.connect(self._normalizationHaschanged)
+        self._vminWidget.sigValueChanged.connect(self._vminHasChanged)
+        self._vmaxWidget.sigValueChanged.connect(self._vmaxHasChanged)
 
     def _buildGUI(self):
         # build name
-        wName = qt.QWidget(self)
-        wName.setLayout(qt.QHBoxLayout())
-
-        wName.layout().addWidget(qt.QLabel('name'))
-        self._qcbName = qt.QComboBox(wName)
-        for val in Colormap.Colormap.getSupportedColormaps():
-            self._qcbName.addItem(val)
+        self._buildName()
 
         self.layout().addWidget(self._qcbName)
 
         # build vmin
-        # TODO
+        vmin = self._colormap.getVMin()
+        if vmin is None:
+            vmin= self._colormap._getDefaultMin()
+
+        self._vminWidget = _BoundSetter(text='vmin',
+                                        parent=self,
+                                        value=vmin,
+                                        checked=self._colormap.getVMin() is not None)
+        self.layout().addWidget(self._vminWidget)
+
         # build vmax
-        # TODO
-        # build vnorm
-        # TODO
+        vmax = self._colormap.getVMax()
+        if vmax is None:
+            vmax= self._colormap._getDefaultMax()
+        self._vmaxWidget = _BoundSetter(text='vmax',
+                                        parent=self,
+                                        value=vmax,
+                                        checked=self._colormap.getVMax() is not None)
+        self.layout().addWidget(self._vmaxWidget)
+
+        # build norm
+        self._buildNorm()
+        self.layout().addWidget(self._qgbNorm)
 
     def setColormap(self, colormap):
         self._colormap = colormap
@@ -223,13 +240,93 @@ class _ColormapEditor(qt.QWidget):
         self._colormap.setName(self._qcbName.currentText())
 
     def _setVMin(self, vmin):
-        pass
+        vmin = self._colormap.getVMin()
+        if vmin is None:
+            vmin= self._colormap._getDefaultMin()
+        self._vminWidget.set(vmin, checked=self._colormap.getVMin() is not None)
 
     def _setVMax(self, max):
-        pass
+        vmax = self._colormap.getVMax()
+        if vmax is None:
+            vmax= self._colormap._getDefaultMax()
+        self._vmaxWidget.set(vmax, checked=self._colormap.getVMax() is not None)
 
     def _setNorm(self, norm):
-        pass
+        if norm == 'linear':
+            self._qgbNorm._qrbLinear.setChecked(True)
+        if norm == 'log':
+            self._qgbNorm._qrbLog.setChecked(True)
+
+    def _buildName(self):
+        wName = qt.QWidget(self)
+        wName.setLayout(qt.QHBoxLayout())
+
+        wName.layout().addWidget(qt.QLabel('name'))
+        self._qcbName = qt.QComboBox(wName)
+        for val in Colormap.Colormap.getSupportedColormaps():
+            self._qcbName.addItem(val)
+
+    def _buildNorm(self):
+        self._qgbNorm = qt.QGroupBox(parent=self)
+        self._qgbNorm.setLayout(qt.QHBoxLayout())
+        self._qgbNorm._qrbLinear = qt.QRadioButton('linear')
+        self._qgbNorm._qrbLog = qt.QRadioButton('log')
+        self._qgbNorm.layout().addWidget(self._qgbNorm._qrbLinear)
+        self._qgbNorm.layout().addWidget(self._qgbNorm._qrbLog)
+
+    def _normalizationHaschanged(self):
+        if self._qgbNorm._qrbLinear.isChecked():
+            self._colormap.setNormalization('linear')
+
+        if self._qgbNorm._qrbLog.isChecked():
+            self._colormap.setNormalization('log')
+
+    def _vminHasChanged(self):
+        self._colormap.setVMin(self._vminWidget.getBound())
+
+    def _vmaxHasChanged(self):
+        self._colormap.setVMax(self._vmaxWidget.getBound())
+
+
+class _BoundSetter(qt.QWidget):
+
+    sigValueChanged = qt.Signal()
+
+    def __init__(self, text, parent, value, checked=False):
+        qt.QWidget.__init__(self, parent=parent)
+
+        self.setLayout(qt.QHBoxLayout())
+
+        self._qcb = qt.QCheckBox(parent=self, text=text)
+        self.layout().addWidget(self._qcb)
+
+        self._qLineEdit = qt.QLineEdit()
+        self._qLineEdit.setSizePolicy(qt.QSizePolicy.Expanding,
+                           qt.QSizePolicy.Expanding)
+        self.layout().addWidget(self._qLineEdit)
+        self._qcb.toggled.connect(self.updateVis)
+
+        self.set(value=value, checked=checked)
+
+        self._qLineEdit.textChanged.connect(self._valueChanged)
+
+    def getBound(self):
+        if self._qcb.isChecked():
+            return float(self._qLineEdit.text())
+        else:
+            return None
+
+    def updateVis(self):
+        self._qLineEdit.setEnabled(self._qcb.isChecked())
+        self.sigValueChanged.emit()
+
+    def _valueChanged(self, val):
+        self.sigValueChanged.emit()
+
+    def set(self, value, checked):
+        self._qLineEdit.setText(str(value))
+        self._qcb.setChecked(checked)
+        self._qLineEdit.setEnabled(checked)
 
 
 if __name__ == '__main__':
