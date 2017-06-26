@@ -35,7 +35,6 @@ import numpy
 from ._utils import ticklayout
 from .. import qt, icons
 from silx.gui.plot import Colormap
-from silx.gui.plot import Colors
 
 _logger = logging.getLogger(__name__)
 
@@ -293,7 +292,6 @@ class ColorScaleBar(qt.QWidget):
     """The tick bar need a margin to display all labels at the correct place.
     So the ColorScale should have the same margin in order for both to fit"""
 
-
     def __init__(self, parent=None, colormap=None, data=None,
                  displayTicksValues=True):
         super(ColorScaleBar, self).__init__(parent)
@@ -375,7 +373,7 @@ class ColorScaleBar(qt.QWidget):
         if colormap is not None:
             self.colorScale.setColormap(colormap, data)
 
-            (vmin, vmax) = colormap.getColorMapRange(data)
+            vmin, vmax = colormap.getColorMapRange(data)
             self.tickbar.update(vmin=vmin,
                                 vmax=vmax,
                                 norm=colormap.getNormalization())
@@ -471,7 +469,7 @@ class _ColorScale(qt.QWidget):
         qt.QWidget.__init__(self, parent)
         self._colormap = None
         self.margin = margin
-        self.setColormap(colormap)
+        self.setColormap(colormap, data)
 
         self.setLayout(qt.QVBoxLayout())
         self.setSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Expanding)
@@ -487,6 +485,7 @@ class _ColorScale(qt.QWidget):
         """Set the new colormap to be displayed
 
         :param dict colormap: the colormap to set
+        :param data: Optional data for which to compute colormap range.
         """
         if colormap is None:
             return
@@ -564,9 +563,9 @@ class _ColorScale(qt.QWidget):
 
         vmin = self.vmin
         vmax = self.vmax
-        if colormap.getNormalization() is Colormap.Colormap.LINEAR:
+        if colormap.getNormalization() == Colormap.Colormap.LINEAR:
             return vmin + (vmax - vmin) * value
-        elif colormap.getNormalization() is Colormap.Colormap.LOGARITHM:
+        elif colormap.getNormalization() == Colormap.Colormap.LOGARITHM:
             rpos = (numpy.log10(vmax) - numpy.log10(vmin)) * value + numpy.log10(vmin)
             return numpy.power(10., rpos)
         else:
