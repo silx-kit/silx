@@ -37,7 +37,7 @@ from silx.gui.plot.Colormap import Colormap
 
 
 class TestDictAPI(unittest.TestCase):
-    """Make sure the old dictionnart API is working
+    """Make sure the old dictionary API is working
     """
 
     def setUp(self):
@@ -74,7 +74,7 @@ class TestDictAPI(unittest.TestCase):
         self.assertTrue(clmObject._toDict()['autoscale'] is True)
 
     def testSetValidDict(self):
-        """Test that if a colormap is created fron a dict then it is correctly
+        """Test that if a colormap is created from a dict then it is correctly
         created and the values are copied (so if some values from the dict
         is changing, this won't affect the Colormap object"""
         clm_dict = {
@@ -107,6 +107,18 @@ class TestDictAPI(unittest.TestCase):
         self.assertFalse(colormapObject.getVMin() == clm_dict['vmin'])
         self.assertFalse(colormapObject.getVMax() == clm_dict['vmax'])
         self.assertFalse(colormapObject.isAutoscale() == clm_dict['autoscale'])
+
+    def testMissingKeysFromDict(self):
+        """Make sure we can create a Colormap object from a dictionnary even if
+        there is missing keys excepts if those keys are 'colors' or 'name'
+        """
+        colormap = Colormap._fromDict({'name': 'toto'})
+        self.assertTrue(colormap.getVMin() is None)
+        colormap = Colormap._fromDict({'colors': numpy.zeros(10)})
+        self.assertTrue(colormap.getName() is None)
+
+        with self.assertRaises(ValueError):
+            Colormap._fromDict({})
 
     def testUnknowNorm(self):
         """Make sure an error is raised if the given normalization is not
