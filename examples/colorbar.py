@@ -287,10 +287,20 @@ class _ColormapEditor(qt.QWidget):
             self._colormap.setNormalization('log')
 
     def _vminHasChanged(self):
-        self._colormap.setVMin(self._vminWidget.getBound())
+        try:
+            value = self._vminWidget.getBound()
+        except ValueError:
+            pass
+        else:
+            self._colormap.setVMin(value)
 
     def _vmaxHasChanged(self):
-        self._colormap.setVMax(self._vmaxWidget.getBound())
+        try:
+            value = self._vmaxWidget.getBound()
+        except ValueError:
+            pass
+        else:
+            self._colormap.setVMax(value)
 
 
 class _BoundSetter(qt.QWidget):
