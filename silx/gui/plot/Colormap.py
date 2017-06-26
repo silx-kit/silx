@@ -285,7 +285,13 @@ class Colormap(qt.QObject):
         colors = dic['colors'] if 'colors' in dic else None
         vmin = dic['vmin'] if 'vmin' in dic else None
         vmax = dic['vmax'] if 'vmax' in dic else None
-        normalization = dic['normalization'] if 'normalization' in dic else None
+        if 'normalization' in dic:
+            normalization = dic['normalization']
+        else:
+            warn = 'Normalization not given in the dictionary, '
+            warn += 'set by default to \'linear\''
+            _logger.warning(warn)
+            normalization = 'linear'
 
         if name is None and colors is None:
             err = 'The colormap should have a name defined or a tuple of colors'
