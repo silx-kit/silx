@@ -281,28 +281,28 @@ class Colormap(qt.QObject):
 
         :param dict dic: the colormap as a dictionary
         """
-        _name = dic['name'] if 'name' in dic else None
-        _colors = dic['colors'] if 'colors' in dic else None
-        _vmin = dic['vmin'] if 'vmin' in dic else None
-        _vmax = dic['vmax'] if 'vmax' in dic else None
-        _normalization = dic['normalization'] if 'normalization' in dic else None
+        name = dic['name'] if 'name' in dic else None
+        colors = dic['colors'] if 'colors' in dic else None
+        vmin = dic['vmin'] if 'vmin' in dic else None
+        vmax = dic['vmax'] if 'vmax' in dic else None
+        normalization = dic['normalization'] if 'normalization' in dic else None
 
-        if _name is None and _colors is None:
+        if name is None and colors is None:
             err = 'The colormap should have a name defined or a tuple of colors'
             raise ValueError(err)
-        if _normalization not in NORMALIZATIONS:
-            err = 'Given normalization is not recoginized (%s)' % _normalization
+        if normalization not in NORMALIZATIONS:
+            err = 'Given normalization is not recoginized (%s)' % normalization
             raise ValueError(err)
 
         if 'autoscale' in dic:
             if dic['autoscale'] is True:
-                if _vmin is not None or _vmax is not None:
+                if vmin is not None or vmax is not None:
                     err = "Can't set the colormap from the dictionary because"
                     err += " autoscale is requested but vmin and vmax are also"
                     err += " defined (!= None)"
                     raise ValueError(err)
             elif dic['autoscale'] is False:
-                if _vmin is None and _vmax is None:
+                if vmin is None and vmax is None:
                     err = "Can't set the colormap from the dictionary because"
                     err += " autoscale is not requested but vmin and vmax are"
                     err += " both set to None"
@@ -310,12 +310,12 @@ class Colormap(qt.QObject):
             else:
                 raise ValueError('Autoscale value should be True or False')
 
-        self._name = _name
-        self._colors = _colors
-        self._vmin = _vmin
-        self._vmax = _vmax
-        self._autoscale = True if (_vmin is None and _vmax is None) else False
-        self._normalization = _normalization
+        self._name = name
+        self._colors = colors
+        self._vmin = vmin
+        self._vmax = vmax
+        self._autoscale = True if (vmin is None and vmax is None) else False
+        self._normalization = normalization
 
         self.sigChanged.emit()
 
