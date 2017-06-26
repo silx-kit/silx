@@ -48,6 +48,7 @@ _DEFAULT_COLORMAPS = {
     'blue': 4,
     'temperature': 5
 }
+"""Dictionary of _DEFAULT_COLORMAPS with there GLProgram ids"""
 
 DEFAULT_COLORMAPS = tuple(_DEFAULT_COLORMAPS.keys())
 """Tuple of supported colormap names."""
