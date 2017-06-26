@@ -1,0 +1,89 @@
+# coding: utf-8
+# /*##########################################################################
+#
+# Copyright (c) 2016 European Synchrotron Radiation Facility
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+# ###########################################################################*/
+"""Tests for html module"""
+
+__authors__ = ["V. Valls"]
+__license__ = "MIT"
+__date__ = "22/06/2017"
+
+
+import unittest
+from .. import deprecation
+from silx.test import utils
+
+
+class TestDeprecation(unittest.TestCase):
+    """Tests for deprecation module."""
+
+    @deprecation.deprecated
+    def deprecatedWithoutParam(self):
+        pass
+
+    @deprecation.deprecated(reason="r", replacement="r", since_version="v")
+    def deprecatedWithParams(self):
+        pass
+
+    @deprecation.deprecated(reason="r", replacement="r", since_version="v", only_once=True)
+    def deprecatedOnlyOnce(self):
+        pass
+
+    @deprecation.deprecated(reason="r", replacement="r", since_version="v", only_once=False)
+    def deprecatedEveryTime(self):
+        pass
+
+    @utils.test_logging(deprecation.depreclog.name, warning=1)
+    def testAnnotationWithoutParam(self):
+        self.deprecatedWithoutParam()
+
+    @utils.test_logging(deprecation.depreclog.name, warning=1)
+    def testAnnotationWithParams(self):
+        self.deprecatedWithParams()
+
+    @utils.test_logging(deprecation.depreclog.name, warning=1)
+    def testLoggedOnlyOnce(self):
+        self.deprecatedOnlyOnce()
+        self.deprecatedOnlyOnce()
+        self.deprecatedOnlyOnce()
+
+    @utils.test_logging(deprecation.depreclog.name, warning=3)
+    def testLoggedEveryTime(self):
+        self.deprecatedEveryTime()
+        self.deprecatedEveryTime()
+        self.deprecatedEveryTime()
+
+    @utils.test_logging(deprecation.depreclog.name, warning=1)
+    def testWarning(self):
+        deprecation.deprecated_warning(type_="t", name="n")
+
+
+def suite():
+    test_suite = unittest.TestSuite()
+    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
+    test_suite.addTest(loadTests(TestDeprecation))
+    return test_suite
+
+
+if __name__ == '__main__':
+    unittest.main(defaultTest='suite')
