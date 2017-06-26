@@ -29,7 +29,7 @@ from __future__ import absolute_import, print_function, with_statement, division
 
 __authors__ = ["A. Mirone, P. Paleo"]
 __license__ = "MIT"
-__date__ = "12/06/2017"
+__date__ = "26/06/2017"
 
 import logging
 import numpy as np
@@ -69,7 +69,7 @@ def _idivup(a, b):
 
 class Backprojection(OpenclProcessing):
     """A class for performing the backprojection using OpenCL"""
-    kernel_files = ["backproj.cl"]
+    kernel_files = ["backproj.cl", "backproj_helper.cl"] if _has_pyfft else ["backproj.cl"]
 
     def __init__(self, sino_shape, slice_shape=None, axis_position=None, angles=None, filter_name=None,
                  ctx=None, devicetype="all", platformid=None, deviceid=None,
@@ -203,33 +203,6 @@ class Backprojection(OpenclProcessing):
             self.pyfft_plan = pyfft_Plan(self.fft_size, queue=self.queue)
             self.d_sino_z = parray.zeros(self.queue, (self.num_projs, self.fft_size), dtype=np.complex64)
             logger.debug("... done")
-            logger.debug("Building OpenCL programs for filtering and conversion...")
-            self.prg_mult = pyopencl.Program(self.ctx, """
-                __kernel void mult(
-                    __global float2* d_sino, __global float2* d_filter, int num_bins, int num_projs)
-                {
-                  int gid0 = get_global_id(0);
-                  int gid1 = get_global_id(1);
-                  if (gid0 < num_bins && gid1 < num_projs) {
-                    // d_sino[gid1*num_bins+gid0] *= d_filter[gid0];
-                    d_sino[gid1*num_bins+gid0].x *= d_filter[gid0].x;
-                    d_sino[gid1*num_bins+gid0].y *= d_filter[gid0].x;
-                  }
-                }
-            """).build()
-            self.prg_cpy2d = pyopencl.Program(self.ctx, """
-                __kernel void cpy2d(
-                    __global float* d_sino, __global float2* d_sino_complex, int num_bins, int num_projs, int fft_size)
-                {
-                  int gid0 = get_global_id(0);
-                  int gid1 = get_global_id(1);
-                  if (gid0 < num_bins && gid1 < num_projs) {
-                    d_sino[gid1*num_bins+gid0] = d_sino_complex[gid1*fft_size+gid0].x;
-                  }
-                }
-            """).build()
-            logger.debug("... done")
-
         else:
             logger.debug("pyfft not available, using numpy.fft")
             self.pyfft_plan = None
@@ -245,7 +218,7 @@ class Backprojection(OpenclProcessing):
             L2 = L // 2 + 1
             h[0] = 1 / 4.
             j = np.linspace(1, L2, L2 // 2, False)
-            h[1:L2:2] = -1. / (np.pi**2 * j**2)
+            h[1:L2:2] = -1. / (np.pi ** 2 * j ** 2)
             h[L2:] = np.copy(h[1:L2 - 1][::-1])
         else:
             # TODO: other filters
@@ -317,8 +290,8 @@ class Backprojection(OpenclProcessing):
                 self.axis_pos,  # axis position (float32)
                 self.cl_mem["d_slice"],  # d_slice (__global float32*)
                 d_sino_ref,  # d_sino (__read_only image2d_t or float*)
-                np.float32(0),   # gpu_offset_x (float32)
-                np.float32(0),   # gpu_offset_y (float32)
+                np.float32(0),  # gpu_offset_x (float32)
+                np.float32(0),  # gpu_offset_y (float32)
                 self.cl_mem["d_cos"],  # d_cos (__global float32*)
                 self.cl_mem["d_sin"],  # d_sin (__global float32*)
                 self.cl_mem["d_axes"],  # d_axis  (__global float32*)
@@ -382,23 +355,25 @@ class Backprojection(OpenclProcessing):
                 # FFT (in-place)
                 self.pyfft_plan.execute(self.d_sino_z.data, batch=self.num_projs)
                 # Multiply (complex-wise) with the the filter
-                ev = self.prg_mult.mult(self.queue, self.d_sino_z.shape[::-1], None,
-                                        self.d_sino_z.data,
-                                        self.d_filter.data,
-                                        np.int32(self.fft_size),
-                                        self.num_projs
-                                        )
+                ev = self.program.mult(self.queue,
+                                       tuple(int(i) for i in self.d_sino_z.shape[::-1]),
+                                       None,
+                                       self.d_sino_z.data,
+                                       self.d_filter.data,
+                                       np.int32(self.fft_size),
+                                       self.num_projs
+                                       )
                 events.append(EventDescription("complex 2D-1D multiplication", ev))
                 # Inverse FFT (in-place)
                 self.pyfft_plan.execute(self.d_sino_z.data, batch=self.num_projs, inverse=True)
                 # Copy the real part of d_sino_z[:, :self.num_bins] (complex64) to d_sino (float32)
-                ev = self.prg_cpy2d.cpy2d(self.queue, self.shape[::-1], None,
-                                          self.d_sino,
-                                          self.d_sino_z.data,
-                                          self.num_bins,
-                                          self.num_projs,
-                                          np.int32(self.fft_size)
-                                          )
+                ev = self.program.cpy2d(self.queue, self.shape[::-1], None,
+                                        self.d_sino,
+                                        self.d_sino_z.data,
+                                        self.num_bins,
+                                        self.num_projs,
+                                        np.int32(self.fft_size)
+                                        )
                 events.append(EventDescription("conversion from complex padded sinogram to sinogram", ev))
             if self.profile:
                 self.events += events
