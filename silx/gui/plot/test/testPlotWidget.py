@@ -259,6 +259,19 @@ class TestPlotImage(_PlotWidgetTest, ParametricTestCase):
                 self.plot.clear()
                 self.plot.resetZoom()
 
+    def testPlotColormapDictAPI(self):
+        """Test that the addImage API using a colormap dictionary is still
+        working"""
+        self.plot.setGraphTitle('Temp. Log')
+
+        colormap = {
+            'name': 'temperature',
+            'normalization': 'log',
+            'vmin': None,
+            'vmax': None
+        }
+        self.plot.addImage(DATA_2D, legend="image 1", colormap=colormap)
+
 
 class TestPlotCurve(_PlotWidgetTest):
     """Basic tests for addCurve."""
