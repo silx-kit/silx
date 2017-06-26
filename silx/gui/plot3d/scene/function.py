@@ -409,7 +409,7 @@ class Colormap(event.Notifier, ProgramFunction):
         if norm != self._norm:
             assert norm in plot_colormap.NORMALIZATIONS
             self._norm = norm
-            if norm == 'log':
+            if norm == plot_colormap.LOGARITHM:
                 self.range_ = self.range_  # To test for positive range_
             self.notify()
 
@@ -429,7 +429,7 @@ class Colormap(event.Notifier, ProgramFunction):
         assert len(range_) == 2
         range_ = float(range_[0]), float(range_[1])
 
-        if self.norm == 'log' and (range_[0] <= 0. or range_[1] <= 0.):
+        if self.norm == plot_colormap.LOGARITHM and (range_[0] <= 0. or range_[1] <= 0.):
             _logger.warn(
                 "Log normalization and negative range: updating range.")
             minPos = numpy.finfo(numpy.float32).tiny
@@ -447,10 +447,10 @@ class Colormap(event.Notifier, ProgramFunction):
                                   It MUST be in use and using this function.
         """
         gl.glUniform1i(program.uniforms['cmap.id'], plot_colormap._DEFAULT_COLORMAPS[self.name])
-        gl.glUniform1i(program.uniforms['cmap.isLog'], self._norm == 'log')
+        gl.glUniform1i(program.uniforms['cmap.isLog'], self._norm == plot_colormap.LOGARITHM)
 
         min_, max_ = self.range_
-        if self._norm == 'log':
+        if self._norm == plot_colormap.LOGARITHM:
             min_, max_ = numpy.log10(min_), numpy.log10(max_)
 
         gl.glUniform1f(program.uniforms['cmap.min'], min_)

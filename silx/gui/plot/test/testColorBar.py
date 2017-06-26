@@ -32,7 +32,7 @@ import unittest
 from silx.gui.test.utils import TestCaseQt
 from silx.gui.plot.ColorBar import _ColorScale
 from silx.gui.plot.ColorBar import ColorBarWidget
-from silx.gui.plot.Colormap import Colormap
+from silx.gui.plot.Colormap import Colormap, LINEAR, LOGARITHM
 from silx.gui.plot import Plot2D
 from silx.gui import qt
 import numpy
@@ -87,7 +87,7 @@ class TestColorScale(TestCaseQt):
 
     def testRelativePositionLog(self):
         self.colorMapLog1 = Colormap(name='temperature',
-                                     normalization='log',
+                                     normalization=LOGARITHM,
                                      vmin=1.0,
                                      vmax=100.0)
 
@@ -131,7 +131,7 @@ class TestNoAutoscale(TestCaseQt):
 
     def testLogNormNoAutoscale(self):
         colormapLog = Colormap(name='gray',
-                               normalization='log',
+                               normalization=LOGARITHM,
                                vmin=1.0,
                                vmax=100.0)
 
@@ -210,7 +210,7 @@ class TestColorBarWidget(TestCaseQt):
         Note : colorbar is modified by the Plot directly not ColorBarWidget
         """
         colormapLog = Colormap(name='gray',
-                               normalization='log',
+                               normalization=LOGARITHM,
                                vmin=None,
                                vmax=None)
 
@@ -262,7 +262,7 @@ class TestColorBarWidget(TestCaseQt):
         self.assertTrue(
             self.colorBar.getColormap(copy=False), self.plot.getDefaultColormap(copy=False))
         plotColormap = Colormap(name='gray',
-                                normalization='log',
+                                normalization=LOGARITHM,
                                 vmin=None,
                                 vmax=None)
         self.plot.setDefaultColormap(plotColormap)
@@ -271,7 +271,7 @@ class TestColorBarWidget(TestCaseQt):
     def testColormapWithoutRange(self):
         """Test with a colormap with vmin==vmax"""
         colormap = Colormap(name='gray',
-                            normalization='linear',
+                            normalization=LINEAR,
                             vmin=1.0,
                             vmax=1.0)
         self.colorBar.setColormap(colormap)

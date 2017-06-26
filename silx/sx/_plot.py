@@ -35,6 +35,7 @@ import numpy
 
 from ..gui.plot import Plot1D, Plot2D
 from ..gui.plot.Colors import COLORDICT
+from ..gui.plot.Colormap import NORMALIZATIONS, LINEAR, LOGARITHM
 from silx.third_party import six
 
 
@@ -196,7 +197,7 @@ def plot(*args, **kwargs):
     return plt
 
 
-def imshow(data=None, cmap=None, norm='linear',
+def imshow(data=None, cmap=None, norm=LINEAR,
            vmin=None, vmax=None,
            aspect=False,
            origin=(0., 0.), scale=(1., 1.),
@@ -242,7 +243,7 @@ def imshow(data=None, cmap=None, norm='linear',
     colormap = plt.getDefaultColormap()
     if cmap is not None:
         colormap.setName(cmap)
-    assert norm in ('linear', 'log')
+    assert norm in NORMALIZATIONS
     colormap.setNormalization(norm)
     colormap.setVMin(vmin)
     colormap.setVMax(vmax)

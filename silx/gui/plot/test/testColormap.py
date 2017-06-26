@@ -33,7 +33,7 @@ __date__ = "05/12/2016"
 
 import unittest
 import numpy
-from silx.gui.plot.Colormap import Colormap
+from silx.gui.plot.Colormap import Colormap, LOGARITHM, LINEAR
 
 
 class TestDictAPI(unittest.TestCase):
@@ -99,7 +99,7 @@ class TestDictAPI(unittest.TestCase):
         clm_dict['vmax'] = None
         clm_dict['colors'] = [1.0, 2.0]
         clm_dict['autoscale'] = True
-        clm_dict['normalization'] = 'log'
+        clm_dict['normalization'] = LOGARITHM
         clm_dict['name'] = 'viridis'
 
         self.assertFalse(colormapObject.getName() == clm_dict['name'])
@@ -191,7 +191,7 @@ class TestObjectAPI(unittest.TestCase):
                                   colors=numpy.array([12, 13, 14]),
                                   vmin=None,
                                   vmax=None,
-                                  normalization='log')
+                                  normalization=LOGARITHM)
 
         colormapObject2 = colormapObject.copy()
         self.assertTrue(
@@ -225,10 +225,10 @@ class TestObjectAPI(unittest.TestCase):
 
         # test log scale
         data = numpy.array([1, 10, 100, 1000])
-        cl1 = Colormap(name='gray', normalization='log', vmin=1, vmax=100)
-        cl2 = Colormap(name='gray', normalization='log', vmin=None, vmax=100)
-        cl3 = Colormap(name='gray', normalization='log', vmin=1, vmax=None)
-        cl4 = Colormap(name='gray', normalization='log', vmin=None, vmax=None)
+        cl1 = Colormap(name='gray', normalization=LOGARITHM, vmin=1, vmax=100)
+        cl2 = Colormap(name='gray', normalization=LOGARITHM, vmin=None, vmax=100)
+        cl3 = Colormap(name='gray', normalization=LOGARITHM, vmin=1, vmax=None)
+        cl4 = Colormap(name='gray', normalization=LOGARITHM, vmin=None, vmax=None)
 
         self.assertTrue(cl1.getColorMapRange(data) == (1, 100))
         self.assertTrue(cl2.getColorMapRange(data) == (1, 100))

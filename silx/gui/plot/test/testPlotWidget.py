@@ -38,7 +38,7 @@ from silx.gui.test.utils import TestCaseQt
 
 from silx.gui import qt
 from silx.gui.plot import PlotWidget
-from silx.gui.plot.Colormap import Colormap
+from silx.gui.plot.Colormap import Colormap, LINEAR, LOGARITHM
 
 
 SIZE = 1024
@@ -154,7 +154,7 @@ class TestPlotImage(_PlotWidgetTest, ParametricTestCase):
         self.plot.setGraphTitle('Temp. Log')
 
         colormap = Colormap(name='temperature',
-                            normalization='log',
+                            normalization=LOGARITHM,
                             vmin=None,
                             vmax=None)
         self.plot.addImage(DATA_2D, legend="image 1", colormap=colormap)
@@ -188,7 +188,7 @@ class TestPlotImage(_PlotWidgetTest, ParametricTestCase):
         self.plot.setGraphTitle('Custom colormap')
 
         colormap = Colormap(name=None,
-                            normalization='linear',
+                            normalization=LINEAR,
                             vmin=None,
                             vmax=None,
                             colors=((0., 0., 0.), (1., 0., 0.),
@@ -197,7 +197,7 @@ class TestPlotImage(_PlotWidgetTest, ParametricTestCase):
                            replace=False, resetzoom=False)
 
         colormap = Colormap(name=None,
-                            normalization='linear',
+                            normalization=LINEAR,
                             vmin=None,
                             vmax=None,
                             colors=numpy.array(

@@ -69,7 +69,7 @@ import logging
 import numpy
 
 from .. import qt
-from .Colormap import Colormap
+from . import Colormap
 from . import PlotWidget
 
 
@@ -108,7 +108,7 @@ class ColormapDialog(qt.QDialog):
     :param str title: The QDialog title
     """
 
-    sigColormapChanged = qt.Signal(Colormap)
+    sigColormapChanged = qt.Signal(Colormap.Colormap)
     """Signal triggered when the colormap is changed.
 
     It provides a dict describing the colormap to the slot.
@@ -403,10 +403,12 @@ class ColormapDialog(qt.QDialog):
         else:
             vmin = self._minValue.value()
             vmax = self._maxValue.value()
-        colormap = Colormap(name=str(self._comboBoxColormap.currentText()).lower(),
-                            normalization='linear' if isNormLinear else 'log',
-                            vmin=vmin,
-                            vmax=vmax)
+        norm = Colormap.LINEAR if isNormLinear else Colormap.LOGARITHM
+        colormap = Colormap.Colormap(
+                        name=str(self._comboBoxColormap.currentText()).lower(),
+                        normalization=norm,
+                        vmin=vmin,
+                        vmax=vmax)
         return colormap
 
     # TODO : remove autoscale here
@@ -428,9 +430,9 @@ class ColormapDialog(qt.QDialog):
             self._comboBoxColormap.setCurrentIndex(index)
 
         if normalization is not None:
-            assert normalization in ('linear', 'log')
-            self._normButtonLinear.setChecked(normalization == 'linear')
-            self._normButtonLog.setChecked(normalization == 'log')
+            assert normalization in Colormap.NORMALIZATIONS
+            self._normButtonLinear.setChecked(normalization == Colormap.LINEAR)
+            self._normButtonLog.setChecked(normalization == Colormap.LOGARITHM)
 
         if vmin is not None:
             self._minValue.setValue(vmin)

@@ -1111,7 +1111,7 @@ class NormalizationNode(ColormapBase):
     Item is a QComboBox.
     """
     editable = True
-    listValues = ['linear', 'log']
+    listValues = list(Colormap.NORMALIZATIONS)
 
     def getEditor(self, parent, option, index):
         editor = qt.QComboBox(parent)
