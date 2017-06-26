@@ -243,7 +243,7 @@ class Colormap(qt.QObject):
                     vmin = result.min_positive
 
                 if vmax < 0:
-                   vmax = result.min_positive, result.maximum
+                    vmax = result.min_positive, result.maximum
 
         return (vmin, vmax)
 
