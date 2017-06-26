@@ -555,6 +555,7 @@ class TestSpecH5(unittest.TestCase):
         os.write(fd, b"Not a spec file!")
         os.close(fd)
         self.assertRaises(specfile.SfErrFileOpen, SpecH5, fname)
+        self.assertRaises(IOError, SpecH5, fname)
         os.unlink(fname)
 
     def testSample(self):
