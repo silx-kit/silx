@@ -39,6 +39,7 @@ import numpy
 from .._utils import FLOAT32_MINPOS
 from . import BackendBase
 from .. import Colors
+from ..Colormap import Colormap
 from ... import qt
 
 from ..._glutils import gl
@@ -1016,23 +1017,19 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                     'addImage: Convert %s data to float32', str(data.dtype))
                 data = numpy.array(data, dtype=numpy.float32, order='C')
 
-            colormapIsLog = colormap['normalization'].startswith('log')
+            colormapIsLog = colormap.getNormalization() == 'log'
 
-            if colormap['autoscale']:
-                cmapRange = None
-            else:
-                cmapRange = colormap['vmin'], colormap['vmax']
-                assert cmapRange[0] <= cmapRange[1]
+            cmapRange = colormap.getColorMapRange(data=data)
+            assert cmapRange[0] <= cmapRange[1]
 
             # Retrieve colormap LUT from name and color array
-            colormapLut = Colors.applyColormapToData(
-                numpy.arange(256, dtype=numpy.uint8),
-                name=colormap['name'],
-                normalization='linear',
-                autoscale=False,
-                vmin=0,
-                vmax=255,
-                colors=colormap.get('colors'))
+            colormapDisp = Colormap(name=colormap.getName(),
+                                    normalization=Colormap.LINEAR,
+                                    vmin=0,
+                                    vmax=255,
+                                    colors=colormap.getColorMapLUT())
+            colormapLut = colormapDisp.applyToData(
+                numpy.arange(256, dtype=numpy.uint8))
 
             image = GLPlotColormap(data,
                                    origin,
