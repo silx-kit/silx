@@ -1122,7 +1122,11 @@ class PlotWidget(qt.QMainWindow):
         if z is not None:
             scatter.setZValue(z)
         if colormap is not None:
-            scatter.setColormap(colormap)
+            if isinstance(colormap, dict):
+                scatter.setColormap(Colormap._fromDict(colormap))
+            else:
+                assert isinstance(colormap, Colormap)
+                scatter.setColormap(colormap)
 
         # Set scatter data
         # If errors not provided, reuse previous ones
@@ -2356,6 +2360,7 @@ class PlotWidget(qt.QMainWindow):
         if isinstance(colormap, dict):
             self._defaultColormap = Colormap._fromDict(colormap)
         else:
+            assert isinstance(colormap, Colormap)
             self._defaultColormap = colormap
         self.notify('defaultColormapChanged')
 
