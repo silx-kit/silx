@@ -29,7 +29,10 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "26/06/2017"
 
+import logging
 from ... import qt
+
+_logger = logging.getLogger(__name__)
 
 
 class Axis(qt.QObject):
@@ -83,6 +86,28 @@ class Axis(qt.QObject):
         :param float vmax: maximum axis value
         """
         raise NotImplementedError()
+
+    def _checkLimits(self, vmin, vmax):
+        """Makes sure axis range is not empty
+
+        :param float vmin: Min axis value
+        :param float vmax: Max axis value
+        :return: (min, max) making sure min < max
+        :rtype: 2-tuple of float
+        """
+        if vmax < vmin:
+            _logger.debug('%s axis: max < min, inverting limits.', self._defaultLabel)
+            vmin, vmax = vmax, vmin
+        elif vmax == vmin:
+            _logger.debug('%s axis: max == min, expanding limits.', self._defaultLabel)
+            if vmin == 0.:
+                vmin, vmax = -0.1, 0.1
+            elif vmin < 0:
+                vmin, vmax = vmin * 1.1, vmin * 0.9
+            else:  # xmin > 0
+                vmin, vmax = vmin * 0.9, vmin * 1.1
+
+        return vmin, vmax
 
     def isInverted(self):
         """Return True if the axis is inverted (top to bottom for the y-axis),
@@ -200,12 +225,13 @@ class XAxis(Axis):
         :param float xmin: minimum bottom axis value
         :param float xmax: maximum bottom axis value
         """
-        xmin, xmax = self._plot._checkLimits(xmin, xmax, axis='x')
+        xmin, xmax = self._checkLimits(xmin, xmax)
 
         self._plot._backend.setGraphXLimits(xmin, xmax)
         self._plot._setDirtyPlot()
 
-        self._plot._notifyLimitsChanged()
+        self.sigLimitsChanged.emit(xmin, xmax)
+        self._plot._notifyLimitsChanged(emitSignal=False)
 
     def _setLogarithmic(self, flag):
         """Set the bottom X axis scale (either linear or logarithmic).
@@ -244,11 +270,12 @@ class YAxis(Axis):
         :param str axis: The axis for which to get the limits:
                          Either 'left' or 'right'
         """
-        ymin, ymax = self._plot._checkLimits(ymin, ymax, axis='y')
+        ymin, ymax = self._checkLimits(ymin, ymax)
         self._plot._backend.setGraphYLimits(ymin, ymax, axis='left')
         self._plot._setDirtyPlot()
 
-        self._plot._notifyLimitsChanged()
+        self.sigLimitsChanged.emit(ymin, ymax)
+        self._plot._notifyLimitsChanged(emitSignal=False)
 
     def setInverted(self, flag=True):
         """Set the Y axis orientation.
@@ -328,11 +355,12 @@ class YRightAxis(Axis):
         :param str axis: The axis for which to get the limits:
                          Either 'left' or 'right'
         """
-        ymin, ymax = self._plot._checkLimits(ymin, ymax, axis='y2')
+        ymin, ymax = self._checkLimits(ymin, ymax)
         self._plot._backend.setGraphYLimits(ymin, ymax, axis='right')
         self._plot._setDirtyPlot()
 
-        self._plot._notifyLimitsChanged()
+        self.sigLimitsChanged.emit(ymin, ymax)
+        self._plot._notifyLimitsChanged(emitSignal=False)
 
     def setInverted(self, flag=True):
         """Set the Y axis orientation.

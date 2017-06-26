@@ -201,7 +201,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "22/06/2017"
+__date__ = "26/06/2017"
 
 
 from collections import OrderedDict, namedtuple
@@ -1975,37 +1975,19 @@ class PlotWidget(qt.QMainWindow):
 
     # Limits
 
-    def _notifyLimitsChanged(self):
+    def _notifyLimitsChanged(self, emitSignal=True):
         """Send an event when plot area limits are changed."""
         xRange = self.getGraphXLimits()
         yRange = self.getGraphYLimits(axis='left')
         y2Range = self.getGraphYLimits(axis='right')
+        if emitSignal:
+            axes = self.getXAxis(), self.getYAxis(), self.getYAxis(axis="right")
+            ranges = xRange, yRange, y2Range
+            for axis, limits in zip(axes, ranges):
+                axis.sigLimitsChanged.emit(*limits)
         event = PlotEvents.prepareLimitsChangedSignal(
             id(self.getWidgetHandle()), xRange, yRange, y2Range)
         self.notify(**event)
-
-    def _checkLimits(self, min_, max_, axis):
-        """Makes sure axis range is not empty
-
-        :param float min_: Min axis value
-        :param float max_: Max axis value
-        :param str axis: 'x', 'y' or 'y2' the axis to deal with
-        :return: (min, max) making sure min < max
-        :rtype: 2-tuple of float
-        """
-        if max_ < min_:
-            _logger.info('%s axis: max < min, inverting limits.', axis)
-            min_, max_ = max_, min_
-        elif max_ == min_:
-            _logger.info('%s axis: max == min, expanding limits.', axis)
-            if min_ == 0.:
-                min_, max_ = -0.1, 0.1
-            elif min_ < 0:
-                min_, max_ = min_ * 1.1, min_ * 0.9
-            else:  # xmin > 0
-                min_, max_ = min_ * 0.9, min_ * 1.1
-
-        return min_, max_
 
     def getGraphXLimits(self):
         """Get the graph X (bottom) limits.
@@ -2062,14 +2044,17 @@ class PlotWidget(qt.QMainWindow):
         :param float y2max: maximum right axis value or None (the default)
         """
         # Deal with incorrect values
-        xmin, xmax = self._checkLimits(xmin, xmax, axis='x')
-        ymin, ymax = self._checkLimits(ymin, ymax, axis='y')
+        axis = self.getXAxis()
+        xmin, xmax = axis._checkLimits(xmin, xmax)
+        axis = self.getYAxis()
+        ymin, ymax = axis._checkLimits(ymin, ymax)
 
         if y2min is None or y2max is None:
             # if one limit is None, both are ignored
             y2min, y2max = None, None
         else:
-            y2min, y2max = self._checkLimits(y2min, y2max, axis='y2')
+            axis = self.getYAxis(axis="right")
+            y2min, y2max = axis._checkLimits(y2min, y2max)
 
         self._backend.setLimits(xmin, xmax, ymin, ymax, y2min, y2max)
         self._setDirtyPlot()
