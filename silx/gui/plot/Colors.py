@@ -35,11 +35,8 @@ from silx.utils.deprecation import deprecated
 import logging
 import numpy
 
-# First of all init matplotlib and set its backend
-try:
-    from .matplotlib import Colormap as MPLColormap
-except ImportError:
-    MPLColormap = None
+from .Colormap import Colormap
+
 
 _logger = logging.getLogger(__name__)
 
