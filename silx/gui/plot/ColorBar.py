@@ -318,7 +318,7 @@ class ColorScaleBar(qt.QWidget):
         else:
             vmin, vmax = Colormap.DEFAULT_MIN_LIN, Colormap.DEFAULT_MAX_LIN
 
-        norm = colormap.getNormalization() if colormap else Colormap.LINEAR
+        norm = colormap.getNormalization() if colormap else Colormap.Colormap.LINEAR
         self.tickbar = _TickBar(vmin=vmin,
                                 vmax=vmax,
                                 norm=norm,
@@ -500,7 +500,7 @@ class _ColorScale(qt.QWidget):
         if colormap is None:
             return
 
-        assert colormap.getNormalization() in Colormap.NORMALIZATIONS
+        assert colormap.getNormalization() in Colormap.Colormap.NORMALIZATIONS
 
         self._colormap = colormap
         self.vmin, self.vmax = self._colormap.getColorMapRange(data=data)
@@ -522,7 +522,7 @@ class _ColorScale(qt.QWidget):
 
         indices = numpy.linspace(0., 1., self._NB_CONTROL_POINTS)
         colormapDisp = Colormap.Colormap(name=colormap.getName(),
-                                         normalization=Colormap.LINEAR,
+                                         normalization=Colormap.Colormap.LINEAR,
                                          vmin=None,
                                          vmax=None)
         colors = colormapDisp.applyToData(indices)
@@ -573,9 +573,9 @@ class _ColorScale(qt.QWidget):
 
         vmin = self.vmin
         vmax = self.vmax
-        if colormap.getNormalization() is Colormap.LINEAR:
+        if colormap.getNormalization() is Colormap.Colormap.LINEAR:
             return vmin + (vmax - vmin) * value
-        elif colormap.getNormalization() is Colormap.LOGARITHM:
+        elif colormap.getNormalization() is Colormap.Colormap.LOGARITHM:
             rpos = (numpy.log10(vmax) - numpy.log10(vmin)) * value + numpy.log10(vmin)
             return numpy.power(10., rpos)
         else:
@@ -704,9 +704,9 @@ class _TickBar(qt.QWidget):
             # No range: no ticks
             self.ticks = ()
             self.subTicks = ()
-        elif self._norm == Colormap.LOGARITHM:
+        elif self._norm == Colormap.Colormap.LOGARITHM:
             self._computeTicksLog(nticks)
-        elif self._norm == Colormap.LINEAR:
+        elif self._norm == Colormap.Colormap.LINEAR:
             self._computeTicksLin(nticks)
         else:
             err = 'TickBar - Wrong normalization %s' % self._norm
@@ -763,9 +763,9 @@ class _TickBar(qt.QWidget):
     def _getRelativePosition(self, val):
         """Return the relative position of val according to min and max value
         """
-        if self._norm == Colormap.LINEAR:
+        if self._norm == Colormap.Colormap.LINEAR:
             return 1 - (val - self._vmin) / (self._vmax - self._vmin)
-        elif self._norm == Colormap.LOGARITHM:
+        elif self._norm == Colormap.Colormap.LOGARITHM:
             return 1 - (numpy.log10(val) - numpy.log10(self._vmin))/(numpy.log10(self._vmax) - numpy.log(self._vmin))
         else:
             raise ValueError('Norm is not recognized')

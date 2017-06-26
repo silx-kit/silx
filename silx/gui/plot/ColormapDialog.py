@@ -69,7 +69,7 @@ import logging
 import numpy
 
 from .. import qt
-from . import Colormap
+from .Colormap import Colormap
 from . import PlotWidget
 
 
@@ -108,7 +108,7 @@ class ColormapDialog(qt.QDialog):
     :param str title: The QDialog title
     """
 
-    sigColormapChanged = qt.Signal(Colormap.Colormap)
+    sigColormapChanged = qt.Signal(Colormap)
     """Signal triggered when the colormap is changed.
 
     It provides a dict describing the colormap to the slot.
@@ -404,7 +404,7 @@ class ColormapDialog(qt.QDialog):
             vmin = self._minValue.value()
             vmax = self._maxValue.value()
         norm = Colormap.LINEAR if isNormLinear else Colormap.LOGARITHM
-        colormap = Colormap.Colormap(
+        colormap = Colormap(
                         name=str(self._comboBoxColormap.currentText()).lower(),
                         normalization=norm,
                         vmin=vmin,

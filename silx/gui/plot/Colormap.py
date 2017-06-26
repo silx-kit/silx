@@ -53,14 +53,6 @@ _DEFAULT_COLORMAPS = {
 DEFAULT_COLORMAPS = tuple(_DEFAULT_COLORMAPS.keys())
 """Tuple of supported colormap names."""
 
-LINEAR = 'linear'
-"""constante for linear normalization"""
-LOGARITHM = 'log'
-"""constante for logarithmic normalization"""
-
-NORMALIZATIONS = (LINEAR, LOGARITHM)
-"""Tuple of managed normalizations"""
-
 DEFAULT_MIN_LIN = 0
 """Default min value if in linear normalization"""
 DEFAULT_MAX_LIN = 1
@@ -86,12 +78,20 @@ class Colormap(qt.QObject):
         Upper bounds of the colormap or None for autoscale (default)
     """
 
+    LINEAR = 'linear'
+    """constante for linear normalization"""
+    LOGARITHM = 'log'
+    """constante for logarithmic normalization"""
+
+    NORMALIZATIONS = (LINEAR, LOGARITHM)
+    """Tuple of managed normalizations"""
+
     sigChanged = qt.Signal()
 
     def __init__(self, name='gray', colors=None, normalization=LINEAR, vmin=None, vmax=None):
         qt.QObject.__init__(self)
-        assert normalization in NORMALIZATIONS
-        if normalization is LOGARITHM:
+        assert normalization in Colormap.NORMALIZATIONS
+        if normalization is Colormap.LOGARITHM:
             if (vmin is not None and vmin < 1.0) or (vmax is not None and vmax < 1.0):
                 m = "Unsuported vmin (%s) and/or vmax (%s) given for a log scale."
                 m += ' Autoscale will be performed.'
@@ -238,7 +238,7 @@ class Colormap(qt.QObject):
             vmax = result.maximum if data is not None else self._getDefaultMax()
 
         if data is not None:
-            if self.getNormalization() == LOGARITHM:
+            if self.getNormalization() == Colormap.LOGARITHM:
                 if vmin < 0:
                     vmin = result.min_positive
 
@@ -305,14 +305,14 @@ class Colormap(qt.QObject):
             normalization = dic['normalization']
         else:
             warn = 'Normalization not given in the dictionary, '
-            warn += 'set by default to ' + LINEAR
+            warn += 'set by default to ' + Colormap.LINEAR
             _logger.warning(warn)
-            normalization = LINEAR
+            normalization = Colormap.LINEAR
 
         if name is None and colors is None:
             err = 'The colormap should have a name defined or a tuple of colors'
             raise ValueError(err)
-        if normalization not in NORMALIZATIONS:
+        if normalization not in Colormap.NORMALIZATIONS:
             err = 'Given normalization is not recoginized (%s)' % normalization
             raise ValueError(err)
 
@@ -385,10 +385,10 @@ class Colormap(qt.QObject):
         return str(self._toDict())
 
     def _getDefaultMin(self):
-        return DEFAULT_MIN_LIN if self._normalization == LINEAR else DEFAULT_MIN_LOG
+        return DEFAULT_MIN_LIN if self._normalization == Colormap.LINEAR else DEFAULT_MIN_LOG
 
     def _getDefaultMax(self):
-        return DEFAULT_MAX_LIN if self._normalization == LINEAR else DEFAULT_MAX_LOG
+        return DEFAULT_MAX_LIN if self._normalization == Colormap.LINEAR else DEFAULT_MAX_LOG
 
     def __eq__(self, other):
         """Compare colormap values and not pointers"""

@@ -33,7 +33,7 @@ __date__ = "05/12/2016"
 
 import unittest
 import numpy
-from silx.gui.plot.Colormap import Colormap, LOGARITHM, LINEAR
+from silx.gui.plot.Colormap import Colormap
 
 
 class TestDictAPI(unittest.TestCase):
@@ -47,11 +47,11 @@ class TestDictAPI(unittest.TestCase):
     def testGetItem(self):
         """test the item getter API ([xxx])"""
         colormap = Colormap(name='viridis',
-                            normalization='linear',
+                            normalization=Colormap.LINEAR,
                             vmin=self.vmin,
                             vmax=self.vmax)
         self.assertTrue(colormap['name'] == 'viridis')
-        self.assertTrue(colormap['normalization'] == 'linear')
+        self.assertTrue(colormap['normalization'] == Colormap.LINEAR)
         self.assertTrue(colormap['vmin'] == self.vmin)
         self.assertTrue(colormap['vmax'] == self.vmax)
         with self.assertRaises(KeyError):
@@ -60,7 +60,7 @@ class TestDictAPI(unittest.TestCase):
     def testGetDict(self):
         """Test the getDict function API"""
         clmObject = Colormap(name='viridis',
-                             normalization='linear',
+                             normalization=Colormap.LINEAR,
                              vmin=self.vmin,
                              vmax=self.vmax)
         clmDict = clmObject._toDict()
@@ -68,7 +68,7 @@ class TestDictAPI(unittest.TestCase):
         self.assertTrue(clmDict['autoscale'] is False)
         self.assertTrue(clmDict['vmin'] == self.vmin)
         self.assertTrue(clmDict['vmax'] == self.vmax)
-        self.assertTrue(clmDict['normalization'] == 'linear')
+        self.assertTrue(clmDict['normalization'] == Colormap.LINEAR)
 
         clmObject.setVMinVMax(None, None)
         self.assertTrue(clmObject._toDict()['autoscale'] is True)
@@ -99,7 +99,7 @@ class TestDictAPI(unittest.TestCase):
         clm_dict['vmax'] = None
         clm_dict['colors'] = [1.0, 2.0]
         clm_dict['autoscale'] = True
-        clm_dict['normalization'] = LOGARITHM
+        clm_dict['normalization'] = Colormap.LOGARITHM
         clm_dict['name'] = 'viridis'
 
         self.assertFalse(colormapObject.getName() == clm_dict['name'])
@@ -175,7 +175,7 @@ class TestObjectAPI(unittest.TestCase):
         colormapObject = Colormap(name='viridis',
                                   vmin=vmin,
                                   vmax=vmax,
-                                  normalization='linear')
+                                  normalization=Colormap.LINEAR)
 
         self.assertTrue(colormapObject.getColorMapRange() == (1.0, 2.0))
         self.assertTrue(colormapObject.isAutoscale() is False)
@@ -191,21 +191,17 @@ class TestObjectAPI(unittest.TestCase):
                                   colors=numpy.array([12, 13, 14]),
                                   vmin=None,
                                   vmax=None,
-                                  normalization=LOGARITHM)
+                                  normalization=Colormap.LOGARITHM)
 
         colormapObject2 = colormapObject.copy()
-        self.assertTrue(
-            Colormap.compare(colormapObject,colormapObject2))
+        self.assertTrue(colormapObject == colormapObject2)
         colormapObject.setColorMapLUT(numpy.array([0, 1]))
-        self.assertFalse(
-            Colormap.compare(colormapObject, colormapObject2))
+        self.assertFalse(colormapObject == colormapObject2)
 
         colormapObject2 = colormapObject.copy()
-        self.assertTrue(
-            Colormap.compare(colormapObject, colormapObject2))
-        colormapObject.setNormalization('linear')
-        self.assertFalse(
-            Colormap.compare(colormapObject, colormapObject2))
+        self.assertTrue(colormapObject == colormapObject2)
+        colormapObject.setNormalization(Colormap.LINEAR)
+        self.assertFalse(colormapObject == colormapObject2)
 
     def testGetColorMapRange(self):
         """Make sure the getColorMapRange function of colormap is correctly
@@ -213,10 +209,22 @@ class TestObjectAPI(unittest.TestCase):
         """
         # test linear scale
         data = numpy.array([-1, 1, 2, 3])
-        cl1 = Colormap(name='gray', normalization='linear', vmin=0, vmax=2)
-        cl2 = Colormap(name='gray', normalization='linear', vmin=None, vmax=2)
-        cl3 = Colormap(name='gray', normalization='linear', vmin=0, vmax=None)
-        cl4 = Colormap(name='gray', normalization='linear', vmin=None, vmax=None)
+        cl1 = Colormap(name='gray',
+                       normalization=Colormap.LINEAR,
+                       vmin=0,
+                       vmax=2)
+        cl2 = Colormap(name='gray',
+                       normalization=Colormap.LINEAR,
+                       vmin=None,
+                       vmax=2)
+        cl3 = Colormap(name='gray',
+                       normalization=Colormap.LINEAR,
+                       vmin=0,
+                       vmax=None)
+        cl4 = Colormap(name='gray',
+                       normalization=Colormap.LINEAR,
+                       vmin=None,
+                       vmax=None)
 
         self.assertTrue(cl1.getColorMapRange(data) == (0, 2))
         self.assertTrue(cl2.getColorMapRange(data) == (-1, 2))
@@ -225,10 +233,22 @@ class TestObjectAPI(unittest.TestCase):
 
         # test log scale
         data = numpy.array([1, 10, 100, 1000])
-        cl1 = Colormap(name='gray', normalization=LOGARITHM, vmin=1, vmax=100)
-        cl2 = Colormap(name='gray', normalization=LOGARITHM, vmin=None, vmax=100)
-        cl3 = Colormap(name='gray', normalization=LOGARITHM, vmin=1, vmax=None)
-        cl4 = Colormap(name='gray', normalization=LOGARITHM, vmin=None, vmax=None)
+        cl1 = Colormap(name='gray',
+                       normalization=Colormap.LOGARITHM,
+                       vmin=1,
+                       vmax=100)
+        cl2 = Colormap(name='gray',
+                       normalization=Colormap.LOGARITHM,
+                       vmin=None,
+                       vmax=100)
+        cl3 = Colormap(name='gray',
+                       normalization=Colormap.LOGARITHM,
+                       vmin=1,
+                       vmax=None)
+        cl4 = Colormap(name='gray',
+                       normalization=Colormap.LOGARITHM,
+                       vmin=None,
+                       vmax=None)
 
         self.assertTrue(cl1.getColorMapRange(data) == (1, 100))
         self.assertTrue(cl2.getColorMapRange(data) == (1, 100))
