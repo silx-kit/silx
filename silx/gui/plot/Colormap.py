@@ -107,15 +107,13 @@ class Colormap(qt.QObject):
         self._vmax = float(vmax) if vmax is not None else None
 
     def isAutoscale(self):
-        """
-
-        :return:True if both min and max are in autoscale mode"""
+        """Return True if both min and max are in autoscale mode"""
         return self._vmin is None or self._vmax is None
 
     def getName(self):
+        """Return the name of the colormap
+        :rtype: str
         """
-
-        :return: the name of the colormap (str)"""
         return self._name
 
     def _setColors(self, colors):
@@ -141,10 +139,12 @@ class Colormap(qt.QObject):
         self.sigChanged.emit()
 
     def getColorMapLUT(self, copy=True):
-        """
+        """Return the list of colors for the colormap. None if not setted
+        
         :param copy: True (Default) to get a copy, False to get the pointer
 
-        :return numpy.ndarray: the list of colors for the colormap. None if not setted
+        :return: the list of colors for the colormap. None if not setted
+        :rtype: numpy.ndarray
         """
         if copy:
             return copy_mdl.copy(self._colors)
@@ -169,7 +169,11 @@ class Colormap(qt.QObject):
         self.sigChanged.emit()
 
     def getNormalization(self):
-        """Return the normalization of the colormap (str)"""
+        """Return the normalization of the colormap ('log' or 'linear')
+        
+        :return: the normalization of the colormap
+        :rtype: str
+        """
         return self._normalization
 
     def setNormalization(self, norm):
@@ -181,7 +185,11 @@ class Colormap(qt.QObject):
         self.sigChanged.emit()
 
     def getVMin(self):
-        """Return the lower bound of the colormap or None"""
+        """Return the lower bound of the colormap
+        
+         :return: the lower bound of the colormap
+         :rtype: float or None
+         """
         return self._vmin
 
     def setVMin(self, vmin):
@@ -195,8 +203,11 @@ class Colormap(qt.QObject):
         self.sigChanged.emit()
 
     def getVMax(self):
+        """Return the upper bounds of the colormap or None
+        
+        :return: the upper bounds of the colormap or None
+        :rtype: float or None
         """
-        :return: the upper bounds of the colormap or None"""
         return self._vmax
 
     def setVMax(self, vmax):
@@ -209,10 +220,11 @@ class Colormap(qt.QObject):
         self.sigChanged.emit()
 
     def getColorMapRange(self, data=None):
-        """
+        """Return (vmin, vmax)
 
         :return: the tuple vmin, vmax fitting vmin, vmax, normalization and
             data if any given
+        :rtype: tuple
         """
         vmin = self._vmin
         vmax = self._vmax
@@ -268,7 +280,8 @@ class Colormap(qt.QObject):
         """Return the equivalent colormap as a dictionary
         (old colormap representation)
 
-        :return dict: the representation of the Colormap as a dictionary
+        :return: the representation of the Colormap as a dictionary
+        :rtype: dict
         """
         return {
             'name': self._name,
@@ -360,6 +373,7 @@ class Colormap(qt.QObject):
 
         The list should at least contain and start by:
         ('gray', 'reversed gray', 'temperature', 'red', 'green', 'blue')
+        :rtype: tuple
         """
         if MPLColormap is None:
             return DEFAULT_COLORMAPS
