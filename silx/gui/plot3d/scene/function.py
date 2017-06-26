@@ -407,7 +407,7 @@ class Colormap(event.Notifier, ProgramFunction):
     @norm.setter
     def norm(self, norm):
         if norm != self._norm:
-            assert norm in genColormap.NORMS
+            assert norm in genColormap.NORMALIZATIONS
             self._norm = norm
             if norm == 'log':
                 self.range_ = self.range_  # To test for positive range_

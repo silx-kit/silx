@@ -52,9 +52,6 @@ _DEFAULT_COLORMAPS = {
 DEFAULT_COLORMAPS = tuple(_DEFAULT_COLORMAPS.keys())
 """Tuple of supported colormap names."""
 
-NORMS = 'linear', 'log'
-"""Tuple of supported normalizations."""
-
 NORMALIZATIONS = ('linear', 'log')
 """Tuple of managed normalizations"""
 
