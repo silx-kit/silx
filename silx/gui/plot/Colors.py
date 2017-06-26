@@ -171,7 +171,7 @@ def applyColormapToData(data,
     :rtype: numpy.ndarray of uint8
     """
     colormap = Colormap(name=name,
-                        norm=normalization,
+                        normalization=normalization,
                         vmin=vmin,
                         vmax=vmax,
                         colors=colors)
