@@ -224,15 +224,17 @@ def applyColormapToData(data,
     # Add support for transparent colormap for uint8 data with
     # colormap with 256 colors, linear norm, [0, 255] range
     if matplotlib.__version__ < '1.2.0':
-        if name is None and colors is not None:
-            colors = numpy.array(colors, copy=False)
+        if (colormap.getName() is None and
+                colormap.getColorMapLUT() is not None):
+            colors = colormap.getColorMapLUT(copy=False)
             if (colors.shape[-1] == 4 and
                     not numpy.all(numpy.equal(colors[3], 255))):
                 # This is a transparent colormap
                 if (colors.shape == (256, 4) and
-                        normalization == 'linear' and
-                        not autoscale and
-                        vmin == 0 and vmax == 255 and
+                        colormap.getNormalization() == 'linear' and
+                        not colormap.isAutoscale() and
+                        colormap.getVMin() == 0 and
+                        colormap.getVMax() == 255 and
                         data.dtype == numpy.uint8):
                     # Supported case, convert data to RGBA
                     return colors[data.reshape(-1)].reshape(
