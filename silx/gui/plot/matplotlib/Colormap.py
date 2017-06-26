@@ -150,7 +150,7 @@ def getScalarMappable(colormap, data=None):
         if colormap.getColorMapLUT() is None:
             raise ValueError(
                 'addImage: colormap no name nor list of colors.')
-        colors = colormap.getColorMapLUT(copy=True)
+        colors = colormap.getColorMapLUT()
         assert len(colors.shape) == 2
         assert colors.shape[-1] in (3, 4)
         if colors.dtype == numpy.uint8:

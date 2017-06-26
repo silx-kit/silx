@@ -136,16 +136,13 @@ class ColorBarWidget(qt.QWidget):
         if self._viewAction is not None:
             self._viewAction.setChecked(False)
 
-    def getColormap(self, copy=True):
+    def getColormap(self):
         """
-
-        :param copy: True (Default) to get a copy of the :class:`.Colormap`
-                     else return the pointer
 
         :return: the :class:`.Colormap` colormap displayed in the colorbar.
 
         """
-        return self.getColorScaleBar().getColormap(copy)
+        return self.getColorScaleBar().getColormap()
 
     def setColormap(self, colormap, data=None):
         """Set the colormap to be displayed.
@@ -197,7 +194,7 @@ class ColorBarWidget(qt.QWidget):
         # data image, sync with image colormap
         # do we need the copy here : used in the case we are changing
         # vmin and vmax but should have already be done by the plot
-        self.setColormap(colormap=self._plot.getActiveImage().getColormap(copy=False),
+        self.setColormap(colormap=self._plot.getActiveImage().getColormap(),
                          data=image)
 
     def _defaultColormapChanged(self, event):
@@ -209,7 +206,7 @@ class ColorBarWidget(qt.QWidget):
 
     def _syncWithDefaultColormap(self, data=None):
         """Update colorbar according to plot default colormap"""
-        self.setColormap(self._plot.getDefaultColormap(copy=False), data)
+        self.setColormap(self._plot.getDefaultColormap(), data)
 
     def getColorScaleBar(self):
         """
@@ -360,19 +357,13 @@ class ColorScaleBar(qt.QWidget):
         """
         return self.colorScale
 
-    def getColormap(self, copy=True):
+    def getColormap(self):
         """
-
-        :param copy: True (Default) to get a copy of the :class:`.Colormap`
-             else return the pointer
 
         :returns: the colormap.
         :rtype: :class:`.Colormap`
         """
-        if copy is True:
-            return self.colorScale.getColormap().copy()
-        else:
-            return self.colorScale.getColormap()
+        return self.colorScale.getColormap()
 
     def setColormap(self, colormap, data=None):
         """Set the new colormap to be displayed

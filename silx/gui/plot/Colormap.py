@@ -138,18 +138,13 @@ class Colormap(qt.QObject):
         self._colors = None
         self.sigChanged.emit()
 
-    def getColorMapLUT(self, copy=True):
+    def getColorMapLUT(self):
         """Return the list of colors for the colormap. None if not setted
         
-        :param copy: True (Default) to get a copy, False to get the pointer
-
         :return: the list of colors for the colormap. None if not setted
         :rtype: numpy.ndarray
         """
-        if copy:
-            return copy_mdl.copy(self._colors)
-        else:
-            return self._colors
+        return self._colors
 
     def setColorMapLUT(self, colors, keepName=False):
         """

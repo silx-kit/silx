@@ -247,7 +247,7 @@ class TestColorBarWidget(TestCaseQt):
         # make sure that default settings are the same (but a copy of the
         self.colorBar.setPlot(self.plot)
         self.assertTrue(
-            self.colorBar.getColormap(copy=False) is self.plot.getDefaultColormap(copy=False))
+            self.colorBar.getColormap() is self.plot.getDefaultColormap())
 
         data = numpy.linspace(0, 10, 100).reshape(10, 10)
         self.plot.addImage(data=data, colormap=colormap, legend='toto')
@@ -255,18 +255,18 @@ class TestColorBarWidget(TestCaseQt):
 
         # make sure the modification of the colormap has been done
         self.assertFalse(
-            self.colorBar.getColormap(copy=False) is self.plot.getDefaultColormap(copy=False))
+            self.colorBar.getColormap() is self.plot.getDefaultColormap())
 
         # test that colorbar is updated when default plot colormap changes
         self.plot.clear()
         self.assertTrue(
-            self.colorBar.getColormap(copy=False), self.plot.getDefaultColormap(copy=False))
+            self.colorBar.getColormap(), self.plot.getDefaultColormap())
         plotColormap = Colormap(name='gray',
                                 normalization=Colormap.LOGARITHM,
                                 vmin=None,
                                 vmax=None)
         self.plot.setDefaultColormap(plotColormap)
-        self.assertTrue(self.colorBar.getColormap(copy=False) is plotColormap)
+        self.assertTrue(self.colorBar.getColormap() is plotColormap)
 
     def testColormapWithoutRange(self):
         """Test with a colormap with vmin==vmax"""

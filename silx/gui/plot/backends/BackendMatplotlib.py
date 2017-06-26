@@ -229,7 +229,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         if matplotlib.__version__ < '1.2.0':
             if (len(data.shape) == 2 and colormap.getName() is None and
                     colormap.getColorMapLUT()is not None):
-                colors = colormap.getColorMapLUT(copy=False)
+                colors = colormap.getColorMapLUT()
                 if (colors.shape[-1] == 4 and
                         not numpy.all(numpy.equal(colors[3], 255))):
                     # This is a transparent colormap
