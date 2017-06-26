@@ -928,9 +928,10 @@ class PlotWidget(qt.QMainWindow):
                                 (default: False)
         :param bool draggable: Indicate if the image can be moved.
                                (default: False)
-        :param Colormap colormap: Description of the :class:`.Colormap` to use
-                                  (or None)
+        :param colormap: Description of the :class:`.Colormap` to use
+                                  (or None).
                                   This is ignored if data is a RGB(A) image.
+        :type colormap: Colormap or dict (old API )
         :param pixmap: Pixmap representation of the data (if any)
         :type pixmap: (nrows, ncolumns, RGBA) ubyte array or None (default)
         :param str xlabel: X axis label to show when this curve is active,
@@ -1013,7 +1014,11 @@ class PlotWidget(qt.QMainWindow):
         if draggable is not None:
             image._setDraggable(draggable)
         if colormap is not None and isinstance(image, items.ColormapMixIn):
-            image.setColormap(colormap)
+            if isinstance(colormap, dict):
+                image.setColormap(Colormap._fromDict(colormap))
+            else:
+                assert isinstance(colormap, Colormap)
+                image.setColormap(colormap)
         if xlabel is not None:
             image._setXLabel(xlabel)
         if ylabel is not None:
