@@ -2353,7 +2353,10 @@ class PlotWidget(qt.QMainWindow):
                                 normalization='linear',
                                 vmin=0.0,
                                 vmax=1.0)
-        self._defaultColormap = colormap
+        if isinstance(colormap, dict):
+            self._defaultColormap = Colormap._fromDict(colormap)
+        else:
+            self._defaultColormap = colormap
         self.notify('defaultColormapChanged')
 
     @staticmethod
