@@ -228,7 +228,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         # colormap with 256 colors, linear norm, [0, 255] range
         if matplotlib.__version__ < '1.2.0':
             if (len(data.shape) == 2 and colormap.getName() is None and
-                    colormap.getColorMapLUT()is not None):
+                    colormap.getColorMapLUT() is not None):
                 colors = colormap.getColorMapLUT()
                 if (colors.shape[-1] == 4 and
                         not numpy.all(numpy.equal(colors[3], 255))):

@@ -754,7 +754,7 @@ class StackView(qt.QMainWindow):
 
         if isinstance(colormap, Colormap):
             # Support colormap parameter as a dict
-            errmsg = "If colormap is provided as a dict, all other parameters"
+            errmsg = "If colormap is provided as a Colormap object, all other parameters"
             errmsg += " must not be specified when calling setColormap"
             assert normalization is None, errmsg
             assert autoscale is None, errmsg
