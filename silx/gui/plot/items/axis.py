@@ -22,17 +22,24 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides the class for axes  of the :class:`Plot`.
+"""This module provides the class for axes of the :class:`Plot`.
 """
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "22/06/2017"
+__date__ = "26/06/2017"
 
 from ... import qt
 
 
 class Axis(qt.QObject):
+    """Abstract axis class of the plot.
+
+    States are half-stored on the backend of the plot, and half-stored on this
+    object.
+
+    TODO It would be good to store all the states of an axis in this object.
+    """
 
     sigInvertedChanged = qt.Signal(bool)
     """Signal emitted when axis orientation has changed"""
@@ -43,10 +50,15 @@ class Axis(qt.QObject):
     sigAutoScaleChanged = qt.Signal(bool)
     """Signal emitted when axis autoscale has changed"""
 
-    sigLimitsChanged = qt.Signal(bool)
+    sigLimitsChanged = qt.Signal(float, float)
     """Signal emitted when axis autoscale has changed"""
 
     def __init__(self, plot):
+        """Constructor
+
+        :param silx.gui.plot.PlotWidget.PlotWidget plot: Parent plot of this
+            axis
+        """
         qt.QObject.__init__(self, parent=plot)
         self._isLog = False
         self._isAutoScale = True
@@ -58,26 +70,43 @@ class Axis(qt.QObject):
         self._plot = plot
 
     def getLimits(self):
+        """Get the limits of this axis.
+
+        :return: Minimum and maximum values of this axis as tuple
+        """
         raise NotImplementedError()
 
-    def setLimits(self, limits):
+    def setLimits(self, vmin, vmax):
+        """Set this axis limits.
+
+        :param float vmin: minimum axis value
+        :param float vmax: maximum axis value
+        """
         raise NotImplementedError()
 
     def isInverted(self):
-        raise NotImplementedError()
+        """Return True if the axis is inverted (top to bottom for the y-axis),
+        False otherwise."""
+        return False
 
     def setInverted(self, isInverted):
+        """Set the axis orientation.
+
+        :param bool flag: True for Y axis going from top to bottom,
+                          False for Y axis going from bottom to top
+        """
         raise NotImplementedError()
 
     def getLabel(self):
-        """Return the current Y axis label as a str.
+        """Return the current displayed label of this axis.
 
         :param str axis: The Y axis for which to get the label (left or right)
+        :rtype: str
         """
         return self._currentLabel
 
     def setLabel(self, label):
-        """Set the plot Y axis label.
+        """Set the label displayed on the plot for this axis.
 
         The provided label can be temporarily replaced by the label of the
         active curve if any.
@@ -91,7 +120,7 @@ class Axis(qt.QObject):
     def _setCurrentLabel(self, label):
         """Define the label currently displayed.
 
-        If the label is none or empty the default label is used.
+        If the label is None or empty the default label is used.
 
         :param str label: Currently displayed label
         :returns: str
@@ -104,15 +133,56 @@ class Axis(qt.QObject):
         return label
 
     def isLogarithmic(self):
-        raise NotImplementedError()
+        """Return True if this axis scale is logarithmic, False if linear.
 
-    def setLogarithmic(self, isLogarithmic):
-        raise NotImplementedError()
+        :rtype: bool
+        """
+        return self._isLog
+
+    def setLogarithmic(self, flag):
+        """Set the scale of this axes (either linear or logarithmic).
+
+        :param bool flag: True to use a logarithmic scale, False for linear.
+        """
+        if bool(flag) == self._isLog:
+            return
+        self._isLog = bool(flag)
+
+        self._setLogarithmic(self._isLog)
+
+        # TODO hackish way of forcing update of curves and images
+        for item in self._plot._getItems(withhidden=True):
+            item._updated()
+        self._plot._invalidateDataRange()
+        self._plot.resetZoom()
+
+        self.sigLogarithmicChanged.emit(self._isLog)
+
+    def isAutoScale(self):
+        """Return True if axis is automatically adjusting its limits.
+
+        :rtype: bool
+        """
+        return self._isAutoScale
+
+    def setAutoScale(self, flag=True):
+        """Set the axis limits adjusting behavior of :meth:`resetZoom`.
+
+        :param bool flag: True to resize limits automatically,
+                          False to disable it.
+        """
+        self._isAutoScale = bool(flag)
+        self.sigAutoScaleChanged.emit(self._isAutoScale)
 
 
 class XAxis(Axis):
+    """Axis class defining primitives for the X axis"""
 
     def _setCurrentLabel(self, label):
+        """Define the label currently displayed in the plot for this axis.
+
+        :param str label: Label to display
+        """
         label = Axis._setCurrentLabel(self, label)
         self._plot._backend.setGraphXLabel(label)
         return label
@@ -137,46 +207,22 @@ class XAxis(Axis):
 
         self._plot._notifyLimitsChanged()
 
-    def isLogarithmic(self):
-        """Return True if X axis scale is logarithmic, False if linear."""
-        return self._isLog
-
-    def setLogarithmic(self, flag):
+    def _setLogarithmic(self, flag):
         """Set the bottom X axis scale (either linear or logarithmic).
 
         :param bool flag: True to use a logarithmic scale, False for linear.
         """
-        if bool(flag) == self._isLog:
-            return
-        self._isLog = bool(flag)
-
         self._plot._backend.setXAxisLogarithmic(self._isLog)
-
-        # TODO hackish way of forcing update of curves and images
-        for item in self._plot._getItems(withhidden=True):
-            item._updated()
-        self._plot._invalidateDataRange()
-
-        self._plot.resetZoom()
-        self.sigLogarithmicChanged.emit(self._isLog)
-
-    def isAutoScale(self):
-        """Return True if X axis is automatically adjusting its limits."""
-        return self._isAutoScale
-
-    def setAutoScale(self, flag=True):
-        """Set the X axis limits adjusting behavior of :meth:`resetZoom`.
-
-        :param bool flag: True to resize limits automatically,
-                          False to disable it.
-        """
-        self._isAutoScale = bool(flag)
-        self.sigAutoScaleChanged.emit(self._isAutoScale)
 
 
 class YAxis(Axis):
+    """Axis class defining primitives for the Y axis"""
 
     def _setCurrentLabel(self, label):
+        """Define the label currently displayed in the plot for this axis.
+
+        :param str label: Label to display
+        """
         label = Axis._setCurrentLabel(self, label)
         self._plot._backend.setGraphYLabel(label, axis='left')
         return label
@@ -219,46 +265,25 @@ class YAxis(Axis):
         """Return True if Y axis goes from top to bottom, False otherwise."""
         return self._plot._backend.isYAxisInverted()
 
-    def isLogarithmic(self):
-        """Return True if Y axis scale is logarithmic, False if linear."""
-        return self._isLog
-
-    def setLogarithmic(self, flag):
+    def _setLogarithmic(self, flag):
         """Set the Y axes scale (either linear or logarithmic).
 
         :param bool flag: True to use a logarithmic scale, False for linear.
         """
-        if bool(flag) == self._isLog:
-            return
-        self._isLog = bool(flag)
-
         self._plot._backend.setYAxisLogarithmic(self._isLog)
-
-        # TODO hackish way of forcing update of curves and images
-        for item in self._plot._getItems(withhidden=True):
-            item._updated()
-        self._plot._invalidateDataRange()
-
-        self._plot.resetZoom()
-        self.sigLogarithmicChanged.emit(self._isLog)
-
-    def isAutoScale(self):
-        """Return True if Y axes are automatically adjusting its limits."""
-        return self._isAutoScale
-
-    def setAutoScale(self, flag=True):
-        """Set the Y axis limits adjusting behavior of :meth:`resetZoom`.
-
-        :param bool flag: True to resize limits automatically,
-                          False to disable it.
-        """
-        self._isAutoScale = bool(flag)
-        self.sigAutoScaleChanged.emit(self._isAutoScale)
 
 
 class YRightAxis(Axis):
+    """Proxy axes for the secondary Y axes. It manages it own label and limit
+    but share the some state like scale and direction with the main axis."""
 
     def __init__(self, plot, mainAxis):
+        """Constructor
+
+        :param silx.gui.plot.PlotWidget.PlotWidget plot: Parent plot of this
+            axis
+        :param Axis mainAxis: Axis which sharing state with this axis
+        """
         Axis.__init__(self, plot)
         self.__mainAxis = mainAxis
 
@@ -278,6 +303,10 @@ class YRightAxis(Axis):
         return self.__mainAxis.sigAutoScaleChanged
 
     def _setCurrentLabel(self, label):
+        """Define the label currently displayed in the plot for this axis.
+
+        :param str label: Label to display
+        """
         label = Axis._setCurrentLabel(self, label)
         self._plot._backend.setGraphYLabel(label, axis='right')
         return label
