@@ -2355,8 +2355,8 @@ class PlotWidget(qt.QMainWindow):
         if colormap is None:
             colormap = Colormap(name='gray',
                                 normalization='linear',
-                                vmin=0.0,
-                                vmax=1.0)
+                                vmin=None,
+                                vmax=None)
         if isinstance(colormap, dict):
             self._defaultColormap = Colormap._fromDict(colormap)
         else:
