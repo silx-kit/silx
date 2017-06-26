@@ -93,9 +93,9 @@ class Colormap(qt.QObject):
         assert normalization in NORMALIZATIONS
         if normalization is LOGARITHM:
             if (vmin is not None and vmin < 1.0) or (vmax is not None and vmax < 1.0):
-                m = "Unsuported vmin (%s) and/or vmax (%s) given for a log scale" % (
-                vmin, vmax)
-                m += 'Autoscale will be performed'
+                m = "Unsuported vmin (%s) and/or vmax (%s) given for a log scale."
+                m += ' Autoscale will be performed.'
+                m = m % (vmin, vmax)
                 _logger.warning(m)
                 vmin = None
                 vmax = None
