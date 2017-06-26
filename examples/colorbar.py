@@ -78,17 +78,18 @@ class ColorBarShower(qt.QWidget):
         self.image_selector = qt.QGroupBox(parent=self)
         self.image_selector.setLayout(qt.QVBoxLayout())
         self.image_selector._qr1 = qt.QRadioButton('image1')
+        self.image_selector._qr1.setChecked(True)
         self.image_selector._qr2 = qt.QRadioButton('image2')
         self.image_selector._qr3 = qt.QRadioButton('image3')
         self.image_selector._qr4 = qt.QRadioButton('image4')
         self.image_selector._qr5 = qt.QRadioButton('image5')
         self.image_selector._qr6 = qt.QRadioButton('image6')
-        self.image_selector.layout().addWidget(self.image_selector._qr1)
-        self.image_selector.layout().addWidget(self.image_selector._qr2)
-        self.image_selector.layout().addWidget(self.image_selector._qr3)
-        self.image_selector.layout().addWidget(self.image_selector._qr4)
-        self.image_selector.layout().addWidget(self.image_selector._qr5)
         self.image_selector.layout().addWidget(self.image_selector._qr6)
+        self.image_selector.layout().addWidget(self.image_selector._qr5)
+        self.image_selector.layout().addWidget(self.image_selector._qr4)
+        self.image_selector.layout().addWidget(self.image_selector._qr3)
+        self.image_selector.layout().addWidget(self.image_selector._qr2)
+        self.image_selector.layout().addWidget(self.image_selector._qr1)
 
     def activateImageChanged(self):
         if self.image_selector._qr1.isChecked():
@@ -120,59 +121,59 @@ class ColorBarShower(qt.QWidget):
         image6 = image4
 
         # viridis colormap
-        self.colormapViridis = Colormap.Colormap(name='viridis',
-                                                 normalization='log',
-                                                 vmin=None,
-                                                 vmax=None)
+        self.colormap1 = Colormap.Colormap(name='green',
+                                           normalization='log',
+                                           vmin=None,
+                                           vmax=None)
         self.plot = PlotWidget(parent=self)
         self.plot.addImage(data=image1,
-                      origin=(0, 0),
-                      replace=False,
-                      legend='image1',
-                      colormap=self.colormapViridis)
+                           origin=(0, 0),
+                           replace=False,
+                           legend='image1',
+                           colormap=self.colormap1)
         self.plot.addImage(data=image2,
-                      origin=(100, 0),
-                      replace=False,
-                      legend='image2',
-                      colormap=self.colormapViridis)
+                           origin=(100, 0),
+                           replace=False,
+                           legend='image2',
+                           colormap=self.colormap1)
 
         # red colormap
-        self.colormapRed = Colormap.Colormap(name='red',
-                                             normalization='linear',
-                                             vmin=None,
-                                             vmax=None)
+        self.colormap2 = Colormap.Colormap(name='red',
+                                           normalization='linear',
+                                           vmin=None,
+                                           vmax=None)
         self.plot.addImage(data=image3,
                            origin=(0, 100),
                            replace=False,
                            legend='image3',
-                           colormap=self.colormapRed)
+                           colormap=self.colormap2)
         self.plot.addImage(data=image4,
                            origin=(100, 100),
                            replace=False,
                            legend='image4',
-                           colormap=self.colormapRed)
+                           colormap=self.colormap2)
         # gray colormap
-        self.colormapGray = Colormap.Colormap(name='gray',
-                                              normalization='linear',
-                                              vmin=1.0,
-                                              vmax=20.0)
+        self.colormap3 = Colormap.Colormap(name='gray',
+                                           normalization='linear',
+                                           vmin=1.0,
+                                           vmax=20.0)
         self.plot.addImage(data=image5,
                            origin=(0, 200),
                            replace=False,
                            legend='image5',
-                           colormap=self.colormapGray)
+                           colormap=self.colormap3)
         self.plot.addImage(data=image6,
                            origin=(100, 200),
                            replace=False,
                            legend='image6',
-                           colormap=self.colormapGray)
+                           colormap=self.colormap3)
 
     def _buildColormapEditors(self):
         self._cmpEditor = qt.QWidget(parent=self)
         self._cmpEditor.setLayout(qt.QVBoxLayout())
-        self._cmpEditor.layout().addWidget(_ColormapEditor(self.colormapGray))
-        self._cmpEditor.layout().addWidget(_ColormapEditor(self.colormapRed))
-        self._cmpEditor.layout().addWidget(_ColormapEditor(self.colormapViridis))
+        self._cmpEditor.layout().addWidget(_ColormapEditor(self.colormap3))
+        self._cmpEditor.layout().addWidget(_ColormapEditor(self.colormap2))
+        self._cmpEditor.layout().addWidget(_ColormapEditor(self.colormap1))
 
 
 class _ColormapEditor(qt.QWidget):
@@ -183,7 +184,6 @@ class _ColormapEditor(qt.QWidget):
         self.setLayout(qt.QVBoxLayout())
         self._colormap = colormap
         self._buildGUI()
-        # TODO : add colormap name
 
         self.setColormap(colormap)
 
@@ -224,6 +224,11 @@ class _ColormapEditor(qt.QWidget):
         # build norm
         self._buildNorm()
         self.layout().addWidget(self._qgbNorm)
+
+        spacer = qt.QWidget()
+        spacer.setSizePolicy(qt.QSizePolicy.Minimum,
+                             qt.QSizePolicy.Expanding)
+        self.layout().addWidget(spacer)
 
     def setColormap(self, colormap):
         self._colormap = colormap
@@ -301,8 +306,7 @@ class _BoundSetter(qt.QWidget):
         self.layout().addWidget(self._qcb)
 
         self._qLineEdit = qt.QLineEdit()
-        self._qLineEdit.setSizePolicy(qt.QSizePolicy.Expanding,
-                           qt.QSizePolicy.Expanding)
+
         self.layout().addWidget(self._qLineEdit)
         self._qcb.toggled.connect(self.updateVis)
 
