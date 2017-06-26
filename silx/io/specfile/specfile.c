@@ -1311,16 +1311,18 @@ int __pyx_module_is_main_specfile = 0;
 
 /* Implementation of 'specfile' */
 static PyObject *__pyx_builtin_Exception;
+static PyObject *__pyx_builtin_MemoryError;
+static PyObject *__pyx_builtin_IOError;
+static PyObject *__pyx_builtin_KeyError;
+static PyObject *__pyx_builtin_IndexError;
 static PyObject *__pyx_builtin_object;
 static PyObject *__pyx_builtin_property;
 static PyObject *__pyx_builtin_map;
 static PyObject *__pyx_builtin_range;
-static PyObject *__pyx_builtin_IndexError;
 static PyObject *__pyx_builtin_TypeError;
 static PyObject *__pyx_builtin_open;
 static PyObject *__pyx_builtin_enumerate;
 static PyObject *__pyx_builtin_ValueError;
-static PyObject *__pyx_builtin_KeyError;
 static PyObject *__pyx_builtin_AttributeError;
 static PyObject *__pyx_builtin_RuntimeError;
 static PyObject *__pyx_pf_8specfile_3MCA___init__(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_scan); /* proto */
@@ -1491,6 +1493,7 @@ static char __pyx_k_record[] = "record";
 static char __pyx_k_scan_2[] = "_scan";
 static char __pyx_k_search[] = "search";
 static char __pyx_k_string[] = "string_";
+static char __pyx_k_IOError[] = "IOError";
 static char __pyx_k_SfError[] = "SfError";
 static char __pyx_k_authors[] = "__authors__";
 static char __pyx_k_get_mca[] = "get_mca";
@@ -1543,6 +1546,7 @@ static char __pyx_k_scan_index[] = "scan_index";
 static char __pyx_k_scan_order[] = "scan_order";
 static char __pyx_k_specfile_2[] = "specfile";
 static char __pyx_k_startswith[] = "startswith";
+static char __pyx_k_MemoryError[] = "MemoryError";
 static char __pyx_k_Scan___init[] = "Scan.__init__";
 static char __pyx_k_Scan_header[] = "Scan.header";
 static char __pyx_k_Scan_labels[] = "Scan.labels";
@@ -1661,6 +1665,7 @@ static PyObject *__pyx_kp_s_F;
 static PyObject *__pyx_kp_s_Failed_to_retrieve_number_of_MCA;
 static PyObject *__pyx_kp_u_Format_string_allocated_too_shor;
 static PyObject *__pyx_kp_u_Format_string_allocated_too_shor_2;
+static PyObject *__pyx_n_s_IOError;
 static PyObject *__pyx_n_s_IndexError;
 static PyObject *__pyx_n_s_KeyError;
 static PyObject *__pyx_n_s_L;
@@ -1676,6 +1681,7 @@ static PyObject *__pyx_kp_s_MCA_calibration_line_CALIB_not_f;
 static PyObject *__pyx_kp_s_MCA_index_must_be_in_range_0_d;
 static PyObject *__pyx_kp_s_MCA_index_should_be_an_integer_s;
 static PyObject *__pyx_n_s_MIT;
+static PyObject *__pyx_n_s_MemoryError;
 static PyObject *__pyx_kp_s_No_MCA_spectrum_found_in_this_sc;
 static PyObject *__pyx_kp_u_Non_native_byte_order_not_suppor;
 static PyObject *__pyx_kp_s_P_Knobel;
@@ -16027,6 +16033,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_Failed_to_retrieve_number_of_MCA, __pyx_k_Failed_to_retrieve_number_of_MCA, sizeof(__pyx_k_Failed_to_retrieve_number_of_MCA), 0, 0, 1, 0},
   {&__pyx_kp_u_Format_string_allocated_too_shor, __pyx_k_Format_string_allocated_too_shor, sizeof(__pyx_k_Format_string_allocated_too_shor), 0, 1, 0, 0},
   {&__pyx_kp_u_Format_string_allocated_too_shor_2, __pyx_k_Format_string_allocated_too_shor_2, sizeof(__pyx_k_Format_string_allocated_too_shor_2), 0, 1, 0, 0},
+  {&__pyx_n_s_IOError, __pyx_k_IOError, sizeof(__pyx_k_IOError), 0, 0, 1, 1},
   {&__pyx_n_s_IndexError, __pyx_k_IndexError, sizeof(__pyx_k_IndexError), 0, 0, 1, 1},
   {&__pyx_n_s_KeyError, __pyx_k_KeyError, sizeof(__pyx_k_KeyError), 0, 0, 1, 1},
   {&__pyx_n_s_L, __pyx_k_L, sizeof(__pyx_k_L), 0, 0, 1, 1},
@@ -16042,6 +16049,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_MCA_index_must_be_in_range_0_d, __pyx_k_MCA_index_must_be_in_range_0_d, sizeof(__pyx_k_MCA_index_must_be_in_range_0_d), 0, 0, 1, 0},
   {&__pyx_kp_s_MCA_index_should_be_an_integer_s, __pyx_k_MCA_index_should_be_an_integer_s, sizeof(__pyx_k_MCA_index_should_be_an_integer_s), 0, 0, 1, 0},
   {&__pyx_n_s_MIT, __pyx_k_MIT, sizeof(__pyx_k_MIT), 0, 0, 1, 1},
+  {&__pyx_n_s_MemoryError, __pyx_k_MemoryError, sizeof(__pyx_k_MemoryError), 0, 0, 1, 1},
   {&__pyx_kp_s_No_MCA_spectrum_found_in_this_sc, __pyx_k_No_MCA_spectrum_found_in_this_sc, sizeof(__pyx_k_No_MCA_spectrum_found_in_this_sc), 0, 0, 1, 0},
   {&__pyx_kp_u_Non_native_byte_order_not_suppor, __pyx_k_Non_native_byte_order_not_suppor, sizeof(__pyx_k_Non_native_byte_order_not_suppor), 0, 1, 0, 0},
   {&__pyx_kp_s_P_Knobel, __pyx_k_P_Knobel, sizeof(__pyx_k_P_Knobel), 0, 0, 1, 0},
@@ -16257,16 +16265,18 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
 };
 static int __Pyx_InitCachedBuiltins(void) {
   __pyx_builtin_Exception = __Pyx_GetBuiltinName(__pyx_n_s_Exception); if (!__pyx_builtin_Exception) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 144; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 151; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_IOError = __Pyx_GetBuiltinName(__pyx_n_s_IOError); if (!__pyx_builtin_IOError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 152; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_KeyError = __Pyx_GetBuiltinName(__pyx_n_s_KeyError); if (!__pyx_builtin_KeyError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 156; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_IndexError = __Pyx_GetBuiltinName(__pyx_n_s_IndexError); if (!__pyx_builtin_IndexError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_builtin_object = __Pyx_GetBuiltinName(__pyx_n_s_object); if (!__pyx_builtin_object) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 193; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_builtin_property = __Pyx_GetBuiltinName(__pyx_n_s_property); if (!__pyx_builtin_property) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 423; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_builtin_map = __Pyx_GetBuiltinName(__pyx_n_s_map); if (!__pyx_builtin_map) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 258; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 259; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_builtin_IndexError = __Pyx_GetBuiltinName(__pyx_n_s_IndexError); if (!__pyx_builtin_IndexError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 296; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 304; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_builtin_open = __Pyx_GetBuiltinName(__pyx_n_s_open); if (!__pyx_builtin_open) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 635; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_builtin_enumerate = __Pyx_GetBuiltinName(__pyx_n_s_enumerate); if (!__pyx_builtin_enumerate) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 636; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 734; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_builtin_KeyError = __Pyx_GetBuiltinName(__pyx_n_s_KeyError); if (!__pyx_builtin_KeyError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 734; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_builtin_AttributeError = __Pyx_GetBuiltinName(__pyx_n_s_AttributeError); if (!__pyx_builtin_AttributeError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 738; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 799; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   return 0;
@@ -17315,16 +17325,19 @@ PyMODINIT_FUNC PyInit_specfile(void)
   /* "specfile.pyx":151
  *     pass
  * 
- * class SfErrMemoryAlloc(SfError): pass             # <<<<<<<<<<<<<<
- * class SfErrFileOpen(SfError): pass
- * class SfErrFileClose(SfError): pass
+ * class SfErrMemoryAlloc(SfError, MemoryError): pass             # <<<<<<<<<<<<<<
+ * class SfErrFileOpen(SfError, IOError): pass
+ * class SfErrFileClose(SfError, IOError): pass
  */
   __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SfError); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 151; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 151; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 151; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
+  __Pyx_INCREF(__pyx_builtin_MemoryError);
+  PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_builtin_MemoryError);
+  __Pyx_GIVEREF(__pyx_builtin_MemoryError);
   __pyx_t_1 = 0;
   __pyx_t_1 = __Pyx_CalculateMetaclass(NULL, __pyx_t_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 151; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
@@ -17340,17 +17353,20 @@ PyMODINIT_FUNC PyInit_specfile(void)
 
   /* "specfile.pyx":152
  * 
- * class SfErrMemoryAlloc(SfError): pass
- * class SfErrFileOpen(SfError): pass             # <<<<<<<<<<<<<<
- * class SfErrFileClose(SfError): pass
- * class SfErrFileRead(SfError): pass
+ * class SfErrMemoryAlloc(SfError, MemoryError): pass
+ * class SfErrFileOpen(SfError, IOError): pass             # <<<<<<<<<<<<<<
+ * class SfErrFileClose(SfError, IOError): pass
+ * class SfErrFileRead(SfError, IOError): pass
  */
   __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_SfError); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 152; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 152; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 152; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_3);
+  __Pyx_INCREF(__pyx_builtin_IOError);
+  PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_builtin_IOError);
+  __Pyx_GIVEREF(__pyx_builtin_IOError);
   __pyx_t_3 = 0;
   __pyx_t_3 = __Pyx_CalculateMetaclass(NULL, __pyx_t_1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 152; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
@@ -17365,18 +17381,21 @@ PyMODINIT_FUNC PyInit_specfile(void)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "specfile.pyx":153
- * class SfErrMemoryAlloc(SfError): pass
- * class SfErrFileOpen(SfError): pass
- * class SfErrFileClose(SfError): pass             # <<<<<<<<<<<<<<
- * class SfErrFileRead(SfError): pass
- * class SfErrFileWrite(SfError): pass
+ * class SfErrMemoryAlloc(SfError, MemoryError): pass
+ * class SfErrFileOpen(SfError, IOError): pass
+ * class SfErrFileClose(SfError, IOError): pass             # <<<<<<<<<<<<<<
+ * class SfErrFileRead(SfError, IOError): pass
+ * class SfErrFileWrite(SfError, IOError): pass
  */
   __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SfError); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 153; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 153; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 153; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
+  __Pyx_INCREF(__pyx_builtin_IOError);
+  PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_builtin_IOError);
+  __Pyx_GIVEREF(__pyx_builtin_IOError);
   __pyx_t_1 = 0;
   __pyx_t_1 = __Pyx_CalculateMetaclass(NULL, __pyx_t_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 153; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
@@ -17391,18 +17410,21 @@ PyMODINIT_FUNC PyInit_specfile(void)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
   /* "specfile.pyx":154
- * class SfErrFileOpen(SfError): pass
- * class SfErrFileClose(SfError): pass
- * class SfErrFileRead(SfError): pass             # <<<<<<<<<<<<<<
- * class SfErrFileWrite(SfError): pass
- * class SfErrLineNotFound(SfError): pass
+ * class SfErrFileOpen(SfError, IOError): pass
+ * class SfErrFileClose(SfError, IOError): pass
+ * class SfErrFileRead(SfError, IOError): pass             # <<<<<<<<<<<<<<
+ * class SfErrFileWrite(SfError, IOError): pass
+ * class SfErrLineNotFound(SfError, KeyError): pass
  */
   __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_SfError); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 154; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 154; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 154; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_3);
+  __Pyx_INCREF(__pyx_builtin_IOError);
+  PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_builtin_IOError);
+  __Pyx_GIVEREF(__pyx_builtin_IOError);
   __pyx_t_3 = 0;
   __pyx_t_3 = __Pyx_CalculateMetaclass(NULL, __pyx_t_1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 154; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
@@ -17417,18 +17439,21 @@ PyMODINIT_FUNC PyInit_specfile(void)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "specfile.pyx":155
- * class SfErrFileClose(SfError): pass
- * class SfErrFileRead(SfError): pass
- * class SfErrFileWrite(SfError): pass             # <<<<<<<<<<<<<<
- * class SfErrLineNotFound(SfError): pass
- * class SfErrScanNotFound(SfError): pass
+ * class SfErrFileClose(SfError, IOError): pass
+ * class SfErrFileRead(SfError, IOError): pass
+ * class SfErrFileWrite(SfError, IOError): pass             # <<<<<<<<<<<<<<
+ * class SfErrLineNotFound(SfError, KeyError): pass
+ * class SfErrScanNotFound(SfError, IndexError): pass
  */
   __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SfError); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 155; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 155; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 155; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
+  __Pyx_INCREF(__pyx_builtin_IOError);
+  PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_builtin_IOError);
+  __Pyx_GIVEREF(__pyx_builtin_IOError);
   __pyx_t_1 = 0;
   __pyx_t_1 = __Pyx_CalculateMetaclass(NULL, __pyx_t_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 155; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
@@ -17443,18 +17468,21 @@ PyMODINIT_FUNC PyInit_specfile(void)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
   /* "specfile.pyx":156
- * class SfErrFileRead(SfError): pass
- * class SfErrFileWrite(SfError): pass
- * class SfErrLineNotFound(SfError): pass             # <<<<<<<<<<<<<<
- * class SfErrScanNotFound(SfError): pass
- * class SfErrHeaderNotFound(SfError): pass
+ * class SfErrFileRead(SfError, IOError): pass
+ * class SfErrFileWrite(SfError, IOError): pass
+ * class SfErrLineNotFound(SfError, KeyError): pass             # <<<<<<<<<<<<<<
+ * class SfErrScanNotFound(SfError, IndexError): pass
+ * class SfErrHeaderNotFound(SfError, KeyError): pass
  */
   __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_SfError); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 156; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 156; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 156; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_3);
+  __Pyx_INCREF(__pyx_builtin_KeyError);
+  PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_builtin_KeyError);
+  __Pyx_GIVEREF(__pyx_builtin_KeyError);
   __pyx_t_3 = 0;
   __pyx_t_3 = __Pyx_CalculateMetaclass(NULL, __pyx_t_1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 156; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
@@ -17469,18 +17497,21 @@ PyMODINIT_FUNC PyInit_specfile(void)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "specfile.pyx":157
- * class SfErrFileWrite(SfError): pass
- * class SfErrLineNotFound(SfError): pass
- * class SfErrScanNotFound(SfError): pass             # <<<<<<<<<<<<<<
- * class SfErrHeaderNotFound(SfError): pass
- * class SfErrLabelNotFound(SfError): pass
+ * class SfErrFileWrite(SfError, IOError): pass
+ * class SfErrLineNotFound(SfError, KeyError): pass
+ * class SfErrScanNotFound(SfError, IndexError): pass             # <<<<<<<<<<<<<<
+ * class SfErrHeaderNotFound(SfError, KeyError): pass
+ * class SfErrLabelNotFound(SfError, KeyError): pass
  */
   __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SfError); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
+  __Pyx_INCREF(__pyx_builtin_IndexError);
+  PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_builtin_IndexError);
+  __Pyx_GIVEREF(__pyx_builtin_IndexError);
   __pyx_t_1 = 0;
   __pyx_t_1 = __Pyx_CalculateMetaclass(NULL, __pyx_t_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
@@ -17495,18 +17526,21 @@ PyMODINIT_FUNC PyInit_specfile(void)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
   /* "specfile.pyx":158
- * class SfErrLineNotFound(SfError): pass
- * class SfErrScanNotFound(SfError): pass
- * class SfErrHeaderNotFound(SfError): pass             # <<<<<<<<<<<<<<
- * class SfErrLabelNotFound(SfError): pass
- * class SfErrMotorNotFound(SfError): pass
+ * class SfErrLineNotFound(SfError, KeyError): pass
+ * class SfErrScanNotFound(SfError, IndexError): pass
+ * class SfErrHeaderNotFound(SfError, KeyError): pass             # <<<<<<<<<<<<<<
+ * class SfErrLabelNotFound(SfError, KeyError): pass
+ * class SfErrMotorNotFound(SfError, KeyError): pass
  */
   __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_SfError); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 158; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 158; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 158; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_3);
+  __Pyx_INCREF(__pyx_builtin_KeyError);
+  PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_builtin_KeyError);
+  __Pyx_GIVEREF(__pyx_builtin_KeyError);
   __pyx_t_3 = 0;
   __pyx_t_3 = __Pyx_CalculateMetaclass(NULL, __pyx_t_1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 158; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
@@ -17521,18 +17555,21 @@ PyMODINIT_FUNC PyInit_specfile(void)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "specfile.pyx":159
- * class SfErrScanNotFound(SfError): pass
- * class SfErrHeaderNotFound(SfError): pass
- * class SfErrLabelNotFound(SfError): pass             # <<<<<<<<<<<<<<
- * class SfErrMotorNotFound(SfError): pass
- * class SfErrPositionNotFound(SfError): pass
+ * class SfErrScanNotFound(SfError, IndexError): pass
+ * class SfErrHeaderNotFound(SfError, KeyError): pass
+ * class SfErrLabelNotFound(SfError, KeyError): pass             # <<<<<<<<<<<<<<
+ * class SfErrMotorNotFound(SfError, KeyError): pass
+ * class SfErrPositionNotFound(SfError, KeyError): pass
  */
   __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SfError); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 159; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 159; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 159; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
+  __Pyx_INCREF(__pyx_builtin_KeyError);
+  PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_builtin_KeyError);
+  __Pyx_GIVEREF(__pyx_builtin_KeyError);
   __pyx_t_1 = 0;
   __pyx_t_1 = __Pyx_CalculateMetaclass(NULL, __pyx_t_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 159; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
@@ -17547,18 +17584,21 @@ PyMODINIT_FUNC PyInit_specfile(void)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
   /* "specfile.pyx":160
- * class SfErrHeaderNotFound(SfError): pass
- * class SfErrLabelNotFound(SfError): pass
- * class SfErrMotorNotFound(SfError): pass             # <<<<<<<<<<<<<<
- * class SfErrPositionNotFound(SfError): pass
- * class SfErrLineEmpty(SfError): pass
+ * class SfErrHeaderNotFound(SfError, KeyError): pass
+ * class SfErrLabelNotFound(SfError, KeyError): pass
+ * class SfErrMotorNotFound(SfError, KeyError): pass             # <<<<<<<<<<<<<<
+ * class SfErrPositionNotFound(SfError, KeyError): pass
+ * class SfErrLineEmpty(SfError, IOError): pass
  */
   __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_SfError); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 160; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 160; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 160; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_3);
+  __Pyx_INCREF(__pyx_builtin_KeyError);
+  PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_builtin_KeyError);
+  __Pyx_GIVEREF(__pyx_builtin_KeyError);
   __pyx_t_3 = 0;
   __pyx_t_3 = __Pyx_CalculateMetaclass(NULL, __pyx_t_1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 160; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
@@ -17573,18 +17613,21 @@ PyMODINIT_FUNC PyInit_specfile(void)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "specfile.pyx":161
- * class SfErrLabelNotFound(SfError): pass
- * class SfErrMotorNotFound(SfError): pass
- * class SfErrPositionNotFound(SfError): pass             # <<<<<<<<<<<<<<
- * class SfErrLineEmpty(SfError): pass
- * class SfErrUserNotFound(SfError): pass
+ * class SfErrLabelNotFound(SfError, KeyError): pass
+ * class SfErrMotorNotFound(SfError, KeyError): pass
+ * class SfErrPositionNotFound(SfError, KeyError): pass             # <<<<<<<<<<<<<<
+ * class SfErrLineEmpty(SfError, IOError): pass
+ * class SfErrUserNotFound(SfError, KeyError): pass
  */
   __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SfError); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 161; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 161; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 161; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
+  __Pyx_INCREF(__pyx_builtin_KeyError);
+  PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_builtin_KeyError);
+  __Pyx_GIVEREF(__pyx_builtin_KeyError);
   __pyx_t_1 = 0;
   __pyx_t_1 = __Pyx_CalculateMetaclass(NULL, __pyx_t_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 161; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
@@ -17599,18 +17642,21 @@ PyMODINIT_FUNC PyInit_specfile(void)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
   /* "specfile.pyx":162
- * class SfErrMotorNotFound(SfError): pass
- * class SfErrPositionNotFound(SfError): pass
- * class SfErrLineEmpty(SfError): pass             # <<<<<<<<<<<<<<
- * class SfErrUserNotFound(SfError): pass
- * class SfErrColNotFound(SfError): pass
+ * class SfErrMotorNotFound(SfError, KeyError): pass
+ * class SfErrPositionNotFound(SfError, KeyError): pass
+ * class SfErrLineEmpty(SfError, IOError): pass             # <<<<<<<<<<<<<<
+ * class SfErrUserNotFound(SfError, KeyError): pass
+ * class SfErrColNotFound(SfError, KeyError): pass
  */
   __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_SfError); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 162; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 162; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 162; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_3);
+  __Pyx_INCREF(__pyx_builtin_IOError);
+  PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_builtin_IOError);
+  __Pyx_GIVEREF(__pyx_builtin_IOError);
   __pyx_t_3 = 0;
   __pyx_t_3 = __Pyx_CalculateMetaclass(NULL, __pyx_t_1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 162; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
@@ -17625,18 +17671,21 @@ PyMODINIT_FUNC PyInit_specfile(void)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "specfile.pyx":163
- * class SfErrPositionNotFound(SfError): pass
- * class SfErrLineEmpty(SfError): pass
- * class SfErrUserNotFound(SfError): pass             # <<<<<<<<<<<<<<
- * class SfErrColNotFound(SfError): pass
- * class SfErrMcaNotFound(SfError): pass
+ * class SfErrPositionNotFound(SfError, KeyError): pass
+ * class SfErrLineEmpty(SfError, IOError): pass
+ * class SfErrUserNotFound(SfError, KeyError): pass             # <<<<<<<<<<<<<<
+ * class SfErrColNotFound(SfError, KeyError): pass
+ * class SfErrMcaNotFound(SfError, IndexError): pass
  */
   __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SfError); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 163; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 163; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 163; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
+  __Pyx_INCREF(__pyx_builtin_KeyError);
+  PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_builtin_KeyError);
+  __Pyx_GIVEREF(__pyx_builtin_KeyError);
   __pyx_t_1 = 0;
   __pyx_t_1 = __Pyx_CalculateMetaclass(NULL, __pyx_t_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 163; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
@@ -17651,18 +17700,21 @@ PyMODINIT_FUNC PyInit_specfile(void)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
   /* "specfile.pyx":164
- * class SfErrLineEmpty(SfError): pass
- * class SfErrUserNotFound(SfError): pass
- * class SfErrColNotFound(SfError): pass             # <<<<<<<<<<<<<<
- * class SfErrMcaNotFound(SfError): pass
+ * class SfErrLineEmpty(SfError, IOError): pass
+ * class SfErrUserNotFound(SfError, KeyError): pass
+ * class SfErrColNotFound(SfError, KeyError): pass             # <<<<<<<<<<<<<<
+ * class SfErrMcaNotFound(SfError, IndexError): pass
  * 
  */
   __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_SfError); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 164; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 164; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 164; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_3);
+  __Pyx_INCREF(__pyx_builtin_KeyError);
+  PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_builtin_KeyError);
+  __Pyx_GIVEREF(__pyx_builtin_KeyError);
   __pyx_t_3 = 0;
   __pyx_t_3 = __Pyx_CalculateMetaclass(NULL, __pyx_t_1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 164; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
@@ -17677,18 +17729,21 @@ PyMODINIT_FUNC PyInit_specfile(void)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "specfile.pyx":165
- * class SfErrUserNotFound(SfError): pass
- * class SfErrColNotFound(SfError): pass
- * class SfErrMcaNotFound(SfError): pass             # <<<<<<<<<<<<<<
+ * class SfErrUserNotFound(SfError, KeyError): pass
+ * class SfErrColNotFound(SfError, KeyError): pass
+ * class SfErrMcaNotFound(SfError, IndexError): pass             # <<<<<<<<<<<<<<
  * 
  * 
  */
   __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SfError); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 165; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 165; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 165; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
+  __Pyx_INCREF(__pyx_builtin_IndexError);
+  PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_builtin_IndexError);
+  __Pyx_GIVEREF(__pyx_builtin_IndexError);
   __pyx_t_1 = 0;
   __pyx_t_1 = __Pyx_CalculateMetaclass(NULL, __pyx_t_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 165; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
