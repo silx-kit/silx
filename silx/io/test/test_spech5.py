@@ -109,6 +109,12 @@ sftext = """#F /tmp/sf.dat
 #L a  b
 1 2
 
+#S 1001 ccccc
+#G1 0. 0. 0. 0 0 0 2.232368448 2.232368448 1.206680489 90 90 60 1 1 2 -1 2 2 26.132 7.41 -88.96 1.11 1.000012861 15.19 26.06 67.355 -88.96 1.11 1.000012861 15.11 0.723353 0.723353
+#G3 0. 0. 0. 0. 0.0 0. 0. 0. 0.
+#L a  b
+1 2
+
 """
 
 
@@ -402,7 +408,7 @@ class TestSpecH5(unittest.TestCase):
 
     def testListScanIndices(self):
         self.assertEqual(self.sfh5.keys(),
-                         ["1.1", "25.1", "1.2", "1000.1"])
+                         ["1.1", "25.1", "1.2", "1000.1", "1001.1"])
         self.assertEqual(self.sfh5["1.2"].attrs,
                          {"NX_class": "NXentry", })
 
@@ -495,7 +501,7 @@ class TestSpecH5(unittest.TestCase):
         self.sfh5.visit(name_list.append)
         self.assertIn('1.2/instrument/positioners/Pslit HGap', name_list)
         self.assertIn("1.2/instrument/specfile/scan_header", name_list)
-        self.assertEqual(len(name_list), 100)  #, "actual name list: %s" % "\n".join(name_list))
+        self.assertEqual(len(name_list), 117)
 
         # test also visit of a subgroup, with various group name formats
         name_list_leading_and_trailing_slash = []
@@ -529,7 +535,7 @@ class TestSpecH5(unittest.TestCase):
 
         self.sfh5.visititems(func_generator(dataset_name_list))
         self.assertIn('1.2/instrument/positioners/Pslit HGap', dataset_name_list)
-        self.assertEqual(len(dataset_name_list), 73)
+        self.assertEqual(len(dataset_name_list), 85)
 
         # test also visit of a subgroup, with various group name formats
         name_list_leading_and_trailing_slash = []
@@ -566,6 +572,11 @@ class TestSpecH5(unittest.TestCase):
         self.assertIn("unit_cell_abc", self.sfh5["/1000.1/sample"])
         self.assertIn("unit_cell_alphabetagamma", self.sfh5["/1000.1/sample"])
 
+        # All 0 values
+        self.assertNotIn("sample", self.sfh5["/1001.1"])
+        with self.assertRaises(KeyError):
+            uc = self.sfh5["/1001.1/sample/unit_cell"]
+
     def testOpenFileDescriptor(self):
         """Open a SpecH5 file from a file descriptor"""
         with io.open(self.sfh5.filename) as f:
@@ -574,6 +585,7 @@ class TestSpecH5(unittest.TestCase):
             name_list = []
             # check if the object is working
             self.sfh5.visit(name_list.append)
+
 
 sftext_multi_mca_headers = """
 #S 1 aaaaaa
