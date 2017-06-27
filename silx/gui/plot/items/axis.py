@@ -355,7 +355,7 @@ class YRightAxis(Axis):
     @property
     def sigScaleChanged(self):
         """Signal emitted when axis scale has changed"""
-        return self.__mainAxis.sigLogarithmicChanged
+        return self.__mainAxis.sigScaleChanged
 
     @property
     def sigLogarithmicChanged(self):
