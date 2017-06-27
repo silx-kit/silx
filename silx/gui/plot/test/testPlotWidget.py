@@ -710,6 +710,48 @@ class TestPlotAxes(TestCaseQt):
         self.assertEquals(listener.arguments(callIndex=-1), (20.0, 30.0))
         self.assertEquals(axis.getLimits(), (20.0, 30.0))
 
+    def testScaleProxy(self):
+        listener = SignalListener()
+        y = self.plot.getYAxis()
+        yright = self.plot.getYAxis(axis="right")
+        y.sigScaleChanged.connect(listener.partial("left"))
+        yright.sigScaleChanged.connect(listener.partial("right"))
+        yright.setScale(yright.LOGARITHMIC)
+
+        self.assertEquals(y.getScale(), y.LOGARITHMIC)
+        events = listener.arguments()
+        self.assertEquals(len(events), 2)
+        self.assertIn(("left", y.LOGARITHMIC), events)
+        self.assertIn(("right", y.LOGARITHMIC), events)
+
+    def testAutoScaleProxy(self):
+        listener = SignalListener()
+        y = self.plot.getYAxis()
+        yright = self.plot.getYAxis(axis="right")
+        y.sigAutoScaleChanged.connect(listener.partial("left"))
+        yright.sigAutoScaleChanged.connect(listener.partial("right"))
+        yright.setAutoScale(False)
+
+        self.assertEquals(y.isAutoScale(), False)
+        events = listener.arguments()
+        self.assertEquals(len(events), 2)
+        self.assertIn(("left", False), events)
+        self.assertIn(("right", False), events)
+
+    def testInvertedProxy(self):
+        listener = SignalListener()
+        y = self.plot.getYAxis()
+        yright = self.plot.getYAxis(axis="right")
+        y.sigInvertedChanged.connect(listener.partial("left"))
+        yright.sigInvertedChanged.connect(listener.partial("right"))
+        yright.setInverted(True)
+
+        self.assertEquals(y.isInverted(), True)
+        events = listener.arguments()
+        self.assertEquals(len(events), 2)
+        self.assertIn(("left", True), events)
+        self.assertIn(("right", True), events)
+
 
 class TestPlotCurveLog(_PlotWidgetTest, ParametricTestCase):
     """Basic tests for addCurve with log scale axes"""
