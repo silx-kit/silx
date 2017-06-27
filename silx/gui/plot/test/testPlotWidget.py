@@ -571,15 +571,26 @@ class TestPlotEmptyLog(_PlotWidgetTest):
         self.plot.resetZoom()
 
 
-class TestPlotAxes(_PlotWidgetTest, ParametricTestCase):
+class TestPlotAxes(TestCaseQt):
 
     # Test data
     xData = numpy.arange(1, 10)
     yData = xData ** 2
 
-    def _setLabels(self):
-        self.plot.setGraphXLabel('X')
-        self.plot.setGraphYLabel('X * X')
+    def setUp(self):
+        super(TestPlotAxes, self).setUp()
+        self.plot = PlotWidget()
+        # It is not needed to display the plot
+        # It saves a lot of time
+        # self.plot.show()
+        # self.qWaitForWindowExposed(self.plot)
+
+    def tearDown(self):
+        self.qapp.processEvents()
+        self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.plot.close()
+        del self.plot
+        super(TestPlotAxes, self).tearDown()
 
     def testDefaultAxes(self):
         axis = self.plot.getXAxis()
@@ -593,7 +604,6 @@ class TestPlotAxes(_PlotWidgetTest, ParametricTestCase):
         self.assertEqual(axis.isLogarithmic(), False)
 
     def testLogXWithData(self):
-        self._setLabels()
         self.plot.setGraphTitle('Curve X: Log Y: Linear')
         self.plot.addCurve(self.xData, self.yData,
                            legend="curve",
@@ -606,7 +616,6 @@ class TestPlotAxes(_PlotWidgetTest, ParametricTestCase):
         self.assertEqual(axis.isLogarithmic(), True)
 
     def testLogYWithData(self):
-        self._setLabels()
         self.plot.setGraphTitle('Curve X: Linear Y: Log')
         self.plot.addCurve(self.xData, self.yData,
                            legend="curve",
@@ -622,7 +631,6 @@ class TestPlotAxes(_PlotWidgetTest, ParametricTestCase):
         self.assertEqual(axis.isLogarithmic(), True)
 
     def testLogYRightWithData(self):
-        self._setLabels()
         self.plot.setGraphTitle('Curve X: Linear Y: Log')
         self.plot.addCurve(self.xData, self.yData,
                            legend="curve",
