@@ -25,7 +25,6 @@
 """A :class:`.PlotWidget` with additional toolbars.
 
 The :class:`PlotWindow` is a subclass of :class:`.PlotWidget`.
-It provides the plot API fully defined in :class:`.Plot`.
 """
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
@@ -70,7 +69,7 @@ class PlotWindow(PlotWidget):
 
     :param parent: The parent of this widget or None.
     :param backend: The backend to use for the plot (default: matplotlib).
-                    See :class:`.Plot` for the list of supported backend.
+                    See :class:`.PlotWidget` for the list of supported backend.
     :type backend: str or :class:`BackendBase.BackendBase`
     :param bool resetzoom: Toggle visibility of reset zoom action.
     :param bool autoScale: Toggle visibility of axes autoscale actions.
@@ -697,7 +696,7 @@ class Plot1D(PlotWindow):
 
     :param parent: The parent of this widget
     :param backend: The backend to use for the plot (default: matplotlib).
-                    See :class:`.Plot` for the list of supported backend.
+                    See :class:`.PlotWidget` for the list of supported backend.
     :type backend: str or :class:`BackendBase.BackendBase`
     """
 
@@ -723,7 +722,7 @@ class Plot2D(PlotWindow):
 
     :param parent: The parent of this widget
     :param backend: The backend to use for the plot (default: matplotlib).
-                    See :class:`.Plot` for the list of supported backend.
+                    See :class:`.PlotWidget` for the list of supported backend.
     :type backend: str or :class:`BackendBase.BackendBase`
     """
 

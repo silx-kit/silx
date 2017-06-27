@@ -100,7 +100,7 @@ class StackView(qt.QMainWindow):
 
     :param QWidget parent: the Qt parent, or None
     :param backend: The backend to use for the plot (default: matplotlib).
-                    See :class:`.Plot` for the list of supported backend.
+                    See :class:`.PlotWidget` for the list of supported backend.
     :type backend: str or :class:`BackendBase.BackendBase`
     :param bool resetzoom: Toggle visibility of reset zoom action.
     :param bool autoScale: Toggle visibility of axes autoscale actions.
