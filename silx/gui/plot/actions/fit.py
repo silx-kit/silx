@@ -54,33 +54,19 @@ def _warningMessage(informativeText='', detailedText='', parent=None):
     msg.exec_()
 
 
-def _getOneCurve(plt, mode="unique"):
+def _getOneCurve(plt):
     """Get a single curve from the plot.
-    By default, get the active curve if any, else if a single curve is plotted
+    Get the active curve if any, else if a single curve is plotted
     get it, else return None and display a warning popup.
 
-    This behavior can be adjusted by modifying the *mode* parameter: always
-    return the active curve if any, but adjust the behavior in case no curve
-    is active.
-
     :param plt: :class:`.PlotWidget` instance on which to operate
-    :param mode: Parameter defining the behavior when no curve is active.
-        Possible modes:
-            - "none": return None (enforce curve activation)
-            - "unique": return the unique curve or None if multiple curves
-            - "first": return first curve
-            - "last": return last curve (most recently added one)
+
     :return: return value of plt.getActiveCurve(), or plt.getAllCurves()[0],
-        or plt.getAllCurves()[-1], or None
+        or None
     """
     curve = plt.getActiveCurve()
     if curve is not None:
         return curve
-
-    if mode is None or mode.lower() == "none":
-        _warningMessage("You must activate a curve!",
-                        parent=plt)
-        return None
 
     curves = plt.getAllCurves()
     if len(curves) == 0:
@@ -91,19 +77,25 @@ def _getOneCurve(plt, mode="unique"):
     if len(curves) == 1:
         return curves[0]
 
-    if len(curves) > 1:
-        if mode == "unique":
-            _warningMessage("Multiple curves are plotted. " +
-                            "Please activate the one you want to use.",
-                            parent=plt)
-            return None
-        if mode.lower() == "first":
-            return curves[0]
-        if mode.lower() == "last":
-            return curves[-1]
+    _warningMessage("Multiple curves are plotted. " +
+                    "Please activate the one you want to use.",
+                    parent=plt)
+    return None
 
-    raise ValueError("Illegal value for parameter 'mode'." +
-                     " Allowed values: 'none', 'unique', 'first', 'last'.")
+
+def _getUniqueHistogramIfNoCurve(plt):
+    """Return the histogram if there is a single histogram and no curve in
+    the plot. In all other cases, return None.
+
+    :param plt: :class:`.PlotWidget` instance on which to operate
+    :return: histogram or None
+    """
+    histograms = plt._getItems(kind='histogram')
+    if len(histograms) != 1:
+        return None
+    if plt.getAllCurves(just_legend=True):
+        return None
+    return histograms[0]
 
 
 class FitAction(PlotAction):
@@ -122,15 +114,27 @@ class FitAction(PlotAction):
         self.fit_window = None
 
     def _getFitWindow(self):
-        curve = _getOneCurve(self.plot)
-        if curve is None:
-            return
         self.xlabel = self.plot.getXAxis().getLabel()
         self.ylabel = self.plot.getYAxis().getLabel()
-        self.x = curve.getXData(copy=False)
-        self.y = curve.getYData(copy=False)
-        self.legend = curve.getLegend()
         self.xmin, self.xmax = self.plot.getXAxis().getLimits()
+
+        # if the plot has only a histogram and no curves, take it
+        histo = _getUniqueHistogramIfNoCurve(self.plot)
+        if histo is not None:
+            bin_edges = histo.getBinEdgesData(copy=False)
+            # take the middle coordinate between adjacent bin edges
+            self.x = (bin_edges[1:] + bin_edges[:-1]) / 2
+            self.y = histo.getValueData(copy=False)
+            self.legend = histo.getLegend()
+        # else take the active curve, or else the unique curve
+        else:
+            curve = _getOneCurve(self.plot)
+            if curve is not None:
+                self.x = curve.getXData(copy=False)
+                self.y = curve.getYData(copy=False)
+                self.legend = curve.getLegend()
+            else:
+                return
 
         # open a window with a FitWidget
         if self.fit_window is None:
