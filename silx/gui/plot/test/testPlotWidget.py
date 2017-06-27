@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "05/12/2016"
+__date__ = "27/06/2017"
 
 
 import unittest
@@ -34,6 +34,7 @@ import unittest
 import numpy
 
 from silx.test.utils import ParametricTestCase
+from silx.gui.test.utils import SignalListener
 from silx.gui.test.utils import TestCaseQt
 
 from silx.gui import qt
@@ -570,6 +571,138 @@ class TestPlotEmptyLog(_PlotWidgetTest):
         self.plot.resetZoom()
 
 
+class TestPlotAxes(_PlotWidgetTest, ParametricTestCase):
+
+    # Test data
+    xData = numpy.arange(1, 10)
+    yData = xData ** 2
+
+    def _setLabels(self):
+        self.plot.setGraphXLabel('X')
+        self.plot.setGraphYLabel('X * X')
+
+    def testDefaultAxes(self):
+        axis = self.plot.getXAxis()
+        self.assertEqual(axis.getScale(), axis.LINEAR)
+        self.assertEqual(axis.isLogarithmic(), False)
+        axis = self.plot.getYAxis()
+        self.assertEqual(axis.getScale(), axis.LINEAR)
+        self.assertEqual(axis.isLogarithmic(), False)
+        axis = self.plot.getYAxis(axis="right")
+        self.assertEqual(axis.getScale(), axis.LINEAR)
+        self.assertEqual(axis.isLogarithmic(), False)
+
+    def testLogXWithData(self):
+        self._setLabels()
+        self.plot.setGraphTitle('Curve X: Log Y: Linear')
+        self.plot.addCurve(self.xData, self.yData,
+                           legend="curve",
+                           replace=False, resetzoom=True,
+                           color='green', linestyle="-", symbol='o')
+        axis = self.plot.getXAxis()
+        axis.setScale(axis.LOGARITHMIC)
+
+        self.assertEqual(axis.getScale(), axis.LOGARITHMIC)
+        self.assertEqual(axis.isLogarithmic(), True)
+
+    def testLogYWithData(self):
+        self._setLabels()
+        self.plot.setGraphTitle('Curve X: Linear Y: Log')
+        self.plot.addCurve(self.xData, self.yData,
+                           legend="curve",
+                           replace=False, resetzoom=True,
+                           color='green', linestyle="-", symbol='o')
+        axis = self.plot.getYAxis()
+        axis.setScale(axis.LOGARITHMIC)
+
+        self.assertEqual(axis.getScale(), axis.LOGARITHMIC)
+        self.assertEqual(axis.isLogarithmic(), True)
+        axis = self.plot.getYAxis(axis="right")
+        self.assertEqual(axis.getScale(), axis.LOGARITHMIC)
+        self.assertEqual(axis.isLogarithmic(), True)
+
+    def testLogYRightWithData(self):
+        self._setLabels()
+        self.plot.setGraphTitle('Curve X: Linear Y: Log')
+        self.plot.addCurve(self.xData, self.yData,
+                           legend="curve",
+                           replace=False, resetzoom=True,
+                           color='green', linestyle="-", symbol='o')
+        axis = self.plot.getYAxis(axis="right")
+        axis.setScale(axis.LOGARITHMIC)
+
+        self.assertEqual(axis.getScale(), axis.LOGARITHMIC)
+        self.assertEqual(axis.isLogarithmic(), True)
+        axis = self.plot.getYAxis()
+        self.assertEqual(axis.getScale(), axis.LOGARITHMIC)
+        self.assertEqual(axis.isLogarithmic(), True)
+
+    def testLimitsChanged_setLimits(self):
+        self.plot.addCurve(self.xData, self.yData,
+                           legend="curve",
+                           replace=False, resetzoom=False,
+                           color='green', linestyle="-", symbol='o')
+        listener = SignalListener()
+        self.plot.getXAxis().sigLimitsChanged.connect(listener.partial(axis="x"))
+        self.plot.getYAxis().sigLimitsChanged.connect(listener.partial(axis="y"))
+        self.plot.getYAxis(axis="right").sigLimitsChanged.connect(listener.partial(axis="y2"))
+        self.plot.setLimits(0, 1, 0, 1, 0, 1)
+        # at least one event per axis
+        self.assertEquals(len(set(listener.karguments(argumentName="axis"))), 3)
+
+    def testLimitsChanged_resetZoom(self):
+        self.plot.addCurve(self.xData, self.yData,
+                           legend="curve",
+                           replace=False, resetzoom=False,
+                           color='green', linestyle="-", symbol='o')
+        listener = SignalListener()
+        self.plot.getXAxis().sigLimitsChanged.connect(listener.partial(axis="x"))
+        self.plot.getYAxis().sigLimitsChanged.connect(listener.partial(axis="y"))
+        self.plot.getYAxis(axis="right").sigLimitsChanged.connect(listener.partial(axis="y2"))
+        self.plot.resetZoom()
+        # at least one event per axis
+        self.assertEquals(len(set(listener.karguments(argumentName="axis"))), 3)
+
+    def testLimitsChanged_setXLimit(self):
+        self.plot.addCurve(self.xData, self.yData,
+                           legend="curve",
+                           replace=False, resetzoom=False,
+                           color='green', linestyle="-", symbol='o')
+        listener = SignalListener()
+        axis = self.plot.getXAxis()
+        axis.sigLimitsChanged.connect(listener)
+        axis.setLimits(20, 30)
+        # at least one event per axis
+        self.assertEquals(listener.arguments(callIndex=-1), (20.0, 30.0))
+        self.assertEquals(axis.getLimits(), (20.0, 30.0))
+
+    def testLimitsChanged_setYLimit(self):
+        self.plot.addCurve(self.xData, self.yData,
+                           legend="curve",
+                           replace=False, resetzoom=False,
+                           color='green', linestyle="-", symbol='o')
+        listener = SignalListener()
+        axis = self.plot.getYAxis()
+        axis.sigLimitsChanged.connect(listener)
+        axis.setLimits(20, 30)
+        # at least one event per axis
+        self.assertEquals(listener.arguments(callIndex=-1), (20.0, 30.0))
+        self.assertEquals(axis.getLimits(), (20.0, 30.0))
+
+    def testLimitsChanged_setYRightLimit(self):
+        self.plot.addCurve(self.xData, self.yData,
+                           legend="curve",
+                           replace=False, resetzoom=False,
+                           color='green', linestyle="-", symbol='o')
+        listener = SignalListener()
+        axis = self.plot.getYAxis(axis="right")
+        axis.sigLimitsChanged.connect(listener)
+        axis.setLimits(20, 30)
+        # at least one event per axis
+        self.assertEquals(listener.arguments(callIndex=-1), (20.0, 30.0))
+        self.assertEquals(axis.getLimits(), (20.0, 30.0))
+
+
 class TestPlotCurveLog(_PlotWidgetTest, ParametricTestCase):
     """Basic tests for addCurve with log scale axes"""
 
@@ -940,26 +1073,18 @@ class TestPlotItemLog(_PlotWidgetTest):
 
 def suite():
     test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestPlotWidget))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestPlotImage))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestPlotCurve))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestPlotMarker))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestPlotItem))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestPlotEmptyLog))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestPlotCurveLog))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestPlotImageLog))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestPlotMarkerLog))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestPlotItemLog))
+    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
+    test_suite.addTest(loadTests(TestPlotWidget))
+    test_suite.addTest(loadTests(TestPlotImage))
+    test_suite.addTest(loadTests(TestPlotCurve))
+    test_suite.addTest(loadTests(TestPlotMarker))
+    test_suite.addTest(loadTests(TestPlotItem))
+    test_suite.addTest(loadTests(TestPlotAxes))
+    test_suite.addTest(loadTests(TestPlotEmptyLog))
+    test_suite.addTest(loadTests(TestPlotCurveLog))
+    test_suite.addTest(loadTests(TestPlotImageLog))
+    test_suite.addTest(loadTests(TestPlotMarkerLog))
+    test_suite.addTest(loadTests(TestPlotItemLog))
     return test_suite
 
 

@@ -27,7 +27,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "26/06/2017"
+__date__ = "27/06/2017"
 
 import logging
 from ... import qt
@@ -44,11 +44,22 @@ class Axis(qt.QObject):
     TODO It would be good to store all the states of an axis in this object.
     """
 
+    LINEAR = "linear"
+    """Constant defining a linear scale"""
+
+    LOGARITHMIC = "log"
+    """Constant defining a logarithmic scale"""
+
+    _SCALES = set([LINEAR, LOGARITHMIC])
+
     sigInvertedChanged = qt.Signal(bool)
     """Signal emitted when axis orientation has changed"""
 
-    sigLogarithmicChanged = qt.Signal(bool)
+    sigScaleChanged = qt.Signal(str)
     """Signal emitted when axis scale has changed"""
+
+    sigLogarithmicChanged = qt.Signal(bool)
+    """Signal emitted when axis scale has changed to or from logarithmic"""
 
     sigAutoScaleChanged = qt.Signal(bool)
     """Signal emitted when axis autoscale has changed"""
@@ -63,7 +74,7 @@ class Axis(qt.QObject):
             axis
         """
         qt.QObject.__init__(self, parent=plot)
-        self._isLog = False
+        self._scale = self.LINEAR
         self._isAutoScale = True
         # Store default labels provided to setGraph[X|Y]Label
         self._defaultLabel = ''
@@ -85,7 +96,13 @@ class Axis(qt.QObject):
         :param float vmin: minimum axis value
         :param float vmax: maximum axis value
         """
-        raise NotImplementedError()
+        vmin, vmax = self._checkLimits(vmin, vmax)
+
+        self._setLimits(vmin, vmax)
+        self._plot._setDirtyPlot()
+
+        self.sigLimitsChanged.emit(vmin, vmax)
+        self._plot._notifyLimitsChanged(emitSignal=False)
 
     def _checkLimits(self, vmin, vmax):
         """Makes sure axis range is not empty
@@ -157,23 +174,33 @@ class Axis(qt.QObject):
         self._currentLabel = label
         return label
 
-    def isLogarithmic(self):
-        """Return True if this axis scale is logarithmic, False if linear.
+    def getScale(self):
+        """Return the name of the scale used by this axis.
 
-        :rtype: bool
+        :rtype: str
         """
-        return self._isLog
+        return self._scale
 
-    def setLogarithmic(self, flag):
-        """Set the scale of this axes (either linear or logarithmic).
+    def setScale(self, scale):
+        """Set the scale to be used by this axis.
 
-        :param bool flag: True to use a logarithmic scale, False for linear.
+        :param str scale: Name of the scale ("log", or "linear")
         """
-        if bool(flag) == self._isLog:
+        assert(scale in self._SCALES)
+        if self._scale == scale:
             return
-        self._isLog = bool(flag)
 
-        self._setLogarithmic(self._isLog)
+        # For the backward compatibility signal
+        emitLog = self._scale == self.LOGARITHMIC or scale == self.LOGARITHMIC
+
+        if scale == self.LOGARITHMIC:
+            self._setLogarithmic(True)
+        elif scale == self.LINEAR:
+            self._setLogarithmic(False)
+        else:
+            raise ValueError("Scale %s unsupported" % scale)
+
+        self._scale = scale
 
         # TODO hackish way of forcing update of curves and images
         for item in self._plot._getItems(withhidden=True):
@@ -181,7 +208,24 @@ class Axis(qt.QObject):
         self._plot._invalidateDataRange()
         self._plot.resetZoom()
 
-        self.sigLogarithmicChanged.emit(self._isLog)
+        self.sigScaleChanged.emit(self._scale)
+        if emitLog:
+            self.sigLogarithmicChanged.emit(self._scale == self.LOGARITHMIC)
+
+    def isLogarithmic(self):
+        """Return True if this axis scale is logarithmic, False if linear.
+
+        :rtype: bool
+        """
+        return self._scale == self.LOGARITHMIC
+
+    def setLogarithmic(self, flag):
+        """Set the scale of this axes (either linear or logarithmic).
+
+        :param bool flag: True to use a logarithmic scale, False for linear.
+        """
+        flag = bool(flag)
+        self.setScale(self.LOGARITHMIC if flag else self.LINEAR)
 
     def isAutoScale(self):
         """Return True if axis is automatically adjusting its limits.
@@ -219,26 +263,20 @@ class XAxis(Axis):
         """
         return self._plot._backend.getGraphXLimits()
 
-    def setLimits(self, xmin, xmax):
+    def _setLimits(self, xmin, xmax):
         """Set the graph X (bottom) limits.
 
         :param float xmin: minimum bottom axis value
         :param float xmax: maximum bottom axis value
         """
-        xmin, xmax = self._checkLimits(xmin, xmax)
-
         self._plot._backend.setGraphXLimits(xmin, xmax)
-        self._plot._setDirtyPlot()
-
-        self.sigLimitsChanged.emit(xmin, xmax)
-        self._plot._notifyLimitsChanged(emitSignal=False)
 
     def _setLogarithmic(self, flag):
         """Set the bottom X axis scale (either linear or logarithmic).
 
         :param bool flag: True to use a logarithmic scale, False for linear.
         """
-        self._plot._backend.setXAxisLogarithmic(self._isLog)
+        self._plot._backend.setXAxisLogarithmic(flag)
 
 
 class YAxis(Axis):
@@ -262,7 +300,7 @@ class YAxis(Axis):
         """
         return self._plot._backend.getGraphYLimits(axis='left')
 
-    def setLimits(self, ymin, ymax):
+    def _setLimits(self, ymin, ymax):
         """Set the graph Y limits.
 
         :param float ymin: minimum bottom axis value
@@ -270,12 +308,7 @@ class YAxis(Axis):
         :param str axis: The axis for which to get the limits:
                          Either 'left' or 'right'
         """
-        ymin, ymax = self._checkLimits(ymin, ymax)
         self._plot._backend.setGraphYLimits(ymin, ymax, axis='left')
-        self._plot._setDirtyPlot()
-
-        self.sigLimitsChanged.emit(ymin, ymax)
-        self._plot._notifyLimitsChanged(emitSignal=False)
 
     def setInverted(self, flag=True):
         """Set the Y axis orientation.
@@ -297,7 +330,7 @@ class YAxis(Axis):
 
         :param bool flag: True to use a logarithmic scale, False for linear.
         """
-        self._plot._backend.setYAxisLogarithmic(self._isLog)
+        self._plot._backend.setYAxisLogarithmic(flag)
 
 
 class YRightAxis(Axis):
@@ -320,8 +353,13 @@ class YRightAxis(Axis):
         return self.__mainAxis.sigInvertedChanged
 
     @property
-    def sigLogarithmicChanged(self):
+    def sigScaleChanged(self):
         """Signal emitted when axis scale has changed"""
+        return self.__mainAxis.sigLogarithmicChanged
+
+    @property
+    def sigLogarithmicChanged(self):
+        """Signal emitted when axis scale has changed to or from logarithmic"""
         return self.__mainAxis.sigLogarithmicChanged
 
     @property
@@ -347,7 +385,7 @@ class YRightAxis(Axis):
         """
         return self._plot._backend.getGraphYLimits(axis='right')
 
-    def setLimits(self, ymin, ymax):
+    def _setLimits(self, ymin, ymax):
         """Set the graph Y limits.
 
         :param float ymin: minimum bottom axis value
@@ -355,12 +393,7 @@ class YRightAxis(Axis):
         :param str axis: The axis for which to get the limits:
                          Either 'left' or 'right'
         """
-        ymin, ymax = self._checkLimits(ymin, ymax)
         self._plot._backend.setGraphYLimits(ymin, ymax, axis='right')
-        self._plot._setDirtyPlot()
-
-        self.sigLimitsChanged.emit(ymin, ymax)
-        self._plot._notifyLimitsChanged(emitSignal=False)
 
     def setInverted(self, flag=True):
         """Set the Y axis orientation.
@@ -373,6 +406,20 @@ class YRightAxis(Axis):
     def isInverted(self):
         """Return True if Y axis goes from top to bottom, False otherwise."""
         return self.__mainAxis.isInverted()
+
+    def getScale(self):
+        """Return the name of the scale used by this axis.
+
+        :rtype: str
+        """
+        return self.__mainAxis.getScale()
+
+    def setScale(self, scale):
+        """Set the scale to be used by this axis.
+
+        :param str scale: Name of the scale ("log", or "linear")
+        """
+        self.__mainAxis.setScale(scale)
 
     def isLogarithmic(self):
         """Return True if Y axis scale is logarithmic, False if linear."""
