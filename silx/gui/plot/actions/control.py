@@ -48,7 +48,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "22/06/2017"
+__date__ = "27/06/2017"
 
 from . import PlotAction
 import logging
@@ -196,11 +196,16 @@ class XAxisLogarithmicAction(PlotAction):
             tooltip='Logarithmic x-axis when checked',
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
-        self.setChecked(plot.isXAxisLogarithmic())
-        plot.getXAxis().sigLogarithmicChanged.connect(self.setChecked)
+        self.axis = plot.getXAxis()
+        self.setChecked(self.axis.getScale() == self.axis.LOGARITHMIC)
+        self.axis.sigScaleChanged.connect(self._setCheckedIfLogScale)
+
+    def _setCheckedIfLogScale(self, scale):
+        self.setChecked(scale == self.axis.LOGARITHMIC)
 
     def _actionTriggered(self, checked=False):
-        self.plot.setXAxisLogarithmic(checked)
+        scale = self.axis.LOGARITHMIC if checked else self.axis.LINEAR
+        self.axis.setScale(scale)
 
 
 class YAxisLogarithmicAction(PlotAction):
@@ -216,11 +221,16 @@ class YAxisLogarithmicAction(PlotAction):
             tooltip='Logarithmic y-axis when checked',
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
-        self.setChecked(plot.isYAxisLogarithmic())
-        plot.getYAxis().sigLogarithmicChanged.connect(self.setChecked)
+        self.axis = plot.getYAxis()
+        self.setChecked(self.axis.getScale() == self.axis.LOGARITHMIC)
+        self.axis.sigScaleChanged.connect(self._setCheckedIfLogScale)
+
+    def _setCheckedIfLogScale(self, scale):
+        self.setChecked(scale == self.axis.LOGARITHMIC)
 
     def _actionTriggered(self, checked=False):
-        self.plot.setYAxisLogarithmic(checked)
+        scale = self.axis.LOGARITHMIC if checked else self.axis.LINEAR
+        self.axis.setScale(scale)
 
 
 class GridAction(PlotAction):

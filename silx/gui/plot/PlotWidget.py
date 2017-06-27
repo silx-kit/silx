@@ -201,7 +201,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "26/06/2017"
+__date__ = "27/06/2017"
 
 
 from collections import OrderedDict, namedtuple
@@ -2140,13 +2140,13 @@ class PlotWidget(qt.QMainWindow):
     @deprecated(since_version='0.6')
     def sigSetXAxisLogarithmic(self):
         """Signal emitted when X axis scale has changed"""
-        return self._xAxis.sigLogarithmicChanged
+        return self._xAxis._sigLogarithmicChanged
 
     @property
     @deprecated(since_version='0.6')
     def sigSetYAxisLogarithmic(self):
         """Signal emitted when Y axis scale has changed"""
-        return self._yAxis.sigLogarithmicChanged
+        return self._yAxis._sigLogarithmicChanged
 
     @property
     @deprecated(since_version='0.6')
@@ -2174,25 +2174,25 @@ class PlotWidget(qt.QMainWindow):
 
     def isXAxisLogarithmic(self):
         """Return True if X axis scale is logarithmic, False if linear."""
-        return self._xAxis.isLogarithmic()
+        return self._xAxis._isLogarithmic()
 
     def setXAxisLogarithmic(self, flag):
         """Set the bottom X axis scale (either linear or logarithmic).
 
         :param bool flag: True to use a logarithmic scale, False for linear.
         """
-        self._xAxis.setLogarithmic(flag)
+        self._xAxis._setLogarithmic(flag)
 
     def isYAxisLogarithmic(self):
         """Return True if Y axis scale is logarithmic, False if linear."""
-        return self._yAxis.isLogarithmic()
+        return self._yAxis._isLogarithmic()
 
     def setYAxisLogarithmic(self, flag):
         """Set the Y axes scale (either linear or logarithmic).
 
         :param bool flag: True to use a logarithmic scale, False for linear.
         """
-        return self._yAxis.setLogarithmic(flag)
+        self._yAxis._setLogarithmic(flag)
 
     def isXAxisAutoScale(self):
         """Return True if X axis is automatically adjusting its limits."""

@@ -595,13 +595,38 @@ class TestPlotAxes(TestCaseQt):
     def testDefaultAxes(self):
         axis = self.plot.getXAxis()
         self.assertEqual(axis.getScale(), axis.LINEAR)
-        self.assertEqual(axis.isLogarithmic(), False)
         axis = self.plot.getYAxis()
         self.assertEqual(axis.getScale(), axis.LINEAR)
-        self.assertEqual(axis.isLogarithmic(), False)
         axis = self.plot.getYAxis(axis="right")
         self.assertEqual(axis.getScale(), axis.LINEAR)
-        self.assertEqual(axis.isLogarithmic(), False)
+
+    def testOldLogApi(self):
+        x = self.plot.getXAxis()
+        y = self.plot.getYAxis()
+        yright = self.plot.getYAxis(axis="right")
+        self.assertEqual(x._isLogarithmic(), False)
+        self.assertEqual(y._isLogarithmic(), False)
+        self.assertEqual(yright._isLogarithmic(), False)
+        self.assertEqual(x.getScale(), x.LINEAR)
+        self.assertEqual(y.getScale(), x.LINEAR)
+        self.assertEqual(yright.getScale(), x.LINEAR)
+
+        x._setLogarithmic(True)
+        self.assertEqual(x._isLogarithmic(), True)
+        self.assertEqual(x.getScale(), x.LOGARITHMIC)
+        self.assertEqual(y._isLogarithmic(), False)
+
+        y._setLogarithmic(True)
+        self.assertEqual(x._isLogarithmic(), True)
+        self.assertEqual(y._isLogarithmic(), True)
+        self.assertEqual(y.getScale(), x.LOGARITHMIC)
+        self.assertEqual(yright._isLogarithmic(), True)
+
+        yright._setLogarithmic(False)
+        self.assertEqual(x._isLogarithmic(), True)
+        self.assertEqual(y._isLogarithmic(), False)
+        self.assertEqual(yright._isLogarithmic(), False)
+        self.assertEqual(yright.getScale(), x.LINEAR)
 
     def testLogXWithData(self):
         self.plot.setGraphTitle('Curve X: Log Y: Linear')
@@ -613,7 +638,6 @@ class TestPlotAxes(TestCaseQt):
         axis.setScale(axis.LOGARITHMIC)
 
         self.assertEqual(axis.getScale(), axis.LOGARITHMIC)
-        self.assertEqual(axis.isLogarithmic(), True)
 
     def testLogYWithData(self):
         self.plot.setGraphTitle('Curve X: Linear Y: Log')
@@ -625,10 +649,8 @@ class TestPlotAxes(TestCaseQt):
         axis.setScale(axis.LOGARITHMIC)
 
         self.assertEqual(axis.getScale(), axis.LOGARITHMIC)
-        self.assertEqual(axis.isLogarithmic(), True)
         axis = self.plot.getYAxis(axis="right")
         self.assertEqual(axis.getScale(), axis.LOGARITHMIC)
-        self.assertEqual(axis.isLogarithmic(), True)
 
     def testLogYRightWithData(self):
         self.plot.setGraphTitle('Curve X: Linear Y: Log')
@@ -640,10 +662,8 @@ class TestPlotAxes(TestCaseQt):
         axis.setScale(axis.LOGARITHMIC)
 
         self.assertEqual(axis.getScale(), axis.LOGARITHMIC)
-        self.assertEqual(axis.isLogarithmic(), True)
         axis = self.plot.getYAxis()
         self.assertEqual(axis.getScale(), axis.LOGARITHMIC)
-        self.assertEqual(axis.isLogarithmic(), True)
 
     def testLimitsChanged_setLimits(self):
         self.plot.addCurve(self.xData, self.yData,

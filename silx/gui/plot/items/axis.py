@@ -40,9 +40,9 @@ class Axis(qt.QObject):
 
     States are half-stored on the backend of the plot, and half-stored on this
     object.
-
-    TODO It would be good to store all the states of an axis in this object.
     """
+    # TODO It would be good to store all the states of an axis in this object.
+    #      i.e. vmin and vmax
 
     LINEAR = "linear"
     """Constant defining a linear scale"""
@@ -58,7 +58,7 @@ class Axis(qt.QObject):
     sigScaleChanged = qt.Signal(str)
     """Signal emitted when axis scale has changed"""
 
-    sigLogarithmicChanged = qt.Signal(bool)
+    _sigLogarithmicChanged = qt.Signal(bool)
     """Signal emitted when axis scale has changed to or from logarithmic"""
 
     sigAutoScaleChanged = qt.Signal(bool)
@@ -88,7 +88,7 @@ class Axis(qt.QObject):
 
         :return: Minimum and maximum values of this axis as tuple
         """
-        raise NotImplementedError()
+        return self._internalGetLimits()
 
     def setLimits(self, vmin, vmax):
         """Set this axis limits.
@@ -98,7 +98,7 @@ class Axis(qt.QObject):
         """
         vmin, vmax = self._checkLimits(vmin, vmax)
 
-        self._setLimits(vmin, vmax)
+        self._internalSetLimits(vmin, vmax)
         self._plot._setDirtyPlot()
 
         self.sigLimitsChanged.emit(vmin, vmax)
@@ -128,11 +128,16 @@ class Axis(qt.QObject):
 
     def isInverted(self):
         """Return True if the axis is inverted (top to bottom for the y-axis),
-        False otherwise."""
+        False otherwise. It is always True for the X axis.
+
+        :rtype: bool
+        """
         return False
 
     def setInverted(self, isInverted):
         """Set the axis orientation.
+
+        This is only available for the Y axis.
 
         :param bool flag: True for Y axis going from top to bottom,
                           False for Y axis going from bottom to top
@@ -165,14 +170,13 @@ class Axis(qt.QObject):
         If the label is None or empty the default label is used.
 
         :param str label: Currently displayed label
-        :returns: str
         """
         if label is None or label == '':
             label = self._defaultLabel
         if label is None:
             label = ''
         self._currentLabel = label
-        return label
+        self._internalSetCurrentLabel(label)
 
     def getScale(self):
         """Return the name of the scale used by this axis.
@@ -194,9 +198,9 @@ class Axis(qt.QObject):
         emitLog = self._scale == self.LOGARITHMIC or scale == self.LOGARITHMIC
 
         if scale == self.LOGARITHMIC:
-            self._setLogarithmic(True)
+            self._internalSetLogarithmic(True)
         elif scale == self.LINEAR:
-            self._setLogarithmic(False)
+            self._internalSetLogarithmic(False)
         else:
             raise ValueError("Scale %s unsupported" % scale)
 
@@ -210,16 +214,16 @@ class Axis(qt.QObject):
 
         self.sigScaleChanged.emit(self._scale)
         if emitLog:
-            self.sigLogarithmicChanged.emit(self._scale == self.LOGARITHMIC)
+            self._sigLogarithmicChanged.emit(self._scale == self.LOGARITHMIC)
 
-    def isLogarithmic(self):
+    def _isLogarithmic(self):
         """Return True if this axis scale is logarithmic, False if linear.
 
         :rtype: bool
         """
         return self._scale == self.LOGARITHMIC
 
-    def setLogarithmic(self, flag):
+    def _setLogarithmic(self, flag):
         """Set the scale of this axes (either linear or logarithmic).
 
         :param bool flag: True to use a logarithmic scale, False for linear.
@@ -247,95 +251,56 @@ class Axis(qt.QObject):
 class XAxis(Axis):
     """Axis class defining primitives for the X axis"""
 
-    def _setCurrentLabel(self, label):
-        """Define the label currently displayed in the plot for this axis.
+    # TODO With some changes on the backend, it will be able to remove all this
+    #      specialised implementations (prefixel by '_internal')
 
-        :param str label: Label to display
-        """
-        label = Axis._setCurrentLabel(self, label)
+    def _internalSetCurrentLabel(self, label):
         self._plot._backend.setGraphXLabel(label)
-        return label
 
-    def getLimits(self):
-        """Get the graph X (bottom) limits.
-
-        :return: Minimum and maximum values of the X axis
-        """
+    def _internalGetLimits(self):
         return self._plot._backend.getGraphXLimits()
 
-    def _setLimits(self, xmin, xmax):
-        """Set the graph X (bottom) limits.
-
-        :param float xmin: minimum bottom axis value
-        :param float xmax: maximum bottom axis value
-        """
+    def _internalSetLimits(self, xmin, xmax):
         self._plot._backend.setGraphXLimits(xmin, xmax)
 
-    def _setLogarithmic(self, flag):
-        """Set the bottom X axis scale (either linear or logarithmic).
-
-        :param bool flag: True to use a logarithmic scale, False for linear.
-        """
+    def _internalSetLogarithmic(self, flag):
         self._plot._backend.setXAxisLogarithmic(flag)
 
 
 class YAxis(Axis):
     """Axis class defining primitives for the Y axis"""
 
-    def _setCurrentLabel(self, label):
-        """Define the label currently displayed in the plot for this axis.
+    # TODO With some changes on the backend, it will be able to remove all this
+    #      specialised implementations (prefixel by '_internal')
 
-        :param str label: Label to display
-        """
-        label = Axis._setCurrentLabel(self, label)
+    def _internalSetCurrentLabel(self, label):
         self._plot._backend.setGraphYLabel(label, axis='left')
-        return label
 
-    def getLimits(self):
-        """Get the graph Y limits.
-
-        :param str axis: The axis for which to get the limits:
-                         Either 'left' or 'right'
-        :return: Minimum and maximum values of the X axis
-        """
+    def _internalGetLimits(self):
         return self._plot._backend.getGraphYLimits(axis='left')
 
-    def _setLimits(self, ymin, ymax):
-        """Set the graph Y limits.
-
-        :param float ymin: minimum bottom axis value
-        :param float ymax: maximum bottom axis value
-        :param str axis: The axis for which to get the limits:
-                         Either 'left' or 'right'
-        """
+    def _internalSetLimits(self, ymin, ymax):
         self._plot._backend.setGraphYLimits(ymin, ymax, axis='left')
 
-    def setInverted(self, flag=True):
-        """Set the Y axis orientation.
+    def _internalSetLogarithmic(self, flag):
+        self._plot._backend.setYAxisLogarithmic(flag)
 
-        :param bool flag: True for Y axis going from top to bottom,
-                          False for Y axis going from bottom to top
-        """
+    def setInverted(self, flag=True):
         flag = bool(flag)
         self._plot._backend.setYAxisInverted(flag)
         self._plot._setDirtyPlot()
         self.sigInvertedChanged.emit(flag)
 
     def isInverted(self):
-        """Return True if Y axis goes from top to bottom, False otherwise."""
         return self._plot._backend.isYAxisInverted()
-
-    def _setLogarithmic(self, flag):
-        """Set the Y axes scale (either linear or logarithmic).
-
-        :param bool flag: True to use a logarithmic scale, False for linear.
-        """
-        self._plot._backend.setYAxisLogarithmic(flag)
 
 
 class YRightAxis(Axis):
-    """Proxy axes for the secondary Y axes. It manages it own label and limit
+    """Proxy axis for the secondary Y axes. It manages it own label and limit
     but share the some state like scale and direction with the main axis."""
+
+    # TODO With some changes on the backend, it will be able to remove all this
+    #      specialised implementations (prefixel by '_internal')
 
     def __init__(self, plot, mainAxis):
         """Constructor
@@ -358,41 +323,22 @@ class YRightAxis(Axis):
         return self.__mainAxis.sigScaleChanged
 
     @property
-    def sigLogarithmicChanged(self):
+    def _sigLogarithmicChanged(self):
         """Signal emitted when axis scale has changed to or from logarithmic"""
-        return self.__mainAxis.sigLogarithmicChanged
+        return self.__mainAxis._sigLogarithmicChanged
 
     @property
     def sigAutoScaleChanged(self):
         """Signal emitted when axis autoscale has changed"""
         return self.__mainAxis.sigAutoScaleChanged
 
-    def _setCurrentLabel(self, label):
-        """Define the label currently displayed in the plot for this axis.
-
-        :param str label: Label to display
-        """
-        label = Axis._setCurrentLabel(self, label)
+    def _internalSetCurrentLabel(self, label):
         self._plot._backend.setGraphYLabel(label, axis='right')
-        return label
 
-    def getLimits(self):
-        """Get the graph Y limits.
-
-        :param str axis: The axis for which to get the limits:
-                         Either 'left' or 'right'
-        :return: Minimum and maximum values of the X axis
-        """
+    def _internalGetLimits(self):
         return self._plot._backend.getGraphYLimits(axis='right')
 
-    def _setLimits(self, ymin, ymax):
-        """Set the graph Y limits.
-
-        :param float ymin: minimum bottom axis value
-        :param float ymax: maximum bottom axis value
-        :param str axis: The axis for which to get the limits:
-                         Either 'left' or 'right'
-        """
+    def _internalSetLimits(self, ymin, ymax):
         self._plot._backend.setGraphYLimits(ymin, ymax, axis='right')
 
     def setInverted(self, flag=True):
@@ -421,16 +367,16 @@ class YRightAxis(Axis):
         """
         self.__mainAxis.setScale(scale)
 
-    def isLogarithmic(self):
+    def _isLogarithmic(self):
         """Return True if Y axis scale is logarithmic, False if linear."""
-        return self.__mainAxis.isLogarithmic()
+        return self.__mainAxis._isLogarithmic()
 
-    def setLogarithmic(self, flag):
+    def _setLogarithmic(self, flag):
         """Set the Y axes scale (either linear or logarithmic).
 
         :param bool flag: True to use a logarithmic scale, False for linear.
         """
-        return self.__mainAxis.setLogarithmic(flag)
+        return self.__mainAxis._setLogarithmic(flag)
 
     def isAutoScale(self):
         """Return True if Y axes are automatically adjusting its limits."""
