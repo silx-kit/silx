@@ -80,14 +80,15 @@ class ResetZoomAction(PlotAction):
         plot.getYAxis().sigAutoScaleChanged.connect(self._autoscaleChanged)
 
     def _autoscaleChanged(self, enabled):
-        self.setEnabled(
-            self.plot.isXAxisAutoScale() or self.plot.isYAxisAutoScale())
+        xAxis = self.plot.getXAxis()
+        yAxis = self.plot.getYAxis()
+        self.setEnabled(xAxis.isAutoScale() or yAxis.isAutoScale())
 
-        if self.plot.isXAxisAutoScale() and self.plot.isYAxisAutoScale():
+        if xAxis.isAutoScale() and yAxis.isAutoScale():
             tooltip = 'Auto-scale the graph'
-        elif self.plot.isXAxisAutoScale():  # And not Y axis
+        elif xAxis.isAutoScale():  # And not Y axis
             tooltip = 'Auto-scale the x-axis of the graph only'
-        elif self.plot.isYAxisAutoScale():  # And not X axis
+        elif yAxis.isAutoScale():  # And not X axis
             tooltip = 'Auto-scale the y-axis of the graph only'
         else:  # no axis in autoscale
             tooltip = 'Auto-scale the graph'
@@ -151,11 +152,11 @@ class XAxisAutoScaleAction(PlotAction):
                     'If unchecked, x-axis does not change when reseting zoom.',
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
-        self.setChecked(plot.isXAxisAutoScale())
+        self.setChecked(plot.getXAxis().isAutoScale())
         plot.getXAxis().sigAutoScaleChanged.connect(self.setChecked)
 
     def _actionTriggered(self, checked=False):
-        self.plot.setXAxisAutoScale(checked)
+        self.plot.getXAxis().setAutoScale(checked)
         if checked:
             self.plot.resetZoom()
 
@@ -174,11 +175,11 @@ class YAxisAutoScaleAction(PlotAction):
                     'If unchecked, y-axis does not change when reseting zoom.',
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
-        self.setChecked(plot.isYAxisAutoScale())
+        self.setChecked(plot.getYAxis().isAutoScale())
         plot.getYAxis().sigAutoScaleChanged.connect(self.setChecked)
 
     def _actionTriggered(self, checked=False):
-        self.plot.setYAxisAutoScale(checked)
+        self.plot.getYAxis().setAutoScale(checked)
         if checked:
             self.plot.resetZoom()
 
@@ -417,7 +418,7 @@ class YAxisInvertedAction(PlotAction):
                    "Orient Y axis upward"),
         }
 
-        icon, tooltip = self._states[plot.isYAxisInverted()]
+        icon, tooltip = self._states[plot.getYAxis().isInverted()]
         super(YAxisInvertedAction, self).__init__(
             plot,
             icon=icon,
@@ -436,7 +437,8 @@ class YAxisInvertedAction(PlotAction):
 
     def _actionTriggered(self, checked=False):
         # This will trigger _yAxisInvertedChanged
-        self.plot.setYAxisInverted(not self.plot.isYAxisInverted())
+        yAxis = self.plot.getYAxis()
+        yAxis.setInverted(not yAxis.isInverted())
 
 
 class CrosshairAction(PlotAction):

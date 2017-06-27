@@ -1338,11 +1338,11 @@ class PlotWidget(qt.QMainWindow):
                 'addMarker deprecated extra parameters: %s', str(kw))
 
         if x is None:
-            xmin, xmax = self.getGraphXLimits()
+            xmin, xmax = self._xAxis.getLimits()
             x = 0.5 * (xmax + xmin)
 
         if y is None:
-            ymin, ymax = self.getGraphYLimits()
+            ymin, ymax = self._yAxis.getLimits()
             y = 0.5 * (ymax + ymin)
 
         return self._addMarker(x=x, y=y, legend=legend,
@@ -1622,25 +1622,25 @@ class PlotWidget(qt.QMainWindow):
 
         if direction in ('left', 'right'):
             xFactor = factor if direction == 'right' else - factor
-            xMin, xMax = self.getGraphXLimits()
+            xMin, xMax = self._xAxis.getLimits()
 
             xMin, xMax = _utils.applyPan(xMin, xMax, xFactor,
-                                         self.isXAxisLogarithmic())
-            self.setGraphXLimits(xMin, xMax)
+                                         self._xAxis.getScale() == self._xAxis.LOGARITHMIC)
+            self._xAxis.setLimits(xMin, xMax)
 
         else:  # direction in ('up', 'down')
-            sign = -1. if self.isYAxisInverted() else 1.
+            sign = -1. if self._yAxis.isInverted() else 1.
             yFactor = sign * (factor if direction == 'up' else -factor)
-            yMin, yMax = self.getGraphYLimits()
-            yIsLog = self.isYAxisLogarithmic()
+            yMin, yMax = self._yAxis.getLimits()
+            yIsLog = self._yAxis.getScale() == self._yAxis.LOGARITHMIC
 
             yMin, yMax = _utils.applyPan(yMin, yMax, yFactor, yIsLog)
-            self.setGraphYLimits(yMin, yMax, axis='left')
+            self._yAxis.setLimits(yMin, yMax)
 
-            y2Min, y2Max = self.getGraphYLimits(axis='right')
+            y2Min, y2Max = self._yRightAxis.getLimits()
 
             y2Min, y2Max = _utils.applyPan(y2Min, y2Max, yFactor, yIsLog)
-            self.setGraphYLimits(y2Min, y2Max, axis='right')
+            self._yRightAxis.setLimits(y2Min, y2Max)
 
     # Active Curve/Image
 
@@ -1977,9 +1977,9 @@ class PlotWidget(qt.QMainWindow):
 
     def _notifyLimitsChanged(self, emitSignal=True):
         """Send an event when plot area limits are changed."""
-        xRange = self.getGraphXLimits()
-        yRange = self.getGraphYLimits(axis='left')
-        y2Range = self.getGraphYLimits(axis='right')
+        xRange = self._xAxis.getLimits()
+        yRange = self._yAxis.getLimits()
+        y2Range = self._yRightAxis.getLimits()
         if emitSignal:
             axes = self.getXAxis(), self.getYAxis(), self.getYAxis(axis="right")
             ranges = xRange, yRange, y2Range
@@ -2541,12 +2541,12 @@ class PlotWidget(qt.QMainWindow):
         if dataMargins is None:
             dataMargins = self._defaultDataMargins
 
-        xLimits = self.getGraphXLimits()
-        yLimits = self.getGraphYLimits(axis='left')
-        y2Limits = self.getGraphYLimits(axis='right')
+        xLimits = self._xAxis.getLimits()
+        yLimits = self._yAxis.getLimits()
+        y2Limits = self._yRightAxis.getLimits()
 
-        xAuto = self.isXAxisAutoScale()
-        yAuto = self.isYAxisAutoScale()
+        xAuto = self._xAxis.isAutoScale()
+        yAuto = self._yAxis.isAutoScale()
 
         if not xAuto and not yAuto:
             _logger.debug("Nothing to autoscale")
@@ -2564,8 +2564,8 @@ class PlotWidget(qt.QMainWindow):
             # Add margins around data inside the plot area
             newLimits = list(_utils.addMarginsToLimits(
                 dataMargins,
-                self.isXAxisLogarithmic(),
-                self.isYAxisLogarithmic(),
+                self._xAxis._isLogarithmic(),
+                self._yAxis._isLogarithmic(),
                 xmin, xmax, ymin, ymax, ymin2, ymax2))
 
             if self.isKeepDataAspectRatio():
@@ -2605,9 +2605,9 @@ class PlotWidget(qt.QMainWindow):
 
         self._setDirtyPlot()
 
-        if (xLimits != self.getGraphXLimits() or
-                yLimits != self.getGraphYLimits(axis='left') or
-                y2Limits != self.getGraphYLimits(axis='right')):
+        if (xLimits != self._xAxis.getLimits() or
+                yLimits != self._yAxis.getLimits() or
+                y2Limits != self._yRightAxis.getLimits()):
             self._notifyLimitsChanged()
 
     # Coord conversion
@@ -2630,8 +2630,9 @@ class PlotWidget(qt.QMainWindow):
         """
         assert axis in ("left", "right")
 
-        xmin, xmax = self.getGraphXLimits()
-        ymin, ymax = self.getGraphYLimits(axis=axis)
+        xmin, xmax = self._xAxis.getLimits()
+        yAxis = self.getYAxis(axis=axis)
+        ymin, ymax = yAxis.getLimits()
 
         if x is None:
             x = 0.5 * (xmax + xmin)
@@ -3076,8 +3077,8 @@ class PlotWidget(qt.QMainWindow):
     def invertYAxis(self, *args, **kwargs):
         """Deprecated, use :meth:`setYAxisInverted` instead."""
         _logger.warning('invertYAxis deprecated, '
-                        'use setYAxisInverted instead.')
-        return self.setYAxisInverted(*args, **kwargs)
+                        'use getYAxis().setInverted instead.')
+        return self.getYAxis().setInverted(*args, **kwargs)
 
     def showGrid(self, flag=True):
         """Deprecated, use :meth:`setGraphGrid` instead."""

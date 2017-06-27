@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "20/06/2017"
+__date__ = "27/06/2017"
 
 
 import logging
@@ -270,8 +270,8 @@ class LimitsToolBar(qt.QToolBar):
 
     def _initWidgets(self):
         """Create and init Toolbar widgets."""
-        xMin, xMax = self.plot.getGraphXLimits()
-        yMin, yMax = self.plot.getGraphYLimits()
+        xMin, xMax = self.plot.getXAxis().getLimits()
+        yMin, yMax = self.plot.getYAxis().getLimits()
 
         self.addWidget(qt.QLabel('Limits: '))
         self.addWidget(qt.QLabel(' X: '))
@@ -301,8 +301,8 @@ class LimitsToolBar(qt.QToolBar):
         if event['event'] not in ('limitsChanged',):
             return
 
-        xMin, xMax = self.plot.getGraphXLimits()
-        yMin, yMax = self.plot.getGraphYLimits()
+        xMin, xMax = self.plot.getXAxis().getLimits()
+        yMin, yMax = self.plot.getYAxis().getLimits()
 
         self._xMinFloatEdit.setValue(xMin)
         self._xMaxFloatEdit.setValue(xMax)
@@ -315,7 +315,7 @@ class LimitsToolBar(qt.QToolBar):
         if xMax < xMin:
             xMin, xMax = xMax, xMin
 
-        self.plot.setGraphXLimits(xMin, xMax)
+        self.plot.getXAxis().setLimits(xMin, xMax)
 
     def _yFloatEditChanged(self):
         """Handle Y limits changed from the GUI."""
@@ -323,4 +323,4 @@ class LimitsToolBar(qt.QToolBar):
         if yMax < yMin:
             yMin, yMax = yMax, yMin
 
-        self.plot.setGraphYLimits(yMin, yMax)
+        self.plot.getYAxis().setLimits(yMin, yMax)

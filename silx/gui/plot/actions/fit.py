@@ -36,7 +36,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "27/05/2017"
+__date__ = "28/06/2017"
 
 from . import PlotAction
 import logging
@@ -125,12 +125,12 @@ class FitAction(PlotAction):
         curve = _getOneCurve(self.plot)
         if curve is None:
             return
-        self.xlabel = self.plot.getGraphXLabel()
-        self.ylabel = self.plot.getGraphYLabel()
+        self.xlabel = self.plot.getXAxis().getLabel()
+        self.ylabel = self.plot.getYAxis().getLabel()
         self.x = curve.getXData(copy=False)
         self.y = curve.getYData(copy=False)
         self.legend = curve.getLegend()
-        self.xmin, self.xmax = self.plot.getGraphXLimits()
+        self.xmin, self.xmax = self.plot.getXAxis().getLimits()
 
         # open a window with a FitWidget
         if self.fit_window is None:

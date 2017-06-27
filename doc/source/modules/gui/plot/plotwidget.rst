@@ -64,38 +64,20 @@ Remove data from the plot
 Title and labels
 ................
 
-Those methods handle the text labels of the axes and the plot title:
+Those methods handle the plot title:
 
 .. automethod:: PlotWidget.getGraphTitle
 .. automethod:: PlotWidget.setGraphTitle
-.. automethod:: PlotWidget.getGraphXLabel
-.. automethod:: PlotWidget.setGraphXLabel
-.. automethod:: PlotWidget.getGraphYLabel
-.. automethod:: PlotWidget.setGraphYLabel
-
-Axes limits
-...........
-
-Those methods change the range of data values displayed on each axis.
-
-.. automethod:: PlotWidget.getGraphXLimits
-.. automethod:: PlotWidget.setGraphXLimits
-.. automethod:: PlotWidget.getGraphYLimits
-.. automethod:: PlotWidget.setGraphYLimits
-.. automethod:: PlotWidget.setLimits
 
 Axes
 ....
 
-The following methods handle the display properties of the axes:
+The following methods handle the limits, scales, labels of axis:
 
-.. automethod:: PlotWidget.isXAxisLogarithmic
-.. automethod:: PlotWidget.setXAxisLogarithmic
-.. automethod:: PlotWidget.isYAxisLogarithmic
-.. automethod:: PlotWidget.setYAxisLogarithmic
+.. automethod:: PlotWidget.getXAxis
+.. automethod:: PlotWidget.getYAxis
 
-.. automethod:: PlotWidget.isYAxisInverted
-.. automethod:: PlotWidget.setYAxisInverted
+.. automethod:: PlotWidget.setLimits
 .. automethod:: PlotWidget.isKeepDataAspectRatio
 .. automethod:: PlotWidget.setKeepDataAspectRatio
 .. automethod:: PlotWidget.getGraphGrid
@@ -110,10 +92,8 @@ Those methods change the behavior of :meth:`PlotWidget.resetZoom`.
 
 .. automethod:: PlotWidget.getDataMargins
 .. automethod:: PlotWidget.setDataMargins
-.. automethod:: PlotWidget.isXAxisAutoScale
-.. automethod:: PlotWidget.setXAxisAutoScale
-.. automethod:: PlotWidget.isYAxisAutoScale
-.. automethod:: PlotWidget.setYAxisAutoScale
+.. automethod:: Axis.isAutoScale
+.. automethod:: Axis.setAutoScale
 
 Defaults
 ........

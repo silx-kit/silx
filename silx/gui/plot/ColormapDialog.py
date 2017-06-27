@@ -61,7 +61,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "29/03/2016"
+__date__ = "27/06/2017"
 
 
 import logging
@@ -214,8 +214,8 @@ class ColormapDialog(qt.QDialog):
         """Init the plot to display the range and the values"""
         self._plot = PlotWidget()
         self._plot.setDataMargins(yMinMargin=0.125, yMaxMargin=0.125)
-        self._plot.setGraphXLabel("Data Values")
-        self._plot.setGraphYLabel("")
+        self._plot.getXAxis().setLabel("Data Values")
+        self._plot.getYAxis().setLabel("")
         self._plot.setInteractiveMode('select', zoomOnWheel=False)
         self._plot.setActiveCurveHandling(False)
         self._plot.setMinimumSize(qt.QSize(250, 200))

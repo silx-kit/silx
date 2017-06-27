@@ -36,6 +36,8 @@ import numpy
 from silx.test.utils import ParametricTestCase
 from silx.gui.test.utils import SignalListener
 from silx.gui.test.utils import TestCaseQt
+from silx.test import utils
+from silx.utils import deprecation
 
 from silx.gui import qt
 from silx.gui.plot import PlotWidget
@@ -600,33 +602,111 @@ class TestPlotAxes(TestCaseQt):
         axis = self.plot.getYAxis(axis="right")
         self.assertEqual(axis.getScale(), axis.LINEAR)
 
-    def testOldLogApi(self):
+    @utils.test_logging(deprecation.depreclog.name, warning=2)
+    def testOldPlotAxis_Logarithmic(self):
+        """Test silx API prior to silx 0.6"""
         x = self.plot.getXAxis()
         y = self.plot.getYAxis()
         yright = self.plot.getYAxis(axis="right")
-        self.assertEqual(x._isLogarithmic(), False)
-        self.assertEqual(y._isLogarithmic(), False)
-        self.assertEqual(yright._isLogarithmic(), False)
+
+        listener = SignalListener()
+        self.plot.sigSetXAxisLogarithmic.connect(listener.partial("x"))
+        self.plot.sigSetYAxisLogarithmic.connect(listener.partial("y"))
+
         self.assertEqual(x.getScale(), x.LINEAR)
         self.assertEqual(y.getScale(), x.LINEAR)
         self.assertEqual(yright.getScale(), x.LINEAR)
 
-        x._setLogarithmic(True)
-        self.assertEqual(x._isLogarithmic(), True)
+        self.plot.setXAxisLogarithmic(True)
         self.assertEqual(x.getScale(), x.LOGARITHMIC)
-        self.assertEqual(y._isLogarithmic(), False)
-
-        y._setLogarithmic(True)
-        self.assertEqual(x._isLogarithmic(), True)
-        self.assertEqual(y._isLogarithmic(), True)
-        self.assertEqual(y.getScale(), x.LOGARITHMIC)
-        self.assertEqual(yright._isLogarithmic(), True)
-
-        yright._setLogarithmic(False)
-        self.assertEqual(x._isLogarithmic(), True)
-        self.assertEqual(y._isLogarithmic(), False)
-        self.assertEqual(yright._isLogarithmic(), False)
+        self.assertEqual(y.getScale(), x.LINEAR)
         self.assertEqual(yright.getScale(), x.LINEAR)
+        self.assertEqual(self.plot.isXAxisLogarithmic(), True)
+        self.assertEqual(self.plot.isYAxisLogarithmic(), False)
+        self.assertEqual(listener.arguments(callIndex=-1), ("x", True))
+
+        self.plot.setYAxisLogarithmic(True)
+        self.assertEqual(x.getScale(), x.LOGARITHMIC)
+        self.assertEqual(y.getScale(), x.LOGARITHMIC)
+        self.assertEqual(yright.getScale(), x.LOGARITHMIC)
+        self.assertEqual(self.plot.isXAxisLogarithmic(), True)
+        self.assertEqual(self.plot.isYAxisLogarithmic(), True)
+        self.assertEqual(listener.arguments(callIndex=-1), ("y", True))
+
+        yright.setScale(yright.LINEAR)
+        self.assertEqual(x.getScale(), x.LOGARITHMIC)
+        self.assertEqual(y.getScale(), x.LINEAR)
+        self.assertEqual(yright.getScale(), x.LINEAR)
+        self.assertEqual(self.plot.isXAxisLogarithmic(), True)
+        self.assertEqual(self.plot.isYAxisLogarithmic(), False)
+        self.assertEqual(listener.arguments(callIndex=-1), ("y", False))
+
+    @utils.test_logging(deprecation.depreclog.name, warning=2)
+    def testOldPlotAxis_AutoScale(self):
+        """Test silx API prior to silx 0.6"""
+        x = self.plot.getXAxis()
+        y = self.plot.getYAxis()
+        yright = self.plot.getYAxis(axis="right")
+
+        listener = SignalListener()
+        self.plot.sigSetXAxisAutoScale.connect(listener.partial("x"))
+        self.plot.sigSetYAxisAutoScale.connect(listener.partial("y"))
+
+        self.assertEqual(x.isAutoScale(), True)
+        self.assertEqual(y.isAutoScale(), True)
+        self.assertEqual(yright.isAutoScale(), True)
+
+        self.plot.setXAxisAutoScale(False)
+        self.assertEqual(x.isAutoScale(), False)
+        self.assertEqual(y.isAutoScale(), True)
+        self.assertEqual(yright.isAutoScale(), True)
+        self.assertEqual(self.plot.isXAxisAutoScale(), False)
+        self.assertEqual(self.plot.isYAxisAutoScale(), True)
+        self.assertEqual(listener.arguments(callIndex=-1), ("x", False))
+
+        self.plot.setYAxisAutoScale(False)
+        self.assertEqual(x.isAutoScale(), False)
+        self.assertEqual(y.isAutoScale(), False)
+        self.assertEqual(yright.isAutoScale(), False)
+        self.assertEqual(self.plot.isXAxisAutoScale(), False)
+        self.assertEqual(self.plot.isYAxisAutoScale(), False)
+        self.assertEqual(listener.arguments(callIndex=-1), ("y", False))
+
+        yright.setAutoScale(True)
+        self.assertEqual(x.isAutoScale(), False)
+        self.assertEqual(y.isAutoScale(), True)
+        self.assertEqual(yright.isAutoScale(), True)
+        self.assertEqual(self.plot.isXAxisAutoScale(), False)
+        self.assertEqual(self.plot.isYAxisAutoScale(), True)
+        self.assertEqual(listener.arguments(callIndex=-1), ("y", True))
+
+    @utils.test_logging(deprecation.depreclog.name, warning=1)
+    def testOldPlotAxis_Inverted(self):
+        """Test silx API prior to silx 0.6"""
+        x = self.plot.getXAxis()
+        y = self.plot.getYAxis()
+        yright = self.plot.getYAxis(axis="right")
+
+        listener = SignalListener()
+        self.plot.sigSetYAxisInverted.connect(listener.partial("y"))
+
+        self.assertEqual(x.isInverted(), False)
+        self.assertEqual(y.isInverted(), False)
+        self.assertEqual(yright.isInverted(), False)
+
+        self.plot.setYAxisInverted(True)
+        self.assertEqual(x.isInverted(), False)
+        self.assertEqual(y.isInverted(), True)
+        self.assertEqual(yright.isInverted(), True)
+        self.assertEqual(self.plot.isYAxisInverted(), True)
+        self.assertEqual(listener.arguments(callIndex=-1), ("y", True))
+
+        yright.setInverted(False)
+        self.assertEqual(x.isInverted(), False)
+        self.assertEqual(y.isInverted(), False)
+        self.assertEqual(yright.isInverted(), False)
+        self.assertEqual(self.plot.isYAxisInverted(), False)
+        self.assertEqual(listener.arguments(callIndex=-1), ("y", False))
 
     def testLogXWithData(self):
         self.plot.setGraphTitle('Curve X: Log Y: Linear')

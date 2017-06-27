@@ -27,7 +27,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "26/04/2017"
+__date__ = "27/06/2017"
 
 
 import logging
@@ -114,9 +114,9 @@ def plot(*args, **kwargs):
     if 'title' in kwargs:
         plt.setGraphTitle(kwargs['title'])
     if 'xlabel' in kwargs:
-        plt.setGraphXLabel(kwargs['xlabel'])
+        plt.getXAxis().setLabel(kwargs['xlabel'])
     if 'ylabel' in kwargs:
-        plt.setGraphYLabel(kwargs['ylabel'])
+        plt.getYAxis().setLabel(kwargs['ylabel'])
 
     color = kwargs.get('color')
     linestyle = kwargs.get('linestyle')
@@ -235,8 +235,8 @@ def imshow(data=None, cmap=None, norm='linear',
     """
     plt = Plot2D()
     plt.setGraphTitle(title)
-    plt.setGraphXLabel(xlabel)
-    plt.setGraphYLabel(ylabel)
+    plt.getXAxis().setLabel(xlabel)
+    plt.getYAxis().setLabel(ylabel)
 
     # Update default colormap with input parameters
     colormap = plt.getDefaultColormap()

@@ -438,13 +438,13 @@ Labels and title
 ++++++++++++++++
 
 Use :meth:`.PlotWidget.setGraphTitle` to set the plot main title.
-Use :meth:`.PlotWidget.setGraphXLabel` and :meth:`.PlotWidget.setGraphYLabel` to set the axes text labels:
+Use :meth:`.PlotWidget.getXAxis` and :meth:`.PlotWidget.getYAxis` to set the axes text labels:
 
 .. code-block:: python
 
    plot.setGraphTitle('My plot')
-   plot.setGraphXLabel('X')
-   plot.setGraphYLabel('Y')
+   plot.getXAxis().setLabel('X')
+   plot.getYAxis().setLabel('Y')
 
 
 Axes limits
@@ -456,9 +456,9 @@ The following code moves the visible plot area to the right:
 
 .. code-block:: python
 
-    xmin, xmax = plot.getGraphXLimits()
+    xmin, xmax = plot.getXAxis().getLimits()
     offset = 0.1 * (xmax - xmin)
-    plot.setGraphXLimits(xmin + offset, xmax + offset)
+    plot.getXAxis().setLimits(xmin + offset, xmax + offset)
 
 :meth:`.PlotWidget.resetZoom` set the plot limits to the bounds of the data:
 
@@ -466,7 +466,7 @@ The following code moves the visible plot area to the right:
 
    plot.resetZoom()
 
-See :meth:`.PlotWidget.resetZoom`, :meth:`.PlotWidget.setLimits`, :meth:`.PlotWidget.getGraphXLimits`, :meth:`.PlotWidget.setGraphXLimits`, :meth:`.PlotWidget.getGraphYLimits`, :meth:`.PlotWidget.setGraphYLimits` for details.
+See :meth:`.PlotWidget.resetZoom`, :meth:`.PlotWidget.setLimits`, :meth:`.PlotWidget.getXAxis`, :meth:`.PlotWidget.getYAxis` for details.
 
 
 Axes
@@ -476,17 +476,17 @@ Different methods allow plot axes modifications:
 
 .. code-block:: python
 
-   plot.setYAxisInverted(True)  # Makes the Y axis pointing downward
+   plot.getYAxis().setInverted(True)  # Makes the Y axis pointing downward
    plot.setKeepDataAspectRatio(True)  # To keep aspect ratio between X and Y axes
 
-See :meth:`.PlotWidget.setYAxisInverted`, :meth:`.PlotWidget.setKeepDataAspectRatio` for details.
+See :meth:`.PlotWidget.getYAxis`, :meth:`.PlotWidget.setKeepDataAspectRatio` for details.
 
 .. code-block:: python
 
    plot.setGraphGrid(which='both')  # To show a grid for both minor and major axes ticks
 
    # Use logarithmic axes
-   plot.setXAxisLogarithmic(True)
-   plot.setYAxisLogarithmic(True)
+   plot.getXAxis().setScale("log")
+   plot.getYAxis().setScale("log")
 
-See :meth:`.PlotWidget.setGraphGrid`, :meth:`.PlotWidget.setXAxisLogarithmic`, :meth:`.PlotWidget.setYAxisLogarithmic` for details.
+See :meth:`.PlotWidget.setGraphGrid`, :meth:`.PlotWidget.getXAxis`, :meth:`.PlotWidget.getXAxis` for details.

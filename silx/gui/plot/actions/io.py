@@ -37,7 +37,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "24/05/2017"
+__date__ = "27/06/2017"
 
 from . import PlotAction
 from silx.io.utils import save1D, savespec
@@ -189,10 +189,10 @@ class SaveAction(PlotAction):
         # If curve has no associated label, get the default from the plot
         xlabel = curve.getXLabel()
         if xlabel is None:
-            xlabel = self.plot.getGraphXLabel()
+            xlabel = self.plot.getXAxis().getLabel()
         ylabel = curve.getYLabel()
         if ylabel is None:
-            ylabel = self.plot.getGraphYLabel()
+            ylabel = self.plot.getYAxis().getLabel()
 
         try:
             save1D(filename,

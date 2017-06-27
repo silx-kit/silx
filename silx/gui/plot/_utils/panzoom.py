@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "21/03/2017"
+__date__ = "27/06/2017"
 
 
 import math
@@ -93,8 +93,8 @@ def applyZoomToPlot(plot, scaleF, center=None):
     :param center: (x, y) coords in pixel coordinates of the zoom center.
     :type center: 2-tuple of float
     """
-    xMin, xMax = plot.getGraphXLimits()
-    yMin, yMax = plot.getGraphYLimits()
+    xMin, xMax = plot.getXAxis().getLimits()
+    yMin, yMax = plot.getYAxis().getLimits()
 
     if center is None:
         left, top, width, height = plot.getPlotBoundsInPixels()
@@ -106,17 +106,17 @@ def applyZoomToPlot(plot, scaleF, center=None):
     assert dataCenterPos is not None
 
     xMin, xMax = scale1DRange(xMin, xMax, dataCenterPos[0], scaleF,
-                              plot.isXAxisLogarithmic())
+                              plot.getXAxis()._isLogarithmic())
 
     yMin, yMax = scale1DRange(yMin, yMax, dataCenterPos[1], scaleF,
-                              plot.isYAxisLogarithmic())
+                              plot.getYAxis()._isLogarithmic())
 
     dataPos = plot.pixelToData(cx, cy, axis="right")
     assert dataPos is not None
     y2Center = dataPos[1]
-    y2Min, y2Max = plot.getGraphYLimits(axis="right")
+    y2Min, y2Max = plot.getYAxis(axis="right").getLimits()
     y2Min, y2Max = scale1DRange(y2Min, y2Max, y2Center, scaleF,
-                                plot.isYAxisLogarithmic())
+                                plot.getYAxis()._isLogarithmic())
 
     plot.setLimits(xMin, xMax, yMin, yMax, y2Min, y2Max)
 
