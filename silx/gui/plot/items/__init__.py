@@ -22,10 +22,10 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This package provides classes that describes :class:`.Plot` content.
+"""This package provides classes that describes :class:`.PlotWidget` content.
 
-Instances of those classes are returned by :class:`.Plot` methods that give
-access to its content such as :meth:`.Plot.getCurve`, :meth:`.Plot.getImage`.
+Instances of those classes are returned by :class:`.PlotWidget` methods that give
+access to its content such as :meth:`.PlotWidget.getCurve`, :meth:`.PlotWidget.getImage`.
 """
 
 __authors__ = ["T. Vincent"]

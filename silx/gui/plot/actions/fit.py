@@ -36,7 +36,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "24/05/2017"
+__date__ = "27/05/2017"
 
 from . import PlotAction
 import logging
@@ -137,7 +137,7 @@ class FitAction(PlotAction):
             self.fit_window = qt.QMainWindow()
             # import done here rather than at module level to avoid circular import
             # FitWidget -> BackgroundWidget -> PlotWindow -> actions -> fit -> FitWidget
-            from ..fit.FitWidget import FitWidget
+            from ...fit.FitWidget import FitWidget
             self.fit_widget = FitWidget(parent=self.fit_window)
             self.fit_window.setCentralWidget(
                 self.fit_widget)

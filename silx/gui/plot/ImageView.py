@@ -255,7 +255,7 @@ class ImageView(PlotWindow):
 
     :param parent: The parent of this widget or None.
     :param backend: The backend to use for the plot (default: matplotlib).
-                    See :class:`.Plot` for the list of supported backend.
+                    See :class:`.PlotWidget` for the list of supported backend.
     :type backend: str or :class:`BackendBase.BackendBase`
     """
 

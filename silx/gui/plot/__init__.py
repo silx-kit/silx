@@ -43,7 +43,7 @@ List of Qt widgets:
 By default, those widget are using matplotlib_.
 They can optionally use a faster OpenGL-based rendering (beta feature),
 which is enabled by setting the ``backend`` argument to ``'gl'``
-when creating the widgets (See :class:`.Plot`).
+when creating the widgets (See :class:`.PlotWidget`).
 
 .. note::
 
