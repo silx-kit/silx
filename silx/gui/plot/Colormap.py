@@ -274,7 +274,7 @@ class Colormap(qt.QObject):
         elif item == 'vmax':
             return self.getVMax()
         elif item == 'colors':
-            return self.getColorMapLUT(copy=False)
+            return self.getColorMapLUT()
         else:
             raise KeyError(item)
 

@@ -235,8 +235,6 @@ class TestColorBarWidget(TestCaseQt):
         self.assertTrue(self.colorBar.getColorScaleBar().minVal == data.min())
         self.assertTrue(self.colorBar.getColorScaleBar().maxVal == data.max())
 
-        data = numpy.linspace(-9, -2, 100).reshape(10, 10)
-
     def testPlotAssocation(self):
         """Make sure the ColorBarWidget is proparly connected with the plot"""
         colormap = Colormap(name='gray',
