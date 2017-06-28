@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -47,46 +47,74 @@ class TestMinMax(ParametricTestCase):
     UNSIGNED_INT_DTYPES = 'uint8', 'uint16', 'uint32', 'uint64'
     DTYPES = FLOATING_DTYPES + SIGNED_INT_DTYPES + UNSIGNED_INT_DTYPES
 
-    def _test_min_max(self, data, min_positive):
+    def _numpy_min_max(self, data, min_positive=False, finite=False):
+        """Reference numpy implementation of min_max
+
+        :param numpy.ndarray data: Data set to use for test
+        :param bool min_positive: True to test with positive min
+        :param bool finite: True to only test finite values
+        """
+        data = numpy.array(data, copy=False)
+        if data.size == 0:
+            raise ValueError('Zero-sized array')
+
+        minimum = None
+        argmin = None
+        maximum = None
+        argmax = None
+        min_pos = None
+        argmin_pos = None
+
+        if finite:
+            data = data[numpy.isfinite(data)]
+
+        if data.size > 0:
+            minimum = numpy.nanmin(data)
+            if numpy.isnan(minimum):
+                argmin = 0
+            else:
+                # nanargmin equivalent
+                argmin = numpy.where(data == minimum)[0][0]
+
+            maximum = numpy.nanmax(data)
+            if numpy.isnan(maximum):
+                argmax = 0
+            else:
+                # nanargmax equivalent
+                argmax = numpy.where(data == maximum)[0][0]
+
+            if min_positive:
+                pos_data = data[data > 0]
+                if pos_data.size > 0:
+                    min_pos = numpy.min(pos_data)
+                    argmin_pos = numpy.where(data == min_pos)[0][0]
+
+        return minimum, min_pos, maximum, argmin, argmin_pos, argmax
+
+    def _test_min_max(self, data, min_positive, finite=False):
         """Compare min_max with numpy for the given dataset
 
         :param numpy.ndarray data: Data set to use for test
         :param bool min_positive: True to test with positive min
+        :param bool finite: True to only test finite values
         """
-        result = min_max(data, min_positive)
+        minimum, min_pos, maximum, argmin, argmin_pos, argmax = \
+            self._numpy_min_max(data, min_positive, finite)
 
-        minimum = numpy.nanmin(data)
-        if numpy.isnan(minimum):  # All NaNs
-            self.assertTrue(numpy.isnan(result.minimum))
-            self.assertEqual(result.argmin, 0)
+        result = min_max(data, min_positive, finite)
 
-        else:
-            self.assertEqual(result.minimum, minimum)
+        self.assertSimilar(minimum, result.minimum)
+        self.assertSimilar(min_pos, result.min_positive)
+        self.assertSimilar(maximum, result.maximum)
+        self.assertSimilar(argmin, result.argmin)
+        self.assertSimilar(argmin_pos, result.argmin_positive)
+        self.assertSimilar(argmax, result.argmax)
 
-            argmin = numpy.where(data == minimum)[0][0]
-            self.assertEqual(result.argmin, argmin)
-
-        maximum = numpy.nanmax(data)
-        if numpy.isnan(maximum):  # All NaNs
-            self.assertTrue(numpy.isnan(result.maximum))
-            self.assertEqual(result.argmax, 0)
-
-        else:
-            self.assertEqual(result.maximum, maximum)
-
-            argmax = numpy.where(data == maximum)[0][0]
-            self.assertEqual(result.argmax, argmax)
-
-        if min_positive:
-            pos_data = data[data > 0]
-            if len(pos_data) > 0:
-                min_pos = numpy.min(pos_data)
-                argmin_pos = numpy.where(data == min_pos)[0][0]
-            else:
-                min_pos = None
-                argmin_pos = None
-            self.assertEqual(result.min_positive, min_pos)
-            self.assertEqual(result.argmin_positive, argmin_pos)
+    def assertSimilar(self, a, b):
+        """Assert that a and b are both None or NaN or that a == b."""
+        self.assertTrue((a is None and b is None) or
+                        (numpy.isnan(a) and numpy.isnan(b)) or
+                        a == b)
 
     def test_different_datasets(self):
         """Test min_max with different numpy.arange datasets."""
