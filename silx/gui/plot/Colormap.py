@@ -234,7 +234,7 @@ class Colormap(qt.QObject):
 
         if vmin is None or vmax is None:  # Handle autoscale
             # Get min/max from data
-            if len(data) > 0:
+            if data is not None and len(data) > 0:
                 if self.getNormalization() == self.LOGARITHM:
                     result = min_max(data, min_positive=True)
                     min_ = result.min_positive  # >0 or None
