@@ -40,17 +40,8 @@ from silx.math.combo import min_max
 
 _logger = logging.getLogger(__file__)
 
-_DEFAULT_COLORMAPS = {
-    'gray': 0,
-    'reversed gray': 1,
-    'red': 2,
-    'green': 3,
-    'blue': 4,
-    'temperature': 5
-}
-"""Dictionary of _DEFAULT_COLORMAPS with there GLProgram ids"""
-
-DEFAULT_COLORMAPS = tuple(_DEFAULT_COLORMAPS.keys())
+DEFAULT_COLORMAPS = (
+    'gray', 'reversed gray', 'temperature', 'red', 'green', 'blue')
 """Tuple of supported colormap names."""
 
 DEFAULT_MIN_LIN = 0

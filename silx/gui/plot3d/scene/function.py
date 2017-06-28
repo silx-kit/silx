@@ -39,7 +39,6 @@ from ..._glutils import gl
 
 from . import event
 from . import utils
-from silx.gui.plot import Colormap as plot_colormap
 
 
 _logger = logging.getLogger(__name__)
@@ -364,6 +363,20 @@ class Colormap(event.Notifier, ProgramFunction):
 
     call = "colormap"
 
+    _COLORMAPS = {
+        'gray': 0,
+        'reversed gray': 1,
+        'red': 2,
+        'green': 3,
+        'blue': 4,
+        'temperature': 5
+    }
+
+    COLORMAPS = tuple(_COLORMAPS.keys())
+    """Tuple of supported colormap names."""
+
+    NORMS = 'linear', 'log'
+    """Tuple of supported normalizations."""
 
     def __init__(self, name='gray', norm='linear', range_=(1., 10.)):
         """Shader function to apply a colormap to a value.
@@ -391,7 +404,7 @@ class Colormap(event.Notifier, ProgramFunction):
     @name.setter
     def name(self, name):
         if name != self._name:
-            assert name in plot_colormap.DEFAULT_COLORMAPS
+            assert name in self.COLORMAPS
             self._name = name
             self.notify()
 
@@ -407,9 +420,9 @@ class Colormap(event.Notifier, ProgramFunction):
     @norm.setter
     def norm(self, norm):
         if norm != self._norm:
-            assert norm in plot_colormap.NORMALIZATIONS
+            assert norm in self.NORMS
             self._norm = norm
-            if norm == plot_colormap.LOGARITHM:
+            if norm == 'log':
                 self.range_ = self.range_  # To test for positive range_
             self.notify()
 
@@ -429,7 +442,7 @@ class Colormap(event.Notifier, ProgramFunction):
         assert len(range_) == 2
         range_ = float(range_[0]), float(range_[1])
 
-        if self.norm == plot_colormap.LOGARITHM and (range_[0] <= 0. or range_[1] <= 0.):
+        if self.norm == 'log' and (range_[0] <= 0. or range_[1] <= 0.):
             _logger.warn(
                 "Log normalization and negative range: updating range.")
             minPos = numpy.finfo(numpy.float32).tiny
@@ -446,11 +459,11 @@ class Colormap(event.Notifier, ProgramFunction):
         :param GLProgram program: The program to set-up.
                                   It MUST be in use and using this function.
         """
-        gl.glUniform1i(program.uniforms['cmap.id'], plot_colormap._DEFAULT_COLORMAPS[self.name])
-        gl.glUniform1i(program.uniforms['cmap.isLog'], self._norm == plot_colormap.LOGARITHM)
+        gl.glUniform1i(program.uniforms['cmap.id'], self._COLORMAPS[self.name])
+        gl.glUniform1i(program.uniforms['cmap.isLog'], self._norm == 'log')
 
         min_, max_ = self.range_
-        if self._norm == plot_colormap.LOGARITHM:
+        if self._norm == 'log':
             min_, max_ = numpy.log10(min_), numpy.log10(max_)
 
         gl.glUniform1f(program.uniforms['cmap.min'], min_)
