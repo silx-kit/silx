@@ -88,13 +88,6 @@ Reset zoom
 
 .. automethod:: PlotWidget.resetZoom
 
-Those methods change the behavior of :meth:`PlotWidget.resetZoom`.
-
-.. automethod:: PlotWidget.getDataMargins
-.. automethod:: PlotWidget.setDataMargins
-.. automethod:: Axis.isAutoScale
-.. automethod:: Axis.setAutoScale
-
 Defaults
 ........
 
@@ -130,11 +123,6 @@ Signals
 The :class:`PlotWidget` provides the following Qt signals:
 
 .. autoattribute:: PlotWidget.sigPlotSignal
-.. autoattribute:: PlotWidget.sigSetYAxisInverted
-.. autoattribute:: PlotWidget.sigSetXAxisLogarithmic
-.. autoattribute:: PlotWidget.sigSetYAxisLogarithmic
-.. autoattribute:: PlotWidget.sigSetXAxisAutoScale
-.. autoattribute:: PlotWidget.sigSetYAxisAutoScale
 .. autoattribute:: PlotWidget.sigSetKeepDataAspectRatio
 .. autoattribute:: PlotWidget.sigSetGraphGrid
 .. autoattribute:: PlotWidget.sigSetGraphCursor

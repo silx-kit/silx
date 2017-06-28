@@ -168,11 +168,6 @@ They provide the new state:
 - 'setGraphCursor' event with a 'state' key (bool)
 - 'setGraphGrid' event with a 'which' key (str), see :meth:`setGraphGrid`
 - 'setKeepDataAspectRatio' event with a 'state' key (bool)
-- 'setXAxisAutoScale' event with a 'state' key (bool)
-- 'setXAxisLogarithmic' event with a 'state' key (bool)
-- 'setYAxisAutoScale' event with a 'state' key (bool)
-- 'setYAxisInverted' event with a 'state' key (bool)
-- 'setYAxisLogarithmic' event with a 'state' key (bool)
 
 A 'contentChanged' event is triggered when the content of the plot is updated.
 It provides the following keys:
@@ -201,7 +196,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "27/06/2017"
+__date__ = "28/06/2017"
 
 
 from collections import OrderedDict, namedtuple
@@ -2526,16 +2521,17 @@ class PlotWidget(qt.QMainWindow):
         """Reset the plot limits to the bounds of the data and redraw the plot.
 
         It automatically scale limits of axes that are in autoscale mode
-        (See :meth:`setXAxisAutoScale`, :meth:`setYAxisAutoScale`).
+        (see :meth:`getXAxis`, :meth:`getYAxis` and :meth:`Axis.setAutoScale`).
         It keeps current limits on axes that are not in autoscale mode.
 
-        Extra margins can be added around the data inside the plot area.
+        Extra margins can be added around the data inside the plot area
+        (see :meth:`setDataMargins`).
         Margins are given as one ratio of the data range per limit of the
         data (xMin, xMax, yMin and yMax limits).
         For log scale, extra margins are applied in log10 of the data.
 
         :param dataMargins: Ratios of margins to add around the data inside
-                            the plot area for each side (Default: no margins).
+                            the plot area for each side (default: no margins).
         :type dataMargins: A 4-tuple of float as (xMin, xMax, yMin, yMax).
         """
         if dataMargins is None:
@@ -3075,7 +3071,7 @@ class PlotWidget(qt.QMainWindow):
         return self.setActiveCurveHandling(*args, **kwargs)
 
     def invertYAxis(self, *args, **kwargs):
-        """Deprecated, use :meth:`setYAxisInverted` instead."""
+        """Deprecated, use :meth:`Axis.setInverted` instead."""
         _logger.warning('invertYAxis deprecated, '
                         'use getYAxis().setInverted instead.')
         return self.getYAxis().setInverted(*args, **kwargs)
