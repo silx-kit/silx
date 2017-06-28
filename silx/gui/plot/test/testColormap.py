@@ -208,7 +208,7 @@ class TestObjectAPI(unittest.TestCase):
         applying
         """
         # test linear scale
-        data = numpy.array([-1, 1, 2, 3])
+        data = numpy.array([-1, 1, 2, 3, float('nan')])
         cl1 = Colormap(name='gray',
                        normalization=Colormap.LINEAR,
                        vmin=0,
@@ -231,8 +231,16 @@ class TestObjectAPI(unittest.TestCase):
         self.assertTrue(cl3.getColorMapRange(data) == (0, 3))
         self.assertTrue(cl4.getColorMapRange(data) == (-1, 3))
 
+        # test linear with annoying cases
+        self.assertEqual(cl3.getColorMapRange((-1, -2)), (0, 0))
+        self.assertEqual(cl4.getColorMapRange(()), (0., 1.))
+        self.assertEqual(cl4.getColorMapRange(
+            (float('nan'), float('inf'), 1., -float('inf'), 2)), (1., 2.))
+        self.assertEqual(cl4.getColorMapRange(
+            (float('nan'), float('inf'))), (0., 1.))
+
         # test log scale
-        data = numpy.array([1, 10, 100, 1000])
+        data = numpy.array([float('nan'), -1, 1, 10, 100, 1000])
         cl1 = Colormap(name='gray',
                        normalization=Colormap.LOGARITHM,
                        vmin=1,
@@ -254,6 +262,15 @@ class TestObjectAPI(unittest.TestCase):
         self.assertTrue(cl2.getColorMapRange(data) == (1, 100))
         self.assertTrue(cl3.getColorMapRange(data) == (1, 1000))
         self.assertTrue(cl4.getColorMapRange(data) == (1, 1000))
+
+        # test log with annoying cases
+        self.assertEqual(cl3.getColorMapRange((0.1, 0.2)), (1, 1))
+        self.assertEqual(cl4.getColorMapRange((-2., -1.)), (1., 1.))
+        self.assertEqual(cl4.getColorMapRange(()), (1., 10.))
+        self.assertEqual(cl4.getColorMapRange(
+            (float('nan'), float('inf'), 1., -float('inf'), 2)), (1., 2.))
+        self.assertEqual(cl4.getColorMapRange(
+            (float('nan'), float('inf'))), (1., 10.))
 
 
 def suite():
