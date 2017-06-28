@@ -22,7 +22,10 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""
+"""This module provides a dialog widget to select plot items.
+
+.. autoclass:: ItemsSelectionDialog
+
 """
 
 __authors__ = ["P. Knobel"]
@@ -182,7 +185,25 @@ class ItemsSelectionDialog(qt.QDialog):
     """This widget is a modal dialog allowing to select one or more plot
     items, in a table displaying their legend and kind.
 
+    Public methods:
 
+      - :meth:`getSelectedItems`
+      - :meth:`setAvailableKinds`
+      - :meth:`setItemsSelectionMode`
+
+    This widget inherits QDialog and therefore implements the usual
+    dialog methods, e.g. :meth:`exec_`.
+
+    A trivial usage example would be::
+
+        isd = ItemsSelectionDialog(plot=my_plot_widget)
+        isd.setItemsSelectionMode(qt.QTableWidget.SingleSelection)
+        result = isd.exec_()
+        if result:
+            for item in isd.getSelectedItems():
+                print(item.getLegend(), type(item))
+        else:
+            print("Selection cancelled")
     """
     def __init__(self, parent=None, plot=None):
         if plot is None or not isinstance(plot, PlotWidget):
@@ -212,7 +233,10 @@ class ItemsSelectionDialog(qt.QDialog):
         self.setLayout(layout)
 
     def getSelectedItems(self):
-        """"""
+        """Return a list of selected plot items
+
+        :return: List of selected plot items
+        :rtype: list[silx.gui.plot.items.Item]"""
         return self.item_selector.selectedPlotItems
 
     def setAvailableKinds(self, kinds):
@@ -227,6 +251,6 @@ class ItemsSelectionDialog(qt.QDialog):
         """Set selection mode for plot item (single item selection,
         multiple...).
 
-        :param mode: One of :class:`QTableWidget` selection modem
+        :param mode: One of :class:`QTableWidget` selection modes
         """
         self.item_selector.setSelectionMode(mode)

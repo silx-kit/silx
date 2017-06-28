@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,8 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""
+"""This example illustrates how to use a :class:`ItemsSelectionDialog` widget
+associated with a :class:`PlotWidget`.
 """
 
 __authors__ = ["P. Knobel"]
@@ -45,14 +46,11 @@ pw.show()
 
 isd = ItemsSelectionDialog(plot=pw)
 isd.setItemsSelectionMode(qt.QTableWidget.ExtendedSelection)
-isd.show()
 result = isd.exec_()
 if result:
     for item in isd.getSelectedItems():
         print(item.getLegend(), type(item))
-    pw.close()
 else:
     print("Selection cancelled")
-    pw.close()
 
 app.exec_()
