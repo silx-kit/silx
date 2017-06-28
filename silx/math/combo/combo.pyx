@@ -222,7 +222,7 @@ def _finite_min_max(cython.floating[::1] data, bint min_positive=False):
     with nogil:
         minimum = INFINITY
         maximum = -INFINITY
-        min_pos = 0.
+        min_pos = INFINITY
 
         if not min_positive:
             for index in range(length):
@@ -231,18 +231,18 @@ def _finite_min_max(cython.floating[::1] data, bint min_positive=False):
                     if value > maximum:
                         maximum = value
                         max_index = index
-                    elif value < minimum:
+                    if value < minimum:
                         minimum = value
                         min_index = index
 
         else:
-            for index in range(length):
+            for index in range(index, length):
                 value = data[index]
                 if isfinite(value):
                     if value > maximum:
                         maximum = value
                         max_index = index
-                    elif value < minimum:
+                    if value < minimum:
                         minimum = value
                         min_index = index
 
@@ -251,10 +251,10 @@ def _finite_min_max(cython.floating[::1] data, bint min_positive=False):
                         min_pos_index = index
 
     return _MinMaxResult(minimum if isfinite(minimum) else None,
-                         min_pos if min_pos > 0 else None,
+                         min_pos if isfinite(min_pos) else None,
                          maximum if isfinite(maximum) else None,
                          min_index if isfinite(minimum) else None,
-                         min_pos_index if min_pos > 0 else None,
+                         min_pos_index if isfinite(min_pos) else None,
                          max_index if isfinite(maximum) else None)
 
 
