@@ -70,9 +70,10 @@ class Colormap(qt.QObject):
     """
 
     LINEAR = 'linear'
-    """constante for linear normalization"""
+    """constant for linear normalization"""
+
     LOGARITHM = 'log'
-    """constante for logarithmic normalization"""
+    """constant for logarithmic normalization"""
 
     NORMALIZATIONS = (LINEAR, LOGARITHM)
     """Tuple of managed normalizations"""
@@ -218,9 +219,9 @@ class Colormap(qt.QObject):
 
         if self.getNormalization() == self.LOGARITHM:
             # Handle negative bounds as autoscale
-            if vmin <= 0.:
+            if vmin is not None and vmin <= 0.:
                 vmin = None
-            if vmax <= 0.:
+            if vmax is not None and vmax <= 0.:
                 vmax = None
 
         if vmin is None or vmax is None:  # Handle autoscale
