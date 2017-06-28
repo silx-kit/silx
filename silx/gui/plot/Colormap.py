@@ -223,24 +223,40 @@ class Colormap(qt.QObject):
         """
         vmin = self._vmin
         vmax = self._vmax
+        assert vmin is None or vmax is None or vmin <= vmax  # TODO handle this in setters
 
-        if data is not None:
-            result = min_max(data, min_positive=True)
+        if self.getNormalization() == self.LOGARITHM:
+            # Handle negative bounds as autoscale
+            if vmin <= 0.:
+                vmin = None
+            if vmax <= 0.:
+                vmax = None
 
-        if vmin is None:
-            vmin = result.minimum if data is not None else self._getDefaultMin()
-        if vmax is None:
-            vmax = result.maximum if data is not None else self._getDefaultMax()
+        if vmin is None or vmax is None:  # Handle autoscale
+            # Get min/max from data
+            if len(data) > 0:
+                if self.getNormalization() == self.LOGARITHM:
+                    result = min_max(data, min_positive=True)
+                    min_ = result.min_positive  # >0 or None
+                    max_ = result.maximum  # can be <= 0
+                else:
+                    min_, max_ = min_max(data, min_positive=False)
 
-        if data is not None:
-            if self.getNormalization() == Colormap.LOGARITHM:
-                if vmin < 0:
-                    vmin = result.min_positive
+                # Handle fallback
+                if min_ is None or not numpy.isfinite(min_):
+                    min_ = self._getDefaultMin()
+                if max_ is None or not numpy.isfinite(max_):
+                    max_ = self._getDefaultMax()
+            else:  # Fallback if no data is provided
+                min_, max_ = self._getDefaultMin(), self._getDefaultMax()
 
-                if vmax < 0:
-                    vmax = result.min_positive, result.maximum
+            if vmin is None:  # Set vmin respecting provided vmax
+                vmin = min_ if vmax is None else min(min_, vmax)
 
-        return (vmin, vmax)
+            if vmax is None:
+                vmax = max(max_, vmin)  # Handle max_ <= 0 for log scale
+
+        return vmin, vmax
 
     def setVMinVMax(self, vmin, vmax):
         """
