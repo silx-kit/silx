@@ -33,11 +33,14 @@ __license__ = "MIT"
 __date__ = "20/12/2016"
 
 cimport cython
+from libc.math cimport INFINITY
 
 # Replacement from libc.math cimport isnan
 # which is not available on Windows for Python2.7
 cdef extern from "isnan.h":
     bint isnan(double x) nogil
+    bint isfinite(double x) nogil
+
 
 import numpy
 
@@ -108,7 +111,10 @@ class _MinMaxResult(object):
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def _min_max(_number[::1] data, bint min_positive=False):
-    """See :func:`min_max` for documentation."""
+    """:func:`min_max` implementation including infinite values
+
+    See :func:`min_max` for documentation.
+    """
     cdef:
         _number value, minimum, minpos, maximum
         unsigned int length
@@ -180,7 +186,7 @@ def _min_max(_number[::1] data, bint min_positive=False):
                         minimum = value
                         min_index = index
 
-                    if value > 0 and value < min_pos:
+                    if 0 < value < min_pos:
                         min_pos = value
                         min_pos_index = index
 
@@ -192,7 +198,67 @@ def _min_max(_number[::1] data, bint min_positive=False):
                          max_index)
 
 
-def min_max(data not None, bint min_positive=False):
+@cython.initializedcheck(False)
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _finite_min_max(cython.floating[::1] data, bint min_positive=False):
+    """:func:`min_max` implementation for floats skipping infinite values
+
+    See :func:`min_max` for documentation.
+    """
+    cdef:
+        cython.floating value, minimum, minpos, maximum
+        unsigned int length
+        unsigned int index = 0
+        unsigned int min_index = 0
+        unsigned int min_pos_index = 0
+        unsigned int max_index = 0
+
+    length = len(data)
+
+    if length == 0:
+        raise ValueError('Zero-size array')
+
+    with nogil:
+        minimum = INFINITY
+        maximum = -INFINITY
+        min_pos = 0.
+
+        if not min_positive:
+            for index in range(length):
+                value = data[index]
+                if isfinite(value):
+                    if value > maximum:
+                        maximum = value
+                        max_index = index
+                    elif value < minimum:
+                        minimum = value
+                        min_index = index
+
+        else:
+            for index in range(length):
+                value = data[index]
+                if isfinite(value):
+                    if value > maximum:
+                        maximum = value
+                        max_index = index
+                    elif value < minimum:
+                        minimum = value
+                        min_index = index
+
+                    if 0. < value < min_pos:
+                        min_pos = value
+                        min_pos_index = index
+
+    return _MinMaxResult(minimum if isfinite(minimum) else None,
+                         min_pos if min_pos > 0 else None,
+                         maximum if isfinite(maximum) else None,
+                         min_index if isfinite(minimum) else None,
+                         min_pos_index if min_pos > 0 else None,
+                         max_index if isfinite(maximum) else None)
+
+
+def min_max(data not None, bint min_positive=False, bint finite=False):
     """Returns min, max and optionally strictly positive min of data.
 
     It also computes the indices of first occurence of min/max.
@@ -225,9 +291,15 @@ def min_max(data not None, bint min_positive=False):
     >>> result.min_positive, result.argmin_positive  # Computed
     1, 1
 
+    If *finite* is True, min/max information is computed only from finite data.
+    Then, all result fields (include minimum and maximum) can be None
+    when all data is infinity or NaN.
+
     :param data: Array-like dataset
     :param bool min_positive: True to compute the positive min and argmin
                               Default: False.
+    :param bool finite: True to compute min/max from finite data only
+                        Default: False.
     :returns: An object with minimum, maximum and min_positive attributes
               and the indices of first occurence in the flattened data:
               argmin, argmax and argmin_positive attributes.
@@ -235,4 +307,8 @@ def min_max(data not None, bint min_positive=False):
               min_positive and argmin_positive are None.
     :raises: ValueError if data is empty
     """
-    return _min_max(numpy.ascontiguousarray(data).ravel(), min_positive)
+    data = numpy.ascontiguousarray(data).ravel()
+    if finite and data.dtype.kind == 'f':
+        return _finite_min_max(data, min_positive)
+    else:
+        return _min_max(data, min_positive)
