@@ -66,17 +66,19 @@ class TestMinMax(ParametricTestCase):
         argmin_pos = None
 
         if finite:
-            data = data[numpy.isfinite(data)]
+            filtered_data = data[numpy.isfinite(data)]
+        else:
+            filtered_data = data
 
-        if data.size > 0:
-            minimum = numpy.nanmin(data)
+        if filtered_data.size > 0:
+            minimum = numpy.nanmin(filtered_data)
             if numpy.isnan(minimum):
                 argmin = 0
             else:
                 # nanargmin equivalent
                 argmin = numpy.where(data == minimum)[0][0]
 
-            maximum = numpy.nanmax(data)
+            maximum = numpy.nanmax(filtered_data)
             if numpy.isnan(maximum):
                 argmax = 0
             else:
@@ -84,7 +86,7 @@ class TestMinMax(ParametricTestCase):
                 argmax = numpy.where(data == maximum)[0][0]
 
             if min_positive:
-                pos_data = data[data > 0]
+                pos_data = filtered_data[filtered_data > 0]
                 if pos_data.size > 0:
                     min_pos = numpy.min(pos_data)
                     argmin_pos = numpy.where(data == min_pos)[0][0]
@@ -150,39 +152,56 @@ class TestMinMax(ParametricTestCase):
                 with self.assertRaises(ValueError):
                     min_max(data)
 
+    NAN_TEST_DATA = [
+        (float('nan'), float('nan')),  # All NaNs
+        (float('nan'), 1.0),  # NaN first and positive
+        (float('nan'), -1.0),  # NaN first and negative
+        (1.0, 2.0, float('nan')),  # NaN last and positive
+        (-1.0, -2.0, float('nan')),  # NaN last and negative
+        (1.0, float('nan'), -1.0),  # Some NaN
+    ]
+
     def test_nandata(self):
         """Test min_max with NaN in data"""
-        tests = [
-            (float('nan'), float('nan')),  # All NaNs
-            (float('nan'), 1.0),  # NaN first and positive
-            (float('nan'), -1.0),  # NaN first and negative
-            (1.0, 2.0, float('nan')),  # NaN last and positive
-            (-1.0, -2.0, float('nan')),  # NaN last and negative
-            (1.0, float('nan'), -1.0),  # Some NaN
-        ]
-
         for dtype in self.FLOATING_DTYPES:
-            for data in tests:
+            for data in self.NAN_TEST_DATA:
                 with self.subTest(dtype=dtype, data=data):
                     data = numpy.array(data, dtype=dtype)
                     self._test_min_max(data, min_positive=True)
+
+    INF_TEST_DATA = [
+        [float('inf')] * 3,  # All +inf
+        [float('-inf')] * 3,  # All -inf
+        (float('inf'), float('-inf')),  # + and - inf
+        (float('inf'), float('-inf'), float('nan')),  # +/-inf, nan last
+        (float('nan'), float('-inf'), float('inf')),  # +/-inf, nan first
+        (float('inf'), float('nan'), float('-inf')),  # +/-inf, nan center
+    ]
 
     def test_infdata(self):
         """Test min_max with inf."""
+        for dtype in self.FLOATING_DTYPES:
+            for data in self.INF_TEST_DATA:
+                with self.subTest(dtype=dtype, data=data):
+                    data = numpy.array(data, dtype=dtype)
+                    self._test_min_max(data, min_positive=True)
+
+    def test_finite(self):
+        """Test min_max with finite=True"""
         tests = [
-            [float('inf')] * 3,  # All +inf
-            [float('inf')] * 3,  # All -inf
-            (float('inf'), float('-inf')),  # + and - inf
-            (float('inf'), float('-inf'), float('nan')),  # +/-inf, nan last
-            (float('nan'), float('-inf'), float('inf')),  # +/-inf, nan first
-            (float('inf'), float('nan'), float('-inf')),  # +/-inf, nan center
+            (-1., 2., 0.),  # Basic test
+            (float('nan'), float('inf'), float('-inf')),  # NaN + Inf
+            (float('nan'), float('inf'), -2, float('-inf')),  # NaN + Inf + 1 value
+            (float('inf'), -3, -2), # values + inf
         ]
+        tests += self.INF_TEST_DATA
+        tests += self.NAN_TEST_DATA
 
         for dtype in self.FLOATING_DTYPES:
             for data in tests:
                 with self.subTest(dtype=dtype, data=data):
                     data = numpy.array(data, dtype=dtype)
-                    self._test_min_max(data, min_positive=True)
+                    self._test_min_max(data, min_positive=True, finite=True)
 
 
 def suite():
