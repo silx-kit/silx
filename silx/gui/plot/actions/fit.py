@@ -112,8 +112,11 @@ class FitAction(PlotAction):
         if histo is None and curve is None:
             # ambiguous case, we need to ask which plot item to fit
             isd = ItemsSelectionDialog(plot=self.plot)
+            isd.setWindowTitle("Select item to be fitted")
             isd.setItemsSelectionMode(qt.QTableWidget.SingleSelection)
             isd.setAvailableKinds(["curve", "histogram"])
+            isd.selectAllKinds()
+
             result = isd.exec_()
             if result and len(isd.getSelectedItems()) == 1:
                 item = isd.getSelectedItems()[0]

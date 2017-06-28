@@ -210,6 +210,8 @@ class ItemsSelectionDialog(qt.QDialog):
             raise AttributeError("parameter plot is required")
         qt.QDialog.__init__(self, parent)
 
+        self.setWindowTitle("Plot items selector")
+
         self.kind_selector = KindsSelector(self)
         self.item_selector = PlotItemsSelector(self, plot)
 
@@ -244,8 +246,10 @@ class ItemsSelectionDialog(qt.QDialog):
 
         :param list[str] kinds: Sequence of kinds
         """
-
         self.kind_selector.setAvailableKinds(kinds)
+
+    def selectAllKinds(self):
+        self.kind_selector.selectAll()
 
     def setItemsSelectionMode(self, mode):
         """Set selection mode for plot item (single item selection,
