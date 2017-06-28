@@ -243,8 +243,7 @@ class GLPlotColormap(_GLPlotData2D):
         super(GLPlotColormap, self).__init__(data, origin, scale)
         self.colormap = numpy.array(colormap, copy=False)
         self.cmapIsLog = cmapIsLog
-        self._cmapRange = None  # User-provided range info
-        self._cmapRangeCache = None  # Store extra data for range
+        self._cmapRange = (1., 10.)  # Colormap range
         self.cmapRange = cmapRange  # Update _cmapRange
         self._alpha = numpy.clip(alpha, 0., 1.)
 
@@ -264,54 +263,15 @@ class GLPlotColormap(_GLPlotData2D):
 
     @property
     def cmapRange(self):
-        if self._cmapRange is None:  # Auto-scale mode
-            if self._cmapRangeCache is None:
-                # Build data , positive ranges
-                result = min_max(self.data, min_positive=True)
-                min_ = result.minimum
-                minPos = result.min_positive
-                max_ = result.maximum
-                maxPos = max_ if max_ > 0. else 1.
-                if minPos is None:
-                    minPos = maxPos
-                self._cmapRangeCache = {'range': (min_, max_),
-                                        'pos': (minPos, maxPos)}
-
-            return self._cmapRangeCache['pos' if self.cmapIsLog else 'range']
-
-        else:
-            if not self.cmapIsLog:
-                return self._cmapRange  # Return range as is
-            else:
-                if self._cmapRangeCache is None:
-                    # Build a strictly positive range from cmapRange
-                    min_, max_ = self._cmapRange
-                    if min_ > 0. and max_ > 0.:
-                        minPos, maxPos = min_, max_
-                    else:
-                        result = min_max(self.data, min_positive=True)
-                        minPos = result.min_positive
-                        dataMax = result.maximum
-                        if max_ > 0.:
-                            maxPos = max_
-                        elif dataMax > 0.:
-                            maxPos = dataMax
-                        else:
-                            maxPos = 1.  # Arbitrary fallback
-                        if minPos is None:
-                            minPos = maxPos
-                    self._cmapRangeCache = minPos, maxPos
-                return self._cmapRangeCache  # Strictly positive range
+        if self.cmapIsLog:
+            assert self._cmapRange[0] > 0. and self._cmapRange[1] > 0.
+        return self._cmapRange
 
     @cmapRange.setter
     def cmapRange(self, cmapRange):
-        self._cmapRangeCache = None
-        if cmapRange is None:
-            self._cmapRange = None
-        else:
-            assert len(cmapRange) == 2
-            assert cmapRange[0] <= cmapRange[1]
-            self._cmapRange = tuple(cmapRange)
+        assert len(cmapRange) == 2
+        assert cmapRange[0] <= cmapRange[1]
+        self._cmapRange = float(cmapRange[0]), float(cmapRange[1])
 
     @property
     def alpha(self):
@@ -321,8 +281,6 @@ class GLPlotColormap(_GLPlotData2D):
         assert data.dtype in self._INTERNAL_FORMATS
         oldData = self.data
         self.data = data
-
-        self._cmapRangeCache = None
 
         if self._texture is not None:
             if (self.data.shape != oldData.shape or

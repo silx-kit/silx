@@ -1020,7 +1020,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             colormapIsLog = colormap.getNormalization() == 'log'
 
             cmapRange = colormap.getColorMapRange(data=data)
-            assert cmapRange[0] <= cmapRange[1]
 
             # Retrieve colormap LUT from name and color array
             colormapDisp = Colormap(name=colormap.getName(),
