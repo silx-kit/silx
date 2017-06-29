@@ -186,6 +186,11 @@ class Colormap(qt.QObject):
             (default)
             value)
         """
+        if vmin is not None and vmin >= self._vmax:
+            err = "Can't set vmin because vmin >= vmax."
+            err += "vmin = %s, vmax = %s" %(vmin, self._vmax)
+            raise ValueError(err)
+
         self._vmin = vmin
         self.sigChanged.emit()
 
@@ -203,6 +208,11 @@ class Colormap(qt.QObject):
         :param float vmax: Upper bounds of the colormap or None for autoscale
             (default)
         """
+        if vmax is not None and vmax <= self._vmin:
+            err = "Can't set vmax because vmax <= vmin."
+            err += "vmin = %s, vmax = %s" %(self._vmin, vmax)
+            raise ValueError(err)
+
         self._vmax = vmax
         self.sigChanged.emit()
 
@@ -259,6 +269,12 @@ class Colormap(qt.QObject):
         :param vmax: Upper bounds of the colormap or None for autoscale
             (default)
         """
+        if vmin is not None and vmax is not None:
+            if vmin >= vmax:
+                err = "Can't set vmin and vmax because vmin >= vmax"
+                err += "vmin = %s, vmax = %s" %(vmin, self._vmax)
+                raise ValueError(err)
+
         self._vmin = vmin
         self._vmax = vmax
         self.sigChanged.emit()
