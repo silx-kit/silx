@@ -83,6 +83,7 @@ class Colormap(qt.QObject):
     def __init__(self, name='gray', colors=None, normalization=LINEAR, vmin=None, vmax=None):
         qt.QObject.__init__(self)
         assert normalization in Colormap.NORMALIZATIONS
+        assert not (name is None and colors is None)
         if normalization is Colormap.LOGARITHM:
             if (vmin is not None and vmin < 1.0) or (vmax is not None and vmax < 1.0):
                 m = "Unsuported vmin (%s) and/or vmax (%s) given for a log scale."
