@@ -240,11 +240,11 @@ class Colormap(qt.QObject):
             # Get min/max from data
             if data is not None and len(data) > 0:
                 if self.getNormalization() == self.LOGARITHM:
-                    result = min_max(data, min_positive=True)
+                    result = min_max(data, min_positive=True, finite=True)
                     min_ = result.min_positive  # >0 or None
                     max_ = result.maximum  # can be <= 0
                 else:
-                    min_, max_ = min_max(data, min_positive=False)
+                    min_, max_ = min_max(data, min_positive=False, finite=True)
 
                 # Handle fallback
                 if min_ is None or not numpy.isfinite(min_):
