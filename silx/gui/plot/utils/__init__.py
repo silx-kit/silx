@@ -22,29 +22,9 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-__authors__ = ["T. Vincent"]
+"""Utils module for plot.
+"""
+
+__authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "29/06/2017"
-
-
-from numpy.distutils.misc_util import Configuration
-
-
-def configuration(parent_package='', top_path=None):
-    config = Configuration('plot', parent_package, top_path)
-    config.add_subpackage('_utils')
-    config.add_subpackage('utils')
-    config.add_subpackage('matplotlib')
-    config.add_subpackage('backends')
-    config.add_subpackage('backends.glutils')
-    config.add_subpackage('items')
-    config.add_subpackage('test')
-    config.add_subpackage('actions')
-
-    return config
-
-
-if __name__ == "__main__":
-    from numpy.distutils.core import setup
-
-    setup(configuration=configuration)
