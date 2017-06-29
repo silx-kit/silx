@@ -167,7 +167,7 @@ class TestObjectAPI(unittest.TestCase):
     def setUp(self):
         signalHasBeenEmitting = False
 
-    def testVminVMax(self):
+    def testVMinVMax(self):
         """Test getter and setter associated to vmin and vmax values"""
         vmin = 1.0
         vmax = 2.0
