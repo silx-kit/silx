@@ -411,7 +411,6 @@ class ColormapDialog(qt.QDialog):
                         vmax=vmax)
         return colormap
 
-    # TODO : remove autoscale here
     def setColormap(self, name=None, normalization=None,
                     autoscale=None, vmin=None, vmax=None, colors=None):
         """Set the colormap description
