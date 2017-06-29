@@ -204,7 +204,7 @@ class TestObjectAPI(unittest.TestCase):
 
         colormapObject2 = colormapObject.copy()
         self.assertTrue(colormapObject == colormapObject2)
-        colormapObject.setColorMapLUT(numpy.array([0, 1]))
+        colormapObject.setColormapLUT(numpy.array([0, 1]))
         self.assertFalse(colormapObject == colormapObject2)
 
         colormapObject2 = colormapObject.copy()

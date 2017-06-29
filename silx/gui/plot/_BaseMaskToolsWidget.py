@@ -851,7 +851,7 @@ class BaseMaskToolsWidget(qt.QWidget):
         # Set no mask level
         colors[0] = (0., 0., 0., 0.)
 
-        self._colormap.setColorMapLUT(colors)
+        self._colormap.setColormapLUT(colors)
 
     def resetMaskColors(self, level=None):
         """Reset the mask color at the given level to be defaultColors

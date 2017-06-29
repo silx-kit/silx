@@ -136,7 +136,7 @@ class Colormap(qt.QObject):
         """
         return self._colors
 
-    def setColorMapLUT(self, colors):
+    def setColormapLUT(self, colors):
         """
         Set the colors of the colormap.
 
