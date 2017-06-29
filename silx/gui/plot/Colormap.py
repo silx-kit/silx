@@ -110,14 +110,10 @@ class Colormap(qt.QObject):
         return self._name
 
     def _setColors(self, colors):
-        if not (type(colors) in (numpy.ndarray, list, tuple) or colors is None):
-            m = "colors should be None or a numpy.ndarray or a list or a tuple"
-            raise ValueError(m)
-
-        if type(colors) in (list, tuple):
-            self._colors = numpy.array(colors)
+        if colors is None:
+            self._colors = None
         else:
-            self._colors = colors
+            self._colors = numpy.array(colors, copy=True)
 
     def setName(self, name):
         """Set the name of the colormap and load the colors corresponding to
