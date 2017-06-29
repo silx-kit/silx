@@ -371,7 +371,7 @@ class BaseMaskToolsWidget(qt.QWidget):
         self._plot = plot
         self._maskName = '__MASK_TOOLS_%d' % id(self)  # Legend of the mask
 
-        self._colormap = Colormap(name=None,
+        self._colormap = Colormap(name="",
                                   normalization='linear',
                                   vmin=0,
                                   vmax=self._maxLevelNumber,
@@ -851,7 +851,7 @@ class BaseMaskToolsWidget(qt.QWidget):
         # Set no mask level
         colors[0] = (0., 0., 0., 0.)
 
-        self._colormap.setColorMapLUT(colors, keepName=True)
+        self._colormap.setColorMapLUT(colors)
 
     def resetMaskColors(self, level=None):
         """Reset the mask color at the given level to be defaultColors

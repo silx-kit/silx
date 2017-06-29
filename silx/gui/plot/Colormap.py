@@ -138,22 +138,19 @@ class Colormap(qt.QObject):
         """
         return self._colors
 
-    def setColorMapLUT(self, colors, keepName=False):
+    def setColorMapLUT(self, colors):
         """
         Set the colors of the colormap.
 
         :param numpy.ndarray colors: the colors of the LUT
-        :param bool keepName: should we keep the name of the colormap.
-            This might bring conflicts with existing colormaps
 
         .. warning: this will set the value of name to an empty string
         """
         self._setColors(colors)
         if len(colors) is 0:
             self._colors = None
-        if keepName is False:
-            self._name = ""
 
+        self._name = None
         self.sigChanged.emit()
 
     def getNormalization(self):
