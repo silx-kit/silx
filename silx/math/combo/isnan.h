@@ -21,14 +21,9 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-/* This header provides a compatible isnan function across platforms.
+/* This header provides isnan and isfinite functions across platforms.
 
-   VisualStudio 2008 (i.e., Python2.7) provides a _isnan method and no isnan.
-
-   Usage from cython:
-
-   cdef extern from "isnan.h":
-       bint isnan(double x) nogil
+   VisualStudio 2008 (i.e., Python2.7) provides _isnan and _finite functions.
 */
 
 #ifndef __ISNAN_H__
@@ -40,6 +35,7 @@
 #include <float.h>
 
 #define isnan(v) _isnan(v)
+#define isfinite(v) _finite(v)
 #endif
 
 #endif /*__ISNAN_H__*/
