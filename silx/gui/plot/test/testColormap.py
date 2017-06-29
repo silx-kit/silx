@@ -177,6 +177,15 @@ class TestObjectAPI(unittest.TestCase):
                                   vmax=vmax,
                                   normalization=Colormap.LINEAR)
 
+        with self.assertRaises(ValueError):
+            colormapObject.setVMin(3)
+
+        with self.assertRaises(ValueError):
+            colormapObject.setVMax(-2)
+
+        with self.assertRaises(ValueError):
+            colormapObject.setVMinVMax(3, -2)
+
         self.assertTrue(colormapObject.getColorMapRange() == (1.0, 2.0))
         self.assertTrue(colormapObject.isAutoscale() is False)
         colormapObject.setVMinVMax(None, None)
