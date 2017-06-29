@@ -153,6 +153,7 @@ class Colormap(qt.QObject):
             self._colors = None
         if keepName is False:
             self._name = ""
+
         self.sigChanged.emit()
 
     def getNormalization(self):
@@ -186,10 +187,11 @@ class Colormap(qt.QObject):
             (default)
             value)
         """
-        if vmin is not None and vmin >= self._vmax:
-            err = "Can't set vmin because vmin >= vmax."
-            err += "vmin = %s, vmax = %s" %(vmin, self._vmax)
-            raise ValueError(err)
+        if vmin is not None:
+            if self._vmax is not None and vmin >= self._vmax:
+                err = "Can't set vmin because vmin >= vmax."
+                err += "vmin = %s, vmax = %s" %(vmin, self._vmax)
+                raise ValueError(err)
 
         self._vmin = vmin
         self.sigChanged.emit()
@@ -208,10 +210,11 @@ class Colormap(qt.QObject):
         :param float vmax: Upper bounds of the colormap or None for autoscale
             (default)
         """
-        if vmax is not None and vmax <= self._vmin:
-            err = "Can't set vmax because vmax <= vmin."
-            err += "vmin = %s, vmax = %s" %(self._vmin, vmax)
-            raise ValueError(err)
+        if vmax is not None:
+            if self._vmin is not None and vmax <= self._vmin:
+                err = "Can't set vmax because vmax <= vmin."
+                err += "vmin = %s, vmax = %s" %(self._vmin, vmax)
+                raise ValueError(err)
 
         self._vmax = vmax
         self.sigChanged.emit()
@@ -229,11 +232,11 @@ class Colormap(qt.QObject):
 
         if self.getNormalization() == self.LOGARITHM:
             # Handle negative bounds as autoscale
-            if vmin is not None and vmin <= 0.:
+            if vmin is not None and (vmin is not None and vmin <= 0.):
                 mess = 'negative vmin, moving to autoscale for lower bound'
                 _logger.warning(mess)
                 vmin = None
-            if vmax is not None and vmax <= 0.:
+            if vmax is not None and (vmax is not None and vmax <= 0.):
                 mess = 'negative vmax, moving to autoscale for upper bound'
                 _logger.warning(mess)
                 vmax = None
