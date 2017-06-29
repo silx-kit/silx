@@ -230,8 +230,12 @@ class Colormap(qt.QObject):
         if self.getNormalization() == self.LOGARITHM:
             # Handle negative bounds as autoscale
             if vmin is not None and vmin <= 0.:
+                mess = 'negative vmin, moving to autoscale for lower bound'
+                _logger.warning(mess)
                 vmin = None
             if vmax is not None and vmax <= 0.:
+                mess = 'negative vmax, moving to autoscale for upper bound'
+                _logger.warning(mess)
                 vmax = None
 
         if vmin is None or vmax is None:  # Handle autoscale
