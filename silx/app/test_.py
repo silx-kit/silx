@@ -33,6 +33,31 @@ import argparse
 import logging
 import unittest
 
+
+class StreamHandlerUnittestReady(logging.StreamHandler):
+    """The unittest class TestResult redefine sys.stdout/err to capture
+    stdout/err from tests and to display them only when a test fail.
+
+    This class allow to use unittest stdout-capture by using the last sys.stdout
+    and not a cached one.
+    """
+
+    def emit(self, record):
+        """
+        :type record: logging.LogRecord
+        """
+        self.stream = sys.stderr
+        super(StreamHandlerUnittestReady, self).emit(record)
+
+    def flush(self):
+        pass
+
+
+# Use an handler compatible with unittests, else use_buffer is not working
+for h in logging.root.handlers:
+    logging.root.removeHandler(h)
+logging.root.addHandler(StreamHandlerUnittestReady())
+
 _logger = logging.getLogger(__name__)
 """Module logger"""
 
@@ -68,14 +93,17 @@ def main(argv):
     options = parser.parse_args(argv[1:])
 
     test_verbosity = 1
+    use_buffer = True
     if options.verbose == 1:
         logging.root.setLevel(logging.INFO)
         _logger.info("Set log level: INFO")
         test_verbosity = 2
+        use_buffer = False
     elif options.verbose > 1:
         logging.root.setLevel(logging.DEBUG)
         _logger.info("Set log level: DEBUG")
         test_verbosity = 2
+        use_buffer = False
 
     if not options.gui:
         os.environ["WITH_QT_TEST"] = "False"
@@ -106,11 +134,11 @@ def main(argv):
     # Run the tests
     runnerArgs = {}
     runnerArgs["verbosity"] = test_verbosity
+    runnerArgs["buffer"] = use_buffer
     runner = unittest.TextTestRunner(**runnerArgs)
 
-    test_suite = unittest.TestSuite()
-
     import silx.test
+    test_suite = unittest.TestSuite()
     test_suite.addTest(silx.test.suite())
     result = runner.run(test_suite)
 
