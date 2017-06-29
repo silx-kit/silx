@@ -384,7 +384,6 @@ class Colormap(qt.QObject):
 
         :param numpy.ndarray data: The data to convert.
         """
-        # TODO : what appen if matplotlib not here ?
         rgbaImage = MPLColormap.applyColormapToData(colormap=self, data=data)
         return rgbaImage
 
@@ -396,11 +395,8 @@ class Colormap(qt.QObject):
         ('gray', 'reversed gray', 'temperature', 'red', 'green', 'blue')
         :rtype: tuple
         """
-        if MPLColormap is None:
-            return DEFAULT_COLORMAPS
-        else:
-            maps = MPLColormap.getSupportedColormaps()
-            return DEFAULT_COLORMAPS + maps
+        maps = MPLColormap.getSupportedColormaps()
+        return DEFAULT_COLORMAPS + maps
 
     def __str__(self):
         return str(self._toDict())
