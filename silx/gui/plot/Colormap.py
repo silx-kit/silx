@@ -127,6 +127,7 @@ class Colormap(qt.QObject):
             'reversed gray', 'temperature', 'red', 'green', 'blue', 'jet',
             'viridis', 'magma', 'inferno', 'plasma']
         """
+        assert name in self.getSupportedColormaps()
         self._name = str(name)
         self._colors = None
         self.sigChanged.emit()
