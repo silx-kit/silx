@@ -70,7 +70,7 @@ class TestDictAPI(unittest.TestCase):
         self.assertTrue(clmDict['vmax'] == self.vmax)
         self.assertTrue(clmDict['normalization'] == Colormap.LINEAR)
 
-        clmObject.setVMinVMax(None, None)
+        clmObject.setVRange(None, None)
         self.assertTrue(clmObject._toDict()['autoscale'] is True)
 
     def testSetValidDict(self):
@@ -184,11 +184,11 @@ class TestObjectAPI(unittest.TestCase):
             colormapObject.setVMax(-2)
 
         with self.assertRaises(ValueError):
-            colormapObject.setVMinVMax(3, -2)
+            colormapObject.setVRange(3, -2)
 
         self.assertTrue(colormapObject.getColorMapRange() == (1.0, 2.0))
         self.assertTrue(colormapObject.isAutoscale() is False)
-        colormapObject.setVMinVMax(None, None)
+        colormapObject.setVRange(None, None)
         self.assertTrue(colormapObject.getVMin() is None)
         self.assertTrue(colormapObject.getVMax() is None)
         self.assertTrue(colormapObject.isAutoscale() is True)
