@@ -214,7 +214,7 @@ class Colormap(qt.QObject):
         self._vmax = vmax
         self.sigChanged.emit()
 
-    def getColorMapRange(self, data=None):
+    def getColormapRange(self, data=None):
         """Return (vmin, vmax)
 
         :return: the tuple vmin, vmax fitting vmin, vmax, normalization and

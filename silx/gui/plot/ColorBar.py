@@ -309,7 +309,7 @@ class ColorScaleBar(qt.QWidget):
                                       parent=self,
                                       margin=ColorScaleBar._TEXT_MARGIN)
         if colormap:
-            vmin, vmax = colormap.getColorMapRange(data)
+            vmin, vmax = colormap.getColormapRange(data)
         else:
             vmin, vmax = Colormap.DEFAULT_MIN_LIN, Colormap.DEFAULT_MAX_LIN
 
@@ -373,7 +373,7 @@ class ColorScaleBar(qt.QWidget):
         if colormap is not None:
             self.colorScale.setColormap(colormap, data)
 
-            vmin, vmax = colormap.getColorMapRange(data)
+            vmin, vmax = colormap.getColormapRange(data)
             self.tickbar.update(vmin=vmin,
                                 vmax=vmax,
                                 norm=colormap.getNormalization())
@@ -493,7 +493,7 @@ class _ColorScale(qt.QWidget):
         assert colormap.getNormalization() in Colormap.Colormap.NORMALIZATIONS
 
         self._colormap = colormap
-        self.vmin, self.vmax = self._colormap.getColorMapRange(data=data)
+        self.vmin, self.vmax = self._colormap.getColormapRange(data=data)
         self._updateColorGradient()
         self.update()
 

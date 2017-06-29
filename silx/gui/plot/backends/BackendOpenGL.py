@@ -1019,7 +1019,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
             colormapIsLog = colormap.getNormalization() == 'log'
 
-            cmapRange = colormap.getColorMapRange(data=data)
+            cmapRange = colormap.getColormapRange(data=data)
 
             # Retrieve colormap LUT from name and color array
             colormapDisp = Colormap(name=colormap.getName(),

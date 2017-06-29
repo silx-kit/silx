@@ -186,7 +186,7 @@ class TestObjectAPI(unittest.TestCase):
         with self.assertRaises(ValueError):
             colormapObject.setVRange(3, -2)
 
-        self.assertTrue(colormapObject.getColorMapRange() == (1.0, 2.0))
+        self.assertTrue(colormapObject.getColormapRange() == (1.0, 2.0))
         self.assertTrue(colormapObject.isAutoscale() is False)
         colormapObject.setVRange(None, None)
         self.assertTrue(colormapObject.getVMin() is None)
@@ -213,7 +213,7 @@ class TestObjectAPI(unittest.TestCase):
         self.assertFalse(colormapObject == colormapObject2)
 
     def testGetColorMapRange(self):
-        """Make sure the getColorMapRange function of colormap is correctly
+        """Make sure the getColormapRange function of colormap is correctly
         applying
         """
         # test linear scale
@@ -235,17 +235,17 @@ class TestObjectAPI(unittest.TestCase):
                        vmin=None,
                        vmax=None)
 
-        self.assertTrue(cl1.getColorMapRange(data) == (0, 2))
-        self.assertTrue(cl2.getColorMapRange(data) == (-1, 2))
-        self.assertTrue(cl3.getColorMapRange(data) == (0, 3))
-        self.assertTrue(cl4.getColorMapRange(data) == (-1, 3))
+        self.assertTrue(cl1.getColormapRange(data) == (0, 2))
+        self.assertTrue(cl2.getColormapRange(data) == (-1, 2))
+        self.assertTrue(cl3.getColormapRange(data) == (0, 3))
+        self.assertTrue(cl4.getColormapRange(data) == (-1, 3))
 
         # test linear with annoying cases
-        self.assertEqual(cl3.getColorMapRange((-1, -2)), (0, 0))
-        self.assertEqual(cl4.getColorMapRange(()), (0., 1.))
-        self.assertEqual(cl4.getColorMapRange(
+        self.assertEqual(cl3.getColormapRange((-1, -2)), (0, 0))
+        self.assertEqual(cl4.getColormapRange(()), (0., 1.))
+        self.assertEqual(cl4.getColormapRange(
             (float('nan'), float('inf'), 1., -float('inf'), 2)), (1., 2.))
-        self.assertEqual(cl4.getColorMapRange(
+        self.assertEqual(cl4.getColormapRange(
             (float('nan'), float('inf'))), (0., 1.))
 
         # test log scale
@@ -267,18 +267,18 @@ class TestObjectAPI(unittest.TestCase):
                        vmin=None,
                        vmax=None)
 
-        self.assertTrue(cl1.getColorMapRange(data) == (1, 100))
-        self.assertTrue(cl2.getColorMapRange(data) == (1, 100))
-        self.assertTrue(cl3.getColorMapRange(data) == (1, 1000))
-        self.assertTrue(cl4.getColorMapRange(data) == (1, 1000))
+        self.assertTrue(cl1.getColormapRange(data) == (1, 100))
+        self.assertTrue(cl2.getColormapRange(data) == (1, 100))
+        self.assertTrue(cl3.getColormapRange(data) == (1, 1000))
+        self.assertTrue(cl4.getColormapRange(data) == (1, 1000))
 
         # test log with annoying cases
-        self.assertEqual(cl3.getColorMapRange((0.1, 0.2)), (1, 1))
-        self.assertEqual(cl4.getColorMapRange((-2., -1.)), (1., 1.))
-        self.assertEqual(cl4.getColorMapRange(()), (1., 10.))
-        self.assertEqual(cl4.getColorMapRange(
+        self.assertEqual(cl3.getColormapRange((0.1, 0.2)), (1, 1))
+        self.assertEqual(cl4.getColormapRange((-2., -1.)), (1., 1.))
+        self.assertEqual(cl4.getColormapRange(()), (1., 10.))
+        self.assertEqual(cl4.getColormapRange(
             (float('nan'), float('inf'), 1., -float('inf'), 2)), (1., 2.))
-        self.assertEqual(cl4.getColorMapRange(
+        self.assertEqual(cl4.getColormapRange(
             (float('nan'), float('inf'))), (1., 10.))
 
 
