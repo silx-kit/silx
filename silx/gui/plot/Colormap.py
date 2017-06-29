@@ -128,7 +128,7 @@ class Colormap(qt.QObject):
         self._colors = None
         self.sigChanged.emit()
 
-    def getColorMapLUT(self):
+    def getColormapLUT(self):
         """Return the list of colors for the colormap. None if not setted
         
         :return: the list of colors for the colormap. None if not setted
@@ -293,7 +293,7 @@ class Colormap(qt.QObject):
         elif item == 'vmax':
             return self.getVMax()
         elif item == 'colors':
-            return self.getColorMapLUT()
+            return self.getColormapLUT()
         else:
             raise KeyError(item)
 
@@ -417,6 +417,6 @@ class Colormap(qt.QObject):
                 self.getNormalization() == other.getNormalization() and
                 self.getVMin() == other.getVMin() and
                 self.getVMax() == other.getVMax() and
-                numpy.array_equal(self.getColorMapLUT(), other.getColorMapLUT())
+                numpy.array_equal(self.getColormapLUT(), other.getColormapLUT())
                 )
 

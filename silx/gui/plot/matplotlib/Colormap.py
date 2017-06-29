@@ -147,10 +147,10 @@ def getScalarMappable(colormap, data=None):
         cmap = getColormap(colormap.getName())
 
     else:  # No name, use custom colors
-        if colormap.getColorMapLUT() is None:
+        if colormap.getColormapLUT() is None:
             raise ValueError(
                 'addImage: colormap no name nor list of colors.')
-        colors = colormap.getColorMapLUT()
+        colors = colormap.getColormapLUT()
         assert len(colors.shape) == 2
         assert colors.shape[-1] in (3, 4)
         if colors.dtype == numpy.uint8:
@@ -225,8 +225,8 @@ def applyColormapToData(data,
     # colormap with 256 colors, linear norm, [0, 255] range
     if matplotlib.__version__ < '1.2.0':
         if (colormap.getName() is None and
-                colormap.getColorMapLUT() is not None):
-            colors = colormap.getColorMapLUT()
+                colormap.getColormapLUT() is not None):
+            colors = colormap.getColormapLUT()
             if (colors.shape[-1] == 4 and
                     not numpy.all(numpy.equal(colors[3], 255))):
                 # This is a transparent colormap

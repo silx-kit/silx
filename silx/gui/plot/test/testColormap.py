@@ -89,7 +89,7 @@ class TestDictAPI(unittest.TestCase):
         # Test that the colormap is correctly created
         colormapObject = Colormap._fromDict(clm_dict)
         self.assertTrue(colormapObject.getName() == clm_dict['name'])
-        self.assertTrue(colormapObject.getColorMapLUT() == clm_dict['colors'])
+        self.assertTrue(colormapObject.getColormapLUT() == clm_dict['colors'])
         self.assertTrue(colormapObject.getVMin() == clm_dict['vmin'])
         self.assertTrue(colormapObject.getVMax() == clm_dict['vmax'])
         self.assertTrue(colormapObject.isAutoscale() == clm_dict['autoscale'])
@@ -103,7 +103,7 @@ class TestDictAPI(unittest.TestCase):
         clm_dict['name'] = 'viridis'
 
         self.assertFalse(colormapObject.getName() == clm_dict['name'])
-        self.assertFalse(colormapObject.getColorMapLUT() == clm_dict['colors'])
+        self.assertFalse(colormapObject.getColormapLUT() == clm_dict['colors'])
         self.assertFalse(colormapObject.getVMin() == clm_dict['vmin'])
         self.assertFalse(colormapObject.getVMax() == clm_dict['vmax'])
         self.assertFalse(colormapObject.isAutoscale() == clm_dict['autoscale'])

@@ -515,7 +515,7 @@ class _ColorScale(qt.QWidget):
                                          normalization=Colormap.Colormap.LINEAR,
                                          vmin=None,
                                          vmax=None,
-                                         colors=colormap.getColorMapLUT())
+                                         colors=colormap.getColormapLUT())
         colors = colormapDisp.applyToData(indices)
         self._gradient = qt.QLinearGradient(0, 1, 0, 0)
         self._gradient.setCoordinateMode(qt.QGradient.StretchToDeviceMode)

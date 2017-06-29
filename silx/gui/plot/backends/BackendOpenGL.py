@@ -1026,7 +1026,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                                     normalization=Colormap.LINEAR,
                                     vmin=0,
                                     vmax=255,
-                                    colors=colormap.getColorMapLUT())
+                                    colors=colormap.getColormapLUT())
             colormapLut = colormapDisp.applyToData(
                 numpy.arange(256, dtype=numpy.uint8))
 
