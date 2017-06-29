@@ -350,7 +350,7 @@ class CutPlane(qt.QObject):
     sigPlaneChanged = qt.Signal()
     """Signal emitted when the cut plane has moved"""
 
-    sigColormapChanged = qt.Signal(object)
+    sigColormapChanged = qt.Signal(Colormap)
     """Signal emitted when the colormap has changed
 
     This signal provides the new colormap.
@@ -524,7 +524,7 @@ class CutPlane(qt.QObject):
     #     self._plane.alpha = alpha
 
     def getColormap(self):
-        """Returns the colormap set by :meth:`getColormap`.
+        """Returns the colormap set by :meth:`setColormap`.
 
         :return: The colormap
         :rtype: Colormap
@@ -533,13 +533,18 @@ class CutPlane(qt.QObject):
 
     def setColormap(self,
                     name='gray',
-                    norm='linear',
+                    norm=None,
                     vmin=None,
                     vmax=None):
         """Set the colormap to use.
 
-        :param str name: Name of the colormap in
+        By either providing a :class:`Colormap` object or
+        its name, normalization and range.
+
+        :param name: Name of the colormap in
             'gray', 'reversed gray', 'temperature', 'red', 'green', 'blue'.
+            Or Colormap object.
+        :type name: str or Colormap
         :param str norm: Colormap mapping: 'linear' or 'log'.
         :param float vmin: The minimum value of the range or None for autoscale
         :param float vmax: The maximum value of the range or None for autoscale
@@ -547,8 +552,14 @@ class CutPlane(qt.QObject):
         _logger.debug('setColormap %s %s (%s, %s)',
                       name, norm, str(vmin), str(vmax))
 
-        self._colormap = Colormap(
-            name=name, normalization=norm, vmin=vmin, vmax=vmax)
+        if isinstance(name, Colormap):  # Use it as it is
+            assert (norm, vmin, vmax) == (None, None, None)
+            self._colormap = name
+        else:
+            if norm is None:
+                norm = 'linear'
+            self._colormap = Colormap(
+                name=name, normalization=norm, vmin=vmin, vmax=vmax)
 
         self._updateColormapRange()
         self.sigColormapChanged.emit(self.getColormap())
