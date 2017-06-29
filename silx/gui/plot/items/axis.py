@@ -27,7 +27,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "27/06/2017"
+__date__ = "29/06/2017"
 
 import logging
 from ... import qt
@@ -98,6 +98,8 @@ class Axis(qt.QObject):
         :param float vmax: maximum axis value
         """
         vmin, vmax = self._checkLimits(vmin, vmax)
+        if self.getLimits() == (vmin, vmax):
+            return
 
         self._internalSetLimits(vmin, vmax)
         self._plot._setDirtyPlot()
@@ -143,6 +145,8 @@ class Axis(qt.QObject):
         :param bool flag: True for Y axis going from top to bottom,
                           False for Y axis going from bottom to top
         """
+        if isInverted == self.isInverted():
+            return
         raise NotImplementedError()
 
     def getLabel(self):
