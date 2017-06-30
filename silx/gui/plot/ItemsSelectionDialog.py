@@ -212,8 +212,15 @@ class ItemsSelectionDialog(qt.QDialog):
 
         self.setWindowTitle("Plot items selector")
 
+        kind_selector_label = qt.QLabel("Filter item kinds:", self)
+        item_selector_label = qt.QLabel("Select items:", self)
+
         self.kind_selector = KindsSelector(self)
+        self.kind_selector.setToolTip(
+                "select one or more item kinds to show them in the item list")
+
         self.item_selector = PlotItemsSelector(self, plot)
+        self.item_selector.setToolTip("select items")
 
         self.item_selector.setKindsFilter(self.kind_selector.selectedKinds)
         self.kind_selector.sigSelectedKindsChanged.connect(
@@ -227,10 +234,12 @@ class ItemsSelectionDialog(qt.QDialog):
         cancelb.clicked.connect(self.reject)
 
         layout = qt.QGridLayout(self)
-        layout.addWidget(self.kind_selector, 0, 0)
-        layout.addWidget(self.item_selector, 0, 1)
-        layout.addWidget(okb, 1, 0)
-        layout.addWidget(cancelb, 1, 1)
+        layout.addWidget(kind_selector_label, 0, 0)
+        layout.addWidget(item_selector_label, 0, 1)
+        layout.addWidget(self.kind_selector, 1, 0)
+        layout.addWidget(self.item_selector, 1, 1)
+        layout.addWidget(okb, 2, 0)
+        layout.addWidget(cancelb, 2, 1)
 
         self.setLayout(layout)
 
@@ -257,4 +266,26 @@ class ItemsSelectionDialog(qt.QDialog):
 
         :param mode: One of :class:`QTableWidget` selection modes
         """
+        if mode == self.item_selector.SingleSelection:
+            self.item_selector.setToolTip(
+                    "Select one item by clicking on it.")
+        elif mode == self.item_selector.MultiSelection:
+            self.item_selector.setToolTip(
+                    "Select one or more items by clicking with the left mouse"
+                    " button.\nYou can unselect items by clicking them again.\n"
+                    "Multiple items can be toggled by dragging the mouse over them.")
+        elif mode == self.item_selector.ExtendedSelection:
+            self.item_selector.setToolTip(
+                    "Select one or more items. You can select multiple items "
+                    "by keeping the Ctrl key pushed when clicking.\nYou can "
+                    "select a range of items by clicking on the first and "
+                    "last while keeping the Shift key pushed.")
+        elif mode == self.item_selector.ContiguousSelection:
+            self.item_selector.setToolTip(
+                    "Select one item by clicking on it. If you press the Shift"
+                    " key while clicking on a second item,\nall items between "
+                    "the two will be selected.")
+        elif mode == self.item_selector.NoSelection:
+            raise ValueError("The NoSelection mode is not allowed "
+                             "in this context.")
         self.item_selector.setSelectionMode(mode)
