@@ -46,8 +46,9 @@ from silx.gui.plot.Colors import rgba
 from silx.gui.plot.Colormap import Colormap
 
 from silx.math.marchingcubes import MarchingCubes
+from silx.math.combo import min_max
 
-from .scene import axes, cutplane, function, interaction, primitives, transform
+from .scene import axes, cutplane, interaction, primitives, transform
 from . import scene
 from .Plot3DWindow import Plot3DWindow
 
@@ -369,7 +370,6 @@ class CutPlane(qt.QObject):
             name='gray', normalization='linear', vmin=None, vmax=None)
 
         self._dataRange = None
-        self._positiveMin = None
 
         self._plane = cutplane.CutPlane(normal=(0, 1, 0))
         self._plane.alpha = 1.
@@ -386,8 +386,10 @@ class CutPlane(qt.QObject):
     def _sfViewDataChanged(self):
         """Handle data change in the ScalarFieldView this plane belongs to"""
         self._plane.setData(self.sender().getData(), copy=False)
+
+        # Store data range info as 3-tuple of values
         self._dataRange = self.sender().getDataRange()
-        self._positiveMin = None
+
         self.sigDataChanged.emit()
 
         # Update colormap range when autoscale
@@ -579,30 +581,9 @@ class CutPlane(qt.QObject):
         colormap = self.getColormap()
 
         self._plane.colormap.name = colormap.getName()
-        if colormap.isAutoscale():
-            range_ = self._dataRange
-            if range_ is None:  # No data, use a default range
-                range_ = 1., 10.
-        else:
-            range_ = colormap.getVMin(), colormap.getVMax()
-
-        if colormap.getNormalization() == 'linear':
-            self._plane.colormap.norm = 'linear'
-            self._plane.colormap.range_ = range_
-
-        else:  # Log
-            # Make sure range is strictly positive
-            if range_[0] <= 0.:
-                data = self._plane.getData(copy=False)
-                if data is not None:
-                    if self._positiveMin is None:
-                        # TODO compute this with the range as a combo operation
-                        self._positiveMin = numpy.min(data[data > 0.])
-                    range_ = (self._positiveMin,
-                              max(range_[1], self._positiveMin))
-
-            self._plane.colormap.range_ = range_
-            self._plane.colormap.norm = colormap.getNormalization()
+        self._plane.colormap.norm = colormap.getNormalization()
+        range_ = colormap.getColormapRange(data=self._dataRange)
+        self._plane.colormap.range_ = range_
 
 
 class _CutPlaneImage(object):
@@ -1033,7 +1014,15 @@ class ScalarFieldView(Plot3DWindow):
             previousSelectedRegion = self.getSelectedRegion()
 
             self._data = data
-            self._dataRange = self._data.min(), self._data.max()
+
+            # Store data range info
+            dataRange = min_max(self._data, min_positive=True)
+            if dataRange is not None:
+                min_positive = dataRange.min_positive
+                if min_positive is None:
+                    min_positive = float('nan')
+                dataRange = dataRange.minimum, min_positive, dataRange.maximum
+            self._dataRange = dataRange
 
             if previousSelectedRegion is not None:
                 # Update selected region to ensure it is clipped to array range
@@ -1064,7 +1053,12 @@ class ScalarFieldView(Plot3DWindow):
             return numpy.array(self._data, copy=copy)
 
     def getDataRange(self):
-        """Return the range of the data as a 2-tuple (min, max)"""
+        """Return the range of the data as a 3-tuple of values.
+
+        positive min is NaN if no data is positive.
+
+        :return: (min, positive min, max) or None.
+        """
         return self._dataRange
 
     # Transformations

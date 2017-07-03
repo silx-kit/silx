@@ -39,6 +39,7 @@ import numpy
 
 from silx.gui import qt
 from silx.gui.icons import getQIcon
+from silx.gui.plot.Colormap import Colormap
 
 from .ScalarFieldView import Isosurface
 
@@ -534,8 +535,8 @@ class _IsoLevelSlider(qt.QSlider):
         """Set slider from iso-surface level"""
         dataRange = self.subject.parent().getDataRange()
 
-        if dataRange is not None and None not in dataRange:
-            width = dataRange[1] - dataRange[0]
+        if dataRange is not None:
+            width = dataRange[-1] - dataRange[0]
             if width > 0:
                 sliderWidth = self.maximum() - self.minimum()
                 sliderPosition = sliderWidth * (level - dataRange[0]) / width
@@ -547,10 +548,10 @@ class _IsoLevelSlider(qt.QSlider):
 
     def __sliderReleased(self):
         value = self.value()
-        dataRange = self.subject.parent().getDataRange()
-        width = dataRange[1] - dataRange[0]
+        min_, _, max_ = self.subject.parent().getDataRange()
+        width = max_ - min_
         sliderWidth = self.maximum() - self.minimum()
-        level = dataRange[0] + width * value / sliderWidth
+        level = min_ + width * value / sliderWidth
         self.subject.setLevel(level)
 
 
@@ -771,7 +772,8 @@ class IsoSurfaceAddRemoveWidget(qt.QWidget):
         if dataRange is None:
             dataRange = [0, 1]
 
-        sfview.addIsosurface(numpy.mean(dataRange), '#0000FF')
+        sfview.addIsosurface(
+            numpy.mean(dataRange[0], dataRange[-1]), '#0000FF')
 
     def __removeClicked(self):
         self.sigViewTask.emit('remove_iso')
@@ -1086,10 +1088,10 @@ class PlaneAutoScaleItem(ColormapBase):
                 vMin = vMax = None
             else:
                 dataRange = view3d.getDataRange()
-                if dataRange is None or None in dataRange:
+                if dataRange is None:
                     vMin = vMax = None
                 else:
-                    vMin, vMax = dataRange
+                    vMin, vMax = dataRange[0], dataRange[-1]
             cutPlane.setColormap(colormap.getName(),
                                  colormap.getNormalization(),
                                  vMin,
