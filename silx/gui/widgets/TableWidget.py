@@ -456,6 +456,7 @@ class TableWidget(qt.QTableWidget):
                 self.cutSelectedCellsAction.setEnabled(False)
             if self.copySingleCellAction is None:
                 self.copySingleCellAction = CopySingleCellAction(self)
+                self.addAction(self.copySingleCellAction)
             self.copySingleCellAction.setEnabled(True)
         else:
             self.copySelectedCellsAction.setEnabled(True)
@@ -576,6 +577,7 @@ class TableView(qt.QTableView):
                 self.cutSelectedCellsAction.setEnabled(False)
             if self.copySingleCellAction is None:
                 self.copySingleCellAction = CopySingleCellAction(self)
+                self.addAction(self.copySingleCellAction)
             self.copySingleCellAction.setEnabled(True)
         else:
             self.copySelectedCellsAction.setEnabled(True)
