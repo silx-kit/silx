@@ -334,6 +334,47 @@ class PasteCellsAction(qt.QAction):
         return True
 
 
+class CopySingleCellAction(qt.QAction):
+    """QAction to copy text from a single cell in a modified
+    :class:`QTableWidget`.
+
+    This action relies on the fact that the row and column coordinates
+    of the last click are stored in :attr:`_last_cell_clicked` of the
+    modified widget.
+
+    In most cases, :class:`CopySelectedCellsAction` handles single cells,
+    but if the selection mode of the widget has been set to NoSelection
+    it is necessary to use this class instead.
+
+    :param table: :class:`QTableView` to which this action belongs.
+    """
+    def __init__(self, table):
+        if not isinstance(table, qt.QTableView):
+            raise ValueError('CopySingleCellAction must be initialised ' +
+                             'with a QTableWidget.')
+        super(CopySingleCellAction, self).__init__(table)
+        self.setText("Copy cell")
+        self.setToolTip("Copy cell content into the clipboard.")
+        self.triggered.connect(self.copyCellToClipboard)
+        self.table = table
+
+    def copyCellToClipboard(self):
+        """
+        """
+        selected_idx = self.table._last_cell_clicked
+        if selected_idx is None or len(selected_idx) != 2:
+            return
+
+        row, col = selected_idx
+
+        qindex = self.table.model().index(row, col)
+        cell_text = self.table.model().data(qindex)
+
+        # put this text into clipboard
+        qapp = qt.QApplication.instance()
+        qapp.clipboard().setText(cell_text)
+
+
 class TableWidget(qt.QTableWidget):
     """:class:`QTableWidget` with a context menu displaying up to 5 actions:
 
@@ -356,11 +397,16 @@ class TableWidget(qt.QTableWidget):
     """
     def __init__(self, parent=None, cut=False, paste=False):
         super(TableWidget, self).__init__(parent)
+        self._last_cell_clicked = None
+        self.cellClicked.connect(self._remember_row_column)
+
         self.copySelectedCellsAction = CopySelectedCellsAction(self)
         self.copyAllCellsAction = CopyAllCellsAction(self)
+        self.copySingleCellAction = None
         self.pasteCellsAction = None
         self.cutSelectedCellsAction = None
         self.cutAllCellsAction = None
+
         self.addAction(self.copySelectedCellsAction)
         self.addAction(self.copyAllCellsAction)
         if cut:
@@ -369,6 +415,9 @@ class TableWidget(qt.QTableWidget):
             self.enablePaste()
 
         self.setContextMenuPolicy(qt.Qt.ActionsContextMenu)
+
+    def _remember_row_column(self, row, column):
+        self._last_cell_clicked = (row, column)
 
     def enablePaste(self):
         """Enable paste action, to paste data from the clipboard into the
@@ -405,10 +454,15 @@ class TableWidget(qt.QTableWidget):
             self.copySelectedCellsAction.setEnabled(False)
             if self.cutSelectedCellsAction is not None:
                 self.cutSelectedCellsAction.setEnabled(False)
+            if self.copySingleCellAction is None:
+                self.copySingleCellAction = CopySingleCellAction(self)
+            self.copySingleCellAction.setEnabled(True)
         else:
             self.copySelectedCellsAction.setEnabled(True)
             if self.cutSelectedCellsAction is not None:
                 self.cutSelectedCellsAction.setEnabled(True)
+            if self.copySingleCellAction is not None:
+                self.copySingleCellAction.setEnabled(False)
         super(TableWidget, self).setSelectionMode(mode)
 
 
@@ -439,14 +493,21 @@ class TableView(qt.QTableView):
     """
     def __init__(self, parent=None, cut=False, paste=False):
         super(TableView, self).__init__(parent)
+        self._last_cell_clicked = None
+        self.cellClicked.connect(self._remember_row_column)
+
         self.cut = cut
         self.paste = paste
 
         self.copySelectedCellsAction = None
         self.copyAllCellsAction = None
+        self.copySingleCellAction = None
         self.pasteCellsAction = None
         self.cutSelectedCellsAction = None
         self.cutAllCellsAction = None
+
+    def _remember_row_column(self, row, column):
+        self._last_cell_clicked = (row, column)
 
     def setModel(self, model):
         """Set the data model for the table view, activate the actions
@@ -513,10 +574,15 @@ class TableView(qt.QTableView):
             self.copySelectedCellsAction.setEnabled(False)
             if self.cutSelectedCellsAction is not None:
                 self.cutSelectedCellsAction.setEnabled(False)
+            if self.copySingleCellAction is None:
+                self.copySingleCellAction = CopySingleCellAction(self)
+            self.copySingleCellAction.setEnabled(True)
         else:
             self.copySelectedCellsAction.setEnabled(True)
             if self.cutSelectedCellsAction is not None:
                 self.cutSelectedCellsAction.setEnabled(True)
+            if self.copySingleCellAction is not None:
+                self.copySingleCellAction.setEnabled(False)
         super(TableView, self).setSelectionMode(mode)
 
 
