@@ -451,19 +451,19 @@ class TableWidget(qt.QTableWidget):
         :return:
         """
         if mode == qt.QTableView.NoSelection:
-            self.copySelectedCellsAction.setEnabled(False)
+            self.copySelectedCellsAction.setVisible(False)
             if self.cutSelectedCellsAction is not None:
-                self.cutSelectedCellsAction.setEnabled(False)
+                self.cutSelectedCellsAction.setVisible(False)
             if self.copySingleCellAction is None:
                 self.copySingleCellAction = CopySingleCellAction(self)
                 self.addAction(self.copySingleCellAction)
-            self.copySingleCellAction.setEnabled(True)
+            self.copySingleCellAction.setVisible(True)
         else:
-            self.copySelectedCellsAction.setEnabled(True)
+            self.copySelectedCellsAction.setVisible(True)
             if self.cutSelectedCellsAction is not None:
-                self.cutSelectedCellsAction.setEnabled(True)
+                self.cutSelectedCellsAction.setVisible(True)
             if self.copySingleCellAction is not None:
-                self.copySingleCellAction.setEnabled(False)
+                self.copySingleCellAction.setVisible(False)
         super(TableWidget, self).setSelectionMode(mode)
 
 
@@ -572,19 +572,19 @@ class TableView(qt.QTableView):
         :return:
         """
         if mode == qt.QTableView.NoSelection:
-            self.copySelectedCellsAction.setEnabled(False)
+            self.copySelectedCellsAction.setVisible(False)
             if self.cutSelectedCellsAction is not None:
-                self.cutSelectedCellsAction.setEnabled(False)
+                self.cutSelectedCellsAction.setVisible(False)
             if self.copySingleCellAction is None:
                 self.copySingleCellAction = CopySingleCellAction(self)
                 self.addAction(self.copySingleCellAction)
-            self.copySingleCellAction.setEnabled(True)
+            self.copySingleCellAction.setVisible(True)
         else:
-            self.copySelectedCellsAction.setEnabled(True)
+            self.copySelectedCellsAction.setVisible(True)
             if self.cutSelectedCellsAction is not None:
-                self.cutSelectedCellsAction.setEnabled(True)
+                self.cutSelectedCellsAction.setVisible(True)
             if self.copySingleCellAction is not None:
-                self.copySingleCellAction.setEnabled(False)
+                self.copySingleCellAction.setVisible(False)
         super(TableView, self).setSelectionMode(mode)
 
 
