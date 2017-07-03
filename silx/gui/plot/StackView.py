@@ -802,8 +802,8 @@ class StackView(qt.QMainWindow):
             self.__autoscaleCmap = autoscale
 
             if autoscale and (self._stack is not None):
-                _colormap.setVRange(vmin=self._stack.min(),
-                                    vmax=self._stack.max())
+                _vmin, _vmax = _colormap.getColormapRange(data=self._stack)
+                _colormap.setVRange(vmin=_vmin, vmax=_vmax)
             else:
                 if vmin is None and self._stack is not None:
                     _colormap.setVMin(self._stack.min())
