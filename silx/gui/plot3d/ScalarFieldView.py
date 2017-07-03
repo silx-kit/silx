@@ -366,9 +366,6 @@ class CutPlane(qt.QObject):
     def __init__(self, sfView):
         super(CutPlane, self).__init__(parent=sfView)
 
-        self._colormap = Colormap(
-            name='gray', normalization='linear', vmin=None, vmax=None)
-
         self._dataRange = None
 
         self._plane = cutplane.CutPlane(normal=(0, 1, 0))
@@ -376,6 +373,11 @@ class CutPlane(qt.QObject):
         self._plane.visible = self._visible = False
         self._plane.addListener(self._planeChanged)
         self._plane.plane.addListener(self._planePositionChanged)
+
+        self._colormap = Colormap(
+            name='gray', normalization='linear', vmin=None, vmax=None)
+        self.getColormap().sigChanged.connect(self._colormapChanged)
+        self._updateSceneColormap()
 
         sfView.sigDataChanged.connect(self._sfViewDataChanged)
 
@@ -394,7 +396,7 @@ class CutPlane(qt.QObject):
 
         # Update colormap range when autoscale
         if self.getColormap().isAutoscale():
-            self._updateColormapRange()
+            self._updateSceneColormap()
 
     def _planeChanged(self, source, *args, **kwargs):
         """Handle events from the plane primitive"""
@@ -552,7 +554,9 @@ class CutPlane(qt.QObject):
         :param float vmax: The maximum value of the range or None for autoscale
         """
         _logger.debug('setColormap %s %s (%s, %s)',
-                      name, norm, str(vmin), str(vmax))
+                      name, str(norm), str(vmin), str(vmax))
+
+        self._colormap.sigChanged.disconnect(self._colormapChanged)
 
         if isinstance(name, Colormap):  # Use it as it is
             assert (norm, vmin, vmax) == (None, None, None)
@@ -563,8 +567,8 @@ class CutPlane(qt.QObject):
             self._colormap = Colormap(
                 name=name, normalization=norm, vmin=vmin, vmax=vmax)
 
-        self._updateColormapRange()
-        self.sigColormapChanged.emit(self.getColormap())
+        self._colormap.sigChanged.connect(self._colormapChanged)
+        self._colormapChanged()
 
     def getColormapEffectiveRange(self):
         """Returns the currently used range of the colormap.
@@ -576,14 +580,21 @@ class CutPlane(qt.QObject):
         """
         return self._plane.colormap.range_
 
-    def _updateColormapRange(self):
-        """Update the colormap range"""
+    def _updateSceneColormap(self):
+        """Synchronizes scene's colormap with Colormap object"""
         colormap = self.getColormap()
+        sceneCMap = self._plane.colormap
 
-        self._plane.colormap.name = colormap.getName()
-        self._plane.colormap.norm = colormap.getNormalization()
+        sceneCMap.name = colormap.getName()
+        sceneCMap.norm = colormap.getNormalization()
         range_ = colormap.getColormapRange(data=self._dataRange)
-        self._plane.colormap.range_ = range_
+        sceneCMap.range_ = range_
+
+    def _colormapChanged(self):
+        """Handle update of Colormap object"""
+        self._updateSceneColormap()
+        # Forward colormap changed event
+        self.sigColormapChanged.emit(self.getColormap())
 
 
 class _CutPlaneImage(object):
