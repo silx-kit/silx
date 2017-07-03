@@ -869,18 +869,14 @@ class PlaneMinRangeItem(ColormapBase):
         self._setVMin(value)
 
     def _setVMin(self, value):
-        cutPlane = self.subject.getCutPlanes()[0]
-        colormap = cutPlane.getColormap()
+        colormap = self.subject.getCutPlanes()[0].getColormap()
         vMin = value
         vMax = colormap.getVMax()
 
         if vMax is not None and value > vMax:
             vMin = vMax
             vMax = value
-        cutPlane.setColormap(name=colormap.getName(),
-                             norm=colormap.getNormalization(),
-                             vmin=vMin,
-                             vmax=vMax)
+        colormap.setVRange(vMin, vMax)
 
     def getEditor(self, parent, option, index):
         editor = qt.QLineEdit(parent)
@@ -912,17 +908,13 @@ class PlaneMaxRangeItem(ColormapBase):
         return self.subject.getCutPlanes()[0].getColormap().getVMax()
 
     def _setVMax(self, value):
-        cutPlane = self.subject.getCutPlanes()[0]
-        colormap = cutPlane.getColormap()
+        colormap = self.subject.getCutPlanes()[0].getColormap()
         vMin = colormap.getVMin()
         vMax = value
         if vMin is not None and value < vMin:
             vMax = vMin
             vMin = value
-        cutPlane.setColormap(name=colormap.getName(),
-                             norm=colormap.getNormalization(),
-                             vmin=vMin,
-                             vmax=vMax)
+        colormap.setVRange(vMin, vMax)
 
     def getEditor(self, parent, option, index):
         editor = qt.QLineEdit(parent)
@@ -1040,17 +1032,18 @@ class PlaneColormapItem(ColormapBase):
         return editor
 
     def __editorChanged(self, index):
-        colorMapName = self.listValues[index]
-        colorMap = self.subject.getCutPlanes()[0].getColormap()
-        self.subject.getCutPlanes()[0].setColormap(name=colorMapName,
-                                                   norm=colorMap.getNormalization(),
-                                                   vmin=colorMap.getVMin(),
-                                                   vmax=colorMap.getVMax())
+        colormapName = self.listValues[index]
+        colormap = self.subject.getCutPlanes()[0].getColormap()
+        colormap.setName(colormapName)
 
     def setEditorData(self, editor):
         colormapName = self.subject.getCutPlanes()[0].getColormap().getName()
-        index = self.listValues.index(colormapName)
-        editor.setCurrentIndex(index)
+        try:
+            index = self.listValues.index(colormapName)
+        except ValueError:
+            _logger.error('Unsupported colormap: %s', colormapName)
+        else:
+            editor.setCurrentIndex(index)
         return True
 
     def _setModelData(self, editor):
@@ -1080,8 +1073,7 @@ class PlaneAutoScaleItem(ColormapBase):
 
     def _setAutoScale(self, auto):
         view3d = self.subject
-        cutPlane = view3d.getCutPlanes()[0]
-        colormap = cutPlane.getColormap()
+        colormap = view3d.getCutPlanes()[0].getColormap()
 
         if auto != colormap.isAutoscale():
             if auto:
@@ -1092,10 +1084,7 @@ class PlaneAutoScaleItem(ColormapBase):
                     vMin = vMax = None
                 else:
                     vMin, vMax = dataRange[0], dataRange[-1]
-            cutPlane.setColormap(colormap.getName(),
-                                 colormap.getNormalization(),
-                                 vMin,
-                                 vMax)
+            colormap.setVRange(vMin, vMax)
 
     def _pullData(self):
         auto = self.subject.getCutPlanes()[0].getColormap().isAutoscale()
