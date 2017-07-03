@@ -89,6 +89,7 @@ from ..widgets.FrameBrowser import HorizontalSliderWithBrowser
 
 from silx.utils.array_like import DatasetView, ListOfImages
 from silx.math import calibration
+from silx.utils.deprecation import deprecated_warning
 
 
 class StackView(qt.QMainWindow):
@@ -750,9 +751,8 @@ class StackView(qt.QMainWindow):
         :param numpy.ndarray colors: Only used if name is None.
             Custom colormap colors as Nx3 or Nx4 RGB or RGBA arrays
         """
-        cmapDict = self.getColormap()
-
-        if isinstance(colormap, Colormap):
+        # if is a colormap object or a dictionary
+        if isinstance(colormap, Colormap) or isinstance(colormap, dict):
             # Support colormap parameter as a dict
             errmsg = "If colormap is provided as a Colormap object, all other parameters"
             errmsg += " must not be specified when calling setColormap"
@@ -761,16 +761,30 @@ class StackView(qt.QMainWindow):
             assert vmin is None, errmsg
             assert vmax is None, errmsg
             assert colors is None, errmsg
-            cmapDict.update(colormap)
 
+            if isinstance(colormap, dict):
+                reason = 'colormap parameter should now be an object'
+                replacement = 'Colormap()'
+                since_version = '0.6'
+                deprecated_warning(type_='function',
+                                   name='setColormap',
+                                   reason=reason,
+                                   replacement=replacement,
+                                   since_version=since_version)
+                _colormap = Colormap._fromDict(colormap)
+            else:
+                _colormap = colormap
         else:
-            if colormap is not None:
-                cmapDict.setName(colormap)
-            if normalization is not None:
-                cmapDict.setNormalization(normalization)
-            if colors is not None:
-                cmapDict.setColors(colors)
+            norm = normalization if normalization is not None else 'linear'
+            name = colormap if colormap is not None else 'gray'
+            _colormap = Colormap(name=name,
+                                 normalization=norm,
+                                 vmin=vmin,
+                                 vmax=vmax,
+                                 colors=colors)
 
+            # Patch: since we don't apply this colormap to a single 2D data but
+            # a 2D stack we have to deal manually with vmin, vmax
             if autoscale is None:
                 # set default
                 autoscale = False
@@ -786,19 +800,24 @@ class StackView(qt.QMainWindow):
             else:
                 autoscale = autoscale
             self.__autoscaleCmap = autoscale
-            if autoscale and (self._stack is not None):
-                cmapDict.setVMin(self._stack.min())
-                cmapDict.setVMax(self._stack.max())
-            else:
-                if vmin is not None:
-                    cmapDict.setVMin(vmin)
-                if vmax is not None:
-                    cmapDict.setVMax(vmax)
 
-        cursorColor = cursorColorForColormap(cmapDict.getName())
+            if autoscale and (self._stack is not None):
+                _colormap.setVRange(vmin=self._stack.min(),
+                                    vmax=self._stack.max())
+            else:
+                if vmin is None and self._stack is not None:
+                    _colormap.setVMin(self._stack.min())
+                else:
+                    _colormap.setVMin(vmin)
+                if vmax is None and self._stack is not None:
+                    _colormap.setVMax(self._stack.max())
+                else:
+                    _colormap.setVMax(vmax)
+
+        cursorColor = cursorColorForColormap(_colormap.getName())
         self._plot.setInteractiveMode('zoom', color=cursorColor)
 
-        self._plot.setDefaultColormap(cmapDict)
+        self._plot.setDefaultColormap(_colormap)
 
         # Update active image colormap
         activeImage = self._plot.getActiveImage()
