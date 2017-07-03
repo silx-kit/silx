@@ -337,21 +337,9 @@ class Colormap(qt.QObject):
             err = 'Given normalization is not recoginized (%s)' % normalization
             raise ValueError(err)
 
-        if 'autoscale' in dic:
-            if dic['autoscale'] is True:
-                if vmin is not None or vmax is not None:
-                    err = "Can't set the colormap from the dictionary because"
-                    err += " autoscale is requested but vmin and vmax are also"
-                    err += " defined (!= None)"
-                    raise ValueError(err)
-            elif dic['autoscale'] is False:
-                if vmin is None and vmax is None:
-                    err = "Can't set the colormap from the dictionary because"
-                    err += " autoscale is not requested but vmin and vmax are"
-                    err += " both set to None"
-                    raise ValueError(err)
-            else:
-                raise ValueError('Autoscale value should be True or False')
+        # If autoscale, then set boundaries to None
+        if dic.get('autoscale', False):
+            vmin, vmax = None, None
 
         self._name = name
         self._colors = colors
