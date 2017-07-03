@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -50,7 +50,7 @@ creating the widgets, or later by calling their :meth:`enableCut` and
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "26/01/2017"
+__date__ = "03/07/2017"
 
 
 import sys
@@ -356,8 +356,13 @@ class TableWidget(qt.QTableWidget):
     """
     def __init__(self, parent=None, cut=False, paste=False):
         super(TableWidget, self).__init__(parent)
-        self.addAction(CopySelectedCellsAction(self))
-        self.addAction(CopyAllCellsAction(self))
+        self.copySelectedCellsAction = CopySelectedCellsAction(self)
+        self.copyAllCellsAction = CopyAllCellsAction(self)
+        self.pasteCellsAction = None
+        self.cutSelectedCellsAction = None
+        self.cutAllCellsAction = None
+        self.addAction(self.copySelectedCellsAction)
+        self.addAction(self.copyAllCellsAction)
         if cut:
             self.enableCut()
         if paste:
@@ -374,7 +379,8 @@ class TableWidget(qt.QTableWidget):
             This action can cause data to be overwritten.
             There is currently no *Undo* action to retrieve lost data.
         """
-        self.addAction(PasteCellsAction(self))
+        self.pasteCellsAction = PasteCellsAction(self)
+        self.addAction(self.pasteCellsAction)
 
     def enableCut(self):
         """Enable cut action.
@@ -383,8 +389,27 @@ class TableWidget(qt.QTableWidget):
 
             This action can cause data to be deleted.
             There is currently no *Undo* action to retrieve lost data."""
-        self.addAction(CutSelectedCellsAction(self))
-        self.addAction(CutAllCellsAction(self))
+        self.cutSelectedCellsAction = CutSelectedCellsAction(self)
+        self.cutAllCellsAction = CutAllCellsAction(self)
+        self.addAction(self.cutSelectedCellsAction)
+        self.addAction(self.cutAllCellsAction)
+
+    def setSelectionMode(self, mode):
+        """Overloaded from QTableWidget to disable cut/copy selection
+        actions in case mode is NoSelection
+
+        :param mode:
+        :return:
+        """
+        if mode == qt.QTableView.NoSelection:
+            self.copySelectedCellsAction.setEnabled(False)
+            if self.cutSelectedCellsAction is not None:
+                self.cutSelectedCellsAction.setEnabled(False)
+        else:
+            self.copySelectedCellsAction.setEnabled(True)
+            if self.cutSelectedCellsAction is not None:
+                self.cutSelectedCellsAction.setEnabled(True)
+        super(TableWidget, self).setSelectionMode(mode)
 
 
 class TableView(qt.QTableView):
@@ -417,6 +442,12 @@ class TableView(qt.QTableView):
         self.cut = cut
         self.paste = paste
 
+        self.copySelectedCellsAction = None
+        self.copyAllCellsAction = None
+        self.pasteCellsAction = None
+        self.cutSelectedCellsAction = None
+        self.cutAllCellsAction = None
+
     def setModel(self, model):
         """Set the data model for the table view, activate the actions
         and the context menu.
@@ -425,8 +456,10 @@ class TableView(qt.QTableView):
         """
         super(TableView, self).setModel(model)
 
-        self.addAction(CopySelectedCellsAction(self))
-        self.addAction(CopyAllCellsAction(self))
+        self.copySelectedCellsAction = CopySelectedCellsAction(self)
+        self.copyAllCellsAction = CopyAllCellsAction(self)
+        self.addAction(self.copySelectedCellsAction)
+        self.addAction(self.copyAllCellsAction)
         if self.cut:
             self.enableCut()
         if self.paste:
@@ -443,7 +476,8 @@ class TableView(qt.QTableView):
             This action can cause data to be overwritten.
             There is currently no *Undo* action to retrieve lost data.
         """
-        self.addAction(PasteCellsAction(self))
+        self.pasteCellsAction = PasteCellsAction(self)
+        self.addAction(self.pasteCellsAction)
 
     def enableCut(self):
         """Enable cut action.
@@ -453,8 +487,10 @@ class TableView(qt.QTableView):
             This action can cause data to be deleted.
             There is currently no *Undo* action to retrieve lost data.
         """
-        self.addAction(CutSelectedCellsAction(self))
-        self.addAction(CutAllCellsAction(self))
+        self.cutSelectedCellsAction = CutSelectedCellsAction(self)
+        self.cutAllCellsAction = CutAllCellsAction(self)
+        self.addAction(self.cutSelectedCellsAction)
+        self.addAction(self.cutAllCellsAction)
 
     def addAction(self, action):
         # ensure the actions are not added multiple times:
@@ -465,6 +501,24 @@ class TableView(qt.QTableView):
                         action.table is existing_action.table:
                     return None
         super(TableView, self).addAction(action)
+
+    def setSelectionMode(self, mode):
+        """Overloaded from QTableView to disable cut/copy selection
+        actions in case mode is NoSelection
+
+        :param mode:
+        :return:
+        """
+        if mode == qt.QTableView.NoSelection:
+            self.copySelectedCellsAction.setEnabled(False)
+            if self.cutSelectedCellsAction is not None:
+                self.cutSelectedCellsAction.setEnabled(False)
+        else:
+            self.copySelectedCellsAction.setEnabled(True)
+            if self.cutSelectedCellsAction is not None:
+                self.cutSelectedCellsAction.setEnabled(True)
+        super(TableView, self).setSelectionMode(mode)
+
 
 if __name__ == "__main__":
     app = qt.QApplication([])
