@@ -411,7 +411,8 @@ class TableWidget(qt.QTableWidget):
 
     def mousePressEvent(self, event):
         item = self.itemAt(event.pos())
-        self._text_last_cell_clicked = item.text()
+        if item is not None:
+            self._text_last_cell_clicked = item.text()
         super(TableWidget, self).mousePressEvent(event)
 
     def enablePaste(self):
