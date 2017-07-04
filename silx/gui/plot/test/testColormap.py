@@ -135,32 +135,6 @@ class TestDictAPI(unittest.TestCase):
         with self.assertRaises(ValueError):
             colormapObject = Colormap._fromDict(clm_dict)
 
-    def testIncoherentAutoscale(self):
-        """Make sure an error is raised if the values given for vmin, vmax and
-        autoscale are incoherent 
-        """
-        clm_dict = {
-            'name': 'temperature',
-            'vmin': None,
-            'vmax': None,
-            'normalization': 'linear',
-            'colors': None,
-            'autoscale': False
-        }
-        with self.assertRaises(ValueError):
-            colormapObject = Colormap._fromDict(clm_dict)
-
-        clm_dict = {
-            'name': 'temperature',
-            'vmin': 1.0,
-            'vmax': 2.0,
-            'normalization': 'linear',
-            'colors': None,
-            'autoscale': True
-        }
-        with self.assertRaises(ValueError):
-            colormapObject = Colormap._fromDict(clm_dict)
-
 
 class TestObjectAPI(unittest.TestCase):
     """Test the new Object API of the colormap"""
