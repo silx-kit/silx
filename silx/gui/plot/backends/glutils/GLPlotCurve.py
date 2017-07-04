@@ -1185,7 +1185,7 @@ class GLPlotCurve2D(object):
             self.yVboData.offset += yAttrib.itemsize
 
             if cAttrib is not None and colorData.dtype.kind == 'u':
-                cAttrib.normalisation = True  # Normalise uint to [0, 1]
+                cAttrib.normalization = True  # Normalize uint to [0, 1]
             self.colorVboData = cAttrib
             self.useColorVboData = cAttrib is not None
             self.distVboData = dAttrib
