@@ -60,13 +60,7 @@ class Scatter(Points, ColormapMixIn):
             return None  # No data to display, do not add renderer to backend
 
         cmap = self.getColormap()
-        rgbacolors = applyColormapToData(self._value,
-                                         cmap["name"],
-                                         cmap["normalization"],
-                                         cmap["autoscale"],
-                                         cmap["vmin"],
-                                         cmap["vmax"],
-                                         cmap.get("colors"))
+        rgbacolors = cmap.applyToData(self._value)
 
         return backend.addCurve(xFiltered, yFiltered, self.getLegend(),
                                 color=rgbacolors,

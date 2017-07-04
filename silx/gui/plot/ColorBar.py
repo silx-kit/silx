@@ -33,9 +33,8 @@ __date__ = "11/04/2017"
 import logging
 import numpy
 from ._utils import ticklayout
-
 from .. import qt, icons
-from silx.gui.plot import Colors
+from silx.gui.plot import Colormap
 
 _logger = logging.getLogger(__name__)
 
@@ -137,20 +136,23 @@ class ColorBarWidget(qt.QWidget):
             self._viewAction.setChecked(False)
 
     def getColormap(self):
-        """Return the colormap displayed in the colorbar as a dict.
+        """
 
-        It returns None if no colormap is set.
-        See :class:`silx.gui.plot.Plot` documentation for the description of the colormap
-        dict description.
+        :return: the :class:`.Colormap` colormap displayed in the colorbar.
+
         """
         return self.getColorScaleBar().getColormap()
 
-    def setColormap(self, colormap):
+    def setColormap(self, colormap, data=None):
         """Set the colormap to be displayed.
 
-        :param dict colormap: The colormap to apply on the ColorBarWidget
+        :param :class:`.Colormap` colormap: The colormap to apply on the
+            ColorBarWidget
+        :param numpy.ndarray data: the data to display, needed if the colormap
+            require an autoscale
         """
-        self.getColorScaleBar().setColormap(colormap)
+        self.getColorScaleBar().setColormap(colormap=colormap,
+                                            data=data)
 
     def setLegend(self, legend):
         """Set the legend displayed along the colorbar
@@ -177,7 +179,7 @@ class ColorBarWidget(qt.QWidget):
     def _activeImageChanged(self, previous, legend):
         """Handle plot active curve changed"""
         if legend is None:  # No active image, display default colormap
-            self._syncWithDefaultColormap()
+            self._syncWithDefaultColormap(data=None)
             return
 
         # Sync with active image
@@ -185,22 +187,14 @@ class ColorBarWidget(qt.QWidget):
 
         # RGB(A) image, display default colormap
         if image.ndim != 2:
-            self._syncWithDefaultColormap()
+            self._syncWithDefaultColormap(data=image)
             return
 
         # data image, sync with image colormap
         # do we need the copy here : used in the case we are changing
         # vmin and vmax but should have already be done by the plot
-        cmap = self._plot.getActiveImage().getColormap().copy()
-        if cmap['autoscale']:
-            if cmap['normalization'] == 'log':
-                data = image[
-                    numpy.logical_and(image > 0, numpy.isfinite(image))]
-            else:
-                data = image[numpy.isfinite(image)]
-            cmap['vmin'], cmap['vmax'] = data.min(), data.max()
-
-        self.setColormap(cmap)
+        self.setColormap(colormap=self._plot.getActiveImage().getColormap(),
+                         data=image)
 
     def _defaultColormapChanged(self, event):
         """Handle plot default colormap changed"""
@@ -209,9 +203,9 @@ class ColorBarWidget(qt.QWidget):
             # No active image, take default colormap update into account
             self._syncWithDefaultColormap()
 
-    def _syncWithDefaultColormap(self):
+    def _syncWithDefaultColormap(self, data=None):
         """Update colorbar according to plot default colormap"""
-        self.setColormap(self._plot.getDefaultColormap())
+        self.setColormap(self._plot.getDefaultColormap(), data)
 
     def getColorScaleBar(self):
         """
@@ -278,12 +272,11 @@ class ColorScaleBar(qt.QWidget):
 
     To run the following sample code, a QApplication must be initialized.
 
-    >>> colormap={'name': 'gray',
-    ...       'normalization': 'log',
-    ...       'vmin': 1,
-    ...       'vmax': 100000,
-    ...       'autoscale': False
-    ...       }
+    >>> colormap = Colormap(name='gray',
+    ...                     norm='log',
+    ...                     vmin=1,
+    ...                     vmax=100000,
+    ...             )
     >>> colorscale = ColorScaleBar(parent=None,
     ...                            colormap=colormap )
     >>> colorscale.show()
@@ -299,7 +292,8 @@ class ColorScaleBar(qt.QWidget):
     """The tick bar need a margin to display all labels at the correct place.
     So the ColorScale should have the same margin in order for both to fit"""
 
-    def __init__(self, parent=None, colormap=None, displayTicksValues=True):
+    def __init__(self, parent=None, colormap=None, data=None,
+                 displayTicksValues=True):
         super(ColorScaleBar, self).__init__(parent)
 
         self.minVal = None
@@ -311,16 +305,21 @@ class ColorScaleBar(qt.QWidget):
 
         # create the left side group (ColorScale)
         self.colorScale = _ColorScale(colormap=colormap,
+                                      data=data,
                                       parent=self,
                                       margin=ColorScaleBar._TEXT_MARGIN)
+        if colormap:
+            vmin, vmax = colormap.getColormapRange(data)
+        else:
+            vmin, vmax = Colormap.DEFAULT_MIN_LIN, Colormap.DEFAULT_MAX_LIN
 
-        self.tickbar = _TickBar(
-            vmin=colormap['vmin'] if colormap else 0.0,
-            vmax=colormap['vmax'] if colormap else 1.0,
-            norm=colormap['normalization'] if colormap else 'linear',
-            parent=self,
-            displayValues=displayTicksValues,
-            margin=ColorScaleBar._TEXT_MARGIN)
+        norm = colormap.getNormalization() if colormap else Colormap.Colormap.LINEAR
+        self.tickbar = _TickBar(vmin=vmin,
+                                vmax=vmax,
+                                norm=norm,
+                                parent=self,
+                                displayValues=displayTicksValues,
+                                margin=ColorScaleBar._TEXT_MARGIN)
 
         self.layout().addWidget(self.tickbar, 1, 0, 1, 1, qt.Qt.AlignRight)
         self.layout().addWidget(self.colorScale, 1, 1, qt.Qt.AlignLeft)
@@ -357,25 +356,28 @@ class ColorScaleBar(qt.QWidget):
         return self.colorScale
 
     def getColormap(self):
-        """Returns the colormap.
+        """
 
-        :rtype: dict
+        :returns: the colormap.
+        :rtype: :class:`.Colormap`
         """
         return self.colorScale.getColormap()
 
-    def setColormap(self, colormap):
+    def setColormap(self, colormap, data=None):
         """Set the new colormap to be displayed
 
-        :param dict colormap: the colormap to set
+        :param Colormap colormap: the colormap to set
+        :param numpy.ndarray data: the data to display, needed if the colormap
+            require an autoscale
         """
         if colormap is not None:
-            self.colorScale.setColormap(colormap)
+            self.colorScale.setColormap(colormap, data)
 
-            self.tickbar.update(vmin=colormap['vmin'],
-                                vmax=colormap['vmax'],
-                                norm=colormap['normalization'])
-
-            self._setMinMaxLabels(colormap['vmin'], colormap['vmax'])
+            vmin, vmax = colormap.getColormapRange(data)
+            self.tickbar.update(vmin=vmin,
+                                vmax=vmax,
+                                norm=colormap.getNormalization())
+            self._setMinMaxLabels(vmin, vmax)
 
     def setMinMaxVisible(self, val=True):
         """Change visibility of the min label and the max label
@@ -441,14 +443,13 @@ class _ColorScale(qt.QWidget):
 
     To run the following sample code, a QApplication must be initialized.
 
-    >>> colormap={'name': 'viridis',
-    ...       'normalization': 'log',
-    ...       'vmin': 1,
-    ...       'vmax': 100000,
-    ...       'autoscale': False
-    ...       }
-    >>> colorscale = _ColorScale(parent=None,
-    ...                          colormap=colormap)
+    >>> colormap = Colormap(name='viridis',
+    ...                     norm='log',
+    ...                     vmin=1,
+    ...                     vmax=100000,
+    ...             )
+    >>> colorscale = ColorScale(parent=None,
+    ...                         colormap=colormap)
     >>> colorscale.show()
 
     Initializer parameters :
@@ -464,11 +465,11 @@ class _ColorScale(qt.QWidget):
 
     _NB_CONTROL_POINTS = 256
 
-    def __init__(self, colormap, parent=None, margin=5):
+    def __init__(self, colormap, parent=None, margin=5, data=None):
         qt.QWidget.__init__(self, parent)
         self._colormap = None
         self.margin = margin
-        self.setColormap(colormap)
+        self.setColormap(colormap, data)
 
         self.setLayout(qt.QVBoxLayout())
         self.setSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Expanding)
@@ -480,31 +481,28 @@ class _ColorScale(qt.QWidget):
         self.setMinimumHeight(self._NB_CONTROL_POINTS // 2 + 2 * self.margin)
         self.setFixedWidth(25)
 
-    def setColormap(self, colormap):
+    def setColormap(self, colormap, data=None):
         """Set the new colormap to be displayed
 
         :param dict colormap: the colormap to set
+        :param data: Optional data for which to compute colormap range.
         """
         if colormap is None:
             return
 
-        assert colormap['normalization'] in ('log', 'linear')
-
-        if colormap['normalization'] == 'log':
-            if colormap['vmin'] <= 0. or colormap['vmax'] <= 0.:
-                _logger.warning('Log colormap with bound <= 0: changing bounds.')
-                colormap['vmin'], colormap['vmax'] = 1., 10  # TODO same fallback as plot
+        assert colormap.getNormalization() in Colormap.Colormap.NORMALIZATIONS
 
         self._colormap = colormap
+        self.vmin, self.vmax = self._colormap.getColormapRange(data=data)
         self._updateColorGradient()
         self.update()
 
     def getColormap(self):
         """Returns the colormap
 
-        :rtype: dict
+        :rtype: :class:`.Colormap`
         """
-        return None if self._colormap is None else self._colormap.copy()
+        return None if self._colormap is None else self._colormap
 
     def _updateColorGradient(self):
         """Compute the color gradient"""
@@ -513,13 +511,12 @@ class _ColorScale(qt.QWidget):
             return
 
         indices = numpy.linspace(0., 1., self._NB_CONTROL_POINTS)
-        colors = Colors.applyColormapToData(
-            indices,
-            name=colormap['name'],
-            normalization='linear',
-            autoscale=True,
-            vmin=0.,
-            vmax=1.)
+        colormapDisp = Colormap.Colormap(name=colormap.getName(),
+                                         normalization=Colormap.Colormap.LINEAR,
+                                         vmin=None,
+                                         vmax=None,
+                                         colors=colormap.getColormapLUT())
+        colors = colormapDisp.applyToData(indices)
         self._gradient = qt.QLinearGradient(0, 1, 0, 0)
         self._gradient.setCoordinateMode(qt.QGradient.StretchToDeviceMode)
         self._gradient.setStops(
@@ -565,11 +562,11 @@ class _ColorScale(qt.QWidget):
         value = max(0.0, value)
         value = min(value, 1.0)
 
-        vmin = colormap['vmin']
-        vmax = colormap['vmax']
-        if colormap['normalization'] is 'linear':
+        vmin = self.vmin
+        vmax = self.vmax
+        if colormap.getNormalization() == Colormap.Colormap.LINEAR:
             return vmin + (vmax - vmin) * value
-        elif colormap['normalization'] is 'log':
+        elif colormap.getNormalization() == Colormap.Colormap.LOGARITHM:
             rpos = (numpy.log10(vmax) - numpy.log10(vmin)) * value + numpy.log10(vmin)
             return numpy.power(10., rpos)
         else:
@@ -634,13 +631,6 @@ class _TickBar(qt.QWidget):
 
         self._vmin = vmin
         self._vmax = vmax
-        # TODO : should be grouped into a global function, called by all
-        # logScale displayer to make sure we have the same behavior everywhere
-        if self._vmin < 1. or self._vmax < 1.:
-            _logger.warning(
-                'Log colormap with bound <= 1: changing bounds.')
-            self._vmin, self._vmax = 1., 10.
-
         self._norm = norm
         self.displayValues = displayValues
         self.setTicksNumber(nticks)
@@ -705,9 +695,9 @@ class _TickBar(qt.QWidget):
             # No range: no ticks
             self.ticks = ()
             self.subTicks = ()
-        elif self._norm == 'log':
+        elif self._norm == Colormap.Colormap.LOGARITHM:
             self._computeTicksLog(nticks)
-        elif self._norm == 'linear':
+        elif self._norm == Colormap.Colormap.LINEAR:
             self._computeTicksLin(nticks)
         else:
             err = 'TickBar - Wrong normalization %s' % self._norm
@@ -764,9 +754,9 @@ class _TickBar(qt.QWidget):
     def _getRelativePosition(self, val):
         """Return the relative position of val according to min and max value
         """
-        if self._norm == 'linear':
+        if self._norm == Colormap.Colormap.LINEAR:
             return 1 - (val - self._vmin) / (self._vmax - self._vmin)
-        elif self._norm == 'log':
+        elif self._norm == Colormap.Colormap.LOGARITHM:
             return 1 - (numpy.log10(val) - numpy.log10(self._vmin))/(numpy.log10(self._vmax) - numpy.log(self._vmin))
         else:
             raise ValueError('Norm is not recognized')

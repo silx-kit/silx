@@ -38,6 +38,7 @@ from silx.gui.test.utils import TestCaseQt
 
 from silx.gui import qt
 from silx.gui.plot import PlotWidget
+from silx.gui.plot.Colormap import Colormap
 
 
 SIZE = 1024
@@ -133,23 +134,29 @@ class TestPlotImage(_PlotWidgetTest, ParametricTestCase):
     def testPlotColormapTemperature(self):
         self.plot.setGraphTitle('Temp. Linear')
 
-        colormap = {'name': 'temperature', 'normalization': 'linear',
-                    'autoscale': True, 'vmin': 0.0, 'vmax': 1.0}
+        colormap = Colormap(name='temperature',
+                            normalization='linear',
+                            vmin=None,
+                            vmax=None)
         self.plot.addImage(DATA_2D, legend="image 1", colormap=colormap)
 
     def testPlotColormapGray(self):
         self.plot.setKeepDataAspectRatio(False)
         self.plot.setGraphTitle('Gray Linear')
 
-        colormap = {'name': 'gray', 'normalization': 'linear',
-                    'autoscale': True, 'vmin': 0.0, 'vmax': 1.0}
+        colormap = Colormap(name='gray',
+                            normalization='linear',
+                            vmin=None,
+                            vmax=None)
         self.plot.addImage(DATA_2D, legend="image 1", colormap=colormap)
 
     def testPlotColormapTemperatureLog(self):
         self.plot.setGraphTitle('Temp. Log')
 
-        colormap = {'name': 'temperature', 'normalization': 'log',
-                    'autoscale': True, 'vmin': 0.0, 'vmax': 1.0}
+        colormap = Colormap(name='temperature',
+                            normalization=Colormap.LOGARITHM,
+                            vmin=None,
+                            vmax=None)
         self.plot.addImage(DATA_2D, legend="image 1", colormap=colormap)
 
     def testPlotRgbRgba(self):
@@ -180,19 +187,23 @@ class TestPlotImage(_PlotWidgetTest, ParametricTestCase):
         self.plot.setKeepDataAspectRatio(False)
         self.plot.setGraphTitle('Custom colormap')
 
-        colormap = {'name': None, 'normalization': 'linear',
-                    'autoscale': True, 'vmin': 0.0, 'vmax': 1.0,
-                    'colors': ((0., 0., 0.), (1., 0., 0.),
-                               (0., 1., 0.), (0., 0., 1.))}
+        colormap = Colormap(name=None,
+                            normalization=Colormap.LINEAR,
+                            vmin=None,
+                            vmax=None,
+                            colors=((0., 0., 0.), (1., 0., 0.),
+                               (0., 1., 0.), (0., 0., 1.)))
         self.plot.addImage(DATA_2D, legend="image 1", colormap=colormap,
                            replace=False, resetzoom=False)
 
-        colormap = {'name': None, 'normalization': 'linear',
-                    'autoscale': True, 'vmin': 0.0, 'vmax': 1.0,
-                    'colors': numpy.array(
-                        ((0, 0, 0, 0), (0, 0, 0, 128),
-                         (128, 128, 128, 128), (255, 255, 255, 255)),
-                        dtype=numpy.uint8)}
+        colormap = Colormap(name=None,
+                            normalization=Colormap.LINEAR,
+                            vmin=None,
+                            vmax=None,
+                            colors=numpy.array(
+                                ((0, 0, 0, 0), (0, 0, 0, 128),
+                                 (128, 128, 128, 128), (255, 255, 255, 255)),
+                                dtype=numpy.uint8))
         self.plot.addImage(DATA_2D, legend="image 2", colormap=colormap,
                            origin=(DATA_2D.shape[0], 0),
                            replace=False, resetzoom=False)
@@ -247,6 +258,19 @@ class TestPlotImage(_PlotWidgetTest, ParametricTestCase):
                 self.plot.setKeepDataAspectRatio(False)  # Reset aspect ratio
                 self.plot.clear()
                 self.plot.resetZoom()
+
+    def testPlotColormapDictAPI(self):
+        """Test that the addImage API using a colormap dictionary is still
+        working"""
+        self.plot.setGraphTitle('Temp. Log')
+
+        colormap = {
+            'name': 'temperature',
+            'normalization': 'log',
+            'vmin': None,
+            'vmax': None
+        }
+        self.plot.addImage(DATA_2D, legend="image 1", colormap=colormap)
 
 
 class TestPlotCurve(_PlotWidgetTest):
@@ -746,8 +770,10 @@ class TestPlotImageLog(_PlotWidgetTest):
         self.plot.setXAxisLogarithmic(True)
         self.plot.setGraphTitle('CMap X: Log Y: Linear')
 
-        colormap = {'name': 'gray', 'normalization': 'linear',
-                    'autoscale': True, 'vmin': 0.0, 'vmax': 1.0}
+        colormap = Colormap(name='gray',
+                            normalization='linear',
+                            vmin=None,
+                            vmax=None)
         self.plot.addImage(DATA_2D, legend="image 1",
                            origin=(1., 1.), scale=(1., 1.),
                            replace=False, resetzoom=False, colormap=colormap)
@@ -757,8 +783,10 @@ class TestPlotImageLog(_PlotWidgetTest):
         self.plot.setYAxisLogarithmic(True)
         self.plot.setGraphTitle('CMap X: Linear Y: Log')
 
-        colormap = {'name': 'gray', 'normalization': 'linear',
-                    'autoscale': True, 'vmin': 0.0, 'vmax': 1.0}
+        colormap = Colormap(name='gray',
+                            normalization='linear',
+                            vmin=None,
+                            vmax=None)
         self.plot.addImage(DATA_2D, legend="image 1",
                            origin=(1., 1.), scale=(1., 1.),
                            replace=False, resetzoom=False, colormap=colormap)
@@ -769,8 +797,10 @@ class TestPlotImageLog(_PlotWidgetTest):
         self.plot.setYAxisLogarithmic(True)
         self.plot.setGraphTitle('CMap X: Log Y: Log')
 
-        colormap = {'name': 'gray', 'normalization': 'linear',
-                    'autoscale': True, 'vmin': 0.0, 'vmax': 1.0}
+        colormap = Colormap(name='gray',
+                            normalization='linear',
+                            vmin=None,
+                            vmax=None)
         self.plot.addImage(DATA_2D, legend="image 1",
                            origin=(1., 1.), scale=(1., 1.),
                            replace=False, resetzoom=False, colormap=colormap)

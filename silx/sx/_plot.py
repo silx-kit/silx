@@ -35,6 +35,7 @@ import numpy
 
 from ..gui.plot import Plot1D, Plot2D
 from ..gui.plot.Colors import COLORDICT
+from ..gui.plot.Colormap import Colormap
 from silx.third_party import six
 
 
@@ -196,7 +197,7 @@ def plot(*args, **kwargs):
     return plt
 
 
-def imshow(data=None, cmap=None, norm='linear',
+def imshow(data=None, cmap=None, norm=Colormap.LINEAR,
            vmin=None, vmax=None,
            aspect=False,
            origin=(0., 0.), scale=(1., 1.),
@@ -241,15 +242,11 @@ def imshow(data=None, cmap=None, norm='linear',
     # Update default colormap with input parameters
     colormap = plt.getDefaultColormap()
     if cmap is not None:
-        colormap['name'] = cmap
-    assert norm in ('linear', 'log')
-    colormap['normalization'] = norm
-    if vmin is not None:
-        colormap['vmin'] = vmin
-    if vmax is not None:
-        colormap['vmax'] = vmax
-    if vmin is not None and vmax is not None:
-        colormap['autoscale'] = False
+        colormap.setName(cmap)
+    assert norm in Colormap.NORMALIZATIONS
+    colormap.setNormalization(norm)
+    colormap.setVMin(vmin)
+    colormap.setVMax(vmax)
     plt.setDefaultColormap(colormap)
 
     # Handle aspect

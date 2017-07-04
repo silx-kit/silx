@@ -343,17 +343,15 @@ When updating an image, if ``origin`` and ``scale`` are not provided, the previo
 Colormap
 ++++++++
 
-A ``colormap`` is described with a :class:`dict` as follows (See :mod:`silx.gui.plot.Plot` for full documentation of the colormap):
+A ``colormap`` is described with a :class:`.Colormap` class as follows:
 
 .. code-block:: python
 
-   colormap = {
-       'name': 'gray',             # Name of the colormap
-       'normalization': 'linear',  # Either 'linear' or 'log'
-       'autoscale': True,          # True to autoscale colormap to data range, False to use [vmin, vmax]
-       'vmin': 0.0,                # If not autoscale, data value to bind to min of colormap
-       'vmax': 1.0                 # If not autoscale, data value to bind to max of colormap
-    }
+   colormap = Colormap(name='gray',             # Name of the colormap
+                       normalization='linear',  # Either 'linear' or 'log'
+                       vmin=0.0,                # If not autoscale, data value to bind to min of colormap
+                       vmax=1.0                 # If not autoscale, data value to bind to max of colormap
+               )
 
 
 At least the following colormap names are guaranteed to be available, but any colormap name from `matplotlib <http://matplotlib.org/>`_ (see `Choosing Colormaps <http://matplotlib.org/users/colormaps.html>`_) should work:
@@ -373,19 +371,23 @@ It is possible to change the default colormap of :meth:`.PlotWidget.addImage` fo
 
 .. code-block:: python
 
-   colormap = {'name': 'viridis', 'normalization': 'linear',
-               'autoscale': True, 'vmin': 0.0, 'vmax': 1.0}
+   colormap = Colormap(name='viridis',
+                       normalization='linear',
+                       vmin=0.0,
+                       vmax=1.0)
    plot.setDefaultColormap(colormap)
 
    data = numpy.arange(512 * 512.).reshape(512, -1)
    plot.addImage(data)  # Rendered with the default colormap set before
 
-It is also possible to provide a ``colormap`` to :meth:`.PlotWidget.addImage` to override this default for an image:
+It is also possible to provide a :class:`.Colormap` to :meth:`.PlotWidget.addImage` to override this default for an image:
 
 .. code-block:: python
 
-   colormap = {'name': 'magma', 'normalization': 'log',
-               'autoscale': False, 'vmin': 1.2, 'vmax': 1.8}
+   colormap = Colormap(name='magma',
+                       normalization='log',
+                       vmin=1.2,
+                       vmax=1.8)
    data = numpy.random.random(512 * 512).reshape(512, -1) + 1.
    plot.addImage(data, colormap=colormap)
 

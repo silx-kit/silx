@@ -35,7 +35,7 @@ import unittest
 from silx.test.utils import ParametricTestCase
 
 from silx.gui.plot import Colors
-
+from silx.gui.plot.Colormap import Colormap
 
 class TestRGBA(ParametricTestCase):
     """Basic tests of rgba function"""
@@ -65,8 +65,8 @@ class TestApplyColormapToData(ParametricTestCase):
 
     def testApplyColormapToData(self):
         """Simple test of applyColormapToData function"""
-        colormap = dict(name='gray', normalization='linear',
-                        autoscale=False, vmin=0, vmax=255)
+        colormap = Colormap(name='gray', normalization='linear',
+                        vmin=0, vmax=255)
 
         size = 10
         expected = numpy.empty((size, 4), dtype='uint8')
@@ -78,7 +78,7 @@ class TestApplyColormapToData(ParametricTestCase):
         for dtype in ('uint8', 'int32', 'float32', 'float64'):
             with self.subTest(dtype=dtype):
                 array = numpy.arange(size, dtype=dtype)
-                result = Colors.applyColormapToData(array, **colormap)
+                result = colormap.applyToData(data=array)
                 self.assertTrue(numpy.all(numpy.equal(result, expected)))
 
 

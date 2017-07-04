@@ -40,23 +40,19 @@ __date__ = "03/05/2017"
 
 from silx.gui import qt
 import numpy
-from silx.gui.plot import Plot2D
+from silx.gui.plot.Colormap import Colormap
 from silx.gui.plot.ColorBar import ColorBarWidget
+
 
 image = numpy.exp(numpy.random.rand(100, 100) * 10)
 
 app = qt.QApplication([])
 
-plot = Plot2D()
-colorbar = ColorBarWidget(parent=None, plot=plot)
-colorbar.setLegend('my colormap')
-colorbar.show()
-plot.show()
+colormap = Colormap(name='viridis',
+                    normalization='log')
 
-clm = plot.getDefaultColormap()
-clm['normalization'] = 'log'
-clm['name'] = 'viridis'
-plot.addImage(data=image, colormap=clm, legend='image')
-plot.setActiveImage('image')
+colorbar = ColorBarWidget(parent=None)
+colorbar.setColormap(colormap, data=image)
+colorbar.show()
 
 app.exec_()
