@@ -38,7 +38,7 @@ from silx.io.nxdata import NXdata
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "15/06/2017"
+__date__ = "27/06/2017"
 
 _logger = logging.getLogger(__name__)
 
@@ -436,8 +436,8 @@ class _Plot2dView(DataView):
         from silx.gui import plot
         widget = plot.Plot2D(parent=parent)
         widget.setKeepDataAspectRatio(True)
-        widget.setGraphXLabel('X')
-        widget.setGraphYLabel('Y')
+        widget.getXAxis().setLabel('X')
+        widget.getYAxis().setLabel('Y')
         return widget
 
     def clear(self):

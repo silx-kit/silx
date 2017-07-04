@@ -26,7 +26,7 @@
 """
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "20/03/2017"
+__date__ = "27/06/2017"
 
 import numpy
 
@@ -135,8 +135,8 @@ class ArrayCurvePlot(qt.QWidget):
             self.selectorDock.show()
 
         self._plot.setGraphTitle(title or "")
-        self._plot.setGraphXLabel(self.__axis_name or "X")
-        self._plot.setGraphYLabel(self.__signal_name or "Y")
+        self._plot.getXAxis().setLabel(self.__axis_name or "X")
+        self._plot.getYAxis().setLabel(self.__signal_name or "Y")
         self._updateCurve()
 
         if not self.__selector_is_connected:
@@ -188,8 +188,8 @@ class ArrayCurvePlot(qt.QWidget):
                                   xerror=self.__axis_errors,
                                   yerror=y_errors)
         self._plot.resetZoom()
-        self._plot.setGraphXLabel(self.__axis_name)
-        self._plot.setGraphYLabel(self.__signal_name)
+        self._plot.getXAxis().setLabel(self.__axis_name)
+        self._plot.getYAxis().setLabel(self.__signal_name)
 
     def clear(self):
         self._plot.clear()
@@ -289,8 +289,8 @@ class ArrayImagePlot(qt.QWidget):
             self.selectorDock.show()
 
         self._plot.setGraphTitle(title or "")
-        self._plot.setGraphXLabel(self.__x_axis_name or "X")
-        self._plot.setGraphYLabel(self.__y_axis_name or "Y")
+        self._plot.getXAxis().setLabel(self.__x_axis_name or "X")
+        self._plot.getYAxis().setLabel(self.__y_axis_name or "Y")
 
         self._updateImage()
 
@@ -352,8 +352,8 @@ class ArrayImagePlot(qt.QWidget):
                                   numpy.ravel(scattery),
                                   numpy.ravel(img),
                                   legend=legend)
-        self._plot.setGraphXLabel(self.__x_axis_name)
-        self._plot.setGraphYLabel(self.__y_axis_name)
+        self._plot.getXAxis().setLabel(self.__x_axis_name)
+        self._plot.getYAxis().setLabel(self.__y_axis_name)
         self._plot.resetZoom()
 
     def clear(self):
@@ -450,8 +450,8 @@ class ArrayStackPlot(qt.QWidget):
 
         self._stack_view.setGraphTitle(title or "")
         # by default, the z axis is the image position (dimension not plotted)
-        self._stack_view.setGraphXLabel(self.__x_axis_name or "X")
-        self._stack_view.setGraphYLabel(self.__y_axis_name or "Y")
+        self._stack_view.getXAxis().setLabel(self.__x_axis_name or "X")
+        self._stack_view.getYAxis().setLabel(self.__y_axis_name or "Y")
 
         self._updateStack()
 

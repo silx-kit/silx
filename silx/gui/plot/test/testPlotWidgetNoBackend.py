@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "20/06/2017"
+__date__ = "27/06/2017"
 
 
 import unittest
@@ -49,12 +49,12 @@ class TestPlot(unittest.TestCase):
 
         title, xlabel, ylabel = 'the title', 'x label', 'y label'
         plot.setGraphTitle(title)
-        plot.setGraphXLabel(xlabel)
-        plot.setGraphYLabel(ylabel)
+        plot.getXAxis().setLabel(xlabel)
+        plot.getYAxis().setLabel(ylabel)
 
         self.assertEqual(plot.getGraphTitle(), title)
-        self.assertEqual(plot.getGraphXLabel(), xlabel)
-        self.assertEqual(plot.getGraphYLabel(), ylabel)
+        self.assertEqual(plot.getXAxis().getLabel(), xlabel)
+        self.assertEqual(plot.getYAxis().getLabel(), ylabel)
 
     def testAddNoRemove(self):
         """add objects to the Plot"""
@@ -104,8 +104,8 @@ class TestPlotRanges(ParametricTestCase):
                            (False, True),
                            (False, False)):
             with self.subTest(logX=logX, logY=logY):
-                plot.setXAxisLogarithmic(logX)
-                plot.setYAxisLogarithmic(logY)
+                plot.getXAxis()._setLogarithmic(logX)
+                plot.getYAxis()._setLogarithmic(logY)
                 dataRange = plot.getDataRange()
                 self.assertIsNone(dataRange.x)
                 self.assertIsNone(dataRange.y)
@@ -130,8 +130,8 @@ class TestPlotRanges(ParametricTestCase):
                            (False, True),
                            (False, False)):
             with self.subTest(logX=logX, logY=logY):
-                plot.setXAxisLogarithmic(logX)
-                plot.setYAxisLogarithmic(logY)
+                plot.getXAxis()._setLogarithmic(logX)
+                plot.getYAxis()._setLogarithmic(logY)
                 dataRange = plot.getDataRange()
                 xRange, yRange = self._getRanges([xData, yData],
                                                  [logX, logY])
@@ -156,8 +156,8 @@ class TestPlotRanges(ParametricTestCase):
                            (False, True),
                            (False, False)):
             with self.subTest(logX=logX, logY=logY):
-                plot.setXAxisLogarithmic(logX)
-                plot.setYAxisLogarithmic(logY)
+                plot.getXAxis()._setLogarithmic(logX)
+                plot.getYAxis()._setLogarithmic(logY)
                 dataRange = plot.getDataRange()
                 xRange, yRange = self._getRanges([xData, yData],
                                                  [logX, logY])
@@ -190,8 +190,8 @@ class TestPlotRanges(ParametricTestCase):
                            (False, True),
                            (False, False)):
             with self.subTest(logX=logX, logY=logY):
-                plot.setXAxisLogarithmic(logX)
-                plot.setYAxisLogarithmic(logY)
+                plot.getXAxis()._setLogarithmic(logX)
+                plot.getYAxis()._setLogarithmic(logY)
                 dataRange = plot.getDataRange()
                 xRange, yRange = ranges[logX, logY]
                 self.assertTrue(numpy.array_equal(dataRange.x, xRange),
@@ -225,8 +225,8 @@ class TestPlotRanges(ParametricTestCase):
                            (False, True),
                            (False, False)):
             with self.subTest(logX=logX, logY=logY):
-                plot.setXAxisLogarithmic(logX)
-                plot.setYAxisLogarithmic(logY)
+                plot.getXAxis()._setLogarithmic(logX)
+                plot.getYAxis()._setLogarithmic(logY)
                 dataRange = plot.getDataRange()
                 xRangeL, yRangeL = self._getRanges([xData_l, yData_l],
                                                    [logX, logY])
@@ -276,8 +276,8 @@ class TestPlotRanges(ParametricTestCase):
                            (False, True),
                            (False, False)):
             with self.subTest(logX=logX, logY=logY):
-                plot.setXAxisLogarithmic(logX)
-                plot.setYAxisLogarithmic(logY)
+                plot.getXAxis()._setLogarithmic(logX)
+                plot.getYAxis()._setLogarithmic(logY)
                 dataRange = plot.getDataRange()
                 xRangeL, yRangeL = self._getRanges([xData_l, yData_l],
                                                    [logX, logY])
@@ -320,8 +320,8 @@ class TestPlotRanges(ParametricTestCase):
                            (False, True),
                            (False, False)):
             with self.subTest(logX=logX, logY=logY):
-                plot.setXAxisLogarithmic(logX)
-                plot.setYAxisLogarithmic(logY)
+                plot.getXAxis()._setLogarithmic(logX)
+                plot.getYAxis()._setLogarithmic(logY)
                 dataRange = plot.getDataRange()
                 xRange, yRange = ranges[logX, logY]
                 self.assertTrue(numpy.array_equal(dataRange.x, xRange),
@@ -356,8 +356,8 @@ class TestPlotRanges(ParametricTestCase):
                            (False, True),
                            (False, False)):
             with self.subTest(logX=logX, logY=logY):
-                plot.setXAxisLogarithmic(logX)
-                plot.setYAxisLogarithmic(logY)
+                plot.getXAxis()._setLogarithmic(logX)
+                plot.getYAxis()._setLogarithmic(logY)
                 dataRange = plot.getDataRange()
                 xRange, yRange = ranges[logX, logY]
                 self.assertTrue(numpy.array_equal(dataRange.x, xRange),

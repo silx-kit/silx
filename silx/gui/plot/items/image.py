@@ -28,7 +28,7 @@ of the :class:`Plot`.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "20/06/2017"
+__date__ = "27/06/2017"
 
 
 from collections import Sequence
@@ -139,6 +139,16 @@ class ImageBase(Item, LabelsMixIn, DraggableMixIn, AlphaMixIn):
             if plot is not None:
                 plot._invalidateDataRange()
 
+    def _isPlotLinear(self, plot):
+        """Return True if plot only uses linear scale for both of x and y
+        axes."""
+        linear = plot.getXAxis().LINEAR
+        if plot.getXAxis().getScale() != linear:
+            return False
+        if plot.getYAxis().getScale() != linear:
+            return False
+        return True
+
     def _getBounds(self):
         if self.getData(copy=False).size == 0:  # Empty data
             return None
@@ -156,8 +166,7 @@ class ImageBase(Item, LabelsMixIn, DraggableMixIn, AlphaMixIn):
             ymin, ymax = ymax, ymin
 
         plot = self.getPlot()
-        if (plot is not None and
-                plot.isXAxisLogarithmic() or plot.isYAxisLogarithmic()):
+        if plot is not None and not self._isPlotLinear(plot):
             return None
         else:
             return xmin, xmax, ymin, ymax
@@ -240,8 +249,9 @@ class ImageData(ImageBase, ColormapMixIn):
         """Update backend renderer"""
         plot = self.getPlot()
         assert plot is not None
-        if plot.isXAxisLogarithmic() or plot.isYAxisLogarithmic():
-            return None  # Do not render with log scales
+        if not self._isPlotLinear(plot):
+            # Do not render with non linear scales
+            return None
 
         if self.getAlternativeImageData(copy=False) is not None:
             dataToUse = self.getAlternativeImageData(copy=False)
@@ -339,8 +349,9 @@ class ImageRgba(ImageBase):
         """Update backend renderer"""
         plot = self.getPlot()
         assert plot is not None
-        if plot.isXAxisLogarithmic() or plot.isYAxisLogarithmic():
-            return None  # Do not render with log scales
+        if not self._isPlotLinear(plot):
+            # Do not render with non linear scales
+            return None
 
         data = self.getData(copy=False)
 

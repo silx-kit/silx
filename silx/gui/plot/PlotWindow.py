@@ -29,7 +29,7 @@ The :class:`PlotWindow` is a subclass of :class:`.PlotWidget`.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "20/06/2017"
+__date__ = "27/06/2017"
 
 import collections
 import logging
@@ -711,8 +711,8 @@ class Plot1D(PlotWindow):
                                      roi=True, mask=False, fit=True)
         if parent is None:
             self.setWindowTitle('Plot1D')
-        self.setGraphXLabel('X')
-        self.setGraphYLabel('Y')
+        self.getXAxis().setLabel('X')
+        self.getYAxis().setLabel('Y')
 
 
 class Plot2D(PlotWindow):
@@ -743,8 +743,8 @@ class Plot2D(PlotWindow):
                                      roi=False, mask=True)
         if parent is None:
             self.setWindowTitle('Plot2D')
-        self.setGraphXLabel('Columns')
-        self.setGraphYLabel('Rows')
+        self.getXAxis().setLabel('Columns')
+        self.getYAxis().setLabel('Rows')
 
         self.profile = ProfileToolBar(plot=self)
         self.addToolBar(self.profile)

@@ -69,7 +69,7 @@ Example::
 
 __authors__ = ["P. Knobel", "H. Payno"]
 __license__ = "MIT"
-__date__ = "09/06/2017"
+__date__ = "27/06/2017"
 
 import numpy
 
@@ -202,12 +202,12 @@ class StackView(qt.QMainWindow):
         self.sigPlotSignal = self._plot.sigPlotSignal
 
         self._addColorBarAction()
-        
+
         self._plot.profile = Profile3DToolBar(parent=self._plot,
                                               plot=self)
         self._plot.addToolBar(self._plot.profile)
-        self._plot.setGraphXLabel('Columns')
-        self._plot.setGraphYLabel('Rows')
+        self._plot.getXAxis().setLabel('Columns')
+        self._plot.getYAxis().setLabel('Rows')
         self._plot.sigPlotSignal.connect(self._plotCallback)
 
         self.__planeSelection = PlanesWidget(self._plot)
@@ -655,7 +655,7 @@ class StackView(qt.QMainWindow):
 
     def getGraphXLabel(self):
         """Return the current horizontal axis label as a str."""
-        return self._plot.getGraphXLabel()
+        return self._plot.getXAxis().getLabel()
 
     def setGraphXLabel(self, label=None):
         """Set the plot horizontal axis label.
@@ -664,14 +664,14 @@ class StackView(qt.QMainWindow):
         """
         if label is None:
             label = self.__dimensionsLabels[1 if self._perspective == 2 else 2]
-        self._plot.setGraphXLabel(label)
+        self._plot.getXAxis().setLabel(label)
 
     def getGraphYLabel(self, axis='left'):
         """Return the current vertical axis label as a str.
 
         :param str axis: The Y axis for which to get the label (left or right)
         """
-        return self._plot.getGraphYLabel(axis)
+        return self._plot.getYAxis().getLabel(axis)
 
     def setGraphYLabel(self, label=None, axis='left'):
         """Set the vertical axis label on the plot.
@@ -681,7 +681,7 @@ class StackView(qt.QMainWindow):
         """
         if label is None:
             label = self.__dimensionsLabels[1 if self._perspective == 0 else 0]
-        self._plot.setGraphYLabel(label, axis)
+        self._plot.getYAxis(axis=axis).setLabel(label)
 
     def setYAxisInverted(self, flag=True):
         """Set the Y axis orientation.
@@ -694,6 +694,10 @@ class StackView(qt.QMainWindow):
     def isYAxisInverted(self):
         """Return True if Y axis goes from top to bottom, False otherwise."""
         return self._backend.isYAxisInverted()
+
+    def getYAxis(self):
+        """Return the Y axis of the plot"""
+        return self._plot.getYAxis()
 
     def getSupportedColormaps(self):
         """Get the supported colormap names as a tuple of str.
@@ -932,7 +936,6 @@ class StackView(qt.QMainWindow):
 
     def _defaultTitleCallback(self, index):
         return "Image z=%g" % self._getImageZ(index)
-
 
 
 class PlanesWidget(qt.QWidget):

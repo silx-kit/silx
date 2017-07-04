@@ -34,7 +34,7 @@ The following QToolButton are available:
 
 __authors__ = ["V. Valls", "H. Payno"]
 __license__ = "MIT"
-__date__ = "26/01/2017"
+__date__ = "27/06/2017"
 
 
 import logging
@@ -197,25 +197,26 @@ class YAxisOriginToolButton(PlotToolButton):
         return qt.QAction(icon, text, self)
 
     def _connectPlot(self, plot):
-        plot.sigSetYAxisInverted.connect(self._yAxisInvertedChanged)
-        self._yAxisInvertedChanged(plot.isYAxisInverted())
+        yAxis = plot.getYAxis()
+        yAxis.sigInvertedChanged.connect(self._yAxisInvertedChanged)
+        self._yAxisInvertedChanged(yAxis.isInverted())
 
     def _disconnectPlot(self, plot):
-        plot.sigSetYAxisInverted.disconnect(self._yAxisInvertedChanged)
+        plot.getYAxis().sigInvertedChanged.disconnect(self._yAxisInvertedChanged)
 
     def setYAxisUpward(self):
         """Configure the plot to use y-axis upward"""
         plot = self.plot()
         if plot is not None:
             # This will trigger _yAxisInvertedChanged
-            plot.setYAxisInverted(False)
+            plot.getYAxis().setInverted(False)
 
     def setYAxisDownward(self):
         """Configure the plot to use y-axis downward"""
         plot = self.plot()
         if plot is not None:
             # This will trigger _yAxisInvertedChanged
-            plot.setYAxisInverted(True)
+            plot.getYAxis().setInverted(True)
 
     def _yAxisInvertedChanged(self, inverted):
         """Handle Plot set y axis inverted signal"""

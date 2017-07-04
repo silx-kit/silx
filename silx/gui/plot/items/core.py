@@ -27,7 +27,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "26/04/2017"
+__date__ = "27/06/2017"
 
 from copy import deepcopy
 import logging
@@ -693,8 +693,8 @@ class Points(Item, SymbolMixIn, AlphaMixIn):
 
         plot = self.getPlot()
         if plot is not None:
-            xPositive = plot.isXAxisLogarithmic()
-            yPositive = plot.isYAxisLogarithmic()
+            xPositive = plot.getXAxis()._isLogarithmic()
+            yPositive = plot.getYAxis()._isLogarithmic()
         else:
             xPositive = False
             yPositive = False
@@ -727,8 +727,8 @@ class Points(Item, SymbolMixIn, AlphaMixIn):
         Return None if caching is not applicable."""
         plot = self.getPlot()
         if plot is not None:
-            xPositive = plot.isXAxisLogarithmic()
-            yPositive = plot.isYAxisLogarithmic()
+            xPositive = plot.getXAxis()._isLogarithmic()
+            yPositive = plot.getYAxis()._isLogarithmic()
             if xPositive or yPositive:
                 # At least one axis has log scale, filter data
                 if (xPositive, yPositive) not in self._filteredCache:

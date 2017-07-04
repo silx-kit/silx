@@ -47,7 +47,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "13/10/2016"
+__date__ = "27/06/2017"
 
 
 import logging
@@ -326,7 +326,7 @@ class ImageView(PlotWindow):
 
         self.setInteractiveMode('zoom')  # Color set in setColormap
         self.sigPlotSignal.connect(self._imagePlotCB)
-        self.sigSetYAxisInverted.connect(self._updateYAxisInverted)
+        self.getYAxis().sigInvertedChanged.connect(self._updateYAxisInverted)
         self.sigActiveImageChanged.connect(self._activeImageChangedSlot)
 
         self._histoVPlot = PlotWidget(backend=backend)
@@ -376,8 +376,8 @@ class ImageView(PlotWindow):
             scale = activeImage.getScale()
             height, width = data.shape
 
-            xMin, xMax = self.getGraphXLimits()
-            yMin, yMax = self.getGraphYLimits()
+            xMin, xMax = self.getXAxis().getLimits()
+            yMin, yMax = self.getYAxis().getLimits()
 
             # Convert plot area limits to image coordinates
             # and work in image coordinates (i.e., in pixels)
@@ -440,8 +440,8 @@ class ImageView(PlotWindow):
                     vOffset = 0.1 * (vMax - vMin)
                     if vOffset == 0.:
                         vOffset = 1.
-                    self._histoHPlot.setGraphYLimits(vMin - vOffset,
-                                                     vMax + vOffset)
+                    self._histoHPlot.getYAxis().setLimits(vMin - vOffset,
+                                                          vMax + vOffset)
 
                     coords = numpy.arange(2 * histoVVisibleData.size)
                     yCoords = (coords + 1) // 2 + subsetYMin
@@ -458,8 +458,8 @@ class ImageView(PlotWindow):
                     vOffset = 0.1 * (vMax - vMin)
                     if vOffset == 0.:
                         vOffset = 1.
-                    self._histoVPlot.setGraphXLimits(vMin - vOffset,
-                                                     vMax + vOffset)
+                    self._histoVPlot.getXAxis().setLimits(vMin - vOffset,
+                                                          vMax + vOffset)
             else:
                 self._dirtyCache()
                 self._histoHPlot.remove(kind='curve')
@@ -472,8 +472,8 @@ class ImageView(PlotWindow):
 
         Takes care of y coordinate conversion.
         """
-        xMin, xMax = self.getGraphXLimits()
-        yMin, yMax = self.getGraphYLimits()
+        xMin, xMax = self.getXAxis().getLimits()
+        yMin, yMax = self.getYAxis().getLimits()
         self._radarView.setVisibleRect(xMin, yMin, xMax - xMin, yMax - yMin)
 
     # Plots event listeners
@@ -507,14 +507,14 @@ class ImageView(PlotWindow):
             self._updateHistograms()
 
             # could use eventDict['xdata'], eventDict['ydata'] instead
-            xMin, xMax = self.getGraphXLimits()
-            yMin, yMax = self.getGraphYLimits()
+            xMin, xMax = self.getXAxis().getLimits()
+            yMin, yMax = self.getYAxis().getLimits()
 
             # Set horizontal histo limits
-            self._histoHPlot.setGraphXLimits(xMin, xMax)
+            self._histoHPlot.getXAxis().setLimits(xMin, xMax)
 
             # Set vertical histo limits
-            self._histoVPlot.setGraphYLimits(yMin, yMax)
+            self._histoVPlot.getYAxis().setLimits(yMin, yMax)
 
             self._updateRadarView()
 
@@ -542,9 +542,9 @@ class ImageView(PlotWindow):
 
         elif eventDict['event'] == 'limitsChanged':
             if (not self._updatingLimits and
-                    eventDict['xdata'] != self.getGraphXLimits()):
+                    eventDict['xdata'] != self.getXAxis().getLimits()):
                 xMin, xMax = eventDict['xdata']
-                self.setGraphXLimits(xMin, xMax)
+                self.getXAxis().setLimits(xMin, xMax)
 
     def _histoVPlotCB(self, eventDict):
         """Callback for vertical histogram plot events."""
@@ -568,9 +568,9 @@ class ImageView(PlotWindow):
 
         elif eventDict['event'] == 'limitsChanged':
             if (not self._updatingLimits and
-                    eventDict['ydata'] != self.getGraphYLimits()):
+                    eventDict['ydata'] != self.getYAxis().getLimits()):
                 yMin, yMax = eventDict['ydata']
-                self.setGraphYLimits(yMin, yMax)
+                self.getYAxis().setLimits(yMin, yMax)
 
     def _radarViewCB(self, left, top, width, height):
         """Slot for radar view visible rectangle changes."""
@@ -582,9 +582,9 @@ class ImageView(PlotWindow):
         """Sync image, vertical histogram and radar view axis orientation."""
         if inverted is None:
             # Do not perform this when called from plot signal
-            inverted = self.isYAxisInverted()
+            inverted = self.getYAxis().isInverted()
 
-        self._histoVPlot.setYAxisInverted(inverted)
+        self._histoVPlot.getYAxis().isInverted(inverted)
 
         # Use scale to invert radarView
         # RadarView default Y direction is from top to bottom
@@ -793,8 +793,8 @@ class ImageViewMainWindow(ImageView):
         super(ImageViewMainWindow, self).__init__(parent, backend)
         self.setWindowFlags(qt.Qt.Window)
 
-        self.setGraphXLabel('X')
-        self.setGraphYLabel('Y')
+        self.getXAxis().setLabel('X')
+        self.getYAxis().setLabel('Y')
         self.setGraphTitle('Image')
 
         # Add toolbars and status bar

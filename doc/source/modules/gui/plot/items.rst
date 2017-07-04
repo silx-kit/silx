@@ -61,3 +61,9 @@ Item
 .. autoclass:: Shape
    :members:
    :inherited-members:
+
+Axis
+----
+
+.. autoclass:: Axis
+   :members:

@@ -27,7 +27,7 @@
 
 __authors__ = ["H. Payno", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "02/05/2017"
+__date__ = "27/06/2017"
 
 
 import logging
@@ -139,8 +139,8 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
         # Filter-out values <= 0
         plot = self.getPlot()
         if plot is not None:
-            xPositive = plot.isXAxisLogarithmic()
-            yPositive = plot.isYAxisLogarithmic()
+            xPositive = plot.getXAxis()._isLogarithmic()
+            yPositive = plot.getYAxis()._isLogarithmic()
         else:
             xPositive = False
             yPositive = False
@@ -174,8 +174,8 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
 
         plot = self.getPlot()
         if plot is not None:
-            xPositive = plot.isXAxisLogarithmic()
-            yPositive = plot.isYAxisLogarithmic()
+            xPositive = plot.getXAxis()._isLogarithmic()
+            yPositive = plot.getYAxis()._isLogarithmic()
         else:
             xPositive = False
             yPositive = False

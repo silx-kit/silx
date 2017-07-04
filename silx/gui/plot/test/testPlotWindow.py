@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "05/12/2016"
+__date__ = "27/06/2017"
 
 
 import doctest
@@ -84,10 +84,10 @@ class TestPlotWindow(TestCaseQt):
         self.plot.setLimits(1, 100, 1, 100)
 
         checkList = [  # QAction, Plot state getter
-            (self.plot.xAxisAutoScaleAction, self.plot.isXAxisAutoScale),
-            (self.plot.yAxisAutoScaleAction, self.plot.isYAxisAutoScale),
-            (self.plot.xAxisLogarithmicAction, self.plot.isXAxisLogarithmic),
-            (self.plot.yAxisLogarithmicAction, self.plot.isYAxisLogarithmic),
+            (self.plot.xAxisAutoScaleAction, self.plot.getXAxis().isAutoScale),
+            (self.plot.yAxisAutoScaleAction, self.plot.getYAxis().isAutoScale),
+            (self.plot.xAxisLogarithmicAction, self.plot.getXAxis()._isLogarithmic),
+            (self.plot.yAxisLogarithmicAction, self.plot.getYAxis()._isLogarithmic),
             (self.plot.gridAction, self.plot.getGraphGrid),
         ]
 
@@ -121,9 +121,9 @@ class TestPlotWindow(TestCaseQt):
     def testToolYAxisOrigin(self):
         self.plot.toolBar()
         self.plot.yAxisInvertedButton.setYAxisUpward()
-        self.assertFalse(self.plot.isYAxisInverted())
+        self.assertFalse(self.plot.getYAxis().isInverted())
         self.plot.yAxisInvertedButton.setYAxisDownward()
-        self.assertTrue(self.plot.isYAxisInverted())
+        self.assertTrue(self.plot.getYAxis().isInverted())
 
 
 def suite():

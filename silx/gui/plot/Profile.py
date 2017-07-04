@@ -28,7 +28,7 @@ and stacks of images"""
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel", "H. Payno"]
 __license__ = "MIT"
-__date__ = "24/04/2017"
+__date__ = "27/06/2017"
 
 
 import numpy
@@ -585,8 +585,8 @@ class ProfileToolBar(qt.QToolBar):
         self.plot.remove(self._POLYGON_LEGEND, kind='item')
         self.getProfilePlot().clear()
         self.getProfilePlot().setGraphTitle('')
-        self.getProfilePlot().setGraphXLabel('X')
-        self.getProfilePlot().setGraphYLabel('Y')
+        self.getProfilePlot().getXAxis().setLabel('X')
+        self.getProfilePlot().getYAxis().setLabel('Y')
 
         self._createProfile(currentData=image.getData(copy=False),
                             origin=image.getOrigin(),
@@ -728,8 +728,8 @@ class Profile3DToolBar(ProfileToolBar):
             self.plot.remove(self._POLYGON_LEGEND, kind='item')
             self.getProfilePlot().clear()
             self.getProfilePlot().setGraphTitle('')
-            self.getProfilePlot().setGraphXLabel('X')
-            self.getProfilePlot().setGraphYLabel('Y')
+            self.getProfilePlot().getXAxis().setLabel('X')
+            self.getProfilePlot().getYAxis().setLabel('Y')
 
             self._createProfile(currentData=stackData[0],
                                 origin=stackData[1]['origin'],
