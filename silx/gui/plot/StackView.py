@@ -681,6 +681,18 @@ class StackView(qt.QMainWindow):
             label = self.__dimensionsLabels[1 if self._perspective == 0 else 0]
         self._plot.getYAxis(axis=axis).setLabel(label)
 
+    def setYAxisInverted(self, flag=True):
+        """Set the Y axis orientation.
+
+        :param bool flag: True for Y axis going from top to bottom,
+                          False for Y axis going from bottom to top
+        """
+        self._plot.setYAxisInverted(flag)
+
+    def isYAxisInverted(self):
+        """Return True if Y axis goes from top to bottom, False otherwise."""
+        return self._backend.isYAxisInverted()
+
     def getYAxis(self):
         """Return the Y axis of the plot"""
         return self._plot.getYAxis()
