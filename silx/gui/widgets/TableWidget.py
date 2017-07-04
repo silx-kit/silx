@@ -104,6 +104,8 @@ class CopySelectedCellsAction(qt.QAction):
         Put this text into the clipboard.
         """
         selected_idx = self.table.selectedIndexes()
+        if not selected_idx:
+            return
         selected_idx_tuples = [(idx.row(), idx.column()) for idx in selected_idx]
 
         selected_rows = [idx[0] for idx in selected_idx_tuples]
