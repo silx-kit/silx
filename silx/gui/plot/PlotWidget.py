@@ -2111,7 +2111,7 @@ class PlotWidget(qt.QMainWindow):
     def getXAxis(self):
         """Returns the X axis
 
-        :rtype: items.Axis
+        :rtype: :class:`.items.Axis`
         """
         return self._xAxis
 
@@ -2120,7 +2120,7 @@ class PlotWidget(qt.QMainWindow):
 
         :param str axis: The Y axis to return
                          ('left' or 'right').
-        :rtype: items.Axis
+        :rtype: :class:`.items.Axis`
         """
         assert(axis in ["left", "right"])
         return self._yAxis if axis == "left" else self._yRightAxis

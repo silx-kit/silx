@@ -72,10 +72,12 @@ Those methods handle the plot title:
 Axes
 ....
 
-The following methods handle the limits, scales, labels of axis:
+Those two methods give access to :class:`.items.Axis` which handle the limits, scales and labels of axis:
 
 .. automethod:: PlotWidget.getXAxis
 .. automethod:: PlotWidget.getYAxis
+
+The following methods handle plot limits, aspect ratio and grid:
 
 .. automethod:: PlotWidget.setLimits
 .. automethod:: PlotWidget.isKeepDataAspectRatio
