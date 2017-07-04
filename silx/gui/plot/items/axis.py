@@ -36,11 +36,12 @@ _logger = logging.getLogger(__name__)
 
 
 class Axis(qt.QObject):
-    """Abstract axis class of the plot.
+    """This class describes and controls a plot axis.
 
-    States are half-stored on the backend of the plot, and half-stored on this
-    object.
+    Note: This is an abstract class.
     """
+    # States are half-stored on the backend of the plot, and half-stored on this
+    # object.
     # TODO It would be good to store all the states of an axis in this object.
     #      i.e. vmin and vmax
 
@@ -128,7 +129,7 @@ class Axis(qt.QObject):
 
     def isInverted(self):
         """Return True if the axis is inverted (top to bottom for the y-axis),
-        False otherwise. It is always True for the X axis.
+        False otherwise. It is always False for the X axis.
 
         :rtype: bool
         """
@@ -286,12 +287,24 @@ class YAxis(Axis):
         self._plot._backend.setYAxisLogarithmic(flag)
 
     def setInverted(self, flag=True):
+        """Set the axis orientation.
+
+        This is only available for the Y axis.
+
+        :param bool flag: True for Y axis going from top to bottom,
+                          False for Y axis going from bottom to top
+        """
         flag = bool(flag)
         self._plot._backend.setYAxisInverted(flag)
         self._plot._setDirtyPlot()
         self.sigInvertedChanged.emit(flag)
 
     def isInverted(self):
+        """Return True if the axis is inverted (top to bottom for the y-axis),
+        False otherwise. It is always False for the X axis.
+
+        :rtype: bool
+        """
         return self._plot._backend.isYAxisInverted()
 
 

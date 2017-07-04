@@ -433,12 +433,13 @@ Control plot axes
 -----------------
 
 The following examples illustrate the API to control the plot axes.
+:meth:`.PlotWidget.getXAxis` and :meth:`.PlotWidget.getYAxis` give access to each plot axis (:class:`.items.Axis`) in order to control them.
 
 Labels and title
 ++++++++++++++++
 
 Use :meth:`.PlotWidget.setGraphTitle` to set the plot main title.
-Use :meth:`.PlotWidget.getXAxis` and :meth:`.PlotWidget.getYAxis` to set the axes text labels:
+Use :meth:`.PlotWidget.getXAxis` and :meth:`.PlotWidget.getYAxis` to get the axes and set their text label with :meth:`.items.Axis.setLabel`:
 
 .. code-block:: python
 
@@ -466,7 +467,7 @@ The following code moves the visible plot area to the right:
 
    plot.resetZoom()
 
-See :meth:`.PlotWidget.resetZoom`, :meth:`.PlotWidget.setLimits`, :meth:`.PlotWidget.getXAxis`, :meth:`.PlotWidget.getYAxis` for details.
+See :meth:`.PlotWidget.resetZoom`, :meth:`.PlotWidget.setLimits`, :meth:`.PlotWidget.getXAxis`, :meth:`.PlotWidget.getYAxis` and :class:`.items.Axis` for details.
 
 
 Axes
@@ -489,4 +490,4 @@ See :meth:`.PlotWidget.getYAxis`, :meth:`.PlotWidget.setKeepDataAspectRatio` for
    plot.getXAxis().setScale("log")
    plot.getYAxis().setScale("log")
 
-See :meth:`.PlotWidget.setGraphGrid`, :meth:`.PlotWidget.getXAxis`, :meth:`.PlotWidget.getXAxis` for details.
+See :meth:`.PlotWidget.setGraphGrid`, :meth:`.PlotWidget.getXAxis`, :meth:`.PlotWidget.getXAxis` and :class:`.items.Axis` for details.
