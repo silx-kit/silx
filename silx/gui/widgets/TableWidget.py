@@ -448,19 +448,25 @@ class TableWidget(qt.QTableWidget):
         """
         if mode == qt.QTableView.NoSelection:
             self.copySelectedCellsAction.setVisible(False)
+            self.copySelectedCellsAction.setEnabled(False)
             if self.cutSelectedCellsAction is not None:
                 self.cutSelectedCellsAction.setVisible(False)
+                self.cutSelectedCellsAction.setEnabled(False)
             if self.copySingleCellAction is None:
                 self.copySingleCellAction = CopySingleCellAction(self)
                 self.insertAction(self.copySelectedCellsAction,  # before first action
                                   self.copySingleCellAction)
             self.copySingleCellAction.setVisible(True)
+            self.copySingleCellAction.setEnabled(True)
         else:
             self.copySelectedCellsAction.setVisible(True)
+            self.copySelectedCellsAction.setEnabled(True)
             if self.cutSelectedCellsAction is not None:
                 self.cutSelectedCellsAction.setVisible(True)
+                self.cutSelectedCellsAction.setEnabled(True)
             if self.copySingleCellAction is not None:
                 self.copySingleCellAction.setVisible(False)
+                self.copySingleCellAction.setEnabled(False)
         super(TableWidget, self).setSelectionMode(mode)
 
 
@@ -572,19 +578,25 @@ class TableView(qt.QTableView):
         """
         if mode == qt.QTableView.NoSelection:
             self.copySelectedCellsAction.setVisible(False)
+            self.copySelectedCellsAction.setEnabled(False)
             if self.cutSelectedCellsAction is not None:
                 self.cutSelectedCellsAction.setVisible(False)
+                self.cutSelectedCellsAction.setEnabled(False)
             if self.copySingleCellAction is None:
                 self.copySingleCellAction = CopySingleCellAction(self)
                 self.insertAction(self.copySelectedCellsAction,  # before first action
                                   self.copySingleCellAction)
             self.copySingleCellAction.setVisible(True)
+            self.copySingleCellAction.setEnabled(True)
         else:
             self.copySelectedCellsAction.setVisible(True)
+            self.copySelectedCellsAction.setEnabled(True)
             if self.cutSelectedCellsAction is not None:
                 self.cutSelectedCellsAction.setVisible(True)
+                self.cutSelectedCellsAction.setEnabled(True)
             if self.copySingleCellAction is not None:
                 self.copySingleCellAction.setVisible(False)
+                self.copySingleCellAction.setEnabled(False)
         super(TableView, self).setSelectionMode(mode)
 
 
