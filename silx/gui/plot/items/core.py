@@ -296,21 +296,18 @@ class ColormapMixIn(object):
     def __init__(self):
         self._colormap = Colormap()
 
-    def getColormap(self, copy=True):
+    def getColormap(self):
         """Return the used colormap
 
         :param copy: True (Default) to get a copy of the :class:`.Colormap`
              else return the pointer
          """
-        if copy is True:
-            return self._colormap.copy()
-        else:
-            return self._colormap
+        return self._colormap
 
     def setColormap(self, colormap):
         """Set the colormap of this image
 
-        :param dict colormap: colormap description
+        :param :class:`.Colormap`: colormap description
         """
         self._colormap = colormap
         self._updated()
