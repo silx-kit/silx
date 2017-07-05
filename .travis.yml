@@ -1,3 +1,6 @@
+dist: trusty
+sudo: required
+
 language: python
 
 git:
@@ -44,8 +47,6 @@ cache:
 addons:
     apt:
         packages:
-            - libhdf5-serial-1.8.4
-            - libhdf5-serial-dev
             - libegl1-mesa  # Required by Qt xcb platform plugin
             - libboost-python-dev # for PyOpenCL
             - opencl-headers
