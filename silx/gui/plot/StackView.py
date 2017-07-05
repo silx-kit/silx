@@ -414,7 +414,14 @@ class StackView(qt.QMainWindow):
         _xcalib, _ycalib, zcalib = self._getXYZCalibs()
         return zcalib(index)
 
-    # public API
+    def _updateTitle(self):
+        frame_idx = self._browser.value()
+        self._plot.setGraphTitle(self._titleCallback(frame_idx))
+
+    def _defaultTitleCallback(self, index):
+        return "Image z=%g" % self._getImageZ(index)
+
+    # public API, stack specific methods
     def setStack(self, stack, perspective=0, reset=True, calibrations=None):
         """Set the 3D stack.
 
@@ -585,18 +592,50 @@ class StackView(qt.QMainWindow):
             return numpy.array(self.__transposed_view, copy=copy), params
         return self.__transposed_view, params
 
-    def getActiveImage(self, just_legend=False):
-        """Returns the currently active image object.
+    def setFirstStackDimension(self, first_stack_dimension):
+        """When viewing the last 3 dimensions of an n-D array (n>3), you can
+        use this method to change the text in the combobox.
 
-        It returns None in case of not having an active image.
+        For instance, for a 7-D array, first stack dim is 4, so the default
+        "Dim1-Dim2" text should be replaced with "Dim5-Dim6" (dimensions
+        numbers are 0-based).
 
-        :param bool just_legend: True to get the legend of the image,
-            False (the default) to get the image data and info.
-            Note: :class:`StackView` uses the same legend for all frames.
-        :return: legend or image object
-        :rtype: str or list or None
+        :param int first_stack_dim: First stack dimension (n-3) when viewing the
+            last 3 dimensions of an n-D array.
         """
-        return self._plot.getActiveImage(just_legend=just_legend)
+        old_state = self.__planeSelection.blockSignals(True)
+        self.__planeSelection.setFirstStackDimension(first_stack_dimension)
+        self.__planeSelection.blockSignals(old_state)
+        self._first_stack_dimension = first_stack_dimension
+        self._browser_label.setText("Image index (Dim%d):" % first_stack_dimension)
+
+    def setTitleCallback(self, callback):
+        """Set a user defined function to generate the plot title based on the
+        image/frame index.
+
+        The callback function must accept an integer as a its first positional
+        parameter and must not require any other mandatory parameter.
+        It must return a string.
+
+        To switch back the default behavior, you can pass ``None``::
+
+            mystackview.setTitleCallback(None)
+
+        To have no title, pass a function that returns an empty string::
+
+            mystackview.setTitleCallback(lambda idx: "")
+
+        :param callback: Callback function generating the stack title based
+            on the frame number.
+        """
+
+        if callback is None:
+            self._titleCallback = self._defaultTitleCallback
+        elif callable(callback):
+            self._titleCallback = callback
+        else:
+            raise TypeError("Provided callback is not callable")
+        self._updateTitle()
 
     def clear(self):
         """Clear the widget:
@@ -609,22 +648,6 @@ class StackView(qt.QMainWindow):
         self._perspective = 0
         self._browser.setEnabled(False)
         self._plot.clear()
-
-    def resetZoom(self):
-        """Reset the plot limits to the bounds of the data and redraw the plot.
-        """
-        self._plot.resetZoom()
-
-    def getGraphTitle(self):
-        """Return the plot main title as a str."""
-        return self._plot.getGraphTitle()
-
-    def setGraphTitle(self, title=""):
-        """Set the plot main title.
-
-        :param str title: Main title of the plot (default: '')
-        """
-        return self._plot.setGraphTitle(title)
 
     def setLabels(self, labels=None):
         """Set the labels to be displayed on the plot axes.
@@ -653,59 +676,13 @@ class StackView(qt.QMainWindow):
         self.__dimensionsLabels = new_labels
         self.__updatePlotLabels()
 
-    def getGraphXLabel(self):
-        """Return the current horizontal axis label as a str."""
-        return self._plot.getXAxis().getLabel()
+    def getLabels(self):
+        """Return dimension labels displayed on the plot axes
 
-    def setGraphXLabel(self, label=None):
-        """Set the plot horizontal axis label.
-
-        :param str label: The horizontal axis label
+        :return: List of three strings corresponding to the 3 dimensions
+            of the stack: (name_dim0, name_dim1, name_dim2)
         """
-        if label is None:
-            label = self.__dimensionsLabels[1 if self._perspective == 2 else 2]
-        self._plot.getXAxis().setLabel(label)
-
-    def getGraphYLabel(self, axis='left'):
-        """Return the current vertical axis label as a str.
-
-        :param str axis: The Y axis for which to get the label (left or right)
-        """
-        return self._plot.getYAxis().getLabel(axis)
-
-    def setGraphYLabel(self, label=None, axis='left'):
-        """Set the vertical axis label on the plot.
-
-        :param str label: The Y axis label
-        :param str axis: The Y axis for which to set the label (left or right)
-        """
-        if label is None:
-            label = self.__dimensionsLabels[1 if self._perspective == 0 else 0]
-        self._plot.getYAxis(axis=axis).setLabel(label)
-
-    def setYAxisInverted(self, flag=True):
-        """Set the Y axis orientation.
-
-        :param bool flag: True for Y axis going from top to bottom,
-                          False for Y axis going from bottom to top
-        """
-        self._plot.setYAxisInverted(flag)
-
-    def isYAxisInverted(self):
-        """Return True if Y axis goes from top to bottom, False otherwise."""
-        return self._backend.isYAxisInverted()
-
-    def getYAxis(self):
-        """Return the Y axis of the plot"""
-        return self._plot.getYAxis()
-
-    def getSupportedColormaps(self):
-        """Get the supported colormap names as a tuple of str.
-
-        The list should at least contain and start by:
-        ('gray', 'reversed gray', 'temperature', 'red', 'green', 'blue')
-        """
-        return self._plot.getSupportedColormaps()
+        return self.__dimensionsLabels
 
     def getColormap(self):
         """Get the current colormap description.
@@ -800,7 +777,7 @@ class StackView(qt.QMainWindow):
             elif autoscale and isinstance(self._stack, h5py.Dataset):
                 # h5py dataset has no min()/max() methods
                 raise RuntimeError(
-                    "Cannot auto-scale colormap for a h5py dataset")
+                        "Cannot auto-scale colormap for a h5py dataset")
             else:
                 autoscale = autoscale
             self.__autoscaleCmap = autoscale
@@ -828,17 +805,6 @@ class StackView(qt.QMainWindow):
         if isinstance(activeImage, items.ColormapMixIn):
             activeImage.setColormap(self.getColormap())
 
-    def isKeepDataAspectRatio(self):
-        """Returns whether the plot is keeping data aspect ratio or not."""
-        return self._plot.isKeepDataAspectRatio()
-
-    def setKeepDataAspectRatio(self, flag=True):
-        """Set whether the plot keeps data aspect ratio or not.
-
-        :param bool flag: True to respect data aspect ratio
-        """
-        self._plot.setKeepDataAspectRatio(flag)
-
     def getProfileToolbar(self):
         """Profile tools attached to this plot
 
@@ -859,6 +825,101 @@ class StackView(qt.QMainWindow):
         :return: :class:`Plot2D`
         """
         return self._plot.profile.getProfileWindow2D()
+
+    # proxies to PlotWidget methods
+    def getActiveImage(self, just_legend=False):
+        """Returns the currently active image object.
+
+        It returns None in case of not having an active image.
+
+        :param bool just_legend: True to get the legend of the image,
+            False (the default) to get the image data and info.
+            Note: :class:`StackView` uses the same legend for all frames.
+        :return: legend or image object
+        :rtype: str or list or None
+        """
+        return self._plot.getActiveImage(just_legend=just_legend)
+
+    def resetZoom(self):
+        """Reset the plot limits to the bounds of the data and redraw the plot.
+        """
+        self._plot.resetZoom()
+
+    def getGraphTitle(self):
+        """Return the plot main title as a str."""
+        return self._plot.getGraphTitle()
+
+    def setGraphTitle(self, title=""):
+        """Set the plot main title.
+
+        :param str title: Main title of the plot (default: '')
+        """
+        return self._plot.setGraphTitle(title)
+
+    def getGraphXLabel(self):
+        """Return the current horizontal axis label as a str."""
+        return self._plot.getXAxis().getLabel()
+
+    def setGraphXLabel(self, label=None):
+        """Set the plot horizontal axis label.
+
+        :param str label: The horizontal axis label
+        """
+        if label is None:
+            label = self.__dimensionsLabels[1 if self._perspective == 2 else 2]
+        self._plot.getXAxis().setLabel(label)
+
+    def getGraphYLabel(self, axis='left'):
+        """Return the current vertical axis label as a str.
+
+        :param str axis: The Y axis for which to get the label (left or right)
+        """
+        return self._plot.getYAxis().getLabel(axis)
+
+    def setGraphYLabel(self, label=None, axis='left'):
+        """Set the vertical axis label on the plot.
+
+        :param str label: The Y axis label
+        :param str axis: The Y axis for which to set the label (left or right)
+        """
+        if label is None:
+            label = self.__dimensionsLabels[1 if self._perspective == 0 else 0]
+        self._plot.getYAxis(axis=axis).setLabel(label)
+
+    def setYAxisInverted(self, flag=True):
+        """Set the Y axis orientation.
+
+        :param bool flag: True for Y axis going from top to bottom,
+                          False for Y axis going from bottom to top
+        """
+        self._plot.setYAxisInverted(flag)
+
+    def isYAxisInverted(self):
+        """Return True if Y axis goes from top to bottom, False otherwise."""
+        return self._backend.isYAxisInverted()
+
+    def getYAxis(self):
+        """Return the Y axis of the plot"""
+        return self._plot.getYAxis()
+
+    def getSupportedColormaps(self):
+        """Get the supported colormap names as a tuple of str.
+
+        The list should at least contain and start by:
+        ('gray', 'reversed gray', 'temperature', 'red', 'green', 'blue')
+        """
+        return self._plot.getSupportedColormaps()
+
+    def isKeepDataAspectRatio(self):
+        """Returns whether the plot is keeping data aspect ratio or not."""
+        return self._plot.isKeepDataAspectRatio()
+
+    def setKeepDataAspectRatio(self, flag=True):
+        """Set whether the plot keeps data aspect ratio or not.
+
+        :param bool flag: True to respect data aspect ratio
+        """
+        self._plot.setKeepDataAspectRatio(flag)
 
     def getColorBarWidget(self):
         """Returns the colorbar widget from the plot
@@ -884,58 +945,6 @@ class StackView(qt.QMainWindow):
         See :meth:`Plot.Plot.addItem`
         """
         self._plot.addItem(*args, **kwargs)
-
-    def setFirstStackDimension(self, first_stack_dimension):
-        """When viewing the last 3 dimensions of an n-D array (n>3), you can
-        use this method to change the text in the combobox.
-
-        For instance, for a 7-D array, first stack dim is 4, so the default
-        "Dim1-Dim2" text should be replaced with "Dim5-Dim6" (dimensions
-        numbers are 0-based).
-
-        :param int first_stack_dim: First stack dimension (n-3) when viewing the
-            last 3 dimensions of an n-D array.
-        """
-        old_state = self.__planeSelection.blockSignals(True)
-        self.__planeSelection.setFirstStackDimension(first_stack_dimension)
-        self.__planeSelection.blockSignals(old_state)
-        self._first_stack_dimension = first_stack_dimension
-        self._browser_label.setText("Image index (Dim%d):" % first_stack_dimension)
-
-    def setTitleCallback(self, callback):
-        """Set a user defined function to generate the plot title based on the
-        image/frame index.
-
-        The callback function must accept an integer as a its first positional
-        parameter and must not require any other mandatory parameter.
-        It must return a string.
-
-        To switch back the default behavior, you can pass ``None``::
-
-            mystackview.setTitleCallback(None)
-
-        To have no title, pass a function that returns an empty string::
-
-            mystackview.setTitleCallback(lambda idx: "")
-
-        :param callback: Callback function generating the stack title based
-            on the frame number.
-        """
-
-        if callback is None:
-            self._titleCallback = self._defaultTitleCallback
-        elif callable(callback):
-            self._titleCallback = callback
-        else:
-            raise TypeError("Provided callback is not callable")
-        self._updateTitle()
-
-    def _updateTitle(self):
-        frame_idx = self._browser.value()
-        self._plot.setGraphTitle(self._titleCallback(frame_idx))
-
-    def _defaultTitleCallback(self, index):
-        return "Image z=%g" % self._getImageZ(index)
 
 
 class PlanesWidget(qt.QWidget):
