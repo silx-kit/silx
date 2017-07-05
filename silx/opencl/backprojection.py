@@ -312,6 +312,7 @@ class Backprojection(OpenclProcessing):
                     self.wg,
                     *kernel_args
                 )
+            self.slice *= 0
             events.append(EventDescription("backprojection", event_bpj))
             ev = pyopencl.enqueue_copy(self.queue, self.slice, self.cl_mem["d_slice"])
             events.append(EventDescription("copy D->H result", ev))
