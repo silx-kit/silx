@@ -319,15 +319,15 @@ class TestColorBarUpdate(TestCaseQt):
             self.colorBar.getColorScaleBar().getTickBar()._norm == "linear")
 
         # update colormap
-        colormap.setVMin(1)
-        self.assertTrue(self.colorBar.getColorScaleBar().minVal == 1)
+        colormap.setVMin(0.5)
+        self.assertTrue(self.colorBar.getColorScaleBar().minVal == 0.5)
         self.assertTrue(
-            self.colorBar.getColorScaleBar().getTickBar()._vmin == 1)
+            self.colorBar.getColorScaleBar().getTickBar()._vmin == 0.5)
 
-        colormap.setVMax(1)
-        self.assertTrue(self.colorBar.getColorScaleBar().maxVal == 1)
+        colormap.setVMax(0.8)
+        self.assertTrue(self.colorBar.getColorScaleBar().maxVal == 0.8)
         self.assertTrue(
-            self.colorBar.getColorScaleBar().getTickBar()._vmax == 1)
+            self.colorBar.getColorScaleBar().getTickBar()._vmax == 0.8)
 
         colormap.setNormalization('log')
         self.assertTrue(
