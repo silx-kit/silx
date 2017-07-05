@@ -243,16 +243,7 @@ class StackView(qt.QMainWindow):
                 break
         self._plot.toolBar().insertAction(
             actions[index + 1],
-            self.getColorBarWidget().getToggleViewAction())
-
-    def setOptionVisible(self, isVisible):
-        """
-        Set the visibility of the browsing options.
-
-        :param bool isVisible: True to have the options visible, else False
-        """
-        self._browser.setVisible(isVisible)
-        self.__planeSelection.setVisible(isVisible)
+            self._plot.getColorBarWidget().getToggleViewAction())
 
     def _plotCallback(self, eventDict):
         """Callback for plot events.
@@ -260,7 +251,7 @@ class StackView(qt.QMainWindow):
         Emit :attr:`valueChanged` signal, with (x, y, value) tuple of the
         cursor location in the plot."""
         if eventDict['event'] == 'mouseMoved':
-            activeImage = self.getActiveImage()
+            activeImage = self._plot.getActiveImage()
             if activeImage is not None:
                 data = activeImage.getData()
                 height, width = data.shape
@@ -338,13 +329,6 @@ class StackView(qt.QMainWindow):
 
         self._browser.setRange(0, self.__transposed_view.shape[0] - 1)
         self._browser.setValue(0)
-
-    def setFrameNumber(self, number):
-        """Set the frame selection to a specific value\
-
-        :param int number: Number of the frame
-        """
-        self._browser.setValue(number)
 
     def __updateFrameNumber(self, index):
         """Update the current image.
@@ -517,7 +501,7 @@ class StackView(qt.QMainWindow):
         :return: 3D stack and parameters.
         :rtype: (numpy.ndarray, dict)
         """
-        image = self.getActiveImage()
+        image = self._plot.getActiveImage()
         if image is None:
             return None
 
@@ -568,7 +552,7 @@ class StackView(qt.QMainWindow):
         :return: 3D stack and parameters.
         :rtype: (numpy.ndarray, dict)
         """
-        image = self.getActiveImage()
+        image = self._plot.getActiveImage()
         if image is None:
             return None
 
@@ -591,6 +575,13 @@ class StackView(qt.QMainWindow):
         if returnNumpyArray or copy:
             return numpy.array(self.__transposed_view, copy=copy), params
         return self.__transposed_view, params
+
+    def setFrameNumber(self, number):
+        """Set the frame selection to a specific value
+
+        :param int number: Number of the frame
+        """
+        self._browser.setValue(number)
 
     def setFirstStackDimension(self, first_stack_dimension):
         """When viewing the last 3 dimensions of an n-D array (n>3), you can
@@ -805,12 +796,17 @@ class StackView(qt.QMainWindow):
         if isinstance(activeImage, items.ColormapMixIn):
             activeImage.setColormap(self.getColormap())
 
-    def getProfileToolbar(self):
-        """Profile tools attached to this plot
+    def getPlot(self):
+        """Return the :class:`PlotWidget`.
 
-        See :class:`silx.gui.plot.Profile.Profile3DToolBar`
+        This gives access to advanced plot configuration options.
+        Be warned that modifying the plot can cause issues, and some changes
+        you make to the plot could be overwritten by the :class:`StackView`
+        widget's internal methods and callbacks.
+
+        :return: instance of :class:`PlotWidget` used in widget
         """
-        return self._plot.profile
+        return self._plot
 
     def getProfileWindow1D(self):
         """Plot window used to display 1D profile curve.
@@ -826,27 +822,26 @@ class StackView(qt.QMainWindow):
         """
         return self._plot.profile.getProfileWindow2D()
 
-    # proxies to PlotWidget methods
-    def getActiveImage(self, just_legend=False):
-        """Returns the currently active image object.
-
-        It returns None in case of not having an active image.
-
-        :param bool just_legend: True to get the legend of the image,
-            False (the default) to get the image data and info.
-            Note: :class:`StackView` uses the same legend for all frames.
-        :return: legend or image object
-        :rtype: str or list or None
+    def setOptionVisible(self, isVisible):
         """
-        return self._plot.getActiveImage(just_legend=just_legend)
+        Set the visibility of the browsing options.
 
-    def resetZoom(self):
-        """Reset the plot limits to the bounds of the data and redraw the plot.
+        :param bool isVisible: True to have the options visible, else False
         """
-        self._plot.resetZoom()
+        self._browser.setVisible(isVisible)
+        self.__planeSelection.setVisible(isVisible)
+
+    # proxies to PlotWidget or PlotWindow methods
+    def getProfileToolbar(self):
+        """Profile tools attached to this plot
+
+        See :class:`silx.gui.plot.Profile.Profile3DToolBar`
+        """
+        return self._plot.profile
 
     def getGraphTitle(self):
-        """Return the plot main title as a str."""
+        """Return the plot main title as a str.
+        """
         return self._plot.getGraphTitle()
 
     def setGraphTitle(self, title=""):
@@ -857,7 +852,8 @@ class StackView(qt.QMainWindow):
         return self._plot.setGraphTitle(title)
 
     def getGraphXLabel(self):
-        """Return the current horizontal axis label as a str."""
+        """Return the current horizontal axis label as a str.
+        """
         return self._plot.getXAxis().getLabel()
 
     def setGraphXLabel(self, label=None):
@@ -886,8 +882,25 @@ class StackView(qt.QMainWindow):
             label = self.__dimensionsLabels[1 if self._perspective == 0 else 0]
         self._plot.getYAxis(axis=axis).setLabel(label)
 
+    def resetZoom(self):
+        """Reset the plot limits to the bounds of the data and redraw the plot.
+
+        This method is a simple proxy to the legacy :class:`PlotWidget` method
+        of the same name. Using the object oriented approach is now
+        preferred::
+
+            stackview.getPlot().resetZoom()
+        """
+        self._plot.resetZoom()
+
     def setYAxisInverted(self, flag=True):
         """Set the Y axis orientation.
+
+        This method is a simple proxy to the legacy :class:`PlotWidget` method
+        of the same name. Using the object oriented approach is now
+        preferred::
+
+            stackview.getPlot().setYAxisInverted(flag)
 
         :param bool flag: True for Y axis going from top to bottom,
                           False for Y axis going from bottom to top
@@ -895,40 +908,72 @@ class StackView(qt.QMainWindow):
         self._plot.setYAxisInverted(flag)
 
     def isYAxisInverted(self):
-        """Return True if Y axis goes from top to bottom, False otherwise."""
-        return self._backend.isYAxisInverted()
+        """Return True if Y axis goes from top to bottom, False otherwise.
 
-    def getYAxis(self):
-        """Return the Y axis of the plot"""
-        return self._plot.getYAxis()
+        This method is a simple proxy to the legacy :class:`PlotWidget` method
+        of the same name. Using the object oriented approach is now
+        preferred::
+
+            stackview.getPlot().isYAxisInverted()"""
+        return self._plot.isYAxisInverted()
 
     def getSupportedColormaps(self):
         """Get the supported colormap names as a tuple of str.
 
         The list should at least contain and start by:
         ('gray', 'reversed gray', 'temperature', 'red', 'green', 'blue')
+
+        This method is a simple proxy to the legacy :class:`PlotWidget` method
+        of the same name. Using the object oriented approach is now
+        preferred::
+
+            stackview.getPlot().getSupportedColormaps()
         """
         return self._plot.getSupportedColormaps()
 
     def isKeepDataAspectRatio(self):
-        """Returns whether the plot is keeping data aspect ratio or not."""
+        """Returns whether the plot is keeping data aspect ratio or not.
+
+        This method is a simple proxy to the legacy :class:`PlotWidget` method
+        of the same name. Using the object oriented approach is now
+        preferred::
+
+            stackview.getPlot().isKeepDataAspectRatio()"""
         return self._plot.isKeepDataAspectRatio()
 
     def setKeepDataAspectRatio(self, flag=True):
         """Set whether the plot keeps data aspect ratio or not.
 
+        This method is a simple proxy to the legacy :class:`PlotWidget` method
+        of the same name. Using the object oriented approach is now
+        preferred::
+
+            stackview.getPlot().setKeepDataAspectRatio(flag)
+
         :param bool flag: True to respect data aspect ratio
         """
         self._plot.setKeepDataAspectRatio(flag)
 
-    def getColorBarWidget(self):
-        """Returns the colorbar widget from the plot
-
-        :rtype: :class:`silx.gui.plot.ColorBar.ColorBarWidget`
-        """
-        return self._plot.getColorBarWidget()
-
     # kind of private methods, but needed by Profile
+    def getActiveImage(self, just_legend=False):
+        """Returns the currently active image object.
+
+        It returns None in case of not having an active image.
+
+        This method is a simple proxy to the legacy :class:`PlotWidget` method
+        of the same name. Using the object oriented approach is now
+        preferred::
+
+            stackview.getPlot().getActiveImage()
+
+        :param bool just_legend: True to get the legend of the image,
+            False (the default) to get the image data and info.
+            Note: :class:`StackView` uses the same legend for all frames.
+        :return: legend or image object
+        :rtype: str or list or None
+        """
+        return self._plot.getActiveImage(just_legend=just_legend)
+
     def remove(self, legend=None,
                kind=('curve', 'image', 'item', 'marker')):
         """See :meth:`Plot.Plot.remove`"""

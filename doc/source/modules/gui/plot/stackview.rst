@@ -13,7 +13,9 @@
 
 .. autoclass:: StackView
    :members:
-   :exclude-members: remove, setInteractiveMode, addItem
+   :exclude-members: remove, setInteractiveMode, addItem, getActiveImage,
+       resetZoom, setYAxisInverted, isYAxisInverted, getSupportedColormaps,
+       isKeepDataAspectRatio, setKeepDataAspectRatio
 
 :class:`StackViewMainWindow` class
 ----------------------------------
