@@ -204,7 +204,7 @@ class StackView(qt.QMainWindow):
         self._addColorBarAction()
 
         self._plot.profile = Profile3DToolBar(parent=self._plot,
-                                              plot=self)
+                                              stackview=self)
         self._plot.addToolBar(self._plot.profile)
         self._plot.getXAxis().setLabel('Columns')
         self._plot.getYAxis().setLabel('Rows')
