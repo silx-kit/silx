@@ -29,7 +29,6 @@ __license__ = "MIT"
 __date__ = "12/04/2017"
 
 
-import time
 import os
 import unittest
 import tempfile
@@ -112,9 +111,7 @@ class TestHdf5TreeModel(TestCaseQt):
             model.insertFileAsync(filename)
             index = model.index(0, 0, qt.QModelIndex())
             self.assertIsInstance(model.nodeFromIndex(index), hdf5.Hdf5LoadingItem.Hdf5LoadingItem)
-            time.sleep(0.1)
-            self.qapp.processEvents()
-            time.sleep(0.1)
+            self.qWait(100)
             index = model.index(0, 0, qt.QModelIndex())
             self.assertIsInstance(model.nodeFromIndex(index), hdf5.Hdf5Item.Hdf5Item)
             self.assertEquals(model.rowCount(qt.QModelIndex()), 1)
@@ -152,9 +149,7 @@ class TestHdf5TreeModel(TestCaseQt):
             node2 = model.nodeFromIndex(index)
             self.assertIsNot(node1, node2)
             # after sync
-            time.sleep(0.1)
-            self.qapp.processEvents()
-            time.sleep(0.1)
+            self.qWait(100)
             index = model.index(0, 0, qt.QModelIndex())
             self.assertIsInstance(model.nodeFromIndex(index), hdf5.Hdf5Item.Hdf5Item)
             # clean up
@@ -198,9 +193,7 @@ class TestHdf5TreeModel(TestCaseQt):
             model.dropMimeData(mimeData, qt.Qt.CopyAction, 0, 0, qt.QModelIndex())
             self.assertEquals(model.rowCount(qt.QModelIndex()), 1)
             # after sync
-            time.sleep(0.1)
-            self.qapp.processEvents()
-            time.sleep(0.1)
+            self.qWait(100)
             index = model.index(0, 0, qt.QModelIndex())
             self.assertIsInstance(model.nodeFromIndex(index), hdf5.Hdf5Item.Hdf5Item)
             # clean up
