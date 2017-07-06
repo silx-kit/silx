@@ -312,7 +312,7 @@ class Backprojection(OpenclProcessing):
                     self.wg,
                     *kernel_args
                 )
-            self.slice *= 0
+            # self.slice[:] = 0
             events.append(EventDescription("backprojection", event_bpj))
             ev = pyopencl.enqueue_copy(self.queue, self.slice, self.cl_mem["d_slice"])
             events.append(EventDescription("copy D->H result", ev))
@@ -321,12 +321,12 @@ class Backprojection(OpenclProcessing):
         if self.profile:
             self.events += events
         if self.dimrec_shape[0] > self.slice_shape[0] or self.dimrec_shape[1] > self.slice_shape[1]:
-            self.slice = self.slice[:self.slice_shape[0], :self.slice_shape[1]]
+            res = np.copy(self.slice[:self.slice_shape[0], :self.slice_shape[1]])
         # if the slice is backprojected onto a bigger grid
         if self.slice_shape[1] > self.num_bins:
-            return self.slice[:self.slice_shape[0], :self.slice_shape[1]]
-        else:
-            return self.slice
+            res = res[:self.slice_shape[0], :self.slice_shape[1]]
+        return res
+
 
     def filter_projections(self, sino, rescale=True):
         """
