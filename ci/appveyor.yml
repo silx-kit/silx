@@ -110,6 +110,7 @@ test_script:
     - "pip list"
 
     - "python run_tests.py -v"
+    - "python test.py"
 
     # Leave test virtualenv
     - "%VENV_TEST_DIR%\\Scripts\\deactivate.bat"

@@ -44,7 +44,7 @@ import time
 import unittest
 
 
-logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("run_tests")
 logger.setLevel(logging.WARNING)
 
@@ -381,11 +381,12 @@ else:
     logger.warning("Test suite failed")
     exit_status = 1
 
-
+print('before coverage')
 if options.coverage:
     cov.stop()
     cov.save()
     with open("coverage.rst", "w") as fn:
         fn.write(report_rst(cov, PROJECT_NAME, PROJECT_VERSION, PROJECT_PATH))
 
+print('exiting')
 sys.exit(exit_status)
