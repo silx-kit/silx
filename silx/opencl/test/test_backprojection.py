@@ -137,6 +137,8 @@ class TestFBP(unittest.TestCase):
         """
         tests FBP
         """
+        # Test single reconstruction
+        # --------------------------
         t, res = self.measure()
         if t is None:
             logger.info("test_fp: skipped")
@@ -147,6 +149,14 @@ class TestFBP(unittest.TestCase):
             # TODO: cannot do better than 1e0 ?
             # The plain backprojection was much better, so it must be an issue in the filtering process
             self.assertTrue(err < 1., "Max error is too high")
+        # Test multiple reconstructions
+        # -----------------------------
+        res0 = np.copy(res)
+        for i in range(10):
+            res = self.fbp.filtered_backprojection(self.sino)
+            errmax = np.max(np.abs(res - res0))
+            self.assertTrue(errmax < 1.e-6, "Max error is too high")
+
 
 
 def suite():
