@@ -264,6 +264,6 @@ class _MedFilt2d(object):
             new_shape = numpy.maximum(numpy.array(cls.median_filter.shape), shape)
             ctx = cls.median_filter.ctx
             cls.median_filter = MedianFilter2D(new_shape, kernel_size, ctx=ctx)
-        return cls.median_filter.medfilt2d(image, kernel_size=kernel_size)
+        return cls.median_filter.medfilt2d(image)
 
 medfilt2d = _MedFilt2d.medfilt2d
