@@ -74,7 +74,7 @@ SHOW_FIGURES = False
 PRINT_KEYPOINTS = False
 USE_CPU = False
 USE_CPP_SIFT = True  # use reference cplusplus implementation for descriptors comparison... not valid for (octsize,scale)!=(1,1)
-USE_CPP_MATCH = False  
+USE_CPP_MATCH = False
 
 '''
 For Python implementation of tested functions, see "test_image_functions.py"
@@ -128,7 +128,7 @@ class TestMatching(unittest.TestCase):
             ref_sift = sp.keypoints(image)
         ref_sift_2 = numpy.recarray((ref_sift.shape), dtype=ref_sift.dtype)
         ref_sift_2[:] = (ref_sift[::-1])
-        
+
         if (feature is not None and USE_CPP_MATCH):
             t0_matching = time.time()
             siftmatch = feature.sift_match(ref_sift, ref_sift_2)
@@ -173,7 +173,7 @@ class TestMatching(unittest.TestCase):
 
         # sort to compare added keypoints
         self.assertEqual(cnt,  siftmatch.shape[0], "number of matching element is the same")
-        
+
         delta = abs(res_sort-siftmatch).max()
         self.assertEqual(delta, 0, "Matching keypoints are actually the same")
         #logger.info("delta=%s" % delta)
