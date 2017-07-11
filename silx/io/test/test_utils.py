@@ -336,7 +336,8 @@ class TestOpen(unittest.TestCase):
         # load it
         f = utils.open(tmp.name)
         self.assertIsNotNone(f)
-        self.assertEquals(f.h5py_class, h5py.File)
+        if not h5py_missing:
+            self.assertEquals(f.h5py_class, h5py.File)
         f.close()
 
     def testSpecWith(self):
@@ -349,7 +350,8 @@ class TestOpen(unittest.TestCase):
         # load it
         with utils.open(tmp.name) as f:
             self.assertIsNotNone(f)
-            self.assertEquals(f.h5py_class, h5py.File)
+            if not h5py_missing:
+                self.assertEquals(f.h5py_class, h5py.File)
 
     def testEdf(self):
         if h5py_missing:
