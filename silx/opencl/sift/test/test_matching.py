@@ -70,11 +70,6 @@ except:
     logger.warning("feature module is not available to compare results with C++ implementation. Matching cannot be tested.")
     feature = None
 
-SHOW_FIGURES = False
-PRINT_KEYPOINTS = False
-USE_CPU = False
-USE_CPP_SIFT = True  # use reference cplusplus implementation for descriptors comparison... not valid for (octsize,scale)!=(1,1)
-USE_CPP_MATCH = False
 
 '''
 For Python implementation of tested functions, see "test_image_functions.py"
@@ -101,7 +96,12 @@ class TestMatching(unittest.TestCase):
         cls.queue = None
 
     def setUp(self):
-        kernel = ("matching_gpu.cl" if not(USE_CPU) else "matching_cpu.cl")
+        devtype = ocl.device_from_context(self.ctx).type
+        if (devtype == "CPU"):
+            self.use_cpu = True
+        else:
+            self.use_cpu = False
+        kernel = ("matching_gpu.cl" if not(self.use_cpu) else "matching_cpu.cl")
         kernel_src = get_opencl_code(os.path.join("sift", kernel))
         self.program = pyopencl.Program(self.ctx, kernel_src).build()  # .build('-D WORKGROUP_SIZE=%s' % wg_size)
         self.wg = (1, 128)
@@ -119,7 +119,7 @@ class TestMatching(unittest.TestCase):
         else:
             image = scipy.misc.lena().astype(numpy.float32)
 
-        if (feature is not None) and USE_CPP_SIFT:
+        if (feature is not None):
             # get the struct keypoints : (x,y,s,angle,[descriptors])
             sc = feature.SiftAlignment()
             ref_sift = sc.sift(image)
@@ -129,18 +129,12 @@ class TestMatching(unittest.TestCase):
         ref_sift_2 = numpy.recarray((ref_sift.shape), dtype=ref_sift.dtype)
         ref_sift_2[:] = (ref_sift[::-1])
 
-        if (feature is not None and USE_CPP_MATCH):
-            t0_matching = time.time()
-            siftmatch = feature.sift_match(ref_sift, ref_sift_2)
-            t1_matching = time.time()
-            reference="CPP"
-        else:
-            t0_matching = time.time()
-            siftmatch = match_py(ref_sift, ref_sift_2, raw_results=True)
-            t1_matching = time.time()
-            reference="NumPy"
+        t0_matching = time.time()
+        siftmatch = match_py(ref_sift, ref_sift_2, raw_results=True)
+        t1_matching = time.time()
+        reference="NumPy"
 
-        if (USE_CPU):
+        if (self.use_cpu):
             wg = 1,
         else:
             wg = 64,
@@ -165,15 +159,12 @@ class TestMatching(unittest.TestCase):
         t1 = time.time()
 
         res_sort = res[numpy.argsort(res[:, 0])]
-
         logger.debug("%s", res_sort[0:20])
         logger.debug("%s Matching took %.3f ms" , reference, 1000.0 * (t1_matching - t0_matching))
         logger.debug("OpenCL: %d match / %s : %d match" , cnt, reference, siftmatch.shape[0])
 
-
         # sort to compare added keypoints
         self.assertEqual(cnt,  siftmatch.shape[0], "number of matching element is the same")
-
         delta = abs(res_sort-siftmatch).max()
         self.assertEqual(delta, 0, "Matching keypoints are actually the same")
         #logger.info("delta=%s" % delta)
