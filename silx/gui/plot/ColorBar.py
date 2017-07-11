@@ -166,8 +166,6 @@ class ColorBarWidget(qt.QWidget):
         """handler of the Colormap.sigChanged signal
         """
         assert(self._colormap is not None)
-        if self._plot is not None:
-            data = self._plot.getActiveImage().getData(copy=False)
         self.setColormap(colormap=self._colormap,
                          data=self._data)
 
