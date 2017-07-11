@@ -314,6 +314,7 @@ class TestSpecH5(unittest.TestCase):
         # spech5 does not define external link, so there is no way
         # a group can *get* a SpecH5 class
 
+    @unittest.skipIf(h5py is None, "test requires h5py (not installed)")
     def testGetApi(self):
         result = self.sfh5.get("1.1", getclass=True, getlink=True)
         self.assertIs(result, h5py.HardLink)
