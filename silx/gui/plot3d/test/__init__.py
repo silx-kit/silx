@@ -56,7 +56,9 @@ def suite():
     # Import here to avoid loading modules if tests are disabled
 
     from ..scene import test as test_scene
+    from .testScalarFieldView import suite as testScalarFieldViewSuite
 
     test_suite = unittest.TestSuite()
     test_suite.addTest(test_scene.suite())
+    test_suite.addTest(testScalarFieldViewSuite())
     return test_suite
