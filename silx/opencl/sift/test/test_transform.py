@@ -191,7 +191,7 @@ class TestTransform(unittest.TestCase):
         mode = numpy.int32(1)
 
         if IMAGE_RESHAPE:  # turns out that image should always be reshaped
-            output_height, output_width = int(3000), int(3000)
+            output_height, output_width = int(1024), int(1024)
             image, image_height, image_width = self.image_reshape(image, output_height, output_width, image_height, image_width)
             image2, image2_height, image2_width = self.image_reshape(image2, output_height, output_width, image2_height, image2_width)
         else:
