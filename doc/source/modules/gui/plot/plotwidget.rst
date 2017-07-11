@@ -14,13 +14,8 @@ It is the basis of other plot widget, thus all plot widgets share the same API.
 
 For an introduction and examples of the plot API, see :doc:`getting_started`.
 
-Plot API
---------
-
-.. currentmodule:: silx.gui.plot.Plot
-
-This is a choosen subset of the complete plot API, the full API is
-documented in :class:`silx.gui.plot.Plot`.
+:class:`PlotWidget`
+-------------------
 
 .. currentmodule:: silx.gui.plot.PlotWidget
 
@@ -36,6 +31,20 @@ Those methods allow to add and update plotted data:
 .. automethod:: PlotWidget.addImage
 .. automethod:: PlotWidget.addScatter
 .. automethod:: PlotWidget.addHistogram
+
+Get data
+........
+
+Those methods return objects providing access to plotted data:
+
+.. automethod:: PlotWidget.getCurve
+.. automethod:: PlotWidget.getImage
+.. automethod:: PlotWidget.getScatter
+.. automethod:: PlotWidget.getHistogram
+
+.. automethod:: PlotWidget.getAllCurves
+.. automethod:: PlotWidget.getAllImages
+
 
 Plot markers
 ............
@@ -55,38 +64,22 @@ Remove data from the plot
 Title and labels
 ................
 
-Those methods handle the text labels of the axes and the plot title:
+Those methods handle the plot title:
 
 .. automethod:: PlotWidget.getGraphTitle
 .. automethod:: PlotWidget.setGraphTitle
-.. automethod:: PlotWidget.getGraphXLabel
-.. automethod:: PlotWidget.setGraphXLabel
-.. automethod:: PlotWidget.getGraphYLabel
-.. automethod:: PlotWidget.setGraphYLabel
-
-Axes limits
-...........
-
-Those methods change the range of data values displayed on each axis.
-
-.. automethod:: PlotWidget.getGraphXLimits
-.. automethod:: PlotWidget.setGraphXLimits
-.. automethod:: PlotWidget.getGraphYLimits
-.. automethod:: PlotWidget.setGraphYLimits
-.. automethod:: PlotWidget.setLimits
 
 Axes
 ....
 
-The following methods handle the display properties of the axes:
+Those two methods give access to :class:`.items.Axis` which handle the limits, scales and labels of axis:
 
-.. automethod:: PlotWidget.isXAxisLogarithmic
-.. automethod:: PlotWidget.setXAxisLogarithmic
-.. automethod:: PlotWidget.isYAxisLogarithmic
-.. automethod:: PlotWidget.setYAxisLogarithmic
+.. automethod:: PlotWidget.getXAxis
+.. automethod:: PlotWidget.getYAxis
 
-.. automethod:: PlotWidget.isYAxisInverted
-.. automethod:: PlotWidget.setYAxisInverted
+The following methods handle plot limits, aspect ratio and grid:
+
+.. automethod:: PlotWidget.setLimits
 .. automethod:: PlotWidget.isKeepDataAspectRatio
 .. automethod:: PlotWidget.setKeepDataAspectRatio
 .. automethod:: PlotWidget.getGraphGrid
@@ -96,15 +89,6 @@ Reset zoom
 ..........
 
 .. automethod:: PlotWidget.resetZoom
-
-Those methods change the behavior of :meth:`PlotWidget.resetZoom`.
-
-.. automethod:: PlotWidget.getDataMargins
-.. automethod:: PlotWidget.setDataMargins
-.. automethod:: PlotWidget.isXAxisAutoScale
-.. automethod:: PlotWidget.setXAxisAutoScale
-.. automethod:: PlotWidget.isYAxisAutoScale
-.. automethod:: PlotWidget.setYAxisAutoScale
 
 Defaults
 ........
@@ -141,11 +125,6 @@ Signals
 The :class:`PlotWidget` provides the following Qt signals:
 
 .. autoattribute:: PlotWidget.sigPlotSignal
-.. autoattribute:: PlotWidget.sigSetYAxisInverted
-.. autoattribute:: PlotWidget.sigSetXAxisLogarithmic
-.. autoattribute:: PlotWidget.sigSetYAxisLogarithmic
-.. autoattribute:: PlotWidget.sigSetXAxisAutoScale
-.. autoattribute:: PlotWidget.sigSetYAxisAutoScale
 .. autoattribute:: PlotWidget.sigSetKeepDataAspectRatio
 .. autoattribute:: PlotWidget.sigSetGraphGrid
 .. autoattribute:: PlotWidget.sigSetGraphCursor
@@ -162,8 +141,6 @@ The :class:`PlotWidget` provides the following Qt signals:
    getActiveCurve, setActiveCurve,
    isCurveHidden, hideCurve,
    getActiveImage, setActiveImage,
-   getAllCurves, getCurve, getImage, getAllImages,
-   getScatter, getHistogram,
    setDefaultPlotPoints, setDefaultPlotLines,
    getWidgetHandle, notify, setCallback, graphCallback,
    dataToPixel, pixelToData, getPlotBoundsInPixels,

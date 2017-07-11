@@ -43,10 +43,12 @@ import numpy
 
 from silx.gui import qt
 from silx.gui.plot.Colors import rgba
+from silx.gui.plot.Colormap import Colormap
 
 from silx.math.marchingcubes import MarchingCubes
+from silx.math.combo import min_max
 
-from .scene import axes, cutplane, function, interaction, primitives, transform
+from .scene import axes, cutplane, interaction, primitives, transform
 from . import scene
 from .Plot3DWindow import Plot3DWindow
 
@@ -265,48 +267,6 @@ class Isosurface(qt.QObject):
                 self._group.children = [mesh]
 
 
-class Colormap(object):
-    """Description of a colormap
-
-    :param str name: Name of the colormap
-    :param str norm: Normalization: 'linear' (default) or 'log'
-    :param float vmin:
-        Lower bound of the colormap or None for autoscale (default)
-    :param float vmax:
-        Upper bounds of the colormap or None for autoscale (default)
-    """
-
-    def __init__(self, name, norm='linear', vmin=None, vmax=None):
-        assert name in function.Colormap.COLORMAPS
-        self._name = str(name)
-
-        assert norm in ('linear', 'log')
-        self._norm = str(norm)
-
-        self._vmin = float(vmin) if vmin is not None else None
-        self._vmax = float(vmax) if vmax is not None else None
-
-    def isAutoscale(self):
-        """True if both min and max are in autoscale mode"""
-        return self._vmin is None or self._vmax is None
-
-    def getName(self):
-        """Return the name of the colormap (str)"""
-        return self._name
-
-    def getNorm(self):
-        """Return the normalization of the colormap (str)"""
-        return self._norm
-
-    def getVMin(self):
-        """Return the lower bound of the colormap or None"""
-        return self._vmin
-
-    def getVMax(self):
-        """Return the upper bounds of the colormap or None"""
-        return self._vmax
-
-
 class SelectedRegion(object):
     """Selection of a 3D region aligned with the axis.
 
@@ -391,7 +351,7 @@ class CutPlane(qt.QObject):
     sigPlaneChanged = qt.Signal()
     """Signal emitted when the cut plane has moved"""
 
-    sigColormapChanged = qt.Signal(object)
+    sigColormapChanged = qt.Signal(Colormap)
     """Signal emitted when the colormap has changed
 
     This signal provides the new colormap.
@@ -406,17 +366,18 @@ class CutPlane(qt.QObject):
     def __init__(self, sfView):
         super(CutPlane, self).__init__(parent=sfView)
 
-        self._colormap = Colormap(
-            name='gray', norm='linear', vmin=None, vmax=None)
-
         self._dataRange = None
-        self._positiveMin = None
 
         self._plane = cutplane.CutPlane(normal=(0, 1, 0))
         self._plane.alpha = 1.
         self._plane.visible = self._visible = False
         self._plane.addListener(self._planeChanged)
         self._plane.plane.addListener(self._planePositionChanged)
+
+        self._colormap = Colormap(
+            name='gray', normalization='linear', vmin=None, vmax=None)
+        self.getColormap().sigChanged.connect(self._colormapChanged)
+        self._updateSceneColormap()
 
         sfView.sigDataChanged.connect(self._sfViewDataChanged)
 
@@ -427,13 +388,15 @@ class CutPlane(qt.QObject):
     def _sfViewDataChanged(self):
         """Handle data change in the ScalarFieldView this plane belongs to"""
         self._plane.setData(self.sender().getData(), copy=False)
+
+        # Store data range info as 3-tuple of values
         self._dataRange = self.sender().getDataRange()
-        self._positiveMin = None
+
         self.sigDataChanged.emit()
 
         # Update colormap range when autoscale
         if self.getColormap().isAutoscale():
-            self._updateColormapRange()
+            self._updateSceneColormap()
 
     def _planeChanged(self, source, *args, **kwargs):
         """Handle events from the plane primitive"""
@@ -565,7 +528,7 @@ class CutPlane(qt.QObject):
     #     self._plane.alpha = alpha
 
     def getColormap(self):
-        """Returns the colormap set by :meth:`getColormap`.
+        """Returns the colormap set by :meth:`setColormap`.
 
         :return: The colormap
         :rtype: Colormap
@@ -574,25 +537,38 @@ class CutPlane(qt.QObject):
 
     def setColormap(self,
                     name='gray',
-                    norm='linear',
+                    norm=None,
                     vmin=None,
                     vmax=None):
         """Set the colormap to use.
 
-        :param str name: Name of the colormap in
+        By either providing a :class:`Colormap` object or
+        its name, normalization and range.
+
+        :param name: Name of the colormap in
             'gray', 'reversed gray', 'temperature', 'red', 'green', 'blue'.
+            Or Colormap object.
+        :type name: str or Colormap
         :param str norm: Colormap mapping: 'linear' or 'log'.
         :param float vmin: The minimum value of the range or None for autoscale
         :param float vmax: The maximum value of the range or None for autoscale
         """
         _logger.debug('setColormap %s %s (%s, %s)',
-                      name, norm, str(vmin), str(vmax))
+                      name, str(norm), str(vmin), str(vmax))
 
-        self._colormap = Colormap(
-            name=name, norm=norm, vmin=vmin, vmax=vmax)
+        self._colormap.sigChanged.disconnect(self._colormapChanged)
 
-        self._updateColormapRange()
-        self.sigColormapChanged.emit(self.getColormap())
+        if isinstance(name, Colormap):  # Use it as it is
+            assert (norm, vmin, vmax) == (None, None, None)
+            self._colormap = name
+        else:
+            if norm is None:
+                norm = 'linear'
+            self._colormap = Colormap(
+                name=name, normalization=norm, vmin=vmin, vmax=vmax)
+
+        self._colormap.sigChanged.connect(self._colormapChanged)
+        self._colormapChanged()
 
     def getColormapEffectiveRange(self):
         """Returns the currently used range of the colormap.
@@ -604,35 +580,21 @@ class CutPlane(qt.QObject):
         """
         return self._plane.colormap.range_
 
-    def _updateColormapRange(self):
-        """Update the colormap range"""
+    def _updateSceneColormap(self):
+        """Synchronizes scene's colormap with Colormap object"""
         colormap = self.getColormap()
+        sceneCMap = self._plane.colormap
 
-        self._plane.colormap.name = colormap.getName()
-        if colormap.isAutoscale():
-            range_ = self._dataRange
-            if range_ is None:  # No data, use a default range
-                range_ = 1., 10.
-        else:
-            range_ = colormap.getVMin(), colormap.getVMax()
+        sceneCMap.name = colormap.getName()
+        sceneCMap.norm = colormap.getNormalization()
+        range_ = colormap.getColormapRange(data=self._dataRange)
+        sceneCMap.range_ = range_
 
-        if colormap.getNorm() == 'linear':
-            self._plane.colormap.norm = 'linear'
-            self._plane.colormap.range_ = range_
-
-        else:  # Log
-            # Make sure range is strictly positive
-            if range_[0] <= 0.:
-                data = self._plane.getData(copy=False)
-                if data is not None:
-                    if self._positiveMin is None:
-                        # TODO compute this with the range as a combo operation
-                        self._positiveMin = numpy.min(data[data > 0.])
-                    range_ = (self._positiveMin,
-                              max(range_[1], self._positiveMin))
-
-            self._plane.colormap.range_ = range_
-            self._plane.colormap.norm = colormap.getNorm()
+    def _colormapChanged(self):
+        """Handle update of Colormap object"""
+        self._updateSceneColormap()
+        # Forward colormap changed event
+        self.sigColormapChanged.emit(self.getColormap())
 
 
 class _CutPlaneImage(object):
@@ -766,7 +728,7 @@ class ScalarFieldView(Plot3DWindow):
     def __init__(self, parent=None):
         super(ScalarFieldView, self).__init__(parent)
         self._colormap = Colormap(
-            name='gray', norm='linear', vmin=None, vmax=None)
+            name='gray', normalization='linear', vmin=None, vmax=None)
         self._selectedRange = None
 
         # Store iso-surfaces
@@ -1063,7 +1025,15 @@ class ScalarFieldView(Plot3DWindow):
             previousSelectedRegion = self.getSelectedRegion()
 
             self._data = data
-            self._dataRange = self._data.min(), self._data.max()
+
+            # Store data range info
+            dataRange = min_max(self._data, min_positive=True)
+            if dataRange is not None:
+                min_positive = dataRange.min_positive
+                if min_positive is None:
+                    min_positive = float('nan')
+                dataRange = dataRange.minimum, min_positive, dataRange.maximum
+            self._dataRange = dataRange
 
             if previousSelectedRegion is not None:
                 # Update selected region to ensure it is clipped to array range
@@ -1094,7 +1064,12 @@ class ScalarFieldView(Plot3DWindow):
             return numpy.array(self._data, copy=copy)
 
     def getDataRange(self):
-        """Return the range of the data as a 2-tuple (min, max)"""
+        """Return the range of the data as a 3-tuple of values.
+
+        positive min is NaN if no data is positive.
+
+        :return: (min, positive min, max) or None.
+        """
         return self._dataRange
 
     # Transformations

@@ -34,7 +34,7 @@ The following QAction are available:
 from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
-__date__ = "24/05/2017"
+__date__ = "27/06/2017"
 __license__ = "MIT"
 
 from . import PlotAction
@@ -157,8 +157,8 @@ class PixelIntensitiesHistoAction(PlotAction):
             self._plotHistogram.setWindowFlags(qt.Qt.Window)
             self._plotHistogram.setWindowTitle('Image Intensity Histogram')
             self._plotHistogram.installEventFilter(self)
-            self._plotHistogram.setGraphXLabel("Value")
-            self._plotHistogram.setGraphYLabel("Count")
+            self._plotHistogram.getXAxis().setLabel("Value")
+            self._plotHistogram.getYAxis().setLabel("Count")
 
         return self._plotHistogram
 

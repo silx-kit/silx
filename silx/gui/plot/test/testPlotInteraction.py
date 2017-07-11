@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016=2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -61,7 +61,7 @@ class TestSelectPolygon(_PlotWidgetTest):
 
         :param polygon: List of points (x, y) of the polygon (not closed)
         """
-        plot = self.plot.centralWidget()
+        plot = self.plot.getWidgetHandle()
 
         dump = _SignalDump()
         self.plot.sigPlotSignal.connect(dump)
@@ -89,7 +89,7 @@ class TestSelectPolygon(_PlotWidgetTest):
         self.plot.sigInteractiveModeChanged.disconnect(
             self._interactionModeChanged)
 
-        plot = self.plot.centralWidget()
+        plot = self.plot.getWidgetHandle()
         xCenter, yCenter = plot.width() // 2, plot.height() // 2
         offset = min(plot.width(), plot.height()) // 10
 

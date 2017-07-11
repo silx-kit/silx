@@ -38,7 +38,7 @@ from silx.io.nxdata import NXdata
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "07/04/2017"
+__date__ = "27/06/2017"
 
 _logger = logging.getLogger(__name__)
 
@@ -62,6 +62,8 @@ def _normalizeData(data):
     If the data embed a numpy data or a dataset it is returned.
     Else returns the input data."""
     if isinstance(data, H5Node):
+        if data.is_broken:
+            return None
         return data.h5py_object
     return data
 
@@ -285,7 +287,6 @@ class CompositeDataView(DataView):
 
     def getBestView(self, data, info):
         """Returns the best view according to priorities."""
-        info = DataInfo(data)
         views = [(v.getDataPriority(data, info), v) for v in self.__views.keys()]
         views = filter(lambda t: t[0] > DataView.UNSUPPORTED, views)
         views = sorted(views, reverse=True)
@@ -435,8 +436,8 @@ class _Plot2dView(DataView):
         from silx.gui import plot
         widget = plot.Plot2D(parent=parent)
         widget.setKeepDataAspectRatio(True)
-        widget.setGraphXLabel('X')
-        widget.setGraphYLabel('Y')
+        widget.getXAxis().setLabel('X')
+        widget.getYAxis().setLabel('Y')
         return widget
 
     def clear(self):

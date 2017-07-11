@@ -25,12 +25,14 @@
 import gc
 from numpy import array_equal
 import os
+import io
 import sys
 import tempfile
 import unittest
 import datetime
 from functools import partial
 
+from .. import spech5
 from ..spech5 import (SpecH5, SpecH5Group,
                       SpecH5Dataset, spec_date_to_iso8601)
 from .. import specfile
@@ -42,7 +44,7 @@ except ImportError:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "11/05/2017"
+__date__ = "21/06/2017"
 
 sftext = """#F /tmp/sf.dat
 #E 1455180875
@@ -104,6 +106,12 @@ sftext = """#F /tmp/sf.dat
 #S 1000 bbbbb
 #G1 3.25 3.25 5.207 90 90 120 2.232368448 2.232368448 1.206680489 90 90 60 1 1 2 -1 2 2 26.132 7.41 -88.96 1.11 1.000012861 15.19 26.06 67.355 -88.96 1.11 1.000012861 15.11 0.723353 0.723353
 #G3 0.0106337923671 0.027529133 1.206191273 -1.43467075 0.7633438883 0.02401568018 -1.709143587 -2.097621783 0.02456954971
+#L a  b
+1 2
+
+#S 1001 ccccc
+#G1 0. 0. 0. 0 0 0 2.232368448 2.232368448 1.206680489 90 90 60 1 1 2 -1 2 2 26.132 7.41 -88.96 1.11 1.000012861 15.19 26.06 67.355 -88.96 1.11 1.000012861 15.11 0.723353 0.723353
+#G3 0. 0. 0. 0. 0.0 0. 0. 0. 0.
 #L a  b
 1 2
 
@@ -306,6 +314,16 @@ class TestSpecH5(unittest.TestCase):
         # spech5 does not define external link, so there is no way
         # a group can *get* a SpecH5 class
 
+    def testGetApi(self):
+        result = self.sfh5.get("1.1", getclass=True, getlink=True)
+        self.assertIs(result, h5py.HardLink)
+        result = self.sfh5.get("1.1", getclass=False, getlink=True)
+        self.assertIsInstance(result, h5py.HardLink)
+        result = self.sfh5.get("1.1", getclass=True, getlink=False)
+        self.assertIs(result, h5py.Group)
+        result = self.sfh5.get("1.1", getclass=False, getlink=False)
+        self.assertIsInstance(result, spech5.SpecH5Group)
+
     def testGetItemGroup(self):
         group = self.sfh5["25.1"]["instrument"]
         self.assertEqual(group["positioners"].keys(),
@@ -390,7 +408,7 @@ class TestSpecH5(unittest.TestCase):
 
     def testListScanIndices(self):
         self.assertEqual(self.sfh5.keys(),
-                         ["1.1", "25.1", "1.2", "1000.1"])
+                         ["1.1", "25.1", "1.2", "1000.1", "1001.1"])
         self.assertEqual(self.sfh5["1.2"].attrs,
                          {"NX_class": "NXentry", })
 
@@ -483,7 +501,7 @@ class TestSpecH5(unittest.TestCase):
         self.sfh5.visit(name_list.append)
         self.assertIn('1.2/instrument/positioners/Pslit HGap', name_list)
         self.assertIn("1.2/instrument/specfile/scan_header", name_list)
-        self.assertEqual(len(name_list), 100)  #, "actual name list: %s" % "\n".join(name_list))
+        self.assertEqual(len(name_list), 117)
 
         # test also visit of a subgroup, with various group name formats
         name_list_leading_and_trailing_slash = []
@@ -517,7 +535,7 @@ class TestSpecH5(unittest.TestCase):
 
         self.sfh5.visititems(func_generator(dataset_name_list))
         self.assertIn('1.2/instrument/positioners/Pslit HGap', dataset_name_list)
-        self.assertEqual(len(dataset_name_list), 73)
+        self.assertEqual(len(dataset_name_list), 85)
 
         # test also visit of a subgroup, with various group name formats
         name_list_leading_and_trailing_slash = []
@@ -543,6 +561,7 @@ class TestSpecH5(unittest.TestCase):
         os.write(fd, b"Not a spec file!")
         os.close(fd)
         self.assertRaises(specfile.SfErrFileOpen, SpecH5, fname)
+        self.assertRaises(IOError, SpecH5, fname)
         os.unlink(fname)
 
     def testSample(self):
@@ -552,6 +571,20 @@ class TestSpecH5(unittest.TestCase):
         self.assertIn("unit_cell", self.sfh5["/1000.1/sample"])
         self.assertIn("unit_cell_abc", self.sfh5["/1000.1/sample"])
         self.assertIn("unit_cell_alphabetagamma", self.sfh5["/1000.1/sample"])
+
+        # All 0 values
+        self.assertNotIn("sample", self.sfh5["/1001.1"])
+        with self.assertRaises(KeyError):
+            uc = self.sfh5["/1001.1/sample/unit_cell"]
+
+    def testOpenFileDescriptor(self):
+        """Open a SpecH5 file from a file descriptor"""
+        with io.open(self.sfh5.filename) as f:
+            sfh5 = SpecH5(f)
+            self.assertIsNotNone(sfh5)
+            name_list = []
+            # check if the object is working
+            self.sfh5.visit(name_list.append)
 
 
 sftext_multi_mca_headers = """

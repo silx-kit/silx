@@ -35,13 +35,14 @@ from __future__ import division
 
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "20/04/2017"
+__date__ = "20/06/2017"
 
 
 import os
 import sys
 import numpy
 import logging
+import collections
 
 from silx.image import shapes
 
@@ -265,12 +266,22 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         """Update mask image in plot"""
         mask = self.getSelectionMask(copy=False)
         if len(mask):
-            self.plot.addImage(mask, legend=self._maskName,
-                               colormap=self._colormap,
-                               origin=self._origin,
-                               scale=self._scale,
-                               z=self._z,
-                               replace=False, resetzoom=False)
+            # get the mask from the plot
+            maskItem = self.plot.getImage(self._maskName)
+            mustBeAdded = maskItem is None
+            if mustBeAdded:
+                maskItem = items.MaskImageData()
+                maskItem._setLegend(self._maskName)
+            # update the items
+            maskItem.setData(mask, copy=False)
+            maskItem.setColormap(self._colormap)
+            maskItem.setOrigin(self._origin)
+            maskItem.setScale(self._scale)
+            maskItem.setZValue(self._z)
+
+            if mustBeAdded:
+                self.plot._add(maskItem)
+
         elif self.plot.getImage(self._maskName):
             self.plot.remove(self._maskName, kind='image')
 
@@ -393,6 +404,14 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                 _logger.error("Can't load filename '%s'", filename)
                 _logger.debug("Backtrace", exc_info=True)
                 raise RuntimeError('File "%s" is not a numpy file.', filename)
+        elif extension in ["tif", "tiff"]:
+            try:
+                image = TiffIO(filename, mode="r")
+                mask = image.getImage(0)
+            except Exception as e:
+                _logger.error("Can't load filename %s", filename)
+                _logger.debug("Backtrace", exc_info=True)
+                raise e
         elif extension == "edf":
             try:
                 mask = EdfFile(filename, access='r').GetData(0)
@@ -426,14 +445,21 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         dialog = qt.QFileDialog(self)
         dialog.setWindowTitle("Load Mask")
         dialog.setModal(1)
-        filters = [
-            'EDF (*.edf)',
-            'TIFF (*.tif)',
-            'NumPy binary file (*.npy)',
-            # Fit2D mask is displayed anyway fabio is here or not
-            # to show to the user that the option exists
-            'Fit2D mask (*.msk)',
-        ]
+
+        extensions = collections.OrderedDict()
+        extensions["EDF files"] = "*.edf"
+        extensions["TIFF files"] = "*.tif *.tiff"
+        extensions["NumPy binary files"] = "*.npy"
+        # Fit2D mask is displayed anyway fabio is here or not
+        # to show to the user that the option exists
+        extensions["Fit2D mask files"] = "*.msk"
+
+        filters = []
+        filters.append("All supported files (%s)" % " ".join(extensions.values()))
+        for name, extension in extensions.items():
+            filters.append("%s (%s)" % (name, extension))
+        filters.append("All files (*)")
+
         dialog.setNameFilters(filters)
         dialog.setFileMode(qt.QFileDialog.ExistingFile)
         dialog.setDirectory(self.maskFileDir)

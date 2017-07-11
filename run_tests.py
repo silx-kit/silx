@@ -228,9 +228,10 @@ WITH_GL_TEST=False to disable tests using OpenGL
 parser = ArgumentParser(description='Run the tests.',
                         epilog=epilog)
 
-parser.add_argument("-i", "--insource",
-                    action="store_true", dest="insource", default=False,
-                    help="Use the build source and not the installed version")
+parser.add_argument("--installed",
+                    action="store_true", dest="installed", default=False,
+                    help=("Test the installed version instead of" +
+                          "building from the source"))
 parser.add_argument("-c", "--coverage", dest="coverage",
                     action="store_true", default=False,
                     help=("Report code coverage" +
@@ -322,16 +323,14 @@ if (os.path.dirname(os.path.abspath(__file__)) ==
 
 
 # import module
-if not options.insource:
+if options.installed:  # Use installed version
     try:
         module = importer(PROJECT_NAME)
     except:
-        logger.warning(
-            "%s missing, using built (i.e. not installed) version",
+        raise ImportError(
+            "%s not installed: Cannot run tests on installed version" %
             PROJECT_NAME)
-        options.insource = True
-
-if options.insource:
+else:  # Use built source
     build_dir = build_project(PROJECT_NAME, PROJECT_DIR)
 
     sys.path.insert(0, build_dir)

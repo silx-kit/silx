@@ -113,7 +113,7 @@ See the `copyright file <https://github.com/silx-kit/silx/blob/master/copyright>
 Citation
 --------
 
-Silx releases can be cited by their DOI on Zenodo: |DOI:10.5281/zenodo.576042|
+silx releases can be cited by their DOI on Zenodo: |DOI:10.5281/zenodo.576042|
 
 .. |Travis Status| image:: https://travis-ci.org/silx-kit/silx.svg?branch=master
    :target: https://travis-ci.org/silx-kit/silx

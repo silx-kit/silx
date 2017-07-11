@@ -28,7 +28,7 @@ and stacks of images"""
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel", "H. Payno"]
 __license__ = "MIT"
-__date__ = "24/04/2017"
+__date__ = "27/06/2017"
 
 
 import numpy
@@ -585,8 +585,8 @@ class ProfileToolBar(qt.QToolBar):
         self.plot.remove(self._POLYGON_LEGEND, kind='item')
         self.getProfilePlot().clear()
         self.getProfilePlot().setGraphTitle('')
-        self.getProfilePlot().setGraphXLabel('X')
-        self.getProfilePlot().setGraphYLabel('Y')
+        self.getProfilePlot().getXAxis().setLabel('X')
+        self.getProfilePlot().getYAxis().setLabel('Y')
 
         self._createProfile(currentData=image.getData(copy=False),
                             origin=image.getOrigin(),
@@ -678,17 +678,21 @@ class ProfileToolBar(qt.QToolBar):
 
 
 class Profile3DToolBar(ProfileToolBar):
-    def __init__(self, parent=None, plot=None, title='Profile Selection'):
+    def __init__(self, parent=None, stackview=None,
+                 title='Profile Selection'):
         """QToolBar providing profile tools for an image or a stack of images.
 
         :param parent: the parent QWidget
-        :param plot: :class:`PlotWindow` instance on which to operate.
+        :param stackview: :class:`StackView` instance on which to operate.
         :param str title: See :class:`QToolBar`.
         :param parent: See :class:`QToolBar`.
         """
         # TODO: add param profileWindow (specify the plot used for profiles)
-        super(Profile3DToolBar, self).__init__(parent=parent, plot=plot,
+        super(Profile3DToolBar, self).__init__(parent=parent,
+                                               plot=stackview.getPlot(),
                                                title=title)
+        self.stackView = stackview
+        """:class:`StackView` instance"""
 
         self.profile3dAction = ProfileToolButton(
             parent=self, plot=self.plot)
@@ -721,15 +725,15 @@ class Profile3DToolBar(ProfileToolBar):
         if self._profileType == "1D":
             super(Profile3DToolBar, self).updateProfile()
         elif self._profileType == "2D":
-            stackData = self.plot.getCurrentView(copy=False,
-                                                 returnNumpyArray=True)
+            stackData = self.stackView.getCurrentView(copy=False,
+                                                      returnNumpyArray=True)
             if stackData is None:
                 return
             self.plot.remove(self._POLYGON_LEGEND, kind='item')
             self.getProfilePlot().clear()
             self.getProfilePlot().setGraphTitle('')
-            self.getProfilePlot().setGraphXLabel('X')
-            self.getProfilePlot().setGraphYLabel('Y')
+            self.getProfilePlot().getXAxis().setLabel('X')
+            self.getProfilePlot().getYAxis().setLabel('Y')
 
             self._createProfile(currentData=stackData[0],
                                 origin=stackData[1]['origin'],

@@ -31,6 +31,7 @@ import unittest
 
 from .._utils.test import suite as testUtilsSuite
 from .testColorBar import suite as testColorBarSuite
+from .testColormap import suite as testColormapSuite
 from .testColormapDialog import suite as testColormapDialogSuite
 from .testColors import suite as testColorsSuite
 from .testCurvesROIWidget import suite as testCurvesROIWidgetSuite
@@ -41,9 +42,9 @@ from .testMaskToolsWidget import suite as testMaskToolsWidgetSuite
 from .testScatterMaskToolsWidget import suite as testScatterMaskToolsWidgetSuite
 from .testPlotInteraction import suite as testPlotInteractionSuite
 from .testPlotTools import suite as testPlotToolsSuite
+from .testPlotWidgetNoBackend import suite as testPlotWidgetNoBackendSuite
 from .testPlotWidget import suite as testPlotWidgetSuite
 from .testPlotWindow import suite as testPlotWindowSuite
-from .testPlot import suite as testPlotSuite
 from .testProfile import suite as testProfileSuite
 from .testStackView import suite as testStackViewSuite
 
@@ -62,10 +63,11 @@ def suite():
          testMaskToolsWidgetSuite(),
          testScatterMaskToolsWidgetSuite(),
          testPlotInteractionSuite(),
-         testPlotSuite(),
+         testPlotWidgetNoBackendSuite(),
          testPlotToolsSuite(),
          testPlotWidgetSuite(),
          testPlotWindowSuite(),
          testProfileSuite(),
-         testStackViewSuite()])
+         testStackViewSuite(),
+         testColormapSuite()])
     return test_suite

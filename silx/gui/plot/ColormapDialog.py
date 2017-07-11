@@ -42,7 +42,7 @@ Create the colormap dialog and set the colormap description and data range:
 Get the colormap description (compatible with :class:`Plot`) from the dialog:
 
 >>> cmap = dialog.getColormap()
->>> cmap['name']
+>>> cmap.getName()
 'red'
 
 It is also possible to display an histogram of the image in the dialog.
@@ -61,7 +61,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "29/03/2016"
+__date__ = "27/06/2017"
 
 
 import logging
@@ -69,6 +69,7 @@ import logging
 import numpy
 
 from .. import qt
+from .Colormap import Colormap
 from . import PlotWidget
 
 
@@ -107,7 +108,7 @@ class ColormapDialog(qt.QDialog):
     :param str title: The QDialog title
     """
 
-    sigColormapChanged = qt.Signal(dict)
+    sigColormapChanged = qt.Signal(Colormap)
     """Signal triggered when the colormap is changed.
 
     It provides a dict describing the colormap to the slot.
@@ -214,8 +215,8 @@ class ColormapDialog(qt.QDialog):
         """Init the plot to display the range and the values"""
         self._plot = PlotWidget()
         self._plot.setDataMargins(yMinMargin=0.125, yMaxMargin=0.125)
-        self._plot.setGraphXLabel("Data Values")
-        self._plot.setGraphYLabel("")
+        self._plot.getXAxis().setLabel("Data Values")
+        self._plot.getYAxis().setLabel("")
         self._plot.setInteractiveMode('select', zoomOnWheel=False)
         self._plot.setActiveCurveHandling(False)
         self._plot.setMinimumSize(qt.QSize(250, 200))
@@ -392,17 +393,22 @@ class ColormapDialog(qt.QDialog):
                 self._plotUpdate()
 
     def getColormap(self):
-        """Return the colormap description as a dict.
+        """Return the colormap description as a :class:`.Colormap`.
 
-        See :class:`Plot` for documentation on the colormap dict.
         """
         isNormLinear = self._normButtonLinear.isChecked()
-        colormap = {
-            'name': str(self._comboBoxColormap.currentText()).lower(),
-            'normalization': 'linear' if isNormLinear else 'log',
-            'autoscale': self._rangeAutoscaleButton.isChecked(),
-            'vmin': self._minValue.value(),
-            'vmax': self._maxValue.value()}
+        if self._rangeAutoscaleButton.isChecked():
+            vmin = None
+            vmax = None
+        else:
+            vmin = self._minValue.value()
+            vmax = self._maxValue.value()
+        norm = Colormap.LINEAR if isNormLinear else Colormap.LOGARITHM
+        colormap = Colormap(
+                        name=str(self._comboBoxColormap.currentText()).lower(),
+                        normalization=norm,
+                        vmin=vmin,
+                        vmax=vmax)
         return colormap
 
     def setColormap(self, name=None, normalization=None,
@@ -423,9 +429,9 @@ class ColormapDialog(qt.QDialog):
             self._comboBoxColormap.setCurrentIndex(index)
 
         if normalization is not None:
-            assert normalization in ('linear', 'log')
-            self._normButtonLinear.setChecked(normalization == 'linear')
-            self._normButtonLog.setChecked(normalization == 'log')
+            assert normalization in Colormap.NORMALIZATIONS
+            self._normButtonLinear.setChecked(normalization == Colormap.LINEAR)
+            self._normButtonLog.setChecked(normalization == Colormap.LOGARITHM)
 
         if vmin is not None:
             self._minValue.setValue(vmin)

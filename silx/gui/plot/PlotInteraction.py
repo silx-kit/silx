@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "24/01/2017"
+__date__ = "27/06/2017"
 
 
 import math
@@ -153,11 +153,11 @@ class Pan(_ZoomOnWheel):
         xData, yData, y2Data = self._pixelToData(x, y)
         lastX, lastY, lastY2 = self._previousDataPos
 
-        xMin, xMax = self.plot.getGraphXLimits()
-        yMin, yMax = self.plot.getGraphYLimits(axis='left')
-        y2Min, y2Max = self.plot.getGraphYLimits(axis='right')
+        xMin, xMax = self.plot.getXAxis().getLimits()
+        yMin, yMax = self.plot.getYAxis().getLimits()
+        y2Min, y2Max = self.plot.getYAxis(axis='right').getLimits()
 
-        if self.plot.isXAxisLogarithmic():
+        if self.plot.getXAxis()._isLogarithmic():
             try:
                 dx = math.log10(xData) - math.log10(lastX)
                 newXMin = pow(10., (math.log10(xMin) - dx))
@@ -176,7 +176,7 @@ class Pan(_ZoomOnWheel):
             if newXMin < FLOAT32_SAFE_MIN or newXMax > FLOAT32_SAFE_MAX:
                 newXMin, newXMax = xMin, xMax
 
-        if self.plot.isYAxisLogarithmic():
+        if self.plot.getYAxis()._isLogarithmic():
             try:
                 dy = math.log10(yData) - math.log10(lastY)
                 newYMin = pow(10., math.log10(yMin) - dy)
@@ -287,22 +287,22 @@ class Zoom(_ZoomOnWheel):
                 self._lastClick = time.time(), (dataPos[0], dataPos[1], x, y)
 
             # Zoom-in centered on mouse cursor
-            # xMin, xMax = self.plot.getGraphXLimits()
-            # yMin, yMax = self.plot.getGraphYLimits()
-            # y2Min, y2Max = self.plot.getGraphYLimits(axis="right")
+            # xMin, xMax = self.plot.getXAxis().getLimits()
+            # yMin, yMax = self.plot.getYAxis().getLimits()
+            # y2Min, y2Max = self.plot.getYAxis(axis='right').getLimits()
             # self.zoomStack.append((xMin, xMax, yMin, yMax, y2Min, y2Max))
             # self._zoom(x, y, 2)
         elif btn == RIGHT_BTN:
             try:
                 xMin, xMax, yMin, yMax, y2Min, y2Max = self.zoomStack.pop()
             except IndexError:
-                previousLimits = (self.plot.getGraphXLimits(),
-                                  self.plot.getGraphYLimits(),
-                                  self.plot.getGraphYLimits(axis='right'))
+                previousLimits = (self.plot.getXAxis().getLimits(),
+                                  self.plot.getYAxis().getLimits(),
+                                  self.plot.getYAxis(axis='right').getLimits())
                 self.plot.resetZoom()
-                newLimits = (self.plot.getGraphXLimits(),
-                             self.plot.getGraphYLimits(),
-                             self.plot.getGraphYLimits(axis='right'))
+                newLimits = (self.plot.getXAxis().getLimits(),
+                             self.plot.getYAxis().getLimits(),
+                             self.plot.getYAxis(axis='right').getLimits())
                 if previousLimits == newLimits:
                     # Signal mouse clicked event
                     dataPos = self.plot.pixelToData(x, y)
@@ -362,9 +362,9 @@ class Zoom(_ZoomOnWheel):
 
         if x0 != x1 or y0 != y1:  # Avoid empty zoom area
             # Store current zoom state in stack
-            xMin, xMax = self.plot.getGraphXLimits()
-            yMin, yMax = self.plot.getGraphYLimits()
-            y2Min, y2Max = self.plot.getGraphYLimits(axis="right")
+            xMin, xMax = self.plot.getXAxis().getLimits()
+            yMin, yMax = self.plot.getYAxis().getLimits()
+            y2Min, y2Max = self.plot.getYAxis(axis="right").getLimits()
             self.zoomStack.append((xMin, xMax, yMin, yMax, y2Min, y2Max))
 
             if self.plot.isKeepDataAspectRatio():

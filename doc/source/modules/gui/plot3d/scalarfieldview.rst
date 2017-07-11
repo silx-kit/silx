@@ -21,13 +21,6 @@ Helper classes
 
 Those classes are used by :class:`ScalarFieldView`.
 
-:class:`Colormap`
-+++++++++++++++++
-
-.. autoclass:: Colormap
-   :show-inheritance:
-   :members:
-
 :class:`CutPlane`
 +++++++++++++++++
 

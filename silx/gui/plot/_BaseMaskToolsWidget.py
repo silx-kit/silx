@@ -37,6 +37,7 @@ import os
 import numpy
 
 from silx.gui import qt, icons
+from silx.gui.plot.Colormap import Colormap
 from silx.gui.plot.Colors import rgba
 
 
@@ -370,12 +371,11 @@ class BaseMaskToolsWidget(qt.QWidget):
         self._plot = plot
         self._maskName = '__MASK_TOOLS_%d' % id(self)  # Legend of the mask
 
-        self._colormap = {
-            'name': None,
-            'normalization': 'linear',
-            'autoscale': False,
-            'vmin': 0, 'vmax': self._maxLevelNumber,
-            'colors': None}
+        self._colormap = Colormap(name="",
+                                  normalization='linear',
+                                  vmin=0,
+                                  vmax=self._maxLevelNumber,
+                                  colors=None)
         self._defaultOverlayColor = rgba('gray')  # Color of the mask
         self._setMaskColors(1, 0.5)
 
@@ -851,7 +851,7 @@ class BaseMaskToolsWidget(qt.QWidget):
         # Set no mask level
         colors[0] = (0., 0., 0., 0.)
 
-        self._colormap['colors'] = colors
+        self._colormap.setColormapLUT(colors)
 
     def resetMaskColors(self, level=None):
         """Reset the mask color at the given level to be defaultColors

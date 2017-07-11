@@ -40,7 +40,7 @@ See shiftPlotAction.py for a simpler example with more basic comments.
 """
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "12/01/2017"
+__date__ = "27/06/2017"
 
 import numpy
 import os
@@ -77,8 +77,8 @@ class FftAction(PlotAction):
     def _rememberGraphLabels(self):
         """Store labels and title as attributes"""
         self.original_title = self.plot.getGraphTitle()
-        self.original_xlabel = self.plot.getGraphXLabel()
-        self.original_ylabel = self.plot.getGraphYLabel()
+        self.original_xlabel = self.plot.getXAxis().getLabel()
+        self.original_ylabel = self.plot.getYAxis().getLabel()
 
     def fftAllCurves(self, checked=False):
         """Get all curves from our PlotWindow, compute the amplitude spectrum
@@ -97,13 +97,13 @@ class FftAction(PlotAction):
             self._rememberGraphLabels()
             # change them
             self.plot.setGraphTitle("Amplitude spectrum")
-            self.plot.setGraphXLabel("Frequency")
-            self.plot.setGraphYLabel("Amplitude")
+            self.plot.getXAxis().setLabel("Frequency")
+            self.plot.getYAxis().setLabel("Amplitude")
         else:
             # restore original labels
             self.plot.setGraphTitle(self.original_title)
-            self.plot.setGraphXLabel(self.original_xlabel)
-            self.plot.setGraphYLabel(self.original_ylabel)
+            self.plot.getXAxis().setLabel(self.original_xlabel)
+            self.plot.getYAxis().setLabel(self.original_ylabel)
 
         self.plot.clearCurves()
 
@@ -186,8 +186,8 @@ plotwin.addCurve(x, y2, legend="cos")
 plotwin.addCurve(x, y3, legend="square wave")
 
 plotwin.setGraphTitle("Original data")
-plotwin.setGraphYLabel("amplitude")
-plotwin.setGraphXLabel("time")
+plotwin.getYAxis().setLabel("amplitude")
+plotwin.getXAxis().setLabel("time")
 
 plotwin.show()
 app.exec_()

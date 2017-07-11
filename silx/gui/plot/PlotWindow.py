@@ -25,12 +25,11 @@
 """A :class:`.PlotWidget` with additional toolbars.
 
 The :class:`PlotWindow` is a subclass of :class:`.PlotWidget`.
-It provides the plot API fully defined in :class:`.Plot`.
 """
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "27/04/2017"
+__date__ = "27/06/2017"
 
 import collections
 import logging
@@ -39,6 +38,7 @@ from silx.utils.deprecation import deprecated
 
 from . import PlotWidget
 from . import actions
+from . import items
 from .actions import medfilt as actions_medfilt
 from .actions import fit as actions_fit
 from .actions import histogram as actions_histogram
@@ -48,6 +48,7 @@ from .Profile import ProfileToolBar
 from .LegendSelector import LegendsDockWidget
 from .CurvesROIWidget import CurvesROIDockWidget
 from .MaskToolsWidget import MaskToolsDockWidget
+from .ColorBar import ColorBarWidget
 try:
     from ..console import IPythonDockWidget
 except ImportError:
@@ -68,7 +69,7 @@ class PlotWindow(PlotWidget):
 
     :param parent: The parent of this widget or None.
     :param backend: The backend to use for the plot (default: matplotlib).
-                    See :class:`.Plot` for the list of supported backend.
+                    See :class:`.PlotWidget` for the list of supported backend.
     :type backend: str or :class:`BackendBase.BackendBase`
     :param bool resetzoom: Toggle visibility of reset zoom action.
     :param bool autoScale: Toggle visibility of axes autoscale actions.
@@ -213,6 +214,28 @@ class PlotWindow(PlotWidget):
         self._panWithArrowKeysAction = None
         self._crosshairAction = None
 
+        # Create color bar, hidden by default for backward compatibility
+        self._colorbar = ColorBarWidget(parent=self, plot=self)
+        self._colorbar.setVisible(False)
+
+        # Make colorbar background white
+        self._colorbar.setAutoFillBackground(True)
+        palette = self._colorbar.palette()
+        palette.setColor(qt.QPalette.Background, qt.Qt.white)
+        palette.setColor(qt.QPalette.Window, qt.Qt.white)
+        self._colorbar.setPalette(palette)
+
+        gridLayout = qt.QGridLayout()
+        gridLayout.setSpacing(0)
+        gridLayout.setContentsMargins(0, 0, 0, 0)
+        gridLayout.addWidget(self.getWidgetHandle(), 0, 0)
+        gridLayout.addWidget(self._colorbar, 0, 1)
+        gridLayout.setRowStretch(0, 1)
+        gridLayout.setColumnStretch(0, 1)
+        centralWidget = qt.QWidget()
+        centralWidget.setLayout(gridLayout)
+        self.setCentralWidget(centralWidget)
+
         if control or position:
             hbox = qt.QHBoxLayout()
             hbox.setContentsMargins(0, 0, 0, 0)
@@ -245,16 +268,7 @@ class PlotWindow(PlotWidget):
             bottomBar = qt.QWidget()
             bottomBar.setLayout(hbox)
 
-            layout = qt.QVBoxLayout()
-            layout.setSpacing(0)
-            layout.setContentsMargins(0, 0, 0, 0)
-            layout.addWidget(self.getWidgetHandle())
-            layout.addWidget(bottomBar)
-            layout.setStretch(0, 1)
-
-            centralWidget = qt.QWidget()
-            centralWidget.setLayout(layout)
-            self.setCentralWidget(centralWidget)
+            gridLayout.addWidget(bottomBar, 1, 0, 1, -1)
 
         # Creating the toolbar also create actions for toolbuttons
         self._toolbar = self._createToolBar(title='Plot', parent=None)
@@ -383,6 +397,13 @@ class PlotWindow(PlotWidget):
             # Other dock widgets are added as tabs to the same widget area
             self.tabifyDockWidget(self._dockWidgets[0],
                                   dock_widget)
+
+    def getColorBarWidget(self):
+        """Returns the embedded :class:`ColorBarWidget` widget.
+
+        :rtype: ColorBarWidget
+        """
+        return self._colorbar
 
     # getters for dock widgets
     @property
@@ -675,7 +696,7 @@ class Plot1D(PlotWindow):
 
     :param parent: The parent of this widget
     :param backend: The backend to use for the plot (default: matplotlib).
-                    See :class:`.Plot` for the list of supported backend.
+                    See :class:`.PlotWidget` for the list of supported backend.
     :type backend: str or :class:`BackendBase.BackendBase`
     """
 
@@ -690,8 +711,8 @@ class Plot1D(PlotWindow):
                                      roi=True, mask=False, fit=True)
         if parent is None:
             self.setWindowTitle('Plot1D')
-        self.setGraphXLabel('X')
-        self.setGraphYLabel('Y')
+        self.getXAxis().setLabel('X')
+        self.getYAxis().setLabel('Y')
 
 
 class Plot2D(PlotWindow):
@@ -701,7 +722,7 @@ class Plot2D(PlotWindow):
 
     :param parent: The parent of this widget
     :param backend: The backend to use for the plot (default: matplotlib).
-                    See :class:`.Plot` for the list of supported backend.
+                    See :class:`.PlotWidget` for the list of supported backend.
     :type backend: str or :class:`BackendBase.BackendBase`
     """
 
@@ -722,26 +743,44 @@ class Plot2D(PlotWindow):
                                      roi=False, mask=True)
         if parent is None:
             self.setWindowTitle('Plot2D')
-        self.setGraphXLabel('Columns')
-        self.setGraphYLabel('Rows')
+        self.getXAxis().setLabel('Columns')
+        self.getYAxis().setLabel('Rows')
 
         self.profile = ProfileToolBar(plot=self)
-
         self.addToolBar(self.profile)
 
+        self.getColorBarWidget().setVisible(True)
+
+        # Put colorbar action after colormap action
+        actions = self.toolBar().actions()
+        for index, action in enumerate(actions):
+            if action is self.getColormapAction():
+                break
+        self.toolBar().insertAction(
+            actions[index + 1],
+            self.getColorBarWidget().getToggleViewAction())
+
     def _getImageValue(self, x, y):
-        """Get value of top most image at position (x, y)
+        """Get status bar value of top most image at position (x, y)
 
         :param float x: X position in plot coordinates
         :param float y: Y position in plot coordinates
         :return: The value at that point or '-'
         """
         value = '-'
-        valueZ = - float('inf')
+        valueZ = -float('inf')
+        mask = 0
+        maskZ = -float('inf')
 
         for image in self.getAllImages():
             data = image.getData(copy=False)
-            if image.getZValue() >= valueZ:  # This image is over the previous one
+            isMask = isinstance(image, items.MaskImageData)
+            if isMask:
+                zIndex = maskZ
+            else:
+                zIndex = valueZ
+            if image.getZValue() >= zIndex:
+                # This image is over the previous one
                 ox, oy = image.getOrigin()
                 sx, sy = image.getScale()
                 row, col = (y - oy) / sy, (x - ox) / sx
@@ -749,8 +788,15 @@ class Plot2D(PlotWindow):
                     # Test positive before cast otherwise issue with int(-0.5) = 0
                     row, col = int(row), int(col)
                     if (row < data.shape[0] and col < data.shape[1]):
-                        value = data[row, col]
-                        valueZ = image.getZValue()
+                        v, z = data[row, col], image.getZValue()
+                        if not isMask:
+                            value = v
+                            valueZ = z
+                        else:
+                            mask = v
+                            maskZ = z
+        if maskZ > valueZ and mask > 0:
+            return value, "Masked"
         return value
 
     def getProfileToolbar(self):

@@ -180,13 +180,14 @@ import numpy
 import posixpath
 import re
 import sys
+import io
 
 from silx.third_party import six
 from .specfile import SpecFile
 
 __authors__ = ["P. Knobel", "D. Naudet"]
 __license__ = "MIT"
-__date__ = "15/05/2017"
+__date__ = "21/06/2017"
 
 logger1 = logging.getLogger(__name__)
 
@@ -556,6 +557,41 @@ def _column_label_in_scan(sf, scan_key, column_label):
         column_label = column_label.replace("%", "/")
         ret = column_label in sf[scan_key].labels
     return ret
+
+
+def _parse_UB_matrix(header_line):
+    """Parse G3 header line and return UB matrix
+
+    :param str header_line: G3 header line
+    :return: UB matrix
+    """
+    return numpy.array(list(map(float, header_line.split()))).reshape((1, 3, 3))
+
+
+def _ub_matrix_in_scan(scan):
+    """Return True if scan header has a G3 line and all values are not 0.
+
+    :param scan: specfile.Scan instance
+    :return: True or False
+    """
+    if "G3" not in scan.scan_header_dict:
+        return False
+    return numpy.any(_parse_UB_matrix(scan.scan_header_dict["G3"]))
+
+
+def _parse_unit_cell(header_line):
+    return numpy.array(list(map(float, header_line.split()))[0:6]).reshape((1, 6))
+
+
+def _unit_cell_in_scan(scan):
+    """Return True if scan header has a G1 line and all values are not 0.
+
+    :param scan: specfile.Scan instance
+    :return: True or False
+    """
+    if "G1" not in scan.scan_header_dict:
+        return False
+    return numpy.any(_parse_unit_cell(scan.scan_header_dict["G1"]))
 
 
 def _parse_ctime(ctime_lines, analyser_index=0):
@@ -1045,28 +1081,25 @@ def _dataset_builder(name, specfileh5, parent_group):
         array_like = scan.mca.channels[analyser_index]
 
     elif ub_matrix_pattern.match(name):
-        if not "G3" in scan.scan_header_dict:
-            raise KeyError("No UB matrix in a scan without a #G3 header line")
-        array_like = numpy.array(
-                list(map(float, scan.scan_header_dict["G3"].split()))).reshape((1, 3, 3))
+        if not _ub_matrix_in_scan(scan):
+            raise KeyError("No UB matrix in a scan without a #G3 header line"
+                           " or all zeros.")
+        array_like = _parse_UB_matrix(scan.scan_header_dict["G3"])
     elif unit_cell_pattern.match(name):
-        if not "G1" in scan.scan_header_dict:
+        if not _unit_cell_in_scan(scan):
             raise KeyError(
                     "No unit_cell matrix in a scan without a #G1 header line")
-        array_like = numpy.array(
-                list(map(float, scan.scan_header_dict["G1"].split()))[0:6]).reshape((1, 6))
+        array_like = _parse_unit_cell(scan.scan_header_dict["G1"])
     elif unit_cell_abc_pattern.match(name):
-        if not "G1" in scan.scan_header_dict:
+        if not _unit_cell_in_scan(scan):
             raise KeyError(
                     "No unit_cell matrix in a scan without a #G1 header line")
-        array_like = numpy.array(
-                list(map(float, scan.scan_header_dict["G1"].split()))[0:3]).reshape((3,))
+        array_like = _parse_unit_cell(scan.scan_header_dict["G1"])[0, 0:3]
     elif unit_cell_alphabetagamma_pattern.match(name):
-        if not "G1" in scan.scan_header_dict:
+        if not _unit_cell_in_scan(scan):
             raise KeyError(
                     "No unit_cell matrix in a scan without a #G1 header line")
-        array_like = numpy.array(
-                list(map(float, scan.scan_header_dict["G1"].split()))[3:6]).reshape((3,))
+        array_like = _parse_unit_cell(scan.scan_header_dict["G1"])[0, 3:6]
     elif "CTIME" in scan.mca_header_dict and "mca_" in name:
         m = re.compile(r"/.*/mca_([0-9]+)/.*").match(name)
         analyser_index = int(m.group(1))
@@ -1288,21 +1321,16 @@ class SpecH5Group(object):
             return "CTIME" in self.file._sf[scan_key].mca_header_dict
 
         if sample_pattern.match(key):
-            return ("G3" in self.file._sf[scan_key].scan_header_dict or
-                    "G1" in self.file._sf[scan_key].scan_header_dict)
+            return (_ub_matrix_in_scan(self.file._sf[scan_key]) or
+                    _unit_cell_in_scan(self.file._sf[scan_key]))
 
         if key.endswith("sample/ub_matrix"):
-            return "G3" in self.file._sf[scan_key].scan_header_dict
+            return _ub_matrix_in_scan(self.file._sf[scan_key])
 
-        if key.endswith("sample/unit_cell"):
-            return "G1" in self.file._sf[scan_key].scan_header_dict
-
-        if key.endswith("sample/unit_cell_abc"):
-            return "G1" in self.file._sf[scan_key].scan_header_dict
-
-
-        if key.endswith("sample/unit_cell_alphabetagamma"):
-            return "G1" in self.file._sf[scan_key].scan_header_dict
+        if (key.endswith("sample/unit_cell") or
+            key.endswith("sample/unit_cell_abc") or
+            key.endswith("sample/unit_cell_alphabetagamma")):
+            return _unit_cell_in_scan(self.file._sf[scan_key])
 
         # header, title, start_time, existing scan/mca/motor/measurement
         return True
@@ -1321,9 +1349,8 @@ class SpecH5Group(object):
         :param default: Default value returned if the name is not found
         :param bool getclass: if *True*, the returned object is the class of
             the item, instead of the item instance.
-        :param bool getlink: Not implemented. This method always returns
-            an instance of the original class of the requested item (or
-            just the class, if *getclass* is *True*)
+        :param bool getlink: if *True*, the returned object is based on links
+            instead of the hdf5 items.
         :return: The requested item, or its class if *getclass* is *True*,
             or the specified *default* value if the group does not contain
             an item with the requested name.
@@ -1331,13 +1358,18 @@ class SpecH5Group(object):
         if name not in self:
             return default
 
-        if getlink and getclass:
-            pass
+        if getlink:
+            node = h5py.HardLink()
+        else:
+            node = self[name]
 
         if getclass:
-            return self[name].h5py_class
-
-        return self[name]
+            if hasattr(node, "h5py_class"):
+                return node.h5py_class
+            else:
+                return node.__class__
+        else:
+            return node
 
     def __getitem__(self, key):
         """Return a :class:`SpecH5Group` or a :class:`SpecH5Dataset`
@@ -1407,7 +1439,7 @@ class SpecH5Group(object):
 
         if scan_pattern.match(self.name):
             ret = static_items["scan"]
-            if "G1" in self._scan.scan_header_dict or "G3" in self._scan.scan_header_dict:
+            if _unit_cell_in_scan(self._scan) or _ub_matrix_in_scan(self._scan):
                 return ret + [u"sample"]
             return ret
 
@@ -1429,11 +1461,11 @@ class SpecH5Group(object):
 
         if sample_pattern.match(self.name):
             ret = []
-            if "G1" in self._scan.scan_header_dict:
+            if _unit_cell_in_scan(self._scan):
                 ret.append(u"unit_cell")
                 ret.append(u"unit_cell_abc")
                 ret.append(u"unit_cell_alphabetagamma")
-            if "G3" in self._scan.scan_header_dict:
+            if _ub_matrix_in_scan(self._scan):
                 ret.append(u"ub_matrix")
             return ret
 
@@ -1625,13 +1657,13 @@ class SpecH5(SpecH5Group):
         if isinstance(filename, six.string_types + (six.binary_type, )):
             # silx.io.SpecFile can process unicode and bytes
             self.filename = filename
-        elif isinstance(filename, file):
+        elif isinstance(filename, io.IOBase):
             self.filename = filename.name
         else:
             raise TypeError("SpecH5 filename must be a string or a " +
                             "file handle.")
         self.attrs = _get_attrs_dict("/")
-        self._sf = SpecFile(filename)
+        self._sf = SpecFile(self.filename)
 
         SpecH5Group.__init__(self, name="/", specfileh5=self)
         if len(self) == 0:

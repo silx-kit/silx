@@ -48,7 +48,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "24/05/2017"
+__date__ = "27/06/2017"
 
 from . import PlotAction
 import logging
@@ -76,18 +76,19 @@ class ResetZoomAction(PlotAction):
             triggered=self._actionTriggered,
             checkable=False, parent=parent)
         self._autoscaleChanged(True)
-        plot.sigSetXAxisAutoScale.connect(self._autoscaleChanged)
-        plot.sigSetYAxisAutoScale.connect(self._autoscaleChanged)
+        plot.getXAxis().sigAutoScaleChanged.connect(self._autoscaleChanged)
+        plot.getYAxis().sigAutoScaleChanged.connect(self._autoscaleChanged)
 
     def _autoscaleChanged(self, enabled):
-        self.setEnabled(
-            self.plot.isXAxisAutoScale() or self.plot.isYAxisAutoScale())
+        xAxis = self.plot.getXAxis()
+        yAxis = self.plot.getYAxis()
+        self.setEnabled(xAxis.isAutoScale() or yAxis.isAutoScale())
 
-        if self.plot.isXAxisAutoScale() and self.plot.isYAxisAutoScale():
+        if xAxis.isAutoScale() and yAxis.isAutoScale():
             tooltip = 'Auto-scale the graph'
-        elif self.plot.isXAxisAutoScale():  # And not Y axis
+        elif xAxis.isAutoScale():  # And not Y axis
             tooltip = 'Auto-scale the x-axis of the graph only'
-        elif self.plot.isYAxisAutoScale():  # And not X axis
+        elif yAxis.isAutoScale():  # And not X axis
             tooltip = 'Auto-scale the y-axis of the graph only'
         else:  # no axis in autoscale
             tooltip = 'Auto-scale the graph'
@@ -151,11 +152,11 @@ class XAxisAutoScaleAction(PlotAction):
                     'If unchecked, x-axis does not change when reseting zoom.',
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
-        self.setChecked(plot.isXAxisAutoScale())
-        plot.sigSetXAxisAutoScale.connect(self.setChecked)
+        self.setChecked(plot.getXAxis().isAutoScale())
+        plot.getXAxis().sigAutoScaleChanged.connect(self.setChecked)
 
     def _actionTriggered(self, checked=False):
-        self.plot.setXAxisAutoScale(checked)
+        self.plot.getXAxis().setAutoScale(checked)
         if checked:
             self.plot.resetZoom()
 
@@ -174,11 +175,11 @@ class YAxisAutoScaleAction(PlotAction):
                     'If unchecked, y-axis does not change when reseting zoom.',
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
-        self.setChecked(plot.isYAxisAutoScale())
-        plot.sigSetYAxisAutoScale.connect(self.setChecked)
+        self.setChecked(plot.getYAxis().isAutoScale())
+        plot.getYAxis().sigAutoScaleChanged.connect(self.setChecked)
 
     def _actionTriggered(self, checked=False):
-        self.plot.setYAxisAutoScale(checked)
+        self.plot.getYAxis().setAutoScale(checked)
         if checked:
             self.plot.resetZoom()
 
@@ -196,11 +197,16 @@ class XAxisLogarithmicAction(PlotAction):
             tooltip='Logarithmic x-axis when checked',
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
-        self.setChecked(plot.isXAxisLogarithmic())
-        plot.sigSetXAxisLogarithmic.connect(self.setChecked)
+        self.axis = plot.getXAxis()
+        self.setChecked(self.axis.getScale() == self.axis.LOGARITHMIC)
+        self.axis.sigScaleChanged.connect(self._setCheckedIfLogScale)
+
+    def _setCheckedIfLogScale(self, scale):
+        self.setChecked(scale == self.axis.LOGARITHMIC)
 
     def _actionTriggered(self, checked=False):
-        self.plot.setXAxisLogarithmic(checked)
+        scale = self.axis.LOGARITHMIC if checked else self.axis.LINEAR
+        self.axis.setScale(scale)
 
 
 class YAxisLogarithmicAction(PlotAction):
@@ -216,11 +222,16 @@ class YAxisLogarithmicAction(PlotAction):
             tooltip='Logarithmic y-axis when checked',
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
-        self.setChecked(plot.isYAxisLogarithmic())
-        plot.sigSetYAxisLogarithmic.connect(self.setChecked)
+        self.axis = plot.getYAxis()
+        self.setChecked(self.axis.getScale() == self.axis.LOGARITHMIC)
+        self.axis.sigScaleChanged.connect(self._setCheckedIfLogScale)
+
+    def _setCheckedIfLogScale(self, scale):
+        self.setChecked(scale == self.axis.LOGARITHMIC)
 
     def _actionTriggered(self, checked=False):
-        self.plot.setYAxisLogarithmic(checked)
+        scale = self.axis.LOGARITHMIC if checked else self.axis.LINEAR
+        self.axis.setScale(scale)
 
 
 class GridAction(PlotAction):
@@ -333,7 +344,12 @@ class ColormapAction(PlotAction):
             # hist, bin_edges = numpy.histogram(goodData, bins=256)
             # self._dialog.setHistogram(hist, bin_edges)
 
-        self._dialog.setColormap(**colormap)
+        self._dialog.setColormap(name=colormap.getName(),
+                                 normalization=colormap.getNormalization(),
+                                 autoscale=colormap.isAutoscale(),
+                                 vmin=colormap.getVMin(),
+                                 vmax=colormap.getVMax(),
+                                 colors=colormap.getColormapLUT())
 
         # Run the dialog listening to colormap change
         self._dialog.sigColormapChanged.connect(self._colormapChanged)
@@ -407,7 +423,7 @@ class YAxisInvertedAction(PlotAction):
                    "Orient Y axis upward"),
         }
 
-        icon, tooltip = self._states[plot.isYAxisInverted()]
+        icon, tooltip = self._states[plot.getYAxis().isInverted()]
         super(YAxisInvertedAction, self).__init__(
             plot,
             icon=icon,
@@ -416,7 +432,7 @@ class YAxisInvertedAction(PlotAction):
             triggered=self._actionTriggered,
             checkable=False,
             parent=parent)
-        plot.sigSetYAxisInverted.connect(self._yAxisInvertedChanged)
+        plot.getYAxis().sigInvertedChanged.connect(self._yAxisInvertedChanged)
 
     def _yAxisInvertedChanged(self, inverted):
         """Handle Plot set y axis inverted signal"""
@@ -426,7 +442,8 @@ class YAxisInvertedAction(PlotAction):
 
     def _actionTriggered(self, checked=False):
         # This will trigger _yAxisInvertedChanged
-        self.plot.setYAxisInverted(not self.plot.isYAxisInverted())
+        yAxis = self.plot.getYAxis()
+        yAxis.setInverted(not yAxis.isInverted())
 
 
 class CrosshairAction(PlotAction):

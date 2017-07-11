@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "23/09/2016"
+__date__ = "16/06/2017"
 
 
 class Hdf5Node(object):
@@ -204,6 +204,15 @@ class Hdf5Node(object):
         """Data for the node column
 
         Overwrite it to implement the content of the 'node' column.
+
+        :rtype: qt.QVariant
+        """
+        return None
+
+    def dataLink(self, role):
+        """Data for the link column
+
+        Overwrite it to implement the content of the 'link' column.
 
         :rtype: qt.QVariant
         """

@@ -27,7 +27,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "26/04/2017"
+__date__ = "27/06/2017"
 
 from copy import deepcopy
 import logging
@@ -36,6 +36,7 @@ import numpy
 from silx.third_party import six
 
 from .. import Colors
+from ..Colormap import Colormap
 
 
 
@@ -292,24 +293,23 @@ class DraggableMixIn(object):
 class ColormapMixIn(object):
     """Mix-in class for items with colormap"""
 
-    _DEFAULT_COLORMAP = {'name': 'gray', 'normalization': 'linear',
-                         'autoscale': True, 'vmin': 0.0, 'vmax': 1.0}
-    """Default colormap of the item"""
-
     def __init__(self):
-        self._colormap = self._DEFAULT_COLORMAP
+        self._colormap = Colormap()
 
     def getColormap(self):
-        """Return the used colormap"""
-        return self._colormap.copy()
+        """Return the used colormap
+
+        :param copy: True (Default) to get a copy of the :class:`.Colormap`
+             else return the pointer
+         """
+        return self._colormap
 
     def setColormap(self, colormap):
         """Set the colormap of this image
 
-        :param dict colormap: colormap description
+        :param :class:`.Colormap`: colormap description
         """
-        self._colormap = colormap.copy()
-        # TODO colormap comparison + colormap object and events on modification
+        self._colormap = colormap
         self._updated()
 
 
@@ -690,8 +690,8 @@ class Points(Item, SymbolMixIn, AlphaMixIn):
 
         plot = self.getPlot()
         if plot is not None:
-            xPositive = plot.isXAxisLogarithmic()
-            yPositive = plot.isYAxisLogarithmic()
+            xPositive = plot.getXAxis()._isLogarithmic()
+            yPositive = plot.getYAxis()._isLogarithmic()
         else:
             xPositive = False
             yPositive = False
@@ -724,8 +724,8 @@ class Points(Item, SymbolMixIn, AlphaMixIn):
         Return None if caching is not applicable."""
         plot = self.getPlot()
         if plot is not None:
-            xPositive = plot.isXAxisLogarithmic()
-            yPositive = plot.isYAxisLogarithmic()
+            xPositive = plot.getXAxis()._isLogarithmic()
+            yPositive = plot.getYAxis()._isLogarithmic()
             if xPositive or yPositive:
                 # At least one axis has log scale, filter data
                 if (xPositive, yPositive) not in self._filteredCache:

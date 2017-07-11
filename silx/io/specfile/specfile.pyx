@@ -148,21 +148,21 @@ class SfError(Exception):
     """
     pass
 
-class SfErrMemoryAlloc(SfError): pass
-class SfErrFileOpen(SfError): pass
-class SfErrFileClose(SfError): pass
-class SfErrFileRead(SfError): pass
-class SfErrFileWrite(SfError): pass
-class SfErrLineNotFound(SfError): pass
-class SfErrScanNotFound(SfError): pass
-class SfErrHeaderNotFound(SfError): pass
-class SfErrLabelNotFound(SfError): pass
-class SfErrMotorNotFound(SfError): pass
-class SfErrPositionNotFound(SfError): pass
-class SfErrLineEmpty(SfError): pass
-class SfErrUserNotFound(SfError): pass
-class SfErrColNotFound(SfError): pass
-class SfErrMcaNotFound(SfError): pass
+class SfErrMemoryAlloc(SfError, MemoryError): pass
+class SfErrFileOpen(SfError, IOError): pass
+class SfErrFileClose(SfError, IOError): pass
+class SfErrFileRead(SfError, IOError): pass
+class SfErrFileWrite(SfError, IOError): pass
+class SfErrLineNotFound(SfError, KeyError): pass
+class SfErrScanNotFound(SfError, IndexError): pass
+class SfErrHeaderNotFound(SfError, KeyError): pass
+class SfErrLabelNotFound(SfError, KeyError): pass
+class SfErrMotorNotFound(SfError, KeyError): pass
+class SfErrPositionNotFound(SfError, KeyError): pass
+class SfErrLineEmpty(SfError, IOError): pass
+class SfErrUserNotFound(SfError, KeyError): pass
+class SfErrColNotFound(SfError, KeyError): pass
+class SfErrMcaNotFound(SfError, IndexError): pass
 
 
 ERRORS = {

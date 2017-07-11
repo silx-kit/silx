@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "14/06/2017"
+__date__ = "21/06/2017"
 
 import logging
 import numpy
@@ -283,6 +283,16 @@ class TestFabioH5(unittest.TestCase):
         self.assertEquals(d.shape, (1, 3, 3))
         self.assertIn(d.dtype.char, ['d', 'f'])
         numpy.testing.assert_array_almost_equal(d[...], expected)
+
+    def test_get_api(self):
+        result = self.h5_image.get("scan_0", getclass=True, getlink=True)
+        self.assertIs(result, h5py.HardLink)
+        result = self.h5_image.get("scan_0", getclass=False, getlink=True)
+        self.assertIsInstance(result, h5py.HardLink)
+        result = self.h5_image.get("scan_0", getclass=True, getlink=False)
+        self.assertIs(result, h5py.Group)
+        result = self.h5_image.get("scan_0", getclass=False, getlink=False)
+        self.assertIsInstance(result, fabioh5.Group)
 
 
 def suite():

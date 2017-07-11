@@ -35,17 +35,6 @@ from .panzoom import FLOAT32_SAFE_MIN, FLOAT32_MINPOS, FLOAT32_SAFE_MAX
 from .panzoom import applyZoomToPlot, applyPan
 
 
-def clipColormapLogRange(colormap):
-    """Clip colormap vmin and vmax to 1, 10 if normalization is 'log' and vmin
-    or vmax <1
-
-    :param dict colormap: the colormap for which we want to clip vmin and vmax
-    """
-    if colormap['normalization'] is 'log':
-        if colormap['vmin'] < 1. or colormap['vmax'] < 1.:
-            colormap['vmin'], colormap['vmax'] = 1., 10.
-
-
 def addMarginsToLimits(margins, isXLog, isYLog,
                        xMin, xMax, yMin, yMax, y2Min=None, y2Max=None):
     """Returns updated limits by extending them with margins.

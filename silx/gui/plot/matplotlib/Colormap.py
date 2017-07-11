@@ -20,7 +20,6 @@ import matplotlib.colors
 import matplotlib.cm
 import silx.resources
 
-
 _logger = logging.getLogger(__name__)
 
 _AVAILABLE_AS_RESOURCE = ('magma', 'inferno', 'plasma', 'viridis')
@@ -135,7 +134,7 @@ def getColormap(name):
 def getScalarMappable(colormap, data=None):
     """Returns matplotlib ScalarMappable corresponding to colormap
 
-    :param dict colormap: The colormap to convert
+    :param :class:`.Colormap` colormap: The colormap to convert
     :param numpy.ndarray data:
         The data on which the colormap is applied.
         If provided, it is used to compute autoscale.
@@ -144,14 +143,14 @@ def getScalarMappable(colormap, data=None):
     """
     assert colormap is not None
 
-    if colormap['name'] is not None:
-        cmap = getColormap(colormap['name'])
+    if colormap.getName() is not None:
+        cmap = getColormap(colormap.getName())
 
     else:  # No name, use custom colors
-        if 'colors' not in colormap:
+        if colormap.getColormapLUT() is None:
             raise ValueError(
                 'addImage: colormap no name nor list of colors.')
-        colors = numpy.array(colormap['colors'], copy=True)
+        colors = colormap.getColormapLUT()
         assert len(colors.shape) == 2
         assert colors.shape[-1] in (3, 4)
         if colors.dtype == numpy.uint8:
@@ -159,13 +158,13 @@ def getScalarMappable(colormap, data=None):
             colors = colors.astype(numpy.float32) / 255.
         cmap = matplotlib.colors.ListedColormap(colors)
 
-    if colormap['normalization'].startswith('log'):
+    if colormap.getNormalization().startswith('log'):
         vmin, vmax = None, None
-        if not colormap['autoscale']:
-            if colormap['vmin'] > 0.:
-                vmin = colormap['vmin']
-            if colormap['vmax'] > 0.:
-                vmax = colormap['vmax']
+        if not colormap.isAutoscale():
+            if colormap.getVMin() > 0.:
+                vmin = colormap.getVMin()
+            if colormap.getVMax() > 0.:
+                vmax = colormap.getVMax()
 
             if vmin is None or vmax is None:
                 _logger.warning('Log colormap with negative bounds, ' +
@@ -189,7 +188,7 @@ def getScalarMappable(colormap, data=None):
         norm = matplotlib.colors.LogNorm(vmin, vmax)
 
     else:  # Linear normalization
-        if colormap['autoscale']:
+        if colormap.isAutoscale():
             if data is None:
                 vmin, vmax = None, None
             else:
@@ -197,8 +196,8 @@ def getScalarMappable(colormap, data=None):
                 vmin = finiteData.min()
                 vmax = finiteData.max()
         else:
-            vmin = colormap['vmin']
-            vmax = colormap['vmax']
+            vmin = colormap.getVMin()
+            vmax = colormap.getVMax()
             if vmin > vmax:
                 _logger.warning('Colormap bounds are inverted.')
                 vmin, vmax = vmax, vmin
@@ -209,12 +208,7 @@ def getScalarMappable(colormap, data=None):
 
 
 def applyColormapToData(data,
-                        name='gray',
-                        normalization='linear',
-                        autoscale=True,
-                        vmin=0.,
-                        vmax=1.,
-                        colors=None):
+                        colormap):
     """Apply a colormap to the data and returns the RGBA image
 
     This supports data of any dimensions (not only of dimension 2).
@@ -223,33 +217,24 @@ def applyColormapToData(data,
     corresponding to each bin in the array.
 
     :param numpy.ndarray data: The data to convert.
-    :param str name: Name of the colormap (default: 'gray').
-    :param str normalization: Colormap mapping: 'linear' or 'log'.
-    :param bool autoscale: Whether to use data min/max (True, default)
-                           or [vmin, vmax] range (False).
-    :param float vmin: The minimum value of the range to use if
-                       'autoscale' is False.
-    :param float vmax: The maximum value of the range to use if
-                       'autoscale' is False.
-    :param numpy.ndarray colors: Only used if name is None.
-        Custom colormap colors as Nx3 or Nx4 RGB or RGBA arrays
-    :return: The computed RGBA image
-    :rtype: numpy.ndarray of uint8
+    :param :class:`.Colormap`: The colormap to apply
     """
     # Debian 7 specific support
     # No transparent colormap with matplotlib < 1.2.0
     # Add support for transparent colormap for uint8 data with
     # colormap with 256 colors, linear norm, [0, 255] range
     if matplotlib.__version__ < '1.2.0':
-        if name is None and colors is not None:
-            colors = numpy.array(colors, copy=False)
+        if (colormap.getName() is None and
+                colormap.getColormapLUT() is not None):
+            colors = colormap.getColormapLUT()
             if (colors.shape[-1] == 4 and
                     not numpy.all(numpy.equal(colors[3], 255))):
                 # This is a transparent colormap
                 if (colors.shape == (256, 4) and
-                        normalization == 'linear' and
-                        not autoscale and
-                        vmin == 0 and vmax == 255 and
+                        colormap.getNormalization() == 'linear' and
+                        not colormap.isAutoscale() and
+                        colormap.getVMin() == 0 and
+                        colormap.getVMax() == 255 and
                         data.dtype == numpy.uint8):
                     # Supported case, convert data to RGBA
                     return colors[data.reshape(-1)].reshape(
@@ -259,12 +244,6 @@ def applyColormapToData(data,
                         'matplotlib %s does not support transparent '
                         'colormap.', matplotlib.__version__)
 
-    colormap = dict(name=name,
-                    normalization=normalization,
-                    autoscale=autoscale,
-                    vmin=vmin,
-                    vmax=vmax,
-                    colors=colors)
     scalarMappable = getScalarMappable(colormap, data)
     rgbaImage = scalarMappable.to_rgba(data, bytes=True)
 

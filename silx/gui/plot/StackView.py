@@ -69,7 +69,7 @@ Example::
 
 __authors__ = ["P. Knobel", "H. Payno"]
 __license__ = "MIT"
-__date__ = "09/06/2017"
+__date__ = "27/06/2017"
 
 import numpy
 
@@ -81,6 +81,7 @@ except ImportError:
 from silx.gui import qt
 from .. import icons
 from . import items, PlotWindow, actions
+from .Colormap import Colormap
 from .Colors import cursorColorForColormap
 from .PlotTools import LimitsToolBar
 from .Profile import Profile3DToolBar
@@ -88,6 +89,7 @@ from ..widgets.FrameBrowser import HorizontalSliderWithBrowser
 
 from silx.utils.array_like import DatasetView, ListOfImages
 from silx.math import calibration
+from silx.utils.deprecation import deprecated_warning
 
 
 class StackView(qt.QMainWindow):
@@ -100,7 +102,7 @@ class StackView(qt.QMainWindow):
 
     :param QWidget parent: the Qt parent, or None
     :param backend: The backend to use for the plot (default: matplotlib).
-                    See :class:`.Plot` for the list of supported backend.
+                    See :class:`.PlotWidget` for the list of supported backend.
     :type backend: str or :class:`BackendBase.BackendBase`
     :param bool resetzoom: Toggle visibility of reset zoom action.
     :param bool autoScale: Toggle visibility of axes autoscale actions.
@@ -199,11 +201,13 @@ class StackView(qt.QMainWindow):
         self.sigActiveImageChanged = self._plot.sigActiveImageChanged
         self.sigPlotSignal = self._plot.sigPlotSignal
 
+        self._addColorBarAction()
+
         self._plot.profile = Profile3DToolBar(parent=self._plot,
-                                              plot=self)
+                                              stackview=self)
         self._plot.addToolBar(self._plot.profile)
-        self._plot.setGraphXLabel('Columns')
-        self._plot.setGraphYLabel('Rows')
+        self._plot.getXAxis().setLabel('Columns')
+        self._plot.getYAxis().setLabel('Rows')
         self._plot.sigPlotSignal.connect(self._plotCallback)
 
         self.__planeSelection = PlanesWidget(self._plot)
@@ -231,14 +235,15 @@ class StackView(qt.QMainWindow):
         self.__planeSelection.sigPlaneSelectionChanged.connect(
             self._plot.profile.clearProfile)
 
-    def setOptionVisible(self, isVisible):
-        """
-        Set the visibility of the browsing options.
-
-        :param bool isVisible: True to have the options visible, else False
-        """
-        self._browser.setVisible(isVisible)
-        self.__planeSelection.setVisible(isVisible)
+    def _addColorBarAction(self):
+        self._plot.getColorBarWidget().setVisible(True)
+        actions = self._plot.toolBar().actions()
+        for index, action in enumerate(actions):
+            if action is self._plot.getColormapAction():
+                break
+        self._plot.toolBar().insertAction(
+            actions[index + 1],
+            self._plot.getColorBarWidget().getToggleViewAction())
 
     def _plotCallback(self, eventDict):
         """Callback for plot events.
@@ -246,7 +251,7 @@ class StackView(qt.QMainWindow):
         Emit :attr:`valueChanged` signal, with (x, y, value) tuple of the
         cursor location in the plot."""
         if eventDict['event'] == 'mouseMoved':
-            activeImage = self.getActiveImage()
+            activeImage = self._plot.getActiveImage()
             if activeImage is not None:
                 data = activeImage.getData()
                 height, width = data.shape
@@ -325,13 +330,6 @@ class StackView(qt.QMainWindow):
         self._browser.setRange(0, self.__transposed_view.shape[0] - 1)
         self._browser.setValue(0)
 
-    def setFrameNumber(self, number):
-        """Set the frame selection to a specific value\
-
-        :param int number: Number of the frame
-        """
-        self._browser.setValue(number)
-
     def __updateFrameNumber(self, index):
         """Update the current image.
 
@@ -400,7 +398,14 @@ class StackView(qt.QMainWindow):
         _xcalib, _ycalib, zcalib = self._getXYZCalibs()
         return zcalib(index)
 
-    # public API
+    def _updateTitle(self):
+        frame_idx = self._browser.value()
+        self._plot.setGraphTitle(self._titleCallback(frame_idx))
+
+    def _defaultTitleCallback(self, index):
+        return "Image z=%g" % self._getImageZ(index)
+
+    # public API, stack specific methods
     def setStack(self, stack, perspective=0, reset=True, calibrations=None):
         """Set the 3D stack.
 
@@ -496,7 +501,7 @@ class StackView(qt.QMainWindow):
         :return: 3D stack and parameters.
         :rtype: (numpy.ndarray, dict)
         """
-        image = self.getActiveImage()
+        image = self._plot.getActiveImage()
         if image is None:
             return None
 
@@ -547,7 +552,7 @@ class StackView(qt.QMainWindow):
         :return: 3D stack and parameters.
         :rtype: (numpy.ndarray, dict)
         """
-        image = self.getActiveImage()
+        image = self._plot.getActiveImage()
         if image is None:
             return None
 
@@ -571,282 +576,12 @@ class StackView(qt.QMainWindow):
             return numpy.array(self.__transposed_view, copy=copy), params
         return self.__transposed_view, params
 
-    def getActiveImage(self, just_legend=False):
-        """Returns the currently active image object.
+    def setFrameNumber(self, number):
+        """Set the frame selection to a specific value
 
-        It returns None in case of not having an active image.
-
-        :param bool just_legend: True to get the legend of the image,
-            False (the default) to get the image data and info.
-            Note: :class:`StackView` uses the same legend for all frames.
-        :return: legend or image object
-        :rtype: str or list or None
+        :param int number: Number of the frame
         """
-        return self._plot.getActiveImage(just_legend=just_legend)
-
-    def clear(self):
-        """Clear the widget:
-
-         - clear the plot
-         - clear the loaded data volume
-        """
-        self._stack = None
-        self.__transposed_view = None
-        self._perspective = 0
-        self._browser.setEnabled(False)
-        self._plot.clear()
-
-    def resetZoom(self):
-        """Reset the plot limits to the bounds of the data and redraw the plot.
-        """
-        self._plot.resetZoom()
-
-    def getGraphTitle(self):
-        """Return the plot main title as a str."""
-        return self._plot.getGraphTitle()
-
-    def setGraphTitle(self, title=""):
-        """Set the plot main title.
-
-        :param str title: Main title of the plot (default: '')
-        """
-        return self._plot.setGraphTitle(title)
-
-    def setLabels(self, labels=None):
-        """Set the labels to be displayed on the plot axes.
-
-        You must provide a sequence of 3 strings, corresponding to the 3
-        dimensions of the original data volume.
-        The proper label will automatically be selected for each plot axis
-        when the volume is rotated (when different axes are selected as the
-        X and Y axes).
-
-        :param list(str) labels: 3 labels corresponding to the 3 dimensions
-             of the data volumes.
-        """
-
-        default_labels = ["Dimension %d" % self._first_stack_dimension,
-                          "Dimension %d" % (self._first_stack_dimension + 1),
-                          "Dimension %d" % (self._first_stack_dimension + 2)]
-        if labels is None:
-            new_labels = default_labels
-        else:
-            # filter-out None
-            new_labels = []
-            for i, label in enumerate(labels):
-                new_labels.append(label or default_labels[i])
-
-        self.__dimensionsLabels = new_labels
-        self.__updatePlotLabels()
-
-    def getGraphXLabel(self):
-        """Return the current horizontal axis label as a str."""
-        return self._plot.getGraphXLabel()
-
-    def setGraphXLabel(self, label=None):
-        """Set the plot horizontal axis label.
-
-        :param str label: The horizontal axis label
-        """
-        if label is None:
-            label = self.__dimensionsLabels[1 if self._perspective == 2 else 2]
-        self._plot.setGraphXLabel(label)
-
-    def getGraphYLabel(self, axis='left'):
-        """Return the current vertical axis label as a str.
-
-        :param str axis: The Y axis for which to get the label (left or right)
-        """
-        return self._plot.getGraphYLabel(axis)
-
-    def setGraphYLabel(self, label=None, axis='left'):
-        """Set the vertical axis label on the plot.
-
-        :param str label: The Y axis label
-        :param str axis: The Y axis for which to set the label (left or right)
-        """
-        if label is None:
-            label = self.__dimensionsLabels[1 if self._perspective == 0 else 0]
-        self._plot.setGraphYLabel(label, axis)
-
-    def setYAxisInverted(self, flag=True):
-        """Set the Y axis orientation.
-
-        :param bool flag: True for Y axis going from top to bottom,
-                          False for Y axis going from bottom to top
-        """
-        self._plot.setYAxisInverted(flag)
-
-    def isYAxisInverted(self):
-        """Return True if Y axis goes from top to bottom, False otherwise."""
-        return self._backend.isYAxisInverted()
-
-    def getSupportedColormaps(self):
-        """Get the supported colormap names as a tuple of str.
-
-        The list should at least contain and start by:
-        ('gray', 'reversed gray', 'temperature', 'red', 'green', 'blue')
-        """
-        return self._plot.getSupportedColormaps()
-
-    def getColormap(self):
-        """Get the current colormap description.
-
-        :return: A description of the current colormap.
-                 See :meth:`setColormap` for details.
-        :rtype: dict
-        """
-        # "default" colormap used by addImage when image is added without
-        # specifying a special colormap
-        return self._plot.getDefaultColormap()
-
-    def setColormap(self, colormap=None, normalization=None,
-                    autoscale=None, vmin=None, vmax=None, colors=None):
-        """Set the colormap and update active image.
-
-        Parameters that are not provided are taken from the current colormap.
-
-        The colormap parameter can also be a dict with the following keys:
-
-        - *name*: string. The colormap to use:
-          'gray', 'reversed gray', 'temperature', 'red', 'green', 'blue'.
-        - *normalization*: string. The mapping to use for the colormap:
-          either 'linear' or 'log'.
-        - *autoscale*: bool. Whether to use autoscale (True) or range
-          provided by keys
-          'vmin' and 'vmax' (False).
-        - *vmin*: float. The minimum value of the range to use if 'autoscale'
-          is False.
-        - *vmax*: float. The maximum value of the range to use if 'autoscale'
-          is False.
-        - *colors*: optional. Nx3 or Nx4 array of float in [0, 1] or uint8.
-                    List of RGB or RGBA colors to use (only if name is None)
-
-        :param colormap: Name of the colormap in
-            'gray', 'reversed gray', 'temperature', 'red', 'green', 'blue'.
-            Or the description of the colormap as a dict.
-        :type colormap: dict or str.
-        :param str normalization: Colormap mapping: 'linear' or 'log'.
-        :param bool autoscale: Whether to use autoscale or [vmin, vmax] range.
-            Default value of autoscale is True if data is a numpy array,
-            False if data is a h5py dataset.
-        :param float vmin: The minimum value of the range to use if
-                           'autoscale' is False.
-        :param float vmax: The maximum value of the range to use if
-                           'autoscale' is False.
-        :param numpy.ndarray colors: Only used if name is None.
-            Custom colormap colors as Nx3 or Nx4 RGB or RGBA arrays
-        """
-        cmapDict = self.getColormap()
-
-        if isinstance(colormap, dict):
-            # Support colormap parameter as a dict
-            errmsg = "If colormap is provided as a dict, all other parameters"
-            errmsg += " must not be specified when calling setColormap"
-            assert normalization is None, errmsg
-            assert autoscale is None, errmsg
-            assert vmin is None, errmsg
-            assert vmax is None, errmsg
-            assert colors is None, errmsg
-            cmapDict.update(colormap)
-
-        else:
-            if colormap is not None:
-                cmapDict['name'] = colormap
-            if normalization is not None:
-                cmapDict['normalization'] = normalization
-            if colors is not None:
-                cmapDict['colors'] = colors
-
-            # Default meaning of autoscale is to reset min and max
-            # each time a new image is added to the plot.
-            # We want to use min and max of global volume,
-            # and not change them when browsing slides
-            cmapDict['autoscale'] = False
-
-            if autoscale is None:
-                # set default
-                autoscale = False
-                # TODO: assess cost of computing min/max for large 3D array
-                # if isinstance(self._stack, numpy.ndarray):
-                #     autoscale = True
-                # else:                    # h5py.Dataset
-                #     autoscale = False
-            elif autoscale and isinstance(self._stack, h5py.Dataset):
-                # h5py dataset has no min()/max() methods
-                raise RuntimeError(
-                    "Cannot auto-scale colormap for a h5py dataset")
-            else:
-                autoscale = autoscale
-            self.__autoscaleCmap = autoscale
-            if autoscale and (self._stack is not None):
-                cmapDict['vmin'] = self._stack.min()
-                cmapDict['vmax'] = self._stack.max()
-            else:
-                if vmin is not None:
-                    cmapDict['vmin'] = vmin
-                if vmax is not None:
-                    cmapDict['vmax'] = vmax
-
-        cursorColor = cursorColorForColormap(cmapDict['name'])
-        self._plot.setInteractiveMode('zoom', color=cursorColor)
-
-        self._plot.setDefaultColormap(cmapDict)
-
-        # Update active image colormap
-        activeImage = self._plot.getActiveImage()
-        if isinstance(activeImage, items.ColormapMixIn):
-            activeImage.setColormap(self.getColormap())
-
-    def isKeepDataAspectRatio(self):
-        """Returns whether the plot is keeping data aspect ratio or not."""
-        return self._plot.isKeepDataAspectRatio()
-
-    def setKeepDataAspectRatio(self, flag=True):
-        """Set whether the plot keeps data aspect ratio or not.
-
-        :param bool flag: True to respect data aspect ratio
-        """
-        self._plot.setKeepDataAspectRatio(flag)
-
-    def getProfileToolbar(self):
-        """Profile tools attached to this plot
-
-        See :class:`silx.gui.plot.Profile.Profile3DToolBar`
-        """
-        return self._plot.profile
-
-    def getProfileWindow1D(self):
-        """Plot window used to display 1D profile curve.
-
-        :return: :class:`Plot1D`
-        """
-        return self._plot.profile.getProfileWindow1D()
-
-    def getProfileWindow2D(self):
-        """Plot window used to display 2D profile image.
-
-        :return: :class:`Plot2D`
-        """
-        return self._plot.profile.getProfileWindow2D()
-
-    # kind of private methods, but needed by Profile
-    def remove(self, legend=None,
-               kind=('curve', 'image', 'item', 'marker')):
-        """See :meth:`Plot.Plot.remove`"""
-        self._plot.remove(legend, kind)
-
-    def setInteractiveMode(self, *args, **kwargs):
-        """
-        See :meth:`Plot.Plot.setInteractiveMode`
-        """
-        self._plot.setInteractiveMode(*args, **kwargs)
-
-    def addItem(self, *args, **kwargs):
-        """
-        See :meth:`Plot.Plot.addItem`
-        """
-        self._plot.addItem(*args, **kwargs)
+        self._browser.setValue(number)
 
     def setFirstStackDimension(self, first_stack_dimension):
         """When viewing the last 3 dimensions of an n-D array (n>3), you can
@@ -893,13 +628,368 @@ class StackView(qt.QMainWindow):
             raise TypeError("Provided callback is not callable")
         self._updateTitle()
 
-    def _updateTitle(self):
-        frame_idx = self._browser.value()
-        self._plot.setGraphTitle(self._titleCallback(frame_idx))
+    def clear(self):
+        """Clear the widget:
 
-    def _defaultTitleCallback(self, index):
-        return "Image z=%g" % self._getImageZ(index)
+         - clear the plot
+         - clear the loaded data volume
+        """
+        self._stack = None
+        self.__transposed_view = None
+        self._perspective = 0
+        self._browser.setEnabled(False)
+        self._plot.clear()
 
+    def setLabels(self, labels=None):
+        """Set the labels to be displayed on the plot axes.
+
+        You must provide a sequence of 3 strings, corresponding to the 3
+        dimensions of the original data volume.
+        The proper label will automatically be selected for each plot axis
+        when the volume is rotated (when different axes are selected as the
+        X and Y axes).
+
+        :param list(str) labels: 3 labels corresponding to the 3 dimensions
+             of the data volumes.
+        """
+
+        default_labels = ["Dimension %d" % self._first_stack_dimension,
+                          "Dimension %d" % (self._first_stack_dimension + 1),
+                          "Dimension %d" % (self._first_stack_dimension + 2)]
+        if labels is None:
+            new_labels = default_labels
+        else:
+            # filter-out None
+            new_labels = []
+            for i, label in enumerate(labels):
+                new_labels.append(label or default_labels[i])
+
+        self.__dimensionsLabels = new_labels
+        self.__updatePlotLabels()
+
+    def getLabels(self):
+        """Return dimension labels displayed on the plot axes
+
+        :return: List of three strings corresponding to the 3 dimensions
+            of the stack: (name_dim0, name_dim1, name_dim2)
+        """
+        return self.__dimensionsLabels
+
+    def getColormap(self):
+        """Get the current colormap description.
+
+        :return: A description of the current colormap.
+                 See :meth:`setColormap` for details.
+        :rtype: dict
+        """
+        # "default" colormap used by addImage when image is added without
+        # specifying a special colormap
+        return self._plot.getDefaultColormap()
+
+    def setColormap(self, colormap=None, normalization=None,
+                    autoscale=None, vmin=None, vmax=None, colors=None):
+        """Set the colormap and update active image.
+
+        Parameters that are not provided are taken from the current colormap.
+
+        The colormap parameter can also be a dict with the following keys:
+
+        - *name*: string. The colormap to use:
+          'gray', 'reversed gray', 'temperature', 'red', 'green', 'blue'.
+        - *normalization*: string. The mapping to use for the colormap:
+          either 'linear' or 'log'.
+        - *autoscale*: bool. Whether to use autoscale (True) or range
+          provided by keys
+          'vmin' and 'vmax' (False).
+        - *vmin*: float. The minimum value of the range to use if 'autoscale'
+          is False.
+        - *vmax*: float. The maximum value of the range to use if 'autoscale'
+          is False.
+        - *colors*: optional. Nx3 or Nx4 array of float in [0, 1] or uint8.
+                    List of RGB or RGBA colors to use (only if name is None)
+
+        :param colormap: Name of the colormap in
+            'gray', 'reversed gray', 'temperature', 'red', 'green', 'blue'.
+            Or a :class`.Colormap` object.
+        :type colormap: dict or str.
+        :param str normalization: Colormap mapping: 'linear' or 'log'.
+        :param bool autoscale: Whether to use autoscale or [vmin, vmax] range.
+            Default value of autoscale is True if data is a numpy array,
+            False if data is a h5py dataset.
+        :param float vmin: The minimum value of the range to use if
+                           'autoscale' is False.
+        :param float vmax: The maximum value of the range to use if
+                           'autoscale' is False.
+        :param numpy.ndarray colors: Only used if name is None.
+            Custom colormap colors as Nx3 or Nx4 RGB or RGBA arrays
+        """
+        # if is a colormap object or a dictionary
+        if isinstance(colormap, Colormap) or isinstance(colormap, dict):
+            # Support colormap parameter as a dict
+            errmsg = "If colormap is provided as a Colormap object, all other parameters"
+            errmsg += " must not be specified when calling setColormap"
+            assert normalization is None, errmsg
+            assert autoscale is None, errmsg
+            assert vmin is None, errmsg
+            assert vmax is None, errmsg
+            assert colors is None, errmsg
+
+            if isinstance(colormap, dict):
+                reason = 'colormap parameter should now be an object'
+                replacement = 'Colormap()'
+                since_version = '0.6'
+                deprecated_warning(type_='function',
+                                   name='setColormap',
+                                   reason=reason,
+                                   replacement=replacement,
+                                   since_version=since_version)
+                _colormap = Colormap._fromDict(colormap)
+            else:
+                _colormap = colormap
+        else:
+            norm = normalization if normalization is not None else 'linear'
+            name = colormap if colormap is not None else 'gray'
+            _colormap = Colormap(name=name,
+                                 normalization=norm,
+                                 vmin=vmin,
+                                 vmax=vmax,
+                                 colors=colors)
+
+            # Patch: since we don't apply this colormap to a single 2D data but
+            # a 2D stack we have to deal manually with vmin, vmax
+            if autoscale is None:
+                # set default
+                autoscale = False
+                # TODO: assess cost of computing min/max for large 3D array
+                # if isinstance(self._stack, numpy.ndarray):
+                #     autoscale = True
+                # else:                    # h5py.Dataset
+                #     autoscale = False
+            elif autoscale and isinstance(self._stack, h5py.Dataset):
+                # h5py dataset has no min()/max() methods
+                raise RuntimeError(
+                        "Cannot auto-scale colormap for a h5py dataset")
+            else:
+                autoscale = autoscale
+            self.__autoscaleCmap = autoscale
+
+            if autoscale and (self._stack is not None):
+                _vmin, _vmax = _colormap.getColormapRange(data=self._stack)
+                _colormap.setVRange(vmin=_vmin, vmax=_vmax)
+            else:
+                if vmin is None and self._stack is not None:
+                    _colormap.setVMin(self._stack.min())
+                else:
+                    _colormap.setVMin(vmin)
+                if vmax is None and self._stack is not None:
+                    _colormap.setVMax(self._stack.max())
+                else:
+                    _colormap.setVMax(vmax)
+
+        cursorColor = cursorColorForColormap(_colormap.getName())
+        self._plot.setInteractiveMode('zoom', color=cursorColor)
+
+        self._plot.setDefaultColormap(_colormap)
+
+        # Update active image colormap
+        activeImage = self._plot.getActiveImage()
+        if isinstance(activeImage, items.ColormapMixIn):
+            activeImage.setColormap(self.getColormap())
+
+    def getPlot(self):
+        """Return the :class:`PlotWidget`.
+
+        This gives access to advanced plot configuration options.
+        Be warned that modifying the plot can cause issues, and some changes
+        you make to the plot could be overwritten by the :class:`StackView`
+        widget's internal methods and callbacks.
+
+        :return: instance of :class:`PlotWidget` used in widget
+        """
+        return self._plot
+
+    def getProfileWindow1D(self):
+        """Plot window used to display 1D profile curve.
+
+        :return: :class:`Plot1D`
+        """
+        return self._plot.profile.getProfileWindow1D()
+
+    def getProfileWindow2D(self):
+        """Plot window used to display 2D profile image.
+
+        :return: :class:`Plot2D`
+        """
+        return self._plot.profile.getProfileWindow2D()
+
+    def setOptionVisible(self, isVisible):
+        """
+        Set the visibility of the browsing options.
+
+        :param bool isVisible: True to have the options visible, else False
+        """
+        self._browser.setVisible(isVisible)
+        self.__planeSelection.setVisible(isVisible)
+
+    # proxies to PlotWidget or PlotWindow methods
+    def getProfileToolbar(self):
+        """Profile tools attached to this plot
+
+        See :class:`silx.gui.plot.Profile.Profile3DToolBar`
+        """
+        return self._plot.profile
+
+    def getGraphTitle(self):
+        """Return the plot main title as a str.
+        """
+        return self._plot.getGraphTitle()
+
+    def setGraphTitle(self, title=""):
+        """Set the plot main title.
+
+        :param str title: Main title of the plot (default: '')
+        """
+        return self._plot.setGraphTitle(title)
+
+    def getGraphXLabel(self):
+        """Return the current horizontal axis label as a str.
+        """
+        return self._plot.getXAxis().getLabel()
+
+    def setGraphXLabel(self, label=None):
+        """Set the plot horizontal axis label.
+
+        :param str label: The horizontal axis label
+        """
+        if label is None:
+            label = self.__dimensionsLabels[1 if self._perspective == 2 else 2]
+        self._plot.getXAxis().setLabel(label)
+
+    def getGraphYLabel(self, axis='left'):
+        """Return the current vertical axis label as a str.
+
+        :param str axis: The Y axis for which to get the label (left or right)
+        """
+        return self._plot.getYAxis().getLabel(axis)
+
+    def setGraphYLabel(self, label=None, axis='left'):
+        """Set the vertical axis label on the plot.
+
+        :param str label: The Y axis label
+        :param str axis: The Y axis for which to set the label (left or right)
+        """
+        if label is None:
+            label = self.__dimensionsLabels[1 if self._perspective == 0 else 0]
+        self._plot.getYAxis(axis=axis).setLabel(label)
+
+    def resetZoom(self):
+        """Reset the plot limits to the bounds of the data and redraw the plot.
+
+        This method is a simple proxy to the legacy :class:`PlotWidget` method
+        of the same name. Using the object oriented approach is now
+        preferred::
+
+            stackview.getPlot().resetZoom()
+        """
+        self._plot.resetZoom()
+
+    def setYAxisInverted(self, flag=True):
+        """Set the Y axis orientation.
+
+        This method is a simple proxy to the legacy :class:`PlotWidget` method
+        of the same name. Using the object oriented approach is now
+        preferred::
+
+            stackview.getPlot().setYAxisInverted(flag)
+
+        :param bool flag: True for Y axis going from top to bottom,
+                          False for Y axis going from bottom to top
+        """
+        self._plot.setYAxisInverted(flag)
+
+    def isYAxisInverted(self):
+        """Return True if Y axis goes from top to bottom, False otherwise.
+
+        This method is a simple proxy to the legacy :class:`PlotWidget` method
+        of the same name. Using the object oriented approach is now
+        preferred::
+
+            stackview.getPlot().isYAxisInverted()"""
+        return self._plot.isYAxisInverted()
+
+    def getSupportedColormaps(self):
+        """Get the supported colormap names as a tuple of str.
+
+        The list should at least contain and start by:
+        ('gray', 'reversed gray', 'temperature', 'red', 'green', 'blue')
+
+        This method is a simple proxy to the legacy :class:`PlotWidget` method
+        of the same name. Using the object oriented approach is now
+        preferred::
+
+            stackview.getPlot().getSupportedColormaps()
+        """
+        return self._plot.getSupportedColormaps()
+
+    def isKeepDataAspectRatio(self):
+        """Returns whether the plot is keeping data aspect ratio or not.
+
+        This method is a simple proxy to the legacy :class:`PlotWidget` method
+        of the same name. Using the object oriented approach is now
+        preferred::
+
+            stackview.getPlot().isKeepDataAspectRatio()"""
+        return self._plot.isKeepDataAspectRatio()
+
+    def setKeepDataAspectRatio(self, flag=True):
+        """Set whether the plot keeps data aspect ratio or not.
+
+        This method is a simple proxy to the legacy :class:`PlotWidget` method
+        of the same name. Using the object oriented approach is now
+        preferred::
+
+            stackview.getPlot().setKeepDataAspectRatio(flag)
+
+        :param bool flag: True to respect data aspect ratio
+        """
+        self._plot.setKeepDataAspectRatio(flag)
+
+    # kind of private methods, but needed by Profile
+    def getActiveImage(self, just_legend=False):
+        """Returns the currently active image object.
+
+        It returns None in case of not having an active image.
+
+        This method is a simple proxy to the legacy :class:`PlotWidget` method
+        of the same name. Using the object oriented approach is now
+        preferred::
+
+            stackview.getPlot().getActiveImage()
+
+        :param bool just_legend: True to get the legend of the image,
+            False (the default) to get the image data and info.
+            Note: :class:`StackView` uses the same legend for all frames.
+        :return: legend or image object
+        :rtype: str or list or None
+        """
+        return self._plot.getActiveImage(just_legend=just_legend)
+
+    def remove(self, legend=None,
+               kind=('curve', 'image', 'item', 'marker')):
+        """See :meth:`Plot.Plot.remove`"""
+        self._plot.remove(legend, kind)
+
+    def setInteractiveMode(self, *args, **kwargs):
+        """
+        See :meth:`Plot.Plot.setInteractiveMode`
+        """
+        self._plot.setInteractiveMode(*args, **kwargs)
+
+    def addItem(self, *args, **kwargs):
+        """
+        See :meth:`Plot.Plot.addItem`
+        """
+        self._plot.addItem(*args, **kwargs)
 
 
 class PlanesWidget(qt.QWidget):
@@ -1014,6 +1104,8 @@ class StackViewMainWindow(StackView):
         menu.addSeparator()
         menu.addAction(self._plot.resetZoomAction)
         menu.addAction(self._plot.colormapAction)
+        menu.addAction(self._plot.getColorBarWidget().getToggleViewAction())
+
         menu.addAction(actions.control.KeepAspectRatioAction(self._plot, self))
         menu.addAction(actions.control.YAxisInvertedAction(self._plot, self))
 

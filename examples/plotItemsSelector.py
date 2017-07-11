@@ -1,7 +1,8 @@
+#!/usr/bin/env python
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,24 +23,34 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-__authors__ = ["T. Vincent", "P. Knobel"]
+"""This example illustrates how to use a :class:`ItemsSelectionDialog` widget
+associated with a :class:`PlotWidget`.
+"""
+
+__authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "22/06/2017"
+__date__ = "28/06/2017"
 
+from silx.gui import qt
+from silx.gui.plot.PlotWidget import PlotWidget
+from silx.gui.plot.ItemsSelectionDialog import ItemsSelectionDialog
 
-import unittest
-from . import test_weakref
-from . import test_html
-from . import test_array_like
-from . import test_launcher
-from . import test_deprecation
+app = qt.QApplication([])
 
+pw = PlotWidget()
+pw.addCurve([0, 1, 2], [3, 2, 1], "A curve")
+pw.addScatter([0, 1, 2.5], [3, 2.5, 0.9], [8, 9, 72], "A scatter")
+pw.addHistogram([0, 1, 2.5], [0, 1, 2, 3], "A histogram")
+pw.addImage([[0, 1, 2], [3, 2, 1]], "An image")
+pw.show()
 
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(test_weakref.suite())
-    test_suite.addTest(test_html.suite())
-    test_suite.addTest(test_array_like.suite())
-    test_suite.addTest(test_launcher.suite())
-    test_suite.addTest(test_deprecation.suite())
-    return test_suite
+isd = ItemsSelectionDialog(plot=pw)
+isd.setItemsSelectionMode(qt.QTableWidget.ExtendedSelection)
+result = isd.exec_()
+if result:
+    for item in isd.getSelectedItems():
+        print(item.getLegend(), type(item))
+else:
+    print("Selection cancelled")
+
+app.exec_()

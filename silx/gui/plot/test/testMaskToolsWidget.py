@@ -84,7 +84,7 @@ class TestMaskToolsWidget(TestCaseQt, ParametricTestCase):
 
     def _drag(self):
         """Drag from plot center to offset position"""
-        plot = self.plot.centralWidget()
+        plot = self.plot.getWidgetHandle()
         xCenter, yCenter = plot.width() // 2, plot.height() // 2
         offset = min(plot.width(), plot.height()) // 10
 
@@ -98,7 +98,7 @@ class TestMaskToolsWidget(TestCaseQt, ParametricTestCase):
 
     def _drawPolygon(self):
         """Draw a star polygon in the plot"""
-        plot = self.plot.centralWidget()
+        plot = self.plot.getWidgetHandle()
         x, y = plot.width() // 2, plot.height() // 2
         offset = min(plot.width(), plot.height()) // 10
 
@@ -115,7 +115,7 @@ class TestMaskToolsWidget(TestCaseQt, ParametricTestCase):
 
     def _drawPencil(self):
         """Draw a star polygon in the plot"""
-        plot = self.plot.centralWidget()
+        plot = self.plot.getWidgetHandle()
         x, y = plot.width() // 2, plot.height() // 2
         offset = min(plot.width(), plot.height()) // 10
 

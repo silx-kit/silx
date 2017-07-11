@@ -46,7 +46,7 @@ ROI are defined by :
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "26/04/2017"
+__date__ = "27/06/2017"
 
 from collections import OrderedDict
 
@@ -743,7 +743,7 @@ class CurvesROIDockWidget(qt.QDockWidget):
         """Handle ROI widget signal"""
         _logger.debug("PlotWindow._roiSignal %s", str(ddict))
         if ddict['event'] == "AddROI":
-            xmin, xmax = self.plot.getGraphXLimits()
+            xmin, xmax = self.plot.getXAxis().getLimits()
             fromdata = xmin + 0.25 * (xmax - xmin)
             todata = xmin + 0.75 * (xmax - xmin)
             self.plot.remove('ROI min', kind='marker')
@@ -787,7 +787,7 @@ class CurvesROIDockWidget(qt.QDockWidget):
             if newroi == "ICR":
                 roiDict[newroi]['type'] = "Default"
             else:
-                roiDict[newroi]['type'] = self.plot.getGraphXLabel()
+                roiDict[newroi]['type'] = self.plot.getXAxis().getLabel()
             roiDict[newroi]['from'] = fromdata
             roiDict[newroi]['to'] = todata
             self.roiWidget.fillFromROIDict(roilist=roiList,

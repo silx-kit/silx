@@ -28,18 +28,19 @@ from __future__ import absolute_import, print_function, division
 
 __authors__ = ["Jerome Kieffer"]
 __license__ = "MIT"
-__date__ = "16/06/2017"
+__date__ = "22/06/2017"
 
 import sys
 import logging
 import functools
-import os
 import traceback
 
 depreclog = logging.getLogger("silx.DEPRECATION")
 
+deprecache = set([])
 
-def deprecated(func=None, reason=None, replacement=None, since_version=None):
+
+def deprecated(func=None, reason=None, replacement=None, since_version=None, only_once=True):
     """
     Decorator that deprecates the use of a function
 
@@ -49,17 +50,20 @@ def deprecated(func=None, reason=None, replacement=None, since_version=None):
         deprecating was to rename the function)
     :param str since_version: First *silx* version for which the function was
         deprecated (e.g. "0.5.0").
+    :param bool only_once: If true, the deprecation warning will only be
+        generated one time. Default is true.
     """
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             name = func.func_name if sys.version_info[0] < 3 else func.__name__
 
-            deprecated_warning(type='function',
+            deprecated_warning(type_='function',
                                name=name,
                                reason=reason,
                                replacement=replacement,
-                               since_version=since_version)
+                               since_version=since_version,
+                               only_once=only_once)
             return func(*args, **kwargs)
         return wrapper
     if func is not None:
@@ -68,7 +72,7 @@ def deprecated(func=None, reason=None, replacement=None, since_version=None):
 
 
 def deprecated_warning(type_, name, reason=None, replacement=None,
-                       since_version=None):
+                       since_version=None, only_once=True):
     """
     Decorator that deprecates the use of a function
 
@@ -79,7 +83,13 @@ def deprecated_warning(type_, name, reason=None, replacement=None,
         deprecating was to rename the function)
     :param str since_version: First *silx* version for which the function was
         deprecated (e.g. "0.5.0").
+    :param bool only_once: If true, the deprecation warning will only be
+        generated one time. Default is true.
     """
+    if not depreclog.isEnabledFor(logging.WARNING):
+        # Avoid computation when it is not logged
+        return
+
     msg = "%s, %s is deprecated"
     if since_version is not None:
         msg += " since silx version %s" % since_version
@@ -88,5 +98,13 @@ def deprecated_warning(type_, name, reason=None, replacement=None,
         msg += " Reason: %s." % reason
     if replacement is not None:
         msg += " Use '%s' instead." % replacement
-    depreclog.warning(msg + " %s", type_, name,
-                      os.linesep.join([""] + traceback.format_stack()[:-1]))
+    msg = msg + "\n%s"
+    backtrace = "".join(traceback.format_stack()[-2:-1])
+    backtrace = backtrace.rstrip()
+    if only_once:
+        data = (msg, type_, name, backtrace)
+        if data in deprecache:
+            return
+        else:
+            deprecache.add(data)
+    depreclog.warning(msg, type_, name, backtrace)

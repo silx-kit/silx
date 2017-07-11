@@ -157,6 +157,7 @@ a module from :mod:`silx.gui`:
 
 
 .. warning::
+
    :mod:`silx.gui.plot` widgets are not thread-safe.
    All calls to :mod:`silx.gui.plot` widgets must be made from the main thread.
 
@@ -342,17 +343,15 @@ When updating an image, if ``origin`` and ``scale`` are not provided, the previo
 Colormap
 ++++++++
 
-A ``colormap`` is described with a :class:`dict` as follows (See :mod:`silx.gui.plot.Plot` for full documentation of the colormap):
+A ``colormap`` is described with a :class:`.Colormap` class as follows:
 
 .. code-block:: python
 
-   colormap = {
-       'name': 'gray',             # Name of the colormap
-       'normalization': 'linear',  # Either 'linear' or 'log'
-       'autoscale': True,          # True to autoscale colormap to data range, False to use [vmin, vmax]
-       'vmin': 0.0,                # If not autoscale, data value to bind to min of colormap
-       'vmax': 1.0                 # If not autoscale, data value to bind to max of colormap
-    }
+   colormap = Colormap(name='gray',             # Name of the colormap
+                       normalization='linear',  # Either 'linear' or 'log'
+                       vmin=0.0,                # If not autoscale, data value to bind to min of colormap
+                       vmax=1.0                 # If not autoscale, data value to bind to max of colormap
+               )
 
 
 At least the following colormap names are guaranteed to be available, but any colormap name from `matplotlib <http://matplotlib.org/>`_ (see `Choosing Colormaps <http://matplotlib.org/users/colormaps.html>`_) should work:
@@ -372,19 +371,23 @@ It is possible to change the default colormap of :meth:`.PlotWidget.addImage` fo
 
 .. code-block:: python
 
-   colormap = {'name': 'viridis', 'normalization': 'linear',
-               'autoscale': True, 'vmin': 0.0, 'vmax': 1.0}
+   colormap = Colormap(name='viridis',
+                       normalization='linear',
+                       vmin=0.0,
+                       vmax=1.0)
    plot.setDefaultColormap(colormap)
 
    data = numpy.arange(512 * 512.).reshape(512, -1)
    plot.addImage(data)  # Rendered with the default colormap set before
 
-It is also possible to provide a ``colormap`` to :meth:`.PlotWidget.addImage` to override this default for an image:
+It is also possible to provide a :class:`.Colormap` to :meth:`.PlotWidget.addImage` to override this default for an image:
 
 .. code-block:: python
 
-   colormap = {'name': 'magma', 'normalization': 'log',
-               'autoscale': False, 'vmin': 1.2, 'vmax': 1.8}
+   colormap = Colormap(name='magma',
+                       normalization='log',
+                       vmin=1.2,
+                       vmax=1.8)
    data = numpy.random.random(512 * 512).reshape(512, -1) + 1.
    plot.addImage(data, colormap=colormap)
 
@@ -432,18 +435,19 @@ Control plot axes
 -----------------
 
 The following examples illustrate the API to control the plot axes.
+:meth:`.PlotWidget.getXAxis` and :meth:`.PlotWidget.getYAxis` give access to each plot axis (:class:`.items.Axis`) in order to control them.
 
 Labels and title
 ++++++++++++++++
 
 Use :meth:`.PlotWidget.setGraphTitle` to set the plot main title.
-Use :meth:`.PlotWidget.setGraphXLabel` and :meth:`.PlotWidget.setGraphYLabel` to set the axes text labels:
+Use :meth:`.PlotWidget.getXAxis` and :meth:`.PlotWidget.getYAxis` to get the axes and set their text label with :meth:`.items.Axis.setLabel`:
 
 .. code-block:: python
 
    plot.setGraphTitle('My plot')
-   plot.setGraphXLabel('X')
-   plot.setGraphYLabel('Y')
+   plot.getXAxis().setLabel('X')
+   plot.getYAxis().setLabel('Y')
 
 
 Axes limits
@@ -455,9 +459,9 @@ The following code moves the visible plot area to the right:
 
 .. code-block:: python
 
-    xmin, xmax = plot.getGraphXLimits()
+    xmin, xmax = plot.getXAxis().getLimits()
     offset = 0.1 * (xmax - xmin)
-    plot.setGraphXLimits(xmin + offset, xmax + offset)
+    plot.getXAxis().setLimits(xmin + offset, xmax + offset)
 
 :meth:`.PlotWidget.resetZoom` set the plot limits to the bounds of the data:
 
@@ -465,7 +469,7 @@ The following code moves the visible plot area to the right:
 
    plot.resetZoom()
 
-See :meth:`.PlotWidget.resetZoom`, :meth:`.PlotWidget.setLimits`, :meth:`.PlotWidget.getGraphXLimits`, :meth:`.PlotWidget.setGraphXLimits`, :meth:`.PlotWidget.getGraphYLimits`, :meth:`.PlotWidget.setGraphYLimits` for details.
+See :meth:`.PlotWidget.resetZoom`, :meth:`.PlotWidget.setLimits`, :meth:`.PlotWidget.getXAxis`, :meth:`.PlotWidget.getYAxis` and :class:`.items.Axis` for details.
 
 
 Axes
@@ -475,17 +479,17 @@ Different methods allow plot axes modifications:
 
 .. code-block:: python
 
-   plot.setYAxisInverted(True)  # Makes the Y axis pointing downward
+   plot.getYAxis().setInverted(True)  # Makes the Y axis pointing downward
    plot.setKeepDataAspectRatio(True)  # To keep aspect ratio between X and Y axes
 
-See :meth:`.PlotWidget.setYAxisInverted`, :meth:`.PlotWidget.setKeepDataAspectRatio` for details.
+See :meth:`.PlotWidget.getYAxis`, :meth:`.PlotWidget.setKeepDataAspectRatio` for details.
 
 .. code-block:: python
 
    plot.setGraphGrid(which='both')  # To show a grid for both minor and major axes ticks
 
    # Use logarithmic axes
-   plot.setXAxisLogarithmic(True)
-   plot.setYAxisLogarithmic(True)
+   plot.getXAxis().setScale("log")
+   plot.getYAxis().setScale("log")
 
-See :meth:`.PlotWidget.setGraphGrid`, :meth:`.PlotWidget.setXAxisLogarithmic`, :meth:`.PlotWidget.setYAxisLogarithmic` for details.
+See :meth:`.PlotWidget.setGraphGrid`, :meth:`.PlotWidget.getXAxis`, :meth:`.PlotWidget.getXAxis` and :class:`.items.Axis` for details.

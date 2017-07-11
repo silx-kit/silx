@@ -12,4 +12,4 @@
 ------------------------
 
 .. autoclass:: ImageView
-   :members: valueChanged, profile, setImage, getColormap, setColormap, getHistogram, setGraphTitle, setGraphXLabel, setGraphYLabel
+   :members: valueChanged, setImage, getColormap, setColormap, getHistogram, setGraphTitle, getXAxis, getYAxis

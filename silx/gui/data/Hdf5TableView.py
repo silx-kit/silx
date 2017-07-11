@@ -270,18 +270,37 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
         else:
             objectType = obj.__class__.__name__
         self.__data.addHeaderRow(headerLabel="HDF5 %s" % objectType)
+
+        SEPARATOR = "::"
+
         self.__data.addHeaderRow(headerLabel="Path info")
-
-        self.__data.addHeaderValueRow("basename", lambda x: os.path.basename(x.name))
-        self.__data.addHeaderValueRow("name", lambda x: x.name)
-        if silx.io.is_file(obj):
-            self.__data.addHeaderValueRow("filename", lambda x: x.filename)
-
         if isinstance(obj, silx.gui.hdf5.H5Node):
             # helpful informations if the object come from an HDF5 tree
-            self.__data.addHeaderValueRow("local_basename", lambda x: x.local_basename)
-            self.__data.addHeaderValueRow("local_name", lambda x: x.local_name)
-            self.__data.addHeaderValueRow("local_filename", lambda x: x.local_file.filename)
+            self.__data.addHeaderValueRow("Basename", lambda x: x.local_basename)
+            self.__data.addHeaderValueRow("Name", lambda x: x.local_name)
+            local = lambda x: x.local_filename + SEPARATOR + x.local_name
+            self.__data.addHeaderValueRow("Local", local)
+            physical = lambda x: x.physical_filename + SEPARATOR + x.physical_name
+            self.__data.addHeaderValueRow("Physical", physical)
+        else:
+            # it's a real H5py object
+            self.__data.addHeaderValueRow("Basename", lambda x: os.path.basename(x.name))
+            self.__data.addHeaderValueRow("Name", lambda x: x.name)
+            self.__data.addHeaderValueRow("File", lambda x: x.file.filename)
+
+            if hasattr(obj, "path"):
+                # That's a link
+                if hasattr(obj, "filename"):
+                    link = lambda x: x.filename + SEPARATOR + x.path
+                else:
+                    link = lambda x: x.path
+                self.__data.addHeaderValueRow("Link", link)
+            else:
+                if silx.io.is_file(obj):
+                    physical = lambda x: x.filename + SEPARATOR + x.name
+                else:
+                    physical = lambda x: x.file.filename + SEPARATOR + x.name
+                self.__data.addHeaderValueRow("Physical", physical)
 
         if hasattr(obj, "dtype"):
             self.__data.addHeaderRow(headerLabel="Data info")

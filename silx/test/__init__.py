@@ -32,7 +32,7 @@ It will skip all tests from :mod:`silx.test.gui`.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "20/04/2017"
+__date__ = "22/06/2017"
 
 
 import logging
@@ -61,7 +61,6 @@ def suite():
     test_suite.addTest(test_utils.suite())
     test_suite.addTest(test_version.suite())
     test_suite.addTest(test_resources.suite())
-    test_suite.addTest(test_utils.suite())
     test_suite.addTest(test_io.suite())
     test_suite.addTest(test_math.suite())
     test_suite.addTest(test_image.suite())

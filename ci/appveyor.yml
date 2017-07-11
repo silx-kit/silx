@@ -27,11 +27,11 @@ environment:
     matrix:
         # Python 3.6
         - PYTHON_DIR: "C:\\Python36-x64"
-          QT_BINDINGS: "PyQt5"
+          QT_BINDINGS: "PyQt5==5.8.2"
   
         # Python 3.5
         - PYTHON_DIR: "C:\\Python35-x64"
-          QT_BINDINGS: "PyQt5"
+          QT_BINDINGS: "PyQt5==5.8.2"
 
         # Python 2.7
         - PYTHON_DIR: "C:\\Python27-x64"
@@ -109,7 +109,7 @@ test_script:
     - "python ci\\info_platform.py"
     - "pip list"
 
-    - "python run_tests.py -v"
+    - "python run_tests.py --installed -v"
 
     # Leave test virtualenv
     - "%VENV_TEST_DIR%\\Scripts\\deactivate.bat"

@@ -35,7 +35,7 @@ from silx.math.fit import filters
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "24/01/2017"
+__date__ = "28/06/2017"
 
 
 class HorizontalSpacer(qt.QWidget):
@@ -400,7 +400,7 @@ class BackgroundWidget(qt.QWidget):
                                   legend='SNIP Background',
                                   resetzoom=False)
         if self._xmin is not None and self._xmax is not None:
-            self.graphWidget.setGraphXLimits(xmin=self._xmin, xmax=self._xmax)
+            self.graphWidget.getXAxis().setLimits(self._xmin, self._xmax)
 
 
 class BackgroundDialog(qt.QDialog):

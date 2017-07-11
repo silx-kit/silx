@@ -114,7 +114,7 @@ Public modules
    plotwindow.rst
    imageview.rst
    stackview.rst
-   plot.rst
+   colormap.rst
    items.rst
    actions/index.rst
    plottools.rst

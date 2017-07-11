@@ -22,22 +22,23 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This package provides classes that describes :class:`.Plot` content.
+"""This package provides classes that describes :class:`.PlotWidget` content.
 
-Instances of those classes are returned by :class:`.Plot` methods that give
-access to its content such as :meth:`.Plot.getCurve`, :meth:`.Plot.getImage`.
+Instances of those classes are returned by :class:`.PlotWidget` methods that give
+access to its content such as :meth:`.PlotWidget.getCurve`, :meth:`.PlotWidget.getImage`.
 """
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "06/03/2017"
+__date__ = "22/06/2017"
 
 from .core import (Item, LabelsMixIn, DraggableMixIn, ColormapMixIn,  # noqa
                    SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn,  # noqa
                    AlphaMixIn, LineMixIn)  # noqa
 from .curve import Curve  # noqa
 from .histogram import Histogram  # noqa
-from .image import ImageBase, ImageData, ImageRgba  # noqa
+from .image import ImageBase, ImageData, ImageRgba, MaskImageData  # noqa
 from .shape import Shape  # noqa
 from .scatter import Scatter  # noqa
 from .marker import Marker, XMarker, YMarker  # noqa
+from .axis import Axis, XAxis, YAxis, YRightAxis
