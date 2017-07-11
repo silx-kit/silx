@@ -45,7 +45,6 @@ class KindsSelector(qt.QListWidget):
     ("curve", "scatter", "image"...)
     """
     sigSelectedKindsChanged = qt.Signal(list)
-    # sigAvailableKindsChanged = qt.Signal(list)
 
     def __init__(self, parent=None, kinds=None):
         """
@@ -87,8 +86,6 @@ class KindsSelector(qt.QListWidget):
             item.setText(kind)
             self.addItem(item)
 
-        # self.sigAvailableKindsChanged.emit(self.plot_item_kinds)
-
     def selectAll(self):
         """Select all available kinds."""
         if self.selectionMode() in [qt.QAbstractItemView.SingleSelection,
@@ -106,7 +103,7 @@ class PlotItemsSelector(qt.QTableWidget):
     You can be warned of selection changes by listening to signal
     :attr:`itemSelectionChanged`.
     """
-    def __init__(self, parent=None, plot=None, kinds=None):
+    def __init__(self, parent=None, plot=None):
         if plot is None or not isinstance(plot, PlotWidget):
             raise AttributeError("parameter plot is required")
         self.plot = plot
@@ -119,13 +116,7 @@ class PlotItemsSelector(qt.QTableWidget):
 
         self.setColumnCount(2)
 
-        # self.setSelectionMode(qt.QTableWidget.ExtendedSelection)
         self.setSelectionBehavior(qt.QTableWidget.SelectRows)
-
-        # if kinds is None:
-        #     self.setAllKindsFilter()
-        # else:
-        #     self.setKindsFilter(kinds)
 
     def _clear(self):
         self.clear()
