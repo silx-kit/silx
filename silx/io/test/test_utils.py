@@ -35,11 +35,9 @@ from .. import utils
 
 try:
     import h5py
-except ImportError:
-    h5py_missing = True
-else:
-    h5py_missing = False
     from ..utils import h5ls
+except ImportError:
+    h5py = None
 
 try:
     import fabio
@@ -208,7 +206,7 @@ def assert_match_any_string_in_list(test, pattern, list_of_strings):
     return False
 
 
-@unittest.skipIf(h5py_missing, "Could not import h5py")
+@unittest.skipIf(h5py is None, "Could not import h5py")
 class TestH5Ls(unittest.TestCase):
     """Test displaying the following HDF5 file structure:
 
@@ -292,7 +290,7 @@ class TestOpen(unittest.TestCase):
     """Test `silx.io.utils.open` function."""
 
     def testH5(self):
-        if h5py_missing:
+        if h5py is None:
             self.skipTest("H5py is missing")
 
         # create a file
@@ -310,7 +308,7 @@ class TestOpen(unittest.TestCase):
         f.close()
 
     def testH5With(self):
-        if h5py_missing:
+        if h5py is None:
             self.skipTest("H5py is missing")
 
         # create a file
@@ -336,7 +334,7 @@ class TestOpen(unittest.TestCase):
         # load it
         f = utils.open(tmp.name)
         self.assertIsNotNone(f)
-        if not h5py_missing:
+        if h5py is not None:
             self.assertEquals(f.h5py_class, h5py.File)
         f.close()
 
@@ -350,11 +348,11 @@ class TestOpen(unittest.TestCase):
         # load it
         with utils.open(tmp.name) as f:
             self.assertIsNotNone(f)
-            if not h5py_missing:
+            if h5py is not None:
                 self.assertEquals(f.h5py_class, h5py.File)
 
     def testEdf(self):
-        if h5py_missing:
+        if h5py is None:
             self.skipTest("H5py is missing")
         if fabio is None:
             self.skipTest("Fabio is missing")
@@ -375,7 +373,7 @@ class TestOpen(unittest.TestCase):
         f.close()
 
     def testEdfWith(self):
-        if h5py_missing:
+        if h5py is None:
             self.skipTest("H5py is missing")
         if fabio is None:
             self.skipTest("Fabio is missing")
@@ -411,7 +409,7 @@ class TestOpen(unittest.TestCase):
 class TestNodes(unittest.TestCase):
     """Test `silx.io.utils.is_` functions."""
     def test_real_h5py_objects(self):
-        if h5py_missing:
+        if h5py is None:
             self.skipTest("H5py is missing")
 
         name = tempfile.mktemp(suffix=".h5")
@@ -435,7 +433,7 @@ class TestNodes(unittest.TestCase):
             os.unlink(name)
 
     def test_h5py_like_file(self):
-        if h5py_missing:
+        if h5py is None:
             self.skipTest("H5py is missing")
 
         class Foo(object):
@@ -447,7 +445,7 @@ class TestNodes(unittest.TestCase):
         self.assertFalse(utils.is_dataset(obj))
 
     def test_h5py_like_group(self):
-        if h5py_missing:
+        if h5py is None:
             self.skipTest("H5py is missing")
 
         class Foo(object):
@@ -459,7 +457,7 @@ class TestNodes(unittest.TestCase):
         self.assertFalse(utils.is_dataset(obj))
 
     def test_h5py_like_dataset(self):
-        if h5py_missing:
+        if h5py is None:
             self.skipTest("H5py is missing")
 
         class Foo(object):
@@ -471,7 +469,7 @@ class TestNodes(unittest.TestCase):
         self.assertTrue(utils.is_dataset(obj))
 
     def test_bad(self):
-        if h5py_missing:
+        if h5py is None:
             self.skipTest("H5py is missing")
 
         class Foo(object):
@@ -483,7 +481,7 @@ class TestNodes(unittest.TestCase):
         self.assertFalse(utils.is_dataset(obj))
 
     def test_bad_api(self):
-        if h5py_missing:
+        if h5py is None:
             self.skipTest("H5py is missing")
 
         class Foo(object):
