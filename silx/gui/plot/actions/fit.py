@@ -41,69 +41,49 @@ __date__ = "28/06/2017"
 from . import PlotAction
 import logging
 from silx.gui import qt
+from silx.gui.plot.ItemsSelectionDialog import ItemsSelectionDialog
+from silx.gui.plot.items import Curve, Histogram
 
 _logger = logging.getLogger(__name__)
 
 
-def _warningMessage(informativeText='', detailedText='', parent=None):
-    """Display a popup warning message."""
-    msg = qt.QMessageBox(parent)
-    msg.setIcon(qt.QMessageBox.Warning)
-    msg.setInformativeText(informativeText)
-    msg.setDetailedText(detailedText)
-    msg.exec_()
-
-
-def _getOneCurve(plt, mode="unique"):
+def _getUniqueCurve(plt):
     """Get a single curve from the plot.
-    By default, get the active curve if any, else if a single curve is plotted
-    get it, else return None and display a warning popup.
-
-    This behavior can be adjusted by modifying the *mode* parameter: always
-    return the active curve if any, but adjust the behavior in case no curve
-    is active.
+    Get the active curve if any, else if a single curve is plotted
+    get it, else return None.
 
     :param plt: :class:`.PlotWidget` instance on which to operate
-    :param mode: Parameter defining the behavior when no curve is active.
-        Possible modes:
-            - "none": return None (enforce curve activation)
-            - "unique": return the unique curve or None if multiple curves
-            - "first": return first curve
-            - "last": return last curve (most recently added one)
+
     :return: return value of plt.getActiveCurve(), or plt.getAllCurves()[0],
-        or plt.getAllCurves()[-1], or None
+        or None
     """
     curve = plt.getActiveCurve()
     if curve is not None:
         return curve
 
-    if mode is None or mode.lower() == "none":
-        _warningMessage("You must activate a curve!",
-                        parent=plt)
-        return None
-
     curves = plt.getAllCurves()
     if len(curves) == 0:
-        _warningMessage("No curve on this plot.",
-                        parent=plt)
         return None
 
-    if len(curves) == 1:
+    if len(curves) == 1 and len(plt._getItems(kind='histogram')) == 0:
         return curves[0]
 
-    if len(curves) > 1:
-        if mode == "unique":
-            _warningMessage("Multiple curves are plotted. " +
-                            "Please activate the one you want to use.",
-                            parent=plt)
-            return None
-        if mode.lower() == "first":
-            return curves[0]
-        if mode.lower() == "last":
-            return curves[-1]
+    return None
 
-    raise ValueError("Illegal value for parameter 'mode'." +
-                     " Allowed values: 'none', 'unique', 'first', 'last'.")
+
+def _getUniqueHistogram(plt):
+    """Return the histogram if there is a single histogram and no curve in
+    the plot. In all other cases, return None.
+
+    :param plt: :class:`.PlotWidget` instance on which to operate
+    :return: histogram or None
+    """
+    histograms = plt._getItems(kind='histogram')
+    if len(histograms) != 1:
+        return None
+    if plt.getAllCurves(just_legend=True):
+        return None
+    return histograms[0]
 
 
 class FitAction(PlotAction):
@@ -122,15 +102,44 @@ class FitAction(PlotAction):
         self.fit_window = None
 
     def _getFitWindow(self):
-        curve = _getOneCurve(self.plot)
-        if curve is None:
-            return
         self.xlabel = self.plot.getXAxis().getLabel()
         self.ylabel = self.plot.getYAxis().getLabel()
-        self.x = curve.getXData(copy=False)
-        self.y = curve.getYData(copy=False)
-        self.legend = curve.getLegend()
         self.xmin, self.xmax = self.plot.getXAxis().getLimits()
+
+        histo = _getUniqueHistogram(self.plot)
+        curve = _getUniqueCurve(self.plot)
+
+        if histo is None and curve is None:
+            # ambiguous case, we need to ask which plot item to fit
+            isd = ItemsSelectionDialog(plot=self.plot)
+            isd.setWindowTitle("Select item to be fitted")
+            isd.setItemsSelectionMode(qt.QTableWidget.SingleSelection)
+            isd.setAvailableKinds(["curve", "histogram"])
+            isd.selectAllKinds()
+
+            result = isd.exec_()
+            if result and len(isd.getSelectedItems()) == 1:
+                item = isd.getSelectedItems()[0]
+            else:
+                return
+        elif histo is not None:
+            # presence of a unique histo and no curve
+            item = histo
+        elif curve is not None:
+            # presence of a unique or active curve
+            item = curve
+
+        self.legend = item.getLegend()
+
+        if isinstance(item, Histogram):
+            bin_edges = item.getBinEdgesData(copy=False)
+            # take the middle coordinate between adjacent bin edges
+            self.x = (bin_edges[1:] + bin_edges[:-1]) / 2
+            self.y = item.getValueData(copy=False)
+        # else take the active curve, or else the unique curve
+        elif isinstance(item, Curve):
+            self.x = item.getXData(copy=False)
+            self.y = item.getYData(copy=False)
 
         # open a window with a FitWidget
         if self.fit_window is None:
