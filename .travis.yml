@@ -50,6 +50,8 @@ addons:
             - libegl1-mesa  # Required by Qt xcb platform plugin
             - libboost-python-dev # for PyOpenCL
             - opencl-headers
+            - libgl1-mesa-glx  # For OpenGL
+            - xserver-xorg-video-dummy  # For OpenGL
 
 before_install:
     # On Linux: install OpenCL
