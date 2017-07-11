@@ -128,8 +128,8 @@ __kernel void transform(
 
 
         //to be coherent with scipy.ndimage.interpolation.affine_transform
-        float u = -0.5; //-0.95
-        float v = -0.5;
+        float u = -1.0; //-0.5; //-0.95
+        float v = -1.0; //-0.5;
         if (tx >= image_width+u) {
                 interp = fill;
         }
