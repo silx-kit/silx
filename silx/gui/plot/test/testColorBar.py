@@ -275,9 +275,72 @@ class TestColorBarWidget(TestCaseQt):
         self.colorBar.setColormap(colormap)
 
 
+class TestColorBarUpdate(TestCaseQt):
+    """Test that the ColorBar is correctly updated when the signal 'sigChanged'
+    of the colormap is emitted
+    """
+
+    def setUp(self):
+        super(TestColorBarUpdate, self).setUp()
+        self.plot = Plot2D()
+        self.colorBar = self.plot.getColorBarWidget()
+        self.colorBar.setVisible(True)  # Makes sure the colormap is visible
+        self.colorBar.setPlot(self.plot)
+
+        self.plot.show()
+        self.qWaitForWindowExposed(self.plot)
+        self.data = numpy.random.rand(9).reshape(3, 3)
+
+    def tearDown(self):
+        self.qapp.processEvents()
+        del self.colorBar
+        self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.plot.close()
+        del self.plot
+        super(TestColorBarUpdate, self).tearDown()
+
+    def testUpdateColorMap(self):
+        colormap = Colormap(name='gray',
+                            normalization='linear',
+                            vmin=0,
+                            vmax=1)
+
+        # check inital state
+        self.plot.addImage(data=self.data, colormap=colormap, legend='toto')
+        self.plot.setActiveImage('toto')
+
+        self.assertTrue(self.colorBar.getColorScaleBar().minVal == 0)
+        self.assertTrue(self.colorBar.getColorScaleBar().maxVal == 1)
+        self.assertTrue(
+            self.colorBar.getColorScaleBar().getTickBar()._vmin == 0)
+        self.assertTrue(
+            self.colorBar.getColorScaleBar().getTickBar()._vmax == 1)
+        self.assertTrue(
+            self.colorBar.getColorScaleBar().getTickBar()._norm == "linear")
+
+        # update colormap
+        colormap.setVMin(0.5)
+        self.assertTrue(self.colorBar.getColorScaleBar().minVal == 0.5)
+        self.assertTrue(
+            self.colorBar.getColorScaleBar().getTickBar()._vmin == 0.5)
+
+        colormap.setVMax(0.8)
+        self.assertTrue(self.colorBar.getColorScaleBar().maxVal == 0.8)
+        self.assertTrue(
+            self.colorBar.getColorScaleBar().getTickBar()._vmax == 0.8)
+
+        colormap.setNormalization('log')
+        self.assertTrue(
+            self.colorBar.getColorScaleBar().getTickBar()._norm == 'log')
+
+    # TODO : should also check that if the colormap is changing then values (especially in log scale)
+    # should be coherent if in autoscale
+
+
 def suite():
     test_suite = unittest.TestSuite()
-    for ui in (TestColorScale, TestNoAutoscale, TestColorBarWidget):
+    for ui in (TestColorScale, TestNoAutoscale, TestColorBarWidget,
+               TestColorBarUpdate):
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(ui))
 

@@ -70,6 +70,8 @@ class ColorBarWidget(qt.QWidget):
         self._isConnected = False
         self._plot = None
         self._viewAction = None
+        self._colormap = None
+        self._data = None
 
         super(ColorBarWidget, self).__init__(parent)
 
@@ -151,8 +153,21 @@ class ColorBarWidget(qt.QWidget):
         :param numpy.ndarray data: the data to display, needed if the colormap
             require an autoscale
         """
+        self._data = data
         self.getColorScaleBar().setColormap(colormap=colormap,
                                             data=data)
+        if self._colormap is not None:
+            self._colormap.sigChanged.disconnect(self._colormapHasChanged)
+        self._colormap = colormap
+        if self._colormap is not None:
+            self._colormap.sigChanged.connect(self._colormapHasChanged)
+
+    def _colormapHasChanged(self):
+        """handler of the Colormap.sigChanged signal
+        """
+        assert self._colormap is not None
+        self.setColormap(colormap=self._colormap,
+                         data=self._data)
 
     def setLegend(self, legend):
         """Set the legend displayed along the colorbar
@@ -163,7 +178,7 @@ class ColorBarWidget(qt.QWidget):
             self.legend.hide()
             self.legend.setText("")
         else:
-            assert(type(legend) is str)
+            assert type(legend) is str
             self.legend.show()
             self.legend.setText(legend)
 
