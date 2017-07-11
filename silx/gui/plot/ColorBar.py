@@ -165,7 +165,7 @@ class ColorBarWidget(qt.QWidget):
     def _colormapHasChanged(self):
         """handler of the Colormap.sigChanged signal
         """
-        assert(self._colormap is not None)
+        assert self._colormap is not None
         self.setColormap(colormap=self._colormap,
                          data=self._data)
 
@@ -178,7 +178,7 @@ class ColorBarWidget(qt.QWidget):
             self.legend.hide()
             self.legend.setText("")
         else:
-            assert(type(legend) is str)
+            assert type(legend) is str
             self.legend.show()
             self.legend.setText(legend)
 
