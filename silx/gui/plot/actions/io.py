@@ -70,7 +70,7 @@ class SaveAction(PlotAction):
     # TODO find a way to make the filter list selectable and extensible
 
     SNAPSHOT_FILTER_SVG = 'Plot Snapshot as SVG (*.svg)'
-    SNAPSHOT_FILTER_PNG = 'Plot Snapshot as SVG (*.png)'
+    SNAPSHOT_FILTER_PNG = 'Plot Snapshot as PNG (*.png)'
 
     SNAPSHOT_FILTERS = (SNAPSHOT_FILTER_PNG, SNAPSHOT_FILTER_SVG)
 
