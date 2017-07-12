@@ -310,6 +310,9 @@ class ColormapMixIn(object):
 
         :param :class:`.Colormap`: colormap description
         """
+        if isinstance(colormap, dict):
+            colormap = Colormap._fromDict(colormap)
+
         if self._colormap is not None:
             self._colormap.sigChanged.disconnect(self._updated)
         self._colormap = colormap
