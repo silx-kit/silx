@@ -40,14 +40,13 @@ _logger = logging.getLogger(__name__)
 # - print quality
 
 
-class PyMcaPrintPreview(qt.QDialog):
+class PrintPreviewDialog(qt.QDialog):
     """Print preview widget. """
-    def __init__(self, parent=None, printer=None, name="PyMcaPrintPreview",
-                 modal=0):
+    def __init__(self, parent=None, printer=None):
 
         qt.QDialog.__init__(self, parent)
-        self.setWindowTitle(name)
-        self.setModal(modal)
+        self.setWindowTitle("Print Preview")
+        self.setModal(False)
         self.resize(400, 500)
 
         self.mainLayout = qt.QVBoxLayout(self)
@@ -58,8 +57,8 @@ class PyMcaPrintPreview(qt.QDialog):
 
         self.printer = printer
         """:class:`QPrinter` (paint device that paints on a printer)"""
-        self.printDialog = None
 
+        self.printDialog = None
         """:class:`QPrintDialog` (dialog for specifying the printer's
         configuration)"""
 
@@ -83,9 +82,7 @@ class PyMcaPrintPreview(qt.QDialog):
         self._viewScale = 1.0
         """Zoom level (1.0 is 100%)"""
 
-        self._badNews = False
-        """Flag possibly set in :meth:`setup` to warn of a problem
-        while initializing the printer."""
+        self._printerIsReady = False
 
         self._toBeCleared = False
         """Flag indicating that all items must be removed from :attr:`scene`
@@ -270,14 +267,12 @@ class PyMcaPrintPreview(qt.QDialog):
         if self.printer is None:
             self.setup()
         if title is None:
-            title = '                                            '
-            title += '                                            '
+            title = ' ' * 88
         if comment is None:
-            comment = '                                            '
-            comment += '                                            '
+            comment = ' ' * 88
         if commentPosition is None:
             commentPosition = "CENTER"
-        if self._badNews:
+        if not self._printerIsReady:
             return
         if qt.qVersion() < "5.0":
             rectItem = qt.QGraphicsRectItem(self.page, self.scene)
@@ -297,17 +292,14 @@ class PyMcaPrintPreview(qt.QDialog):
         rectItem.setFlag(qt.QGraphicsItem.ItemIsMovable, True)
         rectItem.setFlag(qt.QGraphicsItem.ItemIsFocusable, False)
 
-        # I add the resize tool
         rectItemResizeRect = GraphicsResizeRectItem(rectItem, self.scene)
         rectItemResizeRect.setZValue(2)
 
-        # I add a pixmap item
         if qt.qVersion() < "5.0":
             pixmapItem = qt.QGraphicsPixmapItem(rectItem, self.scene)
         else:
             pixmapItem = qt.QGraphicsPixmapItem(rectItem)
         pixmapItem.setPixmap(pixmap)
-        # pixmapItem.moveBy(0, 0)
         pixmapItem.setZValue(0)
 
         # I add the title
@@ -345,18 +337,19 @@ class PyMcaPrintPreview(qt.QDialog):
             rectItem.setScale(scale)
         rectItem.moveBy(20, 40)
 
-    def isReady(self):
-        if self._badNews:
-            return False
-        else:
-            return True
-
     def addSvgItem(self, item, title=None, comment=None, commentPosition=None):
+        """Add a SVG item to the scene.
+
+        :param QSvgRenderer item: SVG item to be added to the scene.
+        :param str title: Title shown above (centered) the SVG item.
+        :param str comment: Comment displayed below the SVG item.
+        :param commentPosition: "CENTER" or "LEFT"
+        """
         if self._toBeCleared:
             self.__clearAll()
         if self.printer is None:
             self.setup()
-        if self._badNews:
+        if not self._printerIsReady:
             # printer not properly initialized
             return
         if not isinstance(item, qt.QSvgRenderer):
@@ -366,22 +359,23 @@ class PyMcaPrintPreview(qt.QDialog):
         if comment is None:
             comment = 80 * ' '
         if commentPosition is None:
-            commentPosition = "CENTER"
+            commentPosition = "CENTER"     # FIXME: unused after that
 
-        if 0 and hasattr(item, "_viewBox"):
-            svgItem = GraphicsSvgItem(self.page)
-            svgItem.setSharedRenderer(item)
-            svgItem.setBoundingRect(item._viewBox)
-        elif 1:
-            svgItem = GraphicsSvgRectItem(item._viewBox, self.page)
-            svgItem.setSvgRenderer(item)
-        else:
-            svgItem = qt.QGraphicsSvgItem(self.page)
-            svgItem.setSharedRenderer(item)
-            if hasattr(item, "_viewBox"):
-                svgScaleX = item._viewBox.width() / svgItem.boundingRect().width()
-                svgScaleY = item._viewBox.height() / svgItem.boundingRect().height()
-                svgItem.scale(svgScaleX, svgScaleY)
+        svgItem = GraphicsSvgRectItem(item._viewBox, self.page)
+        svgItem.setSvgRenderer(item)
+
+        # Alternatives 1
+        # svgItem = GraphicsSvgItem(self.page)
+        # svgItem.setSharedRenderer(item)
+        # svgItem.setBoundingRect(item._viewBox)
+
+        # Alternative 2
+        # svgItem = qt.QGraphicsSvgItem(self.page)
+        # svgItem.setSharedRenderer(item)
+        # if hasattr(item, "_viewBox"):
+        #     svgScaleX = item._viewBox.width() / svgItem.boundingRect().width()
+        #     svgScaleY = item._viewBox.height() / svgItem.boundingRect().height()
+        #     svgItem.scale(svgScaleX, svgScaleY)
 
         svgItem.setCacheMode(qt.QGraphicsItem.NoCache)
         svgItem.setZValue(0)
@@ -389,14 +383,11 @@ class PyMcaPrintPreview(qt.QDialog):
         svgItem.setFlag(qt.QGraphicsItem.ItemIsMovable, True)
         svgItem.setFlag(qt.QGraphicsItem.ItemIsFocusable, False)
 
-        # I add the resize tool
         rectItemResizeRect = GraphicsResizeRectItem(svgItem, self.scene)
         rectItemResizeRect.setZValue(2)
 
-        # make sure the life time of the item is enough to print it!
         self._svgItems.append(item)
 
-        # I add the title
         if qt.qVersion() < '5.0':
             textItem = qt.QGraphicsTextItem(title, svgItem, self.scene)
         else:
@@ -406,7 +397,6 @@ class PyMcaPrintPreview(qt.QDialog):
         textItem.setZValue(1)
         textItem.setFlag(qt.QGraphicsItem.ItemIsMovable, True)
 
-        # I add the comment
         dummyComment = 80 * "1"
         if qt.qVersion() < '5.0':
             commentItem = qt.QGraphicsTextItem(dummyComment, svgItem, self.scene)
@@ -438,34 +428,40 @@ class PyMcaPrintPreview(qt.QDialog):
             textItem.setScale(scale)
 
     def setup(self):
-        """
+        """Open a print dialog to ensure the printer is set.
+
+        If the setting fails or is cancelled, :attr:`printer` is reset to
+        *None*.
         """
         if self.printer is None:
             self.printer = qt.QPrinter()
-        if (self.printDialog is None) or (not self.isReady()):
+        if self.printDialog is None or not self._printerIsReady:
             self.printDialog = qt.QPrintDialog(self.printer, self)
         if self.printDialog.exec_():
-            if (self.printer.width() <= 0) or (self.printer.height() <= 0):
+            if self.printer.width() <= 0 or self.printer.height() <= 0:
                 self.message = qt.QMessageBox(self)
                 self.message.setIcon(qt.QMessageBox.Critical)
                 self.message.setText("Unknown library error \non printer initialization")
                 self.message.setWindowTitle("Library Error")
                 self.message.setModal(0)
-                self._badNews = True
+                self._printerIsReady = False
                 self.printer = None
                 return
-            self._badNews = False
+            self._printerIsReady = True
             self.printer.setFullPage(True)
             self.updatePrinter()
         else:
+            # printer setup cancelled
             if self.page is None:
                 # not initialized
-                self._badNews = True
+                self._printerIsReady = False
                 self.printer = None
             else:
-                self._badNews = False
+                self._printerIsReady = True
 
     def updatePrinter(self):
+        """Resize :attr:`page`, :attr:`scene` and :attr:`view` to printer
+        width and height."""
         printer = self.printer
         if self.scene is None:
             self.scene = qt.QGraphicsScene()
@@ -485,17 +481,15 @@ class PyMcaPrintPreview(qt.QDialog):
             self.view = qt.QGraphicsView(self.scene)
             self.mainLayout.addWidget(self.view)
             self._buildStatusBar()
+        # self.view.scale(1./self._viewScale, 1./self._viewScale)
         self.view.fitInView(self.page.rect(), qt.Qt.KeepAspectRatio)
         self._viewScale = 1.00
-        # self.view.scale(1./self._viewScale, 1./self._viewScale)
-        # self.view.fitInView(self.page.rect(), qt.Qt.KeepAspectRatio)
-        # self._viewScale = 1.00
         self.__updateTargetLabel()
 
-    def __cancel(self):
-        """
-        """
-        self.reject()
+    # def __cancel(self):
+    #     """
+    #     """
+    #     self.reject()
 
     def __clearAll(self):
         """
@@ -514,7 +508,7 @@ class PyMcaPrintPreview(qt.QDialog):
         self._toBeCleared = False
 
     def __remove(self):
-        """
+        """Remove selected item in :attr:`scene`.
         """
         itemlist = self.scene.items()
         i = None
@@ -527,9 +521,6 @@ class PyMcaPrintPreview(qt.QDialog):
 
         if i is not None:
             self.scene.removeItem(item)
-            # this line is not really needed because the list
-            # should be deleted at the end of the method
-            del itemlist[i]
 
 
 if hasattr(qt, 'QGraphicsSvgItem'):
@@ -709,15 +700,15 @@ def testPreview():
             item.load(filename)
             item.show()
         else:
-            w = PyMcaPrintPreview(parent=None, printer=None, name='Print Prev',
-                                  modal=0)
+            w = PrintPreviewDialog(parent=None, printer=None, name='Print Prev',
+                                   modal=0)
             w.resize(400, 500)
             item = qt.QGraphicsSvgItem(filename, w.page)
             item.setFlag(qt.QGraphicsItem.ItemIsMovable, True)
             item.setCacheMode(qt.QGraphicsItem.NoCache)
         sys.exit(w.exec_())
 
-    w = PyMcaPrintPreview(parent=None, modal=0)
+    w = PrintPreviewDialog(parent=None, modal=0)
     # we need to initialize a printer to get a proper page
     w.setup()
     w.resize(400, 500)
