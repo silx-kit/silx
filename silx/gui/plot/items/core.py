@@ -127,7 +127,7 @@ class Item(qt.QObject):
     _DEFAULT_SELECTABLE = False
     """Default selectable state of items"""
 
-    sigItemChanged = qt.Signal(ItemChangedType)
+    sigItemChanged = qt.Signal(object)
     """Signal emitted when the item has changed.
 
     It provides a flag describing which property of the item has changed.
