@@ -388,7 +388,7 @@ class ColormapMixIn(object):
     def setColormap(self, colormap):
         """Set the colormap of this image
 
-        :param :class:`.Colormap`: colormap description
+        :param Colormap colormap: colormap description
         """
         if self._colormap is not None:
             self._colormap.sigChanged.disconnect(self._colormapChanged)

@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides the class for axes of the :class:`Plot`.
+"""This module provides the class for axes of the :class:`PlotWidget`.
 """
 
 __authors__ = ["V. Valls"]
@@ -396,7 +396,7 @@ class YRightAxis(Axis):
         return self.__mainAxis.isAutoScale()
 
     def setAutoScale(self, flag=True):
-        """Set the Y axis limits adjusting behavior of :meth:`resetZoom`.
+        """Set the Y axis limits adjusting behavior of :meth:`PlotWidget.resetZoom`.
 
         :param bool flag: True to resize limits automatically,
                           False to disable it.
