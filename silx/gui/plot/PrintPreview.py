@@ -486,11 +486,6 @@ class PrintPreviewDialog(qt.QDialog):
         self._viewScale = 1.00
         self.__updateTargetLabel()
 
-    # def __cancel(self):
-    #     """
-    #     """
-    #     self.reject()
-
     def __clearAll(self):
         """
         Clear the print preview window, remove all items
@@ -522,32 +517,31 @@ class PrintPreviewDialog(qt.QDialog):
         if i is not None:
             self.scene.removeItem(item)
 
+#
+# class GraphicsSvgItem(qt.QGraphicsSvgItem):
+#     def setBoundingRect(self, rect):
+#         self._rect = rect
+#
+#     def boundingRect(self):
+#         return self._rect
+#
+#     def paint(self, painter, *var, **kw):
+#         if not self.renderer().isValid():
+#             _logger.error("Invalid renderer")
+#             return
+#         if self.elementId().isEmpty():
+#             self.renderer().render(painter, self._rect)
+#         else:
+#             self.renderer().render(painter, self.elementId(), self._rect)
 
-if hasattr(qt, 'QGraphicsSvgItem'):
-    class GraphicsSvgItem(qt.QGraphicsSvgItem):
-        def setBoundingRect(self, rect):
-            self._rect = rect
 
-        def boundingRect(self):
-            return self._rect
+class GraphicsSvgRectItem(qt.QGraphicsRectItem):
+    def setSvgRenderer(self, renderer):
+        self._renderer = renderer
 
-        def paint(self, painter, *var, **kw):
-            if not self.renderer().isValid():
-                _logger.error("Invalid renderer")
-                return
-            if self.elementId().isEmpty():
-                self.renderer().render(painter, self._rect)
-            else:
-                self.renderer().render(painter, self.elementId(), self._rect)
-
-
-    class GraphicsSvgRectItem(qt.QGraphicsRectItem):
-        def setSvgRenderer(self, renderer):
-            self._renderer = renderer
-
-        def paint(self, painter, *var, **kw):
-            # self._renderer.render(painter, self._renderer._viewBox)
-            self._renderer.render(painter, self.boundingRect())
+    def paint(self, painter, *var, **kw):
+        # self._renderer.render(painter, self._renderer._viewBox)
+        self._renderer.render(painter, self.boundingRect())
 
 
 class GraphicsResizeRectItem(qt.QGraphicsRectItem):
@@ -649,32 +643,21 @@ class GraphicsResizeRectItem(qt.QGraphicsRectItem):
         deltay = point1.y() - self.__point0.y()
         self.moveBy(-deltax, -deltay)
         parent = self.parentItem()
-        if 0:
-            # this works if no zoom at the viewport
-            rect = parent.sceneBoundingRect()
-            w = rect.width()
-            h = rect.height()
-            scalex = (w + deltax) / w
-            scaley = (h + deltay) / h
-            if self.keepRatio:
-                scalex = min(scalex, scalex)
-                parent.scale(scalex, scalex)
-            else:
-                parent.scale(scalex, scaley)
+
+        # deduce scale from rectangle
+        if (qt.qVersion() < "5.0") or self.keepRatio:
+            scalex = self._newRect.rect().width() / self._w
+            scaley = scalex
         else:
-            # deduce it from the rect because it always work
-            if (qt.qVersion() < "5.0") or self.keepRatio:
-                scalex = self._newRect.rect().width() / self._w
-                scaley = scalex
-            else:
-                scalex = self._newRect.rect().width() / self._w
-                scaley = self._newRect.rect().height() / self._h
-            if qt.qVersion() < "5.0":
-                parent.scale(scalex, scaley)
-            else:
-                # the correct equivalent would be:
-                # rectItem.setTransform(qt.QTransform.fromScale(scalex, scaley))
-                parent.setScale(scalex)
+            scalex = self._newRect.rect().width() / self._w
+            scaley = self._newRect.rect().height() / self._h
+        if qt.qVersion() < "5.0":
+            parent.scale(scalex, scaley)
+        else:
+            # the correct equivalent would be:
+            # rectItem.setTransform(qt.QTransform.fromScale(scalex, scaley))
+            parent.setScale(scalex)
+
         self.scene().removeItem(self._newRect)
         self._newRect = None
         qt.QGraphicsRectItem.mouseReleaseEvent(self, event)
