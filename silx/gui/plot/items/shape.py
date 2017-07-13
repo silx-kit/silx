@@ -34,7 +34,7 @@ import logging
 
 import numpy
 
-from .core import Item, ColorMixIn, FillMixIn
+from .core import (Item, ColorMixIn, FillMixIn, ItemChangedType)
 
 
 _logger = logging.getLogger(__name__)
@@ -88,7 +88,7 @@ class Shape(Item, ColorMixIn, FillMixIn):
         overlay = bool(overlay)
         if overlay != self._overlay:
             self._overlay = overlay
-            self._updated()
+            self._updated(ItemChangedType.OVERLAY)
 
     def getType(self):
         """Returns the type of shape to draw.
@@ -118,4 +118,4 @@ class Shape(Item, ColorMixIn, FillMixIn):
         :return:
         """
         self._points = numpy.array(points, copy=copy)
-        self._updated()
+        self._updated(ItemChangedType.DATA)

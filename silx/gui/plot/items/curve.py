@@ -32,11 +32,9 @@ __date__ = "06/03/2017"
 
 import logging
 
-import numpy
-
 from .. import Colors
-from .core import (Points, LabelsMixIn, SymbolMixIn,
-                   ColorMixIn, YAxisMixIn, FillMixIn, LineMixIn)
+from .core import (Points, LabelsMixIn, ColorMixIn, YAxisMixIn,
+                   FillMixIn, LineMixIn, ItemChangedType)
 
 
 _logger = logging.getLogger(__name__)
@@ -132,14 +130,14 @@ class Curve(Points, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixIn):
 
         :param bool visible: True to display it, False otherwise
         """
-        visibleChanged = self.isVisible() != bool(visible)
-        super(Curve, self).setVisible(visible)
-
+        visible = bool(visible)
         # TODO hackish data range implementation
-        if visibleChanged:
+        if self.isVisible() != visible:
             plot = self.getPlot()
             if plot is not None:
                 plot._invalidateDataRange()
+
+        super(Curve, self).setVisible(visible)
 
     def isHighlighted(self):
         """Returns True if curve is highlighted.
@@ -157,7 +155,7 @@ class Curve(Points, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixIn):
         if highlighted != self._highlighted:
             self._highlighted = highlighted
             # TODO inefficient: better to use backend's setCurveColor
-            self._updated()
+            self._updated(ItemChangedType.HIGHLIGHTED)
 
     def getHighlightedColor(self):
         """Returns the RGBA highlight color of the item
@@ -176,7 +174,7 @@ class Curve(Points, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixIn):
         color = Colors.rgba(color)
         if color != self._highlightColor:
             self._highlightColor = color
-            self._updated()
+            self._updated(ItemChangedType.HIGHLIGHTED_COLOR)
 
     def getCurrentColor(self):
         """Returns the current color of the curve.

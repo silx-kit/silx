@@ -36,7 +36,8 @@ import logging
 
 import numpy
 
-from .core import Item, LabelsMixIn, DraggableMixIn, ColormapMixIn, AlphaMixIn
+from .core import (Item, LabelsMixIn, DraggableMixIn, ColormapMixIn,
+                   AlphaMixIn, ItemChangedType)
 from ..Colors import applyColormapToData
 
 
@@ -130,14 +131,13 @@ class ImageBase(Item, LabelsMixIn, DraggableMixIn, AlphaMixIn):
 
         :param bool visible: True to display it, False otherwise
         """
-        visibleChanged = self.isVisible() != bool(visible)
-        super(ImageBase, self).setVisible(visible)
-
+        visible = bool(visible)
         # TODO hackish data range implementation
-        if visibleChanged:
+        if self.isVisible() != visible:
             plot = self.getPlot()
             if plot is not None:
                 plot._invalidateDataRange()
+        super(ImageBase, self).setVisible(visible)
 
     def _isPlotLinear(self, plot):
         """Return True if plot only uses linear scale for both of x and y
@@ -206,13 +206,14 @@ class ImageBase(Item, LabelsMixIn, DraggableMixIn, AlphaMixIn):
             origin = float(origin), float(origin)
         if origin != self._origin:
             self._origin = origin
-            self._updated()
 
             # TODO hackish data range implementation
             if self.isVisible():
                 plot = self.getPlot()
                 if plot is not None:
                     plot._invalidateDataRange()
+
+            self._updated(ItemChangedType.POSITION)
 
     def getScale(self):
         """Returns the scale of the image in data coordinates.
@@ -233,7 +234,7 @@ class ImageBase(Item, LabelsMixIn, DraggableMixIn, AlphaMixIn):
             scale = float(scale), float(scale)
         if scale != self._scale:
             self._scale = scale
-            self._updated()
+            self._updated(ItemChangedType.SCALE)
 
 
 class ImageData(ImageBase, ColormapMixIn):
@@ -330,13 +331,14 @@ class ImageData(ImageBase, ColormapMixIn):
             assert alternative.shape[2] in (3, 4)
             assert alternative.shape[:2] == data.shape[:2]
         self._alternativeImage = alternative
-        self._updated()
 
         # TODO hackish data range implementation
         if self.isVisible():
             plot = self.getPlot()
             if plot is not None:
                 plot._invalidateDataRange()
+
+        self._updated(ItemChangedType.DATA)
 
 
 class ImageRgba(ImageBase):
@@ -387,13 +389,13 @@ class ImageRgba(ImageBase):
         assert data.shape[-1] in (3, 4)
         self._data = data
 
-        self._updated()
-
         # TODO hackish data range implementation
         if self.isVisible():
             plot = self.getPlot()
             if plot is not None:
                 plot._invalidateDataRange()
+
+        self._updated(ItemChangedType.DATA)
 
 
 class MaskImageData(ImageData):

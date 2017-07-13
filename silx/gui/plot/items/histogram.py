@@ -35,7 +35,7 @@ import logging
 import numpy
 
 from .core import (Item, AlphaMixIn, ColorMixIn, FillMixIn,
-                   LineMixIn, YAxisMixIn)
+                   LineMixIn, YAxisMixIn, ItemChangedType)
 
 
 _logger = logging.getLogger(__name__)
@@ -216,14 +216,13 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
 
         :param bool visible: True to display it, False otherwise
         """
-        visibleChanged = self.isVisible() != bool(visible)
-        super(Histogram, self).setVisible(visible)
-
+        visible = bool(visible)
         # TODO hackish data range implementation
-        if visibleChanged:
+        if self.isVisible() != visible:
             plot = self.getPlot()
             if plot is not None:
                 plot._invalidateDataRange()
+        super(Histogram, self).setVisible(visible)
 
     def getValueData(self, copy=True):
         """The values of the histogram
@@ -253,7 +252,7 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
         :returns: (N histogram value, N+1 bin edges)
         :rtype: 2-tuple of numpy.nadarray
         """
-        return (self.getValueData(copy), self.getBinEdgesData(copy))
+        return self.getValueData(copy), self.getBinEdgesData(copy)
 
     def setData(self, histogram, edges, align='center', copy=True):
         """Set the histogram values and bin edges.
@@ -292,4 +291,4 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
             self._histogram = histogram
             self._edges = edges
 
-        self._updated()
+        self._updated(ItemChangedType.DATA)
