@@ -369,7 +369,7 @@ class PlotWidget(qt.QMainWindow):
 
         # Items handling
         self._content = OrderedDict()
-        self._contentToUpdate = set()
+        self._contentToUpdate = []  # Used as an OrderedSet
 
         self._dataRange = None
 
@@ -567,7 +567,8 @@ class PlotWidget(qt.QMainWindow):
 
         # Remove item from plot
         self._content.pop(key)
-        self._contentToUpdate.discard(item)
+        if item in self._contentToUpdate:
+            self._contentToUpdate.remove(item)
         if item.isVisible():
             self._setDirtyPlot(overlayOnly=item.isOverlay())
         if item.getBounds() is not None:
@@ -581,7 +582,10 @@ class PlotWidget(qt.QMainWindow):
         :param Item item: The item that required update
         """
         assert item.getPlot() == self
-        self._contentToUpdate.add(item)
+        # Pu item at the end of the list
+        if item in self._contentToUpdate:
+            self._contentToUpdate.remove(item)
+        self._contentToUpdate.append(item)
         self._setDirtyPlot(overlayOnly=item.isOverlay())
 
     # Add
@@ -2503,7 +2507,7 @@ class PlotWidget(qt.QMainWindow):
         """Redraw the plot immediately."""
         for item in self._contentToUpdate:
             item._update(self._backend)
-        self._contentToUpdate.clear()
+        self._contentToUpdate = []
         self._backend.replot()
         self._dirty = False  # reset dirty flag
 
