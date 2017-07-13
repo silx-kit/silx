@@ -82,7 +82,7 @@ class PrintPreviewDialog(qt.QDialog):
         self._viewScale = 1.0
         """Zoom level (1.0 is 100%)"""
 
-        self._printerIsReady = False
+        self._printerIsReady = printer is not None    # TODO: more testing
 
         self._toBeCleared = False
         """Flag indicating that all items must be removed from :attr:`scene`
