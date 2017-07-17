@@ -82,8 +82,6 @@ class PrintPreviewDialog(qt.QDialog):
         self._viewScale = 1.0
         """Zoom level (1.0 is 100%)"""
 
-        self._printerIsReady = printer is not None    # TODO: more testing
-
         self._toBeCleared = False
         """Flag indicating that all items must be removed from :attr:`scene`
         and from :attr:`_svgItems`.
@@ -211,10 +209,15 @@ class PrintPreviewDialog(qt.QDialog):
     def _print(self):
         """Do the printing, hide the print preview dialog,
         set :attr:`_toBeCleared` flag to True to trigger clearing the
-        next time the dialog is shown."""
+        next time the dialog is shown.
+
+        If the printer is not setup, do it first."""
         printer = self.printer
+        if printer is None:
+            self.setup()
+
         painter = qt.QPainter()
-        if not painter.begin(printer):
+        if not painter.begin(printer) or printer is None:
             _logger.error("Cannot initialize printer")
             return
         try:
@@ -272,14 +275,14 @@ class PrintPreviewDialog(qt.QDialog):
             self._clearAll()
         if self.printer is None:
             self.setup()
+        if self.printer is None:   # setup failed
+            return
         if title is None:
             title = ' ' * 88
         if comment is None:
             comment = ' ' * 88
         if commentPosition is None:
             commentPosition = "CENTER"
-        if not self._printerIsReady:
-            return
         if qt.qVersion() < "5.0":
             rectItem = qt.QGraphicsRectItem(self.page, self.scene)
         else:
@@ -355,7 +358,7 @@ class PrintPreviewDialog(qt.QDialog):
             self._clearAll()
         if self.printer is None:
             self.setup()
-        if not self._printerIsReady:
+        if self.printer is None:
             # printer not properly initialized
             return
         if not isinstance(item, qt.QSvgRenderer):
@@ -441,7 +444,7 @@ class PrintPreviewDialog(qt.QDialog):
         """
         if self.printer is None:
             self.printer = qt.QPrinter()
-        if self.printDialog is None or not self._printerIsReady:
+        if self.printDialog is None:
             self.printDialog = qt.QPrintDialog(self.printer, self)
         if self.printDialog.exec_():
             if self.printer.width() <= 0 or self.printer.height() <= 0:
@@ -450,22 +453,17 @@ class PrintPreviewDialog(qt.QDialog):
                 self.message.setText("Unknown library error \non printer initialization")
                 self.message.setWindowTitle("Library Error")
                 self.message.setModal(0)
-                self._printerIsReady = False
                 self.printer = None
                 return
-            self._printerIsReady = True
             self.printer.setFullPage(True)
-            self.updatePrinter()
+            self._updatePrinter()
         else:
-            # printer setup cancelled
+            # printer setup cancelled, check for a possible previous configuration
             if self.page is None:
                 # not initialized
-                self._printerIsReady = False
                 self.printer = None
-            else:
-                self._printerIsReady = True
 
-    def updatePrinter(self):
+    def _updatePrinter(self):
         """Resize :attr:`page`, :attr:`scene` and :attr:`view` to printer
         width and height."""
         printer = self.printer
