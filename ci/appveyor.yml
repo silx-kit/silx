@@ -52,6 +52,9 @@ install:
     - "pip install --upgrade virtualenv"
     - "virtualenv --version"
 
+    # Download Mesa OpenGL in current directory
+    - curl -fsS -o opengl32.dll http://www.silx.org/pub/silx/continuous_integration/opengl32_mingw-mesa-x86_64.dll
+
 build_script:
     # Create build virtualenv
     - "virtualenv --clear %VENV_BUILD_DIR%"
