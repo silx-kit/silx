@@ -75,7 +75,7 @@ class PrintPreviewDialog(qt.QDialog):
 
         self._svgItems = []
         """List storing :class:`QSvgRenderer` items to be printed, added in
-        :meth:`addSvgItem`, cleared in :meth:`__clearAll`.
+        :meth:`addSvgItem`, cleared in :meth:`_clearAll`.
         This ensures that there is a reference pointing to the items,
         which ensures they are not destroyed before being printed."""
 
@@ -89,21 +89,21 @@ class PrintPreviewDialog(qt.QDialog):
         and from :attr:`_svgItems`.
         Set to True after a successful printing. The widget is then hidden,
         and it will be cleared the next time it is shown.
-        Reset to False after :meth:`__clearAll` has done its job."""
+        Reset to False after :meth:`_clearAll` has done its job."""
 
     def exec_(self):
         if self._toBeCleared:
-            self.__clearAll()
+            self._clearAll()
         return qt.QDialog.exec_(self)
 
     def raise_(self):
         if self._toBeCleared:
-            self.__clearAll()
+            self._clearAll()
         return qt.QDialog.raise_(self)
 
     def show(self):
         if self._toBeCleared:
-            self.__clearAll()
+            self._clearAll()
         return qt.QDialog.show(self)
 
     def setOutputFileName(self, name):
@@ -146,22 +146,22 @@ class PrintPreviewDialog(qt.QDialog):
         hideBut.clicked.connect(self.hide)
 
         cancelBut = qt.QPushButton("Clear All", toolBar)
-        cancelBut.clicked.connect(self.__clearAll)
+        cancelBut.clicked.connect(self._clearAll)
 
         removeBut = qt.QPushButton("Remove", toolBar)
-        removeBut.clicked.connect(self.__remove)
+        removeBut.clicked.connect(self._remove)
 
         setupBut = qt.QPushButton("Setup", toolBar)
         setupBut.clicked.connect(self.setup)
 
         printBut = qt.QPushButton("Print", toolBar)
-        printBut.clicked.connect(self.__print)
+        printBut.clicked.connect(self._print)
 
         zoomPlusBut = qt.QPushButton("Zoom +", toolBar)
-        zoomPlusBut.clicked.connect(self.__zoomPlus)
+        zoomPlusBut.clicked.connect(self._zoomPlus)
 
         zoomMinusBut = qt.QPushButton("Zoom -", toolBar)
-        zoomMinusBut.clicked.connect(self.__zoomMinus)
+        zoomMinusBut.clicked.connect(self._zoomMinus)
 
         toolsLayout.addWidget(hideBut)
         toolsLayout.addWidget(printBut)
@@ -186,11 +186,11 @@ class PrintPreviewDialog(qt.QDialog):
         # status bar
         statusBar = qt.QStatusBar(self)
         self.targetLabel = qt.QLabel(statusBar)
-        self.__updateTargetLabel()
+        self._updateTargetLabel()
         statusBar.addWidget(self.targetLabel)
         self.mainLayout.addWidget(statusBar)
 
-    def __updateTargetLabel(self):
+    def _updateTargetLabel(self):
         """Update printer name or file name shown in the status bar."""
         if self.printer is None:
             self.targetLabel.setText("???")
@@ -202,7 +202,7 @@ class PrintPreviewDialog(qt.QDialog):
             self.targetLabel.setText("Printer:" +
                                      self.printer.printerName())
 
-    def __print(self):
+    def _print(self):
         """Do the printing, hide the print preview dialog,
         set :attr:`_toBeCleared` flag to True to trigger clearing the
         next time the dialog is shown."""
@@ -234,11 +234,11 @@ class PrintPreviewDialog(qt.QDialog):
     #     else:
     #         self.view.scale(0.80, 0.80)
 
-    def __zoomPlus(self):
+    def _zoomPlus(self):
         self._viewScale *= 1.20
         self.view.scale(1.20, 1.20)
 
-    def __zoomMinus(self):
+    def _zoomMinus(self):
         self._viewScale *= 0.80
         self.view.scale(0.80, 0.80)
 
@@ -263,7 +263,7 @@ class PrintPreviewDialog(qt.QDialog):
         :param commentPosition: "CENTER" or "LEFT"
         """
         if self._toBeCleared:
-            self.__clearAll()
+            self._clearAll()
         if self.printer is None:
             self.setup()
         if title is None:
@@ -292,7 +292,7 @@ class PrintPreviewDialog(qt.QDialog):
         rectItem.setFlag(qt.QGraphicsItem.ItemIsMovable, True)
         rectItem.setFlag(qt.QGraphicsItem.ItemIsFocusable, False)
 
-        rectItemResizeRect = GraphicsResizeRectItem(rectItem, self.scene)
+        rectItemResizeRect = _GraphicsResizeRectItem(rectItem, self.scene)
         rectItemResizeRect.setZValue(2)
 
         if qt.qVersion() < "5.0":
@@ -346,7 +346,7 @@ class PrintPreviewDialog(qt.QDialog):
         :param commentPosition: "CENTER" or "LEFT"
         """
         if self._toBeCleared:
-            self.__clearAll()
+            self._clearAll()
         if self.printer is None:
             self.setup()
         if not self._printerIsReady:
@@ -361,7 +361,7 @@ class PrintPreviewDialog(qt.QDialog):
         if commentPosition is None:
             commentPosition = "CENTER"     # FIXME: unused after that
 
-        svgItem = GraphicsSvgRectItem(item._viewBox, self.page)
+        svgItem = _GraphicsSvgRectItem(item._viewBox, self.page)
         svgItem.setSvgRenderer(item)
 
         # Alternatives 1
@@ -383,7 +383,7 @@ class PrintPreviewDialog(qt.QDialog):
         svgItem.setFlag(qt.QGraphicsItem.ItemIsMovable, True)
         svgItem.setFlag(qt.QGraphicsItem.ItemIsFocusable, False)
 
-        rectItemResizeRect = GraphicsResizeRectItem(svgItem, self.scene)
+        rectItemResizeRect = _GraphicsResizeRectItem(svgItem, self.scene)
         rectItemResizeRect.setZValue(2)
 
         self._svgItems.append(item)
@@ -417,7 +417,7 @@ class PrintPreviewDialog(qt.QDialog):
             # the correct equivalent would be:
             # rectItem.setTransform(qt.QTransform.fromScale(scalex, scaley))
             commentItem.setScale(scale)
-        textItem.moveBy(svgItem.boundingRect().x() + \
+        textItem.moveBy(svgItem.boundingRect().x() +
                         0.5 * svgItem.boundingRect().width() - offset * scale,
                         svgItem.boundingRect().y())
         if qt.qVersion() < "5.0":
@@ -484,9 +484,9 @@ class PrintPreviewDialog(qt.QDialog):
         # self.view.scale(1./self._viewScale, 1./self._viewScale)
         self.view.fitInView(self.page.rect(), qt.Qt.KeepAspectRatio)
         self._viewScale = 1.00
-        self.__updateTargetLabel()
+        self._updateTargetLabel()
 
-    def __clearAll(self):
+    def _clearAll(self):
         """
         Clear the print preview window, remove all items
         but keep the page.
@@ -502,40 +502,33 @@ class PrintPreviewDialog(qt.QDialog):
         self._svgItems = []
         self._toBeCleared = False
 
-    def __remove(self):
+    def _remove(self):
         """Remove selected item in :attr:`scene`.
         """
         itemlist = self.scene.items()
-        i = None
 
         # this loop is not efficient if there are many items ...
         for item in itemlist:
             if item.isSelected():
-                i = itemlist.index(item)
-                break
-
-        if i is not None:
-            self.scene.removeItem(item)
-
-#
-# class GraphicsSvgItem(qt.QGraphicsSvgItem):
-#     def setBoundingRect(self, rect):
-#         self._rect = rect
-#
-#     def boundingRect(self):
-#         return self._rect
-#
-#     def paint(self, painter, *var, **kw):
-#         if not self.renderer().isValid():
-#             _logger.error("Invalid renderer")
-#             return
-#         if self.elementId().isEmpty():
-#             self.renderer().render(painter, self._rect)
-#         else:
-#             self.renderer().render(painter, self.elementId(), self._rect)
+                self.scene.removeItem(item)
 
 
-class GraphicsSvgRectItem(qt.QGraphicsRectItem):
+class SingletonPrintPreviewDialog(PrintPreviewDialog):
+    """Singleton print preview dialog.
+
+    All widgets in a program that instantiate this class will share
+    a single print preview dialog. This allows for instance to rearrange
+    and print multiple plots on a single page.
+    """
+    _instance = None
+
+    def __new__(self, *var, **kw):
+        if self._instance is None:
+            self._instance = PrintPreviewDialog(*var, **kw)
+        return self._instance
+
+
+class _GraphicsSvgRectItem(qt.QGraphicsRectItem):
     def setSvgRenderer(self, renderer):
         self._renderer = renderer
 
@@ -544,13 +537,13 @@ class GraphicsSvgRectItem(qt.QGraphicsRectItem):
         self._renderer.render(painter, self.boundingRect())
 
 
-class GraphicsResizeRectItem(qt.QGraphicsRectItem):
+class _GraphicsResizeRectItem(qt.QGraphicsRectItem):
+    """Resizable QGraphicsRectItem."""
     def __init__(self, parent=None, scene=None, keepratio=True):
         if qt.qVersion() < '5.0':
             qt.QGraphicsRectItem.__init__(self, parent, scene)
         else:
             qt.QGraphicsRectItem.__init__(self, parent)
-        # rect = parent.sceneBoundingRect()
         rect = parent.boundingRect()
         x = rect.x()
         y = rect.y()
@@ -594,7 +587,7 @@ class GraphicsResizeRectItem(qt.QGraphicsRectItem):
     def mousePressEvent(self, event):
         if self._newRect is not None:
             self._newRect = None
-        self.__point0 = self.pos()
+        self._point0 = self.pos()
         parent = self.parentItem()
         scene = self.scene()
         rect = parent.rect()
@@ -615,8 +608,8 @@ class GraphicsResizeRectItem(qt.QGraphicsRectItem):
 
     def mouseMoveEvent(self, event):
         point1 = self.pos()
-        deltax = point1.x() - self.__point0.x()
-        deltay = point1.y() - self.__point0.y()
+        deltax = point1.x() - self._point0.x()
+        deltay = point1.y() - self._point0.y()
         if self.keepRatio:
             r1 = (self._w + deltax) / self._w
             r2 = (self._h + deltay) / self._h
@@ -639,8 +632,8 @@ class GraphicsResizeRectItem(qt.QGraphicsRectItem):
 
     def mouseReleaseEvent(self, event):
         point1 = self.pos()
-        deltax = point1.x() - self.__point0.x()
-        deltay = point1.y() - self.__point0.y()
+        deltax = point1.x() - self._point0.x()
+        deltay = point1.y() - self._point0.y()
         self.moveBy(-deltax, -deltay)
         parent = self.parentItem()
 
@@ -678,17 +671,12 @@ def testPreview():
 
     filename = sys.argv[1]
     if filename[-3:] == "svg":
-        if 0:
-            item = qt.QSvgWidget()
-            item.load(filename)
-            item.show()
-        else:
-            w = PrintPreviewDialog(parent=None, printer=None, name='Print Prev',
-                                   modal=0)
-            w.resize(400, 500)
-            item = qt.QGraphicsSvgItem(filename, w.page)
-            item.setFlag(qt.QGraphicsItem.ItemIsMovable, True)
-            item.setCacheMode(qt.QGraphicsItem.NoCache)
+        w = PrintPreviewDialog(parent=None, printer=None, name='Print Prev',
+                               modal=0)
+        w.resize(400, 500)
+        item = qt.QGraphicsSvgItem(filename, w.page)
+        item.setFlag(qt.QGraphicsItem.ItemIsMovable, True)
+        item.setCacheMode(qt.QGraphicsItem.NoCache)
         sys.exit(w.exec_())
 
     w = PrintPreviewDialog(parent=None, modal=0)
@@ -705,6 +693,7 @@ def testPreview():
     w.addImage(qt.QImage(filename), comment=comment, commentPosition="LEFT")
     # w.addImage(qt.QImage(filename))
     w.exec_()
+
 
 
 def testSimple():
@@ -752,7 +741,6 @@ def testSimple():
     button.clicked.connect(printFile)
 
 
-##  MAIN
 if __name__ == '__main__':
     a = qt.QApplication(sys.argv)
     testPreview()
