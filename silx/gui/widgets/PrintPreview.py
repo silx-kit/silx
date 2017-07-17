@@ -56,7 +56,12 @@ class PrintPreviewDialog(qt.QDialog):
         self._buildToolbar()
 
         self.printer = printer
-        """:class:`QPrinter` (paint device that paints on a printer)"""
+        """:class:`QPrinter` (paint device that paints on a printer)
+
+        This attribute can initially be None, but it needs to be defined for
+        most operations. Therefore, any operation requiring the printer
+        to be set up will automatically be preceded by a call to
+        :meth:`setup`."""
 
         self.printDialog = None
         """:class:`QPrintDialog` (dialog for specifying the printer's
@@ -89,6 +94,18 @@ class PrintPreviewDialog(qt.QDialog):
         and it will be cleared the next time it is shown.
         Reset to False after :meth:`_clearAll` has done its job."""
 
+    @property
+    def printer(self):
+        """:class:`QPrinter`. If not defined, a :class:`QPrintDialog`
+        pops-up to define it. If this setup fails or is cancelled,
+        an :class:`IOError` is raised."""
+        if self._printer is None:
+            self.setup()
+        if self._printer is None:   # setup failed
+            raise IOError("Printer setup failed, but printer is required"
+                          " for the current operation.")
+        return self._printer
+
     def exec_(self):
         if self._toBeCleared:
             self._clearAll()
@@ -110,10 +127,7 @@ class PrintPreviewDialog(qt.QDialog):
         Setting a non-empty name enables printing to file.
 
         :param str name: File name (path)"""
-        if self.printer is not None:
-            self.printer.setOutputFileName(name)
-        else:
-            raise IOError("setOutputFileName : a printer must be defined before")
+        self.printer.setOutputFileName(name)
 
     def _buildToolbar(self):
         toolBar = qt.QWidget(self)
@@ -196,8 +210,8 @@ class PrintPreviewDialog(qt.QDialog):
 
     def _updateTargetLabel(self):
         """Update printer name or file name shown in the status bar."""
-        if self.printer is None:
-            self.targetLabel.setText("???")
+        if self._printer is None:
+            self.targetLabel.setText("Undefined printer")
             return
         if self.printer.outputFileName():
             self.targetLabel.setText("File:" +
@@ -213,8 +227,6 @@ class PrintPreviewDialog(qt.QDialog):
 
         If the printer is not setup, do it first."""
         printer = self.printer
-        if printer is None:
-            self.setup()
 
         painter = qt.QPainter()
         if not painter.begin(printer) or printer is None:
@@ -273,10 +285,7 @@ class PrintPreviewDialog(qt.QDialog):
         """
         if self._toBeCleared:
             self._clearAll()
-        if self.printer is None:
-            self.setup()
-        if self.printer is None:   # setup failed
-            return
+        assert self.printer is not None
         if title is None:
             title = ' ' * 88
         if comment is None:
@@ -356,11 +365,7 @@ class PrintPreviewDialog(qt.QDialog):
         """
         if self._toBeCleared:
             self._clearAll()
-        if self.printer is None:
-            self.setup()
-        if self.printer is None:
-            # printer not properly initialized
-            return
+        assert self.printer is not None
         if not isinstance(item, qt.QSvgRenderer):
             raise TypeError("addSvgItem: QSvgRenderer expected")
         if title is None:
@@ -442,31 +447,33 @@ class PrintPreviewDialog(qt.QDialog):
         If the setting fails or is cancelled, :attr:`printer` is reset to
         *None*.
         """
-        if self.printer is None:
-            self.printer = qt.QPrinter()
+        if self._printer is None:
+            self._printer = qt.QPrinter()
         if self.printDialog is None:
-            self.printDialog = qt.QPrintDialog(self.printer, self)
+            self.printDialog = qt.QPrintDialog(self._printer, self)
         if self.printDialog.exec_():
-            if self.printer.width() <= 0 or self.printer.height() <= 0:
+            if self._printer.width() <= 0 or self._printer.height() <= 0:
                 self.message = qt.QMessageBox(self)
                 self.message.setIcon(qt.QMessageBox.Critical)
                 self.message.setText("Unknown library error \non printer initialization")
                 self.message.setWindowTitle("Library Error")
                 self.message.setModal(0)
-                self.printer = None
+                self._printer = None
                 return
-            self.printer.setFullPage(True)
+            self._printer.setFullPage(True)
             self._updatePrinter()
         else:
             # printer setup cancelled, check for a possible previous configuration
             if self.page is None:
                 # not initialized
-                self.printer = None
+                self._printer = None
 
     def _updatePrinter(self):
-        """Resize :attr:`page`, :attr:`scene` and :attr:`view` to printer
+        """Resize :attr:`page`, :attr:`scene` and :attr:`view` to :attr:`printer`
         width and height."""
-        printer = self.printer
+        printer = self._printer
+        assert printer is not None, \
+            "_updatePrinter should not be called unless a printer is defined"
         if self.scene is None:
             self.scene = qt.QGraphicsScene()
             self.scene.setBackgroundBrush(qt.QColor(qt.Qt.lightGray))
@@ -477,9 +484,9 @@ class PrintPreviewDialog(qt.QDialog):
             self.page.setBrush(qt.QColor(qt.Qt.white))
             self.scene.addItem(self.page)
 
-        self.scene.setSceneRect(qt.QRectF(0, 0, self.printer.width(), self.printer.height()))
+        self.scene.setSceneRect(qt.QRectF(0, 0, printer.width(), printer.height()))
         self.page.setPos(qt.QPointF(0.0, 0.0))
-        self.page.setRect(qt.QRectF(0, 0, self.printer.width(), self.printer.height()))
+        self.page.setRect(qt.QRectF(0, 0, printer.width(), printer.height()))
 
         if self.view is None:
             self.view = qt.QGraphicsView(self.scene)
