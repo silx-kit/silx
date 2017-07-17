@@ -567,6 +567,13 @@ class PlotWidget(qt.QMainWindow):
         if key not in self._content:
             raise RuntimeError('Item not in the plot')
 
+        legend, kind = key
+
+        if kind in self._ACTIVE_ITEM_KINDS:
+            if self._getActiveItem(kind) == item:
+                # Reset active item
+                self._setActiveItem(kind, None)
+
         # Remove item from plot
         self._content.pop(key)
         if item in self._contentToUpdate:
@@ -577,6 +584,14 @@ class PlotWidget(qt.QMainWindow):
             self._invalidateDataRange()
         item._removeBackendRenderer(self._backend)
         item._setPlot(None)
+
+        if (kind == 'curve' and not self.getAllCurves(just_legend=True,
+                                                      withhidden=True)):
+            self._colorIndex = 0
+            self._styleIndex = 0
+
+        self.notify('contentChanged', action='remove',
+                    kind=kind, legend=legend)
 
     def _itemRequiresUpdate(self, item):
         """Called by items in the plot for asynchronous update
@@ -1452,6 +1467,9 @@ class PlotWidget(qt.QMainWindow):
     ITEM_KINDS = 'curve', 'image', 'scatter', 'item', 'marker', 'histogram'
     """List of supported kind of items in the plot."""
 
+    _ACTIVE_ITEM_KINDS = 'curve', 'scatter', 'image'
+    """List of item's kind which have a active item."""
+
     def remove(self, legend=None, kind=ITEM_KINDS):
         """Remove one or all element(s) of the given legend and kind.
 
@@ -1494,21 +1512,7 @@ class PlotWidget(qt.QMainWindow):
             for aKind in kind:
                 item = self._getItem(aKind, legend)
                 if item is not None:
-                    if aKind in ('curve', 'image'):
-                        if self._getActiveItem(aKind) == item:
-                            # Reset active item
-                            self._setActiveItem(aKind, None)
-
                     self._remove(item)
-
-                    if (aKind == 'curve' and
-                            not self.getAllCurves(just_legend=True,
-                                                  withhidden=True)):
-                        self._colorIndex = 0
-                        self._styleIndex = 0
-
-                    self.notify('contentChanged', action='remove',
-                                kind=aKind, legend=legend)
 
     def removeCurve(self, legend):
         """Remove the curve associated to legend from the graph.
@@ -1745,7 +1749,7 @@ class PlotWidget(qt.QMainWindow):
                                  False (default) to get the item
         :return: legend or item or None if no active item
         """
-        assert kind in ('curve', 'scatter', 'image')
+        assert kind in self._ACTIVE_ITEM_KINDS
 
         if self._activeLegend[kind] is None:
             return None
@@ -1767,7 +1771,7 @@ class PlotWidget(qt.QMainWindow):
                        or None to have no active curve.
         :type legend: str or None
         """
-        assert kind in ('curve', 'image', 'scatter')
+        assert kind in self._ACTIVE_ITEM_KINDS
 
         xLabel = None
         yLabel = None
@@ -1988,7 +1992,7 @@ class PlotWidget(qt.QMainWindow):
         if legend is not None:
             return self._content.get((legend, kind), None)
         else:
-            if kind in ('curve', 'image', 'scatter'):
+            if kind in self._ACTIVE_ITEM_KINDS:
                 item = self._getActiveItem(kind=kind)
                 if item is not None:  # Return active item if available
                     return item
