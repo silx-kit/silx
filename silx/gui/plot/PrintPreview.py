@@ -143,18 +143,24 @@ class PrintPreviewDialog(qt.QDialog):
         # self.scaleCombo.activated[int].connect(self.__scaleChanged)
 
         hideBut = qt.QPushButton("Hide", toolBar)
+        hideBut.setToolTip("Hide print preview dialog")
         hideBut.clicked.connect(self.hide)
 
         cancelBut = qt.QPushButton("Clear All", toolBar)
+        cancelBut.setToolTip("Remove all items")
         cancelBut.clicked.connect(self._clearAll)
 
-        removeBut = qt.QPushButton("Remove", toolBar)
+        removeBut = qt.QPushButton("Remove",
+                                   toolBar)
+        removeBut.setToolTip("Remove selected item (use left click to select)")
         removeBut.clicked.connect(self._remove)
 
         setupBut = qt.QPushButton("Setup", toolBar)
+        setupBut.setToolTip("Select and configure a printer")
         setupBut.clicked.connect(self.setup)
 
         printBut = qt.QPushButton("Print", toolBar)
+        printBut.setToolTip("Print page and close print preview")
         printBut.clicked.connect(self._print)
 
         zoomPlusBut = qt.QPushButton("Zoom +", toolBar)
