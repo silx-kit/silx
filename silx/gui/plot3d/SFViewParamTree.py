@@ -34,6 +34,7 @@ __date__ = "10/01/2017"
 
 import logging
 import sys
+import weakref
 
 import numpy
 
@@ -119,7 +120,12 @@ class SubjectItem(qt.QStandardItem):
         if self.__subject is not None:
             raise ValueError('Subject already set '
                              ' (subject change not supported).')
-        self.__subject = subject
+        if subject is None:
+            self.__subject = None
+        elif isinstance(subject, weakref.ProxyTypes):
+            self.__subject = subject
+        else:
+            self.__subject = weakref.proxy(subject)
         if subject is not None:
             self._init()
             self._connectSignals()
