@@ -1028,6 +1028,9 @@ class ScalarFieldView(Plot3DWindow):
 
             # Store data range info
             dataRange = min_max(self._data, min_positive=True, finite=True)
+            if dataRange.minimum is None:  # Only non-finite data
+                dataRange = None
+
             if dataRange is not None:
                 min_positive = dataRange.min_positive
                 if min_positive is None:

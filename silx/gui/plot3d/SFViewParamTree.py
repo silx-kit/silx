@@ -548,11 +548,13 @@ class _IsoLevelSlider(qt.QSlider):
 
     def __sliderReleased(self):
         value = self.value()
-        min_, _, max_ = self.subject.parent().getDataRange()
-        width = max_ - min_
-        sliderWidth = self.maximum() - self.minimum()
-        level = min_ + width * value / sliderWidth
-        self.subject.setLevel(level)
+        dataRange = self.subject.parent().getDataRange()
+        if dataRange is not None:
+            min_, _, max_ = dataRange
+            width = max_ - min_
+            sliderWidth = self.maximum() - self.minimum()
+            level = min_ + width * value / sliderWidth
+            self.subject.setLevel(level)
 
 
 class IsoSurfaceLevelSlider(IsoSurfaceLevelItem):
