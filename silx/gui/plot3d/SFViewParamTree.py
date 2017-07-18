@@ -775,7 +775,7 @@ class IsoSurfaceAddRemoveWidget(qt.QWidget):
             dataRange = [0, 1]
 
         sfview.addIsosurface(
-            numpy.mean(dataRange[0], dataRange[-1]), '#0000FF')
+            numpy.mean((dataRange[0], dataRange[-1])), '#0000FF')
 
     def __removeClicked(self):
         self.sigViewTask.emit('remove_iso')
