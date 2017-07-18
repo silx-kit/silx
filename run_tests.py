@@ -305,6 +305,14 @@ if options.qt_binding:
     binding = options.qt_binding.lower()
     if binding == "pyqt4":
         logger.info("Force using PyQt4")
+        if sys.version < "3.0.0":
+            try:
+                import sip
+
+                sip.setapi("QString", 2)
+                sip.setapi("QVariant", 2)
+            except:
+                logger.warning("Cannot set sip API")
         import PyQt4.QtCore  # noqa
     elif binding == "pyqt5":
         logger.info("Force using PyQt5")

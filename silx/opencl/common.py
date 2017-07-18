@@ -59,13 +59,16 @@ else:
     except ImportError:
         logger.warning("Unable to import pyOpenCl. Please install it from: http://pypi.python.org/pypi/pyopencl")
         pyopencl = None
-        class mf(object):
-            WRITE_ONLY = 1
-            READ_ONLY = 1
-            READ_WRITE = 1
     else:
         import pyopencl.array as array
         mf = pyopencl.mem_flags
+
+if pyopencl is None:
+    # Define default mem flags
+    class mf(object):
+        WRITE_ONLY = 1
+        READ_ONLY = 1
+        READ_WRITE = 1
 
 
 FLOP_PER_CORE = {"GPU": 64,  # GPU, Fermi at least perform 64 flops per cycle/multicore, G80 were at 24 or 48 ...
