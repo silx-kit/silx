@@ -32,7 +32,8 @@ __date__ = "06/03/2017"
 
 import logging
 
-from .core import Item, DraggableMixIn, ColorMixIn, SymbolMixIn
+from .core import (Item, DraggableMixIn, ColorMixIn, SymbolMixIn,
+                   ItemChangedType)
 
 
 _logger = logging.getLogger(__name__)
@@ -95,7 +96,7 @@ class _BaseMarker(Item, DraggableMixIn, ColorMixIn):
         text = str(text)
         if text != self._text:
             self._text = text
-            self._updated()
+            self._updated(ItemChangedType.TEXT)
 
     def getXPosition(self):
         """Returns the X position of the marker line in data coordinates
@@ -130,7 +131,7 @@ class _BaseMarker(Item, DraggableMixIn, ColorMixIn):
         x, y = float(x), float(y)
         if x != self._x or y != self._y:
             self._x, self._y = x, y
-            self._updated()
+            self._updated(ItemChangedType.POSITION)
 
     def getConstraint(self):
         """Returns the dragging constraint of this item"""
@@ -216,7 +217,7 @@ class XMarker(_BaseMarker):
         x = float(x)
         if x != self._x:
             self._x = x
-            self._updated()
+            self._updated(ItemChangedType.POSITION)
 
 
 class YMarker(_BaseMarker):
@@ -238,4 +239,4 @@ class YMarker(_BaseMarker):
         y = float(y)
         if y != self._y:
             self._y = y
-            self._updated()
+            self._updated(ItemChangedType.POSITION)

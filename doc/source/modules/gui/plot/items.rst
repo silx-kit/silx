@@ -8,59 +8,102 @@
 
 .. currentmodule:: silx.gui.plot.items
 
+Item
+----
+
+All plot primitives inherits from :class:`Item` as a common ground:
+
+.. autoclass:: Item
+   :show-inheritance:
+   :members:
+
 Curve
 -----
 
 .. autoclass:: Curve
-   :members:
-   :inherited-members:
+   :members: getData, getXData, getYData, getXErrorData, getYErrorData, setData,
+             getSymbol, setSymbol, getSymbolSize, setSymbolSize,
+             getAlpha, setAlpha,
+             getColor, setColor,
+             getYAxis, setYAxis,
+             isFill, setFill,
+             getXLabel, getYLabel,
+             getLineWidth, setLineWidth, getLineStyle, setLineStyle,
+             isHighlighted, setHighlighted, getHighlightedColor, setHighlightedColor,
+             getCurrentColor
 
 Images
 ------
 
 .. autoclass:: ImageData
-   :members:
-   :inherited-members:
+   :members: getData, getRgbaImageData,
+             getOrigin, setOrigin,
+             getScale, setScale,
+             getYAxis, setYAxis,
+             isDraggable,
+             getAlpha, setAlpha,
+             getColormap, setColormap,
+             getAlternativeImageData
 
 .. autoclass:: ImageRgba
-   :members:
-   :inherited-members:
+   :members: getData, getRgbaImageData,
+             getOrigin, setOrigin,
+             getScale, setScale,
+             getYAxis, setYAxis,
+             isDraggable,
+             getAlpha, setAlpha
 
 Scatter
 -------
 
 .. autoclass:: Scatter
-   :members:
-   :inherited-members:
+   :members: getValueData,
+             getData, getXData, getYData, getXErrorData, getYErrorData, setData,
+             getSymbol, setSymbol, getSymbolSize, setSymbolSize,
+             getAlpha, setAlpha,
+             getColormap, setColormap
 
 Histogram
 ---------
 
 .. autoclass:: Histogram
-   :members:
-   :inherited-members:
+   :members: getValueData, getBinEdgesData, getData, setData,
+             getAlpha, setAlpha,
+             getColor, setColor,
+             getYAxis, setYAxis,
+             isFill, setFill,
+             getLineWidth, setLineWidth, getLineStyle, setLineStyle
 
 Markers
 -------
 
 .. autoclass:: Marker
-   :members:
-   :inherited-members:
+   :members: getText, setText, getXPosition, getYPosition, getPosition, setPosition, getConstraint,
+             getSymbol, setSymbol, getSymbolSize, setSymbolSize
 
 .. autoclass:: XMarker
-   :members:
-   :inherited-members:
+   :members: getText, setText, getXPosition, getYPosition, getPosition, setPosition, getConstraint
 
 .. autoclass:: YMarker
-   :members:
-   :inherited-members:
+   :members: getText, setText, getXPosition, getYPosition, getPosition, setPosition, getConstraint
 
-Item
-----
+Shapes
+------
 
 .. autoclass:: Shape
+   :members: setOverlay,
+             getColor, setColor,
+             isFill, setFill,
+             getType, getPoints, setPoints
+
+Item changed signal
+-------------------
+
+Plot items emit a :attr:`Item.sigItemChanged` signal when their values are updated.
+This signal provides a flag in the following enumeration describing the modified value:
+
+.. autoclass:: ItemChangedType
    :members:
-   :inherited-members:
 
 Axis
 ----
