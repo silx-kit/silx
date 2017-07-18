@@ -34,12 +34,32 @@ from silx.gui.test.utils import TestCaseQt
 from silx.gui.widgets.PrintPreview import PrintPreviewDialog
 from silx.gui import qt
 
+from silx.resources import resource_filename
+
 
 class TestPrintPreview(TestCaseQt):
     def testShow(self):
         p = qt.QPrinter()
         d = PrintPreviewDialog(printer=p)
         d.show()
+        self.qapp.processEvents()
+
+    def testAddImage(self):
+        p = qt.QPrinter()
+        d = PrintPreviewDialog(printer=p)
+        d.addImage(qt.QImage(resource_filename("gui/icons/clipboard.png")))
+        self.qapp.processEvents()
+
+    def testAddSvg(self):
+        p = qt.QPrinter()
+        d = PrintPreviewDialog(printer=p)
+        d.addSvgItem(qt.QSvgRenderer(resource_filename("gui/icons/clipboard.svg"), d.page))
+        self.qapp.processEvents()
+
+    def testAddPixmap(self):
+        p = qt.QPrinter()
+        d = PrintPreviewDialog(printer=p)
+        d.addPixmap(qt.QPixmap.fromImage(qt.QImage(resource_filename("gui/icons/clipboard.svg"))))
         self.qapp.processEvents()
 
 

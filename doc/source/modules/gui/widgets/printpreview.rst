@@ -11,7 +11,7 @@ Widgets
 
 .. autoclass:: silx.gui.widgets.PrintPreview.PrintPreviewDialog
     :members:
-    :exclude-members: printDialog, scene, page, view, showEvent
+    :exclude-members: printDialog, showEvent
     :show-inheritance:
 
 
