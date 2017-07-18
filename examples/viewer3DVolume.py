@@ -101,6 +101,19 @@ def load(filename):
     return data
 
 
+def default_isolevel(data):
+    """Compute a default isosurface level: mean + 1 std
+
+    :param numpy.ndarray data: The data to process
+    :rtype: float
+    """
+    data = data[numpy.isfinite(data)]
+    if len(data) == 0:
+        return 0
+    else:
+        return numpy.mean(data) + numpy.std(data)
+
+
 def main(argv=None):
     # Parse input arguments
     parser = argparse.ArgumentParser(
@@ -195,9 +208,7 @@ def main(argv=None):
         window.addIsosurface(args.level, '#FF0000FF')
     else:
         # Add an iso-surface from a function
-        window.addIsosurface(
-            lambda data: numpy.mean(data) + numpy.std(data),
-            '#FF0000FF')
+        window.addIsosurface(default_isolevel, '#FF0000FF')
 
     window.show()
     return app.exec_()

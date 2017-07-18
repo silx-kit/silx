@@ -247,7 +247,7 @@ class Isosurface(qt.QObject):
                     self._level = level
                     self.sigLevelChanged.emit(level)
 
-            if numpy.isnan(self._level):
+            if not numpy.isfinite(self._level):
                 return
 
             st = time.time()
@@ -1027,7 +1027,7 @@ class ScalarFieldView(Plot3DWindow):
             self._data = data
 
             # Store data range info
-            dataRange = min_max(self._data, min_positive=True)
+            dataRange = min_max(self._data, min_positive=True, finite=True)
             if dataRange is not None:
                 min_positive = dataRange.min_positive
                 if min_positive is None:
