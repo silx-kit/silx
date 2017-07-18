@@ -171,11 +171,11 @@ def main(argv=None):
     else:
         # Create dummy data
         _logger.warning('Not data file provided, creating dummy data')
-        size = 128
-        z, y, x = numpy.mgrid[0:size, 0:size, 0:size]
-        data = numpy.asarray(
-            size**2 - ((x-size/2)**2 + (y-size/2)**2 + (z-size/2)**2),
-            dtype='float32')
+        coords = numpy.linspace(-10, 10, 64)
+        z = coords.reshape(-1, 1, 1)
+        y = coords.reshape(1, -1, 1)
+        x = coords.reshape(1, 1, -1)
+        data = numpy.sin(x * y * z) / (x * y * z)
 
     # Set ScalarFieldView data
     window.setData(data)
