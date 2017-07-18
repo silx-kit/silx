@@ -54,6 +54,7 @@ class TestOpenGL(TestCaseQt):
             if not self._dump:
                 self._dump = True
                 _logger.info('OpenGL info:')
+                _logger.info('\tQt OpenGL context version: %d.%d', self.getOpenGLVersion())
                 _logger.info('\tGL_VERSION: %s' % gl.glGetString(gl.GL_VERSION))
                 _logger.info('\tGL_SHADING_LANGUAGE_VERSION: %s' % \
                              gl.glGetString(gl.GL_SHADING_LANGUAGE_VERSION))
