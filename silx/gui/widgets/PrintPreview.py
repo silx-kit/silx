@@ -697,7 +697,7 @@ def testPreview():
 
     comment = ""
     for i in range(20):
-        comment += "Line number %d: En un lugar de La Mancha de cuyo nombre ...\n"
+        comment += "Line number %d: En un lugar de La Mancha de cuyo nombre ...\n" % i
 
     if filename[-3:] == "svg":
         item = qt.QSvgRenderer(filename, w.page)
