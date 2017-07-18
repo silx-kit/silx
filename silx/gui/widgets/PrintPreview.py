@@ -454,11 +454,10 @@ class PrintPreviewDialog(qt.QDialog):
             textItem.setScale(scale)
 
     def setup(self):
-        """Open a print dialog to ensure the printer is set.
+        """Open a print dialog to ensure the :attr:`printer` is set.
 
         If the setting fails or is cancelled, :attr:`printer` is reset to
-        *None*.
-        """
+        *None*.        """
         if self.printer is None:
             self.printer = qt.QPrinter()
         if self.printDialog is None:
@@ -540,8 +539,8 @@ class SingletonPrintPreviewDialog(PrintPreviewDialog):
     """Singleton print preview dialog.
 
     All widgets in a program that instantiate this class will share
-    a single print preview dialog. This allows for instance to rearrange
-    and print multiple plots on a single page.
+    a single print preview dialog. This enables sending
+    multiple images to a single page to be printed.
     """
     _instance = None
 
