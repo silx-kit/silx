@@ -33,6 +33,7 @@ import unittest
 
 import numpy
 
+from silx.test.utils import ParametricTestCase
 from silx.gui.test.utils import TestCaseQt
 from silx.gui import qt
 
@@ -42,7 +43,7 @@ from silx.gui.plot3d.ScalarFieldView import ScalarFieldView
 _logger = logging.getLogger(__name__)
 
 
-class TestScalarFieldView(TestCaseQt):
+class TestScalarFieldView(TestCaseQt, ParametricTestCase):
     """Tests of ScalarFieldView widget."""
 
     def setUp(self):
@@ -59,18 +60,44 @@ class TestScalarFieldView(TestCaseQt):
         del self.widget
         super(TestScalarFieldView, self).tearDown()
 
-    def testSimple(self):
-        """Set the data and an isosurface"""
-        coords = numpy.linspace(-10, 10, 32)
+    def _buildData(self, size):
+        """Make a 3D dataset"""
+        coords = numpy.linspace(-10, 10, size)
         z = coords.reshape(-1, 1, 1)
         y = coords.reshape(1, -1, 1)
         x = coords.reshape(1, 1, -1)
-        data = numpy.sin(x * y * z) / (x * y * z)
+        return numpy.sin(x * y * z) / (x * y * z)
+
+    def testSimple(self):
+        """Set the data and an isosurface"""
+        data = self._buildData(size=32)
 
         self.widget.setData(data)
         self.widget.addIsosurface(0.5, (1., 0., 0., 0.5))
         self.widget.addIsosurface(0.7, qt.QColor('green'))
         self.qapp.processEvents()
+
+    def testNotFinite(self):
+        """Test with NaN and inf in data set"""
+
+        # Some NaNs and inf
+        data = self._buildData(size=32)
+        data[8, :, :] = numpy.nan
+        data[16, :, :] = numpy.inf
+        data[24, :, :] = - numpy.inf
+
+        self.widget.addIsosurface(0.5, 'red')
+        self.widget.setData(data, copy=True)
+        self.qapp.processEvents()
+        self.widget.setData(None)
+
+        # All NaNs or inf
+        data = numpy.empty((4, 4, 4), dtype=numpy.float32)
+        for value in (numpy.nan, numpy.inf):
+            with self.subTest(value=str(value)):
+                data[:] = value
+                self.widget.setData(data, copy=True)
+                self.qapp.processEvents()
 
 
 def suite():
