@@ -179,6 +179,7 @@ __date__ = "28/06/2017"
 
 
 from collections import OrderedDict, namedtuple
+from contextlib import contextmanager
 import itertools
 import logging
 
@@ -325,6 +326,7 @@ class PlotWidget(qt.QMainWindow):
         self._autoreplot = False
         self._dirty = False
         self._cursorInPlot = False
+        self.__muteActiveItemChanged = False
 
         if kw:
             _logger.warning(
@@ -565,6 +567,13 @@ class PlotWidget(qt.QMainWindow):
         if key not in self._content:
             raise RuntimeError('Item not in the plot')
 
+        legend, kind = key
+
+        if kind in self._ACTIVE_ITEM_KINDS:
+            if self._getActiveItem(kind) == item:
+                # Reset active item
+                self._setActiveItem(kind, None)
+
         # Remove item from plot
         self._content.pop(key)
         if item in self._contentToUpdate:
@@ -575,6 +584,14 @@ class PlotWidget(qt.QMainWindow):
             self._invalidateDataRange()
         item._removeBackendRenderer(self._backend)
         item._setPlot(None)
+
+        if (kind == 'curve' and not self.getAllCurves(just_legend=True,
+                                                      withhidden=True)):
+            self._colorIndex = 0
+            self._styleIndex = 0
+
+        self.notify('contentChanged', action='remove',
+                    kind=kind, legend=legend)
 
     def _itemRequiresUpdate(self, item):
         """Called by items in the plot for asynchronous update
@@ -587,6 +604,12 @@ class PlotWidget(qt.QMainWindow):
             self._contentToUpdate.remove(item)
         self._contentToUpdate.append(item)
         self._setDirtyPlot(overlayOnly=item.isOverlay())
+
+    @contextmanager
+    def _muteActiveItemChangedSignal(self):
+        self.__muteActiveItemChanged = True
+        yield
+        self.__muteActiveItemChanged = False
 
     # Add
 
@@ -745,38 +768,41 @@ class PlotWidget(qt.QMainWindow):
             curve.setLineStyle(default_linestyle)
             curve.setSymbol(self._defaultPlotPoints)
 
-        # Override previous/default values with provided ones
-        curve.setInfo(info)
-        if color is not None:
-            curve.setColor(color)
-        if symbol is not None:
-            curve.setSymbol(symbol)
-        if linewidth is not None:
-            curve.setLineWidth(linewidth)
-        if linestyle is not None:
-            curve.setLineStyle(linestyle)
-        if xlabel is not None:
-            curve._setXLabel(xlabel)
-        if ylabel is not None:
-            curve._setYLabel(ylabel)
-        if yaxis is not None:
-            curve.setYAxis(yaxis)
-        if z is not None:
-            curve.setZValue(z)
-        if selectable is not None:
-            curve._setSelectable(selectable)
-        if fill is not None:
-            curve.setFill(fill)
+        # Do not emit sigActiveCurveChanged,
+        # it will be sent once with _setActiveItem
+        with self._muteActiveItemChangedSignal():
+            # Override previous/default values with provided ones
+            curve.setInfo(info)
+            if color is not None:
+                curve.setColor(color)
+            if symbol is not None:
+                curve.setSymbol(symbol)
+            if linewidth is not None:
+                curve.setLineWidth(linewidth)
+            if linestyle is not None:
+                curve.setLineStyle(linestyle)
+            if xlabel is not None:
+                curve._setXLabel(xlabel)
+            if ylabel is not None:
+                curve._setYLabel(ylabel)
+            if yaxis is not None:
+                curve.setYAxis(yaxis)
+            if z is not None:
+                curve.setZValue(z)
+            if selectable is not None:
+                curve._setSelectable(selectable)
+            if fill is not None:
+                curve.setFill(fill)
 
-        # Set curve data
-        # If errors not provided, reuse previous ones
-        # TODO: Issue if size of data change but not that of errors
-        if xerror is None:
-            xerror = curve.getXErrorData(copy=False)
-        if yerror is None:
-            yerror = curve.getYErrorData(copy=False)
+            # Set curve data
+            # If errors not provided, reuse previous ones
+            # TODO: Issue if size of data change but not that of errors
+            if xerror is None:
+                xerror = curve.getXErrorData(copy=False)
+            if yerror is None:
+                yerror = curve.getYErrorData(copy=False)
 
-        curve.setData(x, y, xerror, yerror, copy=copy)
+            curve.setData(x, y, xerror, yerror, copy=copy)
 
         if replace:  # Then remove all other curves
             for c in self.getAllCurves(withhidden=True):
@@ -979,36 +1005,39 @@ class PlotWidget(qt.QMainWindow):
                 image = items.ImageRgba()
             image._setLegend(legend)
 
-        # Override previous/default values with provided ones
-        image.setInfo(info)
-        if origin is not None:
-            image.setOrigin(origin)
-        if scale is not None:
-            image.setScale(scale)
-        if z is not None:
-            image.setZValue(z)
-        if selectable is not None:
-            image._setSelectable(selectable)
-        if draggable is not None:
-            image._setDraggable(draggable)
-        if colormap is not None and isinstance(image, items.ColormapMixIn):
-            if isinstance(colormap, dict):
-                image.setColormap(Colormap._fromDict(colormap))
-            else:
-                assert isinstance(colormap, Colormap)
-                image.setColormap(colormap)
-        if xlabel is not None:
-            image._setXLabel(xlabel)
-        if ylabel is not None:
-            image._setYLabel(ylabel)
+        # Do not emit sigActiveImageChanged,
+        # it will be sent once with _setActiveItem
+        with self._muteActiveItemChangedSignal():
+            # Override previous/default values with provided ones
+            image.setInfo(info)
+            if origin is not None:
+                image.setOrigin(origin)
+            if scale is not None:
+                image.setScale(scale)
+            if z is not None:
+                image.setZValue(z)
+            if selectable is not None:
+                image._setSelectable(selectable)
+            if draggable is not None:
+                image._setDraggable(draggable)
+            if colormap is not None and isinstance(image, items.ColormapMixIn):
+                if isinstance(colormap, dict):
+                    image.setColormap(Colormap._fromDict(colormap))
+                else:
+                    assert isinstance(colormap, Colormap)
+                    image.setColormap(colormap)
+            if xlabel is not None:
+                image._setXLabel(xlabel)
+            if ylabel is not None:
+                image._setYLabel(ylabel)
 
-        if data.ndim == 2:
-            image.setData(data, alternative=pixmap, copy=copy)
-        else:  # RGB(A) image
-            if pixmap is not None:
-                _logger.warning(
-                    'addImage: pixmap argument ignored when data is RGB(A)')
-            image.setData(data, copy=copy)
+            if data.ndim == 2:
+                image.setData(data, alternative=pixmap, copy=copy)
+            else:  # RGB(A) image
+                if pixmap is not None:
+                    _logger.warning(
+                        'addImage: pixmap argument ignored when data is RGB(A)')
+                image.setData(data, copy=copy)
 
         if replace:
             for img in self.getAllImages():
@@ -1093,31 +1122,34 @@ class PlotWidget(qt.QMainWindow):
             scatter._setLegend(legend)
             scatter.setColormap(self.getDefaultColormap())
 
-        # Override previous/default values with provided ones
-        scatter.setInfo(info)
-        if symbol is not None:
-            scatter.setSymbol(symbol)
-        if z is not None:
-            scatter.setZValue(z)
-        if colormap is not None:
-            if isinstance(colormap, dict):
-                scatter.setColormap(Colormap._fromDict(colormap))
-            else:
-                assert isinstance(colormap, Colormap)
-                scatter.setColormap(colormap)
+        # Do not emit sigActiveScatterChanged,
+        # it will be sent once with _setActiveItem
+        with self._muteActiveItemChangedSignal():
+            # Override previous/default values with provided ones
+            scatter.setInfo(info)
+            if symbol is not None:
+                scatter.setSymbol(symbol)
+            if z is not None:
+                scatter.setZValue(z)
+            if colormap is not None:
+                if isinstance(colormap, dict):
+                    scatter.setColormap(Colormap._fromDict(colormap))
+                else:
+                    assert isinstance(colormap, Colormap)
+                    scatter.setColormap(colormap)
 
-        # Set scatter data
-        # If errors not provided, reuse previous ones
-        if xerror is None:
-            xerror = scatter.getXErrorData(copy=False)
-            if xerror is not None and len(xerror) != len(x):
-                xerror = None
-        if yerror is None:
-            yerror = scatter.getYErrorData(copy=False)
-            if yerror is not None and len(yerror) != len(y):
-                yerror = None
+            # Set scatter data
+            # If errors not provided, reuse previous ones
+            if xerror is None:
+                xerror = scatter.getXErrorData(copy=False)
+                if xerror is not None and len(xerror) != len(x):
+                    xerror = None
+            if yerror is None:
+                yerror = scatter.getYErrorData(copy=False)
+                if yerror is not None and len(yerror) != len(y):
+                    yerror = None
 
-        scatter.setData(x, y, value, xerror, yerror, copy=copy)
+            scatter.setData(x, y, value, xerror, yerror, copy=copy)
 
         if mustBeAdded:
             self._add(scatter)
@@ -1435,6 +1467,9 @@ class PlotWidget(qt.QMainWindow):
     ITEM_KINDS = 'curve', 'image', 'scatter', 'item', 'marker', 'histogram'
     """List of supported kind of items in the plot."""
 
+    _ACTIVE_ITEM_KINDS = 'curve', 'scatter', 'image'
+    """List of item's kind which have a active item."""
+
     def remove(self, legend=None, kind=ITEM_KINDS):
         """Remove one or all element(s) of the given legend and kind.
 
@@ -1477,21 +1512,7 @@ class PlotWidget(qt.QMainWindow):
             for aKind in kind:
                 item = self._getItem(aKind, legend)
                 if item is not None:
-                    if aKind in ('curve', 'image'):
-                        if self._getActiveItem(aKind) == item:
-                            # Reset active item
-                            self._setActiveItem(aKind, None)
-
                     self._remove(item)
-
-                    if (aKind == 'curve' and
-                            not self.getAllCurves(just_legend=True,
-                                                  withhidden=True)):
-                        self._colorIndex = 0
-                        self._styleIndex = 0
-
-                    self.notify('contentChanged', action='remove',
-                                kind=aKind, legend=legend)
 
     def removeCurve(self, legend):
         """Remove the curve associated to legend from the graph.
@@ -1728,7 +1749,7 @@ class PlotWidget(qt.QMainWindow):
                                  False (default) to get the item
         :return: legend or item or None if no active item
         """
-        assert kind in ('curve', 'scatter', 'image')
+        assert kind in self._ACTIVE_ITEM_KINDS
 
         if self._activeLegend[kind] is None:
             return None
@@ -1750,13 +1771,16 @@ class PlotWidget(qt.QMainWindow):
                        or None to have no active curve.
         :type legend: str or None
         """
-        assert kind in ('curve', 'image', 'scatter')
+        assert kind in self._ACTIVE_ITEM_KINDS
 
         xLabel = None
         yLabel = None
         yRightLabel = None
 
         oldActiveItem = self._getActiveItem(kind=kind)
+
+        if oldActiveItem is not None:  # Stop listening previous active image
+            oldActiveItem.sigItemChanged.disconnect(self._activeItemChanged)
 
         # Curve specific: Reset highlight of previous active curve
         if kind == 'curve' and oldActiveItem is not None:
@@ -1788,6 +1812,9 @@ class PlotWidget(qt.QMainWindow):
                         else:
                             yLabel = item.getYLabel()
 
+                # Start listening new active item
+                item.sigItemChanged.connect(self._activeItemChanged)
+
         # Store current labels and update plot
         self._xAxis._setCurrentLabel(xLabel)
         self._yAxis._setCurrentLabel(yLabel)
@@ -1808,6 +1835,21 @@ class PlotWidget(qt.QMainWindow):
                 legend=activeLegend)
 
         return activeLegend
+
+    def _activeItemChanged(self, type_):
+        """Listen for active item changed signal and broadcast signal
+
+        :param item.ItemChangedType type_: The type of item change
+        """
+        if not self.__muteActiveItemChanged:
+            item = self.sender()
+            if item is not None:
+                legend, kind = self._itemKey(item)
+                self.notify(
+                    'active' + kind[0].upper() + kind[1:] + 'Changed',
+                    updated=False,
+                    previous=legend,
+                    legend=legend)
 
     # Getters
 
@@ -1950,7 +1992,7 @@ class PlotWidget(qt.QMainWindow):
         if legend is not None:
             return self._content.get((legend, kind), None)
         else:
-            if kind in ('curve', 'image', 'scatter'):
+            if kind in self._ACTIVE_ITEM_KINDS:
                 item = self._getActiveItem(kind=kind)
                 if item is not None:  # Return active item if available
                     return item
