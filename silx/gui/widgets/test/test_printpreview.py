@@ -59,7 +59,7 @@ class TestPrintPreview(TestCaseQt):
     def testAddPixmap(self):
         p = qt.QPrinter()
         d = PrintPreviewDialog(printer=p)
-        d.addPixmap(qt.QPixmap.fromImage(qt.QImage(resource_filename("gui/icons/clipboard.svg"))))
+        d.addPixmap(qt.QPixmap.fromImage(qt.QImage(resource_filename("gui/icons/clipboard.png"))))
         self.qapp.processEvents()
 
 
