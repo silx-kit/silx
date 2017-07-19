@@ -344,6 +344,24 @@ class HighlightColorItem(ColorItem):
         return self.subject.getHighlightColor()
 
 
+class BoundingBoxItem(SubjectItem):
+    """Bounding box, axes labels and grid visibility item.
+
+    Item is checkable.
+    """
+    itemName = 'Bounding Box'
+
+    def _init(self):
+        visible = self.subject.isBoundingBoxVisible()
+        self.setCheckable(True)
+        self.setCheckState(qt.Qt.Checked if visible else qt.Qt.Unchecked)
+
+    def leftClicked(self):
+        checked = (self.checkState() == qt.Qt.Checked)
+        if checked != self.subject.isBoundingBoxVisible():
+            self.subject.setBoundingBoxVisible(checked)
+
+
 class ViewSettingsItem(qt.QStandardItem):
     """Viewport settings"""
 
@@ -353,7 +371,8 @@ class ViewSettingsItem(qt.QStandardItem):
 
         self.setEditable(False)
 
-        classes = BackgroundColorItem, ForegroundColorItem, HighlightColorItem
+        classes = (BackgroundColorItem, ForegroundColorItem,
+                   HighlightColorItem, BoundingBoxItem)
         for cls in classes:
             titleItem = qt.QStandardItem(cls.itemName)
             titleItem.setEditable(False)
