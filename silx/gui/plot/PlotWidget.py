@@ -193,6 +193,7 @@ from .Colormap import Colormap
 from . import Colors
 from . import PlotInteraction
 from . import PlotEvents
+from .LimitsHistory import LimitsHistory
 from . import _utils
 
 from . import items
@@ -404,6 +405,8 @@ class PlotWidget(qt.QMainWindow):
 
         self.setDefaultPlotPoints(False)
         self.setDefaultPlotLines(True)
+
+        self._limitsHistory = LimitsHistory(self)
 
         self._eventHandler = PlotInteraction.PlotInteraction(self)
         self._eventHandler.setInteractiveMode('zoom', color=(0., 0., 0., 1.))
@@ -2016,6 +2019,10 @@ class PlotWidget(qt.QMainWindow):
         event = PlotEvents.prepareLimitsChangedSignal(
             id(self.getWidgetHandle()), xRange, yRange, y2Range)
         self.notify(**event)
+
+    def getLimitsHistory(self):
+        """Returns the object handling the history of limits of the plot"""
+        return self._limitsHistory
 
     def getGraphXLimits(self):
         """Get the graph X (bottom) limits.

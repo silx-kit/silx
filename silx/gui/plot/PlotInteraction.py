@@ -233,10 +233,10 @@ class Zoom(_ZoomOnWheel):
 
     def __init__(self, plot, color):
         self.color = color
-        self.zoomStack = []
         self._lastClick = 0., None
 
         super(Zoom, self).__init__(plot)
+        self.plot.getLimitsHistory().clear()
 
     def _areaWithAspectRatio(self, x0, y0, x1, y1):
         _plotLeft, _plotTop, plotW, plotH = self.plot.getPlotBoundsInPixels()
@@ -286,33 +286,25 @@ class Zoom(_ZoomOnWheel):
 
                 self._lastClick = time.time(), (dataPos[0], dataPos[1], x, y)
 
-            # Zoom-in centered on mouse cursor
-            # xMin, xMax = self.plot.getXAxis().getLimits()
-            # yMin, yMax = self.plot.getYAxis().getLimits()
-            # y2Min, y2Max = self.plot.getYAxis(axis='right').getLimits()
-            # self.zoomStack.append((xMin, xMax, yMin, yMax, y2Min, y2Max))
-            # self._zoom(x, y, 2)
         elif btn == RIGHT_BTN:
-            try:
-                xMin, xMax, yMin, yMax, y2Min, y2Max = self.zoomStack.pop()
-            except IndexError:
-                previousLimits = (self.plot.getXAxis().getLimits(),
-                                  self.plot.getYAxis().getLimits(),
-                                  self.plot.getYAxis(axis='right').getLimits())
-                self.plot.resetZoom()
-                newLimits = (self.plot.getXAxis().getLimits(),
-                             self.plot.getYAxis().getLimits(),
-                             self.plot.getYAxis(axis='right').getLimits())
-                if previousLimits == newLimits:
-                    # Signal mouse clicked event
-                    dataPos = self.plot.pixelToData(x, y)
-                    assert dataPos is not None
-                    eventDict = prepareMouseSignal('mouseClicked', 'right',
-                                                   dataPos[0], dataPos[1],
-                                                   x, y)
-                    self.plot.notify(**eventDict)
-            else:
-                self.plot.setLimits(xMin, xMax, yMin, yMax, y2Min, y2Max)
+            # Send right mouse clicked if limits are not changed
+            previousLimits = (self.plot.getXAxis().getLimits(),
+                  self.plot.getYAxis().getLimits(),
+                  self.plot.getYAxis(axis='right').getLimits())
+
+            self.plot.getLimitsHistory().pop()
+
+            newLimits = (self.plot.getXAxis().getLimits(),
+                         self.plot.getYAxis().getLimits(),
+                         self.plot.getYAxis(axis='right').getLimits())
+            if previousLimits == newLimits:
+                # Signal mouse clicked event
+                dataPos = self.plot.pixelToData(x, y)
+                assert dataPos is not None
+                eventDict = prepareMouseSignal('mouseClicked', 'right',
+                                               dataPos[0], dataPos[1],
+                                               x, y)
+                self.plot.notify(**eventDict)
 
     def beginDrag(self, x, y):
         dataPos = self.plot.pixelToData(x, y)
@@ -362,10 +354,7 @@ class Zoom(_ZoomOnWheel):
 
         if x0 != x1 or y0 != y1:  # Avoid empty zoom area
             # Store current zoom state in stack
-            xMin, xMax = self.plot.getXAxis().getLimits()
-            yMin, yMax = self.plot.getYAxis().getLimits()
-            y2Min, y2Max = self.plot.getYAxis(axis="right").getLimits()
-            self.zoomStack.append((xMin, xMax, yMin, yMax, y2Min, y2Max))
+            self.plot.getLimitsHistory().push()
 
             if self.plot.isKeepDataAspectRatio():
                 x0, y0, x1, y1 = self._areaWithAspectRatio(x0, y0, x1, y1)
