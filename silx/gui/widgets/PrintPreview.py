@@ -34,7 +34,6 @@ import logging
 from silx.gui import qt
 
 
-
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
 __date__ = "11/07/2017"
@@ -376,7 +375,7 @@ class PrintPreviewDialog(qt.QDialog):
         :param str comment: Comment displayed below the SVG item.
         :param commentPosition: "CENTER" or "LEFT"
         """
-        if hasattr(qt, "QSvgRenderer"):
+        if not qt.HAS_SVG:
             raise RuntimeError("Missing QtSvg library.")
         if not isinstance(item, qt.QSvgRenderer):
             raise TypeError("addSvgItem: QSvgRenderer expected")
