@@ -287,24 +287,13 @@ class Zoom(_ZoomOnWheel):
                 self._lastClick = time.time(), (dataPos[0], dataPos[1], x, y)
 
         elif btn == RIGHT_BTN:
-            # Send right mouse clicked if limits are not changed
-            previousLimits = (self.plot.getXAxis().getLimits(),
-                  self.plot.getYAxis().getLimits(),
-                  self.plot.getYAxis(axis='right').getLimits())
-
-            self.plot.getLimitsHistory().pop()
-
-            newLimits = (self.plot.getXAxis().getLimits(),
-                         self.plot.getYAxis().getLimits(),
-                         self.plot.getYAxis(axis='right').getLimits())
-            if previousLimits == newLimits:
-                # Signal mouse clicked event
-                dataPos = self.plot.pixelToData(x, y)
-                assert dataPos is not None
-                eventDict = prepareMouseSignal('mouseClicked', 'right',
-                                               dataPos[0], dataPos[1],
-                                               x, y)
-                self.plot.notify(**eventDict)
+            # Signal mouse clicked event
+            dataPos = self.plot.pixelToData(x, y)
+            assert dataPos is not None
+            eventDict = prepareMouseSignal('mouseClicked', 'right',
+                                           dataPos[0], dataPos[1],
+                                           x, y)
+            self.plot.notify(**eventDict)
 
     def beginDrag(self, x, y):
         dataPos = self.plot.pixelToData(x, y)
