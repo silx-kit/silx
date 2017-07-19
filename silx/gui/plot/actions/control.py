@@ -40,6 +40,7 @@ The following QAction are available:
 - :class:`YAxisInvertedAction`
 - :class:`YAxisLogarithmicAction`
 - :class:`YAxisAutoScaleAction`
+- :class:`ZoomBackAction`
 - :class:`ZoomInAction`
 - :class:`ZoomOutAction`
 """
@@ -96,6 +97,25 @@ class ResetZoomAction(PlotAction):
 
     def _actionTriggered(self, checked=False):
         self.plot.resetZoom()
+
+
+class ZoomBackAction(PlotAction):
+    """QAction performing a zoom-back in :class:`.PlotWidget` limits history.
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
+
+    def __init__(self, plot, parent=None):
+        super(ZoomBackAction, self).__init__(
+            plot, icon='zoom-back', text='Zoom Back',
+            tooltip='Zoom back the plot',
+            triggered=self._actionTriggered,
+            checkable=False, parent=parent)
+        self.setShortcutContext(qt.Qt.WidgetShortcut)
+
+    def _actionTriggered(self, checked=False):
+        self.plot.getLimitsHistory().pop()
 
 
 class ZoomInAction(PlotAction):
