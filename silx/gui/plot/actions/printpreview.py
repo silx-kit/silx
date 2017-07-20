@@ -193,6 +193,9 @@ class PrintPreviewAction(PlotAction):
 class PrintGeometryWidget(qt.QWidget):
     """Widget to specify the size and aspect ratio of an item
     before sending it to the print preview dialog.
+
+    Use methods :meth:`setPrintGeometry` and :meth:`getPrintGeometry`
+    to interact with the widget.
     """
     def __init__(self, parent=None):
         super(PrintGeometryWidget, self).__init__(parent)
@@ -273,6 +276,10 @@ class PrintGeometryWidget(qt.QWidget):
         self.mainLayout.addWidget(self._aspect, 4, 1, 1, 2)
 
     def getPrintGeometry(self):
+        """Return the print geometry dictionary.
+
+        See :meth:`setPrintGeometry` for documentation about the
+        print geometry dictionary."""
         ddict = {}
         if self._inchButton.isChecked():
             ddict['units'] = "inches"
@@ -292,32 +299,59 @@ class PrintGeometryWidget(qt.QWidget):
             ddict['keepAspectRatio'] = False
         return ddict
 
-    def setPrintGeometry(self, ddict=None):
-        if ddict is None:
-            ddict = {}
+    def setPrintGeometry(self, geometry=None):
+        """Set the print geometry.
+
+        The geometry parameters must be provided as a dictionary with
+        the following keys:
+
+         - *"xOffset"* (float)
+         - *"yOffset"* (float)
+         - *"width"* (float)
+         - *"height"* (float)
+         - *"units"*: possible values *"page", "inch", "cm"*
+         - *"keepAspectRatio"*: *True* or *False*
+
+        If *units* is *"page"*, the values should be floats in [0, 1.]
+        and are interpreted as a fraction of the page width or height.
+
+        :param dict geometry: Geometry parameters, as a dictionary."""
+        if geometry is None:
+            geometry = {}
         oldDict = self.getPrintGeometry()
         for key in ["units", "xOffset", "yOffset",
                     "width", "height", "keepAspectRatio"]:
-            ddict[key] = ddict.get(key, oldDict[key])
+            geometry[key] = geometry.get(key, oldDict[key])
 
-        if ddict['units'].lower().startswith("inc"):
+        if geometry['units'].lower().startswith("inc"):
             self._inchButton.setChecked(True)
-        elif ddict['units'].lower().startswith("c"):
+        elif geometry['units'].lower().startswith("c"):
             self._cmButton.setChecked(True)
         else:
             self._pageButton.setChecked(True)
 
-        self._xOffset.setText("%s" % float(ddict['xOffset']))
-        self._yOffset.setText("%s" % float(ddict['yOffset']))
-        self._width.setText("%s" % float(ddict['width']))
-        self._height.setText("%s" % float(ddict['height']))
-        if ddict['keepAspectRatio']:
+        self._xOffset.setText("%s" % float(geometry['xOffset']))
+        self._yOffset.setText("%s" % float(geometry['yOffset']))
+        self._width.setText("%s" % float(geometry['width']))
+        self._height.setText("%s" % float(geometry['height']))
+        if geometry['keepAspectRatio']:
             self._aspect.setChecked(True)
         else:
             self._aspect.setChecked(False)
 
 
 class PrintGeometryDialog(qt.QDialog):
+    """Dialog embedding a :class:`PrintGeometryWidget`.
+
+    Use methods :meth:`setPrintGeometry` and :meth:`getPrintGeometry`
+    to interact with the widget.
+
+    Execute method :meth:`exec_` to run the dialog.
+    The return value of that method is *True* if the geometry was set
+    (*Ok* button clicked) or *False* if the user clicked the *Cancel*
+    button.
+    """
+
     def __init__(self, parent=None):
         qt.QDialog.__init__(self, parent)
         self.setWindowTitle("Set print size preferences")
@@ -345,9 +379,20 @@ class PrintGeometryDialog(qt.QDialog):
         layout.addWidget(hbox)
 
     def setPrintGeometry(self, geometry):
+        """Return the print geometry dictionary.
+
+        See :meth:`PrintGeometryWidget.setPrintGeometry` for documentation on
+        print geometry dictionary.
+
+        :param dict geometry: Print geometry parameters dictionary.
+        """
         self.configurationWidget.setPrintGeometry(geometry)
 
     def getPrintGeometry(self):
+        """Return the print geometry dictionary.
+
+        See :meth:`PrintGeometryWidget.setPrintGeometry` for documentation on
+        print geometry dictionary."""
         return self.configurationWidget.getPrintGeometry()
 
 
