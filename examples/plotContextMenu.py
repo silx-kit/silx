@@ -25,13 +25,15 @@
 # ###########################################################################*/
 """This script illustrates the addition of a context menu to a PlotWidget.
 
-The context menu is added to the PlotWidget by inheriting from PlotWidget
-and implementing QWidget.contextMenuEvent method.
-For alternative ways of managing context menus, see Qt documentation.
+This is done by adding a custom context menu to the plot area of PlotWidget:
+- set the context menu policy of the plot area to Qt.CustomContextMenu.
+- connect to the plot area customContextMenuRequested signal.
+
+The same method works with PlotWindow, Plot1D and Plot2D widgets as they
+inherit from PlotWidget.
+
+For more information on context menus, see Qt documentation.
 """
-__authors__ = ["T. Vincent"]
-__license__ = "MIT"
-__date__ = "19/07/2017"
 
 
 import numpy
@@ -42,22 +44,33 @@ from silx.gui.plot.actions import control, io
 
 
 class PlotWidgetWithContextMenu(PlotWidget):
-    """This class inherit from plot to add specific context menu."""
+    """This class adds a custom context menu to PlotWidget's plot area."""
 
     def __init__(self, *args, **kwargs):
         super(PlotWidgetWithContextMenu, self).__init__(*args, **kwargs)
         self.setWindowTitle('PlotWidget with a context menu')
         self.setGraphTitle('Right-click on the plot to access context menu')
 
-        # Create QAction for the context menu
+        # Create QAction for the context menu once for all
         self._zoomBackAction = control.ZoomBackAction(plot=self, parent=self)
         self._zoomInAction = control.ZoomInAction(plot=self, parent=self)
         self._zoomOutAction = control.ZoomOutAction(plot=self, parent=self)
         self._saveAction = io.SaveAction(plot=self, parent=self)
         self._printAction = io.PrintAction(plot=self, parent=self)
 
-    def contextMenuEvent(self, event):
-        """Override QWidget.contextMenuEvent to implement the context menu"""
+        # Retrieve PlotWidget's plot area widget
+        plotArea = self.getWidgetHandle()
+
+        # Set plot area custom context menu
+        plotArea.setContextMenuPolicy(qt.Qt.CustomContextMenu)
+        plotArea.customContextMenuRequested.connect(self._contextMenu)
+
+    def _contextMenu(self, pos):
+        """Handle plot area customContextMenuRequested signal.
+
+        :param QPoint pos: Mouse position relative to plot area
+        """
+        # Create the context menu
         menu = qt.QMenu(self)
         menu.addAction(self._zoomBackAction)
         menu.addAction(self._zoomInAction)
@@ -65,7 +78,14 @@ class PlotWidgetWithContextMenu(PlotWidget):
         menu.addSeparator()
         menu.addAction(self._saveAction)
         menu.addAction(self._printAction)
-        menu.exec_(event.globalPos())
+
+        # Displaying the context menu at the mouse position requires
+        # a global position.
+        # The position received as argument is relative to PlotWidget's
+        # plot area, and thus needs to be converted.
+        plotArea = self.getWidgetHandle()
+        globalPosition = plotArea.mapToGlobal(pos)
+        menu.exec_(globalPosition)
 
 
 # Start the QApplication
