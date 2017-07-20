@@ -26,13 +26,9 @@
 
 - :class:`PrintPreviewAction`
 """
+from __future__ import absolute_import
 
-import sys
-if sys.version_info[0] < 3:
-    # cannot import from io module due to actions.io module name conflict
-    from StringIO import StringIO
-else:
-    from io import StringIO
+from io import StringIO
 
 from . import PlotAction
 from ...widgets.PrintPreview import PrintPreviewDialog
@@ -76,7 +72,11 @@ class PrintPreviewAction(PlotAction):
             svgRenderer = self._getSvgRenderer()
             self.printPreviewDialog.addSvgItem(svgRenderer)
         else:
-            pixmap = qt.QPixmap.grabWidget(self.plot.centralWidget())
+            if qt.BINDING in ["PyQt4", "PySide"]:
+                pixmap = qt.QPixmap.grabWidget(self.plot.centralWidget())
+            else:
+                # PyQt5 and hopefully PyQt6+
+                pixmap = self.plot.centralWidget().grab()
             self.printPreviewDialog.addPixmap(pixmap)
         self.printPreviewDialog.raise_()
 
@@ -93,15 +93,13 @@ class PrintPreviewAction(PlotAction):
         svgData = imgData.read()
 
         svgRenderer = qt.QSvgRenderer()
-        # svgRenderer._svgRawData = svgData
-        # svgRenderer._svgRendererData = qt.QXmlStreamReader(svgData)
 
         printer = self.printPreviewDialog.printer
-        if printer is None:   # Fixme: this probably can't happen
-            # printer was not selected, don't adjust the viewbox
-            if not svgRenderer.load(qt.QXmlStreamReader(svgData)):
-                raise RuntimeError("Cannot interpret svg data")
-            return svgRenderer
+        # if printer is None:   # Fixme: this probably can't happen
+        #     # printer was not selected, don't adjust the viewbox
+        #     if not svgRenderer.load(qt.QXmlStreamReader(svgData.encode())):
+        #         raise RuntimeError("Cannot interpret svg data")
+        #     return svgRenderer
 
         self._printConfigurationDialog()     # opens a dialog and updates _printConfiguration
         config = self._printConfiguration
@@ -180,8 +178,7 @@ class PrintPreviewAction(PlotAction):
 
         svgRenderer.setViewBox(body)
 
-        xml_stream = qt.QXmlStreamReader(svgData)
-        # FIXME: python3 UnicodeEncodeError 'latin-1' codec can't encode character '\u2212' in position 12688
+        xml_stream = qt.QXmlStreamReader(svgData.encode(errors="replace"))
 
         if not svgRenderer.load(xml_stream):
             raise RuntimeError("Cannot interpret svg data")
