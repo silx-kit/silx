@@ -39,9 +39,9 @@ else:
     h5py_missing = False
 
 
-__authors__ = ["P. Knobel"]
+__authors__ = ["P. Knobel", "V. Valls"]
 __license__ = "MIT"
-__date__ = "13/12/2016"
+__date__ = "20/07/2017"
 
 
 logger = logging.getLogger(__name__)
@@ -383,8 +383,10 @@ def open(filename):  # pylint:disable=redefined-builtin
 
     Format supported:
     - h5 files, if `h5py` module is installed
-    - Spec files if `SpecFile` module is installed
+    - SPEC files
     - a set of raster image formats (tiff, edf...) if `fabio` is installed
+
+    The file is opened in read-only mode.
 
     :param str filename: A filename
     :raises: IOError if the file can't be loaded as an h5py.File like object
@@ -395,7 +397,7 @@ def open(filename):  # pylint:disable=redefined-builtin
 
     if not h5py_missing:
         if h5py.is_hdf5(filename):
-            return h5py.File(filename)
+            return h5py.File(filename, "r")
 
     try:
         from . import fabioh5
