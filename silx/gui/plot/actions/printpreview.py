@@ -95,11 +95,6 @@ class PrintPreviewAction(PlotAction):
         svgRenderer = qt.QSvgRenderer()
 
         printer = self.printPreviewDialog.printer
-        # if printer is None:   # Fixme: this probably can't happen
-        #     # printer was not selected, don't adjust the viewbox
-        #     if not svgRenderer.load(qt.QXmlStreamReader(svgData.encode())):
-        #         raise RuntimeError("Cannot interpret svg data")
-        #     return svgRenderer
 
         self._printConfigurationDialog()     # opens a dialog and updates _printConfiguration
         config = self._printConfiguration
@@ -125,12 +120,12 @@ class PrintPreviewAction(PlotAction):
             if height is not None:
                 height = height * dpiy
         elif units.lower() in ['cm', 'centimeters']:
-            xOffset = (xOffset/2.54) * dpix
-            yOffset = (yOffset/2.54) * dpiy
+            xOffset = (xOffset / 2.54) * dpix
+            yOffset = (yOffset / 2.54) * dpiy
             if width is not None:
-                width = (width/2.54) * dpix
+                width = (width / 2.54) * dpix
             if height is not None:
-                height = (height/2.54) * dpiy
+                height = (height / 2.54) * dpiy
         else:
             # page units
             xOffset = availableWidth * xOffset
@@ -187,14 +182,173 @@ class PrintPreviewAction(PlotAction):
 
     def _printConfigurationDialog(self):
         """Open a dialog to prompt the user to adjust print parameters."""
-        # if self.printConfigurationDialog is None:
-        #     self.printConfigurationDialog = \
-        #                         ObjectPrintConfigurationDialog(self)
-        #
-        # self._printConfigurationDialog.setPrintConfiguration(self._printConfiguration)
-        # if self._printConfigurationDialog.exec_():
-        #     self._printConfiguration = self._printConfigurationDialog._printConfigurationDialog()
-        pass
+        if self.printConfigurationDialog is None:
+            self.printConfigurationDialog = PrintGeometryDialog(self.parent())
+
+        self.printConfigurationDialog.setPrintGeometry(self._printConfiguration)
+        if self.printConfigurationDialog.exec_():
+            self._printConfiguration = self.printConfigurationDialog.getPrintGeometry()
+
+
+class PrintGeometryWidget(qt.QWidget):
+    """Widget to specify the size and aspect ratio of an item
+    before sending it to the print preview dialog.
+    """
+    def __init__(self, parent=None):
+        super(PrintGeometryWidget, self).__init__(parent)
+        self.mainLayout = qt.QGridLayout(self)
+        self.mainLayout.setContentsMargins(0, 0, 0, 0)
+        self.mainLayout.setSpacing(2)
+        hbox = qt.QWidget()
+        hboxLayout = qt.QHBoxLayout(hbox)
+        hboxLayout.setContentsMargins(0, 0, 0, 0)
+        hboxLayout.setSpacing(2)
+        label = qt.QLabel(self)
+        label.setText("Units")
+        label.setAlignment(qt.Qt.AlignCenter)
+        self._pageButton = qt.QRadioButton()
+        self._pageButton.setText("Page")
+        self._inchButton = qt.QRadioButton()
+        self._inchButton.setText("Inches")
+        self._cmButton = qt.QRadioButton()
+        self._cmButton.setText("Centimeters")
+        self._buttonGroup = qt.QButtonGroup(self)
+        self._buttonGroup.addButton(self._pageButton)
+        self._buttonGroup.addButton(self._inchButton)
+        self._buttonGroup.addButton(self._cmButton)
+        self._buttonGroup.setExclusive(True)
+
+        # units
+        self.mainLayout.addWidget(label, 0, 0, 1, 4)
+        hboxLayout.addWidget(self._pageButton)
+        hboxLayout.addWidget(self._inchButton)
+        hboxLayout.addWidget(self._cmButton)
+        self.mainLayout.addWidget(hbox, 1, 0, 1, 4)
+        self._pageButton.setChecked(True)
+
+        # xOffset
+        label = qt.QLabel(self)
+        label.setText("X Offset:")
+        self.mainLayout.addWidget(label, 2, 0)
+        self._xOffset = qt.QLineEdit(self)
+        validator = qt.QDoubleValidator(None)
+        self._xOffset.setValidator(validator)
+        self._xOffset.setText("0.0")
+        self.mainLayout.addWidget(self._xOffset, 2, 1)
+
+        # yOffset
+        label = qt.QLabel(self)
+        label.setText("Y Offset:")
+        self.mainLayout.addWidget(label, 2, 2)
+        self._yOffset = qt.QLineEdit(self)
+        validator = qt.QDoubleValidator(None)
+        self._yOffset.setValidator(validator)
+        self._yOffset.setText("0.0")
+        self.mainLayout.addWidget(self._yOffset, 2, 3)
+
+        # width
+        label = qt.QLabel(self)
+        label.setText("Width:")
+        self.mainLayout.addWidget(label, 3, 0)
+        self._width = qt.QLineEdit(self)
+        validator = qt.QDoubleValidator(None)
+        self._width.setValidator(validator)
+        self._width.setText("0.5")
+        self.mainLayout.addWidget(self._width, 3, 1)
+
+        # height
+        label = qt.QLabel(self)
+        label.setText("Height:")
+        self.mainLayout.addWidget(label, 3, 2)
+        self._height = qt.QLineEdit(self)
+        validator = qt.QDoubleValidator(None)
+        self._height.setValidator(validator)
+        self._height.setText("0.5")
+        self.mainLayout.addWidget(self._height, 3, 3)
+
+        # aspect ratio
+        self._aspect = qt.QCheckBox(self)
+        self._aspect.setText("Keep screen aspect ratio")
+        self._aspect.setChecked(True)
+        self.mainLayout.addWidget(self._aspect, 4, 1, 1, 2)
+
+    def getPrintGeometry(self):
+        ddict = {}
+        if self._inchButton.isChecked():
+            ddict['units'] = "inches"
+        elif self._cmButton.isChecked():
+            ddict['units'] = "centimeters"
+        else:
+            ddict['units'] = "page"
+
+        ddict['xOffset'] = float(self._xOffset.text())
+        ddict['yOffset'] = float(self._yOffset.text())
+        ddict['width'] = float(self._width.text())
+        ddict['height'] = float(self._height.text())
+
+        if self._aspect.isChecked():
+            ddict['keepAspectRatio'] = True
+        else:
+            ddict['keepAspectRatio'] = False
+        return ddict
+
+    def setPrintGeometry(self, ddict=None):
+        if ddict is None:
+            ddict = {}
+        oldDict = self.getPrintGeometry()
+        for key in ["units", "xOffset", "yOffset",
+                    "width", "height", "keepAspectRatio"]:
+            ddict[key] = ddict.get(key, oldDict[key])
+
+        if ddict['units'].lower().startswith("inc"):
+            self._inchButton.setChecked(True)
+        elif ddict['units'].lower().startswith("c"):
+            self._cmButton.setChecked(True)
+        else:
+            self._pageButton.setChecked(True)
+
+        self._xOffset.setText("%s" % float(ddict['xOffset']))
+        self._yOffset.setText("%s" % float(ddict['yOffset']))
+        self._width.setText("%s" % float(ddict['width']))
+        self._height.setText("%s" % float(ddict['height']))
+        if ddict['keepAspectRatio']:
+            self._aspect.setChecked(True)
+        else:
+            self._aspect.setChecked(False)
+
+
+class PrintGeometryDialog(qt.QDialog):
+    def __init__(self, parent=None):
+        qt.QDialog.__init__(self, parent)
+        self.setWindowTitle("Set print size preferences")
+        layout = qt.QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        self.configurationWidget = PrintGeometryWidget(self)
+        hbox = qt.QWidget(self)
+        hboxLayout = qt.QHBoxLayout(hbox)
+        self.okButton = qt.QPushButton(hbox)
+        self.okButton.setText("Accept")
+        self.okButton.setAutoDefault(False)
+        self.rejectButton = qt.QPushButton(hbox)
+        self.rejectButton.setText("Dismiss")
+        self.rejectButton.setAutoDefault(False)
+        self.okButton.clicked.connect(self.accept)
+        self.rejectButton.clicked.connect(self.reject)
+        hboxLayout.setContentsMargins(0, 0, 0, 0)
+        hboxLayout.setSpacing(2)
+        # hboxLayout.addWidget(qt.HorizontalSpacer(hbox))
+        hboxLayout.addWidget(self.okButton)
+        hboxLayout.addWidget(self.rejectButton)
+        # hboxLayout.addWidget(qt.HorizontalSpacer(hbox))
+        layout.addWidget(self.configurationWidget)
+        layout.addWidget(hbox)
+
+    def setPrintGeometry(self, geometry):
+        self.configurationWidget.setPrintGeometry(geometry)
+
+    def getPrintGeometry(self):
+        return self.configurationWidget.getPrintGeometry()
 
 
 if __name__ == '__main__':
