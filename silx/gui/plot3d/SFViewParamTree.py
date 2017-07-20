@@ -113,7 +113,10 @@ class SubjectItem(qt.QStandardItem):
                 value = setValue
         super(SubjectItem, self).setData(value, role)
 
-    subject = property(lambda self: self.__subject)
+    @property
+    def subject(self):
+        """The subject this item is observing"""
+        return None if self.__subject is None else self.__subject()
 
     @subject.setter
     def subject(self, subject):
@@ -122,10 +125,8 @@ class SubjectItem(qt.QStandardItem):
                              ' (subject change not supported).')
         if subject is None:
             self.__subject = None
-        elif isinstance(subject, weakref.ProxyTypes):
-            self.__subject = subject
         else:
-            self.__subject = weakref.proxy(subject)
+            self.__subject = weakref.ref(subject)
         if subject is not None:
             self._init()
             self._connectSignals()
