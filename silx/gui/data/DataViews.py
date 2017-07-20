@@ -495,8 +495,15 @@ class _Plot3dView(DataView):
 
         plot = ScalarFieldView.ScalarFieldView(parent)
         plot.setAxesLabels(*reversed(self.axesNames(None, None)))
-        plot.addIsosurface(
-            lambda data: numpy.mean(data) + numpy.std(data), '#FF0000FF')
+
+        def computeIsolevel(data):
+            data = data[numpy.isfinite(data)]
+            if len(data) == 0:
+                return 0
+            else:
+                return numpy.mean(data) + numpy.std(data)
+
+        plot.addIsosurface(computeIsolevel, '#FF0000FF')
 
         # Create a parameter tree for the scalar field view
         options = SFViewParamTree.TreeView(plot)
