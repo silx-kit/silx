@@ -25,10 +25,12 @@ The current version provides :
 
 Installation
 ------------
-
 To install silx, run::
  
     pip install silx
+OR::
+    
+    conda install silx -c conda-forge
 
 To install silx locally, run::
  
