@@ -283,7 +283,7 @@ class PrintPreviewDialog(qt.QDialog):
             rectItem = qt.QGraphicsRectItem(self.page, self.scene)
         else:
             rectItem = qt.QGraphicsRectItem(self.page)
-        scale = 1.0  # float(0.5 * self.scene.width()/pixmap.width())
+
         rectItem.setRect(qt.QRectF(1, 1,
                                    pixmap.width(), pixmap.height()))
 
@@ -331,15 +331,6 @@ class PrintPreviewDialog(qt.QDialog):
         commentItem.moveBy(x, pixmap.height() + 20)
         commentItem.setZValue(2)
 
-        # I should adjust text size here
-        # textItem.scale(2,2)
-        # commentItem.scale(2,2)
-        if qt.qVersion() < "5.0":
-            rectItem.scale(scale, scale)
-        else:
-            # the correct equivalent would be:
-            # rectItem.setTransform(qt.QTransform.fromScale(scalex, scaley))
-            rectItem.setScale(scale)
         rectItem.moveBy(20, 40)
 
     def addSvgItem(self, item, title=None,
@@ -371,10 +362,9 @@ class PrintPreviewDialog(qt.QDialog):
         if comment is None:
             comment = 80 * ' '
         if commentPosition is None:
-            commentPosition = "CENTER"     # FIXME: unused after that
+            commentPosition = "CENTER"
 
         vb = viewBox if viewBox is not None else item.viewBoxF()
-        # fixme: using item.viewBoxF() for vb does not seem to work for setting geometry
         svgItem = _GraphicsSvgRectItem(vb, self.page)
         svgItem.setSvgRenderer(item)
 
@@ -394,7 +384,7 @@ class PrintPreviewDialog(qt.QDialog):
         else:
             textItem = qt.QGraphicsTextItem(title, svgItem)
         textItem.setTextInteractionFlags(qt.Qt.TextEditorInteraction)
-        offset = 0.5 * textItem.boundingRect().width()
+        title_offset = 0.5 * textItem.boundingRect().width()
         textItem.setZValue(1)
         textItem.setFlag(qt.QGraphicsItem.ItemIsMovable, True)
 
@@ -405,12 +395,17 @@ class PrintPreviewDialog(qt.QDialog):
             commentItem = qt.QGraphicsTextItem(dummyComment, svgItem)
         commentItem.setTextInteractionFlags(qt.Qt.TextEditorInteraction)
         scaleCalculationRect = qt.QRectF(commentItem.boundingRect())
-        commentItem.setPlainText(comment)
-        commentItem.moveBy(svgItem.boundingRect().x(),
-                           svgItem.boundingRect().y() + svgItem.boundingRect().height())
-
-        commentItem.setZValue(1)
         scale = svgItem.boundingRect().width() / scaleCalculationRect.width()
+        comment_offset = 0.5 * commentItem.boundingRect().width()
+        if commentPosition.upper() == "LEFT":
+            x = 1
+        else:
+            x = 0.5 * svgItem.boundingRect().width() - comment_offset * scale  # fixme: centering
+        commentItem.moveBy(svgItem.boundingRect().x() + x,
+                           svgItem.boundingRect().y() + svgItem.boundingRect().height())
+        commentItem.setPlainText(comment)
+        commentItem.setZValue(1)
+
         commentItem.setFlag(qt.QGraphicsItem.ItemIsMovable, True)
         if qt.qVersion() < "5.0":
             commentItem.scale(scale, scale)
@@ -419,7 +414,7 @@ class PrintPreviewDialog(qt.QDialog):
             # rectItem.setTransform(qt.QTransform.fromScale(scalex, scaley))
             commentItem.setScale(scale)
         textItem.moveBy(svgItem.boundingRect().x() +
-                        0.5 * svgItem.boundingRect().width() - offset * scale,
+                        0.5 * svgItem.boundingRect().width() - title_offset * scale,
                         svgItem.boundingRect().y())
         if qt.qVersion() < "5.0":
             textItem.scale(scale, scale)
