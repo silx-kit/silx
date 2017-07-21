@@ -34,6 +34,7 @@ __date__ = "10/01/2017"
 
 import logging
 import sys
+import weakref
 
 import numpy
 
@@ -112,14 +113,20 @@ class SubjectItem(qt.QStandardItem):
                 value = setValue
         super(SubjectItem, self).setData(value, role)
 
-    subject = property(lambda self: self.__subject)
+    @property
+    def subject(self):
+        """The subject this item is observing"""
+        return None if self.__subject is None else self.__subject()
 
     @subject.setter
     def subject(self, subject):
         if self.__subject is not None:
             raise ValueError('Subject already set '
                              ' (subject change not supported).')
-        self.__subject = subject
+        if subject is None:
+            self.__subject = None
+        else:
+            self.__subject = weakref.ref(subject)
         if subject is not None:
             self._init()
             self._connectSignals()
@@ -548,11 +555,13 @@ class _IsoLevelSlider(qt.QSlider):
 
     def __sliderReleased(self):
         value = self.value()
-        min_, _, max_ = self.subject.parent().getDataRange()
-        width = max_ - min_
-        sliderWidth = self.maximum() - self.minimum()
-        level = min_ + width * value / sliderWidth
-        self.subject.setLevel(level)
+        dataRange = self.subject.parent().getDataRange()
+        if dataRange is not None:
+            min_, _, max_ = dataRange
+            width = max_ - min_
+            sliderWidth = self.maximum() - self.minimum()
+            level = min_ + width * value / sliderWidth
+            self.subject.setLevel(level)
 
 
 class IsoSurfaceLevelSlider(IsoSurfaceLevelItem):
@@ -773,7 +782,7 @@ class IsoSurfaceAddRemoveWidget(qt.QWidget):
             dataRange = [0, 1]
 
         sfview.addIsosurface(
-            numpy.mean(dataRange[0], dataRange[-1]), '#0000FF')
+            numpy.mean((dataRange[0], dataRange[-1])), '#0000FF')
 
     def __removeClicked(self):
         self.sigViewTask.emit('remove_iso')

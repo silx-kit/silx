@@ -292,8 +292,11 @@ class Geometry(core.Elem):
             self.__bounds = numpy.zeros((2, 3), dtype=numpy.float32)
             # Support vertex with to 2 to 4 coordinates
             positions = self._attributes['position']
-            self.__bounds[0, :positions.shape[1]] = positions.min(axis=0)[:3]
-            self.__bounds[1, :positions.shape[1]] = positions.max(axis=0)[:3]
+            self.__bounds[0, :positions.shape[1]] = \
+                numpy.nanmin(positions, axis=0)[:3]
+            self.__bounds[1, :positions.shape[1]] = \
+                numpy.nanmax(positions, axis=0)[:3]
+            self.__bounds[numpy.isnan(self.__bounds)] = 0.  # Avoid NaNs
         return self.__bounds.copy()
 
     def prepareGL2(self, ctx):
