@@ -35,13 +35,13 @@ from . import PlotAction
 from ...widgets.PrintPreview import PrintPreviewDialog
 from ... import qt
 
-_logger = logging.getLogger(__name__)
-
-_logger.setLevel(logging.DEBUG)
-
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "18/07/2017"
+
+_logger = logging.getLogger(__name__)
+# _logger.setLevel(logging.DEBUG)
+
 
 
 class PrintPreviewAction(PlotAction):
@@ -145,10 +145,8 @@ class PrintPreviewAction(PlotAction):
             yOffset = availableHeight * yOffset
             if width is not None:
                 width = availableWidth * width
-                print(width)
             if height is not None:
                 height = availableHeight * height
-                print(height)
 
         _logger.debug("Parameters in dots (dpi): width %f; height %f; " +
                       "xOffset: %f; yOffset: %f",
@@ -204,6 +202,11 @@ class PrintPreviewAction(PlotAction):
         # need to return body and pass it to PrintPreviewDialog.addSvgItem. Why?
 
         xml_stream = qt.QXmlStreamReader(svgData.encode(errors="replace"))
+
+        # This is for PyMca compatibility, to share a print preview with PyMca plots
+        svgRenderer._viewBox = body
+        svgRenderer._svgRawData = svgData.encode(errors="replace")
+        svgRenderer._svgRendererData = xml_stream
 
         if not svgRenderer.load(xml_stream):
             raise RuntimeError("Cannot interpret svg data")

@@ -40,7 +40,7 @@ __date__ = "11/07/2017"
 
 
 _logger = logging.getLogger(__name__)
-_logger.setLevel(logging.DEBUG)
+# _logger.setLevel(logging.DEBUG)
 
 # TODO:
 # - automatic picture centering
@@ -364,8 +364,16 @@ class PrintPreviewDialog(qt.QDialog):
         if commentPosition is None:
             commentPosition = "CENTER"
 
-        vb = viewBox if viewBox is not None else item.viewBoxF()
-        svgItem = _GraphicsSvgRectItem(vb, self.page)
+        if viewBox is None:
+            if hasattr(item, "_viewBox"):
+                # PyMca compatibility
+                viewBox = item._viewBox
+            else:
+                # by default, we cannot set the viewbox,
+                # take the original one
+                viewBox = item.viewBoxF()
+
+        svgItem = _GraphicsSvgRectItem(viewBox, self.page)
         svgItem.setSvgRenderer(item)
 
         svgItem.setCacheMode(qt.QGraphicsItem.NoCache)
