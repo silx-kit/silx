@@ -29,11 +29,15 @@
 from __future__ import absolute_import
 
 from io import StringIO
+import logging
 
 from . import PlotAction
 from ...widgets.PrintPreview import PrintPreviewDialog
 from ... import qt
 
+_logger = logging.getLogger(__name__)
+
+_logger.setLevel(logging.DEBUG)
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
@@ -66,21 +70,24 @@ class PrintPreviewAction(PlotAction):
     def _plotToPrintPreview(self):
         if self.printPreviewDialog is None:
             self.printPreviewDialog = PrintPreviewDialog(self.parent())
-        self.printPreviewDialog.show()
+        self.printPreviewDialog.ensurePrinterIsSet()
 
         if qt.HAS_SVG:
-            svgRenderer = self._getSvgRenderer()
-            self.printPreviewDialog.addSvgItem(svgRenderer)
+            svgRenderer, viewBox = self._getSvgRendererAndViewBox()
+            self.printPreviewDialog.addSvgItem(svgRenderer,
+                                               viewBox=viewBox)
         else:
+            _logger.warning("Missing QtSvg library, using a raster image")
             if qt.BINDING in ["PyQt4", "PySide"]:
                 pixmap = qt.QPixmap.grabWidget(self.plot.centralWidget())
             else:
                 # PyQt5 and hopefully PyQt6+
                 pixmap = self.plot.centralWidget().grab()
             self.printPreviewDialog.addPixmap(pixmap)
+        self.printPreviewDialog.show()
         self.printPreviewDialog.raise_()
 
-    def _getSvgRenderer(self):
+    def _getSvgRendererAndViewBox(self):
         """Return a SVG renderer displaying the plot.
         The size of the renderer is adjusted to the printer configuration
         and to the geometry configuration (width, height, ratio) specified
@@ -96,7 +103,7 @@ class PrintPreviewAction(PlotAction):
 
         printer = self.printPreviewDialog.printer
 
-        self._printConfigurationDialog()     # opens a dialog and updates _printConfiguration
+        self._getPrintConfiguration()     # opens a dialog and updates _printConfiguration
         config = self._printConfiguration
         width = config['width']
         height = config['height']
@@ -104,12 +111,18 @@ class PrintPreviewAction(PlotAction):
         yOffset = config['yOffset']
         units = config['units']
         keepAspectRatio = config['keepAspectRatio']
+        _logger.debug("Requested print configuration %s",
+                      config)
 
         dpix = printer.logicalDpiX()
         dpiy = printer.logicalDpiY()
 
         availableWidth = printer.width()
         availableHeight = printer.height()
+
+        _logger.debug("Printer parameters: width %f; height %f; " +
+                      "logicalDpiX: %f; logicalDpiY: %f",
+                      availableWidth, availableHeight, dpix, dpiy)
 
         # convert the offsets to dpi
         if units.lower() in ['inch', 'inches']:
@@ -132,8 +145,14 @@ class PrintPreviewAction(PlotAction):
             yOffset = availableHeight * yOffset
             if width is not None:
                 width = availableWidth * width
+                print(width)
             if height is not None:
                 height = availableHeight * height
+                print(height)
+
+        _logger.debug("Parameters in dots (dpi): width %f; height %f; " +
+                      "xOffset: %f; yOffset: %f",
+                      width, height, xOffset, yOffset)
 
         availableWidth -= xOffset
         availableHeight -= yOffset
@@ -151,6 +170,7 @@ class PrintPreviewAction(PlotAction):
 
         if keepAspectRatio:
             # get the aspect ratio
+            _logger.debug("Preserving aspect ratio")
             widget = self.plot.centralWidget()
             graphWidth = float(widget.width())
             graphHeight = float(widget.height())
@@ -158,13 +178,21 @@ class PrintPreviewAction(PlotAction):
 
             bodyWidth = width or availableWidth
             bodyHeight = bodyWidth * graphRatio
+            _logger.debug("Calculated bodyWidth and bodyHeight: %f, %f",
+                          bodyWidth, bodyHeight)
 
             if bodyHeight > availableHeight:
                 bodyHeight = availableHeight
                 bodyWidth = bodyHeight / graphRatio
+
         else:
             bodyWidth = width or availableWidth
             bodyHeight = height or availableHeight
+
+        _logger.debug("Final parameters after taking available space"
+                      " into accout: bodyWidth %f; bodyWidth %f; "
+                      "xOffset %f; yOffset %f",
+                      bodyWidth, bodyHeight, xOffset, yOffset)
 
         body = qt.QRectF(xOffset,
                          yOffset,
@@ -172,15 +200,17 @@ class PrintPreviewAction(PlotAction):
                          bodyHeight)
 
         svgRenderer.setViewBox(body)
+        # FIXME: this info svgRenderer.viewBox seems to be lost, that's why we also
+        # need to return body and pass it to PrintPreviewDialog.addSvgItem. Why?
 
         xml_stream = qt.QXmlStreamReader(svgData.encode(errors="replace"))
 
         if not svgRenderer.load(xml_stream):
             raise RuntimeError("Cannot interpret svg data")
 
-        return svgRenderer
+        return svgRenderer, body
 
-    def _printConfigurationDialog(self):
+    def _getPrintConfiguration(self):
         """Open a dialog to prompt the user to adjust print parameters."""
         if self.printConfigurationDialog is None:
             self.printConfigurationDialog = PrintGeometryDialog(self.parent())

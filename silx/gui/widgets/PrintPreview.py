@@ -40,7 +40,7 @@ __date__ = "11/07/2017"
 
 
 _logger = logging.getLogger(__name__)
-
+_logger.setLevel(logging.DEBUG)
 
 # TODO:
 # - automatic picture centering
@@ -99,7 +99,7 @@ class PrintPreviewDialog(qt.QDialog):
         and it will be cleared the next time it is shown.
         Reset to False after :meth:`_clearAll` has done its job."""
 
-    def _ensurePrinterIsSet(self):
+    def ensurePrinterIsSet(self):
         """If the printer is not already set, try to interactively
         setup the printer using a QPrintDialog.
         In case of failure, hide widget and log a warning.
@@ -126,7 +126,7 @@ class PrintPreviewDialog(qt.QDialog):
         In case of failure, hide the widget."""
         if self._toBeCleared:
             self._clearAll()
-        self._ensurePrinterIsSet()
+        self.ensurePrinterIsSet()
 
         return super(PrintPreviewDialog, self).showEvent(event)
 
@@ -144,24 +144,6 @@ class PrintPreviewDialog(qt.QDialog):
         toolsLayout = qt.QHBoxLayout(toolBar)
         toolsLayout.setContentsMargins(0, 0, 0, 0)
         toolsLayout.setSpacing(0)
-
-        # # Margin
-        # marginLabel = qt.QLabel("Margins:", toolBar)
-        # self.marginSpin = qt.QSpinBox(toolBar)
-        # self.marginSpin.setRange(0, 50)
-        # self.marginSpin.setSingleStep(10)
-        # self.marginSpin.valueChanged[int].connect( \
-        #          self.__marginChanged)
-
-        # Scale / Zoom
-        # scaleLabel = qt.QLabel("Zoom:", toolBar)
-        # self.scaleCombo = qt.QComboBox(toolBar)
-        # self.scaleValues = [20, 40, 60, 80, 100, 150, 200]
-        #
-        # for scale in self.scaleValues:
-        #     self.scaleCombo.addItem("%3d %%"%scale)
-        #
-        # self.scaleCombo.activated[int].connect(self.__scaleChanged)
 
         hideBut = qt.QPushButton("Hide", toolBar)
         hideBut.setToolTip("Hide print preview dialog")
@@ -257,13 +239,6 @@ class PrintPreviewDialog(qt.QDialog):
             _logger.error('printing problem:\n %s' % sys.exc_info()[1])
             return
 
-    # def __scaleChanged(self, value):
-    #     """connected to scale combobox"""
-    #     if value > 2:
-    #         self.view.scale(1.20, 1.20)
-    #     else:
-    #         self.view.scale(0.80, 0.80)
-
     def _zoomPlus(self):
         self._viewScale *= 1.20
         self.view.scale(1.20, 1.20)
@@ -294,7 +269,7 @@ class PrintPreviewDialog(qt.QDialog):
         """
         if self._toBeCleared:
             self._clearAll()
-        self._ensurePrinterIsSet()
+        self.ensurePrinterIsSet()
         if self.printer is None:
             _logger.error("printer is not set, cannot add pixmap to page")
             return
@@ -367,13 +342,18 @@ class PrintPreviewDialog(qt.QDialog):
             rectItem.setScale(scale)
         rectItem.moveBy(20, 40)
 
-    def addSvgItem(self, item, title=None, comment=None, commentPosition=None):
+    def addSvgItem(self, item, title=None,
+                   comment=None, commentPosition=None,
+                   viewBox=None):
         """Add a SVG item to the scene.
 
         :param QSvgRenderer item: SVG item to be added to the scene.
         :param str title: Title shown above (centered) the SVG item.
         :param str comment: Comment displayed below the SVG item.
-        :param commentPosition: "CENTER" or "LEFT"
+        :param str commentPosition: "CENTER" or "LEFT"
+        :param QRectF viewBox: Bounding box for the item on the print page
+            (xOffset, yOffset, width, height). If None, use original
+            item size.
         """
         if not qt.HAS_SVG:
             raise RuntimeError("Missing QtSvg library.")
@@ -381,7 +361,7 @@ class PrintPreviewDialog(qt.QDialog):
             raise TypeError("addSvgItem: QSvgRenderer expected")
         if self._toBeCleared:
             self._clearAll()
-        self._ensurePrinterIsSet()
+        self.ensurePrinterIsSet()
         if self.printer is None:
             _logger.error("printer is not set, cannot add SvgItem to page")
             return
@@ -393,21 +373,10 @@ class PrintPreviewDialog(qt.QDialog):
         if commentPosition is None:
             commentPosition = "CENTER"     # FIXME: unused after that
 
-        svgItem = _GraphicsSvgRectItem(item.viewBoxF(), self.page)
+        vb = viewBox if viewBox is not None else item.viewBoxF()
+        # fixme: using item.viewBoxF() for vb does not seem to work for setting geometry
+        svgItem = _GraphicsSvgRectItem(vb, self.page)
         svgItem.setSvgRenderer(item)
-
-        # Alternatives 1
-        # svgItem = GraphicsSvgItem(self.page)
-        # svgItem.setSharedRenderer(item)
-        # svgItem.setBoundingRect(item._viewBox)
-
-        # Alternative 2
-        # svgItem = qt.QGraphicsSvgItem(self.page)
-        # svgItem.setSharedRenderer(item)
-        # if hasattr(item, "_viewBox"):
-        #     svgScaleX = item._viewBox.width() / svgItem.boundingRect().width()
-        #     svgScaleY = item._viewBox.height() / svgItem.boundingRect().height()
-        #     svgItem.scale(svgScaleX, svgScaleY)
 
         svgItem.setCacheMode(qt.QGraphicsItem.NoCache)
         svgItem.setZValue(0)
