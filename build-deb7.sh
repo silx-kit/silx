@@ -112,7 +112,7 @@ then
 else
   echo Using Python 2
   # bdist_deb feed /usr/bin using setup.py entry-points
-  PATH=$CCPATH python setup.py --command-packages=stdeb.command bdist_deb --no-cython
+  PATH=$CCPATH python setup.py --command-packages=stdeb.command build --no-cython bdist_deb
   rc=$?
 fi
 
