@@ -496,33 +496,6 @@ class SelectPolygon(Select):
                     self.points[-1] = dataPos
 
                 return True
-
-            elif btn == RIGHT_BTN:
-                self.machine.resetSelectionArea()
-
-                firstPos = self.machine.plot.dataToPixel(*self._firstPos,
-                                                         check=False)
-                dx, dy = abs(firstPos[0] - x), abs(firstPos[1] - y)
-
-                if (dx < self.machine.DRAG_THRESHOLD_DIST and
-                        dy < self.machine.DRAG_THRESHOLD_DIST):
-                    self.points[-1] = self.points[0]
-                else:
-                    dataPos = self.machine.plot.pixelToData(x, y)
-                    assert dataPos is not None
-                    self.points[-1] = dataPos
-                    if self.points[-2] == self.points[-1]:
-                        self.points.pop()
-                    self.points.append(self.points[0])
-
-                eventDict = prepareDrawingSignal('drawingFinished',
-                                                 'polygon',
-                                                 self.points,
-                                                 self.machine.parameters)
-                self.machine.plot.notify(**eventDict)
-                self.goto('idle')
-                return False
-
             return False
 
         def onMove(self, x, y):
