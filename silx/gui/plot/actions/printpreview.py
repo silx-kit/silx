@@ -64,9 +64,9 @@ Singleton example
 +++++++++++++++++
 
 This example illustrates how to print the content of several different
-plots on the same page. The plot instantiate a
+plots on the same page. The plots all instantiate a
 :class:`SingletonPrintPreviewAction`, which relies on a singleton widget
-:class:`SingletonPrintPreviewDialog`.
+:class:`silx.gui.widgets.PrintPreview.SingletonPrintPreviewDialog`.
 
 .. image:: img/printPreviewMultiPlot.png
 

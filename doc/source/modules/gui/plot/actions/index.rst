@@ -26,5 +26,6 @@ Actions are divided into the following sub-modules:
    fit.rst
    histogram.rst
    io.rst
+   printpreview.rst
 
 .. autoclass:: silx.gui.plot.actions.PlotAction
