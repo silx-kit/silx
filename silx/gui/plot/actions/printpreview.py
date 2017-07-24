@@ -26,7 +26,79 @@
 Print preview action, to send the content of a plot to a print preview page.
 The plot content can then be moved on the page and resized prior to printing.
 
+Classes
+-------
+
 - :class:`PrintPreviewAction`
+- :class:`SingletonPrintPreviewAction`
+
+Examples
+--------
+
+Simple example
+++++++++++++++
+
+.. code-block:: python
+
+    from silx.gui import qt
+    from silx.gui.plot import PlotWidget
+    from silx.gui.plot.actions import printpreview
+    import numpy
+
+    app = qt.QApplication([])
+
+    pw = PlotWidget()
+    toolbar = qt.QToolBar()
+    action = printpreview.PrintPreviewAction(plot=pw)
+    pw.addToolBar(toolbar)
+    toolbar.addAction(action)
+    pw.show()
+
+    x = numpy.arange(1000)
+    y = x / numpy.sin(x)
+    pw.addCurve(x, y)
+
+    app.exec_()
+
+Singleton example
++++++++++++++++++
+
+This example illustrates how to print the content of several different
+plots on the same page. The plot instantiate a
+:class:`SingletonPrintPreviewAction`, which relies on a singleton widget
+:class:`SingletonPrintPreviewDialog`.
+
+.. image:: img/printPreviewMultiPlot.png
+
+.. code-block:: python
+
+    from silx.gui import qt
+    from silx.gui.plot import PlotWidget
+    from silx.gui.plot.actions import printpreview
+    import numpy
+
+    app = qt.QApplication([])
+
+    plot_widgets = []
+
+    for i in range(3):
+        pw = PlotWidget()
+        toolbar = qt.QToolBar()
+        action = printpreview.SingletonPrintPreviewAction(plot=pw,
+                                                          parent=pw)
+        pw.addToolBar(toolbar)
+        toolbar.addAction(action)
+        pw.show()
+        plot_widgets.append(pw)
+
+    x = numpy.arange(1000)
+
+    plot_widgets[0].addCurve(x, numpy.sin(x * 2 * numpy.pi / 1000))
+    plot_widgets[1].addCurve(x, numpy.cos(x * 2 * numpy.pi / 1000))
+    plot_widgets[2].addCurve(x, numpy.tan(x * 2 * numpy.pi / 1000))
+
+    app.exec_()
+
 """
 from __future__ import absolute_import
 
@@ -35,7 +107,7 @@ from io import StringIO
 
 from . import PlotAction
 from ... import qt
-from ...widgets.PrintPreview import PrintPreviewDialog
+from ...widgets.PrintPreview import PrintPreviewDialog, SingletonPrintPreviewDialog
 from ...widgets.PrintGeometryDialog import PrintGeometryDialog
 
 __authors__ = ["P. Knobel"]
@@ -70,7 +142,7 @@ class PrintPreviewAction(PlotAction):
 
     @property
     def printPreviewDialog(self):
-        if self.printPreviewDialog is None:
+        if self._printPreviewDialog is None:
             self._printPreviewDialog = PrintPreviewDialog(self.parent())
         return self._printPreviewDialog
 
@@ -226,6 +298,19 @@ class PrintPreviewAction(PlotAction):
         self.printConfigurationDialog.setPrintGeometry(self._printConfiguration)
         if self.printConfigurationDialog.exec_():
             self._printConfiguration = self.printConfigurationDialog.getPrintGeometry()
+
+
+class SingletonPrintPreviewAction(PrintPreviewAction):
+    """This class is similar to its parent class :class:`PrintPreviewAction`
+    but it uses a singleton print preview widget.
+
+    This allows for several plots to send their content to the
+    same print page, and for users to arrange them."""
+    @property
+    def printPreviewDialog(self):
+        if self._printPreviewDialog is None:
+            self._printPreviewDialog = SingletonPrintPreviewDialog(self.parent())
+        return self._printPreviewDialog
 
 
 if __name__ == '__main__':
