@@ -590,6 +590,9 @@ class _GraphicsResizeRectItem(qt.QGraphicsRectItem):
         self._point0 = self.pos()
         parent = self.parentItem()
         scene = self.scene()
+        # following line prevents dragging along the previously selected
+        # item when resizing another one
+        scene.clearSelection()
         rect = parent.rect()
         self._x = rect.x()
         self._y = rect.y()
