@@ -73,9 +73,9 @@ Supported platforms: Linux, Windows, Mac OS X.
 Documentation
 -------------
 
-Documentation of releases is available at https://pythonhosted.org/silx/
+Documentation of latest release is available at http://www.silx.org/doc/silx/latest/
 
-Latest documentation (nightly build) is available at http://www.silx.org/doc/silx/
+Documentation of previous releases and nightly build is available at http://www.silx.org/doc/silx/
 
 To build the documentation from the source (requires `Sphinx <http://www.sphinx-doc.org>`_), run::
 
