@@ -35,12 +35,12 @@ inherit from PlotWidget.
 For more information on context menus, see Qt documentation.
 """
 
-
 import numpy
 
 from silx.gui import qt
 from silx.gui.plot import PlotWidget
-from silx.gui.plot.actions import control, io
+from silx.gui.plot.actions.control import ZoomBackAction, CrosshairAction
+from silx.gui.plot.actions.io import SaveAction, PrintAction
 
 
 class PlotWidgetWithContextMenu(PlotWidget):
@@ -52,11 +52,10 @@ class PlotWidgetWithContextMenu(PlotWidget):
         self.setGraphTitle('Right-click on the plot to access context menu')
 
         # Create QAction for the context menu once for all
-        self._zoomBackAction = control.ZoomBackAction(plot=self, parent=self)
-        self._zoomInAction = control.ZoomInAction(plot=self, parent=self)
-        self._zoomOutAction = control.ZoomOutAction(plot=self, parent=self)
-        self._saveAction = io.SaveAction(plot=self, parent=self)
-        self._printAction = io.PrintAction(plot=self, parent=self)
+        self._zoomBackAction = ZoomBackAction(plot=self, parent=self)
+        self._crosshairAction = CrosshairAction(plot=self, parent=self)
+        self._saveAction = SaveAction(plot=self, parent=self)
+        self._printAction = PrintAction(plot=self, parent=self)
 
         # Retrieve PlotWidget's plot area widget
         plotArea = self.getWidgetHandle()
@@ -73,8 +72,8 @@ class PlotWidgetWithContextMenu(PlotWidget):
         # Create the context menu
         menu = qt.QMenu(self)
         menu.addAction(self._zoomBackAction)
-        menu.addAction(self._zoomInAction)
-        menu.addAction(self._zoomOutAction)
+        menu.addSeparator()
+        menu.addAction(self._crosshairAction)
         menu.addSeparator()
         menu.addAction(self._saveAction)
         menu.addAction(self._printAction)
@@ -90,7 +89,7 @@ class PlotWidgetWithContextMenu(PlotWidget):
 
 # Start the QApplication
 app = qt.QApplication([])  # Start QApplication
-plot = PlotWidgetWithContextMenu(backend='gl')  # Create the widget
+plot = PlotWidgetWithContextMenu()  # Create the widget
 
 # Add content to the plot
 x = numpy.linspace(0, 2 * numpy.pi, 1000)
