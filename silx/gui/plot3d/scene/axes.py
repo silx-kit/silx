@@ -52,6 +52,8 @@ class LabelledAxes(primitives.GroupBBox):
 
         self._font = text.Font()
 
+        self._boxVisibility = True
+
         # TODO offset labels from anchor in pixels
 
         self._xlabel = text.Text2D(font=self._font)
@@ -145,6 +147,21 @@ class LabelledAxes(primitives.GroupBBox):
     def zlabel(self, text):
         self._zlabel.text = text
 
+    @property
+    def boxVisible(self):
+        """Returns bounding box, axes labels and grid visibility."""
+        return self._boxVisibility
+
+    @boxVisible.setter
+    def boxVisible(self, visible):
+        self._boxVisibility = bool(visible)
+        for child in self._children:
+            if child == self._tickLines:
+                if self._ticksForBounds is not None:
+                    child.visible = self._boxVisibility
+            elif child != self._group:
+                child.visible = self._boxVisibility
+
     def _updateTicks(self):
         """Check if ticks need update and update them if needed."""
         bounds = self._group.bounds(transformed=False, dataBounds=True)
@@ -187,7 +204,7 @@ class LabelledAxes(primitives.GroupBBox):
             zcoords[:, 3, 1] += ticklength[1]  # Z ticks on YZ plane
 
             self._tickLines.setPositions(coords.reshape(-1, 3))
-            self._tickLines.visible = True
+            self._tickLines.visible = self._boxVisibility
 
             # Update labels
             color = self.tickColor

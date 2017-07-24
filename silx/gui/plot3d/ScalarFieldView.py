@@ -1113,6 +1113,20 @@ class ScalarFieldView(Plot3DWindow):
 
     # Axes labels
 
+    def isBoundingBoxVisible(self):
+        """Returns axes labels, grid and bounding box visibility.
+
+        :rtype: bool
+        """
+        return self._bbox.boxVisible
+
+    def setBoundingBoxVisible(self, visible):
+        """Set axes labels, grid and bounding box visibility.
+
+        :param bool visible: True to show axes, False to hide
+        """
+        self._bbox.boxVisible = bool(visible)
+
     def setAxesLabels(self, xlabel=None, ylabel=None, zlabel=None):
         """Set the text labels of the axes.
 
