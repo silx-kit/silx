@@ -59,7 +59,7 @@ class TestSelectPolygon(_PlotWidgetTest):
     def _draw(self, polygon):
         """Draw a polygon in the plot
 
-        :param polygon: List of points (x, y) of the polygon (not closed)
+        :param polygon: List of points (x, y) of the polygon (closed)
         """
         plot = self.plot.getWidgetHandle()
 
@@ -68,8 +68,7 @@ class TestSelectPolygon(_PlotWidgetTest):
 
         for pos in polygon:
             self.mouseMove(plot, pos=pos)
-            btn = qt.Qt.LeftButton if pos != polygon[-1] else qt.Qt.RightButton
-            self.mouseClick(plot, btn, pos=pos)
+            self.mouseClick(plot, qt.Qt.LeftButton, pos=pos)
 
         self.plot.sigPlotSignal.disconnect(dump)
         return [args[0] for args in dump.received]
@@ -98,7 +97,8 @@ class TestSelectPolygon(_PlotWidgetTest):
                 (xCenter - offset, yCenter - offset),
                 (xCenter + offset, yCenter),
                 (xCenter - offset, yCenter),
-                (xCenter + offset, yCenter - offset)]
+                (xCenter + offset, yCenter - offset),
+                (xCenter, yCenter + offset)]  # Close polygon
 
         # Draw while dumping signals
         events = self._draw(star)
@@ -113,7 +113,8 @@ class TestSelectPolygon(_PlotWidgetTest):
         largeSquare = [(xCenter - offset, yCenter - offset),
                        (xCenter + offset, yCenter - offset),
                        (xCenter + offset, yCenter + offset),
-                       (xCenter - offset, yCenter + offset)]
+                       (xCenter - offset, yCenter + offset),
+                       (xCenter - offset, yCenter - offset)]  # Close polygon
 
         # Draw while dumping signals
         events = self._draw(largeSquare)
@@ -128,7 +129,7 @@ class TestSelectPolygon(_PlotWidgetTest):
         thinRectX = [(xCenter, yCenter - offset),
                      (xCenter, yCenter + offset),
                      (xCenter + 1, yCenter + offset),
-                     (xCenter + 1, yCenter - offset)]
+                     (xCenter + 1, yCenter - offset)]  # Close polygon
 
         # Draw while dumping signals
         events = self._draw(thinRectX)
@@ -143,7 +144,7 @@ class TestSelectPolygon(_PlotWidgetTest):
         thinRectY = [(xCenter - offset, yCenter),
                      (xCenter + offset, yCenter),
                      (xCenter + offset, yCenter + 1),
-                     (xCenter - offset, yCenter + 1)]
+                     (xCenter - offset, yCenter + 1)]  # Close polygon
 
         # Draw while dumping signals
         events = self._draw(thinRectY)
