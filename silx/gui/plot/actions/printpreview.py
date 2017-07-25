@@ -145,6 +145,8 @@ class PrintPreviewAction(PlotAction):
         """Lazy loaded :class:`PrintPreviewDialog`"""
         if self._printPreviewDialog is None:
             self._printPreviewDialog = PrintPreviewDialog(self.parent())
+            self._printPreviewDialog.sigSetupButtonClicked.connect(
+                    self._setPrintConfiguration)
         return self._printPreviewDialog
 
     def _plotToPrintPreview(self):
@@ -185,17 +187,11 @@ class PrintPreviewAction(PlotAction):
 
         defaultViewBox = self.printPreviewDialog.getDefaultViewBox()
         if defaultViewBox is None:
-            # fist call, interactive setting required
-            self._setPrintConfiguration()     # opens a dialog and updates _printConfiguration
-            defaultPrintGeom = self._printConfiguration
-            if self._printConfiguration["keepAspectRatio"]:
-                defaultPrintGeom["aspectRatio"] = self._getPlotAspectRatio()
-            else:
-                defaultPrintGeom["aspectRatio"] = None
-            del defaultPrintGeom["keepAspectRatio"]
-            self.printPreviewDialog.setDefaultPrintGeometry(defaultPrintGeom)
-            # Now it should be available
-            defaultViewBox = self.printPreviewDialog.getDefaultViewBox()
+            # opens a dialog and updates print configuration
+            self._setPrintConfiguration()
+
+        # Now it should be available
+        defaultViewBox = self.printPreviewDialog.getDefaultViewBox()
 
         svgRenderer.setViewBox(defaultViewBox)
 
@@ -212,13 +208,22 @@ class PrintPreviewAction(PlotAction):
         return svgRenderer, defaultViewBox
 
     def _setPrintConfiguration(self):
-        """Open a dialog to prompt the user to adjust print parameters."""
+        """Open a dialog to prompt the user to adjust print
+        geometry parameters."""
         if self.printConfigurationDialog is None:
             self.printConfigurationDialog = PrintGeometryDialog(self.parent())
 
         self.printConfigurationDialog.setPrintGeometry(self._printConfiguration)
         if self.printConfigurationDialog.exec_():
             self._printConfiguration = self.printConfigurationDialog.getPrintGeometry()
+
+            defaultPrintGeom = self._printConfiguration.copy()
+            if self._printConfiguration["keepAspectRatio"]:
+                defaultPrintGeom["aspectRatio"] = self._getPlotAspectRatio()
+            else:
+                defaultPrintGeom["aspectRatio"] = None
+            del defaultPrintGeom["keepAspectRatio"]
+            self.printPreviewDialog.setDefaultPrintGeometry(defaultPrintGeom)
 
     def _getPlotAspectRatio(self):
         widget = self.plot.centralWidget()

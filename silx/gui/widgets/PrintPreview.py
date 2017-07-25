@@ -49,6 +49,11 @@ _logger = logging.getLogger(__name__)
 
 class PrintPreviewDialog(qt.QDialog):
     """Print preview dialog widget."""
+
+    sigSetupButtonClicked = qt.Signal()
+    """Signal emitted after the setup button has been clicked and the
+    printer has been selected."""
+
     def __init__(self, parent=None, printer=None):
 
         qt.QDialog.__init__(self, parent)
@@ -167,7 +172,7 @@ class PrintPreviewDialog(qt.QDialog):
 
         setupBut = qt.QPushButton("Setup", toolBar)
         setupBut.setToolTip("Select and configure a printer")
-        setupBut.clicked.connect(self.setup)
+        setupBut.clicked.connect(self._setup)
 
         printBut = qt.QPushButton("Print", toolBar)
         printBut.setToolTip("Print page and close print preview")
@@ -439,6 +444,10 @@ class PrintPreviewDialog(qt.QDialog):
             # the correct equivalent would be:
             # rectItem.setTransform(qt.QTransform.fromScale(scalex, scaley))
             textItem.setScale(scale)
+
+    def _setup(self):
+        self.setup()
+        self.sigSetupButtonClicked.emit()
 
     def setup(self):
         """Open a print dialog to ensure the :attr:`printer` is set.
