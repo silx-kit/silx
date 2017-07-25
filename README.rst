@@ -28,7 +28,8 @@ Installation
 To install silx, run::
  
     pip install silx
-OR::
+    
+Or with Anaconda on Linux and MacOS::
     
     conda install silx -c conda-forge
 
@@ -45,7 +46,7 @@ Unofficial packages for different distributions are available :
 
 On Windows, pre-compiled binaries (aka Python wheels) are available for Python 2.7, 3.5 and 3.6.
 
-On Mac OS X, pre-compiled binaries (aka Python wheels) are available for Python 2.7.
+On MacOS, pre-compiled binaries (aka Python wheels) are available for Python 2.7.
 
 The latest development version can be obtained from the git repository::
 
