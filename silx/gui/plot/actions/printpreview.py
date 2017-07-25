@@ -232,16 +232,30 @@ class PrintPreviewAction(PlotAction):
         return graphHeight / graphWidth
 
 
+_SINGLETON_SETUP_CONNECTED = False
+"""Global flag set to prevent multiple connections between
+:class:`SingletonPrintPreviewAction` and :class:`SingletonPrintPreviewDialog`.
+"""
+
+
 class SingletonPrintPreviewAction(PrintPreviewAction):
     """This class is similar to its parent class :class:`PrintPreviewAction`
     but it uses a singleton print preview widget.
 
     This allows for several plots to send their content to the
     same print page, and for users to arrange them."""
+    def __init__(self, plot, parent=None):
+        PrintPreviewAction.__init__(self, plot, parent)
+
     @property
     def printPreviewDialog(self):
+        global _SINGLETON_SETUP_CONNECTED
         if self._printPreviewDialog is None:
             self._printPreviewDialog = SingletonPrintPreviewDialog(self.parent())
+            if not _SINGLETON_SETUP_CONNECTED:
+                self._printPreviewDialog.sigSetupButtonClicked.connect(
+                        self._setPrintConfiguration)
+                _SINGLETON_SETUP_CONNECTED = True
         return self._printPreviewDialog
 
 
