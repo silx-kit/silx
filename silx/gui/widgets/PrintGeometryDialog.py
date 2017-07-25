@@ -73,7 +73,7 @@ class PrintGeometryWidget(qt.QWidget):
         self._xOffset = qt.QLineEdit(self)
         validator = qt.QDoubleValidator(None)
         self._xOffset.setValidator(validator)
-        self._xOffset.setText("0.0")
+        self._xOffset.setText("0.1")
         self.mainLayout.addWidget(self._xOffset, 2, 1)
 
         # yOffset
@@ -83,7 +83,7 @@ class PrintGeometryWidget(qt.QWidget):
         self._yOffset = qt.QLineEdit(self)
         validator = qt.QDoubleValidator(None)
         self._yOffset.setValidator(validator)
-        self._yOffset.setText("0.0")
+        self._yOffset.setText("0.1")
         self.mainLayout.addWidget(self._yOffset, 2, 3)
 
         # width
@@ -93,7 +93,7 @@ class PrintGeometryWidget(qt.QWidget):
         self._width = qt.QLineEdit(self)
         validator = qt.QDoubleValidator(None)
         self._width.setValidator(validator)
-        self._width.setText("0.5")
+        self._width.setText("0.9")
         self.mainLayout.addWidget(self._width, 3, 1)
 
         # height
@@ -103,7 +103,7 @@ class PrintGeometryWidget(qt.QWidget):
         self._height = qt.QLineEdit(self)
         validator = qt.QDoubleValidator(None)
         self._height.setValidator(validator)
-        self._height.setText("0.5")
+        self._height.setText("0.9")
         self.mainLayout.addWidget(self._height, 3, 3)
 
         # aspect ratio
