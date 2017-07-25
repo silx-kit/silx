@@ -99,6 +99,13 @@ class PrintPreviewDialog(qt.QDialog):
         and it will be cleared the next time it is shown.
         Reset to False after :meth:`_clearAll` has done its job."""
 
+        self._printGeometry = None
+        """This attribute may contain a dictionary of default geometry
+        parameters to be used when :meth:`addSvgItem` is called without
+        specifying the view box. It can be set with
+        :meth:`setDefaultPrintGeometry`
+        """
+
     def ensurePrinterIsSet(self):
         """If the printer is not already set, try to interactively
         setup the printer using a QPrintDialog.
@@ -365,12 +372,14 @@ class PrintPreviewDialog(qt.QDialog):
             commentPosition = "CENTER"
 
         if viewBox is None:
+            defaultViewBox = self.getDefaultViewBox()
             if hasattr(item, "_viewBox"):
-                # PyMca compatibility
+                # PyMca compatibility: viewbox attached to item
                 viewBox = item._viewBox
+            elif defaultViewBox is not None:
+                viewBox = defaultViewBox
             else:
-                # by default, we cannot set the viewbox,
-                # take the original one
+                # try the original item viewbox
                 viewBox = item.viewBoxF()
 
         svgItem = _GraphicsSvgRectItem(viewBox, self.page)
@@ -435,7 +444,8 @@ class PrintPreviewDialog(qt.QDialog):
         """Open a print dialog to ensure the :attr:`printer` is set.
 
         If the setting fails or is cancelled, :attr:`printer` is reset to
-        *None*.        """
+        *None*.
+        """
         if self.printer is None:
             self.printer = qt.QPrinter()
         if self.printDialog is None:
@@ -512,6 +522,148 @@ class PrintPreviewDialog(qt.QDialog):
             if item.isSelected():
                 self.scene.removeItem(item)
 
+    def getDefaultPrintGeometry(self):
+        """Return a dictionary of print geometry parameters, or None.
+
+        See :meth:`setDefaultPrintGeometry` for the dictionary's format.
+
+        Use :meth:`getDefaultViewBox` to get the corresponding :class:`QRectF`
+        object.
+
+        :return: Geometry dict, or None"""
+        return self._printGeometry
+
+    def setDefaultPrintGeometry(self, geom):
+        """Set the default geometry parameters dictionary.
+
+        The dictionary should have the following keys:
+
+         - *width*
+         - *height*
+         - *xOffset*
+         - *yOffset*
+         - *units* (*inch*, *cm* or *page*)
+         - *aspectRatio* (None or height / width)
+
+        :param dict geom: Geometry dict, or None
+        """
+        if not isinstance(geom, (dict, type(None))):
+            raise TypeError("geom must be None or a dictionary of "
+                            "geometry parameters")
+        if geom is not None and self._printGeometry is not None:
+            # simple update
+            self._printGeometry.update(geom)
+        elif geom is None:
+            self._printGeometry = None
+            return
+        else:
+            # first setting after None
+            self._printGeometry = geom
+
+        # we need to ensure all parameters are set
+        default = {"xOffset": 0.1,
+                   "yOffset": 0.1,
+                   "width": 0.9,
+                   "height": 0.9,
+                   "units": "page",
+                   "aspectRatio": None}
+        for key in default:
+            if key not in self._printGeometry:
+                _logger.warning("Missing key %s in specified print geometry",
+                                key)
+                _logger.warning("Defaulting to %s = %s",
+                                key, default[key])
+                self._printGeometry[key] = default[key]
+        for key in self._printGeometry:
+            if key not in default:
+                _logger.warning("Unrecognized key %s in print geometry",
+                                key)
+
+    def getDefaultViewBox(self):
+        """Return a QRectF object, calculated using the print geometry parameters
+        (see :meth:`setDefaultPrintGeometry`).
+
+        This involves unit conversion: inches, or cm, or percentage of page
+        to printer dots. The result also depends on the user's choice regarding the preservation
+        of the aspect ratio.
+
+        :return: default bounding box as a QRectF object, or None if
+             no default print geometry has been set.
+        """
+        printer = self.printer
+
+        config = self._printGeometry
+        if config is None:
+            return None
+
+        width = config['width']
+        height = config['height']
+        xOffset = config['xOffset']
+        yOffset = config['yOffset']
+        units = config['units']
+        aspectRatio = config['aspectRatio']
+
+        dpix = printer.logicalDpiX()
+        dpiy = printer.logicalDpiY()
+
+        availableWidth = printer.width()
+        availableHeight = printer.height()
+
+        # convert the offsets to dots
+        if units.lower() in ['inch', 'inches']:
+            xOffset = xOffset * dpix
+            yOffset = yOffset * dpiy
+            if width is not None:
+                width = width * dpix
+            if height is not None:
+                height = height * dpiy
+        elif units.lower() in ['cm', 'centimeters']:
+            xOffset = (xOffset / 2.54) * dpix
+            yOffset = (yOffset / 2.54) * dpiy
+            if width is not None:
+                width = (width / 2.54) * dpix
+            if height is not None:
+                height = (height / 2.54) * dpiy
+        else:
+            # page units
+            xOffset = availableWidth * xOffset
+            yOffset = availableHeight * yOffset
+            if width is not None:
+                width = availableWidth * width
+            if height is not None:
+                height = availableHeight * height
+
+        availableWidth -= xOffset
+        availableHeight -= yOffset
+
+        if width is not None:
+            if (availableWidth + 0.1) < width:
+                txt = "Available width  %f is less than requested width %f" % \
+                      (availableWidth, width)
+                raise ValueError(txt)
+        if height is not None:
+            if (availableHeight + 0.1) < height:
+                txt = "Available height  %f is less than requested height %f" % \
+                      (availableHeight, height)
+                raise ValueError(txt)
+
+        if aspectRatio is not None:
+            bodyWidth = width or availableWidth
+            bodyHeight = bodyWidth * aspectRatio
+
+            if bodyHeight > availableHeight:
+                bodyHeight = availableHeight
+                bodyWidth = bodyHeight / aspectRatio
+
+        else:
+            bodyWidth = width or availableWidth
+            bodyHeight = height or availableHeight
+
+        return qt.QRectF(xOffset,
+                         yOffset,
+                         bodyWidth,
+                         bodyHeight)
+
 
 class SingletonPrintPreviewDialog(PrintPreviewDialog):
     """Singleton print preview dialog.
@@ -529,11 +681,17 @@ class SingletonPrintPreviewDialog(PrintPreviewDialog):
 
 
 class _GraphicsSvgRectItem(qt.QGraphicsRectItem):
+    """:class:`qt.QGraphicsRectItem` with an attached
+    :class:`qt.QSvgRenderer`, and with a painter redefined to render
+    the SVG item."""
     def setSvgRenderer(self, renderer):
+        """
+
+        :param QSvgRenderer renderer: svg renderer
+        """
         self._renderer = renderer
 
     def paint(self, painter, *var, **kw):
-        # self._renderer.render(painter, self._renderer._viewBox)
         self._renderer.render(painter, self.boundingRect())
 
 

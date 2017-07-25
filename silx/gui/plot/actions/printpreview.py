@@ -142,11 +142,14 @@ class PrintPreviewAction(PlotAction):
 
     @property
     def printPreviewDialog(self):
+        """Lazy loaded :class:`PrintPreviewDialog`"""
         if self._printPreviewDialog is None:
             self._printPreviewDialog = PrintPreviewDialog(self.parent())
         return self._printPreviewDialog
 
     def _plotToPrintPreview(self):
+        """Grab the plot widget and send it to the print preview dialog.
+        Make sure the print preview dialog is shown and raised."""
         self.printPreviewDialog.ensurePrinterIsSet()
 
         if qt.HAS_SVG:
@@ -165,7 +168,9 @@ class PrintPreviewAction(PlotAction):
         self.printPreviewDialog.raise_()
 
     def _getSvgRendererAndViewBox(self):
-        """Return a SVG renderer displaying the plot.
+        """Return a SVG renderer displaying the plot and its viewbox
+        (interactively specified by the user the first time this is called).
+
         The size of the renderer is adjusted to the printer configuration
         and to the geometry configuration (width, height, ratio) specified
         by the user."""
@@ -178,119 +183,35 @@ class PrintPreviewAction(PlotAction):
 
         svgRenderer = qt.QSvgRenderer()
 
-        printer = self.printPreviewDialog.printer
+        defaultViewBox = self.printPreviewDialog.getDefaultViewBox()
+        if defaultViewBox is None:
+            # fist call, interactive setting required
+            self._setPrintConfiguration()     # opens a dialog and updates _printConfiguration
+            defaultPrintGeom = self._printConfiguration
+            if self._printConfiguration["keepAspectRatio"]:
+                defaultPrintGeom["aspectRatio"] = self._getPlotAspectRatio()
+            else:
+                defaultPrintGeom["aspectRatio"] = None
+            del defaultPrintGeom["keepAspectRatio"]
+            self.printPreviewDialog.setDefaultPrintGeometry(defaultPrintGeom)
+            # Now it should be available
+            defaultViewBox = self.printPreviewDialog.getDefaultViewBox()
 
-        self._getPrintConfiguration()     # opens a dialog and updates _printConfiguration
-        config = self._printConfiguration
-        width = config['width']
-        height = config['height']
-        xOffset = config['xOffset']
-        yOffset = config['yOffset']
-        units = config['units']
-        keepAspectRatio = config['keepAspectRatio']
-        _logger.debug("Requested print configuration %s",
-                      config)
-
-        dpix = printer.logicalDpiX()
-        dpiy = printer.logicalDpiY()
-
-        availableWidth = printer.width()
-        availableHeight = printer.height()
-
-        _logger.debug("Printer parameters: width %f; height %f; " +
-                      "logicalDpiX: %f; logicalDpiY: %f",
-                      availableWidth, availableHeight, dpix, dpiy)
-
-        # convert the offsets to dpi
-        if units.lower() in ['inch', 'inches']:
-            xOffset = xOffset * dpix
-            yOffset = yOffset * dpiy
-            if width is not None:
-                width = width * dpix
-            if height is not None:
-                height = height * dpiy
-        elif units.lower() in ['cm', 'centimeters']:
-            xOffset = (xOffset / 2.54) * dpix
-            yOffset = (yOffset / 2.54) * dpiy
-            if width is not None:
-                width = (width / 2.54) * dpix
-            if height is not None:
-                height = (height / 2.54) * dpiy
-        else:
-            # page units
-            xOffset = availableWidth * xOffset
-            yOffset = availableHeight * yOffset
-            if width is not None:
-                width = availableWidth * width
-            if height is not None:
-                height = availableHeight * height
-
-        _logger.debug("Parameters in dots (dpi): width %f; height %f; " +
-                      "xOffset: %f; yOffset: %f",
-                      width, height, xOffset, yOffset)
-
-        availableWidth -= xOffset
-        availableHeight -= yOffset
-
-        if width is not None:
-            if (availableWidth + 0.1) < width:
-                txt = "Available width  %f is less than requested width %f" % \
-                              (availableWidth, width)
-                raise ValueError(txt)
-        if height is not None:
-            if (availableHeight + 0.1) < height:
-                txt = "Available height  %f is less than requested height %f" % \
-                              (availableHeight, height)
-                raise ValueError(txt)
-
-        if keepAspectRatio:
-            # get the aspect ratio
-            _logger.debug("Preserving aspect ratio")
-            widget = self.plot.centralWidget()
-            graphWidth = float(widget.width())
-            graphHeight = float(widget.height())
-            graphRatio = graphHeight / graphWidth
-
-            bodyWidth = width or availableWidth
-            bodyHeight = bodyWidth * graphRatio
-            _logger.debug("Calculated bodyWidth and bodyHeight: %f, %f",
-                          bodyWidth, bodyHeight)
-
-            if bodyHeight > availableHeight:
-                bodyHeight = availableHeight
-                bodyWidth = bodyHeight / graphRatio
-
-        else:
-            bodyWidth = width or availableWidth
-            bodyHeight = height or availableHeight
-
-        _logger.debug("Final parameters after taking available space"
-                      " into accout: bodyWidth %f; bodyWidth %f; "
-                      "xOffset %f; yOffset %f",
-                      bodyWidth, bodyHeight, xOffset, yOffset)
-
-        body = qt.QRectF(xOffset,
-                         yOffset,
-                         bodyWidth,
-                         bodyHeight)
-
-        svgRenderer.setViewBox(body)
-        # FIXME: this info svgRenderer.viewBox seems to be lost, that's why we also
-        # need to return body and pass it to PrintPreviewDialog.addSvgItem. Why?
+        svgRenderer.setViewBox(defaultViewBox)
 
         xml_stream = qt.QXmlStreamReader(svgData.encode(errors="replace"))
 
         # This is for PyMca compatibility, to share a print preview with PyMca plots
-        svgRenderer._viewBox = body
+        svgRenderer._viewBox = defaultViewBox
         svgRenderer._svgRawData = svgData.encode(errors="replace")
         svgRenderer._svgRendererData = xml_stream
 
         if not svgRenderer.load(xml_stream):
             raise RuntimeError("Cannot interpret svg data")
 
-        return svgRenderer, body
+        return svgRenderer, defaultViewBox
 
-    def _getPrintConfiguration(self):
+    def _setPrintConfiguration(self):
         """Open a dialog to prompt the user to adjust print parameters."""
         if self.printConfigurationDialog is None:
             self.printConfigurationDialog = PrintGeometryDialog(self.parent())
@@ -298,6 +219,12 @@ class PrintPreviewAction(PlotAction):
         self.printConfigurationDialog.setPrintGeometry(self._printConfiguration)
         if self.printConfigurationDialog.exec_():
             self._printConfiguration = self.printConfigurationDialog.getPrintGeometry()
+
+    def _getPlotAspectRatio(self):
+        widget = self.plot.centralWidget()
+        graphWidth = float(widget.width())
+        graphHeight = float(widget.height())
+        return graphHeight / graphWidth
 
 
 class SingletonPrintPreviewAction(PrintPreviewAction):
