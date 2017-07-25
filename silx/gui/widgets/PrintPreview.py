@@ -111,45 +111,6 @@ class PrintPreviewDialog(qt.QDialog):
         :meth:`setDefaultPrintGeometry`
         """
 
-    def ensurePrinterIsSet(self):
-        """If the printer is not already set, try to interactively
-        setup the printer using a QPrintDialog.
-        In case of failure, hide widget and log a warning.
-        """
-        if self.printer is None:
-            self.setup()
-        if self.printer is None:
-            self.hide()
-            _logger.warning("Printer setup failed or was cancelled, " +
-                            "but printer is required.")
-
-    def exec_(self):
-        if self._toBeCleared:
-            self._clearAll()
-        return qt.QDialog.exec_(self)
-
-    def raise_(self):
-        if self._toBeCleared:
-            self._clearAll()
-        return qt.QDialog.raise_(self)
-
-    def showEvent(self, event):
-        """Reimplemented to force printer setup.
-        In case of failure, hide the widget."""
-        if self._toBeCleared:
-            self._clearAll()
-        self.ensurePrinterIsSet()
-
-        return super(PrintPreviewDialog, self).showEvent(event)
-
-    def setOutputFileName(self, name):
-        """Set output filename.
-
-        Setting a non-empty name enables printing to file.
-
-        :param str name: File name (path)"""
-        self.printer.setOutputFileName(name)
-
     def _buildToolbar(self):
         toolBar = qt.QWidget(self)
         # a layout for the toolbar
@@ -223,42 +184,36 @@ class PrintPreviewDialog(qt.QDialog):
             self.targetLabel.setText("Printer:" +
                                      self.printer.printerName())
 
-    def _print(self):
-        """Do the printing, hide the print preview dialog,
-        set :attr:`_toBeCleared` flag to True to trigger clearing the
-        next time the dialog is shown.
-
-        If the printer is not setup, do it first."""
+    def _updatePrinter(self):
+        """Resize :attr:`page`, :attr:`scene` and :attr:`view` to :attr:`printer`
+        width and height."""
         printer = self.printer
+        assert printer is not None, \
+            "_updatePrinter should not be called unless a printer is defined"
+        if self.scene is None:
+            self.scene = qt.QGraphicsScene()
+            self.scene.setBackgroundBrush(qt.QColor(qt.Qt.lightGray))
+            self.scene.setSceneRect(qt.QRectF(0, 0, printer.width(), printer.height()))
 
-        painter = qt.QPainter()
-        if not painter.begin(printer) or printer is None:
-            _logger.error("Cannot initialize printer")
-            return
-        try:
-            self.scene.render(painter, qt.QRectF(0, 0, printer.width(), printer.height()),
-                              qt.QRectF(self.page.rect().x(), self.page.rect().y(),
-                                        self.page.rect().width(), self.page.rect().height()),
-                              qt.Qt.KeepAspectRatio)
-            painter.end()
-            self.hide()
-            self.accept()
-            self._toBeCleared = True
-        except:              # FIXME
-            painter.end()
-            qt.QMessageBox.critical(self, "ERROR",
-                                    'Printing problem:\n %s' % sys.exc_info()[1])
-            _logger.error('printing problem:\n %s' % sys.exc_info()[1])
-            return
+        if self.page is None:
+            self.page = qt.QGraphicsRectItem(0, 0, printer.width(), printer.height())
+            self.page.setBrush(qt.QColor(qt.Qt.white))
+            self.scene.addItem(self.page)
 
-    def _zoomPlus(self):
-        self._viewScale *= 1.20
-        self.view.scale(1.20, 1.20)
+        self.scene.setSceneRect(qt.QRectF(0, 0, printer.width(), printer.height()))
+        self.page.setPos(qt.QPointF(0.0, 0.0))
+        self.page.setRect(qt.QRectF(0, 0, printer.width(), printer.height()))
 
-    def _zoomMinus(self):
-        self._viewScale *= 0.80
-        self.view.scale(0.80, 0.80)
+        if self.view is None:
+            self.view = qt.QGraphicsView(self.scene)
+            self.mainLayout.addWidget(self.view)
+            self._buildStatusBar()
+        # self.view.scale(1./self._viewScale, 1./self._viewScale)
+        self.view.fitInView(self.page.rect(), qt.Qt.KeepAspectRatio)
+        self._viewScale = 1.00
+        self._updateTargetLabel()
 
+    # Public methods
     def addImage(self, image, title=None, comment=None, commentPosition=None):
         """Add an image to the print preview scene.
 
@@ -445,10 +400,6 @@ class PrintPreviewDialog(qt.QDialog):
             # rectItem.setTransform(qt.QTransform.fromScale(scalex, scaley))
             textItem.setScale(scale)
 
-    def _setup(self):
-        self.setup()
-        self.sigSetupButtonClicked.emit()
-
     def setup(self):
         """Open a print dialog to ensure the :attr:`printer` is set.
 
@@ -475,61 +426,6 @@ class PrintPreviewDialog(qt.QDialog):
             if self.page is None:
                 # not initialized
                 self.printer = None
-
-    def _updatePrinter(self):
-        """Resize :attr:`page`, :attr:`scene` and :attr:`view` to :attr:`printer`
-        width and height."""
-        printer = self.printer
-        assert printer is not None, \
-            "_updatePrinter should not be called unless a printer is defined"
-        if self.scene is None:
-            self.scene = qt.QGraphicsScene()
-            self.scene.setBackgroundBrush(qt.QColor(qt.Qt.lightGray))
-            self.scene.setSceneRect(qt.QRectF(0, 0, printer.width(), printer.height()))
-
-        if self.page is None:
-            self.page = qt.QGraphicsRectItem(0, 0, printer.width(), printer.height())
-            self.page.setBrush(qt.QColor(qt.Qt.white))
-            self.scene.addItem(self.page)
-
-        self.scene.setSceneRect(qt.QRectF(0, 0, printer.width(), printer.height()))
-        self.page.setPos(qt.QPointF(0.0, 0.0))
-        self.page.setRect(qt.QRectF(0, 0, printer.width(), printer.height()))
-
-        if self.view is None:
-            self.view = qt.QGraphicsView(self.scene)
-            self.mainLayout.addWidget(self.view)
-            self._buildStatusBar()
-        # self.view.scale(1./self._viewScale, 1./self._viewScale)
-        self.view.fitInView(self.page.rect(), qt.Qt.KeepAspectRatio)
-        self._viewScale = 1.00
-        self._updateTargetLabel()
-
-    def _clearAll(self):
-        """
-        Clear the print preview window, remove all items
-        but keep the page.
-        """
-        itemlist = self.scene.items()
-        keep = self.page
-        while len(itemlist) != 1:
-            if itemlist.index(keep) == 0:
-                self.scene.removeItem(itemlist[1])
-            else:
-                self.scene.removeItem(itemlist[0])
-            itemlist = self.scene.items()
-        self._svgItems = []
-        self._toBeCleared = False
-
-    def _remove(self):
-        """Remove selected item in :attr:`scene`.
-        """
-        itemlist = self.scene.items()
-
-        # this loop is not efficient if there are many items ...
-        for item in itemlist:
-            if item.isSelected():
-                self.scene.removeItem(item)
 
     def getDefaultPrintGeometry(self):
         """Return a dictionary of print geometry parameters, or None.
@@ -672,6 +568,113 @@ class PrintPreviewDialog(qt.QDialog):
                          yOffset,
                          bodyWidth,
                          bodyHeight)
+
+    def ensurePrinterIsSet(self):
+        """If the printer is not already set, try to interactively
+        setup the printer using a QPrintDialog.
+        In case of failure, hide widget and log a warning.
+        """
+        if self.printer is None:
+            self.setup()
+        if self.printer is None:
+            self.hide()
+            _logger.warning("Printer setup failed or was cancelled, " +
+                            "but printer is required.")
+
+    def setOutputFileName(self, name):
+        """Set output filename.
+
+        Setting a non-empty name enables printing to file.
+
+        :param str name: File name (path)"""
+        self.printer.setOutputFileName(name)
+
+    # overloaded methods
+    def exec_(self):
+        if self._toBeCleared:
+            self._clearAll()
+        return qt.QDialog.exec_(self)
+
+    def raise_(self):
+        if self._toBeCleared:
+            self._clearAll()
+        return qt.QDialog.raise_(self)
+
+    def showEvent(self, event):
+        """Reimplemented to force printer setup.
+        In case of failure, hide the widget."""
+        if self._toBeCleared:
+            self._clearAll()
+        self.ensurePrinterIsSet()
+
+        return super(PrintPreviewDialog, self).showEvent(event)
+
+    # button callbacks
+    def _print(self):
+        """Do the printing, hide the print preview dialog,
+        set :attr:`_toBeCleared` flag to True to trigger clearing the
+        next time the dialog is shown.
+
+        If the printer is not setup, do it first."""
+        printer = self.printer
+
+        painter = qt.QPainter()
+        if not painter.begin(printer) or printer is None:
+            _logger.error("Cannot initialize printer")
+            return
+        try:
+            self.scene.render(painter, qt.QRectF(0, 0, printer.width(), printer.height()),
+                              qt.QRectF(self.page.rect().x(), self.page.rect().y(),
+                                        self.page.rect().width(), self.page.rect().height()),
+                              qt.Qt.KeepAspectRatio)
+            painter.end()
+            self.hide()
+            self.accept()
+            self._toBeCleared = True
+        except:              # FIXME
+            painter.end()
+            qt.QMessageBox.critical(self, "ERROR",
+                                    'Printing problem:\n %s' % sys.exc_info()[1])
+            _logger.error('printing problem:\n %s' % sys.exc_info()[1])
+            return
+
+    def _zoomPlus(self):
+        self._viewScale *= 1.20
+        self.view.scale(1.20, 1.20)
+
+    def _zoomMinus(self):
+        self._viewScale *= 0.80
+        self.view.scale(0.80, 0.80)
+
+    def _setup(self):
+        self.setup()
+        self.sigSetupButtonClicked.emit()
+
+    def _clearAll(self):
+        """
+        Clear the print preview window, remove all items
+        but keep the page.
+        """
+        itemlist = self.scene.items()
+        keep = self.page
+        while len(itemlist) != 1:
+            if itemlist.index(keep) == 0:
+                self.scene.removeItem(itemlist[1])
+            else:
+                self.scene.removeItem(itemlist[0])
+            itemlist = self.scene.items()
+        self._svgItems = []
+        self._toBeCleared = False
+
+    def _remove(self):
+        """Remove selected item in :attr:`scene`.
+        """
+        itemlist = self.scene.items()
+
+        # this loop is not efficient if there are many items ...
+        for item in itemlist:
+            if item.isSelected():
+                self.scene.removeItem(item)
 
 
 class SingletonPrintPreviewDialog(PrintPreviewDialog):
