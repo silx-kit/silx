@@ -445,6 +445,7 @@ class Group(Node):
         return self._get_items().keys()
 
     def values(self):
+        # New in silx 0.6
         return self._get_items().values()
 
 

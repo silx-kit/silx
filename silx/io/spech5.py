@@ -1502,6 +1502,7 @@ class SpecH5Group(object):
             return static_items["scan/instrument"] + mca_list
 
     def values(self):
+        """New in silx 0.6"""
         return list(map(self.__getitem__, self.keys()))
 
     def visit(self, func, follow_links=False):
