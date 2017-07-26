@@ -444,13 +444,16 @@ class Group(Node):
     def keys(self):
         return self._get_items().keys()
 
+    def values(self):
+        return self._get_items().values()
+
 
 class LazyLoadableGroup(Group):
     """Abstract group which provide a lazy loading of the child.
 
     The class have to be inherited and the :meth:`_create_child` have to be
-    implemented to add (:meth:`_add_node`) all child. This factory
-    is only called ones, when child are needed.
+    implemented to add (:meth:`_add_node`) all children. This factory
+    is only called once, when children are needed.
     """
 
     def __init__(self, name, parent=None, attrs=None):
