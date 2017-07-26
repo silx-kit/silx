@@ -48,12 +48,8 @@ _logger = logging.getLogger(__name__)
 
 
 class PrintPreviewDialog(qt.QDialog):
-    """Print preview dialog widget."""
-
-    sigSetupButtonClicked = qt.Signal()
-    """Signal emitted after the setup button has been clicked and the
-    printer has been selected."""
-
+    """Print preview dialog widget.
+    """
     def __init__(self, parent=None, printer=None):
 
         qt.QDialog.__init__(self, parent)
@@ -133,7 +129,7 @@ class PrintPreviewDialog(qt.QDialog):
 
         setupBut = qt.QPushButton("Setup", toolBar)
         setupBut.setToolTip("Select and configure a printer")
-        setupBut.clicked.connect(self._setup)
+        setupBut.clicked.connect(self.setup)
 
         printBut = qt.QPushButton("Print", toolBar)
         printBut.setToolTip("Print page and close print preview")
@@ -448,7 +444,11 @@ class PrintPreviewDialog(qt.QDialog):
          - *xOffset*
          - *yOffset*
          - *units* (*inch*, *cm* or *page*)
-         - *aspectRatio* (None or height / width)
+         - *aspectRatio* (None or *height / width*)
+
+        Set ``geom=None`` to have no default size. In that case, the items
+        added with :meth:`addSvgItem` will not be resized if no bounding box
+        is specified.
 
         :param dict geom: Geometry dict, or None
         """
@@ -489,8 +489,14 @@ class PrintPreviewDialog(qt.QDialog):
         (see :meth:`setDefaultPrintGeometry`).
 
         This involves unit conversion: inches, or cm, or percentage of page
-        to printer dots. The result also depends on the user's choice regarding the preservation
-        of the aspect ratio.
+        to printer dots.
+
+        The result also depends on the user's choice regarding the preservation
+        of the aspect ratio: if an aspect ratio is specified, the height
+        parameter is ignored and the width is used to calculate it.
+
+        If the calculated width or the height exceed the page dimensions, the
+        view box is scaled down to fit on the page.
 
         :return: default bounding box as a QRectF object, or None if
              no default print geometry has been set.
@@ -645,10 +651,6 @@ class PrintPreviewDialog(qt.QDialog):
     def _zoomMinus(self):
         self._viewScale *= 0.80
         self.view.scale(0.80, 0.80)
-
-    def _setup(self):
-        self.setup()
-        self.sigSetupButtonClicked.emit()
 
     def _clearAll(self):
         """
