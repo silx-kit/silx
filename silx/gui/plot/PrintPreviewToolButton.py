@@ -23,14 +23,15 @@
 #
 # ###########################################################################*/
 """
-Print preview action, to send the content of a plot to a print preview page.
+Print preview tool button, to send the content of a plot to a print preview
+page.
 The plot content can then be moved on the page and resized prior to printing.
 
 Classes
 -------
 
-- :class:`PrintPreviewAction`
-- :class:`SingletonPrintPreviewAction`
+- :class:`PrintPreviewToolButton`
+- :class:`SingletonPrintPreviewToolButton`
 
 Examples
 --------
@@ -42,16 +43,16 @@ Simple example
 
     from silx.gui import qt
     from silx.gui.plot import PlotWidget
-    from silx.gui.plot.actions import printpreview
+    from silx.gui.plot.PrintPreviewToolButton import PrintPreviewToolButton
     import numpy
 
     app = qt.QApplication([])
 
     pw = PlotWidget()
-    toolbar = qt.QToolBar()
-    action = printpreview.PrintPreviewAction(plot=pw)
+    toolbar = qt.QToolBar(pw)
+    toolbutton = PrintPreviewToolButton(parent=toolbar, plot=pw)
     pw.addToolBar(toolbar)
-    toolbar.addAction(action)
+    toolbar.addWidget(toolbutton)
     pw.show()
 
     x = numpy.arange(1000)
@@ -65,7 +66,7 @@ Singleton example
 
 This example illustrates how to print the content of several different
 plots on the same page. The plots all instantiate a
-:class:`SingletonPrintPreviewAction`, which relies on a singleton widget
+:class:`SingletonPrintPreviewToolButton`, which relies on a singleton widget
 :class:`silx.gui.widgets.PrintPreview.SingletonPrintPreviewDialog`.
 
 .. image:: img/printPreviewMultiPlot.png
@@ -74,7 +75,7 @@ plots on the same page. The plots all instantiate a
 
     from silx.gui import qt
     from silx.gui.plot import PlotWidget
-    from silx.gui.plot.actions import printpreview
+    from silx.gui.plot.PrintPreviewToolButton import SingletonPrintPreviewToolButton
     import numpy
 
     app = qt.QApplication([])
@@ -83,11 +84,11 @@ plots on the same page. The plots all instantiate a
 
     for i in range(3):
         pw = PlotWidget()
-        toolbar = qt.QToolBar()
-        action = printpreview.SingletonPrintPreviewAction(plot=pw,
-                                                          parent=pw)
+        toolbar = qt.QToolBar(pw)
+        toolbutton = SingletonPrintPreviewToolButton(parent=toolbar,
+                                                     plot=pw)
         pw.addToolBar(toolbar)
-        toolbar.addAction(action)
+        toolbar.addWidget(toolbutton)
         pw.show()
         plot_widgets.append(pw)
 
@@ -105,10 +106,11 @@ from __future__ import absolute_import
 import logging
 from io import StringIO
 
-from silx.gui.plot.actions import PlotAction
-from silx.gui import qt
-from silx.gui.widgets.PrintPreview import PrintPreviewDialog, SingletonPrintPreviewDialog
-from silx.gui.widgets.PrintGeometryDialog import PrintGeometryDialog
+from .. import qt
+from .. import icons
+from . import PlotWidget
+from ..widgets.PrintPreview import PrintPreviewDialog, SingletonPrintPreviewDialog
+from ..widgets.PrintGeometryDialog import PrintGeometryDialog
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
@@ -118,20 +120,41 @@ _logger = logging.getLogger(__name__)
 # _logger.setLevel(logging.DEBUG)
 
 
-class PrintPreviewAction(PlotAction):
-    """QAction to open a :class:`PrintPreviewDialog` (if not already open)
+class PrintPreviewToolButton(qt.QToolButton):
+    """QToolButton to open a :class:`PrintPreviewDialog` (if not already open)
     and add the current plot to its page to be printed.
 
-    :param plot: :class:`.PlotWidget` instance on which to operate
     :param parent: See :class:`QAction`
+    :param plot: :class:`.PlotWidget` instance on which to operate
     """
-    def __init__(self, plot, parent=None):
-        super(PrintPreviewAction, self).__init__(
-            plot, icon='document-print', text='Print preview',
-            tooltip='Send plot data to a print preview dialog',
-            triggered=self._plotToPrintPreview, parent=parent)
+    def __init__(self, parent=None, plot=None):
+        super(PrintPreviewToolButton, self).__init__(parent)
+
+        if not isinstance(plot, PlotWidget):
+            raise TypeError("plot parameter must be a PlotWidget")
+        self.plot = plot
+
+        self.setIcon(icons.getQIcon('document-print'))
+
+        printGeomAction = qt.QAction("Print geometry", self)
+        printGeomAction.setToolTip("Define a print geometry prior to sending "
+                                   "the plot to the print preview dialog")
+        printGeomAction.setIcon(icons.getQIcon('shape-rectangle'))
+        printGeomAction.triggered.connect(self._setPrintConfiguration)
+
+        printPreviewAction = qt.QAction("Print preview", self)
+        printPreviewAction.setToolTip("Send plot to the print preview dialog")
+        printPreviewAction.setIcon(icons.getQIcon('document-print'))
+        printPreviewAction.triggered.connect(self._plotToPrintPreview)
+
+        menu = qt.QMenu(self)
+        menu.addAction(printGeomAction)
+        menu.addAction(printPreviewAction)
+        self.setMenu(menu)
+        self.setPopupMode(qt.QToolButton.InstantPopup)
+
         self._printPreviewDialog = None
-        self.printConfigurationDialog = None
+        self._printConfigurationDialog = None
 
         self._printGeometry = {"xOffset": 0.1,
                                "yOffset": 0.1,
@@ -144,7 +167,7 @@ class PrintPreviewAction(PlotAction):
     def printPreviewDialog(self):
         """Lazy loaded :class:`PrintPreviewDialog`"""
         # if changes are made here, don't forget making them in
-        # SingletonPrintPreviewAction.printPreviewDialog as well
+        # SingletonPrintPreviewToolButton.printPreviewDialog as well
         if self._printPreviewDialog is None:
             self._printPreviewDialog = PrintPreviewDialog(self.parent())
         return self._printPreviewDialog
@@ -219,7 +242,6 @@ class PrintPreviewAction(PlotAction):
         keepAspectRatio = config['keepAspectRatio']
         aspectRatio = self._getPlotAspectRatio()
 
-
         # convert the offsets to dots
         if units.lower() in ['inch', 'inches']:
             xOffset = xOffset * dpix
@@ -278,12 +300,13 @@ class PrintPreviewAction(PlotAction):
     def _setPrintConfiguration(self):
         """Open a dialog to prompt the user to adjust print
         geometry parameters."""
-        if self.printConfigurationDialog is None:
-            self.printConfigurationDialog = PrintGeometryDialog(self.parent())
+        self.printPreviewDialog.ensurePrinterIsSet()
+        if self._printConfigurationDialog is None:
+            self._printConfigurationDialog = PrintGeometryDialog(self.parent())
 
-        self.printConfigurationDialog.setPrintGeometry(self._printGeometry)
-        if self.printConfigurationDialog.exec_():
-            self._printGeometry = self.printConfigurationDialog.getPrintGeometry()
+        self._printConfigurationDialog.setPrintGeometry(self._printGeometry)
+        if self._printConfigurationDialog.exec_():
+            self._printGeometry = self._printConfigurationDialog.getPrintGeometry()
 
     def _getPlotAspectRatio(self):
         widget = self.plot.centralWidget()
@@ -292,14 +315,14 @@ class PrintPreviewAction(PlotAction):
         return graphHeight / graphWidth
 
 
-class SingletonPrintPreviewAction(PrintPreviewAction):
-    """This class is similar to its parent class :class:`PrintPreviewAction`
+class SingletonPrintPreviewToolButton(PrintPreviewToolButton):
+    """This class is similar to its parent class :class:`PrintPreviewToolButton`
     but it uses a singleton print preview widget.
 
     This allows for several plots to send their content to the
     same print page, and for users to arrange them."""
-    def __init__(self, plot, parent=None):
-        PrintPreviewAction.__init__(self, plot, parent)
+    def __init__(self, parent=None, plot=None):
+        PrintPreviewToolButton.__init__(self, parent, plot)
 
     @property
     def printPreviewDialog(self):
@@ -309,15 +332,15 @@ class SingletonPrintPreviewAction(PrintPreviewAction):
 
 
 if __name__ == '__main__':
-    from silx.gui.plot import PlotWidget
     import numpy
     app = qt.QApplication([])
 
     pw = PlotWidget()
-    toolbar = qt.QToolBar()
-    action = PrintPreviewAction(plot=pw)
+    toolbar = qt.QToolBar(pw)
+    toolbutton = PrintPreviewToolButton(parent=toolbar,
+                                        plot=pw)
     pw.addToolBar(toolbar)
-    toolbar.addAction(action)
+    toolbar.addWidget(toolbutton)
     pw.show()
 
     x = numpy.arange(1000)

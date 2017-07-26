@@ -23,23 +23,23 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This script illustrates how to add a print preview action to any plot
+"""This script illustrates how to add a print preview tool button to any plot
 widget inheriting :class:`PlotWidget`.
 
 Three plot widgets are instantiated. One of them uses a standalone
-:class:`PrintPreviewAction`, while the other two use a
-:class:`SingletonPrintPreviewAction` which allows them to send their content
+:class:`PrintPreviewToolButton`, while the other two use a
+:class:`SingletonPrintPreviewToolButton` which allows them to send their content
 to the same print preview page.
 """
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "25/07/2017"
 
-
 import numpy
+
 from silx.gui import qt
 from silx.gui.plot import PlotWidget
-from silx.gui.plot.actions import printpreview
+from silx.gui.plot import PrintPreviewToolButton
 
 app = qt.QApplication([])
 
@@ -49,10 +49,10 @@ x = numpy.arange(1000)
 pw1 = PlotWidget()
 pw1.setWindowTitle("Widget 1 with standalone print preview")
 toolbar1 = qt.QToolBar(pw1)
-action1 = printpreview.PrintPreviewAction(plot=pw1,
-                                          parent=pw1)
+toolbutton1 = PrintPreviewToolButton.PrintPreviewToolButton(parent=toolbar1,
+                                                            plot=pw1)
 pw1.addToolBar(toolbar1)
-toolbar1.addAction(action1)
+toolbar1.addWidget(toolbutton1)
 pw1.show()
 pw1.addCurve(x, numpy.tan(x * 2 * numpy.pi / 1000))
 
@@ -60,10 +60,10 @@ pw1.addCurve(x, numpy.tan(x * 2 * numpy.pi / 1000))
 pw2 = PlotWidget()
 pw2.setWindowTitle("Widget 2 with shared print preview")
 toolbar2 = qt.QToolBar(pw2)
-action2 = printpreview.SingletonPrintPreviewAction(plot=pw2,
-                                                   parent=pw2)
+toolbutton2 = PrintPreviewToolButton.SingletonPrintPreviewToolButton(
+        parent=toolbar2, plot=pw2)
 pw2.addToolBar(toolbar2)
-toolbar2.addAction(action2)
+toolbar2.addWidget(toolbutton2)
 pw2.show()
 pw2.addCurve(x, numpy.sin(x * 2 * numpy.pi / 1000))
 
@@ -71,10 +71,10 @@ pw2.addCurve(x, numpy.sin(x * 2 * numpy.pi / 1000))
 pw3 = PlotWidget()
 pw3.setWindowTitle("Widget 3 with shared print preview")
 toolbar3 = qt.QToolBar(pw3)
-action3 = printpreview.SingletonPrintPreviewAction(plot=pw3,
-                                                   parent=pw3)
+toolbutton3 = PrintPreviewToolButton.SingletonPrintPreviewToolButton(
+        parent=toolbar3, plot=pw3)
 pw3.addToolBar(toolbar3)
-toolbar3.addAction(action3)
+toolbar3.addWidget(toolbutton3)
 pw3.show()
 pw3.addCurve(x, numpy.cos(x * 2 * numpy.pi / 1000))
 
