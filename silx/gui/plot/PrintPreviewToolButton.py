@@ -105,10 +105,10 @@ from __future__ import absolute_import
 import logging
 from io import StringIO
 
-from . import PlotAction
-from ... import qt
-from ...widgets.PrintPreview import PrintPreviewDialog, SingletonPrintPreviewDialog
-from ...widgets.PrintGeometryDialog import PrintGeometryDialog
+from silx.gui.plot.actions import PlotAction
+from silx.gui import qt
+from silx.gui.widgets.PrintPreview import PrintPreviewDialog, SingletonPrintPreviewDialog
+from silx.gui.widgets.PrintGeometryDialog import PrintGeometryDialog
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
