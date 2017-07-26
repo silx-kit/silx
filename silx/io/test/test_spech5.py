@@ -44,7 +44,7 @@ except ImportError:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "21/06/2017"
+__date__ = "26/07/2017"
 
 sftext = """#F /tmp/sf.dat
 #E 1455180875
@@ -496,6 +496,13 @@ class TestSpecH5(unittest.TestCase):
         self.assertEqual(self.sfh5["/25.1/title"],
                          b"25  ascan  c3th 1.33245 1.52245  40 0.15")
 
+    def testValues(self):
+        group = self.sfh5["/25.1"]
+        self.assertTrue(hasattr(group, "values"))
+        self.assertTrue(callable(group.values))
+        self.assertIn(self.sfh5["/25.1/title"],
+                      self.sfh5["/25.1"].values())
+
     # visit and visititems ignore links
     def testVisit(self):
         name_list = []
@@ -873,8 +880,6 @@ class TestSpecH5SlashInLabels(unittest.TestCase):
         # legitimate "%"
         self.assertIn("MRTSlit%UP",
                       self.sfh5["1.1/instrument/positioners"])
-
-
 
 
 def suite():
