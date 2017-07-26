@@ -23,8 +23,8 @@
 #
 # ###########################################################################*/
 """
-Print preview tool button, to send the content of a plot to a print preview
-page.
+This modules provides tool buttons to send the content of a plot to a
+print preview page.
 The plot content can then be moved on the page and resized prior to printing.
 
 Classes
@@ -67,7 +67,7 @@ Singleton example
 This example illustrates how to print the content of several different
 plots on the same page. The plots all instantiate a
 :class:`SingletonPrintPreviewToolButton`, which relies on a singleton widget
-:class:`silx.gui.widgets.PrintPreview.SingletonPrintPreviewDialog`.
+(:class:`silx.gui.widgets.PrintPreview.SingletonPrintPreviewDialog`).
 
 .. image:: img/printPreviewMultiPlot.png
 
@@ -139,12 +139,12 @@ class PrintPreviewToolButton(qt.QToolButton):
         printGeomAction = qt.QAction("Print geometry", self)
         printGeomAction.setToolTip("Define a print geometry prior to sending "
                                    "the plot to the print preview dialog")
-        printGeomAction.setIcon(icons.getQIcon('shape-rectangle'))
+        printGeomAction.setIcon(icons.getQIcon('shape-rectangle'))      # fixme: icon not displayed in menu
         printGeomAction.triggered.connect(self._setPrintConfiguration)
 
         printPreviewAction = qt.QAction("Print preview", self)
         printPreviewAction.setToolTip("Send plot to the print preview dialog")
-        printPreviewAction.setIcon(icons.getQIcon('document-print'))
+        printPreviewAction.setIcon(icons.getQIcon('document-print'))      # fixme: icon not displayed
         printPreviewAction.triggered.connect(self._plotToPrintPreview)
 
         menu = qt.QMenu(self)
