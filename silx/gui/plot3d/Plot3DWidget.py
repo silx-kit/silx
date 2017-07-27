@@ -211,10 +211,10 @@ class Plot3DWidget(glu.OpenGLWidget):
     def sizeHint(self):
         return qt.QSize(400, 300)
 
-    def initializeOpenGL(self):
+    def initializeGL(self):
         pass
 
-    def paintOpenGL(self):
+    def paintGL(self):
         # In case paintGL is called by the system and not through _redraw,
         # Mark as updating.
         self._updating = True
@@ -230,7 +230,7 @@ class Plot3DWidget(glu.OpenGLWidget):
             self.centerScene()
         self._updating = False
 
-    def resizeOpenGL(self, width, height):
+    def resizeGL(self, width, height):
         width *= self.getDevicePixelRatio()
         height *= self.getDevicePixelRatio()
         self._window.size = width, height
@@ -244,7 +244,7 @@ class Plot3DWidget(glu.OpenGLWidget):
         :returns: OpenGL scene RGB rasterization
         :rtype: QImage
         """
-        if not self.isRequestedOpenGLVersionAvailable():
+        if not self.isValid():
             _logger.error('OpenGL 2.1 not available, cannot save OpenGL image')
             height, width = self._window.shape
             image = numpy.zeros((height, width, 3), dtype=numpy.uint8)
@@ -264,7 +264,7 @@ class Plot3DWidget(glu.OpenGLWidget):
             angle = event.angleDelta().y() / 8.
         event.accept()
 
-        if angle != 0:
+        if angle != 0 and self.isValid():
             self.makeCurrent()
             self.eventHandler.handleEvent('wheel', xpixel, ypixel, angle)
 
@@ -300,16 +300,18 @@ class Plot3DWidget(glu.OpenGLWidget):
         btn = self._MOUSE_BTNS[event.button()]
         event.accept()
 
-        self.makeCurrent()
-        self.eventHandler.handleEvent('press', xpixel, ypixel, btn)
+        if self.isValid():
+            self.makeCurrent()
+            self.eventHandler.handleEvent('press', xpixel, ypixel, btn)
 
     def mouseMoveEvent(self, event):
         xpixel = event.x() * self.getDevicePixelRatio()
         ypixel = event.y() * self.getDevicePixelRatio()
         event.accept()
 
-        self.makeCurrent()
-        self.eventHandler.handleEvent('move', xpixel, ypixel)
+        if self.isValid():
+            self.makeCurrent()
+            self.eventHandler.handleEvent('move', xpixel, ypixel)
 
     def mouseReleaseEvent(self, event):
         xpixel = event.x() * self.getDevicePixelRatio()
@@ -317,5 +319,6 @@ class Plot3DWidget(glu.OpenGLWidget):
         btn = self._MOUSE_BTNS[event.button()]
         event.accept()
 
-        self.makeCurrent()
-        self.eventHandler.handleEvent('release', xpixel, ypixel, btn)
+        if self.isValid():
+            self.makeCurrent()
+            self.eventHandler.handleEvent('release', xpixel, ypixel, btn)

@@ -443,7 +443,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                                gl.GL_ONE,
                                gl.GL_ONE)
 
-    def initializeOpenGL(self):
+    def initializeGL(self):
         gl.testGL()
 
         gl.glClearColor(1., 1., 1., 1.)
@@ -529,7 +529,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         self._renderMarkersGL()
         self._renderOverlayGL()
 
-    def paintOpenGL(self):
+    def paintGL(self):
         global _current_context
         _current_context = self.context()
 
@@ -915,7 +915,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
         gl.glDisable(gl.GL_SCISSOR_TEST)
 
-    def resizeOpenGL(self, width, height):
+    def resizeGL(self, width, height):
         if width == 0 or height == 0:  # Do not resize
             return
 
@@ -1330,7 +1330,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         if fileFormat not in ['png', 'ppm', 'svg', 'tiff']:
             raise NotImplementedError('Unsupported format: %s' % fileFormat)
 
-        if not self.isRequestedOpenGLVersionAvailable():
+        if not self.isValid():
             _logger.error('OpenGL 2.1 not available, cannot save OpenGL image')
             width, height = self._plotFrame.size
             data = numpy.zeros((height, width, 3), dtype=numpy.uint8)
