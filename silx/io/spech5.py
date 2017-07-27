@@ -1207,16 +1207,16 @@ def _demultiplex_mca(scan, analyser_index):
     :return: 2D numpy array containing all spectra for one analyser
     """
     number_of_analysers = _get_number_of_mca_analysers(scan)
+    number_of_spectra = len(scan.mca)
+    number_of_spectra_per_analyser = number_of_spectra // number_of_analysers
+    len_spectrum = len(scan.mca[analyser_index])
 
-    number_of_MCA_spectra = len(scan.mca)
+    mca_array = numpy.empty((number_of_spectra_per_analyser, len_spectrum))
 
-    list_of_1D_arrays = []
-    for i in range(analyser_index,
-                   number_of_MCA_spectra,
-                   number_of_analysers):
-        list_of_1D_arrays.append(scan.mca[i])
-    # convert list to 2D array
-    return numpy.array(list_of_1D_arrays)
+    for i in range(number_of_spectra_per_analyser):
+        mca_array[i, :] = scan.mca[analyser_index + i * number_of_analysers]
+
+    return mca_array
 
 
 class SpecH5Group(object):
