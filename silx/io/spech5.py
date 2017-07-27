@@ -187,7 +187,7 @@ from .specfile import SpecFile
 
 __authors__ = ["P. Knobel", "D. Naudet"]
 __license__ = "MIT"
-__date__ = "21/06/2017"
+__date__ = "26/07/2017"
 
 logger1 = logging.getLogger(__name__)
 
@@ -1418,6 +1418,14 @@ class SpecH5Group(object):
             yield key
 
     def items(self):
+        """Returns a generator yielding 2-tuples *(key, value)*,
+        where key is the name of a group or dataset, and value is the instance
+        of that group or dataset.
+
+        If a list is required, it must be requested explicitly::
+
+            itemslist = list(group.items())
+        """
         for key in self.keys():
             yield key, self[key]
 
@@ -1492,6 +1500,10 @@ class SpecH5Group(object):
 
         if instrument_pattern.match(self.name):
             return static_items["scan/instrument"] + mca_list
+
+    def values(self):
+        """New in silx 0.6"""
+        return list(map(self.__getitem__, self.keys()))
 
     def visit(self, func, follow_links=False):
         """Recursively visit all names in this group and subgroups.
