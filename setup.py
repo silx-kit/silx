@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "11/05/2017"
+__date__ = "27/07/2017"
 __license__ = "MIT"
 
 
@@ -106,7 +106,6 @@ classifiers = ["Development Status :: 4 - Beta",
                "Intended Audience :: Education",
                "Intended Audience :: Science/Research",
                "License :: OSI Approved :: MIT License",
-               "License :: OSI Approved :: GNU Lesser General Public License v2 or later (LGPLv2+)",
                "Natural Language :: English",
                "Operating System :: MacOS",
                "Operating System :: Microsoft :: Windows",
