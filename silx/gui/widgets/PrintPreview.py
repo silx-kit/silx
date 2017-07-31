@@ -40,11 +40,6 @@ __date__ = "11/07/2017"
 
 
 _logger = logging.getLogger(__name__)
-# _logger.setLevel(logging.DEBUG)
-
-# TODO:
-# - automatic picture centering
-# - print quality
 
 
 class PrintPreviewDialog(qt.QDialog):
