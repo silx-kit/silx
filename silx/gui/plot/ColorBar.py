@@ -193,8 +193,8 @@ class ColorBarWidget(qt.QWidget):
 
     def _activeImageChanged(self, previous, legend):
         """Handle plot active curve changed"""
-        if legend is None:  # No active image, display default colormap
-            self._syncWithDefaultColormap(data=None)
+        if legend is None:  # No active image, display no colormap
+            self.setColormap(colormap=None)
             return
 
         # Sync with active image
