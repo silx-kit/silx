@@ -36,21 +36,12 @@ import collections
 import numpy
 import numbers
 import logging
+import fabio
+import h5py
 from silx.third_party import six
 
+
 _logger = logging.getLogger(__name__)
-
-try:
-    import fabio
-except ImportError as e:
-    _logger.error("Module %s requires fabio", __name__)
-    raise e
-
-try:
-    import h5py
-except ImportError as e:
-    _logger.error("Module %s requires h5py", __name__)
-    raise e
 
 
 class Node(object):
