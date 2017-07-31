@@ -508,6 +508,8 @@ class _ColorScale(qt.QWidget):
         :param data: Optional data for which to compute colormap range.
         """
         self._colormap = colormap
+        self.setEnabled(colormap is not None)
+
         if colormap is None:
             self.vmin, self.vmax = None, None
         else:
@@ -544,11 +546,16 @@ class _ColorScale(qt.QWidget):
 
     def paintEvent(self, event):
         """"""
-        qt.QWidget.paintEvent(self, event)
-
         painter = qt.QPainter(self)
         if self.getColormap() is not None:
             painter.setBrush(self._gradient)
+            penColor = self.palette().color(qt.QPalette.Active,
+                                            qt.QPalette.Foreground)
+        else:
+            penColor = self.palette().color(qt.QPalette.Disabled,
+                                            qt.QPalette.Foreground)
+        painter.setPen(penColor)
+
         painter.drawRect(qt.QRect(
             0,
             self.margin,
