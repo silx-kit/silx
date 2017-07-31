@@ -202,7 +202,7 @@ class ColorBarWidget(qt.QWidget):
 
         # RGB(A) image, display default colormap
         if image.ndim != 2:
-            self._syncWithDefaultColormap(data=image)
+            self.setColormap(colormap=None)
             return
 
         # data image, sync with image colormap
@@ -385,14 +385,19 @@ class ColorScaleBar(qt.QWidget):
         :param numpy.ndarray data: the data to display, needed if the colormap
             require an autoscale
         """
-        if colormap is not None:
-            self.colorScale.setColormap(colormap, data)
+        self.colorScale.setColormap(colormap, data)
 
+        if colormap is not None:
             vmin, vmax = colormap.getColormapRange(data)
-            self.tickbar.update(vmin=vmin,
-                                vmax=vmax,
-                                norm=colormap.getNormalization())
-            self._setMinMaxLabels(vmin, vmax)
+            norm = colormap.getNormalization()
+        else:
+            vmin, vmax = None, None
+            norm = None
+
+        self.tickbar.update(vmin=vmin,
+                            vmax=vmax,
+                            norm=norm)
+        self._setMinMaxLabels(vmin, vmax)
 
     def setMinMaxVisible(self, val=True):
         """Change visibility of the min label and the max label
@@ -502,13 +507,12 @@ class _ColorScale(qt.QWidget):
         :param dict colormap: the colormap to set
         :param data: Optional data for which to compute colormap range.
         """
-        if colormap is None:
-            return
-
-        assert colormap.getNormalization() in Colormap.Colormap.NORMALIZATIONS
-
         self._colormap = colormap
-        self.vmin, self.vmax = self._colormap.getColormapRange(data=data)
+        if colormap is None:
+            self.vmin, self.vmax = None, None
+        else:
+            assert colormap.getNormalization() in Colormap.Colormap.NORMALIZATIONS
+            self.vmin, self.vmax = self._colormap.getColormapRange(data=data)
         self._updateColorGradient()
         self.update()
 
