@@ -187,7 +187,7 @@ from .specfile import SpecFile
 
 __authors__ = ["P. Knobel", "D. Naudet"]
 __license__ = "MIT"
-__date__ = "26/07/2017"
+__date__ = "01/08/2017"
 
 logger1 = logging.getLogger(__name__)
 
@@ -1358,22 +1358,31 @@ class SpecH5Group(object):
         if name not in self:
             return default
 
+        full_key = self._get_full_key(name)
         if getlink:
-            node = h5py.HardLink()
-        else:
-            node = self[name]
-
-        if getclass:
-            if hasattr(node, "h5py_class"):
-                return node.h5py_class
+            # TODO It may be interesting to implement soft links here
+            if getclass:
+                return h5py.HardLink
             else:
-                return node.__class__
+                return h5py.HardLink()
         else:
-            return node
+            if getclass:
+                # Return the kind of the object instead of loading it
+                if is_group(full_key):
+                    return h5py.Group
+                elif is_dataset(full_key):
+                    return h5py.Dataset
+                elif is_link_to_group(full_key):
+                    return h5py.Group
+                elif is_link_to_dataset(full_key):
+                    return h5py.Dataset
+                raise KeyError("unrecognized group or dataset: " + full_key)
+            else:
+                return self[name]
 
-    def __getitem__(self, key):
-        """Return a :class:`SpecH5Group` or a :class:`SpecH5Dataset`
-        if ``key`` is a valid name of a group or dataset.
+    def _get_full_key(self, key):
+        """Return the full key if ``key`` is a valid name of a group or
+        dataset.
 
         ``key`` can be a member of ``self.keys()``, i.e. an immediate child of
         the group, or a path reaching into subgroups (e.g.
@@ -1400,7 +1409,24 @@ class SpecH5Group(object):
         # Absolute path to an element called from a non-parent group
         else:
             raise KeyError(key + " is not a child of " + self.__repr__())
+        return full_key
 
+    def __getitem__(self, key):
+        """Return a :class:`SpecH5Group` or a :class:`SpecH5Dataset`
+        if ``key`` is a valid name of a group or dataset.
+
+        ``key`` can be a member of ``self.keys()``, i.e. an immediate child of
+        the group, or a path reaching into subgroups (e.g.
+        ``"instrument/positioners"``)
+
+        In the special case were this group is the root group, ``key`` can
+        start with a ``/`` character.
+
+        :param key: Name of member
+        :type key: str
+        :raise: KeyError if ``key`` is not a known member of this group.
+        """
+        full_key = self._get_full_key(key)
         if is_group(full_key):
             return SpecH5Group(full_key, self.file)
         elif is_dataset(full_key):
