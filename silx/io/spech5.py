@@ -1431,18 +1431,20 @@ class SpecH5Group(object):
             return self.file._cached_items[full_key]
 
         if is_group(full_key):
-            self.file.cache(full_key, SpecH5Group(full_key, self.file))
+            obj = SpecH5Group(full_key, self.file)
         elif is_dataset(full_key):
-            self.file.cache(full_key, _dataset_builder(full_key, self.file, self))
+            obj = _dataset_builder(full_key, self.file, self)
         elif is_link_to_group(full_key):
             link_target = full_key.replace("measurement", "instrument").rstrip("/")[:-4]
-            self.file.cache(full_key, SpecH5LinkToGroup(full_key, self.file, link_target))
+            obj = SpecH5LinkToGroup(full_key, self.file, link_target)
         elif is_link_to_dataset(full_key):
-            self.file.cache(full_key, _link_to_dataset_builder(full_key, self.file, self))
+            obj = _link_to_dataset_builder(full_key, self.file, self)
         else:
             raise KeyError("unrecognized group or dataset: " + full_key)
 
-        return self.file._cached_items[full_key]
+        self.file.cache(full_key, obj)
+
+        return obj
 
     def __iter__(self):
         for key in self.keys():
