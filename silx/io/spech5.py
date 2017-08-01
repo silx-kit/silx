@@ -187,7 +187,7 @@ from .specfile import SpecFile
 
 __authors__ = ["P. Knobel", "D. Naudet"]
 __license__ = "MIT"
-__date__ = "01/08/2017"
+__date__ = "26/07/2017"
 
 logger1 = logging.getLogger(__name__)
 
@@ -835,9 +835,6 @@ class SpecH5Dataset(object):
                 raise ValueError("Scalar can only be reached with an ellipsis or an empty tuple")
         return self.value.__getitem__(item)
 
-    def __del__(self):
-        self.file.uncache(self.name)
-
     def __getslice__(self, i, j):
         # deprecated but still in use for python 2.7
         return self.__getitem__(slice(i, j, None))
@@ -1420,9 +1417,6 @@ class SpecH5Group(object):
             raise KeyError("unrecognized group or dataset: " + full_key)
 
         return self.file._cached_items[full_key]
-
-    def __del__(self):
-        self.file.uncache(self.name)
 
     def __iter__(self):
         for key in self.keys():
