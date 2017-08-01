@@ -1717,13 +1717,18 @@ class SpecH5(SpecH5Group):
             raise IOError("Empty specfile. Not a valid spec format.")
 
     def cache(self, name, item):
-        self._cached_items[name] = item
+        full_key = self._get_full_key(name)
+        self._cached_items[full_key] = item
 
     def uncache(self, name):
+        full_key = self._get_full_key(name)
         if name in self._cached_items:
-            del self._cached_items[name]
+            del self._cached_items[full_key]
         else:
-            raise KeyError("Key %s not in cache" % name)
+            raise KeyError("Key %s not in cache" % full_key)
+
+    def clear_cache(self):
+        self._cached_items = {}
 
     def keys(self):
         """
