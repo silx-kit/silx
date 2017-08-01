@@ -399,22 +399,28 @@ def open(filename):  # pylint:disable=redefined-builtin
         if h5py.is_hdf5(filename):
             return h5py.File(filename, "r")
 
+    debugging_info = []
     try:
         from . import fabioh5
         return fabioh5.File(filename)
     except ImportError:
-        logger.debug("fabioh5 can't be loaded.", exc_info=True)
+        debugging_info.append((sys.exc_info(), "fabioh5 can't be loaded."))
     except Exception:
-        logger.debug("File '%s' can't be read as fabio file.", filename, exc_info=True)
+        debugging_info.append((sys.exc_info(),
+                               "File '%s' can't be read as fabio file." % filename))
 
     try:
         from . import spech5
         return spech5.SpecH5(filename)
     except ImportError:
-        logger.debug("spech5 can't be loaded.", exc_info=True)
+        debugging_info.append((sys.exc_info(),
+                               "spech5 can't be loaded."))
     except IOError:
-        logger.debug("File '%s' can't be read as spec file.", filename, exc_info=True)
+        debugging_info.append((sys.exc_info(),
+                               "File '%s' can't be read as spec file." % filename))
 
+    for exc_info, message in debugging_info:
+        logger.debug(message, exc_info=exc_info)
     raise IOError("File '%s' can't be read as HDF5" % filename)
 
 

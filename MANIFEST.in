@@ -1,6 +1,7 @@
 include README.rst
 include CHANGELOG.rst
 include copyright
+include LICENSE
 include MANIFEST.in
 include run_tests.py
 include version.py

@@ -39,7 +39,6 @@ Images
    :members: getData, getRgbaImageData,
              getOrigin, setOrigin,
              getScale, setScale,
-             getYAxis, setYAxis,
              isDraggable,
              getAlpha, setAlpha,
              getColormap, setColormap,
@@ -49,7 +48,6 @@ Images
    :members: getData, getRgbaImageData,
              getOrigin, setOrigin,
              getScale, setScale,
-             getYAxis, setYAxis,
              isDraggable,
              getAlpha, setAlpha
 
