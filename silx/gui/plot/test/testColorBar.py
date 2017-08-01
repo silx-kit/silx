@@ -236,7 +236,7 @@ class TestColorBarWidget(TestCaseQt):
         self.assertTrue(self.colorBar.getColorScaleBar().maxVal == data.max())
 
     def testPlotAssocation(self):
-        """Make sure the ColorBarWidget is proparly connected with the plot"""
+        """Make sure the ColorBarWidget is properly connected with the plot"""
         colormap = Colormap(name='gray',
                             normalization=Colormap.LINEAR,
                             vmin=None,
@@ -254,11 +254,11 @@ class TestColorBarWidget(TestCaseQt):
         # make sure the modification of the colormap has been done
         self.assertFalse(
             self.colorBar.getColormap() is self.plot.getDefaultColormap())
+        self.assertTrue(
+            self.colorBar.getColormap() is colormap)
 
         # test that colorbar is updated when default plot colormap changes
         self.plot.clear()
-        self.assertTrue(
-            self.colorBar.getColormap(), self.plot.getDefaultColormap())
         plotColormap = Colormap(name='gray',
                                 normalization=Colormap.LOGARITHM,
                                 vmin=None,
