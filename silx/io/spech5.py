@@ -1207,16 +1207,16 @@ def _demultiplex_mca(scan, analyser_index):
     :return: 2D numpy array containing all spectra for one analyser
     """
     number_of_analysers = _get_number_of_mca_analysers(scan)
+    number_of_spectra = len(scan.mca)
+    number_of_spectra_per_analyser = number_of_spectra // number_of_analysers
+    len_spectrum = len(scan.mca[analyser_index])
 
-    number_of_MCA_spectra = len(scan.mca)
+    mca_array = numpy.empty((number_of_spectra_per_analyser, len_spectrum))
 
-    list_of_1D_arrays = []
-    for i in range(analyser_index,
-                   number_of_MCA_spectra,
-                   number_of_analysers):
-        list_of_1D_arrays.append(scan.mca[i])
-    # convert list to 2D array
-    return numpy.array(list_of_1D_arrays)
+    for i in range(number_of_spectra_per_analyser):
+        mca_array[i, :] = scan.mca[analyser_index + i * number_of_analysers]
+
+    return mca_array
 
 
 class SpecH5Group(object):
@@ -1427,17 +1427,22 @@ class SpecH5Group(object):
         :raise: KeyError if ``key`` is not a known member of this group.
         """
         full_key = self._get_full_key(key)
+        if full_key in self.file._cached_items:
+            return self.file._cached_items[full_key]
+
         if is_group(full_key):
-            return SpecH5Group(full_key, self.file)
+            self.file.cache(full_key, SpecH5Group(full_key, self.file))
         elif is_dataset(full_key):
-            return _dataset_builder(full_key, self.file, self)
+            self.file.cache(full_key, _dataset_builder(full_key, self.file, self))
         elif is_link_to_group(full_key):
             link_target = full_key.replace("measurement", "instrument").rstrip("/")[:-4]
-            return SpecH5LinkToGroup(full_key, self.file, link_target)
+            self.file.cache(full_key, SpecH5LinkToGroup(full_key, self.file, link_target))
         elif is_link_to_dataset(full_key):
-            return _link_to_dataset_builder(full_key, self.file, self)
+            self.file.cache(full_key, _link_to_dataset_builder(full_key, self.file, self))
         else:
             raise KeyError("unrecognized group or dataset: " + full_key)
+
+        return self.file._cached_items[full_key]
 
     def __iter__(self):
         for key in self.keys():
@@ -1702,11 +1707,23 @@ class SpecH5(SpecH5Group):
                             "file handle.")
         self.attrs = _get_attrs_dict("/")
         self._sf = SpecFile(self.filename)
+        self._cached_items = {}
+        """Keeps a reference to created items, to avoid regenerating
+        them again."""
 
         SpecH5Group.__init__(self, name="/", specfileh5=self)
         if len(self) == 0:
             # SpecFile library do not raise exception for non specfiles
             raise IOError("Empty specfile. Not a valid spec format.")
+
+    def cache(self, name, item):
+        self._cached_items[name] = item
+
+    def uncache(self, name):
+        if name in self._cached_items:
+            del self._cached_items[name]
+        else:
+            raise KeyError("Key %s not in cache" % name)
 
     def keys(self):
         """
