@@ -425,8 +425,7 @@ class OpenCL(object):
             else:
                 ids = ocl.select_device(dtype=devicetype)
             if ids:
-                platformid = ids[0]
-                deviceid = ids[1]
+                platformid, deviceid = ids
         if (platformid is not None) and (deviceid is not None):
             if (platformid, deviceid) in self.context_cache:
                 ctx = self.context_cache[(platformid, deviceid)]
@@ -451,6 +450,7 @@ class OpenCL(object):
         device_id = oplat.get_devices().index(odevice)
         platform_id = pyopencl.get_platforms().index(oplat)
         return self.platforms[platform_id].devices[device_id]
+
 
 if pyopencl:
     ocl = OpenCL()
@@ -566,4 +566,3 @@ def kernel_workgroup_size(program, kernel):
     device = program.devices[0]
     query_wg = pyopencl.kernel_work_group_info.WORK_GROUP_SIZE
     return kernel.get_work_group_info(query_wg, device)
-
