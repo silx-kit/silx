@@ -62,6 +62,17 @@ _logger = logging.getLogger(__name__)
 """Module logger"""
 
 
+class TextTestResultWithSkipList(unittest.TextTestResult):
+    """Override default TextTestResult to display list of skipped tests at the
+    end
+    """
+
+    def printErrors(self):
+        unittest.TextTestResult.printErrors(self)
+        # Print skipped tests at the end
+        self.printErrorList("SKIPPED", self.skipped)
+
+
 def main(argv):
     """
     Main function to launch the unittests as an application
@@ -146,14 +157,8 @@ def main(argv):
     test_suite.addTest(silx.test.suite())
     result = runner.run(test_suite)
 
-    for test, reason in result.skipped:
-        description = test.shortDescription() or ''
-        _logger.warning('Skipped %s (%s): %s', test.id(), description, reason)
-
     if result.wasSuccessful():
-        _logger.info("Test suite succeeded")
         exit_status = 0
     else:
-        _logger.warning("Test suite failed")
         exit_status = 1
     return exit_status
