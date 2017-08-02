@@ -34,7 +34,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "2012-2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "15/03/2017"
+__date__ = "02/08/2017"
 __status__ = "stable"
 __all__ = ["ocl", "pyopencl", "mf", "release_cl_buffers", "allocate_cl_buffers",
            "measure_workgroup_size", "kernel_workgroup_size"]
@@ -365,6 +365,8 @@ class OpenCL(object):
         :param memory: minimum amount of memory (int)
         :param extensions: list of extensions to be present
         :param best: shall we look for the
+        :returns: A tuple of plateform ID and device ID, else None if nothing
+            found
         """
         if extensions is None:
             extensions = []
@@ -393,6 +395,9 @@ class OpenCL(object):
                                     best_found = platformid, deviceid, device.flops
         if best_found:
             return best_found[0], best_found[1]
+
+        # Nothing found
+        return None
 
     def create_context(self, devicetype="ALL", useFp64=False, platformid=None,
                        deviceid=None, cached=True):
