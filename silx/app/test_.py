@@ -57,6 +57,7 @@ class StreamHandlerUnittestReady(logging.StreamHandler):
 for h in logging.root.handlers:
     logging.root.removeHandler(h)
 logging.root.addHandler(StreamHandlerUnittestReady())
+logging.captureWarnings(True)
 
 _logger = logging.getLogger(__name__)
 """Module logger"""
