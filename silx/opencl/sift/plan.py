@@ -179,10 +179,9 @@ class SiftPlan(object):
             if device is None:
                 self.device = ocl.select_device(type=devicetype, memory=self.memory, best=True)
                 if self.device is None:
-                    logger.warning('Unable to find suitable device, selecting device')
                     self.device = ocl.select_device(memory=self.memory, best=True)
                     if self.device:
-                        logger.warning('Selecting device: %s, %s' % self.device)
+                        logger.warning('Unable to find suitable device. Selecting device: %s, %s' % self.device)
                 if self.device is None:
                     raise RuntimeError("No suitable OpenCL device found with given constrains")
             else:
