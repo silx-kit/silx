@@ -37,7 +37,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "15/03/2017"
+__date__ = "02/08/2017"
 __status__ = "production"
 
 import os
@@ -125,6 +125,8 @@ class LinearAlign(object):
         else:
             if device is None:
                 self.device = ocl.select_device(type=devicetype, best=True)
+                if self.device is None:
+                    raise RuntimeError("No suitable OpenCL device found with given constrains")
             else:
                 self.device = device
             self.ctx = pyopencl.Context(devices=[pyopencl.get_platforms()[self.device[0]].get_devices()[self.device[1]]])
