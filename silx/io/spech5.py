@@ -175,7 +175,6 @@ Classes
 - :class:`SpecH5LinkToDataset`
 """
 
-import copy
 import logging
 import numpy
 import posixpath
