@@ -136,6 +136,10 @@ def main(argv):
     runnerArgs["verbosity"] = test_verbosity
     runnerArgs["buffer"] = use_buffer
     runner = unittest.TextTestRunner(**runnerArgs)
+    runner.resultclass = TextTestResultWithSkipList
+
+    # Display the result when using CTRL-C
+    unittest.installHandler()
 
     import silx.test
     test_suite = unittest.TestSuite()
