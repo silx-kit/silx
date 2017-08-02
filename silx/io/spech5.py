@@ -175,6 +175,7 @@ Classes
 - :class:`SpecH5LinkToDataset`
 """
 
+import copy
 import logging
 import numpy
 import posixpath
@@ -321,6 +322,14 @@ def is_dataset(name):
         ub_matrix_pattern, unit_cell_pattern, unit_cell_abc_pattern, unit_cell_alphabetagamma_pattern
     )
     return _bulk_match(name, data_patterns)
+
+
+def is_mca_data(name):
+    """Return True if name matches a path to MCA data."""
+    mca_data_patterns = (instrument_mca_data_pattern,
+                         measurement_mca_data_pattern,
+                         measurement_mca_info_data_pattern)
+    return _bulk_match(name, mca_data_patterns)
 
 
 def is_link_to_group(name):
@@ -1442,7 +1451,35 @@ class SpecH5Group(object):
         else:
             raise KeyError("unrecognized group or dataset: " + full_key)
 
-        self.file.cache(full_key, obj)
+        if is_mca_data(full_key):
+            # optimization: cache all 3 datasets containing the MCA data
+            #               to avoid regenerating the data
+            scan_key = _get_scan_key_in_name(full_key)
+            mca_index = _get_mca_index_in_name(full_key)
+
+            instr_mca_name = "/%s/instrument/mca_%d/data" % (scan_key, mca_index)
+            self.file.cache(instr_mca_name,
+                            SpecH5Dataset(value=obj.value,
+                                          name=instr_mca_name,
+                                          file_=obj.file,
+                                          parent=SpecH5Group(instr_mca_name[:-5],
+                                                             obj.file)))
+
+            name_patterns = ["/%s/measurement/mca_%d/data",
+                             "/%s/measurement/mca_%d/info/data"]
+            for p in name_patterns:
+                link_name = p % (scan_key, mca_index)
+                parent_name = link_name[:-5]
+                new_obj = SpecH5LinkToDataset(value=obj.value,
+                                              name=link_name,
+                                              file_=obj.file,
+                                              parent=SpecH5Group(parent_name,
+                                                                 obj.file),
+                                              target=instr_mca_name)
+                self.file.cache(link_name,
+                                new_obj)
+        else:
+            self.file.cache(full_key, obj)
 
         return obj
 
