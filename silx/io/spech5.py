@@ -187,7 +187,7 @@ from .specfile import SpecFile
 
 __authors__ = ["P. Knobel", "D. Naudet"]
 __license__ = "MIT"
-__date__ = "26/07/2017"
+__date__ = "01/08/2017"
 
 logger1 = logging.getLogger(__name__)
 
@@ -321,6 +321,14 @@ def is_dataset(name):
         ub_matrix_pattern, unit_cell_pattern, unit_cell_abc_pattern, unit_cell_alphabetagamma_pattern
     )
     return _bulk_match(name, data_patterns)
+
+
+def is_mca_data(name):
+    """Return True if name matches a path to MCA data."""
+    mca_data_patterns = (instrument_mca_data_pattern,
+                         measurement_mca_data_pattern,
+                         measurement_mca_info_data_pattern)
+    return _bulk_match(name, mca_data_patterns)
 
 
 def is_link_to_group(name):
@@ -1207,16 +1215,16 @@ def _demultiplex_mca(scan, analyser_index):
     :return: 2D numpy array containing all spectra for one analyser
     """
     number_of_analysers = _get_number_of_mca_analysers(scan)
+    number_of_spectra = len(scan.mca)
+    number_of_spectra_per_analyser = number_of_spectra // number_of_analysers
+    len_spectrum = len(scan.mca[analyser_index])
 
-    number_of_MCA_spectra = len(scan.mca)
+    mca_array = numpy.empty((number_of_spectra_per_analyser, len_spectrum))
 
-    list_of_1D_arrays = []
-    for i in range(analyser_index,
-                   number_of_MCA_spectra,
-                   number_of_analysers):
-        list_of_1D_arrays.append(scan.mca[i])
-    # convert list to 2D array
-    return numpy.array(list_of_1D_arrays)
+    for i in range(number_of_spectra_per_analyser):
+        mca_array[i, :] = scan.mca[analyser_index + i * number_of_analysers]
+
+    return mca_array
 
 
 class SpecH5Group(object):
@@ -1358,22 +1366,31 @@ class SpecH5Group(object):
         if name not in self:
             return default
 
+        full_key = self._get_full_key(name)
         if getlink:
-            node = h5py.HardLink()
-        else:
-            node = self[name]
-
-        if getclass:
-            if hasattr(node, "h5py_class"):
-                return node.h5py_class
+            # TODO It may be interesting to implement soft links here
+            if getclass:
+                return h5py.HardLink
             else:
-                return node.__class__
+                return h5py.HardLink()
         else:
-            return node
+            if getclass:
+                # Return the kind of the object instead of loading it
+                if is_group(full_key):
+                    return h5py.Group
+                elif is_dataset(full_key):
+                    return h5py.Dataset
+                elif is_link_to_group(full_key):
+                    return h5py.Group
+                elif is_link_to_dataset(full_key):
+                    return h5py.Dataset
+                raise KeyError("unrecognized group or dataset: " + full_key)
+            else:
+                return self[name]
 
-    def __getitem__(self, key):
-        """Return a :class:`SpecH5Group` or a :class:`SpecH5Dataset`
-        if ``key`` is a valid name of a group or dataset.
+    def _get_full_key(self, key):
+        """Return the full key if ``key`` is a valid name of a group or
+        dataset.
 
         ``key`` can be a member of ``self.keys()``, i.e. an immediate child of
         the group, or a path reaching into subgroups (e.g.
@@ -1400,18 +1417,70 @@ class SpecH5Group(object):
         # Absolute path to an element called from a non-parent group
         else:
             raise KeyError(key + " is not a child of " + self.__repr__())
+        return full_key
+
+    def __getitem__(self, key):
+        """Return a :class:`SpecH5Group` or a :class:`SpecH5Dataset`
+        if ``key`` is a valid name of a group or dataset.
+
+        ``key`` can be a member of ``self.keys()``, i.e. an immediate child of
+        the group, or a path reaching into subgroups (e.g.
+        ``"instrument/positioners"``)
+
+        In the special case were this group is the root group, ``key`` can
+        start with a ``/`` character.
+
+        :param key: Name of member
+        :type key: str
+        :raise: KeyError if ``key`` is not a known member of this group.
+        """
+        full_key = self._get_full_key(key)
+        if full_key in self.file._cached_items:
+            return self.file._cached_items[full_key]
 
         if is_group(full_key):
-            return SpecH5Group(full_key, self.file)
+            obj = SpecH5Group(full_key, self.file)
         elif is_dataset(full_key):
-            return _dataset_builder(full_key, self.file, self)
+            obj = _dataset_builder(full_key, self.file, self)
         elif is_link_to_group(full_key):
             link_target = full_key.replace("measurement", "instrument").rstrip("/")[:-4]
-            return SpecH5LinkToGroup(full_key, self.file, link_target)
+            obj = SpecH5LinkToGroup(full_key, self.file, link_target)
         elif is_link_to_dataset(full_key):
-            return _link_to_dataset_builder(full_key, self.file, self)
+            obj = _link_to_dataset_builder(full_key, self.file, self)
         else:
             raise KeyError("unrecognized group or dataset: " + full_key)
+
+        if is_mca_data(full_key):
+            # optimization: cache all 3 datasets containing the MCA data
+            #               to avoid regenerating the data
+            scan_key = _get_scan_key_in_name(full_key)
+            mca_index = _get_mca_index_in_name(full_key)
+
+            instr_mca_name = "/%s/instrument/mca_%d/data" % (scan_key, mca_index)
+            self.file.cache(instr_mca_name,
+                            SpecH5Dataset(value=obj.value,
+                                          name=instr_mca_name,
+                                          file_=obj.file,
+                                          parent=SpecH5Group(instr_mca_name[:-5],
+                                                             obj.file)))
+
+            name_patterns = ["/%s/measurement/mca_%d/data",
+                             "/%s/measurement/mca_%d/info/data"]
+            for p in name_patterns:
+                link_name = p % (scan_key, mca_index)
+                parent_name = link_name[:-5]
+                new_obj = SpecH5LinkToDataset(value=obj.value,
+                                              name=link_name,
+                                              file_=obj.file,
+                                              parent=SpecH5Group(parent_name,
+                                                                 obj.file),
+                                              target=instr_mca_name)
+                self.file.cache(link_name,
+                                new_obj)
+        else:
+            self.file.cache(full_key, obj)
+
+        return obj
 
     def __iter__(self):
         for key in self.keys():
@@ -1676,11 +1745,28 @@ class SpecH5(SpecH5Group):
                             "file handle.")
         self.attrs = _get_attrs_dict("/")
         self._sf = SpecFile(self.filename)
+        self._cached_items = {}
+        """Keeps a reference to created items, to avoid regenerating
+        them again."""
 
         SpecH5Group.__init__(self, name="/", specfileh5=self)
         if len(self) == 0:
             # SpecFile library do not raise exception for non specfiles
             raise IOError("Empty specfile. Not a valid spec format.")
+
+    def cache(self, name, item):
+        full_key = self._get_full_key(name)
+        self._cached_items[full_key] = item
+
+    def uncache(self, name):
+        full_key = self._get_full_key(name)
+        if name in self._cached_items:
+            del self._cached_items[full_key]
+        else:
+            raise KeyError("Key %s not in cache" % full_key)
+
+    def clear_cache(self):
+        self._cached_items = {}
 
     def keys(self):
         """
