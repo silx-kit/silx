@@ -62,8 +62,18 @@ class StreamHandlerUnittestReady(logging.StreamHandler):
         pass
 
 
+def createBasicHandler():
+    """Create the handler using the basic configuration"""
+    hdlr = StreamHandlerUnittestReady()
+    fs = logging.BASIC_FORMAT
+    dfs = None
+    fmt = logging.Formatter(fs, dfs)
+    hdlr.setFormatter(fmt)
+    return hdlr
+
+
 # Use an handler compatible with unittests, else use_buffer is not working
-logging.root.addHandler(StreamHandlerUnittestReady())
+logging.root.addHandler(createBasicHandler())
 logging.captureWarnings(True)
 
 logger = logging.getLogger("run_tests")
