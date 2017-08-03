@@ -32,7 +32,7 @@ __date__ = "03/08/2017"
 import os
 import unittest
 
-import urllib2
+from silx.third_party import six
 import silx.resources
 from .utils import utilstest
 
@@ -56,9 +56,9 @@ class TestResources(unittest.TestCase):
 
 def isSilxWebsiteAvailable():
     try:
-        urllib2.urlopen('http://www.silx.org', timeout=1)
+        six.moves.urllib.request.urlopen('http://www.silx.org', timeout=1)
         return True
-    except urllib2.URLError:
+    except six.moves.urllib.error.URLError:
         return False
 
 
