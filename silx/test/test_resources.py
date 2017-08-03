@@ -34,6 +34,7 @@ import unittest
 
 from silx.third_party import six
 import silx.resources
+import shutil
 from .utils import utilstest
 
 
@@ -70,32 +71,48 @@ class TestExternalResources(unittest.TestCase):
         if not isSilxWebsiteAvailable():
             raise unittest.SkipTest("Network or silx website not available")
 
+    def setUp(self):
+        self.utilstest = silx.resources.ExternalResources("toto", "http://www.silx.org/pub/silx/")
+
+    def tearDown(self):
+        if self.utilstest.data_home:
+            shutil.rmtree(self.utilstest.data_home)
+        self.utilstest = None
+
     def test_tempdir(self):
         "test the temporary directory creation"
-        myutilstest = silx.resources.ExternalResources("toto", "http://www.silx.org")
-        d = myutilstest.tempdir
+        d = self.utilstest.tempdir
         self.assertTrue(os.path.isdir(d))
-        self.assertEqual(d, myutilstest.tempdir, 'tmpdir is stable')
-        myutilstest.clean_up()
+        self.assertEqual(d, self.utilstest.tempdir, 'tmpdir is stable')
+        self.utilstest.clean_up()
         self.assertFalse(os.path.isdir(d))
-        e = myutilstest.tempdir
+        e = self.utilstest.tempdir
         self.assertTrue(os.path.isdir(e))
-        self.assertEqual(e, myutilstest.tempdir, 'tmpdir is stable')
+        self.assertEqual(e, self.utilstest.tempdir, 'tmpdir is stable')
         self.assertNotEqual(d, e, "tempdir changed")
-        myutilstest.clean_up()
+        self.utilstest.clean_up()
 
     def test_download(self):
         "test the download from silx.org"
-        f = utilstest.getfile("lena.png")
+        f = self.utilstest.getfile("lena.png")
         self.assertTrue(os.path.exists(f))
         di = utilstest.getdir("source.tar.gz")
         for fi in di:
             self.assertTrue(os.path.exists(fi))
 
-    def test_dowload_all(self):
+    def test_download_all(self):
         "test the download of all files from silx.org"
-        l = utilstest.download_all()
-        self.assertGreater(len(l), 1, "At least 2 items were downloaded")
+        filename = self.utilstest.getfile("lena.png")
+        directory = "source.tar.gz"
+        _filelist = self.utilstest.getdir(directory)
+        # download file and remove it to create a json mapping file
+        os.remove(filename)
+        directory_path = os.path.join(self.utilstest.data_home, "source")
+        shutil.rmtree(directory_path)
+        directory_path = os.path.join(self.utilstest.data_home, directory)
+        os.remove(directory_path)
+        filelist = self.utilstest.download_all()
+        self.assertGreater(len(filelist), 1, "At least 2 items were downloaded")
 
 
 def suite():
