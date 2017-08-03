@@ -116,12 +116,10 @@ class TestExternalResources(unittest.TestCase):
 
 
 def suite():
+    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
     test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestResources))
-    test_suite.addTest(TestExternalResources("test_tempdir"))
-    test_suite.addTest(TestExternalResources("test_download"))  # order matters !
-    test_suite.addTest(TestExternalResources("test_dowload_all"))
+    test_suite.addTest(loadTests(TestResources))
+    test_suite.addTest(loadTests(TestExternalResources))
     return test_suite
 
 
