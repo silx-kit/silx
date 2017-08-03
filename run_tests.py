@@ -32,7 +32,7 @@ Test coverage dependencies: coverage, lxml.
 """
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "19/04/2017"
+__date__ = "03/08/2017"
 __license__ = "MIT"
 
 import distutils.util
@@ -375,6 +375,8 @@ else:
     test_suite.addTest(
         unittest.defaultTestLoader.loadTestsFromNames(options.test_name))
 
+# Display the result when using CTRL-C
+unittest.installHandler()
 
 result = runner.run(test_suite)
 for test, reason in result.skipped:
