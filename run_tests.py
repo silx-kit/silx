@@ -100,6 +100,17 @@ PROJECT_NAME = get_project_name(PROJECT_DIR)
 logger.info("Project name: %s", PROJECT_NAME)
 
 
+class TextTestResultWithSkipList(unittest.TextTestResult):
+    """Override default TextTestResult to display list of skipped tests at the
+    end
+    """
+
+    def printErrors(self):
+        unittest.TextTestResult.printErrors(self)
+        # Print skipped tests at the end
+        self.printErrorList("SKIPPED", self.skipped)
+
+
 class ProfileTextTestResult(unittest.TextTestRunner.resultclass):
 
     def __init__(self, *arg, **kwarg):
@@ -355,6 +366,8 @@ runnerArgs = {}
 runnerArgs["verbosity"] = test_verbosity
 if options.memprofile:
     runnerArgs["resultclass"] = ProfileTextTestResult
+else:
+    runnerArgs["resultclass"] = TextTestResultWithSkipList
 runner = unittest.TextTestRunner(**runnerArgs)
 
 logger.warning("Test %s %s from %s",
@@ -379,15 +392,10 @@ else:
 unittest.installHandler()
 
 result = runner.run(test_suite)
-for test, reason in result.skipped:
-    logger.warning('Skipped %s (%s): %s',
-                   test.id(), test.shortDescription() or '', reason)
 
 if result.wasSuccessful():
-    logger.info("Test suite succeeded")
     exit_status = 0
 else:
-    logger.warning("Test suite failed")
     exit_status = 1
 
 
