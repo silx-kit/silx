@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -39,44 +39,39 @@ def configuration(parent_package='', top_path=None):
     # =====================================
     # fit functions
     # =====================================
-    fit_dir = 'functions'
-    fit_src = [os.path.join(fit_dir, "src", srcf)
-               for srcf in ["funs.c"]]
-    fit_src.append(os.path.join(fit_dir, "functions.pyx"))
-    fit_inc = [os.path.join(fit_dir, 'include'), numpy.get_include()]
+    fun_src = [os.path.join('functions', "src", "funs.c"),
+               "functions.pyx"]
+    fun_inc = [os.path.join('functions', 'include'), numpy.get_include()]
 
     config.add_extension('functions',
-                         sources=fit_src,
-                         include_dirs=fit_inc,
+                         sources=fun_src,
+                         include_dirs=fun_inc,
                          language='c')
 
     # =====================================
     # fit filters
     # =====================================
-    fit_dir = 'filters'
-    fit_src = [os.path.join(fit_dir, "src", srcf)
-               for srcf in ["smoothnd.c", "snip1d.c",
-                            "snip2d.c", "snip3d.c", "strip.c"]]
-    fit_src.append(os.path.join(fit_dir, "filters.pyx"))
-    fit_inc = [os.path.join(fit_dir, 'include'), numpy.get_include()]
+    filt_src = [os.path.join('filters', "src", srcf)
+                for srcf in ["smoothnd.c", "snip1d.c",
+                             "snip2d.c", "snip3d.c", "strip.c"]]
+    filt_src.append("filters.pyx")
+    filt_inc = [os.path.join('filters', 'include'), numpy.get_include()]
 
     config.add_extension('filters',
-                         sources=fit_src,
-                         include_dirs=fit_inc,
+                         sources=filt_src,
+                         include_dirs=filt_inc,
                          language='c')
 
     # =====================================
     # peaks
     # =====================================
-    fit_dir = 'peaks'
-    fit_src = [os.path.join(fit_dir, "src", srcf)
-               for srcf in ["peaks.c"]]
-    fit_src.append(os.path.join(fit_dir, "peaks.pyx"))
-    fit_inc = [os.path.join(fit_dir, 'include'), numpy.get_include()]
+    peaks_src = [os.path.join('peaks', "src", "peaks.c"),
+                 "peaks.pyx"]
+    peaks_inc = [os.path.join('peaks', 'include'), numpy.get_include()]
 
     config.add_extension('peaks',
-                         sources=fit_src,
-                         include_dirs=fit_inc,
+                         sources=peaks_src,
+                         include_dirs=peaks_inc,
                          language='c')
     # =====================================
     # =====================================
