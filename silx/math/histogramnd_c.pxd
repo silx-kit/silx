@@ -28,7 +28,7 @@ __date__ = "01/02/2016"
 
 cimport numpy
 
-cdef extern from "include/histogramnd_c.h":
+cdef extern from "histogramnd_c.h":
 
     ctypedef enum histo_opt_type:
         HISTO_NONE
