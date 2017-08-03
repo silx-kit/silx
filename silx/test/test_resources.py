@@ -26,12 +26,13 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "22/05/2017"
+__date__ = "03/08/2017"
 
 
 import os
 import unittest
 
+import urllib2
 import silx.resources
 from .utils import utilstest
 
@@ -53,7 +54,21 @@ class TestResources(unittest.TestCase):
         self.assertFalse(os.path.exists(filename))
 
 
+def isSilxWebsiteAvailable():
+    try:
+        urllib2.urlopen('http://www.silx.org', timeout=1)
+        return True
+    except urllib2.URLError:
+        return False
+
+
 class TestExternalResources(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        if not isSilxWebsiteAvailable():
+            raise unittest.SkipTest("Network or silx website not available")
+
     "This is a test for the TestResources"
     def test_tempdir(self):
         "test the temporary directory creation"
