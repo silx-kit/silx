@@ -32,6 +32,8 @@ import unittest
 import datetime
 from functools import partial
 
+from silx.test import utils
+
 from .. import spech5
 from ..spech5 import (SpecH5, SpecH5Group,
                       SpecH5Dataset, spec_date_to_iso8601)
@@ -504,6 +506,7 @@ class TestSpecH5(unittest.TestCase):
                       self.sfh5["/25.1"].values())
 
     # visit and visititems ignore links
+    @utils.test_logging(spech5.logger1.name, warning=2)
     def testVisit(self):
         name_list = []
         self.sfh5.visit(name_list.append)
@@ -531,6 +534,7 @@ class TestSpecH5(unittest.TestCase):
         self.assertIn("positioners/Pslit HGap", name_list_no_slash)
         self.assertIn("positioners", name_list_no_slash)
 
+    @utils.test_logging(spech5.logger1.name, warning=2)
     def testVisitItems(self):
         dataset_name_list = []
 
@@ -585,6 +589,7 @@ class TestSpecH5(unittest.TestCase):
         with self.assertRaises(KeyError):
             uc = self.sfh5["/1001.1/sample/unit_cell"]
 
+    @utils.test_logging(spech5.logger1.name, warning=2)
     def testOpenFileDescriptor(self):
         """Open a SpecH5 file from a file descriptor"""
         with io.open(self.sfh5.filename) as f:
