@@ -63,13 +63,13 @@ def isSilxWebsiteAvailable():
 
 
 class TestExternalResources(unittest.TestCase):
+    """This is a test for the ExternalResources"""
 
     @classmethod
     def setUpClass(cls):
         if not isSilxWebsiteAvailable():
             raise unittest.SkipTest("Network or silx website not available")
 
-    "This is a test for the TestResources"
     def test_tempdir(self):
         "test the temporary directory creation"
         myutilstest = silx.resources.ExternalResources("toto", "http://www.silx.org")
