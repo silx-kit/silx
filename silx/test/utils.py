@@ -149,21 +149,18 @@ class TestLogging(logging.Handler):
         self.records = []  # Reset recorded LogRecords
         self.logger.addHandler(self)
         self.logger.propagate = False
+        # ensure no log message is ignored
+        self.entry_level = self.logger.level * 1
+        self.logger.setLevel(logging.DEBUG)
 
     def __exit__(self, exc_type, exc_value, traceback):
         """Context (i.e., with) support"""
         self.logger.removeHandler(self)
         self.logger.propagate = True
+        self.logger.setLevel(self.entry_level)
 
         for level, expected_count in self.count_by_level.items():
             if expected_count is None:
-                continue
-
-            # if tests are not run in verbose mode, the root logger level is
-            # WARNING, causing INFO and DEBUG messages to be not be emitted
-            if not self.logger.isEnabledFor(level):
-                _logger.debug("logger %s disabled for level %d. Cannot count messages.",
-                              self.logger.name, level)
                 continue
 
             # Number of records for the specified level_str
