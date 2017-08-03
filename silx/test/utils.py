@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "20/04/2017"
+__date__ = "03/08/2017"
 
 
 import os
@@ -48,7 +48,7 @@ import tempfile
 import unittest
 from ..resources import ExternalResources
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 utilstest = ExternalResources(project="silx",
                               url_base="http://www.silx.org/pub/silx/",
@@ -157,6 +157,13 @@ class TestLogging(logging.Handler):
 
         for level, expected_count in self.count_by_level.items():
             if expected_count is None:
+                continue
+
+            # if tests are not run in verbose mode, the root logger level is
+            # WARNING, causing INFO and DEBUG messages to be not be emitted
+            if not self.logger.isEnabledFor(level):
+                _logger.debug("logger %s disabled for level %d. Cannot count messages.",
+                              self.logger.name, level)
                 continue
 
             # Number of records for the specified level_str
