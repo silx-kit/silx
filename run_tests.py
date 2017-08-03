@@ -64,6 +64,7 @@ class StreamHandlerUnittestReady(logging.StreamHandler):
 
 # Use an handler compatible with unittests, else use_buffer is not working
 logging.root.addHandler(StreamHandlerUnittestReady())
+logging.captureWarnings(True)
 
 logger = logging.getLogger("run_tests")
 logger.setLevel(logging.WARNING)
