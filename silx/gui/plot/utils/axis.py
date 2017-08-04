@@ -27,7 +27,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "29/06/2017"
+__date__ = "04/08/2017"
 
 import functools
 import logging
@@ -40,19 +40,24 @@ _logger = logging.getLogger(__name__)
 class SyncAxes():
     """Synchronize a set of plot axes together.
 
+    It is created with the expected axes and start to synchonize then.
+
     It can be customized to synchronize limits, scale, and direction of axes
     together. By default everything is synchronozed.
+
+    The API `start` and `stop` can be used to enable/disable the
+    synchronization while this object is still alive.
+
+    If this object is destroyed the synchronization stop.
+
+    .. versionadded:: 0.6
     """
 
-    def __init__(self, axis1, axis2, axis3=None, axis4=None,
-                 syncLimits=True, syncScale=True, syncDirection=True):
+    def __init__(self, axes, syncLimits=True, syncScale=True, syncDirection=True):
         """
         Constructor
 
-        :param Axis axis1: A plot axis
-        :param Axis axis2: Another plot axis
-        :param Axis axis3: Another plot axis
-        :param Axis axis4: Another plot axis
+        :param Axis axes: A list of axis to synchronize together
         :param bool syncLimits: Synchronize axes limits
         :param bool syncScale: Synchronize axes scale
         :param bool syncDirection:  Synchronize axes direction
@@ -64,17 +69,11 @@ class SyncAxes():
         self.__syncDirection = syncDirection
         self.__callbacks = []
 
-        self.__axes.append(axis1)
-        self.__axes.append(axis2)
-        if axis3 is not None:
-            self.__axes.append(axis3)
-        if axis4 is not None:
-            self.__axes.append(axis4)
+        self.__axes.extend(axes)
+        self.start()
 
-        self.sync()
-
-    def sync(self):
-        """Synchronize axes together.
+    def start(self):
+        """Start synchronizing axes together.
 
         The first axes is used as the reference for the first synchronization.
         After that, any chages to any axes will be used to synchronize other
@@ -116,8 +115,10 @@ class SyncAxes():
         if self.__syncDirection:
             self.__axisInvertedChanged(mainAxis, mainAxis.isInverted())
 
-    def unsync(self):
-        """Unsynchronize axes"""
+    def stop(self):
+        """Stop the synchronization of the axes"""
+        if len(self.__callbacks) == 0:
+            raise RuntimeError("Axes not synchronized")
         for sig, callback in self.__callbacks:
             sig.disconnect(callback)
         self.__callbacks = []
@@ -125,7 +126,8 @@ class SyncAxes():
     def __del__(self):
         """Destructor"""
         # clean up references
-        self.unsync()
+        if len(self.__callbacks) != 0:
+            self.stop()
 
     @contextmanager
     def __inhibiteSignals(self):

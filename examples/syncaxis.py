@@ -23,7 +23,6 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-from skimage.feature import _texture
 """This script is an example to illustrate how to use axis synchronization
 tool.
 """
@@ -71,10 +70,10 @@ class SyncPlot(qt.QMainWindow):
         self.plot1d_y1.addCurve(y=numpy.arange(100), x=numpy.min(data, axis=1), legend="min")
         self.plot1d_y2.addCurve(y=numpy.arange(100), x=numpy.std(data, axis=1))
 
-        self.constraint1 = SyncAxes(self.plot2d.getXAxis(), self.plot1d_x1.getXAxis(), self.plot1d_x2.getXAxis())
-        self.constraint2 = SyncAxes(self.plot2d.getYAxis(), self.plot1d_y1.getYAxis(), self.plot1d_y2.getYAxis())
-        self.constraint3 = SyncAxes(self.plot1d_x1.getYAxis(), self.plot1d_y1.getXAxis())
-        self.constraint4 = SyncAxes(self.plot1d_x2.getYAxis(), self.plot1d_y2.getXAxis())
+        self.constraint1 = SyncAxes([self.plot2d.getXAxis(), self.plot1d_x1.getXAxis(), self.plot1d_x2.getXAxis()])
+        self.constraint2 = SyncAxes([self.plot2d.getYAxis(), self.plot1d_y1.getYAxis(), self.plot1d_y2.getYAxis()])
+        self.constraint3 = SyncAxes([self.plot1d_x1.getYAxis(), self.plot1d_y1.getXAxis()])
+        self.constraint4 = SyncAxes([self.plot1d_x2.getYAxis(), self.plot1d_y2.getXAxis()])
 
         layout.addWidget(self.plot2d, 0, 0)
         layout.addWidget(self.createCenteredLabel(u"↓↑"), 1, 0)
@@ -93,6 +92,7 @@ class SyncPlot(qt.QMainWindow):
         label.setAlignment(qt.Qt.AlignCenter)
         label.setText(text)
         return label
+
 
 if __name__ == "__main__":
     app = qt.QApplication([])

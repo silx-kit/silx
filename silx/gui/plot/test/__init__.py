@@ -24,52 +24,54 @@
 # ###########################################################################*/
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "18/02/2016"
+__date__ = "04/08/2017"
 
 
 import unittest
 
-from .._utils.test import suite as testUtilsSuite
-from .testColorBar import suite as testColorBarSuite
-from .testColormap import suite as testColormapSuite
-from .testColormapDialog import suite as testColormapDialogSuite
-from .testColors import suite as testColorsSuite
-from .testCurvesROIWidget import suite as testCurvesROIWidgetSuite
-from .testAlphaSlider import suite as testAlphaSliderSuite
-from .testInteraction import suite as testInteractionSuite
-from .testLegendSelector import suite as testLegendSelectorSuite
-from .testMaskToolsWidget import suite as testMaskToolsWidgetSuite
-from .testScatterMaskToolsWidget import suite as testScatterMaskToolsWidgetSuite
-from .testPlotInteraction import suite as testPlotInteractionSuite
-from .testPlotTools import suite as testPlotToolsSuite
-from .testPlotWidgetNoBackend import suite as testPlotWidgetNoBackendSuite
-from .testPlotWidget import suite as testPlotWidgetSuite
-from .testPlotWindow import suite as testPlotWindowSuite
-from .testProfile import suite as testProfileSuite
-from .testStackView import suite as testStackViewSuite
-from .testItem import suite as testItemSuite
+from .._utils import test
+from . import testColorBar
+from . import testColormap
+from . import testColormapDialog
+from . import testColors
+from . import testCurvesROIWidget
+from . import testAlphaSlider
+from . import testInteraction
+from . import testLegendSelector
+from . import testMaskToolsWidget
+from . import testScatterMaskToolsWidget
+from . import testPlotInteraction
+from . import testPlotTools
+from . import testPlotWidgetNoBackend
+from . import testPlotWidget
+from . import testPlotWindow
+from . import testProfile
+from . import testStackView
+from . import testItem
+from . import testUtilsAxis
 
 
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTests(
-        [testUtilsSuite(),
-         testColorBarSuite(),
-         testColorsSuite(),
-         testColormapDialogSuite(),
-         testCurvesROIWidgetSuite(),
-         testAlphaSliderSuite(),
-         testInteractionSuite(),
-         testLegendSelectorSuite(),
-         testMaskToolsWidgetSuite(),
-         testScatterMaskToolsWidgetSuite(),
-         testPlotInteractionSuite(),
-         testPlotWidgetNoBackendSuite(),
-         testPlotToolsSuite(),
-         testPlotWidgetSuite(),
-         testPlotWindowSuite(),
-         testProfileSuite(),
-         testStackViewSuite(),
-         testColormapSuite(),
-         testItemSuite()])
+        [test.suite(),
+         testColorBar.suite(),
+         testColors.suite(),
+         testColormapDialog.suite(),
+         testCurvesROIWidget.suite(),
+         testAlphaSlider.suite(),
+         testInteraction.suite(),
+         testLegendSelector.suite(),
+         testMaskToolsWidget.suite(),
+         testScatterMaskToolsWidget.suite(),
+         testPlotInteraction.suite(),
+         testPlotWidgetNoBackend.suite(),
+         testPlotTools.suite(),
+         testPlotWidget.suite(),
+         testPlotWindow.suite(),
+         testProfile.suite(),
+         testStackView.suite(),
+         testColormap.suite(),
+         testItem.suite(),
+         testUtilsAxis.suite()])
     return test_suite
