@@ -37,15 +37,15 @@ from silx.utils import weakref
 _logger = logging.getLogger(__name__)
 
 
-class SyncAxes():
+class SyncAxes(object):
     """Synchronize a set of plot axes together.
 
-    It is created with the expected axes and start to synchonize then.
+    It is created with the expected axes and starts to synchronize them.
 
     It can be customized to synchronize limits, scale, and direction of axes
-    together. By default everything is synchronozed.
+    together. By default everything is synchronized.
 
-    The API `start` and `stop` can be used to enable/disable the
+    The API :meth:`start` and :meth:`stop` can be used to enable/disable the
     synchronization while this object is still alive.
 
     If this object is destroyed the synchronization stop.
@@ -57,11 +57,12 @@ class SyncAxes():
         """
         Constructor
 
-        :param Axis axes: A list of axis to synchronize together
+        :param list(Axis) axes: A list of axes to synchronize together
         :param bool syncLimits: Synchronize axes limits
         :param bool syncScale: Synchronize axes scale
-        :param bool syncDirection:  Synchronize axes direction
+        :param bool syncDirection: Synchronize axes direction
         """
+        object.__init__(self)
         self.__axes = []
         self.__locked = False
         self.__syncLimits = syncLimits
@@ -75,8 +76,8 @@ class SyncAxes():
     def start(self):
         """Start synchronizing axes together.
 
-        The first axes is used as the reference for the first synchronization.
-        After that, any chages to any axes will be used to synchronize other
+        The first axis is used as the reference for the first synchronization.
+        After that, any changes to any axes will be used to synchronize other
         axes.
         """
         if len(self.__callbacks) != 0:
@@ -130,7 +131,7 @@ class SyncAxes():
             self.stop()
 
     @contextmanager
-    def __inhibiteSignals(self):
+    def __inhibitSignals(self):
         self.__locked = True
         yield
         self.__locked = False
@@ -144,20 +145,20 @@ class SyncAxes():
     def __axisLimitsChanged(self, changedAxis, vmin, vmax):
         if self.__locked:
             return
-        with self.__inhibiteSignals():
+        with self.__inhibitSignals():
             for axis in self.__otherAxes(changedAxis):
                 axis.setLimits(vmin, vmax)
 
     def __axisScaleChanged(self, changedAxis, scale):
         if self.__locked:
             return
-        with self.__inhibiteSignals():
+        with self.__inhibitSignals():
             for axis in self.__otherAxes(changedAxis):
                 axis.setScale(scale)
 
     def __axisInvertedChanged(self, changedAxis, isInverted):
         if self.__locked:
             return
-        with self.__inhibiteSignals():
+        with self.__inhibitSignals():
             for axis in self.__otherAxes(changedAxis):
                 axis.setInverted(isInverted)
