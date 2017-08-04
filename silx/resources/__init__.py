@@ -56,7 +56,7 @@ of this modules to ensure access across different distribution schemes:
 
 __authors__ = ["V.A. Sole", "Thomas Vincent", "J. Kieffer"]
 __license__ = "MIT"
-__date__ = "22/05/2017"
+__date__ = "03/08/2017"
 
 
 import os
@@ -158,6 +158,7 @@ class ExternalResources(object):
         self.url_base = url_base
         self.all_data = set()
         self.timeout = timeout
+        self.data_home = None
 
     def _initialize_tmpdir(self):
         """Initialize the temporary directory"""
