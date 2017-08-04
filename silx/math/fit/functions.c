@@ -231,8 +231,8 @@ void __Pyx_call_destructor(T* x) {
 #define _USE_MATH_DEFINES
 #endif
 #include <math.h>
-#define __PYX_HAVE__functions
-#define __PYX_HAVE_API__functions
+#define __PYX_HAVE__silx__math__fit__functions
+#define __PYX_HAVE_API__silx__math__fit__functions
 #include "functions.h"
 #include "pythread.h"
 #include "string.h"
@@ -421,7 +421,7 @@ static const char *__pyx_filename;
 
 
 static const char *__pyx_f[] = {
-  "functions.pyx",
+  "silx/math/fit/functions.pyx",
   "stringsource",
 };
 struct __pyx_memoryview_obj;
@@ -1006,9 +1006,9 @@ static PyObject *__pyx_memoryviewslice_assign_item_from_object(struct __pyx_memo
 
 /* Module declarations from 'cython' */
 
-/* Module declarations from 'functions_wrapper' */
+/* Module declarations from 'silx.math.fit.functions_wrapper' */
 
-/* Module declarations from 'functions' */
+/* Module declarations from 'silx.math.fit.functions' */
 static PyTypeObject *__pyx_array_type = 0;
 static PyTypeObject *__pyx_MemviewEnum_type = 0;
 static PyTypeObject *__pyx_memoryview_type = 0;
@@ -1051,10 +1051,10 @@ static void __pyx_memoryview_refcount_objects_in_slice(char *, Py_ssize_t *, Py_
 static void __pyx_memoryview_slice_assign_scalar(__Pyx_memviewslice *, int, size_t, void *, int); /*proto*/
 static void __pyx_memoryview__slice_assign_scalar(char *, Py_ssize_t *, Py_ssize_t *, int, size_t, void *); /*proto*/
 static __Pyx_TypeInfo __Pyx_TypeInfo_double = { "double", NULL, sizeof(double), { 0 }, 0, 'R', 0, 0 };
-#define __Pyx_MODULE_NAME "functions"
-int __pyx_module_is_main_functions = 0;
+#define __Pyx_MODULE_NAME "silx.math.fit.functions"
+int __pyx_module_is_main_silx__math__fit__functions = 0;
 
-/* Implementation of 'functions' */
+/* Implementation of 'silx.math.fit.functions' */
 static PyObject *__pyx_builtin_IndexError;
 static PyObject *__pyx_builtin_range;
 static PyObject *__pyx_builtin_ValueError;
@@ -1064,25 +1064,25 @@ static PyObject *__pyx_builtin_Ellipsis;
 static PyObject *__pyx_builtin_TypeError;
 static PyObject *__pyx_builtin_xrange;
 static PyObject *__pyx_builtin_id;
-static PyObject *__pyx_pf_9functions_erf(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x); /* proto */
-static PyObject *__pyx_pf_9functions_2erfc(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x); /* proto */
-static PyObject *__pyx_pf_9functions_4sum_gauss(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params); /* proto */
-static PyObject *__pyx_pf_9functions_6sum_agauss(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params); /* proto */
-static PyObject *__pyx_pf_9functions_8sum_fastagauss(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params); /* proto */
-static PyObject *__pyx_pf_9functions_10sum_splitgauss(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params); /* proto */
-static PyObject *__pyx_pf_9functions_12sum_apvoigt(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params); /* proto */
-static PyObject *__pyx_pf_9functions_14sum_pvoigt(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params); /* proto */
-static PyObject *__pyx_pf_9functions_16sum_splitpvoigt(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params); /* proto */
-static PyObject *__pyx_pf_9functions_18sum_lorentz(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params); /* proto */
-static PyObject *__pyx_pf_9functions_20sum_alorentz(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params); /* proto */
-static PyObject *__pyx_pf_9functions_22sum_splitlorentz(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params); /* proto */
-static PyObject *__pyx_pf_9functions_24sum_stepdown(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params); /* proto */
-static PyObject *__pyx_pf_9functions_26sum_stepup(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params); /* proto */
-static PyObject *__pyx_pf_9functions_28sum_slit(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params); /* proto */
-static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_gaussian_term, PyObject *__pyx_v_st_term, PyObject *__pyx_v_lt_term, PyObject *__pyx_v_step_term, PyObject *__pyx_v_params); /* proto */
-static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_gaussian_term, PyObject *__pyx_v_st_term, PyObject *__pyx_v_lt_term, PyObject *__pyx_v_step_term, PyObject *__pyx_v_params); /* proto */
-static PyObject *__pyx_pf_9functions_34atan_stepup(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_a, PyObject *__pyx_v_b, PyObject *__pyx_v_c); /* proto */
-static PyObject *__pyx_pf_9functions_36periodic_gauss(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_pars); /* proto */
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_erf(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x); /* proto */
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_2erfc(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x); /* proto */
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_4sum_gauss(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params); /* proto */
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_6sum_agauss(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params); /* proto */
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_8sum_fastagauss(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params); /* proto */
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_10sum_splitgauss(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params); /* proto */
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_12sum_apvoigt(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params); /* proto */
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_14sum_pvoigt(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params); /* proto */
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_16sum_splitpvoigt(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params); /* proto */
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_18sum_lorentz(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params); /* proto */
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_20sum_alorentz(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params); /* proto */
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_22sum_splitlorentz(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params); /* proto */
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_24sum_stepdown(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params); /* proto */
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_26sum_stepup(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params); /* proto */
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_28sum_slit(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params); /* proto */
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_gaussian_term, PyObject *__pyx_v_st_term, PyObject *__pyx_v_lt_term, PyObject *__pyx_v_step_term, PyObject *__pyx_v_params); /* proto */
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_gaussian_term, PyObject *__pyx_v_st_term, PyObject *__pyx_v_lt_term, PyObject *__pyx_v_step_term, PyObject *__pyx_v_params); /* proto */
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_34atan_stepup(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_a, PyObject *__pyx_v_b, PyObject *__pyx_v_c); /* proto */
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_36periodic_gauss(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_pars); /* proto */
 static int __pyx_array_MemoryView_5array___cinit__(struct __pyx_array_obj *__pyx_v_self, PyObject *__pyx_v_shape, Py_ssize_t __pyx_v_itemsize, PyObject *__pyx_v_format, PyObject *__pyx_v_mode, int __pyx_v_allocate_buffer); /* proto */
 static int __pyx_array_getbuffer_MemoryView_5array_2__getbuffer__(struct __pyx_array_obj *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_array_MemoryView_5array_4__dealloc__(struct __pyx_array_obj *__pyx_v_self); /* proto */
@@ -1189,7 +1189,6 @@ static char __pyx_k_params_c[] = "params_c";
 static char __pyx_k_sum_slit[] = "sum_slit";
 static char __pyx_k_TypeError[] = "TypeError";
 static char __pyx_k_enumerate[] = "enumerate";
-static char __pyx_k_functions[] = "functions";
 static char __pyx_k_getLogger[] = "getLogger";
 static char __pyx_k_step_term[] = "step_term";
 static char __pyx_k_sum_gauss[] = "sum_gauss";
@@ -1225,6 +1224,7 @@ static char __pyx_k_MemoryView_of_r_object[] = "<MemoryView of %r object>";
 static char __pyx_k_MemoryView_of_r_at_0x_x[] = "<MemoryView of %r at 0x%x>";
 static char __pyx_k_No_parameters_specified[] = "No parameters specified. ";
 static char __pyx_k_contiguous_and_indirect[] = "<contiguous and indirect>";
+static char __pyx_k_silx_math_fit_functions[] = "silx.math.fit.functions";
 static char __pyx_k_Cannot_index_with_type_s[] = "Cannot index with type '%s'";
 static char __pyx_k_getbuffer_obj_view_flags[] = "getbuffer(obj, view, flags)";
 static char __pyx_k_Dimension_d_is_not_direct[] = "Dimension %d is not direct";
@@ -1235,7 +1235,7 @@ static char __pyx_k_itemsize_0_for_cython_array[] = "itemsize <= 0 for cython.ar
 static char __pyx_k_unable_to_allocate_array_data[] = "unable to allocate array data.";
 static char __pyx_k_strided_and_direct_or_indirect[] = "<strided and direct or indirect>";
 static char __pyx_k_Cannot_compute_erf_for_an_empty[] = "Cannot compute erf for an empty array";
-static char __pyx_k_workspace_valls_silx_git_silx_m[] = "/workspace/valls/silx.git/silx/math/fit/functions/functions.pyx";
+static char __pyx_k_users_knobel_git_silx_silx_math[] = "/users/knobel/git/silx/silx/math/fit/functions.pyx";
 static char __pyx_k_All_dimensions_preceding_dimensi[] = "All dimensions preceding dimension %d must be indexed and not sliced";
 static char __pyx_k_At_least_3_parameters_are_requir[] = "At least 3 parameters are required.";
 static char __pyx_k_At_least_4_parameters_are_requir[] = "At least 4 parameters are required.";
@@ -1314,7 +1314,6 @@ static PyObject *__pyx_n_s_float64;
 static PyObject *__pyx_n_s_format;
 static PyObject *__pyx_n_s_fortran;
 static PyObject *__pyx_n_u_fortran;
-static PyObject *__pyx_n_s_functions;
 static PyObject *__pyx_n_s_gaussian_term;
 static PyObject *__pyx_n_s_getLogger;
 static PyObject *__pyx_kp_s_got_differing_extents_in_dimensi;
@@ -1349,6 +1348,7 @@ static PyObject *__pyx_n_s_pyx_vtable;
 static PyObject *__pyx_n_s_range;
 static PyObject *__pyx_n_s_reshape;
 static PyObject *__pyx_n_s_shape;
+static PyObject *__pyx_n_s_silx_math_fit_functions;
 static PyObject *__pyx_n_s_size;
 static PyObject *__pyx_n_s_st_term;
 static PyObject *__pyx_n_s_start;
@@ -1380,7 +1380,7 @@ static PyObject *__pyx_n_s_test;
 static PyObject *__pyx_kp_s_unable_to_allocate_array_data;
 static PyObject *__pyx_kp_s_unable_to_allocate_shape_and_str;
 static PyObject *__pyx_n_s_unpack;
-static PyObject *__pyx_kp_s_workspace_valls_silx_git_silx_m;
+static PyObject *__pyx_kp_s_users_knobel_git_silx_silx_math;
 static PyObject *__pyx_n_s_x;
 static PyObject *__pyx_n_s_x_c;
 static PyObject *__pyx_n_s_xrange;
@@ -1501,7 +1501,7 @@ static PyObject *__pyx_codeobj__96;
 static PyObject *__pyx_codeobj__98;
 static PyObject *__pyx_codeobj__100;
 
-/* "functions.pyx":67
+/* "silx/math/fit/functions.pyx":67
  * 
  * 
  * def erf(x):             # <<<<<<<<<<<<<<
@@ -1510,21 +1510,21 @@ static PyObject *__pyx_codeobj__100;
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9functions_1erf(PyObject *__pyx_self, PyObject *__pyx_v_x); /*proto*/
-static char __pyx_doc_9functions_erf[] = "erf(x)\nReturn the gaussian error function\n\n    :param x: Independant variable where the gaussian error function is\n        calculated\n    :type x: numpy.ndarray or scalar\n    :return: Gaussian error function ``y=erf(x)``\n    :raise: IndexError if ``x`` is an empty array\n    ";
-static PyMethodDef __pyx_mdef_9functions_1erf = {"erf", (PyCFunction)__pyx_pw_9functions_1erf, METH_O, __pyx_doc_9functions_erf};
-static PyObject *__pyx_pw_9functions_1erf(PyObject *__pyx_self, PyObject *__pyx_v_x) {
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_1erf(PyObject *__pyx_self, PyObject *__pyx_v_x); /*proto*/
+static char __pyx_doc_4silx_4math_3fit_9functions_erf[] = "erf(x)\nReturn the gaussian error function\n\n    :param x: Independant variable where the gaussian error function is\n        calculated\n    :type x: numpy.ndarray or scalar\n    :return: Gaussian error function ``y=erf(x)``\n    :raise: IndexError if ``x`` is an empty array\n    ";
+static PyMethodDef __pyx_mdef_4silx_4math_3fit_9functions_1erf = {"erf", (PyCFunction)__pyx_pw_4silx_4math_3fit_9functions_1erf, METH_O, __pyx_doc_4silx_4math_3fit_9functions_erf};
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_1erf(PyObject *__pyx_self, PyObject *__pyx_v_x) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("erf (wrapper)", 0);
-  __pyx_r = __pyx_pf_9functions_erf(__pyx_self, ((PyObject *)__pyx_v_x));
+  __pyx_r = __pyx_pf_4silx_4math_3fit_9functions_erf(__pyx_self, ((PyObject *)__pyx_v_x));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9functions_erf(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x) {
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_erf(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x) {
   __Pyx_memviewslice __pyx_v_x_c = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_y_c = { 0, 0, { 0 }, { 0 }, { 0 } };
   PyObject *__pyx_v_len_dim = NULL;
@@ -1552,7 +1552,7 @@ static PyObject *__pyx_pf_9functions_erf(CYTHON_UNUSED PyObject *__pyx_self, PyO
   __Pyx_RefNannySetupContext("erf", 0);
   __Pyx_INCREF(__pyx_v_x);
 
-  /* "functions.pyx":82
+  /* "silx/math/fit/functions.pyx":82
  * 
  *     # force list into numpy array
  *     if not hasattr(x, "shape"):             # <<<<<<<<<<<<<<
@@ -1563,7 +1563,7 @@ static PyObject *__pyx_pf_9functions_erf(CYTHON_UNUSED PyObject *__pyx_self, PyO
   __pyx_t_2 = ((!(__pyx_t_1 != 0)) != 0);
   if (__pyx_t_2) {
 
-    /* "functions.pyx":83
+    /* "silx/math/fit/functions.pyx":83
  *     # force list into numpy array
  *     if not hasattr(x, "shape"):
  *         x = numpy.asarray(x)             # <<<<<<<<<<<<<<
@@ -1606,7 +1606,7 @@ static PyObject *__pyx_pf_9functions_erf(CYTHON_UNUSED PyObject *__pyx_self, PyO
   }
   __pyx_L3:;
 
-  /* "functions.pyx":85
+  /* "silx/math/fit/functions.pyx":85
  *         x = numpy.asarray(x)
  * 
  *     for len_dim in x.shape:             # <<<<<<<<<<<<<<
@@ -1656,7 +1656,7 @@ static PyObject *__pyx_pf_9functions_erf(CYTHON_UNUSED PyObject *__pyx_self, PyO
     __Pyx_XDECREF_SET(__pyx_v_len_dim, __pyx_t_3);
     __pyx_t_3 = 0;
 
-    /* "functions.pyx":86
+    /* "silx/math/fit/functions.pyx":86
  * 
  *     for len_dim in x.shape:
  *         if len_dim == 0:             # <<<<<<<<<<<<<<
@@ -1668,7 +1668,7 @@ static PyObject *__pyx_pf_9functions_erf(CYTHON_UNUSED PyObject *__pyx_self, PyO
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     if (__pyx_t_2) {
 
-      /* "functions.pyx":87
+      /* "silx/math/fit/functions.pyx":87
  *     for len_dim in x.shape:
  *         if len_dim == 0:
  *             raise IndexError("Cannot compute erf for an empty array")             # <<<<<<<<<<<<<<
@@ -1682,7 +1682,7 @@ static PyObject *__pyx_pf_9functions_erf(CYTHON_UNUSED PyObject *__pyx_self, PyO
       {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
 
-    /* "functions.pyx":85
+    /* "silx/math/fit/functions.pyx":85
  *         x = numpy.asarray(x)
  * 
  *     for len_dim in x.shape:             # <<<<<<<<<<<<<<
@@ -1692,7 +1692,7 @@ static PyObject *__pyx_pf_9functions_erf(CYTHON_UNUSED PyObject *__pyx_self, PyO
   }
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "functions.pyx":89
+  /* "silx/math/fit/functions.pyx":89
  *             raise IndexError("Cannot compute erf for an empty array")
  * 
  *     x_c = numpy.array(x, copy=False, dtype=numpy.float64, order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -1738,7 +1738,7 @@ static PyObject *__pyx_pf_9functions_erf(CYTHON_UNUSED PyObject *__pyx_self, PyO
   __pyx_t_10.memview = NULL;
   __pyx_t_10.data = NULL;
 
-  /* "functions.pyx":90
+  /* "silx/math/fit/functions.pyx":90
  * 
  *     x_c = numpy.array(x, copy=False, dtype=numpy.float64, order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x_c.size,), dtype=numpy.float64)             # <<<<<<<<<<<<<<
@@ -1782,7 +1782,7 @@ static PyObject *__pyx_pf_9functions_erf(CYTHON_UNUSED PyObject *__pyx_self, PyO
   __pyx_t_11.memview = NULL;
   __pyx_t_11.data = NULL;
 
-  /* "functions.pyx":92
+  /* "silx/math/fit/functions.pyx":92
  *     y_c = numpy.empty(shape=(x_c.size,), dtype=numpy.float64)
  * 
  *     status = functions_wrapper.erf_array(&x_c[0], x_c.size, &y_c[0])             # <<<<<<<<<<<<<<
@@ -1818,7 +1818,7 @@ static PyObject *__pyx_pf_9functions_erf(CYTHON_UNUSED PyObject *__pyx_self, PyO
   }
   __pyx_v_status = erf_array((&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_x_c.data) + __pyx_t_7)) )))), __pyx_t_12, (&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_y_c.data) + __pyx_t_13)) )))));
 
-  /* "functions.pyx":94
+  /* "silx/math/fit/functions.pyx":94
  *     status = functions_wrapper.erf_array(&x_c[0], x_c.size, &y_c[0])
  * 
  *     return numpy.asarray(y_c).reshape(x.shape)             # <<<<<<<<<<<<<<
@@ -1894,7 +1894,7 @@ static PyObject *__pyx_pf_9functions_erf(CYTHON_UNUSED PyObject *__pyx_self, PyO
   __pyx_t_9 = 0;
   goto __pyx_L0;
 
-  /* "functions.pyx":67
+  /* "silx/math/fit/functions.pyx":67
  * 
  * 
  * def erf(x):             # <<<<<<<<<<<<<<
@@ -1912,7 +1912,7 @@ static PyObject *__pyx_pf_9functions_erf(CYTHON_UNUSED PyObject *__pyx_self, PyO
   __PYX_XDEC_MEMVIEW(&__pyx_t_10, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_t_11, 1);
   __Pyx_XDECREF(__pyx_t_15);
-  __Pyx_AddTraceback("functions.erf", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.fit.functions.erf", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __PYX_XDEC_MEMVIEW(&__pyx_v_x_c, 1);
@@ -1924,7 +1924,7 @@ static PyObject *__pyx_pf_9functions_erf(CYTHON_UNUSED PyObject *__pyx_self, PyO
   return __pyx_r;
 }
 
-/* "functions.pyx":97
+/* "silx/math/fit/functions.pyx":97
  * 
  * 
  * def erfc(x):             # <<<<<<<<<<<<<<
@@ -1933,21 +1933,21 @@ static PyObject *__pyx_pf_9functions_erf(CYTHON_UNUSED PyObject *__pyx_self, PyO
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9functions_3erfc(PyObject *__pyx_self, PyObject *__pyx_v_x); /*proto*/
-static char __pyx_doc_9functions_2erfc[] = "erfc(x)\nReturn the gaussian complementary error function\n\n    :param x: Independant variable where the gaussian complementary error\n        function is calculated\n    :type x: numpy.ndarray or scalar\n    :return: Gaussian complementary error function ``y=erfc(x)``\n    :type rtype: numpy.ndarray\n    :raise: IndexError if ``x`` is an empty array\n    ";
-static PyMethodDef __pyx_mdef_9functions_3erfc = {"erfc", (PyCFunction)__pyx_pw_9functions_3erfc, METH_O, __pyx_doc_9functions_2erfc};
-static PyObject *__pyx_pw_9functions_3erfc(PyObject *__pyx_self, PyObject *__pyx_v_x) {
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_3erfc(PyObject *__pyx_self, PyObject *__pyx_v_x); /*proto*/
+static char __pyx_doc_4silx_4math_3fit_9functions_2erfc[] = "erfc(x)\nReturn the gaussian complementary error function\n\n    :param x: Independant variable where the gaussian complementary error\n        function is calculated\n    :type x: numpy.ndarray or scalar\n    :return: Gaussian complementary error function ``y=erfc(x)``\n    :type rtype: numpy.ndarray\n    :raise: IndexError if ``x`` is an empty array\n    ";
+static PyMethodDef __pyx_mdef_4silx_4math_3fit_9functions_3erfc = {"erfc", (PyCFunction)__pyx_pw_4silx_4math_3fit_9functions_3erfc, METH_O, __pyx_doc_4silx_4math_3fit_9functions_2erfc};
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_3erfc(PyObject *__pyx_self, PyObject *__pyx_v_x) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("erfc (wrapper)", 0);
-  __pyx_r = __pyx_pf_9functions_2erfc(__pyx_self, ((PyObject *)__pyx_v_x));
+  __pyx_r = __pyx_pf_4silx_4math_3fit_9functions_2erfc(__pyx_self, ((PyObject *)__pyx_v_x));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9functions_2erfc(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x) {
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_2erfc(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x) {
   __Pyx_memviewslice __pyx_v_x_c = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_y_c = { 0, 0, { 0 }, { 0 }, { 0 } };
   PyObject *__pyx_v_len_dim = NULL;
@@ -1975,7 +1975,7 @@ static PyObject *__pyx_pf_9functions_2erfc(CYTHON_UNUSED PyObject *__pyx_self, P
   __Pyx_RefNannySetupContext("erfc", 0);
   __Pyx_INCREF(__pyx_v_x);
 
-  /* "functions.pyx":112
+  /* "silx/math/fit/functions.pyx":112
  * 
  *     # force list into numpy array
  *     if not hasattr(x, "shape"):             # <<<<<<<<<<<<<<
@@ -1986,7 +1986,7 @@ static PyObject *__pyx_pf_9functions_2erfc(CYTHON_UNUSED PyObject *__pyx_self, P
   __pyx_t_2 = ((!(__pyx_t_1 != 0)) != 0);
   if (__pyx_t_2) {
 
-    /* "functions.pyx":113
+    /* "silx/math/fit/functions.pyx":113
  *     # force list into numpy array
  *     if not hasattr(x, "shape"):
  *         x = numpy.asarray(x)             # <<<<<<<<<<<<<<
@@ -2029,7 +2029,7 @@ static PyObject *__pyx_pf_9functions_2erfc(CYTHON_UNUSED PyObject *__pyx_self, P
   }
   __pyx_L3:;
 
-  /* "functions.pyx":115
+  /* "silx/math/fit/functions.pyx":115
  *         x = numpy.asarray(x)
  * 
  *     for len_dim in x.shape:             # <<<<<<<<<<<<<<
@@ -2079,7 +2079,7 @@ static PyObject *__pyx_pf_9functions_2erfc(CYTHON_UNUSED PyObject *__pyx_self, P
     __Pyx_XDECREF_SET(__pyx_v_len_dim, __pyx_t_3);
     __pyx_t_3 = 0;
 
-    /* "functions.pyx":116
+    /* "silx/math/fit/functions.pyx":116
  * 
  *     for len_dim in x.shape:
  *         if len_dim == 0:             # <<<<<<<<<<<<<<
@@ -2091,7 +2091,7 @@ static PyObject *__pyx_pf_9functions_2erfc(CYTHON_UNUSED PyObject *__pyx_self, P
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     if (__pyx_t_2) {
 
-      /* "functions.pyx":117
+      /* "silx/math/fit/functions.pyx":117
  *     for len_dim in x.shape:
  *         if len_dim == 0:
  *             raise IndexError("Cannot compute erfc for an empty array")             # <<<<<<<<<<<<<<
@@ -2105,7 +2105,7 @@ static PyObject *__pyx_pf_9functions_2erfc(CYTHON_UNUSED PyObject *__pyx_self, P
       {__pyx_filename = __pyx_f[0]; __pyx_lineno = 117; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
 
-    /* "functions.pyx":115
+    /* "silx/math/fit/functions.pyx":115
  *         x = numpy.asarray(x)
  * 
  *     for len_dim in x.shape:             # <<<<<<<<<<<<<<
@@ -2115,7 +2115,7 @@ static PyObject *__pyx_pf_9functions_2erfc(CYTHON_UNUSED PyObject *__pyx_self, P
   }
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "functions.pyx":119
+  /* "silx/math/fit/functions.pyx":119
  *             raise IndexError("Cannot compute erfc for an empty array")
  * 
  *     x_c = numpy.array(x, copy=False, dtype=numpy.float64, order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -2161,7 +2161,7 @@ static PyObject *__pyx_pf_9functions_2erfc(CYTHON_UNUSED PyObject *__pyx_self, P
   __pyx_t_10.memview = NULL;
   __pyx_t_10.data = NULL;
 
-  /* "functions.pyx":120
+  /* "silx/math/fit/functions.pyx":120
  * 
  *     x_c = numpy.array(x, copy=False, dtype=numpy.float64, order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x_c.size,), dtype=numpy.float64)             # <<<<<<<<<<<<<<
@@ -2205,7 +2205,7 @@ static PyObject *__pyx_pf_9functions_2erfc(CYTHON_UNUSED PyObject *__pyx_self, P
   __pyx_t_11.memview = NULL;
   __pyx_t_11.data = NULL;
 
-  /* "functions.pyx":122
+  /* "silx/math/fit/functions.pyx":122
  *     y_c = numpy.empty(shape=(x_c.size,), dtype=numpy.float64)
  * 
  *     status = functions_wrapper.erfc_array(&x_c[0], x_c.size, &y_c[0])             # <<<<<<<<<<<<<<
@@ -2241,7 +2241,7 @@ static PyObject *__pyx_pf_9functions_2erfc(CYTHON_UNUSED PyObject *__pyx_self, P
   }
   __pyx_v_status = erfc_array((&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_x_c.data) + __pyx_t_7)) )))), __pyx_t_12, (&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_y_c.data) + __pyx_t_13)) )))));
 
-  /* "functions.pyx":124
+  /* "silx/math/fit/functions.pyx":124
  *     status = functions_wrapper.erfc_array(&x_c[0], x_c.size, &y_c[0])
  * 
  *     return numpy.asarray(y_c).reshape(x.shape)             # <<<<<<<<<<<<<<
@@ -2317,7 +2317,7 @@ static PyObject *__pyx_pf_9functions_2erfc(CYTHON_UNUSED PyObject *__pyx_self, P
   __pyx_t_9 = 0;
   goto __pyx_L0;
 
-  /* "functions.pyx":97
+  /* "silx/math/fit/functions.pyx":97
  * 
  * 
  * def erfc(x):             # <<<<<<<<<<<<<<
@@ -2335,7 +2335,7 @@ static PyObject *__pyx_pf_9functions_2erfc(CYTHON_UNUSED PyObject *__pyx_self, P
   __PYX_XDEC_MEMVIEW(&__pyx_t_10, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_t_11, 1);
   __Pyx_XDECREF(__pyx_t_15);
-  __Pyx_AddTraceback("functions.erfc", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.fit.functions.erfc", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __PYX_XDEC_MEMVIEW(&__pyx_v_x_c, 1);
@@ -2347,7 +2347,7 @@ static PyObject *__pyx_pf_9functions_2erfc(CYTHON_UNUSED PyObject *__pyx_self, P
   return __pyx_r;
 }
 
-/* "functions.pyx":127
+/* "silx/math/fit/functions.pyx":127
  * 
  * 
  * def sum_gauss(x, *params):             # <<<<<<<<<<<<<<
@@ -2356,10 +2356,10 @@ static PyObject *__pyx_pf_9functions_2erfc(CYTHON_UNUSED PyObject *__pyx_self, P
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9functions_5sum_gauss(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_9functions_4sum_gauss[] = "sum_gauss(x, *params)\nReturn a sum of gaussian functions defined by *(height, centroid, fwhm)*,\n    where:\n\n        - *height* is the peak amplitude\n        - *centroid* is the peak x-coordinate\n        - *fwhm* is the full-width at half maximum\n\n    :param x: Independant variable where the gaussians are calculated\n    :type x: numpy.ndarray\n    :param params: Array of gaussian parameters (length must be a multiple\n        of 3):\n        *(height1, centroid1, fwhm1, height2, centroid2, fwhm2,...)*\n    :return: Array of sum of gaussian functions at each ``x`` coordinate.\n    ";
-static PyMethodDef __pyx_mdef_9functions_5sum_gauss = {"sum_gauss", (PyCFunction)__pyx_pw_9functions_5sum_gauss, METH_VARARGS|METH_KEYWORDS, __pyx_doc_9functions_4sum_gauss};
-static PyObject *__pyx_pw_9functions_5sum_gauss(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_5sum_gauss(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_4silx_4math_3fit_9functions_4sum_gauss[] = "sum_gauss(x, *params)\nReturn a sum of gaussian functions defined by *(height, centroid, fwhm)*,\n    where:\n\n        - *height* is the peak amplitude\n        - *centroid* is the peak x-coordinate\n        - *fwhm* is the full-width at half maximum\n\n    :param x: Independant variable where the gaussians are calculated\n    :type x: numpy.ndarray\n    :param params: Array of gaussian parameters (length must be a multiple\n        of 3):\n        *(height1, centroid1, fwhm1, height2, centroid2, fwhm2,...)*\n    :return: Array of sum of gaussian functions at each ``x`` coordinate.\n    ";
+static PyMethodDef __pyx_mdef_4silx_4math_3fit_9functions_5sum_gauss = {"sum_gauss", (PyCFunction)__pyx_pw_4silx_4math_3fit_9functions_5sum_gauss, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_3fit_9functions_4sum_gauss};
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_5sum_gauss(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_x = 0;
   PyObject *__pyx_v_params = 0;
   int __pyx_lineno = 0;
@@ -2411,11 +2411,11 @@ static PyObject *__pyx_pw_9functions_5sum_gauss(PyObject *__pyx_self, PyObject *
   __Pyx_RaiseArgtupleInvalid("sum_gauss", 0, 1, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 127; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_DECREF(__pyx_v_params); __pyx_v_params = 0;
-  __Pyx_AddTraceback("functions.sum_gauss", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.fit.functions.sum_gauss", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_9functions_4sum_gauss(__pyx_self, __pyx_v_x, __pyx_v_params);
+  __pyx_r = __pyx_pf_4silx_4math_3fit_9functions_4sum_gauss(__pyx_self, __pyx_v_x, __pyx_v_params);
 
   /* function exit code */
   __Pyx_XDECREF(__pyx_v_params);
@@ -2423,7 +2423,7 @@ static PyObject *__pyx_pw_9functions_5sum_gauss(PyObject *__pyx_self, PyObject *
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9functions_4sum_gauss(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params) {
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_4sum_gauss(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params) {
   __Pyx_memviewslice __pyx_v_x_c = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_params_c = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_y_c = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -2451,7 +2451,7 @@ static PyObject *__pyx_pf_9functions_4sum_gauss(CYTHON_UNUSED PyObject *__pyx_se
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("sum_gauss", 0);
 
-  /* "functions.pyx":147
+  /* "silx/math/fit/functions.pyx":147
  *         double[::1] y_c
  * 
  *     if not len(params):             # <<<<<<<<<<<<<<
@@ -2462,7 +2462,7 @@ static PyObject *__pyx_pf_9functions_4sum_gauss(CYTHON_UNUSED PyObject *__pyx_se
   __pyx_t_2 = ((!(__pyx_t_1 != 0)) != 0);
   if (__pyx_t_2) {
 
-    /* "functions.pyx":148
+    /* "silx/math/fit/functions.pyx":148
  * 
  *     if not len(params):
  *         raise IndexError("No gaussian parameters specified. " +             # <<<<<<<<<<<<<<
@@ -2484,7 +2484,7 @@ static PyObject *__pyx_pf_9functions_4sum_gauss(CYTHON_UNUSED PyObject *__pyx_se
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 148; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":152
+  /* "silx/math/fit/functions.pyx":152
  * 
  *     # ensure float64 (double) type and 1D contiguous data layout in memory
  *     x_c = numpy.array(x,             # <<<<<<<<<<<<<<
@@ -2504,7 +2504,7 @@ static PyObject *__pyx_pf_9functions_4sum_gauss(CYTHON_UNUSED PyObject *__pyx_se
   __pyx_t_5 = PyDict_New(); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 152; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
 
-  /* "functions.pyx":153
+  /* "silx/math/fit/functions.pyx":153
  *     # ensure float64 (double) type and 1D contiguous data layout in memory
  *     x_c = numpy.array(x,
  *                       copy=False,             # <<<<<<<<<<<<<<
@@ -2513,7 +2513,7 @@ static PyObject *__pyx_pf_9functions_4sum_gauss(CYTHON_UNUSED PyObject *__pyx_se
  */
   if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_copy, Py_False) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 152; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":154
+  /* "silx/math/fit/functions.pyx":154
  *     x_c = numpy.array(x,
  *                       copy=False,
  *                       dtype=numpy.float64,             # <<<<<<<<<<<<<<
@@ -2529,7 +2529,7 @@ static PyObject *__pyx_pf_9functions_4sum_gauss(CYTHON_UNUSED PyObject *__pyx_se
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 152; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":152
+  /* "silx/math/fit/functions.pyx":152
  * 
  *     # ensure float64 (double) type and 1D contiguous data layout in memory
  *     x_c = numpy.array(x,             # <<<<<<<<<<<<<<
@@ -2542,7 +2542,7 @@ static PyObject *__pyx_pf_9functions_4sum_gauss(CYTHON_UNUSED PyObject *__pyx_se
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "functions.pyx":155
+  /* "silx/math/fit/functions.pyx":155
  *                       copy=False,
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -2562,7 +2562,7 @@ static PyObject *__pyx_pf_9functions_4sum_gauss(CYTHON_UNUSED PyObject *__pyx_se
   __pyx_t_8.memview = NULL;
   __pyx_t_8.data = NULL;
 
-  /* "functions.pyx":156
+  /* "silx/math/fit/functions.pyx":156
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,             # <<<<<<<<<<<<<<
@@ -2582,7 +2582,7 @@ static PyObject *__pyx_pf_9functions_4sum_gauss(CYTHON_UNUSED PyObject *__pyx_se
   __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 156; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
 
-  /* "functions.pyx":157
+  /* "silx/math/fit/functions.pyx":157
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,
  *                            copy=False,             # <<<<<<<<<<<<<<
@@ -2591,7 +2591,7 @@ static PyObject *__pyx_pf_9functions_4sum_gauss(CYTHON_UNUSED PyObject *__pyx_se
  */
   if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_copy, Py_False) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 156; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":158
+  /* "silx/math/fit/functions.pyx":158
  *     params_c = numpy.array(params,
  *                            copy=False,
  *                            dtype=numpy.float64,             # <<<<<<<<<<<<<<
@@ -2607,7 +2607,7 @@ static PyObject *__pyx_pf_9functions_4sum_gauss(CYTHON_UNUSED PyObject *__pyx_se
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 156; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":156
+  /* "silx/math/fit/functions.pyx":156
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,             # <<<<<<<<<<<<<<
@@ -2620,7 +2620,7 @@ static PyObject *__pyx_pf_9functions_4sum_gauss(CYTHON_UNUSED PyObject *__pyx_se
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "functions.pyx":159
+  /* "silx/math/fit/functions.pyx":159
  *                            copy=False,
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -2640,7 +2640,7 @@ static PyObject *__pyx_pf_9functions_4sum_gauss(CYTHON_UNUSED PyObject *__pyx_se
   __pyx_t_9.memview = NULL;
   __pyx_t_9.data = NULL;
 
-  /* "functions.pyx":160
+  /* "silx/math/fit/functions.pyx":160
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),             # <<<<<<<<<<<<<<
@@ -2664,7 +2664,7 @@ static PyObject *__pyx_pf_9functions_4sum_gauss(CYTHON_UNUSED PyObject *__pyx_se
   if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_shape, __pyx_t_5) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 160; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "functions.pyx":161
+  /* "silx/math/fit/functions.pyx":161
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),
  *                       dtype=numpy.float64)             # <<<<<<<<<<<<<<
@@ -2679,7 +2679,7 @@ static PyObject *__pyx_pf_9functions_4sum_gauss(CYTHON_UNUSED PyObject *__pyx_se
   if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_7) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 160; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "functions.pyx":160
+  /* "silx/math/fit/functions.pyx":160
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),             # <<<<<<<<<<<<<<
@@ -2697,7 +2697,7 @@ static PyObject *__pyx_pf_9functions_4sum_gauss(CYTHON_UNUSED PyObject *__pyx_se
   __pyx_t_10.memview = NULL;
   __pyx_t_10.data = NULL;
 
-  /* "functions.pyx":164
+  /* "silx/math/fit/functions.pyx":164
  * 
  *     status = functions_wrapper.sum_gauss(
  *                     &x_c[0], x.size,             # <<<<<<<<<<<<<<
@@ -2719,7 +2719,7 @@ static PyObject *__pyx_pf_9functions_4sum_gauss(CYTHON_UNUSED PyObject *__pyx_se
   __pyx_t_11 = __Pyx_PyInt_As_int(__pyx_t_7); if (unlikely((__pyx_t_11 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 164; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "functions.pyx":165
+  /* "silx/math/fit/functions.pyx":165
  *     status = functions_wrapper.sum_gauss(
  *                     &x_c[0], x.size,
  *                     &params_c[0], params_c.size,             # <<<<<<<<<<<<<<
@@ -2744,7 +2744,7 @@ static PyObject *__pyx_pf_9functions_4sum_gauss(CYTHON_UNUSED PyObject *__pyx_se
   __pyx_t_13 = __Pyx_PyInt_As_int(__pyx_t_6); if (unlikely((__pyx_t_13 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 165; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "functions.pyx":166
+  /* "silx/math/fit/functions.pyx":166
  *                     &x_c[0], x.size,
  *                     &params_c[0], params_c.size,
  *                     &y_c[0])             # <<<<<<<<<<<<<<
@@ -2762,7 +2762,7 @@ static PyObject *__pyx_pf_9functions_4sum_gauss(CYTHON_UNUSED PyObject *__pyx_se
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 166; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":163
+  /* "silx/math/fit/functions.pyx":163
  *                       dtype=numpy.float64)
  * 
  *     status = functions_wrapper.sum_gauss(             # <<<<<<<<<<<<<<
@@ -2771,7 +2771,7 @@ static PyObject *__pyx_pf_9functions_4sum_gauss(CYTHON_UNUSED PyObject *__pyx_se
  */
   __pyx_v_status = sum_gauss((&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_x_c.data) + __pyx_t_1)) )))), __pyx_t_11, (&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_params_c.data) + __pyx_t_12)) )))), __pyx_t_13, (&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_y_c.data) + __pyx_t_14)) )))));
 
-  /* "functions.pyx":168
+  /* "silx/math/fit/functions.pyx":168
  *                     &y_c[0])
  * 
  *     if status:             # <<<<<<<<<<<<<<
@@ -2781,7 +2781,7 @@ static PyObject *__pyx_pf_9functions_4sum_gauss(CYTHON_UNUSED PyObject *__pyx_se
   __pyx_t_2 = (__pyx_v_status != 0);
   if (__pyx_t_2) {
 
-    /* "functions.pyx":169
+    /* "silx/math/fit/functions.pyx":169
  * 
  *     if status:
  *         raise IndexError("Wrong number of parameters for function")             # <<<<<<<<<<<<<<
@@ -2795,7 +2795,7 @@ static PyObject *__pyx_pf_9functions_4sum_gauss(CYTHON_UNUSED PyObject *__pyx_se
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 169; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":172
+  /* "silx/math/fit/functions.pyx":172
  * 
  *     # reshape y_c to match original, possibly unusual, data shape
  *     return numpy.asarray(y_c).reshape(x.shape)             # <<<<<<<<<<<<<<
@@ -2871,7 +2871,7 @@ static PyObject *__pyx_pf_9functions_4sum_gauss(CYTHON_UNUSED PyObject *__pyx_se
   __pyx_t_6 = 0;
   goto __pyx_L0;
 
-  /* "functions.pyx":127
+  /* "silx/math/fit/functions.pyx":127
  * 
  * 
  * def sum_gauss(x, *params):             # <<<<<<<<<<<<<<
@@ -2890,7 +2890,7 @@ static PyObject *__pyx_pf_9functions_4sum_gauss(CYTHON_UNUSED PyObject *__pyx_se
   __PYX_XDEC_MEMVIEW(&__pyx_t_9, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_t_10, 1);
   __Pyx_XDECREF(__pyx_t_16);
-  __Pyx_AddTraceback("functions.sum_gauss", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.fit.functions.sum_gauss", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __PYX_XDEC_MEMVIEW(&__pyx_v_x_c, 1);
@@ -2901,7 +2901,7 @@ static PyObject *__pyx_pf_9functions_4sum_gauss(CYTHON_UNUSED PyObject *__pyx_se
   return __pyx_r;
 }
 
-/* "functions.pyx":175
+/* "silx/math/fit/functions.pyx":175
  * 
  * 
  * def sum_agauss(x, *params):             # <<<<<<<<<<<<<<
@@ -2910,10 +2910,10 @@ static PyObject *__pyx_pf_9functions_4sum_gauss(CYTHON_UNUSED PyObject *__pyx_se
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9functions_7sum_agauss(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_9functions_6sum_agauss[] = "sum_agauss(x, *params)\nReturn a sum of gaussian functions defined by *(area, centroid, fwhm)*,\n    where:\n\n        - *area* is the area underneath the peak\n        - *centroid* is the peak x-coordinate\n        - *fwhm* is the full-width at half maximum\n\n    :param x: Independant variable where the gaussians are calculated\n    :type x: numpy.ndarray\n    :param params: Array of gaussian parameters (length must be a multiple\n        of 3):\n        *(area1, centroid1, fwhm1, area2, centroid2, fwhm2,...)*\n    :return: Array of sum of gaussian functions at each ``x`` coordinate.\n    ";
-static PyMethodDef __pyx_mdef_9functions_7sum_agauss = {"sum_agauss", (PyCFunction)__pyx_pw_9functions_7sum_agauss, METH_VARARGS|METH_KEYWORDS, __pyx_doc_9functions_6sum_agauss};
-static PyObject *__pyx_pw_9functions_7sum_agauss(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_7sum_agauss(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_4silx_4math_3fit_9functions_6sum_agauss[] = "sum_agauss(x, *params)\nReturn a sum of gaussian functions defined by *(area, centroid, fwhm)*,\n    where:\n\n        - *area* is the area underneath the peak\n        - *centroid* is the peak x-coordinate\n        - *fwhm* is the full-width at half maximum\n\n    :param x: Independant variable where the gaussians are calculated\n    :type x: numpy.ndarray\n    :param params: Array of gaussian parameters (length must be a multiple\n        of 3):\n        *(area1, centroid1, fwhm1, area2, centroid2, fwhm2,...)*\n    :return: Array of sum of gaussian functions at each ``x`` coordinate.\n    ";
+static PyMethodDef __pyx_mdef_4silx_4math_3fit_9functions_7sum_agauss = {"sum_agauss", (PyCFunction)__pyx_pw_4silx_4math_3fit_9functions_7sum_agauss, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_3fit_9functions_6sum_agauss};
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_7sum_agauss(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_x = 0;
   PyObject *__pyx_v_params = 0;
   int __pyx_lineno = 0;
@@ -2965,11 +2965,11 @@ static PyObject *__pyx_pw_9functions_7sum_agauss(PyObject *__pyx_self, PyObject 
   __Pyx_RaiseArgtupleInvalid("sum_agauss", 0, 1, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_DECREF(__pyx_v_params); __pyx_v_params = 0;
-  __Pyx_AddTraceback("functions.sum_agauss", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.fit.functions.sum_agauss", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_9functions_6sum_agauss(__pyx_self, __pyx_v_x, __pyx_v_params);
+  __pyx_r = __pyx_pf_4silx_4math_3fit_9functions_6sum_agauss(__pyx_self, __pyx_v_x, __pyx_v_params);
 
   /* function exit code */
   __Pyx_XDECREF(__pyx_v_params);
@@ -2977,7 +2977,7 @@ static PyObject *__pyx_pw_9functions_7sum_agauss(PyObject *__pyx_self, PyObject 
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9functions_6sum_agauss(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params) {
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_6sum_agauss(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params) {
   __Pyx_memviewslice __pyx_v_x_c = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_params_c = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_y_c = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -3005,7 +3005,7 @@ static PyObject *__pyx_pf_9functions_6sum_agauss(CYTHON_UNUSED PyObject *__pyx_s
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("sum_agauss", 0);
 
-  /* "functions.pyx":195
+  /* "silx/math/fit/functions.pyx":195
  *         double[::1] y_c
  * 
  *     if not len(params):             # <<<<<<<<<<<<<<
@@ -3016,7 +3016,7 @@ static PyObject *__pyx_pf_9functions_6sum_agauss(CYTHON_UNUSED PyObject *__pyx_s
   __pyx_t_2 = ((!(__pyx_t_1 != 0)) != 0);
   if (__pyx_t_2) {
 
-    /* "functions.pyx":196
+    /* "silx/math/fit/functions.pyx":196
  * 
  *     if not len(params):
  *         raise IndexError("No gaussian parameters specified. " +             # <<<<<<<<<<<<<<
@@ -3038,7 +3038,7 @@ static PyObject *__pyx_pf_9functions_6sum_agauss(CYTHON_UNUSED PyObject *__pyx_s
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 196; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":199
+  /* "silx/math/fit/functions.pyx":199
  *                          "At least 3 parameters are required.")
  * 
  *     x_c = numpy.array(x,             # <<<<<<<<<<<<<<
@@ -3058,7 +3058,7 @@ static PyObject *__pyx_pf_9functions_6sum_agauss(CYTHON_UNUSED PyObject *__pyx_s
   __pyx_t_5 = PyDict_New(); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 199; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
 
-  /* "functions.pyx":200
+  /* "silx/math/fit/functions.pyx":200
  * 
  *     x_c = numpy.array(x,
  *                       copy=False,             # <<<<<<<<<<<<<<
@@ -3067,7 +3067,7 @@ static PyObject *__pyx_pf_9functions_6sum_agauss(CYTHON_UNUSED PyObject *__pyx_s
  */
   if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_copy, Py_False) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 199; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":201
+  /* "silx/math/fit/functions.pyx":201
  *     x_c = numpy.array(x,
  *                       copy=False,
  *                       dtype=numpy.float64,             # <<<<<<<<<<<<<<
@@ -3083,7 +3083,7 @@ static PyObject *__pyx_pf_9functions_6sum_agauss(CYTHON_UNUSED PyObject *__pyx_s
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 199; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":199
+  /* "silx/math/fit/functions.pyx":199
  *                          "At least 3 parameters are required.")
  * 
  *     x_c = numpy.array(x,             # <<<<<<<<<<<<<<
@@ -3096,7 +3096,7 @@ static PyObject *__pyx_pf_9functions_6sum_agauss(CYTHON_UNUSED PyObject *__pyx_s
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "functions.pyx":202
+  /* "silx/math/fit/functions.pyx":202
  *                       copy=False,
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -3116,7 +3116,7 @@ static PyObject *__pyx_pf_9functions_6sum_agauss(CYTHON_UNUSED PyObject *__pyx_s
   __pyx_t_8.memview = NULL;
   __pyx_t_8.data = NULL;
 
-  /* "functions.pyx":203
+  /* "silx/math/fit/functions.pyx":203
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,             # <<<<<<<<<<<<<<
@@ -3136,7 +3136,7 @@ static PyObject *__pyx_pf_9functions_6sum_agauss(CYTHON_UNUSED PyObject *__pyx_s
   __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 203; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
 
-  /* "functions.pyx":204
+  /* "silx/math/fit/functions.pyx":204
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,
  *                            copy=False,             # <<<<<<<<<<<<<<
@@ -3145,7 +3145,7 @@ static PyObject *__pyx_pf_9functions_6sum_agauss(CYTHON_UNUSED PyObject *__pyx_s
  */
   if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_copy, Py_False) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 203; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":205
+  /* "silx/math/fit/functions.pyx":205
  *     params_c = numpy.array(params,
  *                            copy=False,
  *                            dtype=numpy.float64,             # <<<<<<<<<<<<<<
@@ -3161,7 +3161,7 @@ static PyObject *__pyx_pf_9functions_6sum_agauss(CYTHON_UNUSED PyObject *__pyx_s
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 203; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":203
+  /* "silx/math/fit/functions.pyx":203
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,             # <<<<<<<<<<<<<<
@@ -3174,7 +3174,7 @@ static PyObject *__pyx_pf_9functions_6sum_agauss(CYTHON_UNUSED PyObject *__pyx_s
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "functions.pyx":206
+  /* "silx/math/fit/functions.pyx":206
  *                            copy=False,
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -3194,7 +3194,7 @@ static PyObject *__pyx_pf_9functions_6sum_agauss(CYTHON_UNUSED PyObject *__pyx_s
   __pyx_t_9.memview = NULL;
   __pyx_t_9.data = NULL;
 
-  /* "functions.pyx":207
+  /* "silx/math/fit/functions.pyx":207
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),             # <<<<<<<<<<<<<<
@@ -3218,7 +3218,7 @@ static PyObject *__pyx_pf_9functions_6sum_agauss(CYTHON_UNUSED PyObject *__pyx_s
   if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_shape, __pyx_t_5) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 207; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "functions.pyx":208
+  /* "silx/math/fit/functions.pyx":208
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),
  *                       dtype=numpy.float64)             # <<<<<<<<<<<<<<
@@ -3233,7 +3233,7 @@ static PyObject *__pyx_pf_9functions_6sum_agauss(CYTHON_UNUSED PyObject *__pyx_s
   if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_7) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 207; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "functions.pyx":207
+  /* "silx/math/fit/functions.pyx":207
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),             # <<<<<<<<<<<<<<
@@ -3251,7 +3251,7 @@ static PyObject *__pyx_pf_9functions_6sum_agauss(CYTHON_UNUSED PyObject *__pyx_s
   __pyx_t_10.memview = NULL;
   __pyx_t_10.data = NULL;
 
-  /* "functions.pyx":211
+  /* "silx/math/fit/functions.pyx":211
  * 
  *     status = functions_wrapper.sum_agauss(
  *                      &x_c[0], x.size,             # <<<<<<<<<<<<<<
@@ -3273,7 +3273,7 @@ static PyObject *__pyx_pf_9functions_6sum_agauss(CYTHON_UNUSED PyObject *__pyx_s
   __pyx_t_11 = __Pyx_PyInt_As_int(__pyx_t_7); if (unlikely((__pyx_t_11 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 211; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "functions.pyx":212
+  /* "silx/math/fit/functions.pyx":212
  *     status = functions_wrapper.sum_agauss(
  *                      &x_c[0], x.size,
  *                      &params_c[0], params_c.size,             # <<<<<<<<<<<<<<
@@ -3298,7 +3298,7 @@ static PyObject *__pyx_pf_9functions_6sum_agauss(CYTHON_UNUSED PyObject *__pyx_s
   __pyx_t_13 = __Pyx_PyInt_As_int(__pyx_t_6); if (unlikely((__pyx_t_13 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 212; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "functions.pyx":213
+  /* "silx/math/fit/functions.pyx":213
  *                      &x_c[0], x.size,
  *                      &params_c[0], params_c.size,
  *                      &y_c[0])             # <<<<<<<<<<<<<<
@@ -3316,7 +3316,7 @@ static PyObject *__pyx_pf_9functions_6sum_agauss(CYTHON_UNUSED PyObject *__pyx_s
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 213; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":210
+  /* "silx/math/fit/functions.pyx":210
  *                       dtype=numpy.float64)
  * 
  *     status = functions_wrapper.sum_agauss(             # <<<<<<<<<<<<<<
@@ -3325,7 +3325,7 @@ static PyObject *__pyx_pf_9functions_6sum_agauss(CYTHON_UNUSED PyObject *__pyx_s
  */
   __pyx_v_status = sum_agauss((&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_x_c.data) + __pyx_t_1)) )))), __pyx_t_11, (&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_params_c.data) + __pyx_t_12)) )))), __pyx_t_13, (&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_y_c.data) + __pyx_t_14)) )))));
 
-  /* "functions.pyx":215
+  /* "silx/math/fit/functions.pyx":215
  *                      &y_c[0])
  * 
  *     if status:             # <<<<<<<<<<<<<<
@@ -3335,7 +3335,7 @@ static PyObject *__pyx_pf_9functions_6sum_agauss(CYTHON_UNUSED PyObject *__pyx_s
   __pyx_t_2 = (__pyx_v_status != 0);
   if (__pyx_t_2) {
 
-    /* "functions.pyx":216
+    /* "silx/math/fit/functions.pyx":216
  * 
  *     if status:
  *         raise IndexError("Wrong number of parameters for function")             # <<<<<<<<<<<<<<
@@ -3349,7 +3349,7 @@ static PyObject *__pyx_pf_9functions_6sum_agauss(CYTHON_UNUSED PyObject *__pyx_s
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 216; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":218
+  /* "silx/math/fit/functions.pyx":218
  *         raise IndexError("Wrong number of parameters for function")
  * 
  *     return numpy.asarray(y_c).reshape(x.shape)             # <<<<<<<<<<<<<<
@@ -3425,7 +3425,7 @@ static PyObject *__pyx_pf_9functions_6sum_agauss(CYTHON_UNUSED PyObject *__pyx_s
   __pyx_t_6 = 0;
   goto __pyx_L0;
 
-  /* "functions.pyx":175
+  /* "silx/math/fit/functions.pyx":175
  * 
  * 
  * def sum_agauss(x, *params):             # <<<<<<<<<<<<<<
@@ -3444,7 +3444,7 @@ static PyObject *__pyx_pf_9functions_6sum_agauss(CYTHON_UNUSED PyObject *__pyx_s
   __PYX_XDEC_MEMVIEW(&__pyx_t_9, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_t_10, 1);
   __Pyx_XDECREF(__pyx_t_16);
-  __Pyx_AddTraceback("functions.sum_agauss", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.fit.functions.sum_agauss", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __PYX_XDEC_MEMVIEW(&__pyx_v_x_c, 1);
@@ -3455,7 +3455,7 @@ static PyObject *__pyx_pf_9functions_6sum_agauss(CYTHON_UNUSED PyObject *__pyx_s
   return __pyx_r;
 }
 
-/* "functions.pyx":221
+/* "silx/math/fit/functions.pyx":221
  * 
  * 
  * def sum_fastagauss(x, *params):             # <<<<<<<<<<<<<<
@@ -3464,10 +3464,10 @@ static PyObject *__pyx_pf_9functions_6sum_agauss(CYTHON_UNUSED PyObject *__pyx_s
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9functions_9sum_fastagauss(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_9functions_8sum_fastagauss[] = "sum_fastagauss(x, *params)\nReturn a sum of gaussian functions defined by *(area, centroid, fwhm)*,\n    where:\n\n        - *area* is the area underneath the peak\n        - *centroid* is the peak x-coordinate\n        - *fwhm* is the full-width at half maximum\n\n    This implementation differs from :func:`sum_agauss` by the usage of a\n    lookup table with precalculated exponential values. This might speed up\n    the computation for large numbers of individual gaussian functions.\n\n    :param x: Independant variable where the gaussians are calculated\n    :type x: numpy.ndarray\n    :param params: Array of gaussian parameters (length must be a multiple\n        of 3):\n        *(area1, centroid1, fwhm1, area2, centroid2, fwhm2,...)*\n    :return: Array of sum of gaussian functions at each ``x`` coordinate.\n    ";
-static PyMethodDef __pyx_mdef_9functions_9sum_fastagauss = {"sum_fastagauss", (PyCFunction)__pyx_pw_9functions_9sum_fastagauss, METH_VARARGS|METH_KEYWORDS, __pyx_doc_9functions_8sum_fastagauss};
-static PyObject *__pyx_pw_9functions_9sum_fastagauss(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_9sum_fastagauss(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_4silx_4math_3fit_9functions_8sum_fastagauss[] = "sum_fastagauss(x, *params)\nReturn a sum of gaussian functions defined by *(area, centroid, fwhm)*,\n    where:\n\n        - *area* is the area underneath the peak\n        - *centroid* is the peak x-coordinate\n        - *fwhm* is the full-width at half maximum\n\n    This implementation differs from :func:`sum_agauss` by the usage of a\n    lookup table with precalculated exponential values. This might speed up\n    the computation for large numbers of individual gaussian functions.\n\n    :param x: Independant variable where the gaussians are calculated\n    :type x: numpy.ndarray\n    :param params: Array of gaussian parameters (length must be a multiple\n        of 3):\n        *(area1, centroid1, fwhm1, area2, centroid2, fwhm2,...)*\n    :return: Array of sum of gaussian functions at each ``x`` coordinate.\n    ";
+static PyMethodDef __pyx_mdef_4silx_4math_3fit_9functions_9sum_fastagauss = {"sum_fastagauss", (PyCFunction)__pyx_pw_4silx_4math_3fit_9functions_9sum_fastagauss, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_3fit_9functions_8sum_fastagauss};
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_9sum_fastagauss(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_x = 0;
   PyObject *__pyx_v_params = 0;
   int __pyx_lineno = 0;
@@ -3519,11 +3519,11 @@ static PyObject *__pyx_pw_9functions_9sum_fastagauss(PyObject *__pyx_self, PyObj
   __Pyx_RaiseArgtupleInvalid("sum_fastagauss", 0, 1, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 221; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_DECREF(__pyx_v_params); __pyx_v_params = 0;
-  __Pyx_AddTraceback("functions.sum_fastagauss", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.fit.functions.sum_fastagauss", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_9functions_8sum_fastagauss(__pyx_self, __pyx_v_x, __pyx_v_params);
+  __pyx_r = __pyx_pf_4silx_4math_3fit_9functions_8sum_fastagauss(__pyx_self, __pyx_v_x, __pyx_v_params);
 
   /* function exit code */
   __Pyx_XDECREF(__pyx_v_params);
@@ -3531,7 +3531,7 @@ static PyObject *__pyx_pw_9functions_9sum_fastagauss(PyObject *__pyx_self, PyObj
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9functions_8sum_fastagauss(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params) {
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_8sum_fastagauss(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params) {
   __Pyx_memviewslice __pyx_v_x_c = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_params_c = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_y_c = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -3559,7 +3559,7 @@ static PyObject *__pyx_pf_9functions_8sum_fastagauss(CYTHON_UNUSED PyObject *__p
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("sum_fastagauss", 0);
 
-  /* "functions.pyx":245
+  /* "silx/math/fit/functions.pyx":245
  *         double[::1] y_c
  * 
  *     if not len(params):             # <<<<<<<<<<<<<<
@@ -3570,7 +3570,7 @@ static PyObject *__pyx_pf_9functions_8sum_fastagauss(CYTHON_UNUSED PyObject *__p
   __pyx_t_2 = ((!(__pyx_t_1 != 0)) != 0);
   if (__pyx_t_2) {
 
-    /* "functions.pyx":246
+    /* "silx/math/fit/functions.pyx":246
  * 
  *     if not len(params):
  *         raise IndexError("No gaussian parameters specified. " +             # <<<<<<<<<<<<<<
@@ -3592,7 +3592,7 @@ static PyObject *__pyx_pf_9functions_8sum_fastagauss(CYTHON_UNUSED PyObject *__p
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 246; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":249
+  /* "silx/math/fit/functions.pyx":249
  *                          "At least 3 parameters are required.")
  * 
  *     x_c = numpy.array(x,             # <<<<<<<<<<<<<<
@@ -3612,7 +3612,7 @@ static PyObject *__pyx_pf_9functions_8sum_fastagauss(CYTHON_UNUSED PyObject *__p
   __pyx_t_5 = PyDict_New(); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 249; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
 
-  /* "functions.pyx":250
+  /* "silx/math/fit/functions.pyx":250
  * 
  *     x_c = numpy.array(x,
  *                       copy=False,             # <<<<<<<<<<<<<<
@@ -3621,7 +3621,7 @@ static PyObject *__pyx_pf_9functions_8sum_fastagauss(CYTHON_UNUSED PyObject *__p
  */
   if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_copy, Py_False) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 249; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":251
+  /* "silx/math/fit/functions.pyx":251
  *     x_c = numpy.array(x,
  *                       copy=False,
  *                       dtype=numpy.float64,             # <<<<<<<<<<<<<<
@@ -3637,7 +3637,7 @@ static PyObject *__pyx_pf_9functions_8sum_fastagauss(CYTHON_UNUSED PyObject *__p
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 249; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":249
+  /* "silx/math/fit/functions.pyx":249
  *                          "At least 3 parameters are required.")
  * 
  *     x_c = numpy.array(x,             # <<<<<<<<<<<<<<
@@ -3650,7 +3650,7 @@ static PyObject *__pyx_pf_9functions_8sum_fastagauss(CYTHON_UNUSED PyObject *__p
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "functions.pyx":252
+  /* "silx/math/fit/functions.pyx":252
  *                       copy=False,
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -3670,7 +3670,7 @@ static PyObject *__pyx_pf_9functions_8sum_fastagauss(CYTHON_UNUSED PyObject *__p
   __pyx_t_8.memview = NULL;
   __pyx_t_8.data = NULL;
 
-  /* "functions.pyx":253
+  /* "silx/math/fit/functions.pyx":253
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,             # <<<<<<<<<<<<<<
@@ -3690,7 +3690,7 @@ static PyObject *__pyx_pf_9functions_8sum_fastagauss(CYTHON_UNUSED PyObject *__p
   __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 253; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
 
-  /* "functions.pyx":254
+  /* "silx/math/fit/functions.pyx":254
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,
  *                            copy=False,             # <<<<<<<<<<<<<<
@@ -3699,7 +3699,7 @@ static PyObject *__pyx_pf_9functions_8sum_fastagauss(CYTHON_UNUSED PyObject *__p
  */
   if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_copy, Py_False) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 253; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":255
+  /* "silx/math/fit/functions.pyx":255
  *     params_c = numpy.array(params,
  *                            copy=False,
  *                            dtype=numpy.float64,             # <<<<<<<<<<<<<<
@@ -3715,7 +3715,7 @@ static PyObject *__pyx_pf_9functions_8sum_fastagauss(CYTHON_UNUSED PyObject *__p
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 253; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":253
+  /* "silx/math/fit/functions.pyx":253
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,             # <<<<<<<<<<<<<<
@@ -3728,7 +3728,7 @@ static PyObject *__pyx_pf_9functions_8sum_fastagauss(CYTHON_UNUSED PyObject *__p
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "functions.pyx":256
+  /* "silx/math/fit/functions.pyx":256
  *                            copy=False,
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -3748,7 +3748,7 @@ static PyObject *__pyx_pf_9functions_8sum_fastagauss(CYTHON_UNUSED PyObject *__p
   __pyx_t_9.memview = NULL;
   __pyx_t_9.data = NULL;
 
-  /* "functions.pyx":257
+  /* "silx/math/fit/functions.pyx":257
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),             # <<<<<<<<<<<<<<
@@ -3772,7 +3772,7 @@ static PyObject *__pyx_pf_9functions_8sum_fastagauss(CYTHON_UNUSED PyObject *__p
   if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_shape, __pyx_t_5) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 257; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "functions.pyx":258
+  /* "silx/math/fit/functions.pyx":258
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),
  *                       dtype=numpy.float64)             # <<<<<<<<<<<<<<
@@ -3787,7 +3787,7 @@ static PyObject *__pyx_pf_9functions_8sum_fastagauss(CYTHON_UNUSED PyObject *__p
   if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_7) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 257; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "functions.pyx":257
+  /* "silx/math/fit/functions.pyx":257
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),             # <<<<<<<<<<<<<<
@@ -3805,7 +3805,7 @@ static PyObject *__pyx_pf_9functions_8sum_fastagauss(CYTHON_UNUSED PyObject *__p
   __pyx_t_10.memview = NULL;
   __pyx_t_10.data = NULL;
 
-  /* "functions.pyx":261
+  /* "silx/math/fit/functions.pyx":261
  * 
  *     status = functions_wrapper.sum_fastagauss(
  *                      &x_c[0], x.size,             # <<<<<<<<<<<<<<
@@ -3827,7 +3827,7 @@ static PyObject *__pyx_pf_9functions_8sum_fastagauss(CYTHON_UNUSED PyObject *__p
   __pyx_t_11 = __Pyx_PyInt_As_int(__pyx_t_7); if (unlikely((__pyx_t_11 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 261; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "functions.pyx":262
+  /* "silx/math/fit/functions.pyx":262
  *     status = functions_wrapper.sum_fastagauss(
  *                      &x_c[0], x.size,
  *                      &params_c[0], params_c.size,             # <<<<<<<<<<<<<<
@@ -3852,7 +3852,7 @@ static PyObject *__pyx_pf_9functions_8sum_fastagauss(CYTHON_UNUSED PyObject *__p
   __pyx_t_13 = __Pyx_PyInt_As_int(__pyx_t_6); if (unlikely((__pyx_t_13 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 262; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "functions.pyx":263
+  /* "silx/math/fit/functions.pyx":263
  *                      &x_c[0], x.size,
  *                      &params_c[0], params_c.size,
  *                      &y_c[0])             # <<<<<<<<<<<<<<
@@ -3870,7 +3870,7 @@ static PyObject *__pyx_pf_9functions_8sum_fastagauss(CYTHON_UNUSED PyObject *__p
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 263; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":260
+  /* "silx/math/fit/functions.pyx":260
  *                       dtype=numpy.float64)
  * 
  *     status = functions_wrapper.sum_fastagauss(             # <<<<<<<<<<<<<<
@@ -3879,7 +3879,7 @@ static PyObject *__pyx_pf_9functions_8sum_fastagauss(CYTHON_UNUSED PyObject *__p
  */
   __pyx_v_status = sum_fastagauss((&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_x_c.data) + __pyx_t_1)) )))), __pyx_t_11, (&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_params_c.data) + __pyx_t_12)) )))), __pyx_t_13, (&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_y_c.data) + __pyx_t_14)) )))));
 
-  /* "functions.pyx":265
+  /* "silx/math/fit/functions.pyx":265
  *                      &y_c[0])
  * 
  *     if status:             # <<<<<<<<<<<<<<
@@ -3889,7 +3889,7 @@ static PyObject *__pyx_pf_9functions_8sum_fastagauss(CYTHON_UNUSED PyObject *__p
   __pyx_t_2 = (__pyx_v_status != 0);
   if (__pyx_t_2) {
 
-    /* "functions.pyx":266
+    /* "silx/math/fit/functions.pyx":266
  * 
  *     if status:
  *         raise IndexError("Wrong number of parameters for function")             # <<<<<<<<<<<<<<
@@ -3903,7 +3903,7 @@ static PyObject *__pyx_pf_9functions_8sum_fastagauss(CYTHON_UNUSED PyObject *__p
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 266; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":268
+  /* "silx/math/fit/functions.pyx":268
  *         raise IndexError("Wrong number of parameters for function")
  * 
  *     return numpy.asarray(y_c).reshape(x.shape)             # <<<<<<<<<<<<<<
@@ -3979,7 +3979,7 @@ static PyObject *__pyx_pf_9functions_8sum_fastagauss(CYTHON_UNUSED PyObject *__p
   __pyx_t_6 = 0;
   goto __pyx_L0;
 
-  /* "functions.pyx":221
+  /* "silx/math/fit/functions.pyx":221
  * 
  * 
  * def sum_fastagauss(x, *params):             # <<<<<<<<<<<<<<
@@ -3998,7 +3998,7 @@ static PyObject *__pyx_pf_9functions_8sum_fastagauss(CYTHON_UNUSED PyObject *__p
   __PYX_XDEC_MEMVIEW(&__pyx_t_9, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_t_10, 1);
   __Pyx_XDECREF(__pyx_t_16);
-  __Pyx_AddTraceback("functions.sum_fastagauss", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.fit.functions.sum_fastagauss", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __PYX_XDEC_MEMVIEW(&__pyx_v_x_c, 1);
@@ -4009,7 +4009,7 @@ static PyObject *__pyx_pf_9functions_8sum_fastagauss(CYTHON_UNUSED PyObject *__p
   return __pyx_r;
 }
 
-/* "functions.pyx":271
+/* "silx/math/fit/functions.pyx":271
  * 
  * 
  * def sum_splitgauss(x, *params):             # <<<<<<<<<<<<<<
@@ -4018,10 +4018,10 @@ static PyObject *__pyx_pf_9functions_8sum_fastagauss(CYTHON_UNUSED PyObject *__p
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9functions_11sum_splitgauss(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_9functions_10sum_splitgauss[] = "sum_splitgauss(x, *params)\nReturn a sum of gaussian functions defined by *(area, centroid, fwhm1, fwhm2)*,\n    where:\n\n        - *height* is the peak amplitude\n        - *centroid* is the peak x-coordinate\n        - *fwhm1* is the full-width at half maximum for the distribution\n          when ``x < centroid``\n        - *fwhm2* is the full-width at half maximum for the distribution\n          when  ``x > centroid``\n\n    :param x: Independant variable where the gaussians are calculated\n    :type x: numpy.ndarray\n    :param params: Array of gaussian parameters (length must be a multiple\n        of 4):\n        *(height1, centroid1, fwhm11, fwhm21, height2, centroid2, fwhm12, fwhm22,...)*\n    :return: Array of sum of split gaussian functions at each ``x`` coordinate\n    ";
-static PyMethodDef __pyx_mdef_9functions_11sum_splitgauss = {"sum_splitgauss", (PyCFunction)__pyx_pw_9functions_11sum_splitgauss, METH_VARARGS|METH_KEYWORDS, __pyx_doc_9functions_10sum_splitgauss};
-static PyObject *__pyx_pw_9functions_11sum_splitgauss(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_11sum_splitgauss(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_4silx_4math_3fit_9functions_10sum_splitgauss[] = "sum_splitgauss(x, *params)\nReturn a sum of gaussian functions defined by *(area, centroid, fwhm1, fwhm2)*,\n    where:\n\n        - *height* is the peak amplitude\n        - *centroid* is the peak x-coordinate\n        - *fwhm1* is the full-width at half maximum for the distribution\n          when ``x < centroid``\n        - *fwhm2* is the full-width at half maximum for the distribution\n          when  ``x > centroid``\n\n    :param x: Independant variable where the gaussians are calculated\n    :type x: numpy.ndarray\n    :param params: Array of gaussian parameters (length must be a multiple\n        of 4):\n        *(height1, centroid1, fwhm11, fwhm21, height2, centroid2, fwhm12, fwhm22,...)*\n    :return: Array of sum of split gaussian functions at each ``x`` coordinate\n    ";
+static PyMethodDef __pyx_mdef_4silx_4math_3fit_9functions_11sum_splitgauss = {"sum_splitgauss", (PyCFunction)__pyx_pw_4silx_4math_3fit_9functions_11sum_splitgauss, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_3fit_9functions_10sum_splitgauss};
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_11sum_splitgauss(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_x = 0;
   PyObject *__pyx_v_params = 0;
   int __pyx_lineno = 0;
@@ -4073,11 +4073,11 @@ static PyObject *__pyx_pw_9functions_11sum_splitgauss(PyObject *__pyx_self, PyOb
   __Pyx_RaiseArgtupleInvalid("sum_splitgauss", 0, 1, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 271; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_DECREF(__pyx_v_params); __pyx_v_params = 0;
-  __Pyx_AddTraceback("functions.sum_splitgauss", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.fit.functions.sum_splitgauss", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_9functions_10sum_splitgauss(__pyx_self, __pyx_v_x, __pyx_v_params);
+  __pyx_r = __pyx_pf_4silx_4math_3fit_9functions_10sum_splitgauss(__pyx_self, __pyx_v_x, __pyx_v_params);
 
   /* function exit code */
   __Pyx_XDECREF(__pyx_v_params);
@@ -4085,7 +4085,7 @@ static PyObject *__pyx_pw_9functions_11sum_splitgauss(PyObject *__pyx_self, PyOb
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9functions_10sum_splitgauss(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params) {
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_10sum_splitgauss(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params) {
   __Pyx_memviewslice __pyx_v_x_c = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_params_c = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_y_c = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -4113,7 +4113,7 @@ static PyObject *__pyx_pf_9functions_10sum_splitgauss(CYTHON_UNUSED PyObject *__
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("sum_splitgauss", 0);
 
-  /* "functions.pyx":294
+  /* "silx/math/fit/functions.pyx":294
  *         double[::1] y_c
  * 
  *     if not len(params):             # <<<<<<<<<<<<<<
@@ -4124,7 +4124,7 @@ static PyObject *__pyx_pf_9functions_10sum_splitgauss(CYTHON_UNUSED PyObject *__
   __pyx_t_2 = ((!(__pyx_t_1 != 0)) != 0);
   if (__pyx_t_2) {
 
-    /* "functions.pyx":295
+    /* "silx/math/fit/functions.pyx":295
  * 
  *     if not len(params):
  *         raise IndexError("No gaussian parameters specified. " +             # <<<<<<<<<<<<<<
@@ -4146,7 +4146,7 @@ static PyObject *__pyx_pf_9functions_10sum_splitgauss(CYTHON_UNUSED PyObject *__
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 295; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":298
+  /* "silx/math/fit/functions.pyx":298
  *                          "At least 4 parameters are required.")
  * 
  *     x_c = numpy.array(x,             # <<<<<<<<<<<<<<
@@ -4166,7 +4166,7 @@ static PyObject *__pyx_pf_9functions_10sum_splitgauss(CYTHON_UNUSED PyObject *__
   __pyx_t_5 = PyDict_New(); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 298; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
 
-  /* "functions.pyx":299
+  /* "silx/math/fit/functions.pyx":299
  * 
  *     x_c = numpy.array(x,
  *                       copy=False,             # <<<<<<<<<<<<<<
@@ -4175,7 +4175,7 @@ static PyObject *__pyx_pf_9functions_10sum_splitgauss(CYTHON_UNUSED PyObject *__
  */
   if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_copy, Py_False) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 298; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":300
+  /* "silx/math/fit/functions.pyx":300
  *     x_c = numpy.array(x,
  *                       copy=False,
  *                       dtype=numpy.float64,             # <<<<<<<<<<<<<<
@@ -4191,7 +4191,7 @@ static PyObject *__pyx_pf_9functions_10sum_splitgauss(CYTHON_UNUSED PyObject *__
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 298; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":298
+  /* "silx/math/fit/functions.pyx":298
  *                          "At least 4 parameters are required.")
  * 
  *     x_c = numpy.array(x,             # <<<<<<<<<<<<<<
@@ -4204,7 +4204,7 @@ static PyObject *__pyx_pf_9functions_10sum_splitgauss(CYTHON_UNUSED PyObject *__
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "functions.pyx":301
+  /* "silx/math/fit/functions.pyx":301
  *                       copy=False,
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -4224,7 +4224,7 @@ static PyObject *__pyx_pf_9functions_10sum_splitgauss(CYTHON_UNUSED PyObject *__
   __pyx_t_8.memview = NULL;
   __pyx_t_8.data = NULL;
 
-  /* "functions.pyx":302
+  /* "silx/math/fit/functions.pyx":302
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,             # <<<<<<<<<<<<<<
@@ -4244,7 +4244,7 @@ static PyObject *__pyx_pf_9functions_10sum_splitgauss(CYTHON_UNUSED PyObject *__
   __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 302; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
 
-  /* "functions.pyx":303
+  /* "silx/math/fit/functions.pyx":303
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,
  *                            copy=False,             # <<<<<<<<<<<<<<
@@ -4253,7 +4253,7 @@ static PyObject *__pyx_pf_9functions_10sum_splitgauss(CYTHON_UNUSED PyObject *__
  */
   if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_copy, Py_False) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 302; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":304
+  /* "silx/math/fit/functions.pyx":304
  *     params_c = numpy.array(params,
  *                            copy=False,
  *                            dtype=numpy.float64,             # <<<<<<<<<<<<<<
@@ -4269,7 +4269,7 @@ static PyObject *__pyx_pf_9functions_10sum_splitgauss(CYTHON_UNUSED PyObject *__
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 302; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":302
+  /* "silx/math/fit/functions.pyx":302
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,             # <<<<<<<<<<<<<<
@@ -4282,7 +4282,7 @@ static PyObject *__pyx_pf_9functions_10sum_splitgauss(CYTHON_UNUSED PyObject *__
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "functions.pyx":305
+  /* "silx/math/fit/functions.pyx":305
  *                            copy=False,
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -4302,7 +4302,7 @@ static PyObject *__pyx_pf_9functions_10sum_splitgauss(CYTHON_UNUSED PyObject *__
   __pyx_t_9.memview = NULL;
   __pyx_t_9.data = NULL;
 
-  /* "functions.pyx":306
+  /* "silx/math/fit/functions.pyx":306
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),             # <<<<<<<<<<<<<<
@@ -4326,7 +4326,7 @@ static PyObject *__pyx_pf_9functions_10sum_splitgauss(CYTHON_UNUSED PyObject *__
   if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_shape, __pyx_t_5) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 306; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "functions.pyx":307
+  /* "silx/math/fit/functions.pyx":307
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),
  *                       dtype=numpy.float64)             # <<<<<<<<<<<<<<
@@ -4341,7 +4341,7 @@ static PyObject *__pyx_pf_9functions_10sum_splitgauss(CYTHON_UNUSED PyObject *__
   if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_7) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 306; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "functions.pyx":306
+  /* "silx/math/fit/functions.pyx":306
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),             # <<<<<<<<<<<<<<
@@ -4359,7 +4359,7 @@ static PyObject *__pyx_pf_9functions_10sum_splitgauss(CYTHON_UNUSED PyObject *__
   __pyx_t_10.memview = NULL;
   __pyx_t_10.data = NULL;
 
-  /* "functions.pyx":310
+  /* "silx/math/fit/functions.pyx":310
  * 
  *     status = functions_wrapper.sum_splitgauss(
  *                      &x_c[0], x.size,             # <<<<<<<<<<<<<<
@@ -4381,7 +4381,7 @@ static PyObject *__pyx_pf_9functions_10sum_splitgauss(CYTHON_UNUSED PyObject *__
   __pyx_t_11 = __Pyx_PyInt_As_int(__pyx_t_7); if (unlikely((__pyx_t_11 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 310; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "functions.pyx":311
+  /* "silx/math/fit/functions.pyx":311
  *     status = functions_wrapper.sum_splitgauss(
  *                      &x_c[0], x.size,
  *                      &params_c[0], params_c.size,             # <<<<<<<<<<<<<<
@@ -4406,7 +4406,7 @@ static PyObject *__pyx_pf_9functions_10sum_splitgauss(CYTHON_UNUSED PyObject *__
   __pyx_t_13 = __Pyx_PyInt_As_int(__pyx_t_6); if (unlikely((__pyx_t_13 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 311; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "functions.pyx":312
+  /* "silx/math/fit/functions.pyx":312
  *                      &x_c[0], x.size,
  *                      &params_c[0], params_c.size,
  *                      &y_c[0])             # <<<<<<<<<<<<<<
@@ -4424,7 +4424,7 @@ static PyObject *__pyx_pf_9functions_10sum_splitgauss(CYTHON_UNUSED PyObject *__
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 312; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":309
+  /* "silx/math/fit/functions.pyx":309
  *                       dtype=numpy.float64)
  * 
  *     status = functions_wrapper.sum_splitgauss(             # <<<<<<<<<<<<<<
@@ -4433,7 +4433,7 @@ static PyObject *__pyx_pf_9functions_10sum_splitgauss(CYTHON_UNUSED PyObject *__
  */
   __pyx_v_status = sum_splitgauss((&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_x_c.data) + __pyx_t_1)) )))), __pyx_t_11, (&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_params_c.data) + __pyx_t_12)) )))), __pyx_t_13, (&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_y_c.data) + __pyx_t_14)) )))));
 
-  /* "functions.pyx":314
+  /* "silx/math/fit/functions.pyx":314
  *                      &y_c[0])
  * 
  *     if status:             # <<<<<<<<<<<<<<
@@ -4443,7 +4443,7 @@ static PyObject *__pyx_pf_9functions_10sum_splitgauss(CYTHON_UNUSED PyObject *__
   __pyx_t_2 = (__pyx_v_status != 0);
   if (__pyx_t_2) {
 
-    /* "functions.pyx":315
+    /* "silx/math/fit/functions.pyx":315
  * 
  *     if status:
  *         raise IndexError("Wrong number of parameters for function")             # <<<<<<<<<<<<<<
@@ -4457,7 +4457,7 @@ static PyObject *__pyx_pf_9functions_10sum_splitgauss(CYTHON_UNUSED PyObject *__
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 315; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":317
+  /* "silx/math/fit/functions.pyx":317
  *         raise IndexError("Wrong number of parameters for function")
  * 
  *     return numpy.asarray(y_c).reshape(x.shape)             # <<<<<<<<<<<<<<
@@ -4533,7 +4533,7 @@ static PyObject *__pyx_pf_9functions_10sum_splitgauss(CYTHON_UNUSED PyObject *__
   __pyx_t_6 = 0;
   goto __pyx_L0;
 
-  /* "functions.pyx":271
+  /* "silx/math/fit/functions.pyx":271
  * 
  * 
  * def sum_splitgauss(x, *params):             # <<<<<<<<<<<<<<
@@ -4552,7 +4552,7 @@ static PyObject *__pyx_pf_9functions_10sum_splitgauss(CYTHON_UNUSED PyObject *__
   __PYX_XDEC_MEMVIEW(&__pyx_t_9, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_t_10, 1);
   __Pyx_XDECREF(__pyx_t_16);
-  __Pyx_AddTraceback("functions.sum_splitgauss", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.fit.functions.sum_splitgauss", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __PYX_XDEC_MEMVIEW(&__pyx_v_x_c, 1);
@@ -4563,7 +4563,7 @@ static PyObject *__pyx_pf_9functions_10sum_splitgauss(CYTHON_UNUSED PyObject *__
   return __pyx_r;
 }
 
-/* "functions.pyx":320
+/* "silx/math/fit/functions.pyx":320
  * 
  * 
  * def sum_apvoigt(x, *params):             # <<<<<<<<<<<<<<
@@ -4572,10 +4572,10 @@ static PyObject *__pyx_pf_9functions_10sum_splitgauss(CYTHON_UNUSED PyObject *__
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9functions_13sum_apvoigt(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_9functions_12sum_apvoigt[] = "sum_apvoigt(x, *params)\nReturn a sum of pseudo-Voigt functions, defined by *(area, centroid, fwhm,\n    eta)*.\n\n    The pseudo-Voigt profile ``PV(x)`` is an approximation of the Voigt\n    profile using a linear combination of a Gaussian curve ``G(x)`` and a\n    Lorentzian curve ``L(x)`` instead of their convolution.\n\n        - *area* is the area underneath both G(x) and L(x)\n        - *centroid* is the peak x-coordinate for both functions\n        - *fwhm* is the full-width at half maximum of both functions\n        - *eta* is the Lorentz factor: PV(x) = eta * L(x) + (1 - eta) * G(x)\n\n    :param x: Independant variable where the gaussians are calculated\n    :type x: numpy.ndarray\n    :param params: Array of pseudo-Voigt parameters (length must be a multiple\n        of 4):\n        *(area1, centroid1, fwhm1, eta1, area2, centroid2, fwhm2, eta2,...)*\n    :return: Array of sum of pseudo-Voigt functions at each ``x`` coordinate\n    ";
-static PyMethodDef __pyx_mdef_9functions_13sum_apvoigt = {"sum_apvoigt", (PyCFunction)__pyx_pw_9functions_13sum_apvoigt, METH_VARARGS|METH_KEYWORDS, __pyx_doc_9functions_12sum_apvoigt};
-static PyObject *__pyx_pw_9functions_13sum_apvoigt(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_13sum_apvoigt(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_4silx_4math_3fit_9functions_12sum_apvoigt[] = "sum_apvoigt(x, *params)\nReturn a sum of pseudo-Voigt functions, defined by *(area, centroid, fwhm,\n    eta)*.\n\n    The pseudo-Voigt profile ``PV(x)`` is an approximation of the Voigt\n    profile using a linear combination of a Gaussian curve ``G(x)`` and a\n    Lorentzian curve ``L(x)`` instead of their convolution.\n\n        - *area* is the area underneath both G(x) and L(x)\n        - *centroid* is the peak x-coordinate for both functions\n        - *fwhm* is the full-width at half maximum of both functions\n        - *eta* is the Lorentz factor: PV(x) = eta * L(x) + (1 - eta) * G(x)\n\n    :param x: Independant variable where the gaussians are calculated\n    :type x: numpy.ndarray\n    :param params: Array of pseudo-Voigt parameters (length must be a multiple\n        of 4):\n        *(area1, centroid1, fwhm1, eta1, area2, centroid2, fwhm2, eta2,...)*\n    :return: Array of sum of pseudo-Voigt functions at each ``x`` coordinate\n    ";
+static PyMethodDef __pyx_mdef_4silx_4math_3fit_9functions_13sum_apvoigt = {"sum_apvoigt", (PyCFunction)__pyx_pw_4silx_4math_3fit_9functions_13sum_apvoigt, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_3fit_9functions_12sum_apvoigt};
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_13sum_apvoigt(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_x = 0;
   PyObject *__pyx_v_params = 0;
   int __pyx_lineno = 0;
@@ -4627,11 +4627,11 @@ static PyObject *__pyx_pw_9functions_13sum_apvoigt(PyObject *__pyx_self, PyObjec
   __Pyx_RaiseArgtupleInvalid("sum_apvoigt", 0, 1, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 320; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_DECREF(__pyx_v_params); __pyx_v_params = 0;
-  __Pyx_AddTraceback("functions.sum_apvoigt", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.fit.functions.sum_apvoigt", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_9functions_12sum_apvoigt(__pyx_self, __pyx_v_x, __pyx_v_params);
+  __pyx_r = __pyx_pf_4silx_4math_3fit_9functions_12sum_apvoigt(__pyx_self, __pyx_v_x, __pyx_v_params);
 
   /* function exit code */
   __Pyx_XDECREF(__pyx_v_params);
@@ -4639,7 +4639,7 @@ static PyObject *__pyx_pw_9functions_13sum_apvoigt(PyObject *__pyx_self, PyObjec
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9functions_12sum_apvoigt(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params) {
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_12sum_apvoigt(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params) {
   __Pyx_memviewslice __pyx_v_x_c = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_params_c = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_y_c = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -4667,7 +4667,7 @@ static PyObject *__pyx_pf_9functions_12sum_apvoigt(CYTHON_UNUSED PyObject *__pyx
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("sum_apvoigt", 0);
 
-  /* "functions.pyx":345
+  /* "silx/math/fit/functions.pyx":345
  *         double[::1] y_c
  * 
  *     if not len(params):             # <<<<<<<<<<<<<<
@@ -4678,7 +4678,7 @@ static PyObject *__pyx_pf_9functions_12sum_apvoigt(CYTHON_UNUSED PyObject *__pyx
   __pyx_t_2 = ((!(__pyx_t_1 != 0)) != 0);
   if (__pyx_t_2) {
 
-    /* "functions.pyx":346
+    /* "silx/math/fit/functions.pyx":346
  * 
  *     if not len(params):
  *         raise IndexError("No parameters specified. " +             # <<<<<<<<<<<<<<
@@ -4700,7 +4700,7 @@ static PyObject *__pyx_pf_9functions_12sum_apvoigt(CYTHON_UNUSED PyObject *__pyx
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 346; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":348
+  /* "silx/math/fit/functions.pyx":348
  *         raise IndexError("No parameters specified. " +
  *                          "At least 4 parameters are required.")
  *     x_c = numpy.array(x,             # <<<<<<<<<<<<<<
@@ -4720,7 +4720,7 @@ static PyObject *__pyx_pf_9functions_12sum_apvoigt(CYTHON_UNUSED PyObject *__pyx
   __pyx_t_5 = PyDict_New(); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 348; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
 
-  /* "functions.pyx":349
+  /* "silx/math/fit/functions.pyx":349
  *                          "At least 4 parameters are required.")
  *     x_c = numpy.array(x,
  *                       copy=False,             # <<<<<<<<<<<<<<
@@ -4729,7 +4729,7 @@ static PyObject *__pyx_pf_9functions_12sum_apvoigt(CYTHON_UNUSED PyObject *__pyx
  */
   if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_copy, Py_False) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 348; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":350
+  /* "silx/math/fit/functions.pyx":350
  *     x_c = numpy.array(x,
  *                       copy=False,
  *                       dtype=numpy.float64,             # <<<<<<<<<<<<<<
@@ -4745,7 +4745,7 @@ static PyObject *__pyx_pf_9functions_12sum_apvoigt(CYTHON_UNUSED PyObject *__pyx
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 348; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":348
+  /* "silx/math/fit/functions.pyx":348
  *         raise IndexError("No parameters specified. " +
  *                          "At least 4 parameters are required.")
  *     x_c = numpy.array(x,             # <<<<<<<<<<<<<<
@@ -4758,7 +4758,7 @@ static PyObject *__pyx_pf_9functions_12sum_apvoigt(CYTHON_UNUSED PyObject *__pyx
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "functions.pyx":351
+  /* "silx/math/fit/functions.pyx":351
  *                       copy=False,
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -4778,7 +4778,7 @@ static PyObject *__pyx_pf_9functions_12sum_apvoigt(CYTHON_UNUSED PyObject *__pyx
   __pyx_t_8.memview = NULL;
   __pyx_t_8.data = NULL;
 
-  /* "functions.pyx":352
+  /* "silx/math/fit/functions.pyx":352
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,             # <<<<<<<<<<<<<<
@@ -4798,7 +4798,7 @@ static PyObject *__pyx_pf_9functions_12sum_apvoigt(CYTHON_UNUSED PyObject *__pyx
   __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
 
-  /* "functions.pyx":353
+  /* "silx/math/fit/functions.pyx":353
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,
  *                            copy=False,             # <<<<<<<<<<<<<<
@@ -4807,7 +4807,7 @@ static PyObject *__pyx_pf_9functions_12sum_apvoigt(CYTHON_UNUSED PyObject *__pyx
  */
   if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_copy, Py_False) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":354
+  /* "silx/math/fit/functions.pyx":354
  *     params_c = numpy.array(params,
  *                            copy=False,
  *                            dtype=numpy.float64,             # <<<<<<<<<<<<<<
@@ -4823,7 +4823,7 @@ static PyObject *__pyx_pf_9functions_12sum_apvoigt(CYTHON_UNUSED PyObject *__pyx
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":352
+  /* "silx/math/fit/functions.pyx":352
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,             # <<<<<<<<<<<<<<
@@ -4836,7 +4836,7 @@ static PyObject *__pyx_pf_9functions_12sum_apvoigt(CYTHON_UNUSED PyObject *__pyx
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "functions.pyx":355
+  /* "silx/math/fit/functions.pyx":355
  *                            copy=False,
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -4856,7 +4856,7 @@ static PyObject *__pyx_pf_9functions_12sum_apvoigt(CYTHON_UNUSED PyObject *__pyx
   __pyx_t_9.memview = NULL;
   __pyx_t_9.data = NULL;
 
-  /* "functions.pyx":356
+  /* "silx/math/fit/functions.pyx":356
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),             # <<<<<<<<<<<<<<
@@ -4880,7 +4880,7 @@ static PyObject *__pyx_pf_9functions_12sum_apvoigt(CYTHON_UNUSED PyObject *__pyx
   if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_shape, __pyx_t_5) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 356; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "functions.pyx":357
+  /* "silx/math/fit/functions.pyx":357
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),
  *                       dtype=numpy.float64)             # <<<<<<<<<<<<<<
@@ -4895,7 +4895,7 @@ static PyObject *__pyx_pf_9functions_12sum_apvoigt(CYTHON_UNUSED PyObject *__pyx
   if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_7) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 356; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "functions.pyx":356
+  /* "silx/math/fit/functions.pyx":356
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),             # <<<<<<<<<<<<<<
@@ -4913,7 +4913,7 @@ static PyObject *__pyx_pf_9functions_12sum_apvoigt(CYTHON_UNUSED PyObject *__pyx
   __pyx_t_10.memview = NULL;
   __pyx_t_10.data = NULL;
 
-  /* "functions.pyx":360
+  /* "silx/math/fit/functions.pyx":360
  * 
  *     status = functions_wrapper.sum_apvoigt(
  *                      &x_c[0], x.size,             # <<<<<<<<<<<<<<
@@ -4935,7 +4935,7 @@ static PyObject *__pyx_pf_9functions_12sum_apvoigt(CYTHON_UNUSED PyObject *__pyx
   __pyx_t_11 = __Pyx_PyInt_As_int(__pyx_t_7); if (unlikely((__pyx_t_11 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 360; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "functions.pyx":361
+  /* "silx/math/fit/functions.pyx":361
  *     status = functions_wrapper.sum_apvoigt(
  *                      &x_c[0], x.size,
  *                      &params_c[0], params_c.size,             # <<<<<<<<<<<<<<
@@ -4960,7 +4960,7 @@ static PyObject *__pyx_pf_9functions_12sum_apvoigt(CYTHON_UNUSED PyObject *__pyx
   __pyx_t_13 = __Pyx_PyInt_As_int(__pyx_t_6); if (unlikely((__pyx_t_13 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 361; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "functions.pyx":362
+  /* "silx/math/fit/functions.pyx":362
  *                      &x_c[0], x.size,
  *                      &params_c[0], params_c.size,
  *                      &y_c[0])             # <<<<<<<<<<<<<<
@@ -4978,7 +4978,7 @@ static PyObject *__pyx_pf_9functions_12sum_apvoigt(CYTHON_UNUSED PyObject *__pyx
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 362; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":359
+  /* "silx/math/fit/functions.pyx":359
  *                       dtype=numpy.float64)
  * 
  *     status = functions_wrapper.sum_apvoigt(             # <<<<<<<<<<<<<<
@@ -4987,7 +4987,7 @@ static PyObject *__pyx_pf_9functions_12sum_apvoigt(CYTHON_UNUSED PyObject *__pyx
  */
   __pyx_v_status = sum_apvoigt((&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_x_c.data) + __pyx_t_1)) )))), __pyx_t_11, (&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_params_c.data) + __pyx_t_12)) )))), __pyx_t_13, (&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_y_c.data) + __pyx_t_14)) )))));
 
-  /* "functions.pyx":364
+  /* "silx/math/fit/functions.pyx":364
  *                      &y_c[0])
  * 
  *     if status:             # <<<<<<<<<<<<<<
@@ -4997,7 +4997,7 @@ static PyObject *__pyx_pf_9functions_12sum_apvoigt(CYTHON_UNUSED PyObject *__pyx
   __pyx_t_2 = (__pyx_v_status != 0);
   if (__pyx_t_2) {
 
-    /* "functions.pyx":365
+    /* "silx/math/fit/functions.pyx":365
  * 
  *     if status:
  *         raise IndexError("Wrong number of parameters for function")             # <<<<<<<<<<<<<<
@@ -5011,7 +5011,7 @@ static PyObject *__pyx_pf_9functions_12sum_apvoigt(CYTHON_UNUSED PyObject *__pyx
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 365; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":367
+  /* "silx/math/fit/functions.pyx":367
  *         raise IndexError("Wrong number of parameters for function")
  * 
  *     return numpy.asarray(y_c).reshape(x.shape)             # <<<<<<<<<<<<<<
@@ -5087,7 +5087,7 @@ static PyObject *__pyx_pf_9functions_12sum_apvoigt(CYTHON_UNUSED PyObject *__pyx
   __pyx_t_6 = 0;
   goto __pyx_L0;
 
-  /* "functions.pyx":320
+  /* "silx/math/fit/functions.pyx":320
  * 
  * 
  * def sum_apvoigt(x, *params):             # <<<<<<<<<<<<<<
@@ -5106,7 +5106,7 @@ static PyObject *__pyx_pf_9functions_12sum_apvoigt(CYTHON_UNUSED PyObject *__pyx
   __PYX_XDEC_MEMVIEW(&__pyx_t_9, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_t_10, 1);
   __Pyx_XDECREF(__pyx_t_16);
-  __Pyx_AddTraceback("functions.sum_apvoigt", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.fit.functions.sum_apvoigt", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __PYX_XDEC_MEMVIEW(&__pyx_v_x_c, 1);
@@ -5117,7 +5117,7 @@ static PyObject *__pyx_pf_9functions_12sum_apvoigt(CYTHON_UNUSED PyObject *__pyx
   return __pyx_r;
 }
 
-/* "functions.pyx":370
+/* "silx/math/fit/functions.pyx":370
  * 
  * 
  * def sum_pvoigt(x, *params):             # <<<<<<<<<<<<<<
@@ -5126,10 +5126,10 @@ static PyObject *__pyx_pf_9functions_12sum_apvoigt(CYTHON_UNUSED PyObject *__pyx
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9functions_15sum_pvoigt(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_9functions_14sum_pvoigt[] = "sum_pvoigt(x, *params)\nReturn a sum of pseudo-Voigt functions, defined by *(height, centroid,\n    fwhm, eta)*.\n\n    The pseudo-Voigt profile ``PV(x)`` is an approximation of the Voigt\n    profile using a linear combination of a Gaussian curve ``G(x)`` and a\n    Lorentzian curve ``L(x)`` instead of their convolution.\n\n        - *height* is the peak amplitude of G(x) and L(x)\n        - *centroid* is the peak x-coordinate for both functions\n        - *fwhm* is the full-width at half maximum of both functions\n        - *eta* is the Lorentz factor: PV(x) = eta * L(x) + (1 - eta) * G(x)\n\n    :param x: Independant variable where the gaussians are calculated\n    :type x: numpy.ndarray\n    :param params: Array of pseudo-Voigt parameters (length must be a multiple\n        of 4):\n        *(height1, centroid1, fwhm1, eta1, height2, centroid2, fwhm2, eta2,...)*\n    :return: Array of sum of pseudo-Voigt functions at each ``x`` coordinate\n    ";
-static PyMethodDef __pyx_mdef_9functions_15sum_pvoigt = {"sum_pvoigt", (PyCFunction)__pyx_pw_9functions_15sum_pvoigt, METH_VARARGS|METH_KEYWORDS, __pyx_doc_9functions_14sum_pvoigt};
-static PyObject *__pyx_pw_9functions_15sum_pvoigt(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_15sum_pvoigt(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_4silx_4math_3fit_9functions_14sum_pvoigt[] = "sum_pvoigt(x, *params)\nReturn a sum of pseudo-Voigt functions, defined by *(height, centroid,\n    fwhm, eta)*.\n\n    The pseudo-Voigt profile ``PV(x)`` is an approximation of the Voigt\n    profile using a linear combination of a Gaussian curve ``G(x)`` and a\n    Lorentzian curve ``L(x)`` instead of their convolution.\n\n        - *height* is the peak amplitude of G(x) and L(x)\n        - *centroid* is the peak x-coordinate for both functions\n        - *fwhm* is the full-width at half maximum of both functions\n        - *eta* is the Lorentz factor: PV(x) = eta * L(x) + (1 - eta) * G(x)\n\n    :param x: Independant variable where the gaussians are calculated\n    :type x: numpy.ndarray\n    :param params: Array of pseudo-Voigt parameters (length must be a multiple\n        of 4):\n        *(height1, centroid1, fwhm1, eta1, height2, centroid2, fwhm2, eta2,...)*\n    :return: Array of sum of pseudo-Voigt functions at each ``x`` coordinate\n    ";
+static PyMethodDef __pyx_mdef_4silx_4math_3fit_9functions_15sum_pvoigt = {"sum_pvoigt", (PyCFunction)__pyx_pw_4silx_4math_3fit_9functions_15sum_pvoigt, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_3fit_9functions_14sum_pvoigt};
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_15sum_pvoigt(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_x = 0;
   PyObject *__pyx_v_params = 0;
   int __pyx_lineno = 0;
@@ -5181,11 +5181,11 @@ static PyObject *__pyx_pw_9functions_15sum_pvoigt(PyObject *__pyx_self, PyObject
   __Pyx_RaiseArgtupleInvalid("sum_pvoigt", 0, 1, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 370; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_DECREF(__pyx_v_params); __pyx_v_params = 0;
-  __Pyx_AddTraceback("functions.sum_pvoigt", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.fit.functions.sum_pvoigt", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_9functions_14sum_pvoigt(__pyx_self, __pyx_v_x, __pyx_v_params);
+  __pyx_r = __pyx_pf_4silx_4math_3fit_9functions_14sum_pvoigt(__pyx_self, __pyx_v_x, __pyx_v_params);
 
   /* function exit code */
   __Pyx_XDECREF(__pyx_v_params);
@@ -5193,7 +5193,7 @@ static PyObject *__pyx_pw_9functions_15sum_pvoigt(PyObject *__pyx_self, PyObject
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9functions_14sum_pvoigt(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params) {
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_14sum_pvoigt(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params) {
   __Pyx_memviewslice __pyx_v_x_c = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_params_c = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_y_c = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -5221,7 +5221,7 @@ static PyObject *__pyx_pf_9functions_14sum_pvoigt(CYTHON_UNUSED PyObject *__pyx_
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("sum_pvoigt", 0);
 
-  /* "functions.pyx":395
+  /* "silx/math/fit/functions.pyx":395
  *         double[::1] y_c
  * 
  *     if not len(params):             # <<<<<<<<<<<<<<
@@ -5232,7 +5232,7 @@ static PyObject *__pyx_pf_9functions_14sum_pvoigt(CYTHON_UNUSED PyObject *__pyx_
   __pyx_t_2 = ((!(__pyx_t_1 != 0)) != 0);
   if (__pyx_t_2) {
 
-    /* "functions.pyx":396
+    /* "silx/math/fit/functions.pyx":396
  * 
  *     if not len(params):
  *         raise IndexError("No parameters specified. " +             # <<<<<<<<<<<<<<
@@ -5254,7 +5254,7 @@ static PyObject *__pyx_pf_9functions_14sum_pvoigt(CYTHON_UNUSED PyObject *__pyx_
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 396; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":399
+  /* "silx/math/fit/functions.pyx":399
  *                          "At least 4 parameters are required.")
  * 
  *     x_c = numpy.array(x,             # <<<<<<<<<<<<<<
@@ -5274,7 +5274,7 @@ static PyObject *__pyx_pf_9functions_14sum_pvoigt(CYTHON_UNUSED PyObject *__pyx_
   __pyx_t_5 = PyDict_New(); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 399; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
 
-  /* "functions.pyx":400
+  /* "silx/math/fit/functions.pyx":400
  * 
  *     x_c = numpy.array(x,
  *                       copy=False,             # <<<<<<<<<<<<<<
@@ -5283,7 +5283,7 @@ static PyObject *__pyx_pf_9functions_14sum_pvoigt(CYTHON_UNUSED PyObject *__pyx_
  */
   if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_copy, Py_False) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 399; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":401
+  /* "silx/math/fit/functions.pyx":401
  *     x_c = numpy.array(x,
  *                       copy=False,
  *                       dtype=numpy.float64,             # <<<<<<<<<<<<<<
@@ -5299,7 +5299,7 @@ static PyObject *__pyx_pf_9functions_14sum_pvoigt(CYTHON_UNUSED PyObject *__pyx_
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 399; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":399
+  /* "silx/math/fit/functions.pyx":399
  *                          "At least 4 parameters are required.")
  * 
  *     x_c = numpy.array(x,             # <<<<<<<<<<<<<<
@@ -5312,7 +5312,7 @@ static PyObject *__pyx_pf_9functions_14sum_pvoigt(CYTHON_UNUSED PyObject *__pyx_
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "functions.pyx":402
+  /* "silx/math/fit/functions.pyx":402
  *                       copy=False,
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -5332,7 +5332,7 @@ static PyObject *__pyx_pf_9functions_14sum_pvoigt(CYTHON_UNUSED PyObject *__pyx_
   __pyx_t_8.memview = NULL;
   __pyx_t_8.data = NULL;
 
-  /* "functions.pyx":403
+  /* "silx/math/fit/functions.pyx":403
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,             # <<<<<<<<<<<<<<
@@ -5352,7 +5352,7 @@ static PyObject *__pyx_pf_9functions_14sum_pvoigt(CYTHON_UNUSED PyObject *__pyx_
   __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 403; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
 
-  /* "functions.pyx":404
+  /* "silx/math/fit/functions.pyx":404
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,
  *                            copy=False,             # <<<<<<<<<<<<<<
@@ -5361,7 +5361,7 @@ static PyObject *__pyx_pf_9functions_14sum_pvoigt(CYTHON_UNUSED PyObject *__pyx_
  */
   if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_copy, Py_False) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 403; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":405
+  /* "silx/math/fit/functions.pyx":405
  *     params_c = numpy.array(params,
  *                            copy=False,
  *                            dtype=numpy.float64,             # <<<<<<<<<<<<<<
@@ -5377,7 +5377,7 @@ static PyObject *__pyx_pf_9functions_14sum_pvoigt(CYTHON_UNUSED PyObject *__pyx_
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 403; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":403
+  /* "silx/math/fit/functions.pyx":403
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,             # <<<<<<<<<<<<<<
@@ -5390,7 +5390,7 @@ static PyObject *__pyx_pf_9functions_14sum_pvoigt(CYTHON_UNUSED PyObject *__pyx_
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "functions.pyx":406
+  /* "silx/math/fit/functions.pyx":406
  *                            copy=False,
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -5410,7 +5410,7 @@ static PyObject *__pyx_pf_9functions_14sum_pvoigt(CYTHON_UNUSED PyObject *__pyx_
   __pyx_t_9.memview = NULL;
   __pyx_t_9.data = NULL;
 
-  /* "functions.pyx":407
+  /* "silx/math/fit/functions.pyx":407
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),             # <<<<<<<<<<<<<<
@@ -5434,7 +5434,7 @@ static PyObject *__pyx_pf_9functions_14sum_pvoigt(CYTHON_UNUSED PyObject *__pyx_
   if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_shape, __pyx_t_5) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 407; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "functions.pyx":408
+  /* "silx/math/fit/functions.pyx":408
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),
  *                       dtype=numpy.float64)             # <<<<<<<<<<<<<<
@@ -5449,7 +5449,7 @@ static PyObject *__pyx_pf_9functions_14sum_pvoigt(CYTHON_UNUSED PyObject *__pyx_
   if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_7) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 407; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "functions.pyx":407
+  /* "silx/math/fit/functions.pyx":407
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),             # <<<<<<<<<<<<<<
@@ -5467,7 +5467,7 @@ static PyObject *__pyx_pf_9functions_14sum_pvoigt(CYTHON_UNUSED PyObject *__pyx_
   __pyx_t_10.memview = NULL;
   __pyx_t_10.data = NULL;
 
-  /* "functions.pyx":411
+  /* "silx/math/fit/functions.pyx":411
  * 
  *     status = functions_wrapper.sum_pvoigt(
  *                       &x_c[0], x.size,             # <<<<<<<<<<<<<<
@@ -5489,7 +5489,7 @@ static PyObject *__pyx_pf_9functions_14sum_pvoigt(CYTHON_UNUSED PyObject *__pyx_
   __pyx_t_11 = __Pyx_PyInt_As_int(__pyx_t_7); if (unlikely((__pyx_t_11 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 411; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "functions.pyx":412
+  /* "silx/math/fit/functions.pyx":412
  *     status = functions_wrapper.sum_pvoigt(
  *                       &x_c[0], x.size,
  *                       &params_c[0], params_c.size,             # <<<<<<<<<<<<<<
@@ -5514,7 +5514,7 @@ static PyObject *__pyx_pf_9functions_14sum_pvoigt(CYTHON_UNUSED PyObject *__pyx_
   __pyx_t_13 = __Pyx_PyInt_As_int(__pyx_t_6); if (unlikely((__pyx_t_13 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 412; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "functions.pyx":413
+  /* "silx/math/fit/functions.pyx":413
  *                       &x_c[0], x.size,
  *                       &params_c[0], params_c.size,
  *                       &y_c[0])             # <<<<<<<<<<<<<<
@@ -5532,7 +5532,7 @@ static PyObject *__pyx_pf_9functions_14sum_pvoigt(CYTHON_UNUSED PyObject *__pyx_
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 413; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":410
+  /* "silx/math/fit/functions.pyx":410
  *                       dtype=numpy.float64)
  * 
  *     status = functions_wrapper.sum_pvoigt(             # <<<<<<<<<<<<<<
@@ -5541,7 +5541,7 @@ static PyObject *__pyx_pf_9functions_14sum_pvoigt(CYTHON_UNUSED PyObject *__pyx_
  */
   __pyx_v_status = sum_pvoigt((&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_x_c.data) + __pyx_t_1)) )))), __pyx_t_11, (&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_params_c.data) + __pyx_t_12)) )))), __pyx_t_13, (&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_y_c.data) + __pyx_t_14)) )))));
 
-  /* "functions.pyx":415
+  /* "silx/math/fit/functions.pyx":415
  *                       &y_c[0])
  * 
  *     if status:             # <<<<<<<<<<<<<<
@@ -5551,7 +5551,7 @@ static PyObject *__pyx_pf_9functions_14sum_pvoigt(CYTHON_UNUSED PyObject *__pyx_
   __pyx_t_2 = (__pyx_v_status != 0);
   if (__pyx_t_2) {
 
-    /* "functions.pyx":416
+    /* "silx/math/fit/functions.pyx":416
  * 
  *     if status:
  *         raise IndexError("Wrong number of parameters for function")             # <<<<<<<<<<<<<<
@@ -5565,7 +5565,7 @@ static PyObject *__pyx_pf_9functions_14sum_pvoigt(CYTHON_UNUSED PyObject *__pyx_
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 416; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":418
+  /* "silx/math/fit/functions.pyx":418
  *         raise IndexError("Wrong number of parameters for function")
  * 
  *     return numpy.asarray(y_c).reshape(x.shape)             # <<<<<<<<<<<<<<
@@ -5641,7 +5641,7 @@ static PyObject *__pyx_pf_9functions_14sum_pvoigt(CYTHON_UNUSED PyObject *__pyx_
   __pyx_t_6 = 0;
   goto __pyx_L0;
 
-  /* "functions.pyx":370
+  /* "silx/math/fit/functions.pyx":370
  * 
  * 
  * def sum_pvoigt(x, *params):             # <<<<<<<<<<<<<<
@@ -5660,7 +5660,7 @@ static PyObject *__pyx_pf_9functions_14sum_pvoigt(CYTHON_UNUSED PyObject *__pyx_
   __PYX_XDEC_MEMVIEW(&__pyx_t_9, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_t_10, 1);
   __Pyx_XDECREF(__pyx_t_16);
-  __Pyx_AddTraceback("functions.sum_pvoigt", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.fit.functions.sum_pvoigt", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __PYX_XDEC_MEMVIEW(&__pyx_v_x_c, 1);
@@ -5671,7 +5671,7 @@ static PyObject *__pyx_pf_9functions_14sum_pvoigt(CYTHON_UNUSED PyObject *__pyx_
   return __pyx_r;
 }
 
-/* "functions.pyx":421
+/* "silx/math/fit/functions.pyx":421
  * 
  * 
  * def sum_splitpvoigt(x, *params):             # <<<<<<<<<<<<<<
@@ -5680,10 +5680,10 @@ static PyObject *__pyx_pf_9functions_14sum_pvoigt(CYTHON_UNUSED PyObject *__pyx_
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9functions_17sum_splitpvoigt(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_9functions_16sum_splitpvoigt[] = "sum_splitpvoigt(x, *params)\nReturn a sum of split pseudo-Voigt functions, defined by *(height,\n    centroid, fwhm1, fwhm2, eta)*.\n\n    The pseudo-Voigt profile ``PV(x)`` is an approximation of the Voigt\n    profile using a linear combination of a Gaussian curve ``G(x)`` and a\n    Lorentzian curve ``L(x)`` instead of their convolution.\n\n        - *height* is the peak amplitudefor G(x) and L(x)\n        - *centroid* is the peak x-coordinate for both functions\n        - *fwhm1* is the full-width at half maximum of both functions\n          when ``x < centroid``\n        - *fwhm2* is the full-width at half maximum of both functions\n          when ``x > centroid``\n        - *eta* is the Lorentz factor: PV(x) = eta * L(x) + (1 - eta) * G(x)\n\n    :param x: Independant variable where the gaussians are calculated\n    :type x: numpy.ndarray\n    :param params: Array of pseudo-Voigt parameters (length must be a multiple\n        of 5):\n        *(height1, centroid1, fwhm11, fwhm21, eta1,...)*\n    :return: Array of sum of split pseudo-Voigt functions at each ``x``\n        coordinate\n    ";
-static PyMethodDef __pyx_mdef_9functions_17sum_splitpvoigt = {"sum_splitpvoigt", (PyCFunction)__pyx_pw_9functions_17sum_splitpvoigt, METH_VARARGS|METH_KEYWORDS, __pyx_doc_9functions_16sum_splitpvoigt};
-static PyObject *__pyx_pw_9functions_17sum_splitpvoigt(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_17sum_splitpvoigt(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_4silx_4math_3fit_9functions_16sum_splitpvoigt[] = "sum_splitpvoigt(x, *params)\nReturn a sum of split pseudo-Voigt functions, defined by *(height,\n    centroid, fwhm1, fwhm2, eta)*.\n\n    The pseudo-Voigt profile ``PV(x)`` is an approximation of the Voigt\n    profile using a linear combination of a Gaussian curve ``G(x)`` and a\n    Lorentzian curve ``L(x)`` instead of their convolution.\n\n        - *height* is the peak amplitudefor G(x) and L(x)\n        - *centroid* is the peak x-coordinate for both functions\n        - *fwhm1* is the full-width at half maximum of both functions\n          when ``x < centroid``\n        - *fwhm2* is the full-width at half maximum of both functions\n          when ``x > centroid``\n        - *eta* is the Lorentz factor: PV(x) = eta * L(x) + (1 - eta) * G(x)\n\n    :param x: Independant variable where the gaussians are calculated\n    :type x: numpy.ndarray\n    :param params: Array of pseudo-Voigt parameters (length must be a multiple\n        of 5):\n        *(height1, centroid1, fwhm11, fwhm21, eta1,...)*\n    :return: Array of sum of split pseudo-Voigt functions at each ``x``\n        coordinate\n    ";
+static PyMethodDef __pyx_mdef_4silx_4math_3fit_9functions_17sum_splitpvoigt = {"sum_splitpvoigt", (PyCFunction)__pyx_pw_4silx_4math_3fit_9functions_17sum_splitpvoigt, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_3fit_9functions_16sum_splitpvoigt};
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_17sum_splitpvoigt(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_x = 0;
   PyObject *__pyx_v_params = 0;
   int __pyx_lineno = 0;
@@ -5735,11 +5735,11 @@ static PyObject *__pyx_pw_9functions_17sum_splitpvoigt(PyObject *__pyx_self, PyO
   __Pyx_RaiseArgtupleInvalid("sum_splitpvoigt", 0, 1, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 421; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_DECREF(__pyx_v_params); __pyx_v_params = 0;
-  __Pyx_AddTraceback("functions.sum_splitpvoigt", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.fit.functions.sum_splitpvoigt", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_9functions_16sum_splitpvoigt(__pyx_self, __pyx_v_x, __pyx_v_params);
+  __pyx_r = __pyx_pf_4silx_4math_3fit_9functions_16sum_splitpvoigt(__pyx_self, __pyx_v_x, __pyx_v_params);
 
   /* function exit code */
   __Pyx_XDECREF(__pyx_v_params);
@@ -5747,7 +5747,7 @@ static PyObject *__pyx_pw_9functions_17sum_splitpvoigt(PyObject *__pyx_self, PyO
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9functions_16sum_splitpvoigt(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params) {
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_16sum_splitpvoigt(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params) {
   __Pyx_memviewslice __pyx_v_x_c = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_params_c = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_y_c = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -5775,7 +5775,7 @@ static PyObject *__pyx_pf_9functions_16sum_splitpvoigt(CYTHON_UNUSED PyObject *_
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("sum_splitpvoigt", 0);
 
-  /* "functions.pyx":450
+  /* "silx/math/fit/functions.pyx":450
  *         double[::1] y_c
  * 
  *     if not len(params):             # <<<<<<<<<<<<<<
@@ -5786,7 +5786,7 @@ static PyObject *__pyx_pf_9functions_16sum_splitpvoigt(CYTHON_UNUSED PyObject *_
   __pyx_t_2 = ((!(__pyx_t_1 != 0)) != 0);
   if (__pyx_t_2) {
 
-    /* "functions.pyx":451
+    /* "silx/math/fit/functions.pyx":451
  * 
  *     if not len(params):
  *         raise IndexError("No parameters specified. " +             # <<<<<<<<<<<<<<
@@ -5808,7 +5808,7 @@ static PyObject *__pyx_pf_9functions_16sum_splitpvoigt(CYTHON_UNUSED PyObject *_
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 451; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":454
+  /* "silx/math/fit/functions.pyx":454
  *                          "At least 5 parameters are required.")
  * 
  *     x_c = numpy.array(x,             # <<<<<<<<<<<<<<
@@ -5828,7 +5828,7 @@ static PyObject *__pyx_pf_9functions_16sum_splitpvoigt(CYTHON_UNUSED PyObject *_
   __pyx_t_5 = PyDict_New(); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 454; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
 
-  /* "functions.pyx":455
+  /* "silx/math/fit/functions.pyx":455
  * 
  *     x_c = numpy.array(x,
  *                       copy=False,             # <<<<<<<<<<<<<<
@@ -5837,7 +5837,7 @@ static PyObject *__pyx_pf_9functions_16sum_splitpvoigt(CYTHON_UNUSED PyObject *_
  */
   if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_copy, Py_False) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 454; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":456
+  /* "silx/math/fit/functions.pyx":456
  *     x_c = numpy.array(x,
  *                       copy=False,
  *                       dtype=numpy.float64,             # <<<<<<<<<<<<<<
@@ -5853,7 +5853,7 @@ static PyObject *__pyx_pf_9functions_16sum_splitpvoigt(CYTHON_UNUSED PyObject *_
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 454; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":454
+  /* "silx/math/fit/functions.pyx":454
  *                          "At least 5 parameters are required.")
  * 
  *     x_c = numpy.array(x,             # <<<<<<<<<<<<<<
@@ -5866,7 +5866,7 @@ static PyObject *__pyx_pf_9functions_16sum_splitpvoigt(CYTHON_UNUSED PyObject *_
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "functions.pyx":457
+  /* "silx/math/fit/functions.pyx":457
  *                       copy=False,
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -5886,7 +5886,7 @@ static PyObject *__pyx_pf_9functions_16sum_splitpvoigt(CYTHON_UNUSED PyObject *_
   __pyx_t_8.memview = NULL;
   __pyx_t_8.data = NULL;
 
-  /* "functions.pyx":458
+  /* "silx/math/fit/functions.pyx":458
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,             # <<<<<<<<<<<<<<
@@ -5906,7 +5906,7 @@ static PyObject *__pyx_pf_9functions_16sum_splitpvoigt(CYTHON_UNUSED PyObject *_
   __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 458; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
 
-  /* "functions.pyx":459
+  /* "silx/math/fit/functions.pyx":459
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,
  *                            copy=False,             # <<<<<<<<<<<<<<
@@ -5915,7 +5915,7 @@ static PyObject *__pyx_pf_9functions_16sum_splitpvoigt(CYTHON_UNUSED PyObject *_
  */
   if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_copy, Py_False) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 458; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":460
+  /* "silx/math/fit/functions.pyx":460
  *     params_c = numpy.array(params,
  *                            copy=False,
  *                            dtype=numpy.float64,             # <<<<<<<<<<<<<<
@@ -5931,7 +5931,7 @@ static PyObject *__pyx_pf_9functions_16sum_splitpvoigt(CYTHON_UNUSED PyObject *_
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 458; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":458
+  /* "silx/math/fit/functions.pyx":458
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,             # <<<<<<<<<<<<<<
@@ -5944,7 +5944,7 @@ static PyObject *__pyx_pf_9functions_16sum_splitpvoigt(CYTHON_UNUSED PyObject *_
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "functions.pyx":461
+  /* "silx/math/fit/functions.pyx":461
  *                            copy=False,
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -5964,7 +5964,7 @@ static PyObject *__pyx_pf_9functions_16sum_splitpvoigt(CYTHON_UNUSED PyObject *_
   __pyx_t_9.memview = NULL;
   __pyx_t_9.data = NULL;
 
-  /* "functions.pyx":462
+  /* "silx/math/fit/functions.pyx":462
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),             # <<<<<<<<<<<<<<
@@ -5988,7 +5988,7 @@ static PyObject *__pyx_pf_9functions_16sum_splitpvoigt(CYTHON_UNUSED PyObject *_
   if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_shape, __pyx_t_5) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 462; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "functions.pyx":463
+  /* "silx/math/fit/functions.pyx":463
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),
  *                       dtype=numpy.float64)             # <<<<<<<<<<<<<<
@@ -6003,7 +6003,7 @@ static PyObject *__pyx_pf_9functions_16sum_splitpvoigt(CYTHON_UNUSED PyObject *_
   if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_7) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 462; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "functions.pyx":462
+  /* "silx/math/fit/functions.pyx":462
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),             # <<<<<<<<<<<<<<
@@ -6021,7 +6021,7 @@ static PyObject *__pyx_pf_9functions_16sum_splitpvoigt(CYTHON_UNUSED PyObject *_
   __pyx_t_10.memview = NULL;
   __pyx_t_10.data = NULL;
 
-  /* "functions.pyx":466
+  /* "silx/math/fit/functions.pyx":466
  * 
  *     status = functions_wrapper.sum_splitpvoigt(
  *                      &x_c[0], x.size,             # <<<<<<<<<<<<<<
@@ -6043,7 +6043,7 @@ static PyObject *__pyx_pf_9functions_16sum_splitpvoigt(CYTHON_UNUSED PyObject *_
   __pyx_t_11 = __Pyx_PyInt_As_int(__pyx_t_7); if (unlikely((__pyx_t_11 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 466; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "functions.pyx":467
+  /* "silx/math/fit/functions.pyx":467
  *     status = functions_wrapper.sum_splitpvoigt(
  *                      &x_c[0], x.size,
  *                      &params_c[0], params_c.size,             # <<<<<<<<<<<<<<
@@ -6068,7 +6068,7 @@ static PyObject *__pyx_pf_9functions_16sum_splitpvoigt(CYTHON_UNUSED PyObject *_
   __pyx_t_13 = __Pyx_PyInt_As_int(__pyx_t_6); if (unlikely((__pyx_t_13 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 467; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "functions.pyx":468
+  /* "silx/math/fit/functions.pyx":468
  *                      &x_c[0], x.size,
  *                      &params_c[0], params_c.size,
  *                      &y_c[0])             # <<<<<<<<<<<<<<
@@ -6086,7 +6086,7 @@ static PyObject *__pyx_pf_9functions_16sum_splitpvoigt(CYTHON_UNUSED PyObject *_
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 468; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":465
+  /* "silx/math/fit/functions.pyx":465
  *                       dtype=numpy.float64)
  * 
  *     status = functions_wrapper.sum_splitpvoigt(             # <<<<<<<<<<<<<<
@@ -6095,7 +6095,7 @@ static PyObject *__pyx_pf_9functions_16sum_splitpvoigt(CYTHON_UNUSED PyObject *_
  */
   __pyx_v_status = sum_splitpvoigt((&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_x_c.data) + __pyx_t_1)) )))), __pyx_t_11, (&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_params_c.data) + __pyx_t_12)) )))), __pyx_t_13, (&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_y_c.data) + __pyx_t_14)) )))));
 
-  /* "functions.pyx":470
+  /* "silx/math/fit/functions.pyx":470
  *                      &y_c[0])
  * 
  *     if status:             # <<<<<<<<<<<<<<
@@ -6105,7 +6105,7 @@ static PyObject *__pyx_pf_9functions_16sum_splitpvoigt(CYTHON_UNUSED PyObject *_
   __pyx_t_2 = (__pyx_v_status != 0);
   if (__pyx_t_2) {
 
-    /* "functions.pyx":471
+    /* "silx/math/fit/functions.pyx":471
  * 
  *     if status:
  *         raise IndexError("Wrong number of parameters for function")             # <<<<<<<<<<<<<<
@@ -6119,7 +6119,7 @@ static PyObject *__pyx_pf_9functions_16sum_splitpvoigt(CYTHON_UNUSED PyObject *_
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 471; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":473
+  /* "silx/math/fit/functions.pyx":473
  *         raise IndexError("Wrong number of parameters for function")
  * 
  *     return numpy.asarray(y_c).reshape(x.shape)             # <<<<<<<<<<<<<<
@@ -6195,7 +6195,7 @@ static PyObject *__pyx_pf_9functions_16sum_splitpvoigt(CYTHON_UNUSED PyObject *_
   __pyx_t_6 = 0;
   goto __pyx_L0;
 
-  /* "functions.pyx":421
+  /* "silx/math/fit/functions.pyx":421
  * 
  * 
  * def sum_splitpvoigt(x, *params):             # <<<<<<<<<<<<<<
@@ -6214,7 +6214,7 @@ static PyObject *__pyx_pf_9functions_16sum_splitpvoigt(CYTHON_UNUSED PyObject *_
   __PYX_XDEC_MEMVIEW(&__pyx_t_9, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_t_10, 1);
   __Pyx_XDECREF(__pyx_t_16);
-  __Pyx_AddTraceback("functions.sum_splitpvoigt", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.fit.functions.sum_splitpvoigt", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __PYX_XDEC_MEMVIEW(&__pyx_v_x_c, 1);
@@ -6225,7 +6225,7 @@ static PyObject *__pyx_pf_9functions_16sum_splitpvoigt(CYTHON_UNUSED PyObject *_
   return __pyx_r;
 }
 
-/* "functions.pyx":476
+/* "silx/math/fit/functions.pyx":476
  * 
  * 
  * def sum_lorentz(x, *params):             # <<<<<<<<<<<<<<
@@ -6234,10 +6234,10 @@ static PyObject *__pyx_pf_9functions_16sum_splitpvoigt(CYTHON_UNUSED PyObject *_
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9functions_19sum_lorentz(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_9functions_18sum_lorentz[] = "sum_lorentz(x, *params)\nReturn a sum of Lorentz distributions, also known as Cauchy distribution,\n    defined by *(height, centroid, fwhm)*.\n\n        - *height* is the peak amplitude\n        - *centroid* is the peak x-coordinate\n        - *fwhm* is the full-width at half maximum\n\n    :param x: Independant variable where the gaussians are calculated\n    :type x: numpy.ndarray\n    :param params: Array of Lorentz parameters (length must be a multiple\n        of 3):\n        *(height1, centroid1, fwhm1,...)*\n    :return: Array of sum Lorentz functions at each ``x``\n        coordinate\n    ";
-static PyMethodDef __pyx_mdef_9functions_19sum_lorentz = {"sum_lorentz", (PyCFunction)__pyx_pw_9functions_19sum_lorentz, METH_VARARGS|METH_KEYWORDS, __pyx_doc_9functions_18sum_lorentz};
-static PyObject *__pyx_pw_9functions_19sum_lorentz(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_19sum_lorentz(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_4silx_4math_3fit_9functions_18sum_lorentz[] = "sum_lorentz(x, *params)\nReturn a sum of Lorentz distributions, also known as Cauchy distribution,\n    defined by *(height, centroid, fwhm)*.\n\n        - *height* is the peak amplitude\n        - *centroid* is the peak x-coordinate\n        - *fwhm* is the full-width at half maximum\n\n    :param x: Independant variable where the gaussians are calculated\n    :type x: numpy.ndarray\n    :param params: Array of Lorentz parameters (length must be a multiple\n        of 3):\n        *(height1, centroid1, fwhm1,...)*\n    :return: Array of sum Lorentz functions at each ``x``\n        coordinate\n    ";
+static PyMethodDef __pyx_mdef_4silx_4math_3fit_9functions_19sum_lorentz = {"sum_lorentz", (PyCFunction)__pyx_pw_4silx_4math_3fit_9functions_19sum_lorentz, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_3fit_9functions_18sum_lorentz};
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_19sum_lorentz(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_x = 0;
   PyObject *__pyx_v_params = 0;
   int __pyx_lineno = 0;
@@ -6289,11 +6289,11 @@ static PyObject *__pyx_pw_9functions_19sum_lorentz(PyObject *__pyx_self, PyObjec
   __Pyx_RaiseArgtupleInvalid("sum_lorentz", 0, 1, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 476; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_DECREF(__pyx_v_params); __pyx_v_params = 0;
-  __Pyx_AddTraceback("functions.sum_lorentz", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.fit.functions.sum_lorentz", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_9functions_18sum_lorentz(__pyx_self, __pyx_v_x, __pyx_v_params);
+  __pyx_r = __pyx_pf_4silx_4math_3fit_9functions_18sum_lorentz(__pyx_self, __pyx_v_x, __pyx_v_params);
 
   /* function exit code */
   __Pyx_XDECREF(__pyx_v_params);
@@ -6301,7 +6301,7 @@ static PyObject *__pyx_pw_9functions_19sum_lorentz(PyObject *__pyx_self, PyObjec
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9functions_18sum_lorentz(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params) {
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_18sum_lorentz(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params) {
   __Pyx_memviewslice __pyx_v_x_c = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_params_c = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_y_c = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -6329,7 +6329,7 @@ static PyObject *__pyx_pf_9functions_18sum_lorentz(CYTHON_UNUSED PyObject *__pyx
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("sum_lorentz", 0);
 
-  /* "functions.pyx":497
+  /* "silx/math/fit/functions.pyx":497
  *         double[::1] y_c
  * 
  *     if not len(params):             # <<<<<<<<<<<<<<
@@ -6340,7 +6340,7 @@ static PyObject *__pyx_pf_9functions_18sum_lorentz(CYTHON_UNUSED PyObject *__pyx
   __pyx_t_2 = ((!(__pyx_t_1 != 0)) != 0);
   if (__pyx_t_2) {
 
-    /* "functions.pyx":498
+    /* "silx/math/fit/functions.pyx":498
  * 
  *     if not len(params):
  *         raise IndexError("No parameters specified. " +             # <<<<<<<<<<<<<<
@@ -6362,7 +6362,7 @@ static PyObject *__pyx_pf_9functions_18sum_lorentz(CYTHON_UNUSED PyObject *__pyx
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 498; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":501
+  /* "silx/math/fit/functions.pyx":501
  *                          "At least 3 parameters are required.")
  * 
  *     x_c = numpy.array(x,             # <<<<<<<<<<<<<<
@@ -6382,7 +6382,7 @@ static PyObject *__pyx_pf_9functions_18sum_lorentz(CYTHON_UNUSED PyObject *__pyx
   __pyx_t_5 = PyDict_New(); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 501; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
 
-  /* "functions.pyx":502
+  /* "silx/math/fit/functions.pyx":502
  * 
  *     x_c = numpy.array(x,
  *                       copy=False,             # <<<<<<<<<<<<<<
@@ -6391,7 +6391,7 @@ static PyObject *__pyx_pf_9functions_18sum_lorentz(CYTHON_UNUSED PyObject *__pyx
  */
   if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_copy, Py_False) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 501; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":503
+  /* "silx/math/fit/functions.pyx":503
  *     x_c = numpy.array(x,
  *                       copy=False,
  *                       dtype=numpy.float64,             # <<<<<<<<<<<<<<
@@ -6407,7 +6407,7 @@ static PyObject *__pyx_pf_9functions_18sum_lorentz(CYTHON_UNUSED PyObject *__pyx
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 501; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":501
+  /* "silx/math/fit/functions.pyx":501
  *                          "At least 3 parameters are required.")
  * 
  *     x_c = numpy.array(x,             # <<<<<<<<<<<<<<
@@ -6420,7 +6420,7 @@ static PyObject *__pyx_pf_9functions_18sum_lorentz(CYTHON_UNUSED PyObject *__pyx
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "functions.pyx":504
+  /* "silx/math/fit/functions.pyx":504
  *                       copy=False,
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -6440,7 +6440,7 @@ static PyObject *__pyx_pf_9functions_18sum_lorentz(CYTHON_UNUSED PyObject *__pyx
   __pyx_t_8.memview = NULL;
   __pyx_t_8.data = NULL;
 
-  /* "functions.pyx":505
+  /* "silx/math/fit/functions.pyx":505
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,             # <<<<<<<<<<<<<<
@@ -6460,7 +6460,7 @@ static PyObject *__pyx_pf_9functions_18sum_lorentz(CYTHON_UNUSED PyObject *__pyx
   __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 505; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
 
-  /* "functions.pyx":506
+  /* "silx/math/fit/functions.pyx":506
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,
  *                            copy=False,             # <<<<<<<<<<<<<<
@@ -6469,7 +6469,7 @@ static PyObject *__pyx_pf_9functions_18sum_lorentz(CYTHON_UNUSED PyObject *__pyx
  */
   if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_copy, Py_False) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 505; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":507
+  /* "silx/math/fit/functions.pyx":507
  *     params_c = numpy.array(params,
  *                            copy=False,
  *                            dtype=numpy.float64,             # <<<<<<<<<<<<<<
@@ -6485,7 +6485,7 @@ static PyObject *__pyx_pf_9functions_18sum_lorentz(CYTHON_UNUSED PyObject *__pyx
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 505; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":505
+  /* "silx/math/fit/functions.pyx":505
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,             # <<<<<<<<<<<<<<
@@ -6498,7 +6498,7 @@ static PyObject *__pyx_pf_9functions_18sum_lorentz(CYTHON_UNUSED PyObject *__pyx
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "functions.pyx":508
+  /* "silx/math/fit/functions.pyx":508
  *                            copy=False,
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -6518,7 +6518,7 @@ static PyObject *__pyx_pf_9functions_18sum_lorentz(CYTHON_UNUSED PyObject *__pyx
   __pyx_t_9.memview = NULL;
   __pyx_t_9.data = NULL;
 
-  /* "functions.pyx":509
+  /* "silx/math/fit/functions.pyx":509
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),             # <<<<<<<<<<<<<<
@@ -6542,7 +6542,7 @@ static PyObject *__pyx_pf_9functions_18sum_lorentz(CYTHON_UNUSED PyObject *__pyx
   if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_shape, __pyx_t_5) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 509; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "functions.pyx":510
+  /* "silx/math/fit/functions.pyx":510
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),
  *                       dtype=numpy.float64)             # <<<<<<<<<<<<<<
@@ -6557,7 +6557,7 @@ static PyObject *__pyx_pf_9functions_18sum_lorentz(CYTHON_UNUSED PyObject *__pyx
   if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_7) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 509; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "functions.pyx":509
+  /* "silx/math/fit/functions.pyx":509
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),             # <<<<<<<<<<<<<<
@@ -6575,7 +6575,7 @@ static PyObject *__pyx_pf_9functions_18sum_lorentz(CYTHON_UNUSED PyObject *__pyx
   __pyx_t_10.memview = NULL;
   __pyx_t_10.data = NULL;
 
-  /* "functions.pyx":513
+  /* "silx/math/fit/functions.pyx":513
  * 
  *     status = functions_wrapper.sum_lorentz(
  *                      &x_c[0], x.size,             # <<<<<<<<<<<<<<
@@ -6597,7 +6597,7 @@ static PyObject *__pyx_pf_9functions_18sum_lorentz(CYTHON_UNUSED PyObject *__pyx
   __pyx_t_11 = __Pyx_PyInt_As_int(__pyx_t_7); if (unlikely((__pyx_t_11 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 513; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "functions.pyx":514
+  /* "silx/math/fit/functions.pyx":514
  *     status = functions_wrapper.sum_lorentz(
  *                      &x_c[0], x.size,
  *                      &params_c[0], params_c.size,             # <<<<<<<<<<<<<<
@@ -6622,7 +6622,7 @@ static PyObject *__pyx_pf_9functions_18sum_lorentz(CYTHON_UNUSED PyObject *__pyx
   __pyx_t_13 = __Pyx_PyInt_As_int(__pyx_t_6); if (unlikely((__pyx_t_13 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 514; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "functions.pyx":515
+  /* "silx/math/fit/functions.pyx":515
  *                      &x_c[0], x.size,
  *                      &params_c[0], params_c.size,
  *                      &y_c[0])             # <<<<<<<<<<<<<<
@@ -6640,7 +6640,7 @@ static PyObject *__pyx_pf_9functions_18sum_lorentz(CYTHON_UNUSED PyObject *__pyx
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 515; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":512
+  /* "silx/math/fit/functions.pyx":512
  *                       dtype=numpy.float64)
  * 
  *     status = functions_wrapper.sum_lorentz(             # <<<<<<<<<<<<<<
@@ -6649,7 +6649,7 @@ static PyObject *__pyx_pf_9functions_18sum_lorentz(CYTHON_UNUSED PyObject *__pyx
  */
   __pyx_v_status = sum_lorentz((&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_x_c.data) + __pyx_t_1)) )))), __pyx_t_11, (&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_params_c.data) + __pyx_t_12)) )))), __pyx_t_13, (&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_y_c.data) + __pyx_t_14)) )))));
 
-  /* "functions.pyx":517
+  /* "silx/math/fit/functions.pyx":517
  *                      &y_c[0])
  * 
  *     if status:             # <<<<<<<<<<<<<<
@@ -6659,7 +6659,7 @@ static PyObject *__pyx_pf_9functions_18sum_lorentz(CYTHON_UNUSED PyObject *__pyx
   __pyx_t_2 = (__pyx_v_status != 0);
   if (__pyx_t_2) {
 
-    /* "functions.pyx":518
+    /* "silx/math/fit/functions.pyx":518
  * 
  *     if status:
  *         raise IndexError("Wrong number of parameters for function")             # <<<<<<<<<<<<<<
@@ -6673,7 +6673,7 @@ static PyObject *__pyx_pf_9functions_18sum_lorentz(CYTHON_UNUSED PyObject *__pyx
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 518; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":520
+  /* "silx/math/fit/functions.pyx":520
  *         raise IndexError("Wrong number of parameters for function")
  * 
  *     return numpy.asarray(y_c).reshape(x.shape)             # <<<<<<<<<<<<<<
@@ -6749,7 +6749,7 @@ static PyObject *__pyx_pf_9functions_18sum_lorentz(CYTHON_UNUSED PyObject *__pyx
   __pyx_t_6 = 0;
   goto __pyx_L0;
 
-  /* "functions.pyx":476
+  /* "silx/math/fit/functions.pyx":476
  * 
  * 
  * def sum_lorentz(x, *params):             # <<<<<<<<<<<<<<
@@ -6768,7 +6768,7 @@ static PyObject *__pyx_pf_9functions_18sum_lorentz(CYTHON_UNUSED PyObject *__pyx
   __PYX_XDEC_MEMVIEW(&__pyx_t_9, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_t_10, 1);
   __Pyx_XDECREF(__pyx_t_16);
-  __Pyx_AddTraceback("functions.sum_lorentz", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.fit.functions.sum_lorentz", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __PYX_XDEC_MEMVIEW(&__pyx_v_x_c, 1);
@@ -6779,7 +6779,7 @@ static PyObject *__pyx_pf_9functions_18sum_lorentz(CYTHON_UNUSED PyObject *__pyx
   return __pyx_r;
 }
 
-/* "functions.pyx":523
+/* "silx/math/fit/functions.pyx":523
  * 
  * 
  * def sum_alorentz(x, *params):             # <<<<<<<<<<<<<<
@@ -6788,10 +6788,10 @@ static PyObject *__pyx_pf_9functions_18sum_lorentz(CYTHON_UNUSED PyObject *__pyx
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9functions_21sum_alorentz(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_9functions_20sum_alorentz[] = "sum_alorentz(x, *params)\nReturn a sum of Lorentz distributions, also known as Cauchy distribution,\n    defined by *(area, centroid, fwhm)*.\n\n        - *area* is the area underneath the peak\n        - *centroid* is the peak x-coordinate for both functions\n        - *fwhm* is the full-width at half maximum\n\n    :param x: Independant variable where the gaussians are calculated\n    :type x: numpy.ndarray\n    :param params: Array of Lorentz parameters (length must be a multiple\n        of 3):\n        *(area1, centroid1, fwhm1,...)*\n    :return: Array of sum of Lorentz functions at each ``x``\n        coordinate\n    ";
-static PyMethodDef __pyx_mdef_9functions_21sum_alorentz = {"sum_alorentz", (PyCFunction)__pyx_pw_9functions_21sum_alorentz, METH_VARARGS|METH_KEYWORDS, __pyx_doc_9functions_20sum_alorentz};
-static PyObject *__pyx_pw_9functions_21sum_alorentz(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_21sum_alorentz(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_4silx_4math_3fit_9functions_20sum_alorentz[] = "sum_alorentz(x, *params)\nReturn a sum of Lorentz distributions, also known as Cauchy distribution,\n    defined by *(area, centroid, fwhm)*.\n\n        - *area* is the area underneath the peak\n        - *centroid* is the peak x-coordinate for both functions\n        - *fwhm* is the full-width at half maximum\n\n    :param x: Independant variable where the gaussians are calculated\n    :type x: numpy.ndarray\n    :param params: Array of Lorentz parameters (length must be a multiple\n        of 3):\n        *(area1, centroid1, fwhm1,...)*\n    :return: Array of sum of Lorentz functions at each ``x``\n        coordinate\n    ";
+static PyMethodDef __pyx_mdef_4silx_4math_3fit_9functions_21sum_alorentz = {"sum_alorentz", (PyCFunction)__pyx_pw_4silx_4math_3fit_9functions_21sum_alorentz, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_3fit_9functions_20sum_alorentz};
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_21sum_alorentz(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_x = 0;
   PyObject *__pyx_v_params = 0;
   int __pyx_lineno = 0;
@@ -6843,11 +6843,11 @@ static PyObject *__pyx_pw_9functions_21sum_alorentz(PyObject *__pyx_self, PyObje
   __Pyx_RaiseArgtupleInvalid("sum_alorentz", 0, 1, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 523; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_DECREF(__pyx_v_params); __pyx_v_params = 0;
-  __Pyx_AddTraceback("functions.sum_alorentz", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.fit.functions.sum_alorentz", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_9functions_20sum_alorentz(__pyx_self, __pyx_v_x, __pyx_v_params);
+  __pyx_r = __pyx_pf_4silx_4math_3fit_9functions_20sum_alorentz(__pyx_self, __pyx_v_x, __pyx_v_params);
 
   /* function exit code */
   __Pyx_XDECREF(__pyx_v_params);
@@ -6855,7 +6855,7 @@ static PyObject *__pyx_pw_9functions_21sum_alorentz(PyObject *__pyx_self, PyObje
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9functions_20sum_alorentz(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params) {
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_20sum_alorentz(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params) {
   __Pyx_memviewslice __pyx_v_x_c = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_params_c = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_y_c = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -6883,7 +6883,7 @@ static PyObject *__pyx_pf_9functions_20sum_alorentz(CYTHON_UNUSED PyObject *__py
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("sum_alorentz", 0);
 
-  /* "functions.pyx":544
+  /* "silx/math/fit/functions.pyx":544
  *         double[::1] y_c
  * 
  *     if not len(params):             # <<<<<<<<<<<<<<
@@ -6894,7 +6894,7 @@ static PyObject *__pyx_pf_9functions_20sum_alorentz(CYTHON_UNUSED PyObject *__py
   __pyx_t_2 = ((!(__pyx_t_1 != 0)) != 0);
   if (__pyx_t_2) {
 
-    /* "functions.pyx":545
+    /* "silx/math/fit/functions.pyx":545
  * 
  *     if not len(params):
  *         raise IndexError("No parameters specified. " +             # <<<<<<<<<<<<<<
@@ -6916,7 +6916,7 @@ static PyObject *__pyx_pf_9functions_20sum_alorentz(CYTHON_UNUSED PyObject *__py
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 545; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":548
+  /* "silx/math/fit/functions.pyx":548
  *                          "At least 3 parameters are required.")
  * 
  *     x_c = numpy.array(x,             # <<<<<<<<<<<<<<
@@ -6936,7 +6936,7 @@ static PyObject *__pyx_pf_9functions_20sum_alorentz(CYTHON_UNUSED PyObject *__py
   __pyx_t_5 = PyDict_New(); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 548; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
 
-  /* "functions.pyx":549
+  /* "silx/math/fit/functions.pyx":549
  * 
  *     x_c = numpy.array(x,
  *                       copy=False,             # <<<<<<<<<<<<<<
@@ -6945,7 +6945,7 @@ static PyObject *__pyx_pf_9functions_20sum_alorentz(CYTHON_UNUSED PyObject *__py
  */
   if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_copy, Py_False) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 548; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":550
+  /* "silx/math/fit/functions.pyx":550
  *     x_c = numpy.array(x,
  *                       copy=False,
  *                       dtype=numpy.float64,             # <<<<<<<<<<<<<<
@@ -6961,7 +6961,7 @@ static PyObject *__pyx_pf_9functions_20sum_alorentz(CYTHON_UNUSED PyObject *__py
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 548; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":548
+  /* "silx/math/fit/functions.pyx":548
  *                          "At least 3 parameters are required.")
  * 
  *     x_c = numpy.array(x,             # <<<<<<<<<<<<<<
@@ -6974,7 +6974,7 @@ static PyObject *__pyx_pf_9functions_20sum_alorentz(CYTHON_UNUSED PyObject *__py
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "functions.pyx":551
+  /* "silx/math/fit/functions.pyx":551
  *                       copy=False,
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -6994,7 +6994,7 @@ static PyObject *__pyx_pf_9functions_20sum_alorentz(CYTHON_UNUSED PyObject *__py
   __pyx_t_8.memview = NULL;
   __pyx_t_8.data = NULL;
 
-  /* "functions.pyx":552
+  /* "silx/math/fit/functions.pyx":552
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,             # <<<<<<<<<<<<<<
@@ -7014,7 +7014,7 @@ static PyObject *__pyx_pf_9functions_20sum_alorentz(CYTHON_UNUSED PyObject *__py
   __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 552; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
 
-  /* "functions.pyx":553
+  /* "silx/math/fit/functions.pyx":553
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,
  *                            copy=False,             # <<<<<<<<<<<<<<
@@ -7023,7 +7023,7 @@ static PyObject *__pyx_pf_9functions_20sum_alorentz(CYTHON_UNUSED PyObject *__py
  */
   if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_copy, Py_False) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 552; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":554
+  /* "silx/math/fit/functions.pyx":554
  *     params_c = numpy.array(params,
  *                            copy=False,
  *                            dtype=numpy.float64,             # <<<<<<<<<<<<<<
@@ -7039,7 +7039,7 @@ static PyObject *__pyx_pf_9functions_20sum_alorentz(CYTHON_UNUSED PyObject *__py
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 552; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":552
+  /* "silx/math/fit/functions.pyx":552
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,             # <<<<<<<<<<<<<<
@@ -7052,7 +7052,7 @@ static PyObject *__pyx_pf_9functions_20sum_alorentz(CYTHON_UNUSED PyObject *__py
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "functions.pyx":555
+  /* "silx/math/fit/functions.pyx":555
  *                            copy=False,
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -7072,7 +7072,7 @@ static PyObject *__pyx_pf_9functions_20sum_alorentz(CYTHON_UNUSED PyObject *__py
   __pyx_t_9.memview = NULL;
   __pyx_t_9.data = NULL;
 
-  /* "functions.pyx":556
+  /* "silx/math/fit/functions.pyx":556
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),             # <<<<<<<<<<<<<<
@@ -7096,7 +7096,7 @@ static PyObject *__pyx_pf_9functions_20sum_alorentz(CYTHON_UNUSED PyObject *__py
   if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_shape, __pyx_t_5) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 556; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "functions.pyx":557
+  /* "silx/math/fit/functions.pyx":557
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),
  *                       dtype=numpy.float64)             # <<<<<<<<<<<<<<
@@ -7111,7 +7111,7 @@ static PyObject *__pyx_pf_9functions_20sum_alorentz(CYTHON_UNUSED PyObject *__py
   if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_7) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 556; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "functions.pyx":556
+  /* "silx/math/fit/functions.pyx":556
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),             # <<<<<<<<<<<<<<
@@ -7129,7 +7129,7 @@ static PyObject *__pyx_pf_9functions_20sum_alorentz(CYTHON_UNUSED PyObject *__py
   __pyx_t_10.memview = NULL;
   __pyx_t_10.data = NULL;
 
-  /* "functions.pyx":560
+  /* "silx/math/fit/functions.pyx":560
  * 
  *     status = functions_wrapper.sum_alorentz(
  *                            &x_c[0], x.size,             # <<<<<<<<<<<<<<
@@ -7151,7 +7151,7 @@ static PyObject *__pyx_pf_9functions_20sum_alorentz(CYTHON_UNUSED PyObject *__py
   __pyx_t_11 = __Pyx_PyInt_As_int(__pyx_t_7); if (unlikely((__pyx_t_11 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 560; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "functions.pyx":561
+  /* "silx/math/fit/functions.pyx":561
  *     status = functions_wrapper.sum_alorentz(
  *                            &x_c[0], x.size,
  *                            &params_c[0], params_c.size,             # <<<<<<<<<<<<<<
@@ -7176,7 +7176,7 @@ static PyObject *__pyx_pf_9functions_20sum_alorentz(CYTHON_UNUSED PyObject *__py
   __pyx_t_13 = __Pyx_PyInt_As_int(__pyx_t_6); if (unlikely((__pyx_t_13 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 561; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "functions.pyx":562
+  /* "silx/math/fit/functions.pyx":562
  *                            &x_c[0], x.size,
  *                            &params_c[0], params_c.size,
  *                            &y_c[0])             # <<<<<<<<<<<<<<
@@ -7194,7 +7194,7 @@ static PyObject *__pyx_pf_9functions_20sum_alorentz(CYTHON_UNUSED PyObject *__py
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 562; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":559
+  /* "silx/math/fit/functions.pyx":559
  *                       dtype=numpy.float64)
  * 
  *     status = functions_wrapper.sum_alorentz(             # <<<<<<<<<<<<<<
@@ -7203,7 +7203,7 @@ static PyObject *__pyx_pf_9functions_20sum_alorentz(CYTHON_UNUSED PyObject *__py
  */
   __pyx_v_status = sum_alorentz((&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_x_c.data) + __pyx_t_1)) )))), __pyx_t_11, (&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_params_c.data) + __pyx_t_12)) )))), __pyx_t_13, (&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_y_c.data) + __pyx_t_14)) )))));
 
-  /* "functions.pyx":564
+  /* "silx/math/fit/functions.pyx":564
  *                            &y_c[0])
  * 
  *     if status:             # <<<<<<<<<<<<<<
@@ -7213,7 +7213,7 @@ static PyObject *__pyx_pf_9functions_20sum_alorentz(CYTHON_UNUSED PyObject *__py
   __pyx_t_2 = (__pyx_v_status != 0);
   if (__pyx_t_2) {
 
-    /* "functions.pyx":565
+    /* "silx/math/fit/functions.pyx":565
  * 
  *     if status:
  *         raise IndexError("Wrong number of parameters for function")             # <<<<<<<<<<<<<<
@@ -7227,7 +7227,7 @@ static PyObject *__pyx_pf_9functions_20sum_alorentz(CYTHON_UNUSED PyObject *__py
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 565; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":567
+  /* "silx/math/fit/functions.pyx":567
  *         raise IndexError("Wrong number of parameters for function")
  * 
  *     return numpy.asarray(y_c).reshape(x.shape)             # <<<<<<<<<<<<<<
@@ -7303,7 +7303,7 @@ static PyObject *__pyx_pf_9functions_20sum_alorentz(CYTHON_UNUSED PyObject *__py
   __pyx_t_6 = 0;
   goto __pyx_L0;
 
-  /* "functions.pyx":523
+  /* "silx/math/fit/functions.pyx":523
  * 
  * 
  * def sum_alorentz(x, *params):             # <<<<<<<<<<<<<<
@@ -7322,7 +7322,7 @@ static PyObject *__pyx_pf_9functions_20sum_alorentz(CYTHON_UNUSED PyObject *__py
   __PYX_XDEC_MEMVIEW(&__pyx_t_9, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_t_10, 1);
   __Pyx_XDECREF(__pyx_t_16);
-  __Pyx_AddTraceback("functions.sum_alorentz", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.fit.functions.sum_alorentz", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __PYX_XDEC_MEMVIEW(&__pyx_v_x_c, 1);
@@ -7333,7 +7333,7 @@ static PyObject *__pyx_pf_9functions_20sum_alorentz(CYTHON_UNUSED PyObject *__py
   return __pyx_r;
 }
 
-/* "functions.pyx":570
+/* "silx/math/fit/functions.pyx":570
  * 
  * 
  * def sum_splitlorentz(x, *params):             # <<<<<<<<<<<<<<
@@ -7342,10 +7342,10 @@ static PyObject *__pyx_pf_9functions_20sum_alorentz(CYTHON_UNUSED PyObject *__py
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9functions_23sum_splitlorentz(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_9functions_22sum_splitlorentz[] = "sum_splitlorentz(x, *params)\nReturn a sum of split Lorentz distributions,\n    defined by *(height, centroid, fwhm1, fwhm2)*.\n\n        - *height* is the peak amplitude\n        - *centroid* is the peak x-coordinate for both functions\n        - *fwhm1* is the full-width at half maximum for ``x < centroid``\n        - *fwhm2* is the full-width at half maximum for ``x > centroid``\n\n    :param x: Independant variable where the gaussians are calculated\n    :type x: numpy.ndarray\n    :param params: Array of Lorentz parameters (length must be a multiple\n        of 4):\n        *(height1, centroid1, fwhm11, fwhm21...)*\n    :return: Array of sum of Lorentz functions at each ``x``\n        coordinate\n    ";
-static PyMethodDef __pyx_mdef_9functions_23sum_splitlorentz = {"sum_splitlorentz", (PyCFunction)__pyx_pw_9functions_23sum_splitlorentz, METH_VARARGS|METH_KEYWORDS, __pyx_doc_9functions_22sum_splitlorentz};
-static PyObject *__pyx_pw_9functions_23sum_splitlorentz(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_23sum_splitlorentz(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_4silx_4math_3fit_9functions_22sum_splitlorentz[] = "sum_splitlorentz(x, *params)\nReturn a sum of split Lorentz distributions,\n    defined by *(height, centroid, fwhm1, fwhm2)*.\n\n        - *height* is the peak amplitude\n        - *centroid* is the peak x-coordinate for both functions\n        - *fwhm1* is the full-width at half maximum for ``x < centroid``\n        - *fwhm2* is the full-width at half maximum for ``x > centroid``\n\n    :param x: Independant variable where the gaussians are calculated\n    :type x: numpy.ndarray\n    :param params: Array of Lorentz parameters (length must be a multiple\n        of 4):\n        *(height1, centroid1, fwhm11, fwhm21...)*\n    :return: Array of sum of Lorentz functions at each ``x``\n        coordinate\n    ";
+static PyMethodDef __pyx_mdef_4silx_4math_3fit_9functions_23sum_splitlorentz = {"sum_splitlorentz", (PyCFunction)__pyx_pw_4silx_4math_3fit_9functions_23sum_splitlorentz, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_3fit_9functions_22sum_splitlorentz};
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_23sum_splitlorentz(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_x = 0;
   PyObject *__pyx_v_params = 0;
   int __pyx_lineno = 0;
@@ -7397,11 +7397,11 @@ static PyObject *__pyx_pw_9functions_23sum_splitlorentz(PyObject *__pyx_self, Py
   __Pyx_RaiseArgtupleInvalid("sum_splitlorentz", 0, 1, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 570; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_DECREF(__pyx_v_params); __pyx_v_params = 0;
-  __Pyx_AddTraceback("functions.sum_splitlorentz", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.fit.functions.sum_splitlorentz", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_9functions_22sum_splitlorentz(__pyx_self, __pyx_v_x, __pyx_v_params);
+  __pyx_r = __pyx_pf_4silx_4math_3fit_9functions_22sum_splitlorentz(__pyx_self, __pyx_v_x, __pyx_v_params);
 
   /* function exit code */
   __Pyx_XDECREF(__pyx_v_params);
@@ -7409,7 +7409,7 @@ static PyObject *__pyx_pw_9functions_23sum_splitlorentz(PyObject *__pyx_self, Py
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9functions_22sum_splitlorentz(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params) {
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_22sum_splitlorentz(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params) {
   __Pyx_memviewslice __pyx_v_x_c = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_params_c = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_y_c = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -7437,7 +7437,7 @@ static PyObject *__pyx_pf_9functions_22sum_splitlorentz(CYTHON_UNUSED PyObject *
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("sum_splitlorentz", 0);
 
-  /* "functions.pyx":592
+  /* "silx/math/fit/functions.pyx":592
  *         double[::1] y_c
  * 
  *     if not len(params):             # <<<<<<<<<<<<<<
@@ -7448,7 +7448,7 @@ static PyObject *__pyx_pf_9functions_22sum_splitlorentz(CYTHON_UNUSED PyObject *
   __pyx_t_2 = ((!(__pyx_t_1 != 0)) != 0);
   if (__pyx_t_2) {
 
-    /* "functions.pyx":593
+    /* "silx/math/fit/functions.pyx":593
  * 
  *     if not len(params):
  *         raise IndexError("No parameters specified. " +             # <<<<<<<<<<<<<<
@@ -7470,7 +7470,7 @@ static PyObject *__pyx_pf_9functions_22sum_splitlorentz(CYTHON_UNUSED PyObject *
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 593; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":596
+  /* "silx/math/fit/functions.pyx":596
  *                          "At least 4 parameters are required.")
  * 
  *     x_c = numpy.array(x,             # <<<<<<<<<<<<<<
@@ -7490,7 +7490,7 @@ static PyObject *__pyx_pf_9functions_22sum_splitlorentz(CYTHON_UNUSED PyObject *
   __pyx_t_5 = PyDict_New(); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 596; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
 
-  /* "functions.pyx":597
+  /* "silx/math/fit/functions.pyx":597
  * 
  *     x_c = numpy.array(x,
  *                       copy=False,             # <<<<<<<<<<<<<<
@@ -7499,7 +7499,7 @@ static PyObject *__pyx_pf_9functions_22sum_splitlorentz(CYTHON_UNUSED PyObject *
  */
   if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_copy, Py_False) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 596; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":598
+  /* "silx/math/fit/functions.pyx":598
  *     x_c = numpy.array(x,
  *                       copy=False,
  *                       dtype=numpy.float64,             # <<<<<<<<<<<<<<
@@ -7515,7 +7515,7 @@ static PyObject *__pyx_pf_9functions_22sum_splitlorentz(CYTHON_UNUSED PyObject *
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 596; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":596
+  /* "silx/math/fit/functions.pyx":596
  *                          "At least 4 parameters are required.")
  * 
  *     x_c = numpy.array(x,             # <<<<<<<<<<<<<<
@@ -7528,7 +7528,7 @@ static PyObject *__pyx_pf_9functions_22sum_splitlorentz(CYTHON_UNUSED PyObject *
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "functions.pyx":599
+  /* "silx/math/fit/functions.pyx":599
  *                       copy=False,
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -7548,7 +7548,7 @@ static PyObject *__pyx_pf_9functions_22sum_splitlorentz(CYTHON_UNUSED PyObject *
   __pyx_t_8.memview = NULL;
   __pyx_t_8.data = NULL;
 
-  /* "functions.pyx":600
+  /* "silx/math/fit/functions.pyx":600
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,             # <<<<<<<<<<<<<<
@@ -7568,7 +7568,7 @@ static PyObject *__pyx_pf_9functions_22sum_splitlorentz(CYTHON_UNUSED PyObject *
   __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 600; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
 
-  /* "functions.pyx":601
+  /* "silx/math/fit/functions.pyx":601
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,
  *                            copy=False,             # <<<<<<<<<<<<<<
@@ -7577,7 +7577,7 @@ static PyObject *__pyx_pf_9functions_22sum_splitlorentz(CYTHON_UNUSED PyObject *
  */
   if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_copy, Py_False) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 600; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":602
+  /* "silx/math/fit/functions.pyx":602
  *     params_c = numpy.array(params,
  *                            copy=False,
  *                            dtype=numpy.float64,             # <<<<<<<<<<<<<<
@@ -7593,7 +7593,7 @@ static PyObject *__pyx_pf_9functions_22sum_splitlorentz(CYTHON_UNUSED PyObject *
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 600; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":600
+  /* "silx/math/fit/functions.pyx":600
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,             # <<<<<<<<<<<<<<
@@ -7606,7 +7606,7 @@ static PyObject *__pyx_pf_9functions_22sum_splitlorentz(CYTHON_UNUSED PyObject *
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "functions.pyx":603
+  /* "silx/math/fit/functions.pyx":603
  *                            copy=False,
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -7626,7 +7626,7 @@ static PyObject *__pyx_pf_9functions_22sum_splitlorentz(CYTHON_UNUSED PyObject *
   __pyx_t_9.memview = NULL;
   __pyx_t_9.data = NULL;
 
-  /* "functions.pyx":604
+  /* "silx/math/fit/functions.pyx":604
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),             # <<<<<<<<<<<<<<
@@ -7650,7 +7650,7 @@ static PyObject *__pyx_pf_9functions_22sum_splitlorentz(CYTHON_UNUSED PyObject *
   if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_shape, __pyx_t_5) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 604; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "functions.pyx":605
+  /* "silx/math/fit/functions.pyx":605
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),
  *                       dtype=numpy.float64)             # <<<<<<<<<<<<<<
@@ -7665,7 +7665,7 @@ static PyObject *__pyx_pf_9functions_22sum_splitlorentz(CYTHON_UNUSED PyObject *
   if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_7) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 604; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "functions.pyx":604
+  /* "silx/math/fit/functions.pyx":604
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),             # <<<<<<<<<<<<<<
@@ -7683,7 +7683,7 @@ static PyObject *__pyx_pf_9functions_22sum_splitlorentz(CYTHON_UNUSED PyObject *
   __pyx_t_10.memview = NULL;
   __pyx_t_10.data = NULL;
 
-  /* "functions.pyx":608
+  /* "silx/math/fit/functions.pyx":608
  * 
  *     status = functions_wrapper.sum_splitlorentz(
  *                                &x_c[0], x.size,             # <<<<<<<<<<<<<<
@@ -7705,7 +7705,7 @@ static PyObject *__pyx_pf_9functions_22sum_splitlorentz(CYTHON_UNUSED PyObject *
   __pyx_t_11 = __Pyx_PyInt_As_int(__pyx_t_7); if (unlikely((__pyx_t_11 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 608; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "functions.pyx":609
+  /* "silx/math/fit/functions.pyx":609
  *     status = functions_wrapper.sum_splitlorentz(
  *                                &x_c[0], x.size,
  *                                &params_c[0], params_c.size,             # <<<<<<<<<<<<<<
@@ -7730,7 +7730,7 @@ static PyObject *__pyx_pf_9functions_22sum_splitlorentz(CYTHON_UNUSED PyObject *
   __pyx_t_13 = __Pyx_PyInt_As_int(__pyx_t_6); if (unlikely((__pyx_t_13 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 609; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "functions.pyx":610
+  /* "silx/math/fit/functions.pyx":610
  *                                &x_c[0], x.size,
  *                                &params_c[0], params_c.size,
  *                                &y_c[0])             # <<<<<<<<<<<<<<
@@ -7748,7 +7748,7 @@ static PyObject *__pyx_pf_9functions_22sum_splitlorentz(CYTHON_UNUSED PyObject *
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 610; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":607
+  /* "silx/math/fit/functions.pyx":607
  *                       dtype=numpy.float64)
  * 
  *     status = functions_wrapper.sum_splitlorentz(             # <<<<<<<<<<<<<<
@@ -7757,7 +7757,7 @@ static PyObject *__pyx_pf_9functions_22sum_splitlorentz(CYTHON_UNUSED PyObject *
  */
   __pyx_v_status = sum_splitlorentz((&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_x_c.data) + __pyx_t_1)) )))), __pyx_t_11, (&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_params_c.data) + __pyx_t_12)) )))), __pyx_t_13, (&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_y_c.data) + __pyx_t_14)) )))));
 
-  /* "functions.pyx":612
+  /* "silx/math/fit/functions.pyx":612
  *                                &y_c[0])
  * 
  *     if status:             # <<<<<<<<<<<<<<
@@ -7767,7 +7767,7 @@ static PyObject *__pyx_pf_9functions_22sum_splitlorentz(CYTHON_UNUSED PyObject *
   __pyx_t_2 = (__pyx_v_status != 0);
   if (__pyx_t_2) {
 
-    /* "functions.pyx":613
+    /* "silx/math/fit/functions.pyx":613
  * 
  *     if status:
  *         raise IndexError("Wrong number of parameters for function")             # <<<<<<<<<<<<<<
@@ -7781,7 +7781,7 @@ static PyObject *__pyx_pf_9functions_22sum_splitlorentz(CYTHON_UNUSED PyObject *
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 613; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":615
+  /* "silx/math/fit/functions.pyx":615
  *         raise IndexError("Wrong number of parameters for function")
  * 
  *     return numpy.asarray(y_c).reshape(x.shape)             # <<<<<<<<<<<<<<
@@ -7857,7 +7857,7 @@ static PyObject *__pyx_pf_9functions_22sum_splitlorentz(CYTHON_UNUSED PyObject *
   __pyx_t_6 = 0;
   goto __pyx_L0;
 
-  /* "functions.pyx":570
+  /* "silx/math/fit/functions.pyx":570
  * 
  * 
  * def sum_splitlorentz(x, *params):             # <<<<<<<<<<<<<<
@@ -7876,7 +7876,7 @@ static PyObject *__pyx_pf_9functions_22sum_splitlorentz(CYTHON_UNUSED PyObject *
   __PYX_XDEC_MEMVIEW(&__pyx_t_9, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_t_10, 1);
   __Pyx_XDECREF(__pyx_t_16);
-  __Pyx_AddTraceback("functions.sum_splitlorentz", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.fit.functions.sum_splitlorentz", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __PYX_XDEC_MEMVIEW(&__pyx_v_x_c, 1);
@@ -7887,7 +7887,7 @@ static PyObject *__pyx_pf_9functions_22sum_splitlorentz(CYTHON_UNUSED PyObject *
   return __pyx_r;
 }
 
-/* "functions.pyx":618
+/* "silx/math/fit/functions.pyx":618
  * 
  * 
  * def sum_stepdown(x, *params):             # <<<<<<<<<<<<<<
@@ -7896,10 +7896,10 @@ static PyObject *__pyx_pf_9functions_22sum_splitlorentz(CYTHON_UNUSED PyObject *
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9functions_25sum_stepdown(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_9functions_24sum_stepdown[] = "sum_stepdown(x, *params)\nReturn a sum of stepdown functions.\n    defined by *(height, centroid, fwhm)*.\n\n        - *height* is the step's amplitude\n        - *centroid* is the step's x-coordinate\n        - *fwhm* is the full-width at half maximum for the derivative,\n          which is a measure of the *sharpness* of the step-down's edge\n\n    :param x: Independant variable where the gaussians are calculated\n    :type x: numpy.ndarray\n    :param params: Array of stepdown parameters (length must be a multiple\n        of 3):\n        *(height1, centroid1, fwhm1,...)*\n    :return: Array of sum of stepdown functions at each ``x``\n        coordinate\n    ";
-static PyMethodDef __pyx_mdef_9functions_25sum_stepdown = {"sum_stepdown", (PyCFunction)__pyx_pw_9functions_25sum_stepdown, METH_VARARGS|METH_KEYWORDS, __pyx_doc_9functions_24sum_stepdown};
-static PyObject *__pyx_pw_9functions_25sum_stepdown(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_25sum_stepdown(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_4silx_4math_3fit_9functions_24sum_stepdown[] = "sum_stepdown(x, *params)\nReturn a sum of stepdown functions.\n    defined by *(height, centroid, fwhm)*.\n\n        - *height* is the step's amplitude\n        - *centroid* is the step's x-coordinate\n        - *fwhm* is the full-width at half maximum for the derivative,\n          which is a measure of the *sharpness* of the step-down's edge\n\n    :param x: Independant variable where the gaussians are calculated\n    :type x: numpy.ndarray\n    :param params: Array of stepdown parameters (length must be a multiple\n        of 3):\n        *(height1, centroid1, fwhm1,...)*\n    :return: Array of sum of stepdown functions at each ``x``\n        coordinate\n    ";
+static PyMethodDef __pyx_mdef_4silx_4math_3fit_9functions_25sum_stepdown = {"sum_stepdown", (PyCFunction)__pyx_pw_4silx_4math_3fit_9functions_25sum_stepdown, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_3fit_9functions_24sum_stepdown};
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_25sum_stepdown(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_x = 0;
   PyObject *__pyx_v_params = 0;
   int __pyx_lineno = 0;
@@ -7951,11 +7951,11 @@ static PyObject *__pyx_pw_9functions_25sum_stepdown(PyObject *__pyx_self, PyObje
   __Pyx_RaiseArgtupleInvalid("sum_stepdown", 0, 1, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 618; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_DECREF(__pyx_v_params); __pyx_v_params = 0;
-  __Pyx_AddTraceback("functions.sum_stepdown", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.fit.functions.sum_stepdown", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_9functions_24sum_stepdown(__pyx_self, __pyx_v_x, __pyx_v_params);
+  __pyx_r = __pyx_pf_4silx_4math_3fit_9functions_24sum_stepdown(__pyx_self, __pyx_v_x, __pyx_v_params);
 
   /* function exit code */
   __Pyx_XDECREF(__pyx_v_params);
@@ -7963,7 +7963,7 @@ static PyObject *__pyx_pw_9functions_25sum_stepdown(PyObject *__pyx_self, PyObje
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9functions_24sum_stepdown(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params) {
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_24sum_stepdown(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params) {
   __Pyx_memviewslice __pyx_v_x_c = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_params_c = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_y_c = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -7991,7 +7991,7 @@ static PyObject *__pyx_pf_9functions_24sum_stepdown(CYTHON_UNUSED PyObject *__py
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("sum_stepdown", 0);
 
-  /* "functions.pyx":640
+  /* "silx/math/fit/functions.pyx":640
  *         double[::1] y_c
  * 
  *     if not len(params):             # <<<<<<<<<<<<<<
@@ -8002,7 +8002,7 @@ static PyObject *__pyx_pf_9functions_24sum_stepdown(CYTHON_UNUSED PyObject *__py
   __pyx_t_2 = ((!(__pyx_t_1 != 0)) != 0);
   if (__pyx_t_2) {
 
-    /* "functions.pyx":641
+    /* "silx/math/fit/functions.pyx":641
  * 
  *     if not len(params):
  *         raise IndexError("No parameters specified. " +             # <<<<<<<<<<<<<<
@@ -8024,7 +8024,7 @@ static PyObject *__pyx_pf_9functions_24sum_stepdown(CYTHON_UNUSED PyObject *__py
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 641; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":643
+  /* "silx/math/fit/functions.pyx":643
  *         raise IndexError("No parameters specified. " +
  *                          "At least 3 parameters are required.")
  *     x_c = numpy.array(x,             # <<<<<<<<<<<<<<
@@ -8044,7 +8044,7 @@ static PyObject *__pyx_pf_9functions_24sum_stepdown(CYTHON_UNUSED PyObject *__py
   __pyx_t_5 = PyDict_New(); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 643; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
 
-  /* "functions.pyx":644
+  /* "silx/math/fit/functions.pyx":644
  *                          "At least 3 parameters are required.")
  *     x_c = numpy.array(x,
  *                       copy=False,             # <<<<<<<<<<<<<<
@@ -8053,7 +8053,7 @@ static PyObject *__pyx_pf_9functions_24sum_stepdown(CYTHON_UNUSED PyObject *__py
  */
   if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_copy, Py_False) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 643; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":645
+  /* "silx/math/fit/functions.pyx":645
  *     x_c = numpy.array(x,
  *                       copy=False,
  *                       dtype=numpy.float64,             # <<<<<<<<<<<<<<
@@ -8069,7 +8069,7 @@ static PyObject *__pyx_pf_9functions_24sum_stepdown(CYTHON_UNUSED PyObject *__py
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 643; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":643
+  /* "silx/math/fit/functions.pyx":643
  *         raise IndexError("No parameters specified. " +
  *                          "At least 3 parameters are required.")
  *     x_c = numpy.array(x,             # <<<<<<<<<<<<<<
@@ -8082,7 +8082,7 @@ static PyObject *__pyx_pf_9functions_24sum_stepdown(CYTHON_UNUSED PyObject *__py
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "functions.pyx":646
+  /* "silx/math/fit/functions.pyx":646
  *                       copy=False,
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -8102,7 +8102,7 @@ static PyObject *__pyx_pf_9functions_24sum_stepdown(CYTHON_UNUSED PyObject *__py
   __pyx_t_8.memview = NULL;
   __pyx_t_8.data = NULL;
 
-  /* "functions.pyx":647
+  /* "silx/math/fit/functions.pyx":647
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,             # <<<<<<<<<<<<<<
@@ -8122,7 +8122,7 @@ static PyObject *__pyx_pf_9functions_24sum_stepdown(CYTHON_UNUSED PyObject *__py
   __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 647; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
 
-  /* "functions.pyx":648
+  /* "silx/math/fit/functions.pyx":648
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,
  *                            copy=False,             # <<<<<<<<<<<<<<
@@ -8131,7 +8131,7 @@ static PyObject *__pyx_pf_9functions_24sum_stepdown(CYTHON_UNUSED PyObject *__py
  */
   if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_copy, Py_False) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 647; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":649
+  /* "silx/math/fit/functions.pyx":649
  *     params_c = numpy.array(params,
  *                            copy=False,
  *                            dtype=numpy.float64,             # <<<<<<<<<<<<<<
@@ -8147,7 +8147,7 @@ static PyObject *__pyx_pf_9functions_24sum_stepdown(CYTHON_UNUSED PyObject *__py
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 647; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":647
+  /* "silx/math/fit/functions.pyx":647
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,             # <<<<<<<<<<<<<<
@@ -8160,7 +8160,7 @@ static PyObject *__pyx_pf_9functions_24sum_stepdown(CYTHON_UNUSED PyObject *__py
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "functions.pyx":650
+  /* "silx/math/fit/functions.pyx":650
  *                            copy=False,
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -8180,7 +8180,7 @@ static PyObject *__pyx_pf_9functions_24sum_stepdown(CYTHON_UNUSED PyObject *__py
   __pyx_t_9.memview = NULL;
   __pyx_t_9.data = NULL;
 
-  /* "functions.pyx":651
+  /* "silx/math/fit/functions.pyx":651
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),             # <<<<<<<<<<<<<<
@@ -8204,7 +8204,7 @@ static PyObject *__pyx_pf_9functions_24sum_stepdown(CYTHON_UNUSED PyObject *__py
   if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_shape, __pyx_t_5) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 651; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "functions.pyx":652
+  /* "silx/math/fit/functions.pyx":652
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),
  *                       dtype=numpy.float64)             # <<<<<<<<<<<<<<
@@ -8219,7 +8219,7 @@ static PyObject *__pyx_pf_9functions_24sum_stepdown(CYTHON_UNUSED PyObject *__py
   if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_7) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 651; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "functions.pyx":651
+  /* "silx/math/fit/functions.pyx":651
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),             # <<<<<<<<<<<<<<
@@ -8237,7 +8237,7 @@ static PyObject *__pyx_pf_9functions_24sum_stepdown(CYTHON_UNUSED PyObject *__py
   __pyx_t_10.memview = NULL;
   __pyx_t_10.data = NULL;
 
-  /* "functions.pyx":654
+  /* "silx/math/fit/functions.pyx":654
  *                       dtype=numpy.float64)
  * 
  *     status = functions_wrapper.sum_stepdown(&x_c[0],             # <<<<<<<<<<<<<<
@@ -8255,7 +8255,7 @@ static PyObject *__pyx_pf_9functions_24sum_stepdown(CYTHON_UNUSED PyObject *__py
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 654; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":655
+  /* "silx/math/fit/functions.pyx":655
  * 
  *     status = functions_wrapper.sum_stepdown(&x_c[0],
  *                            x.size,             # <<<<<<<<<<<<<<
@@ -8267,7 +8267,7 @@ static PyObject *__pyx_pf_9functions_24sum_stepdown(CYTHON_UNUSED PyObject *__py
   __pyx_t_11 = __Pyx_PyInt_As_int(__pyx_t_7); if (unlikely((__pyx_t_11 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 655; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "functions.pyx":656
+  /* "silx/math/fit/functions.pyx":656
  *     status = functions_wrapper.sum_stepdown(&x_c[0],
  *                            x.size,
  *                            &params_c[0],             # <<<<<<<<<<<<<<
@@ -8285,7 +8285,7 @@ static PyObject *__pyx_pf_9functions_24sum_stepdown(CYTHON_UNUSED PyObject *__py
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 656; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":657
+  /* "silx/math/fit/functions.pyx":657
  *                            x.size,
  *                            &params_c[0],
  *                            params_c.size,             # <<<<<<<<<<<<<<
@@ -8300,7 +8300,7 @@ static PyObject *__pyx_pf_9functions_24sum_stepdown(CYTHON_UNUSED PyObject *__py
   __pyx_t_13 = __Pyx_PyInt_As_int(__pyx_t_6); if (unlikely((__pyx_t_13 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 657; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "functions.pyx":658
+  /* "silx/math/fit/functions.pyx":658
  *                            &params_c[0],
  *                            params_c.size,
  *                            &y_c[0])             # <<<<<<<<<<<<<<
@@ -8318,7 +8318,7 @@ static PyObject *__pyx_pf_9functions_24sum_stepdown(CYTHON_UNUSED PyObject *__py
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 658; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":654
+  /* "silx/math/fit/functions.pyx":654
  *                       dtype=numpy.float64)
  * 
  *     status = functions_wrapper.sum_stepdown(&x_c[0],             # <<<<<<<<<<<<<<
@@ -8327,7 +8327,7 @@ static PyObject *__pyx_pf_9functions_24sum_stepdown(CYTHON_UNUSED PyObject *__py
  */
   __pyx_v_status = sum_stepdown((&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_x_c.data) + __pyx_t_1)) )))), __pyx_t_11, (&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_params_c.data) + __pyx_t_12)) )))), __pyx_t_13, (&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_y_c.data) + __pyx_t_14)) )))));
 
-  /* "functions.pyx":660
+  /* "silx/math/fit/functions.pyx":660
  *                            &y_c[0])
  * 
  *     if status:             # <<<<<<<<<<<<<<
@@ -8337,7 +8337,7 @@ static PyObject *__pyx_pf_9functions_24sum_stepdown(CYTHON_UNUSED PyObject *__py
   __pyx_t_2 = (__pyx_v_status != 0);
   if (__pyx_t_2) {
 
-    /* "functions.pyx":661
+    /* "silx/math/fit/functions.pyx":661
  * 
  *     if status:
  *         raise IndexError("Wrong number of parameters for function")             # <<<<<<<<<<<<<<
@@ -8351,7 +8351,7 @@ static PyObject *__pyx_pf_9functions_24sum_stepdown(CYTHON_UNUSED PyObject *__py
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 661; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":663
+  /* "silx/math/fit/functions.pyx":663
  *         raise IndexError("Wrong number of parameters for function")
  * 
  *     return numpy.asarray(y_c).reshape(x.shape)             # <<<<<<<<<<<<<<
@@ -8427,7 +8427,7 @@ static PyObject *__pyx_pf_9functions_24sum_stepdown(CYTHON_UNUSED PyObject *__py
   __pyx_t_6 = 0;
   goto __pyx_L0;
 
-  /* "functions.pyx":618
+  /* "silx/math/fit/functions.pyx":618
  * 
  * 
  * def sum_stepdown(x, *params):             # <<<<<<<<<<<<<<
@@ -8446,7 +8446,7 @@ static PyObject *__pyx_pf_9functions_24sum_stepdown(CYTHON_UNUSED PyObject *__py
   __PYX_XDEC_MEMVIEW(&__pyx_t_9, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_t_10, 1);
   __Pyx_XDECREF(__pyx_t_16);
-  __Pyx_AddTraceback("functions.sum_stepdown", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.fit.functions.sum_stepdown", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __PYX_XDEC_MEMVIEW(&__pyx_v_x_c, 1);
@@ -8457,7 +8457,7 @@ static PyObject *__pyx_pf_9functions_24sum_stepdown(CYTHON_UNUSED PyObject *__py
   return __pyx_r;
 }
 
-/* "functions.pyx":666
+/* "silx/math/fit/functions.pyx":666
  * 
  * 
  * def sum_stepup(x, *params):             # <<<<<<<<<<<<<<
@@ -8466,10 +8466,10 @@ static PyObject *__pyx_pf_9functions_24sum_stepdown(CYTHON_UNUSED PyObject *__py
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9functions_27sum_stepup(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_9functions_26sum_stepup[] = "sum_stepup(x, *params)\nReturn a sum of stepup functions.\n    defined by *(height, centroid, fwhm)*.\n\n        - *height* is the step's amplitude\n        - *centroid* is the step's x-coordinate\n        - *fwhm* is the full-width at half maximum for the derivative,\n          which is a measure of the *sharpness* of the step-up's edge\n\n    :param x: Independant variable where the gaussians are calculated\n    :type x: numpy.ndarray\n    :param params: Array of stepup parameters (length must be a multiple\n        of 3):\n        *(height1, centroid1, fwhm1,...)*\n    :return: Array of sum of stepup functions at each ``x``\n        coordinate\n    ";
-static PyMethodDef __pyx_mdef_9functions_27sum_stepup = {"sum_stepup", (PyCFunction)__pyx_pw_9functions_27sum_stepup, METH_VARARGS|METH_KEYWORDS, __pyx_doc_9functions_26sum_stepup};
-static PyObject *__pyx_pw_9functions_27sum_stepup(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_27sum_stepup(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_4silx_4math_3fit_9functions_26sum_stepup[] = "sum_stepup(x, *params)\nReturn a sum of stepup functions.\n    defined by *(height, centroid, fwhm)*.\n\n        - *height* is the step's amplitude\n        - *centroid* is the step's x-coordinate\n        - *fwhm* is the full-width at half maximum for the derivative,\n          which is a measure of the *sharpness* of the step-up's edge\n\n    :param x: Independant variable where the gaussians are calculated\n    :type x: numpy.ndarray\n    :param params: Array of stepup parameters (length must be a multiple\n        of 3):\n        *(height1, centroid1, fwhm1,...)*\n    :return: Array of sum of stepup functions at each ``x``\n        coordinate\n    ";
+static PyMethodDef __pyx_mdef_4silx_4math_3fit_9functions_27sum_stepup = {"sum_stepup", (PyCFunction)__pyx_pw_4silx_4math_3fit_9functions_27sum_stepup, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_3fit_9functions_26sum_stepup};
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_27sum_stepup(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_x = 0;
   PyObject *__pyx_v_params = 0;
   int __pyx_lineno = 0;
@@ -8521,11 +8521,11 @@ static PyObject *__pyx_pw_9functions_27sum_stepup(PyObject *__pyx_self, PyObject
   __Pyx_RaiseArgtupleInvalid("sum_stepup", 0, 1, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 666; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_DECREF(__pyx_v_params); __pyx_v_params = 0;
-  __Pyx_AddTraceback("functions.sum_stepup", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.fit.functions.sum_stepup", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_9functions_26sum_stepup(__pyx_self, __pyx_v_x, __pyx_v_params);
+  __pyx_r = __pyx_pf_4silx_4math_3fit_9functions_26sum_stepup(__pyx_self, __pyx_v_x, __pyx_v_params);
 
   /* function exit code */
   __Pyx_XDECREF(__pyx_v_params);
@@ -8533,7 +8533,7 @@ static PyObject *__pyx_pw_9functions_27sum_stepup(PyObject *__pyx_self, PyObject
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9functions_26sum_stepup(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params) {
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_26sum_stepup(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params) {
   __Pyx_memviewslice __pyx_v_x_c = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_params_c = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_y_c = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -8561,7 +8561,7 @@ static PyObject *__pyx_pf_9functions_26sum_stepup(CYTHON_UNUSED PyObject *__pyx_
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("sum_stepup", 0);
 
-  /* "functions.pyx":688
+  /* "silx/math/fit/functions.pyx":688
  *         double[::1] y_c
  * 
  *     if not len(params):             # <<<<<<<<<<<<<<
@@ -8572,7 +8572,7 @@ static PyObject *__pyx_pf_9functions_26sum_stepup(CYTHON_UNUSED PyObject *__pyx_
   __pyx_t_2 = ((!(__pyx_t_1 != 0)) != 0);
   if (__pyx_t_2) {
 
-    /* "functions.pyx":689
+    /* "silx/math/fit/functions.pyx":689
  * 
  *     if not len(params):
  *         raise IndexError("No parameters specified. " +             # <<<<<<<<<<<<<<
@@ -8594,7 +8594,7 @@ static PyObject *__pyx_pf_9functions_26sum_stepup(CYTHON_UNUSED PyObject *__pyx_
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 689; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":692
+  /* "silx/math/fit/functions.pyx":692
  *                          "At least 3 parameters are required.")
  * 
  *     x_c = numpy.array(x,             # <<<<<<<<<<<<<<
@@ -8614,7 +8614,7 @@ static PyObject *__pyx_pf_9functions_26sum_stepup(CYTHON_UNUSED PyObject *__pyx_
   __pyx_t_5 = PyDict_New(); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 692; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
 
-  /* "functions.pyx":693
+  /* "silx/math/fit/functions.pyx":693
  * 
  *     x_c = numpy.array(x,
  *                       copy=False,             # <<<<<<<<<<<<<<
@@ -8623,7 +8623,7 @@ static PyObject *__pyx_pf_9functions_26sum_stepup(CYTHON_UNUSED PyObject *__pyx_
  */
   if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_copy, Py_False) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 692; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":694
+  /* "silx/math/fit/functions.pyx":694
  *     x_c = numpy.array(x,
  *                       copy=False,
  *                       dtype=numpy.float64,             # <<<<<<<<<<<<<<
@@ -8639,7 +8639,7 @@ static PyObject *__pyx_pf_9functions_26sum_stepup(CYTHON_UNUSED PyObject *__pyx_
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 692; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":692
+  /* "silx/math/fit/functions.pyx":692
  *                          "At least 3 parameters are required.")
  * 
  *     x_c = numpy.array(x,             # <<<<<<<<<<<<<<
@@ -8652,7 +8652,7 @@ static PyObject *__pyx_pf_9functions_26sum_stepup(CYTHON_UNUSED PyObject *__pyx_
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "functions.pyx":695
+  /* "silx/math/fit/functions.pyx":695
  *                       copy=False,
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -8672,7 +8672,7 @@ static PyObject *__pyx_pf_9functions_26sum_stepup(CYTHON_UNUSED PyObject *__pyx_
   __pyx_t_8.memview = NULL;
   __pyx_t_8.data = NULL;
 
-  /* "functions.pyx":696
+  /* "silx/math/fit/functions.pyx":696
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,             # <<<<<<<<<<<<<<
@@ -8692,7 +8692,7 @@ static PyObject *__pyx_pf_9functions_26sum_stepup(CYTHON_UNUSED PyObject *__pyx_
   __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 696; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
 
-  /* "functions.pyx":697
+  /* "silx/math/fit/functions.pyx":697
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,
  *                            copy=False,             # <<<<<<<<<<<<<<
@@ -8701,7 +8701,7 @@ static PyObject *__pyx_pf_9functions_26sum_stepup(CYTHON_UNUSED PyObject *__pyx_
  */
   if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_copy, Py_False) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 696; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":698
+  /* "silx/math/fit/functions.pyx":698
  *     params_c = numpy.array(params,
  *                            copy=False,
  *                            dtype=numpy.float64,             # <<<<<<<<<<<<<<
@@ -8717,7 +8717,7 @@ static PyObject *__pyx_pf_9functions_26sum_stepup(CYTHON_UNUSED PyObject *__pyx_
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 696; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":696
+  /* "silx/math/fit/functions.pyx":696
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,             # <<<<<<<<<<<<<<
@@ -8730,7 +8730,7 @@ static PyObject *__pyx_pf_9functions_26sum_stepup(CYTHON_UNUSED PyObject *__pyx_
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "functions.pyx":699
+  /* "silx/math/fit/functions.pyx":699
  *                            copy=False,
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -8750,7 +8750,7 @@ static PyObject *__pyx_pf_9functions_26sum_stepup(CYTHON_UNUSED PyObject *__pyx_
   __pyx_t_9.memview = NULL;
   __pyx_t_9.data = NULL;
 
-  /* "functions.pyx":700
+  /* "silx/math/fit/functions.pyx":700
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),             # <<<<<<<<<<<<<<
@@ -8774,7 +8774,7 @@ static PyObject *__pyx_pf_9functions_26sum_stepup(CYTHON_UNUSED PyObject *__pyx_
   if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_shape, __pyx_t_5) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 700; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "functions.pyx":701
+  /* "silx/math/fit/functions.pyx":701
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),
  *                       dtype=numpy.float64)             # <<<<<<<<<<<<<<
@@ -8789,7 +8789,7 @@ static PyObject *__pyx_pf_9functions_26sum_stepup(CYTHON_UNUSED PyObject *__pyx_
   if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_7) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 700; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "functions.pyx":700
+  /* "silx/math/fit/functions.pyx":700
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),             # <<<<<<<<<<<<<<
@@ -8807,7 +8807,7 @@ static PyObject *__pyx_pf_9functions_26sum_stepup(CYTHON_UNUSED PyObject *__pyx_
   __pyx_t_10.memview = NULL;
   __pyx_t_10.data = NULL;
 
-  /* "functions.pyx":703
+  /* "silx/math/fit/functions.pyx":703
  *                       dtype=numpy.float64)
  * 
  *     status = functions_wrapper.sum_stepup(&x_c[0],             # <<<<<<<<<<<<<<
@@ -8825,7 +8825,7 @@ static PyObject *__pyx_pf_9functions_26sum_stepup(CYTHON_UNUSED PyObject *__pyx_
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 703; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":704
+  /* "silx/math/fit/functions.pyx":704
  * 
  *     status = functions_wrapper.sum_stepup(&x_c[0],
  *                          x.size,             # <<<<<<<<<<<<<<
@@ -8837,7 +8837,7 @@ static PyObject *__pyx_pf_9functions_26sum_stepup(CYTHON_UNUSED PyObject *__pyx_
   __pyx_t_11 = __Pyx_PyInt_As_int(__pyx_t_7); if (unlikely((__pyx_t_11 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 704; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "functions.pyx":705
+  /* "silx/math/fit/functions.pyx":705
  *     status = functions_wrapper.sum_stepup(&x_c[0],
  *                          x.size,
  *                          &params_c[0],             # <<<<<<<<<<<<<<
@@ -8855,7 +8855,7 @@ static PyObject *__pyx_pf_9functions_26sum_stepup(CYTHON_UNUSED PyObject *__pyx_
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 705; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":706
+  /* "silx/math/fit/functions.pyx":706
  *                          x.size,
  *                          &params_c[0],
  *                          params_c.size,             # <<<<<<<<<<<<<<
@@ -8870,7 +8870,7 @@ static PyObject *__pyx_pf_9functions_26sum_stepup(CYTHON_UNUSED PyObject *__pyx_
   __pyx_t_13 = __Pyx_PyInt_As_int(__pyx_t_6); if (unlikely((__pyx_t_13 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 706; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "functions.pyx":707
+  /* "silx/math/fit/functions.pyx":707
  *                          &params_c[0],
  *                          params_c.size,
  *                          &y_c[0])             # <<<<<<<<<<<<<<
@@ -8888,7 +8888,7 @@ static PyObject *__pyx_pf_9functions_26sum_stepup(CYTHON_UNUSED PyObject *__pyx_
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 707; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":703
+  /* "silx/math/fit/functions.pyx":703
  *                       dtype=numpy.float64)
  * 
  *     status = functions_wrapper.sum_stepup(&x_c[0],             # <<<<<<<<<<<<<<
@@ -8897,7 +8897,7 @@ static PyObject *__pyx_pf_9functions_26sum_stepup(CYTHON_UNUSED PyObject *__pyx_
  */
   __pyx_v_status = sum_stepup((&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_x_c.data) + __pyx_t_1)) )))), __pyx_t_11, (&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_params_c.data) + __pyx_t_12)) )))), __pyx_t_13, (&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_y_c.data) + __pyx_t_14)) )))));
 
-  /* "functions.pyx":709
+  /* "silx/math/fit/functions.pyx":709
  *                          &y_c[0])
  * 
  *     if status:             # <<<<<<<<<<<<<<
@@ -8907,7 +8907,7 @@ static PyObject *__pyx_pf_9functions_26sum_stepup(CYTHON_UNUSED PyObject *__pyx_
   __pyx_t_2 = (__pyx_v_status != 0);
   if (__pyx_t_2) {
 
-    /* "functions.pyx":710
+    /* "silx/math/fit/functions.pyx":710
  * 
  *     if status:
  *         raise IndexError("Wrong number of parameters for function")             # <<<<<<<<<<<<<<
@@ -8921,7 +8921,7 @@ static PyObject *__pyx_pf_9functions_26sum_stepup(CYTHON_UNUSED PyObject *__pyx_
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 710; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":712
+  /* "silx/math/fit/functions.pyx":712
  *         raise IndexError("Wrong number of parameters for function")
  * 
  *     return numpy.asarray(y_c).reshape(x.shape)             # <<<<<<<<<<<<<<
@@ -8997,7 +8997,7 @@ static PyObject *__pyx_pf_9functions_26sum_stepup(CYTHON_UNUSED PyObject *__pyx_
   __pyx_t_6 = 0;
   goto __pyx_L0;
 
-  /* "functions.pyx":666
+  /* "silx/math/fit/functions.pyx":666
  * 
  * 
  * def sum_stepup(x, *params):             # <<<<<<<<<<<<<<
@@ -9016,7 +9016,7 @@ static PyObject *__pyx_pf_9functions_26sum_stepup(CYTHON_UNUSED PyObject *__pyx_
   __PYX_XDEC_MEMVIEW(&__pyx_t_9, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_t_10, 1);
   __Pyx_XDECREF(__pyx_t_16);
-  __Pyx_AddTraceback("functions.sum_stepup", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.fit.functions.sum_stepup", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __PYX_XDEC_MEMVIEW(&__pyx_v_x_c, 1);
@@ -9027,7 +9027,7 @@ static PyObject *__pyx_pf_9functions_26sum_stepup(CYTHON_UNUSED PyObject *__pyx_
   return __pyx_r;
 }
 
-/* "functions.pyx":715
+/* "silx/math/fit/functions.pyx":715
  * 
  * 
  * def sum_slit(x, *params):             # <<<<<<<<<<<<<<
@@ -9036,10 +9036,10 @@ static PyObject *__pyx_pf_9functions_26sum_stepup(CYTHON_UNUSED PyObject *__pyx_
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9functions_29sum_slit(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_9functions_28sum_slit[] = "sum_slit(x, *params)\nReturn a sum of slit functions.\n    defined by *(height, position, fwhm, beamfwhm)*.\n\n        - *height* is the slit's amplitude\n        - *position* is the center of the slit's x-coordinate\n        - *fwhm* is the full-width at half maximum of the slit\n        - *beamfwhm* is the full-width at half maximum of the\n          derivative, which is a measure of the *sharpness*\n          of the edges of the slit\n\n    :param x: Independant variable where the slits are calculated\n    :type x: numpy.ndarray\n    :param params: Array of slit parameters (length must be a multiple\n        of 4):\n        *(height1, centroid1, fwhm1, beamfwhm1,...)*\n    :return: Array of sum of slit functions at each ``x``\n        coordinate\n    ";
-static PyMethodDef __pyx_mdef_9functions_29sum_slit = {"sum_slit", (PyCFunction)__pyx_pw_9functions_29sum_slit, METH_VARARGS|METH_KEYWORDS, __pyx_doc_9functions_28sum_slit};
-static PyObject *__pyx_pw_9functions_29sum_slit(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_29sum_slit(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_4silx_4math_3fit_9functions_28sum_slit[] = "sum_slit(x, *params)\nReturn a sum of slit functions.\n    defined by *(height, position, fwhm, beamfwhm)*.\n\n        - *height* is the slit's amplitude\n        - *position* is the center of the slit's x-coordinate\n        - *fwhm* is the full-width at half maximum of the slit\n        - *beamfwhm* is the full-width at half maximum of the\n          derivative, which is a measure of the *sharpness*\n          of the edges of the slit\n\n    :param x: Independant variable where the slits are calculated\n    :type x: numpy.ndarray\n    :param params: Array of slit parameters (length must be a multiple\n        of 4):\n        *(height1, centroid1, fwhm1, beamfwhm1,...)*\n    :return: Array of sum of slit functions at each ``x``\n        coordinate\n    ";
+static PyMethodDef __pyx_mdef_4silx_4math_3fit_9functions_29sum_slit = {"sum_slit", (PyCFunction)__pyx_pw_4silx_4math_3fit_9functions_29sum_slit, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_3fit_9functions_28sum_slit};
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_29sum_slit(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_x = 0;
   PyObject *__pyx_v_params = 0;
   int __pyx_lineno = 0;
@@ -9091,11 +9091,11 @@ static PyObject *__pyx_pw_9functions_29sum_slit(PyObject *__pyx_self, PyObject *
   __Pyx_RaiseArgtupleInvalid("sum_slit", 0, 1, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 715; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_DECREF(__pyx_v_params); __pyx_v_params = 0;
-  __Pyx_AddTraceback("functions.sum_slit", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.fit.functions.sum_slit", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_9functions_28sum_slit(__pyx_self, __pyx_v_x, __pyx_v_params);
+  __pyx_r = __pyx_pf_4silx_4math_3fit_9functions_28sum_slit(__pyx_self, __pyx_v_x, __pyx_v_params);
 
   /* function exit code */
   __Pyx_XDECREF(__pyx_v_params);
@@ -9103,7 +9103,7 @@ static PyObject *__pyx_pw_9functions_29sum_slit(PyObject *__pyx_self, PyObject *
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9functions_28sum_slit(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params) {
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_28sum_slit(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_params) {
   __Pyx_memviewslice __pyx_v_x_c = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_params_c = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_y_c = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -9131,7 +9131,7 @@ static PyObject *__pyx_pf_9functions_28sum_slit(CYTHON_UNUSED PyObject *__pyx_se
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("sum_slit", 0);
 
-  /* "functions.pyx":739
+  /* "silx/math/fit/functions.pyx":739
  *         double[::1] y_c
  * 
  *     if not len(params):             # <<<<<<<<<<<<<<
@@ -9142,7 +9142,7 @@ static PyObject *__pyx_pf_9functions_28sum_slit(CYTHON_UNUSED PyObject *__pyx_se
   __pyx_t_2 = ((!(__pyx_t_1 != 0)) != 0);
   if (__pyx_t_2) {
 
-    /* "functions.pyx":740
+    /* "silx/math/fit/functions.pyx":740
  * 
  *     if not len(params):
  *         raise IndexError("No parameters specified. " +             # <<<<<<<<<<<<<<
@@ -9164,7 +9164,7 @@ static PyObject *__pyx_pf_9functions_28sum_slit(CYTHON_UNUSED PyObject *__pyx_se
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 740; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":743
+  /* "silx/math/fit/functions.pyx":743
  *                          "At least 4 parameters are required.")
  * 
  *     x_c = numpy.array(x,             # <<<<<<<<<<<<<<
@@ -9184,7 +9184,7 @@ static PyObject *__pyx_pf_9functions_28sum_slit(CYTHON_UNUSED PyObject *__pyx_se
   __pyx_t_5 = PyDict_New(); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 743; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
 
-  /* "functions.pyx":744
+  /* "silx/math/fit/functions.pyx":744
  * 
  *     x_c = numpy.array(x,
  *                       copy=False,             # <<<<<<<<<<<<<<
@@ -9193,7 +9193,7 @@ static PyObject *__pyx_pf_9functions_28sum_slit(CYTHON_UNUSED PyObject *__pyx_se
  */
   if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_copy, Py_False) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 743; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":745
+  /* "silx/math/fit/functions.pyx":745
  *     x_c = numpy.array(x,
  *                       copy=False,
  *                       dtype=numpy.float64,             # <<<<<<<<<<<<<<
@@ -9209,7 +9209,7 @@ static PyObject *__pyx_pf_9functions_28sum_slit(CYTHON_UNUSED PyObject *__pyx_se
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 743; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":743
+  /* "silx/math/fit/functions.pyx":743
  *                          "At least 4 parameters are required.")
  * 
  *     x_c = numpy.array(x,             # <<<<<<<<<<<<<<
@@ -9222,7 +9222,7 @@ static PyObject *__pyx_pf_9functions_28sum_slit(CYTHON_UNUSED PyObject *__pyx_se
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "functions.pyx":746
+  /* "silx/math/fit/functions.pyx":746
  *                       copy=False,
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -9242,7 +9242,7 @@ static PyObject *__pyx_pf_9functions_28sum_slit(CYTHON_UNUSED PyObject *__pyx_se
   __pyx_t_8.memview = NULL;
   __pyx_t_8.data = NULL;
 
-  /* "functions.pyx":747
+  /* "silx/math/fit/functions.pyx":747
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,             # <<<<<<<<<<<<<<
@@ -9262,7 +9262,7 @@ static PyObject *__pyx_pf_9functions_28sum_slit(CYTHON_UNUSED PyObject *__pyx_se
   __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 747; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
 
-  /* "functions.pyx":748
+  /* "silx/math/fit/functions.pyx":748
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,
  *                            copy=False,             # <<<<<<<<<<<<<<
@@ -9271,7 +9271,7 @@ static PyObject *__pyx_pf_9functions_28sum_slit(CYTHON_UNUSED PyObject *__pyx_se
  */
   if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_copy, Py_False) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 747; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":749
+  /* "silx/math/fit/functions.pyx":749
  *     params_c = numpy.array(params,
  *                            copy=False,
  *                            dtype=numpy.float64,             # <<<<<<<<<<<<<<
@@ -9287,7 +9287,7 @@ static PyObject *__pyx_pf_9functions_28sum_slit(CYTHON_UNUSED PyObject *__pyx_se
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 747; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":747
+  /* "silx/math/fit/functions.pyx":747
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,             # <<<<<<<<<<<<<<
@@ -9300,7 +9300,7 @@ static PyObject *__pyx_pf_9functions_28sum_slit(CYTHON_UNUSED PyObject *__pyx_se
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "functions.pyx":750
+  /* "silx/math/fit/functions.pyx":750
  *                            copy=False,
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -9320,7 +9320,7 @@ static PyObject *__pyx_pf_9functions_28sum_slit(CYTHON_UNUSED PyObject *__pyx_se
   __pyx_t_9.memview = NULL;
   __pyx_t_9.data = NULL;
 
-  /* "functions.pyx":751
+  /* "silx/math/fit/functions.pyx":751
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),             # <<<<<<<<<<<<<<
@@ -9344,7 +9344,7 @@ static PyObject *__pyx_pf_9functions_28sum_slit(CYTHON_UNUSED PyObject *__pyx_se
   if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_shape, __pyx_t_5) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 751; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "functions.pyx":752
+  /* "silx/math/fit/functions.pyx":752
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),
  *                       dtype=numpy.float64)             # <<<<<<<<<<<<<<
@@ -9359,7 +9359,7 @@ static PyObject *__pyx_pf_9functions_28sum_slit(CYTHON_UNUSED PyObject *__pyx_se
   if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_7) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 751; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "functions.pyx":751
+  /* "silx/math/fit/functions.pyx":751
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),             # <<<<<<<<<<<<<<
@@ -9377,7 +9377,7 @@ static PyObject *__pyx_pf_9functions_28sum_slit(CYTHON_UNUSED PyObject *__pyx_se
   __pyx_t_10.memview = NULL;
   __pyx_t_10.data = NULL;
 
-  /* "functions.pyx":754
+  /* "silx/math/fit/functions.pyx":754
  *                       dtype=numpy.float64)
  * 
  *     status = functions_wrapper.sum_slit(&x_c[0],             # <<<<<<<<<<<<<<
@@ -9395,7 +9395,7 @@ static PyObject *__pyx_pf_9functions_28sum_slit(CYTHON_UNUSED PyObject *__pyx_se
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 754; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":755
+  /* "silx/math/fit/functions.pyx":755
  * 
  *     status = functions_wrapper.sum_slit(&x_c[0],
  *                        x.size,             # <<<<<<<<<<<<<<
@@ -9407,7 +9407,7 @@ static PyObject *__pyx_pf_9functions_28sum_slit(CYTHON_UNUSED PyObject *__pyx_se
   __pyx_t_11 = __Pyx_PyInt_As_int(__pyx_t_7); if (unlikely((__pyx_t_11 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 755; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "functions.pyx":756
+  /* "silx/math/fit/functions.pyx":756
  *     status = functions_wrapper.sum_slit(&x_c[0],
  *                        x.size,
  *                        &params_c[0],             # <<<<<<<<<<<<<<
@@ -9425,7 +9425,7 @@ static PyObject *__pyx_pf_9functions_28sum_slit(CYTHON_UNUSED PyObject *__pyx_se
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 756; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":757
+  /* "silx/math/fit/functions.pyx":757
  *                        x.size,
  *                        &params_c[0],
  *                        params_c.size,             # <<<<<<<<<<<<<<
@@ -9440,7 +9440,7 @@ static PyObject *__pyx_pf_9functions_28sum_slit(CYTHON_UNUSED PyObject *__pyx_se
   __pyx_t_13 = __Pyx_PyInt_As_int(__pyx_t_6); if (unlikely((__pyx_t_13 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 757; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "functions.pyx":758
+  /* "silx/math/fit/functions.pyx":758
  *                        &params_c[0],
  *                        params_c.size,
  *                        &y_c[0])             # <<<<<<<<<<<<<<
@@ -9458,7 +9458,7 @@ static PyObject *__pyx_pf_9functions_28sum_slit(CYTHON_UNUSED PyObject *__pyx_se
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 758; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":754
+  /* "silx/math/fit/functions.pyx":754
  *                       dtype=numpy.float64)
  * 
  *     status = functions_wrapper.sum_slit(&x_c[0],             # <<<<<<<<<<<<<<
@@ -9467,7 +9467,7 @@ static PyObject *__pyx_pf_9functions_28sum_slit(CYTHON_UNUSED PyObject *__pyx_se
  */
   __pyx_v_status = sum_slit((&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_x_c.data) + __pyx_t_1)) )))), __pyx_t_11, (&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_params_c.data) + __pyx_t_12)) )))), __pyx_t_13, (&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_y_c.data) + __pyx_t_14)) )))));
 
-  /* "functions.pyx":760
+  /* "silx/math/fit/functions.pyx":760
  *                        &y_c[0])
  * 
  *     if status:             # <<<<<<<<<<<<<<
@@ -9477,7 +9477,7 @@ static PyObject *__pyx_pf_9functions_28sum_slit(CYTHON_UNUSED PyObject *__pyx_se
   __pyx_t_2 = (__pyx_v_status != 0);
   if (__pyx_t_2) {
 
-    /* "functions.pyx":761
+    /* "silx/math/fit/functions.pyx":761
  * 
  *     if status:
  *         raise IndexError("Wrong number of parameters for function")             # <<<<<<<<<<<<<<
@@ -9491,7 +9491,7 @@ static PyObject *__pyx_pf_9functions_28sum_slit(CYTHON_UNUSED PyObject *__pyx_se
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 761; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":763
+  /* "silx/math/fit/functions.pyx":763
  *         raise IndexError("Wrong number of parameters for function")
  * 
  *     return numpy.asarray(y_c).reshape(x.shape)             # <<<<<<<<<<<<<<
@@ -9567,7 +9567,7 @@ static PyObject *__pyx_pf_9functions_28sum_slit(CYTHON_UNUSED PyObject *__pyx_se
   __pyx_t_6 = 0;
   goto __pyx_L0;
 
-  /* "functions.pyx":715
+  /* "silx/math/fit/functions.pyx":715
  * 
  * 
  * def sum_slit(x, *params):             # <<<<<<<<<<<<<<
@@ -9586,7 +9586,7 @@ static PyObject *__pyx_pf_9functions_28sum_slit(CYTHON_UNUSED PyObject *__pyx_se
   __PYX_XDEC_MEMVIEW(&__pyx_t_9, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_t_10, 1);
   __Pyx_XDECREF(__pyx_t_16);
-  __Pyx_AddTraceback("functions.sum_slit", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.fit.functions.sum_slit", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __PYX_XDEC_MEMVIEW(&__pyx_v_x_c, 1);
@@ -9597,7 +9597,7 @@ static PyObject *__pyx_pf_9functions_28sum_slit(CYTHON_UNUSED PyObject *__pyx_se
   return __pyx_r;
 }
 
-/* "functions.pyx":766
+/* "silx/math/fit/functions.pyx":766
  * 
  * 
  * def sum_ahypermet(x, *params,             # <<<<<<<<<<<<<<
@@ -9606,10 +9606,10 @@ static PyObject *__pyx_pf_9functions_28sum_slit(CYTHON_UNUSED PyObject *__pyx_se
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9functions_31sum_ahypermet(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_9functions_30sum_ahypermet[] = "sum_ahypermet(x, *params, gaussian_term=True, st_term=True, lt_term=True, step_term=True)\nReturn a sum of ahypermet functions.\n    defined by *(area, position, fwhm, st_area_r, st_slope_r, lt_area_r,\n    lt_slope_r, step_height_r)*.\n\n        - *area* is the area underneath the gaussian peak\n        - *position* is the center of the various peaks and the position of\n          the step down\n        - *fwhm* is the full-width at half maximum of the terms\n        - *st_area_r* is factor between the gaussian area and the area of the\n          short tail term\n        - *st_slope_r* is a ratio related to the slope of the short tail\n          in the low ``x`` values (the lower, the steeper)\n        - *lt_area_r* is ratio between the gaussian area and the area of the\n          long tail term\n        - *lt_slope_r* is a ratio related to the slope of the long tail\n          in the low ``x`` values  (the lower, the steeper)\n        - *step_height_r* is the ratio between the height of the step down\n          and the gaussian height\n\n    A hypermet function is a sum of four functions (terms):\n\n        - a gaussian term\n        - a long tail term\n        - a short tail term\n        - a step down term\n\n    :param x: Independant variable where the hypermets are calculated\n    :type x: numpy.ndarray\n    :param params: Array of hypermet parameters (length must be a multiple\n        of 8):\n        *(area1, position1, fwhm1, st_area_r1, st_slope_r1, lt_area_r1,\n        lt_slope_r1, step_height_r1...)*\n    :param gaussian_term: If ``True``, enable gaussian term. Default ``True``\n    :param st_term: If ``True``, enable gaussian term. Default ``True``\n    :param lt_term: If ``True``, enable gaussian term. Default ``True``\n    :param step_term: If ``True``, enable gaussian term. Default ``True``\n    :return: Array of sum of hypermet functions at each ``x`` coordinate\n    ";
-static PyMethodDef __pyx_mdef_9functions_31sum_ahypermet = {"sum_ahypermet", (PyCFunction)__pyx_pw_9functions_31sum_ahypermet, METH_VARARGS|METH_KEYWORDS, __pyx_doc_9functions_30sum_ahypermet};
-static PyObject *__pyx_pw_9functions_31sum_ahypermet(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_31sum_ahypermet(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_4silx_4math_3fit_9functions_30sum_ahypermet[] = "sum_ahypermet(x, *params, gaussian_term=True, st_term=True, lt_term=True, step_term=True)\nReturn a sum of ahypermet functions.\n    defined by *(area, position, fwhm, st_area_r, st_slope_r, lt_area_r,\n    lt_slope_r, step_height_r)*.\n\n        - *area* is the area underneath the gaussian peak\n        - *position* is the center of the various peaks and the position of\n          the step down\n        - *fwhm* is the full-width at half maximum of the terms\n        - *st_area_r* is factor between the gaussian area and the area of the\n          short tail term\n        - *st_slope_r* is a ratio related to the slope of the short tail\n          in the low ``x`` values (the lower, the steeper)\n        - *lt_area_r* is ratio between the gaussian area and the area of the\n          long tail term\n        - *lt_slope_r* is a ratio related to the slope of the long tail\n          in the low ``x`` values  (the lower, the steeper)\n        - *step_height_r* is the ratio between the height of the step down\n          and the gaussian height\n\n    A hypermet function is a sum of four functions (terms):\n\n        - a gaussian term\n        - a long tail term\n        - a short tail term\n        - a step down term\n\n    :param x: Independant variable where the hypermets are calculated\n    :type x: numpy.ndarray\n    :param params: Array of hypermet parameters (length must be a multiple\n        of 8):\n        *(area1, position1, fwhm1, st_area_r1, st_slope_r1, lt_area_r1,\n        lt_slope_r1, step_height_r1...)*\n    :param gaussian_term: If ``True``, enable gaussian term. Default ``True``\n    :param st_term: If ``True``, enable gaussian term. Default ``True``\n    :param lt_term: If ``True``, enable gaussian term. Default ``True``\n    :param step_term: If ``True``, enable gaussian term. Default ``True``\n    :return: Array of sum of hypermet functions at each ``x`` coordinate\n    ";
+static PyMethodDef __pyx_mdef_4silx_4math_3fit_9functions_31sum_ahypermet = {"sum_ahypermet", (PyCFunction)__pyx_pw_4silx_4math_3fit_9functions_31sum_ahypermet, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_3fit_9functions_30sum_ahypermet};
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_31sum_ahypermet(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_x = 0;
   PyObject *__pyx_v_gaussian_term = 0;
   PyObject *__pyx_v_st_term = 0;
@@ -9636,7 +9636,7 @@ static PyObject *__pyx_pw_9functions_31sum_ahypermet(PyObject *__pyx_self, PyObj
     static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_x,&__pyx_n_s_gaussian_term,&__pyx_n_s_st_term,&__pyx_n_s_lt_term,&__pyx_n_s_step_term,0};
     PyObject* values[5] = {0,0,0,0,0};
 
-    /* "functions.pyx":767
+    /* "silx/math/fit/functions.pyx":767
  * 
  * def sum_ahypermet(x, *params,
  *                   gaussian_term=True, st_term=True, lt_term=True, step_term=True):             # <<<<<<<<<<<<<<
@@ -9688,13 +9688,13 @@ static PyObject *__pyx_pw_9functions_31sum_ahypermet(PyObject *__pyx_self, PyObj
   __Pyx_RaiseArgtupleInvalid("sum_ahypermet", 0, 1, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 766; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_DECREF(__pyx_v_params); __pyx_v_params = 0;
-  __Pyx_AddTraceback("functions.sum_ahypermet", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.fit.functions.sum_ahypermet", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_9functions_30sum_ahypermet(__pyx_self, __pyx_v_x, __pyx_v_gaussian_term, __pyx_v_st_term, __pyx_v_lt_term, __pyx_v_step_term, __pyx_v_params);
+  __pyx_r = __pyx_pf_4silx_4math_3fit_9functions_30sum_ahypermet(__pyx_self, __pyx_v_x, __pyx_v_gaussian_term, __pyx_v_st_term, __pyx_v_lt_term, __pyx_v_step_term, __pyx_v_params);
 
-  /* "functions.pyx":766
+  /* "silx/math/fit/functions.pyx":766
  * 
  * 
  * def sum_ahypermet(x, *params,             # <<<<<<<<<<<<<<
@@ -9708,7 +9708,7 @@ static PyObject *__pyx_pw_9functions_31sum_ahypermet(PyObject *__pyx_self, PyObj
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_gaussian_term, PyObject *__pyx_v_st_term, PyObject *__pyx_v_lt_term, PyObject *__pyx_v_step_term, PyObject *__pyx_v_params) {
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_gaussian_term, PyObject *__pyx_v_st_term, PyObject *__pyx_v_lt_term, PyObject *__pyx_v_step_term, PyObject *__pyx_v_params) {
   __Pyx_memviewslice __pyx_v_x_c = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_params_c = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_y_c = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -9737,7 +9737,7 @@ static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__p
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("sum_ahypermet", 0);
 
-  /* "functions.pyx":811
+  /* "silx/math/fit/functions.pyx":811
  *         double[::1] y_c
  * 
  *     if not len(params):             # <<<<<<<<<<<<<<
@@ -9748,7 +9748,7 @@ static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__p
   __pyx_t_2 = ((!(__pyx_t_1 != 0)) != 0);
   if (__pyx_t_2) {
 
-    /* "functions.pyx":812
+    /* "silx/math/fit/functions.pyx":812
  * 
  *     if not len(params):
  *         raise IndexError("No parameters specified. " +             # <<<<<<<<<<<<<<
@@ -9770,7 +9770,7 @@ static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__p
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 812; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":816
+  /* "silx/math/fit/functions.pyx":816
  * 
  *     # Sum binary flags to activate various terms of the equation
  *     tail_flags = 1 if gaussian_term else 0             # <<<<<<<<<<<<<<
@@ -9788,7 +9788,7 @@ static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__p
   __pyx_v_tail_flags = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "functions.pyx":817
+  /* "silx/math/fit/functions.pyx":817
  *     # Sum binary flags to activate various terms of the equation
  *     tail_flags = 1 if gaussian_term else 0
  *     if st_term:             # <<<<<<<<<<<<<<
@@ -9798,7 +9798,7 @@ static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__p
   __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_st_term); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 817; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (__pyx_t_2) {
 
-    /* "functions.pyx":818
+    /* "silx/math/fit/functions.pyx":818
  *     tail_flags = 1 if gaussian_term else 0
  *     if st_term:
  *         tail_flags += 2             # <<<<<<<<<<<<<<
@@ -9813,7 +9813,7 @@ static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__p
   }
   __pyx_L4:;
 
-  /* "functions.pyx":819
+  /* "silx/math/fit/functions.pyx":819
  *     if st_term:
  *         tail_flags += 2
  *     if lt_term:             # <<<<<<<<<<<<<<
@@ -9823,7 +9823,7 @@ static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__p
   __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_lt_term); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 819; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (__pyx_t_2) {
 
-    /* "functions.pyx":820
+    /* "silx/math/fit/functions.pyx":820
  *         tail_flags += 2
  *     if lt_term:
  *         tail_flags += 4             # <<<<<<<<<<<<<<
@@ -9838,7 +9838,7 @@ static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__p
   }
   __pyx_L5:;
 
-  /* "functions.pyx":821
+  /* "silx/math/fit/functions.pyx":821
  *     if lt_term:
  *         tail_flags += 4
  *     if step_term:             # <<<<<<<<<<<<<<
@@ -9848,7 +9848,7 @@ static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__p
   __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_step_term); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 821; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (__pyx_t_2) {
 
-    /* "functions.pyx":822
+    /* "silx/math/fit/functions.pyx":822
  *         tail_flags += 4
  *     if step_term:
  *         tail_flags += 8             # <<<<<<<<<<<<<<
@@ -9863,7 +9863,7 @@ static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__p
   }
   __pyx_L6:;
 
-  /* "functions.pyx":824
+  /* "silx/math/fit/functions.pyx":824
  *         tail_flags += 8
  * 
  *     x_c = numpy.array(x,             # <<<<<<<<<<<<<<
@@ -9883,7 +9883,7 @@ static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__p
   __pyx_t_5 = PyDict_New(); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 824; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
 
-  /* "functions.pyx":825
+  /* "silx/math/fit/functions.pyx":825
  * 
  *     x_c = numpy.array(x,
  *                       copy=False,             # <<<<<<<<<<<<<<
@@ -9892,7 +9892,7 @@ static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__p
  */
   if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_copy, Py_False) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 824; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":826
+  /* "silx/math/fit/functions.pyx":826
  *     x_c = numpy.array(x,
  *                       copy=False,
  *                       dtype=numpy.float64,             # <<<<<<<<<<<<<<
@@ -9908,7 +9908,7 @@ static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__p
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 824; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":824
+  /* "silx/math/fit/functions.pyx":824
  *         tail_flags += 8
  * 
  *     x_c = numpy.array(x,             # <<<<<<<<<<<<<<
@@ -9921,7 +9921,7 @@ static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__p
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "functions.pyx":827
+  /* "silx/math/fit/functions.pyx":827
  *                       copy=False,
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -9941,7 +9941,7 @@ static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__p
   __pyx_t_8.memview = NULL;
   __pyx_t_8.data = NULL;
 
-  /* "functions.pyx":828
+  /* "silx/math/fit/functions.pyx":828
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,             # <<<<<<<<<<<<<<
@@ -9961,7 +9961,7 @@ static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__p
   __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 828; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
 
-  /* "functions.pyx":829
+  /* "silx/math/fit/functions.pyx":829
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,
  *                            copy=False,             # <<<<<<<<<<<<<<
@@ -9970,7 +9970,7 @@ static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__p
  */
   if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_copy, Py_False) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 828; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":830
+  /* "silx/math/fit/functions.pyx":830
  *     params_c = numpy.array(params,
  *                            copy=False,
  *                            dtype=numpy.float64,             # <<<<<<<<<<<<<<
@@ -9986,7 +9986,7 @@ static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__p
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 828; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":828
+  /* "silx/math/fit/functions.pyx":828
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,             # <<<<<<<<<<<<<<
@@ -9999,7 +9999,7 @@ static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__p
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "functions.pyx":831
+  /* "silx/math/fit/functions.pyx":831
  *                            copy=False,
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -10019,7 +10019,7 @@ static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__p
   __pyx_t_9.memview = NULL;
   __pyx_t_9.data = NULL;
 
-  /* "functions.pyx":832
+  /* "silx/math/fit/functions.pyx":832
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),             # <<<<<<<<<<<<<<
@@ -10043,7 +10043,7 @@ static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__p
   if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_shape, __pyx_t_5) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 832; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "functions.pyx":833
+  /* "silx/math/fit/functions.pyx":833
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),
  *                       dtype=numpy.float64)             # <<<<<<<<<<<<<<
@@ -10058,7 +10058,7 @@ static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__p
   if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_7) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 832; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "functions.pyx":832
+  /* "silx/math/fit/functions.pyx":832
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),             # <<<<<<<<<<<<<<
@@ -10076,7 +10076,7 @@ static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__p
   __pyx_t_10.memview = NULL;
   __pyx_t_10.data = NULL;
 
-  /* "functions.pyx":835
+  /* "silx/math/fit/functions.pyx":835
  *                       dtype=numpy.float64)
  * 
  *     status = functions_wrapper.sum_ahypermet(&x_c[0],             # <<<<<<<<<<<<<<
@@ -10094,7 +10094,7 @@ static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__p
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 835; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":836
+  /* "silx/math/fit/functions.pyx":836
  * 
  *     status = functions_wrapper.sum_ahypermet(&x_c[0],
  *                             x.size,             # <<<<<<<<<<<<<<
@@ -10106,7 +10106,7 @@ static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__p
   __pyx_t_11 = __Pyx_PyInt_As_int(__pyx_t_7); if (unlikely((__pyx_t_11 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 836; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "functions.pyx":837
+  /* "silx/math/fit/functions.pyx":837
  *     status = functions_wrapper.sum_ahypermet(&x_c[0],
  *                             x.size,
  *                             &params_c[0],             # <<<<<<<<<<<<<<
@@ -10124,7 +10124,7 @@ static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__p
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 837; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":838
+  /* "silx/math/fit/functions.pyx":838
  *                             x.size,
  *                             &params_c[0],
  *                             params_c.size,             # <<<<<<<<<<<<<<
@@ -10139,7 +10139,7 @@ static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__p
   __pyx_t_13 = __Pyx_PyInt_As_int(__pyx_t_6); if (unlikely((__pyx_t_13 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 838; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "functions.pyx":839
+  /* "silx/math/fit/functions.pyx":839
  *                             &params_c[0],
  *                             params_c.size,
  *                             &y_c[0],             # <<<<<<<<<<<<<<
@@ -10157,7 +10157,7 @@ static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__p
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 839; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":840
+  /* "silx/math/fit/functions.pyx":840
  *                             params_c.size,
  *                             &y_c[0],
  *                             tail_flags)             # <<<<<<<<<<<<<<
@@ -10166,7 +10166,7 @@ static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__p
  */
   __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_tail_flags); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 840; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":835
+  /* "silx/math/fit/functions.pyx":835
  *                       dtype=numpy.float64)
  * 
  *     status = functions_wrapper.sum_ahypermet(&x_c[0],             # <<<<<<<<<<<<<<
@@ -10175,7 +10175,7 @@ static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__p
  */
   __pyx_v_status = sum_ahypermet((&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_x_c.data) + __pyx_t_1)) )))), __pyx_t_11, (&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_params_c.data) + __pyx_t_12)) )))), __pyx_t_13, (&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_y_c.data) + __pyx_t_14)) )))), __pyx_t_15);
 
-  /* "functions.pyx":842
+  /* "silx/math/fit/functions.pyx":842
  *                             tail_flags)
  * 
  *     if status:             # <<<<<<<<<<<<<<
@@ -10185,7 +10185,7 @@ static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__p
   __pyx_t_2 = (__pyx_v_status != 0);
   if (__pyx_t_2) {
 
-    /* "functions.pyx":843
+    /* "silx/math/fit/functions.pyx":843
  * 
  *     if status:
  *         raise IndexError("Wrong number of parameters for function")             # <<<<<<<<<<<<<<
@@ -10199,7 +10199,7 @@ static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__p
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 843; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":845
+  /* "silx/math/fit/functions.pyx":845
  *         raise IndexError("Wrong number of parameters for function")
  * 
  *     return numpy.asarray(y_c).reshape(x.shape)             # <<<<<<<<<<<<<<
@@ -10275,7 +10275,7 @@ static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__p
   __pyx_t_6 = 0;
   goto __pyx_L0;
 
-  /* "functions.pyx":766
+  /* "silx/math/fit/functions.pyx":766
  * 
  * 
  * def sum_ahypermet(x, *params,             # <<<<<<<<<<<<<<
@@ -10294,7 +10294,7 @@ static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__p
   __PYX_XDEC_MEMVIEW(&__pyx_t_9, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_t_10, 1);
   __Pyx_XDECREF(__pyx_t_16);
-  __Pyx_AddTraceback("functions.sum_ahypermet", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.fit.functions.sum_ahypermet", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __PYX_XDEC_MEMVIEW(&__pyx_v_x_c, 1);
@@ -10306,7 +10306,7 @@ static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__p
   return __pyx_r;
 }
 
-/* "functions.pyx":848
+/* "silx/math/fit/functions.pyx":848
  * 
  * 
  * def sum_fastahypermet(x, *params,             # <<<<<<<<<<<<<<
@@ -10315,10 +10315,10 @@ static PyObject *__pyx_pf_9functions_30sum_ahypermet(CYTHON_UNUSED PyObject *__p
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9functions_33sum_fastahypermet(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_9functions_32sum_fastahypermet[] = "sum_fastahypermet(x, *params, gaussian_term=True, st_term=True, lt_term=True, step_term=True)\nReturn a sum of hypermet functions defined by *(area, position, fwhm,\n    st_area_r, st_slope_r, lt_area_r, lt_slope_r, step_height_r)*.\n\n        - *area* is the area underneath the gaussian peak\n        - *position* is the center of the various peaks and the position of\n          the step down\n        - *fwhm* is the full-width at half maximum of the terms\n        - *st_area_r* is factor between the gaussian area and the area of the\n          short tail term\n        - *st_slope_r* is a parameter related to the slope of the short tail\n          in the low ``x`` values (the lower, the steeper)\n        - *lt_area_r* is factor between the gaussian area and the area of the\n          long tail term\n        - *lt_slope_r* is a parameter related to the slope of the long tail\n          in the low ``x`` values  (the lower, the steeper)\n        - *step_height_r* is the factor between the height of the step down\n          and the gaussian height\n\n    A hypermet function is a sum of four functions (terms):\n\n        - a gaussian term\n        - a long tail term\n        - a short tail term\n        - a step down term\n\n    This function differs from :func:`sum_ahypermet` by the use of a lookup\n    table for calculating exponentials. This offers better performance when\n    calculating many functions for large ``x`` arrays.\n\n    :param x: Independant variable where the hypermets are calculated\n    :type x: numpy.ndarray\n    :param params: Array of hypermet parameters (length must be a multiple\n        of 8):\n        *(area1, position1, fwhm1, st_area_r1, st_slope_r1, lt_area_r1,\n        lt_slope_r1, step_height_r1...)*\n    :param gaussian_term: If ``True``, enable gaussian term. Default ``True``\n    :param st_term: If ``True``, enable gaussian term. Default ``True``\n    :param lt_term: If ``True``, enable gaussian term. Default ``True``\n    :param step_t""erm: If ``True``, enable gaussian term. Default ``True``\n    :return: Array of sum of hypermet functions at each ``x`` coordinate\n    ";
-static PyMethodDef __pyx_mdef_9functions_33sum_fastahypermet = {"sum_fastahypermet", (PyCFunction)__pyx_pw_9functions_33sum_fastahypermet, METH_VARARGS|METH_KEYWORDS, __pyx_doc_9functions_32sum_fastahypermet};
-static PyObject *__pyx_pw_9functions_33sum_fastahypermet(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_33sum_fastahypermet(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_4silx_4math_3fit_9functions_32sum_fastahypermet[] = "sum_fastahypermet(x, *params, gaussian_term=True, st_term=True, lt_term=True, step_term=True)\nReturn a sum of hypermet functions defined by *(area, position, fwhm,\n    st_area_r, st_slope_r, lt_area_r, lt_slope_r, step_height_r)*.\n\n        - *area* is the area underneath the gaussian peak\n        - *position* is the center of the various peaks and the position of\n          the step down\n        - *fwhm* is the full-width at half maximum of the terms\n        - *st_area_r* is factor between the gaussian area and the area of the\n          short tail term\n        - *st_slope_r* is a parameter related to the slope of the short tail\n          in the low ``x`` values (the lower, the steeper)\n        - *lt_area_r* is factor between the gaussian area and the area of the\n          long tail term\n        - *lt_slope_r* is a parameter related to the slope of the long tail\n          in the low ``x`` values  (the lower, the steeper)\n        - *step_height_r* is the factor between the height of the step down\n          and the gaussian height\n\n    A hypermet function is a sum of four functions (terms):\n\n        - a gaussian term\n        - a long tail term\n        - a short tail term\n        - a step down term\n\n    This function differs from :func:`sum_ahypermet` by the use of a lookup\n    table for calculating exponentials. This offers better performance when\n    calculating many functions for large ``x`` arrays.\n\n    :param x: Independant variable where the hypermets are calculated\n    :type x: numpy.ndarray\n    :param params: Array of hypermet parameters (length must be a multiple\n        of 8):\n        *(area1, position1, fwhm1, st_area_r1, st_slope_r1, lt_area_r1,\n        lt_slope_r1, step_height_r1...)*\n    :param gaussian_term: If ``True``, enable gaussian term. Default ``True``\n    :param st_term: If ``True``, enable gaussian term. Default ``True``\n    :param lt_term: If ``True``, enable gaussian term. Default ``True``\n    :param step_t""erm: If ``True``, enable gaussian term. Default ``True``\n    :return: Array of sum of hypermet functions at each ``x`` coordinate\n    ";
+static PyMethodDef __pyx_mdef_4silx_4math_3fit_9functions_33sum_fastahypermet = {"sum_fastahypermet", (PyCFunction)__pyx_pw_4silx_4math_3fit_9functions_33sum_fastahypermet, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_3fit_9functions_32sum_fastahypermet};
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_33sum_fastahypermet(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_x = 0;
   PyObject *__pyx_v_gaussian_term = 0;
   PyObject *__pyx_v_st_term = 0;
@@ -10345,7 +10345,7 @@ static PyObject *__pyx_pw_9functions_33sum_fastahypermet(PyObject *__pyx_self, P
     static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_x,&__pyx_n_s_gaussian_term,&__pyx_n_s_st_term,&__pyx_n_s_lt_term,&__pyx_n_s_step_term,0};
     PyObject* values[5] = {0,0,0,0,0};
 
-    /* "functions.pyx":849
+    /* "silx/math/fit/functions.pyx":849
  * 
  * def sum_fastahypermet(x, *params,
  *                       gaussian_term=True, st_term=True,             # <<<<<<<<<<<<<<
@@ -10355,7 +10355,7 @@ static PyObject *__pyx_pw_9functions_33sum_fastahypermet(PyObject *__pyx_self, P
     values[1] = ((PyObject *)Py_True);
     values[2] = ((PyObject *)Py_True);
 
-    /* "functions.pyx":850
+    /* "silx/math/fit/functions.pyx":850
  * def sum_fastahypermet(x, *params,
  *                       gaussian_term=True, st_term=True,
  *                       lt_term=True, step_term=True):             # <<<<<<<<<<<<<<
@@ -10405,13 +10405,13 @@ static PyObject *__pyx_pw_9functions_33sum_fastahypermet(PyObject *__pyx_self, P
   __Pyx_RaiseArgtupleInvalid("sum_fastahypermet", 0, 1, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 848; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_DECREF(__pyx_v_params); __pyx_v_params = 0;
-  __Pyx_AddTraceback("functions.sum_fastahypermet", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.fit.functions.sum_fastahypermet", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_9functions_32sum_fastahypermet(__pyx_self, __pyx_v_x, __pyx_v_gaussian_term, __pyx_v_st_term, __pyx_v_lt_term, __pyx_v_step_term, __pyx_v_params);
+  __pyx_r = __pyx_pf_4silx_4math_3fit_9functions_32sum_fastahypermet(__pyx_self, __pyx_v_x, __pyx_v_gaussian_term, __pyx_v_st_term, __pyx_v_lt_term, __pyx_v_step_term, __pyx_v_params);
 
-  /* "functions.pyx":848
+  /* "silx/math/fit/functions.pyx":848
  * 
  * 
  * def sum_fastahypermet(x, *params,             # <<<<<<<<<<<<<<
@@ -10425,7 +10425,7 @@ static PyObject *__pyx_pw_9functions_33sum_fastahypermet(PyObject *__pyx_self, P
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_gaussian_term, PyObject *__pyx_v_st_term, PyObject *__pyx_v_lt_term, PyObject *__pyx_v_step_term, PyObject *__pyx_v_params) {
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_gaussian_term, PyObject *__pyx_v_st_term, PyObject *__pyx_v_lt_term, PyObject *__pyx_v_step_term, PyObject *__pyx_v_params) {
   __Pyx_memviewslice __pyx_v_x_c = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_params_c = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_y_c = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -10454,7 +10454,7 @@ static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject 
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("sum_fastahypermet", 0);
 
-  /* "functions.pyx":897
+  /* "silx/math/fit/functions.pyx":897
  *         double[::1] y_c
  * 
  *     if not len(params):             # <<<<<<<<<<<<<<
@@ -10465,7 +10465,7 @@ static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject 
   __pyx_t_2 = ((!(__pyx_t_1 != 0)) != 0);
   if (__pyx_t_2) {
 
-    /* "functions.pyx":898
+    /* "silx/math/fit/functions.pyx":898
  * 
  *     if not len(params):
  *         raise IndexError("No parameters specified. " +             # <<<<<<<<<<<<<<
@@ -10487,7 +10487,7 @@ static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject 
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 898; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":902
+  /* "silx/math/fit/functions.pyx":902
  * 
  *     # Sum binary flags to activate various terms of the equation
  *     tail_flags = 1 if gaussian_term else 0             # <<<<<<<<<<<<<<
@@ -10505,7 +10505,7 @@ static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject 
   __pyx_v_tail_flags = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "functions.pyx":903
+  /* "silx/math/fit/functions.pyx":903
  *     # Sum binary flags to activate various terms of the equation
  *     tail_flags = 1 if gaussian_term else 0
  *     if st_term:             # <<<<<<<<<<<<<<
@@ -10515,7 +10515,7 @@ static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject 
   __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_st_term); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 903; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (__pyx_t_2) {
 
-    /* "functions.pyx":904
+    /* "silx/math/fit/functions.pyx":904
  *     tail_flags = 1 if gaussian_term else 0
  *     if st_term:
  *         tail_flags += 2             # <<<<<<<<<<<<<<
@@ -10530,7 +10530,7 @@ static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject 
   }
   __pyx_L4:;
 
-  /* "functions.pyx":905
+  /* "silx/math/fit/functions.pyx":905
  *     if st_term:
  *         tail_flags += 2
  *     if lt_term:             # <<<<<<<<<<<<<<
@@ -10540,7 +10540,7 @@ static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject 
   __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_lt_term); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 905; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (__pyx_t_2) {
 
-    /* "functions.pyx":906
+    /* "silx/math/fit/functions.pyx":906
  *         tail_flags += 2
  *     if lt_term:
  *         tail_flags += 4             # <<<<<<<<<<<<<<
@@ -10555,7 +10555,7 @@ static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject 
   }
   __pyx_L5:;
 
-  /* "functions.pyx":907
+  /* "silx/math/fit/functions.pyx":907
  *     if lt_term:
  *         tail_flags += 4
  *     if step_term:             # <<<<<<<<<<<<<<
@@ -10565,7 +10565,7 @@ static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject 
   __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_step_term); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 907; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (__pyx_t_2) {
 
-    /* "functions.pyx":908
+    /* "silx/math/fit/functions.pyx":908
  *         tail_flags += 4
  *     if step_term:
  *         tail_flags += 8             # <<<<<<<<<<<<<<
@@ -10580,7 +10580,7 @@ static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject 
   }
   __pyx_L6:;
 
-  /* "functions.pyx":917
+  /* "silx/math/fit/functions.pyx":917
  *     # lt_slope_r (params[8*i + 6]) and lt_term.
  * 
  *     x_c = numpy.array(x,             # <<<<<<<<<<<<<<
@@ -10600,7 +10600,7 @@ static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject 
   __pyx_t_5 = PyDict_New(); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 917; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
 
-  /* "functions.pyx":918
+  /* "silx/math/fit/functions.pyx":918
  * 
  *     x_c = numpy.array(x,
  *                       copy=False,             # <<<<<<<<<<<<<<
@@ -10609,7 +10609,7 @@ static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject 
  */
   if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_copy, Py_False) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 917; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":919
+  /* "silx/math/fit/functions.pyx":919
  *     x_c = numpy.array(x,
  *                       copy=False,
  *                       dtype=numpy.float64,             # <<<<<<<<<<<<<<
@@ -10625,7 +10625,7 @@ static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject 
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 917; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":917
+  /* "silx/math/fit/functions.pyx":917
  *     # lt_slope_r (params[8*i + 6]) and lt_term.
  * 
  *     x_c = numpy.array(x,             # <<<<<<<<<<<<<<
@@ -10638,7 +10638,7 @@ static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject 
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "functions.pyx":920
+  /* "silx/math/fit/functions.pyx":920
  *                       copy=False,
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -10658,7 +10658,7 @@ static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject 
   __pyx_t_8.memview = NULL;
   __pyx_t_8.data = NULL;
 
-  /* "functions.pyx":921
+  /* "silx/math/fit/functions.pyx":921
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,             # <<<<<<<<<<<<<<
@@ -10678,7 +10678,7 @@ static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject 
   __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 921; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
 
-  /* "functions.pyx":922
+  /* "silx/math/fit/functions.pyx":922
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,
  *                            copy=False,             # <<<<<<<<<<<<<<
@@ -10687,7 +10687,7 @@ static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject 
  */
   if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_copy, Py_False) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 921; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":923
+  /* "silx/math/fit/functions.pyx":923
  *     params_c = numpy.array(params,
  *                            copy=False,
  *                            dtype=numpy.float64,             # <<<<<<<<<<<<<<
@@ -10703,7 +10703,7 @@ static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject 
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 921; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":921
+  /* "silx/math/fit/functions.pyx":921
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)
  *     params_c = numpy.array(params,             # <<<<<<<<<<<<<<
@@ -10716,7 +10716,7 @@ static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject 
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "functions.pyx":924
+  /* "silx/math/fit/functions.pyx":924
  *                            copy=False,
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -10736,7 +10736,7 @@ static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject 
   __pyx_t_9.memview = NULL;
   __pyx_t_9.data = NULL;
 
-  /* "functions.pyx":925
+  /* "silx/math/fit/functions.pyx":925
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),             # <<<<<<<<<<<<<<
@@ -10760,7 +10760,7 @@ static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject 
   if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_shape, __pyx_t_5) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 925; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "functions.pyx":926
+  /* "silx/math/fit/functions.pyx":926
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),
  *                       dtype=numpy.float64)             # <<<<<<<<<<<<<<
@@ -10775,7 +10775,7 @@ static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject 
   if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_7) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 925; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "functions.pyx":925
+  /* "silx/math/fit/functions.pyx":925
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)
  *     y_c = numpy.empty(shape=(x.size,),             # <<<<<<<<<<<<<<
@@ -10793,7 +10793,7 @@ static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject 
   __pyx_t_10.memview = NULL;
   __pyx_t_10.data = NULL;
 
-  /* "functions.pyx":928
+  /* "silx/math/fit/functions.pyx":928
  *                       dtype=numpy.float64)
  * 
  *     status = functions_wrapper.sum_fastahypermet(&x_c[0],             # <<<<<<<<<<<<<<
@@ -10811,7 +10811,7 @@ static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject 
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 928; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":929
+  /* "silx/math/fit/functions.pyx":929
  * 
  *     status = functions_wrapper.sum_fastahypermet(&x_c[0],
  *                                x.size,             # <<<<<<<<<<<<<<
@@ -10823,7 +10823,7 @@ static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject 
   __pyx_t_11 = __Pyx_PyInt_As_int(__pyx_t_7); if (unlikely((__pyx_t_11 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 929; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "functions.pyx":930
+  /* "silx/math/fit/functions.pyx":930
  *     status = functions_wrapper.sum_fastahypermet(&x_c[0],
  *                                x.size,
  *                                &params_c[0],             # <<<<<<<<<<<<<<
@@ -10841,7 +10841,7 @@ static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject 
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 930; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":931
+  /* "silx/math/fit/functions.pyx":931
  *                                x.size,
  *                                &params_c[0],
  *                                params_c.size,             # <<<<<<<<<<<<<<
@@ -10856,7 +10856,7 @@ static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject 
   __pyx_t_13 = __Pyx_PyInt_As_int(__pyx_t_6); if (unlikely((__pyx_t_13 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 931; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "functions.pyx":932
+  /* "silx/math/fit/functions.pyx":932
  *                                &params_c[0],
  *                                params_c.size,
  *                                &y_c[0],             # <<<<<<<<<<<<<<
@@ -10874,7 +10874,7 @@ static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject 
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 932; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":933
+  /* "silx/math/fit/functions.pyx":933
  *                                params_c.size,
  *                                &y_c[0],
  *                                tail_flags)             # <<<<<<<<<<<<<<
@@ -10883,7 +10883,7 @@ static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject 
  */
   __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_tail_flags); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 933; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":928
+  /* "silx/math/fit/functions.pyx":928
  *                       dtype=numpy.float64)
  * 
  *     status = functions_wrapper.sum_fastahypermet(&x_c[0],             # <<<<<<<<<<<<<<
@@ -10892,7 +10892,7 @@ static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject 
  */
   __pyx_v_status = sum_fastahypermet((&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_x_c.data) + __pyx_t_1)) )))), __pyx_t_11, (&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_params_c.data) + __pyx_t_12)) )))), __pyx_t_13, (&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_y_c.data) + __pyx_t_14)) )))), __pyx_t_15);
 
-  /* "functions.pyx":935
+  /* "silx/math/fit/functions.pyx":935
  *                                tail_flags)
  * 
  *     if status:             # <<<<<<<<<<<<<<
@@ -10902,7 +10902,7 @@ static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject 
   __pyx_t_2 = (__pyx_v_status != 0);
   if (__pyx_t_2) {
 
-    /* "functions.pyx":936
+    /* "silx/math/fit/functions.pyx":936
  * 
  *     if status:
  *         raise IndexError("Wrong number of parameters for function")             # <<<<<<<<<<<<<<
@@ -10916,7 +10916,7 @@ static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject 
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 936; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":938
+  /* "silx/math/fit/functions.pyx":938
  *         raise IndexError("Wrong number of parameters for function")
  * 
  *     return numpy.asarray(y_c).reshape(x.shape)             # <<<<<<<<<<<<<<
@@ -10992,7 +10992,7 @@ static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject 
   __pyx_t_6 = 0;
   goto __pyx_L0;
 
-  /* "functions.pyx":848
+  /* "silx/math/fit/functions.pyx":848
  * 
  * 
  * def sum_fastahypermet(x, *params,             # <<<<<<<<<<<<<<
@@ -11011,7 +11011,7 @@ static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject 
   __PYX_XDEC_MEMVIEW(&__pyx_t_9, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_t_10, 1);
   __Pyx_XDECREF(__pyx_t_16);
-  __Pyx_AddTraceback("functions.sum_fastahypermet", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.fit.functions.sum_fastahypermet", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __PYX_XDEC_MEMVIEW(&__pyx_v_x_c, 1);
@@ -11023,7 +11023,7 @@ static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject 
   return __pyx_r;
 }
 
-/* "functions.pyx":941
+/* "silx/math/fit/functions.pyx":941
  * 
  * 
  * def atan_stepup(x, a, b, c):             # <<<<<<<<<<<<<<
@@ -11032,10 +11032,10 @@ static PyObject *__pyx_pf_9functions_32sum_fastahypermet(CYTHON_UNUSED PyObject 
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9functions_35atan_stepup(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_9functions_34atan_stepup[] = "atan_stepup(x, a, b, c)\n\n    Step up function using an inverse tangent.\n\n    :param x: Independant variable where the function is calculated\n    :type x: numpy array\n    :param a: Height of the step up\n    :param b: Center of the step up\n    :param c: Parameter related to the slope of the step. A lower ``c``\n        value yields a sharper step.\n    :return: ``a * (0.5 + (arctan((x - b) / c) / pi))``\n    :rtype: numpy array\n    ";
-static PyMethodDef __pyx_mdef_9functions_35atan_stepup = {"atan_stepup", (PyCFunction)__pyx_pw_9functions_35atan_stepup, METH_VARARGS|METH_KEYWORDS, __pyx_doc_9functions_34atan_stepup};
-static PyObject *__pyx_pw_9functions_35atan_stepup(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_35atan_stepup(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_4silx_4math_3fit_9functions_34atan_stepup[] = "atan_stepup(x, a, b, c)\n\n    Step up function using an inverse tangent.\n\n    :param x: Independant variable where the function is calculated\n    :type x: numpy array\n    :param a: Height of the step up\n    :param b: Center of the step up\n    :param c: Parameter related to the slope of the step. A lower ``c``\n        value yields a sharper step.\n    :return: ``a * (0.5 + (arctan((x - b) / c) / pi))``\n    :rtype: numpy array\n    ";
+static PyMethodDef __pyx_mdef_4silx_4math_3fit_9functions_35atan_stepup = {"atan_stepup", (PyCFunction)__pyx_pw_4silx_4math_3fit_9functions_35atan_stepup, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_3fit_9functions_34atan_stepup};
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_35atan_stepup(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_x = 0;
   PyObject *__pyx_v_a = 0;
   PyObject *__pyx_v_b = 0;
@@ -11101,18 +11101,18 @@ static PyObject *__pyx_pw_9functions_35atan_stepup(PyObject *__pyx_self, PyObjec
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("atan_stepup", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 941; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("functions.atan_stepup", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.fit.functions.atan_stepup", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_9functions_34atan_stepup(__pyx_self, __pyx_v_x, __pyx_v_a, __pyx_v_b, __pyx_v_c);
+  __pyx_r = __pyx_pf_4silx_4math_3fit_9functions_34atan_stepup(__pyx_self, __pyx_v_x, __pyx_v_a, __pyx_v_b, __pyx_v_c);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9functions_34atan_stepup(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_a, PyObject *__pyx_v_b, PyObject *__pyx_v_c) {
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_34atan_stepup(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_a, PyObject *__pyx_v_b, PyObject *__pyx_v_c) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
@@ -11128,7 +11128,7 @@ static PyObject *__pyx_pf_9functions_34atan_stepup(CYTHON_UNUSED PyObject *__pyx
   __Pyx_RefNannySetupContext("atan_stepup", 0);
   __Pyx_INCREF(__pyx_v_x);
 
-  /* "functions.pyx":954
+  /* "silx/math/fit/functions.pyx":954
  *     :rtype: numpy array
  *     """
  *     if not hasattr(x, "shape"):             # <<<<<<<<<<<<<<
@@ -11139,7 +11139,7 @@ static PyObject *__pyx_pf_9functions_34atan_stepup(CYTHON_UNUSED PyObject *__pyx
   __pyx_t_2 = ((!(__pyx_t_1 != 0)) != 0);
   if (__pyx_t_2) {
 
-    /* "functions.pyx":955
+    /* "silx/math/fit/functions.pyx":955
  *     """
  *     if not hasattr(x, "shape"):
  *         x = numpy.array(x)             # <<<<<<<<<<<<<<
@@ -11182,7 +11182,7 @@ static PyObject *__pyx_pf_9functions_34atan_stepup(CYTHON_UNUSED PyObject *__pyx
   }
   __pyx_L3:;
 
-  /* "functions.pyx":956
+  /* "silx/math/fit/functions.pyx":956
  *     if not hasattr(x, "shape"):
  *         x = numpy.array(x)
  *     return a * (0.5 + (numpy.arctan((1.0 * x - b) / c) / numpy.pi))             # <<<<<<<<<<<<<<
@@ -11248,7 +11248,7 @@ static PyObject *__pyx_pf_9functions_34atan_stepup(CYTHON_UNUSED PyObject *__pyx
   __pyx_t_6 = 0;
   goto __pyx_L0;
 
-  /* "functions.pyx":941
+  /* "silx/math/fit/functions.pyx":941
  * 
  * 
  * def atan_stepup(x, a, b, c):             # <<<<<<<<<<<<<<
@@ -11263,7 +11263,7 @@ static PyObject *__pyx_pf_9functions_34atan_stepup(CYTHON_UNUSED PyObject *__pyx
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6);
   __Pyx_XDECREF(__pyx_t_7);
-  __Pyx_AddTraceback("functions.atan_stepup", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.fit.functions.atan_stepup", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_x);
@@ -11272,7 +11272,7 @@ static PyObject *__pyx_pf_9functions_34atan_stepup(CYTHON_UNUSED PyObject *__pyx
   return __pyx_r;
 }
 
-/* "functions.pyx":959
+/* "silx/math/fit/functions.pyx":959
  * 
  * 
  * def periodic_gauss(x, *pars):             # <<<<<<<<<<<<<<
@@ -11281,10 +11281,10 @@ static PyObject *__pyx_pf_9functions_34atan_stepup(CYTHON_UNUSED PyObject *__pyx
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9functions_37periodic_gauss(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_9functions_36periodic_gauss[] = "periodic_gauss(x, *pars)\n\n    Return a sum of gaussian functions defined by\n    *(npeaks, delta, height, centroid, fwhm)*,\n    where:\n\n    - *npeaks* is the number of gaussians peaks\n    - *delta* is the constant distance between 2 peaks\n    - *height* is the peak amplitude of all the gaussians\n    - *centroid* is the peak x-coordinate of the first gaussian\n    - *fwhm* is the full-width at half maximum for all the gaussians\n\n    :param x: Independant variable where the function is calculated\n    :param pars: *(npeaks, delta, height, centroid, fwhm)*\n    :return: Sum of ``npeaks`` gaussians\n    ";
-static PyMethodDef __pyx_mdef_9functions_37periodic_gauss = {"periodic_gauss", (PyCFunction)__pyx_pw_9functions_37periodic_gauss, METH_VARARGS|METH_KEYWORDS, __pyx_doc_9functions_36periodic_gauss};
-static PyObject *__pyx_pw_9functions_37periodic_gauss(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_37periodic_gauss(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_4silx_4math_3fit_9functions_36periodic_gauss[] = "periodic_gauss(x, *pars)\n\n    Return a sum of gaussian functions defined by\n    *(npeaks, delta, height, centroid, fwhm)*,\n    where:\n\n    - *npeaks* is the number of gaussians peaks\n    - *delta* is the constant distance between 2 peaks\n    - *height* is the peak amplitude of all the gaussians\n    - *centroid* is the peak x-coordinate of the first gaussian\n    - *fwhm* is the full-width at half maximum for all the gaussians\n\n    :param x: Independant variable where the function is calculated\n    :param pars: *(npeaks, delta, height, centroid, fwhm)*\n    :return: Sum of ``npeaks`` gaussians\n    ";
+static PyMethodDef __pyx_mdef_4silx_4math_3fit_9functions_37periodic_gauss = {"periodic_gauss", (PyCFunction)__pyx_pw_4silx_4math_3fit_9functions_37periodic_gauss, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_3fit_9functions_36periodic_gauss};
+static PyObject *__pyx_pw_4silx_4math_3fit_9functions_37periodic_gauss(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_x = 0;
   PyObject *__pyx_v_pars = 0;
   int __pyx_lineno = 0;
@@ -11336,11 +11336,11 @@ static PyObject *__pyx_pw_9functions_37periodic_gauss(PyObject *__pyx_self, PyOb
   __Pyx_RaiseArgtupleInvalid("periodic_gauss", 0, 1, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 959; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_DECREF(__pyx_v_pars); __pyx_v_pars = 0;
-  __Pyx_AddTraceback("functions.periodic_gauss", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.fit.functions.periodic_gauss", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_9functions_36periodic_gauss(__pyx_self, __pyx_v_x, __pyx_v_pars);
+  __pyx_r = __pyx_pf_4silx_4math_3fit_9functions_36periodic_gauss(__pyx_self, __pyx_v_x, __pyx_v_pars);
 
   /* function exit code */
   __Pyx_XDECREF(__pyx_v_pars);
@@ -11348,7 +11348,7 @@ static PyObject *__pyx_pw_9functions_37periodic_gauss(PyObject *__pyx_self, PyOb
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9functions_36periodic_gauss(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_pars) {
+static PyObject *__pyx_pf_4silx_4math_3fit_9functions_36periodic_gauss(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x, PyObject *__pyx_v_pars) {
   PyObject *__pyx_v_newpars = NULL;
   PyObject *__pyx_v_i = NULL;
   PyObject *__pyx_r = NULL;
@@ -11367,7 +11367,7 @@ static PyObject *__pyx_pf_9functions_36periodic_gauss(CYTHON_UNUSED PyObject *__
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("periodic_gauss", 0);
 
-  /* "functions.pyx":976
+  /* "silx/math/fit/functions.pyx":976
  *     """
  * 
  *     if not len(pars):             # <<<<<<<<<<<<<<
@@ -11378,7 +11378,7 @@ static PyObject *__pyx_pf_9functions_36periodic_gauss(CYTHON_UNUSED PyObject *__
   __pyx_t_2 = ((!(__pyx_t_1 != 0)) != 0);
   if (__pyx_t_2) {
 
-    /* "functions.pyx":977
+    /* "silx/math/fit/functions.pyx":977
  * 
  *     if not len(pars):
  *         raise IndexError("No parameters specified. " +             # <<<<<<<<<<<<<<
@@ -11400,7 +11400,7 @@ static PyObject *__pyx_pf_9functions_36periodic_gauss(CYTHON_UNUSED PyObject *__
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 977; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "functions.pyx":980
+  /* "silx/math/fit/functions.pyx":980
  *                          "At least 5 parameters are required.")
  * 
  *     newpars = numpy.zeros((pars[0], 3), numpy.float)             # <<<<<<<<<<<<<<
@@ -11457,7 +11457,7 @@ static PyObject *__pyx_pf_9functions_36periodic_gauss(CYTHON_UNUSED PyObject *__
   __pyx_v_newpars = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "functions.pyx":981
+  /* "silx/math/fit/functions.pyx":981
  * 
  *     newpars = numpy.zeros((pars[0], 3), numpy.float)
  *     for i in range(int(pars[0])):             # <<<<<<<<<<<<<<
@@ -11518,7 +11518,7 @@ static PyObject *__pyx_pf_9functions_36periodic_gauss(CYTHON_UNUSED PyObject *__
     __Pyx_XDECREF_SET(__pyx_v_i, __pyx_t_5);
     __pyx_t_5 = 0;
 
-    /* "functions.pyx":982
+    /* "silx/math/fit/functions.pyx":982
  *     newpars = numpy.zeros((pars[0], 3), numpy.float)
  *     for i in range(int(pars[0])):
  *         newpars[i, 0] = pars[2]             # <<<<<<<<<<<<<<
@@ -11539,7 +11539,7 @@ static PyObject *__pyx_pf_9functions_36periodic_gauss(CYTHON_UNUSED PyObject *__
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-    /* "functions.pyx":983
+    /* "silx/math/fit/functions.pyx":983
  *     for i in range(int(pars[0])):
  *         newpars[i, 0] = pars[2]
  *         newpars[i, 1] = pars[3] + i * pars[1]             # <<<<<<<<<<<<<<
@@ -11569,7 +11569,7 @@ static PyObject *__pyx_pf_9functions_36periodic_gauss(CYTHON_UNUSED PyObject *__
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
-    /* "functions.pyx":984
+    /* "silx/math/fit/functions.pyx":984
  *         newpars[i, 0] = pars[2]
  *         newpars[i, 1] = pars[3] + i * pars[1]
  *         newpars[:, 2] = pars[4]             # <<<<<<<<<<<<<<
@@ -11580,7 +11580,7 @@ static PyObject *__pyx_pf_9functions_36periodic_gauss(CYTHON_UNUSED PyObject *__
     if (unlikely(PyObject_SetItem(__pyx_v_newpars, __pyx_tuple__51, __pyx_t_8) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 984; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
-    /* "functions.pyx":981
+    /* "silx/math/fit/functions.pyx":981
  * 
  *     newpars = numpy.zeros((pars[0], 3), numpy.float)
  *     for i in range(int(pars[0])):             # <<<<<<<<<<<<<<
@@ -11590,7 +11590,7 @@ static PyObject *__pyx_pf_9functions_36periodic_gauss(CYTHON_UNUSED PyObject *__
   }
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "functions.pyx":985
+  /* "silx/math/fit/functions.pyx":985
  *         newpars[i, 1] = pars[3] + i * pars[1]
  *         newpars[:, 2] = pars[4]
  *     return sum_gauss(x, newpars)             # <<<<<<<<<<<<<<
@@ -11629,7 +11629,7 @@ static PyObject *__pyx_pf_9functions_36periodic_gauss(CYTHON_UNUSED PyObject *__
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "functions.pyx":959
+  /* "silx/math/fit/functions.pyx":959
  * 
  * 
  * def periodic_gauss(x, *pars):             # <<<<<<<<<<<<<<
@@ -11645,7 +11645,7 @@ static PyObject *__pyx_pf_9functions_36periodic_gauss(CYTHON_UNUSED PyObject *__
   __Pyx_XDECREF(__pyx_t_6);
   __Pyx_XDECREF(__pyx_t_7);
   __Pyx_XDECREF(__pyx_t_8);
-  __Pyx_AddTraceback("functions.periodic_gauss", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.fit.functions.periodic_gauss", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_newpars);
@@ -22406,7 +22406,7 @@ static PyBufferProcs __pyx_tp_as_buffer_array = {
 
 static PyTypeObject __pyx_type___pyx_array = {
   PyVarObject_HEAD_INIT(0, 0)
-  "functions.array", /*tp_name*/
+  "silx.math.fit.functions.array", /*tp_name*/
   sizeof(struct __pyx_array_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_array, /*tp_dealloc*/
@@ -22511,7 +22511,7 @@ static PyMethodDef __pyx_methods_Enum[] = {
 
 static PyTypeObject __pyx_type___pyx_MemviewEnum = {
   PyVarObject_HEAD_INIT(0, 0)
-  "functions.Enum", /*tp_name*/
+  "silx.math.fit.functions.Enum", /*tp_name*/
   sizeof(struct __pyx_MemviewEnum_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_Enum, /*tp_dealloc*/
@@ -22757,7 +22757,7 @@ static PyBufferProcs __pyx_tp_as_buffer_memoryview = {
 
 static PyTypeObject __pyx_type___pyx_memoryview = {
   PyVarObject_HEAD_INIT(0, 0)
-  "functions.memoryview", /*tp_name*/
+  "silx.math.fit.functions.memoryview", /*tp_name*/
   sizeof(struct __pyx_memoryview_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_memoryview, /*tp_dealloc*/
@@ -22881,7 +22881,7 @@ static struct PyGetSetDef __pyx_getsets__memoryviewslice[] = {
 
 static PyTypeObject __pyx_type___pyx_memoryviewslice = {
   PyVarObject_HEAD_INIT(0, 0)
-  "functions._memoryviewslice", /*tp_name*/
+  "silx.math.fit.functions._memoryviewslice", /*tp_name*/
   sizeof(struct __pyx_memoryviewslice_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc__memoryviewslice, /*tp_dealloc*/
@@ -23026,7 +23026,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_format, __pyx_k_format, sizeof(__pyx_k_format), 0, 0, 1, 1},
   {&__pyx_n_s_fortran, __pyx_k_fortran, sizeof(__pyx_k_fortran), 0, 0, 1, 1},
   {&__pyx_n_u_fortran, __pyx_k_fortran, sizeof(__pyx_k_fortran), 0, 1, 0, 1},
-  {&__pyx_n_s_functions, __pyx_k_functions, sizeof(__pyx_k_functions), 0, 0, 1, 1},
   {&__pyx_n_s_gaussian_term, __pyx_k_gaussian_term, sizeof(__pyx_k_gaussian_term), 0, 0, 1, 1},
   {&__pyx_n_s_getLogger, __pyx_k_getLogger, sizeof(__pyx_k_getLogger), 0, 0, 1, 1},
   {&__pyx_kp_s_got_differing_extents_in_dimensi, __pyx_k_got_differing_extents_in_dimensi, sizeof(__pyx_k_got_differing_extents_in_dimensi), 0, 0, 1, 0},
@@ -23061,6 +23060,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_range, __pyx_k_range, sizeof(__pyx_k_range), 0, 0, 1, 1},
   {&__pyx_n_s_reshape, __pyx_k_reshape, sizeof(__pyx_k_reshape), 0, 0, 1, 1},
   {&__pyx_n_s_shape, __pyx_k_shape, sizeof(__pyx_k_shape), 0, 0, 1, 1},
+  {&__pyx_n_s_silx_math_fit_functions, __pyx_k_silx_math_fit_functions, sizeof(__pyx_k_silx_math_fit_functions), 0, 0, 1, 1},
   {&__pyx_n_s_size, __pyx_k_size, sizeof(__pyx_k_size), 0, 0, 1, 1},
   {&__pyx_n_s_st_term, __pyx_k_st_term, sizeof(__pyx_k_st_term), 0, 0, 1, 1},
   {&__pyx_n_s_start, __pyx_k_start, sizeof(__pyx_k_start), 0, 0, 1, 1},
@@ -23092,7 +23092,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_unable_to_allocate_array_data, __pyx_k_unable_to_allocate_array_data, sizeof(__pyx_k_unable_to_allocate_array_data), 0, 0, 1, 0},
   {&__pyx_kp_s_unable_to_allocate_shape_and_str, __pyx_k_unable_to_allocate_shape_and_str, sizeof(__pyx_k_unable_to_allocate_shape_and_str), 0, 0, 1, 0},
   {&__pyx_n_s_unpack, __pyx_k_unpack, sizeof(__pyx_k_unpack), 0, 0, 1, 1},
-  {&__pyx_kp_s_workspace_valls_silx_git_silx_m, __pyx_k_workspace_valls_silx_git_silx_m, sizeof(__pyx_k_workspace_valls_silx_git_silx_m), 0, 0, 1, 0},
+  {&__pyx_kp_s_users_knobel_git_silx_silx_math, __pyx_k_users_knobel_git_silx_silx_math, sizeof(__pyx_k_users_knobel_git_silx_silx_math), 0, 0, 1, 0},
   {&__pyx_n_s_x, __pyx_k_x, sizeof(__pyx_k_x), 0, 0, 1, 1},
   {&__pyx_n_s_x_c, __pyx_k_x_c, sizeof(__pyx_k_x_c), 0, 0, 1, 1},
   {&__pyx_n_s_xrange, __pyx_k_xrange, sizeof(__pyx_k_xrange), 0, 0, 1, 1},
@@ -23123,7 +23123,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "functions.pyx":87
+  /* "silx/math/fit/functions.pyx":87
  *     for len_dim in x.shape:
  *         if len_dim == 0:
  *             raise IndexError("Cannot compute erf for an empty array")             # <<<<<<<<<<<<<<
@@ -23134,7 +23134,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple_);
   __Pyx_GIVEREF(__pyx_tuple_);
 
-  /* "functions.pyx":89
+  /* "silx/math/fit/functions.pyx":89
  *             raise IndexError("Cannot compute erf for an empty array")
  * 
  *     x_c = numpy.array(x, copy=False, dtype=numpy.float64, order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -23145,7 +23145,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__2);
   __Pyx_GIVEREF(__pyx_tuple__2);
 
-  /* "functions.pyx":117
+  /* "silx/math/fit/functions.pyx":117
  *     for len_dim in x.shape:
  *         if len_dim == 0:
  *             raise IndexError("Cannot compute erfc for an empty array")             # <<<<<<<<<<<<<<
@@ -23156,7 +23156,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__3);
   __Pyx_GIVEREF(__pyx_tuple__3);
 
-  /* "functions.pyx":119
+  /* "silx/math/fit/functions.pyx":119
  *             raise IndexError("Cannot compute erfc for an empty array")
  * 
  *     x_c = numpy.array(x, copy=False, dtype=numpy.float64, order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -23167,7 +23167,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__4);
   __Pyx_GIVEREF(__pyx_tuple__4);
 
-  /* "functions.pyx":155
+  /* "silx/math/fit/functions.pyx":155
  *                       copy=False,
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -23178,7 +23178,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__5);
   __Pyx_GIVEREF(__pyx_tuple__5);
 
-  /* "functions.pyx":159
+  /* "silx/math/fit/functions.pyx":159
  *                            copy=False,
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -23189,7 +23189,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__6);
   __Pyx_GIVEREF(__pyx_tuple__6);
 
-  /* "functions.pyx":169
+  /* "silx/math/fit/functions.pyx":169
  * 
  *     if status:
  *         raise IndexError("Wrong number of parameters for function")             # <<<<<<<<<<<<<<
@@ -23200,7 +23200,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__7);
   __Pyx_GIVEREF(__pyx_tuple__7);
 
-  /* "functions.pyx":202
+  /* "silx/math/fit/functions.pyx":202
  *                       copy=False,
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -23211,7 +23211,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__8);
   __Pyx_GIVEREF(__pyx_tuple__8);
 
-  /* "functions.pyx":206
+  /* "silx/math/fit/functions.pyx":206
  *                            copy=False,
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -23222,7 +23222,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__9);
   __Pyx_GIVEREF(__pyx_tuple__9);
 
-  /* "functions.pyx":216
+  /* "silx/math/fit/functions.pyx":216
  * 
  *     if status:
  *         raise IndexError("Wrong number of parameters for function")             # <<<<<<<<<<<<<<
@@ -23233,7 +23233,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__10);
   __Pyx_GIVEREF(__pyx_tuple__10);
 
-  /* "functions.pyx":252
+  /* "silx/math/fit/functions.pyx":252
  *                       copy=False,
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -23244,7 +23244,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__11);
   __Pyx_GIVEREF(__pyx_tuple__11);
 
-  /* "functions.pyx":256
+  /* "silx/math/fit/functions.pyx":256
  *                            copy=False,
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -23255,7 +23255,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__12);
   __Pyx_GIVEREF(__pyx_tuple__12);
 
-  /* "functions.pyx":266
+  /* "silx/math/fit/functions.pyx":266
  * 
  *     if status:
  *         raise IndexError("Wrong number of parameters for function")             # <<<<<<<<<<<<<<
@@ -23266,7 +23266,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__13);
   __Pyx_GIVEREF(__pyx_tuple__13);
 
-  /* "functions.pyx":301
+  /* "silx/math/fit/functions.pyx":301
  *                       copy=False,
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -23277,7 +23277,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__14);
   __Pyx_GIVEREF(__pyx_tuple__14);
 
-  /* "functions.pyx":305
+  /* "silx/math/fit/functions.pyx":305
  *                            copy=False,
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -23288,7 +23288,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__15);
   __Pyx_GIVEREF(__pyx_tuple__15);
 
-  /* "functions.pyx":315
+  /* "silx/math/fit/functions.pyx":315
  * 
  *     if status:
  *         raise IndexError("Wrong number of parameters for function")             # <<<<<<<<<<<<<<
@@ -23299,7 +23299,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__16);
   __Pyx_GIVEREF(__pyx_tuple__16);
 
-  /* "functions.pyx":351
+  /* "silx/math/fit/functions.pyx":351
  *                       copy=False,
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -23310,7 +23310,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__17);
   __Pyx_GIVEREF(__pyx_tuple__17);
 
-  /* "functions.pyx":355
+  /* "silx/math/fit/functions.pyx":355
  *                            copy=False,
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -23321,7 +23321,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__18);
   __Pyx_GIVEREF(__pyx_tuple__18);
 
-  /* "functions.pyx":365
+  /* "silx/math/fit/functions.pyx":365
  * 
  *     if status:
  *         raise IndexError("Wrong number of parameters for function")             # <<<<<<<<<<<<<<
@@ -23332,7 +23332,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__19);
   __Pyx_GIVEREF(__pyx_tuple__19);
 
-  /* "functions.pyx":402
+  /* "silx/math/fit/functions.pyx":402
  *                       copy=False,
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -23343,7 +23343,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__20);
   __Pyx_GIVEREF(__pyx_tuple__20);
 
-  /* "functions.pyx":406
+  /* "silx/math/fit/functions.pyx":406
  *                            copy=False,
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -23354,7 +23354,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__21);
   __Pyx_GIVEREF(__pyx_tuple__21);
 
-  /* "functions.pyx":416
+  /* "silx/math/fit/functions.pyx":416
  * 
  *     if status:
  *         raise IndexError("Wrong number of parameters for function")             # <<<<<<<<<<<<<<
@@ -23365,7 +23365,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__22);
   __Pyx_GIVEREF(__pyx_tuple__22);
 
-  /* "functions.pyx":457
+  /* "silx/math/fit/functions.pyx":457
  *                       copy=False,
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -23376,7 +23376,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__23);
   __Pyx_GIVEREF(__pyx_tuple__23);
 
-  /* "functions.pyx":461
+  /* "silx/math/fit/functions.pyx":461
  *                            copy=False,
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -23387,7 +23387,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__24);
   __Pyx_GIVEREF(__pyx_tuple__24);
 
-  /* "functions.pyx":471
+  /* "silx/math/fit/functions.pyx":471
  * 
  *     if status:
  *         raise IndexError("Wrong number of parameters for function")             # <<<<<<<<<<<<<<
@@ -23398,7 +23398,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__25);
   __Pyx_GIVEREF(__pyx_tuple__25);
 
-  /* "functions.pyx":504
+  /* "silx/math/fit/functions.pyx":504
  *                       copy=False,
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -23409,7 +23409,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__26);
   __Pyx_GIVEREF(__pyx_tuple__26);
 
-  /* "functions.pyx":508
+  /* "silx/math/fit/functions.pyx":508
  *                            copy=False,
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -23420,7 +23420,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__27);
   __Pyx_GIVEREF(__pyx_tuple__27);
 
-  /* "functions.pyx":518
+  /* "silx/math/fit/functions.pyx":518
  * 
  *     if status:
  *         raise IndexError("Wrong number of parameters for function")             # <<<<<<<<<<<<<<
@@ -23431,7 +23431,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__28);
   __Pyx_GIVEREF(__pyx_tuple__28);
 
-  /* "functions.pyx":551
+  /* "silx/math/fit/functions.pyx":551
  *                       copy=False,
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -23442,7 +23442,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__29);
   __Pyx_GIVEREF(__pyx_tuple__29);
 
-  /* "functions.pyx":555
+  /* "silx/math/fit/functions.pyx":555
  *                            copy=False,
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -23453,7 +23453,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__30);
   __Pyx_GIVEREF(__pyx_tuple__30);
 
-  /* "functions.pyx":565
+  /* "silx/math/fit/functions.pyx":565
  * 
  *     if status:
  *         raise IndexError("Wrong number of parameters for function")             # <<<<<<<<<<<<<<
@@ -23464,7 +23464,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__31);
   __Pyx_GIVEREF(__pyx_tuple__31);
 
-  /* "functions.pyx":599
+  /* "silx/math/fit/functions.pyx":599
  *                       copy=False,
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -23475,7 +23475,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__32);
   __Pyx_GIVEREF(__pyx_tuple__32);
 
-  /* "functions.pyx":603
+  /* "silx/math/fit/functions.pyx":603
  *                            copy=False,
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -23486,7 +23486,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__33);
   __Pyx_GIVEREF(__pyx_tuple__33);
 
-  /* "functions.pyx":613
+  /* "silx/math/fit/functions.pyx":613
  * 
  *     if status:
  *         raise IndexError("Wrong number of parameters for function")             # <<<<<<<<<<<<<<
@@ -23497,7 +23497,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__34);
   __Pyx_GIVEREF(__pyx_tuple__34);
 
-  /* "functions.pyx":646
+  /* "silx/math/fit/functions.pyx":646
  *                       copy=False,
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -23508,7 +23508,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__35);
   __Pyx_GIVEREF(__pyx_tuple__35);
 
-  /* "functions.pyx":650
+  /* "silx/math/fit/functions.pyx":650
  *                            copy=False,
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -23519,7 +23519,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__36);
   __Pyx_GIVEREF(__pyx_tuple__36);
 
-  /* "functions.pyx":661
+  /* "silx/math/fit/functions.pyx":661
  * 
  *     if status:
  *         raise IndexError("Wrong number of parameters for function")             # <<<<<<<<<<<<<<
@@ -23530,7 +23530,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__37);
   __Pyx_GIVEREF(__pyx_tuple__37);
 
-  /* "functions.pyx":695
+  /* "silx/math/fit/functions.pyx":695
  *                       copy=False,
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -23541,7 +23541,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__38);
   __Pyx_GIVEREF(__pyx_tuple__38);
 
-  /* "functions.pyx":699
+  /* "silx/math/fit/functions.pyx":699
  *                            copy=False,
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -23552,7 +23552,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__39);
   __Pyx_GIVEREF(__pyx_tuple__39);
 
-  /* "functions.pyx":710
+  /* "silx/math/fit/functions.pyx":710
  * 
  *     if status:
  *         raise IndexError("Wrong number of parameters for function")             # <<<<<<<<<<<<<<
@@ -23563,7 +23563,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__40);
   __Pyx_GIVEREF(__pyx_tuple__40);
 
-  /* "functions.pyx":746
+  /* "silx/math/fit/functions.pyx":746
  *                       copy=False,
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -23574,7 +23574,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__41);
   __Pyx_GIVEREF(__pyx_tuple__41);
 
-  /* "functions.pyx":750
+  /* "silx/math/fit/functions.pyx":750
  *                            copy=False,
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -23585,7 +23585,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__42);
   __Pyx_GIVEREF(__pyx_tuple__42);
 
-  /* "functions.pyx":761
+  /* "silx/math/fit/functions.pyx":761
  * 
  *     if status:
  *         raise IndexError("Wrong number of parameters for function")             # <<<<<<<<<<<<<<
@@ -23596,7 +23596,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__43);
   __Pyx_GIVEREF(__pyx_tuple__43);
 
-  /* "functions.pyx":827
+  /* "silx/math/fit/functions.pyx":827
  *                       copy=False,
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -23607,7 +23607,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__44);
   __Pyx_GIVEREF(__pyx_tuple__44);
 
-  /* "functions.pyx":831
+  /* "silx/math/fit/functions.pyx":831
  *                            copy=False,
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -23618,7 +23618,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__45);
   __Pyx_GIVEREF(__pyx_tuple__45);
 
-  /* "functions.pyx":843
+  /* "silx/math/fit/functions.pyx":843
  * 
  *     if status:
  *         raise IndexError("Wrong number of parameters for function")             # <<<<<<<<<<<<<<
@@ -23629,7 +23629,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__46);
   __Pyx_GIVEREF(__pyx_tuple__46);
 
-  /* "functions.pyx":920
+  /* "silx/math/fit/functions.pyx":920
  *                       copy=False,
  *                       dtype=numpy.float64,
  *                       order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -23640,7 +23640,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__47);
   __Pyx_GIVEREF(__pyx_tuple__47);
 
-  /* "functions.pyx":924
+  /* "silx/math/fit/functions.pyx":924
  *                            copy=False,
  *                            dtype=numpy.float64,
  *                            order='C').reshape(-1)             # <<<<<<<<<<<<<<
@@ -23651,7 +23651,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__48);
   __Pyx_GIVEREF(__pyx_tuple__48);
 
-  /* "functions.pyx":936
+  /* "silx/math/fit/functions.pyx":936
  * 
  *     if status:
  *         raise IndexError("Wrong number of parameters for function")             # <<<<<<<<<<<<<<
@@ -23662,7 +23662,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__49);
   __Pyx_GIVEREF(__pyx_tuple__49);
 
-  /* "functions.pyx":984
+  /* "silx/math/fit/functions.pyx":984
  *         newpars[i, 0] = pars[2]
  *         newpars[i, 1] = pars[3] + i * pars[1]
  *         newpars[:, 2] = pars[4]             # <<<<<<<<<<<<<<
@@ -23796,7 +23796,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__62);
   __Pyx_GIVEREF(__pyx_tuple__62);
 
-  /* "functions.pyx":67
+  /* "silx/math/fit/functions.pyx":67
  * 
  * 
  * def erf(x):             # <<<<<<<<<<<<<<
@@ -23806,9 +23806,9 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__63 = PyTuple_Pack(5, __pyx_n_s_x, __pyx_n_s_x_c, __pyx_n_s_y_c, __pyx_n_s_len_dim, __pyx_n_s_status); if (unlikely(!__pyx_tuple__63)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 67; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__63);
   __Pyx_GIVEREF(__pyx_tuple__63);
-  __pyx_codeobj__64 = (PyObject*)__Pyx_PyCode_New(1, 0, 5, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__63, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_workspace_valls_silx_git_silx_m, __pyx_n_s_erf, 67, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__64)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 67; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__64 = (PyObject*)__Pyx_PyCode_New(1, 0, 5, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__63, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_knobel_git_silx_silx_math, __pyx_n_s_erf, 67, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__64)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 67; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":97
+  /* "silx/math/fit/functions.pyx":97
  * 
  * 
  * def erfc(x):             # <<<<<<<<<<<<<<
@@ -23818,9 +23818,9 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__65 = PyTuple_Pack(5, __pyx_n_s_x, __pyx_n_s_x_c, __pyx_n_s_y_c, __pyx_n_s_len_dim, __pyx_n_s_status); if (unlikely(!__pyx_tuple__65)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 97; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__65);
   __Pyx_GIVEREF(__pyx_tuple__65);
-  __pyx_codeobj__66 = (PyObject*)__Pyx_PyCode_New(1, 0, 5, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__65, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_workspace_valls_silx_git_silx_m, __pyx_n_s_erfc, 97, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__66)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 97; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__66 = (PyObject*)__Pyx_PyCode_New(1, 0, 5, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__65, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_knobel_git_silx_silx_math, __pyx_n_s_erfc, 97, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__66)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 97; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":127
+  /* "silx/math/fit/functions.pyx":127
  * 
  * 
  * def sum_gauss(x, *params):             # <<<<<<<<<<<<<<
@@ -23830,9 +23830,9 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__67 = PyTuple_Pack(6, __pyx_n_s_x, __pyx_n_s_params, __pyx_n_s_x_c, __pyx_n_s_params_c, __pyx_n_s_y_c, __pyx_n_s_status); if (unlikely(!__pyx_tuple__67)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 127; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__67);
   __Pyx_GIVEREF(__pyx_tuple__67);
-  __pyx_codeobj__68 = (PyObject*)__Pyx_PyCode_New(1, 0, 6, 0, CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__67, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_workspace_valls_silx_git_silx_m, __pyx_n_s_sum_gauss, 127, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__68)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 127; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__68 = (PyObject*)__Pyx_PyCode_New(1, 0, 6, 0, CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__67, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_knobel_git_silx_silx_math, __pyx_n_s_sum_gauss, 127, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__68)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 127; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":175
+  /* "silx/math/fit/functions.pyx":175
  * 
  * 
  * def sum_agauss(x, *params):             # <<<<<<<<<<<<<<
@@ -23842,9 +23842,9 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__69 = PyTuple_Pack(6, __pyx_n_s_x, __pyx_n_s_params, __pyx_n_s_x_c, __pyx_n_s_params_c, __pyx_n_s_y_c, __pyx_n_s_status); if (unlikely(!__pyx_tuple__69)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__69);
   __Pyx_GIVEREF(__pyx_tuple__69);
-  __pyx_codeobj__70 = (PyObject*)__Pyx_PyCode_New(1, 0, 6, 0, CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__69, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_workspace_valls_silx_git_silx_m, __pyx_n_s_sum_agauss, 175, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__70)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__70 = (PyObject*)__Pyx_PyCode_New(1, 0, 6, 0, CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__69, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_knobel_git_silx_silx_math, __pyx_n_s_sum_agauss, 175, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__70)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":221
+  /* "silx/math/fit/functions.pyx":221
  * 
  * 
  * def sum_fastagauss(x, *params):             # <<<<<<<<<<<<<<
@@ -23854,9 +23854,9 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__71 = PyTuple_Pack(6, __pyx_n_s_x, __pyx_n_s_params, __pyx_n_s_x_c, __pyx_n_s_params_c, __pyx_n_s_y_c, __pyx_n_s_status); if (unlikely(!__pyx_tuple__71)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 221; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__71);
   __Pyx_GIVEREF(__pyx_tuple__71);
-  __pyx_codeobj__72 = (PyObject*)__Pyx_PyCode_New(1, 0, 6, 0, CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__71, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_workspace_valls_silx_git_silx_m, __pyx_n_s_sum_fastagauss, 221, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__72)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 221; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__72 = (PyObject*)__Pyx_PyCode_New(1, 0, 6, 0, CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__71, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_knobel_git_silx_silx_math, __pyx_n_s_sum_fastagauss, 221, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__72)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 221; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":271
+  /* "silx/math/fit/functions.pyx":271
  * 
  * 
  * def sum_splitgauss(x, *params):             # <<<<<<<<<<<<<<
@@ -23866,9 +23866,9 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__73 = PyTuple_Pack(6, __pyx_n_s_x, __pyx_n_s_params, __pyx_n_s_x_c, __pyx_n_s_params_c, __pyx_n_s_y_c, __pyx_n_s_status); if (unlikely(!__pyx_tuple__73)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 271; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__73);
   __Pyx_GIVEREF(__pyx_tuple__73);
-  __pyx_codeobj__74 = (PyObject*)__Pyx_PyCode_New(1, 0, 6, 0, CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__73, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_workspace_valls_silx_git_silx_m, __pyx_n_s_sum_splitgauss, 271, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__74)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 271; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__74 = (PyObject*)__Pyx_PyCode_New(1, 0, 6, 0, CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__73, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_knobel_git_silx_silx_math, __pyx_n_s_sum_splitgauss, 271, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__74)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 271; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":320
+  /* "silx/math/fit/functions.pyx":320
  * 
  * 
  * def sum_apvoigt(x, *params):             # <<<<<<<<<<<<<<
@@ -23878,9 +23878,9 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__75 = PyTuple_Pack(6, __pyx_n_s_x, __pyx_n_s_params, __pyx_n_s_x_c, __pyx_n_s_params_c, __pyx_n_s_y_c, __pyx_n_s_status); if (unlikely(!__pyx_tuple__75)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 320; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__75);
   __Pyx_GIVEREF(__pyx_tuple__75);
-  __pyx_codeobj__76 = (PyObject*)__Pyx_PyCode_New(1, 0, 6, 0, CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__75, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_workspace_valls_silx_git_silx_m, __pyx_n_s_sum_apvoigt, 320, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__76)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 320; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__76 = (PyObject*)__Pyx_PyCode_New(1, 0, 6, 0, CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__75, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_knobel_git_silx_silx_math, __pyx_n_s_sum_apvoigt, 320, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__76)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 320; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":370
+  /* "silx/math/fit/functions.pyx":370
  * 
  * 
  * def sum_pvoigt(x, *params):             # <<<<<<<<<<<<<<
@@ -23890,9 +23890,9 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__77 = PyTuple_Pack(6, __pyx_n_s_x, __pyx_n_s_params, __pyx_n_s_x_c, __pyx_n_s_params_c, __pyx_n_s_y_c, __pyx_n_s_status); if (unlikely(!__pyx_tuple__77)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 370; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__77);
   __Pyx_GIVEREF(__pyx_tuple__77);
-  __pyx_codeobj__78 = (PyObject*)__Pyx_PyCode_New(1, 0, 6, 0, CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__77, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_workspace_valls_silx_git_silx_m, __pyx_n_s_sum_pvoigt, 370, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__78)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 370; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__78 = (PyObject*)__Pyx_PyCode_New(1, 0, 6, 0, CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__77, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_knobel_git_silx_silx_math, __pyx_n_s_sum_pvoigt, 370, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__78)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 370; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":421
+  /* "silx/math/fit/functions.pyx":421
  * 
  * 
  * def sum_splitpvoigt(x, *params):             # <<<<<<<<<<<<<<
@@ -23902,9 +23902,9 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__79 = PyTuple_Pack(6, __pyx_n_s_x, __pyx_n_s_params, __pyx_n_s_x_c, __pyx_n_s_params_c, __pyx_n_s_y_c, __pyx_n_s_status); if (unlikely(!__pyx_tuple__79)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 421; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__79);
   __Pyx_GIVEREF(__pyx_tuple__79);
-  __pyx_codeobj__80 = (PyObject*)__Pyx_PyCode_New(1, 0, 6, 0, CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__79, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_workspace_valls_silx_git_silx_m, __pyx_n_s_sum_splitpvoigt, 421, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__80)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 421; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__80 = (PyObject*)__Pyx_PyCode_New(1, 0, 6, 0, CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__79, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_knobel_git_silx_silx_math, __pyx_n_s_sum_splitpvoigt, 421, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__80)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 421; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":476
+  /* "silx/math/fit/functions.pyx":476
  * 
  * 
  * def sum_lorentz(x, *params):             # <<<<<<<<<<<<<<
@@ -23914,9 +23914,9 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__81 = PyTuple_Pack(6, __pyx_n_s_x, __pyx_n_s_params, __pyx_n_s_x_c, __pyx_n_s_params_c, __pyx_n_s_y_c, __pyx_n_s_status); if (unlikely(!__pyx_tuple__81)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 476; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__81);
   __Pyx_GIVEREF(__pyx_tuple__81);
-  __pyx_codeobj__82 = (PyObject*)__Pyx_PyCode_New(1, 0, 6, 0, CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__81, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_workspace_valls_silx_git_silx_m, __pyx_n_s_sum_lorentz, 476, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__82)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 476; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__82 = (PyObject*)__Pyx_PyCode_New(1, 0, 6, 0, CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__81, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_knobel_git_silx_silx_math, __pyx_n_s_sum_lorentz, 476, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__82)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 476; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":523
+  /* "silx/math/fit/functions.pyx":523
  * 
  * 
  * def sum_alorentz(x, *params):             # <<<<<<<<<<<<<<
@@ -23926,9 +23926,9 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__83 = PyTuple_Pack(6, __pyx_n_s_x, __pyx_n_s_params, __pyx_n_s_x_c, __pyx_n_s_params_c, __pyx_n_s_y_c, __pyx_n_s_status); if (unlikely(!__pyx_tuple__83)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 523; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__83);
   __Pyx_GIVEREF(__pyx_tuple__83);
-  __pyx_codeobj__84 = (PyObject*)__Pyx_PyCode_New(1, 0, 6, 0, CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__83, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_workspace_valls_silx_git_silx_m, __pyx_n_s_sum_alorentz, 523, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__84)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 523; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__84 = (PyObject*)__Pyx_PyCode_New(1, 0, 6, 0, CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__83, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_knobel_git_silx_silx_math, __pyx_n_s_sum_alorentz, 523, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__84)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 523; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":570
+  /* "silx/math/fit/functions.pyx":570
  * 
  * 
  * def sum_splitlorentz(x, *params):             # <<<<<<<<<<<<<<
@@ -23938,9 +23938,9 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__85 = PyTuple_Pack(6, __pyx_n_s_x, __pyx_n_s_params, __pyx_n_s_x_c, __pyx_n_s_params_c, __pyx_n_s_y_c, __pyx_n_s_status); if (unlikely(!__pyx_tuple__85)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 570; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__85);
   __Pyx_GIVEREF(__pyx_tuple__85);
-  __pyx_codeobj__86 = (PyObject*)__Pyx_PyCode_New(1, 0, 6, 0, CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__85, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_workspace_valls_silx_git_silx_m, __pyx_n_s_sum_splitlorentz, 570, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__86)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 570; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__86 = (PyObject*)__Pyx_PyCode_New(1, 0, 6, 0, CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__85, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_knobel_git_silx_silx_math, __pyx_n_s_sum_splitlorentz, 570, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__86)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 570; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":618
+  /* "silx/math/fit/functions.pyx":618
  * 
  * 
  * def sum_stepdown(x, *params):             # <<<<<<<<<<<<<<
@@ -23950,9 +23950,9 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__87 = PyTuple_Pack(6, __pyx_n_s_x, __pyx_n_s_params, __pyx_n_s_x_c, __pyx_n_s_params_c, __pyx_n_s_y_c, __pyx_n_s_status); if (unlikely(!__pyx_tuple__87)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 618; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__87);
   __Pyx_GIVEREF(__pyx_tuple__87);
-  __pyx_codeobj__88 = (PyObject*)__Pyx_PyCode_New(1, 0, 6, 0, CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__87, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_workspace_valls_silx_git_silx_m, __pyx_n_s_sum_stepdown, 618, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__88)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 618; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__88 = (PyObject*)__Pyx_PyCode_New(1, 0, 6, 0, CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__87, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_knobel_git_silx_silx_math, __pyx_n_s_sum_stepdown, 618, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__88)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 618; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":666
+  /* "silx/math/fit/functions.pyx":666
  * 
  * 
  * def sum_stepup(x, *params):             # <<<<<<<<<<<<<<
@@ -23962,9 +23962,9 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__89 = PyTuple_Pack(6, __pyx_n_s_x, __pyx_n_s_params, __pyx_n_s_x_c, __pyx_n_s_params_c, __pyx_n_s_y_c, __pyx_n_s_status); if (unlikely(!__pyx_tuple__89)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 666; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__89);
   __Pyx_GIVEREF(__pyx_tuple__89);
-  __pyx_codeobj__90 = (PyObject*)__Pyx_PyCode_New(1, 0, 6, 0, CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__89, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_workspace_valls_silx_git_silx_m, __pyx_n_s_sum_stepup, 666, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__90)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 666; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__90 = (PyObject*)__Pyx_PyCode_New(1, 0, 6, 0, CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__89, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_knobel_git_silx_silx_math, __pyx_n_s_sum_stepup, 666, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__90)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 666; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":715
+  /* "silx/math/fit/functions.pyx":715
  * 
  * 
  * def sum_slit(x, *params):             # <<<<<<<<<<<<<<
@@ -23974,9 +23974,9 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__91 = PyTuple_Pack(6, __pyx_n_s_x, __pyx_n_s_params, __pyx_n_s_x_c, __pyx_n_s_params_c, __pyx_n_s_y_c, __pyx_n_s_status); if (unlikely(!__pyx_tuple__91)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 715; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__91);
   __Pyx_GIVEREF(__pyx_tuple__91);
-  __pyx_codeobj__92 = (PyObject*)__Pyx_PyCode_New(1, 0, 6, 0, CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__91, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_workspace_valls_silx_git_silx_m, __pyx_n_s_sum_slit, 715, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__92)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 715; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__92 = (PyObject*)__Pyx_PyCode_New(1, 0, 6, 0, CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__91, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_knobel_git_silx_silx_math, __pyx_n_s_sum_slit, 715, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__92)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 715; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":766
+  /* "silx/math/fit/functions.pyx":766
  * 
  * 
  * def sum_ahypermet(x, *params,             # <<<<<<<<<<<<<<
@@ -23986,9 +23986,9 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__93 = PyTuple_Pack(11, __pyx_n_s_x, __pyx_n_s_gaussian_term, __pyx_n_s_st_term, __pyx_n_s_lt_term, __pyx_n_s_step_term, __pyx_n_s_params, __pyx_n_s_x_c, __pyx_n_s_params_c, __pyx_n_s_y_c, __pyx_n_s_tail_flags, __pyx_n_s_status); if (unlikely(!__pyx_tuple__93)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 766; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__93);
   __Pyx_GIVEREF(__pyx_tuple__93);
-  __pyx_codeobj__94 = (PyObject*)__Pyx_PyCode_New(1, 4, 11, 0, CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__93, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_workspace_valls_silx_git_silx_m, __pyx_n_s_sum_ahypermet, 766, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__94)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 766; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__94 = (PyObject*)__Pyx_PyCode_New(1, 4, 11, 0, CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__93, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_knobel_git_silx_silx_math, __pyx_n_s_sum_ahypermet, 766, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__94)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 766; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":848
+  /* "silx/math/fit/functions.pyx":848
  * 
  * 
  * def sum_fastahypermet(x, *params,             # <<<<<<<<<<<<<<
@@ -23998,9 +23998,9 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__95 = PyTuple_Pack(11, __pyx_n_s_x, __pyx_n_s_gaussian_term, __pyx_n_s_st_term, __pyx_n_s_lt_term, __pyx_n_s_step_term, __pyx_n_s_params, __pyx_n_s_x_c, __pyx_n_s_params_c, __pyx_n_s_y_c, __pyx_n_s_tail_flags, __pyx_n_s_status); if (unlikely(!__pyx_tuple__95)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 848; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__95);
   __Pyx_GIVEREF(__pyx_tuple__95);
-  __pyx_codeobj__96 = (PyObject*)__Pyx_PyCode_New(1, 4, 11, 0, CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__95, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_workspace_valls_silx_git_silx_m, __pyx_n_s_sum_fastahypermet, 848, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__96)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 848; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__96 = (PyObject*)__Pyx_PyCode_New(1, 4, 11, 0, CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__95, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_knobel_git_silx_silx_math, __pyx_n_s_sum_fastahypermet, 848, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__96)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 848; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":941
+  /* "silx/math/fit/functions.pyx":941
  * 
  * 
  * def atan_stepup(x, a, b, c):             # <<<<<<<<<<<<<<
@@ -24010,9 +24010,9 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__97 = PyTuple_Pack(4, __pyx_n_s_x, __pyx_n_s_a, __pyx_n_s_b, __pyx_n_s_c); if (unlikely(!__pyx_tuple__97)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 941; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__97);
   __Pyx_GIVEREF(__pyx_tuple__97);
-  __pyx_codeobj__98 = (PyObject*)__Pyx_PyCode_New(4, 0, 4, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__97, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_workspace_valls_silx_git_silx_m, __pyx_n_s_atan_stepup, 941, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__98)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 941; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__98 = (PyObject*)__Pyx_PyCode_New(4, 0, 4, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__97, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_knobel_git_silx_silx_math, __pyx_n_s_atan_stepup, 941, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__98)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 941; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":959
+  /* "silx/math/fit/functions.pyx":959
  * 
  * 
  * def periodic_gauss(x, *pars):             # <<<<<<<<<<<<<<
@@ -24022,7 +24022,7 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__99 = PyTuple_Pack(4, __pyx_n_s_x, __pyx_n_s_pars, __pyx_n_s_newpars, __pyx_n_s_i); if (unlikely(!__pyx_tuple__99)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 959; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__99);
   __Pyx_GIVEREF(__pyx_tuple__99);
-  __pyx_codeobj__100 = (PyObject*)__Pyx_PyCode_New(1, 0, 4, 0, CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__99, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_workspace_valls_silx_git_silx_m, __pyx_n_s_periodic_gauss, 959, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__100)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 959; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__100 = (PyObject*)__Pyx_PyCode_New(1, 0, 4, 0, CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__99, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_knobel_git_silx_silx_math, __pyx_n_s_periodic_gauss, 959, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__100)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 959; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
   /* "View.MemoryView":276
  *         return self.name
@@ -24166,14 +24166,14 @@ PyMODINIT_FUNC PyInit_functions(void)
   #if PY_MAJOR_VERSION < 3 && (__PYX_DEFAULT_STRING_ENCODING_IS_ASCII || __PYX_DEFAULT_STRING_ENCODING_IS_DEFAULT)
   if (__Pyx_init_sys_getdefaultencoding_params() < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   #endif
-  if (__pyx_module_is_main_functions) {
+  if (__pyx_module_is_main_silx__math__fit__functions) {
     if (PyObject_SetAttrString(__pyx_m, "__name__", __pyx_n_s_main) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
   }
   #if PY_MAJOR_VERSION >= 3
   {
     PyObject *modules = PyImport_GetModuleDict(); if (unlikely(!modules)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    if (!PyDict_GetItemString(modules, "functions")) {
-      if (unlikely(PyDict_SetItemString(modules, "functions", __pyx_m) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    if (!PyDict_GetItemString(modules, "silx.math.fit.functions")) {
+      if (unlikely(PyDict_SetItemString(modules, "silx.math.fit.functions", __pyx_m) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
   }
   #endif
@@ -24222,7 +24222,7 @@ PyMODINIT_FUNC PyInit_functions(void)
   /*--- Function import code ---*/
   /*--- Execution code ---*/
 
-  /* "functions.pyx":54
+  /* "silx/math/fit/functions.pyx":54
  * """
  * 
  * __authors__ = ["P. Knobel"]             # <<<<<<<<<<<<<<
@@ -24237,7 +24237,7 @@ PyMODINIT_FUNC PyInit_functions(void)
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_authors, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 54; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "functions.pyx":55
+  /* "silx/math/fit/functions.pyx":55
  * 
  * __authors__ = ["P. Knobel"]
  * __license__ = "MIT"             # <<<<<<<<<<<<<<
@@ -24246,7 +24246,7 @@ PyMODINIT_FUNC PyInit_functions(void)
  */
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_license, __pyx_n_s_MIT) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 55; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":56
+  /* "silx/math/fit/functions.pyx":56
  * __authors__ = ["P. Knobel"]
  * __license__ = "MIT"
  * __date__ = "15/05/2017"             # <<<<<<<<<<<<<<
@@ -24255,7 +24255,7 @@ PyMODINIT_FUNC PyInit_functions(void)
  */
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_date, __pyx_kp_s_15_05_2017) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 56; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "functions.pyx":58
+  /* "silx/math/fit/functions.pyx":58
  * __date__ = "15/05/2017"
  * 
  * import logging             # <<<<<<<<<<<<<<
@@ -24267,7 +24267,7 @@ PyMODINIT_FUNC PyInit_functions(void)
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_logging, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "functions.pyx":59
+  /* "silx/math/fit/functions.pyx":59
  * 
  * import logging
  * import numpy             # <<<<<<<<<<<<<<
@@ -24279,7 +24279,7 @@ PyMODINIT_FUNC PyInit_functions(void)
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_numpy, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 59; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "functions.pyx":61
+  /* "silx/math/fit/functions.pyx":61
  * import numpy
  * 
  * _logger = logging.getLogger(__name__)             # <<<<<<<<<<<<<<
@@ -24322,235 +24322,235 @@ PyMODINIT_FUNC PyInit_functions(void)
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_logger, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 61; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "functions.pyx":67
+  /* "silx/math/fit/functions.pyx":67
  * 
  * 
  * def erf(x):             # <<<<<<<<<<<<<<
  *     """Return the gaussian error function
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_9functions_1erf, NULL, __pyx_n_s_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 67; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_4silx_4math_3fit_9functions_1erf, NULL, __pyx_n_s_silx_math_fit_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 67; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_erf, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 67; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "functions.pyx":97
+  /* "silx/math/fit/functions.pyx":97
  * 
  * 
  * def erfc(x):             # <<<<<<<<<<<<<<
  *     """Return the gaussian complementary error function
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_9functions_3erfc, NULL, __pyx_n_s_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 97; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_4silx_4math_3fit_9functions_3erfc, NULL, __pyx_n_s_silx_math_fit_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 97; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_erfc, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 97; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "functions.pyx":127
+  /* "silx/math/fit/functions.pyx":127
  * 
  * 
  * def sum_gauss(x, *params):             # <<<<<<<<<<<<<<
  *     """Return a sum of gaussian functions defined by *(height, centroid, fwhm)*,
  *     where:
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_9functions_5sum_gauss, NULL, __pyx_n_s_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 127; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_4silx_4math_3fit_9functions_5sum_gauss, NULL, __pyx_n_s_silx_math_fit_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 127; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_sum_gauss, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 127; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "functions.pyx":175
+  /* "silx/math/fit/functions.pyx":175
  * 
  * 
  * def sum_agauss(x, *params):             # <<<<<<<<<<<<<<
  *     """Return a sum of gaussian functions defined by *(area, centroid, fwhm)*,
  *     where:
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_9functions_7sum_agauss, NULL, __pyx_n_s_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_4silx_4math_3fit_9functions_7sum_agauss, NULL, __pyx_n_s_silx_math_fit_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_sum_agauss, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "functions.pyx":221
+  /* "silx/math/fit/functions.pyx":221
  * 
  * 
  * def sum_fastagauss(x, *params):             # <<<<<<<<<<<<<<
  *     """Return a sum of gaussian functions defined by *(area, centroid, fwhm)*,
  *     where:
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_9functions_9sum_fastagauss, NULL, __pyx_n_s_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 221; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_4silx_4math_3fit_9functions_9sum_fastagauss, NULL, __pyx_n_s_silx_math_fit_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 221; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_sum_fastagauss, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 221; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "functions.pyx":271
+  /* "silx/math/fit/functions.pyx":271
  * 
  * 
  * def sum_splitgauss(x, *params):             # <<<<<<<<<<<<<<
  *     """Return a sum of gaussian functions defined by *(area, centroid, fwhm1, fwhm2)*,
  *     where:
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_9functions_11sum_splitgauss, NULL, __pyx_n_s_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 271; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_4silx_4math_3fit_9functions_11sum_splitgauss, NULL, __pyx_n_s_silx_math_fit_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 271; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_sum_splitgauss, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 271; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "functions.pyx":320
+  /* "silx/math/fit/functions.pyx":320
  * 
  * 
  * def sum_apvoigt(x, *params):             # <<<<<<<<<<<<<<
  *     """Return a sum of pseudo-Voigt functions, defined by *(area, centroid, fwhm,
  *     eta)*.
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_9functions_13sum_apvoigt, NULL, __pyx_n_s_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 320; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_4silx_4math_3fit_9functions_13sum_apvoigt, NULL, __pyx_n_s_silx_math_fit_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 320; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_sum_apvoigt, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 320; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "functions.pyx":370
+  /* "silx/math/fit/functions.pyx":370
  * 
  * 
  * def sum_pvoigt(x, *params):             # <<<<<<<<<<<<<<
  *     """Return a sum of pseudo-Voigt functions, defined by *(height, centroid,
  *     fwhm, eta)*.
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_9functions_15sum_pvoigt, NULL, __pyx_n_s_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 370; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_4silx_4math_3fit_9functions_15sum_pvoigt, NULL, __pyx_n_s_silx_math_fit_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 370; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_sum_pvoigt, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 370; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "functions.pyx":421
+  /* "silx/math/fit/functions.pyx":421
  * 
  * 
  * def sum_splitpvoigt(x, *params):             # <<<<<<<<<<<<<<
  *     """Return a sum of split pseudo-Voigt functions, defined by *(height,
  *     centroid, fwhm1, fwhm2, eta)*.
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_9functions_17sum_splitpvoigt, NULL, __pyx_n_s_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 421; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_4silx_4math_3fit_9functions_17sum_splitpvoigt, NULL, __pyx_n_s_silx_math_fit_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 421; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_sum_splitpvoigt, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 421; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "functions.pyx":476
+  /* "silx/math/fit/functions.pyx":476
  * 
  * 
  * def sum_lorentz(x, *params):             # <<<<<<<<<<<<<<
  *     """Return a sum of Lorentz distributions, also known as Cauchy distribution,
  *     defined by *(height, centroid, fwhm)*.
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_9functions_19sum_lorentz, NULL, __pyx_n_s_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 476; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_4silx_4math_3fit_9functions_19sum_lorentz, NULL, __pyx_n_s_silx_math_fit_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 476; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_sum_lorentz, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 476; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "functions.pyx":523
+  /* "silx/math/fit/functions.pyx":523
  * 
  * 
  * def sum_alorentz(x, *params):             # <<<<<<<<<<<<<<
  *     """Return a sum of Lorentz distributions, also known as Cauchy distribution,
  *     defined by *(area, centroid, fwhm)*.
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_9functions_21sum_alorentz, NULL, __pyx_n_s_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 523; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_4silx_4math_3fit_9functions_21sum_alorentz, NULL, __pyx_n_s_silx_math_fit_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 523; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_sum_alorentz, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 523; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "functions.pyx":570
+  /* "silx/math/fit/functions.pyx":570
  * 
  * 
  * def sum_splitlorentz(x, *params):             # <<<<<<<<<<<<<<
  *     """Return a sum of split Lorentz distributions,
  *     defined by *(height, centroid, fwhm1, fwhm2)*.
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_9functions_23sum_splitlorentz, NULL, __pyx_n_s_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 570; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_4silx_4math_3fit_9functions_23sum_splitlorentz, NULL, __pyx_n_s_silx_math_fit_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 570; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_sum_splitlorentz, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 570; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "functions.pyx":618
+  /* "silx/math/fit/functions.pyx":618
  * 
  * 
  * def sum_stepdown(x, *params):             # <<<<<<<<<<<<<<
  *     """Return a sum of stepdown functions.
  *     defined by *(height, centroid, fwhm)*.
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_9functions_25sum_stepdown, NULL, __pyx_n_s_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 618; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_4silx_4math_3fit_9functions_25sum_stepdown, NULL, __pyx_n_s_silx_math_fit_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 618; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_sum_stepdown, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 618; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "functions.pyx":666
+  /* "silx/math/fit/functions.pyx":666
  * 
  * 
  * def sum_stepup(x, *params):             # <<<<<<<<<<<<<<
  *     """Return a sum of stepup functions.
  *     defined by *(height, centroid, fwhm)*.
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_9functions_27sum_stepup, NULL, __pyx_n_s_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 666; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_4silx_4math_3fit_9functions_27sum_stepup, NULL, __pyx_n_s_silx_math_fit_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 666; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_sum_stepup, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 666; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "functions.pyx":715
+  /* "silx/math/fit/functions.pyx":715
  * 
  * 
  * def sum_slit(x, *params):             # <<<<<<<<<<<<<<
  *     """Return a sum of slit functions.
  *     defined by *(height, position, fwhm, beamfwhm)*.
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_9functions_29sum_slit, NULL, __pyx_n_s_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 715; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_4silx_4math_3fit_9functions_29sum_slit, NULL, __pyx_n_s_silx_math_fit_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 715; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_sum_slit, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 715; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "functions.pyx":766
+  /* "silx/math/fit/functions.pyx":766
  * 
  * 
  * def sum_ahypermet(x, *params,             # <<<<<<<<<<<<<<
  *                   gaussian_term=True, st_term=True, lt_term=True, step_term=True):
  *     """Return a sum of ahypermet functions.
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_9functions_31sum_ahypermet, NULL, __pyx_n_s_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 766; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_4silx_4math_3fit_9functions_31sum_ahypermet, NULL, __pyx_n_s_silx_math_fit_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 766; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_sum_ahypermet, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 766; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "functions.pyx":848
+  /* "silx/math/fit/functions.pyx":848
  * 
  * 
  * def sum_fastahypermet(x, *params,             # <<<<<<<<<<<<<<
  *                       gaussian_term=True, st_term=True,
  *                       lt_term=True, step_term=True):
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_9functions_33sum_fastahypermet, NULL, __pyx_n_s_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 848; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_4silx_4math_3fit_9functions_33sum_fastahypermet, NULL, __pyx_n_s_silx_math_fit_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 848; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_sum_fastahypermet, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 848; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "functions.pyx":941
+  /* "silx/math/fit/functions.pyx":941
  * 
  * 
  * def atan_stepup(x, a, b, c):             # <<<<<<<<<<<<<<
  *     """
  *     Step up function using an inverse tangent.
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_9functions_35atan_stepup, NULL, __pyx_n_s_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 941; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_4silx_4math_3fit_9functions_35atan_stepup, NULL, __pyx_n_s_silx_math_fit_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 941; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_atan_stepup, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 941; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "functions.pyx":959
+  /* "silx/math/fit/functions.pyx":959
  * 
  * 
  * def periodic_gauss(x, *pars):             # <<<<<<<<<<<<<<
  *     """
  *     Return a sum of gaussian functions defined by
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_9functions_37periodic_gauss, NULL, __pyx_n_s_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 959; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_4silx_4math_3fit_9functions_37periodic_gauss, NULL, __pyx_n_s_silx_math_fit_functions); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 959; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_periodic_gauss, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 959; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "functions.pyx":1
+  /* "silx/math/fit/functions.pyx":1
  * # coding: utf-8             # <<<<<<<<<<<<<<
  * #/[inserted by cython to avoid comment start]*##########################################################################
  * # Copyright (C) 2016-2017 European Synchrotron Radiation Facility
@@ -24688,11 +24688,11 @@ PyMODINIT_FUNC PyInit_functions(void)
   __Pyx_XDECREF(__pyx_t_5);
   if (__pyx_m) {
     if (__pyx_d) {
-      __Pyx_AddTraceback("init functions", __pyx_clineno, __pyx_lineno, __pyx_filename);
+      __Pyx_AddTraceback("init silx.math.fit.functions", __pyx_clineno, __pyx_lineno, __pyx_filename);
     }
     Py_DECREF(__pyx_m); __pyx_m = 0;
   } else if (!PyErr_Occurred()) {
-    PyErr_SetString(PyExc_ImportError, "init functions");
+    PyErr_SetString(PyExc_ImportError, "init silx.math.fit.functions");
   }
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();

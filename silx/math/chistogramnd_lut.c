@@ -231,8 +231,8 @@ void __Pyx_call_destructor(T* x) {
 #define _USE_MATH_DEFINES
 #endif
 #include <math.h>
-#define __PYX_HAVE__chistogramnd_lut
-#define __PYX_HAVE_API__chistogramnd_lut
+#define __PYX_HAVE__silx__math__chistogramnd_lut
+#define __PYX_HAVE_API__silx__math__chistogramnd_lut
 #include "string.h"
 #include "stdio.h"
 #include "stdlib.h"
@@ -443,7 +443,7 @@ static const char *__pyx_filename;
 
 
 static const char *__pyx_f[] = {
-  "chistogramnd_lut.pyx",
+  "silx/math/chistogramnd_lut.pyx",
   "__init__.pxd",
   "stringsource",
   "type.pxd",
@@ -540,7 +540,7 @@ typedef volatile __pyx_atomic_int_type __pyx_atomic_int;
 #endif
 
 
-/* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":723
+/* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":723
  * # in Cython to enable them only on the right systems.
  * 
  * ctypedef npy_int8       int8_t             # <<<<<<<<<<<<<<
@@ -549,7 +549,7 @@ typedef volatile __pyx_atomic_int_type __pyx_atomic_int;
  */
 typedef npy_int8 __pyx_t_5numpy_int8_t;
 
-/* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":724
+/* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":724
  * 
  * ctypedef npy_int8       int8_t
  * ctypedef npy_int16      int16_t             # <<<<<<<<<<<<<<
@@ -558,7 +558,7 @@ typedef npy_int8 __pyx_t_5numpy_int8_t;
  */
 typedef npy_int16 __pyx_t_5numpy_int16_t;
 
-/* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":725
+/* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":725
  * ctypedef npy_int8       int8_t
  * ctypedef npy_int16      int16_t
  * ctypedef npy_int32      int32_t             # <<<<<<<<<<<<<<
@@ -567,7 +567,7 @@ typedef npy_int16 __pyx_t_5numpy_int16_t;
  */
 typedef npy_int32 __pyx_t_5numpy_int32_t;
 
-/* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":726
+/* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":726
  * ctypedef npy_int16      int16_t
  * ctypedef npy_int32      int32_t
  * ctypedef npy_int64      int64_t             # <<<<<<<<<<<<<<
@@ -576,7 +576,7 @@ typedef npy_int32 __pyx_t_5numpy_int32_t;
  */
 typedef npy_int64 __pyx_t_5numpy_int64_t;
 
-/* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":730
+/* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":730
  * #ctypedef npy_int128     int128_t
  * 
  * ctypedef npy_uint8      uint8_t             # <<<<<<<<<<<<<<
@@ -585,7 +585,7 @@ typedef npy_int64 __pyx_t_5numpy_int64_t;
  */
 typedef npy_uint8 __pyx_t_5numpy_uint8_t;
 
-/* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":731
+/* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":731
  * 
  * ctypedef npy_uint8      uint8_t
  * ctypedef npy_uint16     uint16_t             # <<<<<<<<<<<<<<
@@ -594,7 +594,7 @@ typedef npy_uint8 __pyx_t_5numpy_uint8_t;
  */
 typedef npy_uint16 __pyx_t_5numpy_uint16_t;
 
-/* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":732
+/* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":732
  * ctypedef npy_uint8      uint8_t
  * ctypedef npy_uint16     uint16_t
  * ctypedef npy_uint32     uint32_t             # <<<<<<<<<<<<<<
@@ -603,7 +603,7 @@ typedef npy_uint16 __pyx_t_5numpy_uint16_t;
  */
 typedef npy_uint32 __pyx_t_5numpy_uint32_t;
 
-/* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":733
+/* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":733
  * ctypedef npy_uint16     uint16_t
  * ctypedef npy_uint32     uint32_t
  * ctypedef npy_uint64     uint64_t             # <<<<<<<<<<<<<<
@@ -612,7 +612,7 @@ typedef npy_uint32 __pyx_t_5numpy_uint32_t;
  */
 typedef npy_uint64 __pyx_t_5numpy_uint64_t;
 
-/* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":737
+/* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":737
  * #ctypedef npy_uint128    uint128_t
  * 
  * ctypedef npy_float32    float32_t             # <<<<<<<<<<<<<<
@@ -621,7 +621,7 @@ typedef npy_uint64 __pyx_t_5numpy_uint64_t;
  */
 typedef npy_float32 __pyx_t_5numpy_float32_t;
 
-/* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":738
+/* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":738
  * 
  * ctypedef npy_float32    float32_t
  * ctypedef npy_float64    float64_t             # <<<<<<<<<<<<<<
@@ -630,7 +630,7 @@ typedef npy_float32 __pyx_t_5numpy_float32_t;
  */
 typedef npy_float64 __pyx_t_5numpy_float64_t;
 
-/* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":747
+/* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":747
  * # The int types are mapped a bit surprising --
  * # numpy.int corresponds to 'l' and numpy.long to 'q'
  * ctypedef npy_long       int_t             # <<<<<<<<<<<<<<
@@ -639,7 +639,7 @@ typedef npy_float64 __pyx_t_5numpy_float64_t;
  */
 typedef npy_long __pyx_t_5numpy_int_t;
 
-/* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":748
+/* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":748
  * # numpy.int corresponds to 'l' and numpy.long to 'q'
  * ctypedef npy_long       int_t
  * ctypedef npy_longlong   long_t             # <<<<<<<<<<<<<<
@@ -648,7 +648,7 @@ typedef npy_long __pyx_t_5numpy_int_t;
  */
 typedef npy_longlong __pyx_t_5numpy_long_t;
 
-/* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":749
+/* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":749
  * ctypedef npy_long       int_t
  * ctypedef npy_longlong   long_t
  * ctypedef npy_longlong   longlong_t             # <<<<<<<<<<<<<<
@@ -657,7 +657,7 @@ typedef npy_longlong __pyx_t_5numpy_long_t;
  */
 typedef npy_longlong __pyx_t_5numpy_longlong_t;
 
-/* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":751
+/* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":751
  * ctypedef npy_longlong   longlong_t
  * 
  * ctypedef npy_ulong      uint_t             # <<<<<<<<<<<<<<
@@ -666,7 +666,7 @@ typedef npy_longlong __pyx_t_5numpy_longlong_t;
  */
 typedef npy_ulong __pyx_t_5numpy_uint_t;
 
-/* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":752
+/* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":752
  * 
  * ctypedef npy_ulong      uint_t
  * ctypedef npy_ulonglong  ulong_t             # <<<<<<<<<<<<<<
@@ -675,7 +675,7 @@ typedef npy_ulong __pyx_t_5numpy_uint_t;
  */
 typedef npy_ulonglong __pyx_t_5numpy_ulong_t;
 
-/* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":753
+/* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":753
  * ctypedef npy_ulong      uint_t
  * ctypedef npy_ulonglong  ulong_t
  * ctypedef npy_ulonglong  ulonglong_t             # <<<<<<<<<<<<<<
@@ -684,7 +684,7 @@ typedef npy_ulonglong __pyx_t_5numpy_ulong_t;
  */
 typedef npy_ulonglong __pyx_t_5numpy_ulonglong_t;
 
-/* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":755
+/* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":755
  * ctypedef npy_ulonglong  ulonglong_t
  * 
  * ctypedef npy_intp       intp_t             # <<<<<<<<<<<<<<
@@ -693,7 +693,7 @@ typedef npy_ulonglong __pyx_t_5numpy_ulonglong_t;
  */
 typedef npy_intp __pyx_t_5numpy_intp_t;
 
-/* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":756
+/* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":756
  * 
  * ctypedef npy_intp       intp_t
  * ctypedef npy_uintp      uintp_t             # <<<<<<<<<<<<<<
@@ -702,7 +702,7 @@ typedef npy_intp __pyx_t_5numpy_intp_t;
  */
 typedef npy_uintp __pyx_t_5numpy_uintp_t;
 
-/* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":758
+/* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":758
  * ctypedef npy_uintp      uintp_t
  * 
  * ctypedef npy_double     float_t             # <<<<<<<<<<<<<<
@@ -711,7 +711,7 @@ typedef npy_uintp __pyx_t_5numpy_uintp_t;
  */
 typedef npy_double __pyx_t_5numpy_float_t;
 
-/* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":759
+/* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":759
  * 
  * ctypedef npy_double     float_t
  * ctypedef npy_double     double_t             # <<<<<<<<<<<<<<
@@ -720,7 +720,7 @@ typedef npy_double __pyx_t_5numpy_float_t;
  */
 typedef npy_double __pyx_t_5numpy_double_t;
 
-/* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":760
+/* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":760
  * ctypedef npy_double     float_t
  * ctypedef npy_double     double_t
  * ctypedef npy_longdouble longdouble_t             # <<<<<<<<<<<<<<
@@ -755,7 +755,7 @@ struct __pyx_MemviewEnum_obj;
 struct __pyx_memoryview_obj;
 struct __pyx_memoryviewslice_obj;
 
-/* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":762
+/* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":762
  * ctypedef npy_longdouble longdouble_t
  * 
  * ctypedef npy_cfloat      cfloat_t             # <<<<<<<<<<<<<<
@@ -764,7 +764,7 @@ struct __pyx_memoryviewslice_obj;
  */
 typedef npy_cfloat __pyx_t_5numpy_cfloat_t;
 
-/* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":763
+/* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":763
  * 
  * ctypedef npy_cfloat      cfloat_t
  * ctypedef npy_cdouble     cdouble_t             # <<<<<<<<<<<<<<
@@ -773,7 +773,7 @@ typedef npy_cfloat __pyx_t_5numpy_cfloat_t;
  */
 typedef npy_cdouble __pyx_t_5numpy_cdouble_t;
 
-/* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":764
+/* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":764
  * ctypedef npy_cfloat      cfloat_t
  * ctypedef npy_cdouble     cdouble_t
  * ctypedef npy_clongdouble clongdouble_t             # <<<<<<<<<<<<<<
@@ -782,7 +782,7 @@ typedef npy_cdouble __pyx_t_5numpy_cdouble_t;
  */
 typedef npy_clongdouble __pyx_t_5numpy_clongdouble_t;
 
-/* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":766
+/* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":766
  * ctypedef npy_clongdouble clongdouble_t
  * 
  * ctypedef npy_cdouble     complex_t             # <<<<<<<<<<<<<<
@@ -1571,7 +1571,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *, cha
 
 /* Module declarations from 'cython' */
 
-/* Module declarations from 'chistogramnd_lut' */
+/* Module declarations from 'silx.math.chistogramnd_lut' */
 static PyTypeObject *__pyx_array_type = 0;
 static PyTypeObject *__pyx_MemviewEnum_type = 0;
 static PyTypeObject *__pyx_memoryview_type = 0;
@@ -1621,10 +1621,10 @@ static __Pyx_TypeInfo __Pyx_TypeInfo_nn___pyx_t_5numpy_int16_t = { "int16_t", NU
 static __Pyx_TypeInfo __Pyx_TypeInfo_nn___pyx_t_5numpy_uint32_t = { "uint32_t", NULL, sizeof(__pyx_t_5numpy_uint32_t), { 0 }, 0, IS_UNSIGNED(__pyx_t_5numpy_uint32_t) ? 'U' : 'I', IS_UNSIGNED(__pyx_t_5numpy_uint32_t), 0 };
 static __Pyx_TypeInfo __Pyx_TypeInfo_double = { "double", NULL, sizeof(double), { 0 }, 0, 'R', 0, 0 };
 static __Pyx_TypeInfo __Pyx_TypeInfo_int = { "int", NULL, sizeof(int), { 0 }, 0, IS_UNSIGNED(int) ? 'U' : 'I', IS_UNSIGNED(int), 0 };
-#define __Pyx_MODULE_NAME "chistogramnd_lut"
-int __pyx_module_is_main_chistogramnd_lut = 0;
+#define __Pyx_MODULE_NAME "silx.math.chistogramnd_lut"
+int __pyx_module_is_main_silx__math__chistogramnd_lut = 0;
 
-/* Implementation of 'chistogramnd_lut' */
+/* Implementation of 'silx.math.chistogramnd_lut' */
 static PyObject *__pyx_builtin_ValueError;
 static PyObject *__pyx_builtin_TypeError;
 static PyObject *__pyx_builtin_Exception;
@@ -1640,70 +1640,70 @@ static PyObject *__pyx_builtin_Ellipsis;
 static PyObject *__pyx_builtin_xrange;
 static PyObject *__pyx_builtin_id;
 static PyObject *__pyx_builtin_IndexError;
-static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_sample, PyObject *__pyx_v_histo_range, PyObject *__pyx_v_n_bins, PyObject *__pyx_v_last_bin_closed); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_weights, PyObject *__pyx_v_histo_lut, PyObject *__pyx_v_histo, PyObject *__pyx_v_weighted_histo, PyObject *__pyx_v_shape, PyObject *__pyx_v_dtype, PyObject *__pyx_v_weight_min, PyObject *__pyx_v_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_4_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_signatures, PyObject *__pyx_v_args, PyObject *__pyx_v_kwargs, CYTHON_UNUSED PyObject *__pyx_v_defaults); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_8_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_10_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_12_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_14_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_16_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_18_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_20_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_22_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_24_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_26_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_28_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_30_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_32_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_34_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_36_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_38_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_40_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_42_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_44_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_46_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_48_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_50_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_52_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_54_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_56_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_58_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_60_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_62_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_64_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_66_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_68_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_70_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_72_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_74_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_76_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_78_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_80_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_82_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_84_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_86_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_88_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_90_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_92_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_94_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_96_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_98_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_100_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_102_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_6_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_signatures, PyObject *__pyx_v_args, PyObject *__pyx_v_kwargs, CYTHON_UNUSED PyObject *__pyx_v_defaults); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed); /* proto */
-static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_sample, PyObject *__pyx_v_histo_range, PyObject *__pyx_v_n_bins, PyObject *__pyx_v_last_bin_closed); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_weights, PyObject *__pyx_v_histo_lut, PyObject *__pyx_v_histo, PyObject *__pyx_v_weighted_histo, PyObject *__pyx_v_shape, PyObject *__pyx_v_dtype, PyObject *__pyx_v_weight_min, PyObject *__pyx_v_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_signatures, PyObject *__pyx_v_args, PyObject *__pyx_v_kwargs, CYTHON_UNUSED PyObject *__pyx_v_defaults); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_8_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_10_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_12_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_14_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_16_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_18_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_20_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_22_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_24_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_26_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_28_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_30_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_32_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_34_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_36_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_38_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_40_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_42_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_44_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_46_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_48_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_50_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_52_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_54_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_56_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_58_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_60_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_62_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_64_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_66_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_68_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_70_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_72_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_74_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_76_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_78_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_80_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_82_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_84_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_86_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_88_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_90_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_92_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_94_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_96_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_98_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_100_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_102_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_6_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_signatures, PyObject *__pyx_v_args, PyObject *__pyx_v_kwargs, CYTHON_UNUSED PyObject *__pyx_v_defaults); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed); /* proto */
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed); /* proto */
 static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info); /* proto */
 static int __pyx_array_MemoryView_5array___cinit__(struct __pyx_array_obj *__pyx_v_self, PyObject *__pyx_v_shape, Py_ssize_t __pyx_v_itemsize, PyObject *__pyx_v_format, PyObject *__pyx_v_mode, int __pyx_v_allocate_buffer); /* proto */
@@ -1905,7 +1905,6 @@ static char __pyx_k_int64_t_int16_t[] = "int64_t|int16_t";
 static char __pyx_k_int64_t_int32_t[] = "int64_t|int32_t";
 static char __pyx_k_int64_t_int64_t[] = "int64_t|int64_t";
 static char __pyx_k_last_bin_closed[] = "last_bin_closed";
-static char __pyx_k_chistogramnd_lut[] = "chistogramnd_lut";
 static char __pyx_k_filt_max_weights[] = "filt_max_weights";
 static char __pyx_k_filt_min_weights[] = "filt_min_weights";
 static char __pyx_k_o_weighted_histo[] = "o_weighted_histo";
@@ -1969,6 +1968,7 @@ static char __pyx_k_int64_t_int64_t_float32_t[] = "int64_t|int64_t|float32_t";
 static char __pyx_k_int64_t_int64_t_float64_t[] = "int64_t|int64_t|float64_t";
 static char __pyx_k_Index_out_of_bounds_axis_d[] = "Index out of bounds (axis %d)";
 static char __pyx_k_histogramnd_from_lut_fused[] = "_histogramnd_from_lut_fused";
+static char __pyx_k_silx_math_chistogramnd_lut[] = "silx.math.chistogramnd_lut";
 static char __pyx_k_No_matching_signature_found[] = "No matching signature found";
 static char __pyx_k_Step_may_not_be_zero_axis_d[] = "Step may not be zero (axis %d)";
 static char __pyx_k_Type_not_supported_sample_0[] = "Type not supported - sample : {0}";
@@ -1992,9 +1992,9 @@ static char __pyx_k_strided_and_direct_or_indirect[] = "<strided and direct or i
 static char __pyx_k_The_LUT_and_weights_arrays_must[] = "The LUT and weights arrays must have the same number of elements.";
 static char __pyx_k_histo_range_error_expected_n_di[] = "<histo_range> error : expected {n_dims} sets of lower and upper bin edges, got the following instead : {histo_range}. (provided <sample> contains {n_dims}D values)";
 static char __pyx_k_histogramnd_returned_an_error_0[] = "histogramnd returned an error : {0}";
-static char __pyx_k_mntdirect__scisoft_users_tvince[] = "/mntdirect/_scisoft/users/tvincent/src/silx/silx/math/histogramnd/chistogramnd_lut.pyx";
 static char __pyx_k_n_bins_only_positive_values_all[] = "<n_bins> : only positive values allowed.";
 static char __pyx_k_unknown_dtype_code_in_numpy_pxd[] = "unknown dtype code in numpy.pxd (%d)";
+static char __pyx_k_users_knobel_git_silx_silx_math[] = "/users/knobel/git/silx/silx/math/chistogramnd_lut.pyx";
 static char __pyx_k_All_dimensions_preceding_dimensi[] = "All dimensions preceding dimension %d must be indexed and not sliced";
 static char __pyx_k_At_least_one_of_the_following_pa[] = "At least one of the following parameters has to be provided : <shape> or <histo> or <weighted_histo>";
 static char __pyx_k_Buffer_view_does_not_expose_stri[] = "Buffer view does not expose strides";
@@ -2072,7 +2072,6 @@ static PyObject *__pyx_n_s_bin_idx;
 static PyObject *__pyx_n_s_bins_range;
 static PyObject *__pyx_n_s_c;
 static PyObject *__pyx_n_u_c;
-static PyObject *__pyx_n_s_chistogramnd_lut;
 static PyObject *__pyx_n_s_class;
 static PyObject *__pyx_kp_s_contiguous_and_direct;
 static PyObject *__pyx_kp_s_contiguous_and_indirect;
@@ -2210,7 +2209,6 @@ static PyObject *__pyx_n_s_lut_idx;
 static PyObject *__pyx_n_s_main;
 static PyObject *__pyx_n_s_max_idx;
 static PyObject *__pyx_n_s_memview;
-static PyObject *__pyx_kp_s_mntdirect__scisoft_users_tvince;
 static PyObject *__pyx_n_s_mode;
 static PyObject *__pyx_n_s_n_bins;
 static PyObject *__pyx_n_s_n_bins_c;
@@ -2248,6 +2246,7 @@ static PyObject *__pyx_n_s_sample_c;
 static PyObject *__pyx_n_s_sample_type;
 static PyObject *__pyx_n_s_shape;
 static PyObject *__pyx_n_s_signatures;
+static PyObject *__pyx_n_s_silx_math_chistogramnd_lut;
 static PyObject *__pyx_n_s_size;
 static PyObject *__pyx_n_s_split;
 static PyObject *__pyx_n_s_start;
@@ -2267,6 +2266,7 @@ static PyObject *__pyx_kp_s_unable_to_allocate_array_data;
 static PyObject *__pyx_kp_s_unable_to_allocate_shape_and_str;
 static PyObject *__pyx_kp_u_unknown_dtype_code_in_numpy_pxd;
 static PyObject *__pyx_n_s_unpack;
+static PyObject *__pyx_kp_s_users_knobel_git_silx_silx_math;
 static PyObject *__pyx_n_s_w_c;
 static PyObject *__pyx_n_s_w_dtype;
 static PyObject *__pyx_n_s_w_h_c;
@@ -2335,7 +2335,7 @@ static PyObject *__pyx_codeobj__44;
 static PyObject *__pyx_codeobj__46;
 static PyObject *__pyx_codeobj__48;
 
-/* "chistogramnd_lut.pyx":58
+/* "silx/math/chistogramnd_lut.pyx":58
  * 
  * 
  * def histogramnd_get_lut(sample,             # <<<<<<<<<<<<<<
@@ -2344,10 +2344,10 @@ static PyObject *__pyx_codeobj__48;
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_16chistogramnd_lut_1histogramnd_get_lut(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_16chistogramnd_lut_histogramnd_get_lut[] = "histogramnd_get_lut(sample, histo_range, n_bins, last_bin_closed=False)\nTBD\n\n    :param sample:\n        The data to be histogrammed.\n        Its shape must be either (N,) if it contains one dimensional\n        coordinates, or an (N, D) array where the rows are the\n        coordinates of points in a D dimensional space.\n        The following dtypes are supported : :class:`numpy.float64`,\n        :class:`numpy.float32`, :class:`numpy.int32`.\n    :type sample: :class:`numpy.array`\n\n    :param histo_range:\n        A (N, 2) array containing the histogram range along each dimension,\n        where N is the sample's number of dimensions.\n    :type histo_range: array_like\n\n    :param n_bins:\n        The number of bins :\n            * a scalar (same number of bins for all dimensions)\n            * a D elements array (number of bins for each dimensions)\n    :type n_bins: scalar or array_like\n\n    :param last_bin_closed:\n        By default the last bin is half\n        open (i.e.: [x,y) ; x included, y\n        excluded), like all the other bins.\n        Set this parameter to true if you want\n        the LAST bin to be closed.\n    :type last_bin_closed: *optional*, :class:`python.boolean`\n\n    :return: The indices for each sample and the histogram (bin counts).\n    :rtype: tuple : (:class:`numpy.array`, :class:`numpy.array`)\n    ";
-static PyMethodDef __pyx_mdef_16chistogramnd_lut_1histogramnd_get_lut = {"histogramnd_get_lut", (PyCFunction)__pyx_pw_16chistogramnd_lut_1histogramnd_get_lut, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_histogramnd_get_lut};
-static PyObject *__pyx_pw_16chistogramnd_lut_1histogramnd_get_lut(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_4silx_4math_16chistogramnd_lut_1histogramnd_get_lut(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_4silx_4math_16chistogramnd_lut_histogramnd_get_lut[] = "histogramnd_get_lut(sample, histo_range, n_bins, last_bin_closed=False)\nTBD\n\n    :param sample:\n        The data to be histogrammed.\n        Its shape must be either (N,) if it contains one dimensional\n        coordinates, or an (N, D) array where the rows are the\n        coordinates of points in a D dimensional space.\n        The following dtypes are supported : :class:`numpy.float64`,\n        :class:`numpy.float32`, :class:`numpy.int32`.\n    :type sample: :class:`numpy.array`\n\n    :param histo_range:\n        A (N, 2) array containing the histogram range along each dimension,\n        where N is the sample's number of dimensions.\n    :type histo_range: array_like\n\n    :param n_bins:\n        The number of bins :\n            * a scalar (same number of bins for all dimensions)\n            * a D elements array (number of bins for each dimensions)\n    :type n_bins: scalar or array_like\n\n    :param last_bin_closed:\n        By default the last bin is half\n        open (i.e.: [x,y) ; x included, y\n        excluded), like all the other bins.\n        Set this parameter to true if you want\n        the LAST bin to be closed.\n    :type last_bin_closed: *optional*, :class:`python.boolean`\n\n    :return: The indices for each sample and the histogram (bin counts).\n    :rtype: tuple : (:class:`numpy.array`, :class:`numpy.array`)\n    ";
+static PyMethodDef __pyx_mdef_4silx_4math_16chistogramnd_lut_1histogramnd_get_lut = {"histogramnd_get_lut", (PyCFunction)__pyx_pw_4silx_4math_16chistogramnd_lut_1histogramnd_get_lut, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_histogramnd_get_lut};
+static PyObject *__pyx_pw_4silx_4math_16chistogramnd_lut_1histogramnd_get_lut(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_sample = 0;
   PyObject *__pyx_v_histo_range = 0;
   PyObject *__pyx_v_n_bins = 0;
@@ -2362,7 +2362,7 @@ static PyObject *__pyx_pw_16chistogramnd_lut_1histogramnd_get_lut(PyObject *__py
     static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_sample,&__pyx_n_s_histo_range,&__pyx_n_s_n_bins,&__pyx_n_s_last_bin_closed,0};
     PyObject* values[4] = {0,0,0,0};
 
-    /* "chistogramnd_lut.pyx":61
+    /* "silx/math/chistogramnd_lut.pyx":61
  *                         histo_range,
  *                         n_bins,
  *                         last_bin_closed=False):             # <<<<<<<<<<<<<<
@@ -2424,13 +2424,13 @@ static PyObject *__pyx_pw_16chistogramnd_lut_1histogramnd_get_lut(PyObject *__py
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("histogramnd_get_lut", 0, 3, 4, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut.histogramnd_get_lut", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut.histogramnd_get_lut", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_histogramnd_get_lut(__pyx_self, __pyx_v_sample, __pyx_v_histo_range, __pyx_v_n_bins, __pyx_v_last_bin_closed);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_histogramnd_get_lut(__pyx_self, __pyx_v_sample, __pyx_v_histo_range, __pyx_v_n_bins, __pyx_v_last_bin_closed);
 
-  /* "chistogramnd_lut.pyx":58
+  /* "silx/math/chistogramnd_lut.pyx":58
  * 
  * 
  * def histogramnd_get_lut(sample,             # <<<<<<<<<<<<<<
@@ -2443,7 +2443,7 @@ static PyObject *__pyx_pw_16chistogramnd_lut_1histogramnd_get_lut(PyObject *__py
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_sample, PyObject *__pyx_v_histo_range, PyObject *__pyx_v_n_bins, PyObject *__pyx_v_last_bin_closed) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_sample, PyObject *__pyx_v_histo_range, PyObject *__pyx_v_n_bins, PyObject *__pyx_v_last_bin_closed) {
   PyObject *__pyx_v_s_shape = NULL;
   PyObject *__pyx_v_n_dims = NULL;
   PyObject *__pyx_v_i_histo_range = NULL;
@@ -2490,7 +2490,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   __Pyx_INCREF(__pyx_v_histo_range);
   __Pyx_INCREF(__pyx_v_n_bins);
 
-  /* "chistogramnd_lut.pyx":96
+  /* "silx/math/chistogramnd_lut.pyx":96
  *     """
  * 
  *     s_shape = sample.shape             # <<<<<<<<<<<<<<
@@ -2502,7 +2502,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   __pyx_v_s_shape = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "chistogramnd_lut.pyx":98
+  /* "silx/math/chistogramnd_lut.pyx":98
  *     s_shape = sample.shape
  * 
  *     n_dims = 1 if len(s_shape) == 1 else s_shape[1]             # <<<<<<<<<<<<<<
@@ -2522,7 +2522,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   __pyx_v_n_dims = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "chistogramnd_lut.pyx":103
+  /* "silx/math/chistogramnd_lut.pyx":103
  *     # (this allows the user to provide native python lists,
  *     #   => easier for testing)
  *     i_histo_range = histo_range             # <<<<<<<<<<<<<<
@@ -2532,7 +2532,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   __Pyx_INCREF(__pyx_v_histo_range);
   __pyx_v_i_histo_range = __pyx_v_histo_range;
 
-  /* "chistogramnd_lut.pyx":104
+  /* "silx/math/chistogramnd_lut.pyx":104
  *     #   => easier for testing)
  *     i_histo_range = histo_range
  *     histo_range = np.array(histo_range)             # <<<<<<<<<<<<<<
@@ -2572,7 +2572,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   __Pyx_DECREF_SET(__pyx_v_histo_range, __pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "chistogramnd_lut.pyx":105
+  /* "silx/math/chistogramnd_lut.pyx":105
  *     i_histo_range = histo_range
  *     histo_range = np.array(histo_range)
  *     err_histo_range = False             # <<<<<<<<<<<<<<
@@ -2581,7 +2581,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
  */
   __pyx_v_err_histo_range = 0;
 
-  /* "chistogramnd_lut.pyx":107
+  /* "silx/math/chistogramnd_lut.pyx":107
  *     err_histo_range = False
  * 
  *     if n_dims == 1:             # <<<<<<<<<<<<<<
@@ -2593,7 +2593,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_6) {
 
-    /* "chistogramnd_lut.pyx":108
+    /* "silx/math/chistogramnd_lut.pyx":108
  * 
  *     if n_dims == 1:
  *         if histo_range.shape == (2,):             # <<<<<<<<<<<<<<
@@ -2610,7 +2610,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
       goto __pyx_L4;
     }
 
-    /* "chistogramnd_lut.pyx":110
+    /* "silx/math/chistogramnd_lut.pyx":110
  *         if histo_range.shape == (2,):
  *             pass
  *         elif histo_range.shape == (1, 2):             # <<<<<<<<<<<<<<
@@ -2625,7 +2625,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     if (__pyx_t_6) {
 
-      /* "chistogramnd_lut.pyx":111
+      /* "silx/math/chistogramnd_lut.pyx":111
  *             pass
  *         elif histo_range.shape == (1, 2):
  *             histo_range.reshape(-1)             # <<<<<<<<<<<<<<
@@ -2642,7 +2642,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
     }
     /*else*/ {
 
-      /* "chistogramnd_lut.pyx":113
+      /* "silx/math/chistogramnd_lut.pyx":113
  *             histo_range.reshape(-1)
  *         else:
  *             err_histo_range = True             # <<<<<<<<<<<<<<
@@ -2655,7 +2655,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
     goto __pyx_L3;
   }
 
-  /* "chistogramnd_lut.pyx":114
+  /* "silx/math/chistogramnd_lut.pyx":114
  *         else:
  *             err_histo_range = True
  *     elif n_dims != 1 and histo_range.shape != (n_dims, 2):             # <<<<<<<<<<<<<<
@@ -2689,7 +2689,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   __pyx_L5_bool_binop_done:;
   if (__pyx_t_6) {
 
-    /* "chistogramnd_lut.pyx":115
+    /* "silx/math/chistogramnd_lut.pyx":115
  *             err_histo_range = True
  *     elif n_dims != 1 and histo_range.shape != (n_dims, 2):
  *         err_histo_range = True             # <<<<<<<<<<<<<<
@@ -2701,7 +2701,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   }
   __pyx_L3:;
 
-  /* "chistogramnd_lut.pyx":117
+  /* "silx/math/chistogramnd_lut.pyx":117
  *         err_histo_range = True
  * 
  *     if err_histo_range:             # <<<<<<<<<<<<<<
@@ -2711,7 +2711,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   __pyx_t_6 = (__pyx_v_err_histo_range != 0);
   if (__pyx_t_6) {
 
-    /* "chistogramnd_lut.pyx":123
+    /* "silx/math/chistogramnd_lut.pyx":123
  *                          '(provided <sample> contains '
  *                          '{n_dims}D values)'
  *                          ''.format(histo_range=i_histo_range,             # <<<<<<<<<<<<<<
@@ -2724,7 +2724,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
     __Pyx_GOTREF(__pyx_t_1);
     if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_histo_range, __pyx_v_i_histo_range) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-    /* "chistogramnd_lut.pyx":124
+    /* "silx/math/chistogramnd_lut.pyx":124
  *                          '{n_dims}D values)'
  *                          ''.format(histo_range=i_histo_range,
  *                                    n_dims=n_dims))             # <<<<<<<<<<<<<<
@@ -2733,7 +2733,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
  */
     if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_n_dims, __pyx_v_n_dims) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-    /* "chistogramnd_lut.pyx":123
+    /* "silx/math/chistogramnd_lut.pyx":123
  *                          '(provided <sample> contains '
  *                          '{n_dims}D values)'
  *                          ''.format(histo_range=i_histo_range,             # <<<<<<<<<<<<<<
@@ -2745,7 +2745,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "chistogramnd_lut.pyx":118
+    /* "silx/math/chistogramnd_lut.pyx":118
  * 
  *     if err_histo_range:
  *         raise ValueError('<histo_range> error : expected {n_dims} sets of '             # <<<<<<<<<<<<<<
@@ -2765,7 +2765,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 118; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "chistogramnd_lut.pyx":126
+  /* "silx/math/chistogramnd_lut.pyx":126
  *                                    n_dims=n_dims))
  * 
  *     histo_range = np.double(histo_range)             # <<<<<<<<<<<<<<
@@ -2805,7 +2805,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   __Pyx_DECREF_SET(__pyx_v_histo_range, __pyx_t_4);
   __pyx_t_4 = 0;
 
-  /* "chistogramnd_lut.pyx":129
+  /* "silx/math/chistogramnd_lut.pyx":129
  * 
  *     # checking n_bins size
  *     n_bins = np.array(n_bins, ndmin=1)             # <<<<<<<<<<<<<<
@@ -2833,7 +2833,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   __Pyx_DECREF_SET(__pyx_v_n_bins, __pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "chistogramnd_lut.pyx":130
+  /* "silx/math/chistogramnd_lut.pyx":130
  *     # checking n_bins size
  *     n_bins = np.array(n_bins, ndmin=1)
  *     if len(n_bins) == 1:             # <<<<<<<<<<<<<<
@@ -2844,7 +2844,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   __pyx_t_6 = ((__pyx_t_2 == 1) != 0);
   if (__pyx_t_6) {
 
-    /* "chistogramnd_lut.pyx":131
+    /* "silx/math/chistogramnd_lut.pyx":131
  *     n_bins = np.array(n_bins, ndmin=1)
  *     if len(n_bins) == 1:
  *         n_bins = np.tile(n_bins, n_dims)             # <<<<<<<<<<<<<<
@@ -2888,7 +2888,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
     goto __pyx_L8;
   }
 
-  /* "chistogramnd_lut.pyx":132
+  /* "silx/math/chistogramnd_lut.pyx":132
  *     if len(n_bins) == 1:
  *         n_bins = np.tile(n_bins, n_dims)
  *     elif n_bins.shape != (n_dims,):             # <<<<<<<<<<<<<<
@@ -2909,7 +2909,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   if (__pyx_t_6) {
 
-    /* "chistogramnd_lut.pyx":133
+    /* "silx/math/chistogramnd_lut.pyx":133
  *         n_bins = np.tile(n_bins, n_dims)
  *     elif n_bins.shape != (n_dims,):
  *         raise ValueError('n_bins must be either a scalar (same number '             # <<<<<<<<<<<<<<
@@ -2924,7 +2924,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   }
   __pyx_L8:;
 
-  /* "chistogramnd_lut.pyx":141
+  /* "silx/math/chistogramnd_lut.pyx":141
  *     #   exception is thrown when calling np.zeros
  *     # also testing for negative/null values
  *     if np.any(np.equal(n_bins, None)) or np.any(n_bins <= 0):             # <<<<<<<<<<<<<<
@@ -3039,7 +3039,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   __pyx_L10_bool_binop_done:;
   if (__pyx_t_6) {
 
-    /* "chistogramnd_lut.pyx":142
+    /* "silx/math/chistogramnd_lut.pyx":142
  *     # also testing for negative/null values
  *     if np.any(np.equal(n_bins, None)) or np.any(n_bins <= 0):
  *         raise ValueError('<n_bins> : only positive values allowed.')             # <<<<<<<<<<<<<<
@@ -3053,7 +3053,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 142; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "chistogramnd_lut.pyx":144
+  /* "silx/math/chistogramnd_lut.pyx":144
  *         raise ValueError('<n_bins> : only positive values allowed.')
  * 
  *     sample_type = sample.dtype             # <<<<<<<<<<<<<<
@@ -3065,7 +3065,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   __pyx_v_sample_type = __pyx_t_5;
   __pyx_t_5 = 0;
 
-  /* "chistogramnd_lut.pyx":146
+  /* "silx/math/chistogramnd_lut.pyx":146
  *     sample_type = sample.dtype
  * 
  *     n_elem = sample.size // n_dims             # <<<<<<<<<<<<<<
@@ -3080,7 +3080,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   __pyx_v_n_elem = __pyx_t_9;
   __pyx_t_9 = 0;
 
-  /* "chistogramnd_lut.pyx":148
+  /* "silx/math/chistogramnd_lut.pyx":148
  *     n_elem = sample.size // n_dims
  * 
  *     if n_bins.prod(dtype=np.uint64) < 2**15:             # <<<<<<<<<<<<<<
@@ -3108,7 +3108,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   if (__pyx_t_6) {
 
-    /* "chistogramnd_lut.pyx":149
+    /* "silx/math/chistogramnd_lut.pyx":149
  * 
  *     if n_bins.prod(dtype=np.uint64) < 2**15:
  *         lut_dtype = np.int16             # <<<<<<<<<<<<<<
@@ -3125,7 +3125,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
     goto __pyx_L12;
   }
 
-  /* "chistogramnd_lut.pyx":150
+  /* "silx/math/chistogramnd_lut.pyx":150
  *     if n_bins.prod(dtype=np.uint64) < 2**15:
  *         lut_dtype = np.int16
  *     elif n_bins.prod(dtype=np.uint64) < 2**31:             # <<<<<<<<<<<<<<
@@ -3153,7 +3153,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   if (__pyx_t_6) {
 
-    /* "chistogramnd_lut.pyx":151
+    /* "silx/math/chistogramnd_lut.pyx":151
  *         lut_dtype = np.int16
  *     elif n_bins.prod(dtype=np.uint64) < 2**31:
  *         lut_dtype = np.int32             # <<<<<<<<<<<<<<
@@ -3171,7 +3171,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   }
   /*else*/ {
 
-    /* "chistogramnd_lut.pyx":153
+    /* "silx/math/chistogramnd_lut.pyx":153
  *         lut_dtype = np.int32
  *     else:
  *         lut_dtype = np.int64             # <<<<<<<<<<<<<<
@@ -3188,7 +3188,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   }
   __pyx_L12:;
 
-  /* "chistogramnd_lut.pyx":156
+  /* "silx/math/chistogramnd_lut.pyx":156
  * 
  *     # allocating the output arrays
  *     lut = np.zeros(n_elem, dtype=lut_dtype)             # <<<<<<<<<<<<<<
@@ -3216,7 +3216,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   __pyx_v_lut = __pyx_t_9;
   __pyx_t_9 = 0;
 
-  /* "chistogramnd_lut.pyx":157
+  /* "silx/math/chistogramnd_lut.pyx":157
  *     # allocating the output arrays
  *     lut = np.zeros(n_elem, dtype=lut_dtype)
  *     histo = np.zeros(n_bins, dtype=np.uint32)             # <<<<<<<<<<<<<<
@@ -3250,7 +3250,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   __pyx_v_histo = __pyx_t_4;
   __pyx_t_4 = 0;
 
-  /* "chistogramnd_lut.pyx":159
+  /* "silx/math/chistogramnd_lut.pyx":159
  *     histo = np.zeros(n_bins, dtype=np.uint32)
  * 
  *     sample_c = np.ascontiguousarray(sample.reshape((sample.size,)))             # <<<<<<<<<<<<<<
@@ -3326,7 +3326,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   __pyx_v_sample_c = __pyx_t_4;
   __pyx_t_4 = 0;
 
-  /* "chistogramnd_lut.pyx":161
+  /* "silx/math/chistogramnd_lut.pyx":161
  *     sample_c = np.ascontiguousarray(sample.reshape((sample.size,)))
  * 
  *     histo_range_c = np.ascontiguousarray(histo_range.reshape((histo_range.size,)))             # <<<<<<<<<<<<<<
@@ -3402,7 +3402,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   __pyx_v_histo_range_c = __pyx_t_4;
   __pyx_t_4 = 0;
 
-  /* "chistogramnd_lut.pyx":163
+  /* "silx/math/chistogramnd_lut.pyx":163
  *     histo_range_c = np.ascontiguousarray(histo_range.reshape((histo_range.size,)))
  * 
  *     n_bins_c = np.ascontiguousarray(n_bins.reshape((n_bins.size,)),             # <<<<<<<<<<<<<<
@@ -3457,7 +3457,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 163; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
 
-  /* "chistogramnd_lut.pyx":164
+  /* "silx/math/chistogramnd_lut.pyx":164
  * 
  *     n_bins_c = np.ascontiguousarray(n_bins.reshape((n_bins.size,)),
  *                                     dtype=np.int32)             # <<<<<<<<<<<<<<
@@ -3472,7 +3472,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_dtype, __pyx_t_5) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 163; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "chistogramnd_lut.pyx":163
+  /* "silx/math/chistogramnd_lut.pyx":163
  *     histo_range_c = np.ascontiguousarray(histo_range.reshape((histo_range.size,)))
  * 
  *     n_bins_c = np.ascontiguousarray(n_bins.reshape((n_bins.size,)),             # <<<<<<<<<<<<<<
@@ -3487,7 +3487,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   __pyx_v_n_bins_c = __pyx_t_5;
   __pyx_t_5 = 0;
 
-  /* "chistogramnd_lut.pyx":166
+  /* "silx/math/chistogramnd_lut.pyx":166
  *                                     dtype=np.int32)
  * 
  *     lut_c = np.ascontiguousarray(lut.reshape((lut.size,)))             # <<<<<<<<<<<<<<
@@ -3563,7 +3563,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   __pyx_v_lut_c = __pyx_t_5;
   __pyx_t_5 = 0;
 
-  /* "chistogramnd_lut.pyx":167
+  /* "silx/math/chistogramnd_lut.pyx":167
  * 
  *     lut_c = np.ascontiguousarray(lut.reshape((lut.size,)))
  *     histo_c = np.ascontiguousarray(histo.reshape((histo.size,)))             # <<<<<<<<<<<<<<
@@ -3639,7 +3639,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   __pyx_v_histo_c = __pyx_t_5;
   __pyx_t_5 = 0;
 
-  /* "chistogramnd_lut.pyx":169
+  /* "silx/math/chistogramnd_lut.pyx":169
  *     histo_c = np.ascontiguousarray(histo.reshape((histo.size,)))
  * 
  *     rc = 0             # <<<<<<<<<<<<<<
@@ -3649,7 +3649,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   __Pyx_INCREF(__pyx_int_0);
   __pyx_v_rc = __pyx_int_0;
 
-  /* "chistogramnd_lut.pyx":171
+  /* "silx/math/chistogramnd_lut.pyx":171
  *     rc = 0
  * 
  *     try:             # <<<<<<<<<<<<<<
@@ -3663,7 +3663,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
     __Pyx_XGOTREF(__pyx_t_13);
     /*try:*/ {
 
-      /* "chistogramnd_lut.pyx":172
+      /* "silx/math/chistogramnd_lut.pyx":172
  * 
  *     try:
  *         rc = _histogramnd_get_lut_fused(sample_c,             # <<<<<<<<<<<<<<
@@ -3673,7 +3673,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
       __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_histogramnd_get_lut_fused); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 172; __pyx_clineno = __LINE__; goto __pyx_L13_error;}
       __Pyx_GOTREF(__pyx_t_1);
 
-      /* "chistogramnd_lut.pyx":179
+      /* "silx/math/chistogramnd_lut.pyx":179
  *                                         lut_c,
  *                                         histo_c,
  *                                         last_bin_closed)             # <<<<<<<<<<<<<<
@@ -3741,7 +3741,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
     __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
     __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-    /* "chistogramnd_lut.pyx":180
+    /* "silx/math/chistogramnd_lut.pyx":180
  *                                         histo_c,
  *                                         last_bin_closed)
  *     except TypeError as ex:             # <<<<<<<<<<<<<<
@@ -3750,7 +3750,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
  */
     __pyx_t_14 = PyErr_ExceptionMatches(__pyx_builtin_TypeError);
     if (__pyx_t_14) {
-      __Pyx_AddTraceback("chistogramnd_lut.histogramnd_get_lut", __pyx_clineno, __pyx_lineno, __pyx_filename);
+      __Pyx_AddTraceback("silx.math.chistogramnd_lut.histogramnd_get_lut", __pyx_clineno, __pyx_lineno, __pyx_filename);
       if (__Pyx_GetException(&__pyx_t_5, &__pyx_t_1, &__pyx_t_8) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 180; __pyx_clineno = __LINE__; goto __pyx_L15_except_error;}
       __Pyx_GOTREF(__pyx_t_5);
       __Pyx_GOTREF(__pyx_t_1);
@@ -3758,7 +3758,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
       __Pyx_INCREF(__pyx_t_1);
       __pyx_v_ex = __pyx_t_1;
 
-      /* "chistogramnd_lut.pyx":182
+      /* "silx/math/chistogramnd_lut.pyx":182
  *     except TypeError as ex:
  *         raise TypeError('Type not supported - sample : {0}'
  *                         ''.format(sample_type))             # <<<<<<<<<<<<<<
@@ -3793,7 +3793,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
       }
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-      /* "chistogramnd_lut.pyx":181
+      /* "silx/math/chistogramnd_lut.pyx":181
  *                                         last_bin_closed)
  *     except TypeError as ex:
  *         raise TypeError('Type not supported - sample : {0}'             # <<<<<<<<<<<<<<
@@ -3822,7 +3822,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
     __pyx_L20_try_end:;
   }
 
-  /* "chistogramnd_lut.pyx":184
+  /* "silx/math/chistogramnd_lut.pyx":184
  *                         ''.format(sample_type))
  * 
  *     if rc != 0:             # <<<<<<<<<<<<<<
@@ -3834,7 +3834,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   if (__pyx_t_6) {
 
-    /* "chistogramnd_lut.pyx":186
+    /* "silx/math/chistogramnd_lut.pyx":186
  *     if rc != 0:
  *         raise Exception('histogramnd returned an error : {0}'
  *                         ''.format(rc))             # <<<<<<<<<<<<<<
@@ -3869,7 +3869,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
     }
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "chistogramnd_lut.pyx":185
+    /* "silx/math/chistogramnd_lut.pyx":185
  * 
  *     if rc != 0:
  *         raise Exception('histogramnd returned an error : {0}'             # <<<<<<<<<<<<<<
@@ -3889,7 +3889,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 185; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "chistogramnd_lut.pyx":188
+  /* "silx/math/chistogramnd_lut.pyx":188
  *                         ''.format(rc))
  * 
  *     edges = []             # <<<<<<<<<<<<<<
@@ -3901,7 +3901,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   __pyx_v_edges = ((PyObject*)__pyx_t_8);
   __pyx_t_8 = 0;
 
-  /* "chistogramnd_lut.pyx":189
+  /* "silx/math/chistogramnd_lut.pyx":189
  * 
  *     edges = []
  *     histo_range = histo_range.reshape(-1)             # <<<<<<<<<<<<<<
@@ -3916,7 +3916,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   __Pyx_DECREF_SET(__pyx_v_histo_range, __pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "chistogramnd_lut.pyx":190
+  /* "silx/math/chistogramnd_lut.pyx":190
  *     edges = []
  *     histo_range = histo_range.reshape(-1)
  *     for i_dim in range(n_dims):             # <<<<<<<<<<<<<<
@@ -3972,7 +3972,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
     __Pyx_XDECREF_SET(__pyx_v_i_dim, __pyx_t_8);
     __pyx_t_8 = 0;
 
-    /* "chistogramnd_lut.pyx":191
+    /* "silx/math/chistogramnd_lut.pyx":191
  *     histo_range = histo_range.reshape(-1)
  *     for i_dim in range(n_dims):
  *         dim_edges = np.zeros(n_bins[i_dim] + 1)             # <<<<<<<<<<<<<<
@@ -4018,7 +4018,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
     __Pyx_XDECREF_SET(__pyx_v_dim_edges, __pyx_t_8);
     __pyx_t_8 = 0;
 
-    /* "chistogramnd_lut.pyx":192
+    /* "silx/math/chistogramnd_lut.pyx":192
  *     for i_dim in range(n_dims):
  *         dim_edges = np.zeros(n_bins[i_dim] + 1)
  *         rng_min = histo_range[2 * i_dim]             # <<<<<<<<<<<<<<
@@ -4033,7 +4033,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
     __Pyx_XDECREF_SET(__pyx_v_rng_min, __pyx_t_5);
     __pyx_t_5 = 0;
 
-    /* "chistogramnd_lut.pyx":193
+    /* "silx/math/chistogramnd_lut.pyx":193
  *         dim_edges = np.zeros(n_bins[i_dim] + 1)
  *         rng_min = histo_range[2 * i_dim]
  *         rng_max = histo_range[2 * i_dim + 1]             # <<<<<<<<<<<<<<
@@ -4051,7 +4051,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
     __Pyx_XDECREF_SET(__pyx_v_rng_max, __pyx_t_5);
     __pyx_t_5 = 0;
 
-    /* "chistogramnd_lut.pyx":194
+    /* "silx/math/chistogramnd_lut.pyx":194
  *         rng_min = histo_range[2 * i_dim]
  *         rng_max = histo_range[2 * i_dim + 1]
  *         dim_edges[:-1] = (rng_min + np.arange(n_bins[i_dim]) *             # <<<<<<<<<<<<<<
@@ -4092,7 +4092,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
     }
     __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
 
-    /* "chistogramnd_lut.pyx":195
+    /* "silx/math/chistogramnd_lut.pyx":195
  *         rng_max = histo_range[2 * i_dim + 1]
  *         dim_edges[:-1] = (rng_min + np.arange(n_bins[i_dim]) *
  *                           ((rng_max - rng_min) / n_bins[i_dim]))             # <<<<<<<<<<<<<<
@@ -4108,7 +4108,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
     __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-    /* "chistogramnd_lut.pyx":194
+    /* "silx/math/chistogramnd_lut.pyx":194
  *         rng_min = histo_range[2 * i_dim]
  *         rng_max = histo_range[2 * i_dim + 1]
  *         dim_edges[:-1] = (rng_min + np.arange(n_bins[i_dim]) *             # <<<<<<<<<<<<<<
@@ -4125,7 +4125,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
     if (__Pyx_PyObject_SetSlice(__pyx_v_dim_edges, __pyx_t_8, 0, -1, NULL, NULL, &__pyx_slice__7, 0, 1, 1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 194; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
-    /* "chistogramnd_lut.pyx":196
+    /* "silx/math/chistogramnd_lut.pyx":196
  *         dim_edges[:-1] = (rng_min + np.arange(n_bins[i_dim]) *
  *                           ((rng_max - rng_min) / n_bins[i_dim]))
  *         dim_edges[-1] = rng_max             # <<<<<<<<<<<<<<
@@ -4134,7 +4134,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
  */
     if (unlikely(__Pyx_SetItemInt(__pyx_v_dim_edges, -1, __pyx_v_rng_max, long, 1, __Pyx_PyInt_From_long, 0, 1, 1) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 196; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-    /* "chistogramnd_lut.pyx":197
+    /* "silx/math/chistogramnd_lut.pyx":197
  *                           ((rng_max - rng_min) / n_bins[i_dim]))
  *         dim_edges[-1] = rng_max
  *         edges.append(dim_edges)             # <<<<<<<<<<<<<<
@@ -4143,7 +4143,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
  */
     __pyx_t_16 = __Pyx_PyList_Append(__pyx_v_edges, __pyx_v_dim_edges); if (unlikely(__pyx_t_16 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 197; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-    /* "chistogramnd_lut.pyx":190
+    /* "silx/math/chistogramnd_lut.pyx":190
  *     edges = []
  *     histo_range = histo_range.reshape(-1)
  *     for i_dim in range(n_dims):             # <<<<<<<<<<<<<<
@@ -4153,7 +4153,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "chistogramnd_lut.pyx":199
+  /* "silx/math/chistogramnd_lut.pyx":199
  *         edges.append(dim_edges)
  * 
  *     return lut, histo, tuple(edges)             # <<<<<<<<<<<<<<
@@ -4178,7 +4178,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   __pyx_t_8 = 0;
   goto __pyx_L0;
 
-  /* "chistogramnd_lut.pyx":58
+  /* "silx/math/chistogramnd_lut.pyx":58
  * 
  * 
  * def histogramnd_get_lut(sample,             # <<<<<<<<<<<<<<
@@ -4195,7 +4195,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   __Pyx_XDECREF(__pyx_t_8);
   __Pyx_XDECREF(__pyx_t_9);
   __Pyx_XDECREF(__pyx_t_10);
-  __Pyx_AddTraceback("chistogramnd_lut.histogramnd_get_lut", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut.histogramnd_get_lut", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_s_shape);
@@ -4225,7 +4225,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
   return __pyx_r;
 }
 
-/* "chistogramnd_lut.pyx":206
+/* "silx/math/chistogramnd_lut.pyx":206
  * 
  * 
  * def histogramnd_from_lut(weights,             # <<<<<<<<<<<<<<
@@ -4234,10 +4234,10 @@ static PyObject *__pyx_pf_16chistogramnd_lut_histogramnd_get_lut(CYTHON_UNUSED P
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_16chistogramnd_lut_3histogramnd_from_lut(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_16chistogramnd_lut_2histogramnd_from_lut[] = "histogramnd_from_lut(weights, histo_lut, histo=None, weighted_histo=None, shape=None, dtype=None, weight_min=None, weight_max=None)\n\n    dtype ignored if weighted_histo provided\n    ";
-static PyMethodDef __pyx_mdef_16chistogramnd_lut_3histogramnd_from_lut = {"histogramnd_from_lut", (PyCFunction)__pyx_pw_16chistogramnd_lut_3histogramnd_from_lut, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_2histogramnd_from_lut};
-static PyObject *__pyx_pw_16chistogramnd_lut_3histogramnd_from_lut(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_4silx_4math_16chistogramnd_lut_3histogramnd_from_lut(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_4silx_4math_16chistogramnd_lut_2histogramnd_from_lut[] = "histogramnd_from_lut(weights, histo_lut, histo=None, weighted_histo=None, shape=None, dtype=None, weight_min=None, weight_max=None)\n\n    dtype ignored if weighted_histo provided\n    ";
+static PyMethodDef __pyx_mdef_4silx_4math_16chistogramnd_lut_3histogramnd_from_lut = {"histogramnd_from_lut", (PyCFunction)__pyx_pw_4silx_4math_16chistogramnd_lut_3histogramnd_from_lut, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_2histogramnd_from_lut};
+static PyObject *__pyx_pw_4silx_4math_16chistogramnd_lut_3histogramnd_from_lut(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_weights = 0;
   PyObject *__pyx_v_histo_lut = 0;
   PyObject *__pyx_v_histo = 0;
@@ -4256,7 +4256,7 @@ static PyObject *__pyx_pw_16chistogramnd_lut_3histogramnd_from_lut(PyObject *__p
     static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_weights,&__pyx_n_s_histo_lut,&__pyx_n_s_histo,&__pyx_n_s_weighted_histo,&__pyx_n_s_shape,&__pyx_n_s_dtype,&__pyx_n_s_weight_min,&__pyx_n_s_weight_max,0};
     PyObject* values[8] = {0,0,0,0,0,0,0,0};
 
-    /* "chistogramnd_lut.pyx":208
+    /* "silx/math/chistogramnd_lut.pyx":208
  * def histogramnd_from_lut(weights,
  *                          histo_lut,
  *                          histo=None,             # <<<<<<<<<<<<<<
@@ -4265,7 +4265,7 @@ static PyObject *__pyx_pw_16chistogramnd_lut_3histogramnd_from_lut(PyObject *__p
  */
     values[2] = ((PyObject *)Py_None);
 
-    /* "chistogramnd_lut.pyx":209
+    /* "silx/math/chistogramnd_lut.pyx":209
  *                          histo_lut,
  *                          histo=None,
  *                          weighted_histo=None,             # <<<<<<<<<<<<<<
@@ -4274,7 +4274,7 @@ static PyObject *__pyx_pw_16chistogramnd_lut_3histogramnd_from_lut(PyObject *__p
  */
     values[3] = ((PyObject *)Py_None);
 
-    /* "chistogramnd_lut.pyx":210
+    /* "silx/math/chistogramnd_lut.pyx":210
  *                          histo=None,
  *                          weighted_histo=None,
  *                          shape=None,             # <<<<<<<<<<<<<<
@@ -4283,7 +4283,7 @@ static PyObject *__pyx_pw_16chistogramnd_lut_3histogramnd_from_lut(PyObject *__p
  */
     values[4] = ((PyObject *)Py_None);
 
-    /* "chistogramnd_lut.pyx":211
+    /* "silx/math/chistogramnd_lut.pyx":211
  *                          weighted_histo=None,
  *                          shape=None,
  *                          dtype=None,             # <<<<<<<<<<<<<<
@@ -4292,7 +4292,7 @@ static PyObject *__pyx_pw_16chistogramnd_lut_3histogramnd_from_lut(PyObject *__p
  */
     values[5] = ((PyObject *)Py_None);
 
-    /* "chistogramnd_lut.pyx":212
+    /* "silx/math/chistogramnd_lut.pyx":212
  *                          shape=None,
  *                          dtype=None,
  *                          weight_min=None,             # <<<<<<<<<<<<<<
@@ -4301,7 +4301,7 @@ static PyObject *__pyx_pw_16chistogramnd_lut_3histogramnd_from_lut(PyObject *__p
  */
     values[6] = ((PyObject *)Py_None);
 
-    /* "chistogramnd_lut.pyx":213
+    /* "silx/math/chistogramnd_lut.pyx":213
  *                          dtype=None,
  *                          weight_min=None,
  *                          weight_max=None):             # <<<<<<<<<<<<<<
@@ -4395,13 +4395,13 @@ static PyObject *__pyx_pw_16chistogramnd_lut_3histogramnd_from_lut(PyObject *__p
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("histogramnd_from_lut", 0, 2, 8, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 206; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut.histogramnd_from_lut", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut.histogramnd_from_lut", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(__pyx_self, __pyx_v_weights, __pyx_v_histo_lut, __pyx_v_histo, __pyx_v_weighted_histo, __pyx_v_shape, __pyx_v_dtype, __pyx_v_weight_min, __pyx_v_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_2histogramnd_from_lut(__pyx_self, __pyx_v_weights, __pyx_v_histo_lut, __pyx_v_histo, __pyx_v_weighted_histo, __pyx_v_shape, __pyx_v_dtype, __pyx_v_weight_min, __pyx_v_weight_max);
 
-  /* "chistogramnd_lut.pyx":206
+  /* "silx/math/chistogramnd_lut.pyx":206
  * 
  * 
  * def histogramnd_from_lut(weights,             # <<<<<<<<<<<<<<
@@ -4414,7 +4414,7 @@ static PyObject *__pyx_pw_16chistogramnd_lut_3histogramnd_from_lut(PyObject *__p
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_weights, PyObject *__pyx_v_histo_lut, PyObject *__pyx_v_histo, PyObject *__pyx_v_weighted_histo, PyObject *__pyx_v_shape, PyObject *__pyx_v_dtype, PyObject *__pyx_v_weight_min, PyObject *__pyx_v_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_weights, PyObject *__pyx_v_histo_lut, PyObject *__pyx_v_histo, PyObject *__pyx_v_weighted_histo, PyObject *__pyx_v_shape, PyObject *__pyx_v_dtype, PyObject *__pyx_v_weight_min, PyObject *__pyx_v_weight_max) {
   PyObject *__pyx_v_w_dtype = NULL;
   PyObject *__pyx_v_w_c = NULL;
   PyObject *__pyx_v_h_c = NULL;
@@ -4455,7 +4455,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
   __Pyx_INCREF(__pyx_v_weight_min);
   __Pyx_INCREF(__pyx_v_weight_max);
 
-  /* "chistogramnd_lut.pyx":218
+  /* "silx/math/chistogramnd_lut.pyx":218
  *     """
  * 
  *     if histo is None and weighted_histo is None:             # <<<<<<<<<<<<<<
@@ -4475,7 +4475,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
   __pyx_L4_bool_binop_done:;
   if (__pyx_t_1) {
 
-    /* "chistogramnd_lut.pyx":219
+    /* "silx/math/chistogramnd_lut.pyx":219
  * 
  *     if histo is None and weighted_histo is None:
  *         if shape is None:             # <<<<<<<<<<<<<<
@@ -4486,7 +4486,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
     __pyx_t_2 = (__pyx_t_1 != 0);
     if (__pyx_t_2) {
 
-      /* "chistogramnd_lut.pyx":220
+      /* "silx/math/chistogramnd_lut.pyx":220
  *     if histo is None and weighted_histo is None:
  *         if shape is None:
  *             raise ValueError('At least one of the following parameters has to '             # <<<<<<<<<<<<<<
@@ -4503,7 +4503,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
   }
   __pyx_L3:;
 
-  /* "chistogramnd_lut.pyx":224
+  /* "silx/math/chistogramnd_lut.pyx":224
  *                              '<weighted_histo>')
  * 
  *     if shape is not None:             # <<<<<<<<<<<<<<
@@ -4514,7 +4514,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
   __pyx_t_1 = (__pyx_t_2 != 0);
   if (__pyx_t_1) {
 
-    /* "chistogramnd_lut.pyx":225
+    /* "silx/math/chistogramnd_lut.pyx":225
  * 
  *     if shape is not None:
  *         if histo is not None and list(histo.shape) != list(shape):             # <<<<<<<<<<<<<<
@@ -4555,7 +4555,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
     __pyx_L9_bool_binop_done:;
     if (__pyx_t_1) {
 
-      /* "chistogramnd_lut.pyx":226
+      /* "silx/math/chistogramnd_lut.pyx":226
  *     if shape is not None:
  *         if histo is not None and list(histo.shape) != list(shape):
  *             raise ValueError('The <shape> value does not match'             # <<<<<<<<<<<<<<
@@ -4569,7 +4569,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
       {__pyx_filename = __pyx_f[0]; __pyx_lineno = 226; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
 
-    /* "chistogramnd_lut.pyx":229
+    /* "silx/math/chistogramnd_lut.pyx":229
  *                              'the <histo> shape.')
  * 
  *         if(weighted_histo is not None and             # <<<<<<<<<<<<<<
@@ -4584,7 +4584,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
       goto __pyx_L12_bool_binop_done;
     }
 
-    /* "chistogramnd_lut.pyx":230
+    /* "silx/math/chistogramnd_lut.pyx":230
  * 
  *         if(weighted_histo is not None and
  *            list(weighted_histo.shape) != list(shape)):             # <<<<<<<<<<<<<<
@@ -4618,7 +4618,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
     __pyx_L12_bool_binop_done:;
     if (__pyx_t_1) {
 
-      /* "chistogramnd_lut.pyx":231
+      /* "silx/math/chistogramnd_lut.pyx":231
  *         if(weighted_histo is not None and
  *            list(weighted_histo.shape) != list(shape)):
  *             raise ValueError('The <shape> value does not match'             # <<<<<<<<<<<<<<
@@ -4635,7 +4635,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
   }
   /*else*/ {
 
-    /* "chistogramnd_lut.pyx":234
+    /* "silx/math/chistogramnd_lut.pyx":234
  *                              'the <weighted_histo> shape.')
  *     else:
  *         if histo is not None:             # <<<<<<<<<<<<<<
@@ -4646,7 +4646,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
     __pyx_t_2 = (__pyx_t_1 != 0);
     if (__pyx_t_2) {
 
-      /* "chistogramnd_lut.pyx":235
+      /* "silx/math/chistogramnd_lut.pyx":235
  *     else:
  *         if histo is not None:
  *             shape = histo.shape             # <<<<<<<<<<<<<<
@@ -4661,7 +4661,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
     }
     /*else*/ {
 
-      /* "chistogramnd_lut.pyx":237
+      /* "silx/math/chistogramnd_lut.pyx":237
  *             shape = histo.shape
  *         else:
  *             shape = weighted_histo.shape             # <<<<<<<<<<<<<<
@@ -4677,7 +4677,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
   }
   __pyx_L7:;
 
-  /* "chistogramnd_lut.pyx":239
+  /* "silx/math/chistogramnd_lut.pyx":239
  *             shape = weighted_histo.shape
  * 
  *     if histo is not None:             # <<<<<<<<<<<<<<
@@ -4688,7 +4688,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
   __pyx_t_1 = (__pyx_t_2 != 0);
   if (__pyx_t_1) {
 
-    /* "chistogramnd_lut.pyx":240
+    /* "silx/math/chistogramnd_lut.pyx":240
  * 
  *     if histo is not None:
  *         if histo.dtype != np.uint32:             # <<<<<<<<<<<<<<
@@ -4709,7 +4709,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     if (__pyx_t_1) {
 
-      /* "chistogramnd_lut.pyx":244
+      /* "silx/math/chistogramnd_lut.pyx":244
  *                              'the expected type '
  *                              ': should be {0} instead of {1}.'
  *                              ''.format(np.uint32, histo.dtype))             # <<<<<<<<<<<<<<
@@ -4753,7 +4753,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
       __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-      /* "chistogramnd_lut.pyx":241
+      /* "silx/math/chistogramnd_lut.pyx":241
  *     if histo is not None:
  *         if histo.dtype != np.uint32:
  *             raise ValueError('Provided <histo> array doesn\'t have '             # <<<<<<<<<<<<<<
@@ -4773,7 +4773,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
       {__pyx_filename = __pyx_f[0]; __pyx_lineno = 241; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
 
-    /* "chistogramnd_lut.pyx":246
+    /* "silx/math/chistogramnd_lut.pyx":246
  *                              ''.format(np.uint32, histo.dtype))
  * 
  *         if weighted_histo is not None:             # <<<<<<<<<<<<<<
@@ -4784,7 +4784,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
     __pyx_t_2 = (__pyx_t_1 != 0);
     if (__pyx_t_2) {
 
-      /* "chistogramnd_lut.pyx":247
+      /* "silx/math/chistogramnd_lut.pyx":247
  * 
  *         if weighted_histo is not None:
  *             if histo.shape != weighted_histo.shape:             # <<<<<<<<<<<<<<
@@ -4802,7 +4802,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
       __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
       if (__pyx_t_2) {
 
-        /* "chistogramnd_lut.pyx":248
+        /* "silx/math/chistogramnd_lut.pyx":248
  *         if weighted_histo is not None:
  *             if histo.shape != weighted_histo.shape:
  *                 raise ValueError('The <histo> shape does not match'             # <<<<<<<<<<<<<<
@@ -4822,7 +4822,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
   }
   /*else*/ {
 
-    /* "chistogramnd_lut.pyx":251
+    /* "silx/math/chistogramnd_lut.pyx":251
  *                                  'the <weighted_histo> shape.')
  *     else:
  *         histo = np.zeros(shape, dtype=np.uint32)             # <<<<<<<<<<<<<<
@@ -4858,7 +4858,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
   }
   __pyx_L15:;
 
-  /* "chistogramnd_lut.pyx":253
+  /* "silx/math/chistogramnd_lut.pyx":253
  *         histo = np.zeros(shape, dtype=np.uint32)
  * 
  *     w_dtype = weights.dtype             # <<<<<<<<<<<<<<
@@ -4870,7 +4870,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
   __pyx_v_w_dtype = __pyx_t_7;
   __pyx_t_7 = 0;
 
-  /* "chistogramnd_lut.pyx":255
+  /* "silx/math/chistogramnd_lut.pyx":255
  *     w_dtype = weights.dtype
  * 
  *     if dtype is None:             # <<<<<<<<<<<<<<
@@ -4881,7 +4881,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
   __pyx_t_1 = (__pyx_t_2 != 0);
   if (__pyx_t_1) {
 
-    /* "chistogramnd_lut.pyx":256
+    /* "silx/math/chistogramnd_lut.pyx":256
  * 
  *     if dtype is None:
  *         if weighted_histo is None:             # <<<<<<<<<<<<<<
@@ -4892,7 +4892,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
     __pyx_t_2 = (__pyx_t_1 != 0);
     if (__pyx_t_2) {
 
-      /* "chistogramnd_lut.pyx":257
+      /* "silx/math/chistogramnd_lut.pyx":257
  *     if dtype is None:
  *         if weighted_histo is None:
  *             dtype = w_dtype             # <<<<<<<<<<<<<<
@@ -4905,7 +4905,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
     }
     /*else*/ {
 
-      /* "chistogramnd_lut.pyx":259
+      /* "silx/math/chistogramnd_lut.pyx":259
  *             dtype = w_dtype
  *         else:
  *             dtype = weighted_histo.dtype             # <<<<<<<<<<<<<<
@@ -4921,7 +4921,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
     goto __pyx_L19;
   }
 
-  /* "chistogramnd_lut.pyx":260
+  /* "silx/math/chistogramnd_lut.pyx":260
  *         else:
  *             dtype = weighted_histo.dtype
  *     elif weighted_histo is not None:             # <<<<<<<<<<<<<<
@@ -4932,7 +4932,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
   __pyx_t_1 = (__pyx_t_2 != 0);
   if (__pyx_t_1) {
 
-    /* "chistogramnd_lut.pyx":261
+    /* "silx/math/chistogramnd_lut.pyx":261
  *             dtype = weighted_histo.dtype
  *     elif weighted_histo is not None:
  *         if weighted_histo.dtype != dtype:             # <<<<<<<<<<<<<<
@@ -4947,7 +4947,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     if (__pyx_t_1) {
 
-      /* "chistogramnd_lut.pyx":262
+      /* "silx/math/chistogramnd_lut.pyx":262
  *     elif weighted_histo is not None:
  *         if weighted_histo.dtype != dtype:
  *             raise ValueError('Provided <dtype> and <weighted_histo>\'s dtype'             # <<<<<<<<<<<<<<
@@ -4961,7 +4961,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
       {__pyx_filename = __pyx_f[0]; __pyx_lineno = 262; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
 
-    /* "chistogramnd_lut.pyx":264
+    /* "silx/math/chistogramnd_lut.pyx":264
  *             raise ValueError('Provided <dtype> and <weighted_histo>\'s dtype'
  *                              ' do not match.')
  *         dtype = weighted_histo.dtype             # <<<<<<<<<<<<<<
@@ -4976,7 +4976,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
   }
   __pyx_L19:;
 
-  /* "chistogramnd_lut.pyx":266
+  /* "silx/math/chistogramnd_lut.pyx":266
  *         dtype = weighted_histo.dtype
  * 
  *     if weighted_histo is None:             # <<<<<<<<<<<<<<
@@ -4987,7 +4987,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
   __pyx_t_2 = (__pyx_t_1 != 0);
   if (__pyx_t_2) {
 
-    /* "chistogramnd_lut.pyx":267
+    /* "silx/math/chistogramnd_lut.pyx":267
  * 
  *     if weighted_histo is None:
  *         weighted_histo = np.zeros(shape, dtype=dtype)             # <<<<<<<<<<<<<<
@@ -5018,7 +5018,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
   }
   __pyx_L22:;
 
-  /* "chistogramnd_lut.pyx":269
+  /* "silx/math/chistogramnd_lut.pyx":269
  *         weighted_histo = np.zeros(shape, dtype=dtype)
  * 
  *     if histo_lut.size != weights.size:             # <<<<<<<<<<<<<<
@@ -5036,7 +5036,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   if (__pyx_t_2) {
 
-    /* "chistogramnd_lut.pyx":270
+    /* "silx/math/chistogramnd_lut.pyx":270
  * 
  *     if histo_lut.size != weights.size:
  *         raise ValueError('The LUT and weights arrays must have the same '             # <<<<<<<<<<<<<<
@@ -5050,7 +5050,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 270; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "chistogramnd_lut.pyx":273
+  /* "silx/math/chistogramnd_lut.pyx":273
  *                          'number of elements.')
  * 
  *     w_c = np.ascontiguousarray(weights.reshape((weights.size,)))             # <<<<<<<<<<<<<<
@@ -5126,7 +5126,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
   __pyx_v_w_c = __pyx_t_4;
   __pyx_t_4 = 0;
 
-  /* "chistogramnd_lut.pyx":275
+  /* "silx/math/chistogramnd_lut.pyx":275
  *     w_c = np.ascontiguousarray(weights.reshape((weights.size,)))
  * 
  *     h_c = np.ascontiguousarray(histo.reshape((histo.size,)))             # <<<<<<<<<<<<<<
@@ -5202,7 +5202,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
   __pyx_v_h_c = __pyx_t_4;
   __pyx_t_4 = 0;
 
-  /* "chistogramnd_lut.pyx":277
+  /* "silx/math/chistogramnd_lut.pyx":277
  *     h_c = np.ascontiguousarray(histo.reshape((histo.size,)))
  * 
  *     w_h_c = np.ascontiguousarray(weighted_histo.reshape((weighted_histo.size,)))  # noqa             # <<<<<<<<<<<<<<
@@ -5278,7 +5278,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
   __pyx_v_w_h_c = __pyx_t_4;
   __pyx_t_4 = 0;
 
-  /* "chistogramnd_lut.pyx":279
+  /* "silx/math/chistogramnd_lut.pyx":279
  *     w_h_c = np.ascontiguousarray(weighted_histo.reshape((weighted_histo.size,)))  # noqa
  * 
  *     h_lut_c = np.ascontiguousarray(histo_lut.reshape((histo_lut.size,)))             # <<<<<<<<<<<<<<
@@ -5354,7 +5354,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
   __pyx_v_h_lut_c = __pyx_t_4;
   __pyx_t_4 = 0;
 
-  /* "chistogramnd_lut.pyx":281
+  /* "silx/math/chistogramnd_lut.pyx":281
  *     h_lut_c = np.ascontiguousarray(histo_lut.reshape((histo_lut.size,)))
  * 
  *     rc = 0             # <<<<<<<<<<<<<<
@@ -5363,7 +5363,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
  */
   __pyx_v_rc = 0;
 
-  /* "chistogramnd_lut.pyx":283
+  /* "silx/math/chistogramnd_lut.pyx":283
  *     rc = 0
  * 
  *     if weight_min is None:             # <<<<<<<<<<<<<<
@@ -5374,7 +5374,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
   __pyx_t_1 = (__pyx_t_2 != 0);
   if (__pyx_t_1) {
 
-    /* "chistogramnd_lut.pyx":284
+    /* "silx/math/chistogramnd_lut.pyx":284
  * 
  *     if weight_min is None:
  *         weight_min = 0             # <<<<<<<<<<<<<<
@@ -5384,7 +5384,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
     __Pyx_INCREF(__pyx_int_0);
     __Pyx_DECREF_SET(__pyx_v_weight_min, __pyx_int_0);
 
-    /* "chistogramnd_lut.pyx":285
+    /* "silx/math/chistogramnd_lut.pyx":285
  *     if weight_min is None:
  *         weight_min = 0
  *         filt_min_weights = False             # <<<<<<<<<<<<<<
@@ -5396,7 +5396,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
   }
   /*else*/ {
 
-    /* "chistogramnd_lut.pyx":287
+    /* "silx/math/chistogramnd_lut.pyx":287
  *         filt_min_weights = False
  *     else:
  *         filt_min_weights = True             # <<<<<<<<<<<<<<
@@ -5407,7 +5407,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
   }
   __pyx_L24:;
 
-  /* "chistogramnd_lut.pyx":289
+  /* "silx/math/chistogramnd_lut.pyx":289
  *         filt_min_weights = True
  * 
  *     if weight_max is None:             # <<<<<<<<<<<<<<
@@ -5418,7 +5418,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
   __pyx_t_2 = (__pyx_t_1 != 0);
   if (__pyx_t_2) {
 
-    /* "chistogramnd_lut.pyx":290
+    /* "silx/math/chistogramnd_lut.pyx":290
  * 
  *     if weight_max is None:
  *         weight_max = 0             # <<<<<<<<<<<<<<
@@ -5428,7 +5428,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
     __Pyx_INCREF(__pyx_int_0);
     __Pyx_DECREF_SET(__pyx_v_weight_max, __pyx_int_0);
 
-    /* "chistogramnd_lut.pyx":291
+    /* "silx/math/chistogramnd_lut.pyx":291
  *     if weight_max is None:
  *         weight_max = 0
  *         filt_max_weights = False             # <<<<<<<<<<<<<<
@@ -5440,7 +5440,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
   }
   /*else*/ {
 
-    /* "chistogramnd_lut.pyx":293
+    /* "silx/math/chistogramnd_lut.pyx":293
  *         filt_max_weights = False
  *     else:
  *         filt_max_weights = True             # <<<<<<<<<<<<<<
@@ -5451,7 +5451,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
   }
   __pyx_L25:;
 
-  /* "chistogramnd_lut.pyx":295
+  /* "silx/math/chistogramnd_lut.pyx":295
  *         filt_max_weights = True
  * 
  *     try:             # <<<<<<<<<<<<<<
@@ -5465,7 +5465,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
     __Pyx_XGOTREF(__pyx_t_14);
     /*try:*/ {
 
-      /* "chistogramnd_lut.pyx":296
+      /* "silx/math/chistogramnd_lut.pyx":296
  * 
  *     try:
  *         _histogramnd_from_lut_fused(w_c,             # <<<<<<<<<<<<<<
@@ -5475,7 +5475,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
       __pyx_t_7 = __Pyx_GetModuleGlobalName(__pyx_n_s_histogramnd_from_lut_fused); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 296; __pyx_clineno = __LINE__; goto __pyx_L26_error;}
       __Pyx_GOTREF(__pyx_t_7);
 
-      /* "chistogramnd_lut.pyx":300
+      /* "silx/math/chistogramnd_lut.pyx":300
  *                                     h_c,
  *                                     w_h_c,
  *                                     weights.size,             # <<<<<<<<<<<<<<
@@ -5485,7 +5485,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
       __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_v_weights, __pyx_n_s_size); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 300; __pyx_clineno = __LINE__; goto __pyx_L26_error;}
       __Pyx_GOTREF(__pyx_t_10);
 
-      /* "chistogramnd_lut.pyx":301
+      /* "silx/math/chistogramnd_lut.pyx":301
  *                                     w_h_c,
  *                                     weights.size,
  *                                     filt_min_weights,             # <<<<<<<<<<<<<<
@@ -5495,7 +5495,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
       __pyx_t_6 = __Pyx_PyBool_FromLong(__pyx_v_filt_min_weights); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 301; __pyx_clineno = __LINE__; goto __pyx_L26_error;}
       __Pyx_GOTREF(__pyx_t_6);
 
-      /* "chistogramnd_lut.pyx":302
+      /* "silx/math/chistogramnd_lut.pyx":302
  *                                     weights.size,
  *                                     filt_min_weights,
  *                                     w_dtype.type(weight_min),             # <<<<<<<<<<<<<<
@@ -5530,7 +5530,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
       }
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
-      /* "chistogramnd_lut.pyx":303
+      /* "silx/math/chistogramnd_lut.pyx":303
  *                                     filt_min_weights,
  *                                     w_dtype.type(weight_min),
  *                                     filt_max_weights,             # <<<<<<<<<<<<<<
@@ -5540,7 +5540,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
       __pyx_t_8 = __Pyx_PyBool_FromLong(__pyx_v_filt_max_weights); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 303; __pyx_clineno = __LINE__; goto __pyx_L26_error;}
       __Pyx_GOTREF(__pyx_t_8);
 
-      /* "chistogramnd_lut.pyx":304
+      /* "silx/math/chistogramnd_lut.pyx":304
  *                                     w_dtype.type(weight_min),
  *                                     filt_max_weights,
  *                                     w_dtype.type(weight_max))             # <<<<<<<<<<<<<<
@@ -5640,7 +5640,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
     __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-    /* "chistogramnd_lut.pyx":305
+    /* "silx/math/chistogramnd_lut.pyx":305
  *                                     filt_max_weights,
  *                                     w_dtype.type(weight_max))
  *     except TypeError as ex:             # <<<<<<<<<<<<<<
@@ -5649,7 +5649,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
  */
     __pyx_t_18 = PyErr_ExceptionMatches(__pyx_builtin_TypeError);
     if (__pyx_t_18) {
-      __Pyx_AddTraceback("chistogramnd_lut.histogramnd_from_lut", __pyx_clineno, __pyx_lineno, __pyx_filename);
+      __Pyx_AddTraceback("silx.math.chistogramnd_lut.histogramnd_from_lut", __pyx_clineno, __pyx_lineno, __pyx_filename);
       if (__Pyx_GetException(&__pyx_t_4, &__pyx_t_7, &__pyx_t_17) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 305; __pyx_clineno = __LINE__; goto __pyx_L28_except_error;}
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_GOTREF(__pyx_t_7);
@@ -5657,7 +5657,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
       __Pyx_INCREF(__pyx_t_7);
       __pyx_v_ex = __pyx_t_7;
 
-      /* "chistogramnd_lut.pyx":306
+      /* "silx/math/chistogramnd_lut.pyx":306
  *                                     w_dtype.type(weight_max))
  *     except TypeError as ex:
  *         print(ex)             # <<<<<<<<<<<<<<
@@ -5666,7 +5666,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
  */
       if (__Pyx_PrintOne(0, __pyx_v_ex) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 306; __pyx_clineno = __LINE__; goto __pyx_L28_except_error;}
 
-      /* "chistogramnd_lut.pyx":309
+      /* "silx/math/chistogramnd_lut.pyx":309
  *         raise TypeError('Case not supported - weights:{0} '
  *                         'and histo:{1}.'
  *                         ''.format(weights.dtype, histo.dtype))             # <<<<<<<<<<<<<<
@@ -5707,7 +5707,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
-      /* "chistogramnd_lut.pyx":307
+      /* "silx/math/chistogramnd_lut.pyx":307
  *     except TypeError as ex:
  *         print(ex)
  *         raise TypeError('Case not supported - weights:{0} '             # <<<<<<<<<<<<<<
@@ -5736,7 +5736,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
     __pyx_L33_try_end:;
   }
 
-  /* "chistogramnd_lut.pyx":311
+  /* "silx/math/chistogramnd_lut.pyx":311
  *                         ''.format(weights.dtype, histo.dtype))
  * 
  *     return histo, weighted_histo             # <<<<<<<<<<<<<<
@@ -5756,7 +5756,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
   __pyx_t_17 = 0;
   goto __pyx_L0;
 
-  /* "chistogramnd_lut.pyx":206
+  /* "silx/math/chistogramnd_lut.pyx":206
  * 
  * 
  * def histogramnd_from_lut(weights,             # <<<<<<<<<<<<<<
@@ -5776,7 +5776,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
   __Pyx_XDECREF(__pyx_t_15);
   __Pyx_XDECREF(__pyx_t_16);
   __Pyx_XDECREF(__pyx_t_17);
-  __Pyx_AddTraceback("chistogramnd_lut.histogramnd_from_lut", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut.histogramnd_from_lut", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_w_dtype);
@@ -5796,7 +5796,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
   return __pyx_r;
 }
 
-/* "chistogramnd_lut.pyx":323
+/* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -5805,10 +5805,10 @@ static PyObject *__pyx_pf_16chistogramnd_lut_2histogramnd_from_lut(CYTHON_UNUSED
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_16chistogramnd_lut_5_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused[] = "_histogramnd_from_lut_fused(signatures, args, kwargs, defaults)";
-static PyMethodDef __pyx_mdef_16chistogramnd_lut_5_histogramnd_from_lut_fused = {"_histogramnd_from_lut_fused", (PyCFunction)__pyx_pw_16chistogramnd_lut_5_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_pw_16chistogramnd_lut_5_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_4silx_4math_16chistogramnd_lut_5_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused[] = "_histogramnd_from_lut_fused(signatures, args, kwargs, defaults)";
+static PyMethodDef __pyx_mdef_4silx_4math_16chistogramnd_lut_5_histogramnd_from_lut_fused = {"_histogramnd_from_lut_fused", (PyCFunction)__pyx_pw_4silx_4math_16chistogramnd_lut_5_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_pw_4silx_4math_16chistogramnd_lut_5_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_signatures = 0;
   PyObject *__pyx_v_args = 0;
   PyObject *__pyx_v_kwargs = 0;
@@ -5874,18 +5874,18 @@ static PyObject *__pyx_pw_16chistogramnd_lut_5_histogramnd_from_lut_fused(PyObje
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("__pyx_fused_cpdef", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut.__pyx_fused_cpdef", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut.__pyx_fused_cpdef", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_4_histogramnd_from_lut_fused(__pyx_self, __pyx_v_signatures, __pyx_v_args, __pyx_v_kwargs, __pyx_v_defaults);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused(__pyx_self, __pyx_v_signatures, __pyx_v_args, __pyx_v_kwargs, __pyx_v_defaults);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_4_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_signatures, PyObject *__pyx_v_args, PyObject *__pyx_v_kwargs, CYTHON_UNUSED PyObject *__pyx_v_defaults) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_signatures, PyObject *__pyx_v_args, PyObject *__pyx_v_kwargs, CYTHON_UNUSED PyObject *__pyx_v_defaults) {
   PyObject *__pyx_v_dest_sig = NULL;
   PyObject *__pyx_v_ndarray = 0;
   PyObject *__pyx_v_numpy = NULL;
@@ -5893,9 +5893,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_4_histogramnd_from_lut_fused(CYTHON
   Py_ssize_t __pyx_v_itemsize;
   int __pyx_v_dtype_signed;
   char __pyx_v_kind;
+  int __pyx_v____pyx_int64_t_is_signed;
   int __pyx_v____pyx_int32_t_is_signed;
   int __pyx_v____pyx_int16_t_is_signed;
-  int __pyx_v____pyx_int64_t_is_signed;
   PyObject *__pyx_v_arg = NULL;
   PyObject *__pyx_v_dtype = NULL;
   PyObject *__pyx_v_arg_base = NULL;
@@ -5978,7 +5978,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_4_histogramnd_from_lut_fused(CYTHON
     __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
     __pyx_t_7 = PyErr_ExceptionMatches(__pyx_builtin_ImportError) || PyErr_ExceptionMatches(__pyx_builtin_AttributeError) || PyErr_ExceptionMatches(__pyx_builtin_TypeError);
     if (__pyx_t_7) {
-      __Pyx_AddTraceback("chistogramnd_lut.__pyx_fused_cpdef", __pyx_clineno, __pyx_lineno, __pyx_filename);
+      __Pyx_AddTraceback("silx.math.chistogramnd_lut.__pyx_fused_cpdef", __pyx_clineno, __pyx_lineno, __pyx_filename);
       if (__Pyx_GetException(&__pyx_t_1, &__pyx_t_8, &__pyx_t_9) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L6_except_error;}
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_GOTREF(__pyx_t_8);
@@ -6005,9 +6005,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_4_histogramnd_from_lut_fused(CYTHON
     __pyx_L11_try_end:;
   }
   __pyx_v_itemsize = -1;
+  __pyx_v____pyx_int64_t_is_signed = (((__pyx_t_5numpy_int64_t)-1) < 0);
   __pyx_v____pyx_int32_t_is_signed = (((__pyx_t_5numpy_int32_t)-1) < 0);
   __pyx_v____pyx_int16_t_is_signed = (((__pyx_t_5numpy_int16_t)-1) < 0);
-  __pyx_v____pyx_int64_t_is_signed = (((__pyx_t_5numpy_int64_t)-1) < 0);
   if (unlikely(__pyx_v_args == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -7144,7 +7144,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_4_histogramnd_from_lut_fused(CYTHON
   __Pyx_XDECREF(__pyx_t_16);
   __Pyx_XDECREF(__pyx_t_17);
   __Pyx_XDECREF(__pyx_t_18);
-  __Pyx_AddTraceback("chistogramnd_lut.__pyx_fused_cpdef", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut.__pyx_fused_cpdef", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_dest_sig);
@@ -7164,9 +7164,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_4_histogramnd_from_lut_fused(CYTHON
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_0_0_0__pyx_pw_16chistogramnd_lut_9_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_0_0_0__pyx_mdef_16chistogramnd_lut_9_histogramnd_from_lut_fused = {"__pyx_fuse_0_0_0_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_0_0_0__pyx_pw_16chistogramnd_lut_9_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_0_0_0__pyx_pw_16chistogramnd_lut_9_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_0_0_0__pyx_pw_4silx_4math_16chistogramnd_lut_9_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_0_0_0__pyx_mdef_4silx_4math_16chistogramnd_lut_9_histogramnd_from_lut_fused = {"__pyx_fuse_0_0_0_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_0_0_0__pyx_pw_4silx_4math_16chistogramnd_lut_9_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_0_0_0__pyx_pw_4silx_4math_16chistogramnd_lut_9_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -7277,18 +7277,18 @@ static PyObject *__pyx_fuse_0_0_0__pyx_pw_16chistogramnd_lut_9_histogramnd_from_
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_8_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_8_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_8_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_8_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -7306,7 +7306,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_8_histogramnd_from_lut_fused(CYTHON
   __pyx_t_5numpy_int64_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_0_0_0_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -7320,7 +7320,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_8_histogramnd_from_lut_fused(CYTHON
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -7331,7 +7331,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_8_histogramnd_from_lut_fused(CYTHON
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -7342,7 +7342,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_8_histogramnd_from_lut_fused(CYTHON
           __pyx_t_4 = (((*((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -7361,7 +7361,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_8_histogramnd_from_lut_fused(CYTHON
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -7371,7 +7371,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_8_histogramnd_from_lut_fused(CYTHON
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -7390,7 +7390,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_8_histogramnd_from_lut_fused(CYTHON
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -7400,7 +7400,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_8_histogramnd_from_lut_fused(CYTHON
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -7411,7 +7411,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_8_histogramnd_from_lut_fused(CYTHON
             __pyx_t_9 = (*((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -7429,7 +7429,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_8_histogramnd_from_lut_fused(CYTHON
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -7447,7 +7447,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_8_histogramnd_from_lut_fused(CYTHON
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -7467,9 +7467,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_8_histogramnd_from_lut_fused(CYTHON
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_0_0_1__pyx_pw_16chistogramnd_lut_11_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_0_0_1__pyx_mdef_16chistogramnd_lut_11_histogramnd_from_lut_fused = {"__pyx_fuse_0_0_1_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_0_0_1__pyx_pw_16chistogramnd_lut_11_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_0_0_1__pyx_pw_16chistogramnd_lut_11_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_0_0_1__pyx_pw_4silx_4math_16chistogramnd_lut_11_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_0_0_1__pyx_mdef_4silx_4math_16chistogramnd_lut_11_histogramnd_from_lut_fused = {"__pyx_fuse_0_0_1_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_0_0_1__pyx_pw_4silx_4math_16chistogramnd_lut_11_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_0_0_1__pyx_pw_4silx_4math_16chistogramnd_lut_11_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -7580,18 +7580,18 @@ static PyObject *__pyx_fuse_0_0_1__pyx_pw_16chistogramnd_lut_11_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_10_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_10_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_10_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_10_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -7609,7 +7609,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_10_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int64_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_0_0_1_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -7623,7 +7623,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_10_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -7634,7 +7634,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_10_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -7645,7 +7645,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_10_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -7664,7 +7664,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_10_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -7674,7 +7674,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_10_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -7693,7 +7693,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_10_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -7703,7 +7703,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_10_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -7714,7 +7714,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_10_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -7732,7 +7732,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_10_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -7750,7 +7750,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_10_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -7770,9 +7770,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_10_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_0_0_2__pyx_pw_16chistogramnd_lut_13_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_0_0_2__pyx_mdef_16chistogramnd_lut_13_histogramnd_from_lut_fused = {"__pyx_fuse_0_0_2_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_0_0_2__pyx_pw_16chistogramnd_lut_13_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_0_0_2__pyx_pw_16chistogramnd_lut_13_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_0_0_2__pyx_pw_4silx_4math_16chistogramnd_lut_13_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_0_0_2__pyx_mdef_4silx_4math_16chistogramnd_lut_13_histogramnd_from_lut_fused = {"__pyx_fuse_0_0_2_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_0_0_2__pyx_pw_4silx_4math_16chistogramnd_lut_13_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_0_0_2__pyx_pw_4silx_4math_16chistogramnd_lut_13_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -7883,18 +7883,18 @@ static PyObject *__pyx_fuse_0_0_2__pyx_pw_16chistogramnd_lut_13_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_12_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_12_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_12_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_12_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -7912,7 +7912,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_12_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int64_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_0_0_2_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -7926,7 +7926,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_12_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -7937,7 +7937,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_12_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -7948,7 +7948,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_12_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -7967,7 +7967,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_12_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -7977,7 +7977,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_12_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -7996,7 +7996,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_12_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -8006,7 +8006,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_12_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -8017,7 +8017,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_12_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -8035,7 +8035,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_12_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -8053,7 +8053,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_12_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -8073,9 +8073,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_12_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_0_0_3__pyx_pw_16chistogramnd_lut_15_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_0_0_3__pyx_mdef_16chistogramnd_lut_15_histogramnd_from_lut_fused = {"__pyx_fuse_0_0_3_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_0_0_3__pyx_pw_16chistogramnd_lut_15_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_0_0_3__pyx_pw_16chistogramnd_lut_15_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_0_0_3__pyx_pw_4silx_4math_16chistogramnd_lut_15_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_0_0_3__pyx_mdef_4silx_4math_16chistogramnd_lut_15_histogramnd_from_lut_fused = {"__pyx_fuse_0_0_3_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_0_0_3__pyx_pw_4silx_4math_16chistogramnd_lut_15_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_0_0_3__pyx_pw_4silx_4math_16chistogramnd_lut_15_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -8186,18 +8186,18 @@ static PyObject *__pyx_fuse_0_0_3__pyx_pw_16chistogramnd_lut_15_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_14_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_14_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_14_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_14_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -8215,7 +8215,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_14_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int64_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_0_0_3_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -8229,7 +8229,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_14_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -8240,7 +8240,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_14_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -8251,7 +8251,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_14_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -8270,7 +8270,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_14_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -8280,7 +8280,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_14_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -8299,7 +8299,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_14_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -8309,7 +8309,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_14_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -8320,7 +8320,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_14_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -8338,7 +8338,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_14_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -8356,7 +8356,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_14_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -8376,9 +8376,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_14_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_0_1_0__pyx_pw_16chistogramnd_lut_17_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_0_1_0__pyx_mdef_16chistogramnd_lut_17_histogramnd_from_lut_fused = {"__pyx_fuse_0_1_0_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_0_1_0__pyx_pw_16chistogramnd_lut_17_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_0_1_0__pyx_pw_16chistogramnd_lut_17_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_0_1_0__pyx_pw_4silx_4math_16chistogramnd_lut_17_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_0_1_0__pyx_mdef_4silx_4math_16chistogramnd_lut_17_histogramnd_from_lut_fused = {"__pyx_fuse_0_1_0_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_0_1_0__pyx_pw_4silx_4math_16chistogramnd_lut_17_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_0_1_0__pyx_pw_4silx_4math_16chistogramnd_lut_17_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -8489,18 +8489,18 @@ static PyObject *__pyx_fuse_0_1_0__pyx_pw_16chistogramnd_lut_17_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_16_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_16_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_16_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_16_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -8518,7 +8518,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_16_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int32_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_0_1_0_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -8532,7 +8532,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_16_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -8543,7 +8543,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_16_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -8554,7 +8554,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_16_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -8573,7 +8573,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_16_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -8583,7 +8583,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_16_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -8602,7 +8602,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_16_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -8612,7 +8612,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_16_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -8623,7 +8623,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_16_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -8641,7 +8641,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_16_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -8659,7 +8659,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_16_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -8679,9 +8679,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_16_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_0_1_1__pyx_pw_16chistogramnd_lut_19_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_0_1_1__pyx_mdef_16chistogramnd_lut_19_histogramnd_from_lut_fused = {"__pyx_fuse_0_1_1_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_0_1_1__pyx_pw_16chistogramnd_lut_19_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_0_1_1__pyx_pw_16chistogramnd_lut_19_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_0_1_1__pyx_pw_4silx_4math_16chistogramnd_lut_19_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_0_1_1__pyx_mdef_4silx_4math_16chistogramnd_lut_19_histogramnd_from_lut_fused = {"__pyx_fuse_0_1_1_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_0_1_1__pyx_pw_4silx_4math_16chistogramnd_lut_19_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_0_1_1__pyx_pw_4silx_4math_16chistogramnd_lut_19_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -8792,18 +8792,18 @@ static PyObject *__pyx_fuse_0_1_1__pyx_pw_16chistogramnd_lut_19_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_18_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_18_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_18_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_18_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -8821,7 +8821,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_18_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int32_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_0_1_1_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -8835,7 +8835,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_18_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -8846,7 +8846,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_18_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -8857,7 +8857,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_18_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -8876,7 +8876,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_18_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -8886,7 +8886,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_18_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -8905,7 +8905,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_18_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -8915,7 +8915,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_18_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -8926,7 +8926,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_18_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -8944,7 +8944,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_18_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -8962,7 +8962,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_18_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -8982,9 +8982,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_18_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_0_1_2__pyx_pw_16chistogramnd_lut_21_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_0_1_2__pyx_mdef_16chistogramnd_lut_21_histogramnd_from_lut_fused = {"__pyx_fuse_0_1_2_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_0_1_2__pyx_pw_16chistogramnd_lut_21_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_0_1_2__pyx_pw_16chistogramnd_lut_21_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_0_1_2__pyx_pw_4silx_4math_16chistogramnd_lut_21_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_0_1_2__pyx_mdef_4silx_4math_16chistogramnd_lut_21_histogramnd_from_lut_fused = {"__pyx_fuse_0_1_2_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_0_1_2__pyx_pw_4silx_4math_16chistogramnd_lut_21_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_0_1_2__pyx_pw_4silx_4math_16chistogramnd_lut_21_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -9095,18 +9095,18 @@ static PyObject *__pyx_fuse_0_1_2__pyx_pw_16chistogramnd_lut_21_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_20_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_20_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_20_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_20_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -9124,7 +9124,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_20_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int32_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_0_1_2_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -9138,7 +9138,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_20_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -9149,7 +9149,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_20_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -9160,7 +9160,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_20_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -9179,7 +9179,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_20_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -9189,7 +9189,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_20_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -9208,7 +9208,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_20_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -9218,7 +9218,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_20_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -9229,7 +9229,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_20_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -9247,7 +9247,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_20_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -9265,7 +9265,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_20_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -9285,9 +9285,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_20_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_0_1_3__pyx_pw_16chistogramnd_lut_23_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_0_1_3__pyx_mdef_16chistogramnd_lut_23_histogramnd_from_lut_fused = {"__pyx_fuse_0_1_3_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_0_1_3__pyx_pw_16chistogramnd_lut_23_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_0_1_3__pyx_pw_16chistogramnd_lut_23_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_0_1_3__pyx_pw_4silx_4math_16chistogramnd_lut_23_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_0_1_3__pyx_mdef_4silx_4math_16chistogramnd_lut_23_histogramnd_from_lut_fused = {"__pyx_fuse_0_1_3_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_0_1_3__pyx_pw_4silx_4math_16chistogramnd_lut_23_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_0_1_3__pyx_pw_4silx_4math_16chistogramnd_lut_23_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -9398,18 +9398,18 @@ static PyObject *__pyx_fuse_0_1_3__pyx_pw_16chistogramnd_lut_23_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_22_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_22_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_22_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_22_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -9427,7 +9427,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_22_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int32_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_0_1_3_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -9441,7 +9441,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_22_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -9452,7 +9452,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_22_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -9463,7 +9463,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_22_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -9482,7 +9482,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_22_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -9492,7 +9492,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_22_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -9511,7 +9511,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_22_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -9521,7 +9521,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_22_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -9532,7 +9532,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_22_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -9550,7 +9550,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_22_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -9568,7 +9568,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_22_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -9588,9 +9588,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_22_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_0_2_0__pyx_pw_16chistogramnd_lut_25_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_0_2_0__pyx_mdef_16chistogramnd_lut_25_histogramnd_from_lut_fused = {"__pyx_fuse_0_2_0_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_0_2_0__pyx_pw_16chistogramnd_lut_25_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_0_2_0__pyx_pw_16chistogramnd_lut_25_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_0_2_0__pyx_pw_4silx_4math_16chistogramnd_lut_25_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_0_2_0__pyx_mdef_4silx_4math_16chistogramnd_lut_25_histogramnd_from_lut_fused = {"__pyx_fuse_0_2_0_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_0_2_0__pyx_pw_4silx_4math_16chistogramnd_lut_25_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_0_2_0__pyx_pw_4silx_4math_16chistogramnd_lut_25_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -9701,18 +9701,18 @@ static PyObject *__pyx_fuse_0_2_0__pyx_pw_16chistogramnd_lut_25_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_24_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_24_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_24_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_24_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -9730,7 +9730,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_24_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int16_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_0_2_0_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -9744,7 +9744,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_24_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -9755,7 +9755,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_24_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -9766,7 +9766,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_24_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -9785,7 +9785,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_24_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -9795,7 +9795,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_24_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -9814,7 +9814,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_24_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -9824,7 +9824,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_24_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -9835,7 +9835,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_24_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -9853,7 +9853,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_24_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -9871,7 +9871,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_24_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -9891,9 +9891,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_24_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_0_2_1__pyx_pw_16chistogramnd_lut_27_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_0_2_1__pyx_mdef_16chistogramnd_lut_27_histogramnd_from_lut_fused = {"__pyx_fuse_0_2_1_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_0_2_1__pyx_pw_16chistogramnd_lut_27_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_0_2_1__pyx_pw_16chistogramnd_lut_27_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_0_2_1__pyx_pw_4silx_4math_16chistogramnd_lut_27_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_0_2_1__pyx_mdef_4silx_4math_16chistogramnd_lut_27_histogramnd_from_lut_fused = {"__pyx_fuse_0_2_1_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_0_2_1__pyx_pw_4silx_4math_16chistogramnd_lut_27_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_0_2_1__pyx_pw_4silx_4math_16chistogramnd_lut_27_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -10004,18 +10004,18 @@ static PyObject *__pyx_fuse_0_2_1__pyx_pw_16chistogramnd_lut_27_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_26_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_26_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_26_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_26_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -10033,7 +10033,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_26_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int16_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_0_2_1_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -10047,7 +10047,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_26_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -10058,7 +10058,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_26_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -10069,7 +10069,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_26_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -10088,7 +10088,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_26_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -10098,7 +10098,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_26_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -10117,7 +10117,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_26_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -10127,7 +10127,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_26_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -10138,7 +10138,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_26_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -10156,7 +10156,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_26_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -10174,7 +10174,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_26_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -10194,9 +10194,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_26_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_0_2_2__pyx_pw_16chistogramnd_lut_29_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_0_2_2__pyx_mdef_16chistogramnd_lut_29_histogramnd_from_lut_fused = {"__pyx_fuse_0_2_2_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_0_2_2__pyx_pw_16chistogramnd_lut_29_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_0_2_2__pyx_pw_16chistogramnd_lut_29_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_0_2_2__pyx_pw_4silx_4math_16chistogramnd_lut_29_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_0_2_2__pyx_mdef_4silx_4math_16chistogramnd_lut_29_histogramnd_from_lut_fused = {"__pyx_fuse_0_2_2_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_0_2_2__pyx_pw_4silx_4math_16chistogramnd_lut_29_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_0_2_2__pyx_pw_4silx_4math_16chistogramnd_lut_29_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -10307,18 +10307,18 @@ static PyObject *__pyx_fuse_0_2_2__pyx_pw_16chistogramnd_lut_29_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_28_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_28_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_28_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_28_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -10336,7 +10336,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_28_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int16_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_0_2_2_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -10350,7 +10350,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_28_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -10361,7 +10361,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_28_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -10372,7 +10372,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_28_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -10391,7 +10391,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_28_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -10401,7 +10401,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_28_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -10420,7 +10420,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_28_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -10430,7 +10430,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_28_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -10441,7 +10441,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_28_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -10459,7 +10459,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_28_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -10477,7 +10477,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_28_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -10497,9 +10497,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_28_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_0_2_3__pyx_pw_16chistogramnd_lut_31_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_0_2_3__pyx_mdef_16chistogramnd_lut_31_histogramnd_from_lut_fused = {"__pyx_fuse_0_2_3_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_0_2_3__pyx_pw_16chistogramnd_lut_31_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_0_2_3__pyx_pw_16chistogramnd_lut_31_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_0_2_3__pyx_pw_4silx_4math_16chistogramnd_lut_31_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_0_2_3__pyx_mdef_4silx_4math_16chistogramnd_lut_31_histogramnd_from_lut_fused = {"__pyx_fuse_0_2_3_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_0_2_3__pyx_pw_4silx_4math_16chistogramnd_lut_31_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_0_2_3__pyx_pw_4silx_4math_16chistogramnd_lut_31_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -10610,18 +10610,18 @@ static PyObject *__pyx_fuse_0_2_3__pyx_pw_16chistogramnd_lut_31_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_30_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_30_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_30_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_30_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float64_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -10639,7 +10639,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_30_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int16_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_0_2_3_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -10653,7 +10653,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_30_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -10664,7 +10664,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_30_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -10675,7 +10675,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_30_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -10694,7 +10694,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_30_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -10704,7 +10704,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_30_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -10723,7 +10723,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_30_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -10733,7 +10733,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_30_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -10744,7 +10744,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_30_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -10762,7 +10762,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_30_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -10780,7 +10780,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_30_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -10800,9 +10800,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_30_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_1_0_0__pyx_pw_16chistogramnd_lut_33_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_1_0_0__pyx_mdef_16chistogramnd_lut_33_histogramnd_from_lut_fused = {"__pyx_fuse_1_0_0_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_1_0_0__pyx_pw_16chistogramnd_lut_33_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_1_0_0__pyx_pw_16chistogramnd_lut_33_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_1_0_0__pyx_pw_4silx_4math_16chistogramnd_lut_33_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_1_0_0__pyx_mdef_4silx_4math_16chistogramnd_lut_33_histogramnd_from_lut_fused = {"__pyx_fuse_1_0_0_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_1_0_0__pyx_pw_4silx_4math_16chistogramnd_lut_33_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_1_0_0__pyx_pw_4silx_4math_16chistogramnd_lut_33_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -10913,18 +10913,18 @@ static PyObject *__pyx_fuse_1_0_0__pyx_pw_16chistogramnd_lut_33_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_32_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_32_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_32_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_32_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -10942,7 +10942,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_32_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int64_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_1_0_0_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -10956,7 +10956,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_32_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -10967,7 +10967,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_32_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -10978,7 +10978,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_32_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -10997,7 +10997,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_32_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -11007,7 +11007,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_32_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -11026,7 +11026,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_32_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -11036,7 +11036,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_32_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -11047,7 +11047,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_32_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -11065,7 +11065,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_32_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -11083,7 +11083,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_32_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -11103,9 +11103,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_32_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_1_0_1__pyx_pw_16chistogramnd_lut_35_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_1_0_1__pyx_mdef_16chistogramnd_lut_35_histogramnd_from_lut_fused = {"__pyx_fuse_1_0_1_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_1_0_1__pyx_pw_16chistogramnd_lut_35_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_1_0_1__pyx_pw_16chistogramnd_lut_35_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_1_0_1__pyx_pw_4silx_4math_16chistogramnd_lut_35_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_1_0_1__pyx_mdef_4silx_4math_16chistogramnd_lut_35_histogramnd_from_lut_fused = {"__pyx_fuse_1_0_1_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_1_0_1__pyx_pw_4silx_4math_16chistogramnd_lut_35_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_1_0_1__pyx_pw_4silx_4math_16chistogramnd_lut_35_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -11216,18 +11216,18 @@ static PyObject *__pyx_fuse_1_0_1__pyx_pw_16chistogramnd_lut_35_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_34_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_34_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_34_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_34_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -11245,7 +11245,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_34_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int64_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_1_0_1_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -11259,7 +11259,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_34_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -11270,7 +11270,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_34_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -11281,7 +11281,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_34_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -11300,7 +11300,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_34_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -11310,7 +11310,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_34_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -11329,7 +11329,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_34_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -11339,7 +11339,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_34_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -11350,7 +11350,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_34_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -11368,7 +11368,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_34_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -11386,7 +11386,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_34_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -11406,9 +11406,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_34_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_1_0_2__pyx_pw_16chistogramnd_lut_37_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_1_0_2__pyx_mdef_16chistogramnd_lut_37_histogramnd_from_lut_fused = {"__pyx_fuse_1_0_2_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_1_0_2__pyx_pw_16chistogramnd_lut_37_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_1_0_2__pyx_pw_16chistogramnd_lut_37_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_1_0_2__pyx_pw_4silx_4math_16chistogramnd_lut_37_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_1_0_2__pyx_mdef_4silx_4math_16chistogramnd_lut_37_histogramnd_from_lut_fused = {"__pyx_fuse_1_0_2_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_1_0_2__pyx_pw_4silx_4math_16chistogramnd_lut_37_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_1_0_2__pyx_pw_4silx_4math_16chistogramnd_lut_37_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -11519,18 +11519,18 @@ static PyObject *__pyx_fuse_1_0_2__pyx_pw_16chistogramnd_lut_37_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_36_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_36_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_36_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_36_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -11548,7 +11548,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_36_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int64_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_1_0_2_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -11562,7 +11562,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_36_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -11573,7 +11573,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_36_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -11584,7 +11584,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_36_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -11603,7 +11603,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_36_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -11613,7 +11613,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_36_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -11632,7 +11632,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_36_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -11642,7 +11642,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_36_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -11653,7 +11653,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_36_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -11671,7 +11671,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_36_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -11689,7 +11689,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_36_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -11709,9 +11709,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_36_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_1_0_3__pyx_pw_16chistogramnd_lut_39_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_1_0_3__pyx_mdef_16chistogramnd_lut_39_histogramnd_from_lut_fused = {"__pyx_fuse_1_0_3_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_1_0_3__pyx_pw_16chistogramnd_lut_39_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_1_0_3__pyx_pw_16chistogramnd_lut_39_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_1_0_3__pyx_pw_4silx_4math_16chistogramnd_lut_39_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_1_0_3__pyx_mdef_4silx_4math_16chistogramnd_lut_39_histogramnd_from_lut_fused = {"__pyx_fuse_1_0_3_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_1_0_3__pyx_pw_4silx_4math_16chistogramnd_lut_39_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_1_0_3__pyx_pw_4silx_4math_16chistogramnd_lut_39_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -11822,18 +11822,18 @@ static PyObject *__pyx_fuse_1_0_3__pyx_pw_16chistogramnd_lut_39_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_38_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_38_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_38_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_38_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -11851,7 +11851,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_38_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int64_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_1_0_3_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -11865,7 +11865,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_38_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -11876,7 +11876,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_38_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -11887,7 +11887,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_38_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -11906,7 +11906,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_38_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -11916,7 +11916,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_38_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -11935,7 +11935,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_38_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -11945,7 +11945,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_38_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -11956,7 +11956,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_38_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -11974,7 +11974,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_38_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -11992,7 +11992,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_38_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -12012,9 +12012,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_38_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_1_1_0__pyx_pw_16chistogramnd_lut_41_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_1_1_0__pyx_mdef_16chistogramnd_lut_41_histogramnd_from_lut_fused = {"__pyx_fuse_1_1_0_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_1_1_0__pyx_pw_16chistogramnd_lut_41_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_1_1_0__pyx_pw_16chistogramnd_lut_41_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_1_1_0__pyx_pw_4silx_4math_16chistogramnd_lut_41_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_1_1_0__pyx_mdef_4silx_4math_16chistogramnd_lut_41_histogramnd_from_lut_fused = {"__pyx_fuse_1_1_0_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_1_1_0__pyx_pw_4silx_4math_16chistogramnd_lut_41_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_1_1_0__pyx_pw_4silx_4math_16chistogramnd_lut_41_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -12125,18 +12125,18 @@ static PyObject *__pyx_fuse_1_1_0__pyx_pw_16chistogramnd_lut_41_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_40_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_40_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_40_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_40_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -12154,7 +12154,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_40_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int32_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_1_1_0_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -12168,7 +12168,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_40_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -12179,7 +12179,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_40_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -12190,7 +12190,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_40_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -12209,7 +12209,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_40_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -12219,7 +12219,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_40_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -12238,7 +12238,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_40_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -12248,7 +12248,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_40_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -12259,7 +12259,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_40_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -12277,7 +12277,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_40_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -12295,7 +12295,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_40_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -12315,9 +12315,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_40_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_1_1_1__pyx_pw_16chistogramnd_lut_43_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_1_1_1__pyx_mdef_16chistogramnd_lut_43_histogramnd_from_lut_fused = {"__pyx_fuse_1_1_1_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_1_1_1__pyx_pw_16chistogramnd_lut_43_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_1_1_1__pyx_pw_16chistogramnd_lut_43_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_1_1_1__pyx_pw_4silx_4math_16chistogramnd_lut_43_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_1_1_1__pyx_mdef_4silx_4math_16chistogramnd_lut_43_histogramnd_from_lut_fused = {"__pyx_fuse_1_1_1_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_1_1_1__pyx_pw_4silx_4math_16chistogramnd_lut_43_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_1_1_1__pyx_pw_4silx_4math_16chistogramnd_lut_43_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -12428,18 +12428,18 @@ static PyObject *__pyx_fuse_1_1_1__pyx_pw_16chistogramnd_lut_43_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_42_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_42_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_42_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_42_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -12457,7 +12457,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_42_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int32_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_1_1_1_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -12471,7 +12471,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_42_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -12482,7 +12482,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_42_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -12493,7 +12493,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_42_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -12512,7 +12512,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_42_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -12522,7 +12522,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_42_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -12541,7 +12541,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_42_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -12551,7 +12551,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_42_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -12562,7 +12562,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_42_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -12580,7 +12580,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_42_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -12598,7 +12598,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_42_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -12618,9 +12618,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_42_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_1_1_2__pyx_pw_16chistogramnd_lut_45_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_1_1_2__pyx_mdef_16chistogramnd_lut_45_histogramnd_from_lut_fused = {"__pyx_fuse_1_1_2_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_1_1_2__pyx_pw_16chistogramnd_lut_45_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_1_1_2__pyx_pw_16chistogramnd_lut_45_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_1_1_2__pyx_pw_4silx_4math_16chistogramnd_lut_45_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_1_1_2__pyx_mdef_4silx_4math_16chistogramnd_lut_45_histogramnd_from_lut_fused = {"__pyx_fuse_1_1_2_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_1_1_2__pyx_pw_4silx_4math_16chistogramnd_lut_45_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_1_1_2__pyx_pw_4silx_4math_16chistogramnd_lut_45_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -12731,18 +12731,18 @@ static PyObject *__pyx_fuse_1_1_2__pyx_pw_16chistogramnd_lut_45_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_44_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_44_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_44_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_44_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -12760,7 +12760,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_44_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int32_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_1_1_2_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -12774,7 +12774,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_44_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -12785,7 +12785,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_44_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -12796,7 +12796,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_44_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -12815,7 +12815,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_44_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -12825,7 +12825,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_44_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -12844,7 +12844,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_44_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -12854,7 +12854,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_44_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -12865,7 +12865,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_44_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -12883,7 +12883,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_44_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -12901,7 +12901,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_44_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -12921,9 +12921,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_44_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_1_1_3__pyx_pw_16chistogramnd_lut_47_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_1_1_3__pyx_mdef_16chistogramnd_lut_47_histogramnd_from_lut_fused = {"__pyx_fuse_1_1_3_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_1_1_3__pyx_pw_16chistogramnd_lut_47_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_1_1_3__pyx_pw_16chistogramnd_lut_47_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_1_1_3__pyx_pw_4silx_4math_16chistogramnd_lut_47_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_1_1_3__pyx_mdef_4silx_4math_16chistogramnd_lut_47_histogramnd_from_lut_fused = {"__pyx_fuse_1_1_3_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_1_1_3__pyx_pw_4silx_4math_16chistogramnd_lut_47_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_1_1_3__pyx_pw_4silx_4math_16chistogramnd_lut_47_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -13034,18 +13034,18 @@ static PyObject *__pyx_fuse_1_1_3__pyx_pw_16chistogramnd_lut_47_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_46_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_46_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_46_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_46_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -13063,7 +13063,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_46_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int32_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_1_1_3_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -13077,7 +13077,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_46_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -13088,7 +13088,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_46_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -13099,7 +13099,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_46_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -13118,7 +13118,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_46_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -13128,7 +13128,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_46_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -13147,7 +13147,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_46_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -13157,7 +13157,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_46_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -13168,7 +13168,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_46_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -13186,7 +13186,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_46_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -13204,7 +13204,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_46_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -13224,9 +13224,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_46_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_1_2_0__pyx_pw_16chistogramnd_lut_49_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_1_2_0__pyx_mdef_16chistogramnd_lut_49_histogramnd_from_lut_fused = {"__pyx_fuse_1_2_0_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_1_2_0__pyx_pw_16chistogramnd_lut_49_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_1_2_0__pyx_pw_16chistogramnd_lut_49_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_1_2_0__pyx_pw_4silx_4math_16chistogramnd_lut_49_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_1_2_0__pyx_mdef_4silx_4math_16chistogramnd_lut_49_histogramnd_from_lut_fused = {"__pyx_fuse_1_2_0_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_1_2_0__pyx_pw_4silx_4math_16chistogramnd_lut_49_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_1_2_0__pyx_pw_4silx_4math_16chistogramnd_lut_49_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -13337,18 +13337,18 @@ static PyObject *__pyx_fuse_1_2_0__pyx_pw_16chistogramnd_lut_49_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_48_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_48_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_48_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_48_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -13366,7 +13366,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_48_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int16_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_1_2_0_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -13380,7 +13380,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_48_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -13391,7 +13391,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_48_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -13402,7 +13402,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_48_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -13421,7 +13421,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_48_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -13431,7 +13431,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_48_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -13450,7 +13450,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_48_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -13460,7 +13460,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_48_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -13471,7 +13471,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_48_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -13489,7 +13489,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_48_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -13507,7 +13507,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_48_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -13527,9 +13527,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_48_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_1_2_1__pyx_pw_16chistogramnd_lut_51_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_1_2_1__pyx_mdef_16chistogramnd_lut_51_histogramnd_from_lut_fused = {"__pyx_fuse_1_2_1_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_1_2_1__pyx_pw_16chistogramnd_lut_51_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_1_2_1__pyx_pw_16chistogramnd_lut_51_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_1_2_1__pyx_pw_4silx_4math_16chistogramnd_lut_51_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_1_2_1__pyx_mdef_4silx_4math_16chistogramnd_lut_51_histogramnd_from_lut_fused = {"__pyx_fuse_1_2_1_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_1_2_1__pyx_pw_4silx_4math_16chistogramnd_lut_51_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_1_2_1__pyx_pw_4silx_4math_16chistogramnd_lut_51_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -13640,18 +13640,18 @@ static PyObject *__pyx_fuse_1_2_1__pyx_pw_16chistogramnd_lut_51_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_50_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_50_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_50_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_50_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -13669,7 +13669,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_50_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int16_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_1_2_1_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -13683,7 +13683,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_50_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -13694,7 +13694,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_50_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -13705,7 +13705,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_50_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -13724,7 +13724,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_50_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -13734,7 +13734,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_50_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -13753,7 +13753,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_50_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -13763,7 +13763,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_50_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -13774,7 +13774,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_50_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -13792,7 +13792,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_50_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -13810,7 +13810,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_50_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -13830,9 +13830,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_50_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_1_2_2__pyx_pw_16chistogramnd_lut_53_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_1_2_2__pyx_mdef_16chistogramnd_lut_53_histogramnd_from_lut_fused = {"__pyx_fuse_1_2_2_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_1_2_2__pyx_pw_16chistogramnd_lut_53_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_1_2_2__pyx_pw_16chistogramnd_lut_53_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_1_2_2__pyx_pw_4silx_4math_16chistogramnd_lut_53_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_1_2_2__pyx_mdef_4silx_4math_16chistogramnd_lut_53_histogramnd_from_lut_fused = {"__pyx_fuse_1_2_2_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_1_2_2__pyx_pw_4silx_4math_16chistogramnd_lut_53_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_1_2_2__pyx_pw_4silx_4math_16chistogramnd_lut_53_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -13943,18 +13943,18 @@ static PyObject *__pyx_fuse_1_2_2__pyx_pw_16chistogramnd_lut_53_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_52_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_52_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_52_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_52_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -13972,7 +13972,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_52_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int16_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_1_2_2_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -13986,7 +13986,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_52_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -13997,7 +13997,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_52_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -14008,7 +14008,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_52_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -14027,7 +14027,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_52_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -14037,7 +14037,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_52_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -14056,7 +14056,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_52_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -14066,7 +14066,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_52_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -14077,7 +14077,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_52_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -14095,7 +14095,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_52_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -14113,7 +14113,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_52_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -14133,9 +14133,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_52_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_1_2_3__pyx_pw_16chistogramnd_lut_55_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_1_2_3__pyx_mdef_16chistogramnd_lut_55_histogramnd_from_lut_fused = {"__pyx_fuse_1_2_3_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_1_2_3__pyx_pw_16chistogramnd_lut_55_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_1_2_3__pyx_pw_16chistogramnd_lut_55_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_1_2_3__pyx_pw_4silx_4math_16chistogramnd_lut_55_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_1_2_3__pyx_mdef_4silx_4math_16chistogramnd_lut_55_histogramnd_from_lut_fused = {"__pyx_fuse_1_2_3_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_1_2_3__pyx_pw_4silx_4math_16chistogramnd_lut_55_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_1_2_3__pyx_pw_4silx_4math_16chistogramnd_lut_55_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -14246,18 +14246,18 @@ static PyObject *__pyx_fuse_1_2_3__pyx_pw_16chistogramnd_lut_55_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_54_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_54_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_54_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_54_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_float32_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -14275,7 +14275,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_54_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int16_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_1_2_3_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -14289,7 +14289,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_54_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -14300,7 +14300,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_54_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -14311,7 +14311,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_54_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -14330,7 +14330,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_54_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -14340,7 +14340,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_54_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -14359,7 +14359,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_54_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -14369,7 +14369,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_54_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -14380,7 +14380,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_54_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -14398,7 +14398,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_54_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -14416,7 +14416,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_54_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -14436,9 +14436,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_54_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_2_0_0__pyx_pw_16chistogramnd_lut_57_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_2_0_0__pyx_mdef_16chistogramnd_lut_57_histogramnd_from_lut_fused = {"__pyx_fuse_2_0_0_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_2_0_0__pyx_pw_16chistogramnd_lut_57_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_2_0_0__pyx_pw_16chistogramnd_lut_57_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_2_0_0__pyx_pw_4silx_4math_16chistogramnd_lut_57_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_2_0_0__pyx_mdef_4silx_4math_16chistogramnd_lut_57_histogramnd_from_lut_fused = {"__pyx_fuse_2_0_0_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_2_0_0__pyx_pw_4silx_4math_16chistogramnd_lut_57_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_2_0_0__pyx_pw_4silx_4math_16chistogramnd_lut_57_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -14549,18 +14549,18 @@ static PyObject *__pyx_fuse_2_0_0__pyx_pw_16chistogramnd_lut_57_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_56_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_56_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_56_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_56_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -14578,7 +14578,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_56_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int64_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_2_0_0_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -14592,7 +14592,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_56_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -14603,7 +14603,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_56_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -14614,7 +14614,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_56_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -14633,7 +14633,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_56_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -14643,7 +14643,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_56_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -14662,7 +14662,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_56_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -14672,7 +14672,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_56_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -14683,7 +14683,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_56_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -14701,7 +14701,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_56_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -14719,7 +14719,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_56_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -14739,9 +14739,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_56_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_2_0_1__pyx_pw_16chistogramnd_lut_59_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_2_0_1__pyx_mdef_16chistogramnd_lut_59_histogramnd_from_lut_fused = {"__pyx_fuse_2_0_1_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_2_0_1__pyx_pw_16chistogramnd_lut_59_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_2_0_1__pyx_pw_16chistogramnd_lut_59_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_2_0_1__pyx_pw_4silx_4math_16chistogramnd_lut_59_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_2_0_1__pyx_mdef_4silx_4math_16chistogramnd_lut_59_histogramnd_from_lut_fused = {"__pyx_fuse_2_0_1_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_2_0_1__pyx_pw_4silx_4math_16chistogramnd_lut_59_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_2_0_1__pyx_pw_4silx_4math_16chistogramnd_lut_59_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -14852,18 +14852,18 @@ static PyObject *__pyx_fuse_2_0_1__pyx_pw_16chistogramnd_lut_59_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_58_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_58_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_58_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_58_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -14881,7 +14881,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_58_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int64_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_2_0_1_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -14895,7 +14895,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_58_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -14906,7 +14906,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_58_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -14917,7 +14917,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_58_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -14936,7 +14936,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_58_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -14946,7 +14946,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_58_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -14965,7 +14965,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_58_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -14975,7 +14975,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_58_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -14986,7 +14986,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_58_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -15004,7 +15004,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_58_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -15022,7 +15022,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_58_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -15042,9 +15042,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_58_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_2_0_2__pyx_pw_16chistogramnd_lut_61_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_2_0_2__pyx_mdef_16chistogramnd_lut_61_histogramnd_from_lut_fused = {"__pyx_fuse_2_0_2_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_2_0_2__pyx_pw_16chistogramnd_lut_61_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_2_0_2__pyx_pw_16chistogramnd_lut_61_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_2_0_2__pyx_pw_4silx_4math_16chistogramnd_lut_61_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_2_0_2__pyx_mdef_4silx_4math_16chistogramnd_lut_61_histogramnd_from_lut_fused = {"__pyx_fuse_2_0_2_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_2_0_2__pyx_pw_4silx_4math_16chistogramnd_lut_61_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_2_0_2__pyx_pw_4silx_4math_16chistogramnd_lut_61_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -15155,18 +15155,18 @@ static PyObject *__pyx_fuse_2_0_2__pyx_pw_16chistogramnd_lut_61_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_60_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_60_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_60_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_60_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -15184,7 +15184,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_60_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int64_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_2_0_2_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -15198,7 +15198,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_60_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -15209,7 +15209,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_60_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -15220,7 +15220,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_60_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -15239,7 +15239,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_60_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -15249,7 +15249,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_60_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -15268,7 +15268,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_60_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -15278,7 +15278,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_60_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -15289,7 +15289,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_60_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -15307,7 +15307,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_60_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -15325,7 +15325,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_60_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -15345,9 +15345,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_60_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_2_0_3__pyx_pw_16chistogramnd_lut_63_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_2_0_3__pyx_mdef_16chistogramnd_lut_63_histogramnd_from_lut_fused = {"__pyx_fuse_2_0_3_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_2_0_3__pyx_pw_16chistogramnd_lut_63_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_2_0_3__pyx_pw_16chistogramnd_lut_63_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_2_0_3__pyx_pw_4silx_4math_16chistogramnd_lut_63_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_2_0_3__pyx_mdef_4silx_4math_16chistogramnd_lut_63_histogramnd_from_lut_fused = {"__pyx_fuse_2_0_3_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_2_0_3__pyx_pw_4silx_4math_16chistogramnd_lut_63_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_2_0_3__pyx_pw_4silx_4math_16chistogramnd_lut_63_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -15458,18 +15458,18 @@ static PyObject *__pyx_fuse_2_0_3__pyx_pw_16chistogramnd_lut_63_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_62_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_62_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_62_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_62_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -15487,7 +15487,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_62_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int64_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_2_0_3_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -15501,7 +15501,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_62_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -15512,7 +15512,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_62_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -15523,7 +15523,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_62_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -15542,7 +15542,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_62_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -15552,7 +15552,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_62_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -15571,7 +15571,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_62_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -15581,7 +15581,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_62_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -15592,7 +15592,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_62_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -15610,7 +15610,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_62_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -15628,7 +15628,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_62_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -15648,9 +15648,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_62_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_2_1_0__pyx_pw_16chistogramnd_lut_65_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_2_1_0__pyx_mdef_16chistogramnd_lut_65_histogramnd_from_lut_fused = {"__pyx_fuse_2_1_0_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_2_1_0__pyx_pw_16chistogramnd_lut_65_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_2_1_0__pyx_pw_16chistogramnd_lut_65_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_2_1_0__pyx_pw_4silx_4math_16chistogramnd_lut_65_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_2_1_0__pyx_mdef_4silx_4math_16chistogramnd_lut_65_histogramnd_from_lut_fused = {"__pyx_fuse_2_1_0_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_2_1_0__pyx_pw_4silx_4math_16chistogramnd_lut_65_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_2_1_0__pyx_pw_4silx_4math_16chistogramnd_lut_65_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -15761,18 +15761,18 @@ static PyObject *__pyx_fuse_2_1_0__pyx_pw_16chistogramnd_lut_65_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_64_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_64_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_64_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_64_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -15790,7 +15790,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_64_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int32_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_2_1_0_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -15804,7 +15804,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_64_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -15815,7 +15815,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_64_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -15826,7 +15826,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_64_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -15845,7 +15845,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_64_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -15855,7 +15855,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_64_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -15874,7 +15874,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_64_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -15884,7 +15884,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_64_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -15895,7 +15895,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_64_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -15913,7 +15913,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_64_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -15931,7 +15931,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_64_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -15951,9 +15951,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_64_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_2_1_1__pyx_pw_16chistogramnd_lut_67_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_2_1_1__pyx_mdef_16chistogramnd_lut_67_histogramnd_from_lut_fused = {"__pyx_fuse_2_1_1_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_2_1_1__pyx_pw_16chistogramnd_lut_67_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_2_1_1__pyx_pw_16chistogramnd_lut_67_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_2_1_1__pyx_pw_4silx_4math_16chistogramnd_lut_67_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_2_1_1__pyx_mdef_4silx_4math_16chistogramnd_lut_67_histogramnd_from_lut_fused = {"__pyx_fuse_2_1_1_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_2_1_1__pyx_pw_4silx_4math_16chistogramnd_lut_67_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_2_1_1__pyx_pw_4silx_4math_16chistogramnd_lut_67_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -16064,18 +16064,18 @@ static PyObject *__pyx_fuse_2_1_1__pyx_pw_16chistogramnd_lut_67_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_66_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_66_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_66_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_66_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -16093,7 +16093,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_66_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int32_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_2_1_1_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -16107,7 +16107,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_66_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -16118,7 +16118,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_66_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -16129,7 +16129,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_66_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -16148,7 +16148,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_66_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -16158,7 +16158,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_66_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -16177,7 +16177,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_66_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -16187,7 +16187,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_66_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -16198,7 +16198,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_66_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -16216,7 +16216,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_66_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -16234,7 +16234,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_66_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -16254,9 +16254,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_66_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_2_1_2__pyx_pw_16chistogramnd_lut_69_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_2_1_2__pyx_mdef_16chistogramnd_lut_69_histogramnd_from_lut_fused = {"__pyx_fuse_2_1_2_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_2_1_2__pyx_pw_16chistogramnd_lut_69_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_2_1_2__pyx_pw_16chistogramnd_lut_69_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_2_1_2__pyx_pw_4silx_4math_16chistogramnd_lut_69_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_2_1_2__pyx_mdef_4silx_4math_16chistogramnd_lut_69_histogramnd_from_lut_fused = {"__pyx_fuse_2_1_2_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_2_1_2__pyx_pw_4silx_4math_16chistogramnd_lut_69_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_2_1_2__pyx_pw_4silx_4math_16chistogramnd_lut_69_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -16367,18 +16367,18 @@ static PyObject *__pyx_fuse_2_1_2__pyx_pw_16chistogramnd_lut_69_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_68_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_68_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_68_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_68_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -16396,7 +16396,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_68_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int32_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_2_1_2_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -16410,7 +16410,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_68_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -16421,7 +16421,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_68_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -16432,7 +16432,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_68_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -16451,7 +16451,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_68_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -16461,7 +16461,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_68_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -16480,7 +16480,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_68_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -16490,7 +16490,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_68_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -16501,7 +16501,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_68_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -16519,7 +16519,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_68_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -16537,7 +16537,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_68_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -16557,9 +16557,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_68_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_2_1_3__pyx_pw_16chistogramnd_lut_71_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_2_1_3__pyx_mdef_16chistogramnd_lut_71_histogramnd_from_lut_fused = {"__pyx_fuse_2_1_3_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_2_1_3__pyx_pw_16chistogramnd_lut_71_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_2_1_3__pyx_pw_16chistogramnd_lut_71_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_2_1_3__pyx_pw_4silx_4math_16chistogramnd_lut_71_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_2_1_3__pyx_mdef_4silx_4math_16chistogramnd_lut_71_histogramnd_from_lut_fused = {"__pyx_fuse_2_1_3_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_2_1_3__pyx_pw_4silx_4math_16chistogramnd_lut_71_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_2_1_3__pyx_pw_4silx_4math_16chistogramnd_lut_71_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -16670,18 +16670,18 @@ static PyObject *__pyx_fuse_2_1_3__pyx_pw_16chistogramnd_lut_71_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_70_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_70_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_70_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_70_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -16699,7 +16699,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_70_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int32_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_2_1_3_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -16713,7 +16713,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_70_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -16724,7 +16724,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_70_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -16735,7 +16735,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_70_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -16754,7 +16754,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_70_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -16764,7 +16764,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_70_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -16783,7 +16783,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_70_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -16793,7 +16793,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_70_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -16804,7 +16804,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_70_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -16822,7 +16822,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_70_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -16840,7 +16840,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_70_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -16860,9 +16860,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_70_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_2_2_0__pyx_pw_16chistogramnd_lut_73_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_2_2_0__pyx_mdef_16chistogramnd_lut_73_histogramnd_from_lut_fused = {"__pyx_fuse_2_2_0_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_2_2_0__pyx_pw_16chistogramnd_lut_73_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_2_2_0__pyx_pw_16chistogramnd_lut_73_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_2_2_0__pyx_pw_4silx_4math_16chistogramnd_lut_73_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_2_2_0__pyx_mdef_4silx_4math_16chistogramnd_lut_73_histogramnd_from_lut_fused = {"__pyx_fuse_2_2_0_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_2_2_0__pyx_pw_4silx_4math_16chistogramnd_lut_73_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_2_2_0__pyx_pw_4silx_4math_16chistogramnd_lut_73_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -16973,18 +16973,18 @@ static PyObject *__pyx_fuse_2_2_0__pyx_pw_16chistogramnd_lut_73_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_72_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_72_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_72_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_72_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -17002,7 +17002,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_72_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int16_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_2_2_0_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -17016,7 +17016,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_72_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -17027,7 +17027,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_72_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -17038,7 +17038,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_72_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -17057,7 +17057,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_72_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -17067,7 +17067,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_72_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -17086,7 +17086,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_72_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -17096,7 +17096,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_72_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -17107,7 +17107,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_72_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -17125,7 +17125,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_72_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -17143,7 +17143,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_72_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -17163,9 +17163,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_72_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_2_2_1__pyx_pw_16chistogramnd_lut_75_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_2_2_1__pyx_mdef_16chistogramnd_lut_75_histogramnd_from_lut_fused = {"__pyx_fuse_2_2_1_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_2_2_1__pyx_pw_16chistogramnd_lut_75_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_2_2_1__pyx_pw_16chistogramnd_lut_75_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_2_2_1__pyx_pw_4silx_4math_16chistogramnd_lut_75_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_2_2_1__pyx_mdef_4silx_4math_16chistogramnd_lut_75_histogramnd_from_lut_fused = {"__pyx_fuse_2_2_1_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_2_2_1__pyx_pw_4silx_4math_16chistogramnd_lut_75_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_2_2_1__pyx_pw_4silx_4math_16chistogramnd_lut_75_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -17276,18 +17276,18 @@ static PyObject *__pyx_fuse_2_2_1__pyx_pw_16chistogramnd_lut_75_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_74_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_74_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_74_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_74_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -17305,7 +17305,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_74_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int16_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_2_2_1_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -17319,7 +17319,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_74_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -17330,7 +17330,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_74_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -17341,7 +17341,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_74_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -17360,7 +17360,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_74_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -17370,7 +17370,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_74_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -17389,7 +17389,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_74_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -17399,7 +17399,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_74_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -17410,7 +17410,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_74_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -17428,7 +17428,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_74_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -17446,7 +17446,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_74_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -17466,9 +17466,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_74_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_2_2_2__pyx_pw_16chistogramnd_lut_77_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_2_2_2__pyx_mdef_16chistogramnd_lut_77_histogramnd_from_lut_fused = {"__pyx_fuse_2_2_2_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_2_2_2__pyx_pw_16chistogramnd_lut_77_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_2_2_2__pyx_pw_16chistogramnd_lut_77_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_2_2_2__pyx_pw_4silx_4math_16chistogramnd_lut_77_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_2_2_2__pyx_mdef_4silx_4math_16chistogramnd_lut_77_histogramnd_from_lut_fused = {"__pyx_fuse_2_2_2_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_2_2_2__pyx_pw_4silx_4math_16chistogramnd_lut_77_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_2_2_2__pyx_pw_4silx_4math_16chistogramnd_lut_77_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -17579,18 +17579,18 @@ static PyObject *__pyx_fuse_2_2_2__pyx_pw_16chistogramnd_lut_77_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_76_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_76_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_76_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_76_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -17608,7 +17608,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_76_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int16_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_2_2_2_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -17622,7 +17622,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_76_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -17633,7 +17633,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_76_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -17644,7 +17644,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_76_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -17663,7 +17663,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_76_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -17673,7 +17673,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_76_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -17692,7 +17692,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_76_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -17702,7 +17702,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_76_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -17713,7 +17713,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_76_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -17731,7 +17731,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_76_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -17749,7 +17749,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_76_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -17769,9 +17769,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_76_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_2_2_3__pyx_pw_16chistogramnd_lut_79_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_2_2_3__pyx_mdef_16chistogramnd_lut_79_histogramnd_from_lut_fused = {"__pyx_fuse_2_2_3_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_2_2_3__pyx_pw_16chistogramnd_lut_79_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_2_2_3__pyx_pw_16chistogramnd_lut_79_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_2_2_3__pyx_pw_4silx_4math_16chistogramnd_lut_79_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_2_2_3__pyx_mdef_4silx_4math_16chistogramnd_lut_79_histogramnd_from_lut_fused = {"__pyx_fuse_2_2_3_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_2_2_3__pyx_pw_4silx_4math_16chistogramnd_lut_79_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_2_2_3__pyx_pw_4silx_4math_16chistogramnd_lut_79_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -17882,18 +17882,18 @@ static PyObject *__pyx_fuse_2_2_3__pyx_pw_16chistogramnd_lut_79_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_78_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_78_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_78_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_78_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int32_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -17911,7 +17911,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_78_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int16_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_2_2_3_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -17925,7 +17925,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_78_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -17936,7 +17936,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_78_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -17947,7 +17947,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_78_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -17966,7 +17966,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_78_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -17976,7 +17976,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_78_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -17995,7 +17995,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_78_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -18005,7 +18005,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_78_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -18016,7 +18016,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_78_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -18034,7 +18034,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_78_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -18052,7 +18052,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_78_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -18072,9 +18072,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_78_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_3_0_0__pyx_pw_16chistogramnd_lut_81_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_3_0_0__pyx_mdef_16chistogramnd_lut_81_histogramnd_from_lut_fused = {"__pyx_fuse_3_0_0_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_3_0_0__pyx_pw_16chistogramnd_lut_81_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_3_0_0__pyx_pw_16chistogramnd_lut_81_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_3_0_0__pyx_pw_4silx_4math_16chistogramnd_lut_81_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_3_0_0__pyx_mdef_4silx_4math_16chistogramnd_lut_81_histogramnd_from_lut_fused = {"__pyx_fuse_3_0_0_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_3_0_0__pyx_pw_4silx_4math_16chistogramnd_lut_81_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_3_0_0__pyx_pw_4silx_4math_16chistogramnd_lut_81_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -18185,18 +18185,18 @@ static PyObject *__pyx_fuse_3_0_0__pyx_pw_16chistogramnd_lut_81_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_80_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_80_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_80_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_80_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -18214,7 +18214,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_80_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int64_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_3_0_0_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -18228,7 +18228,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_80_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -18239,7 +18239,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_80_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -18250,7 +18250,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_80_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -18269,7 +18269,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_80_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -18279,7 +18279,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_80_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -18298,7 +18298,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_80_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -18308,7 +18308,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_80_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -18319,7 +18319,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_80_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -18337,7 +18337,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_80_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -18355,7 +18355,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_80_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -18375,9 +18375,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_80_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_3_0_1__pyx_pw_16chistogramnd_lut_83_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_3_0_1__pyx_mdef_16chistogramnd_lut_83_histogramnd_from_lut_fused = {"__pyx_fuse_3_0_1_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_3_0_1__pyx_pw_16chistogramnd_lut_83_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_3_0_1__pyx_pw_16chistogramnd_lut_83_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_3_0_1__pyx_pw_4silx_4math_16chistogramnd_lut_83_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_3_0_1__pyx_mdef_4silx_4math_16chistogramnd_lut_83_histogramnd_from_lut_fused = {"__pyx_fuse_3_0_1_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_3_0_1__pyx_pw_4silx_4math_16chistogramnd_lut_83_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_3_0_1__pyx_pw_4silx_4math_16chistogramnd_lut_83_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -18488,18 +18488,18 @@ static PyObject *__pyx_fuse_3_0_1__pyx_pw_16chistogramnd_lut_83_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_82_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_82_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_82_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_82_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -18517,7 +18517,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_82_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int64_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_3_0_1_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -18531,7 +18531,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_82_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -18542,7 +18542,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_82_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -18553,7 +18553,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_82_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -18572,7 +18572,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_82_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -18582,7 +18582,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_82_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -18601,7 +18601,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_82_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -18611,7 +18611,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_82_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -18622,7 +18622,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_82_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -18640,7 +18640,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_82_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -18658,7 +18658,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_82_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -18678,9 +18678,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_82_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_3_0_2__pyx_pw_16chistogramnd_lut_85_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_3_0_2__pyx_mdef_16chistogramnd_lut_85_histogramnd_from_lut_fused = {"__pyx_fuse_3_0_2_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_3_0_2__pyx_pw_16chistogramnd_lut_85_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_3_0_2__pyx_pw_16chistogramnd_lut_85_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_3_0_2__pyx_pw_4silx_4math_16chistogramnd_lut_85_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_3_0_2__pyx_mdef_4silx_4math_16chistogramnd_lut_85_histogramnd_from_lut_fused = {"__pyx_fuse_3_0_2_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_3_0_2__pyx_pw_4silx_4math_16chistogramnd_lut_85_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_3_0_2__pyx_pw_4silx_4math_16chistogramnd_lut_85_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -18791,18 +18791,18 @@ static PyObject *__pyx_fuse_3_0_2__pyx_pw_16chistogramnd_lut_85_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_84_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_84_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_84_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_84_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -18820,7 +18820,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_84_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int64_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_3_0_2_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -18834,7 +18834,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_84_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -18845,7 +18845,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_84_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -18856,7 +18856,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_84_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -18875,7 +18875,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_84_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -18885,7 +18885,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_84_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -18904,7 +18904,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_84_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -18914,7 +18914,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_84_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -18925,7 +18925,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_84_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -18943,7 +18943,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_84_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -18961,7 +18961,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_84_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -18981,9 +18981,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_84_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_3_0_3__pyx_pw_16chistogramnd_lut_87_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_3_0_3__pyx_mdef_16chistogramnd_lut_87_histogramnd_from_lut_fused = {"__pyx_fuse_3_0_3_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_3_0_3__pyx_pw_16chistogramnd_lut_87_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_3_0_3__pyx_pw_16chistogramnd_lut_87_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_3_0_3__pyx_pw_4silx_4math_16chistogramnd_lut_87_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_3_0_3__pyx_mdef_4silx_4math_16chistogramnd_lut_87_histogramnd_from_lut_fused = {"__pyx_fuse_3_0_3_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_3_0_3__pyx_pw_4silx_4math_16chistogramnd_lut_87_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_3_0_3__pyx_pw_4silx_4math_16chistogramnd_lut_87_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -19094,18 +19094,18 @@ static PyObject *__pyx_fuse_3_0_3__pyx_pw_16chistogramnd_lut_87_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_86_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_86_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_86_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_86_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -19123,7 +19123,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_86_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int64_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_3_0_3_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -19137,7 +19137,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_86_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -19148,7 +19148,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_86_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -19159,7 +19159,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_86_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -19178,7 +19178,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_86_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -19188,7 +19188,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_86_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -19207,7 +19207,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_86_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -19217,7 +19217,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_86_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -19228,7 +19228,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_86_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -19246,7 +19246,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_86_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -19264,7 +19264,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_86_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -19284,9 +19284,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_86_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_3_1_0__pyx_pw_16chistogramnd_lut_89_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_3_1_0__pyx_mdef_16chistogramnd_lut_89_histogramnd_from_lut_fused = {"__pyx_fuse_3_1_0_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_3_1_0__pyx_pw_16chistogramnd_lut_89_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_3_1_0__pyx_pw_16chistogramnd_lut_89_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_3_1_0__pyx_pw_4silx_4math_16chistogramnd_lut_89_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_3_1_0__pyx_mdef_4silx_4math_16chistogramnd_lut_89_histogramnd_from_lut_fused = {"__pyx_fuse_3_1_0_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_3_1_0__pyx_pw_4silx_4math_16chistogramnd_lut_89_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_3_1_0__pyx_pw_4silx_4math_16chistogramnd_lut_89_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -19397,18 +19397,18 @@ static PyObject *__pyx_fuse_3_1_0__pyx_pw_16chistogramnd_lut_89_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_88_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_88_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_88_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_88_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -19426,7 +19426,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_88_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int32_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_3_1_0_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -19440,7 +19440,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_88_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -19451,7 +19451,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_88_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -19462,7 +19462,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_88_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -19481,7 +19481,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_88_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -19491,7 +19491,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_88_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -19510,7 +19510,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_88_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -19520,7 +19520,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_88_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -19531,7 +19531,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_88_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -19549,7 +19549,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_88_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -19567,7 +19567,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_88_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -19587,9 +19587,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_88_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_3_1_1__pyx_pw_16chistogramnd_lut_91_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_3_1_1__pyx_mdef_16chistogramnd_lut_91_histogramnd_from_lut_fused = {"__pyx_fuse_3_1_1_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_3_1_1__pyx_pw_16chistogramnd_lut_91_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_3_1_1__pyx_pw_16chistogramnd_lut_91_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_3_1_1__pyx_pw_4silx_4math_16chistogramnd_lut_91_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_3_1_1__pyx_mdef_4silx_4math_16chistogramnd_lut_91_histogramnd_from_lut_fused = {"__pyx_fuse_3_1_1_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_3_1_1__pyx_pw_4silx_4math_16chistogramnd_lut_91_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_3_1_1__pyx_pw_4silx_4math_16chistogramnd_lut_91_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -19700,18 +19700,18 @@ static PyObject *__pyx_fuse_3_1_1__pyx_pw_16chistogramnd_lut_91_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_90_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_90_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_90_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_90_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -19729,7 +19729,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_90_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int32_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_3_1_1_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -19743,7 +19743,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_90_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -19754,7 +19754,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_90_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -19765,7 +19765,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_90_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -19784,7 +19784,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_90_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -19794,7 +19794,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_90_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -19813,7 +19813,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_90_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -19823,7 +19823,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_90_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -19834,7 +19834,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_90_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -19852,7 +19852,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_90_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -19870,7 +19870,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_90_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -19890,9 +19890,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_90_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_3_1_2__pyx_pw_16chistogramnd_lut_93_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_3_1_2__pyx_mdef_16chistogramnd_lut_93_histogramnd_from_lut_fused = {"__pyx_fuse_3_1_2_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_3_1_2__pyx_pw_16chistogramnd_lut_93_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_3_1_2__pyx_pw_16chistogramnd_lut_93_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_3_1_2__pyx_pw_4silx_4math_16chistogramnd_lut_93_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_3_1_2__pyx_mdef_4silx_4math_16chistogramnd_lut_93_histogramnd_from_lut_fused = {"__pyx_fuse_3_1_2_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_3_1_2__pyx_pw_4silx_4math_16chistogramnd_lut_93_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_3_1_2__pyx_pw_4silx_4math_16chistogramnd_lut_93_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -20003,18 +20003,18 @@ static PyObject *__pyx_fuse_3_1_2__pyx_pw_16chistogramnd_lut_93_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_92_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_92_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_92_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_92_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -20032,7 +20032,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_92_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int32_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_3_1_2_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -20046,7 +20046,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_92_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -20057,7 +20057,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_92_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -20068,7 +20068,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_92_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -20087,7 +20087,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_92_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -20097,7 +20097,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_92_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -20116,7 +20116,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_92_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -20126,7 +20126,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_92_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -20137,7 +20137,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_92_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -20155,7 +20155,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_92_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -20173,7 +20173,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_92_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -20193,9 +20193,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_92_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_3_1_3__pyx_pw_16chistogramnd_lut_95_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_3_1_3__pyx_mdef_16chistogramnd_lut_95_histogramnd_from_lut_fused = {"__pyx_fuse_3_1_3_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_3_1_3__pyx_pw_16chistogramnd_lut_95_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_3_1_3__pyx_pw_16chistogramnd_lut_95_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_3_1_3__pyx_pw_4silx_4math_16chistogramnd_lut_95_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_3_1_3__pyx_mdef_4silx_4math_16chistogramnd_lut_95_histogramnd_from_lut_fused = {"__pyx_fuse_3_1_3_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_3_1_3__pyx_pw_4silx_4math_16chistogramnd_lut_95_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_3_1_3__pyx_pw_4silx_4math_16chistogramnd_lut_95_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -20306,18 +20306,18 @@ static PyObject *__pyx_fuse_3_1_3__pyx_pw_16chistogramnd_lut_95_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_94_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_94_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_94_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_94_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -20335,7 +20335,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_94_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int32_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_3_1_3_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -20349,7 +20349,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_94_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -20360,7 +20360,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_94_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -20371,7 +20371,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_94_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -20390,7 +20390,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_94_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -20400,7 +20400,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_94_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -20419,7 +20419,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_94_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -20429,7 +20429,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_94_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -20440,7 +20440,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_94_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -20458,7 +20458,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_94_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -20476,7 +20476,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_94_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -20496,9 +20496,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_94_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_3_2_0__pyx_pw_16chistogramnd_lut_97_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_3_2_0__pyx_mdef_16chistogramnd_lut_97_histogramnd_from_lut_fused = {"__pyx_fuse_3_2_0_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_3_2_0__pyx_pw_16chistogramnd_lut_97_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_3_2_0__pyx_pw_16chistogramnd_lut_97_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_3_2_0__pyx_pw_4silx_4math_16chistogramnd_lut_97_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_3_2_0__pyx_mdef_4silx_4math_16chistogramnd_lut_97_histogramnd_from_lut_fused = {"__pyx_fuse_3_2_0_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_3_2_0__pyx_pw_4silx_4math_16chistogramnd_lut_97_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_3_2_0__pyx_pw_4silx_4math_16chistogramnd_lut_97_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -20609,18 +20609,18 @@ static PyObject *__pyx_fuse_3_2_0__pyx_pw_16chistogramnd_lut_97_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_96_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_96_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_96_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_96_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -20638,7 +20638,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_96_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int16_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_3_2_0_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -20652,7 +20652,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_96_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -20663,7 +20663,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_96_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -20674,7 +20674,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_96_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -20693,7 +20693,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_96_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -20703,7 +20703,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_96_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -20722,7 +20722,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_96_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -20732,7 +20732,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_96_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -20743,7 +20743,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_96_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -20761,7 +20761,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_96_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -20779,7 +20779,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_96_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -20799,9 +20799,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_96_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_3_2_1__pyx_pw_16chistogramnd_lut_99_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_3_2_1__pyx_mdef_16chistogramnd_lut_99_histogramnd_from_lut_fused = {"__pyx_fuse_3_2_1_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_3_2_1__pyx_pw_16chistogramnd_lut_99_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_3_2_1__pyx_pw_16chistogramnd_lut_99_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_3_2_1__pyx_pw_4silx_4math_16chistogramnd_lut_99_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_3_2_1__pyx_mdef_4silx_4math_16chistogramnd_lut_99_histogramnd_from_lut_fused = {"__pyx_fuse_3_2_1_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_3_2_1__pyx_pw_4silx_4math_16chistogramnd_lut_99_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_3_2_1__pyx_pw_4silx_4math_16chistogramnd_lut_99_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -20912,18 +20912,18 @@ static PyObject *__pyx_fuse_3_2_1__pyx_pw_16chistogramnd_lut_99_histogramnd_from
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_98_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_98_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_98_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_98_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -20941,7 +20941,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_98_histogramnd_from_lut_fused(CYTHO
   __pyx_t_5numpy_int16_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_3_2_1_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -20955,7 +20955,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_98_histogramnd_from_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -20966,7 +20966,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_98_histogramnd_from_lut_fused(CYTHO
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -20977,7 +20977,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_98_histogramnd_from_lut_fused(CYTHO
           __pyx_t_4 = (((*((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -20996,7 +20996,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_98_histogramnd_from_lut_fused(CYTHO
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -21006,7 +21006,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_98_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -21025,7 +21025,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_98_histogramnd_from_lut_fused(CYTHO
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -21035,7 +21035,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_98_histogramnd_from_lut_fused(CYTHO
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -21046,7 +21046,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_98_histogramnd_from_lut_fused(CYTHO
             __pyx_t_9 = (*((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -21064,7 +21064,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_98_histogramnd_from_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -21082,7 +21082,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_98_histogramnd_from_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -21102,9 +21102,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_98_histogramnd_from_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_3_2_2__pyx_pw_16chistogramnd_lut_101_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_3_2_2__pyx_mdef_16chistogramnd_lut_101_histogramnd_from_lut_fused = {"__pyx_fuse_3_2_2_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_3_2_2__pyx_pw_16chistogramnd_lut_101_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_3_2_2__pyx_pw_16chistogramnd_lut_101_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_3_2_2__pyx_pw_4silx_4math_16chistogramnd_lut_101_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_3_2_2__pyx_mdef_4silx_4math_16chistogramnd_lut_101_histogramnd_from_lut_fused = {"__pyx_fuse_3_2_2_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_3_2_2__pyx_pw_4silx_4math_16chistogramnd_lut_101_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_3_2_2__pyx_pw_4silx_4math_16chistogramnd_lut_101_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -21215,18 +21215,18 @@ static PyObject *__pyx_fuse_3_2_2__pyx_pw_16chistogramnd_lut_101_histogramnd_fro
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_100_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_100_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_100_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_100_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -21244,7 +21244,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_100_histogramnd_from_lut_fused(CYTH
   __pyx_t_5numpy_int16_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_3_2_2_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -21258,7 +21258,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_100_histogramnd_from_lut_fused(CYTH
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -21269,7 +21269,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_100_histogramnd_from_lut_fused(CYTH
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -21280,7 +21280,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_100_histogramnd_from_lut_fused(CYTH
           __pyx_t_4 = (((*((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -21299,7 +21299,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_100_histogramnd_from_lut_fused(CYTH
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -21309,7 +21309,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_100_histogramnd_from_lut_fused(CYTH
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -21328,7 +21328,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_100_histogramnd_from_lut_fused(CYTH
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -21338,7 +21338,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_100_histogramnd_from_lut_fused(CYTH
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -21349,7 +21349,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_100_histogramnd_from_lut_fused(CYTH
             __pyx_t_9 = (*((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -21367,7 +21367,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_100_histogramnd_from_lut_fused(CYTH
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -21385,7 +21385,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_100_histogramnd_from_lut_fused(CYTH
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -21405,9 +21405,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_100_histogramnd_from_lut_fused(CYTH
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_3_2_3__pyx_pw_16chistogramnd_lut_103_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_3_2_3__pyx_mdef_16chistogramnd_lut_103_histogramnd_from_lut_fused = {"__pyx_fuse_3_2_3_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_3_2_3__pyx_pw_16chistogramnd_lut_103_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_4_histogramnd_from_lut_fused};
-static PyObject *__pyx_fuse_3_2_3__pyx_pw_16chistogramnd_lut_103_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_3_2_3__pyx_pw_4silx_4math_16chistogramnd_lut_103_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_3_2_3__pyx_mdef_4silx_4math_16chistogramnd_lut_103_histogramnd_from_lut_fused = {"__pyx_fuse_3_2_3_histogramnd_from_lut_fused", (PyCFunction)__pyx_fuse_3_2_3__pyx_pw_4silx_4math_16chistogramnd_lut_103_histogramnd_from_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_fused};
+static PyObject *__pyx_fuse_3_2_3__pyx_pw_4silx_4math_16chistogramnd_lut_103_histogramnd_from_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_i_lut = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_o_histo = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -21518,18 +21518,18 @@ static PyObject *__pyx_fuse_3_2_3__pyx_pw_16chistogramnd_lut_103_histogramnd_fro
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_from_lut_fused", 1, 9, 9, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_from_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_102_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_102_histogramnd_from_lut_fused(__pyx_self, __pyx_v_i_weights, __pyx_v_i_lut, __pyx_v_o_histo, __pyx_v_o_weighted_histo, __pyx_v_i_n_elems, __pyx_v_i_filt_min_weights, __pyx_v_i_weight_min, __pyx_v_i_filt_max_weights, __pyx_v_i_weight_max);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_102_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_102_histogramnd_from_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_weights, __Pyx_memviewslice __pyx_v_i_lut, __Pyx_memviewslice __pyx_v_o_histo, __Pyx_memviewslice __pyx_v_o_weighted_histo, int __pyx_v_i_n_elems, int __pyx_v_i_filt_min_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_min, int __pyx_v_i_filt_max_weights, __pyx_t_5numpy_int64_t __pyx_v_i_weight_max) {
   int __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -21547,7 +21547,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_102_histogramnd_from_lut_fused(CYTH
   __pyx_t_5numpy_int16_t __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_3_2_3_histogramnd_from_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":332
+  /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -21561,7 +21561,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_102_histogramnd_from_lut_fused(CYTH
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":333
+        /* "silx/math/chistogramnd_lut.pyx":333
  *                                 weights_t i_weight_max):
  *     with nogil:
  *         for i in range(i_n_elems):             # <<<<<<<<<<<<<<
@@ -21572,7 +21572,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_102_histogramnd_from_lut_fused(CYTH
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
-          /* "chistogramnd_lut.pyx":334
+          /* "silx/math/chistogramnd_lut.pyx":334
  *     with nogil:
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):             # <<<<<<<<<<<<<<
@@ -21583,7 +21583,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_102_histogramnd_from_lut_fused(CYTH
           __pyx_t_4 = (((*((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_3 * __pyx_v_i_lut.strides[0]) ))) >= 0) != 0);
           if (__pyx_t_4) {
 
-            /* "chistogramnd_lut.pyx":335
+            /* "silx/math/chistogramnd_lut.pyx":335
  *         for i in range(i_n_elems):
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:             # <<<<<<<<<<<<<<
@@ -21602,7 +21602,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_102_histogramnd_from_lut_fused(CYTH
             __pyx_L10_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":336
+              /* "silx/math/chistogramnd_lut.pyx":336
  *             if (i_lut[i] >= 0):
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue             # <<<<<<<<<<<<<<
@@ -21612,7 +21612,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_102_histogramnd_from_lut_fused(CYTH
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":337
+            /* "silx/math/chistogramnd_lut.pyx":337
  *                 if i_filt_min_weights and i_weights[i] < i_weight_min:
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:             # <<<<<<<<<<<<<<
@@ -21631,7 +21631,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_102_histogramnd_from_lut_fused(CYTH
             __pyx_L13_bool_binop_done:;
             if (__pyx_t_4) {
 
-              /* "chistogramnd_lut.pyx":338
+              /* "silx/math/chistogramnd_lut.pyx":338
  *                     continue
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue             # <<<<<<<<<<<<<<
@@ -21641,7 +21641,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_102_histogramnd_from_lut_fused(CYTH
               goto __pyx_L6_continue;
             }
 
-            /* "chistogramnd_lut.pyx":339
+            /* "silx/math/chistogramnd_lut.pyx":339
  *                 if i_filt_max_weights and i_weights[i] > i_weight_max:
  *                     continue
  *                 o_histo[i_lut[i]] += 1             # <<<<<<<<<<<<<<
@@ -21652,7 +21652,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_102_histogramnd_from_lut_fused(CYTH
             __pyx_t_9 = (*((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_i_lut.data + __pyx_t_8 * __pyx_v_i_lut.strides[0]) )));
             *((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_o_histo.data + __pyx_t_9 * __pyx_v_o_histo.strides[0]) )) += 1;
 
-            /* "chistogramnd_lut.pyx":340
+            /* "silx/math/chistogramnd_lut.pyx":340
  *                     continue
  *                 o_histo[i_lut[i]] += 1
  *                 o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa             # <<<<<<<<<<<<<<
@@ -21670,7 +21670,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_102_histogramnd_from_lut_fused(CYTH
         }
       }
 
-      /* "chistogramnd_lut.pyx":332
+      /* "silx/math/chistogramnd_lut.pyx":332
  *                                 bint i_filt_max_weights,
  *                                 weights_t i_weight_max):
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -21688,7 +21688,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_102_histogramnd_from_lut_fused(CYTH
       }
   }
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -21707,7 +21707,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_102_histogramnd_from_lut_fused(CYTH
   return __pyx_r;
 }
 
-/* "chistogramnd_lut.pyx":352
+/* "silx/math/chistogramnd_lut.pyx":352
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_get_lut_fused(sample_t[:] i_sample,             # <<<<<<<<<<<<<<
@@ -21716,10 +21716,10 @@ static PyObject *__pyx_pf_16chistogramnd_lut_102_histogramnd_from_lut_fused(CYTH
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_16chistogramnd_lut_7_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_16chistogramnd_lut_6_histogramnd_get_lut_fused[] = "_histogramnd_get_lut_fused(signatures, args, kwargs, defaults)";
-static PyMethodDef __pyx_mdef_16chistogramnd_lut_7_histogramnd_get_lut_fused = {"_histogramnd_get_lut_fused", (PyCFunction)__pyx_pw_16chistogramnd_lut_7_histogramnd_get_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_6_histogramnd_get_lut_fused};
-static PyObject *__pyx_pw_16chistogramnd_lut_7_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_4silx_4math_16chistogramnd_lut_7_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_4silx_4math_16chistogramnd_lut_6_histogramnd_get_lut_fused[] = "_histogramnd_get_lut_fused(signatures, args, kwargs, defaults)";
+static PyMethodDef __pyx_mdef_4silx_4math_16chistogramnd_lut_7_histogramnd_get_lut_fused = {"_histogramnd_get_lut_fused", (PyCFunction)__pyx_pw_4silx_4math_16chistogramnd_lut_7_histogramnd_get_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_6_histogramnd_get_lut_fused};
+static PyObject *__pyx_pw_4silx_4math_16chistogramnd_lut_7_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_signatures = 0;
   PyObject *__pyx_v_args = 0;
   PyObject *__pyx_v_kwargs = 0;
@@ -21785,18 +21785,18 @@ static PyObject *__pyx_pw_16chistogramnd_lut_7_histogramnd_get_lut_fused(PyObjec
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("__pyx_fused_cpdef", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut.__pyx_fused_cpdef", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut.__pyx_fused_cpdef", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_6_histogramnd_get_lut_fused(__pyx_self, __pyx_v_signatures, __pyx_v_args, __pyx_v_kwargs, __pyx_v_defaults);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_6_histogramnd_get_lut_fused(__pyx_self, __pyx_v_signatures, __pyx_v_args, __pyx_v_kwargs, __pyx_v_defaults);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_6_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_signatures, PyObject *__pyx_v_args, PyObject *__pyx_v_kwargs, CYTHON_UNUSED PyObject *__pyx_v_defaults) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_6_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_signatures, PyObject *__pyx_v_args, PyObject *__pyx_v_kwargs, CYTHON_UNUSED PyObject *__pyx_v_defaults) {
   PyObject *__pyx_v_dest_sig = NULL;
   PyObject *__pyx_v_ndarray = 0;
   PyObject *__pyx_v_numpy = NULL;
@@ -21886,7 +21886,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_6_histogramnd_get_lut_fused(CYTHON_
     __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
     __pyx_t_7 = PyErr_ExceptionMatches(__pyx_builtin_ImportError) || PyErr_ExceptionMatches(__pyx_builtin_AttributeError) || PyErr_ExceptionMatches(__pyx_builtin_TypeError);
     if (__pyx_t_7) {
-      __Pyx_AddTraceback("chistogramnd_lut.__pyx_fused_cpdef", __pyx_clineno, __pyx_lineno, __pyx_filename);
+      __Pyx_AddTraceback("silx.math.chistogramnd_lut.__pyx_fused_cpdef", __pyx_clineno, __pyx_lineno, __pyx_filename);
       if (__Pyx_GetException(&__pyx_t_1, &__pyx_t_8, &__pyx_t_9) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L6_except_error;}
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_GOTREF(__pyx_t_8);
@@ -22730,7 +22730,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_6_histogramnd_get_lut_fused(CYTHON_
   __Pyx_XDECREF(__pyx_t_16);
   __Pyx_XDECREF(__pyx_t_17);
   __Pyx_XDECREF(__pyx_t_18);
-  __Pyx_AddTraceback("chistogramnd_lut.__pyx_fused_cpdef", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut.__pyx_fused_cpdef", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_dest_sig);
@@ -22750,9 +22750,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_6_histogramnd_get_lut_fused(CYTHON_
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_0_0__pyx_pw_16chistogramnd_lut_107_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_0_0__pyx_mdef_16chistogramnd_lut_107_histogramnd_get_lut_fused = {"__pyx_fuse_0_0_histogramnd_get_lut_fused", (PyCFunction)__pyx_fuse_0_0__pyx_pw_16chistogramnd_lut_107_histogramnd_get_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_6_histogramnd_get_lut_fused};
-static PyObject *__pyx_fuse_0_0__pyx_pw_16chistogramnd_lut_107_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_0_0__pyx_pw_4silx_4math_16chistogramnd_lut_107_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_0_0__pyx_mdef_4silx_4math_16chistogramnd_lut_107_histogramnd_get_lut_fused = {"__pyx_fuse_0_0_histogramnd_get_lut_fused", (PyCFunction)__pyx_fuse_0_0__pyx_pw_4silx_4math_16chistogramnd_lut_107_histogramnd_get_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_6_histogramnd_get_lut_fused};
+static PyObject *__pyx_fuse_0_0__pyx_pw_4silx_4math_16chistogramnd_lut_107_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_sample = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_v_i_n_dims;
   int __pyx_v_i_n_elems;
@@ -22854,18 +22854,18 @@ static PyObject *__pyx_fuse_0_0__pyx_pw_16chistogramnd_lut_107_histogramnd_get_l
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_get_lut_fused", 1, 8, 8, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_get_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_get_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(__pyx_self, __pyx_v_i_sample, __pyx_v_i_n_dims, __pyx_v_i_n_elems, __pyx_v_i_histo_range, __pyx_v_i_n_bins, __pyx_v_o_lut, __pyx_v_o_histo, __pyx_v_last_bin_closed);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_106_histogramnd_get_lut_fused(__pyx_self, __pyx_v_i_sample, __pyx_v_i_n_dims, __pyx_v_i_n_elems, __pyx_v_i_histo_range, __pyx_v_i_n_bins, __pyx_v_o_lut, __pyx_v_o_histo, __pyx_v_last_bin_closed);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed) {
   int __pyx_v_i;
   long __pyx_v_elem_idx;
   long __pyx_v_max_idx;
@@ -22891,7 +22891,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHO
   long __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_0_0_histogramnd_get_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":362
+  /* "silx/math/chistogramnd_lut.pyx":362
  * 
  *     cdef:
  *         int i = 0             # <<<<<<<<<<<<<<
@@ -22900,7 +22900,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_i = 0;
 
-  /* "chistogramnd_lut.pyx":363
+  /* "silx/math/chistogramnd_lut.pyx":363
  *     cdef:
  *         int i = 0
  *         long elem_idx = 0             # <<<<<<<<<<<<<<
@@ -22909,7 +22909,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_elem_idx = 0;
 
-  /* "chistogramnd_lut.pyx":364
+  /* "silx/math/chistogramnd_lut.pyx":364
  *         int i = 0
  *         long elem_idx = 0
  *         long max_idx = 0             # <<<<<<<<<<<<<<
@@ -22918,7 +22918,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_max_idx = 0;
 
-  /* "chistogramnd_lut.pyx":365
+  /* "silx/math/chistogramnd_lut.pyx":365
  *         long elem_idx = 0
  *         long max_idx = 0
  *         long lut_idx = -1             # <<<<<<<<<<<<<<
@@ -22927,7 +22927,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_lut_idx = -1;
 
-  /* "chistogramnd_lut.pyx":368
+  /* "silx/math/chistogramnd_lut.pyx":368
  * 
  *         # computed bin index (i_sample -> grid)
  *         long bin_idx = 0             # <<<<<<<<<<<<<<
@@ -22936,7 +22936,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_bin_idx = 0;
 
-  /* "chistogramnd_lut.pyx":370
+  /* "silx/math/chistogramnd_lut.pyx":370
  *         long bin_idx = 0
  * 
  *         sample_t elem_coord = 0             # <<<<<<<<<<<<<<
@@ -22945,7 +22945,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_elem_coord = 0.0;
 
-  /* "chistogramnd_lut.pyx":376
+  /* "silx/math/chistogramnd_lut.pyx":376
  *         double[50] bins_range
  * 
  *     for i in range(i_n_dims):             # <<<<<<<<<<<<<<
@@ -22956,7 +22956,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHO
   for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
     __pyx_v_i = __pyx_t_2;
 
-    /* "chistogramnd_lut.pyx":377
+    /* "silx/math/chistogramnd_lut.pyx":377
  * 
  *     for i in range(i_n_dims):
  *         g_min[i] = i_histo_range[2*i]             # <<<<<<<<<<<<<<
@@ -22966,7 +22966,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHO
     __pyx_t_3 = (2 * __pyx_v_i);
     (__pyx_v_g_min[__pyx_v_i]) = (*((double *) ( /* dim=0 */ (__pyx_v_i_histo_range.data + __pyx_t_3 * __pyx_v_i_histo_range.strides[0]) )));
 
-    /* "chistogramnd_lut.pyx":378
+    /* "silx/math/chistogramnd_lut.pyx":378
  *     for i in range(i_n_dims):
  *         g_min[i] = i_histo_range[2*i]
  *         g_max[i] = i_histo_range[2*i+1]             # <<<<<<<<<<<<<<
@@ -22976,7 +22976,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHO
     __pyx_t_4 = ((2 * __pyx_v_i) + 1);
     (__pyx_v_g_max[__pyx_v_i]) = (*((double *) ( /* dim=0 */ (__pyx_v_i_histo_range.data + __pyx_t_4 * __pyx_v_i_histo_range.strides[0]) )));
 
-    /* "chistogramnd_lut.pyx":379
+    /* "silx/math/chistogramnd_lut.pyx":379
  *         g_min[i] = i_histo_range[2*i]
  *         g_max[i] = i_histo_range[2*i+1]
  *         bins_range[i] = g_max[i] - g_min[i]             # <<<<<<<<<<<<<<
@@ -22986,7 +22986,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHO
     (__pyx_v_bins_range[__pyx_v_i]) = ((__pyx_v_g_max[__pyx_v_i]) - (__pyx_v_g_min[__pyx_v_i]));
   }
 
-  /* "chistogramnd_lut.pyx":381
+  /* "silx/math/chistogramnd_lut.pyx":381
  *         bins_range[i] = g_max[i] - g_min[i]
  * 
  *     elem_idx = 0 - i_n_dims             # <<<<<<<<<<<<<<
@@ -22995,7 +22995,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_elem_idx = (0 - __pyx_v_i_n_dims);
 
-  /* "chistogramnd_lut.pyx":382
+  /* "silx/math/chistogramnd_lut.pyx":382
  * 
  *     elem_idx = 0 - i_n_dims
  *     max_idx = i_n_elems * i_n_dims - i_n_dims             # <<<<<<<<<<<<<<
@@ -23004,7 +23004,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_max_idx = ((__pyx_v_i_n_elems * __pyx_v_i_n_dims) - __pyx_v_i_n_dims);
 
-  /* "chistogramnd_lut.pyx":384
+  /* "silx/math/chistogramnd_lut.pyx":384
  *     max_idx = i_n_elems * i_n_dims - i_n_dims
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -23018,7 +23018,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":385
+        /* "silx/math/chistogramnd_lut.pyx":385
  * 
  *     with nogil:
  *         while elem_idx < max_idx:             # <<<<<<<<<<<<<<
@@ -23029,7 +23029,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHO
           __pyx_t_5 = ((__pyx_v_elem_idx < __pyx_v_max_idx) != 0);
           if (!__pyx_t_5) break;
 
-          /* "chistogramnd_lut.pyx":386
+          /* "silx/math/chistogramnd_lut.pyx":386
  *     with nogil:
  *         while elem_idx < max_idx:
  *             elem_idx += i_n_dims             # <<<<<<<<<<<<<<
@@ -23038,7 +23038,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHO
  */
           __pyx_v_elem_idx = (__pyx_v_elem_idx + __pyx_v_i_n_dims);
 
-          /* "chistogramnd_lut.pyx":387
+          /* "silx/math/chistogramnd_lut.pyx":387
  *         while elem_idx < max_idx:
  *             elem_idx += i_n_dims
  *             lut_idx += 1             # <<<<<<<<<<<<<<
@@ -23047,7 +23047,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHO
  */
           __pyx_v_lut_idx = (__pyx_v_lut_idx + 1);
 
-          /* "chistogramnd_lut.pyx":389
+          /* "silx/math/chistogramnd_lut.pyx":389
  *             lut_idx += 1
  * 
  *             bin_idx = 0             # <<<<<<<<<<<<<<
@@ -23056,7 +23056,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHO
  */
           __pyx_v_bin_idx = 0;
 
-          /* "chistogramnd_lut.pyx":391
+          /* "silx/math/chistogramnd_lut.pyx":391
  *             bin_idx = 0
  * 
  *             for i in range(i_n_dims):             # <<<<<<<<<<<<<<
@@ -23067,7 +23067,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHO
           for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
             __pyx_v_i = __pyx_t_2;
 
-            /* "chistogramnd_lut.pyx":392
+            /* "silx/math/chistogramnd_lut.pyx":392
  * 
  *             for i in range(i_n_dims):
  *                 elem_coord = i_sample[elem_idx+i]             # <<<<<<<<<<<<<<
@@ -23077,7 +23077,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHO
             __pyx_t_6 = (__pyx_v_elem_idx + __pyx_v_i);
             __pyx_v_elem_coord = (*((__pyx_t_5numpy_float64_t *) ( /* dim=0 */ (__pyx_v_i_sample.data + __pyx_t_6 * __pyx_v_i_sample.strides[0]) )));
 
-            /* "chistogramnd_lut.pyx":399
+            /* "silx/math/chistogramnd_lut.pyx":399
  *                 # 3. coordinate==maximum value and last_bin_closed is True
  *                 # =====================
  *                 if elem_coord < g_min[i]:             # <<<<<<<<<<<<<<
@@ -23087,7 +23087,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHO
             __pyx_t_5 = ((__pyx_v_elem_coord < (__pyx_v_g_min[__pyx_v_i])) != 0);
             if (__pyx_t_5) {
 
-              /* "chistogramnd_lut.pyx":400
+              /* "silx/math/chistogramnd_lut.pyx":400
  *                 # =====================
  *                 if elem_coord < g_min[i]:
  *                     bin_idx = -1             # <<<<<<<<<<<<<<
@@ -23096,7 +23096,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHO
  */
               __pyx_v_bin_idx = -1;
 
-              /* "chistogramnd_lut.pyx":401
+              /* "silx/math/chistogramnd_lut.pyx":401
  *                 if elem_coord < g_min[i]:
  *                     bin_idx = -1
  *                     break             # <<<<<<<<<<<<<<
@@ -23106,7 +23106,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHO
               goto __pyx_L11_break;
             }
 
-            /* "chistogramnd_lut.pyx":408
+            /* "silx/math/chistogramnd_lut.pyx":408
  *                 #  than coordinates higher or equal to the max
  *                 #  (two tests)
  *                 if elem_coord < g_max[i]:             # <<<<<<<<<<<<<<
@@ -23116,7 +23116,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHO
             __pyx_t_5 = ((__pyx_v_elem_coord < (__pyx_v_g_max[__pyx_v_i])) != 0);
             if (__pyx_t_5) {
 
-              /* "chistogramnd_lut.pyx":409
+              /* "silx/math/chistogramnd_lut.pyx":409
  *                 #  (two tests)
  *                 if elem_coord < g_max[i]:
  *                     bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa             # <<<<<<<<<<<<<<
@@ -23125,7 +23125,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHO
  */
               __pyx_t_7 = __pyx_v_i;
 
-              /* "chistogramnd_lut.pyx":410
+              /* "silx/math/chistogramnd_lut.pyx":410
  *                 if elem_coord < g_max[i]:
  *                     bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa
  *                                      (((elem_coord - g_min[i]) * i_n_bins[i]) /             # <<<<<<<<<<<<<<
@@ -23134,7 +23134,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHO
  */
               __pyx_t_8 = __pyx_v_i;
 
-              /* "chistogramnd_lut.pyx":409
+              /* "silx/math/chistogramnd_lut.pyx":409
  *                 #  (two tests)
  *                 if elem_coord < g_max[i]:
  *                     bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa             # <<<<<<<<<<<<<<
@@ -23146,7 +23146,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHO
             }
             /*else*/ {
 
-              /* "chistogramnd_lut.pyx":416
+              /* "silx/math/chistogramnd_lut.pyx":416
  *                     #  put it in the last bin
  *                     # else : discard
  *                     if last_bin_closed and elem_coord == g_max[i]:             # <<<<<<<<<<<<<<
@@ -23164,7 +23164,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHO
               __pyx_L15_bool_binop_done:;
               if (__pyx_t_5) {
 
-                /* "chistogramnd_lut.pyx":417
+                /* "silx/math/chistogramnd_lut.pyx":417
  *                     # else : discard
  *                     if last_bin_closed and elem_coord == g_max[i]:
  *                         bin_idx = (bin_idx + 1) * i_n_bins[i] - 1             # <<<<<<<<<<<<<<
@@ -23177,7 +23177,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHO
               }
               /*else*/ {
 
-                /* "chistogramnd_lut.pyx":419
+                /* "silx/math/chistogramnd_lut.pyx":419
  *                         bin_idx = (bin_idx + 1) * i_n_bins[i] - 1
  *                     else:
  *                         bin_idx = -1             # <<<<<<<<<<<<<<
@@ -23186,7 +23186,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHO
  */
                 __pyx_v_bin_idx = -1;
 
-                /* "chistogramnd_lut.pyx":420
+                /* "silx/math/chistogramnd_lut.pyx":420
  *                     else:
  *                         bin_idx = -1
  *                         break             # <<<<<<<<<<<<<<
@@ -23201,7 +23201,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHO
           }
           __pyx_L11_break:;
 
-          /* "chistogramnd_lut.pyx":422
+          /* "silx/math/chistogramnd_lut.pyx":422
  *                         break
  * 
  *             o_lut[lut_idx] = bin_idx             # <<<<<<<<<<<<<<
@@ -23211,7 +23211,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHO
           __pyx_t_11 = __pyx_v_lut_idx;
           *((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_o_lut.data + __pyx_t_11 * __pyx_v_o_lut.strides[0]) )) = __pyx_v_bin_idx;
 
-          /* "chistogramnd_lut.pyx":423
+          /* "silx/math/chistogramnd_lut.pyx":423
  * 
  *             o_lut[lut_idx] = bin_idx
  *             if bin_idx >= 0:             # <<<<<<<<<<<<<<
@@ -23221,7 +23221,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHO
           __pyx_t_5 = ((__pyx_v_bin_idx >= 0) != 0);
           if (__pyx_t_5) {
 
-            /* "chistogramnd_lut.pyx":424
+            /* "silx/math/chistogramnd_lut.pyx":424
  *             o_lut[lut_idx] = bin_idx
  *             if bin_idx >= 0:
  *                 o_histo[bin_idx] += 1             # <<<<<<<<<<<<<<
@@ -23236,7 +23236,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":384
+      /* "silx/math/chistogramnd_lut.pyx":384
  *     max_idx = i_n_elems * i_n_dims - i_n_dims
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -23254,7 +23254,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":426
+  /* "silx/math/chistogramnd_lut.pyx":426
  *                 o_histo[bin_idx] += 1
  * 
  *     return 0             # <<<<<<<<<<<<<<
@@ -23264,7 +23264,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHO
   __pyx_r = __pyx_int_0;
   goto __pyx_L0;
 
-  /* "chistogramnd_lut.pyx":352
+  /* "silx/math/chistogramnd_lut.pyx":352
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_get_lut_fused(sample_t[:] i_sample,             # <<<<<<<<<<<<<<
@@ -23285,9 +23285,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_106_histogramnd_get_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_0_1__pyx_pw_16chistogramnd_lut_109_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_0_1__pyx_mdef_16chistogramnd_lut_109_histogramnd_get_lut_fused = {"__pyx_fuse_0_1_histogramnd_get_lut_fused", (PyCFunction)__pyx_fuse_0_1__pyx_pw_16chistogramnd_lut_109_histogramnd_get_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_6_histogramnd_get_lut_fused};
-static PyObject *__pyx_fuse_0_1__pyx_pw_16chistogramnd_lut_109_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_0_1__pyx_pw_4silx_4math_16chistogramnd_lut_109_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_0_1__pyx_mdef_4silx_4math_16chistogramnd_lut_109_histogramnd_get_lut_fused = {"__pyx_fuse_0_1_histogramnd_get_lut_fused", (PyCFunction)__pyx_fuse_0_1__pyx_pw_4silx_4math_16chistogramnd_lut_109_histogramnd_get_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_6_histogramnd_get_lut_fused};
+static PyObject *__pyx_fuse_0_1__pyx_pw_4silx_4math_16chistogramnd_lut_109_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_sample = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_v_i_n_dims;
   int __pyx_v_i_n_elems;
@@ -23389,18 +23389,18 @@ static PyObject *__pyx_fuse_0_1__pyx_pw_16chistogramnd_lut_109_histogramnd_get_l
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_get_lut_fused", 1, 8, 8, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_get_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_get_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(__pyx_self, __pyx_v_i_sample, __pyx_v_i_n_dims, __pyx_v_i_n_elems, __pyx_v_i_histo_range, __pyx_v_i_n_bins, __pyx_v_o_lut, __pyx_v_o_histo, __pyx_v_last_bin_closed);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_108_histogramnd_get_lut_fused(__pyx_self, __pyx_v_i_sample, __pyx_v_i_n_dims, __pyx_v_i_n_elems, __pyx_v_i_histo_range, __pyx_v_i_n_bins, __pyx_v_o_lut, __pyx_v_o_histo, __pyx_v_last_bin_closed);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed) {
   int __pyx_v_i;
   long __pyx_v_elem_idx;
   long __pyx_v_max_idx;
@@ -23426,7 +23426,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHO
   long __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_0_1_histogramnd_get_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":362
+  /* "silx/math/chistogramnd_lut.pyx":362
  * 
  *     cdef:
  *         int i = 0             # <<<<<<<<<<<<<<
@@ -23435,7 +23435,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_i = 0;
 
-  /* "chistogramnd_lut.pyx":363
+  /* "silx/math/chistogramnd_lut.pyx":363
  *     cdef:
  *         int i = 0
  *         long elem_idx = 0             # <<<<<<<<<<<<<<
@@ -23444,7 +23444,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_elem_idx = 0;
 
-  /* "chistogramnd_lut.pyx":364
+  /* "silx/math/chistogramnd_lut.pyx":364
  *         int i = 0
  *         long elem_idx = 0
  *         long max_idx = 0             # <<<<<<<<<<<<<<
@@ -23453,7 +23453,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_max_idx = 0;
 
-  /* "chistogramnd_lut.pyx":365
+  /* "silx/math/chistogramnd_lut.pyx":365
  *         long elem_idx = 0
  *         long max_idx = 0
  *         long lut_idx = -1             # <<<<<<<<<<<<<<
@@ -23462,7 +23462,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_lut_idx = -1;
 
-  /* "chistogramnd_lut.pyx":368
+  /* "silx/math/chistogramnd_lut.pyx":368
  * 
  *         # computed bin index (i_sample -> grid)
  *         long bin_idx = 0             # <<<<<<<<<<<<<<
@@ -23471,7 +23471,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_bin_idx = 0;
 
-  /* "chistogramnd_lut.pyx":370
+  /* "silx/math/chistogramnd_lut.pyx":370
  *         long bin_idx = 0
  * 
  *         sample_t elem_coord = 0             # <<<<<<<<<<<<<<
@@ -23480,7 +23480,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_elem_coord = 0.0;
 
-  /* "chistogramnd_lut.pyx":376
+  /* "silx/math/chistogramnd_lut.pyx":376
  *         double[50] bins_range
  * 
  *     for i in range(i_n_dims):             # <<<<<<<<<<<<<<
@@ -23491,7 +23491,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHO
   for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
     __pyx_v_i = __pyx_t_2;
 
-    /* "chistogramnd_lut.pyx":377
+    /* "silx/math/chistogramnd_lut.pyx":377
  * 
  *     for i in range(i_n_dims):
  *         g_min[i] = i_histo_range[2*i]             # <<<<<<<<<<<<<<
@@ -23501,7 +23501,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHO
     __pyx_t_3 = (2 * __pyx_v_i);
     (__pyx_v_g_min[__pyx_v_i]) = (*((double *) ( /* dim=0 */ (__pyx_v_i_histo_range.data + __pyx_t_3 * __pyx_v_i_histo_range.strides[0]) )));
 
-    /* "chistogramnd_lut.pyx":378
+    /* "silx/math/chistogramnd_lut.pyx":378
  *     for i in range(i_n_dims):
  *         g_min[i] = i_histo_range[2*i]
  *         g_max[i] = i_histo_range[2*i+1]             # <<<<<<<<<<<<<<
@@ -23511,7 +23511,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHO
     __pyx_t_4 = ((2 * __pyx_v_i) + 1);
     (__pyx_v_g_max[__pyx_v_i]) = (*((double *) ( /* dim=0 */ (__pyx_v_i_histo_range.data + __pyx_t_4 * __pyx_v_i_histo_range.strides[0]) )));
 
-    /* "chistogramnd_lut.pyx":379
+    /* "silx/math/chistogramnd_lut.pyx":379
  *         g_min[i] = i_histo_range[2*i]
  *         g_max[i] = i_histo_range[2*i+1]
  *         bins_range[i] = g_max[i] - g_min[i]             # <<<<<<<<<<<<<<
@@ -23521,7 +23521,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHO
     (__pyx_v_bins_range[__pyx_v_i]) = ((__pyx_v_g_max[__pyx_v_i]) - (__pyx_v_g_min[__pyx_v_i]));
   }
 
-  /* "chistogramnd_lut.pyx":381
+  /* "silx/math/chistogramnd_lut.pyx":381
  *         bins_range[i] = g_max[i] - g_min[i]
  * 
  *     elem_idx = 0 - i_n_dims             # <<<<<<<<<<<<<<
@@ -23530,7 +23530,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_elem_idx = (0 - __pyx_v_i_n_dims);
 
-  /* "chistogramnd_lut.pyx":382
+  /* "silx/math/chistogramnd_lut.pyx":382
  * 
  *     elem_idx = 0 - i_n_dims
  *     max_idx = i_n_elems * i_n_dims - i_n_dims             # <<<<<<<<<<<<<<
@@ -23539,7 +23539,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_max_idx = ((__pyx_v_i_n_elems * __pyx_v_i_n_dims) - __pyx_v_i_n_dims);
 
-  /* "chistogramnd_lut.pyx":384
+  /* "silx/math/chistogramnd_lut.pyx":384
  *     max_idx = i_n_elems * i_n_dims - i_n_dims
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -23553,7 +23553,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":385
+        /* "silx/math/chistogramnd_lut.pyx":385
  * 
  *     with nogil:
  *         while elem_idx < max_idx:             # <<<<<<<<<<<<<<
@@ -23564,7 +23564,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHO
           __pyx_t_5 = ((__pyx_v_elem_idx < __pyx_v_max_idx) != 0);
           if (!__pyx_t_5) break;
 
-          /* "chistogramnd_lut.pyx":386
+          /* "silx/math/chistogramnd_lut.pyx":386
  *     with nogil:
  *         while elem_idx < max_idx:
  *             elem_idx += i_n_dims             # <<<<<<<<<<<<<<
@@ -23573,7 +23573,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHO
  */
           __pyx_v_elem_idx = (__pyx_v_elem_idx + __pyx_v_i_n_dims);
 
-          /* "chistogramnd_lut.pyx":387
+          /* "silx/math/chistogramnd_lut.pyx":387
  *         while elem_idx < max_idx:
  *             elem_idx += i_n_dims
  *             lut_idx += 1             # <<<<<<<<<<<<<<
@@ -23582,7 +23582,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHO
  */
           __pyx_v_lut_idx = (__pyx_v_lut_idx + 1);
 
-          /* "chistogramnd_lut.pyx":389
+          /* "silx/math/chistogramnd_lut.pyx":389
  *             lut_idx += 1
  * 
  *             bin_idx = 0             # <<<<<<<<<<<<<<
@@ -23591,7 +23591,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHO
  */
           __pyx_v_bin_idx = 0;
 
-          /* "chistogramnd_lut.pyx":391
+          /* "silx/math/chistogramnd_lut.pyx":391
  *             bin_idx = 0
  * 
  *             for i in range(i_n_dims):             # <<<<<<<<<<<<<<
@@ -23602,7 +23602,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHO
           for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
             __pyx_v_i = __pyx_t_2;
 
-            /* "chistogramnd_lut.pyx":392
+            /* "silx/math/chistogramnd_lut.pyx":392
  * 
  *             for i in range(i_n_dims):
  *                 elem_coord = i_sample[elem_idx+i]             # <<<<<<<<<<<<<<
@@ -23612,7 +23612,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHO
             __pyx_t_6 = (__pyx_v_elem_idx + __pyx_v_i);
             __pyx_v_elem_coord = (*((__pyx_t_5numpy_float64_t *) ( /* dim=0 */ (__pyx_v_i_sample.data + __pyx_t_6 * __pyx_v_i_sample.strides[0]) )));
 
-            /* "chistogramnd_lut.pyx":399
+            /* "silx/math/chistogramnd_lut.pyx":399
  *                 # 3. coordinate==maximum value and last_bin_closed is True
  *                 # =====================
  *                 if elem_coord < g_min[i]:             # <<<<<<<<<<<<<<
@@ -23622,7 +23622,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHO
             __pyx_t_5 = ((__pyx_v_elem_coord < (__pyx_v_g_min[__pyx_v_i])) != 0);
             if (__pyx_t_5) {
 
-              /* "chistogramnd_lut.pyx":400
+              /* "silx/math/chistogramnd_lut.pyx":400
  *                 # =====================
  *                 if elem_coord < g_min[i]:
  *                     bin_idx = -1             # <<<<<<<<<<<<<<
@@ -23631,7 +23631,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHO
  */
               __pyx_v_bin_idx = -1;
 
-              /* "chistogramnd_lut.pyx":401
+              /* "silx/math/chistogramnd_lut.pyx":401
  *                 if elem_coord < g_min[i]:
  *                     bin_idx = -1
  *                     break             # <<<<<<<<<<<<<<
@@ -23641,7 +23641,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHO
               goto __pyx_L11_break;
             }
 
-            /* "chistogramnd_lut.pyx":408
+            /* "silx/math/chistogramnd_lut.pyx":408
  *                 #  than coordinates higher or equal to the max
  *                 #  (two tests)
  *                 if elem_coord < g_max[i]:             # <<<<<<<<<<<<<<
@@ -23651,7 +23651,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHO
             __pyx_t_5 = ((__pyx_v_elem_coord < (__pyx_v_g_max[__pyx_v_i])) != 0);
             if (__pyx_t_5) {
 
-              /* "chistogramnd_lut.pyx":409
+              /* "silx/math/chistogramnd_lut.pyx":409
  *                 #  (two tests)
  *                 if elem_coord < g_max[i]:
  *                     bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa             # <<<<<<<<<<<<<<
@@ -23660,7 +23660,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHO
  */
               __pyx_t_7 = __pyx_v_i;
 
-              /* "chistogramnd_lut.pyx":410
+              /* "silx/math/chistogramnd_lut.pyx":410
  *                 if elem_coord < g_max[i]:
  *                     bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa
  *                                      (((elem_coord - g_min[i]) * i_n_bins[i]) /             # <<<<<<<<<<<<<<
@@ -23669,7 +23669,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHO
  */
               __pyx_t_8 = __pyx_v_i;
 
-              /* "chistogramnd_lut.pyx":409
+              /* "silx/math/chistogramnd_lut.pyx":409
  *                 #  (two tests)
  *                 if elem_coord < g_max[i]:
  *                     bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa             # <<<<<<<<<<<<<<
@@ -23681,7 +23681,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHO
             }
             /*else*/ {
 
-              /* "chistogramnd_lut.pyx":416
+              /* "silx/math/chistogramnd_lut.pyx":416
  *                     #  put it in the last bin
  *                     # else : discard
  *                     if last_bin_closed and elem_coord == g_max[i]:             # <<<<<<<<<<<<<<
@@ -23699,7 +23699,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHO
               __pyx_L15_bool_binop_done:;
               if (__pyx_t_5) {
 
-                /* "chistogramnd_lut.pyx":417
+                /* "silx/math/chistogramnd_lut.pyx":417
  *                     # else : discard
  *                     if last_bin_closed and elem_coord == g_max[i]:
  *                         bin_idx = (bin_idx + 1) * i_n_bins[i] - 1             # <<<<<<<<<<<<<<
@@ -23712,7 +23712,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHO
               }
               /*else*/ {
 
-                /* "chistogramnd_lut.pyx":419
+                /* "silx/math/chistogramnd_lut.pyx":419
  *                         bin_idx = (bin_idx + 1) * i_n_bins[i] - 1
  *                     else:
  *                         bin_idx = -1             # <<<<<<<<<<<<<<
@@ -23721,7 +23721,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHO
  */
                 __pyx_v_bin_idx = -1;
 
-                /* "chistogramnd_lut.pyx":420
+                /* "silx/math/chistogramnd_lut.pyx":420
  *                     else:
  *                         bin_idx = -1
  *                         break             # <<<<<<<<<<<<<<
@@ -23736,7 +23736,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHO
           }
           __pyx_L11_break:;
 
-          /* "chistogramnd_lut.pyx":422
+          /* "silx/math/chistogramnd_lut.pyx":422
  *                         break
  * 
  *             o_lut[lut_idx] = bin_idx             # <<<<<<<<<<<<<<
@@ -23746,7 +23746,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHO
           __pyx_t_11 = __pyx_v_lut_idx;
           *((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_o_lut.data + __pyx_t_11 * __pyx_v_o_lut.strides[0]) )) = __pyx_v_bin_idx;
 
-          /* "chistogramnd_lut.pyx":423
+          /* "silx/math/chistogramnd_lut.pyx":423
  * 
  *             o_lut[lut_idx] = bin_idx
  *             if bin_idx >= 0:             # <<<<<<<<<<<<<<
@@ -23756,7 +23756,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHO
           __pyx_t_5 = ((__pyx_v_bin_idx >= 0) != 0);
           if (__pyx_t_5) {
 
-            /* "chistogramnd_lut.pyx":424
+            /* "silx/math/chistogramnd_lut.pyx":424
  *             o_lut[lut_idx] = bin_idx
  *             if bin_idx >= 0:
  *                 o_histo[bin_idx] += 1             # <<<<<<<<<<<<<<
@@ -23771,7 +23771,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":384
+      /* "silx/math/chistogramnd_lut.pyx":384
  *     max_idx = i_n_elems * i_n_dims - i_n_dims
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -23789,7 +23789,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":426
+  /* "silx/math/chistogramnd_lut.pyx":426
  *                 o_histo[bin_idx] += 1
  * 
  *     return 0             # <<<<<<<<<<<<<<
@@ -23799,7 +23799,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHO
   __pyx_r = __pyx_int_0;
   goto __pyx_L0;
 
-  /* "chistogramnd_lut.pyx":352
+  /* "silx/math/chistogramnd_lut.pyx":352
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_get_lut_fused(sample_t[:] i_sample,             # <<<<<<<<<<<<<<
@@ -23820,9 +23820,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_108_histogramnd_get_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_0_2__pyx_pw_16chistogramnd_lut_111_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_0_2__pyx_mdef_16chistogramnd_lut_111_histogramnd_get_lut_fused = {"__pyx_fuse_0_2_histogramnd_get_lut_fused", (PyCFunction)__pyx_fuse_0_2__pyx_pw_16chistogramnd_lut_111_histogramnd_get_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_6_histogramnd_get_lut_fused};
-static PyObject *__pyx_fuse_0_2__pyx_pw_16chistogramnd_lut_111_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_0_2__pyx_pw_4silx_4math_16chistogramnd_lut_111_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_0_2__pyx_mdef_4silx_4math_16chistogramnd_lut_111_histogramnd_get_lut_fused = {"__pyx_fuse_0_2_histogramnd_get_lut_fused", (PyCFunction)__pyx_fuse_0_2__pyx_pw_4silx_4math_16chistogramnd_lut_111_histogramnd_get_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_6_histogramnd_get_lut_fused};
+static PyObject *__pyx_fuse_0_2__pyx_pw_4silx_4math_16chistogramnd_lut_111_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_sample = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_v_i_n_dims;
   int __pyx_v_i_n_elems;
@@ -23924,18 +23924,18 @@ static PyObject *__pyx_fuse_0_2__pyx_pw_16chistogramnd_lut_111_histogramnd_get_l
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_get_lut_fused", 1, 8, 8, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_get_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_get_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(__pyx_self, __pyx_v_i_sample, __pyx_v_i_n_dims, __pyx_v_i_n_elems, __pyx_v_i_histo_range, __pyx_v_i_n_bins, __pyx_v_o_lut, __pyx_v_o_histo, __pyx_v_last_bin_closed);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_110_histogramnd_get_lut_fused(__pyx_self, __pyx_v_i_sample, __pyx_v_i_n_dims, __pyx_v_i_n_elems, __pyx_v_i_histo_range, __pyx_v_i_n_bins, __pyx_v_o_lut, __pyx_v_o_histo, __pyx_v_last_bin_closed);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed) {
   int __pyx_v_i;
   long __pyx_v_elem_idx;
   long __pyx_v_max_idx;
@@ -23961,7 +23961,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHO
   long __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_0_2_histogramnd_get_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":362
+  /* "silx/math/chistogramnd_lut.pyx":362
  * 
  *     cdef:
  *         int i = 0             # <<<<<<<<<<<<<<
@@ -23970,7 +23970,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_i = 0;
 
-  /* "chistogramnd_lut.pyx":363
+  /* "silx/math/chistogramnd_lut.pyx":363
  *     cdef:
  *         int i = 0
  *         long elem_idx = 0             # <<<<<<<<<<<<<<
@@ -23979,7 +23979,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_elem_idx = 0;
 
-  /* "chistogramnd_lut.pyx":364
+  /* "silx/math/chistogramnd_lut.pyx":364
  *         int i = 0
  *         long elem_idx = 0
  *         long max_idx = 0             # <<<<<<<<<<<<<<
@@ -23988,7 +23988,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_max_idx = 0;
 
-  /* "chistogramnd_lut.pyx":365
+  /* "silx/math/chistogramnd_lut.pyx":365
  *         long elem_idx = 0
  *         long max_idx = 0
  *         long lut_idx = -1             # <<<<<<<<<<<<<<
@@ -23997,7 +23997,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_lut_idx = -1;
 
-  /* "chistogramnd_lut.pyx":368
+  /* "silx/math/chistogramnd_lut.pyx":368
  * 
  *         # computed bin index (i_sample -> grid)
  *         long bin_idx = 0             # <<<<<<<<<<<<<<
@@ -24006,7 +24006,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_bin_idx = 0;
 
-  /* "chistogramnd_lut.pyx":370
+  /* "silx/math/chistogramnd_lut.pyx":370
  *         long bin_idx = 0
  * 
  *         sample_t elem_coord = 0             # <<<<<<<<<<<<<<
@@ -24015,7 +24015,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_elem_coord = 0.0;
 
-  /* "chistogramnd_lut.pyx":376
+  /* "silx/math/chistogramnd_lut.pyx":376
  *         double[50] bins_range
  * 
  *     for i in range(i_n_dims):             # <<<<<<<<<<<<<<
@@ -24026,7 +24026,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHO
   for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
     __pyx_v_i = __pyx_t_2;
 
-    /* "chistogramnd_lut.pyx":377
+    /* "silx/math/chistogramnd_lut.pyx":377
  * 
  *     for i in range(i_n_dims):
  *         g_min[i] = i_histo_range[2*i]             # <<<<<<<<<<<<<<
@@ -24036,7 +24036,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHO
     __pyx_t_3 = (2 * __pyx_v_i);
     (__pyx_v_g_min[__pyx_v_i]) = (*((double *) ( /* dim=0 */ (__pyx_v_i_histo_range.data + __pyx_t_3 * __pyx_v_i_histo_range.strides[0]) )));
 
-    /* "chistogramnd_lut.pyx":378
+    /* "silx/math/chistogramnd_lut.pyx":378
  *     for i in range(i_n_dims):
  *         g_min[i] = i_histo_range[2*i]
  *         g_max[i] = i_histo_range[2*i+1]             # <<<<<<<<<<<<<<
@@ -24046,7 +24046,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHO
     __pyx_t_4 = ((2 * __pyx_v_i) + 1);
     (__pyx_v_g_max[__pyx_v_i]) = (*((double *) ( /* dim=0 */ (__pyx_v_i_histo_range.data + __pyx_t_4 * __pyx_v_i_histo_range.strides[0]) )));
 
-    /* "chistogramnd_lut.pyx":379
+    /* "silx/math/chistogramnd_lut.pyx":379
  *         g_min[i] = i_histo_range[2*i]
  *         g_max[i] = i_histo_range[2*i+1]
  *         bins_range[i] = g_max[i] - g_min[i]             # <<<<<<<<<<<<<<
@@ -24056,7 +24056,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHO
     (__pyx_v_bins_range[__pyx_v_i]) = ((__pyx_v_g_max[__pyx_v_i]) - (__pyx_v_g_min[__pyx_v_i]));
   }
 
-  /* "chistogramnd_lut.pyx":381
+  /* "silx/math/chistogramnd_lut.pyx":381
  *         bins_range[i] = g_max[i] - g_min[i]
  * 
  *     elem_idx = 0 - i_n_dims             # <<<<<<<<<<<<<<
@@ -24065,7 +24065,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_elem_idx = (0 - __pyx_v_i_n_dims);
 
-  /* "chistogramnd_lut.pyx":382
+  /* "silx/math/chistogramnd_lut.pyx":382
  * 
  *     elem_idx = 0 - i_n_dims
  *     max_idx = i_n_elems * i_n_dims - i_n_dims             # <<<<<<<<<<<<<<
@@ -24074,7 +24074,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_max_idx = ((__pyx_v_i_n_elems * __pyx_v_i_n_dims) - __pyx_v_i_n_dims);
 
-  /* "chistogramnd_lut.pyx":384
+  /* "silx/math/chistogramnd_lut.pyx":384
  *     max_idx = i_n_elems * i_n_dims - i_n_dims
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -24088,7 +24088,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":385
+        /* "silx/math/chistogramnd_lut.pyx":385
  * 
  *     with nogil:
  *         while elem_idx < max_idx:             # <<<<<<<<<<<<<<
@@ -24099,7 +24099,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHO
           __pyx_t_5 = ((__pyx_v_elem_idx < __pyx_v_max_idx) != 0);
           if (!__pyx_t_5) break;
 
-          /* "chistogramnd_lut.pyx":386
+          /* "silx/math/chistogramnd_lut.pyx":386
  *     with nogil:
  *         while elem_idx < max_idx:
  *             elem_idx += i_n_dims             # <<<<<<<<<<<<<<
@@ -24108,7 +24108,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHO
  */
           __pyx_v_elem_idx = (__pyx_v_elem_idx + __pyx_v_i_n_dims);
 
-          /* "chistogramnd_lut.pyx":387
+          /* "silx/math/chistogramnd_lut.pyx":387
  *         while elem_idx < max_idx:
  *             elem_idx += i_n_dims
  *             lut_idx += 1             # <<<<<<<<<<<<<<
@@ -24117,7 +24117,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHO
  */
           __pyx_v_lut_idx = (__pyx_v_lut_idx + 1);
 
-          /* "chistogramnd_lut.pyx":389
+          /* "silx/math/chistogramnd_lut.pyx":389
  *             lut_idx += 1
  * 
  *             bin_idx = 0             # <<<<<<<<<<<<<<
@@ -24126,7 +24126,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHO
  */
           __pyx_v_bin_idx = 0;
 
-          /* "chistogramnd_lut.pyx":391
+          /* "silx/math/chistogramnd_lut.pyx":391
  *             bin_idx = 0
  * 
  *             for i in range(i_n_dims):             # <<<<<<<<<<<<<<
@@ -24137,7 +24137,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHO
           for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
             __pyx_v_i = __pyx_t_2;
 
-            /* "chistogramnd_lut.pyx":392
+            /* "silx/math/chistogramnd_lut.pyx":392
  * 
  *             for i in range(i_n_dims):
  *                 elem_coord = i_sample[elem_idx+i]             # <<<<<<<<<<<<<<
@@ -24147,7 +24147,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHO
             __pyx_t_6 = (__pyx_v_elem_idx + __pyx_v_i);
             __pyx_v_elem_coord = (*((__pyx_t_5numpy_float64_t *) ( /* dim=0 */ (__pyx_v_i_sample.data + __pyx_t_6 * __pyx_v_i_sample.strides[0]) )));
 
-            /* "chistogramnd_lut.pyx":399
+            /* "silx/math/chistogramnd_lut.pyx":399
  *                 # 3. coordinate==maximum value and last_bin_closed is True
  *                 # =====================
  *                 if elem_coord < g_min[i]:             # <<<<<<<<<<<<<<
@@ -24157,7 +24157,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHO
             __pyx_t_5 = ((__pyx_v_elem_coord < (__pyx_v_g_min[__pyx_v_i])) != 0);
             if (__pyx_t_5) {
 
-              /* "chistogramnd_lut.pyx":400
+              /* "silx/math/chistogramnd_lut.pyx":400
  *                 # =====================
  *                 if elem_coord < g_min[i]:
  *                     bin_idx = -1             # <<<<<<<<<<<<<<
@@ -24166,7 +24166,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHO
  */
               __pyx_v_bin_idx = -1;
 
-              /* "chistogramnd_lut.pyx":401
+              /* "silx/math/chistogramnd_lut.pyx":401
  *                 if elem_coord < g_min[i]:
  *                     bin_idx = -1
  *                     break             # <<<<<<<<<<<<<<
@@ -24176,7 +24176,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHO
               goto __pyx_L11_break;
             }
 
-            /* "chistogramnd_lut.pyx":408
+            /* "silx/math/chistogramnd_lut.pyx":408
  *                 #  than coordinates higher or equal to the max
  *                 #  (two tests)
  *                 if elem_coord < g_max[i]:             # <<<<<<<<<<<<<<
@@ -24186,7 +24186,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHO
             __pyx_t_5 = ((__pyx_v_elem_coord < (__pyx_v_g_max[__pyx_v_i])) != 0);
             if (__pyx_t_5) {
 
-              /* "chistogramnd_lut.pyx":409
+              /* "silx/math/chistogramnd_lut.pyx":409
  *                 #  (two tests)
  *                 if elem_coord < g_max[i]:
  *                     bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa             # <<<<<<<<<<<<<<
@@ -24195,7 +24195,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHO
  */
               __pyx_t_7 = __pyx_v_i;
 
-              /* "chistogramnd_lut.pyx":410
+              /* "silx/math/chistogramnd_lut.pyx":410
  *                 if elem_coord < g_max[i]:
  *                     bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa
  *                                      (((elem_coord - g_min[i]) * i_n_bins[i]) /             # <<<<<<<<<<<<<<
@@ -24204,7 +24204,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHO
  */
               __pyx_t_8 = __pyx_v_i;
 
-              /* "chistogramnd_lut.pyx":409
+              /* "silx/math/chistogramnd_lut.pyx":409
  *                 #  (two tests)
  *                 if elem_coord < g_max[i]:
  *                     bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa             # <<<<<<<<<<<<<<
@@ -24216,7 +24216,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHO
             }
             /*else*/ {
 
-              /* "chistogramnd_lut.pyx":416
+              /* "silx/math/chistogramnd_lut.pyx":416
  *                     #  put it in the last bin
  *                     # else : discard
  *                     if last_bin_closed and elem_coord == g_max[i]:             # <<<<<<<<<<<<<<
@@ -24234,7 +24234,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHO
               __pyx_L15_bool_binop_done:;
               if (__pyx_t_5) {
 
-                /* "chistogramnd_lut.pyx":417
+                /* "silx/math/chistogramnd_lut.pyx":417
  *                     # else : discard
  *                     if last_bin_closed and elem_coord == g_max[i]:
  *                         bin_idx = (bin_idx + 1) * i_n_bins[i] - 1             # <<<<<<<<<<<<<<
@@ -24247,7 +24247,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHO
               }
               /*else*/ {
 
-                /* "chistogramnd_lut.pyx":419
+                /* "silx/math/chistogramnd_lut.pyx":419
  *                         bin_idx = (bin_idx + 1) * i_n_bins[i] - 1
  *                     else:
  *                         bin_idx = -1             # <<<<<<<<<<<<<<
@@ -24256,7 +24256,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHO
  */
                 __pyx_v_bin_idx = -1;
 
-                /* "chistogramnd_lut.pyx":420
+                /* "silx/math/chistogramnd_lut.pyx":420
  *                     else:
  *                         bin_idx = -1
  *                         break             # <<<<<<<<<<<<<<
@@ -24271,7 +24271,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHO
           }
           __pyx_L11_break:;
 
-          /* "chistogramnd_lut.pyx":422
+          /* "silx/math/chistogramnd_lut.pyx":422
  *                         break
  * 
  *             o_lut[lut_idx] = bin_idx             # <<<<<<<<<<<<<<
@@ -24281,7 +24281,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHO
           __pyx_t_11 = __pyx_v_lut_idx;
           *((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_o_lut.data + __pyx_t_11 * __pyx_v_o_lut.strides[0]) )) = __pyx_v_bin_idx;
 
-          /* "chistogramnd_lut.pyx":423
+          /* "silx/math/chistogramnd_lut.pyx":423
  * 
  *             o_lut[lut_idx] = bin_idx
  *             if bin_idx >= 0:             # <<<<<<<<<<<<<<
@@ -24291,7 +24291,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHO
           __pyx_t_5 = ((__pyx_v_bin_idx >= 0) != 0);
           if (__pyx_t_5) {
 
-            /* "chistogramnd_lut.pyx":424
+            /* "silx/math/chistogramnd_lut.pyx":424
  *             o_lut[lut_idx] = bin_idx
  *             if bin_idx >= 0:
  *                 o_histo[bin_idx] += 1             # <<<<<<<<<<<<<<
@@ -24306,7 +24306,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":384
+      /* "silx/math/chistogramnd_lut.pyx":384
  *     max_idx = i_n_elems * i_n_dims - i_n_dims
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -24324,7 +24324,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":426
+  /* "silx/math/chistogramnd_lut.pyx":426
  *                 o_histo[bin_idx] += 1
  * 
  *     return 0             # <<<<<<<<<<<<<<
@@ -24334,7 +24334,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHO
   __pyx_r = __pyx_int_0;
   goto __pyx_L0;
 
-  /* "chistogramnd_lut.pyx":352
+  /* "silx/math/chistogramnd_lut.pyx":352
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_get_lut_fused(sample_t[:] i_sample,             # <<<<<<<<<<<<<<
@@ -24355,9 +24355,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_110_histogramnd_get_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_1_0__pyx_pw_16chistogramnd_lut_113_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_1_0__pyx_mdef_16chistogramnd_lut_113_histogramnd_get_lut_fused = {"__pyx_fuse_1_0_histogramnd_get_lut_fused", (PyCFunction)__pyx_fuse_1_0__pyx_pw_16chistogramnd_lut_113_histogramnd_get_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_6_histogramnd_get_lut_fused};
-static PyObject *__pyx_fuse_1_0__pyx_pw_16chistogramnd_lut_113_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_1_0__pyx_pw_4silx_4math_16chistogramnd_lut_113_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_1_0__pyx_mdef_4silx_4math_16chistogramnd_lut_113_histogramnd_get_lut_fused = {"__pyx_fuse_1_0_histogramnd_get_lut_fused", (PyCFunction)__pyx_fuse_1_0__pyx_pw_4silx_4math_16chistogramnd_lut_113_histogramnd_get_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_6_histogramnd_get_lut_fused};
+static PyObject *__pyx_fuse_1_0__pyx_pw_4silx_4math_16chistogramnd_lut_113_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_sample = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_v_i_n_dims;
   int __pyx_v_i_n_elems;
@@ -24459,18 +24459,18 @@ static PyObject *__pyx_fuse_1_0__pyx_pw_16chistogramnd_lut_113_histogramnd_get_l
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_get_lut_fused", 1, 8, 8, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_get_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_get_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(__pyx_self, __pyx_v_i_sample, __pyx_v_i_n_dims, __pyx_v_i_n_elems, __pyx_v_i_histo_range, __pyx_v_i_n_bins, __pyx_v_o_lut, __pyx_v_o_histo, __pyx_v_last_bin_closed);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_112_histogramnd_get_lut_fused(__pyx_self, __pyx_v_i_sample, __pyx_v_i_n_dims, __pyx_v_i_n_elems, __pyx_v_i_histo_range, __pyx_v_i_n_bins, __pyx_v_o_lut, __pyx_v_o_histo, __pyx_v_last_bin_closed);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed) {
   int __pyx_v_i;
   long __pyx_v_elem_idx;
   long __pyx_v_max_idx;
@@ -24496,7 +24496,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHO
   long __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_1_0_histogramnd_get_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":362
+  /* "silx/math/chistogramnd_lut.pyx":362
  * 
  *     cdef:
  *         int i = 0             # <<<<<<<<<<<<<<
@@ -24505,7 +24505,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_i = 0;
 
-  /* "chistogramnd_lut.pyx":363
+  /* "silx/math/chistogramnd_lut.pyx":363
  *     cdef:
  *         int i = 0
  *         long elem_idx = 0             # <<<<<<<<<<<<<<
@@ -24514,7 +24514,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_elem_idx = 0;
 
-  /* "chistogramnd_lut.pyx":364
+  /* "silx/math/chistogramnd_lut.pyx":364
  *         int i = 0
  *         long elem_idx = 0
  *         long max_idx = 0             # <<<<<<<<<<<<<<
@@ -24523,7 +24523,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_max_idx = 0;
 
-  /* "chistogramnd_lut.pyx":365
+  /* "silx/math/chistogramnd_lut.pyx":365
  *         long elem_idx = 0
  *         long max_idx = 0
  *         long lut_idx = -1             # <<<<<<<<<<<<<<
@@ -24532,7 +24532,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_lut_idx = -1;
 
-  /* "chistogramnd_lut.pyx":368
+  /* "silx/math/chistogramnd_lut.pyx":368
  * 
  *         # computed bin index (i_sample -> grid)
  *         long bin_idx = 0             # <<<<<<<<<<<<<<
@@ -24541,7 +24541,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_bin_idx = 0;
 
-  /* "chistogramnd_lut.pyx":370
+  /* "silx/math/chistogramnd_lut.pyx":370
  *         long bin_idx = 0
  * 
  *         sample_t elem_coord = 0             # <<<<<<<<<<<<<<
@@ -24550,7 +24550,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_elem_coord = 0.0;
 
-  /* "chistogramnd_lut.pyx":376
+  /* "silx/math/chistogramnd_lut.pyx":376
  *         double[50] bins_range
  * 
  *     for i in range(i_n_dims):             # <<<<<<<<<<<<<<
@@ -24561,7 +24561,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHO
   for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
     __pyx_v_i = __pyx_t_2;
 
-    /* "chistogramnd_lut.pyx":377
+    /* "silx/math/chistogramnd_lut.pyx":377
  * 
  *     for i in range(i_n_dims):
  *         g_min[i] = i_histo_range[2*i]             # <<<<<<<<<<<<<<
@@ -24571,7 +24571,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHO
     __pyx_t_3 = (2 * __pyx_v_i);
     (__pyx_v_g_min[__pyx_v_i]) = (*((double *) ( /* dim=0 */ (__pyx_v_i_histo_range.data + __pyx_t_3 * __pyx_v_i_histo_range.strides[0]) )));
 
-    /* "chistogramnd_lut.pyx":378
+    /* "silx/math/chistogramnd_lut.pyx":378
  *     for i in range(i_n_dims):
  *         g_min[i] = i_histo_range[2*i]
  *         g_max[i] = i_histo_range[2*i+1]             # <<<<<<<<<<<<<<
@@ -24581,7 +24581,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHO
     __pyx_t_4 = ((2 * __pyx_v_i) + 1);
     (__pyx_v_g_max[__pyx_v_i]) = (*((double *) ( /* dim=0 */ (__pyx_v_i_histo_range.data + __pyx_t_4 * __pyx_v_i_histo_range.strides[0]) )));
 
-    /* "chistogramnd_lut.pyx":379
+    /* "silx/math/chistogramnd_lut.pyx":379
  *         g_min[i] = i_histo_range[2*i]
  *         g_max[i] = i_histo_range[2*i+1]
  *         bins_range[i] = g_max[i] - g_min[i]             # <<<<<<<<<<<<<<
@@ -24591,7 +24591,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHO
     (__pyx_v_bins_range[__pyx_v_i]) = ((__pyx_v_g_max[__pyx_v_i]) - (__pyx_v_g_min[__pyx_v_i]));
   }
 
-  /* "chistogramnd_lut.pyx":381
+  /* "silx/math/chistogramnd_lut.pyx":381
  *         bins_range[i] = g_max[i] - g_min[i]
  * 
  *     elem_idx = 0 - i_n_dims             # <<<<<<<<<<<<<<
@@ -24600,7 +24600,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_elem_idx = (0 - __pyx_v_i_n_dims);
 
-  /* "chistogramnd_lut.pyx":382
+  /* "silx/math/chistogramnd_lut.pyx":382
  * 
  *     elem_idx = 0 - i_n_dims
  *     max_idx = i_n_elems * i_n_dims - i_n_dims             # <<<<<<<<<<<<<<
@@ -24609,7 +24609,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_max_idx = ((__pyx_v_i_n_elems * __pyx_v_i_n_dims) - __pyx_v_i_n_dims);
 
-  /* "chistogramnd_lut.pyx":384
+  /* "silx/math/chistogramnd_lut.pyx":384
  *     max_idx = i_n_elems * i_n_dims - i_n_dims
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -24623,7 +24623,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":385
+        /* "silx/math/chistogramnd_lut.pyx":385
  * 
  *     with nogil:
  *         while elem_idx < max_idx:             # <<<<<<<<<<<<<<
@@ -24634,7 +24634,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHO
           __pyx_t_5 = ((__pyx_v_elem_idx < __pyx_v_max_idx) != 0);
           if (!__pyx_t_5) break;
 
-          /* "chistogramnd_lut.pyx":386
+          /* "silx/math/chistogramnd_lut.pyx":386
  *     with nogil:
  *         while elem_idx < max_idx:
  *             elem_idx += i_n_dims             # <<<<<<<<<<<<<<
@@ -24643,7 +24643,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHO
  */
           __pyx_v_elem_idx = (__pyx_v_elem_idx + __pyx_v_i_n_dims);
 
-          /* "chistogramnd_lut.pyx":387
+          /* "silx/math/chistogramnd_lut.pyx":387
  *         while elem_idx < max_idx:
  *             elem_idx += i_n_dims
  *             lut_idx += 1             # <<<<<<<<<<<<<<
@@ -24652,7 +24652,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHO
  */
           __pyx_v_lut_idx = (__pyx_v_lut_idx + 1);
 
-          /* "chistogramnd_lut.pyx":389
+          /* "silx/math/chistogramnd_lut.pyx":389
  *             lut_idx += 1
  * 
  *             bin_idx = 0             # <<<<<<<<<<<<<<
@@ -24661,7 +24661,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHO
  */
           __pyx_v_bin_idx = 0;
 
-          /* "chistogramnd_lut.pyx":391
+          /* "silx/math/chistogramnd_lut.pyx":391
  *             bin_idx = 0
  * 
  *             for i in range(i_n_dims):             # <<<<<<<<<<<<<<
@@ -24672,7 +24672,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHO
           for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
             __pyx_v_i = __pyx_t_2;
 
-            /* "chistogramnd_lut.pyx":392
+            /* "silx/math/chistogramnd_lut.pyx":392
  * 
  *             for i in range(i_n_dims):
  *                 elem_coord = i_sample[elem_idx+i]             # <<<<<<<<<<<<<<
@@ -24682,7 +24682,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHO
             __pyx_t_6 = (__pyx_v_elem_idx + __pyx_v_i);
             __pyx_v_elem_coord = (*((__pyx_t_5numpy_float32_t *) ( /* dim=0 */ (__pyx_v_i_sample.data + __pyx_t_6 * __pyx_v_i_sample.strides[0]) )));
 
-            /* "chistogramnd_lut.pyx":399
+            /* "silx/math/chistogramnd_lut.pyx":399
  *                 # 3. coordinate==maximum value and last_bin_closed is True
  *                 # =====================
  *                 if elem_coord < g_min[i]:             # <<<<<<<<<<<<<<
@@ -24692,7 +24692,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHO
             __pyx_t_5 = ((__pyx_v_elem_coord < (__pyx_v_g_min[__pyx_v_i])) != 0);
             if (__pyx_t_5) {
 
-              /* "chistogramnd_lut.pyx":400
+              /* "silx/math/chistogramnd_lut.pyx":400
  *                 # =====================
  *                 if elem_coord < g_min[i]:
  *                     bin_idx = -1             # <<<<<<<<<<<<<<
@@ -24701,7 +24701,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHO
  */
               __pyx_v_bin_idx = -1;
 
-              /* "chistogramnd_lut.pyx":401
+              /* "silx/math/chistogramnd_lut.pyx":401
  *                 if elem_coord < g_min[i]:
  *                     bin_idx = -1
  *                     break             # <<<<<<<<<<<<<<
@@ -24711,7 +24711,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHO
               goto __pyx_L11_break;
             }
 
-            /* "chistogramnd_lut.pyx":408
+            /* "silx/math/chistogramnd_lut.pyx":408
  *                 #  than coordinates higher or equal to the max
  *                 #  (two tests)
  *                 if elem_coord < g_max[i]:             # <<<<<<<<<<<<<<
@@ -24721,7 +24721,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHO
             __pyx_t_5 = ((__pyx_v_elem_coord < (__pyx_v_g_max[__pyx_v_i])) != 0);
             if (__pyx_t_5) {
 
-              /* "chistogramnd_lut.pyx":409
+              /* "silx/math/chistogramnd_lut.pyx":409
  *                 #  (two tests)
  *                 if elem_coord < g_max[i]:
  *                     bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa             # <<<<<<<<<<<<<<
@@ -24730,7 +24730,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHO
  */
               __pyx_t_7 = __pyx_v_i;
 
-              /* "chistogramnd_lut.pyx":410
+              /* "silx/math/chistogramnd_lut.pyx":410
  *                 if elem_coord < g_max[i]:
  *                     bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa
  *                                      (((elem_coord - g_min[i]) * i_n_bins[i]) /             # <<<<<<<<<<<<<<
@@ -24739,7 +24739,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHO
  */
               __pyx_t_8 = __pyx_v_i;
 
-              /* "chistogramnd_lut.pyx":409
+              /* "silx/math/chistogramnd_lut.pyx":409
  *                 #  (two tests)
  *                 if elem_coord < g_max[i]:
  *                     bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa             # <<<<<<<<<<<<<<
@@ -24751,7 +24751,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHO
             }
             /*else*/ {
 
-              /* "chistogramnd_lut.pyx":416
+              /* "silx/math/chistogramnd_lut.pyx":416
  *                     #  put it in the last bin
  *                     # else : discard
  *                     if last_bin_closed and elem_coord == g_max[i]:             # <<<<<<<<<<<<<<
@@ -24769,7 +24769,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHO
               __pyx_L15_bool_binop_done:;
               if (__pyx_t_5) {
 
-                /* "chistogramnd_lut.pyx":417
+                /* "silx/math/chistogramnd_lut.pyx":417
  *                     # else : discard
  *                     if last_bin_closed and elem_coord == g_max[i]:
  *                         bin_idx = (bin_idx + 1) * i_n_bins[i] - 1             # <<<<<<<<<<<<<<
@@ -24782,7 +24782,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHO
               }
               /*else*/ {
 
-                /* "chistogramnd_lut.pyx":419
+                /* "silx/math/chistogramnd_lut.pyx":419
  *                         bin_idx = (bin_idx + 1) * i_n_bins[i] - 1
  *                     else:
  *                         bin_idx = -1             # <<<<<<<<<<<<<<
@@ -24791,7 +24791,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHO
  */
                 __pyx_v_bin_idx = -1;
 
-                /* "chistogramnd_lut.pyx":420
+                /* "silx/math/chistogramnd_lut.pyx":420
  *                     else:
  *                         bin_idx = -1
  *                         break             # <<<<<<<<<<<<<<
@@ -24806,7 +24806,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHO
           }
           __pyx_L11_break:;
 
-          /* "chistogramnd_lut.pyx":422
+          /* "silx/math/chistogramnd_lut.pyx":422
  *                         break
  * 
  *             o_lut[lut_idx] = bin_idx             # <<<<<<<<<<<<<<
@@ -24816,7 +24816,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHO
           __pyx_t_11 = __pyx_v_lut_idx;
           *((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_o_lut.data + __pyx_t_11 * __pyx_v_o_lut.strides[0]) )) = __pyx_v_bin_idx;
 
-          /* "chistogramnd_lut.pyx":423
+          /* "silx/math/chistogramnd_lut.pyx":423
  * 
  *             o_lut[lut_idx] = bin_idx
  *             if bin_idx >= 0:             # <<<<<<<<<<<<<<
@@ -24826,7 +24826,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHO
           __pyx_t_5 = ((__pyx_v_bin_idx >= 0) != 0);
           if (__pyx_t_5) {
 
-            /* "chistogramnd_lut.pyx":424
+            /* "silx/math/chistogramnd_lut.pyx":424
  *             o_lut[lut_idx] = bin_idx
  *             if bin_idx >= 0:
  *                 o_histo[bin_idx] += 1             # <<<<<<<<<<<<<<
@@ -24841,7 +24841,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":384
+      /* "silx/math/chistogramnd_lut.pyx":384
  *     max_idx = i_n_elems * i_n_dims - i_n_dims
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -24859,7 +24859,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":426
+  /* "silx/math/chistogramnd_lut.pyx":426
  *                 o_histo[bin_idx] += 1
  * 
  *     return 0             # <<<<<<<<<<<<<<
@@ -24869,7 +24869,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHO
   __pyx_r = __pyx_int_0;
   goto __pyx_L0;
 
-  /* "chistogramnd_lut.pyx":352
+  /* "silx/math/chistogramnd_lut.pyx":352
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_get_lut_fused(sample_t[:] i_sample,             # <<<<<<<<<<<<<<
@@ -24890,9 +24890,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_112_histogramnd_get_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_1_1__pyx_pw_16chistogramnd_lut_115_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_1_1__pyx_mdef_16chistogramnd_lut_115_histogramnd_get_lut_fused = {"__pyx_fuse_1_1_histogramnd_get_lut_fused", (PyCFunction)__pyx_fuse_1_1__pyx_pw_16chistogramnd_lut_115_histogramnd_get_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_6_histogramnd_get_lut_fused};
-static PyObject *__pyx_fuse_1_1__pyx_pw_16chistogramnd_lut_115_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_1_1__pyx_pw_4silx_4math_16chistogramnd_lut_115_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_1_1__pyx_mdef_4silx_4math_16chistogramnd_lut_115_histogramnd_get_lut_fused = {"__pyx_fuse_1_1_histogramnd_get_lut_fused", (PyCFunction)__pyx_fuse_1_1__pyx_pw_4silx_4math_16chistogramnd_lut_115_histogramnd_get_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_6_histogramnd_get_lut_fused};
+static PyObject *__pyx_fuse_1_1__pyx_pw_4silx_4math_16chistogramnd_lut_115_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_sample = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_v_i_n_dims;
   int __pyx_v_i_n_elems;
@@ -24994,18 +24994,18 @@ static PyObject *__pyx_fuse_1_1__pyx_pw_16chistogramnd_lut_115_histogramnd_get_l
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_get_lut_fused", 1, 8, 8, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_get_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_get_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(__pyx_self, __pyx_v_i_sample, __pyx_v_i_n_dims, __pyx_v_i_n_elems, __pyx_v_i_histo_range, __pyx_v_i_n_bins, __pyx_v_o_lut, __pyx_v_o_histo, __pyx_v_last_bin_closed);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_114_histogramnd_get_lut_fused(__pyx_self, __pyx_v_i_sample, __pyx_v_i_n_dims, __pyx_v_i_n_elems, __pyx_v_i_histo_range, __pyx_v_i_n_bins, __pyx_v_o_lut, __pyx_v_o_histo, __pyx_v_last_bin_closed);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed) {
   int __pyx_v_i;
   long __pyx_v_elem_idx;
   long __pyx_v_max_idx;
@@ -25031,7 +25031,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHO
   long __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_1_1_histogramnd_get_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":362
+  /* "silx/math/chistogramnd_lut.pyx":362
  * 
  *     cdef:
  *         int i = 0             # <<<<<<<<<<<<<<
@@ -25040,7 +25040,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_i = 0;
 
-  /* "chistogramnd_lut.pyx":363
+  /* "silx/math/chistogramnd_lut.pyx":363
  *     cdef:
  *         int i = 0
  *         long elem_idx = 0             # <<<<<<<<<<<<<<
@@ -25049,7 +25049,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_elem_idx = 0;
 
-  /* "chistogramnd_lut.pyx":364
+  /* "silx/math/chistogramnd_lut.pyx":364
  *         int i = 0
  *         long elem_idx = 0
  *         long max_idx = 0             # <<<<<<<<<<<<<<
@@ -25058,7 +25058,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_max_idx = 0;
 
-  /* "chistogramnd_lut.pyx":365
+  /* "silx/math/chistogramnd_lut.pyx":365
  *         long elem_idx = 0
  *         long max_idx = 0
  *         long lut_idx = -1             # <<<<<<<<<<<<<<
@@ -25067,7 +25067,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_lut_idx = -1;
 
-  /* "chistogramnd_lut.pyx":368
+  /* "silx/math/chistogramnd_lut.pyx":368
  * 
  *         # computed bin index (i_sample -> grid)
  *         long bin_idx = 0             # <<<<<<<<<<<<<<
@@ -25076,7 +25076,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_bin_idx = 0;
 
-  /* "chistogramnd_lut.pyx":370
+  /* "silx/math/chistogramnd_lut.pyx":370
  *         long bin_idx = 0
  * 
  *         sample_t elem_coord = 0             # <<<<<<<<<<<<<<
@@ -25085,7 +25085,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_elem_coord = 0.0;
 
-  /* "chistogramnd_lut.pyx":376
+  /* "silx/math/chistogramnd_lut.pyx":376
  *         double[50] bins_range
  * 
  *     for i in range(i_n_dims):             # <<<<<<<<<<<<<<
@@ -25096,7 +25096,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHO
   for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
     __pyx_v_i = __pyx_t_2;
 
-    /* "chistogramnd_lut.pyx":377
+    /* "silx/math/chistogramnd_lut.pyx":377
  * 
  *     for i in range(i_n_dims):
  *         g_min[i] = i_histo_range[2*i]             # <<<<<<<<<<<<<<
@@ -25106,7 +25106,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHO
     __pyx_t_3 = (2 * __pyx_v_i);
     (__pyx_v_g_min[__pyx_v_i]) = (*((double *) ( /* dim=0 */ (__pyx_v_i_histo_range.data + __pyx_t_3 * __pyx_v_i_histo_range.strides[0]) )));
 
-    /* "chistogramnd_lut.pyx":378
+    /* "silx/math/chistogramnd_lut.pyx":378
  *     for i in range(i_n_dims):
  *         g_min[i] = i_histo_range[2*i]
  *         g_max[i] = i_histo_range[2*i+1]             # <<<<<<<<<<<<<<
@@ -25116,7 +25116,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHO
     __pyx_t_4 = ((2 * __pyx_v_i) + 1);
     (__pyx_v_g_max[__pyx_v_i]) = (*((double *) ( /* dim=0 */ (__pyx_v_i_histo_range.data + __pyx_t_4 * __pyx_v_i_histo_range.strides[0]) )));
 
-    /* "chistogramnd_lut.pyx":379
+    /* "silx/math/chistogramnd_lut.pyx":379
  *         g_min[i] = i_histo_range[2*i]
  *         g_max[i] = i_histo_range[2*i+1]
  *         bins_range[i] = g_max[i] - g_min[i]             # <<<<<<<<<<<<<<
@@ -25126,7 +25126,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHO
     (__pyx_v_bins_range[__pyx_v_i]) = ((__pyx_v_g_max[__pyx_v_i]) - (__pyx_v_g_min[__pyx_v_i]));
   }
 
-  /* "chistogramnd_lut.pyx":381
+  /* "silx/math/chistogramnd_lut.pyx":381
  *         bins_range[i] = g_max[i] - g_min[i]
  * 
  *     elem_idx = 0 - i_n_dims             # <<<<<<<<<<<<<<
@@ -25135,7 +25135,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_elem_idx = (0 - __pyx_v_i_n_dims);
 
-  /* "chistogramnd_lut.pyx":382
+  /* "silx/math/chistogramnd_lut.pyx":382
  * 
  *     elem_idx = 0 - i_n_dims
  *     max_idx = i_n_elems * i_n_dims - i_n_dims             # <<<<<<<<<<<<<<
@@ -25144,7 +25144,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_max_idx = ((__pyx_v_i_n_elems * __pyx_v_i_n_dims) - __pyx_v_i_n_dims);
 
-  /* "chistogramnd_lut.pyx":384
+  /* "silx/math/chistogramnd_lut.pyx":384
  *     max_idx = i_n_elems * i_n_dims - i_n_dims
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -25158,7 +25158,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":385
+        /* "silx/math/chistogramnd_lut.pyx":385
  * 
  *     with nogil:
  *         while elem_idx < max_idx:             # <<<<<<<<<<<<<<
@@ -25169,7 +25169,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHO
           __pyx_t_5 = ((__pyx_v_elem_idx < __pyx_v_max_idx) != 0);
           if (!__pyx_t_5) break;
 
-          /* "chistogramnd_lut.pyx":386
+          /* "silx/math/chistogramnd_lut.pyx":386
  *     with nogil:
  *         while elem_idx < max_idx:
  *             elem_idx += i_n_dims             # <<<<<<<<<<<<<<
@@ -25178,7 +25178,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHO
  */
           __pyx_v_elem_idx = (__pyx_v_elem_idx + __pyx_v_i_n_dims);
 
-          /* "chistogramnd_lut.pyx":387
+          /* "silx/math/chistogramnd_lut.pyx":387
  *         while elem_idx < max_idx:
  *             elem_idx += i_n_dims
  *             lut_idx += 1             # <<<<<<<<<<<<<<
@@ -25187,7 +25187,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHO
  */
           __pyx_v_lut_idx = (__pyx_v_lut_idx + 1);
 
-          /* "chistogramnd_lut.pyx":389
+          /* "silx/math/chistogramnd_lut.pyx":389
  *             lut_idx += 1
  * 
  *             bin_idx = 0             # <<<<<<<<<<<<<<
@@ -25196,7 +25196,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHO
  */
           __pyx_v_bin_idx = 0;
 
-          /* "chistogramnd_lut.pyx":391
+          /* "silx/math/chistogramnd_lut.pyx":391
  *             bin_idx = 0
  * 
  *             for i in range(i_n_dims):             # <<<<<<<<<<<<<<
@@ -25207,7 +25207,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHO
           for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
             __pyx_v_i = __pyx_t_2;
 
-            /* "chistogramnd_lut.pyx":392
+            /* "silx/math/chistogramnd_lut.pyx":392
  * 
  *             for i in range(i_n_dims):
  *                 elem_coord = i_sample[elem_idx+i]             # <<<<<<<<<<<<<<
@@ -25217,7 +25217,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHO
             __pyx_t_6 = (__pyx_v_elem_idx + __pyx_v_i);
             __pyx_v_elem_coord = (*((__pyx_t_5numpy_float32_t *) ( /* dim=0 */ (__pyx_v_i_sample.data + __pyx_t_6 * __pyx_v_i_sample.strides[0]) )));
 
-            /* "chistogramnd_lut.pyx":399
+            /* "silx/math/chistogramnd_lut.pyx":399
  *                 # 3. coordinate==maximum value and last_bin_closed is True
  *                 # =====================
  *                 if elem_coord < g_min[i]:             # <<<<<<<<<<<<<<
@@ -25227,7 +25227,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHO
             __pyx_t_5 = ((__pyx_v_elem_coord < (__pyx_v_g_min[__pyx_v_i])) != 0);
             if (__pyx_t_5) {
 
-              /* "chistogramnd_lut.pyx":400
+              /* "silx/math/chistogramnd_lut.pyx":400
  *                 # =====================
  *                 if elem_coord < g_min[i]:
  *                     bin_idx = -1             # <<<<<<<<<<<<<<
@@ -25236,7 +25236,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHO
  */
               __pyx_v_bin_idx = -1;
 
-              /* "chistogramnd_lut.pyx":401
+              /* "silx/math/chistogramnd_lut.pyx":401
  *                 if elem_coord < g_min[i]:
  *                     bin_idx = -1
  *                     break             # <<<<<<<<<<<<<<
@@ -25246,7 +25246,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHO
               goto __pyx_L11_break;
             }
 
-            /* "chistogramnd_lut.pyx":408
+            /* "silx/math/chistogramnd_lut.pyx":408
  *                 #  than coordinates higher or equal to the max
  *                 #  (two tests)
  *                 if elem_coord < g_max[i]:             # <<<<<<<<<<<<<<
@@ -25256,7 +25256,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHO
             __pyx_t_5 = ((__pyx_v_elem_coord < (__pyx_v_g_max[__pyx_v_i])) != 0);
             if (__pyx_t_5) {
 
-              /* "chistogramnd_lut.pyx":409
+              /* "silx/math/chistogramnd_lut.pyx":409
  *                 #  (two tests)
  *                 if elem_coord < g_max[i]:
  *                     bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa             # <<<<<<<<<<<<<<
@@ -25265,7 +25265,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHO
  */
               __pyx_t_7 = __pyx_v_i;
 
-              /* "chistogramnd_lut.pyx":410
+              /* "silx/math/chistogramnd_lut.pyx":410
  *                 if elem_coord < g_max[i]:
  *                     bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa
  *                                      (((elem_coord - g_min[i]) * i_n_bins[i]) /             # <<<<<<<<<<<<<<
@@ -25274,7 +25274,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHO
  */
               __pyx_t_8 = __pyx_v_i;
 
-              /* "chistogramnd_lut.pyx":409
+              /* "silx/math/chistogramnd_lut.pyx":409
  *                 #  (two tests)
  *                 if elem_coord < g_max[i]:
  *                     bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa             # <<<<<<<<<<<<<<
@@ -25286,7 +25286,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHO
             }
             /*else*/ {
 
-              /* "chistogramnd_lut.pyx":416
+              /* "silx/math/chistogramnd_lut.pyx":416
  *                     #  put it in the last bin
  *                     # else : discard
  *                     if last_bin_closed and elem_coord == g_max[i]:             # <<<<<<<<<<<<<<
@@ -25304,7 +25304,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHO
               __pyx_L15_bool_binop_done:;
               if (__pyx_t_5) {
 
-                /* "chistogramnd_lut.pyx":417
+                /* "silx/math/chistogramnd_lut.pyx":417
  *                     # else : discard
  *                     if last_bin_closed and elem_coord == g_max[i]:
  *                         bin_idx = (bin_idx + 1) * i_n_bins[i] - 1             # <<<<<<<<<<<<<<
@@ -25317,7 +25317,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHO
               }
               /*else*/ {
 
-                /* "chistogramnd_lut.pyx":419
+                /* "silx/math/chistogramnd_lut.pyx":419
  *                         bin_idx = (bin_idx + 1) * i_n_bins[i] - 1
  *                     else:
  *                         bin_idx = -1             # <<<<<<<<<<<<<<
@@ -25326,7 +25326,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHO
  */
                 __pyx_v_bin_idx = -1;
 
-                /* "chistogramnd_lut.pyx":420
+                /* "silx/math/chistogramnd_lut.pyx":420
  *                     else:
  *                         bin_idx = -1
  *                         break             # <<<<<<<<<<<<<<
@@ -25341,7 +25341,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHO
           }
           __pyx_L11_break:;
 
-          /* "chistogramnd_lut.pyx":422
+          /* "silx/math/chistogramnd_lut.pyx":422
  *                         break
  * 
  *             o_lut[lut_idx] = bin_idx             # <<<<<<<<<<<<<<
@@ -25351,7 +25351,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHO
           __pyx_t_11 = __pyx_v_lut_idx;
           *((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_o_lut.data + __pyx_t_11 * __pyx_v_o_lut.strides[0]) )) = __pyx_v_bin_idx;
 
-          /* "chistogramnd_lut.pyx":423
+          /* "silx/math/chistogramnd_lut.pyx":423
  * 
  *             o_lut[lut_idx] = bin_idx
  *             if bin_idx >= 0:             # <<<<<<<<<<<<<<
@@ -25361,7 +25361,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHO
           __pyx_t_5 = ((__pyx_v_bin_idx >= 0) != 0);
           if (__pyx_t_5) {
 
-            /* "chistogramnd_lut.pyx":424
+            /* "silx/math/chistogramnd_lut.pyx":424
  *             o_lut[lut_idx] = bin_idx
  *             if bin_idx >= 0:
  *                 o_histo[bin_idx] += 1             # <<<<<<<<<<<<<<
@@ -25376,7 +25376,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":384
+      /* "silx/math/chistogramnd_lut.pyx":384
  *     max_idx = i_n_elems * i_n_dims - i_n_dims
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -25394,7 +25394,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":426
+  /* "silx/math/chistogramnd_lut.pyx":426
  *                 o_histo[bin_idx] += 1
  * 
  *     return 0             # <<<<<<<<<<<<<<
@@ -25404,7 +25404,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHO
   __pyx_r = __pyx_int_0;
   goto __pyx_L0;
 
-  /* "chistogramnd_lut.pyx":352
+  /* "silx/math/chistogramnd_lut.pyx":352
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_get_lut_fused(sample_t[:] i_sample,             # <<<<<<<<<<<<<<
@@ -25425,9 +25425,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_114_histogramnd_get_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_1_2__pyx_pw_16chistogramnd_lut_117_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_1_2__pyx_mdef_16chistogramnd_lut_117_histogramnd_get_lut_fused = {"__pyx_fuse_1_2_histogramnd_get_lut_fused", (PyCFunction)__pyx_fuse_1_2__pyx_pw_16chistogramnd_lut_117_histogramnd_get_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_6_histogramnd_get_lut_fused};
-static PyObject *__pyx_fuse_1_2__pyx_pw_16chistogramnd_lut_117_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_1_2__pyx_pw_4silx_4math_16chistogramnd_lut_117_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_1_2__pyx_mdef_4silx_4math_16chistogramnd_lut_117_histogramnd_get_lut_fused = {"__pyx_fuse_1_2_histogramnd_get_lut_fused", (PyCFunction)__pyx_fuse_1_2__pyx_pw_4silx_4math_16chistogramnd_lut_117_histogramnd_get_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_6_histogramnd_get_lut_fused};
+static PyObject *__pyx_fuse_1_2__pyx_pw_4silx_4math_16chistogramnd_lut_117_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_sample = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_v_i_n_dims;
   int __pyx_v_i_n_elems;
@@ -25529,18 +25529,18 @@ static PyObject *__pyx_fuse_1_2__pyx_pw_16chistogramnd_lut_117_histogramnd_get_l
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_get_lut_fused", 1, 8, 8, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_get_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_get_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(__pyx_self, __pyx_v_i_sample, __pyx_v_i_n_dims, __pyx_v_i_n_elems, __pyx_v_i_histo_range, __pyx_v_i_n_bins, __pyx_v_o_lut, __pyx_v_o_histo, __pyx_v_last_bin_closed);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_116_histogramnd_get_lut_fused(__pyx_self, __pyx_v_i_sample, __pyx_v_i_n_dims, __pyx_v_i_n_elems, __pyx_v_i_histo_range, __pyx_v_i_n_bins, __pyx_v_o_lut, __pyx_v_o_histo, __pyx_v_last_bin_closed);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed) {
   int __pyx_v_i;
   long __pyx_v_elem_idx;
   long __pyx_v_max_idx;
@@ -25566,7 +25566,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHO
   long __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_1_2_histogramnd_get_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":362
+  /* "silx/math/chistogramnd_lut.pyx":362
  * 
  *     cdef:
  *         int i = 0             # <<<<<<<<<<<<<<
@@ -25575,7 +25575,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_i = 0;
 
-  /* "chistogramnd_lut.pyx":363
+  /* "silx/math/chistogramnd_lut.pyx":363
  *     cdef:
  *         int i = 0
  *         long elem_idx = 0             # <<<<<<<<<<<<<<
@@ -25584,7 +25584,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_elem_idx = 0;
 
-  /* "chistogramnd_lut.pyx":364
+  /* "silx/math/chistogramnd_lut.pyx":364
  *         int i = 0
  *         long elem_idx = 0
  *         long max_idx = 0             # <<<<<<<<<<<<<<
@@ -25593,7 +25593,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_max_idx = 0;
 
-  /* "chistogramnd_lut.pyx":365
+  /* "silx/math/chistogramnd_lut.pyx":365
  *         long elem_idx = 0
  *         long max_idx = 0
  *         long lut_idx = -1             # <<<<<<<<<<<<<<
@@ -25602,7 +25602,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_lut_idx = -1;
 
-  /* "chistogramnd_lut.pyx":368
+  /* "silx/math/chistogramnd_lut.pyx":368
  * 
  *         # computed bin index (i_sample -> grid)
  *         long bin_idx = 0             # <<<<<<<<<<<<<<
@@ -25611,7 +25611,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_bin_idx = 0;
 
-  /* "chistogramnd_lut.pyx":370
+  /* "silx/math/chistogramnd_lut.pyx":370
  *         long bin_idx = 0
  * 
  *         sample_t elem_coord = 0             # <<<<<<<<<<<<<<
@@ -25620,7 +25620,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_elem_coord = 0.0;
 
-  /* "chistogramnd_lut.pyx":376
+  /* "silx/math/chistogramnd_lut.pyx":376
  *         double[50] bins_range
  * 
  *     for i in range(i_n_dims):             # <<<<<<<<<<<<<<
@@ -25631,7 +25631,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHO
   for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
     __pyx_v_i = __pyx_t_2;
 
-    /* "chistogramnd_lut.pyx":377
+    /* "silx/math/chistogramnd_lut.pyx":377
  * 
  *     for i in range(i_n_dims):
  *         g_min[i] = i_histo_range[2*i]             # <<<<<<<<<<<<<<
@@ -25641,7 +25641,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHO
     __pyx_t_3 = (2 * __pyx_v_i);
     (__pyx_v_g_min[__pyx_v_i]) = (*((double *) ( /* dim=0 */ (__pyx_v_i_histo_range.data + __pyx_t_3 * __pyx_v_i_histo_range.strides[0]) )));
 
-    /* "chistogramnd_lut.pyx":378
+    /* "silx/math/chistogramnd_lut.pyx":378
  *     for i in range(i_n_dims):
  *         g_min[i] = i_histo_range[2*i]
  *         g_max[i] = i_histo_range[2*i+1]             # <<<<<<<<<<<<<<
@@ -25651,7 +25651,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHO
     __pyx_t_4 = ((2 * __pyx_v_i) + 1);
     (__pyx_v_g_max[__pyx_v_i]) = (*((double *) ( /* dim=0 */ (__pyx_v_i_histo_range.data + __pyx_t_4 * __pyx_v_i_histo_range.strides[0]) )));
 
-    /* "chistogramnd_lut.pyx":379
+    /* "silx/math/chistogramnd_lut.pyx":379
  *         g_min[i] = i_histo_range[2*i]
  *         g_max[i] = i_histo_range[2*i+1]
  *         bins_range[i] = g_max[i] - g_min[i]             # <<<<<<<<<<<<<<
@@ -25661,7 +25661,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHO
     (__pyx_v_bins_range[__pyx_v_i]) = ((__pyx_v_g_max[__pyx_v_i]) - (__pyx_v_g_min[__pyx_v_i]));
   }
 
-  /* "chistogramnd_lut.pyx":381
+  /* "silx/math/chistogramnd_lut.pyx":381
  *         bins_range[i] = g_max[i] - g_min[i]
  * 
  *     elem_idx = 0 - i_n_dims             # <<<<<<<<<<<<<<
@@ -25670,7 +25670,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_elem_idx = (0 - __pyx_v_i_n_dims);
 
-  /* "chistogramnd_lut.pyx":382
+  /* "silx/math/chistogramnd_lut.pyx":382
  * 
  *     elem_idx = 0 - i_n_dims
  *     max_idx = i_n_elems * i_n_dims - i_n_dims             # <<<<<<<<<<<<<<
@@ -25679,7 +25679,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_max_idx = ((__pyx_v_i_n_elems * __pyx_v_i_n_dims) - __pyx_v_i_n_dims);
 
-  /* "chistogramnd_lut.pyx":384
+  /* "silx/math/chistogramnd_lut.pyx":384
  *     max_idx = i_n_elems * i_n_dims - i_n_dims
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -25693,7 +25693,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":385
+        /* "silx/math/chistogramnd_lut.pyx":385
  * 
  *     with nogil:
  *         while elem_idx < max_idx:             # <<<<<<<<<<<<<<
@@ -25704,7 +25704,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHO
           __pyx_t_5 = ((__pyx_v_elem_idx < __pyx_v_max_idx) != 0);
           if (!__pyx_t_5) break;
 
-          /* "chistogramnd_lut.pyx":386
+          /* "silx/math/chistogramnd_lut.pyx":386
  *     with nogil:
  *         while elem_idx < max_idx:
  *             elem_idx += i_n_dims             # <<<<<<<<<<<<<<
@@ -25713,7 +25713,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHO
  */
           __pyx_v_elem_idx = (__pyx_v_elem_idx + __pyx_v_i_n_dims);
 
-          /* "chistogramnd_lut.pyx":387
+          /* "silx/math/chistogramnd_lut.pyx":387
  *         while elem_idx < max_idx:
  *             elem_idx += i_n_dims
  *             lut_idx += 1             # <<<<<<<<<<<<<<
@@ -25722,7 +25722,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHO
  */
           __pyx_v_lut_idx = (__pyx_v_lut_idx + 1);
 
-          /* "chistogramnd_lut.pyx":389
+          /* "silx/math/chistogramnd_lut.pyx":389
  *             lut_idx += 1
  * 
  *             bin_idx = 0             # <<<<<<<<<<<<<<
@@ -25731,7 +25731,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHO
  */
           __pyx_v_bin_idx = 0;
 
-          /* "chistogramnd_lut.pyx":391
+          /* "silx/math/chistogramnd_lut.pyx":391
  *             bin_idx = 0
  * 
  *             for i in range(i_n_dims):             # <<<<<<<<<<<<<<
@@ -25742,7 +25742,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHO
           for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
             __pyx_v_i = __pyx_t_2;
 
-            /* "chistogramnd_lut.pyx":392
+            /* "silx/math/chistogramnd_lut.pyx":392
  * 
  *             for i in range(i_n_dims):
  *                 elem_coord = i_sample[elem_idx+i]             # <<<<<<<<<<<<<<
@@ -25752,7 +25752,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHO
             __pyx_t_6 = (__pyx_v_elem_idx + __pyx_v_i);
             __pyx_v_elem_coord = (*((__pyx_t_5numpy_float32_t *) ( /* dim=0 */ (__pyx_v_i_sample.data + __pyx_t_6 * __pyx_v_i_sample.strides[0]) )));
 
-            /* "chistogramnd_lut.pyx":399
+            /* "silx/math/chistogramnd_lut.pyx":399
  *                 # 3. coordinate==maximum value and last_bin_closed is True
  *                 # =====================
  *                 if elem_coord < g_min[i]:             # <<<<<<<<<<<<<<
@@ -25762,7 +25762,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHO
             __pyx_t_5 = ((__pyx_v_elem_coord < (__pyx_v_g_min[__pyx_v_i])) != 0);
             if (__pyx_t_5) {
 
-              /* "chistogramnd_lut.pyx":400
+              /* "silx/math/chistogramnd_lut.pyx":400
  *                 # =====================
  *                 if elem_coord < g_min[i]:
  *                     bin_idx = -1             # <<<<<<<<<<<<<<
@@ -25771,7 +25771,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHO
  */
               __pyx_v_bin_idx = -1;
 
-              /* "chistogramnd_lut.pyx":401
+              /* "silx/math/chistogramnd_lut.pyx":401
  *                 if elem_coord < g_min[i]:
  *                     bin_idx = -1
  *                     break             # <<<<<<<<<<<<<<
@@ -25781,7 +25781,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHO
               goto __pyx_L11_break;
             }
 
-            /* "chistogramnd_lut.pyx":408
+            /* "silx/math/chistogramnd_lut.pyx":408
  *                 #  than coordinates higher or equal to the max
  *                 #  (two tests)
  *                 if elem_coord < g_max[i]:             # <<<<<<<<<<<<<<
@@ -25791,7 +25791,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHO
             __pyx_t_5 = ((__pyx_v_elem_coord < (__pyx_v_g_max[__pyx_v_i])) != 0);
             if (__pyx_t_5) {
 
-              /* "chistogramnd_lut.pyx":409
+              /* "silx/math/chistogramnd_lut.pyx":409
  *                 #  (two tests)
  *                 if elem_coord < g_max[i]:
  *                     bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa             # <<<<<<<<<<<<<<
@@ -25800,7 +25800,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHO
  */
               __pyx_t_7 = __pyx_v_i;
 
-              /* "chistogramnd_lut.pyx":410
+              /* "silx/math/chistogramnd_lut.pyx":410
  *                 if elem_coord < g_max[i]:
  *                     bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa
  *                                      (((elem_coord - g_min[i]) * i_n_bins[i]) /             # <<<<<<<<<<<<<<
@@ -25809,7 +25809,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHO
  */
               __pyx_t_8 = __pyx_v_i;
 
-              /* "chistogramnd_lut.pyx":409
+              /* "silx/math/chistogramnd_lut.pyx":409
  *                 #  (two tests)
  *                 if elem_coord < g_max[i]:
  *                     bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa             # <<<<<<<<<<<<<<
@@ -25821,7 +25821,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHO
             }
             /*else*/ {
 
-              /* "chistogramnd_lut.pyx":416
+              /* "silx/math/chistogramnd_lut.pyx":416
  *                     #  put it in the last bin
  *                     # else : discard
  *                     if last_bin_closed and elem_coord == g_max[i]:             # <<<<<<<<<<<<<<
@@ -25839,7 +25839,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHO
               __pyx_L15_bool_binop_done:;
               if (__pyx_t_5) {
 
-                /* "chistogramnd_lut.pyx":417
+                /* "silx/math/chistogramnd_lut.pyx":417
  *                     # else : discard
  *                     if last_bin_closed and elem_coord == g_max[i]:
  *                         bin_idx = (bin_idx + 1) * i_n_bins[i] - 1             # <<<<<<<<<<<<<<
@@ -25852,7 +25852,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHO
               }
               /*else*/ {
 
-                /* "chistogramnd_lut.pyx":419
+                /* "silx/math/chistogramnd_lut.pyx":419
  *                         bin_idx = (bin_idx + 1) * i_n_bins[i] - 1
  *                     else:
  *                         bin_idx = -1             # <<<<<<<<<<<<<<
@@ -25861,7 +25861,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHO
  */
                 __pyx_v_bin_idx = -1;
 
-                /* "chistogramnd_lut.pyx":420
+                /* "silx/math/chistogramnd_lut.pyx":420
  *                     else:
  *                         bin_idx = -1
  *                         break             # <<<<<<<<<<<<<<
@@ -25876,7 +25876,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHO
           }
           __pyx_L11_break:;
 
-          /* "chistogramnd_lut.pyx":422
+          /* "silx/math/chistogramnd_lut.pyx":422
  *                         break
  * 
  *             o_lut[lut_idx] = bin_idx             # <<<<<<<<<<<<<<
@@ -25886,7 +25886,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHO
           __pyx_t_11 = __pyx_v_lut_idx;
           *((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_o_lut.data + __pyx_t_11 * __pyx_v_o_lut.strides[0]) )) = __pyx_v_bin_idx;
 
-          /* "chistogramnd_lut.pyx":423
+          /* "silx/math/chistogramnd_lut.pyx":423
  * 
  *             o_lut[lut_idx] = bin_idx
  *             if bin_idx >= 0:             # <<<<<<<<<<<<<<
@@ -25896,7 +25896,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHO
           __pyx_t_5 = ((__pyx_v_bin_idx >= 0) != 0);
           if (__pyx_t_5) {
 
-            /* "chistogramnd_lut.pyx":424
+            /* "silx/math/chistogramnd_lut.pyx":424
  *             o_lut[lut_idx] = bin_idx
  *             if bin_idx >= 0:
  *                 o_histo[bin_idx] += 1             # <<<<<<<<<<<<<<
@@ -25911,7 +25911,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":384
+      /* "silx/math/chistogramnd_lut.pyx":384
  *     max_idx = i_n_elems * i_n_dims - i_n_dims
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -25929,7 +25929,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":426
+  /* "silx/math/chistogramnd_lut.pyx":426
  *                 o_histo[bin_idx] += 1
  * 
  *     return 0             # <<<<<<<<<<<<<<
@@ -25939,7 +25939,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHO
   __pyx_r = __pyx_int_0;
   goto __pyx_L0;
 
-  /* "chistogramnd_lut.pyx":352
+  /* "silx/math/chistogramnd_lut.pyx":352
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_get_lut_fused(sample_t[:] i_sample,             # <<<<<<<<<<<<<<
@@ -25960,9 +25960,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_116_histogramnd_get_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_2_0__pyx_pw_16chistogramnd_lut_119_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_2_0__pyx_mdef_16chistogramnd_lut_119_histogramnd_get_lut_fused = {"__pyx_fuse_2_0_histogramnd_get_lut_fused", (PyCFunction)__pyx_fuse_2_0__pyx_pw_16chistogramnd_lut_119_histogramnd_get_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_6_histogramnd_get_lut_fused};
-static PyObject *__pyx_fuse_2_0__pyx_pw_16chistogramnd_lut_119_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_2_0__pyx_pw_4silx_4math_16chistogramnd_lut_119_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_2_0__pyx_mdef_4silx_4math_16chistogramnd_lut_119_histogramnd_get_lut_fused = {"__pyx_fuse_2_0_histogramnd_get_lut_fused", (PyCFunction)__pyx_fuse_2_0__pyx_pw_4silx_4math_16chistogramnd_lut_119_histogramnd_get_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_6_histogramnd_get_lut_fused};
+static PyObject *__pyx_fuse_2_0__pyx_pw_4silx_4math_16chistogramnd_lut_119_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_sample = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_v_i_n_dims;
   int __pyx_v_i_n_elems;
@@ -26064,18 +26064,18 @@ static PyObject *__pyx_fuse_2_0__pyx_pw_16chistogramnd_lut_119_histogramnd_get_l
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_get_lut_fused", 1, 8, 8, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_get_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_get_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(__pyx_self, __pyx_v_i_sample, __pyx_v_i_n_dims, __pyx_v_i_n_elems, __pyx_v_i_histo_range, __pyx_v_i_n_bins, __pyx_v_o_lut, __pyx_v_o_histo, __pyx_v_last_bin_closed);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_118_histogramnd_get_lut_fused(__pyx_self, __pyx_v_i_sample, __pyx_v_i_n_dims, __pyx_v_i_n_elems, __pyx_v_i_histo_range, __pyx_v_i_n_bins, __pyx_v_o_lut, __pyx_v_o_histo, __pyx_v_last_bin_closed);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed) {
   int __pyx_v_i;
   long __pyx_v_elem_idx;
   long __pyx_v_max_idx;
@@ -26101,7 +26101,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHO
   long __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_2_0_histogramnd_get_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":362
+  /* "silx/math/chistogramnd_lut.pyx":362
  * 
  *     cdef:
  *         int i = 0             # <<<<<<<<<<<<<<
@@ -26110,7 +26110,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_i = 0;
 
-  /* "chistogramnd_lut.pyx":363
+  /* "silx/math/chistogramnd_lut.pyx":363
  *     cdef:
  *         int i = 0
  *         long elem_idx = 0             # <<<<<<<<<<<<<<
@@ -26119,7 +26119,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_elem_idx = 0;
 
-  /* "chistogramnd_lut.pyx":364
+  /* "silx/math/chistogramnd_lut.pyx":364
  *         int i = 0
  *         long elem_idx = 0
  *         long max_idx = 0             # <<<<<<<<<<<<<<
@@ -26128,7 +26128,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_max_idx = 0;
 
-  /* "chistogramnd_lut.pyx":365
+  /* "silx/math/chistogramnd_lut.pyx":365
  *         long elem_idx = 0
  *         long max_idx = 0
  *         long lut_idx = -1             # <<<<<<<<<<<<<<
@@ -26137,7 +26137,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_lut_idx = -1;
 
-  /* "chistogramnd_lut.pyx":368
+  /* "silx/math/chistogramnd_lut.pyx":368
  * 
  *         # computed bin index (i_sample -> grid)
  *         long bin_idx = 0             # <<<<<<<<<<<<<<
@@ -26146,7 +26146,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_bin_idx = 0;
 
-  /* "chistogramnd_lut.pyx":370
+  /* "silx/math/chistogramnd_lut.pyx":370
  *         long bin_idx = 0
  * 
  *         sample_t elem_coord = 0             # <<<<<<<<<<<<<<
@@ -26155,7 +26155,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_elem_coord = 0;
 
-  /* "chistogramnd_lut.pyx":376
+  /* "silx/math/chistogramnd_lut.pyx":376
  *         double[50] bins_range
  * 
  *     for i in range(i_n_dims):             # <<<<<<<<<<<<<<
@@ -26166,7 +26166,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHO
   for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
     __pyx_v_i = __pyx_t_2;
 
-    /* "chistogramnd_lut.pyx":377
+    /* "silx/math/chistogramnd_lut.pyx":377
  * 
  *     for i in range(i_n_dims):
  *         g_min[i] = i_histo_range[2*i]             # <<<<<<<<<<<<<<
@@ -26176,7 +26176,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHO
     __pyx_t_3 = (2 * __pyx_v_i);
     (__pyx_v_g_min[__pyx_v_i]) = (*((double *) ( /* dim=0 */ (__pyx_v_i_histo_range.data + __pyx_t_3 * __pyx_v_i_histo_range.strides[0]) )));
 
-    /* "chistogramnd_lut.pyx":378
+    /* "silx/math/chistogramnd_lut.pyx":378
  *     for i in range(i_n_dims):
  *         g_min[i] = i_histo_range[2*i]
  *         g_max[i] = i_histo_range[2*i+1]             # <<<<<<<<<<<<<<
@@ -26186,7 +26186,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHO
     __pyx_t_4 = ((2 * __pyx_v_i) + 1);
     (__pyx_v_g_max[__pyx_v_i]) = (*((double *) ( /* dim=0 */ (__pyx_v_i_histo_range.data + __pyx_t_4 * __pyx_v_i_histo_range.strides[0]) )));
 
-    /* "chistogramnd_lut.pyx":379
+    /* "silx/math/chistogramnd_lut.pyx":379
  *         g_min[i] = i_histo_range[2*i]
  *         g_max[i] = i_histo_range[2*i+1]
  *         bins_range[i] = g_max[i] - g_min[i]             # <<<<<<<<<<<<<<
@@ -26196,7 +26196,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHO
     (__pyx_v_bins_range[__pyx_v_i]) = ((__pyx_v_g_max[__pyx_v_i]) - (__pyx_v_g_min[__pyx_v_i]));
   }
 
-  /* "chistogramnd_lut.pyx":381
+  /* "silx/math/chistogramnd_lut.pyx":381
  *         bins_range[i] = g_max[i] - g_min[i]
  * 
  *     elem_idx = 0 - i_n_dims             # <<<<<<<<<<<<<<
@@ -26205,7 +26205,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_elem_idx = (0 - __pyx_v_i_n_dims);
 
-  /* "chistogramnd_lut.pyx":382
+  /* "silx/math/chistogramnd_lut.pyx":382
  * 
  *     elem_idx = 0 - i_n_dims
  *     max_idx = i_n_elems * i_n_dims - i_n_dims             # <<<<<<<<<<<<<<
@@ -26214,7 +26214,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_max_idx = ((__pyx_v_i_n_elems * __pyx_v_i_n_dims) - __pyx_v_i_n_dims);
 
-  /* "chistogramnd_lut.pyx":384
+  /* "silx/math/chistogramnd_lut.pyx":384
  *     max_idx = i_n_elems * i_n_dims - i_n_dims
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -26228,7 +26228,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":385
+        /* "silx/math/chistogramnd_lut.pyx":385
  * 
  *     with nogil:
  *         while elem_idx < max_idx:             # <<<<<<<<<<<<<<
@@ -26239,7 +26239,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHO
           __pyx_t_5 = ((__pyx_v_elem_idx < __pyx_v_max_idx) != 0);
           if (!__pyx_t_5) break;
 
-          /* "chistogramnd_lut.pyx":386
+          /* "silx/math/chistogramnd_lut.pyx":386
  *     with nogil:
  *         while elem_idx < max_idx:
  *             elem_idx += i_n_dims             # <<<<<<<<<<<<<<
@@ -26248,7 +26248,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHO
  */
           __pyx_v_elem_idx = (__pyx_v_elem_idx + __pyx_v_i_n_dims);
 
-          /* "chistogramnd_lut.pyx":387
+          /* "silx/math/chistogramnd_lut.pyx":387
  *         while elem_idx < max_idx:
  *             elem_idx += i_n_dims
  *             lut_idx += 1             # <<<<<<<<<<<<<<
@@ -26257,7 +26257,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHO
  */
           __pyx_v_lut_idx = (__pyx_v_lut_idx + 1);
 
-          /* "chistogramnd_lut.pyx":389
+          /* "silx/math/chistogramnd_lut.pyx":389
  *             lut_idx += 1
  * 
  *             bin_idx = 0             # <<<<<<<<<<<<<<
@@ -26266,7 +26266,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHO
  */
           __pyx_v_bin_idx = 0;
 
-          /* "chistogramnd_lut.pyx":391
+          /* "silx/math/chistogramnd_lut.pyx":391
  *             bin_idx = 0
  * 
  *             for i in range(i_n_dims):             # <<<<<<<<<<<<<<
@@ -26277,7 +26277,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHO
           for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
             __pyx_v_i = __pyx_t_2;
 
-            /* "chistogramnd_lut.pyx":392
+            /* "silx/math/chistogramnd_lut.pyx":392
  * 
  *             for i in range(i_n_dims):
  *                 elem_coord = i_sample[elem_idx+i]             # <<<<<<<<<<<<<<
@@ -26287,7 +26287,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHO
             __pyx_t_6 = (__pyx_v_elem_idx + __pyx_v_i);
             __pyx_v_elem_coord = (*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_i_sample.data + __pyx_t_6 * __pyx_v_i_sample.strides[0]) )));
 
-            /* "chistogramnd_lut.pyx":399
+            /* "silx/math/chistogramnd_lut.pyx":399
  *                 # 3. coordinate==maximum value and last_bin_closed is True
  *                 # =====================
  *                 if elem_coord < g_min[i]:             # <<<<<<<<<<<<<<
@@ -26297,7 +26297,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHO
             __pyx_t_5 = ((__pyx_v_elem_coord < (__pyx_v_g_min[__pyx_v_i])) != 0);
             if (__pyx_t_5) {
 
-              /* "chistogramnd_lut.pyx":400
+              /* "silx/math/chistogramnd_lut.pyx":400
  *                 # =====================
  *                 if elem_coord < g_min[i]:
  *                     bin_idx = -1             # <<<<<<<<<<<<<<
@@ -26306,7 +26306,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHO
  */
               __pyx_v_bin_idx = -1;
 
-              /* "chistogramnd_lut.pyx":401
+              /* "silx/math/chistogramnd_lut.pyx":401
  *                 if elem_coord < g_min[i]:
  *                     bin_idx = -1
  *                     break             # <<<<<<<<<<<<<<
@@ -26316,7 +26316,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHO
               goto __pyx_L11_break;
             }
 
-            /* "chistogramnd_lut.pyx":408
+            /* "silx/math/chistogramnd_lut.pyx":408
  *                 #  than coordinates higher or equal to the max
  *                 #  (two tests)
  *                 if elem_coord < g_max[i]:             # <<<<<<<<<<<<<<
@@ -26326,7 +26326,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHO
             __pyx_t_5 = ((__pyx_v_elem_coord < (__pyx_v_g_max[__pyx_v_i])) != 0);
             if (__pyx_t_5) {
 
-              /* "chistogramnd_lut.pyx":409
+              /* "silx/math/chistogramnd_lut.pyx":409
  *                 #  (two tests)
  *                 if elem_coord < g_max[i]:
  *                     bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa             # <<<<<<<<<<<<<<
@@ -26335,7 +26335,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHO
  */
               __pyx_t_7 = __pyx_v_i;
 
-              /* "chistogramnd_lut.pyx":410
+              /* "silx/math/chistogramnd_lut.pyx":410
  *                 if elem_coord < g_max[i]:
  *                     bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa
  *                                      (((elem_coord - g_min[i]) * i_n_bins[i]) /             # <<<<<<<<<<<<<<
@@ -26344,7 +26344,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHO
  */
               __pyx_t_8 = __pyx_v_i;
 
-              /* "chistogramnd_lut.pyx":409
+              /* "silx/math/chistogramnd_lut.pyx":409
  *                 #  (two tests)
  *                 if elem_coord < g_max[i]:
  *                     bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa             # <<<<<<<<<<<<<<
@@ -26356,7 +26356,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHO
             }
             /*else*/ {
 
-              /* "chistogramnd_lut.pyx":416
+              /* "silx/math/chistogramnd_lut.pyx":416
  *                     #  put it in the last bin
  *                     # else : discard
  *                     if last_bin_closed and elem_coord == g_max[i]:             # <<<<<<<<<<<<<<
@@ -26374,7 +26374,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHO
               __pyx_L15_bool_binop_done:;
               if (__pyx_t_5) {
 
-                /* "chistogramnd_lut.pyx":417
+                /* "silx/math/chistogramnd_lut.pyx":417
  *                     # else : discard
  *                     if last_bin_closed and elem_coord == g_max[i]:
  *                         bin_idx = (bin_idx + 1) * i_n_bins[i] - 1             # <<<<<<<<<<<<<<
@@ -26387,7 +26387,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHO
               }
               /*else*/ {
 
-                /* "chistogramnd_lut.pyx":419
+                /* "silx/math/chistogramnd_lut.pyx":419
  *                         bin_idx = (bin_idx + 1) * i_n_bins[i] - 1
  *                     else:
  *                         bin_idx = -1             # <<<<<<<<<<<<<<
@@ -26396,7 +26396,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHO
  */
                 __pyx_v_bin_idx = -1;
 
-                /* "chistogramnd_lut.pyx":420
+                /* "silx/math/chistogramnd_lut.pyx":420
  *                     else:
  *                         bin_idx = -1
  *                         break             # <<<<<<<<<<<<<<
@@ -26411,7 +26411,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHO
           }
           __pyx_L11_break:;
 
-          /* "chistogramnd_lut.pyx":422
+          /* "silx/math/chistogramnd_lut.pyx":422
  *                         break
  * 
  *             o_lut[lut_idx] = bin_idx             # <<<<<<<<<<<<<<
@@ -26421,7 +26421,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHO
           __pyx_t_11 = __pyx_v_lut_idx;
           *((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_o_lut.data + __pyx_t_11 * __pyx_v_o_lut.strides[0]) )) = __pyx_v_bin_idx;
 
-          /* "chistogramnd_lut.pyx":423
+          /* "silx/math/chistogramnd_lut.pyx":423
  * 
  *             o_lut[lut_idx] = bin_idx
  *             if bin_idx >= 0:             # <<<<<<<<<<<<<<
@@ -26431,7 +26431,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHO
           __pyx_t_5 = ((__pyx_v_bin_idx >= 0) != 0);
           if (__pyx_t_5) {
 
-            /* "chistogramnd_lut.pyx":424
+            /* "silx/math/chistogramnd_lut.pyx":424
  *             o_lut[lut_idx] = bin_idx
  *             if bin_idx >= 0:
  *                 o_histo[bin_idx] += 1             # <<<<<<<<<<<<<<
@@ -26446,7 +26446,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":384
+      /* "silx/math/chistogramnd_lut.pyx":384
  *     max_idx = i_n_elems * i_n_dims - i_n_dims
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -26464,7 +26464,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":426
+  /* "silx/math/chistogramnd_lut.pyx":426
  *                 o_histo[bin_idx] += 1
  * 
  *     return 0             # <<<<<<<<<<<<<<
@@ -26474,7 +26474,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHO
   __pyx_r = __pyx_int_0;
   goto __pyx_L0;
 
-  /* "chistogramnd_lut.pyx":352
+  /* "silx/math/chistogramnd_lut.pyx":352
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_get_lut_fused(sample_t[:] i_sample,             # <<<<<<<<<<<<<<
@@ -26495,9 +26495,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_118_histogramnd_get_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_2_1__pyx_pw_16chistogramnd_lut_121_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_2_1__pyx_mdef_16chistogramnd_lut_121_histogramnd_get_lut_fused = {"__pyx_fuse_2_1_histogramnd_get_lut_fused", (PyCFunction)__pyx_fuse_2_1__pyx_pw_16chistogramnd_lut_121_histogramnd_get_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_6_histogramnd_get_lut_fused};
-static PyObject *__pyx_fuse_2_1__pyx_pw_16chistogramnd_lut_121_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_2_1__pyx_pw_4silx_4math_16chistogramnd_lut_121_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_2_1__pyx_mdef_4silx_4math_16chistogramnd_lut_121_histogramnd_get_lut_fused = {"__pyx_fuse_2_1_histogramnd_get_lut_fused", (PyCFunction)__pyx_fuse_2_1__pyx_pw_4silx_4math_16chistogramnd_lut_121_histogramnd_get_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_6_histogramnd_get_lut_fused};
+static PyObject *__pyx_fuse_2_1__pyx_pw_4silx_4math_16chistogramnd_lut_121_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_sample = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_v_i_n_dims;
   int __pyx_v_i_n_elems;
@@ -26599,18 +26599,18 @@ static PyObject *__pyx_fuse_2_1__pyx_pw_16chistogramnd_lut_121_histogramnd_get_l
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_get_lut_fused", 1, 8, 8, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_get_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_get_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(__pyx_self, __pyx_v_i_sample, __pyx_v_i_n_dims, __pyx_v_i_n_elems, __pyx_v_i_histo_range, __pyx_v_i_n_bins, __pyx_v_o_lut, __pyx_v_o_histo, __pyx_v_last_bin_closed);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_120_histogramnd_get_lut_fused(__pyx_self, __pyx_v_i_sample, __pyx_v_i_n_dims, __pyx_v_i_n_elems, __pyx_v_i_histo_range, __pyx_v_i_n_bins, __pyx_v_o_lut, __pyx_v_o_histo, __pyx_v_last_bin_closed);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed) {
   int __pyx_v_i;
   long __pyx_v_elem_idx;
   long __pyx_v_max_idx;
@@ -26636,7 +26636,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHO
   long __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_2_1_histogramnd_get_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":362
+  /* "silx/math/chistogramnd_lut.pyx":362
  * 
  *     cdef:
  *         int i = 0             # <<<<<<<<<<<<<<
@@ -26645,7 +26645,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_i = 0;
 
-  /* "chistogramnd_lut.pyx":363
+  /* "silx/math/chistogramnd_lut.pyx":363
  *     cdef:
  *         int i = 0
  *         long elem_idx = 0             # <<<<<<<<<<<<<<
@@ -26654,7 +26654,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_elem_idx = 0;
 
-  /* "chistogramnd_lut.pyx":364
+  /* "silx/math/chistogramnd_lut.pyx":364
  *         int i = 0
  *         long elem_idx = 0
  *         long max_idx = 0             # <<<<<<<<<<<<<<
@@ -26663,7 +26663,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_max_idx = 0;
 
-  /* "chistogramnd_lut.pyx":365
+  /* "silx/math/chistogramnd_lut.pyx":365
  *         long elem_idx = 0
  *         long max_idx = 0
  *         long lut_idx = -1             # <<<<<<<<<<<<<<
@@ -26672,7 +26672,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_lut_idx = -1;
 
-  /* "chistogramnd_lut.pyx":368
+  /* "silx/math/chistogramnd_lut.pyx":368
  * 
  *         # computed bin index (i_sample -> grid)
  *         long bin_idx = 0             # <<<<<<<<<<<<<<
@@ -26681,7 +26681,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_bin_idx = 0;
 
-  /* "chistogramnd_lut.pyx":370
+  /* "silx/math/chistogramnd_lut.pyx":370
  *         long bin_idx = 0
  * 
  *         sample_t elem_coord = 0             # <<<<<<<<<<<<<<
@@ -26690,7 +26690,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_elem_coord = 0;
 
-  /* "chistogramnd_lut.pyx":376
+  /* "silx/math/chistogramnd_lut.pyx":376
  *         double[50] bins_range
  * 
  *     for i in range(i_n_dims):             # <<<<<<<<<<<<<<
@@ -26701,7 +26701,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHO
   for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
     __pyx_v_i = __pyx_t_2;
 
-    /* "chistogramnd_lut.pyx":377
+    /* "silx/math/chistogramnd_lut.pyx":377
  * 
  *     for i in range(i_n_dims):
  *         g_min[i] = i_histo_range[2*i]             # <<<<<<<<<<<<<<
@@ -26711,7 +26711,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHO
     __pyx_t_3 = (2 * __pyx_v_i);
     (__pyx_v_g_min[__pyx_v_i]) = (*((double *) ( /* dim=0 */ (__pyx_v_i_histo_range.data + __pyx_t_3 * __pyx_v_i_histo_range.strides[0]) )));
 
-    /* "chistogramnd_lut.pyx":378
+    /* "silx/math/chistogramnd_lut.pyx":378
  *     for i in range(i_n_dims):
  *         g_min[i] = i_histo_range[2*i]
  *         g_max[i] = i_histo_range[2*i+1]             # <<<<<<<<<<<<<<
@@ -26721,7 +26721,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHO
     __pyx_t_4 = ((2 * __pyx_v_i) + 1);
     (__pyx_v_g_max[__pyx_v_i]) = (*((double *) ( /* dim=0 */ (__pyx_v_i_histo_range.data + __pyx_t_4 * __pyx_v_i_histo_range.strides[0]) )));
 
-    /* "chistogramnd_lut.pyx":379
+    /* "silx/math/chistogramnd_lut.pyx":379
  *         g_min[i] = i_histo_range[2*i]
  *         g_max[i] = i_histo_range[2*i+1]
  *         bins_range[i] = g_max[i] - g_min[i]             # <<<<<<<<<<<<<<
@@ -26731,7 +26731,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHO
     (__pyx_v_bins_range[__pyx_v_i]) = ((__pyx_v_g_max[__pyx_v_i]) - (__pyx_v_g_min[__pyx_v_i]));
   }
 
-  /* "chistogramnd_lut.pyx":381
+  /* "silx/math/chistogramnd_lut.pyx":381
  *         bins_range[i] = g_max[i] - g_min[i]
  * 
  *     elem_idx = 0 - i_n_dims             # <<<<<<<<<<<<<<
@@ -26740,7 +26740,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_elem_idx = (0 - __pyx_v_i_n_dims);
 
-  /* "chistogramnd_lut.pyx":382
+  /* "silx/math/chistogramnd_lut.pyx":382
  * 
  *     elem_idx = 0 - i_n_dims
  *     max_idx = i_n_elems * i_n_dims - i_n_dims             # <<<<<<<<<<<<<<
@@ -26749,7 +26749,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_max_idx = ((__pyx_v_i_n_elems * __pyx_v_i_n_dims) - __pyx_v_i_n_dims);
 
-  /* "chistogramnd_lut.pyx":384
+  /* "silx/math/chistogramnd_lut.pyx":384
  *     max_idx = i_n_elems * i_n_dims - i_n_dims
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -26763,7 +26763,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":385
+        /* "silx/math/chistogramnd_lut.pyx":385
  * 
  *     with nogil:
  *         while elem_idx < max_idx:             # <<<<<<<<<<<<<<
@@ -26774,7 +26774,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHO
           __pyx_t_5 = ((__pyx_v_elem_idx < __pyx_v_max_idx) != 0);
           if (!__pyx_t_5) break;
 
-          /* "chistogramnd_lut.pyx":386
+          /* "silx/math/chistogramnd_lut.pyx":386
  *     with nogil:
  *         while elem_idx < max_idx:
  *             elem_idx += i_n_dims             # <<<<<<<<<<<<<<
@@ -26783,7 +26783,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHO
  */
           __pyx_v_elem_idx = (__pyx_v_elem_idx + __pyx_v_i_n_dims);
 
-          /* "chistogramnd_lut.pyx":387
+          /* "silx/math/chistogramnd_lut.pyx":387
  *         while elem_idx < max_idx:
  *             elem_idx += i_n_dims
  *             lut_idx += 1             # <<<<<<<<<<<<<<
@@ -26792,7 +26792,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHO
  */
           __pyx_v_lut_idx = (__pyx_v_lut_idx + 1);
 
-          /* "chistogramnd_lut.pyx":389
+          /* "silx/math/chistogramnd_lut.pyx":389
  *             lut_idx += 1
  * 
  *             bin_idx = 0             # <<<<<<<<<<<<<<
@@ -26801,7 +26801,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHO
  */
           __pyx_v_bin_idx = 0;
 
-          /* "chistogramnd_lut.pyx":391
+          /* "silx/math/chistogramnd_lut.pyx":391
  *             bin_idx = 0
  * 
  *             for i in range(i_n_dims):             # <<<<<<<<<<<<<<
@@ -26812,7 +26812,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHO
           for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
             __pyx_v_i = __pyx_t_2;
 
-            /* "chistogramnd_lut.pyx":392
+            /* "silx/math/chistogramnd_lut.pyx":392
  * 
  *             for i in range(i_n_dims):
  *                 elem_coord = i_sample[elem_idx+i]             # <<<<<<<<<<<<<<
@@ -26822,7 +26822,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHO
             __pyx_t_6 = (__pyx_v_elem_idx + __pyx_v_i);
             __pyx_v_elem_coord = (*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_i_sample.data + __pyx_t_6 * __pyx_v_i_sample.strides[0]) )));
 
-            /* "chistogramnd_lut.pyx":399
+            /* "silx/math/chistogramnd_lut.pyx":399
  *                 # 3. coordinate==maximum value and last_bin_closed is True
  *                 # =====================
  *                 if elem_coord < g_min[i]:             # <<<<<<<<<<<<<<
@@ -26832,7 +26832,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHO
             __pyx_t_5 = ((__pyx_v_elem_coord < (__pyx_v_g_min[__pyx_v_i])) != 0);
             if (__pyx_t_5) {
 
-              /* "chistogramnd_lut.pyx":400
+              /* "silx/math/chistogramnd_lut.pyx":400
  *                 # =====================
  *                 if elem_coord < g_min[i]:
  *                     bin_idx = -1             # <<<<<<<<<<<<<<
@@ -26841,7 +26841,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHO
  */
               __pyx_v_bin_idx = -1;
 
-              /* "chistogramnd_lut.pyx":401
+              /* "silx/math/chistogramnd_lut.pyx":401
  *                 if elem_coord < g_min[i]:
  *                     bin_idx = -1
  *                     break             # <<<<<<<<<<<<<<
@@ -26851,7 +26851,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHO
               goto __pyx_L11_break;
             }
 
-            /* "chistogramnd_lut.pyx":408
+            /* "silx/math/chistogramnd_lut.pyx":408
  *                 #  than coordinates higher or equal to the max
  *                 #  (two tests)
  *                 if elem_coord < g_max[i]:             # <<<<<<<<<<<<<<
@@ -26861,7 +26861,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHO
             __pyx_t_5 = ((__pyx_v_elem_coord < (__pyx_v_g_max[__pyx_v_i])) != 0);
             if (__pyx_t_5) {
 
-              /* "chistogramnd_lut.pyx":409
+              /* "silx/math/chistogramnd_lut.pyx":409
  *                 #  (two tests)
  *                 if elem_coord < g_max[i]:
  *                     bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa             # <<<<<<<<<<<<<<
@@ -26870,7 +26870,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHO
  */
               __pyx_t_7 = __pyx_v_i;
 
-              /* "chistogramnd_lut.pyx":410
+              /* "silx/math/chistogramnd_lut.pyx":410
  *                 if elem_coord < g_max[i]:
  *                     bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa
  *                                      (((elem_coord - g_min[i]) * i_n_bins[i]) /             # <<<<<<<<<<<<<<
@@ -26879,7 +26879,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHO
  */
               __pyx_t_8 = __pyx_v_i;
 
-              /* "chistogramnd_lut.pyx":409
+              /* "silx/math/chistogramnd_lut.pyx":409
  *                 #  (two tests)
  *                 if elem_coord < g_max[i]:
  *                     bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa             # <<<<<<<<<<<<<<
@@ -26891,7 +26891,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHO
             }
             /*else*/ {
 
-              /* "chistogramnd_lut.pyx":416
+              /* "silx/math/chistogramnd_lut.pyx":416
  *                     #  put it in the last bin
  *                     # else : discard
  *                     if last_bin_closed and elem_coord == g_max[i]:             # <<<<<<<<<<<<<<
@@ -26909,7 +26909,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHO
               __pyx_L15_bool_binop_done:;
               if (__pyx_t_5) {
 
-                /* "chistogramnd_lut.pyx":417
+                /* "silx/math/chistogramnd_lut.pyx":417
  *                     # else : discard
  *                     if last_bin_closed and elem_coord == g_max[i]:
  *                         bin_idx = (bin_idx + 1) * i_n_bins[i] - 1             # <<<<<<<<<<<<<<
@@ -26922,7 +26922,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHO
               }
               /*else*/ {
 
-                /* "chistogramnd_lut.pyx":419
+                /* "silx/math/chistogramnd_lut.pyx":419
  *                         bin_idx = (bin_idx + 1) * i_n_bins[i] - 1
  *                     else:
  *                         bin_idx = -1             # <<<<<<<<<<<<<<
@@ -26931,7 +26931,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHO
  */
                 __pyx_v_bin_idx = -1;
 
-                /* "chistogramnd_lut.pyx":420
+                /* "silx/math/chistogramnd_lut.pyx":420
  *                     else:
  *                         bin_idx = -1
  *                         break             # <<<<<<<<<<<<<<
@@ -26946,7 +26946,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHO
           }
           __pyx_L11_break:;
 
-          /* "chistogramnd_lut.pyx":422
+          /* "silx/math/chistogramnd_lut.pyx":422
  *                         break
  * 
  *             o_lut[lut_idx] = bin_idx             # <<<<<<<<<<<<<<
@@ -26956,7 +26956,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHO
           __pyx_t_11 = __pyx_v_lut_idx;
           *((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_o_lut.data + __pyx_t_11 * __pyx_v_o_lut.strides[0]) )) = __pyx_v_bin_idx;
 
-          /* "chistogramnd_lut.pyx":423
+          /* "silx/math/chistogramnd_lut.pyx":423
  * 
  *             o_lut[lut_idx] = bin_idx
  *             if bin_idx >= 0:             # <<<<<<<<<<<<<<
@@ -26966,7 +26966,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHO
           __pyx_t_5 = ((__pyx_v_bin_idx >= 0) != 0);
           if (__pyx_t_5) {
 
-            /* "chistogramnd_lut.pyx":424
+            /* "silx/math/chistogramnd_lut.pyx":424
  *             o_lut[lut_idx] = bin_idx
  *             if bin_idx >= 0:
  *                 o_histo[bin_idx] += 1             # <<<<<<<<<<<<<<
@@ -26981,7 +26981,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":384
+      /* "silx/math/chistogramnd_lut.pyx":384
  *     max_idx = i_n_elems * i_n_dims - i_n_dims
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -26999,7 +26999,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":426
+  /* "silx/math/chistogramnd_lut.pyx":426
  *                 o_histo[bin_idx] += 1
  * 
  *     return 0             # <<<<<<<<<<<<<<
@@ -27009,7 +27009,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHO
   __pyx_r = __pyx_int_0;
   goto __pyx_L0;
 
-  /* "chistogramnd_lut.pyx":352
+  /* "silx/math/chistogramnd_lut.pyx":352
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_get_lut_fused(sample_t[:] i_sample,             # <<<<<<<<<<<<<<
@@ -27030,9 +27030,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_120_histogramnd_get_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_2_2__pyx_pw_16chistogramnd_lut_123_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_2_2__pyx_mdef_16chistogramnd_lut_123_histogramnd_get_lut_fused = {"__pyx_fuse_2_2_histogramnd_get_lut_fused", (PyCFunction)__pyx_fuse_2_2__pyx_pw_16chistogramnd_lut_123_histogramnd_get_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_6_histogramnd_get_lut_fused};
-static PyObject *__pyx_fuse_2_2__pyx_pw_16chistogramnd_lut_123_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_2_2__pyx_pw_4silx_4math_16chistogramnd_lut_123_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_2_2__pyx_mdef_4silx_4math_16chistogramnd_lut_123_histogramnd_get_lut_fused = {"__pyx_fuse_2_2_histogramnd_get_lut_fused", (PyCFunction)__pyx_fuse_2_2__pyx_pw_4silx_4math_16chistogramnd_lut_123_histogramnd_get_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_6_histogramnd_get_lut_fused};
+static PyObject *__pyx_fuse_2_2__pyx_pw_4silx_4math_16chistogramnd_lut_123_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_sample = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_v_i_n_dims;
   int __pyx_v_i_n_elems;
@@ -27134,18 +27134,18 @@ static PyObject *__pyx_fuse_2_2__pyx_pw_16chistogramnd_lut_123_histogramnd_get_l
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_get_lut_fused", 1, 8, 8, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_get_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_get_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(__pyx_self, __pyx_v_i_sample, __pyx_v_i_n_dims, __pyx_v_i_n_elems, __pyx_v_i_histo_range, __pyx_v_i_n_bins, __pyx_v_o_lut, __pyx_v_o_histo, __pyx_v_last_bin_closed);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_122_histogramnd_get_lut_fused(__pyx_self, __pyx_v_i_sample, __pyx_v_i_n_dims, __pyx_v_i_n_elems, __pyx_v_i_histo_range, __pyx_v_i_n_bins, __pyx_v_o_lut, __pyx_v_o_histo, __pyx_v_last_bin_closed);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed) {
   int __pyx_v_i;
   long __pyx_v_elem_idx;
   long __pyx_v_max_idx;
@@ -27171,7 +27171,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHO
   long __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_2_2_histogramnd_get_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":362
+  /* "silx/math/chistogramnd_lut.pyx":362
  * 
  *     cdef:
  *         int i = 0             # <<<<<<<<<<<<<<
@@ -27180,7 +27180,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_i = 0;
 
-  /* "chistogramnd_lut.pyx":363
+  /* "silx/math/chistogramnd_lut.pyx":363
  *     cdef:
  *         int i = 0
  *         long elem_idx = 0             # <<<<<<<<<<<<<<
@@ -27189,7 +27189,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_elem_idx = 0;
 
-  /* "chistogramnd_lut.pyx":364
+  /* "silx/math/chistogramnd_lut.pyx":364
  *         int i = 0
  *         long elem_idx = 0
  *         long max_idx = 0             # <<<<<<<<<<<<<<
@@ -27198,7 +27198,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_max_idx = 0;
 
-  /* "chistogramnd_lut.pyx":365
+  /* "silx/math/chistogramnd_lut.pyx":365
  *         long elem_idx = 0
  *         long max_idx = 0
  *         long lut_idx = -1             # <<<<<<<<<<<<<<
@@ -27207,7 +27207,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_lut_idx = -1;
 
-  /* "chistogramnd_lut.pyx":368
+  /* "silx/math/chistogramnd_lut.pyx":368
  * 
  *         # computed bin index (i_sample -> grid)
  *         long bin_idx = 0             # <<<<<<<<<<<<<<
@@ -27216,7 +27216,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_bin_idx = 0;
 
-  /* "chistogramnd_lut.pyx":370
+  /* "silx/math/chistogramnd_lut.pyx":370
  *         long bin_idx = 0
  * 
  *         sample_t elem_coord = 0             # <<<<<<<<<<<<<<
@@ -27225,7 +27225,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_elem_coord = 0;
 
-  /* "chistogramnd_lut.pyx":376
+  /* "silx/math/chistogramnd_lut.pyx":376
  *         double[50] bins_range
  * 
  *     for i in range(i_n_dims):             # <<<<<<<<<<<<<<
@@ -27236,7 +27236,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHO
   for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
     __pyx_v_i = __pyx_t_2;
 
-    /* "chistogramnd_lut.pyx":377
+    /* "silx/math/chistogramnd_lut.pyx":377
  * 
  *     for i in range(i_n_dims):
  *         g_min[i] = i_histo_range[2*i]             # <<<<<<<<<<<<<<
@@ -27246,7 +27246,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHO
     __pyx_t_3 = (2 * __pyx_v_i);
     (__pyx_v_g_min[__pyx_v_i]) = (*((double *) ( /* dim=0 */ (__pyx_v_i_histo_range.data + __pyx_t_3 * __pyx_v_i_histo_range.strides[0]) )));
 
-    /* "chistogramnd_lut.pyx":378
+    /* "silx/math/chistogramnd_lut.pyx":378
  *     for i in range(i_n_dims):
  *         g_min[i] = i_histo_range[2*i]
  *         g_max[i] = i_histo_range[2*i+1]             # <<<<<<<<<<<<<<
@@ -27256,7 +27256,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHO
     __pyx_t_4 = ((2 * __pyx_v_i) + 1);
     (__pyx_v_g_max[__pyx_v_i]) = (*((double *) ( /* dim=0 */ (__pyx_v_i_histo_range.data + __pyx_t_4 * __pyx_v_i_histo_range.strides[0]) )));
 
-    /* "chistogramnd_lut.pyx":379
+    /* "silx/math/chistogramnd_lut.pyx":379
  *         g_min[i] = i_histo_range[2*i]
  *         g_max[i] = i_histo_range[2*i+1]
  *         bins_range[i] = g_max[i] - g_min[i]             # <<<<<<<<<<<<<<
@@ -27266,7 +27266,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHO
     (__pyx_v_bins_range[__pyx_v_i]) = ((__pyx_v_g_max[__pyx_v_i]) - (__pyx_v_g_min[__pyx_v_i]));
   }
 
-  /* "chistogramnd_lut.pyx":381
+  /* "silx/math/chistogramnd_lut.pyx":381
  *         bins_range[i] = g_max[i] - g_min[i]
  * 
  *     elem_idx = 0 - i_n_dims             # <<<<<<<<<<<<<<
@@ -27275,7 +27275,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_elem_idx = (0 - __pyx_v_i_n_dims);
 
-  /* "chistogramnd_lut.pyx":382
+  /* "silx/math/chistogramnd_lut.pyx":382
  * 
  *     elem_idx = 0 - i_n_dims
  *     max_idx = i_n_elems * i_n_dims - i_n_dims             # <<<<<<<<<<<<<<
@@ -27284,7 +27284,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_max_idx = ((__pyx_v_i_n_elems * __pyx_v_i_n_dims) - __pyx_v_i_n_dims);
 
-  /* "chistogramnd_lut.pyx":384
+  /* "silx/math/chistogramnd_lut.pyx":384
  *     max_idx = i_n_elems * i_n_dims - i_n_dims
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -27298,7 +27298,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":385
+        /* "silx/math/chistogramnd_lut.pyx":385
  * 
  *     with nogil:
  *         while elem_idx < max_idx:             # <<<<<<<<<<<<<<
@@ -27309,7 +27309,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHO
           __pyx_t_5 = ((__pyx_v_elem_idx < __pyx_v_max_idx) != 0);
           if (!__pyx_t_5) break;
 
-          /* "chistogramnd_lut.pyx":386
+          /* "silx/math/chistogramnd_lut.pyx":386
  *     with nogil:
  *         while elem_idx < max_idx:
  *             elem_idx += i_n_dims             # <<<<<<<<<<<<<<
@@ -27318,7 +27318,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHO
  */
           __pyx_v_elem_idx = (__pyx_v_elem_idx + __pyx_v_i_n_dims);
 
-          /* "chistogramnd_lut.pyx":387
+          /* "silx/math/chistogramnd_lut.pyx":387
  *         while elem_idx < max_idx:
  *             elem_idx += i_n_dims
  *             lut_idx += 1             # <<<<<<<<<<<<<<
@@ -27327,7 +27327,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHO
  */
           __pyx_v_lut_idx = (__pyx_v_lut_idx + 1);
 
-          /* "chistogramnd_lut.pyx":389
+          /* "silx/math/chistogramnd_lut.pyx":389
  *             lut_idx += 1
  * 
  *             bin_idx = 0             # <<<<<<<<<<<<<<
@@ -27336,7 +27336,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHO
  */
           __pyx_v_bin_idx = 0;
 
-          /* "chistogramnd_lut.pyx":391
+          /* "silx/math/chistogramnd_lut.pyx":391
  *             bin_idx = 0
  * 
  *             for i in range(i_n_dims):             # <<<<<<<<<<<<<<
@@ -27347,7 +27347,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHO
           for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
             __pyx_v_i = __pyx_t_2;
 
-            /* "chistogramnd_lut.pyx":392
+            /* "silx/math/chistogramnd_lut.pyx":392
  * 
  *             for i in range(i_n_dims):
  *                 elem_coord = i_sample[elem_idx+i]             # <<<<<<<<<<<<<<
@@ -27357,7 +27357,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHO
             __pyx_t_6 = (__pyx_v_elem_idx + __pyx_v_i);
             __pyx_v_elem_coord = (*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_i_sample.data + __pyx_t_6 * __pyx_v_i_sample.strides[0]) )));
 
-            /* "chistogramnd_lut.pyx":399
+            /* "silx/math/chistogramnd_lut.pyx":399
  *                 # 3. coordinate==maximum value and last_bin_closed is True
  *                 # =====================
  *                 if elem_coord < g_min[i]:             # <<<<<<<<<<<<<<
@@ -27367,7 +27367,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHO
             __pyx_t_5 = ((__pyx_v_elem_coord < (__pyx_v_g_min[__pyx_v_i])) != 0);
             if (__pyx_t_5) {
 
-              /* "chistogramnd_lut.pyx":400
+              /* "silx/math/chistogramnd_lut.pyx":400
  *                 # =====================
  *                 if elem_coord < g_min[i]:
  *                     bin_idx = -1             # <<<<<<<<<<<<<<
@@ -27376,7 +27376,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHO
  */
               __pyx_v_bin_idx = -1;
 
-              /* "chistogramnd_lut.pyx":401
+              /* "silx/math/chistogramnd_lut.pyx":401
  *                 if elem_coord < g_min[i]:
  *                     bin_idx = -1
  *                     break             # <<<<<<<<<<<<<<
@@ -27386,7 +27386,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHO
               goto __pyx_L11_break;
             }
 
-            /* "chistogramnd_lut.pyx":408
+            /* "silx/math/chistogramnd_lut.pyx":408
  *                 #  than coordinates higher or equal to the max
  *                 #  (two tests)
  *                 if elem_coord < g_max[i]:             # <<<<<<<<<<<<<<
@@ -27396,7 +27396,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHO
             __pyx_t_5 = ((__pyx_v_elem_coord < (__pyx_v_g_max[__pyx_v_i])) != 0);
             if (__pyx_t_5) {
 
-              /* "chistogramnd_lut.pyx":409
+              /* "silx/math/chistogramnd_lut.pyx":409
  *                 #  (two tests)
  *                 if elem_coord < g_max[i]:
  *                     bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa             # <<<<<<<<<<<<<<
@@ -27405,7 +27405,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHO
  */
               __pyx_t_7 = __pyx_v_i;
 
-              /* "chistogramnd_lut.pyx":410
+              /* "silx/math/chistogramnd_lut.pyx":410
  *                 if elem_coord < g_max[i]:
  *                     bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa
  *                                      (((elem_coord - g_min[i]) * i_n_bins[i]) /             # <<<<<<<<<<<<<<
@@ -27414,7 +27414,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHO
  */
               __pyx_t_8 = __pyx_v_i;
 
-              /* "chistogramnd_lut.pyx":409
+              /* "silx/math/chistogramnd_lut.pyx":409
  *                 #  (two tests)
  *                 if elem_coord < g_max[i]:
  *                     bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa             # <<<<<<<<<<<<<<
@@ -27426,7 +27426,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHO
             }
             /*else*/ {
 
-              /* "chistogramnd_lut.pyx":416
+              /* "silx/math/chistogramnd_lut.pyx":416
  *                     #  put it in the last bin
  *                     # else : discard
  *                     if last_bin_closed and elem_coord == g_max[i]:             # <<<<<<<<<<<<<<
@@ -27444,7 +27444,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHO
               __pyx_L15_bool_binop_done:;
               if (__pyx_t_5) {
 
-                /* "chistogramnd_lut.pyx":417
+                /* "silx/math/chistogramnd_lut.pyx":417
  *                     # else : discard
  *                     if last_bin_closed and elem_coord == g_max[i]:
  *                         bin_idx = (bin_idx + 1) * i_n_bins[i] - 1             # <<<<<<<<<<<<<<
@@ -27457,7 +27457,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHO
               }
               /*else*/ {
 
-                /* "chistogramnd_lut.pyx":419
+                /* "silx/math/chistogramnd_lut.pyx":419
  *                         bin_idx = (bin_idx + 1) * i_n_bins[i] - 1
  *                     else:
  *                         bin_idx = -1             # <<<<<<<<<<<<<<
@@ -27466,7 +27466,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHO
  */
                 __pyx_v_bin_idx = -1;
 
-                /* "chistogramnd_lut.pyx":420
+                /* "silx/math/chistogramnd_lut.pyx":420
  *                     else:
  *                         bin_idx = -1
  *                         break             # <<<<<<<<<<<<<<
@@ -27481,7 +27481,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHO
           }
           __pyx_L11_break:;
 
-          /* "chistogramnd_lut.pyx":422
+          /* "silx/math/chistogramnd_lut.pyx":422
  *                         break
  * 
  *             o_lut[lut_idx] = bin_idx             # <<<<<<<<<<<<<<
@@ -27491,7 +27491,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHO
           __pyx_t_11 = __pyx_v_lut_idx;
           *((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_o_lut.data + __pyx_t_11 * __pyx_v_o_lut.strides[0]) )) = __pyx_v_bin_idx;
 
-          /* "chistogramnd_lut.pyx":423
+          /* "silx/math/chistogramnd_lut.pyx":423
  * 
  *             o_lut[lut_idx] = bin_idx
  *             if bin_idx >= 0:             # <<<<<<<<<<<<<<
@@ -27501,7 +27501,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHO
           __pyx_t_5 = ((__pyx_v_bin_idx >= 0) != 0);
           if (__pyx_t_5) {
 
-            /* "chistogramnd_lut.pyx":424
+            /* "silx/math/chistogramnd_lut.pyx":424
  *             o_lut[lut_idx] = bin_idx
  *             if bin_idx >= 0:
  *                 o_histo[bin_idx] += 1             # <<<<<<<<<<<<<<
@@ -27516,7 +27516,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":384
+      /* "silx/math/chistogramnd_lut.pyx":384
  *     max_idx = i_n_elems * i_n_dims - i_n_dims
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -27534,7 +27534,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":426
+  /* "silx/math/chistogramnd_lut.pyx":426
  *                 o_histo[bin_idx] += 1
  * 
  *     return 0             # <<<<<<<<<<<<<<
@@ -27544,7 +27544,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHO
   __pyx_r = __pyx_int_0;
   goto __pyx_L0;
 
-  /* "chistogramnd_lut.pyx":352
+  /* "silx/math/chistogramnd_lut.pyx":352
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_get_lut_fused(sample_t[:] i_sample,             # <<<<<<<<<<<<<<
@@ -27565,9 +27565,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_122_histogramnd_get_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_3_0__pyx_pw_16chistogramnd_lut_125_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_3_0__pyx_mdef_16chistogramnd_lut_125_histogramnd_get_lut_fused = {"__pyx_fuse_3_0_histogramnd_get_lut_fused", (PyCFunction)__pyx_fuse_3_0__pyx_pw_16chistogramnd_lut_125_histogramnd_get_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_6_histogramnd_get_lut_fused};
-static PyObject *__pyx_fuse_3_0__pyx_pw_16chistogramnd_lut_125_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_3_0__pyx_pw_4silx_4math_16chistogramnd_lut_125_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_3_0__pyx_mdef_4silx_4math_16chistogramnd_lut_125_histogramnd_get_lut_fused = {"__pyx_fuse_3_0_histogramnd_get_lut_fused", (PyCFunction)__pyx_fuse_3_0__pyx_pw_4silx_4math_16chistogramnd_lut_125_histogramnd_get_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_6_histogramnd_get_lut_fused};
+static PyObject *__pyx_fuse_3_0__pyx_pw_4silx_4math_16chistogramnd_lut_125_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_sample = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_v_i_n_dims;
   int __pyx_v_i_n_elems;
@@ -27669,18 +27669,18 @@ static PyObject *__pyx_fuse_3_0__pyx_pw_16chistogramnd_lut_125_histogramnd_get_l
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_get_lut_fused", 1, 8, 8, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_get_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_get_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(__pyx_self, __pyx_v_i_sample, __pyx_v_i_n_dims, __pyx_v_i_n_elems, __pyx_v_i_histo_range, __pyx_v_i_n_bins, __pyx_v_o_lut, __pyx_v_o_histo, __pyx_v_last_bin_closed);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_124_histogramnd_get_lut_fused(__pyx_self, __pyx_v_i_sample, __pyx_v_i_n_dims, __pyx_v_i_n_elems, __pyx_v_i_histo_range, __pyx_v_i_n_bins, __pyx_v_o_lut, __pyx_v_o_histo, __pyx_v_last_bin_closed);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed) {
   int __pyx_v_i;
   long __pyx_v_elem_idx;
   long __pyx_v_max_idx;
@@ -27706,7 +27706,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHO
   long __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_3_0_histogramnd_get_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":362
+  /* "silx/math/chistogramnd_lut.pyx":362
  * 
  *     cdef:
  *         int i = 0             # <<<<<<<<<<<<<<
@@ -27715,7 +27715,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_i = 0;
 
-  /* "chistogramnd_lut.pyx":363
+  /* "silx/math/chistogramnd_lut.pyx":363
  *     cdef:
  *         int i = 0
  *         long elem_idx = 0             # <<<<<<<<<<<<<<
@@ -27724,7 +27724,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_elem_idx = 0;
 
-  /* "chistogramnd_lut.pyx":364
+  /* "silx/math/chistogramnd_lut.pyx":364
  *         int i = 0
  *         long elem_idx = 0
  *         long max_idx = 0             # <<<<<<<<<<<<<<
@@ -27733,7 +27733,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_max_idx = 0;
 
-  /* "chistogramnd_lut.pyx":365
+  /* "silx/math/chistogramnd_lut.pyx":365
  *         long elem_idx = 0
  *         long max_idx = 0
  *         long lut_idx = -1             # <<<<<<<<<<<<<<
@@ -27742,7 +27742,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_lut_idx = -1;
 
-  /* "chistogramnd_lut.pyx":368
+  /* "silx/math/chistogramnd_lut.pyx":368
  * 
  *         # computed bin index (i_sample -> grid)
  *         long bin_idx = 0             # <<<<<<<<<<<<<<
@@ -27751,7 +27751,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_bin_idx = 0;
 
-  /* "chistogramnd_lut.pyx":370
+  /* "silx/math/chistogramnd_lut.pyx":370
  *         long bin_idx = 0
  * 
  *         sample_t elem_coord = 0             # <<<<<<<<<<<<<<
@@ -27760,7 +27760,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_elem_coord = 0;
 
-  /* "chistogramnd_lut.pyx":376
+  /* "silx/math/chistogramnd_lut.pyx":376
  *         double[50] bins_range
  * 
  *     for i in range(i_n_dims):             # <<<<<<<<<<<<<<
@@ -27771,7 +27771,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHO
   for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
     __pyx_v_i = __pyx_t_2;
 
-    /* "chistogramnd_lut.pyx":377
+    /* "silx/math/chistogramnd_lut.pyx":377
  * 
  *     for i in range(i_n_dims):
  *         g_min[i] = i_histo_range[2*i]             # <<<<<<<<<<<<<<
@@ -27781,7 +27781,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHO
     __pyx_t_3 = (2 * __pyx_v_i);
     (__pyx_v_g_min[__pyx_v_i]) = (*((double *) ( /* dim=0 */ (__pyx_v_i_histo_range.data + __pyx_t_3 * __pyx_v_i_histo_range.strides[0]) )));
 
-    /* "chistogramnd_lut.pyx":378
+    /* "silx/math/chistogramnd_lut.pyx":378
  *     for i in range(i_n_dims):
  *         g_min[i] = i_histo_range[2*i]
  *         g_max[i] = i_histo_range[2*i+1]             # <<<<<<<<<<<<<<
@@ -27791,7 +27791,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHO
     __pyx_t_4 = ((2 * __pyx_v_i) + 1);
     (__pyx_v_g_max[__pyx_v_i]) = (*((double *) ( /* dim=0 */ (__pyx_v_i_histo_range.data + __pyx_t_4 * __pyx_v_i_histo_range.strides[0]) )));
 
-    /* "chistogramnd_lut.pyx":379
+    /* "silx/math/chistogramnd_lut.pyx":379
  *         g_min[i] = i_histo_range[2*i]
  *         g_max[i] = i_histo_range[2*i+1]
  *         bins_range[i] = g_max[i] - g_min[i]             # <<<<<<<<<<<<<<
@@ -27801,7 +27801,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHO
     (__pyx_v_bins_range[__pyx_v_i]) = ((__pyx_v_g_max[__pyx_v_i]) - (__pyx_v_g_min[__pyx_v_i]));
   }
 
-  /* "chistogramnd_lut.pyx":381
+  /* "silx/math/chistogramnd_lut.pyx":381
  *         bins_range[i] = g_max[i] - g_min[i]
  * 
  *     elem_idx = 0 - i_n_dims             # <<<<<<<<<<<<<<
@@ -27810,7 +27810,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_elem_idx = (0 - __pyx_v_i_n_dims);
 
-  /* "chistogramnd_lut.pyx":382
+  /* "silx/math/chistogramnd_lut.pyx":382
  * 
  *     elem_idx = 0 - i_n_dims
  *     max_idx = i_n_elems * i_n_dims - i_n_dims             # <<<<<<<<<<<<<<
@@ -27819,7 +27819,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_max_idx = ((__pyx_v_i_n_elems * __pyx_v_i_n_dims) - __pyx_v_i_n_dims);
 
-  /* "chistogramnd_lut.pyx":384
+  /* "silx/math/chistogramnd_lut.pyx":384
  *     max_idx = i_n_elems * i_n_dims - i_n_dims
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -27833,7 +27833,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":385
+        /* "silx/math/chistogramnd_lut.pyx":385
  * 
  *     with nogil:
  *         while elem_idx < max_idx:             # <<<<<<<<<<<<<<
@@ -27844,7 +27844,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHO
           __pyx_t_5 = ((__pyx_v_elem_idx < __pyx_v_max_idx) != 0);
           if (!__pyx_t_5) break;
 
-          /* "chistogramnd_lut.pyx":386
+          /* "silx/math/chistogramnd_lut.pyx":386
  *     with nogil:
  *         while elem_idx < max_idx:
  *             elem_idx += i_n_dims             # <<<<<<<<<<<<<<
@@ -27853,7 +27853,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHO
  */
           __pyx_v_elem_idx = (__pyx_v_elem_idx + __pyx_v_i_n_dims);
 
-          /* "chistogramnd_lut.pyx":387
+          /* "silx/math/chistogramnd_lut.pyx":387
  *         while elem_idx < max_idx:
  *             elem_idx += i_n_dims
  *             lut_idx += 1             # <<<<<<<<<<<<<<
@@ -27862,7 +27862,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHO
  */
           __pyx_v_lut_idx = (__pyx_v_lut_idx + 1);
 
-          /* "chistogramnd_lut.pyx":389
+          /* "silx/math/chistogramnd_lut.pyx":389
  *             lut_idx += 1
  * 
  *             bin_idx = 0             # <<<<<<<<<<<<<<
@@ -27871,7 +27871,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHO
  */
           __pyx_v_bin_idx = 0;
 
-          /* "chistogramnd_lut.pyx":391
+          /* "silx/math/chistogramnd_lut.pyx":391
  *             bin_idx = 0
  * 
  *             for i in range(i_n_dims):             # <<<<<<<<<<<<<<
@@ -27882,7 +27882,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHO
           for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
             __pyx_v_i = __pyx_t_2;
 
-            /* "chistogramnd_lut.pyx":392
+            /* "silx/math/chistogramnd_lut.pyx":392
  * 
  *             for i in range(i_n_dims):
  *                 elem_coord = i_sample[elem_idx+i]             # <<<<<<<<<<<<<<
@@ -27892,7 +27892,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHO
             __pyx_t_6 = (__pyx_v_elem_idx + __pyx_v_i);
             __pyx_v_elem_coord = (*((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_i_sample.data + __pyx_t_6 * __pyx_v_i_sample.strides[0]) )));
 
-            /* "chistogramnd_lut.pyx":399
+            /* "silx/math/chistogramnd_lut.pyx":399
  *                 # 3. coordinate==maximum value and last_bin_closed is True
  *                 # =====================
  *                 if elem_coord < g_min[i]:             # <<<<<<<<<<<<<<
@@ -27902,7 +27902,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHO
             __pyx_t_5 = ((__pyx_v_elem_coord < (__pyx_v_g_min[__pyx_v_i])) != 0);
             if (__pyx_t_5) {
 
-              /* "chistogramnd_lut.pyx":400
+              /* "silx/math/chistogramnd_lut.pyx":400
  *                 # =====================
  *                 if elem_coord < g_min[i]:
  *                     bin_idx = -1             # <<<<<<<<<<<<<<
@@ -27911,7 +27911,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHO
  */
               __pyx_v_bin_idx = -1;
 
-              /* "chistogramnd_lut.pyx":401
+              /* "silx/math/chistogramnd_lut.pyx":401
  *                 if elem_coord < g_min[i]:
  *                     bin_idx = -1
  *                     break             # <<<<<<<<<<<<<<
@@ -27921,7 +27921,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHO
               goto __pyx_L11_break;
             }
 
-            /* "chistogramnd_lut.pyx":408
+            /* "silx/math/chistogramnd_lut.pyx":408
  *                 #  than coordinates higher or equal to the max
  *                 #  (two tests)
  *                 if elem_coord < g_max[i]:             # <<<<<<<<<<<<<<
@@ -27931,7 +27931,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHO
             __pyx_t_5 = ((__pyx_v_elem_coord < (__pyx_v_g_max[__pyx_v_i])) != 0);
             if (__pyx_t_5) {
 
-              /* "chistogramnd_lut.pyx":409
+              /* "silx/math/chistogramnd_lut.pyx":409
  *                 #  (two tests)
  *                 if elem_coord < g_max[i]:
  *                     bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa             # <<<<<<<<<<<<<<
@@ -27940,7 +27940,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHO
  */
               __pyx_t_7 = __pyx_v_i;
 
-              /* "chistogramnd_lut.pyx":410
+              /* "silx/math/chistogramnd_lut.pyx":410
  *                 if elem_coord < g_max[i]:
  *                     bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa
  *                                      (((elem_coord - g_min[i]) * i_n_bins[i]) /             # <<<<<<<<<<<<<<
@@ -27949,7 +27949,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHO
  */
               __pyx_t_8 = __pyx_v_i;
 
-              /* "chistogramnd_lut.pyx":409
+              /* "silx/math/chistogramnd_lut.pyx":409
  *                 #  (two tests)
  *                 if elem_coord < g_max[i]:
  *                     bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa             # <<<<<<<<<<<<<<
@@ -27961,7 +27961,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHO
             }
             /*else*/ {
 
-              /* "chistogramnd_lut.pyx":416
+              /* "silx/math/chistogramnd_lut.pyx":416
  *                     #  put it in the last bin
  *                     # else : discard
  *                     if last_bin_closed and elem_coord == g_max[i]:             # <<<<<<<<<<<<<<
@@ -27979,7 +27979,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHO
               __pyx_L15_bool_binop_done:;
               if (__pyx_t_5) {
 
-                /* "chistogramnd_lut.pyx":417
+                /* "silx/math/chistogramnd_lut.pyx":417
  *                     # else : discard
  *                     if last_bin_closed and elem_coord == g_max[i]:
  *                         bin_idx = (bin_idx + 1) * i_n_bins[i] - 1             # <<<<<<<<<<<<<<
@@ -27992,7 +27992,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHO
               }
               /*else*/ {
 
-                /* "chistogramnd_lut.pyx":419
+                /* "silx/math/chistogramnd_lut.pyx":419
  *                         bin_idx = (bin_idx + 1) * i_n_bins[i] - 1
  *                     else:
  *                         bin_idx = -1             # <<<<<<<<<<<<<<
@@ -28001,7 +28001,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHO
  */
                 __pyx_v_bin_idx = -1;
 
-                /* "chistogramnd_lut.pyx":420
+                /* "silx/math/chistogramnd_lut.pyx":420
  *                     else:
  *                         bin_idx = -1
  *                         break             # <<<<<<<<<<<<<<
@@ -28016,7 +28016,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHO
           }
           __pyx_L11_break:;
 
-          /* "chistogramnd_lut.pyx":422
+          /* "silx/math/chistogramnd_lut.pyx":422
  *                         break
  * 
  *             o_lut[lut_idx] = bin_idx             # <<<<<<<<<<<<<<
@@ -28026,7 +28026,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHO
           __pyx_t_11 = __pyx_v_lut_idx;
           *((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_o_lut.data + __pyx_t_11 * __pyx_v_o_lut.strides[0]) )) = __pyx_v_bin_idx;
 
-          /* "chistogramnd_lut.pyx":423
+          /* "silx/math/chistogramnd_lut.pyx":423
  * 
  *             o_lut[lut_idx] = bin_idx
  *             if bin_idx >= 0:             # <<<<<<<<<<<<<<
@@ -28036,7 +28036,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHO
           __pyx_t_5 = ((__pyx_v_bin_idx >= 0) != 0);
           if (__pyx_t_5) {
 
-            /* "chistogramnd_lut.pyx":424
+            /* "silx/math/chistogramnd_lut.pyx":424
  *             o_lut[lut_idx] = bin_idx
  *             if bin_idx >= 0:
  *                 o_histo[bin_idx] += 1             # <<<<<<<<<<<<<<
@@ -28051,7 +28051,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":384
+      /* "silx/math/chistogramnd_lut.pyx":384
  *     max_idx = i_n_elems * i_n_dims - i_n_dims
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -28069,7 +28069,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":426
+  /* "silx/math/chistogramnd_lut.pyx":426
  *                 o_histo[bin_idx] += 1
  * 
  *     return 0             # <<<<<<<<<<<<<<
@@ -28079,7 +28079,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHO
   __pyx_r = __pyx_int_0;
   goto __pyx_L0;
 
-  /* "chistogramnd_lut.pyx":352
+  /* "silx/math/chistogramnd_lut.pyx":352
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_get_lut_fused(sample_t[:] i_sample,             # <<<<<<<<<<<<<<
@@ -28100,9 +28100,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_124_histogramnd_get_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_3_1__pyx_pw_16chistogramnd_lut_127_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_3_1__pyx_mdef_16chistogramnd_lut_127_histogramnd_get_lut_fused = {"__pyx_fuse_3_1_histogramnd_get_lut_fused", (PyCFunction)__pyx_fuse_3_1__pyx_pw_16chistogramnd_lut_127_histogramnd_get_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_6_histogramnd_get_lut_fused};
-static PyObject *__pyx_fuse_3_1__pyx_pw_16chistogramnd_lut_127_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_3_1__pyx_pw_4silx_4math_16chistogramnd_lut_127_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_3_1__pyx_mdef_4silx_4math_16chistogramnd_lut_127_histogramnd_get_lut_fused = {"__pyx_fuse_3_1_histogramnd_get_lut_fused", (PyCFunction)__pyx_fuse_3_1__pyx_pw_4silx_4math_16chistogramnd_lut_127_histogramnd_get_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_6_histogramnd_get_lut_fused};
+static PyObject *__pyx_fuse_3_1__pyx_pw_4silx_4math_16chistogramnd_lut_127_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_sample = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_v_i_n_dims;
   int __pyx_v_i_n_elems;
@@ -28204,18 +28204,18 @@ static PyObject *__pyx_fuse_3_1__pyx_pw_16chistogramnd_lut_127_histogramnd_get_l
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_get_lut_fused", 1, 8, 8, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_get_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_get_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(__pyx_self, __pyx_v_i_sample, __pyx_v_i_n_dims, __pyx_v_i_n_elems, __pyx_v_i_histo_range, __pyx_v_i_n_bins, __pyx_v_o_lut, __pyx_v_o_histo, __pyx_v_last_bin_closed);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_126_histogramnd_get_lut_fused(__pyx_self, __pyx_v_i_sample, __pyx_v_i_n_dims, __pyx_v_i_n_elems, __pyx_v_i_histo_range, __pyx_v_i_n_bins, __pyx_v_o_lut, __pyx_v_o_histo, __pyx_v_last_bin_closed);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed) {
   int __pyx_v_i;
   long __pyx_v_elem_idx;
   long __pyx_v_max_idx;
@@ -28241,7 +28241,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHO
   long __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_3_1_histogramnd_get_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":362
+  /* "silx/math/chistogramnd_lut.pyx":362
  * 
  *     cdef:
  *         int i = 0             # <<<<<<<<<<<<<<
@@ -28250,7 +28250,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_i = 0;
 
-  /* "chistogramnd_lut.pyx":363
+  /* "silx/math/chistogramnd_lut.pyx":363
  *     cdef:
  *         int i = 0
  *         long elem_idx = 0             # <<<<<<<<<<<<<<
@@ -28259,7 +28259,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_elem_idx = 0;
 
-  /* "chistogramnd_lut.pyx":364
+  /* "silx/math/chistogramnd_lut.pyx":364
  *         int i = 0
  *         long elem_idx = 0
  *         long max_idx = 0             # <<<<<<<<<<<<<<
@@ -28268,7 +28268,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_max_idx = 0;
 
-  /* "chistogramnd_lut.pyx":365
+  /* "silx/math/chistogramnd_lut.pyx":365
  *         long elem_idx = 0
  *         long max_idx = 0
  *         long lut_idx = -1             # <<<<<<<<<<<<<<
@@ -28277,7 +28277,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_lut_idx = -1;
 
-  /* "chistogramnd_lut.pyx":368
+  /* "silx/math/chistogramnd_lut.pyx":368
  * 
  *         # computed bin index (i_sample -> grid)
  *         long bin_idx = 0             # <<<<<<<<<<<<<<
@@ -28286,7 +28286,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_bin_idx = 0;
 
-  /* "chistogramnd_lut.pyx":370
+  /* "silx/math/chistogramnd_lut.pyx":370
  *         long bin_idx = 0
  * 
  *         sample_t elem_coord = 0             # <<<<<<<<<<<<<<
@@ -28295,7 +28295,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_elem_coord = 0;
 
-  /* "chistogramnd_lut.pyx":376
+  /* "silx/math/chistogramnd_lut.pyx":376
  *         double[50] bins_range
  * 
  *     for i in range(i_n_dims):             # <<<<<<<<<<<<<<
@@ -28306,7 +28306,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHO
   for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
     __pyx_v_i = __pyx_t_2;
 
-    /* "chistogramnd_lut.pyx":377
+    /* "silx/math/chistogramnd_lut.pyx":377
  * 
  *     for i in range(i_n_dims):
  *         g_min[i] = i_histo_range[2*i]             # <<<<<<<<<<<<<<
@@ -28316,7 +28316,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHO
     __pyx_t_3 = (2 * __pyx_v_i);
     (__pyx_v_g_min[__pyx_v_i]) = (*((double *) ( /* dim=0 */ (__pyx_v_i_histo_range.data + __pyx_t_3 * __pyx_v_i_histo_range.strides[0]) )));
 
-    /* "chistogramnd_lut.pyx":378
+    /* "silx/math/chistogramnd_lut.pyx":378
  *     for i in range(i_n_dims):
  *         g_min[i] = i_histo_range[2*i]
  *         g_max[i] = i_histo_range[2*i+1]             # <<<<<<<<<<<<<<
@@ -28326,7 +28326,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHO
     __pyx_t_4 = ((2 * __pyx_v_i) + 1);
     (__pyx_v_g_max[__pyx_v_i]) = (*((double *) ( /* dim=0 */ (__pyx_v_i_histo_range.data + __pyx_t_4 * __pyx_v_i_histo_range.strides[0]) )));
 
-    /* "chistogramnd_lut.pyx":379
+    /* "silx/math/chistogramnd_lut.pyx":379
  *         g_min[i] = i_histo_range[2*i]
  *         g_max[i] = i_histo_range[2*i+1]
  *         bins_range[i] = g_max[i] - g_min[i]             # <<<<<<<<<<<<<<
@@ -28336,7 +28336,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHO
     (__pyx_v_bins_range[__pyx_v_i]) = ((__pyx_v_g_max[__pyx_v_i]) - (__pyx_v_g_min[__pyx_v_i]));
   }
 
-  /* "chistogramnd_lut.pyx":381
+  /* "silx/math/chistogramnd_lut.pyx":381
  *         bins_range[i] = g_max[i] - g_min[i]
  * 
  *     elem_idx = 0 - i_n_dims             # <<<<<<<<<<<<<<
@@ -28345,7 +28345,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_elem_idx = (0 - __pyx_v_i_n_dims);
 
-  /* "chistogramnd_lut.pyx":382
+  /* "silx/math/chistogramnd_lut.pyx":382
  * 
  *     elem_idx = 0 - i_n_dims
  *     max_idx = i_n_elems * i_n_dims - i_n_dims             # <<<<<<<<<<<<<<
@@ -28354,7 +28354,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_max_idx = ((__pyx_v_i_n_elems * __pyx_v_i_n_dims) - __pyx_v_i_n_dims);
 
-  /* "chistogramnd_lut.pyx":384
+  /* "silx/math/chistogramnd_lut.pyx":384
  *     max_idx = i_n_elems * i_n_dims - i_n_dims
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -28368,7 +28368,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":385
+        /* "silx/math/chistogramnd_lut.pyx":385
  * 
  *     with nogil:
  *         while elem_idx < max_idx:             # <<<<<<<<<<<<<<
@@ -28379,7 +28379,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHO
           __pyx_t_5 = ((__pyx_v_elem_idx < __pyx_v_max_idx) != 0);
           if (!__pyx_t_5) break;
 
-          /* "chistogramnd_lut.pyx":386
+          /* "silx/math/chistogramnd_lut.pyx":386
  *     with nogil:
  *         while elem_idx < max_idx:
  *             elem_idx += i_n_dims             # <<<<<<<<<<<<<<
@@ -28388,7 +28388,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHO
  */
           __pyx_v_elem_idx = (__pyx_v_elem_idx + __pyx_v_i_n_dims);
 
-          /* "chistogramnd_lut.pyx":387
+          /* "silx/math/chistogramnd_lut.pyx":387
  *         while elem_idx < max_idx:
  *             elem_idx += i_n_dims
  *             lut_idx += 1             # <<<<<<<<<<<<<<
@@ -28397,7 +28397,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHO
  */
           __pyx_v_lut_idx = (__pyx_v_lut_idx + 1);
 
-          /* "chistogramnd_lut.pyx":389
+          /* "silx/math/chistogramnd_lut.pyx":389
  *             lut_idx += 1
  * 
  *             bin_idx = 0             # <<<<<<<<<<<<<<
@@ -28406,7 +28406,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHO
  */
           __pyx_v_bin_idx = 0;
 
-          /* "chistogramnd_lut.pyx":391
+          /* "silx/math/chistogramnd_lut.pyx":391
  *             bin_idx = 0
  * 
  *             for i in range(i_n_dims):             # <<<<<<<<<<<<<<
@@ -28417,7 +28417,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHO
           for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
             __pyx_v_i = __pyx_t_2;
 
-            /* "chistogramnd_lut.pyx":392
+            /* "silx/math/chistogramnd_lut.pyx":392
  * 
  *             for i in range(i_n_dims):
  *                 elem_coord = i_sample[elem_idx+i]             # <<<<<<<<<<<<<<
@@ -28427,7 +28427,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHO
             __pyx_t_6 = (__pyx_v_elem_idx + __pyx_v_i);
             __pyx_v_elem_coord = (*((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_i_sample.data + __pyx_t_6 * __pyx_v_i_sample.strides[0]) )));
 
-            /* "chistogramnd_lut.pyx":399
+            /* "silx/math/chistogramnd_lut.pyx":399
  *                 # 3. coordinate==maximum value and last_bin_closed is True
  *                 # =====================
  *                 if elem_coord < g_min[i]:             # <<<<<<<<<<<<<<
@@ -28437,7 +28437,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHO
             __pyx_t_5 = ((__pyx_v_elem_coord < (__pyx_v_g_min[__pyx_v_i])) != 0);
             if (__pyx_t_5) {
 
-              /* "chistogramnd_lut.pyx":400
+              /* "silx/math/chistogramnd_lut.pyx":400
  *                 # =====================
  *                 if elem_coord < g_min[i]:
  *                     bin_idx = -1             # <<<<<<<<<<<<<<
@@ -28446,7 +28446,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHO
  */
               __pyx_v_bin_idx = -1;
 
-              /* "chistogramnd_lut.pyx":401
+              /* "silx/math/chistogramnd_lut.pyx":401
  *                 if elem_coord < g_min[i]:
  *                     bin_idx = -1
  *                     break             # <<<<<<<<<<<<<<
@@ -28456,7 +28456,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHO
               goto __pyx_L11_break;
             }
 
-            /* "chistogramnd_lut.pyx":408
+            /* "silx/math/chistogramnd_lut.pyx":408
  *                 #  than coordinates higher or equal to the max
  *                 #  (two tests)
  *                 if elem_coord < g_max[i]:             # <<<<<<<<<<<<<<
@@ -28466,7 +28466,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHO
             __pyx_t_5 = ((__pyx_v_elem_coord < (__pyx_v_g_max[__pyx_v_i])) != 0);
             if (__pyx_t_5) {
 
-              /* "chistogramnd_lut.pyx":409
+              /* "silx/math/chistogramnd_lut.pyx":409
  *                 #  (two tests)
  *                 if elem_coord < g_max[i]:
  *                     bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa             # <<<<<<<<<<<<<<
@@ -28475,7 +28475,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHO
  */
               __pyx_t_7 = __pyx_v_i;
 
-              /* "chistogramnd_lut.pyx":410
+              /* "silx/math/chistogramnd_lut.pyx":410
  *                 if elem_coord < g_max[i]:
  *                     bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa
  *                                      (((elem_coord - g_min[i]) * i_n_bins[i]) /             # <<<<<<<<<<<<<<
@@ -28484,7 +28484,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHO
  */
               __pyx_t_8 = __pyx_v_i;
 
-              /* "chistogramnd_lut.pyx":409
+              /* "silx/math/chistogramnd_lut.pyx":409
  *                 #  (two tests)
  *                 if elem_coord < g_max[i]:
  *                     bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa             # <<<<<<<<<<<<<<
@@ -28496,7 +28496,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHO
             }
             /*else*/ {
 
-              /* "chistogramnd_lut.pyx":416
+              /* "silx/math/chistogramnd_lut.pyx":416
  *                     #  put it in the last bin
  *                     # else : discard
  *                     if last_bin_closed and elem_coord == g_max[i]:             # <<<<<<<<<<<<<<
@@ -28514,7 +28514,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHO
               __pyx_L15_bool_binop_done:;
               if (__pyx_t_5) {
 
-                /* "chistogramnd_lut.pyx":417
+                /* "silx/math/chistogramnd_lut.pyx":417
  *                     # else : discard
  *                     if last_bin_closed and elem_coord == g_max[i]:
  *                         bin_idx = (bin_idx + 1) * i_n_bins[i] - 1             # <<<<<<<<<<<<<<
@@ -28527,7 +28527,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHO
               }
               /*else*/ {
 
-                /* "chistogramnd_lut.pyx":419
+                /* "silx/math/chistogramnd_lut.pyx":419
  *                         bin_idx = (bin_idx + 1) * i_n_bins[i] - 1
  *                     else:
  *                         bin_idx = -1             # <<<<<<<<<<<<<<
@@ -28536,7 +28536,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHO
  */
                 __pyx_v_bin_idx = -1;
 
-                /* "chistogramnd_lut.pyx":420
+                /* "silx/math/chistogramnd_lut.pyx":420
  *                     else:
  *                         bin_idx = -1
  *                         break             # <<<<<<<<<<<<<<
@@ -28551,7 +28551,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHO
           }
           __pyx_L11_break:;
 
-          /* "chistogramnd_lut.pyx":422
+          /* "silx/math/chistogramnd_lut.pyx":422
  *                         break
  * 
  *             o_lut[lut_idx] = bin_idx             # <<<<<<<<<<<<<<
@@ -28561,7 +28561,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHO
           __pyx_t_11 = __pyx_v_lut_idx;
           *((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_o_lut.data + __pyx_t_11 * __pyx_v_o_lut.strides[0]) )) = __pyx_v_bin_idx;
 
-          /* "chistogramnd_lut.pyx":423
+          /* "silx/math/chistogramnd_lut.pyx":423
  * 
  *             o_lut[lut_idx] = bin_idx
  *             if bin_idx >= 0:             # <<<<<<<<<<<<<<
@@ -28571,7 +28571,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHO
           __pyx_t_5 = ((__pyx_v_bin_idx >= 0) != 0);
           if (__pyx_t_5) {
 
-            /* "chistogramnd_lut.pyx":424
+            /* "silx/math/chistogramnd_lut.pyx":424
  *             o_lut[lut_idx] = bin_idx
  *             if bin_idx >= 0:
  *                 o_histo[bin_idx] += 1             # <<<<<<<<<<<<<<
@@ -28586,7 +28586,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":384
+      /* "silx/math/chistogramnd_lut.pyx":384
  *     max_idx = i_n_elems * i_n_dims - i_n_dims
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -28604,7 +28604,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":426
+  /* "silx/math/chistogramnd_lut.pyx":426
  *                 o_histo[bin_idx] += 1
  * 
  *     return 0             # <<<<<<<<<<<<<<
@@ -28614,7 +28614,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHO
   __pyx_r = __pyx_int_0;
   goto __pyx_L0;
 
-  /* "chistogramnd_lut.pyx":352
+  /* "silx/math/chistogramnd_lut.pyx":352
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_get_lut_fused(sample_t[:] i_sample,             # <<<<<<<<<<<<<<
@@ -28635,9 +28635,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_126_histogramnd_get_lut_fused(CYTHO
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_3_2__pyx_pw_16chistogramnd_lut_129_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_3_2__pyx_mdef_16chistogramnd_lut_129_histogramnd_get_lut_fused = {"__pyx_fuse_3_2_histogramnd_get_lut_fused", (PyCFunction)__pyx_fuse_3_2__pyx_pw_16chistogramnd_lut_129_histogramnd_get_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_6_histogramnd_get_lut_fused};
-static PyObject *__pyx_fuse_3_2__pyx_pw_16chistogramnd_lut_129_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_3_2__pyx_pw_4silx_4math_16chistogramnd_lut_129_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_3_2__pyx_mdef_4silx_4math_16chistogramnd_lut_129_histogramnd_get_lut_fused = {"__pyx_fuse_3_2_histogramnd_get_lut_fused", (PyCFunction)__pyx_fuse_3_2__pyx_pw_4silx_4math_16chistogramnd_lut_129_histogramnd_get_lut_fused, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_16chistogramnd_lut_6_histogramnd_get_lut_fused};
+static PyObject *__pyx_fuse_3_2__pyx_pw_4silx_4math_16chistogramnd_lut_129_histogramnd_get_lut_fused(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_i_sample = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_v_i_n_dims;
   int __pyx_v_i_n_elems;
@@ -28739,18 +28739,18 @@ static PyObject *__pyx_fuse_3_2__pyx_pw_16chistogramnd_lut_129_histogramnd_get_l
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_histogramnd_get_lut_fused", 1, 8, 8, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chistogramnd_lut._histogramnd_get_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.math.chistogramnd_lut._histogramnd_get_lut_fused", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(__pyx_self, __pyx_v_i_sample, __pyx_v_i_n_dims, __pyx_v_i_n_elems, __pyx_v_i_histo_range, __pyx_v_i_n_bins, __pyx_v_o_lut, __pyx_v_o_histo, __pyx_v_last_bin_closed);
+  __pyx_r = __pyx_pf_4silx_4math_16chistogramnd_lut_128_histogramnd_get_lut_fused(__pyx_self, __pyx_v_i_sample, __pyx_v_i_n_dims, __pyx_v_i_n_elems, __pyx_v_i_histo_range, __pyx_v_i_n_bins, __pyx_v_o_lut, __pyx_v_o_histo, __pyx_v_last_bin_closed);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed) {
+static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_i_sample, int __pyx_v_i_n_dims, int __pyx_v_i_n_elems, __Pyx_memviewslice __pyx_v_i_histo_range, __Pyx_memviewslice __pyx_v_i_n_bins, __Pyx_memviewslice __pyx_v_o_lut, __Pyx_memviewslice __pyx_v_o_histo, int __pyx_v_last_bin_closed) {
   int __pyx_v_i;
   long __pyx_v_elem_idx;
   long __pyx_v_max_idx;
@@ -28776,7 +28776,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHO
   long __pyx_t_12;
   __Pyx_RefNannySetupContext("__pyx_fuse_3_2_histogramnd_get_lut_fused", 0);
 
-  /* "chistogramnd_lut.pyx":362
+  /* "silx/math/chistogramnd_lut.pyx":362
  * 
  *     cdef:
  *         int i = 0             # <<<<<<<<<<<<<<
@@ -28785,7 +28785,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_i = 0;
 
-  /* "chistogramnd_lut.pyx":363
+  /* "silx/math/chistogramnd_lut.pyx":363
  *     cdef:
  *         int i = 0
  *         long elem_idx = 0             # <<<<<<<<<<<<<<
@@ -28794,7 +28794,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_elem_idx = 0;
 
-  /* "chistogramnd_lut.pyx":364
+  /* "silx/math/chistogramnd_lut.pyx":364
  *         int i = 0
  *         long elem_idx = 0
  *         long max_idx = 0             # <<<<<<<<<<<<<<
@@ -28803,7 +28803,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_max_idx = 0;
 
-  /* "chistogramnd_lut.pyx":365
+  /* "silx/math/chistogramnd_lut.pyx":365
  *         long elem_idx = 0
  *         long max_idx = 0
  *         long lut_idx = -1             # <<<<<<<<<<<<<<
@@ -28812,7 +28812,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_lut_idx = -1;
 
-  /* "chistogramnd_lut.pyx":368
+  /* "silx/math/chistogramnd_lut.pyx":368
  * 
  *         # computed bin index (i_sample -> grid)
  *         long bin_idx = 0             # <<<<<<<<<<<<<<
@@ -28821,7 +28821,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_bin_idx = 0;
 
-  /* "chistogramnd_lut.pyx":370
+  /* "silx/math/chistogramnd_lut.pyx":370
  *         long bin_idx = 0
  * 
  *         sample_t elem_coord = 0             # <<<<<<<<<<<<<<
@@ -28830,7 +28830,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_elem_coord = 0;
 
-  /* "chistogramnd_lut.pyx":376
+  /* "silx/math/chistogramnd_lut.pyx":376
  *         double[50] bins_range
  * 
  *     for i in range(i_n_dims):             # <<<<<<<<<<<<<<
@@ -28841,7 +28841,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHO
   for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
     __pyx_v_i = __pyx_t_2;
 
-    /* "chistogramnd_lut.pyx":377
+    /* "silx/math/chistogramnd_lut.pyx":377
  * 
  *     for i in range(i_n_dims):
  *         g_min[i] = i_histo_range[2*i]             # <<<<<<<<<<<<<<
@@ -28851,7 +28851,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHO
     __pyx_t_3 = (2 * __pyx_v_i);
     (__pyx_v_g_min[__pyx_v_i]) = (*((double *) ( /* dim=0 */ (__pyx_v_i_histo_range.data + __pyx_t_3 * __pyx_v_i_histo_range.strides[0]) )));
 
-    /* "chistogramnd_lut.pyx":378
+    /* "silx/math/chistogramnd_lut.pyx":378
  *     for i in range(i_n_dims):
  *         g_min[i] = i_histo_range[2*i]
  *         g_max[i] = i_histo_range[2*i+1]             # <<<<<<<<<<<<<<
@@ -28861,7 +28861,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHO
     __pyx_t_4 = ((2 * __pyx_v_i) + 1);
     (__pyx_v_g_max[__pyx_v_i]) = (*((double *) ( /* dim=0 */ (__pyx_v_i_histo_range.data + __pyx_t_4 * __pyx_v_i_histo_range.strides[0]) )));
 
-    /* "chistogramnd_lut.pyx":379
+    /* "silx/math/chistogramnd_lut.pyx":379
  *         g_min[i] = i_histo_range[2*i]
  *         g_max[i] = i_histo_range[2*i+1]
  *         bins_range[i] = g_max[i] - g_min[i]             # <<<<<<<<<<<<<<
@@ -28871,7 +28871,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHO
     (__pyx_v_bins_range[__pyx_v_i]) = ((__pyx_v_g_max[__pyx_v_i]) - (__pyx_v_g_min[__pyx_v_i]));
   }
 
-  /* "chistogramnd_lut.pyx":381
+  /* "silx/math/chistogramnd_lut.pyx":381
  *         bins_range[i] = g_max[i] - g_min[i]
  * 
  *     elem_idx = 0 - i_n_dims             # <<<<<<<<<<<<<<
@@ -28880,7 +28880,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_elem_idx = (0 - __pyx_v_i_n_dims);
 
-  /* "chistogramnd_lut.pyx":382
+  /* "silx/math/chistogramnd_lut.pyx":382
  * 
  *     elem_idx = 0 - i_n_dims
  *     max_idx = i_n_elems * i_n_dims - i_n_dims             # <<<<<<<<<<<<<<
@@ -28889,7 +28889,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHO
  */
   __pyx_v_max_idx = ((__pyx_v_i_n_elems * __pyx_v_i_n_dims) - __pyx_v_i_n_dims);
 
-  /* "chistogramnd_lut.pyx":384
+  /* "silx/math/chistogramnd_lut.pyx":384
  *     max_idx = i_n_elems * i_n_dims - i_n_dims
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -28903,7 +28903,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHO
       #endif
       /*try:*/ {
 
-        /* "chistogramnd_lut.pyx":385
+        /* "silx/math/chistogramnd_lut.pyx":385
  * 
  *     with nogil:
  *         while elem_idx < max_idx:             # <<<<<<<<<<<<<<
@@ -28914,7 +28914,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHO
           __pyx_t_5 = ((__pyx_v_elem_idx < __pyx_v_max_idx) != 0);
           if (!__pyx_t_5) break;
 
-          /* "chistogramnd_lut.pyx":386
+          /* "silx/math/chistogramnd_lut.pyx":386
  *     with nogil:
  *         while elem_idx < max_idx:
  *             elem_idx += i_n_dims             # <<<<<<<<<<<<<<
@@ -28923,7 +28923,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHO
  */
           __pyx_v_elem_idx = (__pyx_v_elem_idx + __pyx_v_i_n_dims);
 
-          /* "chistogramnd_lut.pyx":387
+          /* "silx/math/chistogramnd_lut.pyx":387
  *         while elem_idx < max_idx:
  *             elem_idx += i_n_dims
  *             lut_idx += 1             # <<<<<<<<<<<<<<
@@ -28932,7 +28932,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHO
  */
           __pyx_v_lut_idx = (__pyx_v_lut_idx + 1);
 
-          /* "chistogramnd_lut.pyx":389
+          /* "silx/math/chistogramnd_lut.pyx":389
  *             lut_idx += 1
  * 
  *             bin_idx = 0             # <<<<<<<<<<<<<<
@@ -28941,7 +28941,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHO
  */
           __pyx_v_bin_idx = 0;
 
-          /* "chistogramnd_lut.pyx":391
+          /* "silx/math/chistogramnd_lut.pyx":391
  *             bin_idx = 0
  * 
  *             for i in range(i_n_dims):             # <<<<<<<<<<<<<<
@@ -28952,7 +28952,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHO
           for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
             __pyx_v_i = __pyx_t_2;
 
-            /* "chistogramnd_lut.pyx":392
+            /* "silx/math/chistogramnd_lut.pyx":392
  * 
  *             for i in range(i_n_dims):
  *                 elem_coord = i_sample[elem_idx+i]             # <<<<<<<<<<<<<<
@@ -28962,7 +28962,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHO
             __pyx_t_6 = (__pyx_v_elem_idx + __pyx_v_i);
             __pyx_v_elem_coord = (*((__pyx_t_5numpy_int64_t *) ( /* dim=0 */ (__pyx_v_i_sample.data + __pyx_t_6 * __pyx_v_i_sample.strides[0]) )));
 
-            /* "chistogramnd_lut.pyx":399
+            /* "silx/math/chistogramnd_lut.pyx":399
  *                 # 3. coordinate==maximum value and last_bin_closed is True
  *                 # =====================
  *                 if elem_coord < g_min[i]:             # <<<<<<<<<<<<<<
@@ -28972,7 +28972,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHO
             __pyx_t_5 = ((__pyx_v_elem_coord < (__pyx_v_g_min[__pyx_v_i])) != 0);
             if (__pyx_t_5) {
 
-              /* "chistogramnd_lut.pyx":400
+              /* "silx/math/chistogramnd_lut.pyx":400
  *                 # =====================
  *                 if elem_coord < g_min[i]:
  *                     bin_idx = -1             # <<<<<<<<<<<<<<
@@ -28981,7 +28981,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHO
  */
               __pyx_v_bin_idx = -1;
 
-              /* "chistogramnd_lut.pyx":401
+              /* "silx/math/chistogramnd_lut.pyx":401
  *                 if elem_coord < g_min[i]:
  *                     bin_idx = -1
  *                     break             # <<<<<<<<<<<<<<
@@ -28991,7 +28991,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHO
               goto __pyx_L11_break;
             }
 
-            /* "chistogramnd_lut.pyx":408
+            /* "silx/math/chistogramnd_lut.pyx":408
  *                 #  than coordinates higher or equal to the max
  *                 #  (two tests)
  *                 if elem_coord < g_max[i]:             # <<<<<<<<<<<<<<
@@ -29001,7 +29001,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHO
             __pyx_t_5 = ((__pyx_v_elem_coord < (__pyx_v_g_max[__pyx_v_i])) != 0);
             if (__pyx_t_5) {
 
-              /* "chistogramnd_lut.pyx":409
+              /* "silx/math/chistogramnd_lut.pyx":409
  *                 #  (two tests)
  *                 if elem_coord < g_max[i]:
  *                     bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa             # <<<<<<<<<<<<<<
@@ -29010,7 +29010,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHO
  */
               __pyx_t_7 = __pyx_v_i;
 
-              /* "chistogramnd_lut.pyx":410
+              /* "silx/math/chistogramnd_lut.pyx":410
  *                 if elem_coord < g_max[i]:
  *                     bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa
  *                                      (((elem_coord - g_min[i]) * i_n_bins[i]) /             # <<<<<<<<<<<<<<
@@ -29019,7 +29019,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHO
  */
               __pyx_t_8 = __pyx_v_i;
 
-              /* "chistogramnd_lut.pyx":409
+              /* "silx/math/chistogramnd_lut.pyx":409
  *                 #  (two tests)
  *                 if elem_coord < g_max[i]:
  *                     bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa             # <<<<<<<<<<<<<<
@@ -29031,7 +29031,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHO
             }
             /*else*/ {
 
-              /* "chistogramnd_lut.pyx":416
+              /* "silx/math/chistogramnd_lut.pyx":416
  *                     #  put it in the last bin
  *                     # else : discard
  *                     if last_bin_closed and elem_coord == g_max[i]:             # <<<<<<<<<<<<<<
@@ -29049,7 +29049,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHO
               __pyx_L15_bool_binop_done:;
               if (__pyx_t_5) {
 
-                /* "chistogramnd_lut.pyx":417
+                /* "silx/math/chistogramnd_lut.pyx":417
  *                     # else : discard
  *                     if last_bin_closed and elem_coord == g_max[i]:
  *                         bin_idx = (bin_idx + 1) * i_n_bins[i] - 1             # <<<<<<<<<<<<<<
@@ -29062,7 +29062,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHO
               }
               /*else*/ {
 
-                /* "chistogramnd_lut.pyx":419
+                /* "silx/math/chistogramnd_lut.pyx":419
  *                         bin_idx = (bin_idx + 1) * i_n_bins[i] - 1
  *                     else:
  *                         bin_idx = -1             # <<<<<<<<<<<<<<
@@ -29071,7 +29071,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHO
  */
                 __pyx_v_bin_idx = -1;
 
-                /* "chistogramnd_lut.pyx":420
+                /* "silx/math/chistogramnd_lut.pyx":420
  *                     else:
  *                         bin_idx = -1
  *                         break             # <<<<<<<<<<<<<<
@@ -29086,7 +29086,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHO
           }
           __pyx_L11_break:;
 
-          /* "chistogramnd_lut.pyx":422
+          /* "silx/math/chistogramnd_lut.pyx":422
  *                         break
  * 
  *             o_lut[lut_idx] = bin_idx             # <<<<<<<<<<<<<<
@@ -29096,7 +29096,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHO
           __pyx_t_11 = __pyx_v_lut_idx;
           *((__pyx_t_5numpy_int16_t *) ( /* dim=0 */ (__pyx_v_o_lut.data + __pyx_t_11 * __pyx_v_o_lut.strides[0]) )) = __pyx_v_bin_idx;
 
-          /* "chistogramnd_lut.pyx":423
+          /* "silx/math/chistogramnd_lut.pyx":423
  * 
  *             o_lut[lut_idx] = bin_idx
  *             if bin_idx >= 0:             # <<<<<<<<<<<<<<
@@ -29106,7 +29106,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHO
           __pyx_t_5 = ((__pyx_v_bin_idx >= 0) != 0);
           if (__pyx_t_5) {
 
-            /* "chistogramnd_lut.pyx":424
+            /* "silx/math/chistogramnd_lut.pyx":424
  *             o_lut[lut_idx] = bin_idx
  *             if bin_idx >= 0:
  *                 o_histo[bin_idx] += 1             # <<<<<<<<<<<<<<
@@ -29121,7 +29121,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHO
         }
       }
 
-      /* "chistogramnd_lut.pyx":384
+      /* "silx/math/chistogramnd_lut.pyx":384
  *     max_idx = i_n_elems * i_n_dims - i_n_dims
  * 
  *     with nogil:             # <<<<<<<<<<<<<<
@@ -29139,7 +29139,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHO
       }
   }
 
-  /* "chistogramnd_lut.pyx":426
+  /* "silx/math/chistogramnd_lut.pyx":426
  *                 o_histo[bin_idx] += 1
  * 
  *     return 0             # <<<<<<<<<<<<<<
@@ -29149,7 +29149,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHO
   __pyx_r = __pyx_int_0;
   goto __pyx_L0;
 
-  /* "chistogramnd_lut.pyx":352
+  /* "silx/math/chistogramnd_lut.pyx":352
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_get_lut_fused(sample_t[:] i_sample,             # <<<<<<<<<<<<<<
@@ -29169,7 +29169,7 @@ static PyObject *__pyx_pf_16chistogramnd_lut_128_histogramnd_get_lut_fused(CYTHO
   return __pyx_r;
 }
 
-/* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":194
+/* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":194
  *         # experimental exception made for __getbuffer__ and __releasebuffer__
  *         # -- the details of this may change.
  *         def __getbuffer__(ndarray self, Py_buffer* info, int flags):             # <<<<<<<<<<<<<<
@@ -29219,7 +29219,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
     __Pyx_GIVEREF(__pyx_v_info->obj);
   }
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":200
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":200
  *             # of flags
  * 
  *             if info == NULL: return             # <<<<<<<<<<<<<<
@@ -29232,7 +29232,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
     goto __pyx_L0;
   }
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":203
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":203
  * 
  *             cdef int copy_shape, i, ndim
  *             cdef int endian_detector = 1             # <<<<<<<<<<<<<<
@@ -29241,7 +29241,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
   __pyx_v_endian_detector = 1;
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":204
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":204
  *             cdef int copy_shape, i, ndim
  *             cdef int endian_detector = 1
  *             cdef bint little_endian = ((<char*>&endian_detector)[0] != 0)             # <<<<<<<<<<<<<<
@@ -29250,7 +29250,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
   __pyx_v_little_endian = ((((char *)(&__pyx_v_endian_detector))[0]) != 0);
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":206
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":206
  *             cdef bint little_endian = ((<char*>&endian_detector)[0] != 0)
  * 
  *             ndim = PyArray_NDIM(self)             # <<<<<<<<<<<<<<
@@ -29259,7 +29259,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
   __pyx_v_ndim = PyArray_NDIM(__pyx_v_self);
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":208
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":208
  *             ndim = PyArray_NDIM(self)
  * 
  *             if sizeof(npy_intp) != sizeof(Py_ssize_t):             # <<<<<<<<<<<<<<
@@ -29269,7 +29269,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
   __pyx_t_1 = (((sizeof(npy_intp)) != (sizeof(Py_ssize_t))) != 0);
   if (__pyx_t_1) {
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":209
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":209
  * 
  *             if sizeof(npy_intp) != sizeof(Py_ssize_t):
  *                 copy_shape = 1             # <<<<<<<<<<<<<<
@@ -29281,7 +29281,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
   }
   /*else*/ {
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":211
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":211
  *                 copy_shape = 1
  *             else:
  *                 copy_shape = 0             # <<<<<<<<<<<<<<
@@ -29292,7 +29292,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
   }
   __pyx_L4:;
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":213
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":213
  *                 copy_shape = 0
  * 
  *             if ((flags & pybuf.PyBUF_C_CONTIGUOUS == pybuf.PyBUF_C_CONTIGUOUS)             # <<<<<<<<<<<<<<
@@ -29306,7 +29306,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
     goto __pyx_L6_bool_binop_done;
   }
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":214
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":214
  * 
  *             if ((flags & pybuf.PyBUF_C_CONTIGUOUS == pybuf.PyBUF_C_CONTIGUOUS)
  *                 and not PyArray_CHKFLAGS(self, NPY_C_CONTIGUOUS)):             # <<<<<<<<<<<<<<
@@ -29318,7 +29318,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
   __pyx_L6_bool_binop_done:;
   if (__pyx_t_1) {
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":215
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":215
  *             if ((flags & pybuf.PyBUF_C_CONTIGUOUS == pybuf.PyBUF_C_CONTIGUOUS)
  *                 and not PyArray_CHKFLAGS(self, NPY_C_CONTIGUOUS)):
  *                 raise ValueError(u"ndarray is not C contiguous")             # <<<<<<<<<<<<<<
@@ -29332,7 +29332,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
     {__pyx_filename = __pyx_f[1]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":217
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":217
  *                 raise ValueError(u"ndarray is not C contiguous")
  * 
  *             if ((flags & pybuf.PyBUF_F_CONTIGUOUS == pybuf.PyBUF_F_CONTIGUOUS)             # <<<<<<<<<<<<<<
@@ -29346,7 +29346,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
     goto __pyx_L9_bool_binop_done;
   }
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":218
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":218
  * 
  *             if ((flags & pybuf.PyBUF_F_CONTIGUOUS == pybuf.PyBUF_F_CONTIGUOUS)
  *                 and not PyArray_CHKFLAGS(self, NPY_F_CONTIGUOUS)):             # <<<<<<<<<<<<<<
@@ -29358,7 +29358,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
   __pyx_L9_bool_binop_done:;
   if (__pyx_t_1) {
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":219
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":219
  *             if ((flags & pybuf.PyBUF_F_CONTIGUOUS == pybuf.PyBUF_F_CONTIGUOUS)
  *                 and not PyArray_CHKFLAGS(self, NPY_F_CONTIGUOUS)):
  *                 raise ValueError(u"ndarray is not Fortran contiguous")             # <<<<<<<<<<<<<<
@@ -29372,7 +29372,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
     {__pyx_filename = __pyx_f[1]; __pyx_lineno = 219; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":221
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":221
  *                 raise ValueError(u"ndarray is not Fortran contiguous")
  * 
  *             info.buf = PyArray_DATA(self)             # <<<<<<<<<<<<<<
@@ -29381,7 +29381,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
   __pyx_v_info->buf = PyArray_DATA(__pyx_v_self);
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":222
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":222
  * 
  *             info.buf = PyArray_DATA(self)
  *             info.ndim = ndim             # <<<<<<<<<<<<<<
@@ -29390,7 +29390,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
   __pyx_v_info->ndim = __pyx_v_ndim;
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":223
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":223
  *             info.buf = PyArray_DATA(self)
  *             info.ndim = ndim
  *             if copy_shape:             # <<<<<<<<<<<<<<
@@ -29400,7 +29400,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
   __pyx_t_1 = (__pyx_v_copy_shape != 0);
   if (__pyx_t_1) {
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":226
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":226
  *                 # Allocate new buffer for strides and shape info.
  *                 # This is allocated as one block, strides first.
  *                 info.strides = <Py_ssize_t*>stdlib.malloc(sizeof(Py_ssize_t) * <size_t>ndim * 2)             # <<<<<<<<<<<<<<
@@ -29409,7 +29409,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
     __pyx_v_info->strides = ((Py_ssize_t *)malloc((((sizeof(Py_ssize_t)) * ((size_t)__pyx_v_ndim)) * 2)));
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":227
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":227
  *                 # This is allocated as one block, strides first.
  *                 info.strides = <Py_ssize_t*>stdlib.malloc(sizeof(Py_ssize_t) * <size_t>ndim * 2)
  *                 info.shape = info.strides + ndim             # <<<<<<<<<<<<<<
@@ -29418,7 +29418,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
     __pyx_v_info->shape = (__pyx_v_info->strides + __pyx_v_ndim);
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":228
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":228
  *                 info.strides = <Py_ssize_t*>stdlib.malloc(sizeof(Py_ssize_t) * <size_t>ndim * 2)
  *                 info.shape = info.strides + ndim
  *                 for i in range(ndim):             # <<<<<<<<<<<<<<
@@ -29429,7 +29429,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
     for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
       __pyx_v_i = __pyx_t_5;
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":229
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":229
  *                 info.shape = info.strides + ndim
  *                 for i in range(ndim):
  *                     info.strides[i] = PyArray_STRIDES(self)[i]             # <<<<<<<<<<<<<<
@@ -29438,7 +29438,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
       (__pyx_v_info->strides[__pyx_v_i]) = (PyArray_STRIDES(__pyx_v_self)[__pyx_v_i]);
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":230
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":230
  *                 for i in range(ndim):
  *                     info.strides[i] = PyArray_STRIDES(self)[i]
  *                     info.shape[i] = PyArray_DIMS(self)[i]             # <<<<<<<<<<<<<<
@@ -29451,7 +29451,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
   }
   /*else*/ {
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":232
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":232
  *                     info.shape[i] = PyArray_DIMS(self)[i]
  *             else:
  *                 info.strides = <Py_ssize_t*>PyArray_STRIDES(self)             # <<<<<<<<<<<<<<
@@ -29460,7 +29460,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
     __pyx_v_info->strides = ((Py_ssize_t *)PyArray_STRIDES(__pyx_v_self));
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":233
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":233
  *             else:
  *                 info.strides = <Py_ssize_t*>PyArray_STRIDES(self)
  *                 info.shape = <Py_ssize_t*>PyArray_DIMS(self)             # <<<<<<<<<<<<<<
@@ -29471,7 +29471,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
   }
   __pyx_L11:;
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":234
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":234
  *                 info.strides = <Py_ssize_t*>PyArray_STRIDES(self)
  *                 info.shape = <Py_ssize_t*>PyArray_DIMS(self)
  *             info.suboffsets = NULL             # <<<<<<<<<<<<<<
@@ -29480,7 +29480,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
   __pyx_v_info->suboffsets = NULL;
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":235
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":235
  *                 info.shape = <Py_ssize_t*>PyArray_DIMS(self)
  *             info.suboffsets = NULL
  *             info.itemsize = PyArray_ITEMSIZE(self)             # <<<<<<<<<<<<<<
@@ -29489,7 +29489,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
   __pyx_v_info->itemsize = PyArray_ITEMSIZE(__pyx_v_self);
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":236
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":236
  *             info.suboffsets = NULL
  *             info.itemsize = PyArray_ITEMSIZE(self)
  *             info.readonly = not PyArray_ISWRITEABLE(self)             # <<<<<<<<<<<<<<
@@ -29498,7 +29498,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
   __pyx_v_info->readonly = (!(PyArray_ISWRITEABLE(__pyx_v_self) != 0));
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":239
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":239
  * 
  *             cdef int t
  *             cdef char* f = NULL             # <<<<<<<<<<<<<<
@@ -29507,7 +29507,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
   __pyx_v_f = NULL;
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":240
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":240
  *             cdef int t
  *             cdef char* f = NULL
  *             cdef dtype descr = self.descr             # <<<<<<<<<<<<<<
@@ -29519,7 +29519,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
   __pyx_v_descr = ((PyArray_Descr *)__pyx_t_3);
   __pyx_t_3 = 0;
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":244
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":244
  *             cdef int offset
  * 
  *             cdef bint hasfields = PyDataType_HASFIELDS(descr)             # <<<<<<<<<<<<<<
@@ -29528,7 +29528,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
   __pyx_v_hasfields = PyDataType_HASFIELDS(__pyx_v_descr);
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":246
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":246
  *             cdef bint hasfields = PyDataType_HASFIELDS(descr)
  * 
  *             if not hasfields and not copy_shape:             # <<<<<<<<<<<<<<
@@ -29546,7 +29546,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
   __pyx_L15_bool_binop_done:;
   if (__pyx_t_1) {
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":248
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":248
  *             if not hasfields and not copy_shape:
  *                 # do not call releasebuffer
  *                 info.obj = None             # <<<<<<<<<<<<<<
@@ -29562,7 +29562,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
   }
   /*else*/ {
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":251
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":251
  *             else:
  *                 # need to call releasebuffer
  *                 info.obj = self             # <<<<<<<<<<<<<<
@@ -29577,7 +29577,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
   }
   __pyx_L14:;
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":253
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":253
  *                 info.obj = self
  * 
  *             if not hasfields:             # <<<<<<<<<<<<<<
@@ -29587,7 +29587,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
   __pyx_t_1 = ((!(__pyx_v_hasfields != 0)) != 0);
   if (__pyx_t_1) {
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":254
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":254
  * 
  *             if not hasfields:
  *                 t = descr.type_num             # <<<<<<<<<<<<<<
@@ -29597,7 +29597,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
     __pyx_t_4 = __pyx_v_descr->type_num;
     __pyx_v_t = __pyx_t_4;
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":255
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":255
  *             if not hasfields:
  *                 t = descr.type_num
  *                 if ((descr.byteorder == c'>' and little_endian) or             # <<<<<<<<<<<<<<
@@ -29617,7 +29617,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
     }
     __pyx_L20_next_or:;
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":256
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":256
  *                 t = descr.type_num
  *                 if ((descr.byteorder == c'>' and little_endian) or
  *                     (descr.byteorder == c'<' and not little_endian)):             # <<<<<<<<<<<<<<
@@ -29635,7 +29635,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
     __pyx_L19_bool_binop_done:;
     if (__pyx_t_1) {
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":257
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":257
  *                 if ((descr.byteorder == c'>' and little_endian) or
  *                     (descr.byteorder == c'<' and not little_endian)):
  *                     raise ValueError(u"Non-native byte order not supported")             # <<<<<<<<<<<<<<
@@ -29649,7 +29649,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       {__pyx_filename = __pyx_f[1]; __pyx_lineno = 257; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":274
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":274
  *                 elif t == NPY_CDOUBLE:     f = "Zd"
  *                 elif t == NPY_CLONGDOUBLE: f = "Zg"
  *                 elif t == NPY_OBJECT:      f = "O"             # <<<<<<<<<<<<<<
@@ -29658,7 +29658,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
     switch (__pyx_v_t) {
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":258
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":258
  *                     (descr.byteorder == c'<' and not little_endian)):
  *                     raise ValueError(u"Non-native byte order not supported")
  *                 if   t == NPY_BYTE:        f = "b"             # <<<<<<<<<<<<<<
@@ -29669,7 +29669,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       __pyx_v_f = __pyx_k_b;
       break;
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":259
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":259
  *                     raise ValueError(u"Non-native byte order not supported")
  *                 if   t == NPY_BYTE:        f = "b"
  *                 elif t == NPY_UBYTE:       f = "B"             # <<<<<<<<<<<<<<
@@ -29680,7 +29680,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       __pyx_v_f = __pyx_k_B;
       break;
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":260
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":260
  *                 if   t == NPY_BYTE:        f = "b"
  *                 elif t == NPY_UBYTE:       f = "B"
  *                 elif t == NPY_SHORT:       f = "h"             # <<<<<<<<<<<<<<
@@ -29691,7 +29691,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       __pyx_v_f = __pyx_k_h;
       break;
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":261
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":261
  *                 elif t == NPY_UBYTE:       f = "B"
  *                 elif t == NPY_SHORT:       f = "h"
  *                 elif t == NPY_USHORT:      f = "H"             # <<<<<<<<<<<<<<
@@ -29702,7 +29702,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       __pyx_v_f = __pyx_k_H;
       break;
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":262
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":262
  *                 elif t == NPY_SHORT:       f = "h"
  *                 elif t == NPY_USHORT:      f = "H"
  *                 elif t == NPY_INT:         f = "i"             # <<<<<<<<<<<<<<
@@ -29713,7 +29713,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       __pyx_v_f = __pyx_k_i;
       break;
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":263
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":263
  *                 elif t == NPY_USHORT:      f = "H"
  *                 elif t == NPY_INT:         f = "i"
  *                 elif t == NPY_UINT:        f = "I"             # <<<<<<<<<<<<<<
@@ -29724,7 +29724,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       __pyx_v_f = __pyx_k_I;
       break;
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":264
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":264
  *                 elif t == NPY_INT:         f = "i"
  *                 elif t == NPY_UINT:        f = "I"
  *                 elif t == NPY_LONG:        f = "l"             # <<<<<<<<<<<<<<
@@ -29735,7 +29735,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       __pyx_v_f = __pyx_k_l;
       break;
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":265
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":265
  *                 elif t == NPY_UINT:        f = "I"
  *                 elif t == NPY_LONG:        f = "l"
  *                 elif t == NPY_ULONG:       f = "L"             # <<<<<<<<<<<<<<
@@ -29746,7 +29746,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       __pyx_v_f = __pyx_k_L;
       break;
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":266
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":266
  *                 elif t == NPY_LONG:        f = "l"
  *                 elif t == NPY_ULONG:       f = "L"
  *                 elif t == NPY_LONGLONG:    f = "q"             # <<<<<<<<<<<<<<
@@ -29757,7 +29757,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       __pyx_v_f = __pyx_k_q;
       break;
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":267
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":267
  *                 elif t == NPY_ULONG:       f = "L"
  *                 elif t == NPY_LONGLONG:    f = "q"
  *                 elif t == NPY_ULONGLONG:   f = "Q"             # <<<<<<<<<<<<<<
@@ -29768,7 +29768,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       __pyx_v_f = __pyx_k_Q;
       break;
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":268
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":268
  *                 elif t == NPY_LONGLONG:    f = "q"
  *                 elif t == NPY_ULONGLONG:   f = "Q"
  *                 elif t == NPY_FLOAT:       f = "f"             # <<<<<<<<<<<<<<
@@ -29779,7 +29779,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       __pyx_v_f = __pyx_k_f;
       break;
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":269
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":269
  *                 elif t == NPY_ULONGLONG:   f = "Q"
  *                 elif t == NPY_FLOAT:       f = "f"
  *                 elif t == NPY_DOUBLE:      f = "d"             # <<<<<<<<<<<<<<
@@ -29790,7 +29790,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       __pyx_v_f = __pyx_k_d;
       break;
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":270
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":270
  *                 elif t == NPY_FLOAT:       f = "f"
  *                 elif t == NPY_DOUBLE:      f = "d"
  *                 elif t == NPY_LONGDOUBLE:  f = "g"             # <<<<<<<<<<<<<<
@@ -29801,7 +29801,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       __pyx_v_f = __pyx_k_g;
       break;
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":271
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":271
  *                 elif t == NPY_DOUBLE:      f = "d"
  *                 elif t == NPY_LONGDOUBLE:  f = "g"
  *                 elif t == NPY_CFLOAT:      f = "Zf"             # <<<<<<<<<<<<<<
@@ -29812,7 +29812,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       __pyx_v_f = __pyx_k_Zf;
       break;
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":272
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":272
  *                 elif t == NPY_LONGDOUBLE:  f = "g"
  *                 elif t == NPY_CFLOAT:      f = "Zf"
  *                 elif t == NPY_CDOUBLE:     f = "Zd"             # <<<<<<<<<<<<<<
@@ -29823,7 +29823,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       __pyx_v_f = __pyx_k_Zd;
       break;
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":273
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":273
  *                 elif t == NPY_CFLOAT:      f = "Zf"
  *                 elif t == NPY_CDOUBLE:     f = "Zd"
  *                 elif t == NPY_CLONGDOUBLE: f = "Zg"             # <<<<<<<<<<<<<<
@@ -29834,7 +29834,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       __pyx_v_f = __pyx_k_Zg;
       break;
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":274
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":274
  *                 elif t == NPY_CDOUBLE:     f = "Zd"
  *                 elif t == NPY_CLONGDOUBLE: f = "Zg"
  *                 elif t == NPY_OBJECT:      f = "O"             # <<<<<<<<<<<<<<
@@ -29846,7 +29846,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       break;
       default:
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":276
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":276
  *                 elif t == NPY_OBJECT:      f = "O"
  *                 else:
  *                     raise ValueError(u"unknown dtype code in numpy.pxd (%d)" % t)             # <<<<<<<<<<<<<<
@@ -29872,7 +29872,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       break;
     }
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":277
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":277
  *                 else:
  *                     raise ValueError(u"unknown dtype code in numpy.pxd (%d)" % t)
  *                 info.format = f             # <<<<<<<<<<<<<<
@@ -29881,7 +29881,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
     __pyx_v_info->format = __pyx_v_f;
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":278
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":278
  *                     raise ValueError(u"unknown dtype code in numpy.pxd (%d)" % t)
  *                 info.format = f
  *                 return             # <<<<<<<<<<<<<<
@@ -29893,7 +29893,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
   }
   /*else*/ {
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":280
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":280
  *                 return
  *             else:
  *                 info.format = <char*>stdlib.malloc(_buffer_format_string_len)             # <<<<<<<<<<<<<<
@@ -29902,7 +29902,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
     __pyx_v_info->format = ((char *)malloc(255));
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":281
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":281
  *             else:
  *                 info.format = <char*>stdlib.malloc(_buffer_format_string_len)
  *                 info.format[0] = c'^' # Native data types, manual alignment             # <<<<<<<<<<<<<<
@@ -29911,7 +29911,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
     (__pyx_v_info->format[0]) = '^';
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":282
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":282
  *                 info.format = <char*>stdlib.malloc(_buffer_format_string_len)
  *                 info.format[0] = c'^' # Native data types, manual alignment
  *                 offset = 0             # <<<<<<<<<<<<<<
@@ -29920,7 +29920,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
     __pyx_v_offset = 0;
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":283
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":283
  *                 info.format[0] = c'^' # Native data types, manual alignment
  *                 offset = 0
  *                 f = _util_dtypestring(descr, info.format + 1,             # <<<<<<<<<<<<<<
@@ -29930,7 +29930,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
     __pyx_t_7 = __pyx_f_5numpy__util_dtypestring(__pyx_v_descr, (__pyx_v_info->format + 1), (__pyx_v_info->format + 255), (&__pyx_v_offset)); if (unlikely(__pyx_t_7 == NULL)) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 283; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __pyx_v_f = __pyx_t_7;
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":286
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":286
  *                                       info.format + _buffer_format_string_len,
  *                                       &offset)
  *                 f[0] = c'\0' # Terminate format string             # <<<<<<<<<<<<<<
@@ -29940,7 +29940,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
     (__pyx_v_f[0]) = '\x00';
   }
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":194
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":194
  *         # experimental exception made for __getbuffer__ and __releasebuffer__
  *         # -- the details of this may change.
  *         def __getbuffer__(ndarray self, Py_buffer* info, int flags):             # <<<<<<<<<<<<<<
@@ -29972,7 +29972,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
   return __pyx_r;
 }
 
-/* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":288
+/* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":288
  *                 f[0] = c'\0' # Terminate format string
  * 
  *         def __releasebuffer__(ndarray self, Py_buffer* info):             # <<<<<<<<<<<<<<
@@ -29996,7 +29996,7 @@ static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_s
   int __pyx_t_1;
   __Pyx_RefNannySetupContext("__releasebuffer__", 0);
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":289
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":289
  * 
  *         def __releasebuffer__(ndarray self, Py_buffer* info):
  *             if PyArray_HASFIELDS(self):             # <<<<<<<<<<<<<<
@@ -30006,7 +30006,7 @@ static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_s
   __pyx_t_1 = (PyArray_HASFIELDS(__pyx_v_self) != 0);
   if (__pyx_t_1) {
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":290
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":290
  *         def __releasebuffer__(ndarray self, Py_buffer* info):
  *             if PyArray_HASFIELDS(self):
  *                 stdlib.free(info.format)             # <<<<<<<<<<<<<<
@@ -30018,7 +30018,7 @@ static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_s
   }
   __pyx_L3:;
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":291
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":291
  *             if PyArray_HASFIELDS(self):
  *                 stdlib.free(info.format)
  *             if sizeof(npy_intp) != sizeof(Py_ssize_t):             # <<<<<<<<<<<<<<
@@ -30028,7 +30028,7 @@ static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_s
   __pyx_t_1 = (((sizeof(npy_intp)) != (sizeof(Py_ssize_t))) != 0);
   if (__pyx_t_1) {
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":292
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":292
  *                 stdlib.free(info.format)
  *             if sizeof(npy_intp) != sizeof(Py_ssize_t):
  *                 stdlib.free(info.strides)             # <<<<<<<<<<<<<<
@@ -30040,7 +30040,7 @@ static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_s
   }
   __pyx_L4:;
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":288
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":288
  *                 f[0] = c'\0' # Terminate format string
  * 
  *         def __releasebuffer__(ndarray self, Py_buffer* info):             # <<<<<<<<<<<<<<
@@ -30052,7 +30052,7 @@ static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_s
   __Pyx_RefNannyFinishContext();
 }
 
-/* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":768
+/* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":768
  * ctypedef npy_cdouble     complex_t
  * 
  * cdef inline object PyArray_MultiIterNew1(a):             # <<<<<<<<<<<<<<
@@ -30069,7 +30069,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew1(PyObject *__
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("PyArray_MultiIterNew1", 0);
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":769
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":769
  * 
  * cdef inline object PyArray_MultiIterNew1(a):
  *     return PyArray_MultiIterNew(1, <void*>a)             # <<<<<<<<<<<<<<
@@ -30083,7 +30083,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew1(PyObject *__
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":768
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":768
  * ctypedef npy_cdouble     complex_t
  * 
  * cdef inline object PyArray_MultiIterNew1(a):             # <<<<<<<<<<<<<<
@@ -30102,7 +30102,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew1(PyObject *__
   return __pyx_r;
 }
 
-/* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":771
+/* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":771
  *     return PyArray_MultiIterNew(1, <void*>a)
  * 
  * cdef inline object PyArray_MultiIterNew2(a, b):             # <<<<<<<<<<<<<<
@@ -30119,7 +30119,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew2(PyObject *__
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("PyArray_MultiIterNew2", 0);
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":772
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":772
  * 
  * cdef inline object PyArray_MultiIterNew2(a, b):
  *     return PyArray_MultiIterNew(2, <void*>a, <void*>b)             # <<<<<<<<<<<<<<
@@ -30133,7 +30133,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew2(PyObject *__
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":771
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":771
  *     return PyArray_MultiIterNew(1, <void*>a)
  * 
  * cdef inline object PyArray_MultiIterNew2(a, b):             # <<<<<<<<<<<<<<
@@ -30152,7 +30152,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew2(PyObject *__
   return __pyx_r;
 }
 
-/* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":774
+/* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":774
  *     return PyArray_MultiIterNew(2, <void*>a, <void*>b)
  * 
  * cdef inline object PyArray_MultiIterNew3(a, b, c):             # <<<<<<<<<<<<<<
@@ -30169,7 +30169,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew3(PyObject *__
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("PyArray_MultiIterNew3", 0);
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":775
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":775
  * 
  * cdef inline object PyArray_MultiIterNew3(a, b, c):
  *     return PyArray_MultiIterNew(3, <void*>a, <void*>b, <void*> c)             # <<<<<<<<<<<<<<
@@ -30183,7 +30183,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew3(PyObject *__
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":774
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":774
  *     return PyArray_MultiIterNew(2, <void*>a, <void*>b)
  * 
  * cdef inline object PyArray_MultiIterNew3(a, b, c):             # <<<<<<<<<<<<<<
@@ -30202,7 +30202,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew3(PyObject *__
   return __pyx_r;
 }
 
-/* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":777
+/* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":777
  *     return PyArray_MultiIterNew(3, <void*>a, <void*>b, <void*> c)
  * 
  * cdef inline object PyArray_MultiIterNew4(a, b, c, d):             # <<<<<<<<<<<<<<
@@ -30219,7 +30219,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew4(PyObject *__
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("PyArray_MultiIterNew4", 0);
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":778
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":778
  * 
  * cdef inline object PyArray_MultiIterNew4(a, b, c, d):
  *     return PyArray_MultiIterNew(4, <void*>a, <void*>b, <void*>c, <void*> d)             # <<<<<<<<<<<<<<
@@ -30233,7 +30233,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew4(PyObject *__
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":777
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":777
  *     return PyArray_MultiIterNew(3, <void*>a, <void*>b, <void*> c)
  * 
  * cdef inline object PyArray_MultiIterNew4(a, b, c, d):             # <<<<<<<<<<<<<<
@@ -30252,7 +30252,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew4(PyObject *__
   return __pyx_r;
 }
 
-/* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":780
+/* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":780
  *     return PyArray_MultiIterNew(4, <void*>a, <void*>b, <void*>c, <void*> d)
  * 
  * cdef inline object PyArray_MultiIterNew5(a, b, c, d, e):             # <<<<<<<<<<<<<<
@@ -30269,7 +30269,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew5(PyObject *__
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("PyArray_MultiIterNew5", 0);
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":781
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":781
  * 
  * cdef inline object PyArray_MultiIterNew5(a, b, c, d, e):
  *     return PyArray_MultiIterNew(5, <void*>a, <void*>b, <void*>c, <void*> d, <void*> e)             # <<<<<<<<<<<<<<
@@ -30283,7 +30283,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew5(PyObject *__
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":780
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":780
  *     return PyArray_MultiIterNew(4, <void*>a, <void*>b, <void*>c, <void*> d)
  * 
  * cdef inline object PyArray_MultiIterNew5(a, b, c, d, e):             # <<<<<<<<<<<<<<
@@ -30302,7 +30302,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew5(PyObject *__
   return __pyx_r;
 }
 
-/* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":783
+/* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":783
  *     return PyArray_MultiIterNew(5, <void*>a, <void*>b, <void*>c, <void*> d, <void*> e)
  * 
  * cdef inline char* _util_dtypestring(dtype descr, char* f, char* end, int* offset) except NULL:             # <<<<<<<<<<<<<<
@@ -30334,7 +30334,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("_util_dtypestring", 0);
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":790
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":790
  *     cdef int delta_offset
  *     cdef tuple i
  *     cdef int endian_detector = 1             # <<<<<<<<<<<<<<
@@ -30343,7 +30343,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
  */
   __pyx_v_endian_detector = 1;
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":791
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":791
  *     cdef tuple i
  *     cdef int endian_detector = 1
  *     cdef bint little_endian = ((<char*>&endian_detector)[0] != 0)             # <<<<<<<<<<<<<<
@@ -30352,7 +30352,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
  */
   __pyx_v_little_endian = ((((char *)(&__pyx_v_endian_detector))[0]) != 0);
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":794
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":794
  *     cdef tuple fields
  * 
  *     for childname in descr.names:             # <<<<<<<<<<<<<<
@@ -30374,7 +30374,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
     __Pyx_XDECREF_SET(__pyx_v_childname, __pyx_t_3);
     __pyx_t_3 = 0;
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":795
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":795
  * 
  *     for childname in descr.names:
  *         fields = descr.fields[childname]             # <<<<<<<<<<<<<<
@@ -30387,7 +30387,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
     __Pyx_XDECREF_SET(__pyx_v_fields, ((PyObject*)__pyx_t_3));
     __pyx_t_3 = 0;
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":796
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":796
  *     for childname in descr.names:
  *         fields = descr.fields[childname]
  *         child, new_offset = fields             # <<<<<<<<<<<<<<
@@ -30426,7 +30426,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
     __Pyx_XDECREF_SET(__pyx_v_new_offset, __pyx_t_4);
     __pyx_t_4 = 0;
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":798
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":798
  *         child, new_offset = fields
  * 
  *         if (end - f) - <int>(new_offset - offset[0]) < 15:             # <<<<<<<<<<<<<<
@@ -30443,7 +30443,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
     __pyx_t_6 = ((((__pyx_v_end - __pyx_v_f) - ((int)__pyx_t_5)) < 15) != 0);
     if (__pyx_t_6) {
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":799
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":799
  * 
  *         if (end - f) - <int>(new_offset - offset[0]) < 15:
  *             raise RuntimeError(u"Format string allocated too short, see comment in numpy.pxd")             # <<<<<<<<<<<<<<
@@ -30457,7 +30457,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
       {__pyx_filename = __pyx_f[1]; __pyx_lineno = 799; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":801
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":801
  *             raise RuntimeError(u"Format string allocated too short, see comment in numpy.pxd")
  * 
  *         if ((child.byteorder == c'>' and little_endian) or             # <<<<<<<<<<<<<<
@@ -30477,7 +30477,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
     }
     __pyx_L8_next_or:;
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":802
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":802
  * 
  *         if ((child.byteorder == c'>' and little_endian) or
  *             (child.byteorder == c'<' and not little_endian)):             # <<<<<<<<<<<<<<
@@ -30495,7 +30495,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
     __pyx_L7_bool_binop_done:;
     if (__pyx_t_6) {
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":803
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":803
  *         if ((child.byteorder == c'>' and little_endian) or
  *             (child.byteorder == c'<' and not little_endian)):
  *             raise ValueError(u"Non-native byte order not supported")             # <<<<<<<<<<<<<<
@@ -30509,7 +30509,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
       {__pyx_filename = __pyx_f[1]; __pyx_lineno = 803; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":813
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":813
  * 
  *         # Output padding bytes
  *         while offset[0] < new_offset:             # <<<<<<<<<<<<<<
@@ -30525,7 +30525,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       if (!__pyx_t_6) break;
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":814
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":814
  *         # Output padding bytes
  *         while offset[0] < new_offset:
  *             f[0] = 120 # "x"; pad byte             # <<<<<<<<<<<<<<
@@ -30534,7 +30534,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
  */
       (__pyx_v_f[0]) = 120;
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":815
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":815
  *         while offset[0] < new_offset:
  *             f[0] = 120 # "x"; pad byte
  *             f += 1             # <<<<<<<<<<<<<<
@@ -30543,7 +30543,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
  */
       __pyx_v_f = (__pyx_v_f + 1);
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":816
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":816
  *             f[0] = 120 # "x"; pad byte
  *             f += 1
  *             offset[0] += 1             # <<<<<<<<<<<<<<
@@ -30554,7 +30554,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
       (__pyx_v_offset[__pyx_t_8]) = ((__pyx_v_offset[__pyx_t_8]) + 1);
     }
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":818
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":818
  *             offset[0] += 1
  * 
  *         offset[0] += child.itemsize             # <<<<<<<<<<<<<<
@@ -30564,7 +30564,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
     __pyx_t_8 = 0;
     (__pyx_v_offset[__pyx_t_8]) = ((__pyx_v_offset[__pyx_t_8]) + __pyx_v_child->elsize);
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":820
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":820
  *         offset[0] += child.itemsize
  * 
  *         if not PyDataType_HASFIELDS(child):             # <<<<<<<<<<<<<<
@@ -30574,7 +30574,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
     __pyx_t_6 = ((!(PyDataType_HASFIELDS(__pyx_v_child) != 0)) != 0);
     if (__pyx_t_6) {
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":821
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":821
  * 
  *         if not PyDataType_HASFIELDS(child):
  *             t = child.type_num             # <<<<<<<<<<<<<<
@@ -30586,7 +30586,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
       __Pyx_XDECREF_SET(__pyx_v_t, __pyx_t_4);
       __pyx_t_4 = 0;
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":822
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":822
  *         if not PyDataType_HASFIELDS(child):
  *             t = child.type_num
  *             if end - f < 5:             # <<<<<<<<<<<<<<
@@ -30596,7 +30596,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
       __pyx_t_6 = (((__pyx_v_end - __pyx_v_f) < 5) != 0);
       if (__pyx_t_6) {
 
-        /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":823
+        /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":823
  *             t = child.type_num
  *             if end - f < 5:
  *                 raise RuntimeError(u"Format string allocated too short.")             # <<<<<<<<<<<<<<
@@ -30610,7 +30610,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
         {__pyx_filename = __pyx_f[1]; __pyx_lineno = 823; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       }
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":826
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":826
  * 
  *             # Until ticket #99 is fixed, use integers to avoid warnings
  *             if   t == NPY_BYTE:        f[0] =  98 #"b"             # <<<<<<<<<<<<<<
@@ -30628,7 +30628,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
         goto __pyx_L15;
       }
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":827
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":827
  *             # Until ticket #99 is fixed, use integers to avoid warnings
  *             if   t == NPY_BYTE:        f[0] =  98 #"b"
  *             elif t == NPY_UBYTE:       f[0] =  66 #"B"             # <<<<<<<<<<<<<<
@@ -30646,7 +30646,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
         goto __pyx_L15;
       }
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":828
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":828
  *             if   t == NPY_BYTE:        f[0] =  98 #"b"
  *             elif t == NPY_UBYTE:       f[0] =  66 #"B"
  *             elif t == NPY_SHORT:       f[0] = 104 #"h"             # <<<<<<<<<<<<<<
@@ -30664,7 +30664,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
         goto __pyx_L15;
       }
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":829
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":829
  *             elif t == NPY_UBYTE:       f[0] =  66 #"B"
  *             elif t == NPY_SHORT:       f[0] = 104 #"h"
  *             elif t == NPY_USHORT:      f[0] =  72 #"H"             # <<<<<<<<<<<<<<
@@ -30682,7 +30682,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
         goto __pyx_L15;
       }
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":830
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":830
  *             elif t == NPY_SHORT:       f[0] = 104 #"h"
  *             elif t == NPY_USHORT:      f[0] =  72 #"H"
  *             elif t == NPY_INT:         f[0] = 105 #"i"             # <<<<<<<<<<<<<<
@@ -30700,7 +30700,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
         goto __pyx_L15;
       }
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":831
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":831
  *             elif t == NPY_USHORT:      f[0] =  72 #"H"
  *             elif t == NPY_INT:         f[0] = 105 #"i"
  *             elif t == NPY_UINT:        f[0] =  73 #"I"             # <<<<<<<<<<<<<<
@@ -30718,7 +30718,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
         goto __pyx_L15;
       }
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":832
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":832
  *             elif t == NPY_INT:         f[0] = 105 #"i"
  *             elif t == NPY_UINT:        f[0] =  73 #"I"
  *             elif t == NPY_LONG:        f[0] = 108 #"l"             # <<<<<<<<<<<<<<
@@ -30736,7 +30736,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
         goto __pyx_L15;
       }
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":833
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":833
  *             elif t == NPY_UINT:        f[0] =  73 #"I"
  *             elif t == NPY_LONG:        f[0] = 108 #"l"
  *             elif t == NPY_ULONG:       f[0] = 76  #"L"             # <<<<<<<<<<<<<<
@@ -30754,7 +30754,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
         goto __pyx_L15;
       }
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":834
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":834
  *             elif t == NPY_LONG:        f[0] = 108 #"l"
  *             elif t == NPY_ULONG:       f[0] = 76  #"L"
  *             elif t == NPY_LONGLONG:    f[0] = 113 #"q"             # <<<<<<<<<<<<<<
@@ -30772,7 +30772,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
         goto __pyx_L15;
       }
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":835
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":835
  *             elif t == NPY_ULONG:       f[0] = 76  #"L"
  *             elif t == NPY_LONGLONG:    f[0] = 113 #"q"
  *             elif t == NPY_ULONGLONG:   f[0] = 81  #"Q"             # <<<<<<<<<<<<<<
@@ -30790,7 +30790,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
         goto __pyx_L15;
       }
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":836
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":836
  *             elif t == NPY_LONGLONG:    f[0] = 113 #"q"
  *             elif t == NPY_ULONGLONG:   f[0] = 81  #"Q"
  *             elif t == NPY_FLOAT:       f[0] = 102 #"f"             # <<<<<<<<<<<<<<
@@ -30808,7 +30808,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
         goto __pyx_L15;
       }
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":837
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":837
  *             elif t == NPY_ULONGLONG:   f[0] = 81  #"Q"
  *             elif t == NPY_FLOAT:       f[0] = 102 #"f"
  *             elif t == NPY_DOUBLE:      f[0] = 100 #"d"             # <<<<<<<<<<<<<<
@@ -30826,7 +30826,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
         goto __pyx_L15;
       }
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":838
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":838
  *             elif t == NPY_FLOAT:       f[0] = 102 #"f"
  *             elif t == NPY_DOUBLE:      f[0] = 100 #"d"
  *             elif t == NPY_LONGDOUBLE:  f[0] = 103 #"g"             # <<<<<<<<<<<<<<
@@ -30844,7 +30844,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
         goto __pyx_L15;
       }
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":839
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":839
  *             elif t == NPY_DOUBLE:      f[0] = 100 #"d"
  *             elif t == NPY_LONGDOUBLE:  f[0] = 103 #"g"
  *             elif t == NPY_CFLOAT:      f[0] = 90; f[1] = 102; f += 1 # Zf             # <<<<<<<<<<<<<<
@@ -30864,7 +30864,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
         goto __pyx_L15;
       }
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":840
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":840
  *             elif t == NPY_LONGDOUBLE:  f[0] = 103 #"g"
  *             elif t == NPY_CFLOAT:      f[0] = 90; f[1] = 102; f += 1 # Zf
  *             elif t == NPY_CDOUBLE:     f[0] = 90; f[1] = 100; f += 1 # Zd             # <<<<<<<<<<<<<<
@@ -30884,7 +30884,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
         goto __pyx_L15;
       }
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":841
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":841
  *             elif t == NPY_CFLOAT:      f[0] = 90; f[1] = 102; f += 1 # Zf
  *             elif t == NPY_CDOUBLE:     f[0] = 90; f[1] = 100; f += 1 # Zd
  *             elif t == NPY_CLONGDOUBLE: f[0] = 90; f[1] = 103; f += 1 # Zg             # <<<<<<<<<<<<<<
@@ -30904,7 +30904,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
         goto __pyx_L15;
       }
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":842
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":842
  *             elif t == NPY_CDOUBLE:     f[0] = 90; f[1] = 100; f += 1 # Zd
  *             elif t == NPY_CLONGDOUBLE: f[0] = 90; f[1] = 103; f += 1 # Zg
  *             elif t == NPY_OBJECT:      f[0] = 79 #"O"             # <<<<<<<<<<<<<<
@@ -30923,7 +30923,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
       }
       /*else*/ {
 
-        /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":844
+        /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":844
  *             elif t == NPY_OBJECT:      f[0] = 79 #"O"
  *             else:
  *                 raise ValueError(u"unknown dtype code in numpy.pxd (%d)" % t)             # <<<<<<<<<<<<<<
@@ -30946,7 +30946,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
       }
       __pyx_L15:;
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":845
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":845
  *             else:
  *                 raise ValueError(u"unknown dtype code in numpy.pxd (%d)" % t)
  *             f += 1             # <<<<<<<<<<<<<<
@@ -30958,7 +30958,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
     }
     /*else*/ {
 
-      /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":849
+      /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":849
  *             # Cython ignores struct boundary information ("T{...}"),
  *             # so don't output it
  *             f = _util_dtypestring(child, f, end, offset)             # <<<<<<<<<<<<<<
@@ -30970,7 +30970,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
     }
     __pyx_L13:;
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":794
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":794
  *     cdef tuple fields
  * 
  *     for childname in descr.names:             # <<<<<<<<<<<<<<
@@ -30980,7 +30980,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":850
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":850
  *             # so don't output it
  *             f = _util_dtypestring(child, f, end, offset)
  *     return f             # <<<<<<<<<<<<<<
@@ -30990,7 +30990,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
   __pyx_r = __pyx_v_f;
   goto __pyx_L0;
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":783
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":783
  *     return PyArray_MultiIterNew(5, <void*>a, <void*>b, <void*>c, <void*> d, <void*> e)
  * 
  * cdef inline char* _util_dtypestring(dtype descr, char* f, char* end, int* offset) except NULL:             # <<<<<<<<<<<<<<
@@ -31015,7 +31015,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
   return __pyx_r;
 }
 
-/* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":966
+/* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":966
  * 
  * 
  * cdef inline void set_array_base(ndarray arr, object base):             # <<<<<<<<<<<<<<
@@ -31030,7 +31030,7 @@ static CYTHON_INLINE void __pyx_f_5numpy_set_array_base(PyArrayObject *__pyx_v_a
   int __pyx_t_2;
   __Pyx_RefNannySetupContext("set_array_base", 0);
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":968
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":968
  * cdef inline void set_array_base(ndarray arr, object base):
  *      cdef PyObject* baseptr
  *      if base is None:             # <<<<<<<<<<<<<<
@@ -31041,7 +31041,7 @@ static CYTHON_INLINE void __pyx_f_5numpy_set_array_base(PyArrayObject *__pyx_v_a
   __pyx_t_2 = (__pyx_t_1 != 0);
   if (__pyx_t_2) {
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":969
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":969
  *      cdef PyObject* baseptr
  *      if base is None:
  *          baseptr = NULL             # <<<<<<<<<<<<<<
@@ -31053,7 +31053,7 @@ static CYTHON_INLINE void __pyx_f_5numpy_set_array_base(PyArrayObject *__pyx_v_a
   }
   /*else*/ {
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":971
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":971
  *          baseptr = NULL
  *      else:
  *          Py_INCREF(base) # important to do this before decref below!             # <<<<<<<<<<<<<<
@@ -31062,7 +31062,7 @@ static CYTHON_INLINE void __pyx_f_5numpy_set_array_base(PyArrayObject *__pyx_v_a
  */
     Py_INCREF(__pyx_v_base);
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":972
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":972
  *      else:
  *          Py_INCREF(base) # important to do this before decref below!
  *          baseptr = <PyObject*>base             # <<<<<<<<<<<<<<
@@ -31073,7 +31073,7 @@ static CYTHON_INLINE void __pyx_f_5numpy_set_array_base(PyArrayObject *__pyx_v_a
   }
   __pyx_L3:;
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":973
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":973
  *          Py_INCREF(base) # important to do this before decref below!
  *          baseptr = <PyObject*>base
  *      Py_XDECREF(arr.base)             # <<<<<<<<<<<<<<
@@ -31082,7 +31082,7 @@ static CYTHON_INLINE void __pyx_f_5numpy_set_array_base(PyArrayObject *__pyx_v_a
  */
   Py_XDECREF(__pyx_v_arr->base);
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":974
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":974
  *          baseptr = <PyObject*>base
  *      Py_XDECREF(arr.base)
  *      arr.base = baseptr             # <<<<<<<<<<<<<<
@@ -31091,7 +31091,7 @@ static CYTHON_INLINE void __pyx_f_5numpy_set_array_base(PyArrayObject *__pyx_v_a
  */
   __pyx_v_arr->base = __pyx_v_baseptr;
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":966
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":966
  * 
  * 
  * cdef inline void set_array_base(ndarray arr, object base):             # <<<<<<<<<<<<<<
@@ -31103,7 +31103,7 @@ static CYTHON_INLINE void __pyx_f_5numpy_set_array_base(PyArrayObject *__pyx_v_a
   __Pyx_RefNannyFinishContext();
 }
 
-/* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":976
+/* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":976
  *      arr.base = baseptr
  * 
  * cdef inline object get_array_base(ndarray arr):             # <<<<<<<<<<<<<<
@@ -31117,7 +31117,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_get_array_base(PyArrayObject *__py
   int __pyx_t_1;
   __Pyx_RefNannySetupContext("get_array_base", 0);
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":977
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":977
  * 
  * cdef inline object get_array_base(ndarray arr):
  *     if arr.base is NULL:             # <<<<<<<<<<<<<<
@@ -31127,7 +31127,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_get_array_base(PyArrayObject *__py
   __pyx_t_1 = ((__pyx_v_arr->base == NULL) != 0);
   if (__pyx_t_1) {
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":978
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":978
  * cdef inline object get_array_base(ndarray arr):
  *     if arr.base is NULL:
  *         return None             # <<<<<<<<<<<<<<
@@ -31141,7 +31141,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_get_array_base(PyArrayObject *__py
   }
   /*else*/ {
 
-    /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":980
+    /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":980
  *         return None
  *     else:
  *         return <object>arr.base             # <<<<<<<<<<<<<<
@@ -31152,7 +31152,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_get_array_base(PyArrayObject *__py
     goto __pyx_L0;
   }
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":976
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":976
  *      arr.base = baseptr
  * 
  * cdef inline object get_array_base(ndarray arr):             # <<<<<<<<<<<<<<
@@ -41918,7 +41918,7 @@ static PyBufferProcs __pyx_tp_as_buffer_array = {
 
 static PyTypeObject __pyx_type___pyx_array = {
   PyVarObject_HEAD_INIT(0, 0)
-  "chistogramnd_lut.array", /*tp_name*/
+  "silx.math.chistogramnd_lut.array", /*tp_name*/
   sizeof(struct __pyx_array_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_array, /*tp_dealloc*/
@@ -42023,7 +42023,7 @@ static PyMethodDef __pyx_methods_Enum[] = {
 
 static PyTypeObject __pyx_type___pyx_MemviewEnum = {
   PyVarObject_HEAD_INIT(0, 0)
-  "chistogramnd_lut.Enum", /*tp_name*/
+  "silx.math.chistogramnd_lut.Enum", /*tp_name*/
   sizeof(struct __pyx_MemviewEnum_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_Enum, /*tp_dealloc*/
@@ -42269,7 +42269,7 @@ static PyBufferProcs __pyx_tp_as_buffer_memoryview = {
 
 static PyTypeObject __pyx_type___pyx_memoryview = {
   PyVarObject_HEAD_INIT(0, 0)
-  "chistogramnd_lut.memoryview", /*tp_name*/
+  "silx.math.chistogramnd_lut.memoryview", /*tp_name*/
   sizeof(struct __pyx_memoryview_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_memoryview, /*tp_dealloc*/
@@ -42393,7 +42393,7 @@ static struct PyGetSetDef __pyx_getsets__memoryviewslice[] = {
 
 static PyTypeObject __pyx_type___pyx_memoryviewslice = {
   PyVarObject_HEAD_INIT(0, 0)
-  "chistogramnd_lut._memoryviewslice", /*tp_name*/
+  "silx.math.chistogramnd_lut._memoryviewslice", /*tp_name*/
   sizeof(struct __pyx_memoryviewslice_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc__memoryviewslice, /*tp_dealloc*/
@@ -42532,7 +42532,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_bins_range, __pyx_k_bins_range, sizeof(__pyx_k_bins_range), 0, 0, 1, 1},
   {&__pyx_n_s_c, __pyx_k_c, sizeof(__pyx_k_c), 0, 0, 1, 1},
   {&__pyx_n_u_c, __pyx_k_c, sizeof(__pyx_k_c), 0, 1, 0, 1},
-  {&__pyx_n_s_chistogramnd_lut, __pyx_k_chistogramnd_lut, sizeof(__pyx_k_chistogramnd_lut), 0, 0, 1, 1},
   {&__pyx_n_s_class, __pyx_k_class, sizeof(__pyx_k_class), 0, 0, 1, 1},
   {&__pyx_kp_s_contiguous_and_direct, __pyx_k_contiguous_and_direct, sizeof(__pyx_k_contiguous_and_direct), 0, 0, 1, 0},
   {&__pyx_kp_s_contiguous_and_indirect, __pyx_k_contiguous_and_indirect, sizeof(__pyx_k_contiguous_and_indirect), 0, 0, 1, 0},
@@ -42670,7 +42669,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_main, __pyx_k_main, sizeof(__pyx_k_main), 0, 0, 1, 1},
   {&__pyx_n_s_max_idx, __pyx_k_max_idx, sizeof(__pyx_k_max_idx), 0, 0, 1, 1},
   {&__pyx_n_s_memview, __pyx_k_memview, sizeof(__pyx_k_memview), 0, 0, 1, 1},
-  {&__pyx_kp_s_mntdirect__scisoft_users_tvince, __pyx_k_mntdirect__scisoft_users_tvince, sizeof(__pyx_k_mntdirect__scisoft_users_tvince), 0, 0, 1, 0},
   {&__pyx_n_s_mode, __pyx_k_mode, sizeof(__pyx_k_mode), 0, 0, 1, 1},
   {&__pyx_n_s_n_bins, __pyx_k_n_bins, sizeof(__pyx_k_n_bins), 0, 0, 1, 1},
   {&__pyx_n_s_n_bins_c, __pyx_k_n_bins_c, sizeof(__pyx_k_n_bins_c), 0, 0, 1, 1},
@@ -42708,6 +42706,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_sample_type, __pyx_k_sample_type, sizeof(__pyx_k_sample_type), 0, 0, 1, 1},
   {&__pyx_n_s_shape, __pyx_k_shape, sizeof(__pyx_k_shape), 0, 0, 1, 1},
   {&__pyx_n_s_signatures, __pyx_k_signatures, sizeof(__pyx_k_signatures), 0, 0, 1, 1},
+  {&__pyx_n_s_silx_math_chistogramnd_lut, __pyx_k_silx_math_chistogramnd_lut, sizeof(__pyx_k_silx_math_chistogramnd_lut), 0, 0, 1, 1},
   {&__pyx_n_s_size, __pyx_k_size, sizeof(__pyx_k_size), 0, 0, 1, 1},
   {&__pyx_n_s_split, __pyx_k_split, sizeof(__pyx_k_split), 0, 0, 1, 1},
   {&__pyx_n_s_start, __pyx_k_start, sizeof(__pyx_k_start), 0, 0, 1, 1},
@@ -42727,6 +42726,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_unable_to_allocate_shape_and_str, __pyx_k_unable_to_allocate_shape_and_str, sizeof(__pyx_k_unable_to_allocate_shape_and_str), 0, 0, 1, 0},
   {&__pyx_kp_u_unknown_dtype_code_in_numpy_pxd, __pyx_k_unknown_dtype_code_in_numpy_pxd, sizeof(__pyx_k_unknown_dtype_code_in_numpy_pxd), 0, 1, 0, 0},
   {&__pyx_n_s_unpack, __pyx_k_unpack, sizeof(__pyx_k_unpack), 0, 0, 1, 1},
+  {&__pyx_kp_s_users_knobel_git_silx_silx_math, __pyx_k_users_knobel_git_silx_silx_math, sizeof(__pyx_k_users_knobel_git_silx_silx_math), 0, 0, 1, 0},
   {&__pyx_n_s_w_c, __pyx_k_w_c, sizeof(__pyx_k_w_c), 0, 0, 1, 1},
   {&__pyx_n_s_w_dtype, __pyx_k_w_dtype, sizeof(__pyx_k_w_dtype), 0, 0, 1, 1},
   {&__pyx_n_s_w_h_c, __pyx_k_w_h_c, sizeof(__pyx_k_w_h_c), 0, 0, 1, 1},
@@ -42768,7 +42768,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "chistogramnd_lut.pyx":108
+  /* "silx/math/chistogramnd_lut.pyx":108
  * 
  *     if n_dims == 1:
  *         if histo_range.shape == (2,):             # <<<<<<<<<<<<<<
@@ -42779,7 +42779,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple_);
   __Pyx_GIVEREF(__pyx_tuple_);
 
-  /* "chistogramnd_lut.pyx":110
+  /* "silx/math/chistogramnd_lut.pyx":110
  *         if histo_range.shape == (2,):
  *             pass
  *         elif histo_range.shape == (1, 2):             # <<<<<<<<<<<<<<
@@ -42790,7 +42790,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__2);
   __Pyx_GIVEREF(__pyx_tuple__2);
 
-  /* "chistogramnd_lut.pyx":111
+  /* "silx/math/chistogramnd_lut.pyx":111
  *             pass
  *         elif histo_range.shape == (1, 2):
  *             histo_range.reshape(-1)             # <<<<<<<<<<<<<<
@@ -42801,7 +42801,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__3);
   __Pyx_GIVEREF(__pyx_tuple__3);
 
-  /* "chistogramnd_lut.pyx":133
+  /* "silx/math/chistogramnd_lut.pyx":133
  *         n_bins = np.tile(n_bins, n_dims)
  *     elif n_bins.shape != (n_dims,):
  *         raise ValueError('n_bins must be either a scalar (same number '             # <<<<<<<<<<<<<<
@@ -42812,7 +42812,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__4);
   __Pyx_GIVEREF(__pyx_tuple__4);
 
-  /* "chistogramnd_lut.pyx":142
+  /* "silx/math/chistogramnd_lut.pyx":142
  *     # also testing for negative/null values
  *     if np.any(np.equal(n_bins, None)) or np.any(n_bins <= 0):
  *         raise ValueError('<n_bins> : only positive values allowed.')             # <<<<<<<<<<<<<<
@@ -42823,7 +42823,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__5);
   __Pyx_GIVEREF(__pyx_tuple__5);
 
-  /* "chistogramnd_lut.pyx":189
+  /* "silx/math/chistogramnd_lut.pyx":189
  * 
  *     edges = []
  *     histo_range = histo_range.reshape(-1)             # <<<<<<<<<<<<<<
@@ -42834,7 +42834,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__6);
   __Pyx_GIVEREF(__pyx_tuple__6);
 
-  /* "chistogramnd_lut.pyx":194
+  /* "silx/math/chistogramnd_lut.pyx":194
  *         rng_min = histo_range[2 * i_dim]
  *         rng_max = histo_range[2 * i_dim + 1]
  *         dim_edges[:-1] = (rng_min + np.arange(n_bins[i_dim]) *             # <<<<<<<<<<<<<<
@@ -42845,7 +42845,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_slice__7);
   __Pyx_GIVEREF(__pyx_slice__7);
 
-  /* "chistogramnd_lut.pyx":220
+  /* "silx/math/chistogramnd_lut.pyx":220
  *     if histo is None and weighted_histo is None:
  *         if shape is None:
  *             raise ValueError('At least one of the following parameters has to '             # <<<<<<<<<<<<<<
@@ -42856,7 +42856,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__8);
   __Pyx_GIVEREF(__pyx_tuple__8);
 
-  /* "chistogramnd_lut.pyx":226
+  /* "silx/math/chistogramnd_lut.pyx":226
  *     if shape is not None:
  *         if histo is not None and list(histo.shape) != list(shape):
  *             raise ValueError('The <shape> value does not match'             # <<<<<<<<<<<<<<
@@ -42867,7 +42867,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__9);
   __Pyx_GIVEREF(__pyx_tuple__9);
 
-  /* "chistogramnd_lut.pyx":231
+  /* "silx/math/chistogramnd_lut.pyx":231
  *         if(weighted_histo is not None and
  *            list(weighted_histo.shape) != list(shape)):
  *             raise ValueError('The <shape> value does not match'             # <<<<<<<<<<<<<<
@@ -42878,7 +42878,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__10);
   __Pyx_GIVEREF(__pyx_tuple__10);
 
-  /* "chistogramnd_lut.pyx":248
+  /* "silx/math/chistogramnd_lut.pyx":248
  *         if weighted_histo is not None:
  *             if histo.shape != weighted_histo.shape:
  *                 raise ValueError('The <histo> shape does not match'             # <<<<<<<<<<<<<<
@@ -42889,7 +42889,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__11);
   __Pyx_GIVEREF(__pyx_tuple__11);
 
-  /* "chistogramnd_lut.pyx":262
+  /* "silx/math/chistogramnd_lut.pyx":262
  *     elif weighted_histo is not None:
  *         if weighted_histo.dtype != dtype:
  *             raise ValueError('Provided <dtype> and <weighted_histo>\'s dtype'             # <<<<<<<<<<<<<<
@@ -42900,7 +42900,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__12);
   __Pyx_GIVEREF(__pyx_tuple__12);
 
-  /* "chistogramnd_lut.pyx":270
+  /* "silx/math/chistogramnd_lut.pyx":270
  * 
  *     if histo_lut.size != weights.size:
  *         raise ValueError('The LUT and weights arrays must have the same '             # <<<<<<<<<<<<<<
@@ -42911,7 +42911,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__13);
   __Pyx_GIVEREF(__pyx_tuple__13);
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -42931,7 +42931,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__19);
   __Pyx_GIVEREF(__pyx_tuple__19);
 
-  /* "chistogramnd_lut.pyx":352
+  /* "silx/math/chistogramnd_lut.pyx":352
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_get_lut_fused(sample_t[:] i_sample,             # <<<<<<<<<<<<<<
@@ -42951,7 +42951,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__23);
   __Pyx_GIVEREF(__pyx_tuple__23);
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":215
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":215
  *             if ((flags & pybuf.PyBUF_C_CONTIGUOUS == pybuf.PyBUF_C_CONTIGUOUS)
  *                 and not PyArray_CHKFLAGS(self, NPY_C_CONTIGUOUS)):
  *                 raise ValueError(u"ndarray is not C contiguous")             # <<<<<<<<<<<<<<
@@ -42962,7 +42962,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__24);
   __Pyx_GIVEREF(__pyx_tuple__24);
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":219
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":219
  *             if ((flags & pybuf.PyBUF_F_CONTIGUOUS == pybuf.PyBUF_F_CONTIGUOUS)
  *                 and not PyArray_CHKFLAGS(self, NPY_F_CONTIGUOUS)):
  *                 raise ValueError(u"ndarray is not Fortran contiguous")             # <<<<<<<<<<<<<<
@@ -42973,7 +42973,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__25);
   __Pyx_GIVEREF(__pyx_tuple__25);
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":257
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":257
  *                 if ((descr.byteorder == c'>' and little_endian) or
  *                     (descr.byteorder == c'<' and not little_endian)):
  *                     raise ValueError(u"Non-native byte order not supported")             # <<<<<<<<<<<<<<
@@ -42984,7 +42984,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__26);
   __Pyx_GIVEREF(__pyx_tuple__26);
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":799
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":799
  * 
  *         if (end - f) - <int>(new_offset - offset[0]) < 15:
  *             raise RuntimeError(u"Format string allocated too short, see comment in numpy.pxd")             # <<<<<<<<<<<<<<
@@ -42995,7 +42995,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__27);
   __Pyx_GIVEREF(__pyx_tuple__27);
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":803
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":803
  *         if ((child.byteorder == c'>' and little_endian) or
  *             (child.byteorder == c'<' and not little_endian)):
  *             raise ValueError(u"Non-native byte order not supported")             # <<<<<<<<<<<<<<
@@ -43006,7 +43006,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__28);
   __Pyx_GIVEREF(__pyx_tuple__28);
 
-  /* "../../../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":823
+  /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":823
  *             t = child.type_num
  *             if end - f < 5:
  *                 raise RuntimeError(u"Format string allocated too short.")             # <<<<<<<<<<<<<<
@@ -43138,7 +43138,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__40);
   __Pyx_GIVEREF(__pyx_tuple__40);
 
-  /* "chistogramnd_lut.pyx":58
+  /* "silx/math/chistogramnd_lut.pyx":58
  * 
  * 
  * def histogramnd_get_lut(sample,             # <<<<<<<<<<<<<<
@@ -43148,9 +43148,9 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__41 = PyTuple_Pack(25, __pyx_n_s_sample, __pyx_n_s_histo_range, __pyx_n_s_n_bins, __pyx_n_s_last_bin_closed, __pyx_n_s_s_shape, __pyx_n_s_n_dims, __pyx_n_s_i_histo_range, __pyx_n_s_err_histo_range, __pyx_n_s_sample_type, __pyx_n_s_n_elem, __pyx_n_s_lut_dtype, __pyx_n_s_lut, __pyx_n_s_histo, __pyx_n_s_sample_c, __pyx_n_s_histo_range_c, __pyx_n_s_n_bins_c, __pyx_n_s_lut_c, __pyx_n_s_histo_c, __pyx_n_s_rc, __pyx_n_s_ex, __pyx_n_s_edges, __pyx_n_s_i_dim, __pyx_n_s_dim_edges, __pyx_n_s_rng_min, __pyx_n_s_rng_max); if (unlikely(!__pyx_tuple__41)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__41);
   __Pyx_GIVEREF(__pyx_tuple__41);
-  __pyx_codeobj__42 = (PyObject*)__Pyx_PyCode_New(4, 0, 25, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__41, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_mntdirect__scisoft_users_tvince, __pyx_n_s_histogramnd_get_lut, 58, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__42)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__42 = (PyObject*)__Pyx_PyCode_New(4, 0, 25, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__41, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_knobel_git_silx_silx_math, __pyx_n_s_histogramnd_get_lut, 58, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__42)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "chistogramnd_lut.pyx":206
+  /* "silx/math/chistogramnd_lut.pyx":206
  * 
  * 
  * def histogramnd_from_lut(weights,             # <<<<<<<<<<<<<<
@@ -43160,9 +43160,9 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__43 = PyTuple_Pack(17, __pyx_n_s_weights, __pyx_n_s_histo_lut, __pyx_n_s_histo, __pyx_n_s_weighted_histo, __pyx_n_s_shape, __pyx_n_s_dtype, __pyx_n_s_weight_min, __pyx_n_s_weight_max, __pyx_n_s_w_dtype, __pyx_n_s_w_c, __pyx_n_s_h_c, __pyx_n_s_w_h_c, __pyx_n_s_h_lut_c, __pyx_n_s_rc, __pyx_n_s_filt_min_weights, __pyx_n_s_filt_max_weights, __pyx_n_s_ex); if (unlikely(!__pyx_tuple__43)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 206; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__43);
   __Pyx_GIVEREF(__pyx_tuple__43);
-  __pyx_codeobj__44 = (PyObject*)__Pyx_PyCode_New(8, 0, 17, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__43, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_mntdirect__scisoft_users_tvince, __pyx_n_s_histogramnd_from_lut, 206, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__44)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 206; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__44 = (PyObject*)__Pyx_PyCode_New(8, 0, 17, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__43, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_knobel_git_silx_silx_math, __pyx_n_s_histogramnd_from_lut, 206, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__44)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 206; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -43172,9 +43172,9 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__45 = PyTuple_Pack(10, __pyx_n_s_i_weights, __pyx_n_s_i_lut, __pyx_n_s_o_histo, __pyx_n_s_o_weighted_histo, __pyx_n_s_i_n_elems, __pyx_n_s_i_filt_min_weights, __pyx_n_s_i_weight_min, __pyx_n_s_i_filt_max_weights, __pyx_n_s_i_weight_max, __pyx_n_s_i); if (unlikely(!__pyx_tuple__45)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__45);
   __Pyx_GIVEREF(__pyx_tuple__45);
-  __pyx_codeobj__46 = (PyObject*)__Pyx_PyCode_New(9, 0, 10, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__45, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_mntdirect__scisoft_users_tvince, __pyx_n_s_histogramnd_from_lut_fused, 323, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__46)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__46 = (PyObject*)__Pyx_PyCode_New(9, 0, 10, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__45, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_knobel_git_silx_silx_math, __pyx_n_s_histogramnd_from_lut_fused, 323, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__46)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "chistogramnd_lut.pyx":352
+  /* "silx/math/chistogramnd_lut.pyx":352
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_get_lut_fused(sample_t[:] i_sample,             # <<<<<<<<<<<<<<
@@ -43184,7 +43184,7 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__47 = PyTuple_Pack(17, __pyx_n_s_i_sample, __pyx_n_s_i_n_dims, __pyx_n_s_i_n_elems, __pyx_n_s_i_histo_range, __pyx_n_s_i_n_bins, __pyx_n_s_o_lut, __pyx_n_s_o_histo, __pyx_n_s_last_bin_closed, __pyx_n_s_i, __pyx_n_s_elem_idx, __pyx_n_s_max_idx, __pyx_n_s_lut_idx, __pyx_n_s_bin_idx, __pyx_n_s_elem_coord, __pyx_n_s_g_min, __pyx_n_s_g_max, __pyx_n_s_bins_range); if (unlikely(!__pyx_tuple__47)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__47);
   __Pyx_GIVEREF(__pyx_tuple__47);
-  __pyx_codeobj__48 = (PyObject*)__Pyx_PyCode_New(8, 0, 17, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__47, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_mntdirect__scisoft_users_tvince, __pyx_n_s_histogramnd_get_lut_fused, 352, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__48)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__48 = (PyObject*)__Pyx_PyCode_New(8, 0, 17, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__47, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_knobel_git_silx_silx_math, __pyx_n_s_histogramnd_get_lut_fused, 352, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__48)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
   /* "View.MemoryView":276
  *         return self.name
@@ -43325,14 +43325,14 @@ PyMODINIT_FUNC PyInit_chistogramnd_lut(void)
   #if PY_MAJOR_VERSION < 3 && (__PYX_DEFAULT_STRING_ENCODING_IS_ASCII || __PYX_DEFAULT_STRING_ENCODING_IS_DEFAULT)
   if (__Pyx_init_sys_getdefaultencoding_params() < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   #endif
-  if (__pyx_module_is_main_chistogramnd_lut) {
+  if (__pyx_module_is_main_silx__math__chistogramnd_lut) {
     if (PyObject_SetAttrString(__pyx_m, "__name__", __pyx_n_s_main) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
   }
   #if PY_MAJOR_VERSION >= 3
   {
     PyObject *modules = PyImport_GetModuleDict(); if (unlikely(!modules)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    if (!PyDict_GetItemString(modules, "chistogramnd_lut")) {
-      if (unlikely(PyDict_SetItemString(modules, "chistogramnd_lut", __pyx_m) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    if (!PyDict_GetItemString(modules, "silx.math.chistogramnd_lut")) {
+      if (unlikely(PyDict_SetItemString(modules, "silx.math.chistogramnd_lut", __pyx_m) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
   }
   #endif
@@ -43393,7 +43393,7 @@ PyMODINIT_FUNC PyInit_chistogramnd_lut(void)
   /*--- Function import code ---*/
   /*--- Execution code ---*/
 
-  /* "chistogramnd_lut.pyx":25
+  /* "silx/math/chistogramnd_lut.pyx":25
  * # ############################################################################*[inserted by cython to avoid comment closer]/
  * 
  * __authors__ = ["D. Naudet"]             # <<<<<<<<<<<<<<
@@ -43408,7 +43408,7 @@ PyMODINIT_FUNC PyInit_chistogramnd_lut(void)
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_authors, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 25; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "chistogramnd_lut.pyx":26
+  /* "silx/math/chistogramnd_lut.pyx":26
  * 
  * __authors__ = ["D. Naudet"]
  * __license__ = "MIT"             # <<<<<<<<<<<<<<
@@ -43417,7 +43417,7 @@ PyMODINIT_FUNC PyInit_chistogramnd_lut(void)
  */
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_license, __pyx_n_s_MIT) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 26; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "chistogramnd_lut.pyx":27
+  /* "silx/math/chistogramnd_lut.pyx":27
  * __authors__ = ["D. Naudet"]
  * __license__ = "MIT"
  * __date__ = "15/05/2016"             # <<<<<<<<<<<<<<
@@ -43426,7 +43426,7 @@ PyMODINIT_FUNC PyInit_chistogramnd_lut(void)
  */
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_date, __pyx_kp_s_15_05_2016) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 27; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "chistogramnd_lut.pyx":32
+  /* "silx/math/chistogramnd_lut.pyx":32
  * cimport numpy as np  # noqa
  * cimport cython
  * import numpy as np             # <<<<<<<<<<<<<<
@@ -43438,31 +43438,31 @@ PyMODINIT_FUNC PyInit_chistogramnd_lut(void)
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_np, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 32; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "chistogramnd_lut.pyx":58
+  /* "silx/math/chistogramnd_lut.pyx":58
  * 
  * 
  * def histogramnd_get_lut(sample,             # <<<<<<<<<<<<<<
  *                         histo_range,
  *                         n_bins,
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_16chistogramnd_lut_1histogramnd_get_lut, NULL, __pyx_n_s_chistogramnd_lut); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_4silx_4math_16chistogramnd_lut_1histogramnd_get_lut, NULL, __pyx_n_s_silx_math_chistogramnd_lut); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_histogramnd_get_lut, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "chistogramnd_lut.pyx":206
+  /* "silx/math/chistogramnd_lut.pyx":206
  * 
  * 
  * def histogramnd_from_lut(weights,             # <<<<<<<<<<<<<<
  *                          histo_lut,
  *                          histo=None,
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_16chistogramnd_lut_3histogramnd_from_lut, NULL, __pyx_n_s_chistogramnd_lut); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 206; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_4silx_4math_16chistogramnd_lut_3histogramnd_from_lut, NULL, __pyx_n_s_silx_math_chistogramnd_lut); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 206; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_histogramnd_from_lut, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 206; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "chistogramnd_lut.pyx":323
+  /* "silx/math/chistogramnd_lut.pyx":323
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_from_lut_fused(weights_t[:] i_weights,             # <<<<<<<<<<<<<<
@@ -43471,247 +43471,247 @@ PyMODINIT_FUNC PyInit_chistogramnd_lut(void)
  */
   __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0_0_0__pyx_mdef_16chistogramnd_lut_9_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0_0_0__pyx_mdef_4silx_4math_16chistogramnd_lut_9_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_float64_t_int64_t_float64_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0_0_1__pyx_mdef_16chistogramnd_lut_11_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0_0_1__pyx_mdef_4silx_4math_16chistogramnd_lut_11_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_float64_t_int64_t_float32_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0_0_2__pyx_mdef_16chistogramnd_lut_13_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0_0_2__pyx_mdef_4silx_4math_16chistogramnd_lut_13_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_float64_t_int64_t_int32_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0_0_3__pyx_mdef_16chistogramnd_lut_15_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0_0_3__pyx_mdef_4silx_4math_16chistogramnd_lut_15_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_float64_t_int64_t_int64_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0_1_0__pyx_mdef_16chistogramnd_lut_17_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0_1_0__pyx_mdef_4silx_4math_16chistogramnd_lut_17_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_float64_t_int32_t_float64_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0_1_1__pyx_mdef_16chistogramnd_lut_19_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0_1_1__pyx_mdef_4silx_4math_16chistogramnd_lut_19_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_float64_t_int32_t_float32_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0_1_2__pyx_mdef_16chistogramnd_lut_21_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0_1_2__pyx_mdef_4silx_4math_16chistogramnd_lut_21_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_float64_t_int32_t_int32_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0_1_3__pyx_mdef_16chistogramnd_lut_23_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0_1_3__pyx_mdef_4silx_4math_16chistogramnd_lut_23_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_float64_t_int32_t_int64_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0_2_0__pyx_mdef_16chistogramnd_lut_25_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0_2_0__pyx_mdef_4silx_4math_16chistogramnd_lut_25_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_float64_t_int16_t_float64_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0_2_1__pyx_mdef_16chistogramnd_lut_27_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0_2_1__pyx_mdef_4silx_4math_16chistogramnd_lut_27_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_float64_t_int16_t_float32_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0_2_2__pyx_mdef_16chistogramnd_lut_29_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0_2_2__pyx_mdef_4silx_4math_16chistogramnd_lut_29_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_float64_t_int16_t_int32_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0_2_3__pyx_mdef_16chistogramnd_lut_31_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0_2_3__pyx_mdef_4silx_4math_16chistogramnd_lut_31_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_float64_t_int16_t_int64_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1_0_0__pyx_mdef_16chistogramnd_lut_33_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1_0_0__pyx_mdef_4silx_4math_16chistogramnd_lut_33_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_float32_t_int64_t_float64_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1_0_1__pyx_mdef_16chistogramnd_lut_35_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1_0_1__pyx_mdef_4silx_4math_16chistogramnd_lut_35_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_float32_t_int64_t_float32_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1_0_2__pyx_mdef_16chistogramnd_lut_37_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1_0_2__pyx_mdef_4silx_4math_16chistogramnd_lut_37_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_float32_t_int64_t_int32_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1_0_3__pyx_mdef_16chistogramnd_lut_39_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1_0_3__pyx_mdef_4silx_4math_16chistogramnd_lut_39_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_float32_t_int64_t_int64_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1_1_0__pyx_mdef_16chistogramnd_lut_41_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1_1_0__pyx_mdef_4silx_4math_16chistogramnd_lut_41_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_float32_t_int32_t_float64_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1_1_1__pyx_mdef_16chistogramnd_lut_43_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1_1_1__pyx_mdef_4silx_4math_16chistogramnd_lut_43_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_float32_t_int32_t_float32_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1_1_2__pyx_mdef_16chistogramnd_lut_45_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1_1_2__pyx_mdef_4silx_4math_16chistogramnd_lut_45_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_float32_t_int32_t_int32_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1_1_3__pyx_mdef_16chistogramnd_lut_47_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1_1_3__pyx_mdef_4silx_4math_16chistogramnd_lut_47_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_float32_t_int32_t_int64_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1_2_0__pyx_mdef_16chistogramnd_lut_49_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1_2_0__pyx_mdef_4silx_4math_16chistogramnd_lut_49_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_float32_t_int16_t_float64_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1_2_1__pyx_mdef_16chistogramnd_lut_51_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1_2_1__pyx_mdef_4silx_4math_16chistogramnd_lut_51_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_float32_t_int16_t_float32_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1_2_2__pyx_mdef_16chistogramnd_lut_53_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1_2_2__pyx_mdef_4silx_4math_16chistogramnd_lut_53_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_float32_t_int16_t_int32_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1_2_3__pyx_mdef_16chistogramnd_lut_55_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1_2_3__pyx_mdef_4silx_4math_16chistogramnd_lut_55_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_float32_t_int16_t_int64_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_2_0_0__pyx_mdef_16chistogramnd_lut_57_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_2_0_0__pyx_mdef_4silx_4math_16chistogramnd_lut_57_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_int32_t_int64_t_float64_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_2_0_1__pyx_mdef_16chistogramnd_lut_59_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_2_0_1__pyx_mdef_4silx_4math_16chistogramnd_lut_59_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_int32_t_int64_t_float32_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_2_0_2__pyx_mdef_16chistogramnd_lut_61_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_2_0_2__pyx_mdef_4silx_4math_16chistogramnd_lut_61_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_int32_t_int64_t_int32_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_2_0_3__pyx_mdef_16chistogramnd_lut_63_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_2_0_3__pyx_mdef_4silx_4math_16chistogramnd_lut_63_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_int32_t_int64_t_int64_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_2_1_0__pyx_mdef_16chistogramnd_lut_65_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_2_1_0__pyx_mdef_4silx_4math_16chistogramnd_lut_65_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_int32_t_int32_t_float64_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_2_1_1__pyx_mdef_16chistogramnd_lut_67_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_2_1_1__pyx_mdef_4silx_4math_16chistogramnd_lut_67_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_int32_t_int32_t_float32_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_2_1_2__pyx_mdef_16chistogramnd_lut_69_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_2_1_2__pyx_mdef_4silx_4math_16chistogramnd_lut_69_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_int32_t_int32_t_int32_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_2_1_3__pyx_mdef_16chistogramnd_lut_71_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_2_1_3__pyx_mdef_4silx_4math_16chistogramnd_lut_71_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_int32_t_int32_t_int64_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_2_2_0__pyx_mdef_16chistogramnd_lut_73_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_2_2_0__pyx_mdef_4silx_4math_16chistogramnd_lut_73_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_int32_t_int16_t_float64_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_2_2_1__pyx_mdef_16chistogramnd_lut_75_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_2_2_1__pyx_mdef_4silx_4math_16chistogramnd_lut_75_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_int32_t_int16_t_float32_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_2_2_2__pyx_mdef_16chistogramnd_lut_77_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_2_2_2__pyx_mdef_4silx_4math_16chistogramnd_lut_77_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_int32_t_int16_t_int32_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_2_2_3__pyx_mdef_16chistogramnd_lut_79_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_2_2_3__pyx_mdef_4silx_4math_16chistogramnd_lut_79_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_int32_t_int16_t_int64_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_3_0_0__pyx_mdef_16chistogramnd_lut_81_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_3_0_0__pyx_mdef_4silx_4math_16chistogramnd_lut_81_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_int64_t_int64_t_float64_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_3_0_1__pyx_mdef_16chistogramnd_lut_83_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_3_0_1__pyx_mdef_4silx_4math_16chistogramnd_lut_83_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_int64_t_int64_t_float32_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_3_0_2__pyx_mdef_16chistogramnd_lut_85_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_3_0_2__pyx_mdef_4silx_4math_16chistogramnd_lut_85_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_int64_t_int64_t_int32_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_3_0_3__pyx_mdef_16chistogramnd_lut_87_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_3_0_3__pyx_mdef_4silx_4math_16chistogramnd_lut_87_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_int64_t_int64_t_int64_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_3_1_0__pyx_mdef_16chistogramnd_lut_89_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_3_1_0__pyx_mdef_4silx_4math_16chistogramnd_lut_89_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_int64_t_int32_t_float64_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_3_1_1__pyx_mdef_16chistogramnd_lut_91_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_3_1_1__pyx_mdef_4silx_4math_16chistogramnd_lut_91_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_int64_t_int32_t_float32_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_3_1_2__pyx_mdef_16chistogramnd_lut_93_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_3_1_2__pyx_mdef_4silx_4math_16chistogramnd_lut_93_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_int64_t_int32_t_int32_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_3_1_3__pyx_mdef_16chistogramnd_lut_95_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_3_1_3__pyx_mdef_4silx_4math_16chistogramnd_lut_95_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_int64_t_int32_t_int64_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_3_2_0__pyx_mdef_16chistogramnd_lut_97_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_3_2_0__pyx_mdef_4silx_4math_16chistogramnd_lut_97_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_int64_t_int16_t_float64_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_3_2_1__pyx_mdef_16chistogramnd_lut_99_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_3_2_1__pyx_mdef_4silx_4math_16chistogramnd_lut_99_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_int64_t_int16_t_float32_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_3_2_2__pyx_mdef_16chistogramnd_lut_101_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_3_2_2__pyx_mdef_4silx_4math_16chistogramnd_lut_101_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_int64_t_int16_t_int32_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_3_2_3__pyx_mdef_16chistogramnd_lut_103_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_3_2_3__pyx_mdef_4silx_4math_16chistogramnd_lut_103_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_1, __pyx_kp_s_int64_t_int16_t_int64_t, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_mdef_16chistogramnd_lut_5_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_mdef_4silx_4math_16chistogramnd_lut_5_histogramnd_from_lut_fused, 0, __pyx_n_s_histogramnd_from_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   ((__pyx_FusedFunctionObject *) __pyx_t_2)->__signatures__ = __pyx_t_1;
@@ -43719,7 +43719,7 @@ PyMODINIT_FUNC PyInit_chistogramnd_lut(void)
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_histogramnd_from_lut_fused, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "chistogramnd_lut.pyx":352
+  /* "silx/math/chistogramnd_lut.pyx":352
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * def _histogramnd_get_lut_fused(sample_t[:] i_sample,             # <<<<<<<<<<<<<<
@@ -43728,67 +43728,67 @@ PyMODINIT_FUNC PyInit_chistogramnd_lut(void)
  */
   __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0_0__pyx_mdef_16chistogramnd_lut_107_histogramnd_get_lut_fused, 0, __pyx_n_s_histogramnd_get_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__48)); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0_0__pyx_mdef_4silx_4math_16chistogramnd_lut_107_histogramnd_get_lut_fused, 0, __pyx_n_s_histogramnd_get_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__48)); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_4, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_3, __pyx_kp_s_float64_t_int64_t, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0_1__pyx_mdef_16chistogramnd_lut_109_histogramnd_get_lut_fused, 0, __pyx_n_s_histogramnd_get_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__48)); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0_1__pyx_mdef_4silx_4math_16chistogramnd_lut_109_histogramnd_get_lut_fused, 0, __pyx_n_s_histogramnd_get_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__48)); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_4, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_3, __pyx_kp_s_float64_t_int32_t, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0_2__pyx_mdef_16chistogramnd_lut_111_histogramnd_get_lut_fused, 0, __pyx_n_s_histogramnd_get_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__48)); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0_2__pyx_mdef_4silx_4math_16chistogramnd_lut_111_histogramnd_get_lut_fused, 0, __pyx_n_s_histogramnd_get_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__48)); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_4, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_3, __pyx_kp_s_float64_t_int16_t, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1_0__pyx_mdef_16chistogramnd_lut_113_histogramnd_get_lut_fused, 0, __pyx_n_s_histogramnd_get_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__48)); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1_0__pyx_mdef_4silx_4math_16chistogramnd_lut_113_histogramnd_get_lut_fused, 0, __pyx_n_s_histogramnd_get_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__48)); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_4, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_3, __pyx_kp_s_float32_t_int64_t, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1_1__pyx_mdef_16chistogramnd_lut_115_histogramnd_get_lut_fused, 0, __pyx_n_s_histogramnd_get_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__48)); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1_1__pyx_mdef_4silx_4math_16chistogramnd_lut_115_histogramnd_get_lut_fused, 0, __pyx_n_s_histogramnd_get_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__48)); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_4, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_3, __pyx_kp_s_float32_t_int32_t, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1_2__pyx_mdef_16chistogramnd_lut_117_histogramnd_get_lut_fused, 0, __pyx_n_s_histogramnd_get_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__48)); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1_2__pyx_mdef_4silx_4math_16chistogramnd_lut_117_histogramnd_get_lut_fused, 0, __pyx_n_s_histogramnd_get_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__48)); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_4, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_3, __pyx_kp_s_float32_t_int16_t, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_fuse_2_0__pyx_mdef_16chistogramnd_lut_119_histogramnd_get_lut_fused, 0, __pyx_n_s_histogramnd_get_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__48)); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_fuse_2_0__pyx_mdef_4silx_4math_16chistogramnd_lut_119_histogramnd_get_lut_fused, 0, __pyx_n_s_histogramnd_get_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__48)); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_4, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_3, __pyx_kp_s_int32_t_int64_t, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_fuse_2_1__pyx_mdef_16chistogramnd_lut_121_histogramnd_get_lut_fused, 0, __pyx_n_s_histogramnd_get_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__48)); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_fuse_2_1__pyx_mdef_4silx_4math_16chistogramnd_lut_121_histogramnd_get_lut_fused, 0, __pyx_n_s_histogramnd_get_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__48)); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_4, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_3, __pyx_kp_s_int32_t_int32_t, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_fuse_2_2__pyx_mdef_16chistogramnd_lut_123_histogramnd_get_lut_fused, 0, __pyx_n_s_histogramnd_get_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__48)); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_fuse_2_2__pyx_mdef_4silx_4math_16chistogramnd_lut_123_histogramnd_get_lut_fused, 0, __pyx_n_s_histogramnd_get_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__48)); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_4, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_3, __pyx_kp_s_int32_t_int16_t, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_fuse_3_0__pyx_mdef_16chistogramnd_lut_125_histogramnd_get_lut_fused, 0, __pyx_n_s_histogramnd_get_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__48)); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_fuse_3_0__pyx_mdef_4silx_4math_16chistogramnd_lut_125_histogramnd_get_lut_fused, 0, __pyx_n_s_histogramnd_get_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__48)); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_4, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_3, __pyx_kp_s_int64_t_int64_t, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_fuse_3_1__pyx_mdef_16chistogramnd_lut_127_histogramnd_get_lut_fused, 0, __pyx_n_s_histogramnd_get_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__48)); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_fuse_3_1__pyx_mdef_4silx_4math_16chistogramnd_lut_127_histogramnd_get_lut_fused, 0, __pyx_n_s_histogramnd_get_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__48)); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_4, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_3, __pyx_kp_s_int64_t_int32_t, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_fuse_3_2__pyx_mdef_16chistogramnd_lut_129_histogramnd_get_lut_fused, 0, __pyx_n_s_histogramnd_get_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__48)); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_fuse_3_2__pyx_mdef_4silx_4math_16chistogramnd_lut_129_histogramnd_get_lut_fused, 0, __pyx_n_s_histogramnd_get_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__48)); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_4, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_3, __pyx_kp_s_int64_t_int16_t, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_mdef_16chistogramnd_lut_7_histogramnd_get_lut_fused, 0, __pyx_n_s_histogramnd_get_lut_fused, NULL, __pyx_n_s_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__48)); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_mdef_4silx_4math_16chistogramnd_lut_7_histogramnd_get_lut_fused, 0, __pyx_n_s_histogramnd_get_lut_fused, NULL, __pyx_n_s_silx_math_chistogramnd_lut, __pyx_d, ((PyObject *)__pyx_codeobj__48)); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_4, __pyx_empty_tuple);
   ((__pyx_FusedFunctionObject *) __pyx_t_4)->__signatures__ = __pyx_t_3;
@@ -43796,7 +43796,7 @@ PyMODINIT_FUNC PyInit_chistogramnd_lut(void)
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_histogramnd_get_lut_fused, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 352; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "chistogramnd_lut.pyx":1
+  /* "silx/math/chistogramnd_lut.pyx":1
  * # coding: utf-8             # <<<<<<<<<<<<<<
  * # /[inserted by cython to avoid comment start]*##########################################################################
  * # Copyright (C) 2016-2017 European Synchrotron Radiation Facility
@@ -43933,11 +43933,11 @@ PyMODINIT_FUNC PyInit_chistogramnd_lut(void)
   __Pyx_XDECREF(__pyx_t_5);
   if (__pyx_m) {
     if (__pyx_d) {
-      __Pyx_AddTraceback("init chistogramnd_lut", __pyx_clineno, __pyx_lineno, __pyx_filename);
+      __Pyx_AddTraceback("init silx.math.chistogramnd_lut", __pyx_clineno, __pyx_lineno, __pyx_filename);
     }
     Py_DECREF(__pyx_m); __pyx_m = 0;
   } else if (!PyErr_Occurred()) {
-    PyErr_SetString(PyExc_ImportError, "init chistogramnd_lut");
+    PyErr_SetString(PyExc_ImportError, "init silx.math.chistogramnd_lut");
   }
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();

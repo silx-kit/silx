@@ -32,7 +32,7 @@ __date__ = "15/05/2017"
 import logging
 import numpy
 
-from . import filters
+from silx.math.fit import filters
 
 _logger = logging.getLogger(__name__)
 
