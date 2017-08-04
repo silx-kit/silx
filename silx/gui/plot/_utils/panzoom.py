@@ -24,13 +24,12 @@
 # ###########################################################################*/
 """Functions to apply pan and zoom on a Plot"""
 
-__authors__ = ["T. Vincent"]
+__authors__ = ["T. Vincent", "V. Valls"]
 __license__ = "MIT"
-__date__ = "27/06/2017"
+__date__ = "04/08/2017"
 
 
 import math
-
 import numpy
 
 
@@ -154,3 +153,137 @@ def applyPan(min_, max_, panFactor, isLog10):
         if newMin > - float('inf') and newMax < float('inf'):
             min_, max_ = newMin, newMax
     return min_, max_
+
+
+class _Unset(object):
+    """To be able to have distinction between None and unset"""
+    pass
+
+
+class ViewConstaints(object):
+
+    def __init__(self):
+        self._min = [None, None]
+        self._max = [None, None]
+        self._minRange = [None, None]
+        self._maxRange = [None, None]
+
+    def update(self, xMin=_Unset, xMax=_Unset,
+               yMin=_Unset, yMax=_Unset,
+               minXRange=_Unset, maxXRange=_Unset,
+               minYRange=_Unset, maxYRange=_Unset):
+        """
+        Update the contraints managed by the object
+
+        The contraints are the same as the ones provided by PyQtGraph.
+
+        :param float xMin: Minimum allowed x-axis value.
+            (default do not change the stat, None remove the constraint)
+        :param float xMax: Maximum allowed x-axis value.
+            (default do not change the stat, None remove the constraint)
+        :param float yMin: Minimum allowed y-axis value.
+            (default do not change the stat, None remove the constraint)
+        :param float yMax: Maximum allowed y-axis value.
+            (default do not change the stat, None remove the constraint)
+        :param float minXRange: Minimum allowed left-to-right span across the
+            view (default do not change the stat, None remove the constraint)
+        :param float maxXRange: Maximum allowed left-to-right span across the
+            view (default do not change the stat, None remove the constraint)
+        :param float minYRange: Minimum allowed top-to-bottom span across the
+            view (default do not change the stat, None remove the constraint)
+        :param float maxYRange: Maximum allowed top-to-bottom span across the
+            view (default do not change the stat, None remove the constraint)
+        :return: True if the constaints was changed
+        """
+        updated = False
+
+        minRange = [minXRange, minYRange]
+        maxRange = [maxXRange, maxYRange]
+        minPos = [xMin, yMin]
+        maxPos = [xMax, yMax]
+
+        for axis in range(2):
+
+            value = minPos[axis]
+            if value is not _Unset and value != self._min[axis]:
+                self._min[axis] = value
+                updated = True
+
+            value = maxPos[axis]
+            if value is not _Unset and value != self._max[axis]:
+                self._max[axis] = value
+                updated = True
+
+            value = minRange[axis]
+            if value is not _Unset and value != self._minRange[axis]:
+                self._minRange[axis] = value
+                updated = True
+
+            value = maxRange[axis]
+            if value is not _Unset and value != self._maxRange[axis]:
+                self._maxRange[axis] = value
+                updated = True
+
+        # Sanity checks
+
+        for axis in range(2):
+            if self._maxRange[axis] is not None and self._min[axis] is not None and self._max[axis] is not None:
+                # max range cannot be larger than bounds
+                diff = self._max[axis] - self._min[axis]
+                self._maxRange[axis] = min(self._maxRange[axis], diff)
+                updated = True
+
+        return updated
+
+    def normalize(self, xMin, xMax, yMin, yMax, allow_scaling=True):
+        """Normalize a view range defined by x and y corners using predefined
+        containts.
+
+        :param float xMin: Min position of the x-axis
+        :param float xMax: Max position of the x-axis
+        :param float yMin: Min position of the y-axis
+        :param float yMax: Max position of the y-axis
+        :param bool allow_scaling: Allow or not to apply scaling for the
+            normalization. Used according to the interaction mode.
+        :return: A normalized tuple of (xMin, xMax, yMin, yMax)
+        """
+        viewRange = [[xMin, xMax], [yMin, yMax]]
+
+        for axis in range(2):
+            # clamp xRange and yRange
+            if allow_scaling:
+                diff = viewRange[axis][1] - viewRange[axis][0]
+                delta = None
+                if self._maxRange[axis] is not None and diff > self._maxRange[axis]:
+                    delta = self._maxRange[axis] - diff
+                elif self._minRange[axis] is not None and diff < self._minRange[axis]:
+                    delta = self._minRange[axis] - diff
+                if delta is not None:
+                    viewRange[axis][0] -= delta * 0.5
+                    viewRange[axis][1] += delta * 0.5
+
+            # clamp min and max positions
+            outMin = self._min[axis] is not None and viewRange[axis][0] < self._min[axis]
+            outMax = self._max[axis] is not None and viewRange[axis][1] > self._max[axis]
+
+            if outMin and outMax:
+                if allow_scaling:
+                    # we can clamp both sides
+                    viewRange[axis][0] = self._min[axis]
+                    viewRange[axis][1] = self._max[axis]
+                else:
+                    # center the result
+                    delta = viewRange[axis][1] - viewRange[axis][0]
+                    mid = self._min[axis] + self._max[axis] - self._min[axis]
+                    viewRange[axis][0] = mid - delta
+                    viewRange[axis][1] = mid + delta
+            elif outMin:
+                delta = self._min[axis] - viewRange[axis][0]
+                viewRange[axis][0] += delta
+                viewRange[axis][1] += delta
+            elif outMax:
+                delta = self._max[axis] - viewRange[axis][1]
+                viewRange[axis][0] += delta
+                viewRange[axis][1] += delta
+
+        return viewRange[0][0], viewRange[0][1], viewRange[1][0], viewRange[1][1]
