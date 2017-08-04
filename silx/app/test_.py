@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "02/08/2017"
+__date__ = "04/08/2017"
 
 import sys
 import os
@@ -53,10 +53,20 @@ class StreamHandlerUnittestReady(logging.StreamHandler):
         pass
 
 
+def createBasicHandler():
+    """Create the handler using the basic configuration"""
+    hdlr = StreamHandlerUnittestReady()
+    fs = logging.BASIC_FORMAT
+    dfs = None
+    fmt = logging.Formatter(fs, dfs)
+    hdlr.setFormatter(fmt)
+    return hdlr
+
+
 # Use an handler compatible with unittests, else use_buffer is not working
 for h in logging.root.handlers:
     logging.root.removeHandler(h)
-logging.root.addHandler(StreamHandlerUnittestReady())
+logging.root.addHandler(createBasicHandler())
 logging.captureWarnings(True)
 
 _logger = logging.getLogger(__name__)
