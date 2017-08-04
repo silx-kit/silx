@@ -72,7 +72,7 @@ def configuration(parent_package='', top_path=None):
     # min/max
     config.add_extension('combo',
                          sources=['combo.pyx'],
-                         include_dirs=['combo'],
+                         include_dirs=['include'],
                          language='c')
 
     return config

@@ -2624,11 +2624,11 @@ static PyObject *__pyx_pf_4silx_4math_5combo__min_max(CYTHON_UNUSED PyObject *__
   int __pyx_v_unsigned_char_is_signed;
   int __pyx_v_unsigned_int_is_signed;
   int __pyx_v_unsigned_short_is_signed;
-  int __pyx_v_signed_char_is_signed;
-  int __pyx_v_signed_long_is_signed;
-  int __pyx_v_signed_int_is_signed;
   int __pyx_v_signed_short_is_signed;
+  int __pyx_v_signed_int_is_signed;
   int __pyx_v_unsigned_long_long_is_signed;
+  int __pyx_v_signed_long_is_signed;
+  int __pyx_v_signed_char_is_signed;
   PyObject *__pyx_v_arg = NULL;
   PyObject *__pyx_v_dtype = NULL;
   PyObject *__pyx_v_arg_base = NULL;
@@ -2735,11 +2735,11 @@ static PyObject *__pyx_pf_4silx_4math_5combo__min_max(CYTHON_UNUSED PyObject *__
   __pyx_v_unsigned_char_is_signed = (((unsigned char)-1) < 0);
   __pyx_v_unsigned_int_is_signed = (((unsigned int)-1) < 0);
   __pyx_v_unsigned_short_is_signed = (((unsigned short)-1) < 0);
-  __pyx_v_signed_char_is_signed = (((signed char)-1) < 0);
-  __pyx_v_signed_long_is_signed = (((signed long)-1) < 0);
-  __pyx_v_signed_int_is_signed = (((signed int)-1) < 0);
   __pyx_v_signed_short_is_signed = (((signed short)-1) < 0);
+  __pyx_v_signed_int_is_signed = (((signed int)-1) < 0);
   __pyx_v_unsigned_long_long_is_signed = (((unsigned PY_LONG_LONG)-1) < 0);
+  __pyx_v_signed_long_is_signed = (((signed long)-1) < 0);
+  __pyx_v_signed_char_is_signed = (((signed char)-1) < 0);
   if (unlikely(__pyx_v_args == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 117; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
