@@ -49,6 +49,7 @@ from . import testProfile
 from . import testStackView
 from . import testItem
 from . import testUtilsAxis
+from . import testLimitConstraints
 
 
 def suite():
@@ -73,5 +74,6 @@ def suite():
          testStackView.suite(),
          testColormap.suite(),
          testItem.suite(),
-         testUtilsAxis.suite()])
+         testUtilsAxis.suite(),
+         testLimitConstraints.suite()])
     return test_suite

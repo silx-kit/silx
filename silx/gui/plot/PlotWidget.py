@@ -175,7 +175,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "28/06/2017"
+__date__ = "08/08/2017"
 
 
 from collections import OrderedDict, namedtuple
@@ -199,6 +199,7 @@ from . import _utils
 from . import items
 
 from .. import qt
+from ._utils.panzoom import ViewConstraints
 
 
 _logger = logging.getLogger(__name__)
@@ -338,6 +339,7 @@ class PlotWidget(qt.QMainWindow):
             _logger.warning('deprecated: __init__ callback argument')
 
         self._panWithArrowKeys = True
+        self._viewConstrains = None
 
         super(PlotWidget, self).__init__(parent)
         if parent is not None:
@@ -2091,9 +2093,51 @@ class PlotWidget(qt.QMainWindow):
             axis = self.getYAxis(axis="right")
             y2min, y2max = axis._checkLimits(y2min, y2max)
 
+        if self._viewConstrains:
+            view = self._viewConstrains.normalize(xmin, xmax, ymin, ymax)
+            xmin, xmax, ymin, ymax = view
+
         self._backend.setLimits(xmin, xmax, ymin, ymax, y2min, y2max)
         self._setDirtyPlot()
         self._notifyLimitsChanged()
+
+    def setLimitConstraints(self, xMin=None, xMax=None,
+                            yMin=None, yMax=None,
+                            minXRange=None, maxXRange=None,
+                            minYRange=None, maxYRange=None):
+        """
+        Set limits that constrain the possible view ranges.
+
+        The arguments `xMin`, `xMax`, `yMin`, `yMax` define the region within
+        the viewbox coordinate system that may be accessed by panning the view.
+
+        The ranges arguments prevent the view being zoomed in or
+        out too far.
+
+        .. versionadded:: 0.6
+
+        :param float xMin: Minimum allowed x-axis value
+        :param float xMax: Maximum allowed x-axis value
+        :param float yMin: Minimum allowed y-axis value
+        :param float yMax: Maximum allowed y-axis value
+        :param float minXRange: Minimum allowed left-to-right span across the view.
+        :param float maxXRange: Maximum allowed left-to-right span across the view.
+        :param float minYRange: Minimum allowed top-to-bottom span across the view.
+        :param float maxYRange: Maximum allowed top-to-bottom span across the view.
+        """
+        if self._viewConstrains is None:
+            self._viewConstrains = ViewConstraints()
+        updated = self._viewConstrains.update(xMin=xMin, xMax=xMax,
+                                              yMin=yMin, yMax=yMax,
+                                              minXRange=minXRange,
+                                              maxXRange=maxXRange,
+                                              minYRange=minYRange,
+                                              maxYRange=maxYRange)
+        if updated:
+            xMin, xMax = self.getXAxis().getLimits()
+            yMin, yMax = self.getYAxis().getLimits()
+            y2Min, y2Max = self.getYAxis('right').getLimits()
+            self.setLimits(xMin, xMax, yMin, yMax, y2Min, y2Max)
 
     # Title and labels
 
