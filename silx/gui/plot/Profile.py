@@ -41,14 +41,14 @@ from . import items
 from .Colors import cursorColorForColormap
 from . import actions
 
-from .PlotToolButtons import ProfileToolButton
+from .PlotToolButtons import ProfileToolButton, MeanSumToolButton
 from .ProfileMainWindow import ProfileMainWindow
 
 from silx.utils.deprecation import deprecated
 
 
 def _alignedFullProfile(data, origin, scale, position, roiWidth, axis,
-                        profileType="mean"):
+                        averageMethod="mean"):
     """Get a profile along one axis on a stack of images
 
     :param numpy.ndarray data: 3D volume (stack of 2D images)
@@ -59,7 +59,7 @@ def _alignedFullProfile(data, origin, scale, position, roiWidth, axis,
                            on the axis orthogonal to the profile direction.
     :param int roiWidth: Width of the profile in image pixels.
     :param int axis: 0 for horizontal profile, 1 for vertical.
-    :param str profileType: "mean" (default) or "sum".
+    :param str averageMethod: "mean" (default) or "sum".
     :return: profile image + effective ROI area corners in plot coords
     """
     assert axis in (0, 1)
@@ -82,7 +82,7 @@ def _alignedFullProfile(data, origin, scale, position, roiWidth, axis,
     end = start + roiWidth
 
     if start < height and end > 0:
-        if profileType != "sum":
+        if averageMethod != "sum":
             profile = data[:, max(0, start):min(end, height), :].mean(
                 axis=1, dtype=numpy.float32)
         else:
@@ -108,7 +108,7 @@ def _alignedFullProfile(data, origin, scale, position, roiWidth, axis,
 
 
 def _alignedPartialProfile(data, rowRange, colRange, axis,
-                           profileType="mean"):
+                           averageMethod="mean"):
     """Mean of a rectangular region (ROI) of a stack of images
     along a given axis.
 
@@ -123,7 +123,7 @@ def _alignedPartialProfile(data, rowRange, colRange, axis,
     :param int axis: The axis along which to take the profile of the ROI.
                      0: Sum rows along columns.
                      1: Sum columns along rows.
-    :param str profileType: "mean" (default) or "sum".
+    :param str averageMethod: "mean" (default) or "sum".
     :return: Profile image along the ROI as the mean of the intersection
              of the ROI and the image.
     """
@@ -145,7 +145,7 @@ def _alignedPartialProfile(data, rowRange, colRange, axis,
     colStart = min(max(0, colRange[0]), width)
     colEnd = min(max(0, colRange[1]), width)
 
-    if profileType != "sum":
+    if averageMethod != "sum":
         imgProfile = numpy.mean(data[:, rowStart:rowEnd, colStart:colEnd],
                                 axis=axis + 1, dtype=numpy.float32)
     else:
@@ -163,7 +163,7 @@ def _alignedPartialProfile(data, rowRange, colRange, axis,
 
 
 def createProfile(roiInfo, currentData, origin, scale, lineWidth,
-                  profileType="mean"):
+                  averageMethod="mean"):
     """Create the profile line for the the given image.
 
     :param roiInfo: information about the ROI: start point, end point and
@@ -175,7 +175,7 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth,
     :param scale: (sx, sy) the scale to use
     :type scale: 2-tuple of float
     :param int lineWidth: width of the profile line
-    :param str profileType: "mean" (default) or "sum".
+    :param str averageMethod: "mean" (default) or "sum".
     :return: `profile, area, profileName, xLabel`, where:
         - profile is a 2D array of the profiles of the stack of images.
           For a single image, the profile is a curve, so this parameter
@@ -206,7 +206,7 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth,
                                             origin, scale,
                                             roiStart[1], roiWidth,
                                             axis=0,
-                                            profileType=profileType)
+                                            averageMethod=averageMethod)
 
         yMin, yMax = min(area[1]), max(area[1]) - 1
         if roiWidth <= 1:
@@ -220,7 +220,7 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth,
                                             origin, scale,
                                             roiStart[0], roiWidth,
                                             axis=1,
-                                            profileType=profileType)
+                                            averageMethod=averageMethod)
 
         xMin, xMax = min(area[0]), max(area[0]) - 1
         if roiWidth <= 1:
@@ -256,7 +256,7 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth,
                 profile = _alignedPartialProfile(currentData3D,
                                                  rowRange, colRange,
                                                  axis=0,
-                                                 profileType=profileType)
+                                                 averageMethod=averageMethod)
 
             else:  # Column aligned
                 rowRange = startPt[0], endPt[0] + 1
@@ -265,7 +265,7 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth,
                 profile = _alignedPartialProfile(currentData3D,
                                                  rowRange, colRange,
                                                  axis=1,
-                                                 profileType=profileType)
+                                                 averageMethod=averageMethod)
 
             # Convert ranges to plot coords to draw ROI area
             area = (
@@ -290,7 +290,7 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth,
                 profile.append(bilinear.profile_line(
                     (startPt[0] - 0.5, startPt[1] - 0.5),
                     (endPt[0] - 0.5, endPt[1] - 0.5),
-                    roiWidth, profileType))
+                    roiWidth, averageMethod))
             profile = numpy.array(profile)
 
             # Extend ROI with half a pixel on each end, and
@@ -374,6 +374,8 @@ class ProfileToolBar(qt.QToolBar):
 
         self._roiInfo = None  # Store start and end points and type of ROI
 
+        self._averageMethod = "mean"
+
         self._profileWindow = profileWindow
         """User provided plot widget in which the profile curve is plotted.
         None if no custom profile plot was provided."""
@@ -426,6 +428,13 @@ class ProfileToolBar(qt.QToolBar):
         self.clearAction.setCheckable(False)
         self.clearAction.triggered.connect(self.clearProfile)
 
+        self.meanSumToolButton = MeanSumToolButton(
+            parent=self, plot=self.plot)
+        self.meanSumToolButton.setVisible(True)
+        self.meanSumToolButton.setMeanProfile()
+        self.meanSumToolButton.sigAverageMethodChanged.connect(
+            self._setAverageMethod)
+
         # ActionGroup
         self.actionGroup = qt.QActionGroup(self)
         self.actionGroup.addAction(self._browseAction)
@@ -451,6 +460,9 @@ class ProfileToolBar(qt.QToolBar):
 
         self.plot.sigInteractiveModeChanged.connect(
             self._interactiveModeChanged)
+
+        # Add MeanSumToolButton to toolbar
+        self.addWidget(self.meanSumToolButton)
 
         # Enable toolbar only if there is an active image
         self.setEnabled(self.plot.getActiveImage(just_legend=True) is not None)
@@ -543,6 +555,22 @@ class ProfileToolBar(qt.QToolBar):
         else:
             self.plot.sigPlotSignal.disconnect(self._plotWindowSlot)
 
+    def _browseActionTriggered(self, checked):
+        """Handle browse action mode triggered by user."""
+        if checked:
+            self.clearProfile()
+            self.plot.setInteractiveMode('zoom', source=self)
+            if self.getProfileMainWindow() is not None:
+                self.getProfileMainWindow().hide()
+
+    def _setAverageMethod(self, averageMethod):
+        """Set the average method: "sum" or "mean".
+
+        :param str averageMethod: "sum" or "mean"
+        """
+        self._averageMethod = str(averageMethod)   # qt converts the signal data to unicode in python2
+        self.updateProfile()
+
     def _plotWindowSlot(self, event):
         """Listen to Plot to handle drawing events to refresh ROI and profile.
         """
@@ -625,7 +653,8 @@ class ProfileToolBar(qt.QToolBar):
             currentData=currentData,
             origin=origin,
             scale=scale,
-            lineWidth=self.lineWidthSpinBox.value())
+            lineWidth=self.lineWidthSpinBox.value(),
+            averageMethod=self._averageMethod)
 
         self.getProfilePlot().setGraphTitle(profileName)
 
