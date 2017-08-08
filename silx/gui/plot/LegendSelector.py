@@ -282,6 +282,7 @@ class LegendModel(qt.QAbstractListModel):
             raise IndexError('list index out of range')
 
         item = self.legendList[idx]
+        is_active = item[1].get("active", False)
         if role == qt.Qt.DisplayRole:
             # Data to be rendered in the form of text
             legend = str(item[0])
@@ -289,7 +290,7 @@ class LegendModel(qt.QAbstractListModel):
         elif role == qt.Qt.FontRole:
             # Bold if active
             font = qt.QFont()
-            if item[1]['active']:
+            if is_active:
                 font.setBold(True)
             return font
         elif role == qt.Qt.SizeHintRole:
@@ -301,7 +302,7 @@ class LegendModel(qt.QAbstractListModel):
             return alignment
         elif role == qt.Qt.BackgroundRole:
             # Background color, must be QBrush
-            if item[1]['active']:
+            if is_active:
                 brush = qt.QBrush(qt.QColor(255, 255, 102))
             elif idx % 2:
                 brush = qt.QBrush(qt.QColor(240, 240, 240))
