@@ -29,7 +29,7 @@ This widget is meant to work with :class:`PlotWindow`.
 
 __authors__ = ["V.A. Sole", "T. Rueter", "T. Vincent"]
 __license__ = "MIT"
-__data__ = "28/04/2016"
+__data__ = "08/08/2016"
 
 
 import logging
@@ -286,6 +286,12 @@ class LegendModel(qt.QAbstractListModel):
             # Data to be rendered in the form of text
             legend = str(item[0])
             return legend
+        elif role == qt.Qt.FontRole:
+            # Bold if active
+            font = qt.QFont()
+            if item[1]['active']:
+                font.setBold(True)
+            return font
         elif role == qt.Qt.SizeHintRole:
             # size = qt.QSize(200,50)
             _logger.warning('LegendModel -- size hint role not implemented')
@@ -295,7 +301,9 @@ class LegendModel(qt.QAbstractListModel):
             return alignment
         elif role == qt.Qt.BackgroundRole:
             # Background color, must be QBrush
-            if idx % 2:
+            if item[1]['active']:
+                brush = qt.QBrush(qt.QColor(255, 255, 102))
+            elif idx % 2:
                 brush = qt.QBrush(qt.QColor(240, 240, 240))
             else:
                 brush = qt.QBrush(qt.Qt.white)
@@ -511,8 +519,9 @@ class LegendListItemWidget(qt.QItemDelegate):
         legendText = modelIndex.data(qt.Qt.DisplayRole)
         textBrush = modelIndex.data(qt.Qt.ForegroundRole)
         textAlign = modelIndex.data(qt.Qt.TextAlignmentRole)
+        textFont = modelIndex.data(qt.Qt.FontRole)
         painter.setBrush(textBrush)
-        painter.setFont(self.legend.font())
+        painter.setFont(textFont)
         painter.drawText(labelRect, textAlign, legendText)
 
         # Draw icon
@@ -1053,15 +1062,18 @@ class LegendsDockWidget(qt.QDockWidget):
             # Use active color if curve is active
             if legend == self.plot.getActiveCurve(just_legend=True):
                 color = qt.QColor(self.plot.getActiveCurveColor())
+                is_active = True
             else:
                 color = qt.QColor.fromRgbF(*curve.getColor())
+                is_active = False
 
             curveInfo = {
                 'color': color,
                 'linewidth': curve.getLineWidth(),
                 'linestyle': curve.getLineStyle(),
                 'symbol': curve.getSymbol(),
-                'selected': not self.plot.isCurveHidden(legend)}
+                'selected': not self.plot.isCurveHidden(legend),
+                'active': is_active}
             legendList.append((legend, curveInfo))
 
         self._legendWidget.setLegendList(legendList)
