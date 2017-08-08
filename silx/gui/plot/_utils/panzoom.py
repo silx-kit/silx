@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent", "V. Valls"]
 __license__ = "MIT"
-__date__ = "04/08/2017"
+__date__ = "08/08/2017"
 
 
 import math
@@ -160,7 +160,10 @@ class _Unset(object):
     pass
 
 
-class ViewConstaints(object):
+class ViewConstraints(object):
+    """
+    Store constraints applied on the view box and compute the resulting view box.
+    """
 
     def __init__(self):
         self._min = [None, None]
@@ -173,9 +176,9 @@ class ViewConstaints(object):
                minXRange=_Unset, maxXRange=_Unset,
                minYRange=_Unset, maxYRange=_Unset):
         """
-        Update the contraints managed by the object
+        Update the constraints managed by the object
 
-        The contraints are the same as the ones provided by PyQtGraph.
+        The constraints are the same as the ones provided by PyQtGraph.
 
         :param float xMin: Minimum allowed x-axis value.
             (default do not change the stat, None remove the constraint)
@@ -193,7 +196,7 @@ class ViewConstaints(object):
             view (default do not change the stat, None remove the constraint)
         :param float maxYRange: Maximum allowed top-to-bottom span across the
             view (default do not change the stat, None remove the constraint)
-        :return: True if the constaints was changed
+        :return: True if the constraints was changed
         """
         updated = False
 

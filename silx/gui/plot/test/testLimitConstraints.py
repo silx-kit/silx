@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "04/08/2017"
+__date__ = "08/08/2017"
 
 
 import unittest
@@ -105,7 +105,7 @@ class TestLimitConstaints(unittest.TestCase):
         self.assertEqual(limits[1] - limits[0], 100)
 
     def testChangeOfConstraints(self):
-        """Test changing of the contraints"""
+        """Test changing of the constraints"""
         self.plot.setLimitConstraints(minXRange=10, maxXRange=10)
         # There is no more containts on the range
         self.plot.setLimitConstraints(xMin=0, xMax=100)
