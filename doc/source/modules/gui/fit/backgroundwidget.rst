@@ -7,13 +7,6 @@
 .. automodule:: silx.gui.fit.BackgroundWidget
 
 
-.. |imgBGWidget| image:: ./img/bgwidget.png
-   :height: 300px
-   :align: middle
-
-|imgBGWidget|
-
-
 API
 ---
 

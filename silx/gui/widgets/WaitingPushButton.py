@@ -40,6 +40,8 @@ class WaitingPushButton(qt.QPushButton):
     The component is graphically disabled when it is in waiting. Then we
     overwrite the enabled method to dissociate the 2 concepts:
     graphically enabled/disabled, and enabled/disabled
+
+    .. image:: img/WaitingPushButton.png
     """
 
     def __init__(self, parent=None, text=None, icon=None):
