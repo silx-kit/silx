@@ -275,44 +275,35 @@ __kernel void  forward_kernel_cpu(
 
     int beginA = beginPos[16+tidy ];
     int beginB = beginPos[tidy ];
-    float add;
     int l;
 
+    int ym, yp, xm, xp;
+    float yc, xc;
+    float val;
     if(josephnoclip) {
-
-
-        int i0, i1, j0, j1;
-        float d0, d1, x0, x1b, y0, y1, val;
-
         for(int j=0; j<dimslice; j++) {  // j: Joseph
-            x1 = beginA +(posx)*stlA + (j)*stlAJ+1.5f;
-            x2 = beginB +(posx)*stlB + (j)*stlBJ+1.5f;
+            x1 = beginA +(posx)*stlA + (j)*stlAJ+1.0f;
+            x2 = beginB +(posx)*stlB + (j)*stlBJ+1.0f;
+            /*
+              Bilinear interpolation
+            */
+            yc = fmin(fmax(x2, 0.0f), ((dimslice+2) - 1.0f)); // y_clipped
+            ym = (int) floor(yc); // y_minus
+            yp = (int) ceil(yc);  // y_plus
 
+            xc = fmin(fmax(x1, 0.0f), ((dimslice+2) - 1.0f));  // x_clipped
+            xm = (int) floor(xc); // x_minus
+            xp = (int) ceil(xc);  // x_plus
 
-            d0 = fmin(fmax(x2, 0.0f), ((dimslice+2) - 1.0f));
-            x0 = floor(d0);
-            x1b = ceil(d0);
-            i0 = (int) x0;
-            i1 = (int) x1b;
-
-            d1 = fmin(fmax(x1, 0.0f), ((dimslice+2) - 1.0f));
-            y0 = floor(d1);
-            y1 = ceil(d1);
-            j0 = (int) y0;
-            j1 = (int) y1;
-
-            if ((i0 == i1) && (j0 == j1)) val = d_slice[i0*(dimslice+2) + j0];
-            else if (i0 == i1) val = (d_slice[i0*(dimslice+2) + j0] * (y1 - d1)) + (d_slice[i0*(dimslice+2) + j1] * (d1 - y0));
-            else if (j0 == j1) val = (d_slice[i0*(dimslice+2) + j0] * (x1b - d0)) + (d_slice[i1*(dimslice+2) + j0] * (d0 - x0)); // i0, j0  ;  i1, j0
-            else val = (d_slice[i0*(dimslice+2) + j0] * (x1b - d0) * (y1 - d1))  // i0, j0
-                       + (d_slice[i1*(dimslice+2) + j0] * (d0 - x0) * (y1 - d1))  // i1, j0
-                       + (d_slice[i0*(dimslice+2) + j1] * (x1b - d0) * (d1 - y0))  // i0, j1
-                       + (d_slice[i1*(dimslice+2) + j1] * (d0 - x0) * (d1 - y0));  // i1, j1
-
-
-            //~ add = read_imagef(d_slice, sampler, (float2) (x1, x2)).x; // add = tex2D(texSlice, x1,x2);
-            add = val;
-            res += add;
+            if ((ym == yp) && (xm == xp)) val = d_slice[ym*(dimslice+2) + xm];
+            else if (ym == yp) val = (d_slice[ym*(dimslice+2) + xm] * (xp - xc)) + (d_slice[ym*(dimslice+2) + xp] * (xc - xm));
+            else if (xm == xp) val = (d_slice[ym*(dimslice+2) + xm] * (yp - yc)) + (d_slice[yp*(dimslice+2) + xm] * (yc - ym));
+            else val = (d_slice[ym*(dimslice+2) + xm] * (yp - yc) * (xp - xc))
+                       + (d_slice[yp*(dimslice+2) + xm] * (yc - ym) * (xp - xc))
+                       + (d_slice[ym*(dimslice+2) + xp] * (yp - yc) * (xc - xm))
+                       + (d_slice[yp*(dimslice+2) + xp] * (yc - ym) * (xc - xm));
+            // ----------
+            res += val;
             posx += shiftJ;
         }
     }
@@ -321,9 +312,26 @@ __kernel void  forward_kernel_cpu(
             x1 = beginA +(posx)*stlA + (j)*stlAJ+1.5f;
             x2 = beginB +(posx)*stlB + (j)*stlBJ+1.5f;
             l = (x1>=0.0f )*(x1<(dimslice+2))*( x2>=0.0f)*( x2<(dimslice+2) ) ;
-            //~ add = read_imagef(d_slice, sampler, (float2) (x1, x2)).x; // add = tex2D(texSlice, x1,x2);
-            add = 0;
-            res += add*l;
+            /*
+              Bilinear interpolation
+            */
+            yc = fmin(fmax(x2, 0.0f), ((dimslice+2) - 1.0f)); // y_clipped
+            ym = (int) floor(yc); // y_minus
+            yp = (int) ceil(yc);  // y_plus
+
+            xc = fmin(fmax(x1, 0.0f), ((dimslice+2) - 1.0f));  // x_clipped
+            xm = (int) floor(xc); // x_minus
+            xp = (int) ceil(xc);  // x_plus
+
+            if ((ym == yp) && (xm == xp)) val = d_slice[ym*(dimslice+2) + xm];
+            else if (ym == yp) val = (d_slice[ym*(dimslice+2) + xm] * (xp - xc)) + (d_slice[ym*(dimslice+2) + xp] * (xc - xm));
+            else if (xm == xp) val = (d_slice[ym*(dimslice+2) + xm] * (yp - yc)) + (d_slice[yp*(dimslice+2) + xm] * (yc - ym));
+            else val = (d_slice[ym*(dimslice+2) + xm] * (yp - yc) * (xp - xc))
+                       + (d_slice[yp*(dimslice+2) + xm] * (yc - ym) * (xp - xc))
+                       + (d_slice[ym*(dimslice+2) + xp] * (yp - yc) * (xc - xm))
+                       + (d_slice[yp*(dimslice+2) + xp] * (yc - ym) * (xc - xm));
+            // ----------
+            res += val*l;
             posx += shiftJ;
         }
     }

@@ -125,14 +125,21 @@ class Projection(OpenclProcessing):
                        BufferDescription("d_strideJoseph", self._dimrecy * 2, np.int32, mf.READ_ONLY),
                        BufferDescription("d_strideLine", self._dimrecy * 2, np.int32, mf.READ_ONLY),
                       ]
-        self.allocate_buffers()
         self._tmp_extended_img = np.zeros((self.shape[0]+2, self.shape[1]+2), dtype=np.float32)
         if self.is_cpu:
             self.allocate_slice()
         else:
             self.allocate_textures()
-
+        self.allocate_buffers()
         self._ex_sino = np.zeros((self._dimrecy, self._dimrecx), dtype=np.float32)
+        if self.is_cpu:
+            pyopencl.enqueue_fill_buffer(
+                self.queue,
+                self.cl_mem["d_slice"],
+                np.float32(0),
+                0,
+                self._tmp_extended_img.size * _sizeof(np.float32)
+            )
 
         # Precomputations
         self.compute_angles()
@@ -159,6 +166,7 @@ class Projection(OpenclProcessing):
         angles2 = np.zeros(self._dimrecy, dtype=np.float32) # dimrecy != num_projs
         angles2[:self.nprojs] = np.copy(self.angles)
         angles2[self.nprojs:] = angles2[self.nprojs-1]
+        self.angles2 = angles2
         pyopencl.enqueue_copy(self.queue, self.cl_mem["d_angles"], angles2)
 
 
@@ -186,30 +194,24 @@ class Projection(OpenclProcessing):
 
 
     def allocate_slice(self):
-            self.buffers.append([
+            self.buffers.append(
                 BufferDescription("d_slice", (self.shape[1]+2) * (self.shape[1]+2), np.float32, mf.READ_ONLY)
-            ])
-            pyopencl.enqueue_fill_buffer(
-                self.queue,
-                self.cl_mem["d_slice"],
-                np.float32(0),
-                0,
-                self._tmp_extended_img.size * _sizeof(np.float32)
             )
+
 
 
     def transfer_to_slice(self, image):
         image2 = np.zeros((image.shape[0]+2, image.shape[1]+2), dtype=np.float32)
         image2[1:-1, 1:-1] = image.astype(np.float32)
-        pyopencl.enqueue_copy(self.queue, self.cl_mem["d_image"], image2)
+        pyopencl.enqueue_copy(self.queue, self.cl_mem["d_slice"], image2)
 
 
     def proj_precomputations(self):
         beginPos = np.zeros((2, self._dimrecy), dtype=np.int32)
         strideJoseph = np.zeros((2, self._dimrecy), dtype=np.int32)
         strideLine = np.zeros((2, self._dimrecy), dtype=np.int32)
-        cos_angles = np.cos(self.angles)
-        sin_angles = np.sin(self.angles)
+        cos_angles = np.cos(self.angles2)
+        sin_angles = np.sin(self.angles2)
         dimslice = self.shape[1]
 
         M1 = np.abs(cos_angles) > 0.70710678
@@ -287,9 +289,9 @@ class Projection(OpenclProcessing):
         """
         events = []
         with self.sem:
-            assert(image.ndim == 2, "Treat only 2D images")
-            assert(image.shape[0] == self.shape[0], "image shape is OK")
-            assert(image.shape[1] == self.shape[1], "image shape is OK")
+            assert image.ndim == 2, "Treat only 2D images"
+            assert image.shape[0] == self.shape[0], "image shape is OK"
+            assert image.shape[1] == self.shape[1], "image shape is OK"
 
             if not(self.is_cpu):
                 self.transfer_to_texture(image)
@@ -342,8 +344,8 @@ class Projection(OpenclProcessing):
         # /with self.sem
         if self.profile:
             self.events += events
-        res = self._ex_sino
-        #~ res = np.copy(self._ex_sino[:self.nprojs, :self.dwidth])
+        #~ res = self._ex_sino
+        res = np.copy(self._ex_sino[:self.nprojs, :self.dwidth])
         return res
 
 
