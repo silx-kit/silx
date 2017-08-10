@@ -624,7 +624,7 @@ class LegendListView(qt.QListView):
         self.setSelectionMode(qt.QAbstractItemView.NoSelection)
 
         if model is None:
-            model = LegendModel()
+            model = LegendModel(parent=self)
         self.setModel(model)
         self.setContextMenu(contextMenu)
 
