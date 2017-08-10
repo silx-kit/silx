@@ -22,8 +22,8 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module defines a widget designed to display data using to most adapted
-view from available ones from silx.
+"""This module defines a widget designed to display data using the most adapted
+view from the ones provided by silx.
 """
 from __future__ import division
 
