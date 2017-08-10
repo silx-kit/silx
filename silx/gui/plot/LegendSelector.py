@@ -259,6 +259,7 @@ class LegendModel(qt.QAbstractListModel):
             legendList = []
         self.legendList = []
         self.insertLegendList(0, legendList)
+        self._palette = qt.QPalette(self)
 
     def __getitem__(self, idx):
         if idx >= len(self.legendList):
@@ -287,12 +288,6 @@ class LegendModel(qt.QAbstractListModel):
             # Data to be rendered in the form of text
             legend = str(item[0])
             return legend
-        elif role == qt.Qt.FontRole:
-            # Bold if active
-            font = qt.QFont()
-            if isActive:
-                font.setBold(True)
-            return font
         elif role == qt.Qt.SizeHintRole:
             # size = qt.QSize(200,50)
             _logger.warning('LegendModel -- size hint role not implemented')
@@ -303,7 +298,7 @@ class LegendModel(qt.QAbstractListModel):
         elif role == qt.Qt.BackgroundRole:
             # Background color, must be QBrush
             if isActive:
-                brush = qt.QBrush(qt.QColor(255, 255, 102))
+                brush = self._palette.brush(qt.QPalette.Normal, qt.QPalette.Highlight)
             elif idx % 2:
                 brush = qt.QBrush(qt.QColor(240, 240, 240))
             else:
@@ -311,7 +306,10 @@ class LegendModel(qt.QAbstractListModel):
             return brush
         elif role == qt.Qt.ForegroundRole:
             # ForegroundRole color, must be QBrush
-            brush = qt.QBrush(qt.Qt.blue)
+            if isActive:
+                brush = self._palette.brush(qt.QPalette.Normal, qt.QPalette.HighlightedText)
+            else:
+                brush = self._palette.brush(qt.QPalette.Normal, qt.QPalette.WindowText)
             return brush
         elif role == qt.Qt.CheckStateRole:
             return bool(item[2])  # item[2] == True
@@ -520,9 +518,8 @@ class LegendListItemWidget(qt.QItemDelegate):
         legendText = modelIndex.data(qt.Qt.DisplayRole)
         textBrush = modelIndex.data(qt.Qt.ForegroundRole)
         textAlign = modelIndex.data(qt.Qt.TextAlignmentRole)
-        textFont = modelIndex.data(qt.Qt.FontRole)
         painter.setBrush(textBrush)
-        painter.setFont(textFont)
+        painter.setPen(textBrush.color())
         painter.drawText(labelRect, textAlign, legendText)
 
         # Draw icon
