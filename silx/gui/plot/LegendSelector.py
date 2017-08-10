@@ -259,7 +259,7 @@ class LegendModel(qt.QAbstractListModel):
             legendList = []
         self.legendList = []
         self.insertLegendList(0, legendList)
-        self._palette = qt.QPalette(self)
+        self._palette = qt.QPalette()
 
     def __getitem__(self, idx):
         if idx >= len(self.legendList):
