@@ -158,8 +158,13 @@ class Projection(OpenclProcessing):
 
         OpenclProcessing.compile_kernels(self, self.kernel_files)
         # check that workgroup can actually be (16, 16)
-        #~ self.check_workgroup_size() # TODO - put common code from backprojection.py to processing.py
+        self.check_workgroup_size()
 
+
+    # TODO - move this (and the one in backprojection) in processing.py
+    def check_workgroup_size(self):
+        kernel = self.program.all_kernels()[1]  # CPU kernel
+        self.compiletime_workgroup_size = kernel_workgroup_size(self.program, kernel)
 
 
     def compute_angles(self):
