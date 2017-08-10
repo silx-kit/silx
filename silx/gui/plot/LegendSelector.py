@@ -519,6 +519,7 @@ class LegendListItemWidget(qt.QItemDelegate):
         textBrush = modelIndex.data(qt.Qt.ForegroundRole)
         textAlign = modelIndex.data(qt.Qt.TextAlignmentRole)
         painter.setBrush(textBrush)
+        painter.setFont(self.legend.font())
         painter.setPen(textBrush.color())
         painter.drawText(labelRect, textAlign, legendText)
 
