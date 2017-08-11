@@ -105,7 +105,7 @@ Exceptions
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "15/05/2017"
+__date__ = "11/08/2017"
 
 import os.path
 import logging
@@ -806,7 +806,7 @@ cdef class SpecFile(object):
         order in which they appear in the file.
         Scan numbers are defined by users and are not necessarily unique.
         The scan order for a given scan number increments each time the scan 
-        number appers in a given file.
+        number appears in a given file.
         """
         idx = specfile_wrapper.SfIndex(self.handle, scan_number, scan_order)
         if idx == -1:

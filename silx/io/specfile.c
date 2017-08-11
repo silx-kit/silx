@@ -9793,7 +9793,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8SpecFile_21index(struct __pyx_obj
   __Pyx_RefNannySetupContext("index", 0);
 
   /* "silx/io/specfile.pyx":811
- *         number appers in a given file.
+ *         number appears in a given file.
  *         """
  *         idx = specfile_wrapper.SfIndex(self.handle, scan_number, scan_order)             # <<<<<<<<<<<<<<
  *         if idx == -1:
