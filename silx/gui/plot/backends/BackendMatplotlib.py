@@ -28,7 +28,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent, H. Payno"]
 __license__ = "MIT"
-__date__ = "15/05/2017"
+__date__ = "16/08/2017"
 
 
 import logging
@@ -649,6 +649,28 @@ class BackendMatplotlib(BackendBase.BackendBase):
         # Warning this is not returning int...
         return (bbox.bounds[0] * dpi, bbox.bounds[1] * dpi,
                 bbox.bounds[2] * dpi, bbox.bounds[3] * dpi)
+
+    def setAxesDisplayed(self, displayed):
+        """Display or not the axes.
+
+        :param bool displayed: If `True` axes are displayed. If `False` axes
+            are not anymore visible and the margin used for them is removed.
+        """
+        if displayed:
+            # show axes and viewbox rect
+            self.ax.set_axis_on()
+            self.ax2.set_axis_on()
+            # set the default margins
+            self.ax.set_position([.15, .15, .75, .75])
+            self.ax2.set_position([.15, .15, .75, .75])
+        else:
+            # hide axes and viewbox rect
+            self.ax.set_axis_off()
+            self.ax2.set_axis_off()
+            # remove external margins
+            self.ax.set_position([0, 0, 1, 1])
+            self.ax2.set_position([0, 0, 1, 1])
+        self._plot._setDirtyPlot()
 
 
 class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
