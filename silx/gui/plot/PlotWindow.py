@@ -29,7 +29,7 @@ The :class:`PlotWindow` is a subclass of :class:`.PlotWidget`.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "27/06/2017"
+__date__ = "16/08/2017"
 
 import collections
 import logging
@@ -117,6 +117,8 @@ class PlotWindow(PlotWidget):
         self.group = qt.QActionGroup(self)
         self.group.setExclusive(False)
 
+        self.zoomModeAction = self.group.addAction(
+            actions.mode.ZoomModeAction(self))
         self.resetZoomAction = self.group.addAction(
             actions.control.ResetZoomAction(self))
         self.resetZoomAction.setVisible(resetzoom)
