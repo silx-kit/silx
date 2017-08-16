@@ -24,13 +24,12 @@
 
 __authors__ = ["J. Kieffer"]
 __license__ = "MIT"
-__date__ = "15/03/2017"
+__date__ = "16/08/2017"
 
 import unittest
 from . import test_addition
 from . import test_medfilt
 from . import test_backprojection
-from ..sift import test as test_sift
 
 
 def suite():
@@ -38,6 +37,10 @@ def suite():
     test_suite.addTests(test_addition.suite())
     test_suite.addTests(test_medfilt.suite())
     test_suite.addTests(test_backprojection.suite())
-    test_suite.addTests(test_sift.suite())
+    try:
+        from ..sift import test as test_sift
+        test_suite.addTests(test_sift.suite())
+    except ImportError:
+        pass
 
     return test_suite
