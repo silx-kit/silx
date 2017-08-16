@@ -25,12 +25,12 @@
 """This module provides combination of statistics as single operation.
 
 For now it provides min/max (and optionally positive min) and indices
-of first occurences (i.e., argmin/argmax) in a single pass.
+of first occurrences (i.e., argmin/argmax) in a single pass.
 """
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "20/12/2016"
+__date__ = "16/08/2017"
 
 cimport cython
 
@@ -84,10 +84,10 @@ class _MinMaxResult(object):
 
     argmin = property(
         lambda self: self._argmin,
-        doc="Index of the first occurence of the minimum value")
+        doc="Index of the first occurrence of the minimum value")
     argmax = property(
         lambda self: self._argmax,
-        doc="Index of the first occurence of the maximum value")
+        doc="Index of the first occurrence of the maximum value")
 
     min_positive = property(
         lambda self: self._min_positive,
@@ -100,7 +100,7 @@ class _MinMaxResult(object):
         doc="""Index of the strictly positive minimum value.
 
         It is None if no value is strictly positive.
-        It is the index of the first occurence.""")
+        It is the index of the first occurrence.""")
 
     def __getitem__(self, key):
         if key == 0:
@@ -265,7 +265,7 @@ def _finite_min_max(cython.floating[::1] data, bint min_positive=False):
 def min_max(data not None, bint min_positive=False, bint finite=False):
     """Returns min, max and optionally strictly positive min of data.
 
-    It also computes the indices of first occurence of min/max.
+    It also computes the indices of first occurrence of min/max.
 
     NaNs are ignored while computing min/max unless all data is NaNs,
     in which case returned min/max are NaNs.
@@ -305,7 +305,7 @@ def min_max(data not None, bint min_positive=False, bint finite=False):
     :param bool finite: True to compute min/max from finite data only
                         Default: False.
     :returns: An object with minimum, maximum and min_positive attributes
-              and the indices of first occurence in the flattened data:
+              and the indices of first occurrence in the flattened data:
               argmin, argmax and argmin_positive attributes.
               If all data is <= 0 or min_positive argument is False, then
               min_positive and argmin_positive are None.
