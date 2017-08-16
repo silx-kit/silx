@@ -47,7 +47,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "27/06/2017"
+__date__ = "16/08/2017"
 
 
 import logging
@@ -818,7 +818,6 @@ class ImageViewMainWindow(ImageView):
         menu.addAction(actions.control.YAxisInvertedAction(self, self))
 
         menu = self.menuBar().addMenu('Profile')
-        menu.addAction(self.profile.browseAction)
         menu.addAction(self.profile.hLineAction)
         menu.addAction(self.profile.vLineAction)
         menu.addAction(self.profile.lineAction)
