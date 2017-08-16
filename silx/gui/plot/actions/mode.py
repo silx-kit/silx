@@ -29,6 +29,7 @@ mode of a :class:`.PlotWidget`.
 The following QAction are available:
 
 - :class:`ZoomModeAction`
+- :class:`PanModeAction`
 """
 
 from __future__ import division
@@ -69,3 +70,31 @@ class ZoomModeAction(PlotAction):
 
     def _actionTriggered(self, checked=False):
         self.plot.setInteractiveMode('zoom', source=self)
+
+
+class PanModeAction(PlotAction):
+    """QAction controlling the pan mode of a :class:`.PlotWidget`.
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
+
+    def __init__(self, plot, parent=None):
+        super(PanModeAction, self).__init__(
+            plot, icon='pan', text='Pan mode',
+            tooltip='Pan the view',
+            triggered=self._actionTriggered,
+            checkable=True, parent=parent)
+        # Listen to mode change
+        self.plot.sigInteractiveModeChanged.connect(self._modeChanged)
+        # Init the state
+        self._modeChanged(None)
+
+    def _modeChanged(self, source):
+        modeDict = self.plot.getInteractiveMode()
+        old = self.blockSignals(True)
+        self.setChecked(modeDict["mode"] == "pan")
+        self.blockSignals(old)
+
+    def _actionTriggered(self, checked=False):
+        self.plot.setInteractiveMode('pan', source=self)

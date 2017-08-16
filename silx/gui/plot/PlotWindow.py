@@ -123,6 +123,8 @@ class PlotWindow(PlotWidget):
             actions.control.ResetZoomAction(self))
         self.resetZoomAction.setVisible(resetzoom)
         self.addAction(self.resetZoomAction)
+        self.panModeAction = self.group.addAction(
+            actions.mode.PanModeAction(self))
 
         self.zoomInAction = actions.control.ZoomInAction(self)
         self.addAction(self.zoomInAction)
@@ -344,6 +346,8 @@ class PlotWindow(PlotWidget):
                     self.yAxisInvertedAction = toolbar.addWidget(obj)
                 else:
                     raise RuntimeError()
+            if obj is self.panModeAction:
+                toolbar.addSeparator()
         return toolbar
 
     def toolBar(self):
