@@ -135,6 +135,8 @@ Available icons
      - next
    * - |normal|
      - normal
+   * - |pan|
+     - pan
    * - |pixel-intensities|
      - pixel-intensities
    * - |plot-grid|
@@ -306,6 +308,7 @@ Available icons
 .. |median-filter| image:: ../../../../silx/resources/gui/icons/median-filter.png
 .. |next| image:: ../../../../silx/resources/gui/icons/next.png
 .. |normal| image:: ../../../../silx/resources/gui/icons/normal.png
+.. |pan| image:: ../../../../silx/resources/gui/icons/pan.png
 .. |pixel-intensities| image:: ../../../../silx/resources/gui/icons/pixel-intensities.png
 .. |plot-grid| image:: ../../../../silx/resources/gui/icons/plot-grid.png
 .. |plot-roi-above| image:: ../../../../silx/resources/gui/icons/plot-roi-above.png
