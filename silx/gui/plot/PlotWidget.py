@@ -175,7 +175,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "08/08/2017"
+__date__ = "16/08/2017"
 
 
 from collections import OrderedDict, namedtuple
@@ -3179,3 +3179,11 @@ class PlotWidget(qt.QMainWindow):
         _logger.warning('keepDataAspectRatio deprecated,'
                         'use setKeepDataAspectRatio instead')
         return self.setKeepDataAspectRatio(*args, **kwargs)
+
+    def setAxesDisplayed(self, displayed):
+        """Display or not the axes.
+
+        :param bool displayed: If `True` axes are displayed. If `False` axes
+            are not anymore visible and the margin used for them is removed.
+        """
+        self._backend.setAxesDisplayed(displayed)

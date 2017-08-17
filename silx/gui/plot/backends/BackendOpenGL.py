@@ -28,7 +28,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "21/03/2017"
+__date__ = "16/08/2017"
 
 from collections import OrderedDict, namedtuple
 from ctypes import c_void_p
@@ -1635,3 +1635,12 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     def getPlotBoundsInPixels(self):
         return self._plotFrame.plotOrigin + self._plotFrame.plotSize
+
+    def setAxesDisplayed(self, displayed):
+        """Display or not the axes.
+
+        :param bool displayed: If `True` axes are displayed. If `False` axes
+            are not anymore visible and the margin used for them is removed.
+        """
+        pass
+        # FIXME: implement me

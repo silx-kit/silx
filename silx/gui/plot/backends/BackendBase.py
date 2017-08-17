@@ -31,7 +31,7 @@ This API is a simplified version of PyMca PlotBackend API.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "18/02/2016"
+__date__ = "16/08/2017"
 
 
 import weakref
@@ -487,5 +487,13 @@ class BackendBase(object):
         """Plot area bounds in widget coordinates in pixels.
 
         :return: bounds as a 4-tuple of int: (left, top, width, height)
+        """
+        raise NotImplementedError()
+
+    def setAxesDisplayed(self, displayed):
+        """Display or not the axes.
+
+        :param bool displayed: If `True` axes are displayed. If `False` axes
+            are not anymore visible and the margin used for them is removed.
         """
         raise NotImplementedError()

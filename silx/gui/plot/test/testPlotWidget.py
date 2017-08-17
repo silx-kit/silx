@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "28/06/2017"
+__date__ = "16/08/2017"
 
 
 import unittest
@@ -913,6 +913,14 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.assertEquals(len(events), 2)
         self.assertIn(("left", True), events)
         self.assertIn(("right", True), events)
+
+    def testAxesDisplayedFalse(self):
+        """Test coverage on setAxesDisplayed(False)"""
+        self.plot.setAxesDisplayed(False)
+
+    def testAxesDisplayedTrue(self):
+        """Test coverage on setAxesDisplayed(True)"""
+        self.plot.setAxesDisplayed(True)
 
 
 class TestPlotCurveLog(_PlotWidgetTest, ParametricTestCase):
