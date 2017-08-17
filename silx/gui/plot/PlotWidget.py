@@ -2831,7 +2831,7 @@ class PlotWidget(qt.QMainWindow):
             if kind == 'curve':
                 curve = self.getCurve(legend)
                 if curve is not None and test(curve):
-                    return kind, curve, item['xdata'], item['ydata']
+                    return kind, curve, item['indices']
 
             elif kind == 'image':
                 image = self.getImage(legend)
