@@ -28,7 +28,7 @@ and stacks of images"""
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel", "H. Payno"]
 __license__ = "MIT"
-__date__ = "16/08/2017"
+__date__ = "17/08/2017"
 
 
 import numpy
@@ -443,7 +443,7 @@ class ProfileToolBar(qt.QToolBar):
             self.getProfileMainWindow().sigClose.connect(self.clearProfile)
 
     @property
-    @deprecated(since_version="0.5.0")
+    @deprecated(since_version="0.6.0")
     def browseAction(self):
         return self._browseAction
 
