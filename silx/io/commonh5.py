@@ -222,7 +222,7 @@ class Dataset(Node):
 
     def __str__(self):
         basename = self.name.split("/")[-1]
-        return '<FabIO dataset "%s": shape %s, type "%s">' % \
+        return '<HDF5-like dataset "%s": shape %s, type "%s">' % \
                (basename, self.shape, self.dtype.str)
 
     def __getslice__(self, i, j):
