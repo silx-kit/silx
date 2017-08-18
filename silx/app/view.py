@@ -54,6 +54,7 @@ except ImportError:
     fabio = None
 
 from silx.gui import qt
+from silx.gui import icons
 from silx.gui.data.DataViewerFrame import DataViewerFrame
 
 
@@ -186,21 +187,25 @@ class Viewer(qt.QMainWindow):
 
     def about(self):
         import silx._version
-        message = """<p align="center"><b>Silx viewer</b>
-        <br />
-        <br />{silx_version}
-        <br />
-        <br /><a href="{project_url}">Upstream project on GitHub</a>
-        </p>
-        <p align="left">
+
+        message = """<table>
+        <tr><td width="50%" align="center" valign="middle">
+            <img src="{silx_image_path}" width="100" />
+        </td><td width="50%" align="center" valign="middle">
+            <b>Silx viewer</b>
+            <br />
+            <br />{silx_version}
+            <br />
+            <br /><a href="{project_url}">Upstream project on GitHub</a>
+        </td></tr>
+        </table>
         <dl>
-        <dt><b>Silx version</b></dt><dd>{silx_version}</dd>
-        <dt><b>Qt version</b></dt><dd>{qt_version}</dd>
-        <dt><b>Qt binding</b></dt><dd>{qt_binding}</dd>
-        <dt><b>Python version</b></dt><dd>{python_version}</dd>
-        <dt><b>Optional libraries</b></dt><dd>{optional_lib}</dd>
+            <dt><b>Silx version</b></dt><dd>{silx_version}</dd>
+            <dt><b>Qt version</b></dt><dd>{qt_version}</dd>
+            <dt><b>Qt binding</b></dt><dd>{qt_binding}</dd>
+            <dt><b>Python version</b></dt><dd>{python_version}</dd>
+            <dt><b>Optional libraries</b></dt><dd>{optional_lib}</dd>
         </dl>
-        </p>
         <p>
         Copyright (C) <a href="{esrf_url}">European Synchrotron Radiation Facility</a>
         </p>
@@ -217,6 +222,9 @@ class Viewer(qt.QMainWindow):
         optional_lib.append(format_optional_lib("H5py", h5py is not None))
         optional_lib.append(format_optional_lib("hdf5plugin", hdf5plugin is not None))
 
+        # Access to the logo in SVG or PNG
+        logo = icons.getQFile("../logo/silx")
+
         info = dict(
             esrf_url="http://www.esrf.eu",
             project_url="https://github.com/silx-kit/silx",
@@ -224,7 +232,8 @@ class Viewer(qt.QMainWindow):
             qt_binding=qt.BINDING,
             qt_version=qt.qVersion(),
             python_version=sys.version.replace("\n", "<br />"),
-            optional_lib="<br />".join(optional_lib)
+            optional_lib="<br />".join(optional_lib),
+            silx_image_path=logo.fileName()
         )
         qt.QMessageBox.about(self, "About Menu", message.format(**info))
 
