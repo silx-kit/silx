@@ -499,6 +499,8 @@ class _ElementButton(qt.QPushButton):
 class PeriodicTable(qt.QWidget):
     """Periodic Table widget
 
+    .. image:: img/PeriodicTable.png
+
     The following example shows how to connect clicking to selection::
 
          from silx.gui import qt
@@ -686,6 +688,8 @@ class PeriodicCombo(qt.QComboBox):
     """
     Combo list with all atomic elements of the periodic table
 
+    .. image:: img/PeriodicCombo.png
+
     :param bool detailed: True (default) display element symbol, Z and name.
         False display only element symbol and Z.
     :param elements: List of items (:class:`PeriodicTableItem` objects) to
@@ -740,6 +744,8 @@ class PeriodicCombo(qt.QComboBox):
 
 class PeriodicList(qt.QTreeWidget):
     """List of atomic elements in a :class:`QTreeView`
+
+    .. image:: img/PeriodicList.png
 
     :param QWidget parent: Parent widget
     :param bool detailed: True (default) display element symbol, Z and name.

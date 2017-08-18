@@ -387,6 +387,8 @@ class TableWidget(qt.QTableWidget):
     overwriting data (no *Undo* action is available). Use :meth:`enablePaste`
     and :meth:`enableCut` to activate them.
 
+    .. image:: img/TableWidget.png
+
     :param parent: Parent QWidget
     :param bool cut: Enable cut action
     :param bool paste: Enable paste action

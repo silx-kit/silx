@@ -19,3 +19,11 @@ The ``silx.gui`` package provides a set of PyQt widgets.
    plot3d/index.rst
    qt.rst
    widgets/index.rst
+
+
+.. toctree::
+   :hidden:
+
+   gallery.rst
+
+See the :doc:`gallery` page for an overview of all available widgets.

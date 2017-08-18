@@ -230,6 +230,8 @@ class ArrayTableWidget(qt.QWidget):
     To select the perspective, use :meth:`setPerspective` or
     use :meth:`setFrameAxes`.
     To select the frame, use :meth:`setFrameIndex`.
+
+    .. image:: img/ArrayTableWidget.png
     """
     def __init__(self, parent=None):
         """
