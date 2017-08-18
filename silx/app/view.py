@@ -226,6 +226,12 @@ def main(argv):
         action="store_true",
         default=False,
         help='Set logging system in debug mode')
+    parser.add_argument(
+        '--use-opengl-plot',
+        dest="use_opengl_plot",
+        action="store_true",
+        default=False,
+        help='Use OpenGL for plots (instead of matplotlib)')
 
     options = parser.parse_args(argv[1:])
 
@@ -263,6 +269,10 @@ def main(argv):
     #
     # Run the application
     #
+
+    if options.use_opengl_plot:
+        from silx.gui.plot import PlotWidget
+        PlotWidget.setDefaultBackend("opengl")
 
     app = qt.QApplication([])
     sys.excepthook = qt.exceptionHandler
