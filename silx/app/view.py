@@ -36,26 +36,7 @@ import collections
 _logger = logging.getLogger(__name__)
 """Module logger"""
 
-try:
-    # it should be loaded before h5py
-    import hdf5plugin  # noqa
-except ImportError:
-    hdf5plugin = None
-
-try:
-    import h5py
-    import silx.gui.hdf5
-except ImportError:
-    h5py = None
-
-try:
-    import fabio
-except ImportError:
-    fabio = None
-
 from silx.gui import qt
-from silx.gui.data.DataViewerFrame import DataViewerFrame
-from . import qtutils
 
 
 class Viewer(qt.QMainWindow):
@@ -70,6 +51,10 @@ class Viewer(qt.QMainWindow):
             :class:`silx.io.spech5.SpecH5` or :class:`h5py.File`
             instances)
         """
+        # Import it here to be sure to use the right logging level
+        import silx.gui.hdf5
+        from silx.gui.data.DataViewerFrame import DataViewerFrame
+
         qt.QMainWindow.__init__(self)
         self.setWindowTitle("Silx viewer")
 
@@ -180,6 +165,7 @@ class Viewer(qt.QMainWindow):
         return dialog
 
     def about(self):
+        from . import qtutils
         qtutils.About.about(self, "Silx viewer")
 
     def appendFile(self, filename):
@@ -209,6 +195,8 @@ class Viewer(qt.QMainWindow):
         if len(menu.children()):
             menu.addSeparator()
 
+        # Import it here to be sure to use the right logging level
+        import h5py
         for obj in selectedObjects:
             if obj.ntype is h5py.File:
                 action = qt.QAction("Remove %s" % obj.local_filename, event.source())
@@ -232,8 +220,34 @@ def main(argv):
         type=argparse.FileType('rb'),
         nargs=argparse.ZERO_OR_MORE,
         help='Data file to show (h5 file, edf files, spec files)')
+    parser.add_argument(
+        '--debug',
+        dest="debug",
+        action="store_true",
+        default=False,
+        help='Set logging system in debug mode')
 
     options = parser.parse_args(argv[1:])
+
+    if options.debug:
+        logging.root.setLevel(logging.DEBUG)
+
+    #
+    # Import most of the things here to be sure to use the right logging level
+    #
+
+    try:
+        # it should be loaded before h5py
+        import hdf5plugin  # noqa
+    except ImportError:
+        _logger.debug("Backtrace", exc_info=True)
+        hdf5plugin = None
+
+    try:
+        import h5py
+    except ImportError:
+        _logger.debug("Backtrace", exc_info=True)
+        h5py = None
 
     if h5py is None:
         message = "Module 'h5py' is not installed but is mandatory."\
@@ -245,6 +259,10 @@ def main(argv):
         message = "Module 'hdf5plugin' is not installed. It supports some hdf5"\
             + " compressions. You can install it using \"pip install hdf5plugin\"."
         _logger.warning(message)
+
+    #
+    # Run the application
+    #
 
     app = qt.QApplication([])
     sys.excepthook = qt.exceptionHandler
