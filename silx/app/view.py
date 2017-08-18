@@ -97,13 +97,7 @@ class Viewer(qt.QMainWindow):
         self.setCentralWidget(main_panel)
 
         self.__treeview.selectionModel().selectionChanged.connect(self.displayData)
-
-        self.__treeview.addContextMenuCallback(self.customContextMenu)
-        # lambda function will never be called cause we store it as weakref
-        self.__treeview.addContextMenuCallback(lambda event: None)
-        # you have to store it first
-        self.__store_lambda = lambda event: self.closeAndSyncCustomContextMenu(event)
-        self.__treeview.addContextMenuCallback(self.__store_lambda)
+        self.__treeview.addContextMenuCallback(self.closeAndSyncCustomContextMenu)
 
         treeModel = self.__treeview.findHdf5TreeModel()
         columns = list(treeModel.COLUMN_IDS)
@@ -202,21 +196,6 @@ class Viewer(qt.QMainWindow):
 
     def useAsyncLoad(self, useAsync):
         self.__asyncload = useAsync
-
-    def customContextMenu(self, event):
-        """Called to populate the context menu
-
-        :param silx.gui.hdf5.Hdf5ContextMenuEvent event: Event
-            containing expected information to populate the context menu
-        """
-        selectedObjects = event.source().selectedH5Nodes(ignoreBrokenLinks=False)
-        menu = event.menu()
-
-        hasDataset = False
-        for obj in selectedObjects:
-            if obj.ntype is h5py.Dataset:
-                hasDataset = True
-                break
 
     def closeAndSyncCustomContextMenu(self, event):
         """Called to populate the context menu
