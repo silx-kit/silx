@@ -1,6 +1,6 @@
 
 Widgets gallery
----------------
+===============
 
 
 :mod:`console`

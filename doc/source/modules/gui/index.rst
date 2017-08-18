@@ -4,9 +4,6 @@
 :mod:`silx.gui`: Graphical user interface
 =========================================
 
-Sub-packages and modules
-------------------------
-
 The ``silx.gui`` package provides a set of PyQt widgets.
 
 
@@ -24,4 +21,9 @@ The ``silx.gui`` package provides a set of PyQt widgets.
    widgets/index.rst
 
 
-.. include:: gallery.rst
+.. toctree::
+   :hidden:
+
+   gallery.rst
+
+See the :doc:`gallery` page for an overview of all available widgets.
