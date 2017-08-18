@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "16/06/2017"
+__date__ = "18/08/2017"
 
 import sys
 import os
@@ -257,13 +257,6 @@ class Viewer(qt.QMainWindow):
             if obj.ntype is h5py.Dataset:
                 hasDataset = True
                 break
-
-        if len(menu.children()):
-            menu.addSeparator()
-
-        if hasDataset:
-            action = qt.QAction("Do something on the datasets", event.source())
-            menu.addAction(action)
 
     def closeAndSyncCustomContextMenu(self, event):
         """Called to populate the context menu
