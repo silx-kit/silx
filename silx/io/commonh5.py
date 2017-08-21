@@ -265,11 +265,18 @@ class Dataset(Node):
         There is no chunks."""
         return None
 
+    def __array__(self, dtype=None):
+        # Special case for (0,)*-shape datasets
+        if numpy.product(self.shape) == 0:
+            return self[()]
+        else:
+            return numpy.array(self[...], dtype=self.dtype if dtype is None else dtype)
+
 
 class LazyLoadableDataset(Dataset):
     """Abstract dataset which provides a lazy loading of the data.
 
-    The class havsto be inherited and the :meth:`_create_data` method has to be
+    The class has to be inherited and the :meth:`_create_data` method has to be
     implemented to return the numpy data exposed by the dataset. This factory
     method is only called once, when the data is needed.
     """
@@ -301,6 +308,52 @@ class LazyLoadableDataset(Dataset):
             self._set_data(data)
             self.__is_initialized = True
         return super(LazyLoadableDataset, self)._get_data()
+
+
+class SoftLink(Node):
+    """This class is a tree node that mimics a
+    *h5py.Softlink*.
+    """
+    def __init__(self, name, target, parent):
+        Node.__init__(self, name, parent)
+
+        self.target = target
+
+        self._target_node = None
+
+    @property
+    def h5py_class(self):
+        """Returns the h5py classes which is mimicked by this class. It can be
+        one of `h5py.File, h5py.Group` or `h5py.Dataset`
+
+        :rtype: Class
+        """
+        return h5py.SoftLink
+
+    @property
+    def target_node(self):
+        """Returns the h5py classes which is mimicked by this class. It can be
+        one of `h5py.File, h5py.Group` or `h5py.Dataset`
+
+        :rtype: Class
+        """
+        if self._target_node is None:
+            self._target_node = self.file[self.target]
+        return self._target_node
+
+    def __getattr__(self, item):
+        """Proxy for target nodes attributes.
+        Only called if there *isn't* an attribute with this name.
+        By calling setattr, we make sure the attribute is set,
+        so __getattr__ is only called the first time for each attribute.
+        """
+        try:
+            value = getattr(self.target_node, item)
+        except AttributeError:
+            raise AttributeError("Soft link target %s has no attribute %s" %
+                                 (self.target, item))
+        setattr(self, item, value)
+        return value
 
 
 class Group(Node):
@@ -372,6 +425,7 @@ class Group(Node):
 
         if getlink:
             node = h5py.HardLink()
+            # TODO?: softlink
         else:
             node = self._get_items()[name]
 
