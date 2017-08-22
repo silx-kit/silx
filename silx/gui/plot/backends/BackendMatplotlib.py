@@ -766,18 +766,12 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
             self._picked.append({'kind': 'image', 'legend': label[9:]})
 
         else:  # it's a curve, item have no picker for now
-            if isinstance(event.artist, PathCollection):
-                data = event.artist.get_offsets()[event.ind, :]
-                xdata, ydata = data[:, 0], data[:, 1]
-            elif isinstance(event.artist, Line2D):
-                xdata = event.artist.get_xdata()[event.ind]
-                ydata = event.artist.get_ydata()[event.ind]
-            else:
+            if not isinstance(event.artist, (PathCollection, Line2D)):
                 _logger.info('Unsupported artist, ignored')
                 return
 
             self._picked.append({'kind': 'curve', 'legend': label,
-                                 'xdata': xdata, 'ydata': ydata})
+                                 'indices': event.ind})
 
     def pickItems(self, x, y):
         self._picked = []

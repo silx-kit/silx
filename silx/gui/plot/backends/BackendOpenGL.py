@@ -1301,8 +1301,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                     if pickedIndices:
                         picked.append(dict(kind='curve',
                                            legend=item.info['legend'],
-                                           xdata=item.xData[pickedIndices],
-                                           ydata=item.yData[pickedIndices]))
+                                           indices=pickedIndices))
 
         return picked
 
