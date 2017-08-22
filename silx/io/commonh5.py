@@ -565,6 +565,55 @@ class Group(Node):
         """
         return self._get_items().values()
 
+    def visit(self, func, follow_links=False):
+        """Recursively visit all names in this group and subgroups.
+        See the documentation for `h5py.Group.visit` for more help.
+
+        :param func: Callable (function, method or callable object)
+        :type func: function
+        """
+        origin_name = self.name
+        return self._visit(func, origin_name, follow_links)
+
+    def visititems(self, func, follow_links=False):
+        """Recursively visit names and objects in this group.
+        See the documentation for `h5py.Group.visititems` for more help.
+
+        :param func: Callable (function, method or callable object)
+        :type func: function
+        :param bool follow_links: If *False*, ignore links. If *True*,
+            call `func(name)` for links and recurse into target groups.
+        """
+        origin_name = self.name
+        return self._visit(func, origin_name, follow_links,
+                           visititems=True)
+
+    def _visit(self, func, origin_name,
+               follow_links=False, visititems=False):
+        """
+
+        :param origin_name: name of first group that initiated the recursion
+            This is used to compute the relative path from each item's
+            absolute path.
+        """
+        for member in self.values():
+            ret = None
+            if not isinstance(member, SoftLink) or follow_links:
+                relative_name = member.name[len(origin_name):]
+                # remove leading slash and unnecessary trailing slash
+                relative_name = relative_name.strip("/")
+                if visititems:
+                    ret = func(relative_name, member)
+                else:
+                    ret = func(relative_name)
+            if ret is not None:
+                return ret
+            # recurse into subgroups
+            if isinstance(member, SoftLink) and follow_links:
+                member = member.file[member.target]
+            if isinstance(member, Group):
+                member._visit(func, origin_name, follow_links, visititems)
+
 
 class LazyLoadableGroup(Group):
     """Abstract group which provides a lazy loading of the child.
