@@ -188,6 +188,7 @@ import io
 
 from .specfile import SpecFile
 from . import commonh5
+from .utils import is_dataset
 
 __authors__ = ["P. Knobel", "D. Naudet"]
 __license__ = "MIT"
@@ -440,7 +441,7 @@ def _demultiplex_mca(scan, analyser_index):
 class SpecH5Dataset(commonh5.Dataset):
     """This convenience class is to be inherited by all datasets, for
     compatibility purposes with legacy code that tests for
-    ``isinstance(obj, SpecH5Dataset``.
+    ``isinstance(obj, SpecH5Dataset)``.
 
     This behavior is deprecated, however. The correct way to test
     if an object is a dataset is using :meth:`silx.io.is_dataset`."""
@@ -479,8 +480,108 @@ class SpecH5Dataset(commonh5.Dataset):
     #     return '<SPEC dataset "%s": shape %s, type "%s">' % \
     #            (basename, self.shape, self.dtype.str)
     #
-    # def __iter__(self):     # FIXME: should this go to commonh5?
-    #     return self._get_data().__iter__()
+    def __getattr__(self, item):
+        """Proxy to underlying numpy array methods.
+        """
+        if hasattr(self[()], item):
+            return getattr(self[()], item)
+
+        raise AttributeError("SpecH5Dataset has no attribute %s" % item)
+
+    # these methods could go to commonh5.Dataset
+    def __eq__(self, other):
+        """When comparing datasets, compare the actual data."""
+        if is_dataset(other):
+            return self[()] == other[()]
+        return self[()] == other
+
+    def __add__(self, other):
+        return self[()] + other
+
+    def __radd__(self, other):
+        return other + self[()]
+
+    def __sub__(self, other):
+        return self[()] - other
+
+    def __rsub__(self, other):
+        return other - self[()]
+
+    def __mul__(self, other):
+        return self[()] * other
+
+    def __rmul__(self, other):
+        return other * self[()]
+
+    def __truediv__(self, other):
+        return self[()] / other
+
+    def __rtruediv__(self, other):
+        return other / self[()]
+
+    def __floordiv__(self, other):
+        return self[()] // other
+
+    def __rfloordiv__(self, other):
+        return other // self[()]
+
+    def __neg__(self):
+        return -self[()]
+
+    def __abs__(self):
+        return abs(self[()])
+
+    def __float__(self):
+        return float(self[()])
+
+    def __int__(self):
+        return int(self[()])
+
+    def __bool__(self):
+        if self[()]:
+            return True
+        return False
+
+    def __nonzero__(self):
+        # python 2
+        return self.__bool__()
+
+    def __eq__(self, other):
+        if is_dataset(other):
+            return self[()] == other[()]
+        else:
+            return self[()] == other
+
+    def __ne__(self, other):
+        if is_dataset(other):
+            return self[()] != other[()]
+        else:
+            return self[()] != other
+
+    def __lt__(self, other):
+        if is_dataset(other):
+            return self[()] < other[()]
+        else:
+            return self[()] < other
+
+    def __le__(self, other):
+        if is_dataset(other):
+            return self[()] <= other[()]
+        else:
+            return self[()] <= other
+
+    def __gt__(self, other):
+        if is_dataset(other):
+            return self[()] > other[()]
+        else:
+            return self[()] > other
+
+    def __ge__(self, other):
+        if is_dataset(other):
+            return self[()] >= other[()]
+        else:
+            return self[()] >= other
+
 
 
 class SpecH5Group(object):
