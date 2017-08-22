@@ -29,15 +29,17 @@ files. They are used in :mod:`spech5` and :mod:`fabioh5`.
     library, which is not a mandatory dependency for `silx`.
 """
 
-__authors__ = ["V. Valls", "P. Knobel"]
-__license__ = "MIT"
-__date__ = "22/08/2017"
-
 import collections
 import h5py
 from silx.third_party import six
 
 import numpy
+
+from .utils import is_dataset
+
+__authors__ = ["V. Valls", "P. Knobel"]
+__license__ = "MIT"
+__date__ = "22/08/2017"
 
 
 class Node(object):
@@ -274,10 +276,104 @@ class Dataset(Node):
             return numpy.array(self[...], dtype=self.dtype if dtype is None else dtype)
 
     def __iter__(self):
-        """Iterate over the first axis.  TypeError if scalar."""
+        """Iterate over the first axis. TypeError if scalar."""
         if len(self.shape) == 0:
             raise TypeError("Can't iterate over a scalar dataset")
         return self._get_data().__iter__()
+
+    # make comparisons and operations on the data
+    def __eq__(self, other):
+        """When comparing datasets, compare the actual data."""
+        if is_dataset(other):
+            return self[()] == other[()]
+        return self[()] == other
+
+    def __add__(self, other):
+        return self[()] + other
+
+    def __radd__(self, other):
+        return other + self[()]
+
+    def __sub__(self, other):
+        return self[()] - other
+
+    def __rsub__(self, other):
+        return other - self[()]
+
+    def __mul__(self, other):
+        return self[()] * other
+
+    def __rmul__(self, other):
+        return other * self[()]
+
+    def __truediv__(self, other):
+        return self[()] / other
+
+    def __rtruediv__(self, other):
+        return other / self[()]
+
+    def __floordiv__(self, other):
+        return self[()] // other
+
+    def __rfloordiv__(self, other):
+        return other // self[()]
+
+    def __neg__(self):
+        return -self[()]
+
+    def __abs__(self):
+        return abs(self[()])
+
+    def __float__(self):
+        return float(self[()])
+
+    def __int__(self):
+        return int(self[()])
+
+    def __bool__(self):
+        if self[()]:
+            return True
+        return False
+
+    def __nonzero__(self):
+        # python 2
+        return self.__bool__()
+
+    def __eq__(self, other):
+        if is_dataset(other):
+            return self[()] == other[()]
+        else:
+            return self[()] == other
+
+    def __ne__(self, other):
+        if is_dataset(other):
+            return self[()] != other[()]
+        else:
+            return self[()] != other
+
+    def __lt__(self, other):
+        if is_dataset(other):
+            return self[()] < other[()]
+        else:
+            return self[()] < other
+
+    def __le__(self, other):
+        if is_dataset(other):
+            return self[()] <= other[()]
+        else:
+            return self[()] <= other
+
+    def __gt__(self, other):
+        if is_dataset(other):
+            return self[()] > other[()]
+        else:
+            return self[()] > other
+
+    def __ge__(self, other):
+        if is_dataset(other):
+            return self[()] >= other[()]
+        else:
+            return self[()] >= other
 
 
 class LazyLoadableDataset(Dataset):
