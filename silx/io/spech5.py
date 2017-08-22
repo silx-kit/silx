@@ -24,7 +24,8 @@
 """This module provides a h5py-like API to access SpecFile data.
 
 API description
-===============
++++++++++++++++
+
 Specfile data structure exposed by this API:
 
 ::
@@ -106,7 +107,7 @@ computed from the ``#@CHANN`` scan header line (if present), or computed from
 the shape of the first spectrum in a scan (``[0, … len(first_spectrum] - 1]``).
 
 Accessing data
-==============
+++++++++++++++
 
 Data and groups are accessed in :mod:`h5py` fashion::
 
@@ -432,12 +433,16 @@ def _demultiplex_mca(scan, analyser_index):
 
 # Node classes
 class SpecH5Dataset(commonh5.Dataset):
-    """This convenience class is to be inherited by all datasets, for
-    compatibility purposes with legacy code that tests for
-    ``isinstance(obj, SpecH5Dataset)``.
+    """This class inherits :class:`commonh5.Dataset`, to which it adds
+    little extra functionality. The main additional functionality is the
+    proxy behavior that allows to mimic the numpy array stored in this
+    class.
 
-    This behavior is deprecated, however. The correct way to test
-    if an object is a dataset is using :meth:`silx.io.is_dataset`."""
+    The correct way to test if an object is a dataset is to use
+    :meth:`silx.io.utils.is_dataset`.
+
+    Testing ``isinstance(obj, SpecH5Dataset)`` is deprecated.
+    """
     def __init__(self, name, data, parent=None, attrs=None):
         # get proper value types, to inherit from numpy
         # attributes (dtype, shape, size)
@@ -576,19 +581,25 @@ class SpecH5Dataset(commonh5.Dataset):
             return self[()] >= other
 
 
-
 class SpecH5Group(object):
     """This convenience class is to be inherited by all groups, for
     compatibility purposes with code that tests for
-    ``isinstance(obj, SpecH5Group``.
+    ``isinstance(obj, SpecH5Group)``.
 
-    This legacy behavior is deprecated, however. The correct way to test
-    if an object is a group is using :meth:`silx.io.is_group`."""
+    This legacy behavior is deprecated. The correct way to test
+    if an object is a group is to use :meth:`silx.io.utils.is_group`.
+
+    Groups must also inherit :class:`silx.io.commonh5.Group`, which
+    actually implements all the methods and attributes."""
     pass
 
 
 class SpecH5(commonh5.File, SpecH5Group):
-    """This class opens a SPEC file and exposes it like a h5py.File."""
+    """This class opens a SPEC file and exposes it as a *h5py.File*.
+
+    It inherits :class:`silx.io.commonh5.Group` (via :class:`commonh5.File`),
+    which implements most of its API.
+    """
 
     def __init__(self, filename):
         """

@@ -478,7 +478,7 @@ class Group(Node):
         return obj
 
     def __len__(self):
-        """Returns the number of child contained in this group.
+        """Returns the number of children contained in this group.
 
         :rtype: int
         """
@@ -490,7 +490,7 @@ class Group(Node):
             yield x
 
     def __getitem__(self, name):
-        """Return a child from is name.
+        """Return a child from his name.
 
         :param name str: name of a member or a path throug members using '/'
             separator. A '/' as a prefix access to the root item of the tree.
@@ -557,10 +557,13 @@ class Group(Node):
         return True
 
     def keys(self):
+        """Returns an iterator over the children's names in a group."""
         return self._get_items().keys()
 
     def values(self):
-        """
+        """Returns an iterator over the children nodes (groups and datasets)
+        in a group.
+
         .. versionadded:: 0.6
         """
         return self._get_items().values()
@@ -663,6 +666,7 @@ class File(Group):
 
     @property
     def h5py_class(self):
+        """Returns the :class:`h5py.File` class"""
         return h5py.File
 
     def __enter__(self):
