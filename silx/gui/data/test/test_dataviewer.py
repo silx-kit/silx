@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "10/04/2017"
+__date__ = "22/08/2017"
 
 import os
 import tempfile
@@ -212,6 +212,7 @@ class AbstractDataViewerTests(TestCaseQt):
         self.assertTrue(view not in widget.availableViews())
         self.assertTrue(view not in widget.currentAvailableViews())
 
+
 class TestDataViewer(AbstractDataViewerTests):
     def create_widget(self):
         return DataViewer()
@@ -225,11 +226,10 @@ class TestDataViewerFrame(AbstractDataViewerTests):
 class TestDataView(TestCaseQt):
 
     def createComplexData(self):
-        line = [1, 2j, 3+3j, 4]
+        line = [1, 2j, 3 + 3j, 4]
         image = [line, line, line, line]
         cube = [image, image, image, image]
-        data = numpy.array(cube,
-            dtype=numpy.complex)
+        data = numpy.array(cube, dtype=numpy.complex)
         return data
 
     def createDataViewWithData(self, dataViewClass, data):
