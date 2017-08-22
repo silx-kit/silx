@@ -171,13 +171,6 @@ is that you should decode strings before using them in **Python 3**::
     >>> sfh5["/68.1/title"].decode()
     '68  ascan  tx3 -28.5 -24.5  20 0.5'
 
-
-Classes
-=======
-
-- :class:`SpecH5`
-- :class:`SpecH5Group`
-- :class:`SpecH5Dataset`
 """
 
 import logging
@@ -192,7 +185,7 @@ from .utils import is_dataset
 
 __authors__ = ["P. Knobel", "D. Naudet"]
 __license__ = "MIT"
-__date__ = "01/08/2017"
+__date__ = "22/08/2017"
 
 logger1 = logging.getLogger(__name__)
 

@@ -31,7 +31,7 @@ files. They are used in :mod:`spech5` and :mod:`fabioh5`.
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "18/08/2017"
+__date__ = "22/08/2017"
 
 import collections
 import h5py

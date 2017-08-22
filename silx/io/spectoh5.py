@@ -61,13 +61,13 @@ except ImportError as e:
     _logger.error("Module " + __name__ + " requires h5py")
     raise e
 
-from .spech5 import SpecH5, SpecH5Group, SpecH5Dataset, \
-     SpecH5LinkToGroup, SpecH5LinkToDataset
+from .commonh5 import Group, Dataset, SoftLink
+from .spech5 import SpecH5
 
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "02/06/2017"
+__date__ = "22/08/2017"
 
 
 def _create_link(h5f, link_name, target_name,
@@ -187,13 +187,12 @@ class SpecToHdf5Writer(object):
         """Add one group or one dataset to :attr:`h5f`"""
         h5_name = self.h5path + spec_h5_name.lstrip("/")
 
-        if isinstance(obj, SpecH5LinkToGroup) or\
-                isinstance(obj, SpecH5LinkToDataset):
+        if isinstance(obj, SoftLink):
             # links to be created after all groups and datasets
             h5_target = self.h5path + obj.target.lstrip("/")
             self._links.append((h5_name, h5_target))
 
-        elif isinstance(obj, SpecH5Dataset):
+        elif isinstance(obj, Dataset):
             _logger.debug("Saving dataset: " + h5_name)
 
             member_initially_exists = h5_name in self._h5f
@@ -209,6 +208,8 @@ class SpecToHdf5Writer(object):
                 else:
                     ds = self._h5f.create_dataset(h5_name, data=obj.value,
                                                   **self.create_dataset_args)
+            else:
+                ds = self._h5f[h5_name]
 
             # add HDF5 attributes
             for key in obj.attrs:
@@ -218,7 +219,7 @@ class SpecToHdf5Writer(object):
             if not self.overwrite_data and member_initially_exists:
                 _logger.warn("Ignoring existing dataset: " + h5_name)
 
-        elif isinstance(obj, SpecH5Group):
+        elif isinstance(obj, Group):
             if h5_name not in self._h5f:
                 _logger.debug("Creating group: " + h5_name)
                 grp = self._h5f.create_group(h5_name)
@@ -259,7 +260,7 @@ def write_spec_to_h5(specfile, h5file, h5path='/',
     documentation of :mod:`silx.io.spech5`.
     """
     # SpecH5 is a subclass of SpecH5Group
-    if not isinstance(specfile, SpecH5Group):
+    if not isinstance(specfile, Group):
         # assume that it is a string and let SpecH5 test the type
         sfh5 = SpecH5(specfile)
     else:
