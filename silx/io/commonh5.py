@@ -35,6 +35,7 @@ __date__ = "22/08/2017"
 
 import collections
 import h5py
+from silx.third_party import six
 
 import numpy
 
@@ -437,13 +438,6 @@ class Group(Node):
         """
         return self.__attrs
 
-    def items(self):
-        """Returns items iterator containing name-node mapping.
-
-        :rtype: iterator
-        """
-        return self._get_items().items()
-
     def get(self, name, default=None, getclass=False, getlink=False):
         """Retrieve an item or other information.
 
@@ -556,17 +550,42 @@ class Group(Node):
 
         return True
 
-    def keys(self):
-        """Returns an iterator over the children's names in a group."""
-        return self._get_items().keys()
+    if six.PY2:
+        def keys(self):
+            """Returns a list of the children's names."""
+            return self._get_items().keys()
 
-    def values(self):
-        """Returns an iterator over the children nodes (groups and datasets)
-        in a group.
+        def values(self):
+            """Returns a list of the children nodes (groups and datasets).
 
-        .. versionadded:: 0.6
-        """
-        return self._get_items().values()
+            .. versionadded:: 0.6
+            """
+            return self._get_items().values()
+
+        def items(self):
+            """Returns a list of tuples containing (name, node) pairs.
+            """
+            return self._get_items().items()
+
+    else:
+        def keys(self):
+            """Returns an iterator over the children's names in a group."""
+            return self._get_items().keys()
+
+        def values(self):
+            """Returns an iterator over the children nodes (groups and datasets)
+            in a group.
+
+            .. versionadded:: 0.6
+            """
+            return self._get_items().values()
+
+        def items(self):
+            """Returns items iterator containing name-node mapping.
+
+            :rtype: iterator
+            """
+            return self._get_items().items()
 
     def visit(self, func, follow_links=False):
         """Recursively visit all names in this group and subgroups.
