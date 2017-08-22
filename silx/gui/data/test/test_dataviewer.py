@@ -42,8 +42,6 @@ from silx.gui.data.DataViewerFrame import DataViewerFrame
 from silx.gui.test.utils import SignalListener
 from silx.gui.test.utils import TestCaseQt
 
-from silx.gui.hdf5.test import _mock
-
 try:
     import h5py
 except ImportError:
