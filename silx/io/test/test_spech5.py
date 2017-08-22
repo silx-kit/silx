@@ -262,9 +262,6 @@ class TestSpecH5(unittest.TestCase):
         # full path to element in group (OK)
         self.assertIn("/1.1/instrument/positioners/Sslit1 HOff",
                       self.sfh5["/1.1/instrument"])
-        # full path to element outside group (illegal)
-        self.assertNotIn("/1.1/instrument/positioners/Sslit1 HOff",
-                         self.sfh5["/1.1/measurement"])
 
     def testDataColumn(self):
         self.assertAlmostEqual(sum(self.sfh5["/1.2/measurement/duo"]),
