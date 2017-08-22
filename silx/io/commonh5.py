@@ -272,6 +272,12 @@ class Dataset(Node):
         else:
             return numpy.array(self[...], dtype=self.dtype if dtype is None else dtype)
 
+    def __iter__(self):
+        """Iterate over the first axis.  TypeError if scalar."""
+        if len(self.shape) == 0:
+            raise TypeError("Can't iterate over a scalar dataset")
+        return self._get_data().__iter__()
+
 
 class LazyLoadableDataset(Dataset):
     """Abstract dataset which provides a lazy loading of the data.
@@ -311,35 +317,61 @@ class LazyLoadableDataset(Dataset):
 
 
 class SoftLink(Node):
-    """This class is a tree node that mimics a
-    *h5py.Softlink*.
+    """This class is a tree node that mimics a *h5py.Softlink*.
+
+    The behavior is currently different from *h5py*. In *h5py*, when accessing
+    a link, the target node is returned (unless access is done via :meth:`get`
+    with `getlink=True`). In this implementation, accessing a :class:`SoftLink`
+    returns the :class:`SoftLink` instance itself, with its own :attr:`name`
+    and an additional :attr:`target` attribute storing the name of the target
+    node.
+
+    The `SoftLink` works as a proxy and provides access to most methods and
+    attributes specific to the target :class:`Dataset` or :class:`Group`.
+    However, following attributes will differ from the target's attributes:
+
+        - :attr:`name`
+        - :attr:`basename`
+        - :attr:`h5py_class`
+        - :attr:`parent`
+
+    To access the target attributes for these, access them explicitly via
+    `self.file[self.target].some_attr`.
     """
     def __init__(self, name, target, parent):
         Node.__init__(self, name, parent)
 
         self.target = target
 
-        self._target_node = None
-
     @property
     def h5py_class(self):
-        """Returns the h5py classes which is mimicked by this class. It can be
-        one of `h5py.File, h5py.Group` or `h5py.Dataset`
+        """Returns the h5py class which is mimicked by this class
+        (:class:`h5py.SoftLink`).
 
         :rtype: Class
         """
         return h5py.SoftLink
 
     @property
-    def target_node(self):
-        """Returns the h5py classes which is mimicked by this class. It can be
-        one of `h5py.File, h5py.Group` or `h5py.Dataset`
+    def _target_node(self):
+        """Returns the target node.
+        This is a convenience property equivalent to `self.file[self.target]`
 
         :rtype: Class
         """
-        if self._target_node is None:
-            self._target_node = self.file[self.target]
-        return self._target_node
+        if self.target not in self.file:
+            raise KeyError(
+                "Dangling SoftLink %s -> %s. " % (self.name, self.target) +
+                "Target node does not exist.")
+        return self.file[self.target]
+
+    @property
+    def attrs(self):
+        """Returns HDF5 attributes of the target node.
+
+        :rtype: dict
+        """
+        return self._target_node.attrs
 
     def __getattr__(self, item):
         """Proxy for target nodes attributes.
@@ -348,12 +380,18 @@ class SoftLink(Node):
         so __getattr__ is only called the first time for each attribute.
         """
         try:
-            value = getattr(self.target_node, item)
+            value = getattr(self._target_node, item)
         except AttributeError:
             raise AttributeError("Soft link target %s has no attribute %s" %
                                  (self.target, item))
         setattr(self, item, value)
         return value
+
+    def __iter__(self):
+        return self._target_node.__iter__()
+
+    def __getitem__(self, item):
+        return self._target_node.__getitem__(item)
 
 
 class Group(Node):
@@ -420,14 +458,15 @@ class Group(Node):
         :return: An object, else None
         :rtype: object
         """
-        if name not in self._get_items():
+        if name not in self:
             return default
 
-        if getlink:
+        if getlink and not isinstance(self[name], SoftLink):
             node = h5py.HardLink()
-            # TODO?: softlink
+            # SoftLink are returned directly
+            # ExternalLink objects don't exist in silx
         else:
-            node = self._get_items()[name]
+            node = self[name]
 
         if getclass:
             if hasattr(node, "h5py_class"):
@@ -457,7 +496,6 @@ class Group(Node):
             separator. A '/' as a prefix access to the root item of the tree.
         :rtype: Node
         """
-
         if name is None or name == "":
             raise ValueError("No name")
 
@@ -465,9 +503,7 @@ class Group(Node):
             return self._get_items()[name]
 
         if name.startswith("/"):
-            root = self
-            while root.parent is not None:
-                root = root.parent
+            root = self.file
             if name == "/":
                 return root
             return root[name[1:]]
@@ -475,6 +511,13 @@ class Group(Node):
         path = name.split("/")
         result = self
         for item_name in path:
+            if isinstance(result, SoftLink):
+                # traverse links
+                result = result.file[result.target]
+            if not item_name:
+                # trailing "/" in name (legal for accessing Groups only)
+                if isinstance(result, Group):
+                    continue
             if not isinstance(result, Group):
                 raise KeyError("Unable to open object (Component not found)")
             result = result._get_items()[item_name]
@@ -486,7 +529,32 @@ class Group(Node):
 
         :rtype: bool
         """
-        return name in self._get_items()
+        if "/" not in name:
+            return name in self._get_items()
+
+        if name.startswith("/"):
+            # h5py allows to access any valid full path from any group
+            node = self.file
+        else:
+            node = self
+
+        name = name.lstrip("/")
+        basenames = name.split("/")
+        for basename in basenames:
+            if basename.strip() == "":
+                # presence of a trailing "/" in name
+                # (OK for groups, not for datasets)
+                if isinstance(node, SoftLink):
+                    # traverse links
+                    node = node.file[node.target]
+                if node.h5py_class == h5py.Dataset:
+                    return False
+                continue
+            if basename not in node._get_items():
+                return False
+            node = node[basename]
+
+        return True
 
     def keys(self):
         return self._get_items().keys()
