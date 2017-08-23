@@ -46,6 +46,7 @@ except ImportError:
 
 if fabio is not None and h5py is not None:
     from .. import fabioh5
+    from .. import commonh5
 
 
 class TestFabioH5(unittest.TestCase):
@@ -292,7 +293,7 @@ class TestFabioH5(unittest.TestCase):
         result = self.h5_image.get("scan_0", getclass=True, getlink=False)
         self.assertIs(result, h5py.Group)
         result = self.h5_image.get("scan_0", getclass=False, getlink=False)
-        self.assertIsInstance(result, fabioh5.Group)
+        self.assertIsInstance(result, commonh5.Group)
 
 
 def suite():

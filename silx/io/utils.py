@@ -475,7 +475,7 @@ def is_file(obj):
 
 def is_group(obj):
     """
-    True is the object is an h5py.Group-like object.
+    True if the object is a h5py.Group-like object.
 
     :param obj: An object
     """
@@ -487,7 +487,7 @@ def is_group(obj):
 
 def is_dataset(obj):
     """
-    True is the object is an h5py.Dataset-like object.
+    True if the object is a h5py.Dataset-like object.
 
     :param obj: An object
     """
@@ -495,6 +495,18 @@ def is_dataset(obj):
     if class_ is None:
         return False
     return issubclass(class_, h5py.Dataset)
+
+
+def is_softlink(obj):
+    """
+    True if the object is a h5py.SoftLink-like object.
+
+    :param obj: An object
+    """
+    class_ = get_h5py_class(obj)
+    if class_ is None:
+        return False
+    return issubclass(class_, h5py.SoftLink)
 
 
 if h5py_missing:
