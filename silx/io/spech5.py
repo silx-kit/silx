@@ -197,6 +197,7 @@ except ImportError:
 
 
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)  # noqa
+integer_types = (int, long,)  if sys.version_info[0] == 2 else (int,)  # noqa
 
 
 def _get_number_of_mca_analysers(scan):
@@ -431,16 +432,25 @@ def _demultiplex_mca(scan, analyser_index):
 
 
 # Node classes
-class SpecH5Dataset(commonh5.Dataset):
+class SpecH5Dataset(object):
+    """This convenience class is to be inherited by all datasets, for
+    compatibility purpose with code that tests for
+    ``isinstance(obj, SpecH5Dataset)``.
+
+    This legacy behavior is deprecated. The correct way to test
+    if an object is a dataset is to use :meth:`silx.io.utils.is_dataset`.
+
+    Datasets must also inherit :class:`SpecH5NodeDataset` or
+    :class:`SpecH5LazyNodeDataset` which actually implement all the
+    API."""
+    pass
+
+
+class SpecH5NodeDataset(commonh5.Dataset, SpecH5Dataset):
     """This class inherits :class:`commonh5.Dataset`, to which it adds
     little extra functionality. The main additional functionality is the
     proxy behavior that allows to mimic the numpy array stored in this
     class.
-
-    The correct way to test if an object is a dataset is to use
-    :meth:`silx.io.utils.is_dataset`.
-
-    Testing ``isinstance(obj, SpecH5Dataset)`` is deprecated.
     """
     def __init__(self, name, data, parent=None, attrs=None):
         # get proper value types, to inherit from numpy
@@ -467,16 +477,6 @@ class SpecH5Dataset(commonh5.Dataset):
                 value = array
         commonh5.Dataset.__init__(self, name, value, parent, attrs)
 
-    # legacy
-    # def __repr__(self):
-    #     return '<SpecH5Dataset "%s": shape %s, type "%s">' % \
-    #            (self.name, self.shape, self.dtype.str)
-    #
-    # def __str__(self):
-    #     basename = self.name.split("/")[-1]
-    #     return '<SPEC dataset "%s": shape %s, type "%s">' % \
-    #            (basename, self.shape, self.dtype.str)
-    #
     def __getattr__(self, item):
         """Proxy to underlying numpy array methods.
         """
@@ -484,6 +484,34 @@ class SpecH5Dataset(commonh5.Dataset):
             return getattr(self[()], item)
 
         raise AttributeError("SpecH5Dataset has no attribute %s" % item)
+
+
+class SpecH5LazyNodeDataset(commonh5.LazyLoadableDataset, SpecH5Dataset):
+    """This class inherits :class:`commonh5.LazyLoadableDataset`,
+    to which it adds a proxy behavior that allows to mimic the numpy
+    array stored in this class.
+
+    The class has to be inherited and the :meth:`_create_data` method has to be
+    implemented to return the numpy data exposed by the dataset. This factory
+    method is only called once, when the data is needed.
+    """
+    def __getattr__(self, item):
+        """Proxy to underlying numpy array methods.
+        """
+        if hasattr(self[()], item):
+            return getattr(self[()], item)
+
+        raise AttributeError("SpecH5Dataset has no attribute %s" % item)
+
+    def _create_data(self):
+        """
+        Factory to create the data exposed by the dataset when it is needed.
+
+        It has to be implemented for the class to work.
+
+        :rtype: numpy.ndarray
+        """
+        raise NotImplementedError()
 
 
 class SpecH5Group(object):
@@ -541,9 +569,9 @@ class ScanGroup(commonh5.Group, SpecH5Group):
         commonh5.Group.__init__(self, scan_key, parent=parent,
                                 attrs={"NX_class": "NXentry"})
 
-        self.add_node(SpecH5Dataset(name="title",
-                                    data=scan.scan_header_dict["S"],
-                                    parent=self))
+        self.add_node(SpecH5NodeDataset(name="title",
+                                        data=scan.scan_header_dict["S"],
+                                        parent=self))
 
         if "D" in scan.scan_header_dict:
             try:
@@ -568,9 +596,9 @@ class ScanGroup(commonh5.Group, SpecH5Group):
             logger1.warn("No #D line in %s header. Setting date to empty string.",
                          scan_key)
             start_time_str = ""
-        self.add_node(SpecH5Dataset(name="start_time",
-                                    data=start_time_str,
-                                    parent=self))
+        self.add_node(SpecH5NodeDataset(name="start_time",
+                                        data=start_time_str,
+                                        parent=self))
 
         self.add_node(InstrumentGroup(parent=self, scan=scan))
         self.add_node(MeasurementGroup(parent=self, scan=scan))
@@ -602,14 +630,14 @@ class InstrumentSpecfileGroup(commonh5.Group, SpecH5Group):
     def __init__(self, parent, scan):
         commonh5.Group.__init__(self, name="specfile", parent=parent,
                                 attrs={"NX_class": "NXcollection"})
-        self.add_node(SpecH5Dataset(name="file_header",
-                                    data="\n".join(scan.file_header),
-                                    parent=self,
-                                    attrs={}))
-        self.add_node(SpecH5Dataset(name="scan_header",
-                                    data="\n".join(scan.scan_header),
-                                    parent=self,
-                                    attrs={}))
+        self.add_node(SpecH5NodeDataset(name="file_header",
+                                        data="\n".join(scan.file_header),
+                                        parent=self,
+                                        attrs={}))
+        self.add_node(SpecH5NodeDataset(name="scan_header",
+                                        data="\n".join(scan.scan_header),
+                                        parent=self,
+                                        attrs={}))
 
 
 class PositionersGroup(commonh5.Group, SpecH5Group):
@@ -625,9 +653,9 @@ class PositionersGroup(commonh5.Group, SpecH5Group):
                 # Take value from #P scan header.
                 # (may return float("inf") if #P line is missing from scan hdr)
                 motor_value = scan.motor_position_by_name(motor_name)
-            self.add_node(SpecH5Dataset(name=safe_motor_name,
-                                        data=motor_value,
-                                        parent=self))
+            self.add_node(SpecH5NodeDataset(name=safe_motor_name,
+                                            data=motor_value,
+                                            parent=self))
 
 
 class InstrumentMcaGroup(commonh5.Group, SpecH5Group):
@@ -636,10 +664,9 @@ class InstrumentMcaGroup(commonh5.Group, SpecH5Group):
         commonh5.Group.__init__(self, name=name, parent=parent,
                                 attrs={"NX_class": "NXdetector"})
 
-        self.add_node(SpecH5Dataset(name="data",
-                                    data=_demultiplex_mca(scan, analyser_index),
-                                    parent=self,
-                                    attrs={"interpretation": "spectrum", }))
+        self.add_node(McaDataDataset(parent=self,
+                                     analyser_index=analyser_index,
+                                     scan=scan))
 
         if len(scan.mca.channels) == 1:
             # single @CALIB line applying to multiple devices
@@ -648,25 +675,70 @@ class InstrumentMcaGroup(commonh5.Group, SpecH5Group):
         else:
             calibration_dataset = scan.mca.calibration[analyser_index]
             channels_dataset = scan.mca.channels[analyser_index]
-        self.add_node(SpecH5Dataset(name="calibration",
-                                    data=calibration_dataset,
-                                    parent=self))
-        self.add_node(SpecH5Dataset(name="channels",
-                                    data=channels_dataset,
-                                    parent=self))
+        self.add_node(SpecH5NodeDataset(name="calibration",
+                                        data=calibration_dataset,
+                                        parent=self))
+        self.add_node(SpecH5NodeDataset(name="channels",
+                                        data=channels_dataset,
+                                        parent=self))
 
         if "CTIME" in scan.mca_header_dict:
             ctime_line = scan.mca_header_dict['CTIME']
             preset_time, live_time, elapsed_time = _parse_ctime(ctime_line, analyser_index)
-            self.add_node(SpecH5Dataset(name="preset_time",
-                                        data=preset_time,
-                                        parent=self))
-            self.add_node(SpecH5Dataset(name="live_time",
-                                        data=live_time,
-                                        parent=self))
-            self.add_node(SpecH5Dataset(name="elapsed_time",
-                                        data=elapsed_time,
-                                        parent=self))
+            self.add_node(SpecH5NodeDataset(name="preset_time",
+                                            data=preset_time,
+                                            parent=self))
+            self.add_node(SpecH5NodeDataset(name="live_time",
+                                            data=live_time,
+                                            parent=self))
+            self.add_node(SpecH5NodeDataset(name="elapsed_time",
+                                            data=elapsed_time,
+                                            parent=self))
+
+
+class McaDataDataset(SpecH5LazyNodeDataset):
+    """Lazy loadable dataset for MCA data"""
+    def __init__(self, parent, analyser_index, scan):
+        commonh5.LazyLoadableDataset.__init__(
+            self, name="data", parent=parent,
+            attrs={"interpretation": "spectrum", })
+        self._scan = scan
+        self._analyser_index = analyser_index
+        self._shape = None
+
+    def _create_data(self):
+        return _demultiplex_mca(self._scan, self._analyser_index)
+
+    @property
+    def shape(self):
+        if self._shape is None:
+            num_analysers = _get_number_of_mca_analysers(self._scan)
+            num_spectra_in_file = len(self._scan.mca)
+            num_spectra_per_analyser = num_spectra_in_file // num_analysers
+            len_spectrum = len(self._scan.mca[self._analyser_index])
+            self._shape = num_spectra_per_analyser, len_spectrum
+        return self._shape
+
+    @property
+    def size(self):
+        return numpy.prod(self.shape, dtype=numpy.intp)
+
+    @property
+    def dtype(self):
+        # we initialize the data with numpy.empty() without a dtype
+        # in _get_number_of_mca_analysers()
+        return numpy.empty((1, )).dtype
+
+    def __len__(self):
+        return self.shape[0]
+
+    def __getitem__(self, item):
+        # optimization for fetching a single spectrum when data not already loaded
+        if not self._is_initialized and isinstance(item, integer_types):
+            num_analysers = _get_number_of_mca_analysers(self._scan)
+            return self._scan.mca[self._analyser_index + item * num_analysers]
+
+        return super(McaDataDataset, self).__getitem__(item)
 
 
 class MeasurementGroup(commonh5.Group, SpecH5Group):
@@ -680,9 +752,9 @@ class MeasurementGroup(commonh5.Group, SpecH5Group):
                                 attrs={"NX_class": "NXcollection", })
         for label in scan.labels:
             safe_label = label.replace("/", "%")
-            self.add_node(SpecH5Dataset(name=safe_label,
-                                        data=scan.data_column_by_name(label),
-                                        parent=self))
+            self.add_node(SpecH5NodeDataset(name=safe_label,
+                                            data=scan.data_column_by_name(label),
+                                            parent=self))
 
         num_analysers = _get_number_of_mca_analysers(scan)
         for anal_idx in range(num_analysers):
@@ -717,20 +789,20 @@ class SampleGroup(commonh5.Group, SpecH5Group):
                                 attrs={"NX_class": "NXsample", })
 
         if _unit_cell_in_scan(scan):
-            self.add_node(SpecH5Dataset(name="unit_cell",
-                                        data=_parse_unit_cell(scan.scan_header_dict["G1"]),
-                                        parent=self,
-                                        attrs={"interpretation": "scalar"}))
-            self.add_node(SpecH5Dataset(name="unit_cell_abc",
-                                        data=_parse_unit_cell(scan.scan_header_dict["G1"])[0, 0:3],
-                                        parent=self,
-                                        attrs={"interpretation": "scalar"}))
-            self.add_node(SpecH5Dataset(name="unit_cell_alphabetagamma",
-                                        data=_parse_unit_cell(scan.scan_header_dict["G1"])[0, 3:6],
-                                        parent=self,
-                                        attrs={"interpretation": "scalar"}))
+            self.add_node(SpecH5NodeDataset(name="unit_cell",
+                                            data=_parse_unit_cell(scan.scan_header_dict["G1"]),
+                                            parent=self,
+                                            attrs={"interpretation": "scalar"}))
+            self.add_node(SpecH5NodeDataset(name="unit_cell_abc",
+                                            data=_parse_unit_cell(scan.scan_header_dict["G1"])[0, 0:3],
+                                            parent=self,
+                                            attrs={"interpretation": "scalar"}))
+            self.add_node(SpecH5NodeDataset(name="unit_cell_alphabetagamma",
+                                            data=_parse_unit_cell(scan.scan_header_dict["G1"])[0, 3:6],
+                                            parent=self,
+                                            attrs={"interpretation": "scalar"}))
         if _ub_matrix_in_scan(scan):
-            self.add_node(SpecH5Dataset(name="ub_matrix",
-                                        data=_parse_UB_matrix(scan.scan_header_dict["G3"]),
-                                        parent=self,
-                                        attrs={"interpretation": "scalar"}))
+            self.add_node(SpecH5NodeDataset(name="ub_matrix",
+                                            data=_parse_UB_matrix(scan.scan_header_dict["G3"]),
+                                            parent=self,
+                                            attrs={"interpretation": "scalar"}))

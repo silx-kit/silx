@@ -35,6 +35,9 @@ Classes
     :exclude-members: add_node
 
 .. autoclass:: SpecH5Dataset
+    :show-inheritance:
+
+.. autoclass:: SpecH5NodeDataset
     :members:
     :show-inheritance:
     :undoc-members:
