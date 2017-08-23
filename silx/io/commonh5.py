@@ -385,12 +385,6 @@ class Dataset(Node):
         # python 2
         return self.__bool__()
 
-    def __eq__(self, other):
-        if is_dataset(other):
-            return self[()] == other[()]
-        else:
-            return self[()] == other
-
     def __ne__(self, other):
         if is_dataset(other):
             return self[()] != other[()]
