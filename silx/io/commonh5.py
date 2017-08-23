@@ -603,7 +603,12 @@ class Group(Node):
         for item_name in path:
             if isinstance(result, SoftLink):
                 # traverse links
-                result = result.file[result.target]
+                l_name, l_target = result.name, result.target
+                result = result.file.get(l_target)
+                if result is None:
+                    raise KeyError(
+                        "Unable to open object  (broken SoftLink %s -> %s)" %
+                        (l_name, l_target))
             if not item_name:
                 # trailing "/" in name (legal for accessing Groups only)
                 if isinstance(result, Group):
