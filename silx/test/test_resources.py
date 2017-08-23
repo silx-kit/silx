@@ -55,6 +55,16 @@ class TestResources(unittest.TestCase):
         filename = silx.resources.resource_filename('non_existent_file.txt')
         self.assertFalse(os.path.exists(filename))
 
+    def test_isdir(self):
+        self.assertTrue(silx.resources.is_dir('gui/icons'))
+
+    def test_not_isdir(self):
+        self.assertFalse(silx.resources.is_dir('gui/icons/colormap.png'))
+
+    def test_list_dir(self):
+        result = silx.resources.list_dir('gui/icons')
+        self.assertTrue(len(result) > 10)
+
 
 def isSilxWebsiteAvailable():
     try:

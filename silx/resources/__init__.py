@@ -56,7 +56,7 @@ of this modules to ensure access across different distribution schemes:
 
 __authors__ = ["V.A. Sole", "Thomas Vincent", "J. Kieffer"]
 __license__ = "MIT"
-__date__ = "03/08/2017"
+__date__ = "23/08/2017"
 
 
 import os
@@ -100,6 +100,47 @@ if getattr(sys, 'frozen', False):
         _RESOURCES_DIR = _dir
 
 
+def list_dir(resource_directory):
+    """List the content of a resource directory.
+
+    Result are not prefixed by the resource_directory.
+
+    :param str resource_directory: Name of the resource directory to list
+    :return: list of name contained in the directory
+    :rtype: list
+    """
+    if _RESOURCES_DIR is not None:
+        # if set, use this directory
+        path = resource_filename(resource_directory)
+        return os.listdir(path)
+    elif pkg_resources is None:
+        # Fallback if pkg_resources is not available
+        path = resource_filename(resource_directory)
+        return os.listdir(path)
+    else:
+        # Preferred way to get resources as it supports zipfile package
+        return pkg_resources.resource_listdir(__name__, resource_directory)
+
+
+def is_dir(resource):
+    """True is the resource is a resource directory.
+
+    :param str resource: Name of the resource
+    :rtype: bool
+    """
+    if _RESOURCES_DIR is not None:
+        # if set, use this directory
+        path = resource_filename(resource)
+        return os.path.isdir(path)
+    elif pkg_resources is None:
+        # Fallback if pkg_resources is not available
+        path = resource_filename(resource)
+        return os.path.isdir(path)
+    else:
+        # Preferred way to get resources as it supports zipfile package
+        return pkg_resources.resource_isdir(__name__, resource)
+
+
 def resource_filename(resource):
     """Return filename corresponding to resource.
 
@@ -118,12 +159,15 @@ def resource_filename(resource):
     #     # Remove doc folder from resource relative path
     #     return os.path.join(_RESOURCES_DOC_DIR, *resource.split('/')[1:])
 
-    if _RESOURCES_DIR is not None:  # if set, use this directory
+    if _RESOURCES_DIR is not None:
+        # if set, use this directory
         return os.path.join(_RESOURCES_DIR, *resource.split('/'))
-    elif pkg_resources is None:  # Fallback if pkg_resources is not available
-        return os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                            *resource.split('/'))
-    else:  # Preferred way to get resources as it supports zipfile package
+    elif pkg_resources is None:
+        # Fallback if pkg_resources is not available
+        base = os.path.abspath(os.path.dirname(__file__))
+        return os.path.join(base, *resource.split('/'))
+    else:
+        # Preferred way to get resources as it supports zipfile package
         return pkg_resources.resource_filename(__name__, resource)
 
 
