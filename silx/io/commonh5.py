@@ -392,7 +392,7 @@ class LazyLoadableDataset(Dataset):
         """
         Factory to create the data exposed by the dataset when it is needed.
 
-        It have to be implemented to work.
+        It has to be implemented for the class to work.
 
         :rtype: numpy.ndarray
         """
