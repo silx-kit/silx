@@ -197,6 +197,7 @@ except ImportError:
 
 
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)  # noqa
+integer_types = (int, long,)  if sys.version_info[0] == 2 else (int,)  # noqa
 
 
 def _get_number_of_mca_analysers(scan):
@@ -703,9 +704,41 @@ class McaDataDataset(SpecH5LazyNodeDataset):
             attrs={"interpretation": "spectrum", })
         self._scan = scan
         self._analyser_index = analyser_index
+        self._shape = None
 
     def _create_data(self):
         return _demultiplex_mca(self._scan, self._analyser_index)
+
+    @property
+    def shape(self):
+        if self._shape is None:
+            num_analysers = _get_number_of_mca_analysers(self._scan)
+            num_spectra_in_file = len(self._scan.mca)
+            num_spectra_per_analyser = num_spectra_in_file // num_analysers
+            len_spectrum = len(self._scan.mca[self._analyser_index])
+            self._shape = num_spectra_per_analyser, len_spectrum
+        return self._shape
+
+    @property
+    def size(self):
+        return numpy.prod(self.shape, dtype=numpy.intp)
+
+    @property
+    def dtype(self):
+        # we initialize the data with numpy.empty() without a dtype
+        # in _get_number_of_mca_analysers()
+        return numpy.empty((1, )).dtype
+
+    def __len__(self):
+        return self.shape[0]
+
+    def __getitem__(self, item):
+        # optimization for fetching a single spectrum when data not already loaded
+        if not self._is_initialized and isinstance(item, integer_types):
+            num_analysers = _get_number_of_mca_analysers(self._scan)
+            return self._scan.mca[self._analyser_index + item * num_analysers]
+
+        return super(McaDataDataset, self).__getitem__(item)
 
 
 class MeasurementGroup(commonh5.Group, SpecH5Group):
