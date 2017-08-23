@@ -29,11 +29,14 @@ files. They are used in :mod:`spech5` and :mod:`fabioh5`.
     library, which is not a mandatory dependency for `silx`.
 """
 
+__authors__ = ["V. Valls", "P. Knobel"]
+__license__ = "MIT"
+__date__ = "23/08/2017"
+
 import collections
 import h5py
-from silx.third_party import six
-
 import numpy
+from silx.third_party import six
 
 from .utils import is_dataset
 
@@ -42,18 +45,61 @@ __license__ = "MIT"
 __date__ = "22/08/2017"
 
 
+class _MappingProxyType(collections.MutableMapping):
+    """Read-only dictionary
+
+    This class is available since Python 3.3, but not on earlyer Python
+    versions.
+    """
+
+    def __init__(self, data):
+        self._data = data
+
+    def __getitem__(self, key):
+        return self._data[key]
+
+    def __len__(self):
+        return len(self._data)
+
+    def __iter__(self):
+        return iter(self._data)
+
+    def get(self, key, default=None):
+        return self._data.get(key, default)
+
+    def __setitem__(self, key, value):
+        raise RuntimeError("Cannot modify read-only dictionary")
+
+    def __delitem__(self, key):
+        raise RuntimeError("Cannot modify read-only dictionary")
+
+    def pop(self, key):
+        raise RuntimeError("Cannot modify read-only dictionary")
+
+    def clear(self):
+        raise RuntimeError("Cannot modify read-only dictionary")
+
+    def update(self, key, value):
+        raise RuntimeError("Cannot modify read-only dictionary")
+
+    def setdefault(self, key):
+        raise RuntimeError("Cannot modify read-only dictionary")
+
+
 class Node(object):
     """This is the base class for all :mod:`spech5` and :mod:`fabioh5`
     classes. It represents a tree node, and knows its parent node
     (:attr:`parent`).
     The API mimics a *h5py* node, with following attributes: :attr:`file`,
-    :attr:`attrs`, :attr:`name`, and :attr:`basename`
-
+    :attr:`attrs`, :attr:`name`, and :attr:`basename`.
     """
 
-    def __init__(self, name, parent=None):
+    def __init__(self, name, parent=None, attrs=None):
         self.__parent = parent
         self.__basename = name
+        self.__attrs = {}
+        if attrs is not None:
+            self.__attrs.update(attrs)
 
     @property
     def h5py_class(self):
@@ -101,7 +147,10 @@ class Node(object):
 
         :rtype: dict
         """
-        return {}
+        if self._is_editable():
+            return self.__attrs
+        else:
+            return _MappingProxyType(self.__attrs)
 
     @property
     def name(self):
@@ -119,6 +168,15 @@ class Node(object):
         """
         return self.__basename
 
+    def _is_editable(self):
+        """Returns true if the file is editable or if the node is not linked
+        to a tree.
+
+        :rtype: bool
+        """
+        f = self.file
+        return f is None or f.mode == "w"
+
 
 class Dataset(Node):
     """This class handles a numpy data object, as a mimicry of a
@@ -127,11 +185,7 @@ class Dataset(Node):
 
     def __init__(self, name, data, parent=None, attrs=None):
         self.__data = data
-        Node.__init__(self, name, parent)
-        if attrs is None:
-            self.__attrs = {}
-        else:
-            self.__attrs = attrs
+        Node.__init__(self, name, parent, attrs=attrs)
 
     def _set_data(self, data):
         """Set the data exposed by the dataset.
@@ -149,14 +203,6 @@ class Dataset(Node):
         :rtype: numpy.ndarray
         """
         return self.__data
-
-    @property
-    def attrs(self):
-        """Returns HDF5 attributes of this node.
-
-        :rtype: dict
-        """
-        return self.__attrs
 
     @property
     def h5py_class(self):
@@ -445,11 +491,8 @@ class Group(Node):
     """This class mimics a `h5py.Group`."""
 
     def __init__(self, name, parent=None, attrs=None):
-        Node.__init__(self, name, parent)
+        Node.__init__(self, name, parent, attrs=attrs)
         self.__items = collections.OrderedDict()
-        if attrs is None:
-            attrs = {}
-        self.__attrs = attrs
 
     def _get_items(self):
         """Returns the child items as a name-node dictionary.
@@ -475,14 +518,6 @@ class Group(Node):
         :rtype: Class
         """
         return h5py.Group
-
-    @property
-    def attrs(self):
-        """Returns HDF5 attributes of this node.
-
-        :rtype: dict
-        """
-        return self.__attrs
 
     def _get(self, name, getlink):
         """If getlink is True and name points to an existing SoftLink, this
@@ -706,6 +741,52 @@ class Group(Node):
             if isinstance(member, Group):
                 member._visit(func, origin_name, follow_links, visititems)
 
+    def create_group(self, name):
+        """Create and return a new subgroup.
+
+        Name may be absolute or relative.  Fails if the target name already
+        exists.
+
+        :param str name: Name of the new group
+        """
+        if not self._is_editable():
+            raise RuntimeError("File is not editable")
+        if "/" in name:
+            raise TypeError("Path are not supported")
+        group = Group(name)
+        self.add_node(group)
+        return group
+
+    def create_dataset(self, name, shape=None, dtype=None, data=None, **kwds):
+        """Create and return a sub dataset.
+
+        :param str name: Name of the dataset.
+        :param shape: Dataset shape. Use "()" for scalar datasets.
+            Required if "data" isn't provided.
+        :param dtype: Numpy dtype or string.
+            If omitted, dtype('f') will be used.
+            Required if "data" isn't provided; otherwise, overrides data
+            array's dtype.
+        :param numpy.ndarray data: Provide data to initialize the dataset.
+            If used, you can omit shape and dtype arguments.
+        :param kwds: Extra arguments. Nothing yet supported.
+        """
+        if not self._is_editable():
+            raise RuntimeError("File is not editable")
+        if len(kwds) > 0:
+            raise TypeError("Extra args provided, but nothing supported")
+        if "/" in name:
+            raise TypeError("Path are not supported")
+        if data is None:
+            if dtype is None:
+                dtype = numpy.float
+            data = numpy.empty(shape=shape, dtype=dtype)
+        elif dtype is not None:
+            data = data.astype(dtype)
+        dataset = Dataset(name, data)
+        self.add_node(dataset)
+        return dataset
+
 
 class LazyLoadableGroup(Group):
     """Abstract group which provides a lazy loading of the child.
@@ -744,14 +825,33 @@ class LazyLoadableGroup(Group):
 class File(Group):
     """This class is the special :class:`Group` that is the root node
     of the tree structure. It mimics `h5py.File`."""
-    def __init__(self, file_name=None):
+
+    def __init__(self, name=None, mode=None):
+        """
+        Constructor
+
+        :param str name: File name if it exists
+        :param str mode: Access mode
+            - "r": Read-only. Methods :meth:`create_dataset` and
+                :meth:`create_group` are locked.
+            - "w": File is editable. Methods :meth:`create_dataset` and
+                :meth:`create_group` are available.
+        """
         Group.__init__(self, name="", parent=None,
                        attrs={"NX_class": "NXroot"})
-        self._file_name = file_name
+        self._file_name = name
+        if mode is None:
+            mode = "r"
+        assert(mode in ["r", "w"])
+        self._mode = mode
 
     @property
     def filename(self):
         return self._file_name
+
+    @property
+    def mode(self):
+        return self._mode
 
     @property
     def h5py_class(self):

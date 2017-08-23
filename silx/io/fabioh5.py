@@ -648,7 +648,7 @@ class File(commonh5.File):
         elif fabio_image is not None:
             self.__fabio_image = fabio_image
             file_name = self.__fabio_image.filename
-        commonh5.File.__init__(self, file_name=file_name)
+        commonh5.File.__init__(self, name=file_name)
         self.__fabio_reader = self.create_fabio_reader(self.__fabio_image)
         scan = self.create_scan_group(self.__fabio_image, self.__fabio_reader)
         self.add_node(scan)
