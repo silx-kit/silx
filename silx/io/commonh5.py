@@ -458,7 +458,7 @@ class SoftLink(Node):
 
     In this implementation, the path to the target must be absolute.
     """
-    def __init__(self, name, path, parent):
+    def __init__(self, name, path, parent=None):
         assert str(path).startswith("/")  # TODO: h5py also allows a relative path
 
         Node.__init__(self, name, parent)
