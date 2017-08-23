@@ -185,7 +185,7 @@ from . import commonh5
 
 __authors__ = ["P. Knobel", "D. Naudet"]
 __license__ = "MIT"
-__date__ = "22/08/2017"
+__date__ = "23/08/2017"
 
 logger1 = logging.getLogger(__name__)
 
@@ -545,7 +545,8 @@ class SpecH5(commonh5.File, SpecH5Group):
 
         self._sf = SpecFile(filename)
 
-        commonh5.File.__init__(self, filename)
+        attrs = {"NX_class": "NXroot"}
+        commonh5.File.__init__(self, filename, attrs=attrs)
         assert self.attrs["NX_class"] == "NXroot"
 
         for scan_key in self._sf.keys():

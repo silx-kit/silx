@@ -136,11 +136,10 @@ class ImageGroup(commonh5.LazyLoadableGroup):
         self.__fabio_reader = fabio_reader
 
     def _create_child(self):
-        data = FrameData("data", self.__fabio_reader)
+        basepath = self.parent.parent.name
+        data = commonh5.SoftLink("data", path=basepath + "/instrument/detector_0/data")
         self.add_node(data)
-
-        # TODO detector should be a real soft-link
-        detector = DetectorGroup("info", self.__fabio_reader)
+        detector = commonh5.SoftLink("info", path=basepath + "/instrument/detector_0")
         self.add_node(detector)
 
 
@@ -648,7 +647,8 @@ class File(commonh5.File):
         elif fabio_image is not None:
             self.__fabio_image = fabio_image
             file_name = self.__fabio_image.filename
-        commonh5.File.__init__(self, file_name=file_name)
+        attrs = {"NX_class": "NXroot"}
+        commonh5.File.__init__(self, name=file_name, attrs=attrs)
         self.__fabio_reader = self.create_fabio_reader(self.__fabio_image)
         scan = self.create_scan_group(self.__fabio_image, self.__fabio_reader)
         self.add_node(scan)

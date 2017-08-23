@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "16/06/2017"
+__date__ = "22/08/2017"
 
 
 import os
@@ -71,6 +71,25 @@ else:
         return x
 
 
+def _createRootLabel(h5obj):
+    """
+    Create label for the very first npde of the tree.
+
+    :param h5obj: The h5py object to display in the GUI
+    :type h5obj: h5py-like object
+    :rtpye: str
+    """
+    if silx_io.is_file(h5obj):
+        label = os.path.basename(h5obj.filename)
+    else:
+        filename = os.path.basename(h5obj.file.filename)
+        path = h5obj.name
+        if path.startswith("/"):
+            path = path[1:]
+        label = "%s::%s" % (filename, path)
+    return label
+
+
 class LoadingItemRunnable(qt.QRunnable):
     """Runner to process item loading from a file"""
 
@@ -107,12 +126,7 @@ class LoadingItemRunnable(qt.QRunnable):
         :param h5py.File h5obj: The h5py object to display in the GUI
         :rtpye: Hdf5Node
         """
-        if silx_io.is_file(h5obj):
-            text = os.path.basename(h5obj.filename)
-        else:
-            filename = os.path.basename(h5obj.file.filename)
-            path = h5obj.name
-            text = "%s::%s" % (filename, path)
+        text = _createRootLabel(h5obj)
         item = Hdf5Item(text=text, obj=h5obj, parent=oldItem.parent, populateAll=True)
         return item
 
@@ -543,12 +557,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             or any other class of h5py file structure.
         """
         if text is None:
-            if silx_io.is_file(h5pyObject):
-                text = os.path.basename(h5pyObject.filename)
-            else:
-                filename = os.path.basename(h5pyObject.file.filename)
-                path = h5pyObject.name
-                text = "%s::%s" % (filename, path)
+            text = _createRootLabel(h5pyObject)
         if row == -1:
             row = self.__root.childCount()
         self.insertNode(row, Hdf5Item(text=text, obj=h5pyObject, parent=self.__root))

@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "21/06/2017"
+__date__ = "23/08/2017"
 
 import logging
 import numpy
@@ -294,6 +294,16 @@ class TestFabioH5(unittest.TestCase):
         self.assertIs(result, h5py.Group)
         result = self.h5_image.get("scan_0", getclass=False, getlink=False)
         self.assertIsInstance(result, commonh5.Group)
+
+    def test_detector_link(self):
+        detector1 = self.h5_image["/scan_0/instrument/detector_0"]
+        detector2 = self.h5_image["/scan_0/measurement/image_0/info"]
+        self.assertIs(detector1, detector2)
+
+    def test_detector_data_link(self):
+        data1 = self.h5_image["/scan_0/instrument/detector_0/data"]
+        data2 = self.h5_image["/scan_0/measurement/image_0/data"]
+        self.assertIs(data1, data2)
 
 
 def suite():
