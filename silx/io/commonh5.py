@@ -339,12 +339,6 @@ class Dataset(Node):
         # python 2
         return self.__bool__()
 
-    def __eq__(self, other):
-        if is_dataset(other):
-            return self[()] == other[()]
-        else:
-            return self[()] == other
-
     def __ne__(self, other):
         if is_dataset(other):
             return self[()] != other[()]
@@ -386,7 +380,7 @@ class LazyLoadableDataset(Dataset):
 
     def __init__(self, name, parent=None, attrs=None):
         super(LazyLoadableDataset, self).__init__(name, None, parent, attrs=attrs)
-        self.__is_initialized = False
+        self._is_initialized = False
 
     def _create_data(self):
         """
@@ -406,10 +400,10 @@ class LazyLoadableDataset(Dataset):
 
         :rtype: numpy.ndarray
         """
-        if not self.__is_initialized:
+        if not self._is_initialized:
             data = self._create_data()
             self._set_data(data)
-            self.__is_initialized = True
+            self._is_initialized = True
         return super(LazyLoadableDataset, self)._get_data()
 
 
