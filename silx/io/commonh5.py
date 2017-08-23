@@ -636,7 +636,10 @@ class Group(Node):
                 # (OK for groups, not for datasets)
                 if isinstance(node, SoftLink):
                     # traverse links
-                    node = node.file[node.target]
+                    node = node.file.get(node.target, getlink=False)
+                    if node is None:
+                        # broken link
+                        return False
                 if node.h5py_class == h5py.Dataset:
                     return False
                 continue
