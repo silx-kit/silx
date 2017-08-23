@@ -189,7 +189,7 @@ class SpecToHdf5Writer(object):
 
         if isinstance(obj, SoftLink):
             # links to be created after all groups and datasets
-            h5_target = self.h5path + obj.target.lstrip("/")
+            h5_target = self.h5path + obj.path.lstrip("/")
             self._links.append((h5_name, h5_target))
 
         elif isinstance(obj, Dataset):
