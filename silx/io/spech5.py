@@ -699,10 +699,10 @@ class MeasurementMcaGroup(commonh5.Group, SpecH5Group):
 
         target_name = self.name.replace("measurement", "instrument")
         self.add_node(commonh5.SoftLink(name="data",
-                                        target=target_name + "/data",
+                                        path=target_name + "/data",
                                         parent=self))
         self.add_node(commonh5.SoftLink(name="info",
-                                        target=target_name,
+                                        path=target_name,
                                         parent=self))
 
 

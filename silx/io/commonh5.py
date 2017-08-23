@@ -416,29 +416,15 @@ class LazyLoadableDataset(Dataset):
 class SoftLink(Node):
     """This class is a tree node that mimics a *h5py.Softlink*.
 
-    The behavior is currently different from *h5py*. In *h5py*, when accessing
-    a link, the target node is returned (unless access is done via :meth:`get`
-    with `getlink=True`). In this implementation, accessing a :class:`SoftLink`
-    returns the :class:`SoftLink` instance itself, with its own :attr:`name`
-    and an additional :attr:`target` attribute storing the name of the target
-    node.
-
-    The `SoftLink` works as a proxy and provides access to most methods and
-    attributes specific to the target :class:`Dataset` or :class:`Group`.
-    However, following attributes will differ from the target's attributes:
-
-        - :attr:`name`
-        - :attr:`basename`
-        - :attr:`h5py_class`
-        - :attr:`parent`
-
-    To access the target attributes for these, access them explicitly via
-    `self.file[self.target].some_attr`.
+    In this implementation, the path to the target must be absolute.
     """
-    def __init__(self, name, target, parent):
+    def __init__(self, name, path, parent):
+        assert str(path).startswith("/")  # TODO: h5py also allows a relative path
+
         Node.__init__(self, name, parent)
 
-        self.target = target
+        # attr target defined for spech5 backward compatibility
+        self.target = str(path)
 
     @property
     def h5py_class(self):
@@ -450,45 +436,9 @@ class SoftLink(Node):
         return h5py.SoftLink
 
     @property
-    def _target_node(self):
-        """Returns the target node.
-        This is a convenience property equivalent to `self.file[self.target]`
-
-        :rtype: Class
-        """
-        if self.target not in self.file:
-            raise KeyError(
-                "Dangling SoftLink %s -> %s. " % (self.name, self.target) +
-                "Target node does not exist.")
-        return self.file[self.target]
-
-    @property
-    def attrs(self):
-        """Returns HDF5 attributes of the target node.
-
-        :rtype: dict
-        """
-        return self._target_node.attrs
-
-    def __getattr__(self, item):
-        """Proxy for target nodes attributes.
-        Only called if there *isn't* an attribute with this name.
-        By calling setattr, we make sure the attribute is set,
-        so __getattr__ is only called the first time for each attribute.
-        """
-        try:
-            value = getattr(self._target_node, item)
-        except AttributeError:
-            raise AttributeError("Soft link target %s has no attribute %s" %
-                                 (self.target, item))
-        setattr(self, item, value)
-        return value
-
-    def __iter__(self):
-        return self._target_node.__iter__()
-
-    def __getitem__(self, item):
-        return self._target_node.__getitem__(item)
+    def path(self):
+        """Soft link value. Not guaranteed to be a valid path."""
+        return self.target
 
 
 class Group(Node):
@@ -534,6 +484,47 @@ class Group(Node):
         """
         return self.__attrs
 
+    def _get(self, name, getlink):
+        """If getlink is True and name points to an existing SoftLink, this
+        SoftLink is returned. In all other situations, we try to return a
+        Group or Dataset, or we raise a KeyError if we fail."""
+        if "/" not in name:
+            result = self._get_items()[name]
+        elif name.startswith("/"):
+            root = self.file
+            if name == "/":
+                return root
+            result = root._get(name[1:], getlink)
+        else:
+            path = name.split("/")
+            result = self
+            for item_name in path:
+                if isinstance(result, SoftLink):
+                    # traverse links
+                    l_name, l_target = result.name, result.path
+                    result = result.file.get(l_target)
+                    if result is None:
+                        raise KeyError(
+                            "Unable to open object (broken SoftLink %s -> %s)" %
+                            (l_name, l_target))
+                if not item_name:
+                    # trailing "/" in name (legal for accessing Groups only)
+                    if isinstance(result, Group):
+                        continue
+                if not isinstance(result, Group):
+                    raise KeyError("Unable to open object (Component not found)")
+                result = result._get_items()[item_name]
+
+        if isinstance(result, SoftLink) and not getlink:
+            l_name, l_target = result.name, result.path
+            result = result.file.get(l_target)
+            if result is None:
+                raise KeyError(
+                    "Unable to open object (broken SoftLink %s -> %s)" %
+                    (l_name, l_target))
+
+        return result
+
     def get(self, name, default=None, getclass=False, getlink=False):
         """Retrieve an item or other information.
 
@@ -551,12 +542,16 @@ class Group(Node):
         if name not in self:
             return default
 
-        if getlink and not isinstance(self[name], SoftLink):
+        node = self._get(name, getlink=True)
+        if isinstance(node, SoftLink) and not getlink:
+            # get target
+            try:
+                node = self._get(name, getlink=False)
+            except KeyError:
+                return default
+        elif not isinstance(node, SoftLink) and getlink:
+            # ExternalLink objects don't exist in silx, so it must be a HardLink
             node = h5py.HardLink()
-            # SoftLink are returned directly
-            # ExternalLink objects don't exist in silx
-        else:
-            node = self[name]
 
         if getclass:
             if hasattr(node, "h5py_class"):
@@ -567,18 +562,6 @@ class Group(Node):
             obj = node
         return obj
 
-    def __len__(self):
-        """Returns the number of children contained in this group.
-
-        :rtype: int
-        """
-        return len(self._get_items())
-
-    def __iter__(self):
-        """Iterate over member names"""
-        for x in self._get_items().__iter__():
-            yield x
-
     def __getitem__(self, name):
         """Return a child from his name.
 
@@ -588,36 +571,7 @@ class Group(Node):
         """
         if name is None or name == "":
             raise ValueError("No name")
-
-        if "/" not in name:
-            return self._get_items()[name]
-
-        if name.startswith("/"):
-            root = self.file
-            if name == "/":
-                return root
-            return root[name[1:]]
-
-        path = name.split("/")
-        result = self
-        for item_name in path:
-            if isinstance(result, SoftLink):
-                # traverse links
-                l_name, l_target = result.name, result.target
-                result = result.file.get(l_target)
-                if result is None:
-                    raise KeyError(
-                        "Unable to open object  (broken SoftLink %s -> %s)" %
-                        (l_name, l_target))
-            if not item_name:
-                # trailing "/" in name (legal for accessing Groups only)
-                if isinstance(result, Group):
-                    continue
-            if not isinstance(result, Group):
-                raise KeyError("Unable to open object (Component not found)")
-            result = result._get_items()[item_name]
-
-        return result
+        return self._get(name, getlink=False)
 
     def __contains__(self, name):
         """Returns true if name is an existing child of this group.
@@ -641,7 +595,7 @@ class Group(Node):
                 # (OK for groups, not for datasets)
                 if isinstance(node, SoftLink):
                     # traverse links
-                    node = node.file.get(node.target, getlink=False)
+                    node = node.file.get(node.path, getlink=False)
                     if node is None:
                         # broken link
                         return False
@@ -653,6 +607,18 @@ class Group(Node):
             node = node[basename]
 
         return True
+
+    def __len__(self):
+        """Returns the number of children contained in this group.
+
+        :rtype: int
+        """
+        return len(self._get_items())
+
+    def __iter__(self):
+        """Iterate over member names"""
+        for x in self._get_items().__iter__():
+            yield x
 
     if six.PY2:
         def keys(self):
@@ -736,7 +702,7 @@ class Group(Node):
                 return ret
             # recurse into subgroups
             if isinstance(member, SoftLink) and follow_links:
-                member = member.file[member.target]
+                member = member.file[member.path]
             if isinstance(member, Group):
                 member._visit(func, origin_name, follow_links, visititems)
 
