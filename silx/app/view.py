@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "16/06/2017"
+__date__ = "18/08/2017"
 
 import sys
 import os
@@ -36,25 +36,7 @@ import collections
 _logger = logging.getLogger(__name__)
 """Module logger"""
 
-try:
-    # it should be loaded before h5py
-    import hdf5plugin  # noqa
-except ImportError:
-    hdf5plugin = None
-
-try:
-    import h5py
-    import silx.gui.hdf5
-except ImportError:
-    h5py = None
-
-try:
-    import fabio
-except ImportError:
-    fabio = None
-
 from silx.gui import qt
-from silx.gui.data.DataViewerFrame import DataViewerFrame
 
 
 class Viewer(qt.QMainWindow):
@@ -69,6 +51,10 @@ class Viewer(qt.QMainWindow):
             :class:`silx.io.spech5.SpecH5` or :class:`h5py.File`
             instances)
         """
+        # Import it here to be sure to use the right logging level
+        import silx.gui.hdf5
+        from silx.gui.data.DataViewerFrame import DataViewerFrame
+
         qt.QMainWindow.__init__(self)
         self.setWindowTitle("Silx viewer")
 
@@ -96,13 +82,7 @@ class Viewer(qt.QMainWindow):
         self.setCentralWidget(main_panel)
 
         self.__treeview.selectionModel().selectionChanged.connect(self.displayData)
-
-        self.__treeview.addContextMenuCallback(self.customContextMenu)
-        # lambda function will never be called cause we store it as weakref
-        self.__treeview.addContextMenuCallback(lambda event: None)
-        # you have to store it first
-        self.__store_lambda = lambda event: self.closeAndSyncCustomContextMenu(event)
-        self.__treeview.addContextMenuCallback(self.__store_lambda)
+        self.__treeview.addContextMenuCallback(self.closeAndSyncCustomContextMenu)
 
         treeModel = self.__treeview.findHdf5TreeModel()
         columns = list(treeModel.COLUMN_IDS)
@@ -185,48 +165,8 @@ class Viewer(qt.QMainWindow):
         return dialog
 
     def about(self):
-        import silx._version
-        message = """<p align="center"><b>Silx viewer</b>
-        <br />
-        <br />{silx_version}
-        <br />
-        <br /><a href="{project_url}">Upstream project on GitHub</a>
-        </p>
-        <p align="left">
-        <dl>
-        <dt><b>Silx version</b></dt><dd>{silx_version}</dd>
-        <dt><b>Qt version</b></dt><dd>{qt_version}</dd>
-        <dt><b>Qt binding</b></dt><dd>{qt_binding}</dd>
-        <dt><b>Python version</b></dt><dd>{python_version}</dd>
-        <dt><b>Optional libraries</b></dt><dd>{optional_lib}</dd>
-        </dl>
-        </p>
-        <p>
-        Copyright (C) <a href="{esrf_url}">European Synchrotron Radiation Facility</a>
-        </p>
-        """
-        def format_optional_lib(name, isAvailable):
-            if isAvailable:
-                template = '<b>%s</b> is <font color="green">installed</font>'
-            else:
-                template = '<b>%s</b> is <font color="red">not installed</font>'
-            return template % name
-
-        optional_lib = []
-        optional_lib.append(format_optional_lib("FabIO", fabio is not None))
-        optional_lib.append(format_optional_lib("H5py", h5py is not None))
-        optional_lib.append(format_optional_lib("hdf5plugin", hdf5plugin is not None))
-
-        info = dict(
-            esrf_url="http://www.esrf.eu",
-            project_url="https://github.com/silx-kit/silx",
-            silx_version=silx._version.version,
-            qt_binding=qt.BINDING,
-            qt_version=qt.qVersion(),
-            python_version=sys.version.replace("\n", "<br />"),
-            optional_lib="<br />".join(optional_lib)
-        )
-        qt.QMessageBox.about(self, "About Menu", message.format(**info))
+        from . import qtutils
+        qtutils.About.about(self, "Silx viewer")
 
     def appendFile(self, filename):
         self.__treeview.findHdf5TreeModel().appendFile(filename)
@@ -243,28 +183,6 @@ class Viewer(qt.QMainWindow):
     def useAsyncLoad(self, useAsync):
         self.__asyncload = useAsync
 
-    def customContextMenu(self, event):
-        """Called to populate the context menu
-
-        :param silx.gui.hdf5.Hdf5ContextMenuEvent event: Event
-            containing expected information to populate the context menu
-        """
-        selectedObjects = event.source().selectedH5Nodes(ignoreBrokenLinks=False)
-        menu = event.menu()
-
-        hasDataset = False
-        for obj in selectedObjects:
-            if obj.ntype is h5py.Dataset:
-                hasDataset = True
-                break
-
-        if len(menu.children()):
-            menu.addSeparator()
-
-        if hasDataset:
-            action = qt.QAction("Do something on the datasets", event.source())
-            menu.addAction(action)
-
     def closeAndSyncCustomContextMenu(self, event):
         """Called to populate the context menu
 
@@ -277,6 +195,8 @@ class Viewer(qt.QMainWindow):
         if len(menu.children()):
             menu.addSeparator()
 
+        # Import it here to be sure to use the right logging level
+        import h5py
         for obj in selectedObjects:
             if obj.ntype is h5py.File:
                 action = qt.QAction("Remove %s" % obj.local_filename, event.source())
@@ -300,8 +220,40 @@ def main(argv):
         type=argparse.FileType('rb'),
         nargs=argparse.ZERO_OR_MORE,
         help='Data file to show (h5 file, edf files, spec files)')
+    parser.add_argument(
+        '--debug',
+        dest="debug",
+        action="store_true",
+        default=False,
+        help='Set logging system in debug mode')
+    parser.add_argument(
+        '--use-opengl-plot',
+        dest="use_opengl_plot",
+        action="store_true",
+        default=False,
+        help='Use OpenGL for plots (instead of matplotlib)')
 
     options = parser.parse_args(argv[1:])
+
+    if options.debug:
+        logging.root.setLevel(logging.DEBUG)
+
+    #
+    # Import most of the things here to be sure to use the right logging level
+    #
+
+    try:
+        # it should be loaded before h5py
+        import hdf5plugin  # noqa
+    except ImportError:
+        _logger.debug("Backtrace", exc_info=True)
+        hdf5plugin = None
+
+    try:
+        import h5py
+    except ImportError:
+        _logger.debug("Backtrace", exc_info=True)
+        h5py = None
 
     if h5py is None:
         message = "Module 'h5py' is not installed but is mandatory."\
@@ -313,6 +265,14 @@ def main(argv):
         message = "Module 'hdf5plugin' is not installed. It supports some hdf5"\
             + " compressions. You can install it using \"pip install hdf5plugin\"."
         _logger.warning(message)
+
+    #
+    # Run the application
+    #
+
+    if options.use_opengl_plot:
+        from silx.gui.plot import PlotWidget
+        PlotWidget.setDefaultBackend("opengl")
 
     app = qt.QApplication([])
     sys.excepthook = qt.exceptionHandler

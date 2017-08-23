@@ -175,7 +175,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "16/08/2017"
+__date__ = "18/08/2017"
 
 
 from collections import OrderedDict, namedtuple
@@ -430,6 +430,18 @@ class PlotWidget(qt.QMainWindow):
 
         self.setFocusPolicy(qt.Qt.StrongFocus)
         self.setFocus(qt.Qt.OtherFocusReason)
+
+    @staticmethod
+    def setDefaultBackend(backend):
+        """Set system wide default plot backend.
+
+        .. versionadded:: 0.6
+
+        :param backend: The backend to use, in:
+                        'matplotlib' (default), 'mpl', 'opengl', 'gl', 'none'
+                        or a :class:`BackendBase.BackendBase` class
+        """
+        PlotWidget.DEFAULT_BACKEND = backend
 
     def _getDirtyPlot(self):
         """Return the plot dirty flag.

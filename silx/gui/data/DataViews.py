@@ -38,7 +38,7 @@ from silx.io.nxdata import NXdata
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "27/06/2017"
+__date__ = "18/08/2017"
 
 _logger = logging.getLogger(__name__)
 
@@ -689,8 +689,9 @@ class _RecordView(DataView):
         data = self.normalizeData(data)
         widget = self.getWidget()
         widget.setArrayData(data)
-        widget.resizeRowsToContents()
-        widget.resizeColumnsToContents()
+        if len(data) < 100:
+            widget.resizeRowsToContents()
+            widget.resizeColumnsToContents()
 
     def axesNames(self, data, info):
         return ["data"]
