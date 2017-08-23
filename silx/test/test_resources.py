@@ -66,6 +66,37 @@ class TestResources(unittest.TestCase):
         self.assertTrue(len(result) > 10)
 
 
+class TestResourcesWithoutPkgResources(TestResources):
+
+    @classmethod
+    def setUpClass(cls):
+        super(TestResourcesWithoutPkgResources, cls).setUpClass()
+        cls._old = silx.resources.pkg_resources
+        silx.resources.pkg_resources = None
+
+    @classmethod
+    def tearDownClass(cls):
+        silx.resources.pkg_resources = cls._old
+        del cls._old
+        super(TestResourcesWithoutPkgResources, cls).tearDownClass()
+
+
+class TestResourcesWithCustomDirectory(TestResources):
+
+    @classmethod
+    def setUpClass(cls):
+        super(TestResourcesWithCustomDirectory, cls).setUpClass()
+        cls._old = silx.resources._RESOURCES_DIR
+        base = os.path.dirname(silx.resources.__file__)
+        silx.resources._RESOURCES_DIR = base
+
+    @classmethod
+    def tearDownClass(cls):
+        silx.resources._RESOURCES_DIR = cls._old
+        del cls._old
+        super(TestResourcesWithCustomDirectory, cls).tearDownClass()
+
+
 def isSilxWebsiteAvailable():
     try:
         six.moves.urllib.request.urlopen('http://www.silx.org', timeout=1)
@@ -133,6 +164,8 @@ def suite():
     loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
     test_suite = unittest.TestSuite()
     test_suite.addTest(loadTests(TestResources))
+    test_suite.addTest(loadTests(TestResourcesWithoutPkgResources))
+    test_suite.addTest(loadTests(TestResourcesWithCustomDirectory))
     test_suite.addTest(loadTests(TestExternalResources))
     return test_suite
 
