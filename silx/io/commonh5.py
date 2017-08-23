@@ -820,7 +820,7 @@ class File(Group):
     """This class is the special :class:`Group` that is the root node
     of the tree structure. It mimics `h5py.File`."""
 
-    def __init__(self, name=None, mode=None):
+    def __init__(self, name=None, mode=None, attrs=None):
         """
         Constructor
 
@@ -830,9 +830,9 @@ class File(Group):
                 :meth:`create_group` are locked.
             - "w": File is editable. Methods :meth:`create_dataset` and
                 :meth:`create_group` are available.
+        :param dict attrs: Default attributes
         """
-        Group.__init__(self, name="", parent=None,
-                       attrs={"NX_class": "NXroot"})
+        Group.__init__(self, name="", parent=None, attrs=attrs)
         self._file_name = name
         if mode is None:
             mode = "r"
