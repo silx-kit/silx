@@ -252,7 +252,7 @@ class ExternalResources(object):
             self._tempdir = None
 
     def getfile(self, filename):
-        """Downloads the requested file from web-server available 
+        """Downloads the requested file from web-server available
         at https://www.silx.org/pub/silx/
 
         :param: relative name of the image.
@@ -299,12 +299,13 @@ class ExternalResources(object):
                     data to disk at %s" % self.data_home)
 
             if not os.path.isfile(fullfilename):
-                raise RuntimeError("Could not automatically \
-                download test images %s!\n \ If you are behind a firewall, \
-                please set both environment variable http_proxy and https_proxy.\
-                This even works under windows ! \n \
-                Otherwise please try to download the images manually from \n%s/%s"\
-                 % (filename, self.url_base, filename))
+                raise RuntimeError(
+                    "Could not automatically \
+                    download test images %s!\n \ If you are behind a firewall, \
+                    please set both environment variable http_proxy and https_proxy.\
+                    This even works under windows ! \n \
+                    Otherwise please try to download the images manually from \n%s/%s"
+                    % (filename, self.url_base, filename))
 
         if filename not in self.all_data:
             self.all_data.add(filename)
@@ -319,7 +320,7 @@ class ExternalResources(object):
         return fullfilename
 
     def getdir(self, dirname):
-        """Downloads the requested tarball from the server 
+        """Downloads the requested tarball from the server
         https://www.silx.org/pub/silx/
         and unzips it into the data directory
 
