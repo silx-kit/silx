@@ -23,4 +23,59 @@
 # ############################################################################*/
 """Deprecated module. Use :mod:`convert` instead."""
 
-from .convert import SpecToHdf5Writer, write_spec_to_h5, convert
+from .convert import Hdf5Writer
+from .convert import write_to_h5
+from .convert import convert as other_convert
+
+from silx.utils import deprecation
+
+deprecation.deprecated_warning(type_="Module",
+                               name="silx.io.spectoh5",
+                               since_version="0.6",
+                               replacement="silx.io.convert")
+
+
+class SpecToHdf5Writer(Hdf5Writer):
+    def __init__(self, h5path='/', overwrite_data=False,
+                 link_type="hard", create_dataset_args=None):
+        deprecation.deprecated_warning(
+            type_="Class",
+            name="SpecToHdf5Writer",
+            since_version="0.6",
+            replacement="silx.io.convert.Hdf5Writer")
+        Hdf5Writer.__init__(self, h5path, overwrite_data,
+                            link_type, create_dataset_args)
+
+    # methods whose signatures changed
+    def write(self, sfh5, h5f):
+        Hdf5Writer.write(self, infile=sfh5, h5f=h5f)
+
+    def append_spec_member_to_h5(self, spec_h5_name, obj):
+        Hdf5Writer.append_member_to_h5(self,
+                                       h5like_name=spec_h5_name,
+                                       obj=obj)
+
+
+@deprecation.deprecated(replacement="silx.io.convert.write_to_h5",
+                        since_version="0.6")
+def write_spec_to_h5(specfile, h5file, h5path='/',
+                     mode="a", overwrite_data=False,
+                     link_type="hard", create_dataset_args=None):
+
+    write_to_h5(infile=specfile,
+                h5file=h5file,
+                h5path=h5path,
+                mode=mode,
+                overwrite_data=overwrite_data,
+                link_type=link_type,
+                create_dataset_args=create_dataset_args)
+
+
+@deprecation.deprecated(replacement="silx.io.convert.convert",
+                        since_version="0.6")
+def convert(specfile, h5file, mode="w-",
+            create_dataset_args=None):
+    other_convert(infile=specfile,
+                  h5file=h5file,
+                  mode=mode,
+                  create_dataset_args=create_dataset_args)
