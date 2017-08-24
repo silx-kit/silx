@@ -72,7 +72,7 @@ except ImportError as e:
 
 
 def _create_link(h5f, link_name, target_name,
-                 link_type="hard", overwrite_data=False):
+                 link_type="soft", overwrite_data=False):
     """Create a link in a HDF5 file
 
     If member with name ``link_name`` already exists, delete it first or
@@ -81,7 +81,7 @@ def _create_link(h5f, link_name, target_name,
     :param h5f: :class:`h5py.File` object
     :param link_name: Link path
     :param target_name: Handle for target group or dataset
-    :param str link_type: "hard" (default) or "soft"
+    :param str link_type: "soft" or "hard"
     :param bool overwrite_data: If True, delete existing member (group,
         dataset or link) with the same name. Default is False.
     """
@@ -282,7 +282,7 @@ def convert(infile, h5file, mode="w-", create_dataset_args=None):
     This is a convenience shortcut to call::
 
         write_to_h5(h5like, h5file, h5path='/',
-                    mode="w-", link_type="hard")
+                    mode="w-", link_type="soft")
     """
     if mode not in ["w", "w-"]:
         raise IOError("File mode must be 'w' or 'w-'. Use write_to_h5" +
