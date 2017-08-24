@@ -161,6 +161,30 @@ def _get_package_and_resource(resource):
     return package_name, package_path, resource
 
 
+def join(*args):
+    """Join a final resource name with directories.
+
+    It takes care of the resource prefix.
+
+    >>> join("a", "b")
+    "a/b"
+
+    >>> join("a", "silx:b")
+    "silx:a/b"
+
+    :param list args:
+    """
+    resource = args[-1]
+    if ":" in resource:
+        prefix, resource = resource.split(":", 1)
+        prefix = prefix + ":"
+    else:
+        prefix = ""
+    args = list(args)
+    args[-1] = resource
+    return prefix + os.path.join(*args)
+
+
 def resource_filename(resource):
     """Return filename corresponding to resource.
 

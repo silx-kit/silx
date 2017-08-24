@@ -37,7 +37,7 @@ __status__ = "Production"
 
 import os
 import numpy
-from ..resources import resource_filename
+from .. import resources
 from math import log, ceil
 
 
@@ -86,14 +86,8 @@ def get_cl_file(resource):
     """
     if not resource.endswith(".cl"):
         resource += ".cl"
-
-    if ":" in resource:
-        prefix, resource = resource.split(":", 1)
-        filename = '%s:%s' % (prefix, os.path.join("opencl", resource))
-    else:
-        filename = 'opencl/%s' % resource
-
-    return resource_filename(filename)
+    resource = resources.join("opencl", resource)
+    return resources.resource_filename(resource)
 
 
 def read_cl_file(filename):

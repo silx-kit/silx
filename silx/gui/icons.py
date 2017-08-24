@@ -35,7 +35,7 @@ __date__ = "24/08/2017"
 import logging
 import weakref
 from . import qt
-from silx.resources import resource_filename
+import silx.resources
 from silx.utils import weakref as silxweakref
 from silx.utils.deprecation import deprecated
 
@@ -351,15 +351,10 @@ def getQFile(name):
         else:
             _logger.debug("Format %s supported", ", ".join(_supported_formats))
 
-    if ":" in name:
-        prefix, name = name.split(":", 1)
-        resource = '%s:gui/icons/%s' % (prefix, name)
-    else:
-        resource = 'gui/icons/%s' % name
-
+    resource = silx.resources.join('gui', 'icons', name)
     for format_ in _supported_formats:
         format_ = str(format_)
-        filename = resource_filename('%s.%s' % (resource, format_))
+        filename = silx.resources.resource_filename('%s.%s' % (resource, format_))
         qfile = qt.QFile(filename)
         if qfile.exists():
             return qfile
