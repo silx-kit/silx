@@ -32,7 +32,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "15/03/2017"
+__date__ = "24/08/2017"
 __status__ = "Production" 
 
 import os
@@ -77,14 +77,23 @@ def sizeof(shape, dtype="uint8"):
     return cnt * itemsize
 
 
-def get_cl_file(filename):
+def get_cl_file(resource):
     """get the full path of a openCL file
 
+    :param str resource: Resource name. File name contained if the opencl
+        directory of the resources.
     :return: the full path of the openCL source file
     """
-    if not filename.endswith(".cl"):
-        filename += ".cl"
-    return resource_filename(os.path.join("opencl", filename))
+    if not resource.endswith(".cl"):
+        resource += ".cl"
+
+    if ":" in resource:
+        prefix, resource = resource.split(":", 1)
+        filename = '%s:%s' % (prefix, os.path.join("opencl", resource))
+    else:
+        filename = 'opencl/%s' % resource
+
+    return resource_filename(filename)
 
 
 def read_cl_file(filename):
