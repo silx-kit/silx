@@ -22,7 +22,8 @@
 #
 # ############################################################################*/
 """This module provides classes and function to convert file formats supported
-by *silx* into HDF5 file.
+by *silx* into HDF5 file. Currently, SPEC file and fabio images are the
+supported formats.
 
 Read the documentation of :mod:`silx.io.spech5` and :mod:`silx.io.fabioh5` for
 information on the structure of the output HDF5 files.
@@ -104,11 +105,12 @@ def _create_link(h5f, link_name, target_name,
 
 
 class Hdf5Writer(object):
-    """Converter class to write a Spec file to a HDF5 file."""
+    """Converter class to write the content of a data file to a HDF5 file.
+    """
     def __init__(self,
                  h5path='/',
                  overwrite_data=False,
-                 link_type="hard",
+                 link_type="soft",
                  create_dataset_args=None):
         """
 
@@ -124,7 +126,7 @@ class Hdf5Writer(object):
         self.h5path = h5path
 
         self._h5f = None
-        """SpecH5 object, assigned in :meth:`write`"""
+        """h5py.File object, assigned in :meth:`write`"""
 
         if create_dataset_args is None:
             create_dataset_args = {}
@@ -163,6 +165,7 @@ class Hdf5Writer(object):
             _create_link(self._h5f, link_name, target_name,
                          link_type=self.link_type,
                          overwrite_data=self.overwrite_data)
+        self._links = []
 
     def append_member_to_h5(self, h5like_name, obj):
         """Add one group or one dataset to :attr:`h5f`"""
@@ -283,6 +286,6 @@ def convert(infile, h5file, mode="w-", create_dataset_args=None):
     """
     if mode not in ["w", "w-"]:
         raise IOError("File mode must be 'w' or 'w-'. Use write_to_h5" +
-                      " to append Spec data to an existing HDF5 file.")
+                      " to append data to an existing HDF5 file.")
     write_to_h5(infile, h5file, h5path='/', mode=mode,
                 create_dataset_args=create_dataset_args)
