@@ -26,9 +26,9 @@
 
 from __future__ import absolute_import, print_function, division
 
-__authors__ = ["Jerome Kieffer"]
+__authors__ = ["Jerome Kieffer", "H. Payno", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "22/06/2017"
+__date__ = "23/08/2017"
 
 import sys
 import logging
@@ -58,7 +58,7 @@ def deprecated(func=None, reason=None, replacement=None, since_version=None, onl
         def wrapper(*args, **kwargs):
             name = func.func_name if sys.version_info[0] < 3 else func.__name__
 
-            deprecated_warning(type_='function',
+            deprecated_warning(type_='Function',
                                name=name,
                                reason=reason,
                                replacement=replacement,
@@ -74,9 +74,11 @@ def deprecated(func=None, reason=None, replacement=None, since_version=None, onl
 def deprecated_warning(type_, name, reason=None, replacement=None,
                        since_version=None, only_once=True):
     """
-    Decorator that deprecates the use of a function
+    Function to log a deprecation warning
 
-    :param str type_: Module, function, class ...
+    :param str type_: Nature of the object to be deprecated:
+        "Module", "Function", "Class" ...
+    :param name: Object name.
     :param str reason: Reason for deprecating this function
         (e.g. "feature no longer provided",
     :param str replacement: Name of replacement function (if the reason for
@@ -90,15 +92,15 @@ def deprecated_warning(type_, name, reason=None, replacement=None,
         # Avoid computation when it is not logged
         return
 
-    msg = "%s, %s is deprecated"
+    msg = "%s %s is deprecated"
     if since_version is not None:
         msg += " since silx version %s" % since_version
-    msg += "!"
+    msg += "."
     if reason is not None:
         msg += " Reason: %s." % reason
     if replacement is not None:
         msg += " Use '%s' instead." % replacement
-    msg = msg + "\n%s"
+    msg += "\n%s"
     backtrace = "".join(traceback.format_stack()[-2:-1])
     backtrace = backtrace.rstrip()
     if only_once:
