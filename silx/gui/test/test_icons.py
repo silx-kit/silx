@@ -26,13 +26,14 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "26/04/2017"
+__date__ = "24/08/2017"
 
 
 import gc
 import unittest
 import weakref
 
+import silx.resources
 from silx.gui import qt
 from silx.gui.test.utils import TestCaseQt
 from silx.gui import icons
@@ -41,14 +42,25 @@ from silx.gui import icons
 class TestIcons(TestCaseQt):
     """Test to check that icons module."""
 
+    def setUp(self):
+        # Store the original configuration
+        self._oldResources = dict(silx.resources._RESOURCE_DIRECTORIES)
+        silx.resources.add_resource_directory("test", "silx.test.resources")
+        unittest.TestCase.setUp(self)
+
+    def tearDown(self):
+        unittest.TestCase.tearDown(self)
+        # Restiture the original configuration
+        silx.resources._RESOURCE_DIRECTORIES = self._oldResources
+
     def testSvgIcon(self):
         if "svg" not in qt.supportedImageFormats():
             self.skipTest("SVG not supported")
-        icon = icons.getQIcon("test-svg")
+        icon = icons.getQIcon("test:test-svg")
         self.assertIsNotNone(icon)
 
     def testPngIcon(self):
-        icon = icons.getQIcon("test-png")
+        icon = icons.getQIcon("test:test-png")
         self.assertIsNotNone(icon)
 
     def testUnexistingIcon(self):

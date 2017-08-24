@@ -722,7 +722,8 @@ def get_project_configuration(dry_run):
             'gui/colormaps/*.npy'],
         # Resources files for tests
         'silx.test.resources': [
-            'gui/icons/*.png']
+            'gui/icons/*.png',
+            'gui/icons/*.svg']
     }
 
     entry_points = {
