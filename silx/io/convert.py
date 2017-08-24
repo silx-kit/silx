@@ -138,23 +138,6 @@ class Hdf5Writer(object):
         self._links = []
         """List of *(link_path, target_path)* tuples."""
 
-    def _filter_links(self):
-        """Remove all links that are part of the subtree whose
-        root is a link to a group."""
-        filtered_links = []
-        for i, link in enumerate(self._links):
-            link_is_valid = True
-            link_path, target_path = link
-            other_links = self._links[:i] + self._links[i+1:]
-            for link_path2, target_path2 in other_links:
-                if link_path.startswith(link_path2):
-                    # parent group is a link to a group
-                    link_is_valid = False
-                    break
-            if link_is_valid:
-                filtered_links.append(link)
-        self._links = filtered_links
-
     def write(self, infile, h5f):
         """Do the conversion from :attr:`sfh5` (Spec file) to *h5f* (HDF5)
 
@@ -166,7 +149,7 @@ class Hdf5Writer(object):
         """
         # Recurse through all groups and datasets to add them to the HDF5
         self._h5f = h5f
-        infile.visititems(self.append_member_to_h5, follow_links=True)
+        infile.visititems(self.append_member_to_h5, visit_links=True)
 
         # Handle the attributes of the root group
         root_grp = h5f[self.h5path]
@@ -176,7 +159,6 @@ class Hdf5Writer(object):
                                       numpy.string_(infile.attrs[key]))
 
         # Handle links at the end, when their targets are created
-        self._filter_links()
         for link_name, target_name in self._links:
             _create_link(self._h5f, link_name, target_name,
                          link_type=self.link_type,
