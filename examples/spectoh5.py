@@ -42,7 +42,7 @@ __license__ = "MIT"
 __date__ = "18/10/2016"
 
 import argparse
-from silx.io.convert import write_spec_to_h5
+from silx.io.convert import write_to_h5
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('spec_path',
@@ -82,7 +82,7 @@ else:
     # by default, use "write" mode and fail if file already exists
     mode = "w-"
 
-write_spec_to_h5(args.spec_path, args.h5_path,
-                 h5path=args.target_path,
-                 mode=mode,
-                 overwrite_data=args.overwrite_data)
+write_to_h5(args.spec_path, args.h5_path,
+            h5path=args.target_path,
+            mode=mode,
+            overwrite_data=args.overwrite_data)

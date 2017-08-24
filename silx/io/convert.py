@@ -21,10 +21,11 @@
 # THE SOFTWARE.
 #
 # ############################################################################*/
-"""This module provides functions to convert a SpecFile into a HDF5 file.
+"""This module provides classes and function to convert file formats supported
+by *silx* into HDF5 file.
 
-Read the documentation of :mod:`silx.io.spech5` for information on the
-structure of the output HDF5 files.
+Read the documentation of :mod:`silx.io.spech5` and :mod:`silx.io.fabioh5` for
+information on the structure of the output HDF5 files.
 
 Strings are written to the HDF5 datasets as fixed-length ASCII (NumPy *S* type).
 This is done in order to produce files that have maximum compatibility with
@@ -53,6 +54,13 @@ longest string. Shorter strings are right-padded with blank spaces.
 import numpy
 import logging
 
+import silx.io
+from silx.io import is_dataset, is_group, is_softlink
+
+__authors__ = ["P. Knobel"]
+__license__ = "MIT"
+__date__ = "24/08/2017"
+
 _logger = logging.getLogger(__name__)
 
 try:
@@ -60,14 +68,6 @@ try:
 except ImportError as e:
     _logger.error("Module " + __name__ + " requires h5py")
     raise e
-
-from .commonh5 import Group, Dataset, SoftLink
-from .spech5 import SpecH5
-
-
-__authors__ = ["P. Knobel"]
-__license__ = "MIT"
-__date__ = "22/08/2017"
 
 
 def _create_link(h5f, link_name, target_name,
@@ -103,7 +103,7 @@ def _create_link(h5f, link_name, target_name,
         raise ValueError("link_type  must be 'hard' or 'soft'")
 
 
-class SpecToHdf5Writer(object):
+class Hdf5Writer(object):
     """Converter class to write a Spec file to a HDF5 file."""
     def __init__(self,
                  h5path='/',
@@ -115,11 +115,11 @@ class SpecToHdf5Writer(object):
         :param h5path: Target path where the scan groups will be written
             in the output HDF5 file.
         :param bool overwrite_data:
-            See documentation of :func:`write_spec_to_h5`
+            See documentation of :func:`write_to_h5`
         :param str link_type: ``"hard"`` (default) or ``"soft"``
         :param dict create_dataset_args: Dictionary of args you want to pass to
             ``h5py.File.create_dataset``.
-            See documentation of :func:`write_spec_to_h5`
+            See documentation of :func:`write_to_h5`
         """
         self.h5path = h5path
 
@@ -155,26 +155,25 @@ class SpecToHdf5Writer(object):
                 filtered_links.append(link)
         self._links = filtered_links
 
-    def write(self, sfh5, h5f):
+    def write(self, infile, h5f):
         """Do the conversion from :attr:`sfh5` (Spec file) to *h5f* (HDF5)
 
         All the parameters needed for the conversion have been initialized
         in the constructor.
 
-        :param sfh5: :class:`SpecH5` object
+        :param infile: :class:`SpecH5` object
         :param h5f: :class:`h5py.File` instance
         """
         # Recurse through all groups and datasets to add them to the HDF5
-        sfh5 = sfh5
         self._h5f = h5f
-        sfh5.visititems(self.append_spec_member_to_h5, follow_links=True)
+        infile.visititems(self.append_member_to_h5, follow_links=True)
 
         # Handle the attributes of the root group
         root_grp = h5f[self.h5path]
-        for key in sfh5.attrs:
+        for key in infile.attrs:
             if self.overwrite_data or key not in root_grp.attrs:
                 root_grp.attrs.create(key,
-                                      numpy.string_(sfh5.attrs[key]))
+                                      numpy.string_(infile.attrs[key]))
 
         # Handle links at the end, when their targets are created
         self._filter_links()
@@ -183,16 +182,16 @@ class SpecToHdf5Writer(object):
                          link_type=self.link_type,
                          overwrite_data=self.overwrite_data)
 
-    def append_spec_member_to_h5(self, spec_h5_name, obj):
+    def append_member_to_h5(self, h5like_name, obj):
         """Add one group or one dataset to :attr:`h5f`"""
-        h5_name = self.h5path + spec_h5_name.lstrip("/")
+        h5_name = self.h5path + h5like_name.lstrip("/")
 
-        if isinstance(obj, SoftLink):
+        if is_softlink(obj):
             # links to be created after all groups and datasets
             h5_target = self.h5path + obj.path.lstrip("/")
             self._links.append((h5_name, h5_target))
 
-        elif isinstance(obj, Dataset):
+        elif is_dataset(obj):
             _logger.debug("Saving dataset: " + h5_name)
 
             member_initially_exists = h5_name in self._h5f
@@ -219,7 +218,7 @@ class SpecToHdf5Writer(object):
             if not self.overwrite_data and member_initially_exists:
                 _logger.warn("Ignoring existing dataset: " + h5_name)
 
-        elif isinstance(obj, Group):
+        elif is_group(obj):
             if h5_name not in self._h5f:
                 _logger.debug("Creating group: " + h5_name)
                 grp = self._h5f.create_group(h5_name)
@@ -232,26 +231,26 @@ class SpecToHdf5Writer(object):
                     grp.attrs.create(key, numpy.string_(obj.attrs[key]))
 
 
-def write_spec_to_h5(specfile, h5file, h5path='/',
-                     mode="a", overwrite_data=False,
-                     link_type="hard", create_dataset_args=None):
-    """Write content of a SpecFile in a HDF5 file.
+def write_to_h5(infile, h5file, h5path='/', mode="a",
+                overwrite_data=False, link_type="soft",
+                create_dataset_args=None):
+    """Write content of a h5py-like object into a HDF5 file.
 
-    :param specfile: Path of input SpecFile or :class:`SpecH5` object
-        or :class:`SpecH5Group` object
+    :param infile: Path of input file, or :class:`commonh5.File` object
+        or :class:`commonh5.Group` object
     :param h5file: Path of output HDF5 file or HDF5 file handle
         (`h5py.File` object)
-    :param h5path: Target path in HDF5 file in which scan groups are created.
+    :param str h5path: Target path in HDF5 file in which scan groups are created.
         Default is root (``"/"``)
-    :param mode: Can be ``"r+"`` (read/write, file must exist),
+    :param str mode: Can be ``"r+"`` (read/write, file must exist),
         ``"w"`` (write, existing file is lost), ``"w-"`` (write, fail
         if exists) or ``"a"`` (read/write if exists, create otherwise).
         This parameter is ignored if ``h5file`` is a file handle.
-    :param overwrite_data: If ``True``, existing groups and datasets can be
+    :param bool overwrite_data: If ``True``, existing groups and datasets can be
         overwritten, if ``False`` they are skipped. This parameter is only
         relevant if ``file_mode`` is ``"r+"`` or ``"a"``.
-    :param link_type: ``"hard"`` (default) or ``"soft"``
-    :param create_dataset_args: Dictionary of args you want to pass to
+    :param str link_type: *"soft"* (default) or *"hard"*
+    :param dict create_dataset_args: Dictionary of args you want to pass to
         ``h5py.File.create_dataset``. This allows you to specify filters and
         compression parameters. Don't specify ``name`` and ``data``.
         These arguments don't apply to scalar datasets.
@@ -259,36 +258,34 @@ def write_spec_to_h5(specfile, h5file, h5path='/',
     The structure of the spec data in an HDF5 file is described in the
     documentation of :mod:`silx.io.spech5`.
     """
-    # SpecH5 is a subclass of SpecH5Group
-    if not isinstance(specfile, Group):
-        # assume that it is a string and let SpecH5 test the type
-        sfh5 = SpecH5(specfile)
+    if not is_group(infile):
+        # assume that it is a string and let silx.io.open test the type
+        h5pylike = silx.io.open(infile)
     else:
-        sfh5 = specfile
+        h5pylike = infile
 
     if not h5path.endswith("/"):
         h5path += "/"
 
-    writer = SpecToHdf5Writer(h5path=h5path,
-                              overwrite_data=overwrite_data,
-                              link_type=link_type,
-                              create_dataset_args=create_dataset_args)
+    writer = Hdf5Writer(h5path=h5path,
+                        overwrite_data=overwrite_data,
+                        link_type=link_type,
+                        create_dataset_args=create_dataset_args)
 
     if not isinstance(h5file, h5py.File):
         # If h5file is a file path, open and close it
         with h5py.File(h5file, mode) as h5f:
-            writer.write(sfh5, h5f)
+            writer.write(h5pylike, h5f)
     else:
-        writer.write(sfh5, h5file)
+        writer.write(h5pylike, h5file)
 
 
-def convert(specfile, h5file, mode="w-",
-            create_dataset_args=None):
-    """Convert a SpecFile into an HDF5 file, write scans into the root (``/``)
-    group.
+def convert(infile, h5file, mode="w-", create_dataset_args=None):
+    """Convert a supported file into an HDF5 file, write scans into the
+    root group (``/``).
 
-    :param specfile: Path of input SpecFile or :class:`SpecH5` object
-        or :class:`SpecH5Group` object
+    :param infile: Path of input file or :class:`commonh5.File` object
+        or :class:`commonh5.Group` object
     :param h5file: Path of output HDF5 file, or h5py.File object
     :param mode: Can be ``"w"`` (write, existing file is
         lost), ``"w-"`` (write, fail if exists). This is ignored
@@ -299,11 +296,11 @@ def convert(specfile, h5file, mode="w-",
 
     This is a convenience shortcut to call::
 
-        write_spec_to_h5(specfile, h5file, h5path='/',
-                         mode="w-", link_type="hard")
+        write_to_h5(h5like, h5file, h5path='/',
+                    mode="w-", link_type="hard")
     """
     if mode not in ["w", "w-"]:
-        raise IOError("File mode must be 'w' or 'w-'. Use write_spec_to_h5" +
+        raise IOError("File mode must be 'w' or 'w-'. Use write_to_h5" +
                       " to append Spec data to an existing HDF5 file.")
-    write_spec_to_h5(specfile, h5file, h5path='/', mode=mode,
-                     create_dataset_args=create_dataset_args)
+    write_to_h5(infile, h5file, h5path='/', mode=mode,
+                create_dataset_args=create_dataset_args)
