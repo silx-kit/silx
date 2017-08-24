@@ -105,8 +105,8 @@ _RESOURCE_DIRECTORIES = {}
 _RESOURCE_DIRECTORIES["silx"] = _DEFAULT_DIRECTORY
 
 
-def add_resource_directory(name, package):
-    """Add another resource directory to the available list.
+def register_resource_directory(name, package):
+    """Register another resource directory to the available list.
 
     By default only the directory "silx" is available.
     """

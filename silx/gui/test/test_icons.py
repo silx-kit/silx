@@ -45,7 +45,7 @@ class TestIcons(TestCaseQt):
     def setUp(self):
         # Store the original configuration
         self._oldResources = dict(silx.resources._RESOURCE_DIRECTORIES)
-        silx.resources.add_resource_directory("test", "silx.test.resources")
+        silx.resources.register_resource_directory("test", "silx.test.resources")
         unittest.TestCase.setUp(self)
 
     def tearDown(self):

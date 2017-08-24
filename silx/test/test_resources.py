@@ -107,13 +107,13 @@ class TestResources(unittest.TestCase):
 
     def test_adding_test_directory(self):
         """The resource from 'test' is available"""
-        silx.resources.add_resource_directory("test", "silx.test.resources")
+        silx.resources.register_resource_directory("test", "silx.test.resources")
         path = silx.resources.resource_filename('test:gui/icons/pixel.png')
         self.assertTrue(os.path.exists(path))
 
     def test_adding_test_directory_no_override(self):
         """The resource from 'silx' is still available"""
-        silx.resources.add_resource_directory("test", "silx.test.resources")
+        silx.resources.register_resource_directory("test", "silx.test.resources")
         filename1 = silx.resources.resource_filename('gui/icons/close.png')
         filename2 = silx.resources.resource_filename('silx:gui/icons/close.png')
         filename3 = silx.resources.resource_filename('test:gui/icons/close.png')
@@ -126,7 +126,7 @@ class TestResources(unittest.TestCase):
     def adding_test_directory_non_existing(self):
         """A resource while not exists in test is not available anyway it exists
         in silx"""
-        silx.resources.add_resource_directory("test", "silx.test.resources")
+        silx.resources.register_resource_directory("test", "silx.test.resources")
         resource_name = "gui/icons/colormap.png"
         path = silx.resources.resource_filename('test:' + resource_name)
         path2 = silx.resources.resource_filename('silx:' + resource_name)
