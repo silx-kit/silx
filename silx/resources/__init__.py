@@ -56,7 +56,7 @@ of this modules to ensure access across different distribution schemes:
 
 __authors__ = ["V.A. Sole", "Thomas Vincent", "J. Kieffer"]
 __license__ = "MIT"
-__date__ = "23/08/2017"
+__date__ = "24/08/2017"
 
 
 import os
@@ -67,6 +67,7 @@ import getpass
 import logging
 import tempfile
 import unittest
+import importlib
 from silx.third_party import six
 logger = logging.getLogger(__name__)
 
@@ -99,27 +100,46 @@ if getattr(sys, 'frozen', False):
     if os.path.isdir(_dir):
         _RESOURCES_DIR = _dir
 
+_DEFAULT_DIRECTORY = (__name__, os.path.abspath(os.path.dirname(__file__)))
+_RESOURCE_DIRECTORIES = {}
+_RESOURCE_DIRECTORIES["silx"] = _DEFAULT_DIRECTORY
 
-def list_dir(resource_directory):
+
+def add_resource_directory(name, package):
+    """Add another resource directory to the available list.
+
+    By default only the directory "silx" is available.
+    """
+    if name in _RESOURCE_DIRECTORIES:
+        raise KeyError("Key %s already exists" % name)
+
+    module = importlib.import_module(package)
+    path = os.path.abspath(os.path.dirname(module.__file__))
+    data = (package, path)
+    _RESOURCE_DIRECTORIES[name] = data
+
+
+def list_dir(resource):
     """List the content of a resource directory.
 
     Result are not prefixed by the resource_directory.
 
-    :param str resource_directory: Name of the resource directory to list
+    :param str resource: Name of the resource directory to list
     :return: list of name contained in the directory
     :rtype: list
     """
     if _RESOURCES_DIR is not None:
         # if set, use this directory
-        path = resource_filename(resource_directory)
+        path = resource_filename(resource)
         return os.listdir(path)
     elif pkg_resources is None:
         # Fallback if pkg_resources is not available
-        path = resource_filename(resource_directory)
+        path = resource_filename(resource)
         return os.listdir(path)
     else:
         # Preferred way to get resources as it supports zipfile package
-        return pkg_resources.resource_listdir(__name__, resource_directory)
+        package_name, _package_path, resource = _get_package_and_resource(resource)
+        return pkg_resources.resource_listdir(package_name, resource)
 
 
 def is_dir(resource):
@@ -128,17 +148,17 @@ def is_dir(resource):
     :param str resource: Name of the resource
     :rtype: bool
     """
-    if _RESOURCES_DIR is not None:
-        # if set, use this directory
-        path = resource_filename(resource)
-        return os.path.isdir(path)
-    elif pkg_resources is None:
-        # Fallback if pkg_resources is not available
-        path = resource_filename(resource)
-        return os.path.isdir(path)
+    path = resource_filename(resource)
+    return os.path.isdir(path)
+
+
+def _get_package_and_resource(resource):
+    if ":" in resource:
+        prefix, resource = resource.split(":", 1)
     else:
-        # Preferred way to get resources as it supports zipfile package
-        return pkg_resources.resource_isdir(__name__, resource)
+        prefix = "silx"
+    package_name, package_path = _RESOURCE_DIRECTORIES[prefix]
+    return package_name, package_path, resource
 
 
 def resource_filename(resource):
@@ -151,24 +171,19 @@ def resource_filename(resource):
                          using '/' path separator.
     :return: Absolute resource path in the file system
     """
-    # Not in use, uncomment when functionality is needed
-    # If _RESOURCES_DOC_DIR is set, use it to get resources in doc/ subfoldler
-    # from an alternative directory.
-    # if _RESOURCES_DOC_DIR is not None and (resource is 'doc' or
-    #         resource.startswith('doc/')):
-    #     # Remove doc folder from resource relative path
-    #     return os.path.join(_RESOURCES_DOC_DIR, *resource.split('/')[1:])
+    package_name, package_path, resource = _get_package_and_resource(resource)
 
-    if _RESOURCES_DIR is not None:
+    if _RESOURCES_DIR is not None and package_name == __name__:
         # if set, use this directory
-        return os.path.join(_RESOURCES_DIR, *resource.split('/'))
+        resource_path = os.path.join(_RESOURCES_DIR, *resource.split('/'))
+        return resource_path
     elif pkg_resources is None:
         # Fallback if pkg_resources is not available
-        base = os.path.abspath(os.path.dirname(__file__))
-        return os.path.join(base, *resource.split('/'))
+        resource_path = os.path.join(package_path, *resource.split('/'))
+        return resource_path
     else:
         # Preferred way to get resources as it supports zipfile package
-        return pkg_resources.resource_filename(__name__, resource)
+        return pkg_resources.resource_filename(package_name, resource)
 
 
 class ExternalResources(object):
