@@ -33,7 +33,7 @@ __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 __date__ = "24/08/2017"
-__status__ = "Production" 
+__status__ = "Production"
 
 import os
 import numpy
@@ -106,6 +106,7 @@ def read_cl_file(filename):
         lines = [i for i in f.readlines() if not i.startswith("#include ")]
     return "".join(lines)
 
+
 get_opencl_code = read_cl_file
 
 
@@ -118,4 +119,4 @@ def concatenate_cl_kernel(filenames):
 
     this method concatenates all the kernel from the list
     """
-    return  os.linesep.join(read_cl_file(fn) for fn in filenames)
+    return os.linesep.join(read_cl_file(fn) for fn in filenames)
