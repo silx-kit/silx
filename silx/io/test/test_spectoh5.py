@@ -37,7 +37,7 @@ except ImportError:
 else:
     h5py_missing = False
     from ..spech5 import SpecH5, SpecH5Group
-    from ..spectoh5 import convert, write_spec_to_h5
+    from ..convert import convert, write_spec_to_h5
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
