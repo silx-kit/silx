@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -50,7 +50,7 @@ creating the widgets, or later by calling their :meth:`enableCut` and
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "26/01/2017"
+__date__ = "03/07/2017"
 
 
 import sys
@@ -104,6 +104,8 @@ class CopySelectedCellsAction(qt.QAction):
         Put this text into the clipboard.
         """
         selected_idx = self.table.selectedIndexes()
+        if not selected_idx:
+            return
         selected_idx_tuples = [(idx.row(), idx.column()) for idx in selected_idx]
 
         selected_rows = [idx[0] for idx in selected_idx_tuples]
@@ -334,6 +336,41 @@ class PasteCellsAction(qt.QAction):
         return True
 
 
+class CopySingleCellAction(qt.QAction):
+    """QAction to copy text from a single cell in a modified
+    :class:`QTableWidget`.
+
+    This action relies on the fact that the text in the last clicked cell
+    are stored in :attr:`_last_cell_clicked` of the modified widget.
+
+    In most cases, :class:`CopySelectedCellsAction` handles single cells,
+    but if the selection mode of the widget has been set to NoSelection
+    it is necessary to use this class instead.
+
+    :param table: :class:`QTableView` to which this action belongs.
+    """
+    def __init__(self, table):
+        if not isinstance(table, qt.QTableView):
+            raise ValueError('CopySingleCellAction must be initialised ' +
+                             'with a QTableWidget.')
+        super(CopySingleCellAction, self).__init__(table)
+        self.setText("Copy cell")
+        self.setToolTip("Copy cell content into the clipboard.")
+        self.triggered.connect(self.copyCellToClipboard)
+        self.table = table
+
+    def copyCellToClipboard(self):
+        """
+        """
+        cell_text = self.table._text_last_cell_clicked
+        if cell_text is None:
+            return
+
+        # put this text into clipboard
+        qapp = qt.QApplication.instance()
+        qapp.clipboard().setText(cell_text)
+
+
 class TableWidget(qt.QTableWidget):
     """:class:`QTableWidget` with a context menu displaying up to 5 actions:
 
@@ -350,20 +387,37 @@ class TableWidget(qt.QTableWidget):
     overwriting data (no *Undo* action is available). Use :meth:`enablePaste`
     and :meth:`enableCut` to activate them.
 
+    .. image:: img/TableWidget.png
+
     :param parent: Parent QWidget
     :param bool cut: Enable cut action
     :param bool paste: Enable paste action
     """
     def __init__(self, parent=None, cut=False, paste=False):
         super(TableWidget, self).__init__(parent)
-        self.addAction(CopySelectedCellsAction(self))
-        self.addAction(CopyAllCellsAction(self))
+        self._text_last_cell_clicked = None
+
+        self.copySelectedCellsAction = CopySelectedCellsAction(self)
+        self.copyAllCellsAction = CopyAllCellsAction(self)
+        self.copySingleCellAction = None
+        self.pasteCellsAction = None
+        self.cutSelectedCellsAction = None
+        self.cutAllCellsAction = None
+
+        self.addAction(self.copySelectedCellsAction)
+        self.addAction(self.copyAllCellsAction)
         if cut:
             self.enableCut()
         if paste:
             self.enablePaste()
 
         self.setContextMenuPolicy(qt.Qt.ActionsContextMenu)
+
+    def mousePressEvent(self, event):
+        item = self.itemAt(event.pos())
+        if item is not None:
+            self._text_last_cell_clicked = item.text()
+        super(TableWidget, self).mousePressEvent(event)
 
     def enablePaste(self):
         """Enable paste action, to paste data from the clipboard into the
@@ -374,7 +428,8 @@ class TableWidget(qt.QTableWidget):
             This action can cause data to be overwritten.
             There is currently no *Undo* action to retrieve lost data.
         """
-        self.addAction(PasteCellsAction(self))
+        self.pasteCellsAction = PasteCellsAction(self)
+        self.addAction(self.pasteCellsAction)
 
     def enableCut(self):
         """Enable cut action.
@@ -383,8 +438,40 @@ class TableWidget(qt.QTableWidget):
 
             This action can cause data to be deleted.
             There is currently no *Undo* action to retrieve lost data."""
-        self.addAction(CutSelectedCellsAction(self))
-        self.addAction(CutAllCellsAction(self))
+        self.cutSelectedCellsAction = CutSelectedCellsAction(self)
+        self.cutAllCellsAction = CutAllCellsAction(self)
+        self.addAction(self.cutSelectedCellsAction)
+        self.addAction(self.cutAllCellsAction)
+
+    def setSelectionMode(self, mode):
+        """Overloaded from QTableWidget to disable cut/copy selection
+        actions in case mode is NoSelection
+
+        :param mode:
+        :return:
+        """
+        if mode == qt.QTableView.NoSelection:
+            self.copySelectedCellsAction.setVisible(False)
+            self.copySelectedCellsAction.setEnabled(False)
+            if self.cutSelectedCellsAction is not None:
+                self.cutSelectedCellsAction.setVisible(False)
+                self.cutSelectedCellsAction.setEnabled(False)
+            if self.copySingleCellAction is None:
+                self.copySingleCellAction = CopySingleCellAction(self)
+                self.insertAction(self.copySelectedCellsAction,  # before first action
+                                  self.copySingleCellAction)
+            self.copySingleCellAction.setVisible(True)
+            self.copySingleCellAction.setEnabled(True)
+        else:
+            self.copySelectedCellsAction.setVisible(True)
+            self.copySelectedCellsAction.setEnabled(True)
+            if self.cutSelectedCellsAction is not None:
+                self.cutSelectedCellsAction.setVisible(True)
+                self.cutSelectedCellsAction.setEnabled(True)
+            if self.copySingleCellAction is not None:
+                self.copySingleCellAction.setVisible(False)
+                self.copySingleCellAction.setEnabled(False)
+        super(TableWidget, self).setSelectionMode(mode)
 
 
 class TableView(qt.QTableView):
@@ -414,8 +501,23 @@ class TableView(qt.QTableView):
     """
     def __init__(self, parent=None, cut=False, paste=False):
         super(TableView, self).__init__(parent)
+        self._text_last_cell_clicked = None
+
         self.cut = cut
         self.paste = paste
+
+        self.copySelectedCellsAction = None
+        self.copyAllCellsAction = None
+        self.copySingleCellAction = None
+        self.pasteCellsAction = None
+        self.cutSelectedCellsAction = None
+        self.cutAllCellsAction = None
+
+    def mousePressEvent(self, event):
+        qindex = self.indexAt(event.pos())
+        if self.copyAllCellsAction is not None:   # model was set
+            self._text_last_cell_clicked = self.model().data(qindex)
+        super(TableView, self).mousePressEvent(event)
 
     def setModel(self, model):
         """Set the data model for the table view, activate the actions
@@ -425,8 +527,10 @@ class TableView(qt.QTableView):
         """
         super(TableView, self).setModel(model)
 
-        self.addAction(CopySelectedCellsAction(self))
-        self.addAction(CopyAllCellsAction(self))
+        self.copySelectedCellsAction = CopySelectedCellsAction(self)
+        self.copyAllCellsAction = CopyAllCellsAction(self)
+        self.addAction(self.copySelectedCellsAction)
+        self.addAction(self.copyAllCellsAction)
         if self.cut:
             self.enableCut()
         if self.paste:
@@ -443,7 +547,8 @@ class TableView(qt.QTableView):
             This action can cause data to be overwritten.
             There is currently no *Undo* action to retrieve lost data.
         """
-        self.addAction(PasteCellsAction(self))
+        self.pasteCellsAction = PasteCellsAction(self)
+        self.addAction(self.pasteCellsAction)
 
     def enableCut(self):
         """Enable cut action.
@@ -453,8 +558,10 @@ class TableView(qt.QTableView):
             This action can cause data to be deleted.
             There is currently no *Undo* action to retrieve lost data.
         """
-        self.addAction(CutSelectedCellsAction(self))
-        self.addAction(CutAllCellsAction(self))
+        self.cutSelectedCellsAction = CutSelectedCellsAction(self)
+        self.cutAllCellsAction = CutAllCellsAction(self)
+        self.addAction(self.cutSelectedCellsAction)
+        self.addAction(self.cutAllCellsAction)
 
     def addAction(self, action):
         # ensure the actions are not added multiple times:
@@ -465,6 +572,37 @@ class TableView(qt.QTableView):
                         action.table is existing_action.table:
                     return None
         super(TableView, self).addAction(action)
+
+    def setSelectionMode(self, mode):
+        """Overloaded from QTableView to disable cut/copy selection
+        actions in case mode is NoSelection
+
+        :param mode:
+        :return:
+        """
+        if mode == qt.QTableView.NoSelection:
+            self.copySelectedCellsAction.setVisible(False)
+            self.copySelectedCellsAction.setEnabled(False)
+            if self.cutSelectedCellsAction is not None:
+                self.cutSelectedCellsAction.setVisible(False)
+                self.cutSelectedCellsAction.setEnabled(False)
+            if self.copySingleCellAction is None:
+                self.copySingleCellAction = CopySingleCellAction(self)
+                self.insertAction(self.copySelectedCellsAction,  # before first action
+                                  self.copySingleCellAction)
+            self.copySingleCellAction.setVisible(True)
+            self.copySingleCellAction.setEnabled(True)
+        else:
+            self.copySelectedCellsAction.setVisible(True)
+            self.copySelectedCellsAction.setEnabled(True)
+            if self.cutSelectedCellsAction is not None:
+                self.cutSelectedCellsAction.setVisible(True)
+                self.cutSelectedCellsAction.setEnabled(True)
+            if self.copySingleCellAction is not None:
+                self.copySingleCellAction.setVisible(False)
+                self.copySingleCellAction.setEnabled(False)
+        super(TableView, self).setSelectionMode(mode)
+
 
 if __name__ == "__main__":
     app = qt.QApplication([])

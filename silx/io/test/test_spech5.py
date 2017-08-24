@@ -44,7 +44,7 @@ except ImportError:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "21/06/2017"
+__date__ = "26/07/2017"
 
 sftext = """#F /tmp/sf.dat
 #E 1455180875
@@ -262,9 +262,6 @@ class TestSpecH5(unittest.TestCase):
         # full path to element in group (OK)
         self.assertIn("/1.1/instrument/positioners/Sslit1 HOff",
                       self.sfh5["/1.1/instrument"])
-        # full path to element outside group (illegal)
-        self.assertNotIn("/1.1/instrument/positioners/Sslit1 HOff",
-                         self.sfh5["/1.1/measurement"])
 
     def testDataColumn(self):
         self.assertAlmostEqual(sum(self.sfh5["/1.2/measurement/duo"]),
@@ -314,6 +311,7 @@ class TestSpecH5(unittest.TestCase):
         # spech5 does not define external link, so there is no way
         # a group can *get* a SpecH5 class
 
+    @unittest.skipIf(h5py is None, "test requires h5py (not installed)")
     def testGetApi(self):
         result = self.sfh5.get("1.1", getclass=True, getlink=True)
         self.assertIs(result, h5py.HardLink)
@@ -326,7 +324,7 @@ class TestSpecH5(unittest.TestCase):
 
     def testGetItemGroup(self):
         group = self.sfh5["25.1"]["instrument"]
-        self.assertEqual(group["positioners"].keys(),
+        self.assertEqual(list(group["positioners"].keys()),
                          ["Pslit HGap", "MRTSlit UP", "MRTSlit DOWN",
                           "Sslit1 VOff", "Sslit1 HOff", "Sslit1 VGap"])
         with self.assertRaises(KeyError):
@@ -407,7 +405,7 @@ class TestSpecH5(unittest.TestCase):
                          self.sfh5["/1.2/instrument/mca_0/elapsed_time"])
 
     def testListScanIndices(self):
-        self.assertEqual(self.sfh5.keys(),
+        self.assertEqual(list(self.sfh5.keys()),
                          ["1.1", "25.1", "1.2", "1000.1", "1001.1"])
         self.assertEqual(self.sfh5["1.2"].attrs,
                          {"NX_class": "NXentry", })
@@ -494,6 +492,13 @@ class TestSpecH5(unittest.TestCase):
     def testTitle(self):
         self.assertEqual(self.sfh5["/25.1/title"],
                          b"25  ascan  c3th 1.33245 1.52245  40 0.15")
+
+    def testValues(self):
+        group = self.sfh5["/25.1"]
+        self.assertTrue(hasattr(group, "values"))
+        self.assertTrue(callable(group.values))
+        self.assertIn(self.sfh5["/25.1/title"],
+                      self.sfh5["/25.1"].values())
 
     # visit and visititems ignore links
     def testVisit(self):
@@ -842,7 +847,7 @@ class TestSpecH5SlashInLabels(unittest.TestCase):
     def testLabels(self):
         """Ensure `/` is substituted with `%` and
         ensure legitimate `%` in names are still working"""
-        self.assertEqual(self.sfh5["1.1/measurement/"].keys(),
+        self.assertEqual(list(self.sfh5["1.1/measurement/"].keys()),
                          ["GONY%mm", "PD3%A"])
 
         # substituted "%"
@@ -859,7 +864,7 @@ class TestSpecH5SlashInLabels(unittest.TestCase):
     def testMotors(self):
         """Ensure `/` is substituted with `%` and
         ensure legitimate `%` in names are still working"""
-        self.assertEqual(self.sfh5["1.1/instrument/positioners"].keys(),
+        self.assertEqual(list(self.sfh5["1.1/instrument/positioners"].keys()),
                          ["Pslit%HGap", "MRTSlit%UP"])
         # substituted "%"
         self.assertIn("Pslit%HGap",
@@ -872,8 +877,6 @@ class TestSpecH5SlashInLabels(unittest.TestCase):
         # legitimate "%"
         self.assertIn("MRTSlit%UP",
                       self.sfh5["1.1/instrument/positioners"])
-
-
 
 
 def suite():

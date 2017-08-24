@@ -34,7 +34,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "2012-2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "15/03/2017"
+__date__ = "02/08/2017"
 __status__ = "stable"
 __all__ = ["ocl", "pyopencl", "mf", "release_cl_buffers", "allocate_cl_buffers",
            "measure_workgroup_size", "kernel_workgroup_size"]
@@ -59,13 +59,16 @@ else:
     except ImportError:
         logger.warning("Unable to import pyOpenCl. Please install it from: http://pypi.python.org/pypi/pyopencl")
         pyopencl = None
-        class mf(object):
-            WRITE_ONLY = 1
-            READ_ONLY = 1
-            READ_WRITE = 1
     else:
         import pyopencl.array as array
         mf = pyopencl.mem_flags
+
+if pyopencl is None:
+    # Define default mem flags
+    class mf(object):
+        WRITE_ONLY = 1
+        READ_ONLY = 1
+        READ_WRITE = 1
 
 
 FLOP_PER_CORE = {"GPU": 64,  # GPU, Fermi at least perform 64 flops per cycle/multicore, G80 were at 24 or 48 ...
@@ -362,6 +365,8 @@ class OpenCL(object):
         :param memory: minimum amount of memory (int)
         :param extensions: list of extensions to be present
         :param best: shall we look for the
+        :returns: A tuple of plateform ID and device ID, else None if nothing
+            found
         """
         if extensions is None:
             extensions = []
@@ -391,6 +396,9 @@ class OpenCL(object):
         if best_found:
             return best_found[0], best_found[1]
 
+        # Nothing found
+        return None
+
     def create_context(self, devicetype="ALL", useFp64=False, platformid=None,
                        deviceid=None, cached=True):
         """
@@ -417,8 +425,7 @@ class OpenCL(object):
             else:
                 ids = ocl.select_device(dtype=devicetype)
             if ids:
-                platformid = ids[0]
-                deviceid = ids[1]
+                platformid, deviceid = ids
         if (platformid is not None) and (deviceid is not None):
             if (platformid, deviceid) in self.context_cache:
                 ctx = self.context_cache[(platformid, deviceid)]
@@ -443,6 +450,7 @@ class OpenCL(object):
         device_id = oplat.get_devices().index(odevice)
         platform_id = pyopencl.get_platforms().index(oplat)
         return self.platforms[platform_id].devices[device_id]
+
 
 if pyopencl:
     ocl = OpenCL()
@@ -558,4 +566,3 @@ def kernel_workgroup_size(program, kernel):
     device = program.devices[0]
     query_wg = pyopencl.kernel_work_group_info.WORK_GROUP_SIZE
     return kernel.get_work_group_info(query_wg, device)
-

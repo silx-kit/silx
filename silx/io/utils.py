@@ -39,9 +39,9 @@ else:
     h5py_missing = False
 
 
-__authors__ = ["P. Knobel"]
+__authors__ = ["P. Knobel", "V. Valls"]
 __license__ = "MIT"
-__date__ = "13/12/2016"
+__date__ = "20/07/2017"
 
 
 logger = logging.getLogger(__name__)
@@ -383,8 +383,10 @@ def open(filename):  # pylint:disable=redefined-builtin
 
     Format supported:
     - h5 files, if `h5py` module is installed
-    - Spec files if `SpecFile` module is installed
+    - SPEC files
     - a set of raster image formats (tiff, edf...) if `fabio` is installed
+
+    The file is opened in read-only mode.
 
     :param str filename: A filename
     :raises: IOError if the file can't be loaded as an h5py.File like object
@@ -395,24 +397,30 @@ def open(filename):  # pylint:disable=redefined-builtin
 
     if not h5py_missing:
         if h5py.is_hdf5(filename):
-            return h5py.File(filename)
+            return h5py.File(filename, "r")
 
+    debugging_info = []
     try:
         from . import fabioh5
         return fabioh5.File(filename)
     except ImportError:
-        logger.debug("fabioh5 can't be loaded.", exc_info=True)
+        debugging_info.append((sys.exc_info(), "fabioh5 can't be loaded."))
     except Exception:
-        logger.debug("File '%s' can't be read as fabio file.", filename, exc_info=True)
+        debugging_info.append((sys.exc_info(),
+                               "File '%s' can't be read as fabio file." % filename))
 
     try:
         from . import spech5
         return spech5.SpecH5(filename)
     except ImportError:
-        logger.debug("spech5 can't be loaded.", exc_info=True)
+        debugging_info.append((sys.exc_info(),
+                               "spech5 can't be loaded."))
     except IOError:
-        logger.debug("File '%s' can't be read as spec file.", filename, exc_info=True)
+        debugging_info.append((sys.exc_info(),
+                               "File '%s' can't be read as spec file." % filename))
 
+    for exc_info, message in debugging_info:
+        logger.debug(message, exc_info=exc_info)
     raise IOError("File '%s' can't be read as HDF5" % filename)
 
 
@@ -467,7 +475,7 @@ def is_file(obj):
 
 def is_group(obj):
     """
-    True is the object is an h5py.Group-like object.
+    True if the object is a h5py.Group-like object.
 
     :param obj: An object
     """
@@ -479,7 +487,7 @@ def is_group(obj):
 
 def is_dataset(obj):
     """
-    True is the object is an h5py.Dataset-like object.
+    True if the object is a h5py.Dataset-like object.
 
     :param obj: An object
     """
@@ -487,6 +495,18 @@ def is_dataset(obj):
     if class_ is None:
         return False
     return issubclass(class_, h5py.Dataset)
+
+
+def is_softlink(obj):
+    """
+    True if the object is a h5py.SoftLink-like object.
+
+    :param obj: An object
+    """
+    class_ = get_h5py_class(obj)
+    if class_ is None:
+        return False
+    return issubclass(class_, h5py.SoftLink)
 
 
 if h5py_missing:

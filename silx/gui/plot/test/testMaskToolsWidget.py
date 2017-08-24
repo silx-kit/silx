@@ -106,12 +106,12 @@ class TestMaskToolsWidget(TestCaseQt, ParametricTestCase):
                 (x - offset, y - offset),
                 (x + offset, y),
                 (x - offset, y),
-                (x + offset, y - offset)]
+                (x + offset, y - offset),
+                (x, y + offset)]  # Close polygon
 
         for pos in star:
             self.mouseMove(plot, pos=pos)
-            btn = qt.Qt.LeftButton if pos != star[-1] else qt.Qt.RightButton
-            self.mouseClick(plot, btn, pos=pos)
+            self.mouseClick(plot, qt.Qt.LeftButton, pos=pos)
 
     def _drawPencil(self):
         """Draw a star polygon in the plot"""

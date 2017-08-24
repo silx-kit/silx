@@ -43,6 +43,8 @@ class FrameBrowser(qt.QWidget):
     """Frame browser widget, with 4 buttons/icons and a line edit to provide
     a way of selecting a frame index in a stack of images.
 
+    .. image:: img/FrameBrowser.png
+
     It can be used in more generic case to select an integer within a range.
 
     :param QWidget parent: Parent widget
@@ -214,6 +216,8 @@ class FrameBrowser(qt.QWidget):
 class HorizontalSliderWithBrowser(qt.QAbstractSlider):
     """
     Slider widget combining a :class:`QSlider` and a :class:`FrameBrowser`.
+
+    .. image:: img/HorizontalSliderWithBrowser.png
 
     The data model is an integer within a range.
 

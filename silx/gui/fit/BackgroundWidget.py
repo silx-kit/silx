@@ -26,7 +26,11 @@
 # #########################################################################*/
 """This module provides a background configuration widget
 :class:`BackgroundWidget` and a corresponding dialog window
-:class:`BackgroundDialog`."""
+:class:`BackgroundDialog`.
+
+.. image:: img/BackgroundDialog.png
+   :height: 300px
+"""
 import sys
 import numpy
 from silx.gui import qt
@@ -262,7 +266,7 @@ class BackgroundParamWidget(qt.QWidget):
 
 
 class BackgroundWidget(qt.QWidget):
-    """Background configuration widget, with a :class:`PlotWindow`.
+    """Background configuration widget, with a plot to preview the results.
 
     Strip and snip filters parameters can be adjusted using input widgets,
     and the computed backgrounds are plotted next to the original data to

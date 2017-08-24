@@ -27,14 +27,14 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "06/03/2017"
+__date__ = "17/05/2017"
 
 
 import logging
 
 import numpy
 
-from .core import Item, ColorMixIn, FillMixIn
+from .core import (Item, ColorMixIn, FillMixIn, ItemChangedType)
 
 
 _logger = logging.getLogger(__name__)
@@ -46,7 +46,7 @@ class Shape(Item, ColorMixIn, FillMixIn):
     """Description of a shape item
 
     :param str type_: The type of shape in:
-                      'hline', 'polygon', 'rectangle', 'vline', 'polyline'
+                      'hline', 'polygon', 'rectangle', 'vline', 'polylines'
     """
 
     def __init__(self, type_):
@@ -54,7 +54,7 @@ class Shape(Item, ColorMixIn, FillMixIn):
         ColorMixIn.__init__(self)
         FillMixIn.__init__(self)
         self._overlay = False
-        assert type_ in ('hline', 'polygon', 'rectangle', 'vline', 'polyline')
+        assert type_ in ('hline', 'polygon', 'rectangle', 'vline', 'polylines')
         self._type = type_
         self._points = ()
 
@@ -88,12 +88,12 @@ class Shape(Item, ColorMixIn, FillMixIn):
         overlay = bool(overlay)
         if overlay != self._overlay:
             self._overlay = overlay
-            self._updated()
+            self._updated(ItemChangedType.OVERLAY)
 
     def getType(self):
         """Returns the type of shape to draw.
 
-        One of: 'hline', 'polygon', 'rectangle', 'vline', 'polyline'
+        One of: 'hline', 'polygon', 'rectangle', 'vline', 'polylines'
 
         :rtype: str
         """
@@ -118,4 +118,4 @@ class Shape(Item, ColorMixIn, FillMixIn):
         :return:
         """
         self._points = numpy.array(points, copy=copy)
-        self._updated()
+        self._updated(ItemChangedType.DATA)

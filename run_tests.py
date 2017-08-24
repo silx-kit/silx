@@ -32,7 +32,7 @@ Test coverage dependencies: coverage, lxml.
 """
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "19/04/2017"
+__date__ = "03/08/2017"
 __license__ = "MIT"
 
 import distutils.util
@@ -44,7 +44,38 @@ import time
 import unittest
 
 
-logging.basicConfig(level=logging.WARNING)
+class StreamHandlerUnittestReady(logging.StreamHandler):
+    """The unittest class TestResult redefine sys.stdout/err to capture
+    stdout/err from tests and to display them only when a test fail.
+    This class allow to use unittest stdout-capture by using the last sys.stdout
+    and not a cached one.
+    """
+
+    def emit(self, record):
+        """
+        :type record: logging.LogRecord
+        """
+        self.stream = sys.stderr
+        super(StreamHandlerUnittestReady, self).emit(record)
+
+    def flush(self):
+        pass
+
+
+def createBasicHandler():
+    """Create the handler using the basic configuration"""
+    hdlr = StreamHandlerUnittestReady()
+    fs = logging.BASIC_FORMAT
+    dfs = None
+    fmt = logging.Formatter(fs, dfs)
+    hdlr.setFormatter(fmt)
+    return hdlr
+
+
+# Use an handler compatible with unittests, else use_buffer is not working
+logging.root.addHandler(createBasicHandler())
+logging.captureWarnings(True)
+
 logger = logging.getLogger("run_tests")
 logger.setLevel(logging.WARNING)
 
@@ -98,6 +129,17 @@ def get_project_name(root_dir):
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_NAME = get_project_name(PROJECT_DIR)
 logger.info("Project name: %s", PROJECT_NAME)
+
+
+class TextTestResultWithSkipList(unittest.TextTestResult):
+    """Override default TextTestResult to display list of skipped tests at the
+    end
+    """
+
+    def printErrors(self):
+        unittest.TextTestResult.printErrors(self)
+        # Print skipped tests at the end
+        self.printErrorList("SKIPPED", self.skipped)
 
 
 class ProfileTextTestResult(unittest.TextTestRunner.resultclass):
@@ -268,14 +310,17 @@ sys.argv = [sys.argv[0]]
 
 
 test_verbosity = 1
+use_buffer = True
 if options.verbose == 1:
     logging.root.setLevel(logging.INFO)
     logger.info("Set log level: INFO")
     test_verbosity = 2
+    use_buffer = False
 elif options.verbose > 1:
     logging.root.setLevel(logging.DEBUG)
     logger.info("Set log level: DEBUG")
     test_verbosity = 2
+    use_buffer = False
 
 if not options.gui:
     os.environ["WITH_QT_TEST"] = "False"
@@ -305,6 +350,14 @@ if options.qt_binding:
     binding = options.qt_binding.lower()
     if binding == "pyqt4":
         logger.info("Force using PyQt4")
+        if sys.version < "3.0.0":
+            try:
+                import sip
+
+                sip.setapi("QString", 2)
+                sip.setapi("QVariant", 2)
+            except:
+                logger.warning("Cannot set sip API")
         import PyQt4.QtCore  # noqa
     elif binding == "pyqt5":
         logger.info("Force using PyQt5")
@@ -345,8 +398,11 @@ PROJECT_PATH = module.__path__[0]
 # Run the tests
 runnerArgs = {}
 runnerArgs["verbosity"] = test_verbosity
+runnerArgs["buffer"] = use_buffer
 if options.memprofile:
     runnerArgs["resultclass"] = ProfileTextTestResult
+else:
+    runnerArgs["resultclass"] = TextTestResultWithSkipList
 runner = unittest.TextTestRunner(**runnerArgs)
 
 logger.warning("Test %s %s from %s",
@@ -367,17 +423,14 @@ else:
     test_suite.addTest(
         unittest.defaultTestLoader.loadTestsFromNames(options.test_name))
 
+# Display the result when using CTRL-C
+unittest.installHandler()
 
 result = runner.run(test_suite)
-for test, reason in result.skipped:
-    logger.warning('Skipped %s (%s): %s',
-                   test.id(), test.shortDescription() or '', reason)
 
 if result.wasSuccessful():
-    logger.info("Test suite succeeded")
     exit_status = 0
 else:
-    logger.warning("Test suite failed")
     exit_status = 1
 
 

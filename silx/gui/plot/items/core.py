@@ -33,17 +33,89 @@ from copy import deepcopy
 import logging
 import weakref
 import numpy
-from silx.third_party import six
+from silx.third_party import six, enum
 
+from ... import qt
 from .. import Colors
 from ..Colormap import Colormap
-
 
 
 _logger = logging.getLogger(__name__)
 
 
-class Item(object):
+@enum.unique
+class ItemChangedType(enum.Enum):
+    """Type of modification provided by :attr:`Item.sigItemChanged` signal."""
+    # Private setters and setInfo are not emitting sigItemChanged signal.
+    # Signals to consider:
+    # COLORMAP_SET emitted when setColormap is called but not forward colormap object signal
+    # CURRENT_COLOR_CHANGED emitted current color changed because highlight changed,
+    # highlighted color changed or color changed depending on hightlight state.
+
+    VISIBLE = 'visibleChanged'
+    """Item's visibility changed flag."""
+
+    ZVALUE = 'zValueChanged'
+    """Item's Z value changed flag."""
+
+    COLORMAP = 'colormapChanged'  # Emitted when set + forward events from the colormap object
+    """Item's colormap changed flag.
+
+    This is emitted both when setting a new colormap and
+    when the current colormap object is updated.
+    """
+
+    SYMBOL = 'symbolChanged'
+    """Item's symbol changed flag."""
+
+    SYMBOL_SIZE = 'symbolSizeChanged'
+    """Item's symbol size changed flag."""
+
+    LINE_WIDTH = 'lineWidthChanged'
+    """Item's line width changed flag."""
+
+    LINE_STYLE = 'lineStyleChanged'
+    """Item's line style changed flag."""
+
+    COLOR = 'colorChanged'
+    """Item's color changed flag."""
+
+    YAXIS = 'yAxisChanged'
+    """Item's Y axis binding changed flag."""
+
+    FILL = 'fillChanged'
+    """Item's fill changed flag."""
+
+    ALPHA = 'alphaChanged'
+    """Item's transparency alpha changed flag."""
+
+    DATA = 'dataChanged'
+    """Item's data changed flag"""
+
+    HIGHLIGHTED = 'highlightedChanged'
+    """Item's highlight state changed flag."""
+
+    HIGHLIGHTED_COLOR = 'highlightedColorChanged'
+    """Item's highlighted color changed flag."""
+
+    SCALE = 'scaleChanged'
+    """Item's scale changed flag."""
+
+    TEXT = 'textChanged'
+    """Item's text changed flag."""
+
+    POSITION = 'positionChanged'
+    """Item's position changed flag.
+
+    This is emitted when a marker position changed and
+    when an image origin changed.
+    """
+
+    OVERLAY = 'overlayChanged'
+    """Item's overlay state changed flag."""
+
+
+class Item(qt.QObject):
     """Description of an item of the plot"""
 
     _DEFAULT_Z_LAYER = 0
@@ -55,7 +127,15 @@ class Item(object):
     _DEFAULT_SELECTABLE = False
     """Default selectable state of items"""
 
+    sigItemChanged = qt.Signal(object)
+    """Signal emitted when the item has changed.
+
+    It provides a flag describing which property of the item has changed.
+    See :class:`ItemChangedType` for flags description.
+    """
+
     def __init__(self):
+        super(Item, self).__init__()
         self._dirty = True
         self._plotRef = None
         self._visible = True
@@ -115,7 +195,8 @@ class Item(object):
         if visible != self._visible:
             self._visible = visible
             # When visibility has changed, always mark as dirty
-            self._updated(checkVisibility=False)
+            self._updated(ItemChangedType.VISIBLE,
+                          checkVisibility=False)
 
     def isOverlay(self):
         """Return true if item is drawn as an overlay.
@@ -159,7 +240,7 @@ class Item(object):
         z = int(z) if z is not None else self._DEFAULT_Z_LAYER
         if z != self._z:
             self._z = z
-            self._updated()
+            self._updated(ItemChangedType.ZVALUE)
 
     def getInfo(self, copy=True):
         """Returns the info associated to this item
@@ -173,11 +254,12 @@ class Item(object):
             info = deepcopy(info)
         self._info = info
 
-    def _updated(self, checkVisibility=True):
+    def _updated(self, event=None, checkVisibility=True):
         """Mark the item as dirty (i.e., needing update).
 
         This also triggers Plot.replot.
 
+        :param event: The event to send to :attr:`sigItemChanged` signal.
         :param bool checkVisibility: True to only mark as dirty if visible,
                                      False to always mark as dirty.
         """
@@ -188,6 +270,8 @@ class Item(object):
                 plot = self.getPlot()
                 if plot is not None:
                     plot._itemRequiresUpdate(self)
+        if event is not None:
+            self.sigItemChanged.emit(event)
 
     def _update(self, backend):
         """Called by Plot to update the backend for this item.
@@ -295,22 +379,30 @@ class ColormapMixIn(object):
 
     def __init__(self):
         self._colormap = Colormap()
+        self._colormap.sigChanged.connect(self._colormapChanged)
 
     def getColormap(self):
-        """Return the used colormap
-
-        :param copy: True (Default) to get a copy of the :class:`.Colormap`
-             else return the pointer
-         """
+        """Return the used colormap"""
         return self._colormap
 
     def setColormap(self, colormap):
         """Set the colormap of this image
 
-        :param :class:`.Colormap`: colormap description
+        :param Colormap colormap: colormap description
         """
+        if isinstance(colormap, dict):
+            colormap = Colormap._fromDict(colormap)
+
+        if self._colormap is not None:
+            self._colormap.sigChanged.disconnect(self._colormapChanged)
         self._colormap = colormap
-        self._updated()
+        if self._colormap is not None:
+            self._colormap.sigChanged.connect(self._colormapChanged)
+        self._colormapChanged()
+
+    def _colormapChanged(self):
+        """Handle updates of the colormap"""
+        self._updated(ItemChangedType.COLORMAP)
 
 
 class SymbolMixIn(object):
@@ -355,7 +447,7 @@ class SymbolMixIn(object):
             symbol = self._DEFAULT_SYMBOL
         if symbol != self._symbol:
             self._symbol = symbol
-            self._updated()
+            self._updated(ItemChangedType.SYMBOL)
 
     def getSymbolSize(self):
         """Return the point marker size in points.
@@ -375,7 +467,7 @@ class SymbolMixIn(object):
             size = self._DEFAULT_SYMBOL_SIZE
         if size != self._symbol_size:
             self._symbol_size = size
-            self._updated()
+            self._updated(ItemChangedType.SYMBOL_SIZE)
 
 
 class LineMixIn(object):
@@ -405,7 +497,7 @@ class LineMixIn(object):
         width = float(width)
         if width != self._linewidth:
             self._linewidth = width
-            self._updated()
+            self._updated(ItemChangedType.LINE_WIDTH)
 
     def getLineStyle(self):
         """Return the type of the line
@@ -435,7 +527,7 @@ class LineMixIn(object):
             style = self._DEFAULT_LINESTYLE
         if style != self._linestyle:
             self._linestyle = style
-            self._updated()
+            self._updated(ItemChangedType.LINE_STYLE)
 
 
 class ColorMixIn(object):
@@ -473,8 +565,9 @@ class ColorMixIn(object):
             else:  # Array of colors
                 assert color.ndim == 2
 
-        self._color = color
-        self._updated()
+        if self._color != color:
+            self._color = color
+            self._updated(ItemChangedType.COLOR)
 
 
 class YAxisMixIn(object):
@@ -504,7 +597,7 @@ class YAxisMixIn(object):
         assert yaxis in ('left', 'right')
         if yaxis != self._yaxis:
             self._yaxis = yaxis
-            self._updated()
+            self._updated(ItemChangedType.YAXIS)
 
 
 class FillMixIn(object):
@@ -528,7 +621,7 @@ class FillMixIn(object):
         fill = bool(fill)
         if fill != self._fill:
             self._fill = fill
-            self._updated()
+            self._updated(ItemChangedType.FILL)
 
 
 class AlphaMixIn(object):
@@ -561,7 +654,7 @@ class AlphaMixIn(object):
         alpha = max(0., min(alpha, 1.))  # Clip alpha to [0., 1.] range
         if alpha != self._alpha:
             self._alpha = alpha
-            self._updated()
+            self._updated(ItemChangedType.ALPHA)
 
 
 class Points(Item, SymbolMixIn, AlphaMixIn):
@@ -831,9 +924,9 @@ class Points(Item, SymbolMixIn, AlphaMixIn):
         self._filteredCache = {}  # Reset cached filtered data
         self._clippedCache = {}  # Reset cached clipped bool array
 
-        self._updated()
         # TODO hackish data range implementation
         if self.isVisible():
             plot = self.getPlot()
             if plot is not None:
                 plot._invalidateDataRange()
+        self._updated(ItemChangedType.DATA)

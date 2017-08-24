@@ -304,12 +304,11 @@ class Window(event.Notifier):
         self._viewports.removeListener(self._updated)
         self._viewports = event.NotifierList(iterable)
         self._viewports.addListener(self._updated)
-        self._dirty = True
+        self._updated(self)
 
     def _updated(self, source, *args, **kwargs):
-        if source is not self:
-            self._dirty = True
-            self.notify(*args, **kwargs)
+        self._dirty = True
+        self.notify(*args, **kwargs)
 
     framebufferid = property(lambda self: self._framebufferid,
                              doc="Framebuffer ID used to perform rendering")

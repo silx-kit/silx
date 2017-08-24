@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "16/06/2017"
+__date__ = "21/08/2017"
 
 
 import numpy
@@ -275,40 +275,43 @@ class Hdf5Item(Hdf5Node):
     def _humanReadableType(self, dataset, full=False):
         return self._humanReadableDType(dataset.dtype, full)
 
-    def _setTooltipAttributes(self, attributeDict):
+    def _createTooltipAttributes(self):
         """
         Add key/value attributes that will be displayed in the item tooltip
 
         :param Dict[str,str] attributeDict: Key/value attributes
         """
+        attributeDict = collections.OrderedDict()
+
         if issubclass(self.h5pyClass, h5py.Dataset):
-            attributeDict["Title"] = "HDF5 Dataset"
+            attributeDict["#Title"] = "HDF5 Dataset"
             attributeDict["Name"] = self.basename
             attributeDict["Path"] = self.obj.name
             attributeDict["Shape"] = self._humanReadableShape(self.obj)
             attributeDict["Value"] = self._humanReadableValue(self.obj)
             attributeDict["Data type"] = self._humanReadableType(self.obj, full=True)
         elif issubclass(self.h5pyClass, h5py.Group):
-            attributeDict["Title"] = "HDF5 Group"
+            attributeDict["#Title"] = "HDF5 Group"
             attributeDict["Name"] = self.basename
             attributeDict["Path"] = self.obj.name
         elif issubclass(self.h5pyClass, h5py.File):
-            attributeDict["Title"] = "HDF5 File"
+            attributeDict["#Title"] = "HDF5 File"
             attributeDict["Name"] = self.basename
             attributeDict["Path"] = "/"
         elif isinstance(self.obj, h5py.ExternalLink):
-            attributeDict["Title"] = "HDF5 External Link"
+            attributeDict["#Title"] = "HDF5 External Link"
             attributeDict["Name"] = self.basename
             attributeDict["Path"] = self.obj.name
             attributeDict["Linked path"] = self.obj.path
             attributeDict["Linked file"] = self.obj.filename
         elif isinstance(self.obj, h5py.SoftLink):
-            attributeDict["Title"] = "HDF5 Soft Link"
+            attributeDict["#Title"] = "HDF5 Soft Link"
             attributeDict["Name"] = self.basename
             attributeDict["Path"] = self.obj.name
             attributeDict["Linked path"] = self.obj.path
         else:
             pass
+        return attributeDict
 
     def _getDefaultTooltip(self):
         """Returns the default tooltip
@@ -319,10 +322,8 @@ class Hdf5Item(Hdf5Node):
             self.obj  # lazy loading of the object
             return self.__error
 
-        attrs = collections.OrderedDict()
-        self._setTooltipAttributes(attrs)
-
-        title = attrs.pop("Title", None)
+        attrs = self._createTooltipAttributes()
+        title = attrs.pop("#Title", None)
         if len(attrs) > 0:
             tooltip = _utils.htmlFromDict(attrs, title=title)
         else:

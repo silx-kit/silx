@@ -52,7 +52,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "15/03/2017"
+__date__ = "02/08/2017"
 __status__ = "production"
 
 import os
@@ -180,7 +180,10 @@ class SiftPlan(object):
                 self.device = ocl.select_device(type=devicetype, memory=self.memory, best=True)
                 if self.device is None:
                     self.device = ocl.select_device(memory=self.memory, best=True)
-                    logger.warning('Unable to find suitable device, selecting device: %s,%s' % self.device)
+                    if self.device:
+                        logger.warning('Unable to find suitable device. Selecting device: %s, %s' % self.device)
+                if self.device is None:
+                    raise RuntimeError("No suitable OpenCL device found with given constrains")
             else:
                 self.device = device
             self.ctx = pyopencl.Context(devices=[pyopencl.get_platforms()[self.device[0]].get_devices()[self.device[1]]])

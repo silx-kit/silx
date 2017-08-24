@@ -47,7 +47,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "27/06/2017"
+__date__ = "17/08/2017"
 
 
 import logging
@@ -584,7 +584,7 @@ class ImageView(PlotWindow):
             # Do not perform this when called from plot signal
             inverted = self.getYAxis().isInverted()
 
-        self._histoVPlot.getYAxis().isInverted(inverted)
+        self._histoVPlot.getYAxis().setInverted(inverted)
 
         # Use scale to invert radarView
         # RadarView default Y direction is from top to bottom
@@ -818,7 +818,6 @@ class ImageViewMainWindow(ImageView):
         menu.addAction(actions.control.YAxisInvertedAction(self, self))
 
         menu = self.menuBar().addMenu('Profile')
-        menu.addAction(self.profile.browseAction)
         menu.addAction(self.profile.hLineAction)
         menu.addAction(self.profile.vLineAction)
         menu.addAction(self.profile.lineAction)

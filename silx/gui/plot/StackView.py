@@ -69,7 +69,7 @@ Example::
 
 __authors__ = ["P. Knobel", "H. Payno"]
 __license__ = "MIT"
-__date__ = "27/06/2017"
+__date__ = "16/08/2017"
 
 import numpy
 
@@ -1110,7 +1110,6 @@ class StackViewMainWindow(StackView):
         menu.addAction(actions.control.YAxisInvertedAction(self._plot, self))
 
         menu = self.menuBar().addMenu('Profile')
-        menu.addAction(self._plot.profile.browseAction)
         menu.addAction(self._plot.profile.hLineAction)
         menu.addAction(self._plot.profile.vLineAction)
         menu.addAction(self._plot.profile.lineAction)

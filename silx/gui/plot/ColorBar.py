@@ -70,6 +70,8 @@ class ColorBarWidget(qt.QWidget):
         self._isConnected = False
         self._plot = None
         self._viewAction = None
+        self._colormap = None
+        self._data = None
 
         super(ColorBarWidget, self).__init__(parent)
 
@@ -146,13 +148,27 @@ class ColorBarWidget(qt.QWidget):
     def setColormap(self, colormap, data=None):
         """Set the colormap to be displayed.
 
-        :param :class:`.Colormap` colormap: The colormap to apply on the
+        :param colormap: The colormap to apply on the
             ColorBarWidget
+        :type colormap: :class:`.Colormap`
         :param numpy.ndarray data: the data to display, needed if the colormap
             require an autoscale
         """
+        self._data = data
         self.getColorScaleBar().setColormap(colormap=colormap,
                                             data=data)
+        if self._colormap is not None:
+            self._colormap.sigChanged.disconnect(self._colormapHasChanged)
+        self._colormap = colormap
+        if self._colormap is not None:
+            self._colormap.sigChanged.connect(self._colormapHasChanged)
+
+    def _colormapHasChanged(self):
+        """handler of the Colormap.sigChanged signal
+        """
+        assert self._colormap is not None
+        self.setColormap(colormap=self._colormap,
+                         data=self._data)
 
     def setLegend(self, legend):
         """Set the legend displayed along the colorbar
@@ -163,7 +179,7 @@ class ColorBarWidget(qt.QWidget):
             self.legend.hide()
             self.legend.setText("")
         else:
-            assert(type(legend) is str)
+            assert type(legend) is str
             self.legend.show()
             self.legend.setText(legend)
 
@@ -178,8 +194,8 @@ class ColorBarWidget(qt.QWidget):
 
     def _activeImageChanged(self, previous, legend):
         """Handle plot active curve changed"""
-        if legend is None:  # No active image, display default colormap
-            self._syncWithDefaultColormap(data=None)
+        if legend is None:  # No active image, display no colormap
+            self.setColormap(colormap=None)
             return
 
         # Sync with active image
@@ -187,7 +203,7 @@ class ColorBarWidget(qt.QWidget):
 
         # RGB(A) image, display default colormap
         if image.ndim != 2:
-            self._syncWithDefaultColormap(data=image)
+            self.setColormap(colormap=None)
             return
 
         # data image, sync with image colormap
@@ -370,14 +386,19 @@ class ColorScaleBar(qt.QWidget):
         :param numpy.ndarray data: the data to display, needed if the colormap
             require an autoscale
         """
-        if colormap is not None:
-            self.colorScale.setColormap(colormap, data)
+        self.colorScale.setColormap(colormap, data)
 
+        if colormap is not None:
             vmin, vmax = colormap.getColormapRange(data)
-            self.tickbar.update(vmin=vmin,
-                                vmax=vmax,
-                                norm=colormap.getNormalization())
-            self._setMinMaxLabels(vmin, vmax)
+            norm = colormap.getNormalization()
+        else:
+            vmin, vmax = None, None
+            norm = None
+
+        self.tickbar.update(vmin=vmin,
+                            vmax=vmax,
+                            norm=norm)
+        self._setMinMaxLabels(vmin, vmax)
 
     def setMinMaxVisible(self, val=True):
         """Change visibility of the min label and the max label
@@ -487,13 +508,14 @@ class _ColorScale(qt.QWidget):
         :param dict colormap: the colormap to set
         :param data: Optional data for which to compute colormap range.
         """
-        if colormap is None:
-            return
-
-        assert colormap.getNormalization() in Colormap.Colormap.NORMALIZATIONS
-
         self._colormap = colormap
-        self.vmin, self.vmax = self._colormap.getColormapRange(data=data)
+        self.setEnabled(colormap is not None)
+
+        if colormap is None:
+            self.vmin, self.vmax = None, None
+        else:
+            assert colormap.getNormalization() in Colormap.Colormap.NORMALIZATIONS
+            self.vmin, self.vmax = self._colormap.getColormapRange(data=data)
         self._updateColorGradient()
         self.update()
 
@@ -525,11 +547,16 @@ class _ColorScale(qt.QWidget):
 
     def paintEvent(self, event):
         """"""
-        qt.QWidget.paintEvent(self, event)
-
         painter = qt.QPainter(self)
         if self.getColormap() is not None:
             painter.setBrush(self._gradient)
+            penColor = self.palette().color(qt.QPalette.Active,
+                                            qt.QPalette.Foreground)
+        else:
+            penColor = self.palette().color(qt.QPalette.Disabled,
+                                            qt.QPalette.Foreground)
+        painter.setPen(penColor)
+
         painter.drawRect(qt.QRect(
             0,
             self.margin,

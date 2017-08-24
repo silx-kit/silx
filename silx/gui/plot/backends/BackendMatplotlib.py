@@ -28,7 +28,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent, H. Payno"]
 __license__ = "MIT"
-__date__ = "15/05/2017"
+__date__ = "16/08/2017"
 
 
 import logging
@@ -650,6 +650,28 @@ class BackendMatplotlib(BackendBase.BackendBase):
         return (bbox.bounds[0] * dpi, bbox.bounds[1] * dpi,
                 bbox.bounds[2] * dpi, bbox.bounds[3] * dpi)
 
+    def setAxesDisplayed(self, displayed):
+        """Display or not the axes.
+
+        :param bool displayed: If `True` axes are displayed. If `False` axes
+            are not anymore visible and the margin used for them is removed.
+        """
+        if displayed:
+            # show axes and viewbox rect
+            self.ax.set_axis_on()
+            self.ax2.set_axis_on()
+            # set the default margins
+            self.ax.set_position([.15, .15, .75, .75])
+            self.ax2.set_position([.15, .15, .75, .75])
+        else:
+            # hide axes and viewbox rect
+            self.ax.set_axis_off()
+            self.ax2.set_axis_off()
+            # remove external margins
+            self.ax.set_position([0, 0, 1, 1])
+            self.ax2.set_position([0, 0, 1, 1])
+        self._plot._setDirtyPlot()
+
 
 class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
     """QWidget matplotlib backend using a QtAgg canvas.
@@ -682,6 +704,11 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
         self.mpl_connect('button_release_event', self._onMouseRelease)
         self.mpl_connect('motion_notify_event', self._onMouseMove)
         self.mpl_connect('scroll_event', self._onMouseWheel)
+
+    def contextMenuEvent(self, event):
+        """Override QWidget.contextMenuEvent to implement the context menu"""
+        # Makes sure it is overridden (issue with PySide)
+        BackendBase.BackendBase.contextMenuEvent(self, event)
 
     def postRedisplay(self):
         self._sigPostRedisplay.emit()
@@ -739,18 +766,12 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
             self._picked.append({'kind': 'image', 'legend': label[9:]})
 
         else:  # it's a curve, item have no picker for now
-            if isinstance(event.artist, PathCollection):
-                data = event.artist.get_offsets()[event.ind, :]
-                xdata, ydata = data[:, 0], data[:, 1]
-            elif isinstance(event.artist, Line2D):
-                xdata = event.artist.get_xdata()[event.ind]
-                ydata = event.artist.get_ydata()[event.ind]
-            else:
+            if not isinstance(event.artist, (PathCollection, Line2D)):
                 _logger.info('Unsupported artist, ignored')
                 return
 
             self._picked.append({'kind': 'curve', 'legend': label,
-                                 'xdata': xdata, 'ydata': ydata})
+                                 'indices': event.ind})
 
     def pickItems(self, x, y):
         self._picked = []

@@ -22,12 +22,12 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides the class for axes of the :class:`Plot`.
+"""This module provides the class for axes of the :class:`PlotWidget`.
 """
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "27/06/2017"
+__date__ = "29/06/2017"
 
 import logging
 from ... import qt
@@ -98,6 +98,8 @@ class Axis(qt.QObject):
         :param float vmax: maximum axis value
         """
         vmin, vmax = self._checkLimits(vmin, vmax)
+        if self.getLimits() == (vmin, vmax):
+            return
 
         self._internalSetLimits(vmin, vmax)
         self._plot._setDirtyPlot()
@@ -143,6 +145,8 @@ class Axis(qt.QObject):
         :param bool flag: True for Y axis going from top to bottom,
                           False for Y axis going from bottom to top
         """
+        if isInverted == self.isInverted():
+            return
         raise NotImplementedError()
 
     def getLabel(self):
@@ -396,7 +400,7 @@ class YRightAxis(Axis):
         return self.__mainAxis.isAutoScale()
 
     def setAutoScale(self, flag=True):
-        """Set the Y axis limits adjusting behavior of :meth:`resetZoom`.
+        """Set the Y axis limits adjusting behavior of :meth:`PlotWidget.resetZoom`.
 
         :param bool flag: True to resize limits automatically,
                           False to disable it.

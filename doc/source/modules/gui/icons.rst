@@ -135,6 +135,8 @@ Available icons
      - next
    * - |normal|
      - normal
+   * - |pan|
+     - pan
    * - |pixel-intensities|
      - pixel-intensities
    * - |plot-grid|
@@ -237,6 +239,8 @@ Available icons
      - view-text
    * - |window-new|
      - window-new
+   * - |zoom-back|
+     - zoom-back
    * - |zoom-in|
      - zoom-in
    * - |zoom-original|
@@ -304,6 +308,7 @@ Available icons
 .. |median-filter| image:: ../../../../silx/resources/gui/icons/median-filter.png
 .. |next| image:: ../../../../silx/resources/gui/icons/next.png
 .. |normal| image:: ../../../../silx/resources/gui/icons/normal.png
+.. |pan| image:: ../../../../silx/resources/gui/icons/pan.png
 .. |pixel-intensities| image:: ../../../../silx/resources/gui/icons/pixel-intensities.png
 .. |plot-grid| image:: ../../../../silx/resources/gui/icons/plot-grid.png
 .. |plot-roi-above| image:: ../../../../silx/resources/gui/icons/plot-roi-above.png
@@ -355,6 +360,7 @@ Available icons
 .. |view-refresh| image:: ../../../../silx/resources/gui/icons/view-refresh.png
 .. |view-text| image:: ../../../../silx/resources/gui/icons/view-text.png
 .. |window-new| image:: ../../../../silx/resources/gui/icons/window-new.png
+.. |zoom-back| image:: ../../../../silx/resources/gui/icons/zoom-back.png
 .. |zoom-in| image:: ../../../../silx/resources/gui/icons/zoom-in.png
 .. |zoom-original| image:: ../../../../silx/resources/gui/icons/zoom-original.png
 .. |zoom-out| image:: ../../../../silx/resources/gui/icons/zoom-out.png

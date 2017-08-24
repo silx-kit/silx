@@ -35,7 +35,7 @@ import logging
 import numpy
 
 from .core import Points, ColormapMixIn
-from silx.gui.plot.Colors import applyColormapToData    # TODO: cherry-pick commit or wait for PR merge
+
 
 _logger = logging.getLogger(__name__)
 

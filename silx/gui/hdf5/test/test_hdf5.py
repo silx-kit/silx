@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "12/04/2017"
+__date__ = "23/08/2017"
 
 
 import time
@@ -38,7 +38,7 @@ from contextlib import contextmanager
 from silx.gui import qt
 from silx.gui.test.utils import TestCaseQt
 from silx.gui import hdf5
-from . import _mock
+from silx.io import commonh5
 
 try:
     import h5py
@@ -52,6 +52,13 @@ _called = 0
 class _Holder(object):
     def callback(self, *args, **kvargs):
         _called += 1
+
+
+def create_NXentry(group, name):
+    attrs = {"NX_class": "NXentry"}
+    node = commonh5.Group(name, parent=group, attrs=attrs)
+    group.add_node(node)
+    return node
 
 
 class TestHdf5TreeModel(TestCaseQt):
@@ -124,14 +131,14 @@ class TestHdf5TreeModel(TestCaseQt):
             h5File.close()
 
     def testInsertObject(self):
-        h5 = _mock.File("/foo/bar/1.mock")
+        h5 = commonh5.File("/foo/bar/1.mock", "w")
         model = hdf5.Hdf5TreeModel()
         self.assertEquals(model.rowCount(qt.QModelIndex()), 0)
         model.insertH5pyObject(h5)
         self.assertEquals(model.rowCount(qt.QModelIndex()), 1)
 
     def testRemoveObject(self):
-        h5 = _mock.File("/foo/bar/1.mock")
+        h5 = commonh5.File("/foo/bar/1.mock", "w")
         model = hdf5.Hdf5TreeModel()
         self.assertEquals(model.rowCount(qt.QModelIndex()), 0)
         model.insertH5pyObject(h5)
@@ -223,7 +230,7 @@ class TestHdf5TreeModel(TestCaseQt):
         return model.data(index, qt.Qt.DisplayRole)
 
     def testFileData(self):
-        h5 = _mock.File("/foo/bar/1.mock")
+        h5 = commonh5.File("/foo/bar/1.mock", "w")
         model = hdf5.Hdf5TreeModel()
         model.insertH5pyObject(h5)
         displayed = self.getRowDataAsDict(model, row=0)
@@ -236,7 +243,7 @@ class TestHdf5TreeModel(TestCaseQt):
         self.assertEquals(displayed[hdf5.Hdf5TreeModel.NODE_COLUMN, qt.Qt.DisplayRole], "File")
 
     def testGroupData(self):
-        h5 = _mock.File("/foo/bar/1.mock")
+        h5 = commonh5.File("/foo/bar/1.mock", "w")
         d = h5.create_group("foo")
         d.attrs["desc"] = "fooo"
 
@@ -252,9 +259,9 @@ class TestHdf5TreeModel(TestCaseQt):
         self.assertEquals(displayed[hdf5.Hdf5TreeModel.NODE_COLUMN, qt.Qt.DisplayRole], "Group")
 
     def testDatasetData(self):
-        h5 = _mock.File("/foo/bar/1.mock")
+        h5 = commonh5.File("/foo/bar/1.mock", "w")
         value = numpy.array([1, 2, 3])
-        d = h5.create_dataset("foo", value)
+        d = h5.create_dataset("foo", data=value)
 
         model = hdf5.Hdf5TreeModel()
         model.insertH5pyObject(d)
@@ -269,8 +276,8 @@ class TestHdf5TreeModel(TestCaseQt):
 
     def testDropLastAsFirst(self):
         model = hdf5.Hdf5TreeModel()
-        h5_1 = _mock.File("/foo/bar/1.mock")
-        h5_2 = _mock.File("/foo/bar/2.mock")
+        h5_1 = commonh5.File("/foo/bar/1.mock", "w")
+        h5_2 = commonh5.File("/foo/bar/2.mock", "w")
         model.insertH5pyObject(h5_1)
         model.insertH5pyObject(h5_2)
         self.assertEquals(self.getItemName(model, 0), "1.mock")
@@ -283,8 +290,8 @@ class TestHdf5TreeModel(TestCaseQt):
 
     def testDropFirstAsLast(self):
         model = hdf5.Hdf5TreeModel()
-        h5_1 = _mock.File("/foo/bar/1.mock")
-        h5_2 = _mock.File("/foo/bar/2.mock")
+        h5_1 = commonh5.File("/foo/bar/1.mock", "w")
+        h5_2 = commonh5.File("/foo/bar/2.mock", "w")
         model.insertH5pyObject(h5_1)
         model.insertH5pyObject(h5_2)
         self.assertEquals(self.getItemName(model, 0), "1.mock")
@@ -297,7 +304,7 @@ class TestHdf5TreeModel(TestCaseQt):
 
     def testRootParent(self):
         model = hdf5.Hdf5TreeModel()
-        h5_1 = _mock.File("/foo/bar/1.mock")
+        h5_1 = commonh5.File("/foo/bar/1.mock", "w")
         model.insertH5pyObject(h5_1)
         index = model.index(0, 0, qt.QModelIndex())
         index = model.parent(index)
@@ -318,10 +325,10 @@ class TestNexusSortFilterProxyModel(TestCaseQt):
     def testNXentryStartTime(self):
         """Test NXentry with start_time"""
         model = hdf5.Hdf5TreeModel()
-        h5 = _mock.File("/foo/bar/1.mock")
-        h5.create_NXentry("a").create_dataset("start_time", numpy.string_("2015"))
-        h5.create_NXentry("b").create_dataset("start_time", numpy.string_("2013"))
-        h5.create_NXentry("c").create_dataset("start_time", numpy.string_("2014"))
+        h5 = commonh5.File("/foo/bar/1.mock", "w")
+        create_NXentry(h5, "a").create_dataset("start_time", data=numpy.string_("2015"))
+        create_NXentry(h5, "b").create_dataset("start_time", data=numpy.string_("2013"))
+        create_NXentry(h5, "c").create_dataset("start_time", data=numpy.string_("2014"))
         model.insertH5pyObject(h5)
 
         proxy = hdf5.NexusSortFilterProxyModel()
@@ -333,10 +340,10 @@ class TestNexusSortFilterProxyModel(TestCaseQt):
     def testNXentryStartTimeInArray(self):
         """Test NXentry with start_time"""
         model = hdf5.Hdf5TreeModel()
-        h5 = _mock.File("/foo/bar/1.mock")
-        h5.create_NXentry("a").create_dataset("start_time", numpy.array([numpy.string_("2015")]))
-        h5.create_NXentry("b").create_dataset("start_time", numpy.array([numpy.string_("2013")]))
-        h5.create_NXentry("c").create_dataset("start_time", numpy.array([numpy.string_("2014")]))
+        h5 = commonh5.File("/foo/bar/1.mock", "w")
+        create_NXentry(h5, "a").create_dataset("start_time", data=numpy.array([numpy.string_("2015")]))
+        create_NXentry(h5, "b").create_dataset("start_time", data=numpy.array([numpy.string_("2013")]))
+        create_NXentry(h5, "c").create_dataset("start_time", data=numpy.array([numpy.string_("2014")]))
         model.insertH5pyObject(h5)
 
         proxy = hdf5.NexusSortFilterProxyModel()
@@ -348,10 +355,10 @@ class TestNexusSortFilterProxyModel(TestCaseQt):
     def testNXentryEndTimeInArray(self):
         """Test NXentry with end_time"""
         model = hdf5.Hdf5TreeModel()
-        h5 = _mock.File("/foo/bar/1.mock")
-        h5.create_NXentry("a").create_dataset("end_time", numpy.array([numpy.string_("2015")]))
-        h5.create_NXentry("b").create_dataset("end_time", numpy.array([numpy.string_("2013")]))
-        h5.create_NXentry("c").create_dataset("end_time", numpy.array([numpy.string_("2014")]))
+        h5 = commonh5.File("/foo/bar/1.mock", "w")
+        create_NXentry(h5, "a").create_dataset("end_time", data=numpy.array([numpy.string_("2015")]))
+        create_NXentry(h5, "b").create_dataset("end_time", data=numpy.array([numpy.string_("2013")]))
+        create_NXentry(h5, "c").create_dataset("end_time", data=numpy.array([numpy.string_("2014")]))
         model.insertH5pyObject(h5)
 
         proxy = hdf5.NexusSortFilterProxyModel()
@@ -363,10 +370,10 @@ class TestNexusSortFilterProxyModel(TestCaseQt):
     def testNXentryName(self):
         """Test NXentry without start_time  or end_time"""
         model = hdf5.Hdf5TreeModel()
-        h5 = _mock.File("/foo/bar/1.mock")
-        h5.create_NXentry("a")
-        h5.create_NXentry("c")
-        h5.create_NXentry("b")
+        h5 = commonh5.File("/foo/bar/1.mock", "w")
+        create_NXentry(h5, "a")
+        create_NXentry(h5, "c")
+        create_NXentry(h5, "b")
         model.insertH5pyObject(h5)
 
         proxy = hdf5.NexusSortFilterProxyModel()
@@ -378,10 +385,10 @@ class TestNexusSortFilterProxyModel(TestCaseQt):
     def testStartTime(self):
         """If it is not NXentry, start_time is not used"""
         model = hdf5.Hdf5TreeModel()
-        h5 = _mock.File("/foo/bar/1.mock")
-        h5.create_group("a").create_dataset("start_time", numpy.string_("2015"))
-        h5.create_group("b").create_dataset("start_time", numpy.string_("2013"))
-        h5.create_group("c").create_dataset("start_time", numpy.string_("2014"))
+        h5 = commonh5.File("/foo/bar/1.mock", "w")
+        h5.create_group("a").create_dataset("start_time", data=numpy.string_("2015"))
+        h5.create_group("b").create_dataset("start_time", data=numpy.string_("2013"))
+        h5.create_group("c").create_dataset("start_time", data=numpy.string_("2014"))
         model.insertH5pyObject(h5)
 
         proxy = hdf5.NexusSortFilterProxyModel()
@@ -392,7 +399,7 @@ class TestNexusSortFilterProxyModel(TestCaseQt):
 
     def testName(self):
         model = hdf5.Hdf5TreeModel()
-        h5 = _mock.File("/foo/bar/1.mock")
+        h5 = commonh5.File("/foo/bar/1.mock", "w")
         h5.create_group("a")
         h5.create_group("c")
         h5.create_group("b")
@@ -406,7 +413,7 @@ class TestNexusSortFilterProxyModel(TestCaseQt):
 
     def testNumber(self):
         model = hdf5.Hdf5TreeModel()
-        h5 = _mock.File("/foo/bar/1.mock")
+        h5 = commonh5.File("/foo/bar/1.mock", "w")
         h5.create_group("a1")
         h5.create_group("a20")
         h5.create_group("a3")
@@ -420,7 +427,7 @@ class TestNexusSortFilterProxyModel(TestCaseQt):
 
     def testMultiNumber(self):
         model = hdf5.Hdf5TreeModel()
-        h5 = _mock.File("/foo/bar/1.mock")
+        h5 = commonh5.File("/foo/bar/1.mock", "w")
         h5.create_group("a1-1")
         h5.create_group("a20-1")
         h5.create_group("a3-1")
@@ -436,7 +443,7 @@ class TestNexusSortFilterProxyModel(TestCaseQt):
 
     def testUnconsistantTypes(self):
         model = hdf5.Hdf5TreeModel()
-        h5 = _mock.File("/foo/bar/1.mock")
+        h5 = commonh5.File("/foo/bar/1.mock", "w")
         h5.create_group("aaa100")
         h5.create_group("100aaa")
         model.insertH5pyObject(h5)

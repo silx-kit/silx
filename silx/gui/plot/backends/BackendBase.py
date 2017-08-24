@@ -31,10 +31,11 @@ This API is a simplified version of PyMca PlotBackend API.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "18/02/2016"
+__date__ = "16/08/2017"
 
 
 import weakref
+from ... import qt
 
 
 # Names for setCursor
@@ -61,6 +62,8 @@ class BackendBase(object):
         # Store a weakref to get access to the plot state.
         self._setPlot(plot)
 
+        self.__zoomBackAction = None
+
     @property
     def _plot(self):
         """The plot this backend is attached to."""
@@ -78,6 +81,18 @@ class BackendBase(object):
         Use with caution, basically **immediately** after init.
         """
         self._plotRef = weakref.ref(plot)
+
+    # Default Qt context menu
+
+    def contextMenuEvent(self, event):
+        """Override QWidget.contextMenuEvent to implement the context menu"""
+        if self.__zoomBackAction is None:
+            from ..actions.control import ZoomBackAction  # Avoid cyclic import
+            self.__zoomBackAction = ZoomBackAction(plot=self._plot,
+                                                   parent=self._plot)
+        menu = qt.QMenu(self)
+        menu.addAction(self.__zoomBackAction)
+        menu.exec_(event.globalPos())
 
     # Add methods
 
@@ -472,5 +487,13 @@ class BackendBase(object):
         """Plot area bounds in widget coordinates in pixels.
 
         :return: bounds as a 4-tuple of int: (left, top, width, height)
+        """
+        raise NotImplementedError()
+
+    def setAxesDisplayed(self, displayed):
+        """Display or not the axes.
+
+        :param bool displayed: If `True` axes are displayed. If `False` axes
+            are not anymore visible and the margin used for them is removed.
         """
         raise NotImplementedError()

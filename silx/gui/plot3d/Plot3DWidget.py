@@ -118,13 +118,12 @@ class Plot3DWidget(glu.OpenGLWidget):
         # Window describing on screen area to render
         self._window = scene.Window(mode='framebuffer')
         self._window.viewports = [self.viewport, self.overview]
+        self._window.addListener(self._redraw)
 
         self.eventHandler = interaction.CameraControl(
             self.viewport, orbitAroundCenter=False,
             mode='position', scaleTransform=sceneScale,
             selectCB=None)
-
-        self.viewport.addListener(self._redraw)
 
     def setProjection(self, projection):
         """Change the projection in use.
@@ -170,6 +169,25 @@ class Plot3DWidget(glu.OpenGLWidget):
         """Returns the RGBA background color (QColor)."""
         return qt.QColor.fromRgbF(*self.viewport.background)
 
+    def isOrientationIndicatorVisible(self):
+        """Returns True if the orientation indicator is displayed.
+
+        :rtype: bool
+        """
+        return self.overview in self._window.viewports
+
+    def setOrientationIndicatorVisible(self, visible):
+        """Set the orientation indicator visibility.
+
+        :param bool visible: True to show
+        """
+        visible = bool(visible)
+        if visible != self.isOrientationIndicatorVisible():
+            if visible:
+                self._window.viewports = [self.viewport, self.overview]
+            else:
+                self._window.viewports = [self.viewport]
+
     def centerScene(self):
         """Position the center of the scene at the center of rotation."""
         self.viewport.resetCamera()
@@ -186,7 +204,7 @@ class Plot3DWidget(glu.OpenGLWidget):
 
     def _redraw(self, source=None):
         """Viewport listener to require repaint"""
-        if not self._updating and self.viewport.dirty:
+        if not self._updating:
             self._updating = True  # Mark that an update is requested
             self.update()  # Queued repaint (i.e., asynchronous)
 

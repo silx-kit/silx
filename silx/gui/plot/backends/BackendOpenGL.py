@@ -28,7 +28,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "21/03/2017"
+__date__ = "16/08/2017"
 
 from collections import OrderedDict, namedtuple
 from ctypes import c_void_p
@@ -376,6 +376,11 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     # QWidget
 
     _MOUSE_BTNS = {1: 'left', 2: 'right', 4: 'middle'}
+
+    def contextMenuEvent(self, event):
+        """Override QWidget.contextMenuEvent to implement the context menu"""
+        # Makes sure it is overridden (issue with PySide)
+        BackendBase.BackendBase.contextMenuEvent(self, event)
 
     def sizeHint(self):
         return qt.QSize(8 * 80, 6 * 80)  # Mimic MatplotlibBackend
@@ -1296,8 +1301,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                     if pickedIndices:
                         picked.append(dict(kind='curve',
                                            legend=item.info['legend'],
-                                           xdata=item.xData[pickedIndices],
-                                           ydata=item.yData[pickedIndices]))
+                                           indices=pickedIndices))
 
         return picked
 
@@ -1630,3 +1634,12 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     def getPlotBoundsInPixels(self):
         return self._plotFrame.plotOrigin + self._plotFrame.plotSize
+
+    def setAxesDisplayed(self, displayed):
+        """Display or not the axes.
+
+        :param bool displayed: If `True` axes are displayed. If `False` axes
+            are not anymore visible and the margin used for them is removed.
+        """
+        pass
+        # FIXME: implement me

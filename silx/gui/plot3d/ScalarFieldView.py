@@ -247,7 +247,7 @@ class Isosurface(qt.QObject):
                     self._level = level
                     self.sigLevelChanged.emit(level)
 
-            if numpy.isnan(self._level):
+            if not numpy.isfinite(self._level):
                 return
 
             st = time.time()
@@ -1027,7 +1027,10 @@ class ScalarFieldView(Plot3DWindow):
             self._data = data
 
             # Store data range info
-            dataRange = min_max(self._data, min_positive=True)
+            dataRange = min_max(self._data, min_positive=True, finite=True)
+            if dataRange.minimum is None:  # Only non-finite data
+                dataRange = None
+
             if dataRange is not None:
                 min_positive = dataRange.min_positive
                 if min_positive is None:
@@ -1109,6 +1112,20 @@ class ScalarFieldView(Plot3DWindow):
         return self._dataTranslate.translation
 
     # Axes labels
+
+    def isBoundingBoxVisible(self):
+        """Returns axes labels, grid and bounding box visibility.
+
+        :rtype: bool
+        """
+        return self._bbox.boxVisible
+
+    def setBoundingBoxVisible(self, visible):
+        """Set axes labels, grid and bounding box visibility.
+
+        :param bool visible: True to show axes, False to hide
+        """
+        self._bbox.boxVisible = bool(visible)
 
     def setAxesLabels(self, xlabel=None, ylabel=None, zlabel=None):
         """Set the text labels of the axes.
