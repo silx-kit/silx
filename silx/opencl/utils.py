@@ -78,9 +78,14 @@ def sizeof(shape, dtype="uint8"):
 
 
 def get_cl_file(resource):
-    """get the full path of a openCL file
+    """get the full path of a openCL resource file
 
-    :param str resource: Resource name. File name contained if the opencl
+    The resource name can be prefixed by the name of a resource directory. For
+    example "silx:foo.png" identify the resource "foo.png" from the resource
+    directory "silx".
+    See also :func:`silx.resources.register_resource_directory`.
+
+    :param str resource: Resource name. File name contained if the `opencl`
         directory of the resources.
     :return: the full path of the openCL source file
     """

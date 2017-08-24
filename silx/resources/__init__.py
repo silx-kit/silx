@@ -109,6 +109,12 @@ def register_resource_directory(name, package):
     """Register another resource directory to the available list.
 
     By default only the directory "silx" is available.
+
+    :param str name: Name of the resource directory. It is used on the resource
+        name to specify the resource directory to use. The resource
+        "silx:foo.png" will use the "silx" resource directory.
+    :param str package: Python name of the package containing resources.
+        For example "silx.resources".
     """
     if name in _RESOURCE_DIRECTORIES:
         raise KeyError("Key %s already exists" % name)
@@ -122,7 +128,11 @@ def register_resource_directory(name, package):
 def list_dir(resource):
     """List the content of a resource directory.
 
-    Result are not prefixed by the resource_directory.
+    Result are not prefixed by the resource name.
+
+    The resource name can be prefixed by the name of a resource directory. For
+    example "silx:foo.png" identify the resource "foo.png" from the resource
+    directory "silx". See also :func:`register_resource_directory`.
 
     :param str resource: Name of the resource directory to list
     :return: list of name contained in the directory
@@ -144,6 +154,10 @@ def list_dir(resource):
 
 def is_dir(resource):
     """True is the resource is a resource directory.
+
+    The resource name can be prefixed by the name of a resource directory. For
+    example "silx:foo.png" identify the resource "foo.png" from the resource
+    directory "silx". See also :func:`register_resource_directory`.
 
     :param str resource: Name of the resource
     :rtype: bool
@@ -188,12 +202,17 @@ def join(*args):
 def resource_filename(resource):
     """Return filename corresponding to resource.
 
-    resource can be the name of either a file or a directory.
     The existence of the resource is not checked.
 
+    The resource name can be prefixed by the name of a resource directory. For
+    example "silx:foo.png" identify the resource "foo.png" from the resource
+    directory "silx". See also :func:`register_resource_directory`.
+
     :param str resource: Resource path relative to resource directory
-                         using '/' path separator.
+                         using '/' path separator. It can be either a file or
+                         a directory.
     :return: Absolute resource path in the file system
+    :rtype: str
     """
     package_name, package_path, resource = _get_package_and_resource(resource)
 

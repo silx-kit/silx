@@ -258,7 +258,12 @@ def getWaitIcon():
 
 
 def getAnimatedIcon(name):
-    """Create an AbstractAnimatedIcon from a name.
+    """Create an AbstractAnimatedIcon from a resource name.
+
+    The resource name can be prefixed by the name of a resource directory. For
+    example "silx:foo.png" identify the resource "foo.png" from the resource
+    directory "silx".
+    See also :func:`silx.resources.register_resource_directory`.
 
     Try to load a mng or a gif file, then try to load a multi-image animated
     icon.
@@ -302,6 +307,11 @@ def getAnimatedIcon(name):
 def getQIcon(name):
     """Create a QIcon from its name.
 
+    The resource name can be prefixed by the name of a resource directory. For
+    example "silx:foo.png" identify the resource "foo.png" from the resource
+    directory "silx".
+    See also :func:`silx.resources.register_resource_directory`.
+
     :param str name: Name of the icon, in one of the defined icons
                      in this module.
     :return: Corresponding QIcon
@@ -319,6 +329,11 @@ def getQIcon(name):
 def getQPixmap(name):
     """Create a QPixmap from its name.
 
+    The resource name can be prefixed by the name of a resource directory. For
+    example "silx:foo.png" identify the resource "foo.png" from the resource
+    directory "silx".
+    See also :func:`silx.resources.register_resource_directory`.
+
     :param str name: Name of the icon, in one of the defined icons
                      in this module.
     :return: Corresponding QPixmap
@@ -331,6 +346,11 @@ def getQPixmap(name):
 def getQFile(name):
     """Create a QFile from an icon name. Filename is found
     according to supported Qt formats.
+
+    The resource name can be prefixed by the name of a resource directory. For
+    example "silx:foo.png" identify the resource "foo.png" from the resource
+    directory "silx".
+    See also :func:`silx.resources.register_resource_directory`.
 
     :param str name: Name of the icon, in one of the defined icons
                      in this module.
