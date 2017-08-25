@@ -31,7 +31,7 @@ files. They are used in :mod:`spech5` and :mod:`fabioh5`.
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "23/08/2017"
+__date__ = "25/08/2017"
 
 import collections
 import h5py
@@ -184,8 +184,8 @@ class Dataset(Node):
     """
 
     def __init__(self, name, data, parent=None, attrs=None):
-        self.__data = data
         Node.__init__(self, name, parent, attrs=attrs)
+        self.__data = data
 
     def _set_data(self, data):
         """Set the data exposed by the dataset.
