@@ -124,6 +124,11 @@ class Hdf5Writer(object):
             See documentation of :func:`write_to_h5`
         """
         self.h5path = h5path
+        if not h5path.startswith("/"):
+            # target path must be absolute
+            self.h5path = "/" + h5path
+        if not self.h5path.endswith("/"):
+            self.h5path += "/"
 
         self._h5f = None
         """h5py.File object, assigned in :meth:`write`"""
@@ -248,9 +253,6 @@ def write_to_h5(infile, h5file, h5path='/', mode="a",
         h5pylike = silx.io.open(infile)
     else:
         h5pylike = infile
-
-    if not h5path.endswith("/"):
-        h5path += "/"
 
     writer = Hdf5Writer(h5path=h5path,
                         overwrite_data=overwrite_data,
