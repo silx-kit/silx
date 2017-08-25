@@ -111,6 +111,7 @@ class TestCommonH5(unittest.TestCase):
         f = commonh5.File(name="Foo", mode="r")
         try:
             f.create_dataset("foo", data=numpy.array([1]))
+            self.fail()
         except RuntimeError:
             pass
 
@@ -118,6 +119,7 @@ class TestCommonH5(unittest.TestCase):
         f = commonh5.File(name="Foo", mode="r")
         try:
             f.create_group("foo")
+            self.fail()
         except RuntimeError:
             pass
 
