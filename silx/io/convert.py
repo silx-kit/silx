@@ -88,7 +88,7 @@ def _create_link(h5f, link_name, target_name,
     if link_name not in h5f:
         _logger.debug("Creating link " + link_name + " -> " + target_name)
     elif overwrite_data:
-        _logger.warn("Overwriting " + link_name + " with link to" +
+        _logger.warn("Overwriting " + link_name + " with link to " +
                      target_name)
         del h5f[link_name]
     else:
