@@ -226,7 +226,9 @@ class Hdf5Item(Hdf5Node):
         elif issubclass(class_, h5py.ExternalLink):
             return style.standardIcon(qt.QStyle.SP_FileLinkIcon)
         elif issubclass(class_, h5py.Dataset):
-            if len(obj.shape) < 4:
+            if obj.shape is None:
+                name = "item-none"
+            elif len(obj.shape) < 4:
                 name = "item-%ddim" % len(obj.shape)
             else:
                 name = "item-ndim"
@@ -237,6 +239,8 @@ class Hdf5Item(Hdf5Node):
         return None
 
     def _humanReadableShape(self, dataset):
+        if dataset.shape is None:
+            return "none"
         if dataset.shape == tuple():
             return "scalar"
         shape = [str(i) for i in dataset.shape]
@@ -244,6 +248,8 @@ class Hdf5Item(Hdf5Node):
         return text
 
     def _humanReadableValue(self, dataset):
+        if dataset.shape is None:
+            return "No data"
         if dataset.shape == tuple():
             numpy_object = dataset[()]
             text = _formatter.toString(numpy_object)
