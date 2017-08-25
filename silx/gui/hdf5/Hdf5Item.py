@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "21/08/2017"
+__date__ = "25/08/2017"
 
 
 import numpy
@@ -169,6 +169,14 @@ class Hdf5Item(Hdf5Node):
                 self.__isBroken = True
             else:
                 self.__obj = obj
+                if not self.isGroupObj():
+                    try:
+                        # pre-fetch of the data
+                        self.__obj.shape
+                    except Exception as e:
+                        message = "%s broken. %s" % (self.__obj.name, e.args[0])
+                        self.__error = message
+                        self.__isBroken = True
 
         self.__key = None
 
@@ -202,6 +210,8 @@ class Hdf5Item(Hdf5Node):
 
         :rtype: qt.QIcon
         """
+        # Pre-fetch the object, in case it is broken
+        obj = self.obj
         style = qt.QApplication.style()
         if self.__isBroken:
             icon = style.standardIcon(qt.QStyle.SP_MessageBoxCritical)
@@ -216,11 +226,11 @@ class Hdf5Item(Hdf5Node):
         elif issubclass(class_, h5py.ExternalLink):
             return style.standardIcon(qt.QStyle.SP_FileLinkIcon)
         elif issubclass(class_, h5py.Dataset):
-            if len(self.obj.shape) < 4:
-                name = "item-%ddim" % len(self.obj.shape)
+            if len(obj.shape) < 4:
+                name = "item-%ddim" % len(obj.shape)
             else:
                 name = "item-ndim"
-            if str(self.obj.dtype) == "object":
+            if str(obj.dtype) == "object":
                 name = "item-object"
             icon = icons.getQIcon(name)
             return icon
