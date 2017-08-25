@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "23/08/2017"
+__date__ = "25/08/2017"
 
 import logging
 import numpy
@@ -119,6 +119,14 @@ class TestCommonH5(unittest.TestCase):
         try:
             f.create_group("foo")
         except RuntimeError:
+            pass
+
+    def test_create_unicode_dataset(self):
+        f = commonh5.File(name="Foo", mode="w")
+        try:
+            f.create_dataset("foo", data=numpy.array(u"aaaa"))
+            self.fail()
+        except TypeError:
             pass
 
 

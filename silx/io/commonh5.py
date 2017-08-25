@@ -185,7 +185,21 @@ class Dataset(Node):
 
     def __init__(self, name, data, parent=None, attrs=None):
         Node.__init__(self, name, parent, attrs=attrs)
+        if data is not None:
+            self._check_data(data)
         self.__data = data
+
+    def _check_data(self, data):
+        """Check that the data provided by the dataset is valid.
+
+        :param numpy.ndarray data: Data associated to the dataset
+
+        :raises TypeError: In the case the data is not valid.
+        """
+        chartype = data.dtype.char
+        if chartype in ["U", "O"]:
+            msg = "Type of the dataset '%s' is not supported. Found '%s'."
+            raise TypeError(msg % (self.name, data.dtype))
 
     def _set_data(self, data):
         """Set the data exposed by the dataset.
@@ -195,6 +209,7 @@ class Dataset(Node):
 
         :param numpy.ndarray data: Data associated to the dataset
         """
+        self._check_data(data)
         self.__data = data
 
     def _get_data(self):
@@ -448,8 +463,10 @@ class LazyLoadableDataset(Dataset):
         """
         if not self._is_initialized:
             data = self._create_data()
-            self._set_data(data)
+            # is_initialized before set_data to avoid infinit initialization
+            # is case of wrong check of the data
             self._is_initialized = True
+            self._set_data(data)
         return super(LazyLoadableDataset, self)._get_data()
 
 
