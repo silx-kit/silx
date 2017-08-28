@@ -144,15 +144,44 @@ class H5Node(object):
         return object.__getattribute__(self.__h5py_object, name)
 
     def __get_target(self, obj):
-        basename = obj.name.split("/")[-1]
-        link = obj.parent.get(basename, getlink=True)
-        if isinstance(link, h5py.ExternalLink):
-            external_obj = obj.parent.get(self.basename)
-            return self.__get_target(external_obj)
-        elif isinstance(link, (h5py.SoftLink)):
-            return self.__get_target(obj.parent[link.path])
-        else:
+        """
+        Return the closes target of the provided object.
+
+        Objects can contains links in the middle of the path, this function
+        check each groups and remove this prefix in case of the link by the
+        link of the path.
+
+        :param obj: A valid h5py object (File, group or dataset)
+        :type obj: h5py.Dataset or h5py.Group or h5py.File
+        :rtype: h5py.Dataset or h5py.Group or h5py.File
+        """
+        elements = obj.name.split("/")
+        if obj.name == "/":
             return obj
+        elif obj.name.startswith("/"):
+            elements.pop(0)
+        path = ""
+        while len(elements) > 0:
+            e = elements.pop(0)
+            path = path + "/" + e
+            link = obj.parent.get(path, getlink=True)
+
+            if isinstance(link, h5py.ExternalLink):
+                subpath = "/".join(elements)
+                external_obj = obj.parent.get(self.basename + "/" + subpath)
+                return self.__get_target(external_obj)
+            elif isinstance(link, (h5py.SoftLink)):
+                # Restart from this stat
+                path = ""
+                root_elements = link.path.split("/")
+                if link.path == "/":
+                    root_elements = []
+                elif link.path.startswith("/"):
+                    root_elements.pop(0)
+                for name in reversed(root_elements):
+                    elements.insert(0, name)
+
+        return obj.file[path]
 
     @property
     def h5py_target(self):

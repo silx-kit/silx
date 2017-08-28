@@ -478,7 +478,9 @@ class TestH5Node(TestCaseQt):
         h5 = h5py.File(filename, mode="w")
         h5["group/dataset"] = 50
         h5["link/soft_link"] = h5py.SoftLink("/group/dataset")
+        h5["link/soft_link_to_group"] = h5py.SoftLink("/group")
         h5["link/soft_link_to_link"] = h5py.SoftLink("/link/soft_link")
+        h5["link/soft_link_to_file"] = h5py.SoftLink("/")
         h5["link/external_link"] = h5py.ExternalLink(externalFilename, "/target/dataset")
         h5["link/external_link_to_link"] = h5py.ExternalLink(externalFilename, "/target/link")
         h5["broken_link/external_broken_file"] = h5py.ExternalLink(externalFilename + "_not_exists", "/target/link")
@@ -648,6 +650,28 @@ class TestH5Node(TestCaseQt):
         self.assertEqual(h5node.physical_name, "/group/not_exists")
         self.assertEqual(h5node.local_basename, "soft_link_to_broken_link")
         self.assertEqual(h5node.local_name, "/broken_link/soft_link_to_broken_link")
+
+    def testDatasetFromSoftLinkToGroup(self):
+        path = ["base.h5", "link", "soft_link_to_group", "dataset"]
+        h5node = self.getH5NodeFromPath(self.model, path)
+
+        self.assertEqual(h5node.physical_filename, h5node.local_filename)
+        self.assertIn("base.h5", h5node.physical_filename)
+        self.assertEqual(h5node.physical_basename, "dataset")
+        self.assertEqual(h5node.physical_name, "/group/dataset")
+        self.assertEqual(h5node.local_basename, "dataset")
+        self.assertEqual(h5node.local_name, "/link/soft_link_to_group/dataset")
+
+    def testDatasetFromSoftLinkToFile(self):
+        path = ["base.h5", "link", "soft_link_to_file", "link", "soft_link_to_group", "dataset"]
+        h5node = self.getH5NodeFromPath(self.model, path)
+
+        self.assertEqual(h5node.physical_filename, h5node.local_filename)
+        self.assertIn("base.h5", h5node.physical_filename)
+        self.assertEqual(h5node.physical_basename, "dataset")
+        self.assertEqual(h5node.physical_name, "/group/dataset")
+        self.assertEqual(h5node.local_basename, "dataset")
+        self.assertEqual(h5node.local_name, "/link/soft_link_to_file/link/soft_link_to_group/dataset")
 
 
 class TestHdf5(TestCaseQt):
