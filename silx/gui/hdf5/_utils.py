@@ -28,7 +28,7 @@ package `silx.gui.hdf5` package.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "16/06/2017"
+__date__ = "28/08/2017"
 
 
 import logging
@@ -137,10 +137,29 @@ class H5Node(object):
         :param Hdf5Item h5py_item: An Hdf5Item
         """
         self.__h5py_object = h5py_item.obj
+        self.__h5py_target = None
         self.__h5py_item = h5py_item
 
     def __getattr__(self, name):
         return object.__getattribute__(self.__h5py_object, name)
+
+    def __get_target(self, obj):
+        basename = obj.name.split("/")[-1]
+        link = obj.parent.get(basename, getlink=True)
+        if isinstance(link, h5py.ExternalLink):
+            external_obj = obj.parent.get(self.basename)
+            return self.__get_target(external_obj)
+        elif isinstance(link, (h5py.SoftLink)):
+            return self.__get_target(obj.parent[link.path])
+        else:
+            return obj
+
+    @property
+    def h5py_target(self):
+        if self.__h5py_target is not None:
+            return self.__h5py_target
+        self.__h5py_target = self.__get_target(self.__h5py_object)
+        return self.__h5py_target
 
     @property
     def h5py_object(self):
@@ -209,7 +228,7 @@ class H5Node(object):
         """Returns the parent item holding the :class:`h5py.File` object
 
         :rtype: h5py.File
-        :raises RuntimeException: If no file are found
+        :raises RuntimeError: If no file are found
         """
         item = self.__h5py_item
         while item is not None:
@@ -259,6 +278,25 @@ class H5Node(object):
         return self.__h5py_item.basename
 
     @property
+    def physical_file(self):
+        """Returns the physical file in which is this node.
+
+        .. versionadded:: 0.6
+
+        :rtype: h5py.File
+        :raises RuntimeError: If no file are found
+        """
+        if isinstance(self.__h5py_object, h5py.ExternalLink):
+            # It means the link is broken
+            raise RuntimeError("No file node found")
+        if isinstance(self.__h5py_object, h5py.SoftLink):
+            # It means the link is broken
+            return self.local_file
+
+        physical_obj = self.h5py_target
+        return physical_obj.file
+
+    @property
     def physical_name(self):
         """Returns the path from the location this h5py node is physically
         stored.
@@ -269,10 +307,14 @@ class H5Node(object):
         :rtype: str
         """
         if isinstance(self.__h5py_object, h5py.ExternalLink):
+            # It means the link is broken
             return self.__h5py_object.path
         if isinstance(self.__h5py_object, h5py.SoftLink):
+            # It means the link is broken
             return self.__h5py_object.path
-        return self.__h5py_object.name
+
+        physical_obj = self.h5py_target
+        return physical_obj.name
 
     @property
     def physical_filename(self):
@@ -285,9 +327,13 @@ class H5Node(object):
         :rtype: str
         """
         if isinstance(self.__h5py_object, h5py.ExternalLink):
+            # It means the link is broken
             return self.__h5py_object.filename
-        else:
-            return self.__h5py_object.file.filename
+        if isinstance(self.__h5py_object, h5py.SoftLink):
+            # It means the link is broken
+            return self.local_file.filename
+
+        return self.physical_file.filename
 
     @property
     def physical_basename(self):
