@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "23/08/2017"
+__date__ = "28/08/2017"
 
 import logging
 import numpy
@@ -298,12 +298,14 @@ class TestFabioH5(unittest.TestCase):
     def test_detector_link(self):
         detector1 = self.h5_image["/scan_0/instrument/detector_0"]
         detector2 = self.h5_image["/scan_0/measurement/image_0/info"]
-        self.assertIs(detector1, detector2)
+        self.assertIsNot(detector1, detector2)
+        self.assertEqual(detector1.items(), detector2.items())
 
     def test_detector_data_link(self):
         data1 = self.h5_image["/scan_0/instrument/detector_0/data"]
         data2 = self.h5_image["/scan_0/measurement/image_0/data"]
-        self.assertIs(data1, data2)
+        self.assertIsNot(data1, data2)
+        self.assertIs(data1._get_data(), data2._get_data())
 
 
 def suite():

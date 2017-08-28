@@ -31,7 +31,7 @@ files. They are used in :mod:`spech5` and :mod:`fabioh5`.
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "25/08/2017"
+__date__ = "28/08/2017"
 
 import collections
 import h5py
@@ -440,6 +440,21 @@ class Dataset(Node):
         raise AttributeError("Dataset has no attribute %s" % item)
 
 
+class _LinkToDataset(Dataset):
+    """Virtual dataset providing link to another dataset"""
+
+    def __init__(self, name, target, parent=None):
+        Dataset.__init__(self, name, data=None, parent=parent)
+        self.__target = target
+
+    def _get_data(self):
+        return self.__target._get_data()
+
+    @property
+    def attrs(self):
+        return self.__target.attrs
+
+
 class LazyLoadableDataset(Dataset):
     """Abstract dataset which provides a lazy loading of the data.
 
@@ -571,12 +586,18 @@ class Group(Node):
                 result = result._get_items()[item_name]
 
         if isinstance(result, SoftLink) and not getlink:
-            l_name, l_target = result.name, result.path
-            result = result.file.get(l_target)
+            link = result
+            target = result.file.get(link.path)
             if result is None:
-                raise KeyError(
-                    "Unable to open object (broken SoftLink %s -> %s)" %
-                    (l_name, l_target))
+                msg = "Unable to open object (broken SoftLink %s -> %s)"
+                raise KeyError(msg % (link.name, link.path))
+            # Convert SoftLink into typed group/dataset
+            if isinstance(target, Group):
+                result = _LinkToGroup(name=link.basename, target=target, parent=link.parent)
+            elif isinstance(target, Dataset):
+                result = _LinkToDataset(name=link.basename, target=target, parent=link.parent)
+            else:
+                raise TypeError("Unexpected target type %s" % type(target))
 
         return result
 
@@ -806,6 +827,21 @@ class Group(Node):
         dataset = Dataset(name, data)
         self.add_node(dataset)
         return dataset
+
+
+class _LinkToGroup(Group):
+    """Virtual group providing link to another group"""
+
+    def __init__(self, name, target, parent=None):
+        Group.__init__(self, name, parent=parent)
+        self.__target = target
+
+    def _get_items(self):
+        return self.__target._get_items()
+
+    @property
+    def attrs(self):
+        return self.__target.attrs
 
 
 class LazyLoadableGroup(Group):
