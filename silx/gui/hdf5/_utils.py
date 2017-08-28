@@ -170,7 +170,7 @@ class H5Node(object):
                 subpath = "/".join(elements)
                 external_obj = obj.parent.get(self.basename + "/" + subpath)
                 return self.__get_target(external_obj)
-            elif isinstance(link, (h5py.SoftLink)):
+            elif silx.io.utils.is_softlink(link):
                 # Restart from this stat
                 path = ""
                 root_elements = link.path.split("/")
