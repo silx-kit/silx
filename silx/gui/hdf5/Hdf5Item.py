@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "25/08/2017"
+__date__ = "28/08/2017"
 
 
 import numpy
@@ -172,8 +172,16 @@ class Hdf5Item(Hdf5Node):
                 if not self.isGroupObj():
                     try:
                         # pre-fetch of the data
-                        self.__obj.shape
+                        if obj.shape is None:
+                            pass
+                        if obj.shape == tuple():
+                            obj[()]
+                        else:
+                            if obj.compression is None and obj.size > 0:
+                                key = tuple([0] * len(obj.shape))
+                                obj[key]
                     except Exception as e:
+                        _logger.debug(e, exc_info=True)
                         message = "%s broken. %s" % (self.__obj.name, e.args[0])
                         self.__error = message
                         self.__isBroken = True
