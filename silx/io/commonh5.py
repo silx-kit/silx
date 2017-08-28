@@ -430,6 +430,15 @@ class Dataset(Node):
         else:
             return self[()] >= other
 
+    def __getattr__(self, item):
+        """Proxy to underlying numpy array methods.
+        """
+        data = self._get_data()
+        if hasattr(data, item):
+            return getattr(data, item)
+
+        raise AttributeError("Dataset has no attribute %s" % item)
+
 
 class LazyLoadableDataset(Dataset):
     """Abstract dataset which provides a lazy loading of the data.
