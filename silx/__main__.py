@@ -32,7 +32,7 @@ Your environment should provide a command `silx`. You can reach help with
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "25/08/2017"
+__date__ = "29/06/2017"
 
 
 import logging
@@ -59,6 +59,9 @@ def main():
     launcher.add_command("convert",
                          module_name="silx.app.convert",
                          description="Convert and concatenate files into a HDF5 file")
+    launcher.add_command("test",
+                         module_name="silx.app.test_",
+                         description="Launch silx unittest")
     status = launcher.execute(sys.argv)
     return status
 

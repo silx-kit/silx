@@ -41,7 +41,7 @@ else:
 
 __authors__ = ["P. Knobel", "V. Valls"]
 __license__ = "MIT"
-__date__ = "20/07/2017"
+__date__ = "28/08/2017"
 
 
 logger = logging.getLogger(__name__)
@@ -455,7 +455,7 @@ def get_h5py_class(obj):
     """
     if hasattr(obj, "h5py_class"):
         return obj.h5py_class
-    elif isinstance(obj, (h5py.File, h5py.Group, h5py.Dataset)):
+    elif isinstance(obj, (h5py.File, h5py.Group, h5py.Dataset, h5py.SoftLink)):
         return obj.__class__
     else:
         return None

@@ -38,7 +38,7 @@ from silx.io.nxdata import NXdata
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "18/08/2017"
+__date__ = "25/08/2017"
 
 _logger = logging.getLogger(__name__)
 
@@ -137,7 +137,8 @@ class DataInfo(object):
             self.shape = nxd.signal.shape
         else:
             self.shape = tuple()
-        self.dim = len(self.shape)
+        if self.shape is not None:
+            self.dim = len(self.shape)
 
     def normalizeData(self, data):
         """Returns a normalized data if the embed a numpy or a dataset.
@@ -663,6 +664,8 @@ class _ScalarView(DataView):
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
+        if info.shape is None:
+            return DataView.UNSUPPORTED
         if data is None:
             return DataView.UNSUPPORTED
         if silx.io.is_group(data):
