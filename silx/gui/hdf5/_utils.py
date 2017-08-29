@@ -145,7 +145,7 @@ class H5Node(object):
 
     def __get_target(self, obj):
         """
-        Return the closes target of the provided object.
+        Return the actual physical target of the provided object.
 
         Objects can contains links in the middle of the path, this function
         check each groups and remove this prefix in case of the link by the
