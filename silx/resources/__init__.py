@@ -131,6 +131,8 @@ def register_resource_directory(name, package_name, forced_path=None):
 
     By default only the directory "silx" is available.
 
+    .. versionadded:: 0.6
+
     :param str name: Name of the resource directory. It is used on the resource
         name to specify the resource directory to use. The resource
         "silx:foo.png" will use the "silx" resource directory.
