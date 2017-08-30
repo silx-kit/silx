@@ -26,20 +26,41 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "24/08/2017"
+__date__ = "30/08/2017"
 
 
 import os
 import unittest
+import shutil
+import tempfile
 
 from silx.third_party import six
 import silx.resources
-import shutil
 from .utils import utilstest
 import socket
 
 
 class TestResources(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super(TestResources, cls).setUpClass()
+
+        cls.tmpDirectory = tempfile.mkdtemp(prefix="resource_")
+        os.mkdir(os.path.join(cls.tmpDirectory, "gui"))
+        destination_dir = os.path.join(cls.tmpDirectory, "gui", "icons")
+        os.mkdir(destination_dir)
+        source = silx.resources.resource_filename("gui/icons/zoom-in.png")
+        destination = os.path.join(destination_dir, "foo.png")
+        shutil.copy(source, destination)
+        source = silx.resources.resource_filename("gui/icons/zoom-out.svg")
+        destination = os.path.join(destination_dir, "close.png")
+        shutil.copy(source, destination)
+
+    @classmethod
+    def tearDownClass(cls):
+        super(TestResources, cls).tearDownClass()
+        shutil.rmtree(cls.tmpDirectory)
 
     def setUp(self):
         # Store the original configuration
@@ -107,13 +128,13 @@ class TestResources(unittest.TestCase):
 
     def test_adding_test_directory(self):
         """The resource from 'test' is available"""
-        silx.resources.register_resource_directory("test", "silx.test.resources")
-        path = silx.resources.resource_filename('test:gui/icons/pixel.png')
+        silx.resources.register_resource_directory("test", "silx.test.resources", forced_path=self.tmpDirectory)
+        path = silx.resources.resource_filename('test:gui/icons/foo.png')
         self.assertTrue(os.path.exists(path))
 
     def test_adding_test_directory_no_override(self):
         """The resource from 'silx' is still available"""
-        silx.resources.register_resource_directory("test", "silx.test.resources")
+        silx.resources.register_resource_directory("test", "silx.test.resources", forced_path=self.tmpDirectory)
         filename1 = silx.resources.resource_filename('gui/icons/close.png')
         filename2 = silx.resources.resource_filename('silx:gui/icons/close.png')
         filename3 = silx.resources.resource_filename('test:gui/icons/close.png')
@@ -123,10 +144,10 @@ class TestResources(unittest.TestCase):
         self.assertEqual(filename1, filename2)
         self.assertNotEqual(filename1, filename3)
 
-    def adding_test_directory_non_existing(self):
+    def test_adding_test_directory_non_existing(self):
         """A resource while not exists in test is not available anyway it exists
         in silx"""
-        silx.resources.register_resource_directory("test", "silx.test.resources")
+        silx.resources.register_resource_directory("test", "silx.test.resources", forced_path=self.tmpDirectory)
         resource_name = "gui/icons/colormap.png"
         path = silx.resources.resource_filename('test:' + resource_name)
         path2 = silx.resources.resource_filename('silx:' + resource_name)

@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "24/08/2017"
+__date__ = "30/08/2017"
 __license__ = "MIT"
 
 
@@ -720,10 +720,6 @@ def get_project_configuration(dry_run):
             'opencl/*.cl',
             'opencl/sift/*.cl',
             'gui/colormaps/*.npy'],
-        # Resources files for tests
-        'silx.test.resources': [
-            'gui/icons/*.png',
-            'gui/icons/*.svg']
     }
 
     entry_points = {
