@@ -1636,10 +1636,4 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         return self._plotFrame.plotOrigin + self._plotFrame.plotSize
 
     def setAxesDisplayed(self, displayed):
-        """Display or not the axes.
-
-        :param bool displayed: If `True` axes are displayed. If `False` axes
-            are not anymore visible and the margin used for them is removed.
-        """
-        pass
-        # FIXME: implement me
+        self._plotFrame.displayed = displayed
