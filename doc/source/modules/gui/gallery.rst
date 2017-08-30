@@ -3,8 +3,8 @@ Widgets gallery
 ===============
 
 
-:mod:`console`
-++++++++++++++
+:mod:`silx.gui.console` Widgets
++++++++++++++++++++++++++++++++
 
 .. currentmodule:: silx.gui.console
 
@@ -28,8 +28,8 @@ Widgets gallery
        a :class:`QDockWidget`.
 
 
-:mod:`data`
-++++++++++++
+:mod:`silx.gui.data` Widgets
+++++++++++++++++++++++++++++
 
 .. currentmodule:: silx.gui.data
 
@@ -61,8 +61,8 @@ Widgets gallery
        n-dimensional array, by fixing the index on some of the dimensions.
 
 
-:mod:`fit`
-++++++++++
+:mod:`silx.gui.fit` Widgets
++++++++++++++++++++++++++++
 
 .. currentmodule:: silx.gui.fit
 
@@ -85,8 +85,8 @@ Widgets gallery
        filter.
 
 
-:mod:`hdf5`
-+++++++++++
+:mod:`silx.gui.hdf5` Widgets
+++++++++++++++++++++++++++++
 
 .. currentmodule:: silx.gui.hdf5
 
@@ -102,14 +102,14 @@ Widgets gallery
      - :class:`Hdf5TreeView` is a tree view desiged to browse an HDF5
        file structure.
 
+.. _plot-gallery:
 
-:mod:`plot`
-++++++++++++
+:mod:`silx.gui.plot` Widgets
+++++++++++++++++++++++++++++
 
 .. currentmodule:: silx.gui.plot
 
-.. todo: include "Widgets gallery" section from ./plot/index.rst,
-   and remove duplicated code
+Plotting widgets:
 
 .. list-table::
    :widths: 1 4
@@ -150,10 +150,36 @@ Widgets gallery
        to navigate in the stack. The profile tool can do a 2D profile on the
        stack of images.
 
+Additional widgets:
 
-:mod:`plot3d`
-+++++++++++++
+.. list-table::
+   :widths: 1 4
+   :header-rows: 1
 
+   * - Widget
+     - Description
+   * - .. image:: plot/img/PositionInfo.png
+          :width: 300px
+          :align: center
+     - :class:`.PlotTools.PositionInfo` is a widget displaying mouse position and
+       information of a :class:`PlotWidget` associated to the mouse position.
+   * - .. image:: plot/img/LimitsToolBar.png
+          :width: 300px
+          :align: center
+     - :class:`.PlotTools.LimitsToolBar` is a QToolBar displaying and
+       controlling the limits of a :class:`PlotWidget`.
+   * - .. image:: plot/img/logColorbar.png
+          :height: 150px
+          :align: center
+     - :class:`.ColorBar.ColorBarWidget` display colormap gradient and can be linked with a plot
+       to display the colormap
+
+.. _plot3d-gallery:
+
+:mod:`silx.gui.plot3d` Widgets
+++++++++++++++++++++++++++++++
+
+.. currentmodule:: silx.gui.plot3d
 
 .. list-table::
    :widths: 1 4
@@ -185,9 +211,8 @@ Widgets gallery
        Sample code: :doc:`plot3d/viewer3dvolume_example`.
 
 
-
-:mod:`widgets`
-++++++++++++++
+:mod:`silx.gui.widgets` Widgets
++++++++++++++++++++++++++++++++
 
 .. currentmodule:: silx.gui.widgets
 
