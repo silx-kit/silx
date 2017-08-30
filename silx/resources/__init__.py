@@ -56,7 +56,7 @@ of this modules to ensure access across different distribution schemes:
 
 __authors__ = ["V.A. Sole", "Thomas Vincent", "J. Kieffer"]
 __license__ = "MIT"
-__date__ = "24/08/2017"
+__date__ = "30/08/2017"
 
 
 import os
@@ -100,12 +100,33 @@ if getattr(sys, 'frozen', False):
     if os.path.isdir(_dir):
         _RESOURCES_DIR = _dir
 
-_DEFAULT_DIRECTORY = (__name__, os.path.abspath(os.path.dirname(__file__)))
+
+class _ResourceDirectory(object):
+    """Store a source of resources"""
+
+    def __init__(self, package_name, package_path=None, forced_path=None):
+        if forced_path is None:
+            if package_path is None:
+                if pkg_resources is None:
+                    # In this case we have to compute the package path
+                    # Else it will not be used
+                    module = importlib.import_module(package_name)
+                    package_path = os.path.abspath(os.path.dirname(module.__file__))
+        self.package_name = package_name
+        self.package_path = package_path
+        self.forced_path = forced_path
+
+
+_SILX_DIRECTORY = _ResourceDirectory(
+    package_name=__name__,
+    package_path=os.path.abspath(os.path.dirname(__file__)),
+    forced_path=_RESOURCES_DIR)
+
 _RESOURCE_DIRECTORIES = {}
-_RESOURCE_DIRECTORIES["silx"] = _DEFAULT_DIRECTORY
+_RESOURCE_DIRECTORIES["silx"] = _SILX_DIRECTORY
 
 
-def register_resource_directory(name, package):
+def register_resource_directory(name, package_name, forced_path=None):
     """Register another resource directory to the available list.
 
     By default only the directory "silx" is available.
@@ -113,16 +134,18 @@ def register_resource_directory(name, package):
     :param str name: Name of the resource directory. It is used on the resource
         name to specify the resource directory to use. The resource
         "silx:foo.png" will use the "silx" resource directory.
-    :param str package: Python name of the package containing resources.
+    :param str package_name: Python name of the package containing resources.
+        For example "silx.resources".
+    :param str forced_path: Path containing the resources. If specified
+        `pkg_resources` nor `package_name` will be used
         For example "silx.resources".
     """
     if name in _RESOURCE_DIRECTORIES:
         raise KeyError("Key %s already exists" % name)
-
-    module = importlib.import_module(package)
-    path = os.path.abspath(os.path.dirname(module.__file__))
-    data = (package, path)
-    _RESOURCE_DIRECTORIES[name] = data
+    resource_directory = _ResourceDirectory(
+        package_name=package_name,
+        forced_path=forced_path)
+    _RESOURCE_DIRECTORIES[name] = resource_directory
 
 
 def list_dir(resource):
@@ -138,7 +161,9 @@ def list_dir(resource):
     :return: list of name contained in the directory
     :rtype: list
     """
-    if _RESOURCES_DIR is not None:
+    resource_directory, resource_name = _get_package_and_resource(resource)
+
+    if resource_directory.forced_path is not None:
         # if set, use this directory
         path = resource_filename(resource)
         return os.listdir(path)
@@ -148,8 +173,8 @@ def list_dir(resource):
         return os.listdir(path)
     else:
         # Preferred way to get resources as it supports zipfile package
-        package_name, _package_path, resource = _get_package_and_resource(resource)
-        return pkg_resources.resource_listdir(package_name, resource)
+        package_name = resource_directory.package_name
+        return pkg_resources.resource_listdir(package_name, resource_name)
 
 
 def is_dir(resource):
@@ -167,12 +192,19 @@ def is_dir(resource):
 
 
 def _get_package_and_resource(resource):
+    """
+    Return the resource directory class and a cleaned resource name without
+    prefix.
+
+    :param str: resource: Name of the resource with resource prefix.
+    :rtype: tuple(_ResourceDirectory, str)
+    """
     if ":" in resource:
         prefix, resource = resource.split(":", 1)
     else:
         prefix = "silx"
-    package_name, package_path = _RESOURCE_DIRECTORIES[prefix]
-    return package_name, package_path, resource
+    resource_directory = _RESOURCE_DIRECTORIES[prefix]
+    return resource_directory, resource
 
 
 def join(*args):
@@ -214,19 +246,22 @@ def resource_filename(resource):
     :return: Absolute resource path in the file system
     :rtype: str
     """
-    package_name, package_path, resource = _get_package_and_resource(resource)
+    resource_directory, resource_name = _get_package_and_resource(resource)
 
-    if _RESOURCES_DIR is not None and package_name == __name__:
+    if resource_directory.forced_path is not None:
         # if set, use this directory
-        resource_path = os.path.join(_RESOURCES_DIR, *resource.split('/'))
+        base_dir = resource_directory.forced_path
+        resource_path = os.path.join(base_dir, *resource_name.split('/'))
         return resource_path
     elif pkg_resources is None:
         # Fallback if pkg_resources is not available
-        resource_path = os.path.join(package_path, *resource.split('/'))
+        base_dir = resource_directory.package_path
+        resource_path = os.path.join(base_dir, *resource_name.split('/'))
         return resource_path
     else:
         # Preferred way to get resources as it supports zipfile package
-        return pkg_resources.resource_filename(package_name, resource)
+        package_name = resource_directory.package_name
+        return pkg_resources.resource_filename(package_name, resource_name)
 
 
 class ExternalResources(object):
