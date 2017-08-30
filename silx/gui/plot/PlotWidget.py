@@ -2221,6 +2221,15 @@ class PlotWidget(qt.QMainWindow):
         assert(axis in ["left", "right"])
         return self._yAxis if axis == "left" else self._yRightAxis
 
+    def setAxesDisplayed(self, displayed):
+        """Display or not the axes.
+
+        :param bool displayed: If `True` axes are displayed. If `False` axes
+            are not anymore visible and the margin used for them is removed.
+        """
+        self._backend.setAxesDisplayed(displayed)
+        self._setDirtyPlot()
+
     @property
     @deprecated(since_version='0.6')
     def sigSetYAxisInverted(self):
@@ -3191,11 +3200,3 @@ class PlotWidget(qt.QMainWindow):
         _logger.warning('keepDataAspectRatio deprecated,'
                         'use setKeepDataAspectRatio instead')
         return self.setKeepDataAspectRatio(*args, **kwargs)
-
-    def setAxesDisplayed(self, displayed):
-        """Display or not the axes.
-
-        :param bool displayed: If `True` axes are displayed. If `False` axes
-            are not anymore visible and the margin used for them is removed.
-        """
-        self._backend.setAxesDisplayed(displayed)
