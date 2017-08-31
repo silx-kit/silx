@@ -1340,11 +1340,23 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                 (self._plotFrame.size[1], self._plotFrame.size[0], 3),
                 dtype=numpy.uint8, order='C')
 
-            gl.glBindFramebuffer(gl.GL_FRAMEBUFFER,
-                                 self.defaultFramebufferObject())
+            context = self.context()
+            framebufferTexture = self._plotFBOs.get(context)
+            if framebufferTexture is None:
+                # Fallback, supports direct rendering mode: _paintDirectGL
+                # might have issues as it can read on-screen framebuffer
+                fboName = self.defaultFramebufferObject()
+                width, height = self._plotFrame.size
+            else:
+                fboName = framebufferTexture.name
+                height, width = framebufferTexture.shape
+
+            previousFramebuffer = gl.glGetInteger(gl.GL_FRAMEBUFFER_BINDING)
+            gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, fboName)
             gl.glPixelStorei(gl.GL_PACK_ALIGNMENT, 1)
-            gl.glReadPixels(0, 0, self._plotFrame.size[0], self._plotFrame.size[1],
+            gl.glReadPixels(0, 0, width, height,
                             gl.GL_RGB, gl.GL_UNSIGNED_BYTE, data)
+            gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, previousFramebuffer)
 
             # glReadPixels gives bottom to top,
             # while images are stored as top to bottom
