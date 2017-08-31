@@ -40,7 +40,7 @@ _logger = logging.getLogger(__name__)
 
 def main(argv):
     """
-    Main function to launch the viewer as an application
+    Main function to launch the converter as an application
 
     :param argv: Command line arguments
     :returns: exit status
@@ -92,10 +92,10 @@ def main(argv):
     parser.add_argument(
         '--compression',
         nargs="?",
-        const="gzip",    # default value if "-c" without argument
+        const="gzip",
         help='Compression filter. By default, the output file is not '
-             'compressed. If this option "-c" is specified without argument, '
-             'it is equivalent to "-c gzip". Additional compression filters '
+             'compressed. If this option is specified without argument, '
+             'the GZIP compression is used. Additional compression filters '
              'may be available, depending on your HDF5 installation.')
 
     def check_gzip_compression_opts(value):
@@ -113,8 +113,8 @@ def main(argv):
     parser.add_argument(
         '--shuffle',
         action="store_true",
-        help='Enables the shuffle filter, may improve the compression ratio '
-             'for block oriented compressors like GZIP or LZF.')
+        help='Enables the byte shuffle filter, may improve the compression '
+             'ratio for block oriented compressors like GZIP or LZF.')
     parser.add_argument(
         '--fletcher32',
         action="store_true",
@@ -202,7 +202,7 @@ def main(argv):
         _logger.error("Aborting.")
         return -1
 
-    # create_dataset  special args
+    # create_dataset special args
     create_dataset_args = {}
     if options.chunks is not None:
         if options.chunks.lower() in ["auto", "true"]:
@@ -227,6 +227,7 @@ def main(argv):
 
     if options.shuffle:
         create_dataset_args["shuffle"] = True
+
     if options.fletcher32:
         create_dataset_args["fletcher32"] = True
 
