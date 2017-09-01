@@ -109,6 +109,9 @@ script:
           ldd $(python -c "import h5py;print(h5py.h5d.__file__)");
       fi
 
+    - "pip install --upgrade pynput"
+    - "python ci/close_popup.py"
+
     # Run the tests
     - echo "WITH_QT_TEST="$WITH_QT_TEST
     - if [ "$TRAVIS_OS_NAME" == "osx" ];
