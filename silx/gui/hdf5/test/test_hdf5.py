@@ -29,6 +29,7 @@ __license__ = "MIT"
 __date__ = "01/09/2017"
 
 
+import sys
 import time
 import os
 import unittest
@@ -586,6 +587,9 @@ class TestH5Node(TestCaseQt):
         self.assertEqual(h5node.local_name, "/link/soft_link_to_link")
 
     def testExternalLink(self):
+        if sys.platform == "win32":
+            # FIXME it have to be removed
+            self.skipTest("Creates issue on win32. See https://github.com/silx-kit/silx/issues/1073")
         path = ["base.h5", "link", "external_link"]
         h5node = self.getH5NodeFromPath(self.model, path)
 
@@ -598,6 +602,9 @@ class TestH5Node(TestCaseQt):
         self.assertEqual(h5node.local_name, "/link/external_link")
 
     def testExternalLinkToLink(self):
+        if sys.platform == "win32":
+            # FIXME it have to be removed
+            self.skipTest("Creates issue on win32. See https://github.com/silx-kit/silx/issues/1073")
         path = ["base.h5", "link", "external_link_to_link"]
         h5node = self.getH5NodeFromPath(self.model, path)
 
