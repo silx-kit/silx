@@ -73,14 +73,28 @@ class _PlotWidgetTest(TestCaseQt):
         super(_PlotWidgetTest, self).setUp()
         self.plot = self._createPlot()
         self.plot.show()
+        self.plotAlive = True
         self.qWaitForWindowExposed(self.plot)
         TestCaseQt.mouseClick(self, self.plot, button=qt.Qt.LeftButton, pos=(0, 0))
 
-    def tearDown(self):
-        self.qapp.processEvents()
+    def __onPlotDestroyed(self):
+        self.plotAlive = False
+
+    def _waitForPlotClosed(self):
         self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.plot.destroyed.connect(self.__onPlotDestroyed)
         self.plot.close()
         del self.plot
+        for _ in range(100):
+            if not self.plotAlive:
+                break
+            self.qWait(10)
+        else:
+            logger.error("Plot is still alive")
+
+    def tearDown(self):
+        self.qapp.processEvents()
+        self._waitForPlotClosed()
         super(_PlotWidgetTest, self).tearDown()
 
     def _logMplEvents(self, event):
