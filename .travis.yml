@@ -89,7 +89,6 @@ before_script:
           sleep 3;
       fi
 
-script:
     # Install optional dependencies for running test
     - pip install --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ pyopencl==2015.1
     # This installs PyQt and scipy if wheels are available
@@ -109,10 +108,17 @@ script:
           ldd $(python -c "import h5py;print(h5py.h5d.__file__)");
       fi
 
-    # Run the tests
+    - "pip install --upgrade pynput"
+    - "python ci/close_popup.py"
+
+script:
     - echo "WITH_QT_TEST="$WITH_QT_TEST
     - if [ "$TRAVIS_OS_NAME" == "osx" ];
       then
           export SILX_TEST_LOW_MEM=True;
       fi
     - python run_tests.py --installed -v
+
+after_failure:
+    # Display result as base64, while it is not possible to expose files
+    - "for f in ./build/test-debug/*.png; do echo $f as base64; echo $( base64 $f); done"
