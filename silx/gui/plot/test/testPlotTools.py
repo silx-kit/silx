@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "09/08/2017"
+__date__ = "01/09/2017"
 
 
 import numpy
@@ -37,7 +37,7 @@ from silx.gui.test.utils import (
     qWaitForWindowExposedAndActivate, TestCaseQt, getQToolButtonFromAction)
 from silx.gui import qt
 from silx.gui.plot import Plot2D, PlotWindow, PlotTools
-from silx.gui.plot.test.testPlotWidget import _PlotWidgetTest
+from .utils import PlotWidgetTestCase
 
 
 # Makes sure a QApplication exists
@@ -68,7 +68,7 @@ def _tearDownDocTest(docTest):
 # """
 
 
-class TestPositionInfo(_PlotWidgetTest):
+class TestPositionInfo(PlotWidgetTestCase):
     """Tests for PositionInfo widget."""
 
     def _createPlot(self):

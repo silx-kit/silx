@@ -31,7 +31,6 @@ __date__ = "01/09/2017"
 
 import unittest
 import logging
-import contextlib
 import numpy
 
 from silx.test.utils import ParametricTestCase
@@ -43,7 +42,8 @@ from silx.utils import deprecation
 from silx.gui import qt
 from silx.gui.plot import PlotWidget
 from silx.gui.plot.Colormap import Colormap
-from silx.gui.plot.backends.BackendMatplotlib import BackendMatplotlibQt
+
+from .utils import PlotWidgetTestCase
 
 
 SIZE = 1024
@@ -56,203 +56,7 @@ DATA_2D = numpy.arange(SIZE ** 2).reshape(SIZE, SIZE)
 logger = logging.getLogger(__name__)
 
 
-class _PlotWidgetTest(TestCaseQt):
-    """Base class for tests of PlotWidget, not a TestCase in itself.
-
-    plot attribute is the PlotWidget created for the test.
-    """
-
-    def __init__(self, methodName='runTest'):
-        TestCaseQt.__init__(self, methodName=methodName)
-        self.__mousePos = None
-
-    def _createPlot(self):
-        return PlotWidget()
-
-    def setUp(self):
-        super(_PlotWidgetTest, self).setUp()
-        self.plot = self._createPlot()
-        self.plot.show()
-        self.plotAlive = True
-        self.qWaitForWindowExposed(self.plot)
-        TestCaseQt.mouseClick(self, self.plot, button=qt.Qt.LeftButton, pos=(0, 0))
-
-    def __onPlotDestroyed(self):
-        self.plotAlive = False
-
-    def _waitForPlotClosed(self):
-        self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
-        self.plot.destroyed.connect(self.__onPlotDestroyed)
-        self.plot.close()
-        del self.plot
-        for _ in range(100):
-            if not self.plotAlive:
-                break
-            self.qWait(10)
-        else:
-            logger.error("Plot is still alive")
-
-    def tearDown(self):
-        self.qapp.processEvents()
-        self._waitForPlotClosed()
-        super(_PlotWidgetTest, self).tearDown()
-
-    def _logMplEvents(self, event):
-        self.__mplEvents.append(event)
-
-    @contextlib.contextmanager
-    def _waitForMplEvent(self, plot, mplEventType):
-        """Check if an event was received by the MPL backend.
-
-        :param PlotWidget plot: A plot widget or a MPL plot backend
-        :param str mplEventType: MPL event type
-        :raises RuntimeError: When the event did not happen
-        """
-        self.__mplEvents = []
-        if isinstance(plot, BackendMatplotlibQt):
-            backend = plot
-        else:
-            backend = plot._backend
-
-        callbackId = backend.mpl_connect(mplEventType, self._logMplEvents)
-        received = False
-        yield
-        for _ in range(100):
-            if len(self.__mplEvents) > 0:
-                received = True
-                break
-            self.qWait(10)
-        backend.mpl_disconnect(callbackId)
-        del self.__mplEvents
-        if not received:
-            self.logScreenShot()
-            raise RuntimeError("MPL event %s expected but nothing received" % mplEventType)
-
-    def __plotHandleEvent(self, event, *args, **kwargs):
-        self.__plotEvents.add(event)
-        self.__patchedPlot._eventHandler._old_handleEvent(event, *args, **kwargs)
-
-    @contextlib.contextmanager
-    def _waitForPlotEvent(self, plot, plotEventType):
-        """Check if an event was received by the Silx Plot.
-
-        :param PlotWidget plot: A plot widget or a MPL plot backend
-        :param str plotEventType: Silx plot event type
-        :raises RuntimeError: When the event did not happen
-        """
-        if isinstance(plot, BackendMatplotlibQt):
-            backend = plot
-        else:
-            backend = plot._backend
-        plot = backend._plot
-
-        self.__plotEvents = set([])
-        plot._eventHandler._old_handleEvent = plot._eventHandler.handleEvent
-        plot._eventHandler.handleEvent = self.__plotHandleEvent
-        self.__patchedPlot = plot
-
-        received = False
-        yield
-        for _ in range(100):
-            if plotEventType in self.__plotEvents:
-                received = True
-                break
-            self.qWait(10)
-
-        plot._eventHandler.handleEvent = plot._eventHandler._old_handleEvent
-        del plot._eventHandler._old_handleEvent
-        del self.__patchedPlot
-
-        if not received:
-            self.logScreenShot()
-            raise RuntimeError("Backend function _%s expected but nothing received" % plotEventType)
-        del self.__plotEvents
-
-    def _haveMplEvent(self, widget, pos):
-        """Check if the widget at this position is a matplotlib widget."""
-        if isinstance(pos, qt.QPoint):
-            pass
-        else:
-            pos = qt.QPoint(pos[0], pos[1])
-        pos = widget.mapTo(widget.window(), pos)
-        target = widget.window().childAt(pos)
-
-        # Check if the target is a MPL container
-        backend = target
-        if hasattr(target, "_backend"):
-            backend = target._backend
-        haveEvent = isinstance(backend, BackendMatplotlibQt)
-        return haveEvent
-
-    def _patchPos(self, widget, pos):
-        """Return a real position relative to the widget.
-
-        If pos is None, the returned value is the center of the widget,
-        as the default behaviour of functions like QTest.mouseMove.
-        Else the position is returned as it is.
-        """
-        if pos is None:
-            pos = widget.size() / 2
-            pos = pos.width(), pos.height()
-        return pos
-
-    def _checkMouseMove(self, widget, pos):
-        """Returns true if the position differe from the current position of
-        the cursor"""
-        pos = qt.QPoint(pos[0], pos[1])
-        pos = widget.mapTo(widget.window(), pos)
-        willMove = pos != self.__mousePos
-        self.__mousePos = pos
-        return willMove
-
-    def mouseMove(self, widget, pos=None, delay=-1):
-        """Override TestCaseQt to wait while MPL did not reveive the expected
-        event"""
-        pos = self._patchPos(widget, pos)
-        willMove = self._checkMouseMove(widget, pos)
-        hadMplEvents = self._haveMplEvent(widget, self.__mousePos)
-        willHaveMplEvents = self._haveMplEvent(widget, pos)
-        if (not hadMplEvents and not willHaveMplEvents) or not willMove:
-            return TestCaseQt.mouseMove(self, widget, pos=pos, delay=delay)
-        with self._waitForPlotEvent(widget, "move"):
-            with self._waitForMplEvent(widget, "motion_notify_event"):
-                TestCaseQt.mouseMove(self, widget, pos=pos, delay=delay)
-
-    def mouseClick(self, widget, button, modifier=None, pos=None, delay=-1):
-        """Override TestCaseQt to wait while MPL did not reveive the expected
-        event"""
-        pos = self._patchPos(widget, pos)
-        self._checkMouseMove(widget, pos)
-        if not self._haveMplEvent(widget, pos):
-            return TestCaseQt.mouseClick(self, widget, button, modifier=modifier, pos=pos, delay=delay)
-        with self._waitForPlotEvent(widget, "release"):
-            with self._waitForMplEvent(widget, "button_release_event"):
-                TestCaseQt.mouseClick(self, widget, button, modifier=modifier, pos=pos, delay=delay)
-
-    def mousePress(self, widget, button, modifier=None, pos=None, delay=-1):
-        """Override TestCaseQt to wait while MPL did not reveive the expected
-        event"""
-        pos = self._patchPos(widget, pos)
-        self._checkMouseMove(widget, pos)
-        if not self._haveMplEvent(widget, pos):
-            return TestCaseQt.mousePress(self, widget, button, modifier=modifier, pos=pos, delay=delay)
-        with self._waitForPlotEvent(widget, "press"):
-            with self._waitForMplEvent(widget, "button_press_event"):
-                TestCaseQt.mousePress(self, widget, button, modifier=modifier, pos=pos, delay=delay)
-
-    def mouseRelease(self, widget, button, modifier=None, pos=None, delay=-1):
-        """Override TestCaseQt to wait while MPL did not reveive the expected
-        event"""
-        pos = self._patchPos(widget, pos)
-        self._checkMouseMove(widget, pos)
-        if not self._haveMplEvent(widget, pos):
-            return TestCaseQt.mouseRelease(self, widget, button, modifier=modifier, pos=pos, delay=delay)
-        with self._waitForPlotEvent(widget, "release"):
-            with self._waitForMplEvent(widget, "button_release_event"):
-                TestCaseQt.mouseRelease(self, widget, button, modifier=modifier, pos=pos, delay=delay)
-
-
-class TestPlotWidget(_PlotWidgetTest, ParametricTestCase):
+class TestPlotWidget(PlotWidgetTestCase, ParametricTestCase):
     """Basic tests for PlotWidget"""
 
     def testShow(self):
@@ -306,7 +110,7 @@ class TestPlotWidget(_PlotWidgetTest, ParametricTestCase):
         checkLimits(expectedYLim=(1., 10.), expectedRatio=defaultRatio)
 
 
-class TestPlotImage(_PlotWidgetTest, ParametricTestCase):
+class TestPlotImage(PlotWidgetTestCase, ParametricTestCase):
     """Basic tests for addImage"""
 
     def setUp(self):
@@ -457,7 +261,7 @@ class TestPlotImage(_PlotWidgetTest, ParametricTestCase):
         self.plot.addImage(DATA_2D, legend="image 1", colormap=colormap)
 
 
-class TestPlotCurve(_PlotWidgetTest):
+class TestPlotCurve(PlotWidgetTestCase):
     """Basic tests for addCurve."""
 
     # Test data sets
@@ -515,7 +319,7 @@ class TestPlotCurve(_PlotWidgetTest):
         self.plot.resetZoom()
 
 
-class TestPlotMarker(_PlotWidgetTest):
+class TestPlotMarker(PlotWidgetTestCase):
     """Basic tests for add*Marker"""
 
     def setUp(self):
@@ -609,7 +413,7 @@ class TestPlotMarker(_PlotWidgetTest):
 
 # TestPlotItem ################################################################
 
-class TestPlotItem(_PlotWidgetTest):
+class TestPlotItem(PlotWidgetTestCase):
     """Basic tests for addItem."""
 
     # Polygon coordinates and color
@@ -683,7 +487,7 @@ class TestPlotItem(_PlotWidgetTest):
         self.plot.resetZoom()
 
 
-class TestPlotActiveCurveImage(_PlotWidgetTest):
+class TestPlotActiveCurveImage(PlotWidgetTestCase):
     """Basic tests for active image handling"""
 
     def testActiveCurveAndLabels(self):
@@ -767,7 +571,7 @@ class TestPlotActiveCurveImage(_PlotWidgetTest):
 # Log
 ##############################################################################
 
-class TestPlotEmptyLog(_PlotWidgetTest):
+class TestPlotEmptyLog(PlotWidgetTestCase):
     """Basic tests for log plot"""
     def testEmptyPlotTitleLabelsLog(self):
         self.plot.setGraphTitle('Empty Log Log')
@@ -1104,7 +908,7 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.plot.setAxesDisplayed(True)
 
 
-class TestPlotCurveLog(_PlotWidgetTest, ParametricTestCase):
+class TestPlotCurveLog(PlotWidgetTestCase, ParametricTestCase):
     """Basic tests for addCurve with log scale axes"""
 
     # Test data
@@ -1267,7 +1071,7 @@ class TestPlotCurveLog(_PlotWidgetTest, ParametricTestCase):
                 self.qapp.processEvents()
 
 
-class TestPlotImageLog(_PlotWidgetTest):
+class TestPlotImageLog(PlotWidgetTestCase):
     """Basic tests for addImage with log scale axes."""
 
     def setUp(self):
@@ -1341,7 +1145,7 @@ class TestPlotImageLog(_PlotWidgetTest):
         self.plot.resetZoom()
 
 
-class TestPlotMarkerLog(_PlotWidgetTest):
+class TestPlotMarkerLog(PlotWidgetTestCase):
     """Basic tests for markers on log scales"""
 
     # Test marker parameters
@@ -1402,7 +1206,7 @@ class TestPlotMarkerLog(_PlotWidgetTest):
         self.plot.resetZoom()
 
 
-class TestPlotItemLog(_PlotWidgetTest):
+class TestPlotItemLog(PlotWidgetTestCase):
     """Basic tests for items with log scale axes"""
 
     # Polygon coordinates and color

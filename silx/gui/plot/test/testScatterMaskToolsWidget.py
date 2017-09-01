@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "08/08/2017"
+__date__ = "01/09/2017"
 
 
 import logging
@@ -39,7 +39,7 @@ from silx.gui import qt
 from silx.test.utils import temp_dir, ParametricTestCase
 from silx.gui.test.utils import getQToolButtonFromAction
 from silx.gui.plot import PlotWindow, ScatterMaskToolsWidget
-from silx.gui.plot.test.testPlotWidget import _PlotWidgetTest
+from .utils import PlotWidgetTestCase
 
 try:
     import fabio
@@ -50,7 +50,7 @@ except ImportError:
 _logger = logging.getLogger(__name__)
 
 
-class TestScatterMaskToolsWidget(_PlotWidgetTest, ParametricTestCase):
+class TestScatterMaskToolsWidget(PlotWidgetTestCase, ParametricTestCase):
     """Basic test for MaskToolsWidget"""
 
     def _createPlot(self):
