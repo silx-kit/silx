@@ -118,3 +118,7 @@ script:
           export SILX_TEST_LOW_MEM=True;
       fi
     - python run_tests.py --installed -v
+
+after_failure:
+    # Display result as base64, while it is not possible to expose files
+    - "for f in ./build/test-debug/*.png; do echo $f as base64; echo $( base64 $f); done"
