@@ -120,6 +120,13 @@ after_test:
     - "%VENV_TEST_DIR%\\Scripts\\deactivate.bat"
     - "rmdir %VENV_TEST_DIR% /s /q"
 
+on_failure:
+    # Push test-debug files as artefact
+    - ps: >-
+        if (Test-Path -LiteralPath "build\test-debug") {
+            Get-ChildItem .\build\test-debug\* | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
+        }
+
 artifacts:
     # Archive the generated wheel package in the ci.appveyor.com build report.
     - path: dist\*
