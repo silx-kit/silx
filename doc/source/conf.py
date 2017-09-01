@@ -13,6 +13,7 @@
 
 import sys
 import os
+import os.path
 import glob
 import subprocess
 
@@ -20,11 +21,15 @@ import subprocess
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 # sys.path.insert(0, os.path.abspath('.'))
-dirname = os.path.dirname
-root_dir = dirname(dirname(dirname(os.path.abspath(__file__))))
-import silx
-source_dir = dirname(dirname(silx.__file__))
-os.environ["PYTHONPATH"] = source_dir + os.pathsep + os.environ.get("PYTHONPATH", "")
+project = u'silx'
+try:
+    import silx
+    project_dir = os.path.abspath(os.path.join(__file__, "..", "..", ".."))
+    build_dir = os.path.abspath(silx.__file__)
+    if not build_dir.startswith(project_dir):
+        raise RuntimeError("%s looks to come from the system. Fix your PYTHONPATH and restart sphinx." % project)
+except ImportError:
+    raise RuntimeError("%s is not on the path. Fix your PYTHONPATH and restart sphinx." % project)
 
 # -- General configuration -----------------------------------------------------
 
@@ -56,7 +61,6 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'silx'
 from silx._version import strictversion, version, __date__ as _date
 year = _date.split("/")[-1]
 copyright = u'2015-%s, Data analysis unit, European Synchrotron Radiation Facility, Grenoble' % year
