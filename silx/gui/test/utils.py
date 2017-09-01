@@ -360,11 +360,10 @@ class TestCaseQt(unittest.TestCase):
         """
         if not _logger.isEnabledFor(level):
             return
-        import uuid
         basedir = os.path.abspath(os.path.join("build", "test-debug"))
         if not os.path.exists(basedir):
             os.makedirs(basedir)
-        filename = str(uuid.uuid4()) + ".png"
+        filename = "Screenshot_%s.png" % self.id()
         filename = os.path.join(basedir, filename)
 
         if not hasattr(self.qapp, "primaryScreen"):
