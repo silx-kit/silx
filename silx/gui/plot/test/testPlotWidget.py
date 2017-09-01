@@ -57,9 +57,12 @@ class _PlotWidgetTest(TestCaseQt):
     plot attribute is the PlotWidget created for the test.
     """
 
+    def _createPlot(self):
+        return PlotWidget()
+
     def setUp(self):
         super(_PlotWidgetTest, self).setUp()
-        self.plot = PlotWidget()
+        self.plot = self._createPlot()
         self.plot.show()
         self.qWaitForWindowExposed(self.plot)
 
