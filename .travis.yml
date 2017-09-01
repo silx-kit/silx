@@ -89,7 +89,6 @@ before_script:
           sleep 3;
       fi
 
-script:
     # Install optional dependencies for running test
     - pip install --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ pyopencl==2015.1
     # This installs PyQt and scipy if wheels are available
@@ -112,7 +111,7 @@ script:
     - "pip install --upgrade pynput"
     - "python ci/close_popup.py"
 
-    # Run the tests
+script:
     - echo "WITH_QT_TEST="$WITH_QT_TEST
     - if [ "$TRAVIS_OS_NAME" == "osx" ];
       then
