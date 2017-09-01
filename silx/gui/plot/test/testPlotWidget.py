@@ -128,6 +128,46 @@ class _PlotWidgetTest(TestCaseQt):
             self.logScreenShot()
             raise RuntimeError("MPL event %s expected but nothing received" % mplEventType)
 
+    def __plotHandleEvent(self, event, *args, **kwargs):
+        self.__plotEvents.add(event)
+        self.__patchedPlot._eventHandler._old_handleEvent(event, *args, **kwargs)
+
+    @contextlib.contextmanager
+    def _waitForPlotEvent(self, plot, plotEventType):
+        """Check if an event was received by the Silx Plot.
+
+        :param PlotWidget plot: A plot widget or a MPL plot backend
+        :param str plotEventType: Silx plot event type
+        :raises RuntimeError: When the event did not happen
+        """
+        if isinstance(plot, BackendMatplotlibQt):
+            backend = plot
+        else:
+            backend = plot._backend
+        plot = backend._plot
+
+        self.__plotEvents = set([])
+        plot._eventHandler._old_handleEvent = plot._eventHandler.handleEvent
+        plot._eventHandler.handleEvent = self.__plotHandleEvent
+        self.__patchedPlot = plot
+
+        received = False
+        yield
+        for _ in range(100):
+            if plotEventType in self.__plotEvents:
+                received = True
+                break
+            self.qWait(10)
+
+        plot._eventHandler.handleEvent = plot._eventHandler._old_handleEvent
+        del plot._eventHandler._old_handleEvent
+        del self.__patchedPlot
+
+        if not received:
+            self.logScreenShot()
+            raise RuntimeError("Backend function _%s expected but nothing received" % plotEventType)
+        del self.__plotEvents
+
     def _haveMplEvent(self, widget, pos):
         """Check if the widget at this position is a matplotlib widget."""
         if isinstance(pos, qt.QPoint):
@@ -174,8 +214,9 @@ class _PlotWidgetTest(TestCaseQt):
         willHaveMplEvents = self._haveMplEvent(widget, pos)
         if (not hadMplEvents and not willHaveMplEvents) or not willMove:
             return TestCaseQt.mouseMove(self, widget, pos=pos, delay=delay)
-        with self._waitForMplEvent(widget, "motion_notify_event"):
-            TestCaseQt.mouseMove(self, widget, pos=pos, delay=delay)
+        with self._waitForPlotEvent(widget, "move"):
+            with self._waitForMplEvent(widget, "motion_notify_event"):
+                TestCaseQt.mouseMove(self, widget, pos=pos, delay=delay)
 
     def mouseClick(self, widget, button, modifier=None, pos=None, delay=-1):
         """Override TestCaseQt to wait while MPL did not reveive the expected
@@ -184,8 +225,9 @@ class _PlotWidgetTest(TestCaseQt):
         self._checkMouseMove(widget, pos)
         if not self._haveMplEvent(widget, pos):
             return TestCaseQt.mouseClick(self, widget, button, modifier=modifier, pos=pos, delay=delay)
-        with self._waitForMplEvent(widget, "button_release_event"):
-            TestCaseQt.mouseClick(self, widget, button, modifier=modifier, pos=pos, delay=delay)
+        with self._waitForPlotEvent(widget, "release"):
+            with self._waitForMplEvent(widget, "button_release_event"):
+                TestCaseQt.mouseClick(self, widget, button, modifier=modifier, pos=pos, delay=delay)
 
     def mousePress(self, widget, button, modifier=None, pos=None, delay=-1):
         """Override TestCaseQt to wait while MPL did not reveive the expected
@@ -194,8 +236,9 @@ class _PlotWidgetTest(TestCaseQt):
         self._checkMouseMove(widget, pos)
         if not self._haveMplEvent(widget, pos):
             return TestCaseQt.mousePress(self, widget, button, modifier=modifier, pos=pos, delay=delay)
-        with self._waitForMplEvent(widget, "button_press_event"):
-            TestCaseQt.mousePress(self, widget, button, modifier=modifier, pos=pos, delay=delay)
+        with self._waitForPlotEvent(widget, "press"):
+            with self._waitForMplEvent(widget, "button_press_event"):
+                TestCaseQt.mousePress(self, widget, button, modifier=modifier, pos=pos, delay=delay)
 
     def mouseRelease(self, widget, button, modifier=None, pos=None, delay=-1):
         """Override TestCaseQt to wait while MPL did not reveive the expected
@@ -204,8 +247,9 @@ class _PlotWidgetTest(TestCaseQt):
         self._checkMouseMove(widget, pos)
         if not self._haveMplEvent(widget, pos):
             return TestCaseQt.mouseRelease(self, widget, button, modifier=modifier, pos=pos, delay=delay)
-        with self._waitForMplEvent(widget, "button_release_event"):
-            TestCaseQt.mouseRelease(self, widget, button, modifier=modifier, pos=pos, delay=delay)
+        with self._waitForPlotEvent(widget, "release"):
+            with self._waitForMplEvent(widget, "button_release_event"):
+                TestCaseQt.mouseRelease(self, widget, button, modifier=modifier, pos=pos, delay=delay)
 
 
 class TestPlotWidget(_PlotWidgetTest, ParametricTestCase):
