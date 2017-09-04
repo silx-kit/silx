@@ -51,3 +51,35 @@ else:
             print("  %s:" % p)
             for d in p.devices:
                 print("    %s max_workgroup_size is %s" % (d, d.max_work_group_size))
+
+have_qt_binding = False
+
+try:
+    import PySide.QtCore
+    have_qt_binding = True
+    print("Qt (from PySide): %s" % PySide.QtCore.qVersion())
+except ImportError:
+    pass
+
+try:
+    import PyQt4.QtCore
+    have_qt_binding = True
+    print("Qt (from PyQt4): %s" % PyQt4.QtCore.qVersion())
+except ImportError:
+    pass
+
+try:
+    import PyQt5.QtCore
+    have_qt_binding = True
+    print("Qt (from PyQt5): %s" % PyQt5.QtCore.qVersion())
+except ImportError:
+    pass
+
+if not have_qt_binding:
+    print("No Qt binding")
+
+try:
+    import sip
+    print("SIP: %s" % sip.SIP_VERSION_STR)
+except ImportError:
+    pass
