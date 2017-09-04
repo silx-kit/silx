@@ -104,9 +104,9 @@ before_test:
     - "pip list"
 
     # Print Qt version
-    - python -c "import PySide.QtCore; print('Qt (PySide): %s' % PySide.QtCore.qVersion())"
-    - python -c "import PyQt4.QtCore; print('Qt (PyQt4): %s' % PyQt4.QtCore.qVersion())"
-    - python -c "import PyQt5.QtCore; print('Qt (PyQt5): %s' % PyQt5.QtCore.qVersion())"
+    - "python -c \"import PySide.QtCore; print('Qt (PySide): %s' % PySide.QtCore.qVersion())\""
+    - "python -c \"import PyQt4.QtCore; print('Qt (PyQt4): %s' % PyQt4.QtCore.qVersion())\""
+    - "python -c \"import PyQt5.QtCore; print('Qt (PyQt5): %s' % PyQt5.QtCore.qVersion())\""
 
     # Try to close popups
     - "pip install --upgrade pynput"
