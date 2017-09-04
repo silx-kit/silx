@@ -168,9 +168,9 @@ class CurvesROIWidget(qt.QWidget):
         The dictionary keys are the ROI names.
         Each value is a sub-dictionary of ROI info with the following fields:
 
-           - ``"from"``: x coordinate of the left limit, as a float
-           - ``"to"``: x coordinate of the right limit, as a float
-           - ``"type"``: type of ROI, as a string (e.g "channels", "energy")
+        - ``"from"``: x coordinate of the left limit, as a float
+        - ``"to"``: x coordinate of the right limit, as a float
+        - ``"type"``: type of ROI, as a string (e.g "channels", "energy")
 
 
         :param roidict: Dictionary of ROIs
@@ -194,9 +194,10 @@ class CurvesROIWidget(qt.QWidget):
         The dictionary keys are the ROI names.
         Each value is a sub-dictionary of ROI info with the following fields:
 
-           - ``"from"``: x coordinate of the left limit, as a float
-           - ``"to"``: x coordinate of the right limit, as a float
-           - ``"type"``: type of ROI, as a string (e.g "channels", "energy")
+        - ``"from"``: x coordinate of the left limit, as a float
+        - ``"to"``: x coordinate of the right limit, as a float
+        - ``"type"``: type of ROI, as a string (e.g "channels", "energy")
+
 
         :param order: Field used for ordering the ROIs.
              One of "from", "to", "type", "netcounts", "rawcounts".
