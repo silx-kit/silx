@@ -31,6 +31,9 @@ try:
 except ImportError:
     raise RuntimeError("%s is not on the path. Fix your PYTHONPATH and restart sphinx." % project)
 
+# Add local sphinx extension directory
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ext'))
+
 # -- General configuration -----------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -43,7 +46,8 @@ extensions = [
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
-    'sphinx.ext.doctest'
+    'sphinx.ext.doctest',
+    'sphinxext-archive'
 ]
 
 autodoc_member_order = 'bysource'

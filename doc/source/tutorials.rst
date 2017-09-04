@@ -16,8 +16,6 @@ Tutorials and cookbooks:
    Tutorials/fitconfig.rst
    Tutorials/array_widget.rst
 
-Sample code:
-
 .. toctree::
    :maxdepth: 2
 

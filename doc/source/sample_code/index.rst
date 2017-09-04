@@ -1,9 +1,15 @@
 Sample Code
 ===========
 
+All sample codes can be downloaded as a zip file: |sample_code_archive|.
 
-:mod:`silx.gui`
-+++++++++++++++
+.. |sample_code_archive| archive:: ../../../examples/
+   :filename: silx_examples.zip
+   :basedir: silx_examples
+   :filter: *.py *.png
+
+:mod:`silx.gui` sample code
++++++++++++++++++++++++++++
 
 .. list-table::
    :widths: 1 1 4
@@ -61,8 +67,8 @@ Sample Code
        an interactive cutting plane.
        It can also be started without providing a file.
 
-:mod:`silx.gui.plot`
-++++++++++++++++++++
+:mod:`silx.gui.plot` sample code
+++++++++++++++++++++++++++++++++
 
 .. list-table::
    :widths: 1 1 4
@@ -159,8 +165,8 @@ Sample Code
      - This script is an example to illustrate how to use axis synchronization
        tool.
 
-:mod:`silx.io`
-++++++++++++++
+:mod:`silx.io` sample code
+++++++++++++++++++++++++++
 
 .. list-table::
    :widths: 1 1 4
