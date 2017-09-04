@@ -25,7 +25,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "17/07/2017"
+__date__ = "10/08/2017"
 
 
 import logging
@@ -54,9 +54,9 @@ class TestOpenGL(TestCaseQt):
             if not self._dump:
                 self._dump = True
                 _logger.info('OpenGL info:')
-                _logger.info('\tQt OpenGL context version: %d.%d', self.getOpenGLVersion())
+                _logger.info('\tQt OpenGL context version: %d.%d', *self.getOpenGLVersion())
                 _logger.info('\tGL_VERSION: %s' % gl.glGetString(gl.GL_VERSION))
-                _logger.info('\tGL_SHADING_LANGUAGE_VERSION: %s' % \
+                _logger.info('\tGL_SHADING_LANGUAGE_VERSION: %s' %
                              gl.glGetString(gl.GL_SHADING_LANGUAGE_VERSION))
                 _logger.debug('\tGL_EXTENSIONS: %s' % gl.glGetString(gl.GL_EXTENSIONS))
 
