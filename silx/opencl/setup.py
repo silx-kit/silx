@@ -27,14 +27,16 @@ __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 __authors__ = ["J. Kieffer"]
-__date__ = "08/09/2016"
+__date__ = "16/08/2017"
 
+import os
 from numpy.distutils.misc_util import Configuration
 
 
 def configuration(parent_package='', top_path=None):
     config = Configuration('opencl', parent_package, top_path)
-    config.add_subpackage('sift')
+    if os.path.exists('sift'):
+        config.add_subpackage('sift')
     config.add_subpackage('test')
     return config
 
