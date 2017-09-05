@@ -61,8 +61,8 @@ Remove data from the plot
 .. automethod:: PlotWidget.clear
 .. automethod:: PlotWidget.remove
 
-Title and labels
-................
+Title
+.....
 
 Those methods handle the plot title:
 
@@ -77,18 +77,24 @@ Those two methods give access to :class:`.items.Axis` which handle the limits, s
 .. automethod:: PlotWidget.getXAxis
 .. automethod:: PlotWidget.getYAxis
 
-The following methods handle plot limits, aspect ratio and grid:
+The following methods handle plot limits, aspect ratio, grid and axes display:
 
 .. automethod:: PlotWidget.setLimits
 .. automethod:: PlotWidget.isKeepDataAspectRatio
 .. automethod:: PlotWidget.setKeepDataAspectRatio
 .. automethod:: PlotWidget.getGraphGrid
 .. automethod:: PlotWidget.setGraphGrid
+.. automethod:: PlotWidget.setAxesDisplayed
 
 Reset zoom
 ..........
 
 .. automethod:: PlotWidget.resetZoom
+
+The following methods allow to add margins around the data when performing a zoom reset:
+
+.. automethod:: PlotWidget.getDataMargins
+.. automethod:: PlotWidget.setDataMargins
 
 Defaults
 ........
@@ -114,10 +120,35 @@ of the plot and to toggle the use of a crosshair cursor:
 .. automethod:: PlotWidget.getGraphCursor
 .. automethod:: PlotWidget.setGraphCursor
 
+.. automethod:: PlotWidget.isPanWithArrowKeys
+.. automethod:: PlotWidget.setPanWithArrowKeys
+
+Coordinates conversion
+......................
+
+.. automethod:: PlotWidget.getDataRange
+.. automethod:: PlotWidget.getPlotBoundsInPixels
+.. automethod:: PlotWidget.dataToPixel
+.. automethod:: PlotWidget.pixelToData
+
+Active Item
+...........
+
+.. automethod:: PlotWidget.isActiveCurveHandling
+.. automethod:: PlotWidget.setActiveCurveHandling
+.. automethod:: PlotWidget.getActiveCurveColor
+.. automethod:: PlotWidget.setActiveCurveColor
+.. automethod:: PlotWidget.getActiveCurve
+.. automethod:: PlotWidget.setActiveCurve
+.. automethod:: PlotWidget.getActiveImage
+.. automethod:: PlotWidget.setActiveImage
+
 Misc.
 .....
 
+.. automethod:: PlotWidget.getWidgetHandle
 .. automethod:: PlotWidget.saveGraph
+.. automethod:: PlotWidget.setDefaultBackend
 
 Signals
 .......
@@ -132,19 +163,33 @@ The :class:`PlotWidget` provides the following Qt signals:
 .. autoattribute:: PlotWidget.sigContentChanged
 .. autoattribute:: PlotWidget.sigActiveCurveChanged
 .. autoattribute:: PlotWidget.sigActiveImageChanged
+.. autoattribute:: PlotWidget.sigActiveScatterChanged
 .. autoattribute:: PlotWidget.sigInteractiveModeChanged
 
-.. Not documented:
-   addItem, removeItem, clearItems
-   isActiveCurveHandling, enableActiveCurveHandling,
-   getActiveCurveColor, setActiveCurveColor,
-   getActiveCurve, setActiveCurve,
-   isCurveHidden, hideCurve,
-   getActiveImage, setActiveImage,
-   setDefaultPlotPoints, setDefaultPlotLines,
-   getWidgetHandle, notify, setCallback, graphCallback,
-   dataToPixel, pixelToData, getPlotBoundsInPixels,
-   setGraphCursorShape, pickMarker, moveMarker, pickImageOrCurve, moveImage,
-   onMousePress, onMouseMove, onMouseRelease, onMouseWheel,
-   isDrawModeEnabled, setDrawModeEnabled, getDrawMode,
-   isZoomModeEnabled, setZoomModeEnabled,
+.. PlotWidget public API that is not documented:
+   Could be added:
+   - addItem
+   - pan
+   - getLimitsHistory
+   - isDefaultPlotPoints
+   - isDefaultPlotLines
+   - setGraphCursorShape
+   - getAutoReplot, setAutoReplot, replot
+   Should not be added:
+   * Should be private:
+     - notify, setCallback, graphCallback
+   * Use remove instead:
+     - removeCurve, removeImage, removeItem, removeMarker
+     - clearCurves, clearImages, clearItems, clearMarkers
+   * Use items instead:
+     - isCurveHidden, hideCurve
+   * Use items.axis instead:
+     - getGraphXLimits, setGraphXLimits
+     - getGraphYLimits, setGraphYLimits
+     - getGraphXLabel, setGraphXLabel
+     - getGraphYLabel, setGraphYLabel
+     - isXAxisLogarithmic, setXAxisLogarithmic
+     - isYAxisLogarithmic, setXAxisLogarithmic
+     - isXAxisAutoScale, setXAxisAutoScale
+     - isYAxisAutoScale, setYAxisAutoScale
+     - setYAxisInverted, isYAxisInverted
