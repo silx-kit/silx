@@ -101,7 +101,7 @@ before_test:
 
     # Print Python info
     - "python ci\\info_platform.py"
-    - "pip list"
+    - "pip list --format=columns"
 
     # Try to close popups
     - "pip install --upgrade pynput"
