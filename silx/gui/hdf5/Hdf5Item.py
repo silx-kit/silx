@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "21/08/2017"
+__date__ = "28/08/2017"
 
 
 import numpy
@@ -169,6 +169,22 @@ class Hdf5Item(Hdf5Node):
                 self.__isBroken = True
             else:
                 self.__obj = obj
+                if not self.isGroupObj():
+                    try:
+                        # pre-fetch of the data
+                        if obj.shape is None:
+                            pass
+                        if obj.shape == tuple():
+                            obj[()]
+                        else:
+                            if obj.compression is None and obj.size > 0:
+                                key = tuple([0] * len(obj.shape))
+                                obj[key]
+                    except Exception as e:
+                        _logger.debug(e, exc_info=True)
+                        message = "%s broken. %s" % (self.__obj.name, e.args[0])
+                        self.__error = message
+                        self.__isBroken = True
 
         self.__key = None
 
@@ -202,6 +218,8 @@ class Hdf5Item(Hdf5Node):
 
         :rtype: qt.QIcon
         """
+        # Pre-fetch the object, in case it is broken
+        obj = self.obj
         style = qt.QApplication.style()
         if self.__isBroken:
             icon = style.standardIcon(qt.QStyle.SP_MessageBoxCritical)
@@ -216,17 +234,21 @@ class Hdf5Item(Hdf5Node):
         elif issubclass(class_, h5py.ExternalLink):
             return style.standardIcon(qt.QStyle.SP_FileLinkIcon)
         elif issubclass(class_, h5py.Dataset):
-            if len(self.obj.shape) < 4:
-                name = "item-%ddim" % len(self.obj.shape)
+            if obj.shape is None:
+                name = "item-none"
+            elif len(obj.shape) < 4:
+                name = "item-%ddim" % len(obj.shape)
             else:
                 name = "item-ndim"
-            if str(self.obj.dtype) == "object":
+            if str(obj.dtype) == "object":
                 name = "item-object"
             icon = icons.getQIcon(name)
             return icon
         return None
 
     def _humanReadableShape(self, dataset):
+        if dataset.shape is None:
+            return "none"
         if dataset.shape == tuple():
             return "scalar"
         shape = [str(i) for i in dataset.shape]
@@ -234,6 +256,8 @@ class Hdf5Item(Hdf5Node):
         return text
 
     def _humanReadableValue(self, dataset):
+        if dataset.shape is None:
+            return "No data"
         if dataset.shape == tuple():
             numpy_object = dataset[()]
             text = _formatter.toString(numpy_object)

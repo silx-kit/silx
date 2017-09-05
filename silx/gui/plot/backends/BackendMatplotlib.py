@@ -143,7 +143,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                 errorbarColor = color
 
             # On Debian 7 at least, Nx1 array yerr does not seems supported
-            if (yerror is not None and yerror.ndim == 2 and
+            if (isinstance(yerror, numpy.ndarray) and yerror.ndim == 2 and
                     yerror.shape[1] == 1 and len(x) != 1):
                 yerror = numpy.ravel(yerror)
 
@@ -441,7 +441,10 @@ class BackendMatplotlib(BackendBase.BackendBase):
             item._infoText.remove()
             item._infoText = None
         self._overlays.discard(item)
-        item.remove()
+        try:
+            item.remove()
+        except ValueError:
+            pass  # Already removed e.g., in set[X|Y]AxisLogarithmic
 
     # Interaction methods
 
@@ -592,10 +595,16 @@ class BackendMatplotlib(BackendBase.BackendBase):
     # Graph axes
 
     def setXAxisLogarithmic(self, flag):
+        if matplotlib.__version__ >= "2.1.0":
+            self.ax.cla()
+            self.ax2.cla()
         self.ax2.set_xscale('log' if flag else 'linear')
         self.ax.set_xscale('log' if flag else 'linear')
 
     def setYAxisLogarithmic(self, flag):
+        if matplotlib.__version__ >= "2.1.0":
+            self.ax.cla()
+            self.ax2.cla()
         self.ax2.set_yscale('log' if flag else 'linear')
         self.ax.set_yscale('log' if flag else 'linear')
 

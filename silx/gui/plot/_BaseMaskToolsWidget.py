@@ -27,7 +27,6 @@
 """
 from __future__ import division
 
-
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
 __date__ = "20/04/2017"
@@ -39,6 +38,7 @@ import numpy
 from silx.gui import qt, icons
 from silx.gui.plot.Colormap import Colormap
 from silx.gui.plot.Colors import rgba
+from .actions.mode import PanModeAction
 
 
 class BaseMask(qt.QObject):
@@ -582,17 +582,10 @@ class BaseMaskToolsWidget(qt.QWidget):
         """Init drawing tools widgets"""
         layout = qt.QVBoxLayout()
 
-        # Draw tools
-        self.browseAction = qt.QAction(
-                icons.getQIcon('normal'), 'Browse', None)
-        self.browseAction.setShortcut(qt.QKeySequence(qt.Qt.Key_B))
-        self.browseAction.setToolTip(
-                'Disables drawing tools, enables zooming interaction mode'
-                ' <b>B</b>')
-        self.browseAction.setCheckable(True)
-        self.browseAction.triggered.connect(self._activeBrowseMode)
+        self.browseAction = PanModeAction(self.plot, self.plot)
         self.addAction(self.browseAction)
 
+        # Draw tools
         self.rectAction = qt.QAction(
                 icons.getQIcon('shape-rectangle'), 'Rectangle selection', None)
         self.rectAction.setToolTip(
@@ -620,23 +613,22 @@ class BaseMaskToolsWidget(qt.QWidget):
                 'Pencil tool: (Un)Mask using a pencil <b>P</b>')
         self.pencilAction.setCheckable(True)
         self.pencilAction.triggered.connect(self._activePencilMode)
-        self.addAction(self.polygonAction)
+        self.addAction(self.pencilAction)
 
         self.drawActionGroup = qt.QActionGroup(self)
         self.drawActionGroup.setExclusive(True)
-        self.drawActionGroup.addAction(self.browseAction)
         self.drawActionGroup.addAction(self.rectAction)
         self.drawActionGroup.addAction(self.polygonAction)
         self.drawActionGroup.addAction(self.pencilAction)
 
-        self.browseAction.setChecked(True)
-
-        self.drawButtons = {}
-        for action in self.drawActionGroup.actions():
+        actions = (self.browseAction, self.rectAction,
+                   self.polygonAction, self.pencilAction)
+        drawButtons = []
+        for action in actions:
             btn = qt.QToolButton()
             btn.setDefaultAction(action)
-            self.drawButtons[action.text()] = btn
-        container = self._hboxWidget(*self.drawButtons.values())
+            drawButtons.append(btn)
+        container = self._hboxWidget(*drawButtons)
         layout.addWidget(container)
 
         # Mask/Unmask radio buttons
@@ -656,10 +648,7 @@ class BaseMaskToolsWidget(qt.QWidget):
         self.maskStateWidget = self._hboxWidget(maskRadioBtn, unmaskRadioBtn)
         layout.addWidget(self.maskStateWidget)
 
-        # Connect mask state widget visibility with browse action
-        self.maskStateWidget.setHidden(self.browseAction.isChecked())
-        self.browseAction.toggled[bool].connect(
-                self.maskStateWidget.setHidden)
+        self.maskStateWidget.setHidden(True)
 
         # Pencil settings
         self.pencilSetting = self._createPencilSettings(None)
@@ -802,8 +791,9 @@ class BaseMaskToolsWidget(qt.QWidget):
         """Reset drawing action when disabling widget"""
         if (event.type() == qt.QEvent.EnabledChange and
                 not self.isEnabled() and
-                not self.browseAction.isChecked()):
-            self.browseAction.trigger()  # Disable drawing tool
+                self.drawActionGroup.checkedAction()):
+            # Disable drawing tool by setting interaction to zoom
+            self.browseAction.trigger()
 
     def save(self, filename, kind):
         """Save current mask in a file
@@ -940,10 +930,11 @@ class BaseMaskToolsWidget(qt.QWidget):
         If changed from elsewhere, disable drawing tool
         """
         if source is not self:
-            # Do not trigger browseAction to avoid to call
-            # self.plot.setInteractiveMode
-            self.browseAction.setChecked(True)
+            self.pencilAction.setChecked(False)
+            self.rectAction.setChecked(False)
+            self.polygonAction.setChecked(False)
             self._releaseDrawingMode()
+            self._updateDrawingModeWidgets()
 
     def _releaseDrawingMode(self):
         """Release the drawing mode if is was used"""
@@ -951,16 +942,6 @@ class BaseMaskToolsWidget(qt.QWidget):
             return
         self.plot.sigPlotSignal.disconnect(self._plotDrawEvent)
         self._drawingMode = None
-
-    def _activeBrowseMode(self):
-        """Handle browse action mode triggered by user.
-
-        Set plot interactive mode only when
-        the user is triggering the browse action.
-        """
-        self._releaseDrawingMode()
-        self.plot.setInteractiveMode('zoom', source=self)
-        self._updateDrawingModeWidgets()
 
     def _activeRectMode(self):
         """Handle rect action mode triggering"""
@@ -993,6 +974,7 @@ class BaseMaskToolsWidget(qt.QWidget):
         self._updateDrawingModeWidgets()
 
     def _updateDrawingModeWidgets(self):
+        self.maskStateWidget.setVisible(self._drawingMode is not None)
         self.pencilSetting.setVisible(self._drawingMode == 'pencil')
 
     # Handle plot drawing events

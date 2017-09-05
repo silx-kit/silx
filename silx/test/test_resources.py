@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "03/08/2017"
+__date__ = "24/08/2017"
 
 
 import os
@@ -36,6 +36,7 @@ from silx.third_party import six
 import silx.resources
 import shutil
 from .utils import utilstest
+import socket
 
 
 class TestResources(unittest.TestCase):
@@ -60,6 +61,9 @@ def isSilxWebsiteAvailable():
         six.moves.urllib.request.urlopen('http://www.silx.org', timeout=1)
         return True
     except six.moves.urllib.error.URLError:
+        return False
+    except socket.timeout:
+        # This exception is still received in Python 2.7
         return False
 
 

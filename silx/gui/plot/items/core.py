@@ -29,6 +29,7 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "27/06/2017"
 
+import collections
 from copy import deepcopy
 import logging
 import weakref
@@ -872,24 +873,24 @@ class Points(Item, SymbolMixIn, AlphaMixIn):
 
         :param copy: True (Default) to get a copy,
                      False to use internal representation (do not modify!)
-        :rtype: numpy.ndarray or None
+        :rtype: numpy.ndarray, float or None
         """
-        if self._xerror is None:
-            return None
-        else:
+        if isinstance(self._xerror, numpy.ndarray):
             return numpy.array(self._xerror, copy=copy)
+        else:
+            return self._xerror  # float or None
 
     def getYErrorData(self, copy=True):
         """Returns the y error of the points
 
         :param copy: True (Default) to get a copy,
                      False to use internal representation (do not modify!)
-        :rtype: numpy.ndarray or None
+        :rtype: numpy.ndarray, float or None
         """
-        if self._yerror is None:
-            return None
-        else:
+        if isinstance(self._yerror, numpy.ndarray):
             return numpy.array(self._yerror, copy=copy)
+        else:
+            return self._yerror  # float or None
 
     def setData(self, x, y, xerror=None, yerror=None, copy=True):
         """Set the data of the curve.
@@ -913,9 +914,15 @@ class Points(Item, SymbolMixIn, AlphaMixIn):
         assert x.ndim == y.ndim == 1
 
         if xerror is not None:
-            xerror = numpy.array(xerror, copy=copy)
+            if isinstance(xerror, collections.Iterable):
+                xerror = numpy.array(xerror, copy=copy)
+            else:
+                xerror = float(xerror)
         if yerror is not None:
-            yerror = numpy.array(yerror, copy=copy)
+            if isinstance(yerror, collections.Iterable):
+                yerror = numpy.array(yerror, copy=copy)
+            else:
+                yerror = float(yerror)
         # TODO checks on xerror, yerror
         self._x, self._y = x, y
         self._xerror, self._yerror = xerror, yerror

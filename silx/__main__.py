@@ -32,7 +32,7 @@ Your environment should provide a command `silx`. You can reach help with
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "18/04/2017"
+__date__ = "29/06/2017"
 
 
 import logging
@@ -56,6 +56,9 @@ def main():
     launcher.add_command("view",
                          module_name="silx.app.view",
                          description="Browse a data file with a GUI")
+    launcher.add_command("test",
+                         module_name="silx.app.test_",
+                         description="Launch silx unittest")
     status = launcher.execute(sys.argv)
     return status
 
