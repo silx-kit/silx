@@ -152,6 +152,19 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
        that adds a thread-safe method to add curves:
        :meth:`ThreadSafePlot1D.addCurveThreadSafe`.
        This thread-safe method is then called from a thread to update the plot.
+   * - :download:`plotWidget.py <../../../examples/plotWidget.py>`
+     - .. image:: img/plotWidget.png
+         :height: 150px
+         :align: center
+     - This script shows how to subclass :class:`PlotWidget` to tune its tools.
+
+       It subclasses a :class:`silx.gui.plot.PlotWidget` and adds toolbars and
+       a colorbar by using pluggable widgets:
+
+       - QAction from :mod:`silx.gui.plot.actions`
+       - QToolButton from :mod:`silx.gui.plot.PlotToolButtons`
+       - QToolBar from :mod:`silx.gui.plot.PlotTools`
+       - :class:`ColorBarWidget` from :mod:`silx.gui.plot.ColorBar.
    * - :download:`scatterMask.py <../../../examples/scatterMask.py>`
      - .. image:: img/scatterMask.png
          :height: 150px
