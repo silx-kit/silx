@@ -137,6 +137,21 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
          :align: center
      - This script is an example to illustrate how to use axis synchronization
        tool.
+   * - :download:`plotUpdateFromThread.py <../../../examples/plotUpdateFromThread.py>`
+     - .. image:: img/plotUpdateFromThread.png
+         :height: 150px
+         :align: center
+     - This script illustrates the update of a silx.gui.plot widget from a thread.
+
+       The problem is that plot and GUI methods should be called from the main thread.
+       To safely update the plot from another thread, one need to make the update
+       asynchronously from the main thread.
+       In this example, this is achieved through a Qt signal.
+
+       In this example we create a subclass of :class:`silx.gui.plot.Plot1D`
+       that adds a thread-safe method to add curves:
+       :meth:`ThreadSafePlot1D.addCurveThreadSafe`.
+       This thread-safe method is then called from a thread to update the plot.
    * - :download:`scatterMask.py <../../../examples/scatterMask.py>`
      - .. image:: img/scatterMask.png
          :height: 150px
