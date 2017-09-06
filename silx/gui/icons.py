@@ -273,7 +273,7 @@ def getAnimatedIcon(name):
     Try to load a mng or a gif file, then try to load a multi-image animated
     icon.
 
-    In Qt5 mng or gif are not used, cause the the transparency is not very well
+    In Qt5 mng or gif are not used, because the transparency is not very well
     managed.
 
     :param str name: Name of the icon, in one of the defined icons
