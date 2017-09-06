@@ -35,13 +35,13 @@ from __future__ import absolute_import
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "10/01/2017"
+__date__ = "06/09/2017"
 
 import logging
 
 from silx.gui import qt
 
-from . import Plot3DActions
+from . import actions
 
 _logger = logging.getLogger(__name__)
 
@@ -58,16 +58,16 @@ class Plot3DToolBar(qt.QToolBar):
 
         self._plot3d = None
 
-        self._copyAction = Plot3DActions.CopyAction(parent=self)
+        self._copyAction = actions.io.CopyAction(parent=self)
         self.addAction(self._copyAction)
 
-        self._saveAction = Plot3DActions.SaveAction(parent=self)
+        self._saveAction = actions.io.SaveAction(parent=self)
         self.addAction(self._saveAction)
 
-        self._videoAction = Plot3DActions.VideoAction(parent=self)
+        self._videoAction = actions.io.VideoAction(parent=self)
         self.addAction(self._videoAction)
 
-        self._printAction = Plot3DActions.PrintAction(parent=self)
+        self._printAction = actions.io.PrintAction(parent=self)
         self.addAction(self._printAction)
 
     def setPlot3DWidget(self, widget):

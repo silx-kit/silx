@@ -35,7 +35,7 @@ import logging
 
 from silx.gui import qt
 from silx.gui.plot.Colors import rgba
-from silx.gui.plot3d import Plot3DActions
+from . import actions
 from .._utils import convertArrayToQImage
 
 from .. import _glutils as glu
@@ -97,7 +97,7 @@ class Plot3DWidget(glu.OpenGLWidget):
         self.setMouseTracking(True)
 
         self.setFocusPolicy(qt.Qt.StrongFocus)
-        self._copyAction = Plot3DActions.CopyAction(parent=self, plot3d=self)
+        self._copyAction = actions.io.CopyAction(parent=self, plot3d=self)
         self.addAction(self._copyAction)
 
         self._updating = False  # True if an update is requested
