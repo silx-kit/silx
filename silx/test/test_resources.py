@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "30/08/2017"
+__date__ = "06/09/2017"
 
 
 import os
@@ -125,6 +125,10 @@ class TestResources(unittest.TestCase):
         self.assertTrue(len(result) > 10)
 
     # Test new repository
+
+    def test_repository_not_exists(self):
+        """The resource from 'test' is available"""
+        self.assertRaises(ValueError, silx.resources.resource_filename, 'test:foo.png')
 
     def test_adding_test_directory(self):
         """The resource from 'test' is available"""

@@ -32,7 +32,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "24/08/2017"
+__date__ = "06/09/2017"
 __status__ = "Production"
 
 import os
@@ -91,8 +91,8 @@ def get_cl_file(resource):
     """
     if not resource.endswith(".cl"):
         resource += ".cl"
-    resource = resources.join("opencl", resource)
-    return resources.resource_filename(resource)
+    return resources._resource_filename(resource,
+                                        default_directory="opencl")
 
 
 def read_cl_file(filename):

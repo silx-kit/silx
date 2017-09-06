@@ -29,9 +29,10 @@ Use :func:`getQIcon` to create Qt QIcon from the name identifying an icon.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "24/08/2017"
+__date__ = "06/09/2017"
 
 
+import os
 import logging
 import weakref
 from . import qt
@@ -263,13 +264,17 @@ def getAnimatedIcon(name):
     The resource name can be prefixed by the name of a resource directory. For
     example "silx:foo.png" identify the resource "foo.png" from the resource
     directory "silx".
+
+    If no prefix are specified, the file with be returned from the silx
+    resource directory with a specific path "gui/icons".
+
     See also :func:`silx.resources.register_resource_directory`.
 
     Try to load a mng or a gif file, then try to load a multi-image animated
     icon.
 
-    In Qt5 mng or gif are not used. It does not take care very well of the
-    transparency.
+    In Qt5 mng or gif are not used, cause the the transparency is not very well
+    managed.
 
     :param str name: Name of the icon, in one of the defined icons
                      in this module.
@@ -310,6 +315,10 @@ def getQIcon(name):
     The resource name can be prefixed by the name of a resource directory. For
     example "silx:foo.png" identify the resource "foo.png" from the resource
     directory "silx".
+
+    If no prefix are specified, the file with be returned from the silx
+    resource directory with a specific path "gui/icons".
+
     See also :func:`silx.resources.register_resource_directory`.
 
     :param str name: Name of the icon, in one of the defined icons
@@ -332,6 +341,10 @@ def getQPixmap(name):
     The resource name can be prefixed by the name of a resource directory. For
     example "silx:foo.png" identify the resource "foo.png" from the resource
     directory "silx".
+
+    If no prefix are specified, the file with be returned from the silx
+    resource directory with a specific path "gui/icons".
+
     See also :func:`silx.resources.register_resource_directory`.
 
     :param str name: Name of the icon, in one of the defined icons
@@ -350,6 +363,10 @@ def getQFile(name):
     The resource name can be prefixed by the name of a resource directory. For
     example "silx:foo.png" identify the resource "foo.png" from the resource
     directory "silx".
+
+    If no prefix are specified, the file with be returned from the silx
+    resource directory with a specific path "gui/icons".
+
     See also :func:`silx.resources.register_resource_directory`.
 
     :param str name: Name of the icon, in one of the defined icons
@@ -371,10 +388,10 @@ def getQFile(name):
         else:
             _logger.debug("Format %s supported", ", ".join(_supported_formats))
 
-    resource = silx.resources.join('gui', 'icons', name)
     for format_ in _supported_formats:
         format_ = str(format_)
-        filename = silx.resources.resource_filename('%s.%s' % (resource, format_))
+        filename = silx.resources._resource_filename('%s.%s' % (name, format_),
+                                                    default_directory=os.path.join('gui', 'icons'))
         qfile = qt.QFile(filename)
         if qfile.exists():
             return qfile

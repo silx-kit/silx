@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "30/08/2017"
+__date__ = "06/09/2017"
 
 
 import gc
@@ -72,14 +72,22 @@ class TestIcons(TestCaseQt):
         # Restiture the original configuration
         silx.resources._RESOURCE_DIRECTORIES = self._oldResources
 
+    def testIcon(self):
+        icon = icons.getQIcon("silx:gui/icons/zoom-out")
+        self.assertIsNotNone(icon)
+
+    def testPrefix(self):
+        icon = icons.getQIcon("silx:gui/icons/zoom-out")
+        self.assertIsNotNone(icon)
+
     def testSvgIcon(self):
         if "svg" not in qt.supportedImageFormats():
             self.skipTest("SVG not supported")
-        icon = icons.getQIcon("test:zoom-out")
+        icon = icons.getQIcon("test:gui/icons/zoom-out")
         self.assertIsNotNone(icon)
 
     def testPngIcon(self):
-        icon = icons.getQIcon("test:zoom-in")
+        icon = icons.getQIcon("test:gui/icons/zoom-in")
         self.assertIsNotNone(icon)
 
     def testUnexistingIcon(self):

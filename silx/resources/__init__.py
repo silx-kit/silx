@@ -56,7 +56,7 @@ of this modules to ensure access across different distribution schemes:
 
 __authors__ = ["V.A. Sole", "Thomas Vincent", "J. Kieffer"]
 __license__ = "MIT"
-__date__ = "30/08/2017"
+__date__ = "06/09/2017"
 
 
 import os
@@ -141,9 +141,10 @@ def register_resource_directory(name, package_name, forced_path=None):
     :param str forced_path: Path containing the resources. If specified
         `pkg_resources` nor `package_name` will be used
         For example "silx.resources".
+    :raises ValueError: If the resource directory name already exists.
     """
     if name in _RESOURCE_DIRECTORIES:
-        raise KeyError("Key %s already exists" % name)
+        raise ValueError("Resource directory name %s already exists" % name)
     resource_directory = _ResourceDirectory(
         package_name=package_name,
         forced_path=forced_path)
@@ -193,44 +194,29 @@ def is_dir(resource):
     return os.path.isdir(path)
 
 
-def _get_package_and_resource(resource):
+def _get_package_and_resource(resource, default_directory=None):
     """
     Return the resource directory class and a cleaned resource name without
     prefix.
 
     :param str: resource: Name of the resource with resource prefix.
+    :param str default_directory: If the resource is not prefixed, the resource
+        will be searched on this default directory of the silx resource
+        directory.
     :rtype: tuple(_ResourceDirectory, str)
+    :raises ValueError: If the resource name uses an unregistred resource
+        directory name
     """
     if ":" in resource:
         prefix, resource = resource.split(":", 1)
     else:
         prefix = "silx"
+        if default_directory is not None:
+            resource = os.path.join(default_directory, resource)
+    if prefix not in _RESOURCE_DIRECTORIES:
+        raise ValueError("Resource '%s' uses an unregistred prefix", resource)
     resource_directory = _RESOURCE_DIRECTORIES[prefix]
     return resource_directory, resource
-
-
-def join(*args):
-    """Join a final resource name with directories.
-
-    It takes care of the resource prefix.
-
-    >>> join("a", "b")
-    "a/b"
-
-    >>> join("a", "silx:b")
-    "silx:a/b"
-
-    :param list args:
-    """
-    resource = args[-1]
-    if ":" in resource:
-        prefix, resource = resource.split(":", 1)
-        prefix = prefix + ":"
-    else:
-        prefix = ""
-    args = list(args)
-    args[-1] = resource
-    return prefix + os.path.join(*args)
 
 
 def resource_filename(resource):
@@ -245,10 +231,34 @@ def resource_filename(resource):
     :param str resource: Resource path relative to resource directory
                          using '/' path separator. It can be either a file or
                          a directory.
+    :raises ValueError: If the resource name uses an unregistred resource
+        directory name
     :return: Absolute resource path in the file system
     :rtype: str
     """
-    resource_directory, resource_name = _get_package_and_resource(resource)
+    return _resource_filename(resource, default_directory=None)
+
+
+def _resource_filename(resource, default_directory=None):
+    """Return filename corresponding to resource.
+
+    The existence of the resource is not checked.
+
+    The resource name can be prefixed by the name of a resource directory. For
+    example "silx:foo.png" identify the resource "foo.png" from the resource
+    directory "silx". See also :func:`register_resource_directory`.
+
+    :param str resource: Resource path relative to resource directory
+                         using '/' path separator. It can be either a file or
+                         a directory.
+    :param str default_directory: If the resource is not prefixed, the resource
+        will be searched on this default directory of the silx resource
+        directory. It should only be used internally by silx.
+    :return: Absolute resource path in the file system
+    :rtype: str
+    """
+    resource_directory, resource_name = _get_package_and_resource(resource,
+                                                                  default_directory=default_directory)
 
     if resource_directory.forced_path is not None:
         # if set, use this directory
