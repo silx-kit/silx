@@ -99,6 +99,8 @@ Available icons
      - item-3dim
    * - |item-ndim|
      - item-ndim
+   * - |item-none|
+     - item-none
    * - |item-object|
      - item-object
    * - |last|
@@ -181,6 +183,8 @@ Available icons
      - profile2D
    * - |remove|
      - remove
+   * - |rotate-3d|
+     - rotate-3d
    * - |rudder|
      - rudder
    * - |selected|
@@ -213,8 +217,6 @@ Available icons
      - sliders-on
    * - |spec|
      - spec
-   * - |test-png|
-     - test-png
    * - |view-1d|
      - view-1d
    * - |view-2d-stack|
@@ -290,6 +292,7 @@ Available icons
 .. |item-2dim| image:: ../../../../silx/resources/gui/icons/item-2dim.png
 .. |item-3dim| image:: ../../../../silx/resources/gui/icons/item-3dim.png
 .. |item-ndim| image:: ../../../../silx/resources/gui/icons/item-ndim.png
+.. |item-none| image:: ../../../../silx/resources/gui/icons/item-none.png
 .. |item-object| image:: ../../../../silx/resources/gui/icons/item-object.png
 .. |last| image:: ../../../../silx/resources/gui/icons/last.png
 .. |math-average| image:: ../../../../silx/resources/gui/icons/math-average.png
@@ -331,6 +334,7 @@ Available icons
 .. |profile1D| image:: ../../../../silx/resources/gui/icons/profile1D.png
 .. |profile2D| image:: ../../../../silx/resources/gui/icons/profile2D.png
 .. |remove| image:: ../../../../silx/resources/gui/icons/remove.png
+.. |rotate-3d| image:: ../../../../silx/resources/gui/icons/rotate-3d.png
 .. |rudder| image:: ../../../../silx/resources/gui/icons/rudder.png
 .. |selected| image:: ../../../../silx/resources/gui/icons/selected.png
 .. |shape-circle-solid| image:: ../../../../silx/resources/gui/icons/shape-circle-solid.png
@@ -347,7 +351,6 @@ Available icons
 .. |sliders-off| image:: ../../../../silx/resources/gui/icons/sliders-off.png
 .. |sliders-on| image:: ../../../../silx/resources/gui/icons/sliders-on.png
 .. |spec| image:: ../../../../silx/resources/gui/icons/spec.png
-.. |test-png| image:: ../../../../silx/resources/gui/icons/test-png.png
 .. |view-1d| image:: ../../../../silx/resources/gui/icons/view-1d.png
 .. |view-2d-stack| image:: ../../../../silx/resources/gui/icons/view-2d-stack.png
 .. |view-2d| image:: ../../../../silx/resources/gui/icons/view-2d.png
