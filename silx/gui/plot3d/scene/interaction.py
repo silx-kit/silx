@@ -440,6 +440,26 @@ class FocusManager(StateMachine):
 
 # CameraControl ###############################################################
 
+class RotateCameraControl(FocusManager):
+    """Combine wheel and rotate state machine."""
+    def __init__(self, viewport,
+                 orbitAroundCenter=False,
+                 mode='center', scaleTransform=None):
+        handlers = (CameraWheel(viewport, mode, scaleTransform),
+                    CameraRotate(viewport, orbitAroundCenter, LEFT_BTN))
+        super(RotateCameraControl, self).__init__(handlers)
+
+
+class PanCameraControl(FocusManager):
+    """Combine wheel, selectPan and rotate state machine."""
+    def __init__(self, viewport,
+                 mode='center', scaleTransform=None,
+                 selectCB=None):
+        handlers = (CameraWheel(viewport, mode, scaleTransform),
+                    CameraSelectPan(viewport, LEFT_BTN, selectCB))
+        super(PanCameraControl, self).__init__(handlers)
+
+
 class CameraControl(FocusManager):
     """Combine wheel, selectPan and rotate state machine."""
     def __init__(self, viewport,
@@ -650,3 +670,12 @@ class PanPlaneRotateCameraControl(FocusManager):
                                  orbitAroundCenter=False,
                                  button=RIGHT_BTN))
         super(PanPlaneRotateCameraControl, self).__init__(handlers)
+
+
+class PanPlaneZoomOnWheelControl(FocusManager):
+    """Combine zoom on wheel and pan plane state machines."""
+    def __init__(self, viewport, plane,
+                 mode='center', scaleTransform=None):
+        handlers = (CameraWheel(viewport, mode, scaleTransform),
+                    PlanePan(viewport, plane, LEFT_BTN))
+        super(PanPlaneZoomOnWheelControl, self).__init__(handlers)
