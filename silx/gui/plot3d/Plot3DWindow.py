@@ -34,7 +34,7 @@ __date__ = "26/01/2017"
 
 from silx.gui import qt
 
-from .Plot3DToolBar import Plot3DToolBar
+from .Plot3DToolBar import Plot3DOutputToolBar, Plot3DInteractiveModeToolBar
 from .Plot3DWidget import Plot3DWidget
 from .ViewpointToolBar import ViewpointToolBar
 
@@ -50,9 +50,16 @@ class Plot3DWindow(qt.QMainWindow):
 
         self._plot3D = Plot3DWidget()
         self.setCentralWidget(self._plot3D)
+
         self.addToolBar(
             ViewpointToolBar(parent=self, plot3D=self._plot3D))
-        toolbar = Plot3DToolBar(parent=self)
+
+        toolbar = Plot3DInteractiveModeToolBar(parent=self)
+        toolbar.setPlot3DWidget(self._plot3D)
+        self.addToolBar(toolbar)
+        self.addActions(toolbar.actions())
+
+        toolbar = Plot3DOutputToolBar(parent=self)
         toolbar.setPlot3DWidget(self._plot3D)
         self.addToolBar(toolbar)
         self.addActions(toolbar.actions())

@@ -22,13 +22,19 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides a toolbar with tools for a Plot3DWidget.
+"""This module provides toolbars with tools for a Plot3DWidget.
 
-It provides:
+It provides the following toolbars:
 
-- Copy
-- Save
-- Print
+- :class:`Plot3DInteractiveModeToolBar` with:
+  - Set interactive mode to rotation
+  - Set interactive mode to pan
+
+- :class:`Plot3DOutputToolBar` with:
+  - Copy
+  - Save
+  - Video
+  - Print
 """
 
 from __future__ import absolute_import
@@ -46,15 +52,66 @@ from . import actions
 _logger = logging.getLogger(__name__)
 
 
-class Plot3DToolBar(qt.QToolBar):
+class Plot3DInteractiveModeToolBar(qt.QToolBar):
+    """Toolbar providing icons to change the interaction mode
+
+    :param parent: See :class:`QWidget`
+    :param str title: Title of the toolbar.
+    """
+
+    def __init__(self, parent=None, title='Plot3D Interaction'):
+        super(Plot3DInteractiveModeToolBar, self).__init__(title, parent)
+
+        self._plot3d = None
+
+        self._rotateAction = actions.mode.RotateArcballAction(parent=self)
+        self.addAction(self._rotateAction)
+
+        self._panAction = actions.mode.PanAction(parent=self)
+        self.addAction(self._panAction)
+
+    def setPlot3DWidget(self, widget):
+        """Set the Plot3DWidget this toolbar is associated with
+
+        :param Plot3DWidget widget: The widget to copy/save/print
+        """
+        self._plot3d = widget
+        self.getRotateAction().setPlot3DWidget(widget)
+        self.getPanAction().setPlot3DWidget(widget)
+
+    def getPlot3DWidget(self):
+        """Return the Plot3DWidget associated to this toolbar.
+
+        If no widget is associated, it returns None.
+
+        :rtype: qt.QWidget
+        """
+        return self._plot3d
+
+    def getRotateAction(self):
+        """Returns the QAction setting rotate interaction of the Plot3DWidget
+
+        :rtype: qt.QAction
+        """
+        return self._rotateAction
+
+    def getPanAction(self):
+        """Returns the QAction setting pan interaction of the Plot3DWidget
+
+        :rtype: qt.QAction
+        """
+        return self._panAction
+
+
+class Plot3DOutputToolBar(qt.QToolBar):
     """Toolbar providing icons to copy, save and print the OpenGL scene
 
     :param parent: See :class:`QWidget`
     :param str title: Title of the toolbar.
     """
 
-    def __init__(self, parent=None, title='Plot3D'):
-        super(Plot3DToolBar, self).__init__(title, parent)
+    def __init__(self, parent=None, title='Plot3D Output'):
+        super(Plot3DOutputToolBar, self).__init__(title, parent)
 
         self._plot3d = None
 
