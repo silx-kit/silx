@@ -41,7 +41,7 @@ from collections import deque
 
 import numpy
 
-from silx.gui import qt
+from silx.gui import qt, icons
 from silx.gui.plot.Colors import rgba
 from silx.gui.plot.Colormap import Colormap
 
@@ -922,7 +922,8 @@ class ScalarFieldView(Plot3DWindow):
 
     def _initPanPlaneAction(self):
         """Creates and init the pan plane action"""
-        self._panPlaneAction = qt.QAction(None)
+        self._panPlaneAction = qt.QAction(self)
+        self._panPlaneAction.setIcon(icons.getQIcon('3d-plane-pan'))
         self._panPlaneAction.setText('plane')
         self._panPlaneAction.setCheckable(True)
         self._panPlaneAction.setToolTip('pan the cutting plane')
