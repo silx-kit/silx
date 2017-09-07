@@ -82,6 +82,10 @@ class _OverviewViewport(scene.Viewport):
 class Plot3DWidget(glu.OpenGLWidget):
     """OpenGL widget with a 3D viewport and an overview."""
 
+    sigInteractiveModeChanged = qt.Signal()
+    """Signal emitted when the interactive mode has changed
+    """
+
     def __init__(self, parent=None, f=qt.Qt.WindowFlags()):
         self._firstRender = True
 
@@ -106,8 +110,8 @@ class Plot3DWidget(glu.OpenGLWidget):
         self.viewport = scene.Viewport()
         self.viewport.background = 0.2, 0.2, 0.2, 1.
 
-        sceneScale = transform.Scale(1., 1., 1.)
-        self.viewport.scene.transforms = [sceneScale,
+        self._sceneScale = transform.Scale(1., 1., 1.)
+        self.viewport.scene.transforms = [self._sceneScale,
                                           transform.Translate(0., 0., 0.)]
 
         # Overview area
@@ -120,10 +124,52 @@ class Plot3DWidget(glu.OpenGLWidget):
         self._window.viewports = [self.viewport, self.overview]
         self._window.addListener(self._redraw)
 
-        self.eventHandler = interaction.CameraControl(
-            self.viewport, orbitAroundCenter=False,
-            mode='position', scaleTransform=sceneScale,
-            selectCB=None)
+        self.eventHandler = None
+        self.setInteractiveMode('rotate')
+
+    def setInteractiveMode(self, mode):
+        """Set the interactive mode.
+
+        :param str mode: The interactive mode: 'rotate', 'pan' or None
+        """
+        if mode == self.getInteractiveMode():
+            return
+
+        if mode is None:
+            self.eventHandler = None
+
+        elif mode == 'rotate':
+            self.eventHandler = interaction.RotateCameraControl(
+                self.viewport,
+                orbitAroundCenter=False,
+                mode='position',
+                scaleTransform=self._sceneScale)
+
+        elif mode == 'pan':
+            self.eventHandler = interaction.PanCameraControl(
+                self.viewport,
+                mode='position',
+                scaleTransform=self._sceneScale,
+                selectCB=None)
+
+        else:
+            raise ValueError('Unsupported interactive mode %s', str(mode))
+
+        self.sigInteractiveModeChanged.emit()
+
+    def getInteractiveMode(self):
+        """Returns the interactive mode in use.
+
+        :rtype: str
+        """
+        if self.eventHandler is None:
+            return None
+        if isinstance(self.eventHandler, interaction.RotateCameraControl):
+            return 'rotate'
+        elif isinstance(self.eventHandler, interaction.PanCameraControl):
+            return 'pan'
+        else:
+            return None
 
     def setProjection(self, projection):
         """Change the projection in use.
@@ -264,7 +310,7 @@ class Plot3DWidget(glu.OpenGLWidget):
             angle = event.angleDelta().y() / 8.
         event.accept()
 
-        if angle != 0 and self.isValid():
+        if self.eventHandler is not None and angle != 0 and self.isValid():
             self.makeCurrent()
             self.eventHandler.handleEvent('wheel', xpixel, ypixel, angle)
 
@@ -300,7 +346,7 @@ class Plot3DWidget(glu.OpenGLWidget):
         btn = self._MOUSE_BTNS[event.button()]
         event.accept()
 
-        if self.isValid():
+        if self.eventHandler is not None and self.isValid():
             self.makeCurrent()
             self.eventHandler.handleEvent('press', xpixel, ypixel, btn)
 
@@ -309,7 +355,7 @@ class Plot3DWidget(glu.OpenGLWidget):
         ypixel = event.y() * self.getDevicePixelRatio()
         event.accept()
 
-        if self.isValid():
+        if self.eventHandler is not None and self.isValid():
             self.makeCurrent()
             self.eventHandler.handleEvent('move', xpixel, ypixel)
 
@@ -319,6 +365,6 @@ class Plot3DWidget(glu.OpenGLWidget):
         btn = self._MOUSE_BTNS[event.button()]
         event.accept()
 
-        if self.isValid():
+        if self.eventHandler is not None and self.isValid():
             self.makeCurrent()
             self.eventHandler.handleEvent('release', xpixel, ypixel, btn)
