@@ -30,3 +30,4 @@ __date__ = "06/09/2017"
 
 from .Plot3DAction import Plot3DAction
 from . import io
+from . import mode
