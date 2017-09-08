@@ -36,7 +36,7 @@ from silx.gui import qt
 
 from .Plot3DWidget import Plot3DWidget
 from .tools import OutputToolBar, InteractiveModeToolBar
-from .tools import ViewpointToolBar
+from .tools import ViewpointToolButton
 
 
 class Plot3DWindow(qt.QMainWindow):
@@ -56,8 +56,9 @@ class Plot3DWindow(qt.QMainWindow):
         self.addToolBar(toolbar)
         self.addActions(toolbar.actions())
 
-        self.addToolBar(
-            ViewpointToolBar(parent=self, plot3D=self._plot3D))
+        toolbar = qt.QToolBar(self)
+        toolbar.addWidget(ViewpointToolButton(plot3D=self._plot3D))
+        self.addToolBar(toolbar)
 
         toolbar = OutputToolBar(parent=self)
         toolbar.setPlot3DWidget(self._plot3D)
