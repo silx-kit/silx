@@ -51,7 +51,7 @@ from silx.math.combo import min_max
 from .scene import axes, cutplane, interaction, primitives, transform
 from . import scene
 from .Plot3DWindow import Plot3DWindow
-from .Plot3DToolBar import Plot3DInteractiveModeToolBar
+from .tools import InteractiveModeToolBar
 
 _logger = logging.getLogger(__name__)
 
@@ -933,7 +933,7 @@ class ScalarFieldView(Plot3DWindow):
         self.getPlot3DWidget().sigInteractiveModeChanged.connect(
             self._interactiveModeChanged)
 
-        toolbar = self.findChild(Plot3DInteractiveModeToolBar)
+        toolbar = self.findChild(InteractiveModeToolBar)
         if toolbar is not None:
             toolbar.addAction(self._panPlaneAction)
 

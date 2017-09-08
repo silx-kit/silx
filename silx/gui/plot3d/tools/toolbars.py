@@ -26,11 +26,11 @@
 
 It provides the following toolbars:
 
-- :class:`Plot3DInteractiveModeToolBar` with:
+- :class:`InteractiveModeToolBar` with:
   - Set interactive mode to rotation
   - Set interactive mode to pan
 
-- :class:`Plot3DOutputToolBar` with:
+- :class:`OutputToolBar` with:
   - Copy
   - Save
   - Video
@@ -47,12 +47,12 @@ import logging
 
 from silx.gui import qt
 
-from . import actions
+from .. import actions
 
 _logger = logging.getLogger(__name__)
 
 
-class Plot3DInteractiveModeToolBar(qt.QToolBar):
+class InteractiveModeToolBar(qt.QToolBar):
     """Toolbar providing icons to change the interaction mode
 
     :param parent: See :class:`QWidget`
@@ -60,7 +60,7 @@ class Plot3DInteractiveModeToolBar(qt.QToolBar):
     """
 
     def __init__(self, parent=None, title='Plot3D Interaction'):
-        super(Plot3DInteractiveModeToolBar, self).__init__(title, parent)
+        super(InteractiveModeToolBar, self).__init__(title, parent)
 
         self._plot3d = None
 
@@ -103,7 +103,7 @@ class Plot3DInteractiveModeToolBar(qt.QToolBar):
         return self._panAction
 
 
-class Plot3DOutputToolBar(qt.QToolBar):
+class OutputToolBar(qt.QToolBar):
     """Toolbar providing icons to copy, save and print the OpenGL scene
 
     :param parent: See :class:`QWidget`
@@ -111,7 +111,7 @@ class Plot3DOutputToolBar(qt.QToolBar):
     """
 
     def __init__(self, parent=None, title='Plot3D Output'):
-        super(Plot3DOutputToolBar, self).__init__(title, parent)
+        super(OutputToolBar, self).__init__(title, parent)
 
         self._plot3d = None
 
