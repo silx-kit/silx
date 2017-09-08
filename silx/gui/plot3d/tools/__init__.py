@@ -29,4 +29,4 @@ __license__ = "MIT"
 __date__ = "08/09/2017"
 
 from .toolbars import InteractiveModeToolBar, OutputToolBar
-from .ViewpointToolBar import ViewpointToolBar, ViewpointToolButton
+from .ViewpointTools import ViewpointToolBar, ViewpointToolButton
