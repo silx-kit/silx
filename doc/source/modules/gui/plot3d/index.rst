@@ -60,7 +60,7 @@ The following sub-modules are available:
    plot3dwindow.rst
    scalarfieldview.rst
    sfviewparamtree.rst
-   toolbars.rst
+   tools.rst
    actions.rst
 
 
