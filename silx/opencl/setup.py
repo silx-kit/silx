@@ -1,6 +1,6 @@
 # coding: utf-8
 #
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,13 +29,14 @@ __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 __authors__ = ["J. Kieffer"]
 __date__ = "16/08/2017"
 
-import os
+import os.path
 from numpy.distutils.misc_util import Configuration
 
 
 def configuration(parent_package='', top_path=None):
     config = Configuration('opencl', parent_package, top_path)
-    if os.path.exists('sift'):
+    path = os.path.dirname(os.path.abspath(__file__))
+    if os.path.exists(os.path.join(path, 'sift')):
         config.add_subpackage('sift')
     config.add_subpackage('test')
     return config
