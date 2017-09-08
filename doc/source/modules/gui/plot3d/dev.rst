@@ -12,8 +12,8 @@ Widget-level API
 Widgets are available as modules of the :mod:`silx.gui.plot3d` packages.
 
 The :mod:`.Plot3DWidget` module provides the OpenGL canvas where the scene is rendered.
-The :mod:`.Plot3DWindow` module provides a :class:`QMainWindow` with a :class:`Plot3DWindow` as its central widget
-and toolbars: :class:`ViewpointToolBar` :class:`InteractiveModeToolBar` and :class:`OutputToolBar`.
+The :mod:`.Plot3DWindow` module provides a :class:`QMainWindow` with a :class:`Plot3DWindow` as its central widget,
+toolbars (:class:`InteractiveModeToolBar` and :class:`OutputToolBar`) and a :class:`ViewpointToolButton` in a toolbar.
 :class:`QAction` that can be associated with a :class:`Plot3DWidget` are defined in the :mod:`.actions` module.
 Those actions are used by the :class:`OutputToolBar` and the :class:`InteractiveModeToolBar` toolbars.
 

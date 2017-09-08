@@ -1,4 +1,4 @@
-:mod:`Tools`
+:mod:`tools`
 ============
 
 .. currentmodule:: silx.gui.plot3d.tools
@@ -26,5 +26,15 @@ Toolbars
 +++++++++++++++++++++++++
 
 .. autoclass:: ViewpointToolBar
+   :show-inheritance:
+   :members:
+
+Tool Buttons
+------------
+
+:class:`ViewpointToolButton`
+++++++++++++++++++++++++++++
+
+.. autoclass:: ViewpointToolButton
    :show-inheritance:
    :members:
