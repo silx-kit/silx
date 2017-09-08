@@ -174,7 +174,7 @@ class Hdf5Item(Hdf5Node):
                         # pre-fetch of the data
                         if obj.shape is None:
                             pass
-                        if obj.shape == tuple():
+                        elif obj.shape == tuple():
                             obj[()]
                         else:
                             if obj.compression is None and obj.size > 0:
