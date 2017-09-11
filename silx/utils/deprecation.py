@@ -28,7 +28,7 @@ from __future__ import absolute_import, print_function, division
 
 __authors__ = ["Jerome Kieffer", "H. Payno", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "23/08/2017"
+__date__ = "11/09/2017"
 
 import sys
 import logging
@@ -63,7 +63,8 @@ def deprecated(func=None, reason=None, replacement=None, since_version=None, onl
                                reason=reason,
                                replacement=replacement,
                                since_version=since_version,
-                               only_once=only_once)
+                               only_once=only_once,
+                               skip_backtrace_count=1)
             return func(*args, **kwargs)
         return wrapper
     if func is not None:
@@ -72,7 +73,8 @@ def deprecated(func=None, reason=None, replacement=None, since_version=None, onl
 
 
 def deprecated_warning(type_, name, reason=None, replacement=None,
-                       since_version=None, only_once=True):
+                       since_version=None, only_once=True,
+                       skip_backtrace_count=0):
     """
     Function to log a deprecation warning
 
@@ -86,7 +88,9 @@ def deprecated_warning(type_, name, reason=None, replacement=None,
     :param str since_version: First *silx* version for which the function was
         deprecated (e.g. "0.5.0").
     :param bool only_once: If true, the deprecation warning will only be
-        generated one time. Default is true.
+        generated one time for each different call locations. Default is true.
+    :param int skip_backtrace_count: Amount of last backtrace to ignore when
+        logging the backtrace
     """
     if not depreclog.isEnabledFor(logging.WARNING):
         # Avoid computation when it is not logged
@@ -101,7 +105,8 @@ def deprecated_warning(type_, name, reason=None, replacement=None,
     if replacement is not None:
         msg += " Use '%s' instead." % replacement
     msg += "\n%s"
-    backtrace = "".join(traceback.format_stack()[-2:-1])
+    limit = 2 + skip_backtrace_count
+    backtrace = "".join(traceback.format_stack(limit=limit)[0])
     backtrace = backtrace.rstrip()
     if only_once:
         data = (msg, type_, name, backtrace)
