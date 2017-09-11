@@ -79,10 +79,10 @@ class RawHeaderData(commonh5.LazyLoadableDataset):
             for key, value in header.items():
                 data.append("%s: %s" % (str(key), str(value)))
 
-            headers.append(u"\n".join(data))
+            headers.append(u"\n".join(data).encode("utf-8"))
 
         # create the header list
-        return numpy.array(headers)
+        return numpy.array(headers, dtype=numpy.string_)
 
 
 class MetadataGroup(commonh5.LazyLoadableGroup):
