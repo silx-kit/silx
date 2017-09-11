@@ -503,7 +503,6 @@ class TestSpecH5(unittest.TestCase):
                       self.sfh5["/25.1"].values())
 
     # visit and visititems ignore links
-    @utils.test_logging(spech5.logger1.name, warning=2)
     def testVisit(self):
         name_list = []
         self.sfh5.visit(name_list.append)
@@ -531,7 +530,6 @@ class TestSpecH5(unittest.TestCase):
         self.assertIn("positioners/Pslit HGap", name_list_no_slash)
         self.assertIn("positioners", name_list_no_slash)
 
-    @utils.test_logging(spech5.logger1.name, warning=2)
     def testVisitItems(self):
         dataset_name_list = []
 
