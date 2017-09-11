@@ -28,11 +28,6 @@ files. They are used in :mod:`spech5` and :mod:`fabioh5`.
 .. note:: This module has a dependency on the `h5py <http://www.h5py.org/>`_
     library, which is not a mandatory dependency for `silx`.
 """
-
-__authors__ = ["V. Valls", "P. Knobel"]
-__license__ = "MIT"
-__date__ = "28/08/2017"
-
 import collections
 import h5py
 import numpy
@@ -42,7 +37,7 @@ from .utils import is_dataset
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "22/08/2017"
+__date__ = "28/08/2017"
 
 
 class _MappingProxyType(collections.MutableMapping):
