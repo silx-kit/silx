@@ -87,7 +87,7 @@ from silx.math import calibration
 from silx.utils.deprecation import deprecated_warning
 
 try:
-    import py
+    import h5py
 except ImportError:
     def is_dataset(obj):
         return False
