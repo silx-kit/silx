@@ -1071,7 +1071,8 @@ class PlaneColormapItem(ColormapBase):
 
     listValues = ['gray', 'reversed gray',
                   'temperature', 'red',
-                  'green', 'blue']
+                  'green', 'blue',
+                  'viridis', 'magma', 'inferno', 'plasma']
 
     def getEditor(self, parent, option, index):
         editor = qt.QComboBox(parent)
