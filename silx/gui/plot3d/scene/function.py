@@ -334,10 +334,11 @@ class Colormap(event.Notifier, ProgramFunction):
     _COLORMAP_TEXTURE_UNIT = 1
     """Texture unit to use for storing the colormap"""
 
-    def __init__(self, name='gray', norm='linear', range_=(1., 10.)):
+    def __init__(self, colormap=None, norm='linear', range_=(1., 10.)):
         """Shader function to apply a colormap to a value.
 
-        :param str name: Name of the colormap.
+        :param colormap: RGB(A) color look-up table (default: gray)
+        :param colormap: numpy.ndarray of numpy.uint8 of dimension Nx3 or Nx4
         :param str norm: Normalization to apply: 'linear' (default) or 'log'.
         :param range_: Range of value to map to the colormap.
         :type range_: 2-tuple of float (begin, end).
@@ -345,40 +346,35 @@ class Colormap(event.Notifier, ProgramFunction):
         super(Colormap, self).__init__()
 
         # Init privates to default
-        self._name, self._norm, self._range = None, 'linear', (1., 10.)
+        self._colormap, self._norm, self._range = None, 'linear', (1., 10.)
 
-        self._colormap = None
         self._texture = None
         self._update_texture = True
 
+        if colormap is None:
+            # default colormap
+            colormap = numpy.empty((256, 3), dtype=numpy.uint8)
+            colormap[:] = numpy.arange(256,
+                                       dtype=numpy.uint8)[:, numpy.newaxis]
+
         # Set to param values through properties to go through asserts
-        self.name = name
+        self.colormap = colormap
         self.norm = norm
         self.range_ = range_
 
-    @staticmethod
-    def supportedColormaps(): # TODO move outside scene
-        """Returns list of supported colormap names.
-
-        :rtype: tuple of str
-        """
-        from silx.gui.plot.matplotlib.Colormap import getSupportedColormaps
-        return getSupportedColormaps()
-
     @property
-    def name(self): # TODO stop using name, use LUT
-        """Name of the colormap in use."""
-        return self._name
+    def colormap(self):
+        """Color look-up table to use."""
+        return numpy.array(self._colormap, copy=True)
 
-    @name.setter
-    def name(self, name):
-        if name != self._name:
-            assert name in self.supportedColormaps()
-            self._name = name
-            self._update_texture = True
-            from silx.gui.plot.matplotlib.Colormap import getColormap
-            self._colormap = getColormap('viridis')(numpy.arange(256), alpha=1, bytes=True)
-            self.notify()
+    @colormap.setter
+    def colormap(self, colormap):
+        colormap = numpy.array(colormap, copy=True)
+        assert colormap.ndim == 2
+        assert colormap.shape[1] in (3, 4)
+        self._colormap = colormap
+        self._update_texture = True
+        self.notify()
 
     @property
     def norm(self):
@@ -431,12 +427,12 @@ class Colormap(event.Notifier, ProgramFunction):
         :param GLProgram program: The program to set-up.
                                   It MUST be in use and using this function.
         """
-        self.prepareGL2(context) # TODO see how to handle
+        self.prepareGL2(context)  # TODO see how to handle
 
         if self._texture is None:  # No colormap
             return
 
-        self._texture.bind() # TODO unbind?
+        self._texture.bind()
 
         gl.glUniform1i(program.uniforms['cmap.texture'],
                        self._texture.texUnit)
@@ -455,11 +451,9 @@ class Colormap(event.Notifier, ProgramFunction):
             if self._texture is not None:
                 self._texture.discard()
 
-            if self._colormap is None:  # No colormap
-                return
-
-            colormap = numpy.empty((16, 256, self._colormap.shape[1]),
-                                   dtype=self._colormap.dtype)
+            colormap = numpy.empty(
+                (16, self._colormap.shape[0], self._colormap.shape[1]),
+                dtype=self._colormap.dtype)
             colormap[:] = self._colormap
 
             format_ = gl.GL_RGBA if colormap.shape[-1] == 4 else gl.GL_RGB
