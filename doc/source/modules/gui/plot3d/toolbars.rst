@@ -24,6 +24,10 @@ Toolbars
 
 .. automodule:: silx.gui.plot3d.Plot3DToolBar
 
-.. autoclass:: Plot3DToolBar
+.. autoclass:: Plot3DInteractiveModeToolBar
+   :show-inheritance:
+   :members:
+
+.. autoclass:: Plot3DOutputToolBar
    :show-inheritance:
    :members:

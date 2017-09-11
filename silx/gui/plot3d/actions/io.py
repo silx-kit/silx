@@ -22,58 +22,32 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides QAction that can be attached to a plot3DWidget."""
+"""This module provides Plot3DAction related to input/output.
+
+It provides QAction to copy, save (snapshot and video), print a Plot3DWidget.
+"""
 
 from __future__ import absolute_import, division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "26/01/2017"
+__date__ = "06/09/2017"
 
 
 import logging
 import os
-import weakref
 
 import numpy
 
 from silx.gui import qt
 from silx.gui.plot.actions.io import PrintAction as _PrintAction
 from silx.gui.icons import getQIcon
-from .utils import mng
-from .._utils import convertQImageToArray
+from .Plot3DAction import Plot3DAction
+from ..utils import mng
+from ..._utils import convertQImageToArray
 
 
 _logger = logging.getLogger(__name__)
-
-
-class Plot3DAction(qt.QAction):
-    """QAction associated to a Plot3DWidget
-
-    :param parent: See :class:`QAction`
-    :param Plot3DWidget plot3d: Plot3DWidget the action is associated with
-    """
-
-    def __init__(self, parent, plot3d=None):
-        super(Plot3DAction, self).__init__(parent)
-        self._plot3d = None
-        self.setPlot3DWidget(plot3d)
-
-    def setPlot3DWidget(self, widget):
-        """Set the Plot3DWidget this action is associated with
-
-        :param Plot3DWidget widget: The Plot3DWidget to use
-        """
-        self._plot3d = None if widget is None else weakref.ref(widget)
-
-    def getPlot3DWidget(self):
-        """Return the Plot3DWidget associated to this action.
-
-        If no widget is associated, it returns None.
-
-        :rtype: qt.QWidget
-        """
-        return None if self._plot3d is None else self._plot3d()
 
 
 class CopyAction(Plot3DAction):

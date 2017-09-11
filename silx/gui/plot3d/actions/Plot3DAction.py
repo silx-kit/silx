@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,24 +22,48 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+"""Base class for QAction attached to a Plot3DWidget."""
+
+from __future__ import absolute_import, division
+
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "25/07/2016"
+__date__ = "06/09/2017"
 
 
-from numpy.distutils.misc_util import Configuration
+import logging
+import weakref
+
+from silx.gui import qt
 
 
-def configuration(parent_package='', top_path=None):
-    config = Configuration('plot3d', parent_package, top_path)
-    config.add_subpackage('actions')
-    config.add_subpackage('scene')
-    config.add_subpackage('test')
-    config.add_subpackage('utils')
-    return config
+_logger = logging.getLogger(__name__)
 
 
-if __name__ == "__main__":
-    from numpy.distutils.core import setup
+class Plot3DAction(qt.QAction):
+    """QAction associated to a Plot3DWidget
 
-    setup(configuration=configuration)
+    :param parent: See :class:`QAction`
+    :param Plot3DWidget plot3d: Plot3DWidget the action is associated with
+    """
+
+    def __init__(self, parent, plot3d=None):
+        super(Plot3DAction, self).__init__(parent)
+        self._plot3d = None
+        self.setPlot3DWidget(plot3d)
+
+    def setPlot3DWidget(self, widget):
+        """Set the Plot3DWidget this action is associated with
+
+        :param Plot3DWidget widget: The Plot3DWidget to use
+        """
+        self._plot3d = None if widget is None else weakref.ref(widget)
+
+    def getPlot3DWidget(self):
+        """Return the Plot3DWidget associated to this action.
+
+        If no widget is associated, it returns None.
+
+        :rtype: qt.QWidget
+        """
+        return None if self._plot3d is None else self._plot3d()

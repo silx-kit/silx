@@ -1,10 +1,15 @@
-Actions
-=======
+:mod:`actions`
+==============
 
-:mod:`Plot3DActions`
---------------------
+.. currentmodule:: silx.gui.plot3d.actions
 
-.. currentmodule:: silx.gui.plot3d.Plot3DActions
-
-.. automodule:: silx.gui.plot3d.Plot3DActions
+.. automodule:: silx.gui.plot3d.actions
    :members:
+
+.. automodule:: silx.gui.plot3d.actions.io
+   :members:
+
+.. automodule:: silx.gui.plot3d.actions.mode
+   :members:
+
+.. autoclass:: Plot3DAction

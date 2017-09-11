@@ -314,6 +314,9 @@ class Viewport(event.Notifier):
         (e.g., if spanning behind the viewpoint with perspective projection).
         """
         bounds = self.scene.bounds(transformed=True)
+        if bounds is None:
+             bounds = numpy.array(((0., 0., 0.), (1., 1., 1.)),
+                                  dtype=numpy.float32)
         bounds = self.camera.extrinsic.transformBounds(bounds)
 
         if isinstance(self.camera.intrinsic, transform.Perspective):
@@ -337,7 +340,11 @@ class Viewport(event.Notifier):
         It updates the camera position and depth extent.
         Camera sight direction and up are not affected.
         """
-        self.camera.resetCamera(self.scene.bounds(transformed=True))
+        bounds = self.scene.bounds(transformed=True)
+        if bounds is None:
+             bounds = numpy.array(((0., 0., 0.), (1., 1., 1.)),
+                                  dtype=numpy.float32)
+        self.camera.resetCamera(bounds)
 
     def orbitCamera(self, direction, angle=1.):
         """Rotate the camera around center of the scene.
@@ -347,6 +354,9 @@ class Viewport(event.Notifier):
         :param float angle: he angle in degrees of the rotation.
         """
         bounds = self.scene.bounds(transformed=True)
+        if bounds is None:
+             bounds = numpy.array(((0., 0., 0.), (1., 1., 1.)),
+                                  dtype=numpy.float32)
         center = 0.5 * (bounds[0] + bounds[1])
         self.camera.orbit(direction, center, angle)
 
@@ -359,6 +369,9 @@ class Viewport(event.Notifier):
         :param float step: The ratio of data to step for each pan.
         """
         bounds = self.scene.bounds(transformed=True)
+        if bounds is None:
+             bounds = numpy.array(((0., 0., 0.), (1., 1., 1.)),
+                                  dtype=numpy.float32)
         bounds = self.camera.extrinsic.transformBounds(bounds)
         center = 0.5 * (bounds[0] + bounds[1])
         ndcCenter = self.camera.intrinsic.transformPoint(
