@@ -471,11 +471,11 @@ class BackgroundDialog(qt.QDialog):
         return self.parametersWidget.getParameters()
 
     def setParameters(self, ddict):
-        """See :meth:`BackgroundWidget.setParameters`"""
+        """See :meth:`BackgroundWidget.setPrintGeometry`"""
         return self.parametersWidget.setParameters(ddict)
 
     def setDefault(self, ddict):
-        """Alias for :meth:`setParameters`"""
+        """Alias for :meth:`setPrintGeometry`"""
         return self.setParameters(ddict)
 
 

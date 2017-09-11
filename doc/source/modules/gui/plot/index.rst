@@ -38,6 +38,7 @@ Public modules
    plottools.rst
    profile.rst
    roi.rst
+   printpreviewtoolbutton.rst
 
 Internals
 ---------

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,26 +22,53 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-import unittest
+"""Test PrintPreview"""
 
-from . import test_periodictable
-from . import test_tablewidget
-from . import test_threadpoolpushbutton
-from . import test_hierarchicaltableview
-from . import test_printpreview
-
-__authors__ = ["V. Valls", "P. Knobel"]
+__authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "19/07/2017"
 
 
+import unittest
+from silx.gui.test.utils import TestCaseQt
+from silx.gui.widgets.PrintPreview import PrintPreviewDialog
+from silx.gui import qt
+
+from silx.resources import resource_filename
+
+
+class TestPrintPreview(TestCaseQt):
+    def testShow(self):
+        p = qt.QPrinter()
+        d = PrintPreviewDialog(printer=p)
+        d.show()
+        self.qapp.processEvents()
+
+    def testAddImage(self):
+        p = qt.QPrinter()
+        d = PrintPreviewDialog(printer=p)
+        d.addImage(qt.QImage(resource_filename("gui/icons/clipboard.png")))
+        self.qapp.processEvents()
+
+    def testAddSvg(self):
+        p = qt.QPrinter()
+        d = PrintPreviewDialog(printer=p)
+        d.addSvgItem(qt.QSvgRenderer(resource_filename("gui/icons/clipboard.svg"), d.page))
+        self.qapp.processEvents()
+
+    def testAddPixmap(self):
+        p = qt.QPrinter()
+        d = PrintPreviewDialog(printer=p)
+        d.addPixmap(qt.QPixmap.fromImage(qt.QImage(resource_filename("gui/icons/clipboard.png"))))
+        self.qapp.processEvents()
+
+
 def suite():
     test_suite = unittest.TestSuite()
-    test_suite.addTests(
-        [test_threadpoolpushbutton.suite(),
-         test_tablewidget.suite(),
-         test_periodictable.suite(),
-         test_printpreview.suite(),
-         test_hierarchicaltableview.suite(),
-         ])
+    test_suite.addTest(
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestPrintPreview))
     return test_suite
+
+
+if __name__ == '__main__':
+    unittest.main(defaultTest='suite')
