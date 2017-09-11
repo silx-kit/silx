@@ -28,14 +28,14 @@ from __future__ import absolute_import
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "08/09/2017"
 
 
 from silx.gui import qt
 from silx.gui.icons import getQIcon
 
 
-class ViewpointActionGroup(qt.QActionGroup):
+class _ViewpointActionGroup(qt.QActionGroup):
     """ActionGroup of actions to reset the viewpoint.
 
     As for QActionGroup, add group's actions to the widget with:
@@ -57,7 +57,7 @@ class ViewpointActionGroup(qt.QActionGroup):
     )
 
     def __init__(self, plot3D, parent=None):
-        super(ViewpointActionGroup, self).__init__(parent)
+        super(_ViewpointActionGroup, self).__init__(parent)
         self.setExclusive(False)
 
         self._plot3D = plot3D
@@ -66,6 +66,7 @@ class ViewpointActionGroup(qt.QActionGroup):
             iconname, text, tooltip = actionInfo
 
             action = qt.QAction(getQIcon(iconname), text, None)
+            action.setIconVisibleInMenu(True)
             action.setCheckable(False)
             action.setToolTip(tooltip)
             self.addAction(action)
@@ -90,7 +91,7 @@ class ViewpointToolBar(qt.QToolBar):
     def __init__(self, parent=None, plot3D=None, title='Viewpoint control'):
         super(ViewpointToolBar, self).__init__(title, parent)
 
-        self._actionGroup = ViewpointActionGroup(plot3D)
+        self._actionGroup = _ViewpointActionGroup(plot3D)
         assert plot3D is not None
         self._plot3D = plot3D
         self.addActions(self._actionGroup.actions())
@@ -112,3 +113,23 @@ class ViewpointToolBar(qt.QToolBar):
     #     """Projection combo box listener"""
     #     self._plot3D.setProjection(
     #         'perspective' if text == 'Perspective' else 'orthographic')
+
+
+class ViewpointToolButton(qt.QToolButton):
+    """A toolbutton with a drop-down list of ways to reset the viewpoint.
+
+    :param parent: See :class:`QToolButton`
+    :param Plot3DWiddget plot3D: The widget to control
+    """
+
+    def __init__(self, parent=None, plot3D=None):
+        super(ViewpointToolButton, self).__init__(parent)
+
+        self._actionGroup = _ViewpointActionGroup(plot3D)
+
+        menu = qt.QMenu(self)
+        menu.addActions(self._actionGroup.actions())
+        self.setMenu(menu)
+        self.setPopupMode(qt.QToolButton.InstantPopup)
+        self.setIcon(getQIcon('cube'))
+        self.setToolTip('Reset the viewpoint to a defined position')
