@@ -518,3 +518,4 @@ if h5py_missing:
     is_file = raise_h5py_missing
     is_group = raise_h5py_missing
     is_dataset = raise_h5py_missing
+    is_softlink = raise_h5py_missing
