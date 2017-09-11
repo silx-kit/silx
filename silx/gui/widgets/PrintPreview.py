@@ -59,41 +59,40 @@ class PrintPreviewDialog(qt.QDialog):
         self._buildToolbar()
 
         self.printer = printer
-        """:class:`QPrinter` (paint device that paints on a printer).
-        :meth:`showEvent` has been reimplemented to enforce printer
-        setup.
-        """
+        # :class:`QPrinter` (paint device that paints on a printer).
+        # :meth:`showEvent` has been reimplemented to enforce printer
+        # setup.
 
         self.printDialog = None
-        """:class:`QPrintDialog` (dialog for specifying the printer's
-        configuration)"""
+        # :class:`QPrintDialog` (dialog for specifying the printer's
+        # configuration)
 
         self.scene = None
-        """:class:`QGraphicsScene` (surface for managing
-        2D graphical items)"""
+        # :class:`QGraphicsScene` (surface for managing
+        # 2D graphical items)
 
         self.page = None
-        """:class:`QGraphicsRectItem` used as white background page on which
-        to display the print preview."""
+        # :class:`QGraphicsRectItem` used as white background page on which
+        # to display the print preview.
 
         self.view = None
-        """:class:`QGraphicsView` widget for displaying :attr:`scene`"""
+        # :class:`QGraphicsView` widget for displaying :attr:`scene`
 
         self._svgItems = []
-        """List storing :class:`QSvgRenderer` items to be printed, added in
-        :meth:`addSvgItem`, cleared in :meth:`_clearAll`.
-        This ensures that there is a reference pointing to the items,
-        which ensures they are not destroyed before being printed."""
+        # List storing :class:`QSvgRenderer` items to be printed, added in
+        # :meth:`addSvgItem`, cleared in :meth:`_clearAll`.
+        # This ensures that there is a reference pointing to the items,
+        # which ensures they are not destroyed before being printed.
 
         self._viewScale = 1.0
-        """Zoom level (1.0 is 100%)"""
+        # Zoom level (1.0 is 100%)
 
         self._toBeCleared = False
-        """Flag indicating that all items must be removed from :attr:`scene`
-        and from :attr:`_svgItems`.
-        Set to True after a successful printing. The widget is then hidden,
-        and it will be cleared the next time it is shown.
-        Reset to False after :meth:`_clearAll` has done its job."""
+        # Flag indicating that all items must be removed from :attr:`scene`
+        # and from :attr:`_svgItems`.
+        # Set to True after a successful printing. The widget is then hidden,
+        # and it will be cleared the next time it is shown.
+        # Reset to False after :meth:`_clearAll` has done its job.
 
     def _buildToolbar(self):
         toolBar = qt.QWidget(self)
