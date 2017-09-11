@@ -26,13 +26,17 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "26/04/2017"
+__date__ = "06/09/2017"
 
 
 import gc
 import unittest
 import weakref
+import tempfile
+import shutil
+import os
 
+import silx.resources
 from silx.gui import qt
 from silx.gui.test.utils import TestCaseQt
 from silx.gui import icons
@@ -41,14 +45,49 @@ from silx.gui import icons
 class TestIcons(TestCaseQt):
     """Test to check that icons module."""
 
+    @classmethod
+    def setUpClass(cls):
+        super(TestIcons, cls).setUpClass()
+
+        cls.tmpDirectory = tempfile.mkdtemp(prefix="resource_")
+        os.mkdir(os.path.join(cls.tmpDirectory, "gui"))
+        destination = os.path.join(cls.tmpDirectory, "gui", "icons")
+        os.mkdir(destination)
+        shutil.copy(silx.resources.resource_filename("gui/icons/zoom-in.png"), destination)
+        shutil.copy(silx.resources.resource_filename("gui/icons/zoom-out.svg"), destination)
+
+    @classmethod
+    def tearDownClass(cls):
+        super(TestIcons, cls).tearDownClass()
+        shutil.rmtree(cls.tmpDirectory)
+
+    def setUp(self):
+        # Store the original configuration
+        self._oldResources = dict(silx.resources._RESOURCE_DIRECTORIES)
+        silx.resources.register_resource_directory("test", "foo.bar", forced_path=self.tmpDirectory)
+        unittest.TestCase.setUp(self)
+
+    def tearDown(self):
+        unittest.TestCase.tearDown(self)
+        # Restiture the original configuration
+        silx.resources._RESOURCE_DIRECTORIES = self._oldResources
+
+    def testIcon(self):
+        icon = icons.getQIcon("silx:gui/icons/zoom-out")
+        self.assertIsNotNone(icon)
+
+    def testPrefix(self):
+        icon = icons.getQIcon("silx:gui/icons/zoom-out")
+        self.assertIsNotNone(icon)
+
     def testSvgIcon(self):
         if "svg" not in qt.supportedImageFormats():
             self.skipTest("SVG not supported")
-        icon = icons.getQIcon("test-svg")
+        icon = icons.getQIcon("test:gui/icons/zoom-out")
         self.assertIsNotNone(icon)
 
     def testPngIcon(self):
-        icon = icons.getQIcon("test-png")
+        icon = icons.getQIcon("test:gui/icons/zoom-in")
         self.assertIsNotNone(icon)
 
     def testUnexistingIcon(self):

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -35,5 +35,7 @@ from .utils import save1D
 from .utils import is_dataset
 from .utils import is_file
 from .utils import is_group
+from .utils import is_softlink
 
-__all__ = ["save1D", "is_dataset", "is_file", "is_group"]  # avoid to import open with "import *"
+# avoid to import open with "import *"
+__all__ = ["save1D", "is_dataset", "is_file", "is_group", "is_softlink"]

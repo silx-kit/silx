@@ -37,7 +37,7 @@ except ImportError:
 else:
     h5py_missing = False
     from ..spech5 import SpecH5, SpecH5Group
-    from ..spectoh5 import convert, write_spec_to_h5
+    from ..convert import convert, write_to_h5
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
@@ -122,8 +122,7 @@ class TestConvertSpecHDF5(unittest.TestCase):
         gc.collect()
 
     def testAppendToHDF5(self):
-        write_spec_to_h5(self.sfh5, self.h5f,
-                         h5path="/foo/bar/spam")
+        write_to_h5(self.sfh5, self.h5f, h5path="/foo/bar/spam")
         self.assertTrue(
             array_equal(self.h5f["/1.2/measurement/mca_1/data"],
                         self.h5f["/foo/bar/spam/1.2/measurement/mca_1/data"])
@@ -134,8 +133,7 @@ class TestConvertSpecHDF5(unittest.TestCase):
         or a SpecH5."""
         g = self.sfh5["1.1/instrument"]
         self.assertIsInstance(g, SpecH5Group)        # let's be paranoid
-        write_spec_to_h5(g, self.h5f,
-                         h5path="my instruments")
+        write_to_h5(g, self.h5f, h5path="my instruments")
 
         self.assertAlmostEqual(self.h5f["my instruments/positioners/Sslit1 HOff"][tuple()],
                                16.197579, places=4)

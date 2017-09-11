@@ -26,10 +26,10 @@
 """
 Display available project icons using Qt.
 """
+import functools
+
 from silx.gui import qt
 import silx.gui.icons
-import pkg_resources
-import functools
 
 
 class IconPreview(qt.QMainWindow):
@@ -74,9 +74,11 @@ class IconPreview(qt.QMainWindow):
 
         self.tools = []
 
-        icons = pkg_resources.resource_listdir("silx.resources", "gui/icons")
+        import silx.resources
+
+        icons = silx.resources.list_dir("gui/icons")
         # filter out sub-directories
-        icons = filter(lambda x: not pkg_resources.resource_isdir("silx.resources", "gui/icons/" + x), icons)
+        icons = filter(lambda x: not silx.resources.is_dir("gui/icons/" + x), icons)
         # remove extension
         icons = [i.split(".")[0] for i in icons]
         # remove duplicated names

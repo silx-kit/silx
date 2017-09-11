@@ -83,7 +83,9 @@ def run_file(filename, argv):
             logger.info("Patch the sys.argv: %s", sys.argv)
             logger.info("Executing %s.main()", filename)
             print("########### EXECFILE ###########")
-            execfile(filename, globals(), globals())
+            module_globals = globals().copy()
+            module_globals['__file__'] = filename
+            execfile(filename, module_globals, module_globals)
         finally:
             sys.argv = old_argv
     except SyntaxError as error:

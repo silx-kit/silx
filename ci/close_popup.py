@@ -32,7 +32,7 @@ The application can be tested with a set of samples:
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "01/09/2017"
+__date__ = "05/09/2017"
 
 
 import os
@@ -177,16 +177,23 @@ class CheckMacOsXPopup_NameAsBeenChanged(CheckPopup):
         if screenSize != (1024, 768):
             return False
 
-        expectedPixelColors = [
-            ((430, 150), "header", qt.QColor("#f6f6f6")),
-            ((388, 190), "popup", qt.QColor("#ececec")),
-            ((637, 324), "yes button", qt.QColor("#ffffff")),
-            ((364, 213), "logo", qt.QColor("#ecc520")),
-        ]
-        return self.checkColors(image, expectedPixelColors)
+        delta_locations = [-5, 0, 5, 10, 15, 20]
+
+        for delta in delta_locations:
+            expectedPixelColors = [
+                ((430, 150 + delta), "header", qt.QColor("#f6f6f6")),
+                ((388, 190 + delta), "popup", qt.QColor("#ececec")),
+                ((637, 324 + delta), "yes button", qt.QColor("#ffffff")),
+                ((364, 213 + delta), "logo", qt.QColor("#ecc520")),
+            ]
+            detected = self.checkColors(image, expectedPixelColors)
+            if detected:
+                self.delta = delta
+                return True
+        return False
 
     def clickPosition(self):
-        return (660, 324)
+        return (660, 324 + self.delta)
 
 
 def checkPopups(popupList, filename):

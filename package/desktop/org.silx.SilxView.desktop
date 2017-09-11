@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Encoding=UTF-8
+Name=silx Data Viewer
+Comment=HDF5 EDF SPEC Data Viewer
+Exec=silx view %F
+Terminal=false
+Icon=silx
+Categories=Education;Science;DataVisualization;Qt

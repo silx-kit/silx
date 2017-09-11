@@ -39,6 +39,9 @@ associated tools.
 :doc:`modules/index`
     Documentation of the packages included in *silx*
 
+:doc:`modules/gui/gallery`
+    Widgets gallery and screenshots
+
 :doc:`changelog`
     List of changes between releases
 

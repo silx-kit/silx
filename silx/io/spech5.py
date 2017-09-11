@@ -706,6 +706,7 @@ class McaDataDataset(SpecH5LazyNodeDataset):
         self._scan = scan
         self._analyser_index = analyser_index
         self._shape = None
+        self._num_analysers = _get_number_of_mca_analysers(self._scan)
 
     def _create_data(self):
         return _demultiplex_mca(self._scan, self._analyser_index)
@@ -713,9 +714,8 @@ class McaDataDataset(SpecH5LazyNodeDataset):
     @property
     def shape(self):
         if self._shape is None:
-            num_analysers = _get_number_of_mca_analysers(self._scan)
             num_spectra_in_file = len(self._scan.mca)
-            num_spectra_per_analyser = num_spectra_in_file // num_analysers
+            num_spectra_per_analyser = num_spectra_in_file // self._num_analysers
             len_spectrum = len(self._scan.mca[self._analyser_index])
             self._shape = num_spectra_per_analyser, len_spectrum
         return self._shape
@@ -726,18 +726,33 @@ class McaDataDataset(SpecH5LazyNodeDataset):
 
     @property
     def dtype(self):
-        # we initialize the data with numpy.empty() without a dtype
-        # in _get_number_of_mca_analysers()
+        # we initialize the data with numpy.empty() without specifying a dtype
+        # in _demultiplex_mca()
         return numpy.empty((1, )).dtype
 
     def __len__(self):
         return self.shape[0]
 
     def __getitem__(self, item):
-        # optimization for fetching a single spectrum when data not already loaded
-        if not self._is_initialized and isinstance(item, integer_types):
-            num_analysers = _get_number_of_mca_analysers(self._scan)
-            return self._scan.mca[self._analyser_index + item * num_analysers]
+        # optimization for fetching a single spectrum if data not already loaded
+        if not self._is_initialized:
+            if isinstance(item, integer_types):
+                if item < 0:
+                    # negative indexing
+                    item += len(self)
+                return self._scan.mca[self._analyser_index +
+                                      item * self._num_analysers]
+            # accessing a slice or element of a single spectrum [i, j:k]
+            try:
+                spectrum_idx, channel_idx_or_slice = item
+                assert isinstance(spectrum_idx, integer_types)
+            except (ValueError, TypeError, AssertionError):
+                pass
+            else:
+                if spectrum_idx < 0:
+                    item += len(self)
+                idx = self._analyser_index + spectrum_idx * self._num_analysers
+                return self._scan.mca[idx][channel_idx_or_slice]
 
         return super(McaDataDataset, self).__getitem__(item)
 
