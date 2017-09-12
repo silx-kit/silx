@@ -115,7 +115,7 @@ def _sine_function_derivative(t, params, eval_idx):
     return grad[eval_idx]
 
 
-def calc_center_centroid(sino, debug=False):
+def calc_center_centroid(sino):
     """
     Compute a guess of the Center of Rotation (CoR) of a given sinogram.
     The computation is based on the computation of the centroid of each
@@ -124,8 +124,6 @@ def calc_center_centroid(sino, debug=False):
     This method is unlikely to work in local tomography.
 
     :param numpy.ndarray sino: Sinogram
-    :param bool debug: optional. If True, plots the fit of the centroids with a
-                       sine function
     """
 
     n_a, n_d = sino.shape
@@ -142,12 +140,6 @@ def calc_center_centroid(sino, debug=False):
     amp = (cmax - cmin) / 2.
     phi = 1.1
     p0 = (offs, amp, phi)
-
-    if debug:
-        import matplotlib.pyplot as plt
-        plt.figure()
-        plt.plot(angles, centroids)
-        plt.show()
 
     constraints = np.zeros((3, 3))
 
