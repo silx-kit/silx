@@ -132,7 +132,10 @@ def main(argv):
         old_input_list = list(options.input_files)
         options.input_files = []
         for fname in old_input_list:
-            options.input_files += glob(fname)
+            if "?" not in fname and "*" not in fname:
+                options.input_files += [fname]
+            else:
+                options.input_files += glob(fname)
         old_input_list = None
 
     if options.debug:
