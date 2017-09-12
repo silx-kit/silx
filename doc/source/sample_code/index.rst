@@ -165,6 +165,17 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
        - QToolButton from :mod:`silx.gui.plot.PlotToolButtons`
        - QToolBar from :mod:`silx.gui.plot.PlotTools`
        - :class:`ColorBarWidget` from :mod:`silx.gui.plot.ColorBar.
+   * - :download:`printPreview.py <../../../examples/printPreview.py>`
+     - .. image:: img/printPreview.png
+         :height: 150px
+         :align: center
+     - This script illustrates how to add a print preview tool button to any plot
+       widget inheriting :class:`PlotWidget`.
+
+       Three plot widgets are instantiated. One of them uses a standalone
+       :class:`PrintPreviewToolButton`, while the other two use a
+       :class:`SingletonPrintPreviewToolButton` which allows them to send their content
+       to the same print preview page.
    * - :download:`scatterMask.py <../../../examples/scatterMask.py>`
      - .. image:: img/scatterMask.png
          :height: 150px
