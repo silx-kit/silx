@@ -31,6 +31,7 @@ import unittest
 from . import test_bilinear
 from . import test_shapes
 from . import test_medianfilter
+from . import test_tomography
 
 
 def suite():
@@ -39,4 +40,5 @@ def suite():
     test_suite.addTest(test_bilinear.suite())
     test_suite.addTest(test_medianfilter.suite())
     test_suite.addTest(test_shapes.suite())
+    test_suite.addTest(test_tomography.suite())
     return test_suite
