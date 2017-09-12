@@ -203,17 +203,17 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
    * - Source
      - Screenshot
      - Description
-   * - :download:`spectoh5.py <../../../examples/spectoh5.py>`
+   * - :download:`writetoh5.py <../../../examples/writetoh5.py>`
      -
-     - This script converts SPEC data files to HDF5 files.
+     - This script converts a supported data file (SPEC, EDF...) to a HDF5 file.
 
        By default, it creates a new output file or fails if the output file given
        on the command line already exist, but the user can choose to overwrite
-       existing files, or append SPEC data to existing HDF5 files.
+       an existing file, or append data to an existing HDF5 file.
 
        In case of appending data to HDF5 files, the user can choose between ignoring
        input data if a corresponding dataset already exists in the output file, or
-       overwriting existing datasets.
+       overwriting the existing dataset.
 
        By default, new scans are written to the root (/) of the HDF5 file, but it is
        possible to specify a different target path.
