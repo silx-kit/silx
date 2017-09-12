@@ -97,8 +97,10 @@ class Projection(OpenclProcessing):
             self.angles = np.linspace(0, np.pi, self.nprojs, False, dtype=np.float32)
         else:
             self.nprojs = len(self.angles)
-        self.offset_x = np.float32((self.shape[1]-1)/2. - self.axis_pos) # TODO: custom
-        self.offset_y = np.float32((self.shape[0]-1)/2. - self.axis_pos) # TODO: custom
+        self.offset_x = -np.float32((self.shape[1]-1)/2. - self.axis_pos) # TODO: custom
+        self.offset_y = -np.float32((self.shape[0]-1)/2. - self.axis_pos) # TODO: custom
+        # Reset axis_pos once offset are computed
+        self.axis_pos0 = np.float((self.shape[1]-1)/2.)
 
         # Workgroup, ndrange and shared size
         self.dimgrid_x = _idivup(self.dwidth, 16)
@@ -140,7 +142,6 @@ class Projection(OpenclProcessing):
                 0,
                 self._tmp_extended_img.size * _sizeof(np.float32)
             )
-
         # Precomputations
         self.compute_angles()
         self.proj_precomputations()
@@ -151,10 +152,8 @@ class Projection(OpenclProcessing):
                                      0,
                                      self.nprojs*_sizeof(np.float32)
                                     )
-
         # Shorthands
         self.d_sino = self.cl_mem["d_sino"]
-
 
         OpenclProcessing.compile_kernels(self, self.kernel_files)
         # check that workgroup can actually be (16, 16)
@@ -202,7 +201,6 @@ class Projection(OpenclProcessing):
             self.buffers.append(
                 BufferDescription("d_slice", (self.shape[1]+2) * (self.shape[1]+2), np.float32, mf.READ_ONLY)
             )
-
 
 
     def transfer_to_slice(self, image):
@@ -312,7 +310,7 @@ class Projection(OpenclProcessing):
                 np.int32(self.shape[1]), ##
                 np.int32(self.dwidth),
                 self.cl_mem["d_angles"],
-                np.float32(self.axis_pos),
+                np.float32(self.axis_pos0),
                 self.cl_mem["d_axis_corrections"], # TODO custom
                 self.cl_mem["d_beginPos"],
                 self.cl_mem["d_strideJoseph"],
