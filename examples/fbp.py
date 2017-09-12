@@ -36,5 +36,9 @@ import numpy
 
 sino = numpy.load(utilstest.getfile("sino500.npz"))["data"]
 
-fbp = backprojection.Backprojection(sino_shape=sino.shape)
-result = fbp.filtered_backprojection(sino)
+# Define the tomography geometry. 
+# By default, the angles series is [0, pi] with sino.shape[0] angles
+# and the rotation center is (sino.shape[1]-1.)/2
+tomo_geometry = backprojection.Backprojection(sino.shape)
+# Reconstruct (fbp) with this geometry
+result = tomo_geometry.filtered_backprojection(sino)
