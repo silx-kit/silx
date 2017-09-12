@@ -138,6 +138,10 @@ class TestAnimatedIcons(TestCaseQt):
         icon = icons.MultiImageAnimatedIcon("process-working")
         self.assertIsNotNone(icon)
 
+    def testPrefixedResourceExists(self):
+        icon = icons.MultiImageAnimatedIcon("silx:gui/icons/process-working")
+        self.assertIsNotNone(icon)
+
     def testMultiImageIconNotExists(self):
         self.assertRaises(ValueError, icons.MultiImageAnimatedIcon, "not-exists")
 
