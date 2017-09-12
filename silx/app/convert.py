@@ -24,14 +24,16 @@
 """Convert silx supported data files into HDF5 files"""
 
 import ast
+import sys
 import os
 import argparse
+from glob import glob
 import logging
 
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "23/08/2017"
+__date__ = "12/09/2017"
 
 
 _logger = logging.getLogger(__name__)
@@ -126,6 +128,12 @@ def main(argv):
         help='Set logging system in debug mode')
 
     options = parser.parse_args(argv[1:])
+    if sys.platform.startswith("win"):
+        old_input_list = list(options.input_files)
+        options.input_files = []
+        for fname in old_input_list:
+            options.input_files += glob(fname)
+        old_input_list = None
 
     if options.debug:
         logging.root.setLevel(logging.DEBUG)
