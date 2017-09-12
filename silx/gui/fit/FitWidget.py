@@ -87,6 +87,8 @@ class FitWidget(qt.QWidget):
     run the estimation, set constraints on parameters and run the actual fit.
 
     The results are displayed in a table.
+
+    .. image:: img/FitWidget.png
     """
     sigFitWidgetSignal = qt.Signal(object)
     """This signal is emitted by the estimation and fit methods.

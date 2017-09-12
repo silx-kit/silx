@@ -9,11 +9,11 @@
 Snapshot of the widgets:
 
 
-.. |imgFitWidget| image:: ../../../Tutorials/img/fitwidget4.png
+.. |imgFitWidget| image:: ./img/FitWidget.png
    :height: 150px
    :align: middle
 
-.. |imgBGWidget| image:: ./img/bgwidget.png
+.. |imgBGWidget| image:: ./img/BackgroundDialog.png
    :height: 150px
    :align: middle
 

@@ -175,7 +175,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "08/08/2017"
+__date__ = "30/08/2017"
 
 
 from collections import OrderedDict, namedtuple
@@ -430,6 +430,18 @@ class PlotWidget(qt.QMainWindow):
 
         self.setFocusPolicy(qt.Qt.StrongFocus)
         self.setFocus(qt.Qt.OtherFocusReason)
+
+    @staticmethod
+    def setDefaultBackend(backend):
+        """Set system wide default plot backend.
+
+        .. versionadded:: 0.6
+
+        :param backend: The backend to use, in:
+                        'matplotlib' (default), 'mpl', 'opengl', 'gl', 'none'
+                        or a :class:`BackendBase.BackendBase` class
+        """
+        PlotWidget.DEFAULT_BACKEND = backend
 
     def _getDirtyPlot(self):
         """Return the plot dirty flag.
@@ -2101,43 +2113,14 @@ class PlotWidget(qt.QMainWindow):
         self._setDirtyPlot()
         self._notifyLimitsChanged()
 
-    def setLimitConstraints(self, xMin=None, xMax=None,
-                            yMin=None, yMax=None,
-                            minXRange=None, maxXRange=None,
-                            minYRange=None, maxYRange=None):
-        """
-        Set limits that constrain the possible view ranges.
+    def _getViewConstraints(self):
+        """Return the plot object managing constaints on the plot view.
 
-        The arguments `xMin`, `xMax`, `yMin`, `yMax` define the region within
-        the viewbox coordinate system that may be accessed by panning the view.
-
-        The ranges arguments prevent the view being zoomed in or
-        out too far.
-
-        .. versionadded:: 0.6
-
-        :param float xMin: Minimum allowed x-axis value
-        :param float xMax: Maximum allowed x-axis value
-        :param float yMin: Minimum allowed y-axis value
-        :param float yMax: Maximum allowed y-axis value
-        :param float minXRange: Minimum allowed left-to-right span across the view.
-        :param float maxXRange: Maximum allowed left-to-right span across the view.
-        :param float minYRange: Minimum allowed top-to-bottom span across the view.
-        :param float maxYRange: Maximum allowed top-to-bottom span across the view.
+        :rtype: ViewConstraints
         """
         if self._viewConstrains is None:
             self._viewConstrains = ViewConstraints()
-        updated = self._viewConstrains.update(xMin=xMin, xMax=xMax,
-                                              yMin=yMin, yMax=yMax,
-                                              minXRange=minXRange,
-                                              maxXRange=maxXRange,
-                                              minYRange=minYRange,
-                                              maxYRange=maxYRange)
-        if updated:
-            xMin, xMax = self.getXAxis().getLimits()
-            yMin, yMax = self.getYAxis().getLimits()
-            y2Min, y2Max = self.getYAxis('right').getLimits()
-            self.setLimits(xMin, xMax, yMin, yMax, y2Min, y2Max)
+        return self._viewConstrains
 
     # Title and labels
 
@@ -2195,6 +2178,8 @@ class PlotWidget(qt.QMainWindow):
     def getXAxis(self):
         """Returns the X axis
 
+        .. versionadded:: 0.6
+
         :rtype: :class:`.items.Axis`
         """
         return self._xAxis
@@ -2202,12 +2187,23 @@ class PlotWidget(qt.QMainWindow):
     def getYAxis(self, axis="left"):
         """Returns an Y axis
 
+        .. versionadded:: 0.6
+
         :param str axis: The Y axis to return
                          ('left' or 'right').
         :rtype: :class:`.items.Axis`
         """
         assert(axis in ["left", "right"])
         return self._yAxis if axis == "left" else self._yRightAxis
+
+    def setAxesDisplayed(self, displayed):
+        """Display or not the axes.
+
+        :param bool displayed: If `True` axes are displayed. If `False` axes
+            are not anymore visible and the margin used for them is removed.
+        """
+        self._backend.setAxesDisplayed(displayed)
+        self._setDirtyPlot()
 
     @property
     @deprecated(since_version='0.6')
@@ -2831,7 +2827,7 @@ class PlotWidget(qt.QMainWindow):
             if kind == 'curve':
                 curve = self.getCurve(legend)
                 if curve is not None and test(curve):
-                    return kind, curve, item['xdata'], item['ydata']
+                    return kind, curve, item['indices']
 
             elif kind == 'image':
                 image = self.getImage(legend)

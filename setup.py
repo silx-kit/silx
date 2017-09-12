@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "27/07/2017"
+__date__ = "30/08/2017"
 __license__ = "MIT"
 
 
@@ -708,8 +708,10 @@ def get_project_configuration(dry_run):
     setup_requires = ["setuptools", "numpy"]
 
     package_data = {
+        # Resources files for silx
         'silx.resources': [
-            # Add here all resources files
+            'gui/logo/*.png',
+            'gui/logo/*.svg',
             'gui/icons/*.png',
             'gui/icons/*.svg',
             'gui/icons/*.mng',
@@ -717,7 +719,7 @@ def get_project_configuration(dry_run):
             'gui/icons/animated/*.png',
             'opencl/*.cl',
             'opencl/sift/*.cl',
-            'gui/colormaps/*.npy']
+            'gui/colormaps/*.npy'],
     }
 
     entry_points = {

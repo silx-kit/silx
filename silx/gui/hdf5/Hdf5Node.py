@@ -27,6 +27,8 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "16/06/2017"
 
+import weakref
+
 
 class Hdf5Node(object):
     """Abstract tree node
@@ -43,7 +45,9 @@ class Hdf5Node(object):
             everything is lazy loaded.
         """
         self.__child = None
-        self.__parent = parent
+        self.__parent = None
+        if parent is not None:
+            self.__parent = weakref.ref(parent)
         if populateAll:
             self.__child = []
             self._populateChild(populateAll=True)
@@ -54,7 +58,12 @@ class Hdf5Node(object):
 
         :rtype: Hdf5Node
         """
-        return self.__parent
+        if self.__parent is None:
+            return None
+        parent = self.__parent()
+        if parent is None:
+            self.__parent = parent
+        return parent
 
     def setParent(self, parent):
         """Redefine the parent of the node.
@@ -63,7 +72,10 @@ class Hdf5Node(object):
 
         :param Hdf5Node parent: The new parent
         """
-        self.__parent = parent
+        if parent is None:
+            self.__parent = None
+        else:
+            self.__parent = weakref.ref(parent)
 
     def appendChild(self, child):
         """Append a child to the node.

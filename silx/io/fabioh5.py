@@ -28,470 +28,41 @@
 
 .. note:: This module has a dependency on the `h5py <http://www.h5py.org/>`_
     and `fabio <https://github.com/silx-kit/fabio>`_ libraries,
-    which are not a mandatory dependencies for `silx`. You might need
-    to install it if you don't already have it.
+    which are not mandatory dependencies for `silx`.
+
 """
 
 import collections
-import numpy
-import numbers
 import logging
-import fabio
-import h5py
-from silx.third_party import six
+import numbers
 
+import fabio
+import numpy
+
+from . import commonh5
+from silx.third_party import six
 
 _logger = logging.getLogger(__name__)
 
 
-class Node(object):
-    """Main class for all fabioh5 classes. Help to manage a tree."""
-
-    def __init__(self, name, parent=None):
-        self.__parent = parent
-        self.__basename = name
-
-    @property
-    def h5py_class(self):
-        """Returns the h5py classes which is mimicked by this class. It can be
-        one of `h5py.File, h5py.Group` or `h5py.Dataset`
-
-        :rtype: Class
-        """
-        raise NotImplementedError()
-
-    @property
-    def parent(self):
-        """Returns the parent of the node.
-
-        :rtype: Node
-        """
-        return self.__parent
-
-    @property
-    def file(self):
-        """Returns the file node of this node.
-
-        :rtype: Node
-        """
-        node = self
-        while node.__parent is not None:
-            node = node.__parent
-        if isinstance(node, File):
-            return node
-        else:
-            return None
-
-    def _set_parent(self, parent):
-        """Set the parent of this node.
-
-        It do not update the parent object.
-
-        :param Node parent: New parent for this node
-        """
-        self.__parent = parent
-
-    @property
-    def attrs(self):
-        """Returns HDF5 attributes of this node.
-
-        :rtype: dict
-        """
-        return {}
-
-    @property
-    def name(self):
-        """Returns the HDF5 name of this node.
-        """
-        if self.__parent is None:
-            return "/"
-        if self.__parent.name == "/":
-            return "/" + self.basename
-        return self.__parent.name + "/" + self.basename
-
-    @property
-    def basename(self):
-        """Returns the HDF5 basename of this node.
-        """
-        return self.__basename
-
-
-class Dataset(Node):
-    """Class which handle a numpy data as a mimic of a h5py.Dataset.
-    """
-
-    def __init__(self, name, data, parent=None, attrs=None):
-        self.__data = data
-        Node.__init__(self, name, parent)
-        if attrs is None:
-            self.__attrs = {}
-        else:
-            self.__attrs = attrs
-
-    def _set_data(self, data):
-        """Set the data exposed by the dataset.
-
-        It have to be called only one time before the data is used. It should
-        not be edited after use.
-
-        :param numpy.ndarray data: Data associated to the dataset
-        """
-        self.__data = data
-
-    def _get_data(self):
-        """Returns the exposed data
-
-        :rtype: numpy.ndarray
-        """
-        return self.__data
-
-    @property
-    def attrs(self):
-        """Returns HDF5 attributes of this node.
-
-        :rtype: dict
-        """
-        return self.__attrs
-
-    @property
-    def h5py_class(self):
-        """Returns the h5py classes which is mimicked by this class. It can be
-        one of `h5py.File, h5py.Group` or `h5py.Dataset`
-
-        :rtype: Class
-        """
-        return h5py.Dataset
-
-    @property
-    def dtype(self):
-        """Returns the numpy datatype exposed by this dataset.
-
-        :rtype: numpy.dtype
-        """
-        return self._get_data().dtype
-
-    @property
-    def shape(self):
-        """Returns the shape of the data exposed by this dataset.
-
-        :rtype: tuple
-        """
-        if isinstance(self._get_data(), numpy.ndarray):
-            return self._get_data().shape
-        else:
-            return tuple()
-
-    @property
-    def size(self):
-        """Returns the size of the data exposed by this dataset.
-
-        :rtype: int
-        """
-        if isinstance(self._get_data(), numpy.ndarray):
-            return self._get_data().size
-        else:
-            # It is returned as float64 1.0 by h5py
-            return numpy.float64(1.0)
-
-    def __len__(self):
-        """Returns the size of the data exposed by this dataset.
-
-        :rtype: int
-        """
-        if isinstance(self._get_data(), numpy.ndarray):
-            return len(self._get_data())
-        else:
-            # It is returned as float64 1.0 by h5py
-            raise TypeError("Attempt to take len() of scalar dataset")
-
-    def __getitem__(self, item):
-        """Returns the slice of the data exposed by this dataset.
-
-        :rtype: numpy.ndarray
-        """
-        if not isinstance(self._get_data(), numpy.ndarray):
-            if item == Ellipsis:
-                return numpy.array(self._get_data())
-            elif item == tuple():
-                return self._get_data()
-            else:
-                raise ValueError("Scalar can only be reached with an ellipsis or an empty tuple")
-        return self._get_data().__getitem__(item)
-
-    def __str__(self):
-        basename = self.name.split("/")[-1]
-        return '<FabIO dataset "%s": shape %s, type "%s">' % \
-               (basename, self.shape, self.dtype.str)
-
-    def __getslice__(self, i, j):
-        """Returns the slice of the data exposed by this dataset.
-
-        Deprecated but still in use for python 2.7
-
-        :rtype: numpy.ndarray
-        """
-        return self.__getitem__(slice(i, j, None))
-
-    @property
-    def value(self):
-        """Returns the data exposed by this dataset.
-
-        Deprecated by h5py. It is prefered to use indexing `[()]`.
-
-        :rtype: numpy.ndarray
-        """
-        return self._get_data()
-
-    @property
-    def compression(self):
-        """Returns compression as provided by `h5py.Dataset`.
-
-        There is no compression."""
-        return None
-
-    @property
-    def compression_opts(self):
-        """Returns compression options as provided by `h5py.Dataset`.
-
-        There is no compression."""
-        return None
-
-    @property
-    def chunks(self):
-        """Returns chunks as provided by `h5py.Dataset`.
-
-        There is no chunks."""
-        return None
-
-
-class LazyLoadableDataset(Dataset):
-    """Abstract dataset which provide a lazy loading of the data.
-
-    The class have to be inherited and the :meth:`_create_data` have to be
-    implemented to return the numpy data exposed by the dataset. This factory
-    is only called ones, when the data is needed.
-    """
-
-    def __init__(self, name, parent=None, attrs=None):
-        super(LazyLoadableDataset, self).__init__(name, None, parent, attrs=attrs)
-        self.__is_initialized = False
-
-    def _create_data(self):
-        """
-        Factory to create the data exposed by the dataset when it is needed.
-
-        It have to be implemented to work.
-
-        :rtype: numpy.ndarray
-        """
-        raise NotImplementedError()
-
-    def _get_data(self):
-        """Returns the data exposed by the dataset.
-
-        Overwrite Dataset method :meth:`_get_data` to implement the lazy
-        loading feature.
-
-        :rtype: numpy.ndarray
-        """
-        if not self.__is_initialized:
-            data = self._create_data()
-            self._set_data(data)
-            self.__is_initialized = True
-        return super(LazyLoadableDataset, self)._get_data()
-
-
-class Group(Node):
-    """Class which mimic a `h5py.Group`."""
-
-    def __init__(self, name, parent=None, attrs=None):
-        Node.__init__(self, name, parent)
-        self.__items = collections.OrderedDict()
-        if attrs is None:
-            attrs = {}
-        self.__attrs = attrs
-
-    def _get_items(self):
-        """Returns the child items as a name-node dictionary.
-
-        :rtype: dict
-        """
-        return self.__items
-
-    def add_node(self, node):
-        """Add a child to this group.
-
-        :param Node node: Child to add to this group
-        """
-        self._get_items()[node.basename] = node
-        node._set_parent(self)
-
-    @property
-    def h5py_class(self):
-        """Returns the h5py classes which is mimicked by this class.
-
-        It returns `h5py.Group`
-
-        :rtype: Class
-        """
-        return h5py.Group
-
-    @property
-    def attrs(self):
-        """Returns HDF5 attributes of this node.
-
-        :rtype: dict
-        """
-        return self.__attrs
-
-    def items(self):
-        """Returns items iterator containing name-node mapping.
-
-        :rtype: iterator
-        """
-        return self._get_items().items()
-
-    def get(self, name, default=None, getclass=False, getlink=False):
-        """ Retrieve an item or other information.
-
-        If getlink only is true, the returned value is always HardLink
-            cause this implementation do not use links. Like the original
-            implementation.
-
-        :param str name: name of the item
-        :param object default: default value returned if the name is not found
-        :param bool getclass: if true, the returned object is the class of the object found
-        :param bool getlink: if true, links object are returned instead of the target
-        :return: An object, else None
-        :rtype: object
-        """
-        if name not in self._get_items():
-            return default
-
-        if getlink:
-            node = h5py.HardLink()
-        else:
-            node = self._get_items()[name]
-
-        if getclass:
-            if hasattr(node, "h5py_class"):
-                obj = node.h5py_class
-            else:
-                obj = node.__class__
-        else:
-            obj = node
-        return obj
-
-    def __len__(self):
-        """Returns the number of child contained in this group.
-
-        :rtype: int
-        """
-        return len(self._get_items())
-
-    def __iter__(self):
-        """Iterate over member names"""
-        for x in self._get_items().__iter__():
-            yield x
-
-    def __getitem__(self, name):
-        """Return a child from is name.
-
-        :param name str: name of a member or a path throug members using '/'
-            separator. A '/' as a prefix access to the root item of the tree.
-        :rtype: Node
-        """
-
-        if name is None or name == "":
-            raise ValueError("No name")
-
-        if "/" not in name:
-            return self._get_items()[name]
-
-        if name.startswith("/"):
-            root = self
-            while root.parent is not None:
-                root = root.parent
-            if name == "/":
-                return root
-            return root[name[1:]]
-
-        path = name.split("/")
-        result = self
-        for item_name in path:
-            if not isinstance(result, Group):
-                raise KeyError("Unable to open object (Component not found)")
-            result = result._get_items()[item_name]
-
-        return result
-
-    def __contains__(self, name):
-        """Returns true is a name is an existing child of this group.
-
-        :rtype: bool
-        """
-        return name in self._get_items()
-
-    def keys(self):
-        return self._get_items().keys()
-
-    def values(self):
-        # New in silx 0.6
-        return self._get_items().values()
-
-
-class LazyLoadableGroup(Group):
-    """Abstract group which provide a lazy loading of the child.
-
-    The class have to be inherited and the :meth:`_create_child` have to be
-    implemented to add (:meth:`_add_node`) all children. This factory
-    is only called once, when children are needed.
-    """
-
-    def __init__(self, name, parent=None, attrs=None):
-        Group.__init__(self, name, parent, attrs)
-        self.__is_initialized = False
-
-    def _get_items(self):
-        """Returns internal structure which contains child.
-
-        It overwrite method :meth:`_get_items` to implement the lazy
-        loading feature.
-
-        :rtype: dict
-        """
-        if not self.__is_initialized:
-            self.__is_initialized = True
-            self._create_child()
-        return Group._get_items(self)
-
-    def _create_child(self):
-        """
-        Factory to create the child contained by the group when it is needed.
-
-        It have to be implemented to work.
-        """
-        raise NotImplementedError()
-
-
-class FrameData(LazyLoadableDataset):
+class FrameData(commonh5.LazyLoadableDataset):
     """Expose a cube of image from a Fabio file using `FabioReader` as
     cache."""
 
     def __init__(self, name, fabio_reader, parent=None):
         attrs = {"interpretation": "image"}
-        LazyLoadableDataset.__init__(self, name, parent, attrs=attrs)
+        commonh5.LazyLoadableDataset.__init__(self, name, parent, attrs=attrs)
         self.__fabio_reader = fabio_reader
 
     def _create_data(self):
         return self.__fabio_reader.get_data()
 
 
-class RawHeaderData(LazyLoadableDataset):
+class RawHeaderData(commonh5.LazyLoadableDataset):
     """Lazy loadable raw header"""
 
     def __init__(self, name, fabio_file, parent=None):
-        LazyLoadableDataset.__init__(self, name, parent)
+        commonh5.LazyLoadableDataset.__init__(self, name, parent)
         self.__fabio_file = fabio_file
 
     def _create_data(self):
@@ -508,18 +79,18 @@ class RawHeaderData(LazyLoadableDataset):
             for key, value in header.items():
                 data.append("%s: %s" % (str(key), str(value)))
 
-            headers.append(u"\n".join(data))
+            headers.append(u"\n".join(data).encode("utf-8"))
 
         # create the header list
-        return numpy.array(headers)
+        return numpy.array(headers, dtype=numpy.string_)
 
 
-class MetadataGroup(LazyLoadableGroup):
+class MetadataGroup(commonh5.LazyLoadableGroup):
     """Abstract class for groups containing a reference to a fabio image.
     """
 
     def __init__(self, name, metadata_reader, kind, parent=None, attrs=None):
-        LazyLoadableGroup.__init__(self, name, parent, attrs)
+        commonh5.LazyLoadableGroup.__init__(self, name, parent, attrs)
         self.__metadata_reader = metadata_reader
         self.__kind = kind
 
@@ -527,7 +98,7 @@ class MetadataGroup(LazyLoadableGroup):
         keys = self.__metadata_reader.get_keys(self.__kind)
         for name in keys:
             data = self.__metadata_reader.get_value(self.__kind, name)
-            dataset = Dataset(name, data)
+            dataset = commonh5.Dataset(name, data)
             self.add_node(dataset)
 
     @property
@@ -535,14 +106,14 @@ class MetadataGroup(LazyLoadableGroup):
         return self.__metadata_reader
 
 
-class DetectorGroup(LazyLoadableGroup):
+class DetectorGroup(commonh5.LazyLoadableGroup):
     """Define the detector group (sub group of instrument) using Fabio data.
     """
 
     def __init__(self, name, fabio_reader, parent=None, attrs=None):
         if attrs is None:
             attrs = {"NX_class": "NXdetector"}
-        LazyLoadableGroup.__init__(self, name, parent, attrs)
+        commonh5.LazyLoadableGroup.__init__(self, name, parent, attrs)
         self.__fabio_reader = fabio_reader
 
     def _create_child(self):
@@ -556,57 +127,56 @@ class DetectorGroup(LazyLoadableGroup):
         self.add_node(others)
 
 
-class ImageGroup(LazyLoadableGroup):
+class ImageGroup(commonh5.LazyLoadableGroup):
     """Define the image group (sub group of measurement) using Fabio data.
     """
 
     def __init__(self, name, fabio_reader, parent=None, attrs=None):
-        LazyLoadableGroup.__init__(self, name, parent, attrs)
+        commonh5.LazyLoadableGroup.__init__(self, name, parent, attrs)
         self.__fabio_reader = fabio_reader
 
     def _create_child(self):
-        data = FrameData("data", self.__fabio_reader)
+        basepath = self.parent.parent.name
+        data = commonh5.SoftLink("data", path=basepath + "/instrument/detector_0/data")
         self.add_node(data)
-
-        # TODO detector should be a real soft-link
-        detector = DetectorGroup("info", self.__fabio_reader)
+        detector = commonh5.SoftLink("info", path=basepath + "/instrument/detector_0")
         self.add_node(detector)
 
 
-class SampleGroup(LazyLoadableGroup):
+class SampleGroup(commonh5.LazyLoadableGroup):
     """Define the image group (sub group of measurement) using Fabio data.
     """
 
     def __init__(self, name, fabio_reader, parent=None):
         attrs = {"NXclass": "NXsample"}
-        LazyLoadableGroup.__init__(self, name, parent, attrs)
+        commonh5.LazyLoadableGroup.__init__(self, name, parent, attrs)
         self.__fabio_reader = fabio_reader
 
     def _create_child(self):
         if self.__fabio_reader.has_ub_matrix():
             scalar = {"interpretation": "scalar"}
             data = self.__fabio_reader.get_unit_cell_abc()
-            data = Dataset("unit_cell_abc", data, attrs=scalar)
+            data = commonh5.Dataset("unit_cell_abc", data, attrs=scalar)
             self.add_node(data)
             unit_cell_data = numpy.zeros((1, 6), numpy.float32)
             unit_cell_data[0, :3] = data
             data = self.__fabio_reader.get_unit_cell_alphabetagamma()
-            data = Dataset("unit_cell_alphabetagamma", data, attrs=scalar)
+            data = commonh5.Dataset("unit_cell_alphabetagamma", data, attrs=scalar)
             self.add_node(data)
             unit_cell_data[0, 3:] = data
-            data = Dataset("unit_cell", unit_cell_data, attrs=scalar)
+            data = commonh5.Dataset("unit_cell", unit_cell_data, attrs=scalar)
             self.add_node(data)
             data = self.__fabio_reader.get_ub_matrix()
-            data = Dataset("ub_matrix", data, attrs=scalar)
+            data = commonh5.Dataset("ub_matrix", data, attrs=scalar)
             self.add_node(data)
 
 
-class MeasurementGroup(LazyLoadableGroup):
+class MeasurementGroup(commonh5.LazyLoadableGroup):
     """Define the measurement group for fabio file.
     """
 
     def __init__(self, name, fabio_reader, parent=None, attrs=None):
-        LazyLoadableGroup.__init__(self, name, parent, attrs)
+        commonh5.LazyLoadableGroup.__init__(self, name, parent, attrs)
         self.__fabio_reader = fabio_reader
 
     def _create_child(self):
@@ -626,7 +196,7 @@ class MeasurementGroup(LazyLoadableGroup):
         # add all counters
         for name in keys:
             data = self.__fabio_reader.get_value(FabioReader.COUNTER, name)
-            dataset = Dataset(name, data)
+            dataset = commonh5.Dataset(name, data)
             self.add_node(dataset)
 
 
@@ -1063,7 +633,7 @@ class EdfFabioReader(FabioReader):
         return self.__ub_matrix
 
 
-class File(Group):
+class File(commonh5.File):
     """Class which handle a fabio image as a mimick of a h5py.File.
     """
 
@@ -1076,7 +646,9 @@ class File(Group):
             self.__must_be_closed = True
         elif fabio_image is not None:
             self.__fabio_image = fabio_image
-        Group.__init__(self, name="", parent=None, attrs={"NX_class": "NXroot"})
+            file_name = self.__fabio_image.filename
+        attrs = {"NX_class": "NXroot"}
+        commonh5.File.__init__(self, name=file_name, attrs=attrs)
         self.__fabio_reader = self.create_fabio_reader(self.__fabio_image)
         scan = self.create_scan_group(self.__fabio_image, self.__fabio_reader)
         self.add_node(scan)
@@ -1086,13 +658,13 @@ class File(Group):
 
         :param FabioImage fabio_image: A Fabio image
         :param FabioReader fabio_reader: A reader for the Fabio image
-        :rtype: Group
+        :rtype: commonh5.Group
         """
 
-        scan = Group("scan_0", attrs={"NX_class": "NXentry"})
-        instrument = Group("instrument", attrs={"NX_class": "NXinstrument"})
+        scan = commonh5.Group("scan_0", attrs={"NX_class": "NXentry"})
+        instrument = commonh5.Group("instrument", attrs={"NX_class": "NXinstrument"})
         measurement = MeasurementGroup("measurement", fabio_reader, attrs={"NX_class": "NXcollection"})
-        file_ = Group("file", attrs={"NX_class": "NXcollection"})
+        file_ = commonh5.Group("file", attrs={"NX_class": "NXcollection"})
         positioners = MetadataGroup("positioners", fabio_reader, FabioReader.POSITIONER, attrs={"NX_class": "NXpositioner"})
         raw_header = RawHeaderData("scan_header", fabio_image, self)
         detector = DetectorGroup("detector_0", fabio_reader)
@@ -1120,29 +692,6 @@ class File(Group):
             metadata = FabioReader(fabio_file)
         return metadata
 
-    @property
-    def h5py_class(self):
-        return h5py.File
-
-    @property
-    def filename(self):
-        return self.__fabio_image.filename
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, type, value, tb):  # pylint: disable=W0622
-        """Called at the end of a `with` statement.
-
-        It will close the internal FabioImage only if the FabioImage was
-        created by the class itself. The reference to the FabioImage is anyway
-        broken.
-        """
-        if self.__must_be_closed:
-            self.close()
-        else:
-            self.__fabio_image = None
-
     def close(self):
         """Close the object, and free up associated resources.
 
@@ -1151,6 +700,8 @@ class File(Group):
 
         After calling this method, attempts to use the object may fail.
         """
-        # It looks like there is no close on FabioImage
-        # self.__fabio_image.close()
+        if self.__must_be_closed:
+            # It looks like there is no close on FabioImage
+            # self.__fabio_image.close()
+            pass
         self.__fabio_image = None

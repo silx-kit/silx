@@ -1641,7 +1641,7 @@ static char __pyx_k_itemsize_0_for_cython_array[] = "itemsize <= 0 for cython.ar
 static char __pyx_k_Expected_at_least_d_arguments[] = "Expected at least %d arguments";
 static char __pyx_k_unable_to_allocate_array_data[] = "unable to allocate array data.";
 static char __pyx_k_strided_and_direct_or_indirect[] = "<strided and direct or indirect>";
-static char __pyx_k_Index_of_the_first_occurence_of[] = "Index of the first occurence of the minimum value";
+static char __pyx_k_Index_of_the_first_occurrence_of[] = "Index of the first occurrence of the minimum value";
 static char __pyx_k_Object_storing_result_from_func[] = "Object storing result from :func:`min_max`";
 static char __pyx_k_Strictly_positive_minimum_value[] = "Strictly positive minimum value\n\n        It is None if no value is strictly positive.\n        ";
 static char __pyx_k_users_knobel_git_silx_silx_math[] = "/users/knobel/git/silx/silx/math/combo.pyx";
@@ -1651,16 +1651,16 @@ static char __pyx_k_Can_only_create_a_buffer_that_is[] = "Can only create a buff
 static char __pyx_k_Cannot_transpose_memoryview_with[] = "Cannot transpose memoryview with indirect dimensions";
 static char __pyx_k_Empty_shape_tuple_for_cython_arr[] = "Empty shape tuple for cython.array";
 static char __pyx_k_Function_call_with_ambiguous_arg[] = "Function call with ambiguous argument types";
-static char __pyx_k_Index_of_the_strictly_positive_m[] = "Index of the strictly positive minimum value.\n\n        It is None if no value is strictly positive.\n        It is the index of the first occurence.";
+static char __pyx_k_Index_of_the_strictly_positive_m[] = "Index of the strictly positive minimum value.\n\n        It is None if no value is strictly positive.\n        It is the index of the first occurrence.";
 static char __pyx_k_Indirect_dimensions_not_supporte[] = "Indirect dimensions not supported";
 static char __pyx_k_Invalid_mode_expected_c_or_fortr[] = "Invalid mode, expected 'c' or 'fortran', got %s";
 static char __pyx_k_Out_of_bounds_on_buffer_access_a[] = "Out of bounds on buffer access (axis %d)";
-static char __pyx_k_Returns_min_max_and_optionally_s[] = "Returns min, max and optionally strictly positive min of data.\n\n    It also computes the indices of first occurence of min/max.\n\n    NaNs are ignored while computing min/max unless all data is NaNs,\n    in which case returned min/max are NaNs.\n\n    Examples:\n\n    >>> import numpy\n    >>> data = numpy.arange(10)\n\n    Usage as a function returning min and max:\n\n    >>> min_, max_ = min_max(data)\n\n    Usage as a function returning a result object to access all information:\n\n    >>> result = min_max(data)  # Do not get positive min\n    >>> result.minimum, result.argmin\n    0, 0\n    >>> result.maximum, result.argmax\n    9, 10\n    >>> result.min_positive, result.argmin_positive  # Not computed\n    None, None\n\n    Getting strictly positive min information:\n\n    >>> result = min_max(data, min_positive=True)\n    >>> result.min_positive, result.argmin_positive  # Computed\n    1, 1\n\n    If *finite* is True, min/max information is computed only from finite data.\n    Then, all result fields (include minimum and maximum) can be None\n    when all data is infinity or NaN.\n\n    :param data: Array-like dataset\n    :param bool min_positive: True to compute the positive min and argmin\n                              Default: False.\n    :param bool finite: True to compute min/max from finite data only\n                        Default: False.\n    :returns: An object with minimum, maximum and min_positive attributes\n              and the indices of first occurence in the flattened data:\n              argmin, argmax and argmin_positive attributes.\n              If all data is <= 0 or min_positive argument is False, then\n              min_positive and argmin_positive are None.\n    :raises: ValueError if data is empty\n    ";
-static char __pyx_k_This_module_provides_combination[] = "This module provides combination of statistics as single operation.\n\nFor now it provides min/max (and optionally positive min) and indices\nof first occurences (i.e., argmin/argmax) in a single pass.\n";
+static char __pyx_k_Returns_min_max_and_optionally_s[] = "Returns min, max and optionally strictly positive min of data.\n\n    It also computes the indices of first occurrence of min/max.\n\n    NaNs are ignored while computing min/max unless all data is NaNs,\n    in which case returned min/max are NaNs.\n\n    Examples:\n\n    >>> import numpy\n    >>> data = numpy.arange(10)\n\n    Usage as a function returning min and max:\n\n    >>> min_, max_ = min_max(data)\n\n    Usage as a function returning a result object to access all information:\n\n    >>> result = min_max(data)  # Do not get positive min\n    >>> result.minimum, result.argmin\n    0, 0\n    >>> result.maximum, result.argmax\n    9, 10\n    >>> result.min_positive, result.argmin_positive  # Not computed\n    None, None\n\n    Getting strictly positive min information:\n\n    >>> result = min_max(data, min_positive=True)\n    >>> result.min_positive, result.argmin_positive  # Computed\n    1, 1\n\n    If *finite* is True, min/max information is computed only from finite data.\n    Then, all result fields (include minimum and maximum) can be None\n    when all data is infinity or NaN.\n\n    :param data: Array-like dataset\n    :param bool min_positive: True to compute the positive min and argmin\n                              Default: False.\n    :param bool finite: True to compute min/max from finite data only\n                        Default: False.\n    :returns: An object with minimum, maximum and min_positive attributes\n              and the indices of first occurrence in the flattened data:\n              argmin, argmax and argmin_positive attributes.\n              If all data is <= 0 or min_positive argument is False, then\n              min_positive and argmin_positive are None.\n    :raises: ValueError if data is empty\n    ";
+static char __pyx_k_This_module_provides_combination[] = "This module provides combination of statistics as single operation.\n\nFor now it provides min/max (and optionally positive min) and indices\nof first occurrences (i.e., argmin/argmax) in a single pass.\n";
 static char __pyx_k_Unable_to_convert_item_to_object[] = "Unable to convert item to object";
 static char __pyx_k_got_differing_extents_in_dimensi[] = "got differing extents in dimension %d (got %d and %d)";
 static char __pyx_k_unable_to_allocate_shape_and_str[] = "unable to allocate shape and strides.";
-static char __pyx_k_Index_of_the_first_occurence_of_2[] = "Index of the first occurence of the maximum value";
+static char __pyx_k_Index_of_the_first_occurrence_of_2[] = "Index of the first occurrence of the maximum value";
 static PyObject *__pyx_kp_s_20_12_2016;
 static PyObject *__pyx_n_s_AttributeError;
 static PyObject *__pyx_kp_s_Buffer_view_does_not_expose_stri;
@@ -1672,8 +1672,8 @@ static PyObject *__pyx_kp_s_Expected_at_least_d_arguments;
 static PyObject *__pyx_kp_s_Function_call_with_ambiguous_arg;
 static PyObject *__pyx_n_s_ImportError;
 static PyObject *__pyx_n_s_IndexError;
-static PyObject *__pyx_kp_s_Index_of_the_first_occurence_of;
-static PyObject *__pyx_kp_s_Index_of_the_first_occurence_of_2;
+static PyObject *__pyx_kp_s_Index_of_the_first_occurrence_of;
+static PyObject *__pyx_kp_s_Index_of_the_first_occurrence_of_2;
 static PyObject *__pyx_kp_s_Index_of_the_strictly_positive_m;
 static PyObject *__pyx_kp_s_Index_out_of_range;
 static PyObject *__pyx_kp_s_Indirect_dimensions_not_supporte;
@@ -1968,7 +1968,7 @@ static PyObject *__pyx_lambda_funcdef_4silx_4math_5combo_13_MinMaxResult_lambda2
  * 
  *     argmin = property(
  *         lambda self: self._argmin,             # <<<<<<<<<<<<<<
- *         doc="Index of the first occurence of the minimum value")
+ *         doc="Index of the first occurrence of the minimum value")
  *     argmax = property(
  */
 
@@ -2013,10 +2013,10 @@ static PyObject *__pyx_lambda_funcdef_4silx_4math_5combo_13_MinMaxResult_lambda3
 }
 
 /* "silx/math/combo.pyx":89
- *         doc="Index of the first occurence of the minimum value")
+ *         doc="Index of the first occurrence of the minimum value")
  *     argmax = property(
  *         lambda self: self._argmax,             # <<<<<<<<<<<<<<
- *         doc="Index of the first occurence of the maximum value")
+ *         doc="Index of the first occurrence of the maximum value")
  * 
  */
 
@@ -2355,7 +2355,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_13_MinMaxResult___init__(CYTHON_UNU
 }
 
 /* "silx/math/combo.pyx":105
- *         It is the index of the first occurence.""")
+ *         It is the index of the first occurrence.""")
  * 
  *     def __getitem__(self, key):             # <<<<<<<<<<<<<<
  *         if key == 0:
@@ -2505,7 +2505,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_13_MinMaxResult_2__getitem__(CYTHON
   }
 
   /* "silx/math/combo.pyx":105
- *         It is the index of the first occurence.""")
+ *         It is the index of the first occurrence.""")
  * 
  *     def __getitem__(self, key):             # <<<<<<<<<<<<<<
  *         if key == 0:
@@ -13879,7 +13879,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_30_finite_min_max(CYTHON_UNUSED PyO
 
 /* Python wrapper */
 static PyObject *__pyx_pw_4silx_4math_5combo_5min_max(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_4silx_4math_5combo_4min_max[] = "min_max(data, bool min_positive=False, bool finite=False)\nReturns min, max and optionally strictly positive min of data.\n\n    It also computes the indices of first occurence of min/max.\n\n    NaNs are ignored while computing min/max unless all data is NaNs,\n    in which case returned min/max are NaNs.\n\n    Examples:\n\n    >>> import numpy\n    >>> data = numpy.arange(10)\n\n    Usage as a function returning min and max:\n\n    >>> min_, max_ = min_max(data)\n\n    Usage as a function returning a result object to access all information:\n\n    >>> result = min_max(data)  # Do not get positive min\n    >>> result.minimum, result.argmin\n    0, 0\n    >>> result.maximum, result.argmax\n    9, 10\n    >>> result.min_positive, result.argmin_positive  # Not computed\n    None, None\n\n    Getting strictly positive min information:\n\n    >>> result = min_max(data, min_positive=True)\n    >>> result.min_positive, result.argmin_positive  # Computed\n    1, 1\n\n    If *finite* is True, min/max information is computed only from finite data.\n    Then, all result fields (include minimum and maximum) can be None\n    when all data is infinity or NaN.\n\n    :param data: Array-like dataset\n    :param bool min_positive: True to compute the positive min and argmin\n                              Default: False.\n    :param bool finite: True to compute min/max from finite data only\n                        Default: False.\n    :returns: An object with minimum, maximum and min_positive attributes\n              and the indices of first occurence in the flattened data:\n              argmin, argmax and argmin_positive attributes.\n              If all data is <= 0 or min_positive argument is False, then\n              min_positive and argmin_positive are None.\n    :raises: ValueError if data is empty\n    ";
+static char __pyx_doc_4silx_4math_5combo_4min_max[] = "min_max(data, bool min_positive=False, bool finite=False)\nReturns min, max and optionally strictly positive min of data.\n\n    It also computes the indices of first occurrence of min/max.\n\n    NaNs are ignored while computing min/max unless all data is NaNs,\n    in which case returned min/max are NaNs.\n\n    Examples:\n\n    >>> import numpy\n    >>> data = numpy.arange(10)\n\n    Usage as a function returning min and max:\n\n    >>> min_, max_ = min_max(data)\n\n    Usage as a function returning a result object to access all information:\n\n    >>> result = min_max(data)  # Do not get positive min\n    >>> result.minimum, result.argmin\n    0, 0\n    >>> result.maximum, result.argmax\n    9, 10\n    >>> result.min_positive, result.argmin_positive  # Not computed\n    None, None\n\n    Getting strictly positive min information:\n\n    >>> result = min_max(data, min_positive=True)\n    >>> result.min_positive, result.argmin_positive  # Computed\n    1, 1\n\n    If *finite* is True, min/max information is computed only from finite data.\n    Then, all result fields (include minimum and maximum) can be None\n    when all data is infinity or NaN.\n\n    :param data: Array-like dataset\n    :param bool min_positive: True to compute the positive min and argmin\n                              Default: False.\n    :param bool finite: True to compute min/max from finite data only\n                        Default: False.\n    :returns: An object with minimum, maximum and min_positive attributes\n              and the indices of first occurrence in the flattened data:\n              argmin, argmax and argmin_positive attributes.\n              If all data is <= 0 or min_positive argument is False, then\n              min_positive and argmin_positive are None.\n    :raises: ValueError if data is empty\n    ";
 static PyMethodDef __pyx_mdef_4silx_4math_5combo_5min_max = {"min_max", (PyCFunction)__pyx_pw_4silx_4math_5combo_5min_max, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_5combo_4min_max};
 static PyObject *__pyx_pw_4silx_4math_5combo_5min_max(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_data = 0;
@@ -25502,8 +25502,8 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_Function_call_with_ambiguous_arg, __pyx_k_Function_call_with_ambiguous_arg, sizeof(__pyx_k_Function_call_with_ambiguous_arg), 0, 0, 1, 0},
   {&__pyx_n_s_ImportError, __pyx_k_ImportError, sizeof(__pyx_k_ImportError), 0, 0, 1, 1},
   {&__pyx_n_s_IndexError, __pyx_k_IndexError, sizeof(__pyx_k_IndexError), 0, 0, 1, 1},
-  {&__pyx_kp_s_Index_of_the_first_occurence_of, __pyx_k_Index_of_the_first_occurence_of, sizeof(__pyx_k_Index_of_the_first_occurence_of), 0, 0, 1, 0},
-  {&__pyx_kp_s_Index_of_the_first_occurence_of_2, __pyx_k_Index_of_the_first_occurence_of_2, sizeof(__pyx_k_Index_of_the_first_occurence_of_2), 0, 0, 1, 0},
+  {&__pyx_kp_s_Index_of_the_first_occurrence_of, __pyx_k_Index_of_the_first_occurrence_of, sizeof(__pyx_k_Index_of_the_first_occurrence_of), 0, 0, 1, 0},
+  {&__pyx_kp_s_Index_of_the_first_occurrence_of_2, __pyx_k_Index_of_the_first_occurrence_of_2, sizeof(__pyx_k_Index_of_the_first_occurrence_of_2), 0, 0, 1, 0},
   {&__pyx_kp_s_Index_of_the_strictly_positive_m, __pyx_k_Index_of_the_strictly_positive_m, sizeof(__pyx_k_Index_of_the_strictly_positive_m), 0, 0, 1, 0},
   {&__pyx_kp_s_Index_out_of_range, __pyx_k_Index_out_of_range, sizeof(__pyx_k_Index_out_of_range), 0, 0, 1, 0},
   {&__pyx_kp_s_Indirect_dimensions_not_supporte, __pyx_k_Indirect_dimensions_not_supporte, sizeof(__pyx_k_Indirect_dimensions_not_supporte), 0, 0, 1, 0},
@@ -25913,7 +25913,7 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_codeobj__38 = (PyObject*)__Pyx_PyCode_New(7, 0, 7, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__37, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_knobel_git_silx_silx_math, __pyx_n_s_init, 68, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__38)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 68; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
   /* "silx/math/combo.pyx":105
- *         It is the index of the first occurence.""")
+ *         It is the index of the first occurrence.""")
  * 
  *     def __getitem__(self, key):             # <<<<<<<<<<<<<<
  *         if key == 0:
@@ -26305,7 +26305,7 @@ PyMODINIT_FUNC PyInit_combo(void)
  * 
  *     argmin = property(
  *         lambda self: self._argmin,             # <<<<<<<<<<<<<<
- *         doc="Index of the first occurence of the minimum value")
+ *         doc="Index of the first occurrence of the minimum value")
  *     argmax = property(
  */
   __pyx_t_5 = __Pyx_CyFunction_NewEx(&__pyx_mdef_4silx_4math_5combo_13_MinMaxResult_6lambda3, 0, __pyx_n_s_MinMaxResult_lambda, NULL, __pyx_n_s_silx_math_combo, __pyx_d, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 86; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -26316,7 +26316,7 @@ PyMODINIT_FUNC PyInit_combo(void)
  * 
  *     argmin = property(             # <<<<<<<<<<<<<<
  *         lambda self: self._argmin,
- *         doc="Index of the first occurence of the minimum value")
+ *         doc="Index of the first occurrence of the minimum value")
  */
   __pyx_t_6 = PyTuple_New(1); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 85; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_6);
@@ -26325,7 +26325,7 @@ PyMODINIT_FUNC PyInit_combo(void)
   __pyx_t_5 = 0;
   __pyx_t_5 = PyDict_New(); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 85; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_doc, __pyx_kp_s_Index_of_the_first_occurence_of) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 85; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_doc, __pyx_kp_s_Index_of_the_first_occurrence_of) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 85; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_property, __pyx_t_6, __pyx_t_5); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 85; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
@@ -26334,10 +26334,10 @@ PyMODINIT_FUNC PyInit_combo(void)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
   /* "silx/math/combo.pyx":89
- *         doc="Index of the first occurence of the minimum value")
+ *         doc="Index of the first occurrence of the minimum value")
  *     argmax = property(
  *         lambda self: self._argmax,             # <<<<<<<<<<<<<<
- *         doc="Index of the first occurence of the maximum value")
+ *         doc="Index of the first occurrence of the maximum value")
  * 
  */
   __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_4silx_4math_5combo_13_MinMaxResult_7lambda4, 0, __pyx_n_s_MinMaxResult_lambda, NULL, __pyx_n_s_silx_math_combo, __pyx_d, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 89; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -26345,10 +26345,10 @@ PyMODINIT_FUNC PyInit_combo(void)
 
   /* "silx/math/combo.pyx":88
  *         lambda self: self._argmin,
- *         doc="Index of the first occurence of the minimum value")
+ *         doc="Index of the first occurrence of the minimum value")
  *     argmax = property(             # <<<<<<<<<<<<<<
  *         lambda self: self._argmax,
- *         doc="Index of the first occurence of the maximum value")
+ *         doc="Index of the first occurrence of the maximum value")
  */
   __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 88; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
@@ -26357,7 +26357,7 @@ PyMODINIT_FUNC PyInit_combo(void)
   __pyx_t_4 = 0;
   __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 88; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_doc, __pyx_kp_s_Index_of_the_first_occurence_of_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 88; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_doc, __pyx_kp_s_Index_of_the_first_occurrence_of_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 88; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_t_6 = __Pyx_PyObject_Call(__pyx_builtin_property, __pyx_t_5, __pyx_t_4); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 88; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -26376,7 +26376,7 @@ PyMODINIT_FUNC PyInit_combo(void)
   __Pyx_GOTREF(__pyx_t_6);
 
   /* "silx/math/combo.pyx":92
- *         doc="Index of the first occurence of the maximum value")
+ *         doc="Index of the first occurrence of the maximum value")
  * 
  *     min_positive = property(             # <<<<<<<<<<<<<<
  *         lambda self: self._min_positive,
@@ -26430,7 +26430,7 @@ PyMODINIT_FUNC PyInit_combo(void)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
   /* "silx/math/combo.pyx":105
- *         It is the index of the first occurence.""")
+ *         It is the index of the first occurrence.""")
  * 
  *     def __getitem__(self, key):             # <<<<<<<<<<<<<<
  *         if key == 0:

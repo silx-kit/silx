@@ -136,6 +136,8 @@ if qtconsole is None:
 class IPythonWidget(RichIPythonWidget):
     """Live IPython console widget.
 
+    .. image:: img/IPythonWidget.png
+
     :param custom_banner: Custom welcome message to be printed at the top of
        the console.
     """
@@ -174,6 +176,8 @@ class IPythonWidget(RichIPythonWidget):
 class IPythonDockWidget(qt.QDockWidget):
     """Dock Widget including a :class:`IPythonWidget` inside
     a vertical layout.
+
+    .. image:: img/IPythonDockWidget.png
 
     :param available_vars: Dictionary of variables to be pushed to the
         console's interactive namespace: ``{"variable_name": object, …}``

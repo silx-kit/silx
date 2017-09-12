@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,7 @@ __license__ = "MIT"
 __date__ = "18/10/2016"
 
 import argparse
-from silx.io.spectoh5 import write_spec_to_h5
+from silx.io.convert import write_to_h5
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('spec_path',
@@ -82,7 +82,7 @@ else:
     # by default, use "write" mode and fail if file already exists
     mode = "w-"
 
-write_spec_to_h5(args.spec_path, args.h5_path,
-                 h5path=args.target_path,
-                 mode=mode,
-                 overwrite_data=args.overwrite_data)
+write_to_h5(args.spec_path, args.h5_path,
+            h5path=args.target_path,
+            mode=mode,
+            overwrite_data=args.overwrite_data)

@@ -28,7 +28,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent, H. Payno"]
 __license__ = "MIT"
-__date__ = "15/05/2017"
+__date__ = "16/08/2017"
 
 
 import logging
@@ -143,7 +143,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                 errorbarColor = color
 
             # On Debian 7 at least, Nx1 array yerr does not seems supported
-            if (yerror is not None and yerror.ndim == 2 and
+            if (isinstance(yerror, numpy.ndarray) and yerror.ndim == 2 and
                     yerror.shape[1] == 1 and len(x) != 1):
                 yerror = numpy.ravel(yerror)
 
@@ -441,7 +441,10 @@ class BackendMatplotlib(BackendBase.BackendBase):
             item._infoText.remove()
             item._infoText = None
         self._overlays.discard(item)
-        item.remove()
+        try:
+            item.remove()
+        except ValueError:
+            pass  # Already removed e.g., in set[X|Y]AxisLogarithmic
 
     # Interaction methods
 
@@ -592,10 +595,16 @@ class BackendMatplotlib(BackendBase.BackendBase):
     # Graph axes
 
     def setXAxisLogarithmic(self, flag):
+        if matplotlib.__version__ >= "2.1.0":
+            self.ax.cla()
+            self.ax2.cla()
         self.ax2.set_xscale('log' if flag else 'linear')
         self.ax.set_xscale('log' if flag else 'linear')
 
     def setYAxisLogarithmic(self, flag):
+        if matplotlib.__version__ >= "2.1.0":
+            self.ax.cla()
+            self.ax2.cla()
         self.ax2.set_yscale('log' if flag else 'linear')
         self.ax.set_yscale('log' if flag else 'linear')
 
@@ -649,6 +658,28 @@ class BackendMatplotlib(BackendBase.BackendBase):
         # Warning this is not returning int...
         return (bbox.bounds[0] * dpi, bbox.bounds[1] * dpi,
                 bbox.bounds[2] * dpi, bbox.bounds[3] * dpi)
+
+    def setAxesDisplayed(self, displayed):
+        """Display or not the axes.
+
+        :param bool displayed: If `True` axes are displayed. If `False` axes
+            are not anymore visible and the margin used for them is removed.
+        """
+        if displayed:
+            # show axes and viewbox rect
+            self.ax.set_axis_on()
+            self.ax2.set_axis_on()
+            # set the default margins
+            self.ax.set_position([.15, .15, .75, .75])
+            self.ax2.set_position([.15, .15, .75, .75])
+        else:
+            # hide axes and viewbox rect
+            self.ax.set_axis_off()
+            self.ax2.set_axis_off()
+            # remove external margins
+            self.ax.set_position([0, 0, 1, 1])
+            self.ax2.set_position([0, 0, 1, 1])
+        self._plot._setDirtyPlot()
 
 
 class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
@@ -744,18 +775,12 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
             self._picked.append({'kind': 'image', 'legend': label[9:]})
 
         else:  # it's a curve, item have no picker for now
-            if isinstance(event.artist, PathCollection):
-                data = event.artist.get_offsets()[event.ind, :]
-                xdata, ydata = data[:, 0], data[:, 1]
-            elif isinstance(event.artist, Line2D):
-                xdata = event.artist.get_xdata()[event.ind]
-                ydata = event.artist.get_ydata()[event.ind]
-            else:
+            if not isinstance(event.artist, (PathCollection, Line2D)):
                 _logger.info('Unsupported artist, ignored')
                 return
 
             self._picked.append({'kind': 'curve', 'legend': label,
-                                 'xdata': xdata, 'ydata': ydata})
+                                 'indices': event.ind})
 
     def pickItems(self, x, y):
         self._picked = []

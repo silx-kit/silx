@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "10/07/2017"
+__date__ = "01/09/2017"
 
 
 import logging
@@ -37,8 +37,9 @@ import numpy
 
 from silx.gui import qt
 from silx.test.utils import temp_dir, ParametricTestCase
-from silx.gui.test.utils import TestCaseQt, getQToolButtonFromAction
+from silx.gui.test.utils import getQToolButtonFromAction
 from silx.gui.plot import PlotWindow, ScatterMaskToolsWidget
+from .utils import PlotWidgetTestCase
 
 try:
     import fabio
@@ -49,30 +50,23 @@ except ImportError:
 _logger = logging.getLogger(__name__)
 
 
-class TestScatterMaskToolsWidget(TestCaseQt, ParametricTestCase):
+class TestScatterMaskToolsWidget(PlotWidgetTestCase, ParametricTestCase):
     """Basic test for MaskToolsWidget"""
+
+    def _createPlot(self):
+        return PlotWindow()
 
     def setUp(self):
         super(TestScatterMaskToolsWidget, self).setUp()
-        self.plot = PlotWindow()
-
         self.widget = ScatterMaskToolsWidget.ScatterMaskToolsDockWidget(
                 plot=self.plot, name='TEST')
         self.plot.addDockWidget(qt.Qt.BottomDockWidgetArea, self.widget)
-
-        self.plot.show()
-        self.qWaitForWindowExposed(self.plot)
 
         self.maskWidget = self.widget.widget()
 
     def tearDown(self):
         del self.maskWidget
         del self.widget
-
-        self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
-        self.plot.close()
-        del self.plot
-
         super(TestScatterMaskToolsWidget, self).tearDown()
 
     def testEmptyPlot(self):
@@ -110,6 +104,7 @@ class TestScatterMaskToolsWidget(TestCaseQt, ParametricTestCase):
                 (x + offset, y - offset),
                 (x, y + offset)]  # Close polygon
 
+        self.mouseMove(plot, pos=[0, 0])
         for pos in star:
             self.mouseMove(plot, pos=pos)
             self.mouseClick(plot, qt.Qt.LeftButton, pos=pos)
@@ -126,9 +121,10 @@ class TestScatterMaskToolsWidget(TestCaseQt, ParametricTestCase):
                 (x - offset, y),
                 (x + offset, y - offset)]
 
+        self.mouseMove(plot, pos=[0, 0])
         self.mouseMove(plot, pos=star[0])
         self.mousePress(plot, qt.Qt.LeftButton, pos=star[0])
-        for pos in star:
+        for pos in star[1:]:
             self.mouseMove(plot, pos=pos)
         self.mouseRelease(
             plot, qt.Qt.LeftButton, pos=star[-1])

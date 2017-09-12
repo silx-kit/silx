@@ -102,6 +102,8 @@ class ThreadPoolPushButton(WaitingPushButton):
     >>> button.setCallable(math.pow, 2, 16)
     >>> button.succeeded.connect(print) # python3
 
+    .. image:: img/ThreadPoolPushButton.png
+
     >>> # Compute a wrong value
     >>> import math
     >>> button = ThreadPoolPushButton(text="Compute sqrt(-1)")

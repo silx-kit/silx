@@ -27,7 +27,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "29/06/2017"
+__date__ = "30/08/2017"
 
 import logging
 from ... import qt
@@ -252,6 +252,50 @@ class Axis(qt.QObject):
         self._isAutoScale = bool(flag)
         self.sigAutoScaleChanged.emit(self._isAutoScale)
 
+    def _setLimitsConstraints(self, minPos=None, maxPos=None):
+        raise NotImplementedError()
+
+    def setLimitsConstraints(self, minPos=None, maxPos=None):
+        """
+        Set a constaints on the position of the axes.
+
+        :param float minPos: Minimum allowed axis value.
+        :param float maxPos: Maximum allowed axis value.
+        :return: True if the constaints was updated
+        :rtype: bool
+        """
+        updated = self._setLimitsConstraints(minPos, maxPos)
+        if updated:
+            plot = self._plot
+            xMin, xMax = plot.getXAxis().getLimits()
+            yMin, yMax = plot.getYAxis().getLimits()
+            y2Min, y2Max = plot.getYAxis('right').getLimits()
+            plot.setLimits(xMin, xMax, yMin, yMax, y2Min, y2Max)
+        return updated
+
+    def _setRangeConstraints(self, minRange=None, maxRange=None):
+        raise NotImplementedError()
+
+    def setRangeConstraints(self, minRange=None, maxRange=None):
+        """
+        Set a constaints on the position of the axes.
+
+        :param float minRange: Minimum allowed left-to-right span across the
+            view
+        :param float maxRange: Maximum allowed left-to-right span across the
+            view
+        :return: True if the constaints was updated
+        :rtype: bool
+        """
+        updated = self._setRangeConstraints(minRange, maxRange)
+        if updated:
+            plot = self._plot
+            xMin, xMax = plot.getXAxis().getLimits()
+            yMin, yMax = plot.getYAxis().getLimits()
+            y2Min, y2Max = plot.getYAxis('right').getLimits()
+            plot.setLimits(xMin, xMax, yMin, yMax, y2Min, y2Max)
+        return updated
+
 
 class XAxis(Axis):
     """Axis class defining primitives for the X axis"""
@@ -270,6 +314,16 @@ class XAxis(Axis):
 
     def _internalSetLogarithmic(self, flag):
         self._plot._backend.setXAxisLogarithmic(flag)
+
+    def _setLimitsConstraints(self, minPos=None, maxPos=None):
+        constrains = self._plot._getViewConstraints()
+        updated = constrains.update(xMin=minPos, xMax=maxPos)
+        return updated
+
+    def _setRangeConstraints(self, minRange=None, maxRange=None):
+        constrains = self._plot._getViewConstraints()
+        updated = constrains.update(minXRange=minRange, maxXRange=maxRange)
+        return updated
 
 
 class YAxis(Axis):
@@ -310,6 +364,16 @@ class YAxis(Axis):
         :rtype: bool
         """
         return self._plot._backend.isYAxisInverted()
+
+    def _setLimitsConstraints(self, minPos=None, maxPos=None):
+        constrains = self._plot._getViewConstraints()
+        updated = constrains.update(yMin=minPos, yMax=maxPos)
+        return updated
+
+    def _setRangeConstraints(self, minRange=None, maxRange=None):
+        constrains = self._plot._getViewConstraints()
+        updated = constrains.update(minYRange=minRange, maxYRange=maxRange)
+        return updated
 
 
 class YRightAxis(Axis):

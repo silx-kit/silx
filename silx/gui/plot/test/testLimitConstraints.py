@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "08/08/2017"
+__date__ = "30/08/2017"
 
 
 import unittest
@@ -44,33 +44,28 @@ class TestLimitConstaints(unittest.TestCase):
 
     def testApi(self):
         """Test availability of the API"""
-        self.plot.setLimitConstraints(
-            xMin=1,
-            xMax=1,
-            yMin=1,
-            yMax=1,
-            minXRange=1,
-            maxXRange=1,
-            minYRange=1,
-            maxYRange=1)
+        self.plot.getXAxis().setLimitsConstraints(minPos=1, maxPos=1)
+        self.plot.getXAxis().setRangeConstraints(minRange=1, maxRange=1)
+        self.plot.getYAxis().setLimitsConstraints(minPos=1, maxPos=1)
+        self.plot.getYAxis().setRangeConstraints(minRange=1, maxRange=1)
 
     def testXMinMax(self):
         """Test limit constains on x-axis"""
-        self.plot.setLimitConstraints(xMin=0, xMax=100)
+        self.plot.getXAxis().setLimitsConstraints(minPos=0, maxPos=100)
         self.plot.setLimits(xmin=-1, xmax=101, ymin=-1, ymax=101)
         self.assertEqual(self.plot.getXAxis().getLimits(), (0, 100))
         self.assertEqual(self.plot.getYAxis().getLimits(), (-1, 101))
 
     def testYMinMax(self):
         """Test limit constains on y-axis"""
-        self.plot.setLimitConstraints(yMin=0, yMax=100)
+        self.plot.getYAxis().setLimitsConstraints(minPos=0, maxPos=100)
         self.plot.setLimits(xmin=-1, xmax=101, ymin=-1, ymax=101)
         self.assertEqual(self.plot.getXAxis().getLimits(), (-1, 101))
         self.assertEqual(self.plot.getYAxis().getLimits(), (0, 100))
 
     def testMinXRange(self):
         """Test min range constains on x-axis"""
-        self.plot.setLimitConstraints(minXRange=100)
+        self.plot.getXAxis().setRangeConstraints(minRange=100)
         self.plot.setLimits(xmin=1, xmax=99, ymin=1, ymax=99)
         limits = self.plot.getXAxis().getLimits()
         self.assertEqual(limits[1] - limits[0], 100)
@@ -79,7 +74,7 @@ class TestLimitConstaints(unittest.TestCase):
 
     def testMaxXRange(self):
         """Test max range constains on x-axis"""
-        self.plot.setLimitConstraints(maxXRange=100)
+        self.plot.getXAxis().setRangeConstraints(maxRange=100)
         self.plot.setLimits(xmin=-1, xmax=101, ymin=-1, ymax=101)
         limits = self.plot.getXAxis().getLimits()
         self.assertEqual(limits[1] - limits[0], 100)
@@ -88,7 +83,7 @@ class TestLimitConstaints(unittest.TestCase):
 
     def testMinYRange(self):
         """Test min range constains on y-axis"""
-        self.plot.setLimitConstraints(minYRange=100)
+        self.plot.getYAxis().setRangeConstraints(minRange=100)
         self.plot.setLimits(xmin=1, xmax=99, ymin=1, ymax=99)
         limits = self.plot.getXAxis().getLimits()
         self.assertNotEqual(limits[1] - limits[0], 100)
@@ -97,7 +92,7 @@ class TestLimitConstaints(unittest.TestCase):
 
     def testMaxYRange(self):
         """Test max range constains on y-axis"""
-        self.plot.setLimitConstraints(maxYRange=100)
+        self.plot.getYAxis().setRangeConstraints(maxRange=100)
         self.plot.setLimits(xmin=-1, xmax=101, ymin=-1, ymax=101)
         limits = self.plot.getXAxis().getLimits()
         self.assertNotEqual(limits[1] - limits[0], 100)
@@ -106,16 +101,16 @@ class TestLimitConstaints(unittest.TestCase):
 
     def testChangeOfConstraints(self):
         """Test changing of the constraints"""
-        self.plot.setLimitConstraints(minXRange=10, maxXRange=10)
-        # There is no more containts on the range
-        self.plot.setLimitConstraints(xMin=0, xMax=100)
+        self.plot.getXAxis().setRangeConstraints(minRange=10, maxRange=10)
+        # There is no more constraints on the range
+        self.plot.getXAxis().setRangeConstraints(minRange=None, maxRange=None)
         self.plot.setLimits(xmin=-1, xmax=101, ymin=-1, ymax=101)
-        self.assertEqual(self.plot.getXAxis().getLimits(), (0, 100))
+        self.assertEqual(self.plot.getXAxis().getLimits(), (-1, 101))
 
     def testSettingConstraints(self):
         """Test setting a constaint (setLimits first then the constaint)"""
         self.plot.setLimits(xmin=-1, xmax=101, ymin=-1, ymax=101)
-        self.plot.setLimitConstraints(xMin=0, xMax=100)
+        self.plot.getXAxis().setLimitsConstraints(minPos=0, maxPos=100)
         self.assertEqual(self.plot.getXAxis().getLimits(), (0, 100))
 
 

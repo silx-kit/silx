@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "20/04/2017"
+__date__ = "03/08/2017"
 
 
 import os
@@ -48,7 +48,7 @@ import tempfile
 import unittest
 from ..resources import ExternalResources
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 utilstest = ExternalResources(project="silx",
                               url_base="http://www.silx.org/pub/silx/",
@@ -149,11 +149,15 @@ class TestLogging(logging.Handler):
         self.records = []  # Reset recorded LogRecords
         self.logger.addHandler(self)
         self.logger.propagate = False
+        # ensure no log message is ignored
+        self.entry_level = self.logger.level * 1
+        self.logger.setLevel(logging.DEBUG)
 
     def __exit__(self, exc_type, exc_value, traceback):
         """Context (i.e., with) support"""
         self.logger.removeHandler(self)
         self.logger.propagate = True
+        self.logger.setLevel(self.entry_level)
 
         for level, expected_count in self.count_by_level.items():
             if expected_count is None:

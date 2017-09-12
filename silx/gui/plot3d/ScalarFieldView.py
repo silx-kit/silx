@@ -41,7 +41,7 @@ from collections import deque
 
 import numpy
 
-from silx.gui import qt
+from silx.gui import qt, icons
 from silx.gui.plot.Colors import rgba
 from silx.gui.plot.Colormap import Colormap
 
@@ -51,7 +51,7 @@ from silx.math.combo import min_max
 from .scene import axes, cutplane, interaction, primitives, transform
 from . import scene
 from .Plot3DWindow import Plot3DWindow
-
+from .tools import InteractiveModeToolBar
 
 _logger = logging.getLogger(__name__)
 
@@ -777,7 +777,7 @@ class ScalarFieldView(Plot3DWindow):
         self._bbox.children = [self._group]
         self.getPlot3DWidget().viewport.scene.children.append(self._bbox)
 
-        self._initInteractionToolBar()
+        self._initPanPlaneAction()
 
         self._updateColors()
 
@@ -920,81 +920,71 @@ class ScalarFieldView(Plot3DWindow):
                 raise ValueError('Unknown entry tag {0}.'
                                  ''.format(itemId))
 
-    def _initInteractionToolBar(self):
-        self._interactionToolbar = qt.QToolBar()
-        self._interactionToolbar.setEnabled(False)
+    def _initPanPlaneAction(self):
+        """Creates and init the pan plane action"""
+        self._panPlaneAction = qt.QAction(self)
+        self._panPlaneAction.setIcon(icons.getQIcon('3d-plane-pan'))
+        self._panPlaneAction.setText('plane')
+        self._panPlaneAction.setCheckable(True)
+        self._panPlaneAction.setToolTip('pan the cutting plane')
+        self._panPlaneAction.setEnabled(False)
 
-        group = qt.QActionGroup(self._interactionToolbar)
-        group.setExclusive(True)
+        self._panPlaneAction.triggered[bool].connect(self._planeActionTriggered)
+        self.getPlot3DWidget().sigInteractiveModeChanged.connect(
+            self._interactiveModeChanged)
 
-        self._cameraAction = qt.QAction(None)
-        self._cameraAction.setText('camera')
-        self._cameraAction.setCheckable(True)
-        self._cameraAction.setToolTip('Control camera')
-        self._cameraAction.setChecked(True)
-        group.addAction(self._cameraAction)
+        toolbar = self.findChild(InteractiveModeToolBar)
+        if toolbar is not None:
+            toolbar.addAction(self._panPlaneAction)
 
-        self._planeAction = qt.QAction(None)
-        self._planeAction.setText('plane')
-        self._planeAction.setCheckable(True)
-        self._planeAction.setToolTip('Control cutting plane')
-        group.addAction(self._planeAction)
-        group.triggered.connect(self._interactionChanged)
+    def _planeActionTriggered(self, checked=False):
+        self._panPlaneAction.setChecked(True)
+        self.setInteractiveMode('plane')
 
-        self._interactionToolbar.addActions(group.actions())
-        self.addToolBar(self._interactionToolbar)
+    def _interactiveModeChanged(self):
+        self._panPlaneAction.setChecked(self.getInteractiveMode() == 'plane')
+        self._updateColors()
 
     def _planeVisibilityChanged(self, visible):
         """Handle visibility events from the plane"""
-        if visible != self._interactionToolbar.isEnabled():
+        if visible != self._panPlaneAction.isEnabled():
+            self._panPlaneAction.setEnabled(visible)
             if visible:
-                self._interactionToolbar.setEnabled(True)
                 self.setInteractiveMode('plane')
-            else:
-                self._interactionToolbar.setEnabled(False)
-                self.setInteractiveMode('camera')
-
-    def _interactionChanged(self, action):
-        self.setInteractiveMode(action.text())
+            elif self._panPlaneAction.isChecked():
+                self.setInteractiveMode('rotate')
 
     def setInteractiveMode(self, mode):
         """Choose the current interaction.
 
-        :param str mode: Either plane or camera
+        :param str mode: Either rotate, pan or plane
         """
         if mode == self.getInteractiveMode():
             return
 
         sceneScale = self.getPlot3DWidget().viewport.scene.transforms[0]
         if mode == 'plane':
+            self.getPlot3DWidget().setInteractiveMode(None)
+
             self.getPlot3DWidget().eventHandler = \
-                interaction.PanPlaneRotateCameraControl(
+                interaction.PanPlaneZoomOnWheelControl(
                     self.getPlot3DWidget().viewport,
                     self._cutPlane._get3DPrimitive(),
                     mode='position',
                     scaleTransform=sceneScale)
-            self._planeAction.setChecked(True)
-        elif mode == 'camera':
-            self.getPlot3DWidget().eventHandler = interaction.CameraControl(
-                self.getPlot3DWidget().viewport, orbitAroundCenter=False,
-                mode='position', scaleTransform=sceneScale,
-                selectCB=None)
-            self._cameraAction.setChecked(True)
         else:
-            raise ValueError('Unsupported interactive mode %s', str(mode))
+            self.getPlot3DWidget().setInteractiveMode(mode)
         self._updateColors()
 
     def getInteractiveMode(self):
         """Returns the current interaction mode, see :meth:`setInteractiveMode`
         """
-        if isinstance(self.getPlot3DWidget().eventHandler,
-                      interaction.PanPlaneRotateCameraControl):
+        if (isinstance(self.getPlot3DWidget().eventHandler,
+                       interaction.PanPlaneZoomOnWheelControl) or
+                self.getPlot3DWidget().eventHandler is None):
             return 'plane'
-        elif isinstance(self.getPlot3DWidget().eventHandler,
-                        interaction.CameraControl):
-            return 'camera'
         else:
-            raise RuntimeError('Unknown interactive mode')
+            return self.getPlot3DWidget().getInteractiveMode()
 
     # Handle scalar field
 

@@ -43,6 +43,8 @@ _logger = logging.getLogger(__name__)
 class Hdf5TreeView(qt.QTreeView):
     """TreeView which allow to browse HDF5 file structure.
 
+    .. image:: img/Hdf5TreeView.png
+
     It provides columns width auto-resizing and additional
     signals.
 

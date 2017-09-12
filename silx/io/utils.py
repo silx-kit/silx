@@ -41,7 +41,7 @@ else:
 
 __authors__ = ["P. Knobel", "V. Valls"]
 __license__ = "MIT"
-__date__ = "20/07/2017"
+__date__ = "28/08/2017"
 
 
 logger = logging.getLogger(__name__)
@@ -455,7 +455,7 @@ def get_h5py_class(obj):
     """
     if hasattr(obj, "h5py_class"):
         return obj.h5py_class
-    elif isinstance(obj, (h5py.File, h5py.Group, h5py.Dataset)):
+    elif isinstance(obj, (h5py.File, h5py.Group, h5py.Dataset, h5py.SoftLink)):
         return obj.__class__
     else:
         return None
@@ -475,7 +475,7 @@ def is_file(obj):
 
 def is_group(obj):
     """
-    True is the object is an h5py.Group-like object.
+    True if the object is a h5py.Group-like object.
 
     :param obj: An object
     """
@@ -487,7 +487,7 @@ def is_group(obj):
 
 def is_dataset(obj):
     """
-    True is the object is an h5py.Dataset-like object.
+    True if the object is a h5py.Dataset-like object.
 
     :param obj: An object
     """
@@ -495,6 +495,18 @@ def is_dataset(obj):
     if class_ is None:
         return False
     return issubclass(class_, h5py.Dataset)
+
+
+def is_softlink(obj):
+    """
+    True if the object is a h5py.SoftLink-like object.
+
+    :param obj: An object
+    """
+    class_ = get_h5py_class(obj)
+    if class_ is None:
+        return False
+    return issubclass(class_, h5py.SoftLink)
 
 
 if h5py_missing:
@@ -506,3 +518,4 @@ if h5py_missing:
     is_file = raise_h5py_missing
     is_group = raise_h5py_missing
     is_dataset = raise_h5py_missing
+    is_softlink = raise_h5py_missing

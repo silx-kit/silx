@@ -29,7 +29,7 @@ This widget is meant to work with :class:`PlotWindow`.
 
 __authors__ = ["V.A. Sole", "T. Rueter", "T. Vincent"]
 __license__ = "MIT"
-__data__ = "28/04/2016"
+__data__ = "08/08/2016"
 
 
 import logging
@@ -259,6 +259,7 @@ class LegendModel(qt.QAbstractListModel):
             legendList = []
         self.legendList = []
         self.insertLegendList(0, legendList)
+        self._palette = qt.QPalette()
 
     def __getitem__(self, idx):
         if idx >= len(self.legendList):
@@ -282,6 +283,7 @@ class LegendModel(qt.QAbstractListModel):
             raise IndexError('list index out of range')
 
         item = self.legendList[idx]
+        isActive = item[1].get("active", False)
         if role == qt.Qt.DisplayRole:
             # Data to be rendered in the form of text
             legend = str(item[0])
@@ -295,14 +297,19 @@ class LegendModel(qt.QAbstractListModel):
             return alignment
         elif role == qt.Qt.BackgroundRole:
             # Background color, must be QBrush
-            if idx % 2:
+            if isActive:
+                brush = self._palette.brush(qt.QPalette.Normal, qt.QPalette.Highlight)
+            elif idx % 2:
                 brush = qt.QBrush(qt.QColor(240, 240, 240))
             else:
                 brush = qt.QBrush(qt.Qt.white)
             return brush
         elif role == qt.Qt.ForegroundRole:
             # ForegroundRole color, must be QBrush
-            brush = qt.QBrush(qt.Qt.blue)
+            if isActive:
+                brush = self._palette.brush(qt.QPalette.Normal, qt.QPalette.HighlightedText)
+            else:
+                brush = self._palette.brush(qt.QPalette.Normal, qt.QPalette.WindowText)
             return brush
         elif role == qt.Qt.CheckStateRole:
             return bool(item[2])  # item[2] == True
@@ -513,6 +520,7 @@ class LegendListItemWidget(qt.QItemDelegate):
         textAlign = modelIndex.data(qt.Qt.TextAlignmentRole)
         painter.setBrush(textBrush)
         painter.setFont(self.legend.font())
+        painter.setPen(textBrush.color())
         painter.drawText(labelRect, textAlign, legendText)
 
         # Draw icon
@@ -614,7 +622,7 @@ class LegendListView(qt.QListView):
         self.setSelectionMode(qt.QAbstractItemView.NoSelection)
 
         if model is None:
-            model = LegendModel()
+            model = LegendModel(parent=self)
         self.setModel(model)
         self.setContextMenu(contextMenu)
 
@@ -1053,15 +1061,18 @@ class LegendsDockWidget(qt.QDockWidget):
             # Use active color if curve is active
             if legend == self.plot.getActiveCurve(just_legend=True):
                 color = qt.QColor(self.plot.getActiveCurveColor())
+                isActive = True
             else:
                 color = qt.QColor.fromRgbF(*curve.getColor())
+                isActive = False
 
             curveInfo = {
                 'color': color,
                 'linewidth': curve.getLineWidth(),
                 'linestyle': curve.getLineStyle(),
                 'symbol': curve.getSymbol(),
-                'selected': not self.plot.isCurveHidden(legend)}
+                'selected': not self.plot.isCurveHidden(legend),
+                'active': isActive}
             legendList.append((legend, curveInfo))
 
         self._legendWidget.setLegendList(legendList)
