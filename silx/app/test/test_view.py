@@ -83,9 +83,9 @@ class TestLauncher(unittest.TestCase):
         super(TestLauncher, cls).tearDownClass()
 
     def testHelp(self):
+        # option -h must cause a raise SystemExit or a return 0
         try:
             result = view.main(["view", "--help"])
-            self.assertNotEqual(result, 0)
         except SystemExit as e:
             result = e.args[0]
         self.assertEqual(result, 0)
