@@ -35,7 +35,7 @@ import logging
 
 from silx.gui import qt
 from silx.gui.plot.Colors import rgba
-from silx.gui.plot3d import Plot3DActions
+from . import actions
 from .._utils import convertArrayToQImage
 
 from .. import _glutils as glu
@@ -82,6 +82,10 @@ class _OverviewViewport(scene.Viewport):
 class Plot3DWidget(glu.OpenGLWidget):
     """OpenGL widget with a 3D viewport and an overview."""
 
+    sigInteractiveModeChanged = qt.Signal()
+    """Signal emitted when the interactive mode has changed
+    """
+
     def __init__(self, parent=None, f=qt.Qt.WindowFlags()):
         self._firstRender = True
 
@@ -97,7 +101,7 @@ class Plot3DWidget(glu.OpenGLWidget):
         self.setMouseTracking(True)
 
         self.setFocusPolicy(qt.Qt.StrongFocus)
-        self._copyAction = Plot3DActions.CopyAction(parent=self, plot3d=self)
+        self._copyAction = actions.io.CopyAction(parent=self, plot3d=self)
         self.addAction(self._copyAction)
 
         self._updating = False  # True if an update is requested
@@ -106,8 +110,8 @@ class Plot3DWidget(glu.OpenGLWidget):
         self.viewport = scene.Viewport()
         self.viewport.background = 0.2, 0.2, 0.2, 1.
 
-        sceneScale = transform.Scale(1., 1., 1.)
-        self.viewport.scene.transforms = [sceneScale,
+        self._sceneScale = transform.Scale(1., 1., 1.)
+        self.viewport.scene.transforms = [self._sceneScale,
                                           transform.Translate(0., 0., 0.)]
 
         # Overview area
@@ -120,10 +124,52 @@ class Plot3DWidget(glu.OpenGLWidget):
         self._window.viewports = [self.viewport, self.overview]
         self._window.addListener(self._redraw)
 
-        self.eventHandler = interaction.CameraControl(
-            self.viewport, orbitAroundCenter=False,
-            mode='position', scaleTransform=sceneScale,
-            selectCB=None)
+        self.eventHandler = None
+        self.setInteractiveMode('rotate')
+
+    def setInteractiveMode(self, mode):
+        """Set the interactive mode.
+
+        :param str mode: The interactive mode: 'rotate', 'pan' or None
+        """
+        if mode == self.getInteractiveMode():
+            return
+
+        if mode is None:
+            self.eventHandler = None
+
+        elif mode == 'rotate':
+            self.eventHandler = interaction.RotateCameraControl(
+                self.viewport,
+                orbitAroundCenter=False,
+                mode='position',
+                scaleTransform=self._sceneScale)
+
+        elif mode == 'pan':
+            self.eventHandler = interaction.PanCameraControl(
+                self.viewport,
+                mode='position',
+                scaleTransform=self._sceneScale,
+                selectCB=None)
+
+        else:
+            raise ValueError('Unsupported interactive mode %s', str(mode))
+
+        self.sigInteractiveModeChanged.emit()
+
+    def getInteractiveMode(self):
+        """Returns the interactive mode in use.
+
+        :rtype: str
+        """
+        if self.eventHandler is None:
+            return None
+        if isinstance(self.eventHandler, interaction.RotateCameraControl):
+            return 'rotate'
+        elif isinstance(self.eventHandler, interaction.PanCameraControl):
+            return 'pan'
+        else:
+            return None
 
     def setProjection(self, projection):
         """Change the projection in use.
@@ -211,10 +257,10 @@ class Plot3DWidget(glu.OpenGLWidget):
     def sizeHint(self):
         return qt.QSize(400, 300)
 
-    def initializeOpenGL(self):
+    def initializeGL(self):
         pass
 
-    def paintOpenGL(self):
+    def paintGL(self):
         # In case paintGL is called by the system and not through _redraw,
         # Mark as updating.
         self._updating = True
@@ -230,7 +276,7 @@ class Plot3DWidget(glu.OpenGLWidget):
             self.centerScene()
         self._updating = False
 
-    def resizeOpenGL(self, width, height):
+    def resizeGL(self, width, height):
         width *= self.getDevicePixelRatio()
         height *= self.getDevicePixelRatio()
         self._window.size = width, height
@@ -244,7 +290,7 @@ class Plot3DWidget(glu.OpenGLWidget):
         :returns: OpenGL scene RGB rasterization
         :rtype: QImage
         """
-        if not self.isRequestedOpenGLVersionAvailable():
+        if not self.isValid():
             _logger.error('OpenGL 2.1 not available, cannot save OpenGL image')
             height, width = self._window.shape
             image = numpy.zeros((height, width, 3), dtype=numpy.uint8)
@@ -264,7 +310,7 @@ class Plot3DWidget(glu.OpenGLWidget):
             angle = event.angleDelta().y() / 8.
         event.accept()
 
-        if angle != 0:
+        if self.eventHandler is not None and angle != 0 and self.isValid():
             self.makeCurrent()
             self.eventHandler.handleEvent('wheel', xpixel, ypixel, angle)
 
@@ -300,16 +346,18 @@ class Plot3DWidget(glu.OpenGLWidget):
         btn = self._MOUSE_BTNS[event.button()]
         event.accept()
 
-        self.makeCurrent()
-        self.eventHandler.handleEvent('press', xpixel, ypixel, btn)
+        if self.eventHandler is not None and self.isValid():
+            self.makeCurrent()
+            self.eventHandler.handleEvent('press', xpixel, ypixel, btn)
 
     def mouseMoveEvent(self, event):
         xpixel = event.x() * self.getDevicePixelRatio()
         ypixel = event.y() * self.getDevicePixelRatio()
         event.accept()
 
-        self.makeCurrent()
-        self.eventHandler.handleEvent('move', xpixel, ypixel)
+        if self.eventHandler is not None and self.isValid():
+            self.makeCurrent()
+            self.eventHandler.handleEvent('move', xpixel, ypixel)
 
     def mouseReleaseEvent(self, event):
         xpixel = event.x() * self.getDevicePixelRatio()
@@ -317,5 +365,6 @@ class Plot3DWidget(glu.OpenGLWidget):
         btn = self._MOUSE_BTNS[event.button()]
         event.accept()
 
-        self.makeCurrent()
-        self.eventHandler.handleEvent('release', xpixel, ypixel, btn)
+        if self.eventHandler is not None and self.isValid():
+            self.makeCurrent()
+            self.eventHandler.handleEvent('release', xpixel, ypixel, btn)

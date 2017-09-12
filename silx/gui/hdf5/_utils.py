@@ -28,7 +28,7 @@ package `silx.gui.hdf5` package.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "16/06/2017"
+__date__ = "28/08/2017"
 
 
 import logging
@@ -137,10 +137,58 @@ class H5Node(object):
         :param Hdf5Item h5py_item: An Hdf5Item
         """
         self.__h5py_object = h5py_item.obj
+        self.__h5py_target = None
         self.__h5py_item = h5py_item
 
     def __getattr__(self, name):
         return object.__getattribute__(self.__h5py_object, name)
+
+    def __get_target(self, obj):
+        """
+        Return the actual physical target of the provided object.
+
+        Objects can contains links in the middle of the path, this function
+        check each groups and remove this prefix in case of the link by the
+        link of the path.
+
+        :param obj: A valid h5py object (File, group or dataset)
+        :type obj: h5py.Dataset or h5py.Group or h5py.File
+        :rtype: h5py.Dataset or h5py.Group or h5py.File
+        """
+        elements = obj.name.split("/")
+        if obj.name == "/":
+            return obj
+        elif obj.name.startswith("/"):
+            elements.pop(0)
+        path = ""
+        while len(elements) > 0:
+            e = elements.pop(0)
+            path = path + "/" + e
+            link = obj.parent.get(path, getlink=True)
+
+            if isinstance(link, h5py.ExternalLink):
+                subpath = "/".join(elements)
+                external_obj = obj.parent.get(self.basename + "/" + subpath)
+                return self.__get_target(external_obj)
+            elif silx.io.utils.is_softlink(link):
+                # Restart from this stat
+                path = ""
+                root_elements = link.path.split("/")
+                if link.path == "/":
+                    root_elements = []
+                elif link.path.startswith("/"):
+                    root_elements.pop(0)
+                for name in reversed(root_elements):
+                    elements.insert(0, name)
+
+        return obj.file[path]
+
+    @property
+    def h5py_target(self):
+        if self.__h5py_target is not None:
+            return self.__h5py_target
+        self.__h5py_target = self.__get_target(self.__h5py_object)
+        return self.__h5py_target
 
     @property
     def h5py_object(self):
@@ -209,7 +257,7 @@ class H5Node(object):
         """Returns the parent item holding the :class:`h5py.File` object
 
         :rtype: h5py.File
-        :raises RuntimeException: If no file are found
+        :raises RuntimeError: If no file are found
         """
         item = self.__h5py_item
         while item is not None:
@@ -259,6 +307,25 @@ class H5Node(object):
         return self.__h5py_item.basename
 
     @property
+    def physical_file(self):
+        """Returns the physical file in which is this node.
+
+        .. versionadded:: 0.6
+
+        :rtype: h5py.File
+        :raises RuntimeError: If no file are found
+        """
+        if isinstance(self.__h5py_object, h5py.ExternalLink):
+            # It means the link is broken
+            raise RuntimeError("No file node found")
+        if isinstance(self.__h5py_object, h5py.SoftLink):
+            # It means the link is broken
+            return self.local_file
+
+        physical_obj = self.h5py_target
+        return physical_obj.file
+
+    @property
     def physical_name(self):
         """Returns the path from the location this h5py node is physically
         stored.
@@ -269,10 +336,14 @@ class H5Node(object):
         :rtype: str
         """
         if isinstance(self.__h5py_object, h5py.ExternalLink):
+            # It means the link is broken
             return self.__h5py_object.path
         if isinstance(self.__h5py_object, h5py.SoftLink):
+            # It means the link is broken
             return self.__h5py_object.path
-        return self.__h5py_object.name
+
+        physical_obj = self.h5py_target
+        return physical_obj.name
 
     @property
     def physical_filename(self):
@@ -285,9 +356,13 @@ class H5Node(object):
         :rtype: str
         """
         if isinstance(self.__h5py_object, h5py.ExternalLink):
+            # It means the link is broken
             return self.__h5py_object.filename
-        else:
-            return self.__h5py_object.file.filename
+        if isinstance(self.__h5py_object, h5py.SoftLink):
+            # It means the link is broken
+            return self.local_file.filename
+
+        return self.physical_file.filename
 
     @property
     def physical_basename(self):

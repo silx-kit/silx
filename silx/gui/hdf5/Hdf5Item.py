@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "16/06/2017"
+__date__ = "28/08/2017"
 
 
 import numpy
@@ -169,6 +169,22 @@ class Hdf5Item(Hdf5Node):
                 self.__isBroken = True
             else:
                 self.__obj = obj
+                if not self.isGroupObj():
+                    try:
+                        # pre-fetch of the data
+                        if obj.shape is None:
+                            pass
+                        elif obj.shape == tuple():
+                            obj[()]
+                        else:
+                            if obj.compression is None and obj.size > 0:
+                                key = tuple([0] * len(obj.shape))
+                                obj[key]
+                    except Exception as e:
+                        _logger.debug(e, exc_info=True)
+                        message = "%s broken. %s" % (self.__obj.name, e.args[0])
+                        self.__error = message
+                        self.__isBroken = True
 
         self.__key = None
 
@@ -202,6 +218,8 @@ class Hdf5Item(Hdf5Node):
 
         :rtype: qt.QIcon
         """
+        # Pre-fetch the object, in case it is broken
+        obj = self.obj
         style = qt.QApplication.style()
         if self.__isBroken:
             icon = style.standardIcon(qt.QStyle.SP_MessageBoxCritical)
@@ -216,17 +234,21 @@ class Hdf5Item(Hdf5Node):
         elif issubclass(class_, h5py.ExternalLink):
             return style.standardIcon(qt.QStyle.SP_FileLinkIcon)
         elif issubclass(class_, h5py.Dataset):
-            if len(self.obj.shape) < 4:
-                name = "item-%ddim" % len(self.obj.shape)
+            if obj.shape is None:
+                name = "item-none"
+            elif len(obj.shape) < 4:
+                name = "item-%ddim" % len(obj.shape)
             else:
                 name = "item-ndim"
-            if str(self.obj.dtype) == "object":
+            if str(obj.dtype) == "object":
                 name = "item-object"
             icon = icons.getQIcon(name)
             return icon
         return None
 
     def _humanReadableShape(self, dataset):
+        if dataset.shape is None:
+            return "none"
         if dataset.shape == tuple():
             return "scalar"
         shape = [str(i) for i in dataset.shape]
@@ -234,6 +256,8 @@ class Hdf5Item(Hdf5Node):
         return text
 
     def _humanReadableValue(self, dataset):
+        if dataset.shape is None:
+            return "No data"
         if dataset.shape == tuple():
             numpy_object = dataset[()]
             text = _formatter.toString(numpy_object)
@@ -275,40 +299,43 @@ class Hdf5Item(Hdf5Node):
     def _humanReadableType(self, dataset, full=False):
         return self._humanReadableDType(dataset.dtype, full)
 
-    def _setTooltipAttributes(self, attributeDict):
+    def _createTooltipAttributes(self):
         """
         Add key/value attributes that will be displayed in the item tooltip
 
         :param Dict[str,str] attributeDict: Key/value attributes
         """
+        attributeDict = collections.OrderedDict()
+
         if issubclass(self.h5pyClass, h5py.Dataset):
-            attributeDict["Title"] = "HDF5 Dataset"
+            attributeDict["#Title"] = "HDF5 Dataset"
             attributeDict["Name"] = self.basename
             attributeDict["Path"] = self.obj.name
             attributeDict["Shape"] = self._humanReadableShape(self.obj)
             attributeDict["Value"] = self._humanReadableValue(self.obj)
             attributeDict["Data type"] = self._humanReadableType(self.obj, full=True)
         elif issubclass(self.h5pyClass, h5py.Group):
-            attributeDict["Title"] = "HDF5 Group"
+            attributeDict["#Title"] = "HDF5 Group"
             attributeDict["Name"] = self.basename
             attributeDict["Path"] = self.obj.name
         elif issubclass(self.h5pyClass, h5py.File):
-            attributeDict["Title"] = "HDF5 File"
+            attributeDict["#Title"] = "HDF5 File"
             attributeDict["Name"] = self.basename
             attributeDict["Path"] = "/"
         elif isinstance(self.obj, h5py.ExternalLink):
-            attributeDict["Title"] = "HDF5 External Link"
+            attributeDict["#Title"] = "HDF5 External Link"
             attributeDict["Name"] = self.basename
             attributeDict["Path"] = self.obj.name
             attributeDict["Linked path"] = self.obj.path
             attributeDict["Linked file"] = self.obj.filename
         elif isinstance(self.obj, h5py.SoftLink):
-            attributeDict["Title"] = "HDF5 Soft Link"
+            attributeDict["#Title"] = "HDF5 Soft Link"
             attributeDict["Name"] = self.basename
             attributeDict["Path"] = self.obj.name
             attributeDict["Linked path"] = self.obj.path
         else:
             pass
+        return attributeDict
 
     def _getDefaultTooltip(self):
         """Returns the default tooltip
@@ -319,10 +346,8 @@ class Hdf5Item(Hdf5Node):
             self.obj  # lazy loading of the object
             return self.__error
 
-        attrs = collections.OrderedDict()
-        self._setTooltipAttributes(attrs)
-
-        title = attrs.pop("Title", None)
+        attrs = self._createTooltipAttributes()
+        title = attrs.pop("#Title", None)
         if len(attrs) > 0:
             tooltip = _utils.htmlFromDict(attrs, title=title)
         else:

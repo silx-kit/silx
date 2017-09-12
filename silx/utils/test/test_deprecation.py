@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "22/06/2017"
+__date__ = "11/09/2017"
 
 
 import unittest
@@ -61,14 +61,23 @@ class TestDeprecation(unittest.TestCase):
     def testAnnotationWithParams(self):
         self.deprecatedWithParams()
 
-    @utils.test_logging(deprecation.depreclog.name, warning=1)
-    def testLoggedOnlyOnce(self):
+    @utils.test_logging(deprecation.depreclog.name, warning=3)
+    def testLoggedEveryTime(self):
+        """Logged everytime cause it is 3 different locations"""
         self.deprecatedOnlyOnce()
         self.deprecatedOnlyOnce()
         self.deprecatedOnlyOnce()
 
+    @utils.test_logging(deprecation.depreclog.name, warning=1)
+    def testLoggedSingleTime(self):
+        def log():
+            self.deprecatedOnlyOnce()
+        log()
+        log()
+        log()
+
     @utils.test_logging(deprecation.depreclog.name, warning=3)
-    def testLoggedEveryTime(self):
+    def testLoggedEveryTime2(self):
         self.deprecatedEveryTime()
         self.deprecatedEveryTime()
         self.deprecatedEveryTime()
@@ -76,6 +85,15 @@ class TestDeprecation(unittest.TestCase):
     @utils.test_logging(deprecation.depreclog.name, warning=1)
     def testWarning(self):
         deprecation.deprecated_warning(type_="t", name="n")
+
+    def testBacktrace(self):
+        testLogging = utils.TestLogging(deprecation.depreclog.name)
+        with testLogging:
+            self.deprecatedEveryTime()
+        message = testLogging.records[0].getMessage()
+        filename = __file__.replace(".pyc", ".py")
+        self.assertTrue(filename in message)
+        self.assertTrue("testBacktrace" in message)
 
 
 def suite():

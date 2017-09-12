@@ -26,12 +26,12 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "13/10/2016"
+__date__ = "01/09/2017"
 
 
 import unittest
 from silx.gui import qt
-from silx.gui.plot.test.testPlotWidget import _PlotWidgetTest
+from .utils import PlotWidgetTestCase
 
 
 class _SignalDump(object):
@@ -49,7 +49,7 @@ class _SignalDump(object):
         return list(self._received)
 
 
-class TestSelectPolygon(_PlotWidgetTest):
+class TestSelectPolygon(PlotWidgetTestCase):
     """Test polygon selection interaction"""
 
     def _interactionModeChanged(self, source):

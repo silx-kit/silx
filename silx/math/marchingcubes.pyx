@@ -30,7 +30,7 @@ from data provided as a 3D data set or slice by slice.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "05/09/2016"
+__date__ = "16/08/2017"
 
 
 import numpy
@@ -127,7 +127,7 @@ cdef class MarchingCubes:
         del self.c_mc
 
     def __getitem__(self, key):
-        """Allows to unpack object as a single liner:
+        """Allows one to unpack object as a single liner:
 
         vertices, normals, indices = MarchingCubes(...)
         """

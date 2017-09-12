@@ -69,14 +69,9 @@ Example::
 
 __authors__ = ["P. Knobel", "H. Payno"]
 __license__ = "MIT"
-__date__ = "27/06/2017"
+__date__ = "11/09/2017"
 
 import numpy
-
-try:
-    import h5py
-except ImportError:
-    h5py = None
 
 from silx.gui import qt
 from .. import icons
@@ -90,6 +85,15 @@ from ..widgets.FrameBrowser import HorizontalSliderWithBrowser
 from silx.utils.array_like import DatasetView, ListOfImages
 from silx.math import calibration
 from silx.utils.deprecation import deprecated_warning
+
+try:
+    import h5py
+except ImportError:
+    def is_dataset(obj):
+        return False
+    h5py = None
+else:
+    from silx.io.utils import is_dataset
 
 
 class StackView(qt.QMainWindow):
@@ -314,8 +318,7 @@ class StackView(qt.QMainWindow):
         if isinstance(self._stack, numpy.ndarray):
             self.__transposed_view = self._stack
 
-        elif h5py is not None and isinstance(self._stack, h5py.Dataset) or \
-                isinstance(self._stack, DatasetView):
+        elif is_dataset(self._stack) or isinstance(self._stack, DatasetView):
             self.__transposed_view = DatasetView(self._stack)
 
         elif isinstance(self._stack, ListOfImages):
@@ -435,7 +438,7 @@ class StackView(qt.QMainWindow):
 
         # stack as list of 2D arrays: must be converted into an array_like
         if not isinstance(stack, numpy.ndarray):
-            if h5py is None or not isinstance(stack, h5py.Dataset):
+            if not is_dataset(stack):
                 try:
                     assert hasattr(stack, "__len__")
                     for img in stack:
@@ -714,8 +717,8 @@ class StackView(qt.QMainWindow):
         :type colormap: dict or str.
         :param str normalization: Colormap mapping: 'linear' or 'log'.
         :param bool autoscale: Whether to use autoscale or [vmin, vmax] range.
-            Default value of autoscale is True if data is a numpy array,
-            False if data is a h5py dataset.
+            Default value of autoscale is False. This option is not compatible
+            with h5py datasets.
         :param float vmin: The minimum value of the range to use if
                            'autoscale' is False.
         :param float vmax: The maximum value of the range to use if
@@ -760,15 +763,10 @@ class StackView(qt.QMainWindow):
             if autoscale is None:
                 # set default
                 autoscale = False
-                # TODO: assess cost of computing min/max for large 3D array
-                # if isinstance(self._stack, numpy.ndarray):
-                #     autoscale = True
-                # else:                    # h5py.Dataset
-                #     autoscale = False
-            elif autoscale and isinstance(self._stack, h5py.Dataset):
+            elif autoscale and is_dataset(self._stack):
                 # h5py dataset has no min()/max() methods
                 raise RuntimeError(
-                        "Cannot auto-scale colormap for a h5py dataset")
+                    "Cannot auto-scale colormap for a h5py dataset")
             else:
                 autoscale = autoscale
             self.__autoscaleCmap = autoscale
@@ -1110,7 +1108,6 @@ class StackViewMainWindow(StackView):
         menu.addAction(actions.control.YAxisInvertedAction(self._plot, self))
 
         menu = self.menuBar().addMenu('Profile')
-        menu.addAction(self._plot.profile.browseAction)
         menu.addAction(self._plot.profile.hLineAction)
         menu.addAction(self._plot.profile.vLineAction)
         menu.addAction(self._plot.profile.lineAction)

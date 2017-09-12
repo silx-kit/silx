@@ -28,7 +28,7 @@ and stacks of images"""
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel", "H. Payno"]
 __license__ = "MIT"
-__date__ = "27/06/2017"
+__date__ = "17/08/2017"
 
 
 import numpy
@@ -39,7 +39,7 @@ from .. import icons
 from .. import qt
 from . import items
 from .Colors import cursorColorForColormap
-from .actions import PlotAction
+from . import actions
 from .PlotToolButtons import ProfileToolButton
 from .ProfileMainWindow import ProfileMainWindow
 
@@ -372,13 +372,8 @@ class ProfileToolBar(qt.QToolBar):
             self._profileMainWindow = ProfileMainWindow(self)
 
         # Actions
-        self.browseAction = qt.QAction(
-            icons.getQIcon('normal'),
-            'Browsing Mode', None)
-        self.browseAction.setToolTip(
-            'Enables zooming interaction mode')
-        self.browseAction.setCheckable(True)
-        self.browseAction.triggered[bool].connect(self._browseActionTriggered)
+        self._browseAction = actions.mode.ZoomModeAction(self.plot, parent=self)
+        self._browseAction.setVisible(False)
 
         self.hLineAction = qt.QAction(
             icons.getQIcon('shape-horizontal'),
@@ -414,15 +409,13 @@ class ProfileToolBar(qt.QToolBar):
 
         # ActionGroup
         self.actionGroup = qt.QActionGroup(self)
-        self.actionGroup.addAction(self.browseAction)
+        self.actionGroup.addAction(self._browseAction)
         self.actionGroup.addAction(self.hLineAction)
         self.actionGroup.addAction(self.vLineAction)
         self.actionGroup.addAction(self.lineAction)
 
-        self.browseAction.setChecked(True)
-
         # Add actions to ToolBar
-        self.addAction(self.browseAction)
+        self.addAction(self._browseAction)
         self.addAction(self.hLineAction)
         self.addAction(self.vLineAction)
         self.addAction(self.lineAction)
@@ -448,6 +441,11 @@ class ProfileToolBar(qt.QToolBar):
         # listen to the profile window signals to clear profile polygon on close
         if self.getProfileMainWindow() is not None:
             self.getProfileMainWindow().sigClose.connect(self.clearProfile)
+
+    @property
+    @deprecated(since_version="0.6.0")
+    def browseAction(self):
+        return self._browseAction
 
     @property
     @deprecated(replacement="getProfilePlot", since_version="0.5.0")
@@ -495,7 +493,9 @@ class ProfileToolBar(qt.QToolBar):
         If changed from elsewhere, disable drawing tool
         """
         if source is not self:
-            self.browseAction.setChecked(True)
+            self.clearProfile()
+            if self.getProfileMainWindow() is not None:
+                self.getProfileMainWindow().hide()
 
     def _hLineActionToggled(self, checked):
         """Handle horizontal line profile action toggle"""
@@ -523,14 +523,6 @@ class ProfileToolBar(qt.QToolBar):
             self.plot.sigPlotSignal.connect(self._plotWindowSlot)
         else:
             self.plot.sigPlotSignal.disconnect(self._plotWindowSlot)
-
-    def _browseActionTriggered(self, checked):
-        """Handle browse action mode triggered by user."""
-        if checked:
-            self.clearProfile()
-            self.plot.setInteractiveMode('zoom', source=self)
-            if self.getProfileMainWindow() is not None:
-                self.getProfileMainWindow().hide()
 
     def _plotWindowSlot(self, event):
         """Listen to Plot to handle drawing events to refresh ROI and profile.

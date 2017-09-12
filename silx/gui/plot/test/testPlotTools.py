@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "05/12/2016"
+__date__ = "01/09/2017"
 
 
 import numpy
@@ -37,6 +37,7 @@ from silx.gui.test.utils import (
     qWaitForWindowExposedAndActivate, TestCaseQt, getQToolButtonFromAction)
 from silx.gui import qt
 from silx.gui.plot import Plot2D, PlotWindow, PlotTools
+from .utils import PlotWidgetTestCase
 
 
 # Makes sure a QApplication exists
@@ -67,23 +68,19 @@ def _tearDownDocTest(docTest):
 # """
 
 
-class TestPositionInfo(TestCaseQt):
+class TestPositionInfo(PlotWidgetTestCase):
     """Tests for PositionInfo widget."""
+
+    def _createPlot(self):
+        return PlotWindow()
 
     def setUp(self):
         super(TestPositionInfo, self).setUp()
-        self.plot = PlotWindow()
-        self.plot.show()
-        self.qWaitForWindowExposed(self.plot)
-        self.mouseMove(self.plot, pos=(1, 1))
+        self.mouseMove(self.plot, pos=(0, 0))
         self.qapp.processEvents()
         self.qWait(100)
 
     def tearDown(self):
-        self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
-        self.plot.close()
-        del self.plot
-
         super(TestPositionInfo, self).tearDown()
 
     def _test(self, positionWidget, converterNames, **kwargs):
@@ -104,10 +101,10 @@ class TestPositionInfo(TestCaseQt):
 
         with TestLogging(PlotTools.__name__, **kwargs):
             # Move mouse to center
-            self.mouseMove(self.plot)
+            center = self.plot.size() / 2
+            self.mouseMove(self.plot, pos=(center.width(), center.height()))
+            # Move out
             self.mouseMove(self.plot, pos=(1, 1))
-            self.qapp.processEvents()
-            self.qWait(100)
 
     def testDefaultConverters(self):
         """Test PositionInfo with default converters"""

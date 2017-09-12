@@ -30,8 +30,9 @@ on a PlotWidget)
 
 __authors__ = ["H. Payno"]
 __license__ = "MIT"
-__date__ = "24/05/2017"
+__date__ = "16/08/2017"
 
 from .PlotAction import PlotAction
 from . import control
+from . import mode
 from . import io

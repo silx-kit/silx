@@ -28,7 +28,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "21/03/2017"
+__date__ = "16/08/2017"
 
 from collections import OrderedDict, namedtuple
 from ctypes import c_void_p
@@ -443,7 +443,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                                gl.GL_ONE,
                                gl.GL_ONE)
 
-    def initializeOpenGL(self):
+    def initializeGL(self):
         gl.testGL()
 
         gl.glClearColor(1., 1., 1., 1.)
@@ -529,7 +529,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         self._renderMarkersGL()
         self._renderOverlayGL()
 
-    def paintOpenGL(self):
+    def paintGL(self):
         global _current_context
         _current_context = self.context()
 
@@ -915,7 +915,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
         gl.glDisable(gl.GL_SCISSOR_TEST)
 
-    def resizeOpenGL(self, width, height):
+    def resizeGL(self, width, height):
         if width == 0 or height == 0:  # Do not resize
             return
 
@@ -1301,8 +1301,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                     if pickedIndices:
                         picked.append(dict(kind='curve',
                                            legend=item.info['legend'],
-                                           xdata=item.xData[pickedIndices],
-                                           ydata=item.yData[pickedIndices]))
+                                           indices=pickedIndices))
 
         return picked
 
@@ -1330,7 +1329,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         if fileFormat not in ['png', 'ppm', 'svg', 'tiff']:
             raise NotImplementedError('Unsupported format: %s' % fileFormat)
 
-        if not self.isRequestedOpenGLVersionAvailable():
+        if not self.isValid():
             _logger.error('OpenGL 2.1 not available, cannot save OpenGL image')
             width, height = self._plotFrame.size
             data = numpy.zeros((height, width, 3), dtype=numpy.uint8)
@@ -1341,11 +1340,23 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                 (self._plotFrame.size[1], self._plotFrame.size[0], 3),
                 dtype=numpy.uint8, order='C')
 
-            gl.glBindFramebuffer(gl.GL_FRAMEBUFFER,
-                                 self.defaultFramebufferObject())
+            context = self.context()
+            framebufferTexture = self._plotFBOs.get(context)
+            if framebufferTexture is None:
+                # Fallback, supports direct rendering mode: _paintDirectGL
+                # might have issues as it can read on-screen framebuffer
+                fboName = self.defaultFramebufferObject()
+                width, height = self._plotFrame.size
+            else:
+                fboName = framebufferTexture.name
+                height, width = framebufferTexture.shape
+
+            previousFramebuffer = gl.glGetInteger(gl.GL_FRAMEBUFFER_BINDING)
+            gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, fboName)
             gl.glPixelStorei(gl.GL_PACK_ALIGNMENT, 1)
-            gl.glReadPixels(0, 0, self._plotFrame.size[0], self._plotFrame.size[1],
+            gl.glReadPixels(0, 0, width, height,
                             gl.GL_RGB, gl.GL_UNSIGNED_BYTE, data)
+            gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, previousFramebuffer)
 
             # glReadPixels gives bottom to top,
             # while images are stored as top to bottom
@@ -1635,3 +1646,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     def getPlotBoundsInPixels(self):
         return self._plotFrame.plotOrigin + self._plotFrame.plotSize
+
+    def setAxesDisplayed(self, displayed):
+        self._plotFrame.displayed = displayed

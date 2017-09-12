@@ -53,7 +53,7 @@ Full documentation:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "15/05/2017"
+__date__ = "16/08/2017"
 
 import logging
 import numpy
@@ -67,7 +67,7 @@ cimport functions_wrapper
 def erf(x):
     """Return the gaussian error function
 
-    :param x: Independant variable where the gaussian error function is
+    :param x: Independent variable where the gaussian error function is
         calculated
     :type x: numpy.ndarray or scalar
     :return: Gaussian error function ``y=erf(x)``
@@ -97,7 +97,7 @@ def erf(x):
 def erfc(x):
     """Return the gaussian complementary error function
 
-    :param x: Independant variable where the gaussian complementary error
+    :param x: Independent variable where the gaussian complementary error
         function is calculated
     :type x: numpy.ndarray or scalar
     :return: Gaussian complementary error function ``y=erfc(x)``
@@ -132,7 +132,7 @@ def sum_gauss(x, *params):
         - *centroid* is the peak x-coordinate
         - *fwhm* is the full-width at half maximum
 
-    :param x: Independant variable where the gaussians are calculated
+    :param x: Independent variable where the gaussians are calculated
     :type x: numpy.ndarray
     :param params: Array of gaussian parameters (length must be a multiple
         of 3):
@@ -180,7 +180,7 @@ def sum_agauss(x, *params):
         - *centroid* is the peak x-coordinate
         - *fwhm* is the full-width at half maximum
 
-    :param x: Independant variable where the gaussians are calculated
+    :param x: Independent variable where the gaussians are calculated
     :type x: numpy.ndarray
     :param params: Array of gaussian parameters (length must be a multiple
         of 3):
@@ -230,7 +230,7 @@ def sum_fastagauss(x, *params):
     lookup table with precalculated exponential values. This might speed up
     the computation for large numbers of individual gaussian functions.
 
-    :param x: Independant variable where the gaussians are calculated
+    :param x: Independent variable where the gaussians are calculated
     :type x: numpy.ndarray
     :param params: Array of gaussian parameters (length must be a multiple
         of 3):
@@ -279,7 +279,7 @@ def sum_splitgauss(x, *params):
         - *fwhm2* is the full-width at half maximum for the distribution
           when  ``x > centroid``
 
-    :param x: Independant variable where the gaussians are calculated
+    :param x: Independent variable where the gaussians are calculated
     :type x: numpy.ndarray
     :param params: Array of gaussian parameters (length must be a multiple
         of 4):
@@ -330,7 +330,7 @@ def sum_apvoigt(x, *params):
         - *fwhm* is the full-width at half maximum of both functions
         - *eta* is the Lorentz factor: PV(x) = eta * L(x) + (1 - eta) * G(x)
 
-    :param x: Independant variable where the gaussians are calculated
+    :param x: Independent variable where the gaussians are calculated
     :type x: numpy.ndarray
     :param params: Array of pseudo-Voigt parameters (length must be a multiple
         of 4):
@@ -380,7 +380,7 @@ def sum_pvoigt(x, *params):
         - *fwhm* is the full-width at half maximum of both functions
         - *eta* is the Lorentz factor: PV(x) = eta * L(x) + (1 - eta) * G(x)
 
-    :param x: Independant variable where the gaussians are calculated
+    :param x: Independent variable where the gaussians are calculated
     :type x: numpy.ndarray
     :param params: Array of pseudo-Voigt parameters (length must be a multiple
         of 4):
@@ -434,7 +434,7 @@ def sum_splitpvoigt(x, *params):
           when ``x > centroid``
         - *eta* is the Lorentz factor: PV(x) = eta * L(x) + (1 - eta) * G(x)
 
-    :param x: Independant variable where the gaussians are calculated
+    :param x: Independent variable where the gaussians are calculated
     :type x: numpy.ndarray
     :param params: Array of pseudo-Voigt parameters (length must be a multiple
         of 5):
@@ -481,7 +481,7 @@ def sum_lorentz(x, *params):
         - *centroid* is the peak x-coordinate
         - *fwhm* is the full-width at half maximum
 
-    :param x: Independant variable where the gaussians are calculated
+    :param x: Independent variable where the gaussians are calculated
     :type x: numpy.ndarray
     :param params: Array of Lorentz parameters (length must be a multiple
         of 3):
@@ -528,7 +528,7 @@ def sum_alorentz(x, *params):
         - *centroid* is the peak x-coordinate for both functions
         - *fwhm* is the full-width at half maximum
 
-    :param x: Independant variable where the gaussians are calculated
+    :param x: Independent variable where the gaussians are calculated
     :type x: numpy.ndarray
     :param params: Array of Lorentz parameters (length must be a multiple
         of 3):
@@ -576,7 +576,7 @@ def sum_splitlorentz(x, *params):
         - *fwhm1* is the full-width at half maximum for ``x < centroid``
         - *fwhm2* is the full-width at half maximum for ``x > centroid``
 
-    :param x: Independant variable where the gaussians are calculated
+    :param x: Independent variable where the gaussians are calculated
     :type x: numpy.ndarray
     :param params: Array of Lorentz parameters (length must be a multiple
         of 4):
@@ -624,7 +624,7 @@ def sum_stepdown(x, *params):
         - *fwhm* is the full-width at half maximum for the derivative,
           which is a measure of the *sharpness* of the step-down's edge
 
-    :param x: Independant variable where the gaussians are calculated
+    :param x: Independent variable where the gaussians are calculated
     :type x: numpy.ndarray
     :param params: Array of stepdown parameters (length must be a multiple
         of 3):
@@ -672,7 +672,7 @@ def sum_stepup(x, *params):
         - *fwhm* is the full-width at half maximum for the derivative,
           which is a measure of the *sharpness* of the step-up's edge
 
-    :param x: Independant variable where the gaussians are calculated
+    :param x: Independent variable where the gaussians are calculated
     :type x: numpy.ndarray
     :param params: Array of stepup parameters (length must be a multiple
         of 3):
@@ -723,7 +723,7 @@ def sum_slit(x, *params):
           derivative, which is a measure of the *sharpness*
           of the edges of the slit
 
-    :param x: Independant variable where the slits are calculated
+    :param x: Independent variable where the slits are calculated
     :type x: numpy.ndarray
     :param params: Array of slit parameters (length must be a multiple
         of 4):
@@ -791,7 +791,7 @@ def sum_ahypermet(x, *params,
         - a short tail term
         - a step down term
 
-    :param x: Independant variable where the hypermets are calculated
+    :param x: Independent variable where the hypermets are calculated
     :type x: numpy.ndarray
     :param params: Array of hypermet parameters (length must be a multiple
         of 8):
@@ -877,7 +877,7 @@ def sum_fastahypermet(x, *params,
     table for calculating exponentials. This offers better performance when
     calculating many functions for large ``x`` arrays.
 
-    :param x: Independant variable where the hypermets are calculated
+    :param x: Independent variable where the hypermets are calculated
     :type x: numpy.ndarray
     :param params: Array of hypermet parameters (length must be a multiple
         of 8):
@@ -942,7 +942,7 @@ def atan_stepup(x, a, b, c):
     """
     Step up function using an inverse tangent.
 
-    :param x: Independant variable where the function is calculated
+    :param x: Independent variable where the function is calculated
     :type x: numpy array
     :param a: Height of the step up
     :param b: Center of the step up
@@ -968,7 +968,7 @@ def periodic_gauss(x, *pars):
     - *centroid* is the peak x-coordinate of the first gaussian
     - *fwhm* is the full-width at half maximum for all the gaussians
 
-    :param x: Independant variable where the function is calculated
+    :param x: Independent variable where the function is calculated
     :param pars: *(npeaks, delta, height, centroid, fwhm)*
     :return: Sum of ``npeaks`` gaussians
     """

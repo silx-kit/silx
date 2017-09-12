@@ -26,48 +26,19 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "13/07/2017"
+__date__ = "01/09/2017"
 
 
 import unittest
 
 import numpy
 
-from silx.gui.test.utils import SignalListener, TestCaseQt
-
-from silx.gui import qt
-from silx.gui.plot import PlotWidget
+from silx.gui.test.utils import SignalListener
 from silx.gui.plot.items import ItemChangedType
+from .utils import PlotWidgetTestCase
 
 
-SIZE = 1024
-"""Size of the test image"""
-
-DATA_2D = numpy.arange(SIZE ** 2).reshape(SIZE, SIZE)
-"""Image data set"""
-
-
-class _PlotWidgetTest(TestCaseQt):
-    """Base class for tests of PlotWidget, not a TestCase in itself.
-
-    plot attribute is the PlotWidget created for the test.
-    """
-
-    def setUp(self):
-        super(_PlotWidgetTest, self).setUp()
-        self.plot = PlotWidget()
-        self.plot.show()
-        self.qWaitForWindowExposed(self.plot)
-
-    def tearDown(self):
-        self.qapp.processEvents()
-        self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
-        self.plot.close()
-        del self.plot
-        super(_PlotWidgetTest, self).tearDown()
-
-
-class TestSigItemChangedSignal(_PlotWidgetTest):
+class TestSigItemChangedSignal(PlotWidgetTestCase):
     """Test item's sigItemChanged signal"""
 
     def testCurveChanged(self):

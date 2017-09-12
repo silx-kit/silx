@@ -1,5 +1,5 @@
-Tutorials
-=========
+Tutorials and sample code
+=========================
 
 Tutorials and cookbooks:
 
@@ -15,3 +15,8 @@ Tutorials and cookbooks:
    Tutorials/fit.rst
    Tutorials/fitconfig.rst
    Tutorials/array_widget.rst
+
+.. toctree::
+   :maxdepth: 2
+
+   sample_code/index.rst

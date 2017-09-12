@@ -26,11 +26,11 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "28/06/2017"
+__date__ = "01/09/2017"
 
 
 import unittest
-
+import logging
 import numpy
 
 from silx.test.utils import ParametricTestCase
@@ -43,6 +43,8 @@ from silx.gui import qt
 from silx.gui.plot import PlotWidget
 from silx.gui.plot.Colormap import Colormap
 
+from .utils import PlotWidgetTestCase
+
 
 SIZE = 1024
 """Size of the test image"""
@@ -51,27 +53,10 @@ DATA_2D = numpy.arange(SIZE ** 2).reshape(SIZE, SIZE)
 """Image data set"""
 
 
-class _PlotWidgetTest(TestCaseQt):
-    """Base class for tests of PlotWidget, not a TestCase in itself.
-
-    plot attribute is the PlotWidget created for the test.
-    """
-
-    def setUp(self):
-        super(_PlotWidgetTest, self).setUp()
-        self.plot = PlotWidget()
-        self.plot.show()
-        self.qWaitForWindowExposed(self.plot)
-
-    def tearDown(self):
-        self.qapp.processEvents()
-        self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
-        self.plot.close()
-        del self.plot
-        super(_PlotWidgetTest, self).tearDown()
+logger = logging.getLogger(__name__)
 
 
-class TestPlotWidget(_PlotWidgetTest, ParametricTestCase):
+class TestPlotWidget(PlotWidgetTestCase, ParametricTestCase):
     """Basic tests for PlotWidget"""
 
     def testShow(self):
@@ -125,7 +110,7 @@ class TestPlotWidget(_PlotWidgetTest, ParametricTestCase):
         checkLimits(expectedYLim=(1., 10.), expectedRatio=defaultRatio)
 
 
-class TestPlotImage(_PlotWidgetTest, ParametricTestCase):
+class TestPlotImage(PlotWidgetTestCase, ParametricTestCase):
     """Basic tests for addImage"""
 
     def setUp(self):
@@ -276,7 +261,7 @@ class TestPlotImage(_PlotWidgetTest, ParametricTestCase):
         self.plot.addImage(DATA_2D, legend="image 1", colormap=colormap)
 
 
-class TestPlotCurve(_PlotWidgetTest):
+class TestPlotCurve(PlotWidgetTestCase):
     """Basic tests for addCurve."""
 
     # Test data sets
@@ -334,7 +319,7 @@ class TestPlotCurve(_PlotWidgetTest):
         self.plot.resetZoom()
 
 
-class TestPlotMarker(_PlotWidgetTest):
+class TestPlotMarker(PlotWidgetTestCase):
     """Basic tests for add*Marker"""
 
     def setUp(self):
@@ -428,7 +413,7 @@ class TestPlotMarker(_PlotWidgetTest):
 
 # TestPlotItem ################################################################
 
-class TestPlotItem(_PlotWidgetTest):
+class TestPlotItem(PlotWidgetTestCase):
     """Basic tests for addItem."""
 
     # Polygon coordinates and color
@@ -502,7 +487,7 @@ class TestPlotItem(_PlotWidgetTest):
         self.plot.resetZoom()
 
 
-class TestPlotActiveCurveImage(_PlotWidgetTest):
+class TestPlotActiveCurveImage(PlotWidgetTestCase):
     """Basic tests for active image handling"""
 
     def testActiveCurveAndLabels(self):
@@ -586,7 +571,7 @@ class TestPlotActiveCurveImage(_PlotWidgetTest):
 # Log
 ##############################################################################
 
-class TestPlotEmptyLog(_PlotWidgetTest):
+class TestPlotEmptyLog(PlotWidgetTestCase):
     """Basic tests for log plot"""
     def testEmptyPlotTitleLabelsLog(self):
         self.plot.setGraphTitle('Empty Log Log')
@@ -914,8 +899,16 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.assertIn(("left", True), events)
         self.assertIn(("right", True), events)
 
+    def testAxesDisplayedFalse(self):
+        """Test coverage on setAxesDisplayed(False)"""
+        self.plot.setAxesDisplayed(False)
 
-class TestPlotCurveLog(_PlotWidgetTest, ParametricTestCase):
+    def testAxesDisplayedTrue(self):
+        """Test coverage on setAxesDisplayed(True)"""
+        self.plot.setAxesDisplayed(True)
+
+
+class TestPlotCurveLog(PlotWidgetTestCase, ParametricTestCase):
     """Basic tests for addCurve with log scale axes"""
 
     # Test data
@@ -1078,7 +1071,7 @@ class TestPlotCurveLog(_PlotWidgetTest, ParametricTestCase):
                 self.qapp.processEvents()
 
 
-class TestPlotImageLog(_PlotWidgetTest):
+class TestPlotImageLog(PlotWidgetTestCase):
     """Basic tests for addImage with log scale axes."""
 
     def setUp(self):
@@ -1152,7 +1145,7 @@ class TestPlotImageLog(_PlotWidgetTest):
         self.plot.resetZoom()
 
 
-class TestPlotMarkerLog(_PlotWidgetTest):
+class TestPlotMarkerLog(PlotWidgetTestCase):
     """Basic tests for markers on log scales"""
 
     # Test marker parameters
@@ -1213,7 +1206,7 @@ class TestPlotMarkerLog(_PlotWidgetTest):
         self.plot.resetZoom()
 
 
-class TestPlotItemLog(_PlotWidgetTest):
+class TestPlotItemLog(PlotWidgetTestCase):
     """Basic tests for items with log scale axes"""
 
     # Polygon coordinates and color

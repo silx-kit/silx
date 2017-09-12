@@ -32,6 +32,8 @@ import unittest
 import datetime
 from functools import partial
 
+from silx.test import utils
+
 from .. import spech5
 from ..spech5 import (SpecH5, SpecH5Group,
                       SpecH5Dataset, spec_date_to_iso8601)
@@ -262,9 +264,6 @@ class TestSpecH5(unittest.TestCase):
         # full path to element in group (OK)
         self.assertIn("/1.1/instrument/positioners/Sslit1 HOff",
                       self.sfh5["/1.1/instrument"])
-        # full path to element outside group (illegal)
-        self.assertNotIn("/1.1/instrument/positioners/Sslit1 HOff",
-                         self.sfh5["/1.1/measurement"])
 
     def testDataColumn(self):
         self.assertAlmostEqual(sum(self.sfh5["/1.2/measurement/duo"]),
@@ -327,7 +326,7 @@ class TestSpecH5(unittest.TestCase):
 
     def testGetItemGroup(self):
         group = self.sfh5["25.1"]["instrument"]
-        self.assertEqual(group["positioners"].keys(),
+        self.assertEqual(list(group["positioners"].keys()),
                          ["Pslit HGap", "MRTSlit UP", "MRTSlit DOWN",
                           "Sslit1 VOff", "Sslit1 HOff", "Sslit1 VGap"])
         with self.assertRaises(KeyError):
@@ -408,7 +407,7 @@ class TestSpecH5(unittest.TestCase):
                          self.sfh5["/1.2/instrument/mca_0/elapsed_time"])
 
     def testListScanIndices(self):
-        self.assertEqual(self.sfh5.keys(),
+        self.assertEqual(list(self.sfh5.keys()),
                          ["1.1", "25.1", "1.2", "1000.1", "1001.1"])
         self.assertEqual(self.sfh5["1.2"].attrs,
                          {"NX_class": "NXentry", })
@@ -585,6 +584,7 @@ class TestSpecH5(unittest.TestCase):
         with self.assertRaises(KeyError):
             uc = self.sfh5["/1001.1/sample/unit_cell"]
 
+    @utils.test_logging(spech5.logger1.name, warning=2)
     def testOpenFileDescriptor(self):
         """Open a SpecH5 file from a file descriptor"""
         with io.open(self.sfh5.filename) as f:
@@ -850,7 +850,7 @@ class TestSpecH5SlashInLabels(unittest.TestCase):
     def testLabels(self):
         """Ensure `/` is substituted with `%` and
         ensure legitimate `%` in names are still working"""
-        self.assertEqual(self.sfh5["1.1/measurement/"].keys(),
+        self.assertEqual(list(self.sfh5["1.1/measurement/"].keys()),
                          ["GONY%mm", "PD3%A"])
 
         # substituted "%"
@@ -867,7 +867,7 @@ class TestSpecH5SlashInLabels(unittest.TestCase):
     def testMotors(self):
         """Ensure `/` is substituted with `%` and
         ensure legitimate `%` in names are still working"""
-        self.assertEqual(self.sfh5["1.1/instrument/positioners"].keys(),
+        self.assertEqual(list(self.sfh5["1.1/instrument/positioners"].keys()),
                          ["Pslit%HGap", "MRTSlit%UP"])
         # substituted "%"
         self.assertIn("Pslit%HGap",

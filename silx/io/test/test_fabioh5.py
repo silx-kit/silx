@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "21/06/2017"
+__date__ = "29/08/2017"
 
 import logging
 import numpy
@@ -46,6 +46,7 @@ except ImportError:
 
 if fabio is not None and h5py is not None:
     from .. import fabioh5
+    from .. import commonh5
 
 
 class TestFabioH5(unittest.TestCase):
@@ -292,7 +293,21 @@ class TestFabioH5(unittest.TestCase):
         result = self.h5_image.get("scan_0", getclass=True, getlink=False)
         self.assertIs(result, h5py.Group)
         result = self.h5_image.get("scan_0", getclass=False, getlink=False)
-        self.assertIsInstance(result, fabioh5.Group)
+        self.assertIsInstance(result, commonh5.Group)
+
+    def test_detector_link(self):
+        detector1 = self.h5_image["/scan_0/instrument/detector_0"]
+        detector2 = self.h5_image["/scan_0/measurement/image_0/info"]
+        self.assertIsNot(detector1, detector2)
+        self.assertEqual(list(detector1.items()), list(detector2.items()))
+        self.assertEqual(self.h5_image.get(detector2.name, getlink=True).path, detector1.name)
+
+    def test_detector_data_link(self):
+        data1 = self.h5_image["/scan_0/instrument/detector_0/data"]
+        data2 = self.h5_image["/scan_0/measurement/image_0/data"]
+        self.assertIsNot(data1, data2)
+        self.assertIs(data1._get_data(), data2._get_data())
+        self.assertEqual(self.h5_image.get(data2.name, getlink=True).path, data1.name)
 
 
 def suite():

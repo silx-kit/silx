@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "15/05/2017"
+__date__ = "01/09/2017"
 
 
 import gc
@@ -35,6 +35,7 @@ import unittest
 import time
 import functools
 import sys
+import os
 
 _logger = logging.getLogger(__name__)
 
@@ -347,6 +348,34 @@ class TestCaseQt(unittest.TestCase):
             QTest.qWait(self.TIMEOUT_WAIT)
 
         return result
+
+    def logScreenShot(self, level=logging.ERROR):
+        """Take a screenshot and log it into the logging system if the
+        logger is enabled for the expected level.
+
+        The screenshot is stored in the directory "./build/test-debug", and
+        the logging system only log the path to this file.
+
+        :param level: Logging level
+        """
+        if not _logger.isEnabledFor(level):
+            return
+        basedir = os.path.abspath(os.path.join("build", "test-debug"))
+        if not os.path.exists(basedir):
+            os.makedirs(basedir)
+        filename = "Screenshot_%s.png" % self.id()
+        filename = os.path.join(basedir, filename)
+
+        if not hasattr(self.qapp, "primaryScreen"):
+            # Qt4
+            winId = qt.QApplication.desktop().winId()
+            pixmap = qt.QPixmap.grabWindow(winId)
+        else:
+            # Qt5
+            screen = self.qapp.primaryScreen()
+            pixmap = screen.grabWindow(0)
+        pixmap.save(filename)
+        _logger.log(level, "Screenshot saved at %s", filename)
 
 
 class SignalListener(object):

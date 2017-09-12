@@ -110,8 +110,8 @@ Some examples are available in the source code repository. For example::
 License
 -------
 
-The source code of silx is licensed under the MIT and LGPL licenses.
-See the `copyright file <https://github.com/silx-kit/silx/blob/master/copyright>`_ for details.
+The source code of silx is licensed under the MIT license.
+See the `LICENSE <https://github.com/silx-kit/silx/blob/master/LICENSE>`_ and `copyright <https://github.com/silx-kit/silx/blob/master/copyright>`_ files for details.
 
 Citation
 --------

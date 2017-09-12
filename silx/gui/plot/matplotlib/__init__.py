@@ -53,12 +53,18 @@ import matplotlib
 if qt.BINDING == 'PySide':
     matplotlib.rcParams['backend'] = 'Qt4Agg'
     matplotlib.rcParams['backend.qt4'] = 'PySide'
-    from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg  # noqa
+    import matplotlib.backends.backend_qt4agg as backend
 
 elif qt.BINDING == 'PyQt4':
     matplotlib.rcParams['backend'] = 'Qt4Agg'
-    from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg  # noqa
+    import matplotlib.backends.backend_qt4agg as backend
 
 elif qt.BINDING == 'PyQt5':
     matplotlib.rcParams['backend'] = 'Qt5Agg'
-    from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg  # noqa
+    import matplotlib.backends.backend_qt5agg as backend
+
+else:
+    backend = None
+
+if backend is not None:
+    FigureCanvasQTAgg = backend.FigureCanvasQTAgg  # noqa

@@ -2157,13 +2157,13 @@ static void __pyx_pf_4silx_4math_13marchingcubes_13MarchingCubes_2__dealloc__(st
  *         del self.c_mc
  * 
  *     def __getitem__(self, key):             # <<<<<<<<<<<<<<
- *         """Allows to unpack object as a single liner:
+ *         """Allows one to unpack object as a single liner:
  * 
  */
 
 /* Python wrapper */
 static PyObject *__pyx_pw_4silx_4math_13marchingcubes_13MarchingCubes_5__getitem__(PyObject *__pyx_v_self, PyObject *__pyx_v_key); /*proto*/
-static char __pyx_doc_4silx_4math_13marchingcubes_13MarchingCubes_4__getitem__[] = "Allows to unpack object as a single liner:\n\n        vertices, normals, indices = MarchingCubes(...)\n        ";
+static char __pyx_doc_4silx_4math_13marchingcubes_13MarchingCubes_4__getitem__[] = "Allows one to unpack object as a single liner:\n\n        vertices, normals, indices = MarchingCubes(...)\n        ";
 #if CYTHON_COMPILING_IN_CPYTHON
 struct wrapperbase __pyx_wrapperbase_4silx_4math_13marchingcubes_13MarchingCubes_4__getitem__;
 #endif
@@ -2344,7 +2344,7 @@ static PyObject *__pyx_pf_4silx_4math_13marchingcubes_13MarchingCubes_4__getitem
  *         del self.c_mc
  * 
  *     def __getitem__(self, key):             # <<<<<<<<<<<<<<
- *         """Allows to unpack object as a single liner:
+ *         """Allows one to unpack object as a single liner:
  * 
  */
 

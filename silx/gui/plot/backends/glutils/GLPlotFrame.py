@@ -317,6 +317,9 @@ class GLPlotFrame(object):
 
     _Margins = namedtuple('Margins', ('left', 'right', 'top', 'bottom'))
 
+    # Margins used when plot frame is not displayed
+    _NoDisplayMargins = _Margins(0, 0, 0, 0)
+
     def __init__(self, margins):
         """
         :param margins: The margins around plot area for axis and labels.
@@ -332,6 +335,7 @@ class GLPlotFrame(object):
         self._grid = False
         self._size = 0., 0.
         self._title = ''
+        self._displayed = True
 
     @property
     def isDirty(self):
@@ -344,9 +348,24 @@ class GLPlotFrame(object):
     GRID_ALL_TICKS = (GRID_MAIN_TICKS + GRID_SUB_TICKS)
 
     @property
+    def displayed(self):
+        """Whether axes and their labels are displayed or not (bool)"""
+        return self._displayed
+
+    @displayed.setter
+    def displayed(self, displayed):
+        displayed = bool(displayed)
+        if displayed != self._displayed:
+            self._displayed = displayed
+            self._dirty()
+
+    @property
     def margins(self):
         """Margins in pixels around the plot."""
-        return self._margins
+        if not self.displayed:
+            return self._NoDisplayMargins
+        else:
+            return self._margins
 
     @property
     def grid(self):
@@ -465,6 +484,9 @@ class GLPlotFrame(object):
         _SHADERS['vertex'], _SHADERS['fragment'], attrib0='position')
 
     def render(self):
+        if not self.displayed:
+            return
+
         if self._renderResources is None:
             self._buildVerticesAndLabels()
         vertices, gridVertices, labels = self._renderResources

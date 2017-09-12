@@ -25,6 +25,8 @@ Available icons
      - 3d-plane-normal-y
    * - |3d-plane-normal-z|
      - 3d-plane-normal-z
+   * - |3d-plane-pan|
+     - 3d-plane-pan
    * - |3d-plane|
      - 3d-plane
    * - |arrow-keys|
@@ -99,6 +101,8 @@ Available icons
      - item-3dim
    * - |item-ndim|
      - item-ndim
+   * - |item-none|
+     - item-none
    * - |item-object|
      - item-object
    * - |last|
@@ -135,6 +139,8 @@ Available icons
      - next
    * - |normal|
      - normal
+   * - |pan|
+     - pan
    * - |pixel-intensities|
      - pixel-intensities
    * - |plot-grid|
@@ -179,6 +185,8 @@ Available icons
      - profile2D
    * - |remove|
      - remove
+   * - |rotate-3d|
+     - rotate-3d
    * - |rudder|
      - rudder
    * - |selected|
@@ -211,8 +219,6 @@ Available icons
      - sliders-on
    * - |spec|
      - spec
-   * - |test-png|
-     - test-png
    * - |view-1d|
      - view-1d
    * - |view-2d-stack|
@@ -251,6 +257,7 @@ Available icons
 .. |3d-plane-normal-x| image:: ../../../../silx/resources/gui/icons/3d-plane-normal-x.png
 .. |3d-plane-normal-y| image:: ../../../../silx/resources/gui/icons/3d-plane-normal-y.png
 .. |3d-plane-normal-z| image:: ../../../../silx/resources/gui/icons/3d-plane-normal-z.png
+.. |3d-plane-pan| image:: ../../../../silx/resources/gui/icons/3d-plane-pan.png
 .. |3d-plane| image:: ../../../../silx/resources/gui/icons/3d-plane.png
 .. |arrow-keys| image:: ../../../../silx/resources/gui/icons/arrow-keys.png
 .. |camera| image:: ../../../../silx/resources/gui/icons/camera.png
@@ -288,6 +295,7 @@ Available icons
 .. |item-2dim| image:: ../../../../silx/resources/gui/icons/item-2dim.png
 .. |item-3dim| image:: ../../../../silx/resources/gui/icons/item-3dim.png
 .. |item-ndim| image:: ../../../../silx/resources/gui/icons/item-ndim.png
+.. |item-none| image:: ../../../../silx/resources/gui/icons/item-none.png
 .. |item-object| image:: ../../../../silx/resources/gui/icons/item-object.png
 .. |last| image:: ../../../../silx/resources/gui/icons/last.png
 .. |math-average| image:: ../../../../silx/resources/gui/icons/math-average.png
@@ -306,6 +314,7 @@ Available icons
 .. |median-filter| image:: ../../../../silx/resources/gui/icons/median-filter.png
 .. |next| image:: ../../../../silx/resources/gui/icons/next.png
 .. |normal| image:: ../../../../silx/resources/gui/icons/normal.png
+.. |pan| image:: ../../../../silx/resources/gui/icons/pan.png
 .. |pixel-intensities| image:: ../../../../silx/resources/gui/icons/pixel-intensities.png
 .. |plot-grid| image:: ../../../../silx/resources/gui/icons/plot-grid.png
 .. |plot-roi-above| image:: ../../../../silx/resources/gui/icons/plot-roi-above.png
@@ -328,6 +337,7 @@ Available icons
 .. |profile1D| image:: ../../../../silx/resources/gui/icons/profile1D.png
 .. |profile2D| image:: ../../../../silx/resources/gui/icons/profile2D.png
 .. |remove| image:: ../../../../silx/resources/gui/icons/remove.png
+.. |rotate-3d| image:: ../../../../silx/resources/gui/icons/rotate-3d.png
 .. |rudder| image:: ../../../../silx/resources/gui/icons/rudder.png
 .. |selected| image:: ../../../../silx/resources/gui/icons/selected.png
 .. |shape-circle-solid| image:: ../../../../silx/resources/gui/icons/shape-circle-solid.png
@@ -344,7 +354,6 @@ Available icons
 .. |sliders-off| image:: ../../../../silx/resources/gui/icons/sliders-off.png
 .. |sliders-on| image:: ../../../../silx/resources/gui/icons/sliders-on.png
 .. |spec| image:: ../../../../silx/resources/gui/icons/spec.png
-.. |test-png| image:: ../../../../silx/resources/gui/icons/test-png.png
 .. |view-1d| image:: ../../../../silx/resources/gui/icons/view-1d.png
 .. |view-2d-stack| image:: ../../../../silx/resources/gui/icons/view-2d-stack.png
 .. |view-2d| image:: ../../../../silx/resources/gui/icons/view-2d.png

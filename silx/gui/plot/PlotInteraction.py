@@ -1059,6 +1059,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
 
                 elif picked[0] == 'curve':
                     curve = picked[1]
+                    indices = picked[2]
 
                     dataPos = self.plot.pixelToData(x, y)
                     assert dataPos is not None
@@ -1066,7 +1067,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                     eventDict = prepareCurveSignal('left',
                                                    curve.getLegend(),
                                                    'curve',
-                                                   picked[2], picked[3],
+                                                   indices[0], indices[1],
                                                    dataPos[0], dataPos[1],
                                                    x, y)
                     return eventDict
@@ -1082,7 +1083,6 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                     scale = image.getScale()
                     column = int((dataPos[0] - origin[0]) / float(scale[0]))
                     row = int((dataPos[1] - origin[1]) / float(scale[1]))
-
                     eventDict = prepareImageSignal('left',
                                                    image.getLegend(),
                                                    'image',

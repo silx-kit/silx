@@ -32,12 +32,12 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "15/03/2017"
-__status__ = "Production" 
+__date__ = "06/09/2017"
+__status__ = "Production"
 
 import os
 import numpy
-from ..resources import resource_filename
+from .. import resources
 from math import log, ceil
 
 
@@ -77,14 +77,22 @@ def sizeof(shape, dtype="uint8"):
     return cnt * itemsize
 
 
-def get_cl_file(filename):
-    """get the full path of a openCL file
+def get_cl_file(resource):
+    """get the full path of a openCL resource file
 
+    The resource name can be prefixed by the name of a resource directory. For
+    example "silx:foo.png" identify the resource "foo.png" from the resource
+    directory "silx".
+    See also :func:`silx.resources.register_resource_directory`.
+
+    :param str resource: Resource name. File name contained if the `opencl`
+        directory of the resources.
     :return: the full path of the openCL source file
     """
-    if not filename.endswith(".cl"):
-        filename += ".cl"
-    return resource_filename(os.path.join("opencl", filename))
+    if not resource.endswith(".cl"):
+        resource += ".cl"
+    return resources._resource_filename(resource,
+                                        default_directory="opencl")
 
 
 def read_cl_file(filename):
@@ -96,6 +104,7 @@ def read_cl_file(filename):
         # Dummy preprocessor which removes the #include
         lines = [i for i in f.readlines() if not i.startswith("#include ")]
     return "".join(lines)
+
 
 get_opencl_code = read_cl_file
 
@@ -109,4 +118,4 @@ def concatenate_cl_kernel(filenames):
 
     this method concatenates all the kernel from the list
     """
-    return  os.linesep.join(read_cl_file(fn) for fn in filenames)
+    return os.linesep.join(read_cl_file(fn) for fn in filenames)

@@ -246,7 +246,7 @@ Matching is also explained in this tutorial, once the keypoints are
    :alt: Example of image matching for pattern recognition
 
 
-.. figure:: img/sift_match2.jpg
+.. figure:: img/sift_match2.png
    :align: center
    :alt: Another example of image matching for pattern recognition
 
@@ -382,7 +382,7 @@ For instance, if a sample is centered on the image, the user can select the
 center of the image before processing.
 
 
-.. figure:: img/sift_frame_ROI.jpg
+.. figure:: img/sift_frame_ROI.png
    :align: center
    :alt: Sample with region of interest
 
