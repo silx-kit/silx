@@ -164,6 +164,18 @@ class OpenclProcessing(object):
 
         self.cl_mem.update(mem)
 
+    def add_to_cl_mem(self, parrays):
+        """
+        Add pyopencl.array, which are allocated by pyopencl, to self.cl_mem.
+        This should be used before calling allocate_buffers().
+
+        :param parrays: a dictionary of `pyopencl.array.Array` or `pyopencl.Buffer`
+        """
+        mem = self.cl_mem
+        for name, parr in parrays.items():
+            mem[name] = parr
+        self.cl_mem.update(mem)
+
     def free_buffers(self):
         """free all device.memory allocated on the device
         """

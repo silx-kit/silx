@@ -274,19 +274,6 @@ class Projection(OpenclProcessing):
         pyopencl.enqueue_copy(self.queue, self.cl_mem["d_strideLine"], strideLine)
 
 
-
-    def add_to_cl_mem(self, parrays):
-        """
-        Add pyopencl.array, which are allocated by pyopencl, to self.cl_mem.
-
-        :param parrays: a dictionary of `pyopencl.array.Array` or `pyopencl.Buffer`
-        """
-        mem = self.cl_mem
-        for name, parr in parrays.items():
-            mem[name] = parr
-        self.cl_mem.update(mem)
-
-
     def _get_local_mem(self):
         return pyopencl.LocalMemory(self.local_mem)  # constant for all image sizes
 

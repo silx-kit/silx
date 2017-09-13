@@ -180,17 +180,6 @@ class Backprojection(OpenclProcessing):
                                         )
         # self.d_sino_tex = pyopencl.image_from_array(self.ctx, np.ones(self.shape, dtype=np.float32), 1)
 
-    def add_to_cl_mem(self, parrays):
-        """
-        Add pyopencl.array, which are allocated by pyopencl, to self.cl_mem.
-
-        :param parrays: a dictionary of `pyopencl.array.Array` or `pyopencl.Buffer`
-        """
-        mem = self.cl_mem
-        for name, parr in parrays.items():
-            mem[name] = parr
-        self.cl_mem.update(mem)
-
     def compute_fft_plans(self):
         """
         If pyfft is installed, prepare a batched 1D FFT plan for the filtering of FBP

@@ -32,7 +32,7 @@ from . import test_addition
 from . import test_medfilt
 from . import test_backprojection
 from . import test_projection
-
+from . import test_linalg
 
 def suite():
     test_suite = unittest.TestSuite()
@@ -40,6 +40,7 @@ def suite():
     test_suite.addTests(test_medfilt.suite())
     test_suite.addTests(test_backprojection.suite())
     test_suite.addTests(test_projection.suite())
+    test_suite.addTests(test_linalg.suite())
 
     # Allow to remove sift from the project
     test_base_dir = os.path.dirname(__file__)
