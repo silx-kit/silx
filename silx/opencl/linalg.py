@@ -42,17 +42,6 @@ import pyopencl.array as parray
 cl = pyopencl
 
 
-
-"""
-d_sino = P(sino, onlygpu=True)
-
-d_gradient = linalg.allocate(shp, dtype)
-linalg.gradient(d_sino, dst=d_gradient)
-# or:
-d_grad = linalg.gradient(d_sino) # allocation + computation
-"""
-
-
 class LinAlg(OpenclProcessing):
 
     kernel_files = ["linalg.cl"]
@@ -225,53 +214,4 @@ class LinAlg(OpenclProcessing):
             return res
         else:
             return dst
-
-
-
-
-    #
-    # TODO:
-    #   - Gradient
-    #   - Divergence
-    #   - mul_add, add_scaled, shrink, ...-> straightforward with parray
-    #       Benchmark custom opencl kernels  against pyopencl.array functions ?
-    #   - projection onto the L-infinity ball
-    #   - soft thresholding
-    #
-    #  - modify projector and backprojector  for a  "onlygpu" computation, returning a parray
-    #
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
