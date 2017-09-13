@@ -23,7 +23,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This script converts SPEC data files to HDF5 files.
+"""This script converts a supported data file (SPEC, EDF,...) to a HDF5 file.
 
 By default, it creates a new output file or fails if the output file given
 on the command line already exist, but the user can choose to overwrite
@@ -39,14 +39,14 @@ possible to specify a different target path.
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "18/10/2016"
+__date__ = "12/09/2016"
 
 import argparse
 from silx.io.convert import write_to_h5
 
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('spec_path',
-                    help='Path to input SPEC data file')
+parser.add_argument('input_path',
+                    help='Path to input data file')
 parser.add_argument('h5_path',
                     help='Path to output HDF5 file')
 parser.add_argument('-t', '--target-path', default="/",
@@ -82,7 +82,7 @@ else:
     # by default, use "write" mode and fail if file already exists
     mode = "w-"
 
-write_to_h5(args.spec_path, args.h5_path,
+write_to_h5(args.input_path, args.h5_path,
             h5path=args.target_path,
             mode=mode,
             overwrite_data=args.overwrite_data)
