@@ -49,8 +49,11 @@ if ocl:
 from silx.test.utils import utilstest
 
 logger = logging.getLogger(__name__)
-
-
+try:
+    from scipy.ndimage.filters import laplace
+    _has_scipy = True
+except ImportError:
+    _has_scipy = False
 
 
 
@@ -200,6 +203,13 @@ class TestLinAlg(unittest.TestCase):
             self.compare(self.image2, self.div_ref, 1e-6, str("divergence[src=%s, dst=parray]" % desc))
 
 
+    @unittest.skipUnless(ocl and mako and _has_scipy, "pyopencl and/or scipy is missing")
+    def test_laplacian(self):
+        laplacian_ref = laplace(self.image)
+        # Laplacian = div(grad)
+        self.la.gradient(self.image)
+        laplacian_ocl = self.la.divergence(self.la.d_gradient, return_to_host=True)
+        self.compare(laplacian_ocl, laplacian_ref, 1e-6, "laplacian")
 
 
 
@@ -209,6 +219,7 @@ def suite():
     testSuite = unittest.TestSuite()
     testSuite.addTest(TestLinAlg("test_gradient"))
     testSuite.addTest(TestLinAlg("test_divergence"))
+    testSuite.addTest(TestLinAlg("test_laplacian"))
     return testSuite
 
 
