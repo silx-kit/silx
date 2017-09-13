@@ -471,10 +471,15 @@ class ProfileToolBar(qt.QToolBar):
 
     def _activeImageChanged(self, previous, legend):
         """Handle active image change: toggle enabled toolbar, update curve"""
-        self.setEnabled(legend is not None)
-        if legend is not None:
-            # Update default profile color
+        if legend is None:
+            self.setEnabled(False)
+        else:
             activeImage = self.plot.getActiveImage()
+
+            # Disable for empty image
+            self.setEnabled(activeImage.getData(copy=False).size > 0)
+
+            # Update default profile color
             if isinstance(activeImage, items.ColormapMixIn):
                 self._defaultOverlayColor = cursorColorForColormap(
                     activeImage.getColormap()['name'])
