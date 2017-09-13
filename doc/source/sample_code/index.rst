@@ -228,3 +228,17 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
 
        By default, new scans are written to the root (/) of the HDF5 file, but it is
        possible to specify a different target path.
+
+:mod:`silx.opencl` sample code
+++++++++++++++++++++++++++
+
+.. list-table::
+   :widths: 1 1 4
+   :header-rows: 1
+
+   * - Source
+     - Screenshot
+     - Description
+   * - :download:`backprojection.py <../../../examples/backprojection.py>`
+     -
+     - This script illustrate the simplest way to perform a fast back projection.
