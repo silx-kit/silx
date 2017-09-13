@@ -351,8 +351,9 @@ class MaskToolsWidget(BaseMaskToolsWidget):
     def _activeImageChanged(self, *args):
         """Update widget and mask according to active image changes"""
         activeImage = self.plot.getActiveImage()
-        if activeImage is None or activeImage.getLegend() == self._maskName:
-            # No active image or active image is the mask...
+        if (activeImage is None or activeImage.getLegend() == self._maskName or
+                activeImage.getData(copy=False).size == 0):
+            # No active image or active image is the mask or image has no data...
             self.setEnabled(False)
 
             self._data = numpy.zeros((0, 0), dtype=numpy.uint8)
