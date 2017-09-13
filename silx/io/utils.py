@@ -35,15 +35,13 @@ from silx.utils.proxy import Proxy
 try:
     import h5py
 except ImportError as e:
-    h5py_missing = True
+    h5py = None
     h5py_import_error = e
-else:
-    h5py_missing = False
 
 
 __authors__ = ["P. Knobel", "V. Valls"]
 __license__ = "MIT"
-__date__ = "01/12/2017"
+__date__ = "05/12/2017"
 
 
 logger = logging.getLogger(__name__)
@@ -381,7 +379,7 @@ def h5ls(h5group, lvl=0):
     .. note:: This function requires `h5py <http://www.h5py.org/>`_ to be
         installed.
     """
-    if h5py_missing:
+    if h5py is None:
         logger.error("h5ls requires h5py")
         raise h5py_import_error
 
@@ -434,10 +432,6 @@ def _open(filename):
 
     _, extension = os.path.splitext(filename)
 
-    if not h5py_missing:
-        if h5py.is_hdf5(filename):
-            return h5py.File(filename, "r")
-
     if extension in [".npz", ".npy"]:
         try:
             from . import rawh5
@@ -445,6 +439,10 @@ def _open(filename):
         except (IOError, ValueError) as e:
             debugging_info.append((sys.exc_info(),
                                   "File '%s' can't be read as a numpy file." % filename))
+
+    if h5py is not None:
+        if h5py.is_hdf5(filename):
+            return h5py.File(filename, "r")
 
     try:
         from . import fabioh5
@@ -633,7 +631,7 @@ def is_softlink(obj):
     return issubclass(class_, h5py.SoftLink)
 
 
-if h5py_missing:
+if h5py is None:
     def raise_h5py_missing(obj):
         logger.error("get_h5py_class/is_file/is_group/is_dataset requires h5py")
         raise h5py_import_error
