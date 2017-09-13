@@ -29,19 +29,21 @@ __license__ = "MIT"
 __date__ = "12/09/2017"
 
 
-from .. import convert
 import os
 import sys
 import tempfile
 import unittest
+import io
 
 try:
     import h5py
 except ImportError:
     h5py = None
 
+from .. import convert
 from silx.test import utils
-import silx.io
+
+
 
 # content of a spec file
 sftext = """#F /tmp/sf.dat
@@ -131,8 +133,11 @@ class TestConvertCommand(unittest.TestCase):
 
         # write a temporary SPEC file
         specname = os.path.join(tempdir, "input.dat")
-        with open(specname, "wb") as fd:
-            fd.write(bytes(sftext, 'ascii'))
+        with io.open(specname, "wb") as fd:
+            if sys.version < '3.0':
+                fd.write(sftext)
+            else:
+                fd.write(bytes(sftext, 'ascii'))
 
         # convert it
         h5name = os.path.join(tempdir, "output.dat")
