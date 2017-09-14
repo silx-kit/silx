@@ -286,16 +286,16 @@ class Projection(OpenclProcessing):
         """
         events = []
         with self.sem:
-            assert image.ndim == 2, "Treat only 2D images"
-            assert image.shape[0] == self.shape[0], "image shape is OK"
-            assert image.shape[1] == self.shape[1], "image shape is OK"
-
-            if not(self.is_cpu):
-                self.transfer_to_texture(image)
-                slice_ref = self.d_image_tex
-            else:
-                self.transfer_to_slice(image)
-                slice_ref = self.cl_mem["d_slice"].data
+            if image is not None:
+                assert image.ndim == 2, "Treat only 2D images"
+                assert image.shape[0] == self.shape[0], "image shape is OK"
+                assert image.shape[1] == self.shape[1], "image shape is OK"
+                if not(self.is_cpu):
+                    self.transfer_to_texture(image)
+                    slice_ref = self.d_image_tex
+                else:
+                    self.transfer_to_slice(image)
+                    slice_ref = self.cl_mem["d_slice"].data
 
             shared_size = 7*16*_sizeof(np.float32)
             kernel_args = (
