@@ -118,7 +118,7 @@ class Hdf5Writer(object):
             in the output HDF5 file.
         :param bool overwrite_data:
             See documentation of :func:`write_to_h5`
-        :param str link_type: ``"hard"`` (default) or ``"soft"``
+        :param str link_type: ``"hard"`` or ``"soft"`` (default)
         :param dict create_dataset_args: Dictionary of args you want to pass to
             ``h5py.File.create_dataset``.
             See documentation of :func:`write_to_h5`
