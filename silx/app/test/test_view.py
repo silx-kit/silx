@@ -80,6 +80,7 @@ class ViewerMock(object):
         pass
 
 
+@unittest.skipUnless(with_qt, "Qt binding required for TestLauncher")
 class TestLauncher(unittest.TestCase):
     """Test command line parsing"""
 
