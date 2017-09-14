@@ -146,12 +146,12 @@ class TestConvertCommand(unittest.TestCase):
         self.assertEqual(result, 0)
         self.assertTrue(os.path.isfile(h5name))
 
-        h5f = h5py.File(h5name, "r")
-        title12 = h5f["/1.2/title"][()]
-        if sys.version > '3.0':
-            title12 = title12.decode()
-        self.assertEqual(title12,
-                         "1 aaaaaa")
+        with h5py.File(h5name, "r") as h5f:
+            title12 = h5f["/1.2/title"][()]
+            if sys.version > '3.0':
+                title12 = title12.decode()
+            self.assertEqual(title12,
+                             "1 aaaaaa")
 
         # delete input file
         os.unlink(specname)
