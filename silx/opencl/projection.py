@@ -47,29 +47,40 @@ logger = logging.getLogger(__name__)
 
 
 class Projection(OpenclProcessing):
-    """A class for performing a tomographic projection (Radon Transform) using OpenCL"""
+    """
+    A class for performing a tomographic projection (Radon Transform) using
+    OpenCL
+    """
     kernel_files = ["proj.cl"]
 
-    def __init__(self, slice_shape, angles, axis_position=None, detector_width=None, normalize=False,
-                 ctx=None, devicetype="all", platformid=None, deviceid=None,
+    def __init__(self, slice_shape, angles, axis_position=None,
+                 detector_width=None, normalize=False, ctx=None,
+                 devicetype="all", platformid=None, deviceid=None,
                  profile=False
                  ):
         """Constructor of the OpenCL projector.
 
         :param slice_shape: shape of the slice: (num_rows, num_columns).
-        :param angles: Either an integer number of angles, or a list of custom angles values in radian.
-        :param axis_position: Optional, axis position. Default is `(shape[1]-1)/2.0`.
-        :param detector_width: Optional, detector width in pixels. If detector_width > slice_shape[1],
-                               the projection data will be surrounded with zeros.
-                               Using detector_width < slice_shape[1] might result in a local tomography setup.
-        :param normalize: Optional, normalization. If set, the sinograms are multiplied by the factor pi/(2*nprojs).
+        :param angles: Either an integer number of angles, or a list of custom
+                       angles values in radian.
+        :param axis_position: Optional, axis position. Default is
+                              `(shape[1]-1)/2.0`.
+        :param detector_width: Optional, detector width in pixels.
+                               If detector_width > slice_shape[1], the
+                               projection data will be surrounded with zeros.
+                               Using detector_width < slice_shape[1] might
+                               result in a local tomography setup.
+        :param normalize: Optional, normalization. If set, the sinograms are
+                          multiplied by the factor pi/(2*nprojs).
         :param ctx: actual working context, left to None for automatic
                     initialization from device type or platformid/deviceid
         :param devicetype: type of device, can be "CPU", "GPU", "ACC" or "ALL"
-        :param platformid: integer with the platform_identifier, as given by clinfo
+        :param platformid: integer with the platform_identifier, as given by
+                           clinfo
         :param deviceid: Integer with the device identifier, as given by clinfo
-        :param profile: switch on profiling to be able to profile at the kernel level,
-                        store profiling elements (makes code slightly slower)
+        :param profile: switch on profiling to be able to profile at the kernel
+                        level, store profiling elements (makes code slightly
+                        slower)
         """
         # OS X enforces a workgroup size of 1 when the kernel has synchronization barriers
         # if sys.platform.startswith('darwin'): # assuming no discrete GPU
@@ -94,7 +105,10 @@ class Projection(OpenclProcessing):
                 self.nprojs = self.shape[0]
             else:
                 self.nprojs = self.angles
-            self.angles = np.linspace(0, np.pi, self.nprojs, False, dtype=np.float32)
+            self.angles = np.linspace(start=0,
+                                      stop=np.pi,
+                                      num=self.nprojs,
+                                      endpoint=False).astype(dtype=np.float32)
         else:
             self.nprojs = len(self.angles)
         self.offset_x = -np.float32((self.shape[1]-1)/2. - self.axis_pos) # TODO: custom
@@ -120,21 +134,27 @@ class Projection(OpenclProcessing):
 
         # Allocate memory
         self.buffers = [
-                       BufferDescription("d_sino", self._dimrecx * self._dimrecy, np.float32, mf.READ_WRITE),
-                       #~ BufferDescription("d_axis_corrections", self.nprojs, np.float32, mf.READ_ONLY),
-                       BufferDescription("d_angles", self._dimrecy, np.float32, mf.READ_ONLY),
-                       BufferDescription("d_beginPos", self._dimrecy * 2, np.int32, mf.READ_ONLY),
-                       BufferDescription("d_strideJoseph", self._dimrecy * 2, np.int32, mf.READ_ONLY),
-                       BufferDescription("d_strideLine", self._dimrecy * 2, np.int32, mf.READ_ONLY),
-                      ]
-        self.add_to_cl_mem({"d_axis_corrections": parray.zeros(self.queue, self.nprojs, np.float32)})
-        self._tmp_extended_img = np.zeros((self.shape[0]+2, self.shape[1]+2), dtype=np.float32)
+            BufferDescription("d_sino", self._dimrecx * self._dimrecy, np.float32, mf.READ_WRITE),
+            BufferDescription("d_angles", self._dimrecy, np.float32, mf.READ_ONLY),
+            BufferDescription("d_beginPos", self._dimrecy * 2, np.int32, mf.READ_ONLY),
+            BufferDescription("d_strideJoseph", self._dimrecy * 2, np.int32, mf.READ_ONLY),
+            BufferDescription("d_strideLine", self._dimrecy * 2, np.int32, mf.READ_ONLY),
+        ]
+        self.add_to_cl_mem(
+            {
+                "d_axis_corrections": parray.zeros(self.queue,
+                                                   self.nprojs, np.float32)
+            }
+        )
+        self._tmp_extended_img = np.zeros((self.shape[0]+2, self.shape[1]+2),
+                                          dtype=np.float32)
         if self.is_cpu:
             self.allocate_slice()
         else:
             self.allocate_textures()
         self.allocate_buffers()
-        self._ex_sino = np.zeros((self._dimrecy, self._dimrecx), dtype=np.float32)
+        self._ex_sino = np.zeros((self._dimrecy, self._dimrecx),
+                                 dtype=np.float32)
         if self.is_cpu:
             self.cl_mem["d_slice"].fill(0.)
             # enqueue_fill_buffer has issues if opencl 1.2 is not present
@@ -151,11 +171,11 @@ class Projection(OpenclProcessing):
         self.cl_mem["d_axis_corrections"].fill(0.)
         # enqueue_fill_buffer has issues if opencl 1.2 is not present
         #~ pyopencl.enqueue_fill_buffer(
-                                     #~ self.queue,
-                                     #~ self.cl_mem["d_axis_corrections"],
-                                     #~ np.float32(0),
-                                     #~ 0,
-                                     #~ self.nprojs*_sizeof(np.float32)
+                                    #~ self.queue,
+                                    #~ self.cl_mem["d_axis_corrections"],
+                                    #~ np.float32(0),
+                                    #~ 0,
+                                    #~ self.nprojs*_sizeof(np.float32)
                                     #~ )
         # Shorthands
         self.d_sino = self.cl_mem["d_sino"]
@@ -164,12 +184,10 @@ class Projection(OpenclProcessing):
         # check that workgroup can actually be (16, 16)
         self.check_workgroup_size()
 
-
     # TODO - move this (and the one in backprojection) in processing.py
     def check_workgroup_size(self):
         kernel = self.program.all_kernels()[1]  # CPU kernel
         self.compiletime_workgroup_size = kernel_workgroup_size(self.program, kernel)
-
 
     def compute_angles(self):
         angles2 = np.zeros(self._dimrecy, dtype=np.float32) # dimrecy != num_projs
@@ -177,7 +195,6 @@ class Projection(OpenclProcessing):
         angles2[self.nprojs:] = angles2[self.nprojs-1]
         self.angles2 = angles2
         pyopencl.enqueue_copy(self.queue, self.cl_mem["d_angles"], angles2)
-
 
     def allocate_textures(self):
         self.d_image_tex = pyopencl.Image(
@@ -189,32 +206,25 @@ class Projection(OpenclProcessing):
                 ), hostbuf=np.ascontiguousarray(self._tmp_extended_img.T),
             )
 
-
     def transfer_to_texture(self, image):
-        image2 = np.zeros((image.shape[0]+2, image.shape[1]+2), dtype=np.float32)
+        image2 = np.zeros((image.shape[0]+2, image.shape[1]+2),
+                          dtype=np.float32)
         image2[1:-1, 1:-1] = image.astype(np.float32)
         return pyopencl.enqueue_copy(
                    self.queue,
                    self.d_image_tex,
                    np.ascontiguousarray(image2),
                    origin=(0, 0),
-                   region=image2.shape[::-1]  #region=(np.int32(image2.shape[1]), np.int32(image2.shape[0]))
+                   region=image2.shape[::-1]
                )
 
-
     def allocate_slice(self):
-            #~ self.buffers.append(
-                #~ BufferDescription("d_slice", (self.shape[1]+2) * (self.shape[1]+2), np.float32, mf.READ_ONLY)
-            #~ )
             self.add_to_cl_mem({"d_slice": parray.zeros(self.queue, (self.shape[1]+2, self.shape[1]+2), np.float32)})
-
 
     def transfer_to_slice(self, image):
         image2 = np.zeros((image.shape[0]+2, image.shape[1]+2), dtype=np.float32)
         image2[1:-1, 1:-1] = image.astype(np.float32)
-        #~ pyopencl.enqueue_copy(self.queue, self.cl_mem["d_slice"], image2)
         self.cl_mem["d_slice"].set(image2)
-
 
     def proj_precomputations(self):
         beginPos = np.zeros((2, self._dimrecy), dtype=np.int32)
@@ -269,27 +279,30 @@ class Projection(OpenclProcessing):
         #~ self.strideLine = strideLine
         #
 
-        pyopencl.enqueue_copy(self.queue, self.cl_mem["d_beginPos"], beginPos)
-        pyopencl.enqueue_copy(self.queue, self.cl_mem["d_strideJoseph"], strideJoseph)
-        pyopencl.enqueue_copy(self.queue, self.cl_mem["d_strideLine"], strideLine)
-
-
+        pyopencl.enqueue_copy(queue=self.queue,
+                              dest=self.cl_mem["d_beginPos"],
+                              src=beginPos)
+        pyopencl.enqueue_copy(queue=self.queue,
+                              dest=self.cl_mem["d_strideJoseph"],
+                              src=strideJoseph)
+        pyopencl.enqueue_copy(queue=self.queue,
+                              dest=self.cl_mem["d_strideLine"],
+                              src=strideLine)
 
     def add_to_cl_mem(self, parrays):
         """
         Add pyopencl.array, which are allocated by pyopencl, to self.cl_mem.
 
-        :param parrays: a dictionary of `pyopencl.array.Array` or `pyopencl.Buffer`
+        :param parrays: a dictionary of `pyopencl.array.Array` or
+                        `pyopencl.Buffer`
         """
         mem = self.cl_mem
         for name, parr in parrays.items():
             mem[name] = parr
         self.cl_mem.update(mem)
 
-
     def _get_local_mem(self):
         return pyopencl.LocalMemory(self.local_mem)  # constant for all image sizes
-
 
     def projection(self, image=None):
         """Perform the projection on an input image
@@ -310,15 +323,14 @@ class Projection(OpenclProcessing):
                 self.transfer_to_slice(image)
                 slice_ref = self.cl_mem["d_slice"].data
 
-            shared_size = 7*16*_sizeof(np.float32)
             kernel_args = (
                 self.d_sino,
                 slice_ref,
-                np.int32(self.shape[1]), ##
+                np.int32(self.shape[1]),
                 np.int32(self.dwidth),
                 self.cl_mem["d_angles"],
                 np.float32(self.axis_pos0),
-                self.cl_mem["d_axis_corrections"].data, # TODO custom
+                self.cl_mem["d_axis_corrections"].data,  # TODO custom
                 self.cl_mem["d_beginPos"],
                 self.cl_mem["d_strideJoseph"],
                 self.cl_mem["d_strideLine"],
@@ -327,7 +339,7 @@ class Projection(OpenclProcessing):
                 self._dimrecy,
                 self.offset_x,
                 self.offset_y,
-                np.int32(1), # josephnoclip, 1 by default
+                np.int32(1),  # josephnoclip, 1 by default
                 np.int32(self.normalize)
             )
 
@@ -354,9 +366,8 @@ class Projection(OpenclProcessing):
         # /with self.sem
         if self.profile:
             self.events += events
-        #~ res = self._ex_sino
+
         res = np.copy(self._ex_sino[:self.nprojs, :self.dwidth])
         return res
-
 
     __call__ = projection
