@@ -136,7 +136,6 @@ class Projection(OpenclProcessing):
         # Allocate memory
         self.buffers = [
             BufferDescription("d_sino", self._dimrecx * self._dimrecy, np.float32, mf.READ_WRITE),
-            #~ BufferDescription("d_axis_corrections", self.nprojs, np.float32, mf.READ_ONLY),
             BufferDescription("d_angles", self._dimrecy, np.float32, mf.READ_ONLY),
             BufferDescription("d_beginPos", self._dimrecy * 2, np.int32, mf.READ_ONLY),
             BufferDescription("d_strideJoseph", self._dimrecy * 2, np.int32, mf.READ_ONLY),
@@ -217,19 +216,15 @@ class Projection(OpenclProcessing):
                    self.d_image_tex,
                    np.ascontiguousarray(image2),
                    origin=(0, 0),
-                   region=image2.shape[::-1]  #region=(np.int32(image2.shape[1]), np.int32(image2.shape[0]))
+                   region=image2.shape[::-1]
                )
 
     def allocate_slice(self):
-            #~ self.buffers.append(
-                #~ BufferDescription("d_slice", (self.shape[1]+2) * (self.shape[1]+2), np.float32, mf.READ_ONLY)
-            #~ )
             self.add_to_cl_mem({"d_slice": parray.zeros(self.queue, (self.shape[1]+2, self.shape[1]+2), np.float32)})
 
     def transfer_to_slice(self, image):
         image2 = np.zeros((image.shape[0]+2, image.shape[1]+2), dtype=np.float32)
         image2[1:-1, 1:-1] = image.astype(np.float32)
-        #~ pyopencl.enqueue_copy(self.queue, self.cl_mem["d_slice"], image2)
         self.cl_mem["d_slice"].set(image2)
 
     def proj_precomputations(self):
@@ -372,7 +367,7 @@ class Projection(OpenclProcessing):
         # /with self.sem
         if self.profile:
             self.events += events
-        #~ res = self._ex_sino
+
         res = np.copy(self._ex_sino[:self.nprojs, :self.dwidth])
         return res
 
