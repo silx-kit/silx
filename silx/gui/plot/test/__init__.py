@@ -50,6 +50,7 @@ from . import testStackView
 from . import testItem
 from . import testUtilsAxis
 from . import testLimitConstraints
+from . import testPlot2DComplex
 
 
 def suite():
@@ -75,5 +76,6 @@ def suite():
          testColormap.suite(),
          testItem.suite(),
          testUtilsAxis.suite(),
-         testLimitConstraints.suite()])
+         testLimitConstraints.suite(),
+         testPlot2DComplex.suite()])
     return test_suite
