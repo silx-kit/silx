@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Test suite for :class:`Plot2DComplex`"""
+"""Test suite for :class:`ComplexImageView`"""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -34,7 +34,7 @@ import logging
 import numpy
 
 from silx.test.utils import ParametricTestCase
-from silx.gui.plot import Plot2DComplex
+from silx.gui.plot import ComplexImageView
 
 from .utils import PlotWidgetTestCase
 
@@ -42,14 +42,14 @@ from .utils import PlotWidgetTestCase
 logger = logging.getLogger(__name__)
 
 
-class TestPlot2DComplex(PlotWidgetTestCase, ParametricTestCase):
-    """Test suite of Plot2DComplex widget"""
+class TestComplexImageView(PlotWidgetTestCase, ParametricTestCase):
+    """Test suite of ComplexImageView widget"""
 
     def _createPlot(self):
-        return Plot2DComplex.Plot2DComplex()
+        return ComplexImageView.ComplexImageView()
 
     def testPlot2DComplex(self):
-        """Test API of Plot2DComplex widget"""
+        """Test API of ComplexImageView widget"""
         data = numpy.array(((0, 1j), (1, 1 + 1j)), dtype=numpy.complex)
         self.plot.setData(data)
         self.plot.getPlot().resetZoom()
@@ -75,13 +75,13 @@ class TestPlot2DComplex(PlotWidgetTestCase, ParametricTestCase):
         self.qWait(100)
 
         # Test no data
-        self.plot.setData(numpy.array((), dtype=numpy.complex))
+        self.plot.setData(numpy.zeros((0, 0), dtype=numpy.complex))
 
 
 def suite():
     test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestPlot2DComplex))
+    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(
+        TestComplexImageView))
     return test_suite
 
 

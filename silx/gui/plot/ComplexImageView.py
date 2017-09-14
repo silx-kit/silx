@@ -24,7 +24,7 @@
 # ###########################################################################*/
 """This module provides a widget to view 2D complex data.
 
-The :class:`Plot2DComplex` widget is dedicated to visualize a single 2D dataset
+The :class:`ComplexImageView` widget is dedicated to visualize a single 2D dataset
 of complex data.
 """
 
@@ -48,7 +48,7 @@ class _ComplexDataToolButton(qt.QToolButton):
     """QToolButton providing choices of complex data visualization modes
 
     :param parent: See :class:`QToolButton`
-    :param plot: The :class:`Plot2DComplex` to control
+    :param plot: The :class:`ComplexImageView` to control
     """
 
     _MODES = [
@@ -95,7 +95,7 @@ class _ComplexDataToolButton(qt.QToolButton):
                 self._plot2DComplex.setVisualizationMode(mode)
 
 
-class Plot2DComplex(qt.QWidget):
+class ComplexImageView(qt.QWidget):
     """Display an image of complex data and allow to choose the visualization.
 
     :param parent: See :class:`QMainWindow`
@@ -111,9 +111,9 @@ class Plot2DComplex(qt.QWidget):
     """
 
     def __init__(self, parent=None):
-        super(Plot2DComplex, self).__init__(parent)
+        super(ComplexImageView, self).__init__(parent)
         if parent is None:
-            self.setWindowTitle('Plot2DComplex')
+            self.setWindowTitle('ComplexImageView')
 
         self._mode = 'absolute'
         self._data = numpy.zeros((0, 0), dtype=numpy.complex)
