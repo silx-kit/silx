@@ -55,10 +55,12 @@ def main(argv):
         nargs="+",
         help='Input files (EDF, SPEC)')
     parser.add_argument(
-        '-o', '--output-file',
+        '-o', '--output-uri',
         nargs="?",
         help='Output file (HDF5). If omitted, it will be the '
-             'concatenated input file names, with a ".h5" suffix added.')
+             'concatenated input file names, with a ".h5" suffix added.'
+             ' An URI can be provided to write the data into a specific '
+             'group in the output file: /path/to/file::/path/to/group')
     parser.add_argument(
         '-m', '--mode',
         default="w-",
@@ -66,11 +68,6 @@ def main(argv):
              '"w" (write, existing file is lost), '
              '"w-" (write, fail if file exists) or '
              '"a" (read/write if exists, create otherwise)')
-    parser.add_argument(
-        '--hdf5-path',
-        default="/",
-        help='Path to the group in the output file,'
-             ' where the input is written too.')
     parser.add_argument(
         '--no-root-group',
         action="store_true",
@@ -181,12 +178,16 @@ def main(argv):
         _logger.debug(message)
 
     # Test that the output path is writeable
-    if options.output_file is None:
+    if options.output_uri is None:
         input_basenames = [os.path.basename(name) for name in options.input_files]
         output_name = ''.join(input_basenames) + ".h5"
         _logger.info("No output file specified, using %s", output_name)
+        hdf5_path = "/"
     else:
-        output_name = options.output_file
+        if "::" in options.output_uri:
+            output_name, hdf5_path = options.output_uri.split("::")
+        else:
+            output_name, hdf5_path = options.output_uri, "/"
 
     if os.path.isfile(output_name):
         if options.mode == "w-":
@@ -240,6 +241,13 @@ def main(argv):
                 _logger.error("--chunks argument str does not evaluate to a tuple")
                 return -1
             else:
+                nitems = numpy.prod(chunks)
+                nbytes = nitems * 8
+                if nbytes > 10**6:
+                    _logger.warning("Requested chunk size might be larger than"
+                                    " the default 1MB chunk cache, for float64"
+                                    " data. This can dramatically affect I/O "
+                                    "performances.")
                 create_dataset_args["chunks"] = chunks
 
     if options.compression is not None:
@@ -256,36 +264,36 @@ def main(argv):
 
     with h5py.File(output_name, mode=options.mode) as h5f:
         # write the silx version string as metadata
-        if "silx_versions" not in h5f[options.hdf5_path]:
+        if "silx_versions" not in h5f[hdf5_path]:
             # first time we add data to this location
-            h5f[options.hdf5_path]["silx_versions"] = numpy.array([silx.version],
-                                                                  dtype=numpy.string_)
+            h5f[hdf5_path]["silx_versions"] = numpy.array([silx.version],
+                                                          dtype=numpy.string_)
         else:
             # Append mode. Add version number if not already in version arrayx
-            existing_versions = h5f[options.hdf5_path]["silx_versions"][()]
+            existing_versions = h5f[hdf5_path]["silx_versions"][()]
             if numpy.string_(silx.version) not in existing_versions:
-                del h5f[options.hdf5_path]["silx_versions"]
+                del h5f[hdf5_path]["silx_versions"]
                 versions = numpy.append(existing_versions,
                                         numpy.string_(silx.version))
-                h5f[options.hdf5_path]["silx_versions"] = versions
+                h5f[hdf5_path]["silx_versions"] = versions
 
         # write the convert_command string as metadata
-        if "convert_commands" not in h5f[options.hdf5_path]:
-            h5f[options.hdf5_path]["convert_commands"] = numpy.array([" ".join(argv)],
-                                                                     dtype=numpy.string_)
+        if "convert_commands" not in h5f[hdf5_path]:
+            h5f[hdf5_path]["convert_commands"] = numpy.array([" ".join(argv)],
+                                                             dtype=numpy.string_)
         else:
-            commands = h5f[options.hdf5_path]["convert_commands"][()]
+            commands = h5f[hdf5_path]["convert_commands"][()]
             commands = numpy.append(commands,
                                     numpy.string_(" ".join(argv)))
-            del h5f[options.hdf5_path]["convert_commands"]
-            h5f[options.hdf5_path]["convert_commands"] = commands
+            del h5f[hdf5_path]["convert_commands"]
+            h5f[hdf5_path]["convert_commands"] = commands
 
         for input_name in options.input_files:
-            hdf5_path = options.hdf5_path
+            hdf5_path_for_file = hdf5_path
             if not options.no_root_group:
-                hdf5_path = hdf5_path.rstrip("/") + "/" + os.path.basename(input_name)
+                hdf5_path_for_file = hdf5_path.rstrip("/") + "/" + os.path.basename(input_name)
             write_to_h5(input_name, h5f,
-                        h5path=hdf5_path,
+                        h5path=hdf5_path_for_file,
                         overwrite_data=options.overwrite_data,
                         create_dataset_args=create_dataset_args,
                         min_size=options.min_size)
