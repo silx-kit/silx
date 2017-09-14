@@ -32,15 +32,21 @@ __date__ = "14/09/2017"
 import unittest
 from .. import view
 import sys
+import os
 
 
-try:
+# TODO: factor this code with silx.gui.test
+with_qt = False
+if sys.platform.startswith('linux') and not os.environ.get('DISPLAY', ''):
+    reason = 'test disabled (DISPLAY env. variable not set)'
+    TestCaseQt = unittest.TestCase
+elif os.environ.get('WITH_QT_TEST', 'True') == 'False':
+    reason = "test disabled (env. variable WITH_QT_TEST=False)"
+    TestCaseQt = unittest.TestCase
+else:
     from silx.gui.test.utils import TestCaseQt
     with_qt = True
-except ImportError:
-    class TestCaseQt(unittest.TestCase):
-        pass
-    with_qt = False
+    reason = ""
 
 
 class QApplicationMock(object):
@@ -126,7 +132,7 @@ class TestLauncher(unittest.TestCase):
 class TestViewer(TestCaseQt):
     """Test for Viewer class"""
 
-    @unittest.skipUnless(with_qt, "Test requires a Qt binding")
+    @unittest.skipUnless(with_qt, reason)
     def testConstruct(self):
         widget = view.Viewer()
         self.qWaitForWindowExposed(widget)
