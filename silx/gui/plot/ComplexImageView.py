@@ -30,7 +30,7 @@ of complex data.
 
 from __future__ import absolute_import
 
-__authors__ = ["T. Vincent"]
+__authors__ = ["Vincent Favre-Nicolin", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "12/09/2017"
 
@@ -40,9 +40,111 @@ import numpy
 
 from silx.gui import qt, icons
 from .PlotWindow import Plot2D
+from .Colormap import Colormap
+from . import items
 
 _logger = logging.getLogger(__name__)
 
+
+# Complex colormap functions
+
+def _phase2rgb(data):
+    """Creates RGBA image with colour-coded phase.
+
+    :param numpy.ndarray data: The data to convert
+    :return: Array of RGBA colors
+    :rtype: numpy.ndarray
+    """
+    if data.size == 0:
+        return numpy.zeros((0, 0, 4), dtype=numpy.uint8)
+
+    ph = numpy.angle(data)
+    t = numpy.pi / 3
+    rgba = 255 * numpy.ones(data.shape + (4,), dtype=numpy.uint8)
+    rgba[..., 0] = 255 * (
+        (ph < t) * (ph > -t) +
+        (ph > t) * (ph < 2 * t) * (2 * t - ph) / t +
+        (ph > -2 * t) * (ph < -t) * (ph + 2 * t) / t)
+    rgba[..., 1] = 255 * (
+        (ph > t) +
+        (ph < -2 * t) * (-2 * t - ph) / t +
+        (ph > 0) * (ph < t) * ph / t)
+    rgba[..., 2] = 255 * (
+        (ph < -t) +
+        (ph > -t) * (ph < 0) * (-ph) / t +
+        (ph > 2 * t) * (ph - 2 * t) / t)
+    return rgba
+
+
+def _complex2rgbalog(data, amin=0.5, dlogs=2, smax=None):
+    """Returns RGBA colors: colour-coded phases and log10(amplitude) in alpha.
+
+    :param numpy.ndarray data: the complex data array to convert to RGBA
+    :param float amin: the minimum value for the alpha channel
+    :param float dlogs: amplitude range displayed, in log10 units
+    :param float smax:
+        if specified, all values above max will be displayed with an alpha=1
+    """
+    if data.size == 0:
+        return numpy.zeros((0, 0, 4), dtype=numpy.uint8)
+
+    rgba = _phase2rgb(data)
+    sabs = numpy.absolute(data)
+    if smax is not None:
+        sabs[sabs > smax] = smax
+    a = numpy.log10(sabs + 1e-20)
+    a -= a.max() - dlogs  # display dlogs orders of magnitude
+    rgba[..., 3] = 255 * (amin + a / dlogs * (1 - amin) * (a > 0))
+    return rgba
+
+
+def _complex2rgbalin(data, gamma=1.0, smax=None):
+    """Returns RGBA colors: colour-coded phase and linear amplitude in alpha.
+
+    :param numpy.ndarray data:
+    :param float gamma: Optional exponent gamma applied to the amplitude
+    :param float smax:
+    """
+    if data.size == 0:
+        return numpy.zeros((0, 0, 4), dtype=numpy.uint8)
+
+    rgba = _phase2rgb(data)
+    a = numpy.absolute(data)
+    if smax is not None:
+        a[a > smax] = smax
+    a /= a.max()
+    rgba[..., 3] = 255 * a**gamma
+    return rgba
+
+
+# Dedicated plot item
+
+class _ImageComplexData(items.ImageData):
+    """Specific plot item to force colormap when using complex colormap.
+
+    This is returning the specific colormap when displaying
+    colored phase + amplitude.
+    """
+
+    _COMPLEX_COLORMAP = Colormap(
+        name=None,
+        colors=_phase2rgb(numpy.exp(numpy.linspace(-numpy.pi, numpy.pi, 256) * 1j)),
+        vmin=-numpy.pi,
+        vmax=numpy.pi)
+    """The phase colormap for combined visualization modes"""
+
+    def setData(self, *args, **kwargs):
+        super(_ImageComplexData, self).setData(*args, **kwargs)
+        self.sigItemChanged.emit(items.ItemChangedType.COLORMAP)
+
+    def getColormap(self):
+        if self.getAlternativeImageData(copy=False) is not None:
+            return self._COMPLEX_COLORMAP.copy()
+        else:
+            return super(_ImageComplexData, self).getColormap()
+
+
+# Widgets
 
 class _ComplexDataToolButton(qt.QToolButton):
     """QToolButton providing choices of complex data visualization modes
@@ -55,7 +157,9 @@ class _ComplexDataToolButton(qt.QToolButton):
         ('absolute', 'math-amplitude', 'Amplitude'),
         ('phase', 'math-phase', 'Phase'),
         ('real', 'math-real', 'Real part'),
-        ('imaginary', 'math-imaginary', 'Imaginary part')]
+        ('imaginary', 'math-imaginary', 'Imaginary part'),
+        ('amplitude_phase', 'math-phase-color', 'Amplitude and Phase'),
+        ('log10_amplitude_phase', 'math-phase-color-log', 'Log10(Amp.) and Phase')]
 
     def __init__(self, parent=None, plot=None):
         super(_ComplexDataToolButton, self).__init__(parent=parent)
@@ -127,8 +231,13 @@ class ComplexImageView(qt.QWidget):
         layout.addWidget(self._plot2D)
         self.setLayout(layout)
 
-        self._plotImage = self._plot2D.getImage(
-            self._plot2D.addImage(self._displayedData))
+        # Create and add image to the plot
+        self._plotImage = _ImageComplexData()
+        self._plotImage._setLegend('__ComplexImageView__complex_image__')
+        self._plotImage.setColormap(self._plot2D.getDefaultColormap().copy())
+        self._plotImage.setData(self._displayedData)
+        self._plot2D._add(self._plotImage)
+        self._plot2D.setActiveImage(self._plotImage.getLegend())
 
         toolBar = qt.QToolBar('Complex', self)
         toolBar.addWidget(
@@ -156,6 +265,10 @@ class ComplexImageView(qt.QWidget):
             return numpy.real(data)
         elif mode == 'imaginary':
             return numpy.imag(data)
+        elif mode == 'amplitude_phase':
+            return _complex2rgbalin(data)
+        elif mode == 'log10_amplitude_phase':
+            return _complex2rgbalog(data)
         else:
             _logger.error(
                 'Unsupported conversion mode: %s, fallback to absolute',
@@ -165,7 +278,13 @@ class ComplexImageView(qt.QWidget):
     def _updatePlot(self):
         """Update the image in the plot"""
         image = self.getDisplayedData(copy=False)
-        self._plotImage.setData(image)
+        if image.ndim == 3:  # Combined view
+            absolute = numpy.absolute(self.getData(copy=False))
+            self._plotImage.setData(
+                absolute, alternative=image, copy=False)
+        else:
+            self._plotImage.setData(
+                image, alternative=None, copy=False)
 
     def setData(self, data, copy=True):
         """Set the complex data to display.
@@ -212,14 +331,24 @@ class ComplexImageView(qt.QWidget):
     def getSupportedVisualizationModes():
         """Returns the supported visualization modes.
 
-        Supported visualization modes are: absolute, phase, real, imaginary.
+        Supported visualization modes are:
+
+        - amplitude: The absolute value provided by numpy.absolute
+        - phase: The phase (or argument) provided by numpy.angle
+        - real: Real part
+        - imaginary: Imaginary part
+        - amplitude_phase: Color-coded phase with amplitude as alpha.
+        - log10_amplitude_phase:
+          Color-coded phase with log10(amplitude) as alpha.
 
         :rtype: tuple of str
         """
         return ('absolute',
                 'phase',
                 'real',
-                'imaginary')
+                'imaginary',
+                'amplitude_phase',
+                'log10_amplitude_phase')
 
     def setVisualizationMode(self, mode):
         """Set the mode of visualization of the complex data.
@@ -259,7 +388,8 @@ class ComplexImageView(qt.QWidget):
 
         :rtype: Colormap
         """
-        return self._plotImage.getColormap()
+        # Returns internal colormap and bypass forcing colormap
+        return items.ImageData.getColormap(self._plotImage)
 
     def getOrigin(self):
         """Returns the offset from origin at which to display the image.
