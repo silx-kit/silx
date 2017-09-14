@@ -82,8 +82,14 @@ def main(argv):
         '--overwrite-data',
         action="store_true",
         help='If the output path exists and an input dataset has the same'
-             ' name as an existing output dataset, the output dataset will'
-             ' be overwritten (in modes "r+" or "a").')
+             ' name as an existing output dataset, overwrite the output '
+             'dataset (in modes "r+" or "a").')
+    parser.add_argument(
+        '--min-size',
+        type=int,
+        default=500,
+        help='Minimum number of elements required to be in a dataset to '
+             'apply compression or chunking (default 500).')
     parser.add_argument(
         '--chunks',
         nargs="?",
@@ -92,9 +98,8 @@ def main(argv):
              'tuple (e.g. "(1024, 768)"). If this option is provided without '
              'specifying an argument, the h5py library will guess a chunk for '
              'you. Note that if you specify an explicit chunking shape, it '
-             'will be applied identically to all datasets larger than 1MB. '
-             'This might not be what you want for input files containing a '
-             'variety of heterogeneous datasets.')
+             'will be applied identically to all datasets with a large enough '
+             'size (see --min-size). ')
     parser.add_argument(
         '--compression',
         nargs="?",
@@ -102,8 +107,7 @@ def main(argv):
         help='Compression filter. By default, the datasets in the output '
              'file are not compressed. If this option is specified without '
              'argument, the GZIP compression is used. Additional compression '
-             'filters may be available, depending on your HDF5 installation. '
-             'This compression is only applied to datasets larger than 1MB.')
+             'filters may be available, depending on your HDF5 installation.')
 
     def check_gzip_compression_opts(value):
         ivalue = int(value)
@@ -121,8 +125,7 @@ def main(argv):
         '--shuffle',
         action="store_true",
         help='Enables the byte shuffle filter, may improve the compression '
-             'ratio for block oriented compressors like GZIP or LZF. '
-             'Only applies to datasets larger than 1MB.')
+             'ratio for block oriented compressors like GZIP or LZF.')
     parser.add_argument(
         '--fletcher32',
         action="store_true",
@@ -284,6 +287,7 @@ def main(argv):
             write_to_h5(input_name, h5f,
                         h5path=hdf5_path,
                         overwrite_data=options.overwrite_data,
-                        create_dataset_args=create_dataset_args)
+                        create_dataset_args=create_dataset_args,
+                        min_size=options.min_size)
 
     return 0

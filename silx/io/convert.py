@@ -104,17 +104,6 @@ def _create_link(h5f, link_name, target_name,
         raise ValueError("link_type  must be 'hard' or 'soft'")
 
 
-def _is_1MB_dataset(ds):
-    """Return True if a dataset's data consumes more than
-    1MB in memory.
-
-    :param ds: Dataset object
-    :return: boolean
-    """
-    data = ds[()]
-    return numpy.array(data, copy=False).nbytes > 10**6
-
-
 class Hdf5Writer(object):
     """Converter class to write the content of a data file to a HDF5 file.
     """
@@ -122,7 +111,8 @@ class Hdf5Writer(object):
                  h5path='/',
                  overwrite_data=False,
                  link_type="soft",
-                 create_dataset_args=None):
+                 create_dataset_args=None,
+                 min_size=500):
         """
 
         :param h5path: Target path where the scan groups will be written
@@ -132,6 +122,8 @@ class Hdf5Writer(object):
         :param str link_type: ``"hard"`` or ``"soft"`` (default)
         :param dict create_dataset_args: Dictionary of args you want to pass to
             ``h5py.File.create_dataset``.
+            See documentation of :func:`write_to_h5`
+        :param int min_size:
             See documentation of :func:`write_to_h5`
         """
         self.h5path = h5path
@@ -147,6 +139,8 @@ class Hdf5Writer(object):
         if create_dataset_args is None:
             create_dataset_args = {}
         self.create_dataset_args = create_dataset_args
+
+        self.min_size = min_size
 
         self.overwrite_data = overwrite_data   # boolean
 
@@ -203,7 +197,7 @@ class Hdf5Writer(object):
 
             if self.overwrite_data or not member_initially_exists:
                 # fancy arguments don't apply to small dataset
-                if not _is_1MB_dataset(obj):
+                if obj.size < self.min_size:
                     ds = self._h5f.create_dataset(h5_name, data=obj.value)
                 else:
                     ds = self._h5f.create_dataset(h5_name, data=obj.value,
@@ -234,7 +228,7 @@ class Hdf5Writer(object):
 
 def write_to_h5(infile, h5file, h5path='/', mode="a",
                 overwrite_data=False, link_type="soft",
-                create_dataset_args=None):
+                create_dataset_args=None, min_size=500):
     """Write content of a h5py-like object into a HDF5 file.
 
     :param infile: Path of input file, or :class:`commonh5.File` object
@@ -255,6 +249,8 @@ def write_to_h5(infile, h5file, h5path='/', mode="a",
         ``h5py.File.create_dataset``. This allows you to specify filters and
         compression parameters. Don't specify ``name`` and ``data``.
         These arguments are only applied to datasets larger than 1MB.
+    :param int min_size: Minimum number of elements in a dataset to apply
+        chunking and compression. Default is 500.
 
     The structure of the spec data in an HDF5 file is described in the
     documentation of :mod:`silx.io.spech5`.
@@ -262,7 +258,8 @@ def write_to_h5(infile, h5file, h5path='/', mode="a",
     writer = Hdf5Writer(h5path=h5path,
                         overwrite_data=overwrite_data,
                         link_type=link_type,
-                        create_dataset_args=create_dataset_args)
+                        create_dataset_args=create_dataset_args,
+                        min_size=min_size)
 
     # both infile and h5file can be either file handle or a file name: 4 cases
     if not isinstance(h5file, h5py.File) and not is_group(infile):
