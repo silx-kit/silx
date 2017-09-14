@@ -60,7 +60,7 @@ from silx.io import is_dataset, is_group, is_softlink
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "24/08/2017"
+__date__ = "14/09/2017"
 
 _logger = logging.getLogger(__name__)
 
@@ -248,23 +248,24 @@ def write_to_h5(infile, h5file, h5path='/', mode="a",
     The structure of the spec data in an HDF5 file is described in the
     documentation of :mod:`silx.io.spech5`.
     """
-    if not is_group(infile):
-        # assume that it is a string and let silx.io.open test the type
-        h5pylike = silx.io.open(infile)
-    else:
-        h5pylike = infile
-
     writer = Hdf5Writer(h5path=h5path,
                         overwrite_data=overwrite_data,
                         link_type=link_type,
                         create_dataset_args=create_dataset_args)
 
-    if not isinstance(h5file, h5py.File):
-        # If h5file is a file path, open and close it
+    # both infile and h5file can be either file handle or a file name: 4 cases
+    if not isinstance(h5file, h5py.File) and not is_group(infile):
+        with silx.io.open(infile) as h5pylike:
+            with h5py.File(h5file, mode) as h5f:
+                writer.write(h5pylike, h5f)
+    elif isinstance(h5file, h5py.File) and not is_group(infile):
+        with silx.io.open(infile) as h5pylike:
+            writer.write(h5pylike, h5file)
+    elif is_group(infile) and not isinstance(h5file, h5py.File):
         with h5py.File(h5file, mode) as h5f:
-            writer.write(h5pylike, h5f)
+            writer.write(infile, h5f)
     else:
-        writer.write(h5pylike, h5file)
+        writer.write(infile, h5file)
 
 
 def convert(infile, h5file, mode="w-", create_dataset_args=None):
