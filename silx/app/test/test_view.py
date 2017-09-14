@@ -30,7 +30,6 @@ __date__ = "14/09/2017"
 
 
 import unittest
-from .. import view
 import sys
 import os
 
@@ -39,12 +38,15 @@ import os
 with_qt = False
 if sys.platform.startswith('linux') and not os.environ.get('DISPLAY', ''):
     reason = 'test disabled (DISPLAY env. variable not set)'
+    view = None
     TestCaseQt = unittest.TestCase
 elif os.environ.get('WITH_QT_TEST', 'True') == 'False':
     reason = "test disabled (env. variable WITH_QT_TEST=False)"
+    view = None
     TestCaseQt = unittest.TestCase
 else:
     from silx.gui.test.utils import TestCaseQt
+    from .. import view
     with_qt = True
     reason = ""
 

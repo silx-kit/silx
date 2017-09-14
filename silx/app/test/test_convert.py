@@ -154,7 +154,12 @@ class TestConvertCommand(unittest.TestCase):
                              "1 aaaaaa")
 
         # delete input file
-        os.unlink(specname)
+        # fixme: why does this raise a WindowsError on windows?
+        try:
+            os.unlink(specname)
+        except OSError:
+            pass
+
         os.unlink(h5name)
         os.rmdir(tempdir)
 
