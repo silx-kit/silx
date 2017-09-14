@@ -211,8 +211,9 @@ class MaskToolsWidget(BaseMaskToolsWidget):
 
     _maxLevelNumber = 255
 
-    def __init__(self, parent=None, plot=None):
-        super(MaskToolsWidget, self).__init__(parent, plot,
+    def __init__(self, plot, parent=None):
+        super(MaskToolsWidget, self).__init__(plot=plot,
+                                              parent=parent,
                                               mask=ImageMask())
         self._origin = (0., 0.)  # Mask origin in plot
         self._scale = (1., 1.)  # Mask scale in plot
@@ -638,6 +639,6 @@ class MaskToolsDockWidget(BaseMaskToolsDockWidget):
     :param plot: The PlotWidget this widget is operating on
     :paran str name: The title of this widget
     """
-    def __init__(self, parent=None, plot=None, name='Mask'):
+    def __init__(self, plot, parent=None, name='Mask'):
         widget = MaskToolsWidget(plot=plot)
         super(MaskToolsDockWidget, self).__init__(parent, name, widget)

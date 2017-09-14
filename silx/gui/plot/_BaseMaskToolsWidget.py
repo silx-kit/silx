@@ -354,7 +354,7 @@ class BaseMaskToolsWidget(qt.QWidget):
     sigMaskChanged = qt.Signal()
     _maxLevelNumber = 255
 
-    def __init__(self, parent=None, plot=None, mask=None):
+    def __init__(self, plot, parent=None, mask=None):
         """
 
         :param parent: Parent QWidget
