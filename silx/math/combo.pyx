@@ -312,6 +312,7 @@ def min_max(data not None, bint min_positive=False, bint finite=False):
     :raises: ValueError if data is empty
     """
     data = numpy.ascontiguousarray(data).ravel()
+    data = data.newbyteorder('N')
     if finite and data.dtype.kind == 'f':
         return _finite_min_max(data, min_positive)
     else:
