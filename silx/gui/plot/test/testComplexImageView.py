@@ -76,6 +76,11 @@ class TestComplexImageView(PlotWidgetTestCase, ParametricTestCase):
 
         # Test no data
         self.plot.setData(numpy.zeros((0, 0), dtype=numpy.complex))
+        self.qWait(100)
+
+        # Test float data
+        self.plot.setData(numpy.arange(100, dtype=numpy.float).reshape(10, 10))
+        self.qWait(100)
 
 
 def suite():
