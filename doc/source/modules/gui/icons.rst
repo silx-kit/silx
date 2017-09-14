@@ -127,6 +127,10 @@ Available icons
      - math-peak-search
    * - |math-peak|
      - math-peak
+   * - |math-phase-color-log|
+     - math-phase-color-log
+   * - |math-phase-color|
+     - math-phase-color
    * - |math-phase|
      - math-phase
    * - |math-real|
@@ -316,6 +320,8 @@ Available icons
 .. |math-peak-reset| image:: ../../../../silx/resources/gui/icons/math-peak-reset.png
 .. |math-peak-search| image:: ../../../../silx/resources/gui/icons/math-peak-search.png
 .. |math-peak| image:: ../../../../silx/resources/gui/icons/math-peak.png
+.. |math-phase-color-log| image:: ../../../../silx/resources/gui/icons/math-phase-color-log.png
+.. |math-phase-color| image:: ../../../../silx/resources/gui/icons/math-phase-color.png
 .. |math-phase| image:: ../../../../silx/resources/gui/icons/math-phase.png
 .. |math-real| image:: ../../../../silx/resources/gui/icons/math-real.png
 .. |math-sigma| image:: ../../../../silx/resources/gui/icons/math-sigma.png
