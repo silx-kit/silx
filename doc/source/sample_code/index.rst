@@ -164,7 +164,7 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
        - QAction from :mod:`silx.gui.plot.actions`
        - QToolButton from :mod:`silx.gui.plot.PlotToolButtons`
        - QToolBar from :mod:`silx.gui.plot.PlotTools`
-       - :class:`ColorBarWidget` from :mod:`silx.gui.plot.ColorBar.
+       - :class:`ColorBarWidget` from :mod:`silx.gui.plot.ColorBar`.
    * - :download:`printPreview.py <../../../examples/printPreview.py>`
      - .. image:: img/printPreview.png
          :height: 150px
