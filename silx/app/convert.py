@@ -70,12 +70,12 @@ def main(argv):
         help='Path to the group in the output file,'
              ' where the input is written too.')
     parser.add_argument(
-        '--create-root-group',
+        '--no-root-group',
         action="store_true",
-        help='Create a root group for each input file, using the input'
-             ' file name as group name. This option can be specified in order'
-             ' to prevent conflicts if two or more input files have datasets'
-             ' with identical names.')
+        help='This option disables the default behavior of creating a '
+             'root group (entry) for each file to be converted. When '
+             'merging multiple input files, this can cause conflicts '
+             'when datasets have the same name (see --overwrite-data).')
     parser.add_argument(
         '--overwrite-data',
         action="store_true",
@@ -249,7 +249,7 @@ def main(argv):
     with h5py.File(output_name, mode=options.mode) as h5f:
         for input_name in options.input_files:
             hdf5_path = options.hdf5_path
-            if options.create_root_group:
+            if not options.no_root_group:
                 hdf5_path = hdf5_path.rstrip("/") + "/" + os.path.basename(input_name)
             write_to_h5(input_name, h5f,
                         h5path=hdf5_path,
