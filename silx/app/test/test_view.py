@@ -26,13 +26,21 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "12/04/2017"
+__date__ = "14/09/2017"
 
 
 import unittest
-from silx.gui.test.utils import TestCaseQt
 from .. import view
 import sys
+
+
+try:
+    from silx.gui.test.utils import TestCaseQt
+    with_qt = True
+except ImportError:
+    class TestCaseQt(unittest.TestCase):
+        pass
+    with_qt = False
 
 
 class QApplicationMock(object):
@@ -118,6 +126,7 @@ class TestLauncher(unittest.TestCase):
 class TestViewer(TestCaseQt):
     """Test for Viewer class"""
 
+    @unittest.skipUnless(with_qt, "Test requires a Qt binding")
     def testConstruct(self):
         widget = view.Viewer()
         self.qWaitForWindowExposed(widget)
