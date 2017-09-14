@@ -29,6 +29,8 @@ import os
 import argparse
 from glob import glob
 import logging
+import numpy
+import silx
 
 
 __authors__ = ["P. Knobel"]
@@ -249,8 +251,32 @@ def main(argv):
     if options.fletcher32:
         create_dataset_args["fletcher32"] = True
 
-    # everything is checked, do the work
     with h5py.File(output_name, mode=options.mode) as h5f:
+        # write the silx version string as metadata
+        if "silx_versions" not in h5f[options.hdf5_path]:
+            # first time we add data to this location
+            h5f[options.hdf5_path]["silx_versions"] = numpy.array([silx.version],
+                                                                  dtype=numpy.string_)
+        else:
+            # Append mode. Add version number if not already in version arrayx
+            existing_versions = h5f[options.hdf5_path]["silx_versions"][()]
+            if numpy.string_(silx.version) not in existing_versions:
+                del h5f[options.hdf5_path]["silx_versions"]
+                versions = numpy.append(existing_versions,
+                                        numpy.string_(silx.version))
+                h5f[options.hdf5_path]["silx_versions"] = versions
+
+        # write the convert_command string as metadata
+        if "convert_commands" not in h5f[options.hdf5_path]:
+            h5f[options.hdf5_path]["convert_commands"] = numpy.array([" ".join(sys.argv)],
+                                                                     dtype=numpy.string_)
+        else:
+            commands = h5f[options.hdf5_path]["convert_commands"][()]
+            commands = numpy.append(commands,
+                                    numpy.string_(" ".join(sys.argv)))
+            del h5f[options.hdf5_path]["convert_commands"]
+            h5f[options.hdf5_path]["convert_commands"] = commands
+
         for input_name in options.input_files:
             hdf5_path = options.hdf5_path
             if not options.no_root_group:
