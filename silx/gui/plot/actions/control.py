@@ -354,7 +354,7 @@ class ColormapAction(PlotAction):
                 dataMax = goodData.max()
             else:
                 qt.QMessageBox.warning(
-                    self, "No Data",
+                    None, "No Data",
                     "Image data does not contain any real value")
                 dataMin, dataMax = 1., 10.
 
