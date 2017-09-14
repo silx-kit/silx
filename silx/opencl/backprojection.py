@@ -69,7 +69,9 @@ def _idivup(a, b):
 
 class Backprojection(OpenclProcessing):
     """A class for performing the backprojection using OpenCL"""
-    kernel_files = ["backproj.cl", "backproj_helper.cl"] if _has_pyfft else ["backproj.cl"]
+    kernel_files = ["backproj.cl", "array_utils.cl"]
+    if _has_pyfft:
+        kernel_files.append("backproj_helper.cl")
 
     def __init__(self, sino_shape, slice_shape=None, axis_position=None, angles=None, filter_name=None,
                  ctx=None, devicetype="all", platformid=None, deviceid=None,
@@ -126,7 +128,7 @@ class Backprojection(OpenclProcessing):
 
         self.compute_fft_plans()
         self.buffers = [
-                       BufferDescription("d_slice", np.prod(self.dimrec_shape), np.float32, mf.READ_WRITE),
+                       BufferDescription("_d_slice", np.prod(self.dimrec_shape), np.float32, mf.READ_WRITE),
                        BufferDescription("d_sino", self.num_projs * self.num_bins, np.float32, mf.READ_WRITE),  # before transferring to texture (if available)
                        BufferDescription("d_cos", self.num_projs, np.float32, mf.READ_ONLY),
                        BufferDescription("d_sin", self.num_projs, np.float32, mf.READ_ONLY),
@@ -137,8 +139,11 @@ class Backprojection(OpenclProcessing):
             self.allocate_textures()
         self.compute_filter()
         if self.pyfft_plan:
-            self.add_to_cl_mem({"d_filter": self.d_filter, "d_sino_z": self.d_sino_z})
-        self.d_sino = self.cl_mem["d_sino"]  # shorthand
+            self.add_to_cl_mem({
+                "d_filter": self.d_filter,
+                "d_sino_z": self.d_sino_z
+            })
+        self.d_sino = self.cl_mem["d_sino"] # shorthand
         self.compute_angles()
 
         self.local_mem = 256 * 3 * _sizeof(np.float32)  # constant for all image sizes
@@ -227,10 +232,29 @@ class Backprojection(OpenclProcessing):
     def _get_local_mem(self):
         return pyopencl.LocalMemory(self.local_mem)  # constant for all image sizes
 
-    def backprojection(self, sino=None):
+    def cpy2d_to_slice(self, dst):
+        ndrange = self.slice_shape[::-1]
+        slice_shape_ocl = np.int32(ndrange)
+        wg = None
+        kernel_args = (
+            dst.data,
+            self.cl_mem["_d_slice"],
+            np.int32(self.slice_shape[1]),
+            np.int32(self.dimrec_shape[1]),
+            np.int32((0, 0)),
+            np.int32((0, 0)),
+            slice_shape_ocl
+        )
+        self.program.cpy2d(self.queue, ndrange, wg, *kernel_args)
+
+
+
+    def backprojection(self, sino=None, dst=None):
         """Perform the backprojection on an input sinogram
 
-        :param sino: sinogram. If provided, it performs the plain backprojection.
+        :param sino: sinogram. If provided, it returns the plain backprojection.
+        :param dst: destination (pyopencl.Array). If provided, the result will be written in this array.
+
         :return: backprojection of sinogram
         """
         events = []
@@ -265,7 +289,7 @@ class Backprojection(OpenclProcessing):
                     self.d_sino,
                     offset=0,
                     origin=(0, 0),
-                    region=self.shape[::-1]  # (np.int32(self.shape[1]), np.int32(self.shape[0]))
+                    region=self.shape[::-1]
                 )
                 events.append(EventDescription("Buffer to Image d_sino", ev))
             # Prepare arguments for the kernel call
@@ -277,7 +301,7 @@ class Backprojection(OpenclProcessing):
                 self.num_projs,  # num of projections (int32)
                 self.num_bins,  # num of bins (int32)
                 self.axis_pos,  # axis position (float32)
-                self.cl_mem["d_slice"],  # d_slice (__global float32*)
+                self.cl_mem["_d_slice"],  # d_slice (__global float32*)
                 d_sino_ref,  # d_sino (__read_only image2d_t or float*)
                 np.float32(0),  # gpu_offset_x (float32)
                 np.float32(0),  # gpu_offset_y (float32)
@@ -301,20 +325,27 @@ class Backprojection(OpenclProcessing):
                     self.wg,
                     *kernel_args
                 )
-            self.slice[:] = 0
-            events.append(EventDescription("backprojection", event_bpj))
-            ev = pyopencl.enqueue_copy(self.queue, self.slice, self.cl_mem["d_slice"])
-            events.append(EventDescription("copy D->H result", ev))
-            ev.wait()
+            if dst is None:
+                self.slice[:] = 0
+                events.append(EventDescription("backprojection", event_bpj))
+                ev = pyopencl.enqueue_copy(self.queue, self.slice, self.cl_mem["_d_slice"])
+                events.append(EventDescription("copy D->H result", ev))
+                ev.wait()
+                res = np.copy(self.slice)
+                if self.dimrec_shape[0] > self.slice_shape[0] or self.dimrec_shape[1] > self.slice_shape[1]:
+                    res = res[:self.slice_shape[0], :self.slice_shape[1]]
+                # if the slice is backprojected onto a bigger grid
+                if self.slice_shape[1] > self.num_bins:
+                    res = res[:self.slice_shape[0], :self.slice_shape[1]]
+            else:
+                self.cpy2d_to_slice(dst)
+                res = dst
+
+
         # /with self.sem
         if self.profile:
             self.events += events
-        res = np.copy(self.slice)
-        if self.dimrec_shape[0] > self.slice_shape[0] or self.dimrec_shape[1] > self.slice_shape[1]:
-            res = res[:self.slice_shape[0], :self.slice_shape[1]]
-        # if the slice is backprojected onto a bigger grid
-        if self.slice_shape[1] > self.num_bins:
-            res = res[:self.slice_shape[0], :self.slice_shape[1]]
+
         return res
 
 
@@ -358,7 +389,7 @@ class Backprojection(OpenclProcessing):
                 # Inverse FFT (in-place)
                 self.pyfft_plan.execute(self.d_sino_z.data, batch=self.num_projs, inverse=True)
                 # Copy the real part of d_sino_z[:, :self.num_bins] (complex64) to d_sino (float32)
-                ev = self.program.cpy2d(self.queue, self.shape[::-1], None,
+                ev = self.program.cpy2d_c2r(self.queue, self.shape[::-1], None,
                                         self.d_sino,
                                         self.d_sino_z.data,
                                         self.num_bins,
@@ -380,7 +411,7 @@ class Backprojection(OpenclProcessing):
             # Send the filtered sinogram to device
             sino_filtered = np.ascontiguousarray(sino_filtered, dtype=np.float32)
             with self.sem:
-                pyopencl.enqueue_copy(self.queue, self.d_sino, sino_filtered)
+                pyopencl.enqueue_copy(self.queue, self._d_sino, sino_filtered)
 
 
     def filtered_backprojection(self, sino):

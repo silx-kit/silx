@@ -83,3 +83,7 @@ __kernel void kern_divergence2D(
         slice[(gidy)*sizeX+gidx] = val_x + val_y;
     }
 }
+
+
+
+

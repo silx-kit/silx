@@ -23,7 +23,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Test of the forward linalg module"""
+"""Test of the linalg module"""
 
 from __future__ import division, print_function
 

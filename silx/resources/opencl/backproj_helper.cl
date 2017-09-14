@@ -45,16 +45,23 @@ __kernel void mult(
       }
     }
 
-__kernel void cpy2d(
+__kernel void cpy2d_c2r(
                     __global float* d_sino,
                     __global float2* d_sino_complex,
                     int num_bins,
                     int num_projs,
                     int fft_size)
 {
-  int gid0 = get_global_id(0);
-  int gid1 = get_global_id(1);
-  if (gid0 < num_bins && gid1 < num_projs) {
-    d_sino[gid1*num_bins+gid0] = d_sino_complex[gid1*fft_size+gid0].x;
-  }
+    int gid0 = get_global_id(0);
+    int gid1 = get_global_id(1);
+    if (gid0 < num_bins && gid1 < num_projs) {
+        d_sino[gid1*num_bins+gid0] = d_sino_complex[gid1*fft_size+gid0].x;
+    }
 }
+
+
+
+
+
+
+
