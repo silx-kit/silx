@@ -52,10 +52,10 @@ class _ComplexDataToolButton(qt.QToolButton):
     """
 
     _MODES = [
-        ('absolute', 'shape-ellipse-solid', 'Amplitude'),
-        ('phase', 'shape-circle-solid', 'Phase'),
-        ('real', 'shape-ellipse-solid', 'Real part'),
-        ('imaginary', 'shape-circle-solid', 'Imaginary part')]
+        ('absolute', 'math-amplitude', 'Amplitude'),
+        ('phase', 'math-phase', 'Phase'),
+        ('real', 'math-real', 'Real part'),
+        ('imaginary', 'math-imaginary', 'Imaginary part')]
 
     def __init__(self, parent=None, plot=None):
         super(_ComplexDataToolButton, self).__init__(parent=parent)
