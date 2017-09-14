@@ -136,7 +136,8 @@ class TestViewer(TestCaseQt):
 
     @unittest.skipUnless(with_qt, reason)
     def testConstruct(self):
-        widget = view.Viewer()
+        if view is not None:
+            widget = view.Viewer()
         self.qWaitForWindowExposed(widget)
 
 
