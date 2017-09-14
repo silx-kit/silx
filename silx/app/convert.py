@@ -89,16 +89,19 @@ def main(argv):
         help='Chunk shape. Provide an argument that evaluates as a python '
              'tuple (e.g. "(1024, 768)"). If this option is provided without '
              'specifying an argument, the h5py library will guess a chunk for '
-             'you. Note that this chunking applies globally to all datasets in '
-             'all your input files.')
+             'you. Note that if you specify an explicit chunking shape, it '
+             'will be applied identically to all datasets larger than 1MB. '
+             'This might not be what you want for input files containing a '
+             'variety of heterogeneous datasets.')
     parser.add_argument(
         '--compression',
         nargs="?",
         const="gzip",
-        help='Compression filter. By default, the output file is not '
-             'compressed. If this option is specified without argument, '
-             'the GZIP compression is used. Additional compression filters '
-             'may be available, depending on your HDF5 installation.')
+        help='Compression filter. By default, the datasets in the output '
+             'file are not compressed. If this option is specified without '
+             'argument, the GZIP compression is used. Additional compression '
+             'filters may be available, depending on your HDF5 installation. '
+             'This compression is only applied to datasets larger than 1MB.')
 
     def check_gzip_compression_opts(value):
         ivalue = int(value)
@@ -116,7 +119,8 @@ def main(argv):
         '--shuffle',
         action="store_true",
         help='Enables the byte shuffle filter, may improve the compression '
-             'ratio for block oriented compressors like GZIP or LZF.')
+             'ratio for block oriented compressors like GZIP or LZF. '
+             'Only applies to datasets larger than 1MB.')
     parser.add_argument(
         '--fletcher32',
         action="store_true",

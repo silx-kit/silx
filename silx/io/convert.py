@@ -104,6 +104,17 @@ def _create_link(h5f, link_name, target_name,
         raise ValueError("link_type  must be 'hard' or 'soft'")
 
 
+def _is_1MB_dataset(ds):
+    """Return True if a dataset's data consumes more than
+    1MB in memory.
+
+    :param ds: Dataset object
+    :return: boolean
+    """
+    data = ds[()]
+    return numpy.array(data, copy=False).nbytes > 10**6
+
+
 class Hdf5Writer(object):
     """Converter class to write the content of a data file to a HDF5 file.
     """
@@ -191,8 +202,8 @@ class Hdf5Writer(object):
                 del self._h5f[h5_name]
 
             if self.overwrite_data or not member_initially_exists:
-                # fancy arguments don't apply to scalars (shape==())
-                if obj.shape == ():
+                # fancy arguments don't apply to small dataset
+                if not _is_1MB_dataset(obj):
                     ds = self._h5f.create_dataset(h5_name, data=obj.value)
                 else:
                     ds = self._h5f.create_dataset(h5_name, data=obj.value,
@@ -243,7 +254,7 @@ def write_to_h5(infile, h5file, h5path='/', mode="a",
     :param dict create_dataset_args: Dictionary of args you want to pass to
         ``h5py.File.create_dataset``. This allows you to specify filters and
         compression parameters. Don't specify ``name`` and ``data``.
-        These arguments don't apply to scalar datasets.
+        These arguments are only applied to datasets larger than 1MB.
 
     The structure of the spec data in an HDF5 file is described in the
     documentation of :mod:`silx.io.spech5`.
@@ -272,6 +283,11 @@ def convert(infile, h5file, mode="w-", create_dataset_args=None):
     """Convert a supported file into an HDF5 file, write scans into the
     root group (``/``).
 
+    This is a convenience shortcut to call::
+
+        write_to_h5(h5like, h5file, h5path='/',
+                    mode="w-", link_type="soft")
+
     :param infile: Path of input file or :class:`commonh5.File` object
         or :class:`commonh5.Group` object
     :param h5file: Path of output HDF5 file, or h5py.File object
@@ -281,11 +297,6 @@ def convert(infile, h5file, mode="w-", create_dataset_args=None):
     :param create_dataset_args: Dictionary of args you want to pass to
         ``h5py.File.create_dataset``. This allows you to specify filters and
         compression parameters. Don't specify ``name`` and ``data``.
-
-    This is a convenience shortcut to call::
-
-        write_to_h5(h5like, h5file, h5path='/',
-                    mode="w-", link_type="soft")
     """
     if mode not in ["w", "w-"]:
         raise IOError("File mode must be 'w' or 'w-'. Use write_to_h5" +
