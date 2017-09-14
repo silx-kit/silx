@@ -268,12 +268,12 @@ def main(argv):
 
         # write the convert_command string as metadata
         if "convert_commands" not in h5f[options.hdf5_path]:
-            h5f[options.hdf5_path]["convert_commands"] = numpy.array([" ".join(sys.argv)],
+            h5f[options.hdf5_path]["convert_commands"] = numpy.array([" ".join(argv)],
                                                                      dtype=numpy.string_)
         else:
             commands = h5f[options.hdf5_path]["convert_commands"][()]
             commands = numpy.append(commands,
-                                    numpy.string_(" ".join(sys.argv)))
+                                    numpy.string_(" ".join(argv)))
             del h5f[options.hdf5_path]["convert_commands"]
             h5f[options.hdf5_path]["convert_commands"] = commands
 

@@ -41,6 +41,7 @@ try:
 except ImportError:
     h5py = None
 
+import silx
 from .. import convert
 from silx.test import utils
 
@@ -141,8 +142,10 @@ class TestConvertCommand(unittest.TestCase):
                 fd.write(bytes(sftext, 'ascii'))
 
         # convert it
-        h5name = os.path.join(tempdir, "output.dat")
-        result = convert.main(["convert", "-m", "w", specname, "-o", h5name])
+        h5name = os.path.join(tempdir, "output.h5")
+        command_list = ["convert", "-m", "w",
+                        "--no-root-group", specname, "-o", h5name]
+        result = convert.main(command_list)
 
         self.assertEqual(result, 0)
         self.assertTrue(os.path.isfile(h5name))
@@ -153,6 +156,20 @@ class TestConvertCommand(unittest.TestCase):
                 title12 = title12.decode()
             self.assertEqual(title12,
                              "1 aaaaaa")
+
+            silx_version = h5f["silx_versions"][()]
+            self.assertEqual(silx_version.shape, (1,))
+            silx_version_str = silx_version[0]
+            if sys.version > '3.0':
+                silx_version_str = silx_version_str.decode()
+            self.assertEqual(silx_version_str,
+                             silx.version)
+
+            command = h5f["convert_commands"][0]
+            if sys.version > '3.0':
+                command = command.decode()
+            self.assertEqual(command,
+                             " ".join(command_list))
 
         # delete input file
         gc.collect()  # necessary to free spec file on Windows
