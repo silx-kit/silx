@@ -34,6 +34,7 @@ import sys
 import tempfile
 import unittest
 import io
+import gc
 
 try:
     import h5py
@@ -154,12 +155,8 @@ class TestConvertCommand(unittest.TestCase):
                              "1 aaaaaa")
 
         # delete input file
-        # fixme: why does this raise a WindowsError on windows?
-        try:
-            os.unlink(specname)
-        except OSError:
-            pass
-
+        gc.collect()  # necessary to free spec file on Windows
+        os.unlink(specname)
         os.unlink(h5name)
         os.rmdir(tempdir)
 
