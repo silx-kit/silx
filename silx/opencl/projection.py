@@ -108,8 +108,7 @@ class Projection(OpenclProcessing):
             self.angles = np.linspace(start=0,
                                       stop=np.pi,
                                       num=self.nprojs,
-                                      endpoint=False,
-                                      dtype=np.float32)
+                                      endpoint=False).astype(dtype=np.float32)
         else:
             self.nprojs = len(self.angles)
         self.offset_x = -np.float32((self.shape[1]-1)/2. - self.axis_pos) # TODO: custom
