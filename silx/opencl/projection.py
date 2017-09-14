@@ -329,7 +329,6 @@ class Projection(OpenclProcessing):
                 self.transfer_to_slice(image)
                 slice_ref = self.cl_mem["d_slice"].data
 
-            shared_size = 7*16*_sizeof(np.float32)
             kernel_args = (
                 self.d_sino,
                 slice_ref,
