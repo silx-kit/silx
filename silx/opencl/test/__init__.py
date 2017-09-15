@@ -31,6 +31,7 @@ import unittest
 from . import test_addition
 from . import test_medfilt
 from . import test_backprojection
+from . import test_projection
 
 
 def suite():
@@ -38,6 +39,7 @@ def suite():
     test_suite.addTests(test_addition.suite())
     test_suite.addTests(test_medfilt.suite())
     test_suite.addTests(test_backprojection.suite())
+    test_suite.addTests(test_projection.suite())
 
     # Allow to remove sift from the project
     test_base_dir = os.path.dirname(__file__)
