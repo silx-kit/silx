@@ -5,7 +5,7 @@
 --find-links http://www.silx.org/pub/wheelhouse/
 --only-binary numpy,h5py,scipy,PyQt4,PyQt5,PySide
 
-numpy
+numpy >= 1.8
 fabio >= 0.4              # For silx.io
 h5py                      # For silx.io
 pyopencl                  # For silx.opencl

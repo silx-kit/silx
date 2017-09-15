@@ -43,8 +43,6 @@ except ImportError:
     mako = None
 from ..common import ocl
 if ocl:
-    import pyopencl
-    import pyopencl.array
     from .. import projection
 from silx.test.utils import utilstest
 
