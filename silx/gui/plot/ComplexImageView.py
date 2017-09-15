@@ -373,6 +373,8 @@ class ComplexImageView(qt.QWidget):
         """
         return self._mode
 
+    # Image item proxy
+
     def setColormap(self, colormap):
         """Set the colormap to use for amplitude, phase, real or imaginary.
 
@@ -420,3 +422,30 @@ class ComplexImageView(qt.QWidget):
         :type scale: float or 2-tuple of float
         """
         self._plotImage.setScale(scale)
+
+    # PlotWidget API proxy
+
+    def getXAxis(self):
+        """Returns the X axis
+
+        :rtype: :class:`.items.Axis`
+        """
+        return self.getPlot().getXAxis()
+
+    def getYAxis(self):
+        """Returns an Y axis
+
+        :rtype: :class:`.items.Axis`
+        """
+        return self.getPlot().getYAxis(axis='left')
+
+    def getGraphTitle(self):
+        """Return the plot main title as a str."""
+        return self.getPlot().getGraphTitle()
+
+    def setGraphTitle(self, title=""):
+        """Set the plot main title.
+
+        :param str title: Main title of the plot (default: '')
+        """
+        self.getPlot().setGraphTitle(title)
