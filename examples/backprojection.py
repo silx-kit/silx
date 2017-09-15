@@ -30,13 +30,22 @@ __authors__ = ["H. Payno"]
 __license__ = "MIT"
 __date__ = "12/09/2017"
 
-from silx.opencl import backprojection
-from silx.test.utils import utilstest
+from silx.opencl import backprojection, projection
+from silx.image.phantomgenerator import PhantomGenerator
 import numpy
 
-sino = numpy.load(utilstest.getfile("sino500.npz"))["data"]
 
-# Define the tomography geometry. 
+phantom_width = 128
+angles = numpy.linspace(0, numpy.pi, num=180)
+
+phantom = PhantomGenerator.get2DPhantomSheppLogan(phantom_width)
+
+# Create the projection geometry
+proj = projection.Projection(phantom.shape, angles=angles)
+# Generate the sinogram using the forward projector
+sino = proj.projection(phantom)
+
+# Define the tomography geometry.
 # By default, the angles series is [0, pi] with sino.shape[0] angles
 # and the rotation center is (sino.shape[1]-1.)/2
 tomo_geometry = backprojection.Backprojection(sino.shape)
