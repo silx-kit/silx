@@ -144,7 +144,7 @@ class DataViewer(qt.QFrame):
             DataViews._Hdf5View,
             DataViews._NXdataView,
             DataViews._Plot1dView,
-            DataViews._Plot2dView,
+            DataViews._ImageView,
             DataViews._Plot3dView,
             DataViews._RawView,
             DataViews._StackView,

@@ -25,6 +25,7 @@
 """This module defines a views used by :class:`silx.gui.data.DataViewer`.
 """
 
+from collections import OrderedDict
 import logging
 import numbers
 import numpy
@@ -283,7 +284,7 @@ class CompositeDataView(DataView):
         :param qt.QWidget parent: Parent of the hold widget
         """
         super(CompositeDataView, self).__init__(parent, modeId, icon, label)
-        self.__views = {}
+        self.__views = OrderedDict()
         self.__currentView = None
 
     def addView(self, dataView):
@@ -294,7 +295,7 @@ class CompositeDataView(DataView):
         """Returns the best view according to priorities."""
         views = [(v.getDataPriority(data, info), v) for v in self.__views.keys()]
         views = filter(lambda t: t[0] > DataView.UNSUPPORTED, views)
-        views = sorted(views, reverse=True)
+        views = sorted(views, key=lambda t: t[0], reverse=True)
 
         if len(views) == 0:
             return None
@@ -554,6 +555,51 @@ class _Plot3dView(DataView):
             return 10
 
 
+class _ComplexImageView(DataView):
+    """View displaying data using a ComplexImageView"""
+
+    def __init__(self, parent):
+        super(_ComplexImageView, self).__init__(
+            parent=parent,
+            modeId=PLOT2D_MODE,
+            label="Complex Image",
+            icon=icons.getQIcon("view-2d"))
+
+    def createWidget(self, parent):
+        from silx.gui.plot.ComplexImageView import ComplexImageView
+        widget = ComplexImageView(parent=parent)
+        widget.getPlot().setKeepDataAspectRatio(True)
+        widget.getXAxis().setLabel('X')
+        widget.getYAxis().setLabel('Y')
+        return widget
+
+    def clear(self):
+        self.getWidget().setData(None)
+
+    def normalizeData(self, data):
+        data = DataView.normalizeData(self, data)
+        return data
+
+    def setData(self, data):
+        data = self.normalizeData(data)
+        self.getWidget().setData(data)
+
+    def axesNames(self, data, info):
+        return ["y", "x"]
+
+    def getDataPriority(self, data, info):
+        if data is None or not info.isArray or not info.isComplex:
+            return DataView.UNSUPPORTED
+        if info.dim < 2:
+            return DataView.UNSUPPORTED
+        if info.interpretation == "image":
+            return 1000
+        if info.dim == 2:
+            return 200
+        else:
+            return 190
+
+
 class _ArrayView(DataView):
     """View displaying data using a 2d table"""
 
@@ -771,6 +817,22 @@ class _RawView(CompositeDataView):
         self.addView(_ScalarView(parent))
         self.addView(_ArrayView(parent))
         self.addView(_RecordView(parent))
+
+
+class _ImageView(CompositeDataView):
+    """View displaying data as 2D image
+
+    It choose between Plot2D and ComplexImageView widgets
+    """
+
+    def __init__(self, parent):
+        super(_ImageView, self).__init__(
+            parent=parent,
+            modeId=PLOT2D_MODE,
+            label="Image",
+            icon=icons.getQIcon("view-2d"))
+        self.addView(_ComplexImageView(parent))
+        self.addView(_Plot2dView(parent))
 
 
 class _NXdataScalarView(DataView):
