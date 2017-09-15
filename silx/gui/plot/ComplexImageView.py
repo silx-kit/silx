@@ -286,23 +286,29 @@ class ComplexImageView(qt.QWidget):
             self._plotImage.setData(
                 image, alternative=None, copy=False)
 
-    def setData(self, data, copy=True):
+    def setData(self, data=None, copy=True):
         """Set the complex data to display.
 
         :param numpy.ndarray data: 2D complex data
         :param bool copy: True (default) to copy the data,
                           False to use provided data (do not modify!).
         """
-        data = numpy.array(data, copy=copy)
+        if data is None:
+            data = numpy.zeros((0, 0), dtype=numpy.complex)
+        else:
+            data = numpy.array(data, copy=copy)
+
         assert data.ndim == 2
         if data.dtype.kind != 'c':  # Convert to complex
             data = numpy.array(data, dtype=numpy.complex)
+        shape_changed = (self._data.shape != data.shape)
         self._data = data
         self._displayedData = self._convertData(
             data, self.getVisualizationMode())
 
         self._updatePlot()
-        self.getPlot().resetZoom()
+        if shape_changed:
+            self.getPlot().resetZoom()
 
         self.sigDataChanged.emit()
 
