@@ -24,13 +24,22 @@
 # ###########################################################################*/
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "24/01/2017"
+__date__ = "18/09/2017"
 
 import unittest
+import shutil
+import tempfile
+import numpy
 
 from silx.gui.test.utils import TestCaseQt
 from silx.gui.test.utils import SignalListener
 from ..TextFormatter import TextFormatter
+from silx.third_party import six
+
+try:
+    import h5py
+except ImportError:
+    h5py = None
 
 
 class TestTextFormatter(TestCaseQt):
@@ -83,10 +92,106 @@ class TestTextFormatter(TestCaseQt):
         self.assertEquals(result, '"toto"')
 
 
+class TestTextFormatterWithH5py(TestCaseQt):
+
+    @classmethod
+    def setUpClass(cls):
+        super(TestTextFormatterWithH5py, cls).setUpClass()
+        if h5py is None:
+            raise unittest.SkipTest("h5py is not available")
+
+        cls.tmpDirectory = tempfile.mkdtemp()
+        cls.h5File = h5py.File("%s/formatter.h5" % cls.tmpDirectory, mode="w")
+        cls.formatter = TextFormatter()
+
+    @classmethod
+    def tearDownClass(cls):
+        super(TestTextFormatterWithH5py, cls).tearDownClass()
+        cls.h5File.close()
+        cls.h5File = None
+        shutil.rmtree(cls.tmpDirectory)
+
+    def create_dataset(self, data, dtype=None):
+        testName = "%s" % self.id()
+        dataset = self.h5File.create_dataset(testName, data=data, dtype=dtype)
+        return dataset
+
+    def testAscii(self):
+        d = self.create_dataset(data=b"abc")
+        result = self.formatter.toString(d[()], dtype=d.dtype)
+        self.assertEquals(result, '"abc"')
+
+    def testUnicode(self):
+        d = self.create_dataset(data=u"abc")
+        result = self.formatter.toString(d[()], dtype=d.dtype)
+        self.assertEquals(result, '"abc"')
+
+    def testBadAscii(self):
+        d = self.create_dataset(data=b"abc\xF0")
+        result = self.formatter.toString(d[()], dtype=d.dtype)
+        self.assertEquals(result, 'ENCODING_ERROR:0x616263f0')
+
+    def testVoid(self):
+        d = self.create_dataset(data=numpy.void(b"abc\xF0"))
+        result = self.formatter.toString(d[()], dtype=d.dtype)
+        self.assertEquals(result, '0x616263f0')
+
+    def testEnum(self):
+        dtype = h5py.special_dtype(enum=('i', {"RED": 0, "GREEN": 1, "BLUE": 42}))
+        d = numpy.array(42, dtype=dtype)
+        d = self.create_dataset(data=d)
+        result = self.formatter.toString(d[()], dtype=d.dtype)
+        self.assertEquals(result, 'BLUE(42)')
+
+    def testRef(self):
+        dtype = h5py.special_dtype(ref=h5py.Reference)
+        d = numpy.array(self.h5File.ref, dtype=dtype)
+        d = self.create_dataset(data=d)
+        result = self.formatter.toString(d[()], dtype=d.dtype)
+        self.assertEquals(result, 'REF')
+
+    def testArrayAscii(self):
+        d = self.create_dataset(data=[b"abc"])
+        result = self.formatter.toString(d[()], dtype=d.dtype)
+        self.assertEquals(result, '["abc"]')
+
+    def testArrayUnicode(self):
+        dtype = h5py.special_dtype(vlen=six.text_type)
+        d = numpy.array([u"abc"], dtype=dtype)
+        d = self.create_dataset(data=d)
+        result = self.formatter.toString(d[()], dtype=d.dtype)
+        self.assertEquals(result, '["abc"]')
+
+    def testArrayBadAscii(self):
+        d = self.create_dataset(data=[b"abc\xF0"])
+        result = self.formatter.toString(d[()], dtype=d.dtype)
+        self.assertEquals(result, '[ENCODING_ERROR:0x616263f0]')
+
+    def testArrayVoid(self):
+        d = self.create_dataset(data=numpy.void([b"abc\xF0"]))
+        result = self.formatter.toString(d[()], dtype=d.dtype)
+        self.assertEquals(result, '[0x616263f0]')
+
+    def testArrayEnum(self):
+        dtype = h5py.special_dtype(enum=('i', {"RED": 0, "GREEN": 1, "BLUE": 42}))
+        d = numpy.array([42, 1, 100], dtype=dtype)
+        d = self.create_dataset(data=d)
+        result = self.formatter.toString(d[()], dtype=d.dtype)
+        self.assertEquals(result, '[BLUE(42) GREEN(1) 100]')
+
+    def testArrayRef(self):
+        dtype = h5py.special_dtype(ref=h5py.Reference)
+        d = numpy.array([self.h5File.ref, None], dtype=dtype)
+        d = self.create_dataset(data=d)
+        result = self.formatter.toString(d[()], dtype=d.dtype)
+        self.assertEquals(result, '[REF NULL_REF]')
+
+
 def suite():
+    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
     test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestTextFormatter))
+    test_suite.addTest(loadTests(TestTextFormatter))
+    test_suite.addTest(loadTests(TestTextFormatterWithH5py))
     return test_suite
 
 

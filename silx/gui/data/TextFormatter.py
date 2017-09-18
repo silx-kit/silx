@@ -27,13 +27,18 @@ data module to format data as text in the same way."""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "26/04/2017"
+__date__ = "18/09/2017"
 
 import numpy
 import numbers
 import binascii
 from silx.third_party import six
 from silx.gui import qt
+
+try:
+    import h5py
+except ImportError:
+    h5py = None
 
 
 class TextFormatter(qt.QObject):
@@ -73,11 +78,13 @@ class TextFormatter(qt.QObject):
             self.__floatFormat = formatter.floatFormat()
             self.__useQuoteForText = formatter.useQuoteForText()
             self.__imaginaryUnit = formatter.imaginaryUnit()
+            self.__enumFormat = formatter.enumFormat()
         else:
             self.__integerFormat = "%d"
             self.__floatFormat = "%g"
             self.__useQuoteForText = True
             self.__imaginaryUnit = u"j"
+            self.__enumFormat = u"%(name)s(%(value)d)"
 
     def integerFormat(self):
         """Returns the format string controlling how the integer data
@@ -162,40 +169,126 @@ class TextFormatter(qt.QObject):
         self.__imaginaryUnit = imaginaryUnit
         self.formatChanged.emit()
 
-    def toString(self, data):
-        """Format a data into a string using formatter options
+    def setEnumFormat(self, value):
+        """Set format string controlling how the enum data are
+        formated by this object.
 
+        :param str value: Format string (e.g. "%(name)s(%(value)d)").
+            This is the C-style format string used by python when formatting
+            strings with the modulus operator.
+        """
+        if self.__enumFormat == value:
+            return
+        self.__enumFormat = value
+        self.formatChanged.emit()
+
+    def enumFormat(self):
+        """Returns the format string controlling how the enum data
+        are formated by this object.
+
+        This is the C-style format string used by python when formatting
+        strings with the modulus operator.
+
+        :rtype: str
+        """
+        return self.__enumFormat
+
+    def __formatText(self, text):
+        if self.__useQuoteForText:
+            text = "\"%s\"" % text.replace("\"", "\\\"")
+        return text
+
+    def __formatH5pyObject(self, data, dtype):
+        # That's an HDF5 object
+        ref = h5py.check_dtype(ref=dtype)
+        if ref is not None:
+            if bool(data):
+                return "REF"
+            else:
+                return "NULL_REF"
+        vlen = h5py.check_dtype(vlen=dtype)
+        if vlen is not None:
+            if vlen == six.text_type:
+                # HDF5 UTF8
+                return self.__formatText(data)
+            elif vlen == six.binary_type:
+                # HDF5 ASCII
+                try:
+                    text = "%s" % data.decode("ascii")
+                    return self.__formatText(text)
+                except UnicodeDecodeError:
+                    return "ENCODING_ERROR:0x" + binascii.hexlify(data).decode("ascii")
+        return None
+
+    def toString(self, data, dtype=None):
+        """Format a data into a string using formatter options
         :param object data: Data to render
+        :param dtype: enforce a dtype (mostly used to remember the h5py dtype,
+             special h5py dtypes are not propagated from array to items)
         :rtype: str
         """
         if isinstance(data, tuple):
             text = [self.toString(d) for d in data]
             return "(" + " ".join(text) + ")"
-        elif isinstance(data, (list, numpy.ndarray)):
+        elif isinstance(data, list):
             text = [self.toString(d) for d in data]
             return "[" + " ".join(text) + "]"
+        elif isinstance(data, (numpy.ndarray)):
+            if dtype is None:
+                dtype = data.dtype
+            if data.shape == ():
+                # it is a scaler
+                return self.toString(data[()], dtype)
+            else:
+                text = [self.toString(d, dtype) for d in data]
+                return "[" + " ".join(text) + "]"
         elif isinstance(data, numpy.void):
-            dtype = data.dtype
+            if dtype is None:
+                dtype = data.dtype
             if data.dtype.fields is not None:
-                text = [self.toString(data[f]) for f in dtype.fields]
+                text = [self.toString(data[f], dtype) for f in dtype.fields]
                 return "(" + " ".join(text) + ")"
             return "0x" + binascii.hexlify(data).decode("ascii")
-        elif isinstance(data, (numpy.string_, numpy.object_, bytes)):
-            # This have to be done before checking python string inheritance
+        elif isinstance(data, (numpy.unicode_, six.text_type)):
+            return self.__formatText(data)
+        elif isinstance(data, (numpy.string_, six.binary_type)):
+            if dtype is not None:
+                # Maybe a sub item from HDF5
+                if dtype.kind == 'S':
+                    try:
+                        text = "%s" % data.decode("ascii")
+                        return self.__formatText(text)
+                    except UnicodeDecodeError:
+                        return "ENCODING_ERROR:0x" + binascii.hexlify(data).decode("ascii")
+                elif dtype.kind == 'O':
+                    if h5py is not None:
+                        text = self.__formatH5pyObject(data, dtype)
+                        if text is not None:
+                            return text
             try:
+                # Try ascii/utf-8
                 text = "%s" % data.decode("utf-8")
-                if self.__useQuoteForText:
-                    text = "\"%s\"" % text.replace("\"", "\\\"")
-                return text
+                return self.__formatText(text)
             except UnicodeDecodeError:
                 pass
             return "0x" + binascii.hexlify(data).decode("ascii")
         elif isinstance(data, six.string_types):
             text = "%s" % data
-            if self.__useQuoteForText:
-                text = "\"%s\"" % text.replace("\"", "\\\"")
-            return text
-        elif isinstance(data, (numpy.integer, numbers.Integral)):
+            return self.__formatText(text)
+        elif isinstance(data, (numpy.integer)):
+            if dtype is None:
+                dtype = data.dtype
+            if h5py is not None:
+                enumType = h5py.check_dtype(enum=dtype)
+                if enumType is not None:
+                    for key, value in enumType.items():
+                        if value == data:
+                            result = {}
+                            result["name"] = key
+                            result["value"] = data
+                            return self.__enumFormat % result
+            return self.__integerFormat % data
+        elif isinstance(data, (numbers.Integral)):
             return self.__integerFormat % data
         elif isinstance(data, (numbers.Real, numpy.floating)):
             # It have to be done before complex checking
@@ -219,4 +312,13 @@ class TextFormatter(qt.QObject):
                     template = self.__floatFormat
                     params = (data.real)
             return template % params
+        elif isinstance(data, numpy.object_) or dtype is not None:
+            if dtype is None:
+                dtype = data.dtype
+            if h5py is not None:
+                text = self.__formatH5pyObject(data, dtype)
+                if text is not None:
+                    return text
+            # That's a numpy object
+            return str(data)
         return str(data)
