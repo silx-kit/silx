@@ -200,6 +200,10 @@ class Hdf5TreeView(qt.QTreeView):
 
         Works only when a single file is present.
         """
+        if h5Object is None:
+            self.setCurrentIndex(qt.QModelIndex())
+            return
+
         filename = h5Object.file.filename
 
         # Seach for the right roots

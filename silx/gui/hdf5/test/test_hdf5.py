@@ -788,6 +788,19 @@ class TestHdf5TreeView(TestCaseQt):
         selected = list(view.selectedH5Nodes())[0]
         self.assertEqual(item.name, selected.h5py_object.name)
 
+    def testSelection_SelectNone(self):
+        tree = commonh5.File("/foo/bar/1.mock", "w")
+
+        model = hdf5.Hdf5TreeModel()
+        model.insertH5pyObject(tree)
+        view = hdf5.Hdf5TreeView()
+        view.setModel(model)
+        view.setSelectedH5Node(tree)
+        view.setSelectedH5Node(None)
+
+        selection = list(view.selectedH5Nodes())
+        self.assertEqual(len(selection), 0)
+
 
 def suite():
     test_suite = unittest.TestSuite()
