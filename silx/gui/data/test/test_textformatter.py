@@ -122,14 +122,15 @@ class TestTextFormatterWithH5py(TestCaseQt):
         self.assertEquals(result, '"abc"')
 
     def testUnicode(self):
-        d = self.create_dataset(data=u"abc")
+        d = self.create_dataset(data=u"i\u2661cookies")
         result = self.formatter.toString(d[()], dtype=d.dtype)
-        self.assertEquals(result, '"abc"')
+        self.assertEquals(len(result), 11)
+        self.assertEquals(result, u'"i\u2661cookies"')
 
     def testBadAscii(self):
-        d = self.create_dataset(data=b"abc\xF0")
+        d = self.create_dataset(data=b"\xF0\x9F\x92\x94")
         result = self.formatter.toString(d[()], dtype=d.dtype)
-        self.assertEquals(result, 'ENCODING_ERROR:0x616263f0')
+        self.assertEquals(result, 'ENCODING_ERROR:0xf09f9294')
 
     def testVoid(self):
         d = self.create_dataset(data=numpy.void(b"abc\xF0"))
@@ -157,15 +158,16 @@ class TestTextFormatterWithH5py(TestCaseQt):
 
     def testArrayUnicode(self):
         dtype = h5py.special_dtype(vlen=six.text_type)
-        d = numpy.array([u"abc"], dtype=dtype)
+        d = numpy.array([u"i\u2661cookies"], dtype=dtype)
         d = self.create_dataset(data=d)
         result = self.formatter.toString(d[()], dtype=d.dtype)
-        self.assertEquals(result, '["abc"]')
+        self.assertEquals(len(result), 13)
+        self.assertEquals(result, u'["i\u2661cookies"]')
 
     def testArrayBadAscii(self):
-        d = self.create_dataset(data=[b"abc\xF0"])
+        d = self.create_dataset(data=[b"\xF0\x9F\x92\x94"])
         result = self.formatter.toString(d[()], dtype=d.dtype)
-        self.assertEquals(result, '[ENCODING_ERROR:0x616263f0]')
+        self.assertEquals(result, '[ENCODING_ERROR:0xf09f9294]')
 
     def testArrayVoid(self):
         d = self.create_dataset(data=numpy.void([b"abc\xF0"]))
