@@ -35,7 +35,6 @@
 	For CPUs, one keypoint is handled by one thread
 */
 
-typedef float4 keypoint;
 #define MIN(i,j) ( (i)<(j) ? (i):(j) )
 #define MAX(i,j) ( (i)<(j) ? (j):(i) )
 #ifndef WORKGROUP_SIZE
@@ -89,7 +88,7 @@ __kernel void orientation_assignment(
 	int i,j,r,c;
 	int old;
 	float distsq, gval, angle, interp=0.0;
-	float hist_prev, hist_curr, hist_next;
+	float hist_prev, hist_next;
 	float hist[36];
 	//memset
 	for (i=0; i<36; i++) hist[i] = 0.0f;

@@ -262,9 +262,9 @@ __kernel void local_maxmin(
  */
 
 
-__kernel void interp_keypoint(
-	__global float* DOGS,
-	__global keypoint* keypoints,
+kernel void interp_keypoint(
+	global float* DOGS,
+	global keypoint* keypoints,
 	int start_keypoints,
 	int end_keypoints,
 	float peak_thresh,

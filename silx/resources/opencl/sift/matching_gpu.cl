@@ -38,20 +38,6 @@
 	#define WORKGROUP_SIZE 64
 #endif
 
-/*
-	Keypoint (c, r, s, angle) without its descriptor
-*/
-typedef float4 keypoint;
-
-
-/*
-	Keypoint with its descriptor
-*/
-typedef struct t_keypoint {
-	keypoint kp;
-	unsigned char desc[128];
-} t_keypoint;
-
 
 
 /*
@@ -78,11 +64,11 @@ typedef struct t_keypoint {
 
 
 
-__kernel void matching(
-	__global t_keypoint* keypoints1,
-	__global t_keypoint* keypoints2,
-	__global int2* matchings,
-	__global int* counter,
+kernel void matching(
+	global t_keypoint* keypoints1,
+	global t_keypoint* keypoints2,
+	global int2* matchings,
+	global int* counter,
 	int max_nb_match,
 	float ratio_th,
 	int size1,
@@ -92,7 +78,7 @@ __kernel void matching(
 	if (!(0 <= gid0 && gid0 < size1))
 		return;
 
-	float dist1 = 1000000000000.0f, dist2 = 1000000000000.0f; //HUGE_VALF ?
+	float dist1 = MAXFLOAT, dist2 = MAXFLOAT;
 	int current_min = 0;
 	int old;
 
@@ -161,14 +147,14 @@ __kernel void matching(
 */
 
 
-__kernel void matching_valid(
-	__global t_keypoint* keypoints1,
-	__global t_keypoint* keypoints2,
-	__global char* valid,
+kernel void matching_valid(
+	global t_keypoint* keypoints1,
+	global t_keypoint* keypoints2,
+	global char* valid,
 	int roi_width,
 	int roi_height,
-	__global int2* matchings,
-	__global int* counter,
+	global int2* matchings,
+	global int* counter,
 	int max_nb_match,
 	float ratio_th,
 	int size1,
@@ -271,11 +257,11 @@ __kernel void matching_valid(
 
 
 
-__kernel void matching_v2(
-	__global t_keypoint* keypoints1,
-	__global t_keypoint* keypoints2,
-	__global int2* matchings,
-	__global int* counter,
+kernel void matching_v2(
+	global t_keypoint* keypoints1,
+	global t_keypoint* keypoints2,
+	global int2* matchings,
+	global int* counter,
 	int max_nb_keypoints,
 	float ratio_th,
 	int end)

@@ -28,8 +28,6 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-typedef float4 keypoint;
-
 /**
  * \brief Linear combination of two matrices
  *
@@ -81,12 +79,10 @@ __kernel void combine(
  *
  */
 
-
-
-__kernel void compact(
-	__global keypoint* keypoints,
-	__global keypoint* output,
-	__global int* counter,
+kernel void compact(
+	global keypoint* keypoints,
+	global keypoint* output,
+	global int* counter,
 	int start_keypoint,
 	int end_keypoint)
 {

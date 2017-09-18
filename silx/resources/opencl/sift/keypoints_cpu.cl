@@ -33,6 +33,8 @@
 	Kernels for keypoints processing
 
 	For CPUs, one keypoint is handled by one thread
+
+	Mind to include sift.cl
 */
 
 typedef float4 keypoint;
@@ -103,7 +105,7 @@ kernel void descriptor(
 				while (ori > 2.0f*M_PI_F) ori -= 2.0f*M_PI_F;
 				while (ori < 0.0f) ori += 2.0f*M_PI_F;
 				int	orr, rindex, cindex, oindex;
-				float rweight, cweight;
+				float cweight;
 
 				float oval = 4.0f*ori*M_1_PI_F; 
 
