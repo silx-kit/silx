@@ -937,3 +937,4 @@ class Points(Item, SymbolMixIn, AlphaMixIn):
             if plot is not None:
                 plot._invalidateDataRange()
         self._updated(ItemChangedType.DATA)
+

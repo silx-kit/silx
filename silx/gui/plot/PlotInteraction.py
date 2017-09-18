@@ -38,9 +38,7 @@ from . import Colors
 from . import items
 from .Interaction import (ClickOrDrag, LEFT_BTN, RIGHT_BTN,
                           State, StateMachine)
-from .PlotEvents import (prepareCurveSignal, prepareDrawingSignal,
-                         prepareHoverSignal, prepareImageSignal,
-                         prepareMarkerSignal, prepareMouseSignal)
+from . import PlotEvents
 
 from .backends.BackendBase import (CURSOR_POINTING, CURSOR_SIZE_HOR,
                                    CURSOR_SIZE_VER, CURSOR_SIZE_ALL)
@@ -56,6 +54,9 @@ class _PlotInteraction(object):
 
     It provides a weakref to the plot and methods to set/reset overlay.
     """
+
+    _SELECTION_LEGEND_PREFIX = '__SELECTION_AREA__'
+
     def __init__(self, plot):
         """Init.
 
@@ -86,12 +87,13 @@ class _PlotInteraction(object):
         assert shape in ('polygon', 'polylines')
 
         if color is None:
-            return
+            # create an invisible item
+            color = 0.0, 0.0, 0.0, 0.0
 
         points = numpy.asarray(points)
 
         # TODO Not very nice, but as is for now
-        legend = '__SELECTION_AREA__' + name
+        legend = self._SELECTION_LEGEND_PREFIX + name
 
         fill = fill != 'none'  # TODO not very nice either
 
@@ -106,6 +108,12 @@ class _PlotInteraction(object):
         for legend in self._selectionAreas:
             self.plot.remove(legend, kind='item')
         self._selectionAreas = set()
+
+    def getSelectionArea(self, name=''):
+        """Returns the shape object of the selection area or None.
+        """
+        legend = self._SELECTION_LEGEND_PREFIX + name
+        return self.plot._getItem(legend=legend, kind='item')
 
 
 # Zoom/Pan ####################################################################
@@ -270,19 +278,21 @@ class Zoom(_ZoomOnWheel):
             # Signal mouse double clicked event first
             if (time.time() - lastClickTime) <= self._DOUBLE_CLICK_TIMEOUT:
                 # Use position of first click
-                eventDict = prepareMouseSignal('mouseDoubleClicked', 'left',
-                                               *lastClickPos)
-                self.plot.notify(**eventDict)
+                dataPos = [lastClickPos[0], lastClickPos[1]]
+                screenPos = [lastClickPos[2], lastClickPos[3]]
+                event = PlotEvents.MouseDoubleClickedEvent('left', dataPos, screenPos)
+                self.plot.notify(event)
 
                 self._lastClick = 0., None
             else:
                 # Signal mouse clicked event
                 dataPos = self.plot.pixelToData(x, y)
                 assert dataPos is not None
-                eventDict = prepareMouseSignal('mouseClicked', 'left',
-                                               dataPos[0], dataPos[1],
-                                               x, y)
-                self.plot.notify(**eventDict)
+                event = PlotEvents.MouseClickedEvent(
+                    'left',
+                    [dataPos[0], dataPos[1]],
+                    [x, y])
+                self.plot.notify(event)
 
                 self._lastClick = time.time(), (dataPos[0], dataPos[1], x, y)
 
@@ -290,10 +300,10 @@ class Zoom(_ZoomOnWheel):
             # Signal mouse clicked event
             dataPos = self.plot.pixelToData(x, y)
             assert dataPos is not None
-            eventDict = prepareMouseSignal('mouseClicked', 'right',
-                                           dataPos[0], dataPos[1],
-                                           x, y)
-            self.plot.notify(**eventDict)
+            event = PlotEvents.MouseClickedEvent('right',
+                                                 [dataPos[0], dataPos[1]],
+                                                 [x, y])
+            self.plot.notify(event)
 
     def beginDrag(self, x, y):
         dataPos = self.plot.pixelToData(x, y)
@@ -435,16 +445,17 @@ class SelectPolygon(Select):
                                           color=self.machine.color,
                                           name='first_point')
 
-        def updateSelectionArea(self):
+        def updateSelectionArea(self, finished=False):
             """Update drawing selection area using self.points"""
             self.machine.setSelectionArea(self.points,
                                           fill='hatch',
                                           color=self.machine.color)
-            eventDict = prepareDrawingSignal('drawingProgress',
-                                             'polygon',
-                                             self.points,
-                                             self.machine.parameters)
-            self.machine.plot.notify(**eventDict)
+            item = self.machine.getSelectionArea()
+            if finished:
+                event = PlotEvents.ItemRegionChangeFinishedEvent(item)
+            else:
+                event = PlotEvents.ItemRegionChangedEvent(item)
+            self.machine.plot.notify(event)
 
         def onWheel(self, x, y, angle):
             self.machine.onWheel(x, y, angle)
@@ -462,15 +473,9 @@ class SelectPolygon(Select):
                 if (len(self.points) > 2 and
                         dx < self.machine.DRAG_THRESHOLD_DIST and
                         dy < self.machine.DRAG_THRESHOLD_DIST):
-                    self.machine.resetSelectionArea()
-
                     self.points[-1] = self.points[0]
-
-                    eventDict = prepareDrawingSignal('drawingFinished',
-                                                     'polygon',
-                                                     self.points,
-                                                     self.machine.parameters)
-                    self.machine.plot.notify(**eventDict)
+                    self.updateSelectionArea(finished=True)
+                    self.machine.resetSelectionArea()
                     self.goto('idle')
                     return False
 
@@ -585,37 +590,38 @@ class Select2Points(Select):
 class SelectRectangle(Select2Points):
     """Drawing rectangle selection area state machine."""
     def beginSelect(self, x, y):
-        self.startPt = self.plot.pixelToData(x, y)
-        assert self.startPt is not None
+        dataPos = self.plot.pixelToData(x, y)
+        assert dataPos is not None
+        self.startPt = dataPos
+        self.stopPt = dataPos
+
+    def updateSelectionArea(self, finished=False):
+        self.setSelectionArea((self.startPt,
+                              (self.startPt[0], self.stopPt[1]),
+                              self.stopPt,
+                              (self.stopPt[0], self.startPt[1])),
+                              fill='hatch',
+                              color=self.color)
+        item = self.getSelectionArea()
+        if finished:
+            event = PlotEvents.ItemRegionChangeFinishedEvent(item)
+        else:
+            event = PlotEvents.ItemRegionChangedEvent(item)
+        self.plot.notify(event)
+        if finished:
+            self.resetSelectionArea()
 
     def select(self, x, y):
         dataPos = self.plot.pixelToData(x, y)
         assert dataPos is not None
-
-        self.setSelectionArea((self.startPt,
-                              (self.startPt[0], dataPos[1]),
-                              dataPos,
-                              (dataPos[0], self.startPt[1])),
-                              fill='hatch',
-                              color=self.color)
-
-        eventDict = prepareDrawingSignal('drawingProgress',
-                                         'rectangle',
-                                         (self.startPt, dataPos),
-                                         self.parameters)
-        self.plot.notify(**eventDict)
+        self.stopPt = dataPos
+        self.updateSelectionArea()
 
     def endSelect(self, x, y):
-        self.resetSelectionArea()
-
         dataPos = self.plot.pixelToData(x, y)
         assert dataPos is not None
-
-        eventDict = prepareDrawingSignal('drawingFinished',
-                                         'rectangle',
-                                         (self.startPt, dataPos),
-                                         self.parameters)
-        self.plot.notify(**eventDict)
+        self.stopPt = dataPos
+        self.updateSelectionArea(finished=True)
 
     def cancelSelect(self):
         self.resetSelectionArea()
@@ -624,34 +630,35 @@ class SelectRectangle(Select2Points):
 class SelectLine(Select2Points):
     """Drawing line selection area state machine."""
     def beginSelect(self, x, y):
-        self.startPt = self.plot.pixelToData(x, y)
-        assert self.startPt is not None
+        dataPos = self.plot.pixelToData(x, y)
+        assert dataPos is not None
+        self.startPt = dataPos
+        self.stopPt = dataPos
+
+    def updateSelectionArea(self, finished=False):
+        self.setSelectionArea((self.startPt, self.stopPt),
+                              fill='hatch',
+                              color=self.color)
+        item = self.getSelectionArea()
+        if finished:
+            event = PlotEvents.ItemRegionChangeFinishedEvent(item)
+        else:
+            event = PlotEvents.ItemRegionChangedEvent(item)
+        self.plot.notify(event)
+        if finished:
+            self.resetSelectionArea()
 
     def select(self, x, y):
         dataPos = self.plot.pixelToData(x, y)
         assert dataPos is not None
-
-        self.setSelectionArea((self.startPt, dataPos),
-                              fill='hatch',
-                              color=self.color)
-
-        eventDict = prepareDrawingSignal('drawingProgress',
-                                         'line',
-                                         (self.startPt, dataPos),
-                                         self.parameters)
-        self.plot.notify(**eventDict)
+        self.stopPt = dataPos
+        self.updateSelectionArea()
 
     def endSelect(self, x, y):
-        self.resetSelectionArea()
-
         dataPos = self.plot.pixelToData(x, y)
         assert dataPos is not None
-
-        eventDict = prepareDrawingSignal('drawingFinished',
-                                         'line',
-                                         (self.startPt, dataPos),
-                                         self.parameters)
-        self.plot.notify(**eventDict)
+        self.stopPt = dataPos
+        self.updateSelectionArea(finished=True)
 
     def cancelSelect(self):
         self.resetSelectionArea()
@@ -717,22 +724,22 @@ class SelectHLine(Select1Point):
 
     def select(self, x, y):
         points = self._hLine(y)
+        points = numpy.array(points)
         self.setSelectionArea(points, fill='hatch', color=self.color)
 
-        eventDict = prepareDrawingSignal('drawingProgress',
-                                         'hline',
-                                         points,
-                                         self.parameters)
-        self.plot.notify(**eventDict)
+        item = self.getSelectionArea()
+        event = PlotEvents.ItemRegionChangedEvent(item)
+        self.plot.notify(event)
 
     def endSelect(self, x, y):
-        self.resetSelectionArea()
+        points = self._hLine(y)
+        points = numpy.array(points)
+        self.setSelectionArea(points, fill='hatch', color=self.color)
 
-        eventDict = prepareDrawingSignal('drawingFinished',
-                                         'hline',
-                                         self._hLine(y),
-                                         self.parameters)
-        self.plot.notify(**eventDict)
+        item = self.getSelectionArea()
+        event = PlotEvents.ItemRegionChangeFinishedEvent(item)
+        self.plot.notify(event)
+        self.resetSelectionArea()
 
     def cancelSelect(self):
         self.resetSelectionArea()
@@ -753,22 +760,22 @@ class SelectVLine(Select1Point):
 
     def select(self, x, y):
         points = self._vLine(x)
+        points = numpy.array(points)
         self.setSelectionArea(points, fill='hatch', color=self.color)
 
-        eventDict = prepareDrawingSignal('drawingProgress',
-                                         'vline',
-                                         points,
-                                         self.parameters)
-        self.plot.notify(**eventDict)
+        item = self.getSelectionArea()
+        event = PlotEvents.ItemRegionChangedEvent(item)
+        self.plot.notify(event)
 
     def endSelect(self, x, y):
-        self.resetSelectionArea()
+        points = self._vLine(x)
+        points = numpy.array(points)
+        self.setSelectionArea(points, fill='hatch', color=self.color)
 
-        eventDict = prepareDrawingSignal('drawingFinished',
-                                         'vline',
-                                         self._vLine(x),
-                                         self.parameters)
-        self.plot.notify(**eventDict)
+        item = self.getSelectionArea()
+        event = PlotEvents.ItemRegionChangeFinishedEvent(item)
+        self.plot.notify(event)
+        self.resetSelectionArea()
 
     def cancelSelect(self):
         self.resetSelectionArea()
@@ -849,11 +856,12 @@ class DrawFreeHand(Select):
                 # Skip same points
                 return
         self._points.append(pos)
-        eventDict = prepareDrawingSignal('drawingProgress',
-                                         'polylines',
-                                         self._points,
-                                         self.parameters)
-        self.plot.notify(**eventDict)
+
+        name = 'line'
+        self.setSelectionArea(self._points, fill='none', name=name, color=None, shape='polylines')
+        item = self.getSelectionArea(name)
+        event = PlotEvents.ItemRegionChangedEvent(item)
+        self.plot.notify(event)
 
     def endSelect(self, x, y):
         pos = self.plot.pixelToData(x, y, check=False)
@@ -862,12 +870,14 @@ class DrawFreeHand(Select):
                 # Append if different
                 self._points.append(pos)
 
-        eventDict = prepareDrawingSignal('drawingFinished',
-                                         'polylines',
-                                         self._points,
-                                         self.parameters)
-        self.plot.notify(**eventDict)
+        name = 'line'
+        self.setSelectionArea(self._points, fill='none', name=name, color=None, shape='polylines')
+        item = self.getSelectionArea(name)
+        event = PlotEvents.ItemRegionChangeFinishedEvent(item)
+        self.plot.notify(event)
+
         self._points = None
+        self.resetSelectionArea()
 
     def cancelSelect(self):
         self.resetSelectionArea()
@@ -924,18 +934,18 @@ class SelectFreeLine(ClickOrDrag, _PlotInteraction):
         if isNewPoint:
             self._points.append(dataPos)
 
-        if isNewPoint or isLast:
-            eventDict = prepareDrawingSignal(
-                'drawingFinished' if isLast else 'drawingProgress',
-                'polylines',
-                self._points,
-                self.parameters)
-            self.plot.notify(**eventDict)
+        self.setSelectionArea(self._points, fill='none', color=self.color,
+                              shape='polylines')
 
-        if not isLast:
-            self.setSelectionArea(self._points, fill='none', color=self.color,
-                                  shape='polylines')
-        else:
+        if isNewPoint or isLast:
+            item = self.getSelectionArea()
+            if isLast:
+                event = PlotEvents.ItemRegionChangeFinishedEvent(item)
+            else:
+                event = PlotEvents.ItemRegionChangedEvent(item)
+            self.plot.notify(event)
+
+        if isLast:
             self.cancel()
 
 
@@ -963,12 +973,11 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
             if marker is not None:
                 dataPos = self.machine.plot.pixelToData(x, y)
                 assert dataPos is not None
-                eventDict = prepareHoverSignal(
-                    marker.getLegend(), 'marker',
-                    dataPos, (x, y),
-                    marker.isDraggable(),
-                    marker.isSelectable())
-                self.machine.plot.notify(**eventDict)
+                event = PlotEvents.ItemHoveredEvent(
+                    marker,
+                    dataPos,
+                    (x, y))
+                self.machine.plot.notify(event)
 
             if marker != self._hoverMarker:
                 self._hoverMarker = marker
@@ -1011,14 +1020,12 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
         # Signal mouse clicked event
         dataPos = self.plot.pixelToData(x, y)
         assert dataPos is not None
-        eventDict = prepareMouseSignal('mouseClicked', btn,
-                                       dataPos[0], dataPos[1],
-                                       x, y)
-        self.plot.notify(**eventDict)
+        event = PlotEvents.MouseClickedEvent(btn, dataPos, [x, y])
+        self.plot.notify(event)
 
-        eventDict = self._handleClick(x, y, btn)
-        if eventDict is not None:
-            self.plot.notify(**eventDict)
+        event = self._handleClick(x, y, btn)
+        if event is not None:
+            self.plot.notify(event)
 
     def _handleClick(self, x, y, btn):
         """Perform picking and prepare event if click is handled here
@@ -1034,21 +1041,12 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
             marker = self.plot._pickMarker(
                 x, y, lambda m: m.isSelectable())
             if marker is not None:
-                xData, yData = marker.getPosition()
-                if xData is None:
-                    xData = [0, 1]
-                if yData is None:
-                    yData = [0, 1]
+                dataPos = self.plot.pixelToData(x, y)
+                assert dataPos is not None
 
-                eventDict = prepareMarkerSignal('markerClicked',
-                                                'left',
-                                                marker.getLegend(),
-                                                'marker',
-                                                marker.isDraggable(),
-                                                marker.isSelectable(),
-                                                (xData, yData),
-                                                (x, y), None)
-                return eventDict
+                event = PlotEvents.ItemClickedEvent(
+                    "left", marker, None, dataPos, (x, y))
+                return event
 
             else:
                 picked = self.plot._pickImageOrCurve(
@@ -1064,13 +1062,13 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                     dataPos = self.plot.pixelToData(x, y)
                     assert dataPos is not None
 
-                    eventDict = prepareCurveSignal('left',
-                                                   curve.getLegend(),
-                                                   'curve',
-                                                   indices[0], indices[1],
-                                                   dataPos[0], dataPos[1],
-                                                   x, y)
-                    return eventDict
+                    event = PlotEvents.ItemClickedEvent(
+                        'left',
+                        curve,
+                        indices,
+                        (dataPos[0], dataPos[1]),
+                        (x, y))
+                    return event
 
                 elif picked[0] == 'image':
                     image = picked[1]
@@ -1083,38 +1081,28 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                     scale = image.getScale()
                     column = int((dataPos[0] - origin[0]) / float(scale[0]))
                     row = int((dataPos[1] - origin[1]) / float(scale[1]))
-                    eventDict = prepareImageSignal('left',
-                                                   image.getLegend(),
-                                                   'image',
-                                                   column, row,
-                                                   dataPos[0], dataPos[1],
-                                                   x, y)
-                    return eventDict
+                    index = (row, column)
+
+                    event = PlotEvents.ItemClickedEvent(
+                        'left',
+                        image,
+                        [index],
+                        (dataPos[0], dataPos[1]),
+                        (x, y))
+                    return event
 
         return None
 
-    def _signalMarkerMovingEvent(self, eventType, marker, x, y):
+    def _signalMarkerMovingEvent(self, marker, x, y):
         assert marker is not None
-
-        xData, yData = marker.getPosition()
-        if xData is None:
-            xData = [0, 1]
-        if yData is None:
-            yData = [0, 1]
 
         posDataCursor = self.plot.pixelToData(x, y)
         assert posDataCursor is not None
 
-        eventDict = prepareMarkerSignal(eventType,
-                                        'left',
-                                        marker.getLegend(),
-                                        'marker',
-                                        marker.isDraggable(),
-                                        marker.isSelectable(),
-                                        (xData, yData),
-                                        (x, y),
-                                        posDataCursor)
-        self.plot.notify(**eventDict)
+        event = PlotEvents.ItemRegionChangedEvent(marker)
+        # to have retrocompatibility with PyMCA
+        event._setMousePosition(posDataCursor, (x, y))
+        self.plot.notify(event)
 
     def beginDrag(self, x, y):
         """Handle begining of drag interaction
@@ -1133,7 +1121,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
 
         if marker is not None:
             self.markerLegend = marker.getLegend()
-            self._signalMarkerMovingEvent('markerMoving', marker, x, y)
+            self._signalMarkerMovingEvent(marker, x, y)
         else:
             picked = self.plot._pickImageOrCurve(
                 x,
@@ -1159,8 +1147,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
             if marker is not None:
                 marker.setPosition(xData, yData)
 
-                self._signalMarkerMovingEvent(
-                    'markerMoving', marker, x, y)
+                self._signalMarkerMovingEvent(marker, x, y)
 
         if self.imageLegend is not None:
             image = self.plot.getImage(self.imageLegend)
@@ -1174,21 +1161,13 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
     def endDrag(self, startPos, endPos):
         if self.markerLegend is not None:
             marker = self.plot._getMarker(self.markerLegend)
-            posData = list(marker.getPosition())
-            if posData[0] is None:
-                posData[0] = [0, 1]
-            if posData[1] is None:
-                posData[1] = [0, 1]
-
-            eventDict = prepareMarkerSignal(
-                'markerMoved',
-                'left',
-                marker.getLegend(),
-                'marker',
-                marker.isDraggable(),
-                marker.isSelectable(),
-                posData)
-            self.plot.notify(**eventDict)
+            x, y = endPos[0], endPos[1]
+            posDataCursor = self.plot.pixelToData(x, y)
+            assert posDataCursor is not None
+            event = PlotEvents.ItemRegionChangeFinishedEvent(marker)
+            # to have retrocompatibility with PyMCA
+            event._setMousePosition(posDataCursor, (x, y))
+            self.plot.notify(event)
 
         self.plot.setGraphCursorShape()
 
@@ -1291,18 +1270,17 @@ class ZoomAndSelect(ItemsInteraction):
         :param btn: Pressed button id
         :return: True if click is catched by an item, False otherwise
         """
-        eventDict = self._handleClick(x, y, btn)
+        event = self._handleClick(x, y, btn)
 
-        if eventDict is not None:
+        if event is not None:
             # Signal mouse clicked event
             dataPos = self.plot.pixelToData(x, y)
             assert dataPos is not None
-            clickedEventDict = prepareMouseSignal('mouseClicked', btn,
-                                                  dataPos[0], dataPos[1],
-                                                  x, y)
-            self.plot.notify(**clickedEventDict)
+            pos = [x, y]
+            clickedEvent = PlotEvents.MouseClickedEvent(btn, dataPos, pos)
+            self.plot.notify(clickedEvent)
 
-            self.plot.notify(**eventDict)
+            self.plot.notify(event)
 
         else:
             self._zoom.click(x, y, btn)
