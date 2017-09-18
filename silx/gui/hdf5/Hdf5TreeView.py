@@ -194,37 +194,73 @@ class Hdf5TreeView(qt.QTreeView):
                     continue
                 yield _utils.H5Node(item)
 
-    def setSelectedNode(self, groupname):
+    def setSelectedNode(self, h5Object):
         """
         Select the specified node in the tree.
 
         Works only when a single file is present.
         """
-        indice = self.__treeview.model().index(0, 0, qt.QModelIndex())
-        # parce que on va au premier fichier
-        self.__treeview.expand(indice)
-        # h5 = self.__treeview.model().data(indice, Hdf5TreeModel.H5PY_OBJECT_ROLE)
-        if groupname != "":
-            groupname.replace("//", "/")
-            gn_l = groupname.split("/")
-            i = None
-            for tn in gn_l:
-                if tn == "":
-                    continue
-                nl = []
-                for k in range(self.model().rowCount(indice)):
-                    ind_tmp = self.model().index(k, 0, indice)
-                    nl.append(str(self.model().data(ind_tmp)))
+        filename = h5Object.file.filename
 
-                if tn not in nl:
+        # Seach for the right roots
+        rootIndices = []
+        model = self.model()
+        for index in range(model.rowCount(qt.QModelIndex())):
+            index = model.index(index, 0, qt.QModelIndex())
+            obj = model.data(index, Hdf5TreeModel.H5PY_OBJECT_ROLE)
+            if obj.file.filename == filename:
+                # We can have many roots with different subtree of the same
+                # root
+                rootIndices.append(index)
+
+        if len(rootIndices) == 0:
+            # No root found
+            return
+
+        path = h5Object.name + "/"
+        path = path.replace("//", "/")
+
+        # Search for the right node
+        found = False
+        foundIndices = []
+        for _ in range(1000 * len(rootIndices)):
+            # Avoid too much iterations, in case of recurssive links
+            if len(foundIndices) == 0:
+                if len(rootIndices) == 0:
+                    # Nothing found
                     break
-                i = nl.index(tn)
-                indice = self.model().index(i, 0, indice)
-                self.expand(indice)
-                # h5=h5[tn]
+                # Start fron a new root
+                foundIndices.append(rootIndices.pop(0))
+                if path == "/":
+                    found = True
+                    break
 
-            if i is not None:
-                self.setCurrentIndex(indice)
+            parentIndex = foundIndices[-1]
+            for index in range(model.rowCount(parentIndex)):
+                index = model.index(index, 0, parentIndex)
+                obj = model.data(index, Hdf5TreeModel.H5PY_OBJECT_ROLE)
+
+                p = obj.name + "/"
+                p = p.replace("//", "/")
+                if path == p:
+                    foundIndices.append(index)
+                    found = True
+                    break
+                elif path.startswith(p):
+                    foundIndices.append(index)
+                    break
+            else:
+                # Nothing found, start again with another root
+                foundIndices = []
+
+            if found:
+                break
+
+        if found:
+            # Update the GUI
+            for index in foundIndices[:-1]:
+                self.expand(index)
+            self.setCurrentIndex(foundIndices[-1])
 
     def mousePressEvent(self, event):
         """Override mousePressEvent to provide a consistante compatible API

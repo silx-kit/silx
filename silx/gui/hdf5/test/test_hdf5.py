@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "01/09/2017"
+__date__ = "18/09/2017"
 
 
 import time
@@ -680,11 +680,11 @@ class TestH5Node(TestCaseQt):
         self.assertEqual(h5node.local_name, "/link/soft_link_to_file/link/soft_link_to_group/dataset")
 
 
-class TestHdf5(TestCaseQt):
+class TestHdf5TreeView(TestCaseQt):
     """Test to check that icons module."""
 
     def setUp(self):
-        super(TestHdf5, self).setUp()
+        super(TestHdf5TreeView, self).setUp()
         if h5py is None:
             self.skipTest("h5py is not available")
 
@@ -696,13 +696,105 @@ class TestHdf5(TestCaseQt):
         view = hdf5.Hdf5TreeView()
         view._createContextMenu(qt.QPoint(0, 0))
 
+    def testSelection_Simple(self):
+        tree = commonh5.File("/foo/bar/1.mock", "w")
+        item = tree.create_group("a").create_group("b").create_group("b").create_group("d")
+        item.create_group("e").create_group("f")
+
+        model = hdf5.Hdf5TreeModel()
+        model.insertH5pyObject(tree)
+        view = hdf5.Hdf5TreeView()
+        view.setModel(model)
+        view.setSelectedNode(item)
+
+        selected = list(view.selectedH5Nodes())[0]
+        self.assertIs(item, selected.h5py_object)
+
+    def testSelection_NotFound(self):
+        tree2 = commonh5.File("/foo/bar/2.mock", "w")
+        tree = commonh5.File("/foo/bar/1.mock", "w")
+        item = tree.create_group("a").create_group("b").create_group("c").create_group("d")
+        item.create_group("e").create_group("f")
+
+        model = hdf5.Hdf5TreeModel()
+        model.insertH5pyObject(tree)
+        view = hdf5.Hdf5TreeView()
+        view.setModel(model)
+        view.setSelectedNode(tree2)
+
+        selection = list(view.selectedH5Nodes())
+        self.assertEqual(len(selection), 0)
+
+    def testSelection_ManyGroupFromSameFile(self):
+        tree = commonh5.File("/foo/bar/1.mock", "w")
+        group1 = tree.create_group("a1")
+        group1.create_group("b").create_group("b").create_group("d")
+        group2 = tree.create_group("a1")
+        item = group2.create_group("b").create_group("c").create_group("d")
+        group3 = tree.create_group("a1")
+        group3.create_group("b").create_group("b").create_group("d")
+
+        model = hdf5.Hdf5TreeModel()
+        model.insertH5pyObject(group1)
+        model.insertH5pyObject(group2)
+        model.insertH5pyObject(group3)
+        view = hdf5.Hdf5TreeView()
+        view.setModel(model)
+        view.setSelectedNode(item)
+
+        selected = list(view.selectedH5Nodes())[0]
+        self.assertIs(item, selected.h5py_object)
+
+    def testSelection_Tree(self):
+        tree1 = commonh5.File("/foo/bar/1.mock", "w")
+        tree2 = commonh5.File("/foo/bar/2.mock", "w")
+        tree3 = commonh5.File("/foo/bar/3.mock", "w")
+        tree1.create_group("a").create_group("b").create_group("c")
+        tree2.create_group("a").create_group("b").create_group("c")
+        tree3.create_group("a").create_group("b").create_group("c")
+        item = tree2
+
+        model = hdf5.Hdf5TreeModel()
+        model.insertH5pyObject(tree1)
+        model.insertH5pyObject(tree2)
+        model.insertH5pyObject(tree3)
+        view = hdf5.Hdf5TreeView()
+        view.setModel(model)
+        view.setSelectedNode(item)
+
+        selected = list(view.selectedH5Nodes())[0]
+        self.assertIs(item, selected.h5py_object)
+
+    def testSelection_RecurssiveLink(self):
+        """
+        Recurssive link selection
+
+        This example is not really working as expected cause commonh5 do not
+        support recurssive links.
+        But item.name == "/a/b" and the result is found.
+        """
+        tree = commonh5.File("/foo/bar/1.mock", "w")
+        group = tree.create_group("a")
+        group.add_node(commonh5.SoftLink("b", "/"))
+
+        item = tree["/a/b/a/b/a/b/a/b/a/b/a/b/a/b/a/b"]
+
+        model = hdf5.Hdf5TreeModel()
+        model.insertH5pyObject(tree)
+        view = hdf5.Hdf5TreeView()
+        view.setModel(model)
+        view.setSelectedNode(item)
+
+        selected = list(view.selectedH5Nodes())[0]
+        self.assertEqual(item.name, selected.h5py_object.name)
+
 
 def suite():
     test_suite = unittest.TestSuite()
     loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
     test_suite.addTest(loadTests(TestHdf5TreeModel))
     test_suite.addTest(loadTests(TestNexusSortFilterProxyModel))
-    test_suite.addTest(loadTests(TestHdf5))
+    test_suite.addTest(loadTests(TestHdf5TreeView))
     test_suite.addTest(loadTests(TestH5Node))
     return test_suite
 
