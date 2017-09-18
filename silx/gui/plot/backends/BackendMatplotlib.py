@@ -605,14 +605,14 @@ class BackendMatplotlib(BackendBase.BackendBase):
     # Graph axes
 
     def setXAxisLogarithmic(self, flag):
-        if matplotlib.__version__ >= "2.1.0":
+        if matplotlib.__version__ >= "2.0.0":
             self.ax.cla()
             self.ax2.cla()
         self.ax2.set_xscale('log' if flag else 'linear')
         self.ax.set_xscale('log' if flag else 'linear')
 
     def setYAxisLogarithmic(self, flag):
-        if matplotlib.__version__ >= "2.1.0":
+        if matplotlib.__version__ >= "2.0.0":
             self.ax.cla()
             self.ax2.cla()
         self.ax2.set_yscale('log' if flag else 'linear')
