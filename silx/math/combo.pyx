@@ -311,7 +311,7 @@ def min_max(data not None, bint min_positive=False, bint finite=False):
               min_positive and argmin_positive are None.
     :raises: ValueError if data is empty
     """
-    native_endian_dtype = data.dtype.newbyteorder('N')
+    native_endian_dtype = numpy.array(data).dtype.newbyteorder('N')
     data = numpy.ascontiguousarray(data, dtype=native_endian_dtype).ravel()
     if finite and data.dtype.kind == 'f':
         return _finite_min_max(data, min_positive)
