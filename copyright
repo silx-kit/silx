@@ -11,7 +11,7 @@ Files: silx/math/histogramnd/include/msvc/stdint.h
 Copyright: 2006-2008 Alexander Chemeris
 License: BSD-3
 
-Files: silx/resources/gui/colormaps/inferno.npy silx/resources/gui/colormaps/magma.npy silx/resources/gui/colormaps/plasma.npy silx/resources/gui/colormaps/viridis.npy
+Files: silx/resources/gui/colormaps/inferno.npy silx/resources/gui/colormaps/magma.npy silx/resources/gui/colormaps/plasma.npy silx/resources/gui/colormaps/viridis.npy silx/gui/plot/matplotlib/Colormap.py
 Copyright: Nathaniel J. Smith, Stefan van der Walt, Eric Firing
 License: CC0
 
