@@ -84,6 +84,16 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self.ax2 = self.ax.twinx()
         self.ax2.set_label("right")
 
+        # disable the use of offsets
+        try:
+            self.ax.get_yaxis().get_major_formatter().set_useOffset(False)
+            self.ax.get_xaxis().get_major_formatter().set_useOffset(False)
+            self.ax2.get_yaxis().get_major_formatter().set_useOffset(False)
+            self.ax2.get_xaxis().get_major_formatter().set_useOffset(False)
+        except:
+            _logger.warning('Cannot disabled axes offsets in %s ' \
+                            % matplotlib.__version__)
+        
         # critical for picking!!!!
         self.ax2.set_zorder(0)
         self.ax2.set_autoscaley_on(True)
@@ -595,14 +605,14 @@ class BackendMatplotlib(BackendBase.BackendBase):
     # Graph axes
 
     def setXAxisLogarithmic(self, flag):
-        if matplotlib.__version__ >= "2.1.0":
+        if matplotlib.__version__ >= "2.0.0":
             self.ax.cla()
             self.ax2.cla()
         self.ax2.set_xscale('log' if flag else 'linear')
         self.ax.set_xscale('log' if flag else 'linear')
 
     def setYAxisLogarithmic(self, flag):
-        if matplotlib.__version__ >= "2.1.0":
+        if matplotlib.__version__ >= "2.0.0":
             self.ax.cla()
             self.ax2.cla()
         self.ax2.set_yscale('log' if flag else 'linear')

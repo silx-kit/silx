@@ -29,7 +29,7 @@ from __future__ import absolute_import, print_function, with_statement, division
 
 __authors__ = ["A. Mirone, P. Paleo"]
 __license__ = "MIT"
-__date__ = "26/06/2017"
+__date__ = "12/09/2017"
 
 import logging
 import numpy as np
@@ -226,7 +226,7 @@ class Backprojection(OpenclProcessing):
             self.d_filter = None
 
     def check_workgroup_size(self):
-        kernel = self.program.all_kernels()[1]  # CPU kernel
+        kernel = self.kernels.get_kernel("backproj_cpu_kernel") # CPU kernel
         self.compiletime_workgroup_size = kernel_workgroup_size(self.program, kernel)
 
     def _get_local_mem(self):
@@ -312,14 +312,14 @@ class Backprojection(OpenclProcessing):
             )
             # Call the kernel
             if self.is_cpu:
-                event_bpj = self.program.backproj_cpu_kernel(
+                event_bpj = self.kernels.backproj_cpu_kernel(
                     self.queue,
                     self.ndrange,
                     self.wg,
                     *kernel_args
                 )
             else:
-                event_bpj = self.program.backproj_kernel(
+                event_bpj = self.kernels.backproj_kernel(
                     self.queue,
                     self.ndrange,
                     self.wg,
@@ -377,7 +377,7 @@ class Backprojection(OpenclProcessing):
                 # FFT (in-place)
                 self.pyfft_plan.execute(self.d_sino_z.data, batch=self.num_projs)
                 # Multiply (complex-wise) with the the filter
-                ev = self.program.mult(self.queue,
+                ev = self.kernels.mult(self.queue,
                                        tuple(int(i) for i in self.d_sino_z.shape[::-1]),
                                        None,
                                        self.d_sino_z.data,
@@ -389,7 +389,7 @@ class Backprojection(OpenclProcessing):
                 # Inverse FFT (in-place)
                 self.pyfft_plan.execute(self.d_sino_z.data, batch=self.num_projs, inverse=True)
                 # Copy the real part of d_sino_z[:, :self.num_bins] (complex64) to d_sino (float32)
-                ev = self.program.cpy2d_c2r(self.queue, self.shape[::-1], None,
+                ev = self.kernels.cpy2d_c2r(self.queue, self.shape[::-1], None,
                                         self.d_sino,
                                         self.d_sino_z.data,
                                         self.num_bins,

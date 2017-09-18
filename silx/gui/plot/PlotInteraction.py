@@ -1064,10 +1064,14 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                     dataPos = self.plot.pixelToData(x, y)
                     assert dataPos is not None
 
+                    xData = curve.getXData(copy=False)
+                    yData = curve.getYData(copy=False)
+
                     eventDict = prepareCurveSignal('left',
                                                    curve.getLegend(),
                                                    'curve',
-                                                   indices[0], indices[1],
+                                                   xData[indices],
+                                                   yData[indices],
                                                    dataPos[0], dataPos[1],
                                                    x, y)
                     return eventDict

@@ -36,7 +36,7 @@ from __future__ import absolute_import, print_function, with_statement, division
 
 __author__ = "Jerome Kieffer"
 __license__ = "MIT"
-__date__ = "15/03/2017"
+__date__ = "12/09/2017"
 __copyright__ = "2012-2017, ESRF, Grenoble"
 __contact__ = "jerome.kieffer@esrf.fr"
 
@@ -202,7 +202,7 @@ class MedianFilter2D(OpenclProcessing):
             kwargs["width"] = numpy.int32(image.shape[1])
 #             for k, v in kwargs.items():
 #                 print("%s: %s (%s)" % (k, v, type(v)))
-            mf2d = self.program.medfilt2d(self.queue,
+            mf2d = self.kernels.medfilt2d(self.queue,
                                           (wg, image.shape[1]),
                                           (wg, 1), *list(kwargs.values()))
             events.append(EventDescription("median filter 2d", mf2d))
