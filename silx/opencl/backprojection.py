@@ -411,7 +411,7 @@ class Backprojection(OpenclProcessing):
             # Send the filtered sinogram to device
             sino_filtered = np.ascontiguousarray(sino_filtered, dtype=np.float32)
             with self.sem:
-                pyopencl.enqueue_copy(self.queue, self._d_sino, sino_filtered)
+                pyopencl.enqueue_copy(self.queue, self.d_sino, sino_filtered)
 
 
     def filtered_backprojection(self, sino):
