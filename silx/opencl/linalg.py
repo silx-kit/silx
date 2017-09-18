@@ -150,6 +150,10 @@ class LinAlg(OpenclProcessing):
             *kernel_args
         )
         self.events.append(EventDescription("gradient2D", evt))
+        # TODO: should the wait be done in any case ?
+        # In the case where dst=None, the wait() is mandatory since a user will be doing arithmetic on dst afterwards
+        if dst is None:
+            evt.wait()
 
         if return_to_host:
             if dst is not None:
@@ -204,6 +208,10 @@ class LinAlg(OpenclProcessing):
             *kernel_args
         )
         self.events.append(EventDescription("divergence2D", evt))
+        # TODO: should the wait be done in any case ?
+        # In the case where dst=None, the wait() is mandatory since a user will be doing arithmetic on dst afterwards
+        if dst is None:
+            evt.wait()
 
         if return_to_host:
             if dst is not None:

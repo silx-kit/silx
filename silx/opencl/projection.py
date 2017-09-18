@@ -313,7 +313,7 @@ class Projection(OpenclProcessing):
             np.int32((0, 0)),
             sino_shape_ocl
         )
-        self.kernels.cpy2d(self.queue, ndrange, wg, *kernel_args)
+        return self.kernels.cpy2d(self.queue, ndrange, wg, *kernel_args)
 
 
     def projection(self, image=None, dst=None):
@@ -380,7 +380,9 @@ class Projection(OpenclProcessing):
                 ev.wait()
                 res = np.copy(self._ex_sino[:self.nprojs, :self.dwidth])
             else:
-                self.cpy2d_to_sino(dst)
+                ev = self.cpy2d_to_sino(dst)
+                events.append(EventDescription("copy D->D result", ev))
+                ev.wait()
                 res = dst
         # /with self.sem
         if self.profile:

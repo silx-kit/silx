@@ -241,7 +241,7 @@ class Backprojection(OpenclProcessing):
             np.int32((0, 0)),
             slice_shape_ocl
         )
-        self.kernels.cpy2d(self.queue, ndrange, wg, *kernel_args)
+        return self.kernels.cpy2d(self.queue, ndrange, wg, *kernel_args)
 
 
 
@@ -334,7 +334,9 @@ class Backprojection(OpenclProcessing):
                 if self.slice_shape[1] > self.num_bins:
                     res = res[:self.slice_shape[0], :self.slice_shape[1]]
             else:
-                self.cpy2d_to_slice(dst)
+                ev = self.cpy2d_to_slice(dst)
+                events.append(EventDescription("copy D->D result", ev))
+                ev.wait()
                 res = dst
 
 
