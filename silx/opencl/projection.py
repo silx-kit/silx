@@ -48,7 +48,7 @@ logger = logging.getLogger(__name__)
 
 class Projection(OpenclProcessing):
     """
-    A class for performing a tomographic projection (Radon Transform) using 
+    A class for performing a tomographic projection (Radon Transform) using
     OpenCL
     """
     kernel_files = ["proj.cl", "array_utils.cl"]
@@ -207,15 +207,21 @@ class Projection(OpenclProcessing):
             )
 
     def transfer_to_texture(self, image):
-        image2 = np.zeros((image.shape[0]+2, image.shape[1]+2),
-                          dtype=np.float32)
-        image2[1:-1, 1:-1] = image.astype(np.float32)
+        #~ image2 = np.zeros((image.shape[0]+2, image.shape[1]+2),
+                          #~ dtype=np.float32)
+        #~ image2[1:-1, 1:-1] = image.astype(np.float32)
+        image2 = image
+        if not(image.flags["C_CONTIGUOUS"]):
+            image2 = np.ascontiguousarray(image)
         return pyopencl.enqueue_copy(
                    self.queue,
                    self.d_image_tex,
-                   np.ascontiguousarray(image2),
-                   origin=(0, 0),
-                   region=image2.shape[::-1]
+                   #~ np.ascontiguousarray(image2), # A
+                   image2,
+                   #~ origin=(0, 0), # A
+                   origin=(1, 1),
+                   #~ region=image2.shape[::-1] # A
+                   region=image.shape[::-1]
                )
 
     def transfer_device_to_texture(self, d_image):
