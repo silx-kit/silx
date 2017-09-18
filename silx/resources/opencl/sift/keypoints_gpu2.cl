@@ -45,16 +45,22 @@
 
 Those kernel are optimized for compute capability >=2.0 (generation Fermi and Kepler )
 
+Mind to include sift.cl
 */
 
-#define MIN(i,j) ( (i)<(j) ? (i):(j) )
-#define MAX(i,j) ( (i)<(j) ? (j):(i) )
+/* Deprecated:
+typedef float4 keypoint;
+
+Defined in sift.cl
+typedef struct actual_keypoint
+{
+    float col, row, scale, angle;
+} actual_keypoint;
+*/
+
 #ifndef WORKGROUP_SIZE
 	#define WORKGROUP_SIZE 128
 #endif
-
-
-
 
 
 /*
@@ -93,15 +99,15 @@ Those kernel are optimized for compute capability >=2.0 (generation Fermi and Ke
 
 
 
-__kernel void descriptor(
-	__global keypoint* keypoints,
-	__global unsigned char *descriptors,
-	__global float* grad,
-	__global float* orim,
+kernel void descriptor(
+	global actual_keypoint* keypoints,
+	global uchar *descriptors,
+	global float* grad,
+	global float* orim,
 	int octsize,
 	int keypoints_start,
 //	int keypoints_end,
-	__global int* keypoints_end, //passing counter value to avoid to read it each time
+	global int* keypoints_end, //passing counter value to avoid to read it each time
 	int grad_width,
 	int grad_height)
 {
@@ -111,27 +117,29 @@ __kernel void descriptor(
 	int lid2 = get_local_id(2); //[0,8[
 	int lid = (lid0*8+lid1)*8+lid2; //[0,512[ to limit to [0,128[
 	int groupid = get_group_id(0);
-	keypoint k = keypoints[groupid];
-	if (!(keypoints_start <= groupid && groupid < *keypoints_end && k.s1 >=0.0f))
+	actual_keypoint kp = keypoints[groupid];
+	if (!(keypoints_start <= groupid && groupid < *keypoints_end && kp.row >=0.0f))
 		return;
 
 	int i,j,j2;
 	
-	__local volatile float histogram[128];		//for "final" histogram
-	__local volatile float hist2[128];		//for temporary histogram
-	__local volatile unsigned int hist3[128*8]; //for the atomic_add
+	local volatile float histogram[128];		//for "final" histogram
+	local volatile float hist2[128];		   //for temporary histogram
+	local volatile unsigned int hist3[128*8]; //for the atomic_add
 	
-	float rx, cx;
-	float one_octsize = 1.0f/octsize;
-	float row = k.s1*one_octsize, col = k.s0*one_octsize;
-	int	irow = (int) ((k.s1*one_octsize) + 0.5f), icol = (int) ((k.s0*one_octsize) + 0.5f);
-	float sine = sin((float) k.s3), cosine = cos((float) k.s3);
-	float spacing = k.s2*one_octsize * 3.0f;
-	int radius = (int) ((1.414f * (k.s2*one_octsize * 3.0f) * 2.5f) + 0.5f);
-	
-	int imin = -64 +16*lid1,
-		jmin = -64 +16*lid2;
-	int imax = imin+16,
+	float rx, cx,
+	      one_octsize = 1.0f/octsize,
+	      row = kp.row*one_octsize,
+	      col = kp.col*one_octsize,
+	      sine = sin(kp.angle),
+	      cosine = cos(kp.angle),
+	      spacing = kp.scale*one_octsize * 3.0f;
+	int	irow = (int) (row + 0.5f),
+	    icol = (int) (col + 0.5f),
+	    radius = (int) ((1.414f * spacing * 2.5f) + 0.5f),
+	    imin = -64 +16*lid1,
+		jmin = -64 +16*lid2,
+	    imax = imin+16,
 		jmax = jmin+16;
 		
 	//memset
@@ -153,7 +161,7 @@ __kernel void descriptor(
 
 				float mag = grad[icol+j + (irow+i)*grad_width]
 							 * exp(- 0.125f*((rx - 1.5f) * (rx - 1.5f) + (cx - 1.5f) * (cx - 1.5f)) );
-				float ori = orim[icol+j+(irow+i)*grad_width] -  k.s3;
+				float ori = orim[icol+j+(irow+i)*grad_width] -  kp.angle;
 				while (ori > 2.0f*M_PI_F) ori -= 2.0f*M_PI_F;
 				while (ori < 0.0f) ori += 2.0f*M_PI_F;
 				int	orr, rindex, cindex, oindex;
@@ -305,8 +313,8 @@ __kernel void descriptor(
 		
 		barrier(CLK_LOCAL_MEM_FENCE);
 		//finally, cast to integer
-		descriptors[128*groupid+lid]
-			= (unsigned char) MIN(255,(unsigned char)(512.0f*histogram[lid]));
+	    int intval =  (int)(512.0f * histogram[lid]);
+		descriptors[128*groupid+lid] = (uchar) min(255, intval);
 	} //end "if lid < 128"
 }
 

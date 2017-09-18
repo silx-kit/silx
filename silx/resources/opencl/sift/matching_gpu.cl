@@ -27,8 +27,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-#define MIN(i,j) ( (i)<(j) ? (i):(j) )
-
 
 #define DOUBLEMIN(a,b,c,d) ((a) < (c) ? ((b) < (c) ? (int2)(a,b) : (int2)(a,c)) : ((a) < (d) ? (int2)(c,a) : (int2)(c,d)))
 
@@ -164,7 +162,7 @@ kernel void matching_valid(
 	if (!(0 <= gid0 && gid0 < size1))
 		return;
 
-	float dist1 = 1000000000000.0f, dist2 = 1000000000000.0f; //HUGE_VALF ?
+	float dist1 = MAXFLOAT, dist2 = MAXFLOAT;
 	int current_min = 0;
 	int old;
 
@@ -272,7 +270,7 @@ kernel void matching_v2(
 	if (!(0 <= gid && gid < end))
 		return;
 
-	float dist1 = 1000000000000.0f, dist2 = 1000000000000.0f;
+	float dist1 = MAXFLOAT, dist2 = MAXFLOAT;
 	int current_min = 0;
 	int old;
 

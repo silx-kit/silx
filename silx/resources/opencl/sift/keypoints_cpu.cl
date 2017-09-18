@@ -37,7 +37,15 @@
 	Mind to include sift.cl
 */
 
+/* Deprecated:
 typedef float4 keypoint;
+
+Defined in sift.cl
+typedef struct actual_keypoint
+{
+    float col, row, scale, angle;
+} actual_keypoint;
+*/
 #ifndef WORKGROUP_SIZE
 	#define WORKGROUP_SIZE 128
 #endif
@@ -64,7 +72,7 @@ typedef float4 keypoint;
 
 
 kernel void descriptor(
-        global keypoint* keypoints,
+        global actual_kp* keypoints,
         global unsigned char *descriptors,
         global float* grad,
         global float* orim,
@@ -77,8 +85,8 @@ kernel void descriptor(
 {
 
 	int gid0 = get_global_id(0);
-	keypoint k = keypoints[gid0];
-	if (!(keypoints_start <= gid0 && gid0 < *keypoints_end && k.s1 >=0.0f))
+	actual_keypoint kp = keypoints[gid0];
+	if (!(keypoints_start <= gid0 && gid0 < *keypoints_end && kp.s1 >=0.0f))
 		return;
 		
 	int i, j;
@@ -86,12 +94,16 @@ kernel void descriptor(
 	local volatile float tmp_descriptors[128];
 	for (i=0; i<128; i++) tmp_descriptors[i] = 0.0f;
 
-	float rx, cx;
-	float row = k.s1/octsize, col = k.s0/octsize, angle = k.s3;
-	int	irow = (int) (row + 0.5f), icol = (int) (col + 0.5f);
-	float sine = sin((float) angle), cosine = cos((float) angle);
-	float spacing = k.s2/octsize * 3.0f;
-	int iradius = (int) ((1.414f * spacing * 2.5f) + 0.5f);
+	float rx, cx,
+	      col = kp.col/octsize,
+	      row = kp.row/octsize,
+	      angle = kp.angle,
+	      sine = sin((float) angle),
+	      cosine = cos((float) angle),
+	      spacing = kp.scale/octsize * 3.0f;
+	int	irow = (int) (row + 0.5f),
+	    icol = (int) (col + 0.5f),
+	    iradius = (int) ((1.414f * spacing * 2.5f) + 0.5f);
 
 	for (i = -iradius; i <= iradius; i++) { 
 		for (j = -iradius; j <= iradius; j++) { 
@@ -184,7 +196,7 @@ kernel void descriptor(
 	//finally, cast to integer
 	int intval;
 	for (i = 0; i < 128; i++) {
-		intval =  (int)(512.0 * tmp_descriptors[i]);
+		intval =  (int)(512.0f * tmp_descriptors[i]);
 		descriptors[128*gid0+i] = (uchar) min(255, intval);
 	}
 }

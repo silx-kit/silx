@@ -33,10 +33,14 @@
 */
 
 //typedef float4 keypoint;
+// keypoint.x == k.s0 : amplitude
+// keypoint.y == k.s1 : row
+// keypoint.z == k.s2 : column
+// keypoint.w == k.s3 : sigma
 
 typedef struct pre_keypoint 
 {
-	float value, col, row, scale;
+	float value, row, col, scale;
 } pre_keypoint;
 
 
@@ -45,6 +49,12 @@ typedef struct actual_keypoint
 	float col, row, scale, angle;
 } actual_keypoint;
 
+
+union
+{
+        pre_keypoint pre;
+        actual_keypoint post;
+} unified_keypoint;
 
 /*
 	Keypoint with its descriptor

@@ -74,10 +74,10 @@ typedef float4 keypoint;
 
 
 
-__kernel void compute_gradient_orientation(
-	__global float* igray, // __attribute__((max_constant_size(MAX_CONST_SIZE))),
-	__global float *grad,
-	__global float *ori,
+kernel void compute_gradient_orientation(
+	global float* igray, // __attribute__((max_constant_size(MAX_CONST_SIZE))),
+	global float *grad,
+	global float *ori,
 	int width,
 	int height)
 {
@@ -104,7 +104,7 @@ __kernel void compute_gradient_orientation(
 			ygrad = igray[pos - width] - igray[pos + width];
 
         grad[pos] = sqrt((xgrad * xgrad + ygrad * ygrad));
-        ori[pos] = atan2 (-ygrad,xgrad);
+        ori[pos] = atan2 (-ygrad, xgrad);
 
       }
 }
@@ -146,15 +146,15 @@ TODO:
 */
 
 
-__kernel void local_maxmin(
-	__global float* DOGS,
-	__global keypoint* output,
+kernel void local_maxmin(
+	global float* DOGS,
+	global pre_keypoint* output,
 	int border_dist,
 	float peak_thresh,
 	int octsize,
 	float EdgeThresh0,
 	float EdgeThresh,
-	__global int* counter,
+	global int* counter,
 	int nb_keypoints,
 	int scale,
 	int width,
@@ -228,15 +228,23 @@ __kernel void local_maxmin(
 			/*
 			 At this stage, res != 0.0f iff the current pixel is a good keypoint
 			*/
-			if (res != 0.0f) {
+			if (res != 0.0f)
+			{
 				int old = atomic_inc(counter);
-				keypoint k = 0.0; //no malloc, for this is a float4
-				k.s0 = val;
-				k.s1 = (float) gid1;
-				k.s2 = (float) gid0;
-				k.s3 = (float) scale;
-				if (old < nb_keypoints) output[old]=k;
-			}
+//				keypoint k = 0.0; //no malloc, for this is a float4
+//				k.s0 = val;
+//				k.s1 = (float) gid1;
+//				k.s2 = (float) gid0;
+//				k.s3 = (float) scale;
+//				pre_keypoint:  value, row, col, scale
+				pre_keypoint kp;
+				kp.value = val;
+				kp.row = (float) gid1;
+				kp.col = (float) gid0;
+				kp.scale = (float) scale;
+				if (old < nb_keypoints)
+				    output[old]=kp;
+			}//end if res
 
 		}//end "value >thresh"
 	}//end "in the inner image"
@@ -264,7 +272,7 @@ __kernel void local_maxmin(
 
 kernel void interp_keypoint(
 	global float* DOGS,
-	global keypoint* keypoints,
+	global pre_keypoint* keypoints,
 	int start_keypoints,
 	int end_keypoints,
 	float peak_thresh,
@@ -277,11 +285,12 @@ kernel void interp_keypoint(
 	int gid0 = (int) get_global_id(0);
 
 	if ((gid0 >= start_keypoints) && (gid0 < end_keypoints)) {
-		keypoint k = keypoints[gid0];
-		int r = (int) k.s1;
-		int c = (int) k.s2;
-		int scale = (int) k.s3;
-		if (r != -1) {
+	    pre_keypoint kp = keypoints[gid0];
+		int r = (int) raw_kp.row;
+		int c = (int) raw_kp.col;
+		int scale = (int) raw_kp.scale;
+		if (r != -1)
+		{ //the keypoint is valid
 			int index_dog_prev = (scale-1)*(width*height);
 			int index_dog =scale*(width*height);
 			int index_dog_next =(scale+1)*(width*height);
@@ -376,19 +385,26 @@ kernel void interp_keypoint(
 
 			/* Do not create a keypoint if interpolation still remains far outside expected limits,
 				or if magnitude of peak value is below threshold (i.e., contrast is too low).
-			*/
-			keypoint ki = 0.0f; //float4
-			if (fabs(solution0) <= 1.5f && fabs(solution1) <= 1.5f && fabs(solution2) <= 1.5f && fabs(peakval) >= peak_thresh) {
-				ki.s0 = peakval;
-				ki.s1 = /*k.s1*/ r + solution1;
-				ki.s2 = /*k.s2*/ c + solution2;
-				ki.s3 = InitSigma * pow(2.0f, (((float) scale) + solution0) / 3.0f); //3.0 is "par.Scales"
-			}
-			else { //the keypoint was not correctly interpolated : we reject it
-				ki.s0 = -1.0f; ki.s1 = -1.0f; ki.s2 = -1.0f; ki.s3 = -1.0f;
-			}
 
-			keypoints[gid0]=ki;
+				pre_keypoint:  value, row, col, scale
+			*/
+			pre_keypoint interp_kp;
+			if (fabs(solution0) <= 1.5f && fabs(solution1) <= 1.5f && fabs(solution2) <= 1.5f && fabs(peakval) >= peak_thresh)
+			{ // keypoint properly interpolated
+				interp_kp.value = peakval;
+				interp_kp.row = /*raw_kp.s1*/ r + solution1;
+				interp_kp.col = /*raw_kp.s2*/ c + solution2;
+				interp_kp.scale = InitSigma * pow(2.0f, (((float) scale) + solution0) / 3.0f); //3.0 is "par.Scales"
+			}// endif keypoint properly interpolated
+			else
+			{ //the keypoint was not correctly interpolated : marked as bad
+				interp_kp.value = -1.0f;
+				interp_kp.row = -1.0f;
+				interp_kp.col = -1.0f;
+				interp_kp.scale = -1.0f;
+			} //end bad kp
+
+			keypoints[gid0]=interp_kp;
 
 		/*
 			Better return here and compute histogram in another kernel
