@@ -196,9 +196,14 @@ class Hdf5TreeView(qt.QTreeView):
 
     def setSelectedH5Node(self, h5Object):
         """
-        Select the specified node in the tree.
+        Select the specified node of the tree using an h5py node.
 
-        Works only when a single file is present.
+        - If the item is found, parent items are expended, and then the item
+          is selected.
+        - If the item is not found, the selection do not change.
+        - A none argument allow to deselect everything
+
+        :param h5py.Npde h5Object: The node to select
         """
         if h5Object is None:
             self.setCurrentIndex(qt.QModelIndex())
