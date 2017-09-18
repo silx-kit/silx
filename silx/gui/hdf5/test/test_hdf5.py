@@ -705,7 +705,7 @@ class TestHdf5TreeView(TestCaseQt):
         model.insertH5pyObject(tree)
         view = hdf5.Hdf5TreeView()
         view.setModel(model)
-        view.setSelectedNode(item)
+        view.setSelectedH5Node(item)
 
         selected = list(view.selectedH5Nodes())[0]
         self.assertIs(item, selected.h5py_object)
@@ -720,7 +720,7 @@ class TestHdf5TreeView(TestCaseQt):
         model.insertH5pyObject(tree)
         view = hdf5.Hdf5TreeView()
         view.setModel(model)
-        view.setSelectedNode(tree2)
+        view.setSelectedH5Node(tree2)
 
         selection = list(view.selectedH5Nodes())
         self.assertEqual(len(selection), 0)
@@ -740,7 +740,7 @@ class TestHdf5TreeView(TestCaseQt):
         model.insertH5pyObject(group3)
         view = hdf5.Hdf5TreeView()
         view.setModel(model)
-        view.setSelectedNode(item)
+        view.setSelectedH5Node(item)
 
         selected = list(view.selectedH5Nodes())[0]
         self.assertIs(item, selected.h5py_object)
@@ -760,7 +760,7 @@ class TestHdf5TreeView(TestCaseQt):
         model.insertH5pyObject(tree3)
         view = hdf5.Hdf5TreeView()
         view.setModel(model)
-        view.setSelectedNode(item)
+        view.setSelectedH5Node(item)
 
         selected = list(view.selectedH5Nodes())[0]
         self.assertIs(item, selected.h5py_object)
@@ -783,7 +783,7 @@ class TestHdf5TreeView(TestCaseQt):
         model.insertH5pyObject(tree)
         view = hdf5.Hdf5TreeView()
         view.setModel(model)
-        view.setSelectedNode(item)
+        view.setSelectedH5Node(item)
 
         selected = list(view.selectedH5Nodes())[0]
         self.assertEqual(item.name, selected.h5py_object.name)

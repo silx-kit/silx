@@ -194,7 +194,7 @@ class Hdf5TreeView(qt.QTreeView):
                     continue
                 yield _utils.H5Node(item)
 
-    def setSelectedNode(self, h5Object):
+    def setSelectedH5Node(self, h5Object):
         """
         Select the specified node in the tree.
 
