@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -81,7 +81,8 @@ class Viewer(qt.QMainWindow):
 
         self.setCentralWidget(main_panel)
 
-        self.__treeview.selectionModel().selectionChanged.connect(self.displayData)
+        model = self.__treeview.selectionModel()
+        model.selectionChanged.connect(self.displayData)
         self.__treeview.addContextMenuCallback(self.closeAndSyncCustomContextMenu)
 
         treeModel = self.__treeview.findHdf5TreeModel()
