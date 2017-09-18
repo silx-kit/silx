@@ -28,15 +28,13 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#define ABS(i) ( (i<0.0f) ? (-i):(i) )
-
-void __kernel interpolate(image3d_t volume,
-						  sampler_t sampler,
-						  global float* img,
-                          int img_width,
-                          int img_height,
-                          global float* point,
-                          global float3* norm)
+void kernel interpolate(image3d_t volume,
+						sampler_t sampler,
+						global float* img,
+                        int img_width,
+                        int img_height,
+                        global float* point,
+                        global float3* norm)
 {                       
 int pos_x = get_global_id(0);
 int pos_y = get_global_id(1);
@@ -48,9 +46,9 @@ float3 pos;
 float nx = n_norm.x,
       ny = n_norm.y,
       nz = n_norm.z;
-float ax = ABS(nx),
-      ay = ABS(ny),
-      az = ABS(nz);
+float ax = fabs(nx),
+      ay = fabs(ny),
+      az = fabs(nz);
 
 if ((ax>=az) && (ay>=az))       //z smallest
 	u_norm = (float3)( -ny, nx, 0.0f);
@@ -66,11 +64,11 @@ float3 tz=(float3)(u_norm.z,v_norm.z,n_norm.z);
 //transposed version
 float3 pos_uvn = (float3)(2.0f*((float)pos_x/(float)img_width)-1.0f,
 			  	   	   	  2.0f*((float)pos_y/(float)img_height)-1.0f,
-			  	   	   	   0.0f);
+			  	   	   	  0.0f);
 float4 pos_xyz =  (float4)(dot(tx,pos_uvn)+point[0],
-						dot(ty,pos_uvn)+point[1],
-						dot(tz,pos_uvn)+point[2],
-						0.0f);
+						   dot(ty,pos_uvn)+point[1],
+						   dot(tz,pos_uvn)+point[2],
+						   0.0f);
 			  	 
 float4 res = read_imagef(volume, sampler, pos_xyz);
 img[pos_x+img_width*pos_y] = res.x;

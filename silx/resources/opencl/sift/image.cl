@@ -48,8 +48,6 @@
 
 */
 typedef float4 keypoint;
-//#define MIN(i,j) ( (i)<(j) ? (i):(j) )
-//#define MAX(i,j) ( (i)<(j) ? (j):(i) )
 
 #ifndef WORKGROUP_SIZE
 	#define WORKGROUP_SIZE 128
@@ -58,7 +56,9 @@ typedef float4 keypoint;
 /*
  Do not use __constant memory for large (usual) images
 */
-#define MAX_CONST_SIZE 16384
+#ifndef MAX_CONST_SIZE
+    #define MAX_CONST_SIZE 16384
+#endif
 
 /**
  * \brief Gradient of a grayscale image

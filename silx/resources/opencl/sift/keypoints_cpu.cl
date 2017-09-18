@@ -36,8 +36,6 @@
 */
 
 typedef float4 keypoint;
-#define MIN(i,j) ( (i)<(j) ? (i):(j) )
-#define MAX(i,j) ( (i)<(j) ? (j):(i) )
 #ifndef WORKGROUP_SIZE
 	#define WORKGROUP_SIZE 128
 #endif
@@ -63,17 +61,17 @@ typedef float4 keypoint;
 
 
 
-__kernel void descriptor(
-	__global keypoint* keypoints,
-	__global unsigned char *descriptors,
-	__global float* grad,
-	__global float* orim,
-	int octsize,
-	int keypoints_start,
-	//	int keypoints_end,
-	__global int* keypoints_end, //passing counter value to avoid to read it each time
-	int grad_width,
-	int grad_height)
+kernel void descriptor(
+        global keypoint* keypoints,
+        global unsigned char *descriptors,
+        global float* grad,
+        global float* orim,
+        int octsize,
+        int keypoints_start,
+        //	int keypoints_end,
+        global int* keypoints_end, //passing counter value to avoid to read it each time
+        int grad_width,
+        int grad_height)
 {
 
 	int gid0 = get_global_id(0);
@@ -83,7 +81,7 @@ __kernel void descriptor(
 		
 	int i, j;
 	
-	__local volatile float tmp_descriptors[128];
+	local volatile float tmp_descriptors[128];
 	for (i=0; i<128; i++) tmp_descriptors[i] = 0.0f;
 
 	float rx, cx;
@@ -185,8 +183,7 @@ __kernel void descriptor(
 	int intval;
 	for (i = 0; i < 128; i++) {
 		intval =  (int)(512.0 * tmp_descriptors[i]);
-		descriptors[128*gid0+i]
-			= (unsigned char) MIN(255, intval);
+		descriptors[128*gid0+i] = (uchar) min(255, intval);
 	}
 }
 

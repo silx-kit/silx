@@ -49,11 +49,9 @@
  *
 **/
 
-__kernel void
-gaussian(            __global     float     *data,
-            const                 float     sigma,
-            const                 int     SIZE
-)
+kernel void gaussian(global     float     *data,
+                     const      float     sigma,
+                     const        int     SIZE)
 {
     int lid = get_local_id(0);
 //    int wd = get_work_dim(0); DEFINE WG are compile time

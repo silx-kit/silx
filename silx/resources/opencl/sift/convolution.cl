@@ -34,9 +34,9 @@
     so the input image does not need to be pre-processed
 
 */
-
-#define MAX_CONST_SIZE 16384
-
+#ifndef MAX_CONST_SIZE
+    #define MAX_CONST_SIZE 16384
+#endif
 
 
 ///
