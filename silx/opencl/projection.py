@@ -182,12 +182,7 @@ class Projection(OpenclProcessing):
 
         OpenclProcessing.compile_kernels(self, self.kernel_files)
         # check that workgroup can actually be (16, 16)
-        self.check_workgroup_size()
-
-    # TODO - move this (and the one in backprojection) in processing.py
-    def check_workgroup_size(self):
-        kernel = self.program.all_kernels()[1]  # CPU kernel
-        self.compiletime_workgroup_size = kernel_workgroup_size(self.program, kernel)
+        self.check_workgroup_size("forward_kernel_cpu")
 
     def compute_angles(self):
         angles2 = np.zeros(self._dimrecy, dtype=np.float32) # dimrecy != num_projs
@@ -318,7 +313,7 @@ class Projection(OpenclProcessing):
             np.int32((0, 0)),
             sino_shape_ocl
         )
-        self.program.cpy2d(self.queue, ndrange, wg, *kernel_args)
+        self.kernels.cpy2d(self.queue, ndrange, wg, *kernel_args)
 
 
     def projection(self, image=None, dst=None):
@@ -364,14 +359,14 @@ class Projection(OpenclProcessing):
 
             # Call the kernel
             if self.is_cpu:
-                event_pj = self.program.forward_kernel_cpu(
+                event_pj = self.kernels.forward_kernel_cpu(
                     self.queue,
                     self.ndrange,
                     self.wg,
                     *kernel_args
                 )
             else:
-                event_pj = self.program.forward_kernel(
+                event_pj = self.kernels.forward_kernel(
                     self.queue,
                     self.ndrange,
                     self.wg,

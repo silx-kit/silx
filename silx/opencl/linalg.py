@@ -143,7 +143,7 @@ class LinAlg(OpenclProcessing):
             n_y
         ]
         # Call the gradient kernel
-        evt = self.program.kern_gradient2D(
+        evt = self.kernels.kern_gradient2D(
             self.queue,
             self.ndrange2D,
             self.wg2D,
@@ -197,7 +197,7 @@ class LinAlg(OpenclProcessing):
             n_y
         ]
         # Call the gradient kernel
-        evt = self.program.kern_divergence2D(
+        evt = self.kernels.kern_divergence2D(
             self.queue,
             self.ndrange2D,
             self.wg2D,

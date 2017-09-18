@@ -34,7 +34,7 @@ __date__ = "12/09/2017"
 import logging
 import numpy as np
 
-from .common import pyopencl, kernel_workgroup_size
+from .common import pyopencl
 from .processing import EventDescription, OpenclProcessing, BufferDescription
 from .utils import nextpower as nextpow2
 
@@ -149,7 +149,7 @@ class Backprojection(OpenclProcessing):
         self.local_mem = 256 * 3 * _sizeof(np.float32)  # constant for all image sizes
         OpenclProcessing.compile_kernels(self, self.kernel_files)
         # check that workgroup can actually be (16, 16)
-        self.check_workgroup_size()
+        self.check_workgroup_size("backproj_cpu_kernel")
         # Workgroup and ndrange sizes are always the same
         self.wg = (16, 16)
         self.ndrange = (
@@ -225,10 +225,6 @@ class Backprojection(OpenclProcessing):
             self.filter = np.fft.fft(h).astype(np.complex64)
             self.d_filter = None
 
-    def check_workgroup_size(self):
-        kernel = self.kernels.get_kernel("backproj_cpu_kernel") # CPU kernel
-        self.compiletime_workgroup_size = kernel_workgroup_size(self.program, kernel)
-
     def _get_local_mem(self):
         return pyopencl.LocalMemory(self.local_mem)  # constant for all image sizes
 
@@ -245,7 +241,7 @@ class Backprojection(OpenclProcessing):
             np.int32((0, 0)),
             slice_shape_ocl
         )
-        self.program.cpy2d(self.queue, ndrange, wg, *kernel_args)
+        self.kernels.cpy2d(self.queue, ndrange, wg, *kernel_args)
 
 
 
