@@ -33,9 +33,10 @@
 	Kernels for keypoints processing
 
 	For CPUs, one keypoint is handled by one thread
+
+	Mind to include sift.cl
 */
 
-typedef float4 keypoint;
 #define MIN(i,j) ( (i)<(j) ? (i):(j) )
 #define MAX(i,j) ( (i)<(j) ? (j):(i) )
 #ifndef WORKGROUP_SIZE
@@ -63,7 +64,7 @@ typedef float4 keypoint;
 
 
 
-__kernel void descriptor(
+kernel void descriptor(
 	__global keypoint* keypoints,
 	__global unsigned char *descriptors,
 	__global float* grad,
@@ -105,7 +106,7 @@ __kernel void descriptor(
 				while (ori > 2.0f*M_PI_F) ori -= 2.0f*M_PI_F;
 				while (ori < 0.0f) ori += 2.0f*M_PI_F;
 				int	orr, rindex, cindex, oindex;
-				float rweight, cweight;
+				float cweight;
 
 				float oval = 4.0f*ori*M_1_PI_F; 
 

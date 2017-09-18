@@ -47,7 +47,6 @@
  k.w == k.s3 : sigma
 
 */
-typedef float4 keypoint;
 //#define MIN(i,j) ( (i)<(j) ? (i):(j) )
 //#define MAX(i,j) ( (i)<(j) ? (j):(i) )
 
@@ -262,9 +261,9 @@ __kernel void local_maxmin(
  */
 
 
-__kernel void interp_keypoint(
-	__global float* DOGS,
-	__global keypoint* keypoints,
+kernel void interp_keypoint(
+	global float* DOGS,
+	global keypoint* keypoints,
 	int start_keypoints,
 	int end_keypoints,
 	float peak_thresh,

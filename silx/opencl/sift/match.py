@@ -29,7 +29,8 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 """
-Contains a class for creating a matching plan, allocating arrays, compiling kernels and other things like that
+Contains a class for creating a matching plan, allocating arrays, 
+compiling kernels and other things like that
 """
 
 from __future__ import division, print_function, with_statement
@@ -38,7 +39,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "02/08/2017"
+__date__ = "12/09/2017"
 __status__ = "production"
 
 
@@ -50,26 +51,27 @@ import numpy
 from .param import par
 from silx.opencl import ocl, pyopencl
 from .utils import calc_size, get_opencl_code
+from ..processing import OpenclProcessing, BufferDescription 
+#namedtuple("BufferDescription", ["name", "size", "dtype", "flags"])
 logger = logging.getLogger(__name__)
 if not pyopencl:
     logger.warning("No PyOpenCL, no sift")
 
 
-class MatchPlan(object):
+class MatchPlan(OpenclProcessing):
     """Plan to compare sets of SIFT keypoint and find common ones.
 
-
     .. code-block:: python
-    
+
         siftp = sift.MatchPlan(devicetype="ALL")
         commonkp = siftp.match(kp1,kp2)
 
-    where kp1, kp2 is a n x 132 array. the second dimension is composed of x,y, scale and angle as well as 128 floats describing the keypoint.
+    where kp1, kp2 is a n x 132 array. the second dimension is composed of x,y, 
+    scale and angle as well as 128 floats describing the keypoint.
     commonkp is mx2 array of matching keypoints
     """
-    kernels = {"matching_gpu": 64,
-               "matching_cpu": 16,
-               "memset": 128, }
+    kernels_size = {"matching_gpu": 64,
+                    "matching_cpu": 16}
 
     dtype_kp = numpy.dtype([('x', numpy.float32),
                             ('y', numpy.float32),
@@ -78,7 +80,8 @@ class MatchPlan(object):
                             ('desc', (numpy.uint8, 128))
                             ])
 
-    def __init__(self, size=16384, devicetype="ALL", profile=False, device=None, max_workgroup_size=None, roi=None, context=None):
+    def __init__(self, size=16384, devicetype="ALL", profile=False, device=None,
+                 max_workgroup_size=None, roi=None, context=None):
         """Constructor of the class:
 
         :param size: size of the input keypoint-list alocated on the GPU.
@@ -89,119 +92,36 @@ class MatchPlan(object):
         :param roi: Region Of Interest: TODO
         :param context: Use an external context (discard devicetype and device options)
         """
-        self.profile = bool(profile)
-        self.events = []
+        OpenclProcessing.__init__(self, ctx=context, devicetype=devicetype,
+                                  block_size=max_workgroup_size, profile=profile)
         self.kpsize = size
-        self.buffers = {}
-        self.programs = {}
-        self.memory = None
         self.octave_max = None
         self.red_size = None
-        if context:
-            self.ctx = context
-            device_name = self.ctx.devices[0].name.strip()
-            platform_name = self.ctx.devices[0].platform.name.strip()
-            platform = ocl.get_platform(platform_name)
-            device = platform.get_device(device_name)
-            self.device = platform.id, device.id
-        else:
-            if device is None:
-                self.device = ocl.select_device(type=devicetype, memory=self.memory, best=True)
-                if self.device is None:
-                    raise RuntimeError("No suitable OpenCL device found with given constrains")
-            else:
-                self.device = device
-            self.ctx = pyopencl.Context(devices=[pyopencl.get_platforms()[self.device[0]].get_devices()[self.device[1]]])
-        if profile:
-            self.queue = pyopencl.CommandQueue(self.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
-        else:
-            self.queue = pyopencl.CommandQueue(self.ctx)
-        # self._calc_workgroups()
-        self._compile_kernels()
-        self._allocate_buffers()
         self.debug = []
-        self._sem = threading.Semaphore()
 
-        ocldevice = ocl.platforms[self.device[0]].devices[self.device[1]]
-
-        if max_workgroup_size:
-            self.max_workgroup_size = min(int(max_workgroup_size), ocldevice.max_work_group_size)
-        else:
-            self.max_workgroup_size = ocldevice.max_work_group_size
-        self.kernels = {}
-        for k, v in self.__class__.kernels.items():
-            self.kernels[k] = min(v, self.max_workgroup_size)
-
-        self.devicetype = ocldevice.type
-        if (self.devicetype == "CPU"):
+        devicetype = self.device.type
+        if (devicetype == "CPU"):
             self.USE_CPU = True
-            self.matching_kernel = "matching_cpu"
+            matching_kernel = "matching_cpu"
         else:
             self.USE_CPU = False
-            self.matching_kernel = "matching_gpu"
+            matching_kernel = "matching_gpu"
+        wg_size = self.__class__.kernels_size[matching_kernel]
+        self.compile_kernels(kernel_files=["sift/sift",
+                                           "sift/memset",
+                                           "sift/" + matching_kernel],
+                             compile_options='-D WORKGROUP_SIZE=%s' % wg_size)
+
         self.roi = None
         if roi:
             self.set_roi(roi)
 
-    def __del__(self):
-        """
-        Destructor: release all buffers
-        """
-        self._free_kernels()
-        self._free_buffers()
-        self.queue = None
-        self.ctx = None
-        gc.collect()
-
-    def _allocate_buffers(self):
-        self.buffers["Kp_1"] = pyopencl.array.empty(self.queue, (self.kpsize,), dtype=self.dtype_kp)
-        self.buffers["Kp_2"] = pyopencl.array.empty(self.queue, (self.kpsize,), dtype=self.dtype_kp)
-        # self.buffers["tmp"] = pyopencl.array.empty(self.queue, (self.kpsize,), dtype=self.dtype_kp)
-        self.buffers["match"] = pyopencl.array.empty(self.queue, (self.kpsize, 2), dtype=numpy.int32)
-        self.buffers["cnt"] = pyopencl.array.empty(self.queue, 1, dtype=numpy.int32)
-
-    def _free_buffers(self):
-        """free all memory allocated on the device
-        """
-        for buffer_name in self.buffers:
-            if self.buffers[buffer_name] is not None:
-                try:
-                    del self.buffers[buffer_name]
-                    self.buffers[buffer_name] = None
-                except pyopencl.LogicError:
-                    logger.error("Error while freeing buffer %s" % buffer_name)
-
-    def _compile_kernels(self):
-        """Call the OpenCL compiler
-        """
-        device = self.ctx.devices[0]
-        query_wg = pyopencl.kernel_work_group_info.WORK_GROUP_SIZE
-        for kernel in list(self.kernels.keys()):
-            if "." in kernel: 
-                continue
-            kernel_src = get_opencl_code(os.path.join("sift", kernel))
-
-            wg_size = self.kernels[kernel]
-            try:
-                program = pyopencl.Program(self.ctx, kernel_src).build('-D WORKGROUP_SIZE=%s' % wg_size)
-            except pyopencl.MemoryError as error:
-                raise MemoryError(error)
-            except pyopencl.RuntimeError as error:
-                if kernel == "keypoints":
-                    logger.warning("Failed compiling kernel '%s' with workgroup size %s: %s: use low_end alternative", kernel, wg_size, error)
-                    self.LOW_END = True
-                else:
-                    logger.error("Failed compiling kernel '%s' with workgroup size %s: %s", kernel, wg_size, error)
-                    raise error
-            self.programs[kernel] = program
-            for one_function in program.all_kernels():
-                workgroup_size = one_function.get_work_group_info(query_wg, device)
-                self.kernels[kernel+"."+one_function.function_name] = workgroup_size
-
-    def _free_kernels(self):
-        """free all kernels
-        """
-        self.programs = {}
+        buffers = [#BufferDescription"name", "size", "dtype", "flags"
+                   BufferDescription("Kp_1", self.kpsize, self.dtype_kp),
+                   BufferDescription("Kp_2", self.kpsize, dtype=self.dtype_kp),
+                   BufferDescription("match",(self.kpsize, 2), dtype=numpy.int32),
+                   BufferDescription("cnt", 1, numpy.int32)]
+        self.allocate_buffers(buffers)
 
     def match(self, nkp1, nkp2, raw_results=False):
         """Calculate the matching of 2 keypoint list
@@ -218,7 +138,7 @@ class MatchPlan(object):
         assert isinstance(nkp1, valid_types)
         assert isinstance(nkp2, valid_types)
         result = None
-        with self._sem:
+        with self.sem:
             if isinstance(nkp1, pyopencl.array.Array):
 
                 kpt1_gpu = nkp1
@@ -248,7 +168,7 @@ class MatchPlan(object):
                 self.kpsize = min(kpt1_gpu.size, kpt2_gpu.size)
                 self.buffers["match"] = pyopencl.array.empty(self.queue, (self.kpsize, 2), dtype=numpy.int32)
             self._reset_output()
-            wg = self.kernels[self.matching_kernel+".matching"]
+            wg = self.kernel_size[self.matching_kernel + ".matching"]
             size = calc_size((nkp1.size,), (wg,))
             evt = self.programs[self.matching_kernel].matching(self.queue, size, (wg,),
                                                                kpt1_gpu.data,
@@ -285,7 +205,7 @@ class MatchPlan(object):
         self._reset_output()
 
     def _reset_buffer1(self):
-        wg = self.kernels["memset.memset_kp"]
+        wg = self.kernel_size["memset.memset_kp"]
         size = calc_size((self.buffers["Kp_1"].size,), (wg,))
         ev1 = self.programs["memset"].memset_kp(self.queue, size, (wg,),
                                                 self.buffers["Kp_1"].data, numpy.float32(-1.0), numpy.uint8(0), numpy.int32(self.buffers["Kp_1"].size))
@@ -293,7 +213,7 @@ class MatchPlan(object):
             self.events.append(("memset Kp1", ev1))
 
     def _reset_buffer2(self):
-        wg = self.kernels["memset.memset_kp"]
+        wg = self.kernel_size["memset.memset_kp"]
         size = calc_size((self.buffers["Kp_2"].size,), (wg,))
         ev2 = self.programs["memset"].memset_kp(self.queue, size, (wg,),
                                                 self.buffers["Kp_2"].data, numpy.float32(-1.0), numpy.uint8(0), numpy.int32(self.buffers["Kp_2"].size))
@@ -301,7 +221,7 @@ class MatchPlan(object):
             self.events.append(("memset Kp2", ev2))
 
     def _reset_output(self):
-        ev3 = self.programs["memset"].memset_int(self.queue, calc_size((self.buffers["match"].size,), (self.kernels["memset"],)), (self.kernels["memset"],),
+        ev3 = self.programs["memset"].memset_int(self.queue, calc_size((self.buffers["match"].size,), (self.kernel_size["memset"],)), (self.kernel_size["memset"],),
                                                  self.buffers["match"].data, numpy.int32(-1), numpy.int32(self.buffers["match"].size))
         ev4 = self.programs["memset"].memset_int(self.queue, (1,), (1,),
                                                  self.buffers["cnt"].data, numpy.int32(0), numpy.int32(1))
@@ -313,7 +233,7 @@ class MatchPlan(object):
         """
         Resets the profiling timers
         """
-        with self._sem:
+        with self.sem:
             self.events = []
 
     def set_roi(self, roi):
@@ -322,14 +242,14 @@ class MatchPlan(object):
         :param roi: region of interest as 2D numpy array with non zero where
                     valid pixels are
         """
-        with self._sem:
+        with self.sem:
             self.roi = numpy.ascontiguousarray(roi, numpy.int8)
             self.buffers["ROI"] = pyopencl.array.to_device(self.queue, self.roi)
 
     def unset_roi(self):
         """Unset the region of interest
         """
-        with self._sem:
+        with self.sem:
             self.roi = None
             self.buffers["ROI"] = None
 
@@ -341,7 +261,7 @@ def match_py(nkp1, nkp2, raw_results=False):
     :param raw_results: return the indices of valid indexes instead of 
     :return: (2,n) 2D array of matching keypoints. 
     """
-    assert len(nkp1.shape) == 1  
+    assert len(nkp1.shape) == 1
     assert len(nkp2.shape) == 1
     valid_types = (numpy.ndarray, numpy.core.records.recarray)
     assert isinstance(nkp1, valid_types)
@@ -350,8 +270,8 @@ def match_py(nkp1, nkp2, raw_results=False):
 
     desc1 = nkp1.desc
     desc2 = nkp2.desc
-    big1 = desc1.astype(int)[:,numpy.newaxis,:]
-    big2 = desc2.astype(int)[numpy.newaxis,:,:]
+    big1 = desc1.astype(int)[:, numpy.newaxis, :]
+    big2 = desc2.astype(int)[numpy.newaxis, :, :]
     big = abs(big1-big2).sum(axis=-1)
     maxi = big.max(axis=-1)
     mini = big.min(axis=-1)
@@ -361,11 +281,11 @@ def match_py(nkp1, nkp2, raw_results=False):
     mini2 = patched.min(axis=-1)
     ratio = mini.astype(float) / mini2
     ratio[mini2 == 0] = 1.0
-    match_mask = ratio<(par.MatchRatio * par.MatchRatio)
+    match_mask = ratio < (par.MatchRatio * par.MatchRatio)
     size = match_mask.sum()
-    match = numpy.empty((size,2), dtype=int)
-    match[:,0] = numpy.arange(nkp1.size)[match_mask]
-    match[:,1] = amin[match_mask]
+    match = numpy.empty((size, 2), dtype=int)
+    match[:, 0] = numpy.arange(nkp1.size)[match_mask]
+    match[:, 1] = amin[match_mask]
     if raw_results:
         result = match
     else:
@@ -378,7 +298,6 @@ def match_py(nkp1, nkp2, raw_results=False):
 
 def demo():
     import scipy.misc
-    import numpy
     from .plan import SiftPlan
     if hasattr(scipy.misc, "ascent"):
         img1 = scipy.misc.ascent()
