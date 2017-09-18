@@ -195,7 +195,7 @@ class TextFormatter(qt.QObject):
 
     def __formatText(self, text):
         if self.__useQuoteForText:
-            text = "\"%s\"" % text.replace("\"", "\\\"")
+            text = "\"%s\"" % text.replace("\\", "\\\\").replace("\"", "\\\"")
         return text
 
     def __formatH5pyObject(self, data, dtype):
