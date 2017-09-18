@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "27/09/2016"
+__date__ = "18/09/2017"
 
 
 import logging
@@ -193,6 +193,38 @@ class Hdf5TreeView(qt.QTreeView):
                 if ignoreBrokenLinks and item.isBrokenObj():
                     continue
                 yield _utils.H5Node(item)
+
+    def setSelectedNode(self, groupname):
+        """
+        Select the specified node in the tree.
+
+        Works only when a single file is present.
+        """
+        indice = self.__treeview.model().index(0, 0, qt.QModelIndex())
+        # parce que on va au premier fichier
+        self.__treeview.expand(indice)
+        # h5 = self.__treeview.model().data(indice, Hdf5TreeModel.H5PY_OBJECT_ROLE)
+        if groupname != "":
+            groupname.replace("//", "/")
+            gn_l = groupname.split("/")
+            i = None
+            for tn in gn_l:
+                if tn == "":
+                    continue
+                nl = []
+                for k in range(self.model().rowCount(indice)):
+                    ind_tmp = self.model().index(k, 0, indice)
+                    nl.append(str(self.model().data(ind_tmp)))
+
+                if tn not in nl:
+                    break
+                i = nl.index(tn)
+                indice = self.model().index(i, 0, indice)
+                self.expand(indice)
+                # h5=h5[tn]
+
+            if i is not None:
+                self.setCurrentIndex(indice)
 
     def mousePressEvent(self, event):
         """Override mousePressEvent to provide a consistante compatible API
