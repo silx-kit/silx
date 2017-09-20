@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "18/09/2017"
+__date__ = "20/09/2017"
 
 
 import logging
@@ -240,7 +240,11 @@ class Hdf5TreeView(qt.QTreeView):
                     break
                 # Start fron a new root
                 foundIndices.append(rootIndices.pop(0))
-                if path == "/":
+
+                obj = model.data(index, Hdf5TreeModel.H5PY_OBJECT_ROLE)
+                p = obj.name + "/"
+                p = p.replace("//", "/")
+                if path == p:
                     found = True
                     break
 

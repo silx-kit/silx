@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "18/09/2017"
+__date__ = "20/09/2017"
 
 
 import time
@@ -738,6 +738,21 @@ class TestHdf5TreeView(TestCaseQt):
         model.insertH5pyObject(group1)
         model.insertH5pyObject(group2)
         model.insertH5pyObject(group3)
+        view = hdf5.Hdf5TreeView()
+        view.setModel(model)
+        view.setSelectedH5Node(item)
+
+        selected = list(view.selectedH5Nodes())[0]
+        self.assertIs(item, selected.h5py_object)
+
+    def testSelection_RootFromSubTree(self):
+        tree = commonh5.File("/foo/bar/1.mock", "w")
+        group = tree.create_group("a1")
+        group.create_group("b").create_group("b").create_group("d")
+        item = group
+
+        model = hdf5.Hdf5TreeModel()
+        model.insertH5pyObject(group)
         view = hdf5.Hdf5TreeView()
         view.setModel(model)
         view.setSelectedH5Node(item)
