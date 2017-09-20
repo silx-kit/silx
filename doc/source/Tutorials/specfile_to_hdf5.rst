@@ -126,8 +126,7 @@ Example of scan and data block, without MCA::
     29.366004  45256 0.000343 734 419 248 229 236 343 178082 664 0.00372862 0.00765939 0.0041217 0.00235285 0.00185308 0.00139262 0.00128592 0.00132523 0.00192608 1364 330
     29.36998  45258 0.00036 847 448 254 229 248 360 178342 668 0.00374561 0.00857342 0.0047493 0.00251203 0.00194009 0.00142423 0.00128405 0.00139059 0.00201859 1529 346
 
-Synthetic example of file with 3 scans. The last scan includes data of 3 multichannel analysers, sharing the
-same MCA header.
+Synthetic example of file with 3 scans. The last scan includes MCA data.
 
 ::
 
@@ -198,8 +197,8 @@ The structure exposed is as follows::
           start_time = "…"
           instrument/
               specfile/
-                  file_header = ["…", "…", …]
-                  scan_header = ["…", "…", …]
+                  file_header = "…"
+                  scan_header = "…"
               positioners/
                   motor_name = value
                   …
@@ -222,6 +221,11 @@ The structure exposed is as follows::
                    data -> /1.1/instrument/mca_0/data
                    info -> /1.1/instrument/mca_0/
               …
+          sample/
+              ub_matrix = …
+              unit_cell = …
+              unit_cell_abc = …
+              unit_cell_alphabetagamma = …
       2.1/
           …
 
@@ -292,12 +296,15 @@ Files and groups can be treated as iterators, which allows looping through them.
 Converting SPEC data to HDF5
 ++++++++++++++++++++++++++++
 
-The *silx* module :mod:`silx.io.spectoh5` can be used to convert a SPEC file into a
+Using the convert module
+************************
+
+The *silx* module :mod:`silx.io.convert` can be used to convert a SPEC file into a
 HDF5 file with the same structure as the one exposed by the :mod:`spech5` module.
 
 .. code-block:: python
 
-    from silx.io.spectoh5 import convert
+    from silx.io.convert import convert
 
     convert("/home/pierre/myspecfile.dat", "myfile.h5")
 
@@ -305,10 +312,10 @@ HDF5 file with the same structure as the one exposed by the :mod:`spech5` module
 You can then read the file with any HDF5 reader.
 
 
-In addition to the function :func:`silx.io.spectoh5.convert`, which is simplified
-on purpose, you can use the more flexible :func:`silx.io.spectoh5.write_spec_to_h5`.
+The function :func:`silx.io.convert.convert` is a simplified version of a
+more flexible function :func:`silx.io.convert.write_to_h5`.
 
-This way, you can choose to write scans into a specific HDF5 group in the output directory.
+The latter allows you to write scans into a specific HDF5 group in the output directory.
 You can also decide whether you want to overwrite an existing file, or append data to it.
 You can specify whether existing data with the same name as input data should be overwritten
 or ignored.
@@ -316,8 +323,34 @@ or ignored.
 This allows you to repeatedly transfer new content of a SPEC file to an existing HDF5 file, in between
 two scans.
 
-The following script is an example of a command line interface to :func:`write_spec_to_h5`.
+The following script is an example of a command line interface to :func:`write_to_h5`.
 
-.. literalinclude:: ../../../examples/spectoh5.py
-   :lines: 42-
+.. literalinclude:: ../../../examples/writetoh5.py
+   :lines: 44-
 
+Using the convert application
+*****************************
+
+.. versionadded:: 0.6
+
+*silx* also provides a ``silx convert`` command line application, which allows you to
+perform standard conversions without having to write your own program.
+
+Type ``silx convert --help`` in a terminal to see all available options.
+
+The simplest command to convert a single SPEC file to an HDF5 file would be::
+
+    silx convert myspecfile.dat
+
+As no output name is supplied, the input file name is reused but the extension is
+modified from *.dat* to *.h5*.
+
+The following example allows you to append the content of a SPEC file to an
+existing HDF5 file::
+
+    silx convert myspecfile.dat -m a -o myhdf5file.h5
+
+You could write the file into a specific group of the HDF5 file by providing
+the complete URI in the format ``file_path::group_path``. For instance::
+
+    silx convert myspecfile.dat -m a -o archive.h5::/2017-09-20/SPEC
