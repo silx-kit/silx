@@ -41,7 +41,7 @@ else:
 
 __authors__ = ["P. Knobel", "V. Valls"]
 __license__ = "MIT"
-__date__ = "28/08/2017"
+__date__ = "20/09/2017"
 
 
 logger = logging.getLogger(__name__)
@@ -395,11 +395,20 @@ def open(filename):  # pylint:disable=redefined-builtin
     if not os.path.isfile(filename):
         raise IOError("Filename '%s' must be a file path" % filename)
 
+    debugging_info = []
+
     if not h5py_missing:
         if h5py.is_hdf5(filename):
             return h5py.File(filename, "r")
 
-    debugging_info = []
+    if filename.endswith(".npz"):
+        try:
+            from . import rawh5
+            return rawh5.NumpyFile(filename)
+        except (IOError, ValueError) as e:
+            debugging_info.append((sys.exc_info(),
+                                  "File '%s' can't be read as a numpy file." % filename))
+
     try:
         from . import fabioh5
         return fabioh5.File(filename)
