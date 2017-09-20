@@ -263,31 +263,6 @@ def main(argv):
         create_dataset_args["fletcher32"] = True
 
     with h5py.File(output_name, mode=options.mode) as h5f:
-        # write the silx version string as metadata
-        if "silx_versions" not in h5f[hdf5_path]:
-            # first time we add data to this location
-            h5f[hdf5_path]["silx_versions"] = numpy.array([silx.version],
-                                                          dtype=numpy.string_)
-        else:
-            # Append mode. Add version number if not already in version arrayx
-            existing_versions = h5f[hdf5_path]["silx_versions"][()]
-            if numpy.string_(silx.version) not in existing_versions:
-                del h5f[hdf5_path]["silx_versions"]
-                versions = numpy.append(existing_versions,
-                                        numpy.string_(silx.version))
-                h5f[hdf5_path]["silx_versions"] = versions
-
-        # write the convert_command string as metadata
-        if "convert_commands" not in h5f[hdf5_path]:
-            h5f[hdf5_path]["convert_commands"] = numpy.array([" ".join(argv)],
-                                                             dtype=numpy.string_)
-        else:
-            commands = h5f[hdf5_path]["convert_commands"][()]
-            commands = numpy.append(commands,
-                                    numpy.string_(" ".join(argv)))
-            del h5f[hdf5_path]["convert_commands"]
-            h5f[hdf5_path]["convert_commands"] = commands
-
         for input_name in options.input_files:
             hdf5_path_for_file = hdf5_path
             if not options.no_root_group:
@@ -297,5 +272,12 @@ def main(argv):
                         overwrite_data=options.overwrite_data,
                         create_dataset_args=create_dataset_args,
                         min_size=options.min_size)
+
+            # append the convert command to the creator attribute, for NeXus files
+            creator = h5f[hdf5_path_for_file].attrs.get("creator", b"").decode()
+            convert_command = " ".join(argv)
+            if convert_command not in creator:
+                h5f[hdf5_path_for_file].attrs["creator"] = \
+                    numpy.string_(creator + "; convert command: %s" % " ".join(argv))
 
     return 0

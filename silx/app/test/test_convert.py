@@ -157,19 +157,12 @@ class TestConvertCommand(unittest.TestCase):
             self.assertEqual(title12,
                              "1 aaaaaa")
 
-            silx_version = h5f["silx_versions"][()]
-            self.assertEqual(silx_version.shape, (1,))
-            silx_version_str = silx_version[0]
-            if sys.version > '3.0':
-                silx_version_str = silx_version_str.decode()
-            self.assertEqual(silx_version_str,
-                             silx.version)
-
-            command = h5f["convert_commands"][0]
-            if sys.version > '3.0':
-                command = command.decode()
-            self.assertEqual(command,
-                             " ".join(command_list))
+            creator = h5f.attrs.get("creator")
+            self.assertIsNotNone(creator, "No creator attribute in NXroot group")
+            creator = creator.decode()  # make sure we can compare creator with native string
+            self.assertTrue(creator.startswith("silx %s" % silx.version))
+            command = " ".join(command_list)
+            self.assertTrue(creator.endswith(command))
 
         # delete input file
         gc.collect()  # necessary to free spec file on Windows
