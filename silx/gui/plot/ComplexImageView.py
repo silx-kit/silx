@@ -455,3 +455,14 @@ class ComplexImageView(qt.QWidget):
         :param str title: Main title of the plot (default: '')
         """
         self.getPlot().setGraphTitle(title)
+
+    def setKeepDataAspectRatio(self, flag):
+        """Set whether the plot keeps data aspect ratio or not.
+
+        :param bool flag: True to respect data aspect ratio
+        """
+        self.getPlot().setKeepDataAspectRatio(flag)
+
+    def isKeepDataAspectRatio(self):
+        """Returns whether the plot is keeping data aspect ratio or not."""
+        return self.getPlot().isKeepDataAspectRatio()

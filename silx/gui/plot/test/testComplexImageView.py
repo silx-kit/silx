@@ -52,6 +52,7 @@ class TestComplexImageView(PlotWidgetTestCase, ParametricTestCase):
         """Test API of ComplexImageView widget"""
         data = numpy.array(((0, 1j), (1, 1 + 1j)), dtype=numpy.complex)
         self.plot.setData(data)
+        self.plot.setKeepDataAspectRatio(True)
         self.plot.getPlot().resetZoom()
         self.qWait(100)
 
