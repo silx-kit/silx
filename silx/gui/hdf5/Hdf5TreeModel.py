@@ -233,6 +233,15 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         self.__icons.append(icons.getQIcon("item-ndim"))
         self.__icons.append(icons.getQIcon("item-object"))
 
+        self.__openedFiles=[]
+
+    def __del__(self):
+        self.closeOpened()
+        
+    def closeOpened(self):
+        for obj in self.__openedFiles:
+            obj.close()
+            
     def __updateLoadingItems(self, icon):
         for i in range(self.__root.childCount()):
             item = self.__root.child(i)
@@ -588,6 +597,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         """
         try:
             h5file = silx_io.open(filename)
+            self.__openedFiles.append(h5file)
             self.insertH5pyObject(h5file, row=row)
         except IOError:
             _logger.debug("File '%s' can't be read.", filename, exc_info=True)
