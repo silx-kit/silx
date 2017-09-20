@@ -174,12 +174,14 @@ is that you should decode strings before using them in **Python 3**::
 
 """
 
+import datetime
 import logging
 import numpy
 import re
 import sys
 import io
 
+from silx import version as silx_version
 from .specfile import SpecFile
 from . import commonh5
 
@@ -545,7 +547,10 @@ class SpecH5(commonh5.File, SpecH5Group):
 
         self._sf = SpecFile(filename)
 
-        attrs = {"NX_class": "NXroot"}
+        attrs = {"NX_class": "NXroot",
+                 "file_time": datetime.datetime.now().isoformat(),
+                 "file_name": filename,
+                 "creator": "silx %s" % silx_version}
         commonh5.File.__init__(self, filename, attrs=attrs)
         assert self.attrs["NX_class"] == "NXroot"
 
