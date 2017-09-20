@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "18/08/2017"
+__date__ = "20/09/2017"
 
 import sys
 import os
@@ -148,6 +148,7 @@ class Viewer(qt.QMainWindow):
         extensions["NeXus files"] = "*.nx *.nxs *.h5 *.hdf"
         # no dependancy
         extensions["Spec files"] = "*.dat *.spec *.mca"
+        extensions["Numpy binary files"] = "*.npz"
         # expect fabio
         extensions["EDF files"] = "*.edf"
         extensions["TIFF image files"] = "*.tif *.tiff"
