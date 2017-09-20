@@ -35,6 +35,9 @@ from silx.opencl.reconstruction import SIRT
 from silx.image.phantomgenerator import getMRIBrainPhantom
 import numpy as np
 
+from silx.gui import qt
+qapp = qt.QApplication([])
+from silx.gui.plot import *
 
 def main():
     # Generate a sinogram of width 512 from the MRI brain phantom
@@ -50,6 +53,14 @@ def main():
     n_it = 150
     res_gpu = sirt_algo(sino, n_it)
     res = res_gpu.get()
+
+    from silx.gui.plot import Plot2D
+    plot = Plot2D()
+    plot.addImage(res, legend='SIRT', replace=False)
+    plot.addImage(res, legend='SIRT2', replace=False)
+    plot.show()
+    qapp.exec_()
+
 
 
 if __name__ == "__main__":

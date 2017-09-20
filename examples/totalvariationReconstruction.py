@@ -24,7 +24,7 @@
 #
 # ###########################################################################*/
 """
-Simple usage example of the SIRT algorithm
+Simple usage example of the TV algorithm
 """
 __authors__ = ["Pierre Paleo"]
 __license__ = "MIT"
