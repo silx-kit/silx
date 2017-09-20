@@ -128,11 +128,17 @@ def main(argv):
         help='Set logging system in debug mode')
 
     options = parser.parse_args(argv[1:])
-    if sys.platform.startswith("win"):
-        old_input_list = list(options.input_files)
-        options.input_files = []
-        for fname in old_input_list:
-            options.input_files += glob(fname)
+
+    # some shells (windows) don't interpret wildcard characters (*, ?, [])
+    old_input_list = list(options.input_files)
+    options.input_files = []
+    for fname in old_input_list:
+        globbed_files = glob(fname)
+        if not globbed_files:
+            # no files found, keep the name as it is, to raise an error later
+            options.input_files += [fname]
+        else:
+            options.input_files += globbed_files
         old_input_list = None
 
     if options.debug:

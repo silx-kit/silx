@@ -197,7 +197,7 @@ except ImportError:
 
 
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)  # noqa
-integer_types = (int, long,)  if sys.version_info[0] == 2 else (int,)  # noqa
+integer_types = (int, long,) if sys.version_info[0] == 2 else (int,)  # noqa
 
 
 def _get_number_of_mca_analysers(scan):
@@ -774,13 +774,11 @@ class MeasurementGroup(commonh5.Group, SpecH5Group):
 
         num_analysers = _get_number_of_mca_analysers(scan)
         for anal_idx in range(num_analysers):
-            self.add_node(MeasurementMcaGroup(parent=self,
-                                              analyser_index=anal_idx,
-                                              scan=scan))
+            self.add_node(MeasurementMcaGroup(parent=self, analyser_index=anal_idx))
 
 
 class MeasurementMcaGroup(commonh5.Group, SpecH5Group):
-    def __init__(self, parent, analyser_index, scan):
+    def __init__(self, parent, analyser_index):
         basename = "mca_%d" % analyser_index
         commonh5.Group.__init__(self, name=basename, parent=parent,
                                 attrs={})
