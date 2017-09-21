@@ -31,7 +31,7 @@ import logging
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "20/09/2017"
+__date__ = "21/09/2017"
 
 
 _logger = logging.getLogger(__name__)
@@ -62,8 +62,7 @@ class NumpyFile(commonh5.File):
         if hasattr(np_file, "close"):
             # For npz (created using  by numpy.savez, numpy.savez_compressed)
             for key, value in np_file.items():
-                dataset = _FreeDataset(key, data=value)
-                self.add_node(dataset)
+                self[key] = _FreeDataset(None, data=value)
             np_file.close()
         else:
             # For npy (created using numpy.save)
