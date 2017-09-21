@@ -32,6 +32,7 @@ Public modules
    plotwindow.rst
    imageview.rst
    stackview.rst
+   compleximageview.rst
    colormap.rst
    items.rst
    actions/index.rst
