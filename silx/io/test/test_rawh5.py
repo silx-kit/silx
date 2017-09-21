@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "20/09/2017"
+__date__ = "21/09/2017"
 
 
 import unittest
@@ -73,6 +73,16 @@ class TestNumpyFile(unittest.TestCase):
         self.assertEqual(h5["c"].dtype.kind, "f")
         self.assertEqual(h5["d"].dtype.kind, "S")
         self.assertEqual(h5["e"].dtype.kind, "U")
+
+    def testNumpyZFileContainingDirectories(self):
+        filename = "%s/%s.npz" % (self.tmpDirectory, self.id())
+        data = {}
+        data['a/b/c'] = numpy.arange(10)
+        data['a/b/e'] = numpy.arange(10)
+        numpy.savez(filename, **data)
+        h5 = rawh5.NumpyFile(filename)
+        self.assertIn("a/b/c", h5)
+        self.assertIn("a/b/e", h5)
 
 
 def suite():
