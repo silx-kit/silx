@@ -176,6 +176,11 @@ class PlotWindow(PlotWidget):
             parent=self, plot=self)
         self.yAxisInvertedButton.setVisible(yInverted)
 
+        self.showAxisAction = self.group.addAction(
+            actions.control.ShowAxisAction(self))
+        self.showAxisAction.setVisible(False)
+        self.addAction(self.showAxisAction)
+
         self.group.addAction(self.getRoiAction())
         self.getRoiAction().setVisible(roi)
 
@@ -613,6 +618,13 @@ class PlotWindow(PlotWidget):
         :rtype: actions.PlotAction
         """
         return self.colormapAction
+
+    def getShowAxisAction(self):
+        """Action change the visibility of the plot axis
+
+        :return: actions.PlotAction
+        """
+        return self.showAxisAction
 
     def getKeepDataAspectRatioButton(self):
         """Button to toggle aspect ratio preservation
