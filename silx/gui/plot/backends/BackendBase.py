@@ -497,3 +497,10 @@ class BackendBase(object):
             are not anymore visible and the margin used for them is removed.
         """
         raise NotImplementedError()
+
+    def _areAxesDisplayed(self):
+        """private because in some case it is possible that one of the two axes
+        are displayed and not the other.
+        This only check status set to axes from the public API
+        """
+        raise NotImplementedError()

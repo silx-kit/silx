@@ -279,6 +279,9 @@ class PlotWidget(qt.QMainWindow):
     sigSetPanWithArrowKeys = qt.Signal(bool)
     """Signal emitted when pan with arrow keys has changed"""
 
+    _sigAxesVisibilityChanged = qt.Signal(bool)
+    """Signal emitted when the axes visibility changed"""
+
     sigContentChanged = qt.Signal(str, str, str)
     """Signal emitted when the content of the plot is changed.
 
@@ -2204,6 +2207,7 @@ class PlotWidget(qt.QMainWindow):
         """
         self._backend.setAxesDisplayed(displayed)
         self._setDirtyPlot()
+        self._sigAxesVisibilityChanged.emit(displayed)
 
     @property
     @deprecated(since_version='0.6')

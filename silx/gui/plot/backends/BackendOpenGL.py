@@ -1649,3 +1649,10 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     def setAxesDisplayed(self, displayed):
         self._plotFrame.displayed = displayed
+
+    def _areAxesDisplayed(self):
+        """private because in some case it is possible that one of the two axes
+        are displayed and not the other.
+        This only check status setted to axes fron the public API
+        """
+        return self._plotFrame.displayed

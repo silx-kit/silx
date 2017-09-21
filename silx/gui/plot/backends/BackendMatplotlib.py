@@ -76,6 +76,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         # This attribute is used to ensure consistent values returned
         # when getting the limits at the expense of a replot
         self._dirtyLimits = True
+        self._axesDisplayed = True
 
         self.fig = Figure()
         self.fig.set_facecolor("w")
@@ -675,6 +676,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         :param bool displayed: If `True` axes are displayed. If `False` axes
             are not anymore visible and the margin used for them is removed.
         """
+        self._axesDisplayed = displayed
         if displayed:
             # show axes and viewbox rect
             self.ax.set_axis_on()
@@ -690,6 +692,13 @@ class BackendMatplotlib(BackendBase.BackendBase):
             self.ax.set_position([0, 0, 1, 1])
             self.ax2.set_position([0, 0, 1, 1])
         self._plot._setDirtyPlot()
+
+    def _areAxesDisplayed(self):
+        """private because in some case it is possible that one of the two axes
+        are displayed and not the other.
+        This only check status set to axes from the public API
+        """
+        return self._axesDisplayed
 
 
 class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):

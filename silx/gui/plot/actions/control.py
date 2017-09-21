@@ -542,7 +542,8 @@ class ShowAxisAction(PlotAction):
                             triggered=self._actionTriggered,
                             checkable=True,
                             parent=parent)
-        self.setChecked(True)
+        self.setChecked(self.plot._backend._areAxesDisplayed())
+        plot._sigAxesVisibilityChanged.connect(self.setChecked)
 
     def _actionTriggered(self, checked=False):
         self.plot.setAxesDisplayed(checked)
