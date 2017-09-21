@@ -118,12 +118,52 @@ class _ImageComplexData(items.ImageData):
     colored phase + amplitude.
     """
 
-    def setData(self, *args, **kwargs):
-        super(_ImageComplexData, self).setData(*args, **kwargs)
-        self.sigItemChanged.emit(items.ItemChangedType.COLORMAP)
+    def __init__(self):
+        super(_ImageComplexData, self).__init__()
+        self._readOnlyColormap = False
+        self._mode = 'absolute'
+        self._colormaps = {  # Default colormaps for all modes
+            'absolute': Colormap(),
+            'phase': _PHASE_COLORMAP.copy(),
+            'real': Colormap(),
+            'imaginary': Colormap(),
+            'amplitude_phase': _PHASE_COLORMAP.copy(),
+            'log10_amplitude_phase': _PHASE_COLORMAP.copy(),
+        }
+
+    _READ_ONLY_MODES = 'amplitude_phase', 'log10_amplitude_phase'
+    """Modes that requires a read-only colormap."""
+
+    def setVisualizationMode(self, mode):
+        """Set the visualization mode to use.
+
+        :param str mode:
+        """
+        mode = str(mode)
+        assert mode in self._colormaps
+
+        if mode != self._mode:
+            # Save current colormap
+            self._colormaps[self._mode] = self.getColormap()
+            self._mode = mode
+
+            # Set colormap for new mode
+            self.setColormap(self._colormaps[mode])
+
+    def getVisualizationMode(self):
+        """Returns the visualization mode in use."""
+        return self._mode
+
+    def _isReadOnlyColormap(self):
+        """Returns True if colormap should not be modified."""
+        return self.getVisualizationMode() in self._READ_ONLY_MODES
+
+    def setColormap(self, colormap):
+        if not self._isReadOnlyColormap():
+            super(_ImageComplexData, self).setColormap(colormap)
 
     def getColormap(self):
-        if self.getAlternativeImageData(copy=False) is not None:
+        if self._isReadOnlyColormap():
             return _PHASE_COLORMAP.copy()
         else:
             return super(_ImageComplexData, self).getColormap()
@@ -219,8 +259,8 @@ class ComplexImageView(qt.QWidget):
         # Create and add image to the plot
         self._plotImage = _ImageComplexData()
         self._plotImage._setLegend('__ComplexImageView__complex_image__')
-        self._plotImage.setColormap(self._plot2D.getDefaultColormap().copy())
         self._plotImage.setData(self._displayedData)
+        self._plotImage.setVisualizationMode(self._mode)
         self._plot2D._add(self._plotImage)
         self._plot2D.setActiveImage(self._plotImage.getLegend())
 
@@ -262,8 +302,17 @@ class ComplexImageView(qt.QWidget):
 
     def _updatePlot(self):
         """Update the image in the plot"""
+
+        mode = self.getVisualizationMode()
+
+        self.getPlot().getColormapAction().setDisabled(
+            mode in ('amplitude_phase', 'log10_amplitude_phase'))
+
+        self._plotImage.setVisualizationMode(mode)
+
         image = self.getDisplayedData(copy=False)
-        if image.ndim == 3:  # Combined view
+        if mode in ('amplitude_phase', 'log10_amplitude_phase'):
+            # Combined view
             absolute = numpy.absolute(self.getData(copy=False))
             self._plotImage.setData(
                 absolute, alternative=image, copy=False)
