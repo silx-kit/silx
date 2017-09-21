@@ -46,6 +46,12 @@ from . import items
 _logger = logging.getLogger(__name__)
 
 
+_PHASE_COLORMAP = Colormap(
+    name='hsv',
+    vmin=-numpy.pi,
+    vmax=numpy.pi)
+"""Colormap to use for phase"""
+
 # Complex colormap functions
 
 def _phase2rgb(data):
@@ -58,22 +64,8 @@ def _phase2rgb(data):
     if data.size == 0:
         return numpy.zeros((0, 0, 4), dtype=numpy.uint8)
 
-    ph = numpy.angle(data)
-    t = numpy.pi / 3
-    rgba = 255 * numpy.ones(data.shape + (4,), dtype=numpy.uint8)
-    rgba[..., 0] = 255 * (
-        (ph < t) * (ph > -t) +
-        (ph > t) * (ph < 2 * t) * (2 * t - ph) / t +
-        (ph > -2 * t) * (ph < -t) * (ph + 2 * t) / t)
-    rgba[..., 1] = 255 * (
-        (ph > t) +
-        (ph < -2 * t) * (-2 * t - ph) / t +
-        (ph > 0) * (ph < t) * ph / t)
-    rgba[..., 2] = 255 * (
-        (ph < -t) +
-        (ph > -t) * (ph < 0) * (-ph) / t +
-        (ph > 2 * t) * (ph - 2 * t) / t)
-    return rgba
+    phase = numpy.angle(data)
+    return _PHASE_COLORMAP.applyToData(phase)
 
 
 def _complex2rgbalog(data, amin=0.5, dlogs=2, smax=None):
@@ -126,20 +118,13 @@ class _ImageComplexData(items.ImageData):
     colored phase + amplitude.
     """
 
-    _COMPLEX_COLORMAP = Colormap(
-        name=None,
-        colors=_phase2rgb(numpy.exp(numpy.linspace(-numpy.pi, numpy.pi, 256) * 1j)),
-        vmin=-numpy.pi,
-        vmax=numpy.pi)
-    """The phase colormap for combined visualization modes"""
-
     def setData(self, *args, **kwargs):
         super(_ImageComplexData, self).setData(*args, **kwargs)
         self.sigItemChanged.emit(items.ItemChangedType.COLORMAP)
 
     def getColormap(self):
         if self.getAlternativeImageData(copy=False) is not None:
-            return self._COMPLEX_COLORMAP.copy()
+            return _PHASE_COLORMAP.copy()
         else:
             return super(_ImageComplexData, self).getColormap()
 
