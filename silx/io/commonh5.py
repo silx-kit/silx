@@ -37,7 +37,7 @@ from .utils import is_dataset
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "28/08/2017"
+__date__ = "21/09/2017"
 
 
 class _MappingProxyType(collections.MutableMapping):
@@ -784,10 +784,24 @@ class Group(Node):
         """
         if not self._is_editable():
             raise RuntimeError("File is not editable")
-        if "/" in name:
-            raise TypeError("Path are not supported")
-        group = Group(name)
-        self.add_node(group)
+        if name in self:
+            raise ValueError("Unable to create group (name already exists)")
+
+        if name.startswith("/"):
+            name = name[1:]
+            return self.file.create_group(name)
+
+        elements = name.split('/')
+        group = self
+        for basename in elements:
+            if basename in group:
+                group = group[basename]
+                if not isinstance(group, Group):
+                    raise RuntimeError("Unable to create group (group parent is missing")
+            else:
+                node = Group(basename)
+                group.add_node(node)
+                group = node
         return group
 
     def create_dataset(self, name, shape=None, dtype=None, data=None, **kwds):
