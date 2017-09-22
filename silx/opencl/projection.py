@@ -208,9 +208,13 @@ class Projection(OpenclProcessing):
         image2 = image
         if not(image.flags["C_CONTIGUOUS"]):
             image2 = np.ascontiguousarray(image)
+        if self.is_cpu:
+            dst_ref = self.cl_mem["d_slice"] # TODO: do wee actually need a copy here ?
+        else:
+            dst_ref = self.d_image_tex
         return pyopencl.enqueue_copy(
                    self.queue,
-                   self.d_image_tex,
+                   dst_ref,
                    image2,
                    origin=(1, 1),
                    region=image.shape[::-1]
@@ -218,7 +222,7 @@ class Projection(OpenclProcessing):
 
     def transfer_device_to_texture(self, d_image):
         if self.is_cpu:
-            dst_ref = self.cl_mem["d_slice"]
+            dst_ref = self.cl_mem["d_slice"] # TODO: do wee actually need a copy here ?
         else:
             dst_ref = self.d_image_tex
         return pyopencl.enqueue_copy(
