@@ -202,37 +202,46 @@ class Projection(OpenclProcessing):
             )
 
     def transfer_to_texture(self, image):
-        #~ image2 = np.zeros((image.shape[0]+2, image.shape[1]+2),
-                          #~ dtype=np.float32)
-        #~ image2[1:-1, 1:-1] = image.astype(np.float32)
         image2 = image
-        if not(image.flags["C_CONTIGUOUS"]):
+        if not(image.flags["C_CONTIGUOUS"] and image.dtype == np.float32):
             image2 = np.ascontiguousarray(image)
         if self.is_cpu:
-            dst_ref = self.cl_mem["d_slice"] # TODO: do wee actually need a copy here ?
+            return pyopencl.enqueue_copy(
+                       self.queue,
+                       self.cl_mem["d_slice"],
+                       image2,
+                       origin=(1, 1),
+                       region=image.shape[::-1]
+                   )
+
         else:
-            dst_ref = self.d_image_tex
-        return pyopencl.enqueue_copy(
-                   self.queue,
-                   dst_ref,
-                   image2,
-                   origin=(1, 1),
-                   region=image.shape[::-1]
-               )
+            return pyopencl.enqueue_copy(
+                       self.queue,
+                       self.d_image_tex,
+                       image2,
+                       origin=(1, 1),
+                       region=image.shape[::-1]
+                   )
 
     def transfer_device_to_texture(self, d_image):
         if self.is_cpu:
-            dst_ref = self.cl_mem["d_slice"] # TODO: do wee actually need a copy here ?
+            # TODO this copy should not be necessary
+            return pyopencl.enqueue_copy(
+                self.queue,
+                self.cl_mem["d_slice"],
+                d_image,
+                origin=(1, 1),
+                region=self.shape[::-1]
+            )
         else:
-            dst_ref = self.d_image_tex
-        return pyopencl.enqueue_copy(
-            self.queue,
-            dst_ref,
-            d_image,
-            offset=0,
-            origin=(1, 1),
-            region=self.shape[::-1]
-        )
+            return pyopencl.enqueue_copy(
+                self.queue,
+                self.d_image_tex,
+                d_image,
+                offset=0,
+                origin=(1, 1),
+                region=self.shape[::-1]
+            )
 
     def allocate_slice(self):
             self.add_to_cl_mem({"d_slice": parray.zeros(self.queue, (self.shape[1]+2, self.shape[1]+2), np.float32)})

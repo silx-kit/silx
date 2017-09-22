@@ -249,31 +249,41 @@ class Backprojection(OpenclProcessing):
         if not(sino.flags["C_CONTIGUOUS"] and sino.dtype == np.float32):
             sino2 = np.ascontiguousarray(sino, dtype=np.float32)
         if self.is_cpu:
-            dst_ref = self.d_sino # TODO: do wee actually need a copy here ?
-        else:
-            dst_ref = self.d_sino_tex
-        return pyopencl.enqueue_copy(
-            self.queue,
-            dst_ref,
-            sino2,
-            origin=(0, 0),
-            region=self.shape[::-1]
-        )
+            # TODO this should not be necessary
+            return pyopencl.enqueue_copy(
+                self.queue,
+                self.d_sino,
+                sino2,
+                region=self.shape[::-1]
+            )
 
+        else:
+            return pyopencl.enqueue_copy(
+                self.queue,
+                self.d_sino_tex,
+                sino2,
+                origin=(0, 0),
+                region=self.shape[::-1]
+            )
 
     def transfer_device_to_texture(self, d_sino):
         if self.is_cpu:
-            dst_ref = self.d_sino
+            # TODO this should not be necessary
+            return pyopencl.enqueue_copy(
+                self.queue,
+                self.d_sino,
+                d_sino,
+                region=self.shape[::-1]
+            )
         else:
-            dst_ref = self.d_sino_tex
-        return pyopencl.enqueue_copy(
-            self.queue,
-            dst_ref,
-            d_sino,
-            offset=0,
-            origin=(0, 0),
-            region=self.shape[::-1]
-        )
+            return pyopencl.enqueue_copy(
+                self.queue,
+                self.d_sino_tex,
+                d_sino,
+                offset=0,
+                origin=(0, 0),
+                region=self.shape[::-1]
+            )
 
 
     def backprojection(self, sino=None, dst=None):
