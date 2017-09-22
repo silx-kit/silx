@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "18/08/2017"
+__date__ = "21/09/2017"
 
 import sys
 import os
@@ -147,13 +147,14 @@ class Viewer(qt.QMainWindow):
         extensions["HDF5 files"] = "*.h5 *.hdf"
         extensions["NeXus files"] = "*.nx *.nxs *.h5 *.hdf"
         # no dependancy
-        extensions["Spec files"] = "*.dat *.spec *.mca"
+        extensions["NeXus layout from spec files"] = "*.dat *.spec *.mca"
+        extensions["Numpy binary files"] = "*.npz *.npy"
         # expect fabio
-        extensions["EDF files"] = "*.edf"
-        extensions["TIFF image files"] = "*.tif *.tiff"
-        extensions["NumPy binary files"] = "*.npy"
-        extensions["CBF files"] = "*.cbf"
-        extensions["MarCCD image files"] = "*.mccd"
+        extensions["NeXus layout from raster images"] = "*.edf *.tif *.tiff *.cbf *.mccd"
+        extensions["NeXus layout from EDF files"] = "*.edf"
+        extensions["NeXus layout from TIFF image files"] = "*.tif *.tiff"
+        extensions["NeXus layout from CBF files"] = "*.cbf"
+        extensions["NeXus layout from MarCCD image files"] = "*.mccd"
 
         filters = []
         filters.append("All supported files (%s)" % " ".join(extensions.values()))

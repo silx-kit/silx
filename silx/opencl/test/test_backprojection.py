@@ -43,13 +43,10 @@ except ImportError:
     mako = None
 from ..common import ocl
 if ocl:
-    import pyopencl
-    import pyopencl.array
     from .. import backprojection
 from silx.test.utils import utilstest
 
 logger = logging.getLogger(__name__)
-
 
 
 def generate_coords(img_shp, center=None):
@@ -77,10 +74,8 @@ def clip_circle(img, center=None, radius=None):
     res = np.zeros_like(img)
     if radius is None:
         radius = img.shape[0]/2.-1
-    res[M<radius**2] = img[M<radius**2]
+    res[M < radius**2] = img[M < radius**2]
     return res
-
-
 
 
 @unittest.skipUnless(ocl and mako, "PyOpenCl is missing")
@@ -96,19 +91,15 @@ class TestFBP(unittest.TestCase):
         if self.fbp.compiletime_workgroup_size < 16:
             self.skipTest("Current implementation of OpenCL backprojection is not supported on this platform yet")
 
-
-
     def tearDown(self):
         self.sino = None
         self.fbp = None
-
 
     def getfiles(self):
         # load sinogram of 512x512 MRI phantom
         self.sino = np.load(utilstest.getfile("sino500.npz"))["data"]
         # load reconstruction made with ASTRA FBP (with filter designed in spatial domain)
         self.reference_rec = np.load(utilstest.getfile("rec_astra_500.npz"))["data"]
-
 
     def measure(self):
         "Common measurement of timings"
@@ -121,16 +112,15 @@ class TestFBP(unittest.TestCase):
         t2 = time.time()
         return t2 - t1, result
 
-
     def compare(self, res):
         """
         Compare a result with the reference reconstruction.
-        Only the valid reconstruction zone (inscribed circle) is taken into account
+        Only the valid reconstruction zone (inscribed circle) is taken into
+        account
         """
         res_clipped = clip_circle(res)
         ref_clipped = clip_circle(self.reference_rec)
         return np.max(np.abs(res_clipped - ref_clipped))
-
 
     @unittest.skipUnless(ocl and mako, "pyopencl is missing")
     def test_fbp(self):
@@ -146,6 +136,7 @@ class TestFBP(unittest.TestCase):
             logger.info("test_backproj: time = %.3fs" % t)
             err = self.compare(res)
             msg = str("Max error = %e" % err)
+            logger.info(msg)
             # TODO: cannot do better than 1e0 ?
             # The plain backprojection was much better, so it must be an issue in the filtering process
             self.assertTrue(err < 1., "Max error is too high")
@@ -158,12 +149,10 @@ class TestFBP(unittest.TestCase):
             self.assertTrue(errmax < 1.e-6, "Max error is too high")
 
 
-
 def suite():
     testSuite = unittest.TestSuite()
     testSuite.addTest(TestFBP("test_fbp"))
     return testSuite
-
 
 
 if __name__ == '__main__':

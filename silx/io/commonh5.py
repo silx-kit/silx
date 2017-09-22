@@ -37,7 +37,7 @@ from .utils import is_dataset
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "28/08/2017"
+__date__ = "21/09/2017"
 
 
 class _MappingProxyType(collections.MutableMapping):
@@ -95,6 +95,9 @@ class Node(object):
         self.__attrs = {}
         if attrs is not None:
             self.__attrs.update(attrs)
+
+    def _set_basename(self, name):
+        self.__basename = name
 
     @property
     def h5py_class(self):
@@ -633,6 +636,61 @@ class Group(Node):
             obj = node
         return obj
 
+    def __setitem__(self, name, obj):
+        """Add an object to the group.
+
+        :param str name: Location on the group to store the object.
+            This path name must not exists.
+        :param object obj: Object to store on the file. According to the type,
+            the behaviour will not be the same.
+
+            - `commonh5.SoftLink`: Create the corresponding link.
+            - `numpy.ndarray`: The array is converted to a dataset object.
+            - `commonh5.Node`: A hard link should be created pointing to the
+                given object. This implementation uses a soft link.
+                If the node do not have parent it is connected to the tree
+                without using a link (that's a hard link behaviour).
+            - other object: Convert first the object with ndarray and then
+                store it. ValueError if the resulting array dtype is not
+                supported.
+        """
+        if name in self:
+            # From the h5py API
+            raise RuntimeError("Unable to create link (name already exists)")
+
+        elements = name.rsplit("/", 1)
+        if len(elements) == 1:
+            parent = self
+            basename = elements[0]
+        else:
+            group_path, basename = elements
+            if group_path in self:
+                parent = self[group_path]
+            else:
+                parent = self.create_group(group_path)
+
+        if isinstance(obj, SoftLink):
+            obj._set_basename(basename)
+            node = obj
+        elif isinstance(obj, Node):
+            if obj.parent is None:
+                obj._set_basename(basename)
+                node = obj
+            else:
+                node = SoftLink(basename, obj.name)
+        elif isinstance(obj, numpy.dtype):
+            node = Dataset(basename, data=obj)
+        elif isinstance(obj, numpy.ndarray):
+            node = Dataset(basename, data=obj)
+        else:
+            data = numpy.array(obj)
+            try:
+                node = Dataset(basename, data=data)
+            except TypeError as e:
+                raise ValueError(e.args[0])
+
+        parent.add_node(node)
+
     def __getitem__(self, name):
         """Return a child from his name.
 
@@ -784,10 +842,24 @@ class Group(Node):
         """
         if not self._is_editable():
             raise RuntimeError("File is not editable")
-        if "/" in name:
-            raise TypeError("Path are not supported")
-        group = Group(name)
-        self.add_node(group)
+        if name in self:
+            raise ValueError("Unable to create group (name already exists)")
+
+        if name.startswith("/"):
+            name = name[1:]
+            return self.file.create_group(name)
+
+        elements = name.split('/')
+        group = self
+        for basename in elements:
+            if basename in group:
+                group = group[basename]
+                if not isinstance(group, Group):
+                    raise RuntimeError("Unable to create group (group parent is missing")
+            else:
+                node = Group(basename)
+                group.add_node(node)
+                group = node
         return group
 
     def create_dataset(self, name, shape=None, dtype=None, data=None, **kwds):

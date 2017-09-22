@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "18/08/2017"
+__date__ = "22/09/2017"
 
 import sys
 
@@ -97,7 +97,6 @@ class About(qt.QDialog):
 
     def __createLayout(self):
         layout = qt.QVBoxLayout(self)
-        layout.setMargin(0)
         layout.setContentsMargins(24, 15, 24, 20)
         layout.setSpacing(8)
 
