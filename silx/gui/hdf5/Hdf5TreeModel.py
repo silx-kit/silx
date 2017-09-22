@@ -135,6 +135,7 @@ class LoadingItemRunnable(qt.QRunnable):
         """Process the file loading. The worker is used as holder
         of the data and the signal. The result is sent as a signal.
         """
+        h5file = None
         try:
             h5file = silx_io.open(self.filename)
             newItem = self.__loadItemTree(self.oldItem, h5file)
@@ -143,6 +144,8 @@ class LoadingItemRunnable(qt.QRunnable):
             # Should be logged
             error = e
             newItem = None
+            if h5file is not None:
+                h5file.close()
 
         # Take care of None value in case of PySide
         newItem = _wrapNone(newItem)
