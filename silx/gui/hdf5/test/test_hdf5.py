@@ -749,22 +749,20 @@ class TestHdf5TreeView(TestCaseQt):
         tree = commonh5.File("/foo/bar/1.mock", "w")
         group = tree.create_group("a1")
         group.create_group("b").create_group("b").create_group("d")
-        item = group
 
         model = hdf5.Hdf5TreeModel()
         model.insertH5pyObject(group)
         view = hdf5.Hdf5TreeView()
         view.setModel(model)
-        view.setSelectedH5Node(item)
+        view.setSelectedH5Node(group)
 
         selected = list(view.selectedH5Nodes())[0]
-        self.assertIs(item, selected.h5py_object)
+        self.assertIs(group, selected.h5py_object)
 
     def testSelection_FileFromSubTree(self):
         tree = commonh5.File("/foo/bar/1.mock", "w")
         group = tree.create_group("a1")
         group.create_group("b").create_group("b").create_group("d")
-        item = group
 
         model = hdf5.Hdf5TreeModel()
         model.insertH5pyObject(group)
