@@ -693,7 +693,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
             self.ax2.set_position([0, 0, 1, 1])
         self._plot._setDirtyPlot()
 
-    def _areAxesDisplayed(self):
+    def _isAxesDisplayed(self):
         """private because in some case it is possible that one of the two axes
         are displayed and not the other.
         This only check status set to axes from the public API

@@ -498,7 +498,7 @@ class BackendBase(object):
         """
         raise NotImplementedError()
 
-    def _areAxesDisplayed(self):
+    def _isAxesDisplayed(self):
         """private because in some case it is possible that one of the two axes
         are displayed and not the other.
         This only check status set to axes from the public API
