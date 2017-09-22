@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "20/09/2017"
+__date__ = "22/09/2017"
 
 
 import time
@@ -698,7 +698,7 @@ class TestHdf5TreeView(TestCaseQt):
 
     def testSelection_Simple(self):
         tree = commonh5.File("/foo/bar/1.mock", "w")
-        item = tree.create_group("a").create_group("b").create_group("b").create_group("d")
+        item = tree.create_group("a/b/c/d")
         item.create_group("e").create_group("f")
 
         model = hdf5.Hdf5TreeModel()
@@ -713,7 +713,7 @@ class TestHdf5TreeView(TestCaseQt):
     def testSelection_NotFound(self):
         tree2 = commonh5.File("/foo/bar/2.mock", "w")
         tree = commonh5.File("/foo/bar/1.mock", "w")
-        item = tree.create_group("a").create_group("b").create_group("c").create_group("d")
+        item = tree.create_group("a/b/c/d")
         item.create_group("e").create_group("f")
 
         model = hdf5.Hdf5TreeModel()
@@ -728,11 +728,11 @@ class TestHdf5TreeView(TestCaseQt):
     def testSelection_ManyGroupFromSameFile(self):
         tree = commonh5.File("/foo/bar/1.mock", "w")
         group1 = tree.create_group("a1")
-        group1.create_group("b").create_group("b").create_group("d")
-        group2 = tree.create_group("a1")
-        item = group2.create_group("b").create_group("c").create_group("d")
-        group3 = tree.create_group("a1")
-        group3.create_group("b").create_group("b").create_group("d")
+        group2 = tree.create_group("a2")
+        group3 = tree.create_group("a3")
+        group1.create_group("b/c/d")
+        item = group2.create_group("b/c/d")
+        group3.create_group("b/c/d")
 
         model = hdf5.Hdf5TreeModel()
         model.insertH5pyObject(group1)
@@ -748,7 +748,7 @@ class TestHdf5TreeView(TestCaseQt):
     def testSelection_RootFromSubTree(self):
         tree = commonh5.File("/foo/bar/1.mock", "w")
         group = tree.create_group("a1")
-        group.create_group("b").create_group("b").create_group("d")
+        group.create_group("b/c/d")
 
         model = hdf5.Hdf5TreeModel()
         model.insertH5pyObject(group)
@@ -777,9 +777,9 @@ class TestHdf5TreeView(TestCaseQt):
         tree1 = commonh5.File("/foo/bar/1.mock", "w")
         tree2 = commonh5.File("/foo/bar/2.mock", "w")
         tree3 = commonh5.File("/foo/bar/3.mock", "w")
-        tree1.create_group("a").create_group("b").create_group("c")
-        tree2.create_group("a").create_group("b").create_group("c")
-        tree3.create_group("a").create_group("b").create_group("c")
+        tree1.create_group("a/b/c")
+        tree2.create_group("a/b/c")
+        tree3.create_group("a/b/c")
         item = tree2
 
         model = hdf5.Hdf5TreeModel()
