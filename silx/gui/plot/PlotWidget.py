@@ -2209,6 +2209,9 @@ class PlotWidget(qt.QMainWindow):
         self._setDirtyPlot()
         self._sigAxesVisibilityChanged.emit(displayed)
 
+    def _isAxesDisplayed(self):
+        return self._backend._isAxesDisplayed()
+
     @property
     @deprecated(since_version='0.6')
     def sigSetYAxisInverted(self):

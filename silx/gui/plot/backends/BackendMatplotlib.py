@@ -676,7 +676,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         :param bool displayed: If `True` axes are displayed. If `False` axes
             are not anymore visible and the margin used for them is removed.
         """
-        self._axesDisplayed = displayed
+        BackendBase.BackendBase.setAxesDisplayed(self, displayed)
         if displayed:
             # show axes and viewbox rect
             self.ax.set_axis_on()
