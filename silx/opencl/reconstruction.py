@@ -82,10 +82,7 @@ class ReconstructionAlgorithm(OpenclProcessing):
             slice_shape=slice_shape,
             axis_position=axis_position,
             angles=angles,
-            ctx=ctx,
-            devicetype=devicetype,
-            platformid=platformid,
-            deviceid=deviceid,
+            ctx=self.ctx,
             profile=profile
         )
         # Create a projector
@@ -95,10 +92,7 @@ class ReconstructionAlgorithm(OpenclProcessing):
             axis_position=axis_position,
             detector_width=self.backprojector.num_bins,
             normalize=False,
-            ctx=ctx,
-            devicetype=devicetype,
-            platformid=platformid,
-            deviceid=deviceid,
+            ctx=self.ctx,
             profile=profile
         )
         self.sino_shape = sino_shape

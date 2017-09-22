@@ -71,7 +71,7 @@ def main():
     B = Backprojection(sino.shape)
     # Now reconstruct the current sinogram
     rec_fbp = B.filtered_backprojection(sino) # alternatively: B(sino)
-    show_image(rec_fbp, "FBP", "Reconstruction with FBP")
+    show_image(rec_fbp, "FBP", str("Reconstruction with FBP using %d projections" % P.nprojs))
 
     # --------------------------------------------------
     # How to reconstruct a sinogram with SIRT algorithm
@@ -87,6 +87,7 @@ def main():
     # Reconstruct the current singoram
     n_it = 150
     rec_sirt = S(sino_subsampled, n_it).get()
+    show_image(S.backprojector(sino_subsampled), "SIRT", str("Reconstruction with FBP using %d projections" % S.projector.nprojs))
     show_image(rec_sirt, "SIRT", str("Reconstruction with SIRT using %d iterations" % n_it))
 
     # -----------------------------------------------------

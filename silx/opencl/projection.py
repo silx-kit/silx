@@ -211,23 +211,24 @@ class Projection(OpenclProcessing):
         return pyopencl.enqueue_copy(
                    self.queue,
                    self.d_image_tex,
-                   #~ np.ascontiguousarray(image2), # A
                    image2,
-                   #~ origin=(0, 0), # A
                    origin=(1, 1),
-                   #~ region=image2.shape[::-1] # A
                    region=image.shape[::-1]
                )
 
     def transfer_device_to_texture(self, d_image):
+        if self.is_cpu:
+            dst_ref = selc.cl_mem["d_slice"]
+        else:
+            dst_ref = self.d_image_tex
         return pyopencl.enqueue_copy(
-                   self.queue,
-                   self.d_image_tex,
-                   d_image,
-                   offset=0,
-                   origin=(1, 1),
-                   region=self.shape[::-1]
-               )
+            self.queue,
+            dst_ref,
+            d_image,
+            offset=0,
+            origin=(1, 1),
+            region=self.shape[::-1]
+        )
 
     def allocate_slice(self):
             self.add_to_cl_mem({"d_slice": parray.zeros(self.queue, (self.shape[1]+2, self.shape[1]+2), np.float32)})
@@ -297,7 +298,6 @@ class Projection(OpenclProcessing):
 
     def _get_local_mem(self):
         return pyopencl.LocalMemory(self.local_mem)  # constant for all image sizes
-
 
 
     def cpy2d_to_sino(self, dst):
