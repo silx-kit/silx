@@ -44,6 +44,37 @@ class TestImageView(PlotWidgetTestCase):
     def _createPlot(self):
         return ImageView()
 
+    def testSetImage(self):
+        """Test setImage"""
+        image = numpy.arange(100).reshape(10, 10)
+
+        self.plot.setImage(image, reset=True)
+        self.qWait(100)
+        self.assertEqual(self.plot.getXAxis().getLimits(), (0, 10))
+        self.assertEqual(self.plot.getYAxis().getLimits(), (0, 10))
+
+        # With reset=False
+        self.plot.setImage(image[::2, ::2], reset=False)
+        self.qWait(100)
+        self.assertEqual(self.plot.getXAxis().getLimits(), (0, 10))
+        self.assertEqual(self.plot.getYAxis().getLimits(), (0, 10))
+
+        self.plot.setImage(image, origin=(10, 20), scale=(2, 4), reset=False)
+        self.qWait(100)
+        self.assertEqual(self.plot.getXAxis().getLimits(), (0, 10))
+        self.assertEqual(self.plot.getYAxis().getLimits(), (0, 10))
+
+        # With reset=True
+        self.plot.setImage(image, origin=(1, 2), scale=(1, 0.5), reset=True)
+        self.qWait(100)
+        self.assertEqual(self.plot.getXAxis().getLimits(), (1, 11))
+        self.assertEqual(self.plot.getYAxis().getLimits(), (2, 7))
+
+        self.plot.setImage(image[::2, ::2], reset=True)
+        self.qWait(100)
+        self.assertEqual(self.plot.getXAxis().getLimits(), (0, 5))
+        self.assertEqual(self.plot.getYAxis().getLimits(), (0, 5))
+
     def testColormap(self):
         """Test get|setColormap"""
         image = numpy.arange(100).reshape(10, 10)
