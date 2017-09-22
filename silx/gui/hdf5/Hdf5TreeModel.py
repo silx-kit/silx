@@ -224,7 +224,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         self.__animatedIcon.iconChanged.connect(self.__updateLoadingItems)
         self.__runnerSet = set([])
 
-        # store used icons to avoid to avoid the cache to release it
+        # store used icons to avoid the cache to release it
         self.__icons = []
         self.__icons.append(icons.getQIcon("item-0dim"))
         self.__icons.append(icons.getQIcon("item-1dim"))
