@@ -205,7 +205,6 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
     def __init__(self, parent=None):
         super(Hdf5TreeModel, self).__init__(parent)
 
-        self.treeView = parent
         self.header_labels = [None] * len(self.COLUMN_IDS)
         self.header_labels[self.NAME_COLUMN] = 'Name'
         self.header_labels[self.TYPE_COLUMN] = 'Type'
