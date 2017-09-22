@@ -260,14 +260,11 @@ class Backprojection(OpenclProcessing):
         if not(sino.flags["C_CONTIGUOUS"] and sino.dtype == np.float32):
             sino2 = np.ascontiguousarray(sino, dtype=np.float32)
         if self.is_cpu:
-            # TODO this should not be necessary
             return pyopencl.enqueue_copy(
                 self.queue,
                 self.d_sino,
-                sino2,
-                region=self.shape[::-1]
+                sino2
             )
-
         else:
             return pyopencl.enqueue_copy(
                 self.queue,
@@ -280,11 +277,12 @@ class Backprojection(OpenclProcessing):
     def transfer_device_to_texture(self, d_sino):
         if self.is_cpu:
             # TODO this should not be necessary
+            if id(self.d_sino) == id(d_sino):
+                return
             return pyopencl.enqueue_copy(
                 self.queue,
                 self.d_sino,
-                d_sino,
-                region=self.shape[::-1]
+                d_sino
             )
         else:
             return pyopencl.enqueue_copy(
@@ -329,19 +327,15 @@ class Backprojection(OpenclProcessing):
             )
             # Call the kernel
             if self.is_cpu:
-                event_bpj = self.kernels.backproj_cpu_kernel(
-                    self.queue,
-                    self.ndrange,
-                    self.wg,
-                    *kernel_args
-                )
+                kernel_to_call = self.kernels.backproj_cpu_kernel
             else:
-                event_bpj = self.kernels.backproj_kernel(
-                    self.queue,
-                    self.ndrange,
-                    self.wg,
-                    *kernel_args
-                )
+                kernel_to_call = self.kernels.backproj_kernel
+            event_bpj = kernel_to_call(
+                self.queue,
+                self.ndrange,
+                self.wg,
+                *kernel_args
+            )
             if dst is None:
                 self.slice[:] = 0
                 events.append(EventDescription("backprojection", event_bpj))

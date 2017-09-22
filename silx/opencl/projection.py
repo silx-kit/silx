@@ -191,6 +191,9 @@ class Projection(OpenclProcessing):
         self.angles2 = angles2
         pyopencl.enqueue_copy(self.queue, self.cl_mem["d_angles"], angles2)
 
+    def allocate_slice(self):
+            self.add_to_cl_mem({"d_slice": parray.zeros(self.queue, (self.shape[1]+2, self.shape[1]+2), np.float32)})
+
     def allocate_textures(self):
         self.d_image_tex = pyopencl.Image(
                 self.ctx,
@@ -206,14 +209,15 @@ class Projection(OpenclProcessing):
         if not(image.flags["C_CONTIGUOUS"] and image.dtype == np.float32):
             image2 = np.ascontiguousarray(image)
         if self.is_cpu:
-            return pyopencl.enqueue_copy(
-                       self.queue,
-                       self.cl_mem["d_slice"],
-                       image2,
-                       origin=(1, 1),
-                       region=image.shape[::-1]
-                   )
-
+            # TODO: create NoneEvent
+            return self.transfer_to_slice(image2)
+            #~ return pyopencl.enqueue_copy(
+                       #~ self.queue,
+                       #~ self.cl_mem["d_slice"].data,
+                       #~ image2,
+                       #~ origin=(1, 1),
+                       #~ region=image.shape[::-1]
+                   #~ )
         else:
             return pyopencl.enqueue_copy(
                        self.queue,
@@ -226,13 +230,7 @@ class Projection(OpenclProcessing):
     def transfer_device_to_texture(self, d_image):
         if self.is_cpu:
             # TODO this copy should not be necessary
-            return pyopencl.enqueue_copy(
-                self.queue,
-                self.cl_mem["d_slice"],
-                d_image,
-                origin=(1, 1),
-                region=self.shape[::-1]
-            )
+            return self.cpy2d_to_slice(d_image)
         else:
             return pyopencl.enqueue_copy(
                 self.queue,
@@ -242,9 +240,6 @@ class Projection(OpenclProcessing):
                 origin=(1, 1),
                 region=self.shape[::-1]
             )
-
-    def allocate_slice(self):
-            self.add_to_cl_mem({"d_slice": parray.zeros(self.queue, (self.shape[1]+2, self.shape[1]+2), np.float32)})
 
     def transfer_to_slice(self, image):
         image2 = np.zeros((image.shape[0]+2, image.shape[1]+2), dtype=np.float32)
@@ -328,6 +323,24 @@ class Projection(OpenclProcessing):
         )
         return self.kernels.cpy2d(self.queue, ndrange, wg, *kernel_args)
 
+    def cpy2d_to_slice(self, src):
+        """
+        copy a Nx * Ny slice to self.d_slice which is (Nx+2)*(Ny+2)
+        """
+        ndrange = self.shape[::-1]
+        wg = None
+        slice_shape_ocl = np.int32(ndrange)
+        kernel_args = (
+            self.cl_mem["d_slice"].data,
+            src,
+            np.int32(self.shape[1]+2),
+            np.int32(self.shape[1]),
+            np.int32((1, 1)),
+            np.int32((0, 0)),
+            slice_shape_ocl
+        )
+        return self.kernels.cpy2d(self.queue, ndrange, wg, *kernel_args)
+
 
     def projection(self, image=None, dst=None):
         """Perform the projection on an input image
@@ -348,7 +361,10 @@ class Projection(OpenclProcessing):
                     self.transfer_to_slice(image)
                     slice_ref = self.cl_mem["d_slice"].data
             else:
-                slice_ref = self.d_image_tex
+                if self.is_cpu:
+                    slice_ref = self.cl_mem["d_slice"].data
+                else:
+                    slice_ref = self.d_image_tex
 
             kernel_args = (
                 self._d_sino,

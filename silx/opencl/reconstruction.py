@@ -201,6 +201,7 @@ class SIRT(ReconstructionAlgorithm):
         d_R = self.d_R
         d_C = self.d_C
         d_sino = self.d_sino
+        d_x *= 0
 
         for k in range(n_it):
             d_x_old[:] = d_x[:]
@@ -323,6 +324,10 @@ class TV(ReconstructionAlgorithm):
         d_p = self.d_p
         d_q = self.d_q
         d_g = self.d_g
+
+        d_x *= 0
+        d_p *= 0
+        d_q *= 0
 
         for k in range(0, n_it):
             # Update primal variables
