@@ -8,7 +8,10 @@
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
+# copies of the Software, and to permit persons to whom 
+
+
+the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in
@@ -73,30 +76,36 @@ class Backprojection(OpenclProcessing):
     if _has_pyfft:
         kernel_files.append("backproj_helper.cl")
 
-    def __init__(self, sino_shape, slice_shape=None, axis_position=None, angles=None, filter_name=None,
-                 ctx=None, devicetype="all", platformid=None, deviceid=None,
-                 profile=False
-                 ):
+    def __init__(self, sino_shape, slice_shape=None, axis_position=None,
+                 angles=None, filter_name=None, ctx=None, devicetype="all",
+                 platformid=None, deviceid=None, profile=False):
         """Constructor of the OpenCL (filtered) backprojection
 
-        :param sino_shape: shape of the sinogram. The sinogram is in the format (n_b, n_a) where
-                      n_b is the number of detector bins and n_a is the number of angles.
-        :param slice_shape: Optional, shape of the reconstructed slice. By default, it is a
-                    square slice where the dimension is the "x dimension" of the sinogram (number
-                    of bins).
-        :param axis_position: Optional, axis position. Default is `(shape[1]-1)/2.0`.
+        :param sino_shape: shape of the sinogram. The sinogram is in the format
+                           (n_b, n_a) where n_b is the number of detector bins
+                           and n_a is the number of angles.
+        :param slice_shape: Optional, shape of the reconstructed slice. By
+                            default, it is a square slice where the dimension
+                            is the "x dimension" of the sinogram (number of
+                            bins).
+        :param axis_position: Optional, axis position. Default is
+                              `(shape[1]-1)/2.0`.
         :param angles: Optional, a list of custom angles in radian.
-        :param filter_name: Optional, name of the filter for FBP. Default is the Ram-Lak filter.
+        :param filter_name: Optional, name of the filter for FBP. Default is
+                            the Ram-Lak filter.
         :param ctx: actual working context, left to None for automatic
                     initialization from device type or platformid/deviceid
         :param devicetype: type of device, can be "CPU", "GPU", "ACC" or "ALL"
-        :param platformid: integer with the platform_identifier, as given by clinfo
+        :param platformid: integer with the platform_identifier, as given by
+                           clinfo
         :param deviceid: Integer with the device identifier, as given by clinfo
-        :param profile: switch on profiling to be able to profile at the kernel level,
-                        store profiling elements (makes code slightly slower)
+        :param profile: switch on profiling to be able to profile at the kernel
+                        level, store profiling elements (makes code slightly
+                        slower)
         """
-        # OS X enforces a workgroup size of 1 when the kernel has synchronization barriers
-        # if sys.platform.startswith('darwin'): # assuming no discrete GPU
+        # OS X enforces a workgroup size of 1 when the kernel has
+        # synchronization barriers if sys.platform.startswith('darwin'):
+        #  assuming no discrete GPU
         #    raise NotImplementedError("Backprojection is not implemented on CPU for OS X yet")
 
         OpenclProcessing.__init__(self, ctx=ctx, devicetype=devicetype,
@@ -165,9 +174,13 @@ class Backprojection(OpenclProcessing):
         pyopencl.enqueue_copy(self.queue, self.cl_mem["d_cos"], h_cos)
         pyopencl.enqueue_copy(self.queue, self.cl_mem["d_sin"], h_sin)
         if self.axis_array:
-            pyopencl.enqueue_copy(self.queue, self.cl_mem["d_axes"], self.axis_array.astype(np.float32))
+            pyopencl.enqueue_copy(self.queue,
+                                  self.cl_mem["d_axes"],
+                                  self.axis_array.astype(np.float32))
         else:
-            pyopencl.enqueue_copy(self.queue, self.cl_mem["d_axes"], np.ones(self.num_projs, dtype=np.float32) * self.axis_pos)
+            pyopencl.enqueue_copy(self.queue,
+                                  self.cl_mem["d_axes"],
+                                  np.ones(self.num_projs, dtype=np.float32) * self.axis_pos)
 
     def allocate_textures(self):
         """
@@ -180,14 +193,13 @@ class Backprojection(OpenclProcessing):
                                                              pyopencl.channel_order.INTENSITY,
                                                              pyopencl.channel_type.FLOAT
                                                             ),
-                                        # shape=(self.shape[1], self.shape[0]) # why is it not working ?
                                         hostbuf=np.zeros(self.shape[::-1], dtype=np.float32)
                                         )
-        # self.d_sino_tex = pyopencl.image_from_array(self.ctx, np.ones(self.shape, dtype=np.float32), 1)
 
     def compute_fft_plans(self):
         """
-        If pyfft is installed, prepare a batched 1D FFT plan for the filtering of FBP
+        If pyfft is installed, prepare a batched 1D FFT plan for the filtering
+        of FBP
 
         """
         self.fft_size = nextpow2(self.num_bins * 2 - 1)
@@ -195,7 +207,9 @@ class Backprojection(OpenclProcessing):
             logger.debug("pyfft is available. Computing FFT plans...")
             # batched 1D transform
             self.pyfft_plan = pyfft_Plan(self.fft_size, queue=self.queue)
-            self.d_sino_z = parray.zeros(self.queue, (self.num_projs, self.fft_size), dtype=np.complex64)
+            self.d_sino_z = parray.zeros(self.queue,
+                                         (self.num_projs, self.fft_size),
+                                         dtype=np.complex64)
             logger.debug("... done")
         else:
             logger.debug("pyfft not available, using numpy.fft")
@@ -291,7 +305,6 @@ class Backprojection(OpenclProcessing):
 
         :param sino: sinogram. If provided, it returns the plain backprojection.
         :param dst: destination (pyopencl.Array). If provided, the result will be written in this array.
-
         :return: backprojection of sinogram
         """
         events = []
@@ -335,7 +348,8 @@ class Backprojection(OpenclProcessing):
             if dst is None:
                 self.slice[:] = 0
                 events.append(EventDescription("backprojection", event_bpj))
-                ev = pyopencl.enqueue_copy(self.queue, self.slice, self.cl_mem["_d_slice"])
+                ev = pyopencl.enqueue_copy(self.queue, self.slice,
+                                           self.cl_mem["_d_slice"])
                 events.append(EventDescription("copy D->H result", ev))
                 ev.wait()
                 res = np.copy(self.slice)
@@ -350,20 +364,19 @@ class Backprojection(OpenclProcessing):
                 ev.wait()
                 res = dst
 
-
         # /with self.sem
         if self.profile:
             self.events += events
 
         return res
 
-
     def filter_projections(self, sino, rescale=True):
         """
         Performs the FBP on a given sinogram.
 
         :param sinogram: sinogram to (filter-)backproject
-        :param rescale: if True (default), the sinogram is multiplied with (pi/n_projs)
+        :param rescale: if True (default), the sinogram is multiplied with
+                        (pi/n_projs)
         """
         if sino.shape[0] != self.num_projs or sino.shape[1] != self.num_bins:
             raise ValueError("Expected sinogram with (projs, bins) = (%d, %d)" % (self.num_projs, self.num_bins))
@@ -412,23 +425,26 @@ class Backprojection(OpenclProcessing):
             # ------
         else:  # no pyfft
             # Zero-padding of the sinogram
-            sino_zeropadded = np.zeros((sino.shape[0], self.fft_size), dtype=np.complex64)
+            sino_zeropadded = np.zeros((sino.shape[0],
+                                        self.fft_size),
+                                       dtype=np.complex64)
             sino_zeropadded[:, :self.num_bins] = sino.astype(np.float32)
             # Linear convolution
             sino_f = np.fft.fft(sino, self.fft_size)
             sino_f = sino_f * self.filter
             sino_filtered = np.fft.ifft(sino_f)[:, :self.num_bins].real
             # Send the filtered sinogram to device
-            sino_filtered = np.ascontiguousarray(sino_filtered, dtype=np.float32)
+            sino_filtered = np.ascontiguousarray(sino_filtered,
+                                                 dtype=np.float32)
             with self.sem:
                 pyopencl.enqueue_copy(self.queue, self.d_sino, sino_filtered)
-
 
     def filtered_backprojection(self, sino):
         """
         Compute the filtered backprojection (FBP) on a sinogram.
 
-        :param sino: sinogram (`numpy.ndarray`) in the format (projections, bins)
+        :param sino: sinogram (`numpy.ndarray`) in the format (projections,
+                     bins)
         """
 
         self.filter_projections(sino)

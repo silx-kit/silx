@@ -33,6 +33,7 @@
 """
 
 import collections
+import datetime
 import logging
 import numbers
 
@@ -41,6 +42,7 @@ import numpy
 
 from . import commonh5
 from silx.third_party import six
+from silx import version as silx_version
 
 _logger = logging.getLogger(__name__)
 
@@ -647,7 +649,10 @@ class File(commonh5.File):
         elif fabio_image is not None:
             self.__fabio_image = fabio_image
             file_name = self.__fabio_image.filename
-        attrs = {"NX_class": "NXroot"}
+        attrs = {"NX_class": "NXroot",
+                 "file_time": datetime.datetime.now().isoformat(),
+                 "file_name": file_name,
+                 "creator": "silx %s" % silx_version}
         commonh5.File.__init__(self, name=file_name, attrs=attrs)
         self.__fabio_reader = self.create_fabio_reader(self.__fabio_image)
         scan = self.create_scan_group(self.__fabio_image, self.__fabio_reader)

@@ -29,6 +29,8 @@ import os
 import argparse
 from glob import glob
 import logging
+import numpy
+import silx
 
 
 __authors__ = ["P. Knobel"]
@@ -53,10 +55,12 @@ def main(argv):
         nargs="+",
         help='Input files (EDF, SPEC)')
     parser.add_argument(
-        '-o', '--output-file',
+        '-o', '--output-uri',
         nargs="?",
         help='Output file (HDF5). If omitted, it will be the '
-             'concatenated input file names, with a ".h5" suffix added.')
+             'concatenated input file names, with a ".h5" suffix added.'
+             ' An URI can be provided to write the data into a specific '
+             'group in the output file: /path/to/file::/path/to/group')
     parser.add_argument(
         '-m', '--mode',
         default="w-",
@@ -65,23 +69,24 @@ def main(argv):
              '"w-" (write, fail if file exists) or '
              '"a" (read/write if exists, create otherwise)')
     parser.add_argument(
-        '--hdf5-path',
-        default="/",
-        help='Path to the group in the output file,'
-             ' where the input is written too.')
-    parser.add_argument(
-        '--create-root-group',
+        '--no-root-group',
         action="store_true",
-        help='Create a root group for each input file, using the input'
-             ' file name as group name. This option can be specified in order'
-             ' to prevent conflicts if two or more input files have datasets'
-             ' with identical names.')
+        help='This option disables the default behavior of creating a '
+             'root group (entry) for each file to be converted. When '
+             'merging multiple input files, this can cause conflicts '
+             'when datasets have the same name (see --overwrite-data).')
     parser.add_argument(
         '--overwrite-data',
         action="store_true",
         help='If the output path exists and an input dataset has the same'
-             ' name as an existing output dataset, the output dataset will'
-             ' be overwritten (in modes "r+" or "a").')
+             ' name as an existing output dataset, overwrite the output '
+             'dataset (in modes "r+" or "a").')
+    parser.add_argument(
+        '--min-size',
+        type=int,
+        default=500,
+        help='Minimum number of elements required to be in a dataset to '
+             'apply compression or chunking (default 500).')
     parser.add_argument(
         '--chunks',
         nargs="?",
@@ -89,16 +94,17 @@ def main(argv):
         help='Chunk shape. Provide an argument that evaluates as a python '
              'tuple (e.g. "(1024, 768)"). If this option is provided without '
              'specifying an argument, the h5py library will guess a chunk for '
-             'you. Note that this chunking applies globally to all datasets in '
-             'all your input files.')
+             'you. Note that if you specify an explicit chunking shape, it '
+             'will be applied identically to all datasets with a large enough '
+             'size (see --min-size). ')
     parser.add_argument(
         '--compression',
         nargs="?",
         const="gzip",
-        help='Compression filter. By default, the output file is not '
-             'compressed. If this option is specified without argument, '
-             'the GZIP compression is used. Additional compression filters '
-             'may be available, depending on your HDF5 installation.')
+        help='Compression filter. By default, the datasets in the output '
+             'file are not compressed. If this option is specified without '
+             'argument, the GZIP compression is used. Additional compression '
+             'filters may be available, depending on your HDF5 installation.')
 
     def check_gzip_compression_opts(value):
         ivalue = int(value)
@@ -128,11 +134,17 @@ def main(argv):
         help='Set logging system in debug mode')
 
     options = parser.parse_args(argv[1:])
-    if sys.platform.startswith("win"):
-        old_input_list = list(options.input_files)
-        options.input_files = []
-        for fname in old_input_list:
-            options.input_files += glob(fname)
+
+    # some shells (windows) don't interpret wildcard characters (*, ?, [])
+    old_input_list = list(options.input_files)
+    options.input_files = []
+    for fname in old_input_list:
+        globbed_files = glob(fname)
+        if not globbed_files:
+            # no files found, keep the name as it is, to raise an error later
+            options.input_files += [fname]
+        else:
+            options.input_files += globbed_files
         old_input_list = None
 
     if options.debug:
@@ -166,12 +178,16 @@ def main(argv):
         _logger.debug(message)
 
     # Test that the output path is writeable
-    if options.output_file is None:
+    if options.output_uri is None:
         input_basenames = [os.path.basename(name) for name in options.input_files]
         output_name = ''.join(input_basenames) + ".h5"
         _logger.info("No output file specified, using %s", output_name)
+        hdf5_path = "/"
     else:
-        output_name = options.output_file
+        if "::" in options.output_uri:
+            output_name, hdf5_path = options.output_uri.split("::")
+        else:
+            output_name, hdf5_path = options.output_uri, "/"
 
     if os.path.isfile(output_name):
         if options.mode == "w-":
@@ -225,6 +241,13 @@ def main(argv):
                 _logger.error("--chunks argument str does not evaluate to a tuple")
                 return -1
             else:
+                nitems = numpy.prod(chunks)
+                nbytes = nitems * 8
+                if nbytes > 10**6:
+                    _logger.warning("Requested chunk size might be larger than"
+                                    " the default 1MB chunk cache, for float64"
+                                    " data. This can dramatically affect I/O "
+                                    "performances.")
                 create_dataset_args["chunks"] = chunks
 
     if options.compression is not None:
@@ -239,15 +262,22 @@ def main(argv):
     if options.fletcher32:
         create_dataset_args["fletcher32"] = True
 
-    # everything is checked, do the work
     with h5py.File(output_name, mode=options.mode) as h5f:
         for input_name in options.input_files:
-            hdf5_path = options.hdf5_path
-            if options.create_root_group:
-                hdf5_path = hdf5_path.rstrip("/") + "/" + os.path.basename(input_name)
+            hdf5_path_for_file = hdf5_path
+            if not options.no_root_group:
+                hdf5_path_for_file = hdf5_path.rstrip("/") + "/" + os.path.basename(input_name)
             write_to_h5(input_name, h5f,
-                        h5path=hdf5_path,
+                        h5path=hdf5_path_for_file,
                         overwrite_data=options.overwrite_data,
-                        create_dataset_args=create_dataset_args)
+                        create_dataset_args=create_dataset_args,
+                        min_size=options.min_size)
+
+            # append the convert command to the creator attribute, for NeXus files
+            creator = h5f[hdf5_path_for_file].attrs.get("creator", b"").decode()
+            convert_command = " ".join(argv)
+            if convert_command not in creator:
+                h5f[hdf5_path_for_file].attrs["creator"] = \
+                    numpy.string_(creator + "; convert command: %s" % " ".join(argv))
 
     return 0

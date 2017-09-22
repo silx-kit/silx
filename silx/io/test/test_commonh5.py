@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "28/08/2017"
+__date__ = "21/09/2017"
 
 import logging
 import numpy
@@ -133,6 +133,34 @@ class TestCommonFeatures(unittest.TestCase):
             classlink = self.h5.get("link/external_link_to_link", getlink=True, getclass=True)
             self.assertEqual(class_, h5py.Dataset)
             self.assertEqual(classlink, h5py.ExternalLink)
+
+    def test_create_groups(self):
+        c = self.h5.create_group(self.id() + "/a/b/c")
+        d = c.create_group("/" + self.id() + "/a/b/d")
+
+        self.assertRaises(ValueError, self.h5.create_group, self.id() + "/a/b/d")
+        self.assertEqual(c.name, "/" + self.id() + "/a/b/c")
+        self.assertEqual(d.name, "/" + self.id() + "/a/b/d")
+
+    def test_setitem_python_object_dataset(self):
+        group = self.h5.create_group(self.id())
+        group["a"] = 10
+        self.assertEqual(group["a"].dtype.kind, "i")
+
+    def test_setitem_numpy_dataset(self):
+        group = self.h5.create_group(self.id())
+        group["a"] = numpy.array([10, 20, 30])
+        self.assertEqual(group["a"].dtype.kind, "i")
+        self.assertEqual(group["a"].shape, (3,))
+
+    def test_setitem_link(self):
+        group = self.h5.create_group(self.id())
+        group["a"] = 10
+        group["b"] = group["a"]
+        self.assertEqual(group["b"].dtype.kind, "i")
+
+    def test_setitem_dataset_is_sub_group(self):
+        self.h5[self.id() + "/a"] = 10
 
 
 class TestCommonFeatures_h5py(TestCommonFeatures):
@@ -250,6 +278,19 @@ class TestSpecificCommonH5(unittest.TestCase):
             self.fail()
         except TypeError:
             pass
+
+    def test_setitem_dataset(self):
+        self.h5 = commonh5.File(name="Foo", mode="w")
+        group = self.h5.create_group(self.id())
+        group["a"] = commonh5.Dataset(None, data=numpy.array(10))
+        self.assertEqual(group["a"].dtype.kind, "i")
+
+    def test_setitem_explicit_link(self):
+        self.h5 = commonh5.File(name="Foo", mode="w")
+        group = self.h5.create_group(self.id())
+        group["a"] = 10
+        group["b"] = commonh5.SoftLink(None, path="/" + self.id() + "/a")
+        self.assertEqual(group["b"].dtype.kind, "i")
 
 
 def suite():
