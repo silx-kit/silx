@@ -218,7 +218,7 @@ class Projection(OpenclProcessing):
 
     def transfer_device_to_texture(self, d_image):
         if self.is_cpu:
-            dst_ref = selc.cl_mem["d_slice"]
+            dst_ref = self.cl_mem["d_slice"]
         else:
             dst_ref = self.d_image_tex
         return pyopencl.enqueue_copy(

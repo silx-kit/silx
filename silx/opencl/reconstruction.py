@@ -120,7 +120,7 @@ class ReconstructionAlgorithm(OpenclProcessing):
         """
         Backproject d_sino to d_slice
         """
-        cl.enqueue_copy(self.queue, self.backprojector.d_sino, d_sino.data) # TODO: more elegant
+        self.backprojector.transfer_device_to_texture(d_sino.data)
         self.backprojector.backprojection(dst=d_slice)
 
 

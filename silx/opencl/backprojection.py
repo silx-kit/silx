@@ -244,6 +244,33 @@ class Backprojection(OpenclProcessing):
         return self.kernels.cpy2d(self.queue, ndrange, wg, *kernel_args)
 
 
+    def transfer_to_texture(self, sino):
+        sino2 = sino
+        if not(sino.flags["C_CONTIGUOUS"] and sino.dtype == np.float32):
+            sino2 = np.ascontiguousarray(sino, dtype=np.float32)
+        return pyopencl.enqueue_copy(
+            self.queue,
+            self.d_sino_tex,
+            sino2,
+            origin=(0, 0),
+            region=self.shape[::-1]
+        )
+
+
+    def transfer_device_to_texture(self, d_sino):
+        if self.is_cpu:
+            dst_ref = self.d_sino
+        else:
+            dst_ref = self.d_sino_tex
+        return pyopencl.enqueue_copy(
+            self.queue,
+            dst_ref,
+            d_sino,
+            offset=0,
+            origin=(0, 0),
+            region=self.shape[::-1]
+        )
+
 
     def backprojection(self, sino=None, dst=None):
         """Perform the backprojection on an input sinogram
@@ -256,38 +283,8 @@ class Backprojection(OpenclProcessing):
         events = []
         with self.sem:
 
-            if sino is not None:
-                assert sino.ndim == 2, "Treat only 2D images"
-                assert sino.shape[0] == self.num_projs, "num_projs is OK"
-                assert sino.shape[1] == self.num_bins, "num_bins is OK"
-                # We can either
-                #  (1) do the conversion on host, and directly send to the device texture, or
-                #  (2) send to the device Buffer d_sino, make the conversion on device, and then transfer to texture
-                # ------
-                # (2) without device conversion
-                pyopencl.enqueue_copy(self.queue, self.d_sino, np.ascontiguousarray(sino, dtype=np.float32))
-                # (1)
-                '''
-                pyopencl.enqueue_copy(
-                    self.queue,
-                    self.d_sino_tex,
-                    np.ascontiguousarray(sino.astype(np.float32)),
-                    origin=(0, 0),
-                    region=(np.int32(sino.shape[1]), np.int32(sino.shape[0]))
-                )
-                '''
-            # /sino is not None
-            # Copy d_sino to texture, for GPU
-            if not(self.is_cpu):
-                ev = pyopencl.enqueue_copy(
-                    self.queue,
-                    self.d_sino_tex,
-                    self.d_sino,
-                    offset=0,
-                    origin=(0, 0),
-                    region=self.shape[::-1]
-                )
-                events.append(EventDescription("Buffer to Image d_sino", ev))
+            if sino is not None: # assuming numpy.ndarray
+                self.transfer_to_texture(sino)
             # Prepare arguments for the kernel call
             if self.is_cpu:
                 d_sino_ref = self.d_sino
@@ -395,6 +392,7 @@ class Backprojection(OpenclProcessing):
                                         np.int32(self.fft_size)
                                         )
                 events.append(EventDescription("conversion from complex padded sinogram to sinogram", ev))
+                events.append(self.transfer_device_to_texture(self.d_sino))
             if self.profile:
                 self.events += events
             # ------
