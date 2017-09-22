@@ -499,6 +499,9 @@ class ImageView(PlotWindow):
                                                data[y][x])
 
         elif eventDict['event'] == 'limitsChanged':
+            self._updateHistogramsLimits()
+
+    def _updateHistogramsLimits(self):
             # Do not handle histograms limitsChanged while
             # updating their limits from here.
             self._updatingLimits = True
@@ -506,7 +509,6 @@ class ImageView(PlotWindow):
             # Refresh histograms
             self._updateHistograms()
 
-            # could use eventDict['xdata'], eventDict['ydata'] instead
             xMin, xMax = self.getXAxis().getLimits()
             yMin, yMax = self.getYAxis().getLimits()
 
@@ -772,7 +774,7 @@ class ImageView(PlotWindow):
                       legend=self._imageLegend,
                       origin=origin, scale=scale,
                       colormap=self.getColormap(),
-                      replace=False)
+                      replace=False, resetzoom=False)
         self.setActiveImage(self._imageLegend)
         self._updateHistograms()
 
@@ -783,6 +785,8 @@ class ImageView(PlotWindow):
 
         if reset:
             self.resetZoom()
+        else:
+            self._updateHistogramsLimits()
 
 
 # ImageViewMainWindow #########################################################
