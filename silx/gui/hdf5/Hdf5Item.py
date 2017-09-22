@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "28/08/2017"
+__date__ = "22/09/2017"
 
 
 import numpy
@@ -240,8 +240,6 @@ class Hdf5Item(Hdf5Node):
                 name = "item-%ddim" % len(obj.shape)
             else:
                 name = "item-ndim"
-            if str(obj.dtype) == "object":
-                name = "item-object"
             icon = icons.getQIcon(name)
             return icon
         return None

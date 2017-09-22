@@ -234,7 +234,6 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         self.__icons.append(icons.getQIcon("item-2dim"))
         self.__icons.append(icons.getQIcon("item-3dim"))
         self.__icons.append(icons.getQIcon("item-ndim"))
-        self.__icons.append(icons.getQIcon("item-object"))
 
         self.__openedFiles = []
         """Store the list of files opened by the model itself."""
