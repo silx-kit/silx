@@ -56,6 +56,7 @@ import numpy
 from .. import qt
 
 from . import items, PlotWindow, PlotWidget, actions
+from .Colormap import Colormap
 from .Colors import cursorColorForColormap
 from .PlotTools import LimitsToolBar
 from .Profile import ProfileToolBar
@@ -695,7 +696,18 @@ class ImageView(PlotWindow):
         """
         cmap = self.getDefaultColormap()
 
-        if isinstance(colormap, dict):
+        if isinstance(colormap, Colormap):
+            # Replace colormap
+            cmap = colormap
+
+            self.setDefaultColormap(cmap)
+
+            # Update active image colormap
+            activeImage = self.getActiveImage()
+            if isinstance(activeImage, items.ColormapMixIn):
+                activeImage.setColormap(cmap)
+
+        elif isinstance(colormap, dict):
             # Support colormap parameter as a dict
             assert normalization is None
             assert autoscale is None
