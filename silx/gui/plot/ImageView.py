@@ -693,7 +693,7 @@ class ImageView(PlotWindow):
         :param numpy.ndarray colors: Only used if name is None.
             Custom colormap colors as Nx3 or Nx4 RGB or RGBA arrays
         """
-        cmapDict = self.getDefaultColormap()
+        cmap = self.getDefaultColormap()
 
         if isinstance(colormap, dict):
             # Support colormap parameter as a dict
@@ -702,32 +702,25 @@ class ImageView(PlotWindow):
             assert vmin is None
             assert vmax is None
             assert colors is None
-            for key, value in colormap.items():
-                cmapDict[key] = value
+            cmap._setFromDict(colormap)
 
         else:
             if colormap is not None:
-                cmapDict['name'] = colormap
+                cmap.setName(colormap)
             if normalization is not None:
-                cmapDict['normalization'] = normalization
-            if autoscale is not None:
-                cmapDict['autoscale'] = autoscale
-            if vmin is not None:
-                cmapDict['vmin'] = vmin
-            if vmax is not None:
-                cmapDict['vmax'] = vmax
+                cmap.setNormalization(normalization)
+            if autoscale:
+                cmap.setVRange(None, None)
+            else:
+                if vmin is not None:
+                    cmap.setVMin(vmin)
+                if vmax is not None:
+                    cmap.setVMax(vmax)
             if colors is not None:
-                cmapDict['colors'] = colors
+                cmap.setColormapLUT(colors)
 
-        cursorColor = cursorColorForColormap(cmapDict['name'])
+        cursorColor = cursorColorForColormap(cmap.getName())
         self.setInteractiveMode('zoom', color=cursorColor)
-
-        self.setDefaultColormap(cmapDict)
-
-        # Update active image colormap
-        activeImage = self.getActiveImage()
-        if isinstance(activeImage, items.ColormapMixIn):
-            activeImage.setColormap(self.getColormap())
 
     def setImage(self, image, origin=(0, 0), scale=(1., 1.),
                  copy=True, reset=True):
