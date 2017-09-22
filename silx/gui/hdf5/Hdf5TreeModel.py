@@ -270,6 +270,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         self.__root.removeChildAtIndex(row)
         self.endRemoveRows()
         if newItem is not None:
+            self.__openedFiles.append(newItem.obj)
             self.beginInsertRows(rootIndex, row, row)
             self.__root.insertChild(row, newItem)
             self.endInsertRows()
