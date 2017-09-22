@@ -235,15 +235,28 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         self.__icons.append(icons.getQIcon("item-ndim"))
         self.__icons.append(icons.getQIcon("item-object"))
 
-        self.__openedFiles=[]
+        self.__openedFiles = []
+        """Store the list of files opened by the model itself."""
+        # FIXME: It should managed one by one by Hdf5Item itself
 
     def __del__(self):
-        self.closeOpened()
-        
-    def closeOpened(self):
-        for obj in self.__openedFiles:
-            obj.close()
-            
+        self._closeOpened()
+        s = super(Hdf5TreeModel, self)
+        if hasattr(s, "__del__"):
+            # else it fail on Python 3
+            s.__del__()
+
+    def _closeOpened(self):
+        """Close files which was opened by this model.
+
+        This function may be removed in the future.
+
+        File are opened by the model when it was inserted using
+        `insertFileAsync`, `insertFile`, `appendFile`."""
+        for h5file in self.__openedFiles:
+            h5file.close()
+        self.__openedFiles = []
+
     def __updateLoadingItems(self, icon):
         for i in range(self.__root.childCount()):
             item = self.__root.child(i)
