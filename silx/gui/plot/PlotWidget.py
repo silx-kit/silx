@@ -2210,7 +2210,7 @@ class PlotWidget(qt.QMainWindow):
         self._sigAxesVisibilityChanged.emit(displayed)
 
     def _isAxesDisplayed(self):
-        return self._backend._isAxesDisplayed()
+        return self._backend.isAxesDisplayed()
 
     @property
     @deprecated(since_version='0.6')
