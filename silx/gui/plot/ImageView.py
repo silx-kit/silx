@@ -34,12 +34,7 @@ Basic usage of :class:`ImageView` is through the following methods:
   default colormap to use and update the currently displayed image.
 - :meth:`ImageView.setImage` to update the displayed image.
 
-The :class:`ImageView` uses :class:`PlotWindow` and also
-exposes :class:`silx.gui.plot.Plot` API for further control
-(plot title, axes labels, adding other images, ...).
-
-For an example of use, see the implementation of :class:`ImageViewMainWindow`,
-and `example/imageview.py`.
+For an example of use, see `imageview.py` in :ref:`sample-code`.
 """
 
 from __future__ import division
@@ -253,6 +248,10 @@ class ImageView(PlotWindow):
 
     Use :meth:`setImage` to control the displayed image.
     This class also provides the :class:`silx.gui.plot.Plot` API.
+
+    The :class:`ImageView` inherits from :class:`.PlotWindow` (which provides
+    the toolbars) and also exposes :class:`.PlotWidget` API for further
+    plot control (plot title, axes labels, aspect ratio, ...).
 
     :param parent: The parent of this widget or None.
     :param backend: The backend to use for the plot (default: matplotlib).
