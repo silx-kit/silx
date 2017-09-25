@@ -43,14 +43,11 @@ __date__ = "25/09/2017"
 __status__ = "production"
 
 
-import os
 import logging
-import threading
-import gc
 import numpy
 from .param import par
 from silx.opencl import ocl, pyopencl
-from .utils import calc_size, get_opencl_code
+from .utils import calc_size
 from ..processing import OpenclProcessing, BufferDescription
 # namedtuple("BufferDescription", ["name", "size", "dtype", "flags"])
 logger = logging.getLogger(__name__)
@@ -121,7 +118,7 @@ class MatchPlan(OpenclProcessing):
                    BufferDescription("Kp_2", self.kpsize, dtype=self.dtype_kp, flags=None),
                    BufferDescription("match", (self.kpsize, 2), dtype=numpy.int32, flags=None),
                    BufferDescription("cnt", 1, numpy.int32, flags=None)]
-        self.allocate_buffers(buffers)
+        self.allocate_buffers(buffers, use_array=True)
 
     def match(self, nkp1, nkp2, raw_results=False):
         """Calculate the matching of 2 keypoint list
@@ -229,12 +226,7 @@ class MatchPlan(OpenclProcessing):
             self.events += [("memset match", ev3),
                             ("memset cnt", ev4), ]
 
-    def reset_timer(self):
-        """
-        Resets the profiling timers
-        """
-        with self.sem:
-            self.events = []
+    reset_timer = OpenclProcessing.reset_log
 
     def set_roi(self, roi):
         """Defines the region of interest

@@ -271,6 +271,13 @@ class OpenclProcessing(object):
         logger.info(os.linesep.join(out))
         return out
 
+    def reset_log(self):
+        """
+        Resets the profiling timers
+        """
+        with self.sem:
+            self.events = []
+
 # This should be implemented by concrete class
 #     def __copy__(self):
 #         """Shallow copy of the object
