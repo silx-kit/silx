@@ -174,6 +174,12 @@ class _ImageComplexData(items.ImageData):
 class _AmplitudeRangeDialog(qt.QDialog):
     """QDialog asking for the amplitude range to display."""
 
+    sigRangeChanged = qt.Signal(tuple)
+    """Signal emitted when the range has changed.
+
+    It provides the new range as a 2-tuple: (max, delta)
+    """
+
     def __init__(self,
                  parent=None,
                  amplitudeRange=None,
@@ -184,7 +190,7 @@ class _AmplitudeRangeDialog(qt.QDialog):
         if amplitudeRange is not None:
             amplitudeRange = min(amplitudeRange), max(amplitudeRange)
         self._amplitudeRange = amplitudeRange
-        self._displayedRange = displayedRange
+        self._defaultDisplayedRange = displayedRange
 
         layout = qt.QFormLayout()
         self.setLayout(layout)
@@ -194,26 +200,16 @@ class _AmplitudeRangeDialog(qt.QDialog):
             layout.addRow(
                 qt.QLabel('Data Amplitude Range: [%g, %g]' % (min_, max_)))
 
-        max_, delta = self._displayedRange
-
         self._maxLineEdit = qt.QLineEdit(parent=self)
         validator = qt.QDoubleValidator(self._maxLineEdit)
         validator.setBottom(0.)
         self._maxLineEdit.setValidator(validator)
         self._maxLineEdit.setAlignment(qt.Qt.AlignRight)
 
-        if max_ is not None:  # Not in autoscale
-            displayedMax = max_
-        elif self._amplitudeRange is not None:  # Autoscale with data
-            displayedMax = self._amplitudeRange[1]
-        else:  # Autoscale without data
-            displayedMax = ''
-        self._maxLineEdit.setText(str(displayedMax))
-        self._maxLineEdit.setEnabled(max_ is not None)
+        self._maxLineEdit.editingFinished.connect(self._rangeUpdated)
         layout.addRow('Displayed Max.:', self._maxLineEdit)
 
         self._autoscale = qt.QCheckBox('autoscale')
-        self._autoscale.setChecked(max_ is None)
         self._autoscale.toggled.connect(self._autoscaleCheckBoxToggled)
         layout.addRow('', self._autoscale)
 
@@ -222,7 +218,7 @@ class _AmplitudeRangeDialog(qt.QDialog):
         validator.setBottom(1.)
         self._deltaLineEdit.setValidator(validator)
         self._deltaLineEdit.setAlignment(qt.Qt.AlignRight)
-        self._deltaLineEdit.setText(str(delta))
+        self._deltaLineEdit.editingFinished.connect(self._rangeUpdated)
         layout.addRow('Displayed delta (log10 unit):', self._deltaLineEdit)
 
         buttons = qt.QDialogButtonBox(self)
@@ -232,7 +228,28 @@ class _AmplitudeRangeDialog(qt.QDialog):
         buttons.rejected.connect(self.reject)
         layout.addRow(buttons)
 
-        self._autoscale.setChecked(self._displayedRange[0] is None)
+        # Set dialog from default values
+        self._resetDialogToDefault()
+
+        self.rejected.connect(self._handleRejected)
+
+    def _resetDialogToDefault(self):
+        """Set Widgets of the dialog from range information
+        """
+        max_, delta = self._defaultDisplayedRange
+
+        if max_ is not None:  # Not in autoscale
+            displayedMax = max_
+        elif self._amplitudeRange is not None:  # Autoscale with data
+            displayedMax = self._amplitudeRange[1]
+        else:  # Autoscale without data
+            displayedMax = ''
+        self._maxLineEdit.setText(str(displayedMax))
+        self._maxLineEdit.setEnabled(max_ is not None)
+
+        self._deltaLineEdit.setText(str(delta))
+
+        self._autoscale.setChecked(self._defaultDisplayedRange[0] is None)
 
     def getRangeInfo(self):
         """Returns the current range as a 2-tuple (max, delta (in log10))"""
@@ -243,13 +260,14 @@ class _AmplitudeRangeDialog(qt.QDialog):
             max_ = float(maxStr) if maxStr else None
         return max_, float(self._deltaLineEdit.text() or 2)
 
-    def exec_(self):
-        """Runs the dialog and returns the range or None if rejected"""
-        result = super(_AmplitudeRangeDialog, self).exec_()
-        if result == qt.QDialog.Rejected:
-            return None
-        else:
-            return self.getRangeInfo()
+    def _handleRejected(self):
+        """Reset range info to default when rejected"""
+        self._resetDialogToDefault()
+        self._rangeUpdated()
+
+    def _rangeUpdated(self):
+        """Handle QLineEdit editing finised"""
+        self.sigRangeChanged.emit(self.getRangeInfo())
 
     def _autoscaleCheckBoxToggled(self, checked):
         """Handle autoscale checkbox state changes"""
@@ -260,6 +278,7 @@ class _AmplitudeRangeDialog(qt.QDialog):
                 max_ = self._amplitudeRange[1]
             self._maxLineEdit.setText(str(max_))
         self._maxLineEdit.setEnabled(not checked)
+        self._rangeUpdated()
 
 
 class _ComplexDataToolButton(qt.QToolButton):
@@ -333,14 +352,18 @@ class _ComplexDataToolButton(qt.QToolButton):
                 parent=self,
                 amplitudeRange=dataRange,
                 displayedRange=self._plot2DComplex._getAmplitudeRangeInfo())
-            rangeInfo = dialog.exec_()
-            if rangeInfo is not None:
-                self._plot2DComplex._setAmplitudeRangeInfo(*rangeInfo)
+            dialog.sigRangeChanged.connect(self._rangeChanged)
+            dialog.exec_()
+            dialog.sigRangeChanged.disconnect(self._rangeChanged)
 
         else:  # update mode
             for mode, _, text in self._MODES:
                 if actionText == text:
                     self._plot2DComplex.setVisualizationMode(mode)
+
+    def _rangeChanged(self, range_):
+        """Handle updates of range in the dialog"""
+        self._plot2DComplex._setAmplitudeRangeInfo(*range_)
 
 
 class ComplexImageView(qt.QWidget):
