@@ -60,7 +60,8 @@ It is a common analogy to compare a HDF5 file to a filesystem.
 Groups are analogous to directories, while datasets are analogous to files,
 and attributes are analogous to file metadata (creation date, last modification...).
 
-.. todo: add an image to illustrate the filesystem analogy
+.. image:: img/silx_view_edf.png
+    :width: 400px
 
 
 h5py
