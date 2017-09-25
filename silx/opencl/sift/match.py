@@ -46,7 +46,7 @@ __status__ = "production"
 import logging
 import numpy
 from .param import par
-from silx.opencl import ocl, pyopencl
+from ..common import pyopencl, kernel_workgroup_size
 from .utils import calc_size
 from ..processing import OpenclProcessing, BufferDescription
 # namedtuple("BufferDescription", ["name", "size", "dtype", "flags"])
@@ -119,6 +119,9 @@ class MatchPlan(OpenclProcessing):
                    BufferDescription("match", (self.kpsize, 2), dtype=numpy.int32, flags=None),
                    BufferDescription("cnt", 1, numpy.int32, flags=None)]
         self.allocate_buffers(buffers, use_array=True)
+        self.kernel_size = {}
+        for name, kernel in self.kernels.get_kernels().items():
+            self.kernel_size[name] = kernel_workgroup_size(self.program, kernel)
 
     def match(self, nkp1, nkp2, raw_results=False):
         """Calculate the matching of 2 keypoint list
@@ -140,10 +143,10 @@ class MatchPlan(OpenclProcessing):
 
                 kpt1_gpu = nkp1
             else:
-                if nkp1.size > self.buffers["Kp_1"].size:
+                if nkp1.size > self.cl_mem["Kp_1"].size:
                     logger.warning("increasing size of keypoint vector 1 to %i" % nkp1.size)
-                    self.buffers["Kp_1"] = pyopencl.array.empty(self.queue, (nkp1.size,), dtype=self.dtype_kp)
-                kpt1_gpu = self.buffers["Kp_1"]
+                    self.cl_mem["Kp_1"] = pyopencl.array.empty(self.queue, (nkp1.size,), dtype=self.dtype_kp)
+                kpt1_gpu = self.cl_mem["Kp_1"]
                 self._reset_buffer1()
                 evt1 = pyopencl.enqueue_copy(self.queue, kpt1_gpu.data, nkp1)
                 if self.profile:
@@ -152,36 +155,36 @@ class MatchPlan(OpenclProcessing):
             if isinstance(nkp2, pyopencl.array.Array):
                 kpt2_gpu = nkp2
             else:
-                if nkp2.size > self.buffers["Kp_2"].size:
+                if nkp2.size > self.cl_mem["Kp_2"].size:
                     logger.warning("increasing size of keypoint vector 2 to %i" % nkp2.size)
-                    self.buffers["Kp_2"] = pyopencl.array.empty(self.queue, (nkp2.size,), dtype=self.dtype_kp)
-                kpt2_gpu = self.buffers["Kp_2"]
+                    self.cl_mem["Kp_2"] = pyopencl.array.empty(self.queue, (nkp2.size,), dtype=self.dtype_kp)
+                kpt2_gpu = self.cl_mem["Kp_2"]
                 self._reset_buffer2()
                 evt2 = pyopencl.enqueue_copy(self.queue, kpt2_gpu.data, nkp2)
                 if self.profile:
                     self.events.append(("copy H->D KP_2", evt2))
 
-            if min(kpt1_gpu.size, kpt2_gpu.size) > self.buffers["match"].shape[0]:
+            if min(kpt1_gpu.size, kpt2_gpu.size) > self.cl_mem["match"].shape[0]:
                 self.kpsize = min(kpt1_gpu.size, kpt2_gpu.size)
-                self.buffers["match"] = pyopencl.array.empty(self.queue, (self.kpsize, 2), dtype=numpy.int32)
+                self.cl_mem["match"] = pyopencl.array.empty(self.queue, (self.kpsize, 2), dtype=numpy.int32)
             self._reset_output()
-            wg = self.kernel_size[self.matching_kernel + ".matching"]
+            wg = self.kernel_size["matching"]
             size = calc_size((nkp1.size,), (wg,))
-            evt = self.programs[self.matching_kernel].matching(self.queue, size, (wg,),
-                                                               kpt1_gpu.data,
-                                                               kpt2_gpu.data,
-                                                               self.buffers["match"].data,
-                                                               self.buffers["cnt"].data,
-                                                               numpy.int32(self.kpsize),
-                                                               numpy.float32(par.MatchRatio * par.MatchRatio),
-                                                               numpy.int32(nkp1.size),
-                                                               numpy.int32(nkp2.size))
+            evt = self.kernels.matching(self.queue, size, (wg,),
+                                        kpt1_gpu.data,
+                                        kpt2_gpu.data,
+                                        self.cl_mem["match"].data,
+                                        self.cl_mem["cnt"].data,
+                                        numpy.int32(self.kpsize),
+                                        numpy.float32(par.MatchRatio * par.MatchRatio),
+                                        numpy.int32(nkp1.size),
+                                        numpy.int32(nkp2.size))
             if self.profile:
                 self.events.append(("matching", evt))
-            size = self.buffers["cnt"].get()[0]
+            size = self.cl_mem["cnt"].get()[0]
             match = numpy.empty(shape=(size, 2), dtype=numpy.int32)
             if size > 0:
-                cpyD2H = pyopencl.enqueue_copy(self.queue, match, self.buffers["match"].data)
+                cpyD2H = pyopencl.enqueue_copy(self.queue, match, self.cl_mem["match"].data)
             if self.profile:
                 self.events.append(("copy D->H match", cpyD2H))
             if raw_results:
@@ -202,26 +205,26 @@ class MatchPlan(OpenclProcessing):
         self._reset_output()
 
     def _reset_buffer1(self):
-        wg = self.kernel_size["memset.memset_kp"]
-        size = calc_size((self.buffers["Kp_1"].size,), (wg,))
-        ev1 = self.programs["memset"].memset_kp(self.queue, size, (wg,),
-                                                self.buffers["Kp_1"].data, numpy.float32(-1.0), numpy.uint8(0), numpy.int32(self.buffers["Kp_1"].size))
+        wg = self.kernel_size["memset_kp"]
+        size = calc_size((self.cl_mem["Kp_1"].size,), (wg,))
+        ev1 = self.kernels.memset_kp(self.queue, size, (wg,),
+                                     self.cl_mem["Kp_1"].data, numpy.float32(-1.0), numpy.uint8(0), numpy.int32(self.cl_mem["Kp_1"].size))
         if self.profile:
             self.events.append(("memset Kp1", ev1))
 
     def _reset_buffer2(self):
-        wg = self.kernel_size["memset.memset_kp"]
-        size = calc_size((self.buffers["Kp_2"].size,), (wg,))
-        ev2 = self.programs["memset"].memset_kp(self.queue, size, (wg,),
-                                                self.buffers["Kp_2"].data, numpy.float32(-1.0), numpy.uint8(0), numpy.int32(self.buffers["Kp_2"].size))
+        wg = self.kernel_size["memset_kp"]
+        size = calc_size((self.cl_mem["Kp_2"].size,), (wg,))
+        ev2 = self.kernels.memset_kp(self.queue, size, (wg,),
+                                     self.cl_mem["Kp_2"].data, numpy.float32(-1.0), numpy.uint8(0), numpy.int32(self.cl_mem["Kp_2"].size))
         if self.profile:
             self.events.append(("memset Kp2", ev2))
 
     def _reset_output(self):
-        ev3 = self.programs["memset"].memset_int(self.queue, calc_size((self.buffers["match"].size,), (self.kernel_size["memset"],)), (self.kernel_size["memset"],),
-                                                 self.buffers["match"].data, numpy.int32(-1), numpy.int32(self.buffers["match"].size))
-        ev4 = self.programs["memset"].memset_int(self.queue, (1,), (1,),
-                                                 self.buffers["cnt"].data, numpy.int32(0), numpy.int32(1))
+        ev3 = self.kernels.memset_int(self.queue, calc_size((self.cl_mem["match"].size,), (self.kernel_size["memset_int"],)), (self.kernel_size["memset_int"],),
+                                      self.cl_mem["match"].data, numpy.int32(-1), numpy.int32(self.cl_mem["match"].size))
+        ev4 = self.kernels.memset_int(self.queue, (1,), (1,),
+                                      self.cl_mem["cnt"].data, numpy.int32(0), numpy.int32(1))
         if self.profile:
             self.events += [("memset match", ev3),
                             ("memset cnt", ev4), ]
@@ -236,14 +239,14 @@ class MatchPlan(OpenclProcessing):
         """
         with self.sem:
             self.roi = numpy.ascontiguousarray(roi, numpy.int8)
-            self.buffers["ROI"] = pyopencl.array.to_device(self.queue, self.roi)
+            self.cl_mem["ROI"] = pyopencl.array.to_device(self.queue, self.roi)
 
     def unset_roi(self):
         """Unset the region of interest
         """
         with self.sem:
             self.roi = None
-            self.buffers["ROI"] = None
+            self.cl_mem["ROI"] = None
 
 
 def match_py(nkp1, nkp2, raw_results=False):

@@ -63,8 +63,8 @@
 
 
 kernel void matching(
-	global t_keypoint* keypoints1,
-	global t_keypoint* keypoints2,
+	global featured_keypoint* keypoints1,
+	global featured_keypoint* keypoints2,
 	global int2* matchings,
 	global int* counter,
 	int max_nb_match,
@@ -83,27 +83,35 @@ kernel void matching(
 	//pre-fetch
 	uchar4 desc1[32];
 	for (int i = 0; i<32; i++)
-		desc1[i] = (uchar4) (((keypoints1[gid0]).desc)[4*i], ((keypoints1[gid0]).desc)[4*i+1], ((keypoints1[gid0]).desc)[4*i+2],
-		((keypoints1[gid0]).desc)[4*i+3]);
+		desc1[i] = (uchar4) (((keypoints1[gid0]).desc)[4*i],
+		                     ((keypoints1[gid0]).desc)[4*i+1],
+		                     ((keypoints1[gid0]).desc)[4*i+2],
+		                     ((keypoints1[gid0]).desc)[4*i+3]);
 
 	//each thread gid0 makes a loop on the second list
 	for (int i = 0; i<size2; i++) {
 
 		//L1 distance between desc1[gid0] and desc2[i]
 		int dist = 0;
-		for (int j=0; j<32; j++) { //1 thread handles 4 values
+		for (int j=0; j<32; j++)
+		{ //1 thread handles 4 values
 			uchar4 dval1 = desc1[j];
-			uchar4 dval2 = (uchar4) (((keypoints2[i]).desc)[4*j], ((keypoints2[i]).desc)[4*j+1],((keypoints2[i]).desc)[4*j+2],((keypoints2[i]).desc)[4*j+3]);
+			uchar4 dval2 = (uchar4) (((keypoints2[i]).desc)[4*j],
+			                        ((keypoints2[i]).desc)[4*j+1],
+			                        ((keypoints2[i]).desc)[4*j+2],
+			                        ((keypoints2[i]).desc)[4*j+3]);
 			dist += ABS4(dval1,dval2);
 
 		}
 		
-		if (dist < dist1) { //candidate better than the first
+		if (dist < dist1)
+		{ //candidate better than the first
 			dist2 = dist1;
 			dist1 = dist;
 			current_min = i;
 		}
-		else if (dist < dist2) { //candidate better than the second (but not the first)
+		else if (dist < dist2)
+		{ //candidate better than the second (but not the first)
 			dist2 = dist;
 		}
 		
@@ -146,8 +154,8 @@ kernel void matching(
 
 
 kernel void matching_valid(
-	global t_keypoint* keypoints1,
-	global t_keypoint* keypoints2,
+	global featured_keypoint* keypoints1,
+	global featured_keypoint* keypoints2,
 	global char* valid,
 	int roi_width,
 	int roi_height,
@@ -166,16 +174,18 @@ kernel void matching_valid(
 	int current_min = 0;
 	int old;
 
-	keypoint kp = keypoints1[gid0].kp;
-	int c = kp.s0, r = kp.s1;
+	actual_keypoint kp = keypoints1[gid0].keypoint;
+	int c = kp.col, r = kp.row;
 	//processing only valid keypoints
 	if (r < roi_height && c < roi_width && valid[r*roi_width+c] == 0) return;
 
 	//pre-fetch
 	uchar4 desc1[32];
 	for (int i = 0; i<32; i++)
-		desc1[i] = (uchar4) (((keypoints1[gid0]).desc)[4*i], ((keypoints1[gid0]).desc)[4*i+1], ((keypoints1[gid0]).desc)[4*i+2],
-		((keypoints1[gid0]).desc)[4*i+3]);
+		desc1[i] = (uchar4) (((keypoints1[gid0]).desc)[4*i],
+		                     ((keypoints1[gid0]).desc)[4*i+1],
+		                     ((keypoints1[gid0]).desc)[4*i+2],
+		                     ((keypoints1[gid0]).desc)[4*i+3]);
 
 	//each thread gid0 makes a loop on the second list
 	for (int i = 0; i<size2; i++) {
@@ -183,11 +193,16 @@ kernel void matching_valid(
 		//L1 distance between desc1[gid0] and desc2[i]
 		int dist = 0;
 		for (int j=0; j<32; j++) { //1 thread handles 4 values
-			kp = keypoints2[i].kp;
-			c = kp.s0, r = kp.s1;
-			if (r < roi_height && c < roi_width && valid[r*roi_width+c] != 0) {
+			kp = keypoints2[i].keypoint;
+			c = kp.col;
+			r = kp.row;
+			if (r < roi_height && c < roi_width && valid[r*roi_width+c] != 0)
+			{
 				uchar4 dval1 = desc1[j];
-				uchar4 dval2 = (uchar4) (((keypoints2[i]).desc)[4*j], ((keypoints2[i]).desc)[4*j+1],((keypoints2[i]).desc)[4*j+2],((keypoints2[i]).desc)[4*j+3]);
+				uchar4 dval2 = (uchar4) (((keypoints2[i]).desc)[4*j],
+				                        ((keypoints2[i]).desc)[4*j+1],
+				                        ((keypoints2[i]).desc)[4*j+2],
+				                        ((keypoints2[i]).desc)[4*j+3]);
 				dist += ABS4(dval1,dval2);
 			}
 		}
@@ -203,7 +218,8 @@ kernel void matching_valid(
 		
 	}//end "i loop"
 
-	if (dist2 != 0 && dist1/dist2 < ratio_th) {
+	if (dist2 != 0 && dist1/dist2 < ratio_th)
+	{
 		int2 pair = 0;
 		pair.s0 = gid0;
 		pair.s1 = current_min;
@@ -256,8 +272,8 @@ kernel void matching_valid(
 
 
 kernel void matching_v2(
-	global t_keypoint* keypoints1,
-	global t_keypoint* keypoints2,
+	global featured_keypoint* keypoints1,
+	global featured_keypoint* keypoints2,
 	global int2* matchings,
 	global int* counter,
 	int max_nb_keypoints,
@@ -284,7 +300,7 @@ kernel void matching_v2(
 	barrier(CLK_LOCAL_MEM_FENCE);
 	int frac = (end >> 6)+1; //fraction of the list that will be processed by a thread
 	int low_bound = lid0*frac;
-	int up_bound = MIN(low_bound+frac,end);
+	int up_bound = min(low_bound+frac,end);
 	for (int i = low_bound; i<up_bound; i++) {
 		unsigned int dist = 0;
 		for (int j=0; j<128; j++) {
