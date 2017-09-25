@@ -335,6 +335,10 @@ class ImageData(ImageBase, ColormapMixIn):
             _logger.warning(
                 'Converting boolean image to uint8 to plot it.')
             data = numpy.array(data, copy=False, dtype=numpy.uint8)
+        elif numpy.issubdtype(data.dtype, numpy.complex):
+            _logger.warning(
+                'Converting complex image to absolute value to plot it.')
+            data = numpy.absolute(data)
         self._data = data
 
         if alternative is not None:

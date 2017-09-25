@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -259,6 +259,16 @@ class TestPlotImage(PlotWidgetTestCase, ParametricTestCase):
             'vmax': None
         }
         self.plot.addImage(DATA_2D, legend="image 1", colormap=colormap)
+
+    def testPlotComplexImage(self):
+        """Test that a complex image is displayed as its absolute value."""
+        data = numpy.linspace(1, 1j, 100).reshape(10, 10)
+        self.plot.addImage(data, legend='complex')
+
+        image = self.plot.getActiveImage()
+        retrievedData = image.getData(copy=False)
+        self.assertTrue(
+            numpy.all(numpy.equal(retrievedData, numpy.absolute(data))))
 
 
 class TestPlotCurve(PlotWidgetTestCase):
