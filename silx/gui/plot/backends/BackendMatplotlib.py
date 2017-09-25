@@ -113,10 +113,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self._graphCursor = tuple()
         self.matplotlibVersion = matplotlib.__version__
 
-        self.setGraphXLimits(0., 100.)
-        self.setGraphYLimits(0., 100., axis='right')
-        self.setGraphYLimits(0., 100., axis='left')
-
         self._enableAxis('right', False)
 
     # Add methods

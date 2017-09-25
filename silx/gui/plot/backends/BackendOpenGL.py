@@ -365,11 +365,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             super(BackendOpenGL, self).postRedisplay,
             qt.Qt.QueuedConnection)
 
-        # TODO is this needed? move it Plot?
-        self.setGraphXLimits(0., 100.)
-        self.setGraphYLimits(0., 100., axis='right')
-        self.setGraphYLimits(0., 100., axis='left')
-
         self.setAutoFillBackground(False)
         self.setMouseTracking(True)
 

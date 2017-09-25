@@ -431,6 +431,11 @@ class PlotWidget(qt.QMainWindow):
         self.setFocusPolicy(qt.Qt.StrongFocus)
         self.setFocus(qt.Qt.OtherFocusReason)
 
+        # Set default limits
+        self.setGraphXLimits(0., 100.)
+        self.setGraphYLimits(0., 100., axis='right')
+        self.setGraphYLimits(0., 100., axis='left')
+
     @staticmethod
     def setDefaultBackend(backend):
         """Set system wide default plot backend.
