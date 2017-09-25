@@ -40,7 +40,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "15/03/2017"
+__date__ = "25/09/2017"
 
 import os
 import unittest
@@ -123,6 +123,7 @@ class test_keypoints(ParameterisedTestCase):
             # for very old versions of scipy
             self.testdata = scipy.misc.lena()
 
+        kernel_base = get_opencl_code(os.path.join("sift", "sift"))
         for kernel_file in self.param:
             if "cpu" in kernel_file:
                 self.USE_CPU = True
@@ -134,7 +135,7 @@ class test_keypoints(ParameterisedTestCase):
                 for i in self.wg_orient:
                     prod_wg *= i
 
-                kernel_src = get_opencl_code(os.path.join("sift", kernel_file))
+                kernel_src = kernel_base + get_opencl_code(os.path.join("sift", kernel_file))
                 try:
                     self.program_orient = pyopencl.Program(self.ctx, kernel_src).build()
                 except:
@@ -143,7 +144,7 @@ class test_keypoints(ParameterisedTestCase):
                     return
             elif kernel_file.startswith("keypoint"):
                 self.wg_keypoint = self.param[kernel_file]
-                kernel_src = get_opencl_code(os.path.join("sift", kernel_file))
+                kernel_src = kernel_base + get_opencl_code(os.path.join("sift", kernel_file))
                 prod_wg = 1
                 for i in self.wg_keypoint:
                     prod_wg *= i
@@ -178,7 +179,7 @@ class test_keypoints(ParameterisedTestCase):
 
         # Prepare kernel call
         wg = self.wg_orient
-        max_wg = kernel_workgroup_size(self.program_orient,"orientation_assignment")
+        max_wg = kernel_workgroup_size(self.program_orient, "orientation_assignment")
         if max_wg < wg[0]:
             logger.warning("test_orientation: Skipping test of WG=%s when maximum for this kernel is %s ", wg, max_wg)
             return
@@ -255,7 +256,7 @@ class test_keypoints(ParameterisedTestCase):
             shape = keypoints.shape[0] * wg[0],
         else:
             shape = keypoints.shape[0] * wg[0], wg[1], wg[2]
-        max_wg = kernel_workgroup_size(self.program_keypoint,"descriptor")
+        max_wg = kernel_workgroup_size(self.program_keypoint, "descriptor")
         if max_wg < wg[0]:
             logger.warning("test_descriptor: Skipping test of WG=%s when maximum for this kernel is %s ", wg, max_wg)
             return
@@ -298,10 +299,10 @@ class test_keypoints(ParameterisedTestCase):
         logger.info(ref_sort[5:10])
         logger.info("Comparing descriptors (OpenCL and cpp) :")
         match, nulldesc = descriptors_compare(ref[keypoints_start:keypoints_end], res)
-        logger.info(("%s/%s match found" , match, (keypoints_end - keypoints_start) - nulldesc))
+        logger.info(("%s/%s match found", match, (keypoints_end - keypoints_start) - nulldesc))
 
         if self.PROFILE:
-            logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." , 1000.0 * (t2 - t1), 1000.0 * (t1 - t0))
+            logger.info("Global execution time: CPU %.3fms, GPU: %.3fms.", 1000.0 * (t2 - t1), 1000.0 * (t1 - t0))
             logger.info("Descriptors computation took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
 
 

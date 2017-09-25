@@ -72,7 +72,7 @@ typedef struct actual_keypoint
 
 
 kernel void descriptor(
-        global actual_kp* keypoints,
+        global actual_keypoint* keypoints,
         global unsigned char *descriptors,
         global float* grad,
         global float* orim,
@@ -86,7 +86,7 @@ kernel void descriptor(
 
 	int gid0 = get_global_id(0);
 	actual_keypoint kp = keypoints[gid0];
-	if (!(keypoints_start <= gid0 && gid0 < *keypoints_end && kp.s1 >=0.0f))
+	if (!(keypoints_start <= gid0 && gid0 < *keypoints_end && kp.col >=0.0f && kp.row >=0.0f))
 		return;
 		
 	int i, j;

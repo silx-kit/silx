@@ -104,6 +104,7 @@ kernel void compute_gradient_orientation(
 			ygrad = igray[pos - width] - igray[pos + width];
 
         grad[pos] = sqrt((xgrad * xgrad + ygrad * ygrad));
+//TODO use atan2pi and remove the division by pi later on
         ori[pos] = atan2 (-ygrad, xgrad);
 
       }
@@ -148,7 +149,7 @@ TODO:
 
 kernel void local_maxmin(
 	global float* DOGS,
-	global pre_keypoint* output,
+	global guess_keypoint* output,
 	int border_dist,
 	float peak_thresh,
 	int octsize,
@@ -236,8 +237,8 @@ kernel void local_maxmin(
 //				k.s1 = (float) gid1;
 //				k.s2 = (float) gid0;
 //				k.s3 = (float) scale;
-//				pre_keypoint:  value, row, col, scale
-				pre_keypoint kp;
+//				guess_keypoint:  value, row, col, scale
+				guess_keypoint kp;
 				kp.value = val;
 				kp.row = (float) gid1;
 				kp.col = (float) gid0;
@@ -257,8 +258,13 @@ kernel void local_maxmin(
 /**
  * \brief From the (temporary) keypoints, create a vector of interpolated keypoints
  * 			(this is the last step of keypoints refinement)
- *  	 Note that we take the value (-1,-1,-1) for invalid keypoints. This creates "holes" in the vector.
-    NOTE: the keypoints vector is not compacted yet
+ *
+ * 	We use the unified_keypoint type which contains:
+ * 	    unified_keypoint.raw which is a guess_keypoint: value, row, column, scale
+ *      unified_keypoint.ref which is an actual_keypoint: col, row, scale, angle
+ *
+ *  	 (-1,-1,-1) is used to flag invalid keypoints.
+ *  	 This creates "holes" in the vector. which may be copacted afterwards
  *
  * :param DOGS: Pointer to global memory with ALL the coutiguously pre-allocated Differences of Gaussians
  * :param keypoints: Pointer to global memory with current keypoints vector. It will be modified with the interpolated points
@@ -272,7 +278,7 @@ kernel void local_maxmin(
 
 kernel void interp_keypoint(
 	global float* DOGS,
-	global pre_keypoint* keypoints,
+	global guess_keypoint* keypoints,
 	int start_keypoints,
 	int end_keypoints,
 	float peak_thresh,
@@ -285,7 +291,7 @@ kernel void interp_keypoint(
 	int gid0 = (int) get_global_id(0);
 
 	if ((gid0 >= start_keypoints) && (gid0 < end_keypoints)) {
-	    pre_keypoint kp = keypoints[gid0];
+	    guess_keypoint raw_kp = keypoints[gid0];
 		int r = (int) raw_kp.row;
 		int c = (int) raw_kp.col;
 		int scale = (int) raw_kp.scale;
@@ -386,25 +392,25 @@ kernel void interp_keypoint(
 			/* Do not create a keypoint if interpolation still remains far outside expected limits,
 				or if magnitude of peak value is below threshold (i.e., contrast is too low).
 
-				pre_keypoint:  value, row, col, scale
+				guess_keypoint:  value, row, col, scale
 			*/
-			pre_keypoint interp_kp;
+			guess_keypoint ref_kp;
 			if (fabs(solution0) <= 1.5f && fabs(solution1) <= 1.5f && fabs(solution2) <= 1.5f && fabs(peakval) >= peak_thresh)
 			{ // keypoint properly interpolated
-				interp_kp.value = peakval;
-				interp_kp.row = /*raw_kp.s1*/ r + solution1;
-				interp_kp.col = /*raw_kp.s2*/ c + solution2;
-				interp_kp.scale = InitSigma * pow(2.0f, (((float) scale) + solution0) / 3.0f); //3.0 is "par.Scales"
+			    ref_kp.value = peakval;
+			    ref_kp.row = r + solution1;
+			    ref_kp.col = c + solution2;
+			    ref_kp.scale = InitSigma * pow(2.0f, (((float) scale) + solution0) / 3.0f); //3.0 is "par.Scales"
 			}// endif keypoint properly interpolated
 			else
 			{ //the keypoint was not correctly interpolated : marked as bad
-				interp_kp.value = -1.0f;
-				interp_kp.row = -1.0f;
-				interp_kp.col = -1.0f;
-				interp_kp.scale = -1.0f;
+			    ref_kp.value = -1.0f;
+			    ref_kp.row = -1.0f;
+			    ref_kp.col = -1.0f;
+			    ref_kp.scale = -1.0f;
 			} //end bad kp
 
-			keypoints[gid0]=interp_kp;
+			keypoints[gid0] = ref_kp;
 
 		/*
 			Better return here and compute histogram in another kernel

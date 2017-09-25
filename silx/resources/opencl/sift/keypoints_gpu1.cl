@@ -113,7 +113,7 @@ kernel void descriptor(
 	int lid2 = get_local_id(2); //[0,4[
 	int lid = (lid0*4+lid1)*4+lid2; //[0,128[
 	int groupid = get_group_id(0);
-	actual_keypoint k = keypoints[groupid];
+	actual_keypoint kp = keypoints[groupid];
 	if (!(keypoints_start <= groupid && groupid < *keypoints_end && kp.row >=0.0f))
 		return;
 		
@@ -122,7 +122,7 @@ kernel void descriptor(
 	local volatile float histogram[128];
 	local volatile float hist2[128*8];
 			
-	floats rx, cx,
+	float rx, cx,
 	      row = kp.row/octsize,
 	      col = kp.col/octsize,
 	      angle = kp.angle,

@@ -62,7 +62,7 @@
 
 
 kernel void orientation_assignment(
-    global keypoint* keypoints,
+    global unified_keypoint* keypoints,
     global float* grad,
     global float* ori,
     global int* counter,
@@ -75,8 +75,8 @@ kernel void orientation_assignment(
     int grad_height)
 {
     int gid0 = get_global_id(0);
-    keypoint k = keypoints[gid0];
-    if (!(keypoints_start <= gid0 && gid0 < keypoints_end && k.s1 >=0.0f ))
+    guess_keypoint raw_kp = keypoints[gid0].raw;
+    if (!(keypoints_start <= gid0 && gid0 < keypoints_end && raw_kp.row >=0.0f))
         return;
     int    bin, prev=0, next=0;
     int i,j,r,c;
@@ -87,32 +87,40 @@ kernel void orientation_assignment(
     //memset
     for (i=0; i<36; i++) hist[i] = 0.0f;
 
-    int    row = (int) (k.s1 + 0.5),
-        col = (int) (k.s2 + 0.5);
+    int row = (int) (raw_kp.row + 0.5),
+        col = (int) (raw_kp.col + 0.5);
 
-    float sigma = OriSigma * k.s3;
+    float sigma = OriSigma * raw_kp.scale;
     int    radius = (int) (sigma * 3.0);
-    int rmin = MAX(0,row - radius);
-    int cmin = MAX(0,col - radius);
-    int rmax = MIN(row + radius,grad_height - 2);
-    int cmax = MIN(col + radius,grad_width - 2);
+    int rmin = max(0,row - radius);
+    int cmin = max(0,col - radius);
+    int rmax = min(row + radius,grad_height - 2);
+    int cmax = min(col + radius,grad_width - 2);
 
-    for (r = rmin; r <= rmax; r++) {
-        for (c = cmin; c <= cmax; c++) {
+    for (r = rmin; r <= rmax; r++)
+    {
+        for (c = cmin; c <= cmax; c++)
+        {
             gval = grad[r*grad_width+c];
 
-            float dif = (r - k.s1);    distsq = dif*dif;
-            dif = (c - k.s2);    distsq += dif*dif;
-
             //distsq = (r-k.s1)*(r-k.s1) + (c-k.s2)*(c-k.s2);
+            float dif;
+            dif = (r - raw_kp.row);
+            distsq = dif*dif;
+            dif = (c - raw_kp.col);
+            distsq += dif*dif;
 
-            if (gval > 0.0f  &&  distsq < ((float) (radius*radius)) + 0.5f) {
+            if (gval > 0.0f  &&  distsq < ((float) (radius*radius)) + 0.5f)
+            {
+                // Ori is in range of -PI to PI.
                 angle = ori[r*grad_width+c];
-                bin = (int) (36.0f * (angle + M_PI_F + 0.001f) / (2.0f * M_PI_F)); //why this offset ?
-                if (bin >= 0 && bin <= 36) {
-                    bin = MIN(bin, 35);
-                    hist[bin] += exp(- distsq / (2.0f*sigma*sigma)) * gval;
-                }
+                bin = (int) (18.0f * (angle + M_PI_F) / (M_PI_F));
+                if (bin<0)
+                    bin+=36;
+                if (bin>35)
+                    bin-=36;
+                hist[bin] += exp(- distsq / (2.0f*sigma*sigma)) * gval;
+
             }
         }
     }
@@ -152,20 +160,22 @@ kernel void orientation_assignment(
     next = (argmax == 35 ? 0 : argmax + 1);
     hist_prev = hist[prev];
     hist_next = hist[next];
-    if (maxval < 0.0f) {
+    if (maxval < 0.0f)
+    {
         hist_prev = -hist_prev;
         maxval = -maxval;
         hist_next = -hist_next;
     }
     interp = 0.5f * (hist_prev - hist_next) / (hist_prev - 2.0f * maxval + hist_next);
-    angle = 2.0f * M_PI_F * (argmax + 0.5f + interp) / 36.0f - M_PI_F;
+    angle = 2.0f * (argmax + 0.5f + interp) / 36.0f;
 
+    actual_keypoint ref_kp;
+    ref_kp.col = raw_kp.col * octsize;           //c
+    ref_kp.row = raw_kp.row * octsize;           //r
+    ref_kp.scale = raw_kp.scale * octsize;       //sigma
+    ref_kp.angle = (angle - 1.0f) * M_PI_F;      //angle
+    keypoints[gid0].ref = ref_kp;
 
-    k.s0 = k.s2 *octsize; //c
-    k.s1 = k.s1 *octsize; //r
-    k.s2 = k.s3 *octsize; //sigma
-    k.s3 = angle;           //angle
-    keypoints[gid0] = k;
 
     /*
         An orientation is now assigned to our current keypoint.
@@ -173,24 +183,33 @@ kernel void orientation_assignment(
         For every local peak in histogram, every peak of value >= 80% of maxval generates a new keypoint
     */
 
-    for (i=0; i < 36; i++) {
+    for (i=0; i < 36; i++)
+    {
         int prev = (i == 0 ? 35 : i - 1);
         int next = (i == 35 ? 0 : i + 1);
         float hist_prev = hist[prev];
         float hist_curr = hist[i];
         float hist_next = hist[next];
-        if (hist_curr > hist_prev  &&  hist_curr > hist_next && hist_curr >= 0.8f * maxval && i != argmax) {
-            if (hist_curr < 0.0f) {
+        if (hist_curr > hist_prev  &&  hist_curr > hist_next && hist_curr >= 0.8f * maxval && i != argmax)
+        {
+            if (hist_curr < 0.0f)
+            {
                 hist_prev = -hist_prev;
                 hist_curr = -hist_curr;
                 hist_next = -hist_next;
             }
             float interp = 0.5f * (hist_prev - hist_next) / (hist_prev - 2.0f * hist_curr + hist_next);
-            float angle = 2.0f * M_PI_F * (i + 0.5f + interp) /36.0 - M_PI_F;
-            if (angle >= -M_PI_F && angle <= M_PI_F) {
-                k.s3 = angle;
-                old  = atomic_inc(counter);
-                if (old < nb_keypoints) keypoints[old] = k;
+
+            float angle = (i + 0.5f + interp) / 18.0f;
+            if (angle<0.0f)
+                angle+=2.0f;
+            else if (angle>2.0f)
+                angle-=2.0f;
+            ref_kp.angle = (angle - 1.0f) * M_PI_F;
+            old  = atomic_inc(counter);
+            if (old < nb_keypoints)
+            {
+                keypoints[old].ref = ref_kp;
             }
         } //end "val >= 80%*maxval"
     }
