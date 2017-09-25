@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "27/09/2016"
+__date__ = "20/09/2017"
 
 
 import logging
@@ -193,6 +193,87 @@ class Hdf5TreeView(qt.QTreeView):
                 if ignoreBrokenLinks and item.isBrokenObj():
                     continue
                 yield _utils.H5Node(item)
+
+    def setSelectedH5Node(self, h5Object):
+        """
+        Select the specified node of the tree using an h5py node.
+
+        - If the item is found, parent items are expended, and then the item
+          is selected.
+        - If the item is not found, the selection do not change.
+        - A none argument allow to deselect everything
+
+        :param h5py.Npde h5Object: The node to select
+        """
+        if h5Object is None:
+            self.setCurrentIndex(qt.QModelIndex())
+            return
+
+        filename = h5Object.file.filename
+
+        # Seach for the right roots
+        rootIndices = []
+        model = self.model()
+        for index in range(model.rowCount(qt.QModelIndex())):
+            index = model.index(index, 0, qt.QModelIndex())
+            obj = model.data(index, Hdf5TreeModel.H5PY_OBJECT_ROLE)
+            if obj.file.filename == filename:
+                # We can have many roots with different subtree of the same
+                # root
+                rootIndices.append(index)
+
+        if len(rootIndices) == 0:
+            # No root found
+            return
+
+        path = h5Object.name + "/"
+        path = path.replace("//", "/")
+
+        # Search for the right node
+        found = False
+        foundIndices = []
+        for _ in range(1000 * len(rootIndices)):
+            # Avoid too much iterations, in case of recurssive links
+            if len(foundIndices) == 0:
+                if len(rootIndices) == 0:
+                    # Nothing found
+                    break
+                # Start fron a new root
+                foundIndices.append(rootIndices.pop(0))
+
+                obj = model.data(index, Hdf5TreeModel.H5PY_OBJECT_ROLE)
+                p = obj.name + "/"
+                p = p.replace("//", "/")
+                if path == p:
+                    found = True
+                    break
+
+            parentIndex = foundIndices[-1]
+            for index in range(model.rowCount(parentIndex)):
+                index = model.index(index, 0, parentIndex)
+                obj = model.data(index, Hdf5TreeModel.H5PY_OBJECT_ROLE)
+
+                p = obj.name + "/"
+                p = p.replace("//", "/")
+                if path == p:
+                    foundIndices.append(index)
+                    found = True
+                    break
+                elif path.startswith(p):
+                    foundIndices.append(index)
+                    break
+            else:
+                # Nothing found, start again with another root
+                foundIndices = []
+
+            if found:
+                break
+
+        if found:
+            # Update the GUI
+            for index in foundIndices[:-1]:
+                self.expand(index)
+            self.setCurrentIndex(foundIndices[-1])
 
     def mousePressEvent(self, event):
         """Override mousePressEvent to provide a consistante compatible API
