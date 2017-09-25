@@ -816,7 +816,6 @@ class ImageViewMainWindow(ImageView):
         menu.addAction(self.colormapAction)
         menu.addAction(actions.control.KeepAspectRatioAction(self, self))
         menu.addAction(actions.control.YAxisInvertedAction(self, self))
-        menu.addAction(self.showAxisAction)
 
         menu = self.menuBar().addMenu('Profile')
         menu.addAction(self.profile.hLineAction)
