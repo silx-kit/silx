@@ -38,7 +38,7 @@ __date__ = "12/09/2017"
 import logging
 import numpy
 
-from silx.gui import qt, icons
+from .. import qt, icons
 from .PlotWindow import Plot2D
 from .Colormap import Colormap
 from . import items
@@ -171,6 +171,97 @@ class _ImageComplexData(items.ImageData):
 
 # Widgets
 
+class _AmplitudeRangeDialog(qt.QDialog):
+    """QDialog asking for the amplitude range to display."""
+
+    def __init__(self,
+                 parent=None,
+                 amplitudeRange=None,
+                 displayedRange=(None, 2)):
+        super(_AmplitudeRangeDialog, self).__init__(parent)
+        self.setWindowTitle('Set Displayed Amplitude Range')
+
+        if amplitudeRange is not None:
+            amplitudeRange = min(amplitudeRange), max(amplitudeRange)
+        self._amplitudeRange = amplitudeRange
+        self._displayedRange = displayedRange
+
+        layout = qt.QFormLayout()
+        self.setLayout(layout)
+
+        if self._amplitudeRange is not None:
+            min_, max_ = self._amplitudeRange
+            layout.addRow(
+                qt.QLabel('Data Amplitude Range: [%g, %g]' % (min_, max_)))
+
+        max_, delta = self._displayedRange
+
+        self._maxLineEdit = qt.QLineEdit(parent=self)
+        validator = qt.QDoubleValidator(self._maxLineEdit)
+        validator.setBottom(0.)
+        self._maxLineEdit.setValidator(validator)
+        self._maxLineEdit.setAlignment(qt.Qt.AlignRight)
+
+        if max_ is not None:  # Not in autoscale
+            displayedMax = max_
+        elif self._amplitudeRange is not None:  # Autoscale with data
+            displayedMax = self._amplitudeRange[1]
+        else:  # Autoscale without data
+            displayedMax = ''
+        self._maxLineEdit.setText(str(displayedMax))
+        self._maxLineEdit.setEnabled(max_ is not None)
+        layout.addRow('Displayed Max.:', self._maxLineEdit)
+
+        self._autoscale = qt.QCheckBox('autoscale')
+        self._autoscale.setChecked(max_ is None)
+        self._autoscale.toggled.connect(self._autoscaleCheckBoxToggled)
+        layout.addRow('', self._autoscale)
+
+        self._deltaLineEdit = qt.QLineEdit(parent=self)
+        validator = qt.QDoubleValidator(self._deltaLineEdit)
+        validator.setBottom(1.)
+        self._deltaLineEdit.setValidator(validator)
+        self._deltaLineEdit.setAlignment(qt.Qt.AlignRight)
+        self._deltaLineEdit.setText(str(delta))
+        layout.addRow('Displayed delta (log10 unit):', self._deltaLineEdit)
+
+        buttons = qt.QDialogButtonBox(self)
+        buttons.addButton(qt.QDialogButtonBox.Ok)
+        buttons.addButton(qt.QDialogButtonBox.Cancel)
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        layout.addRow(buttons)
+
+        self._autoscale.setChecked(self._displayedRange[0] is None)
+
+    def getRangeInfo(self):
+        """Returns the current range as a 2-tuple (max, delta (in log10))"""
+        if self._autoscale.isChecked():
+            max_ = None
+        else:
+            maxStr = self._maxLineEdit.text()
+            max_ = float(maxStr) if maxStr else None
+        return max_, float(self._deltaLineEdit.text() or 2)
+
+    def exec_(self):
+        """Runs the dialog and returns the range or None if rejected"""
+        result = super(_AmplitudeRangeDialog, self).exec_()
+        if result == qt.QDialog.Rejected:
+            return None
+        else:
+            return self.getRangeInfo()
+
+    def _autoscaleCheckBoxToggled(self, checked):
+        """Handle autoscale checkbox state changes"""
+        if checked:  # Use default values
+            if self._amplitudeRange is None:
+                max_ = ''
+            else:
+                max_ = self._amplitudeRange[1]
+            self._maxLineEdit.setText(str(max_))
+        self._maxLineEdit.setEnabled(not checked)
+
+
 class _ComplexDataToolButton(qt.QToolButton):
     """QToolButton providing choices of complex data visualization modes
 
@@ -185,6 +276,8 @@ class _ComplexDataToolButton(qt.QToolButton):
         ('imaginary', 'math-imaginary', 'Imaginary part'),
         ('amplitude_phase', 'math-phase-color', 'Amplitude and Phase'),
         ('log10_amplitude_phase', 'math-phase-color-log', 'Log10(Amp.) and Phase')]
+
+    _RANGE_DIALOG_TEXT = 'Set Amplitude Range...'
 
     def __init__(self, parent=None, plot=None):
         super(_ComplexDataToolButton, self).__init__(parent=parent)
@@ -201,6 +294,10 @@ class _ComplexDataToolButton(qt.QToolButton):
             action.setIconVisibleInMenu(True)
             menu.addAction(action)
 
+        self._rangeDialogAction = qt.QAction(self)
+        self._rangeDialogAction.setText(self._RANGE_DIALOG_TEXT)
+        menu.addAction(self._rangeDialogAction)
+
         self.setPopupMode(qt.QToolButton.InstantPopup)
 
         self._modeChanged(self._plot2DComplex.getVisualizationMode())
@@ -215,13 +312,35 @@ class _ComplexDataToolButton(qt.QToolButton):
                 self.setToolTip('Display the ' + text.lower())
                 break
 
+        self._rangeDialogAction.setEnabled(mode == 'log10_amplitude_phase')
+
     def _triggered(self, action):
         """Handle triggering of menu actions"""
         actionText = action.text()
 
-        for mode, _, text in self._MODES:
-            if actionText == text:
-                self._plot2DComplex.setVisualizationMode(mode)
+        if actionText == self._RANGE_DIALOG_TEXT:  # Show dialog
+            # Get amplitude range
+            data = self._plot2DComplex.getData(copy=False)
+
+            if data.size > 0:
+                absolute = numpy.absolute(data)
+                dataRange = (numpy.nanmin(absolute), numpy.nanmax(absolute))
+            else:
+                dataRange = None
+
+            # Show dialog
+            dialog = _AmplitudeRangeDialog(
+                parent=self,
+                amplitudeRange=dataRange,
+                displayedRange=self._plot2DComplex._getAmplitudeRangeInfo())
+            rangeInfo = dialog.exec_()
+            if rangeInfo is not None:
+                self._plot2DComplex._setAmplitudeRangeInfo(*rangeInfo)
+
+        else:  # update mode
+            for mode, _, text in self._MODES:
+                if actionText == text:
+                    self._plot2DComplex.setVisualizationMode(mode)
 
 
 class ComplexImageView(qt.QWidget):
@@ -245,6 +364,7 @@ class ComplexImageView(qt.QWidget):
             self.setWindowTitle('ComplexImageView')
 
         self._mode = 'absolute'
+        self._amplitudeRangeInfo = None, 2
         self._data = numpy.zeros((0, 0), dtype=numpy.complex)
         self._displayedData = numpy.zeros((0, 0), dtype=numpy.float)
 
@@ -267,14 +387,14 @@ class ComplexImageView(qt.QWidget):
         toolBar = qt.QToolBar('Complex', self)
         toolBar.addWidget(
             _ComplexDataToolButton(parent=self, plot=self))
+
         self._plot2D.insertToolBar(self._plot2D.getProfileToolbar(), toolBar)
 
     def getPlot(self):
         """Return the PlotWidget displaying the data"""
         return self._plot2D
 
-    @staticmethod
-    def _convertData(data, mode):
+    def _convertData(self, data, mode):
         """Convert complex data according to provided mode.
 
         :param numpy.ndarray data: The complex data to convert
@@ -293,7 +413,8 @@ class ComplexImageView(qt.QWidget):
         elif mode == 'amplitude_phase':
             return _complex2rgbalin(data)
         elif mode == 'log10_amplitude_phase':
-            return _complex2rgbalog(data)
+            max_, delta = self._getAmplitudeRangeInfo()
+            return _complex2rgbalog(data, dlogs=delta, smax=max_)
         else:
             _logger.error(
                 'Unsupported conversion mode: %s, fallback to absolute',
@@ -412,6 +533,27 @@ class ComplexImageView(qt.QWidget):
         :rtype: str
         """
         return self._mode
+
+    def _setAmplitudeRangeInfo(self, max_=None, delta=2):
+        """Set the amplitude range to display for 'log10_amplitude_phase' mode.
+
+        :param max_: Max of the amplitude range.
+                     If None it autoscales to data max.
+        :param float delta: Delta range in log10 to display
+        """
+        self._amplitudeRangeInfo = max_, float(delta)
+        mode = self.getVisualizationMode()
+        if mode == 'log10_amplitude_phase':
+            self._displayedData = self._convertData(
+                self.getData(copy=False), mode)
+            self._updatePlot()
+
+    def _getAmplitudeRangeInfo(self):
+        """Returns the amplitude range to use for 'log10_amplitude_phase' mode.
+
+        :return: (max, delta), if max is None, then it autoscales to data max
+        :rtype: 2-tuple"""
+        return self._amplitudeRangeInfo
 
     # Image item proxy
 
