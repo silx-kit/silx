@@ -92,6 +92,7 @@ class DataInfo(object):
         self.interpretation = None
         self.isNumeric = False
         self.isComplex = False
+        self.isBoolean = False
         self.isRecord = False
         self.isNXdata = False
         self.shape = tuple()
@@ -122,13 +123,16 @@ class DataInfo(object):
             self.isNumeric = numpy.issubdtype(data.dtype, numpy.number)
             self.isRecord = data.dtype.fields is not None
             self.isComplex = numpy.issubdtype(data.dtype, numpy.complex)
+            self.isBoolean = numpy.issubdtype(data.dtype, numpy.bool_)
         elif self.isNXdata:
             self.isNumeric = numpy.issubdtype(nxd.signal.dtype,
                                               numpy.number)
             self.isComplex = numpy.issubdtype(nxd.signal.dtype, numpy.complex)
+            self.isBoolean = numpy.issubdtype(nxd.signal.dtype, numpy.bool_)
         else:
             self.isNumeric = isinstance(data, numbers.Number)
             self.isComplex = isinstance(data, numbers.Complex)
+            self.isBoolean = isinstance(data, bool)
             self.isRecord = False
 
         if hasattr(data, "shape"):
@@ -461,7 +465,9 @@ class _Plot2dView(DataView):
         return ["y", "x"]
 
     def getDataPriority(self, data, info):
-        if data is None or not info.isArray or not info.isNumeric:
+        if (data is None or
+                not info.isArray or
+                not (info.isNumeric or info.isBoolean)):
             return DataView.UNSUPPORTED
         if info.dim < 2:
             return DataView.UNSUPPORTED
