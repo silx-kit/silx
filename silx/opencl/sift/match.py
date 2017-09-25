@@ -39,7 +39,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "12/09/2017"
+__date__ = "25/09/2017"
 __status__ = "production"
 
 
@@ -51,8 +51,8 @@ import numpy
 from .param import par
 from silx.opencl import ocl, pyopencl
 from .utils import calc_size, get_opencl_code
-from ..processing import OpenclProcessing, BufferDescription 
-#namedtuple("BufferDescription", ["name", "size", "dtype", "flags"])
+from ..processing import OpenclProcessing, BufferDescription
+# namedtuple("BufferDescription", ["name", "size", "dtype", "flags"])
 logger = logging.getLogger(__name__)
 if not pyopencl:
     logger.warning("No PyOpenCL, no sift")
@@ -116,11 +116,11 @@ class MatchPlan(OpenclProcessing):
         if roi:
             self.set_roi(roi)
 
-        buffers = [#BufferDescription"name", "size", "dtype", "flags"
-                   BufferDescription("Kp_1", self.kpsize, self.dtype_kp),
-                   BufferDescription("Kp_2", self.kpsize, dtype=self.dtype_kp),
-                   BufferDescription("match",(self.kpsize, 2), dtype=numpy.int32),
-                   BufferDescription("cnt", 1, numpy.int32)]
+        buffers = [  # BufferDescription"name", "size", "dtype", "flags"
+                   BufferDescription("Kp_1", self.kpsize, self.dtype_kp, flags=None),
+                   BufferDescription("Kp_2", self.kpsize, dtype=self.dtype_kp, flags=None),
+                   BufferDescription("match", (self.kpsize, 2), dtype=numpy.int32, flags=None),
+                   BufferDescription("cnt", 1, numpy.int32, flags=None)]
         self.allocate_buffers(buffers)
 
     def match(self, nkp1, nkp2, raw_results=False):
@@ -272,7 +272,7 @@ def match_py(nkp1, nkp2, raw_results=False):
     desc2 = nkp2.desc
     big1 = desc1.astype(int)[:, numpy.newaxis, :]
     big2 = desc2.astype(int)[numpy.newaxis, :, :]
-    big = abs(big1-big2).sum(axis=-1)
+    big = abs(big1 - big2).sum(axis=-1)
     maxi = big.max(axis=-1)
     mini = big.min(axis=-1)
     amin = big.argmin(axis=-1)

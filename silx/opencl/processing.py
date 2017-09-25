@@ -41,7 +41,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "12/09/2017"
+__date__ = "25/09/2017"
 __status__ = "stable"
 
 
@@ -125,7 +125,7 @@ class OpenclProcessing(object):
         platform = ocl.get_platform(platform_name)
         self.device = platform.get_device(device_name)
         self.cl_kernel_args = {}  # dict with all kernel arguments
-
+        self.queue = None
         self.set_profiling(profile)
         self.block_size = block_size
         self.program = None
@@ -140,12 +140,13 @@ class OpenclProcessing(object):
         self.ctx = None
         gc.collect()
 
-    def allocate_buffers(self, buffers=None):
+    def allocate_buffers(self, buffers=None, use_array=False):
         """
         Allocate OpenCL buffers required for a specific configuration
 
         :param buffers: a list of BufferDescriptions, leave to None for
                         paramatrized buffers.
+        :param use_array: use pyopencl.array instead of simple buffers
 
         Note that an OpenCL context also requires some memory, as well
         as Event and other OpenCL functionalities which cannot and are
@@ -166,7 +167,7 @@ class OpenclProcessing(object):
             # check if enough memory is available on the device
             ualloc = 0
             for buf in buffers:
-                ualloc += numpy.dtype(buf.dtype).itemsize * buf.size
+                ualloc += numpy.dtype(buf.dtype).itemsize * numpy.prod(buf.size)
             logger.info("%.3fMB are needed on device which has %.3fMB",
                         ualloc / 1.0e6, self.device.memory / 1.0e6)
 
@@ -177,9 +178,13 @@ class OpenclProcessing(object):
 
             # do the allocation
             try:
-                for buf in buffers:
-                    size = numpy.dtype(buf.dtype).itemsize * buf.size
-                    mem[buf.name] = pyopencl.Buffer(self.ctx, buf.flags, int(size))
+                if use_array:
+                    for buf in buffers:
+                        mem[buf.name] = pyopencl.array.empty(self.queue, buf.size, buf.dtype)
+                else:
+                    for buf in buffers:
+                        size = numpy.dtype(buf.dtype).itemsize * numpy.prod(buf.size)
+                        mem[buf.name] = pyopencl.Buffer(self.ctx, buf.flags, int(size))
             except pyopencl.MemoryError as error:
                 release_cl_buffers(mem)
                 raise MemoryError(error)

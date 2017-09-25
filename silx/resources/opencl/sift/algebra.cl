@@ -67,9 +67,7 @@ __kernel void combine(
 
 /**
  * \brief Deletes the (-1,-1,-1,-1) in order to get a more "compact" keypoints vector
- 		Also arranges the keypoints coordinates in the SIFT order : (x:col,y:row,sigma,angle)
- *		(initially we had (peak,r,c,sigma), but at this stage peak is not useful anymore)
- *
+ *  This is based on atomic add
  *
  * :param keypoints: Pointer to global memory with the keypoints
  * :param output: Pointer to global memory with the output
@@ -80,30 +78,29 @@ __kernel void combine(
  */
 
 kernel void compact(
-	global keypoint* keypoints,
-	global keypoint* output,
+	global actual_keypoint* keypoints,
+	global actual_keypoint* output,
 	global int* counter,
 	int start_keypoint,
 	int end_keypoint)
 {
 
 	int gid0 = (int) get_global_id(0);
-	if (gid0 < start_keypoint){
+	if (gid0 < start_keypoint)
+	{
 		output[gid0] = keypoints[gid0];
 	}
-	else if (gid0 < end_keypoint) {
+	else if (gid0 < end_keypoint)
+	{
+	    actual_keypoint k = keypoints[gid0];
 
-		keypoint k = keypoints[gid0];
-
-		if (k.s1 != -1) { //Coordinates are never negative
-
-			/*k.s0 = (float) k.s2; //col
-			k.s2 = k.s3; //sigma
-			k.s3 = 0.0; //angle
-			*/
+		if (k.row >= 0.0f)
+		{ //Coordinates are never negative
 			int old = atomic_inc(counter);
-			if (old < end_keypoint) output[old] = k;
-
+			if (old < end_keypoint)
+			{
+			    output[old] = k;
+			}
 		}
 	}
 }

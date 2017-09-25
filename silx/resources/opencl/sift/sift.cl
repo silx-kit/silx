@@ -29,19 +29,15 @@
  */
 
 /*
-	Keypoint (c, r, s, angle) without its descriptor
+    guess_keypoint: amplitude, row, column, scale
+	actual_keypoint column, row, scale, angle
 */
 
-//typedef float4 keypoint;
-// keypoint.x == k.s0 : amplitude
-// keypoint.y == k.s1 : row
-// keypoint.z == k.s2 : column
-// keypoint.w == k.s3 : sigma
 
-typedef struct pre_keypoint 
+typedef struct guess_keypoint
 {
 	float value, row, col, scale;
-} pre_keypoint;
+} guess_keypoint;
 
 
 typedef struct actual_keypoint 
@@ -49,11 +45,14 @@ typedef struct actual_keypoint
 	float col, row, scale, angle;
 } actual_keypoint;
 
+/*
+    This is an unified float4 which can be seen as a pre_keypoint (guess keypoint)
+*/
 
-union
+typedef union
 {
-        pre_keypoint pre;
-        actual_keypoint post;
+        guess_keypoint raw;
+        actual_keypoint ref;
 } unified_keypoint;
 
 /*
