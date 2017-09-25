@@ -276,7 +276,6 @@ class Backprojection(OpenclProcessing):
 
     def transfer_device_to_texture(self, d_sino):
         if self.is_cpu:
-            # TODO this should not be necessary
             if id(self.d_sino) == id(d_sino):
                 return
             return pyopencl.enqueue_copy(

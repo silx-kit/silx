@@ -96,6 +96,7 @@ class ReconstructionAlgorithm(OpenclProcessing):
             profile=profile
         )
         self.sino_shape = sino_shape
+        self.is_cpu = self.backprojector.is_cpu
         # Arrays
         self.d_data = parray.zeros(self.queue, sino_shape, dtype=np.float32)
         self.d_sino = parray.zeros_like(self.d_data)
@@ -109,18 +110,19 @@ class ReconstructionAlgorithm(OpenclProcessing):
             "d_x_old": self.d_x_old,
         })
 
+
     def proj(self, d_slice, d_sino):
         """
         Project d_slice to d_sino
         """
-        self.projector.transfer_device_to_texture(d_slice.data)
+        self.projector.transfer_device_to_texture(d_slice.data)#.wait()
         self.projector.projection(dst=d_sino)
 
     def backproj(self, d_sino, d_slice):
         """
         Backproject d_sino to d_slice
         """
-        self.backprojector.transfer_device_to_texture(d_sino.data)
+        self.backprojector.transfer_device_to_texture(d_sino.data)#.wait()
         self.backprojector.backprojection(dst=d_slice)
 
 
@@ -209,9 +211,16 @@ class SIRT(ReconstructionAlgorithm):
             self.proj(d_x, d_sino)
             d_sino -= self.d_data
             d_sino *= d_R
+            if self.is_cpu:
+                # This sync is necessary when using CPU, while it is not for GPU
+                d_sino.finish()
             self.backproj(d_sino, d_x)
             d_x *= -d_C
             d_x += d_x_old
+            if self.is_cpu:
+                # This sync is necessary when using CPU, while it is not for GPU
+                d_x.finish()
+
         return d_x
 
     __call__ = run
