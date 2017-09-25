@@ -32,17 +32,29 @@ __date__ = "22/09/2017"
 import unittest
 import numpy
 
-from .utils import PlotWidgetTestCase
+from silx.gui import qt
+from silx.gui.test.utils import TestCaseQt
 
 from silx.gui.plot import ImageView
 from silx.gui.plot.Colormap import Colormap
 
 
-class TestImageView(PlotWidgetTestCase):
+class TestImageView(TestCaseQt):
     """Tests of ImageView widget."""
 
-    def _createPlot(self):
-        return ImageView()
+    def setUp(self):
+        super(TestImageView, self).setUp()
+        self.plot = ImageView()
+        self.plot.show()
+        self.qWaitForWindowExposed(self.plot)
+
+    def tearDown(self):
+        self.qapp.processEvents()
+        self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.plot.close()
+        del self.plot
+        self.qapp.processEvents()
+        super(TestImageView, self).tearDown()
 
     def testSetImage(self):
         """Test setImage"""
