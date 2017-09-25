@@ -331,6 +331,10 @@ class ImageData(ImageBase, ColormapMixIn):
         """
         data = numpy.array(data, copy=copy)
         assert data.ndim == 2
+        if data.dtype.kind == 'b':
+            _logger.warning(
+                'Converting boolean image to uint8 to plot it.')
+            data = numpy.array(data, copy=False, dtype=numpy.uint8)
         self._data = data
 
         if alternative is not None:
