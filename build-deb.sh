@@ -60,6 +60,9 @@ optional arguments:
     --help     show this help text
     --install  install the packages generated at the end of
                the process using 'sudo dpkg'
+    --debian7  Simulate a debian7 system (fail-safe)
+    --debian8  Simulate a debian 8 Jessie system
+    --debian9  Simulate a debian 9 Stretch system
 "
 
 install=0
@@ -78,6 +81,18 @@ do
           ;;
       --python3)
           use_python3=1
+          shift
+          ;;
+      --debian7)
+          debian_version=7
+          shift
+          ;;
+      --debian8)
+          debian_version=8
+          shift
+          ;;
+      --debian9)
+          debian_version=9
           shift
           ;;
       -*)

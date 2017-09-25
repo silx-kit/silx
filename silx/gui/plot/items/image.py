@@ -232,8 +232,16 @@ class ImageBase(Item, LabelsMixIn, DraggableMixIn, AlphaMixIn):
             scale = float(scale[0]), float(scale[1])
         else:  # single value scale
             scale = float(scale), float(scale)
+
         if scale != self._scale:
             self._scale = scale
+
+            # TODO hackish data range implementation
+            if self.isVisible():
+                plot = self.getPlot()
+                if plot is not None:
+                    plot._invalidateDataRange()
+
             self._updated(ItemChangedType.SCALE)
 
 

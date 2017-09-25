@@ -26,16 +26,14 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "30/03/2017"
 
-
-import logging
-import os
-import sys
 import unittest
 
-
-_logger = logging.getLogger(__name__)
+from . import test_view
+from . import test_convert
 
 
 def suite():
     test_suite = unittest.TestSuite()
+    test_suite.addTest(test_view.suite())
+    test_suite.addTest(test_convert.suite())
     return test_suite

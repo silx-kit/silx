@@ -368,6 +368,9 @@ class BaseMaskToolsWidget(qt.QWidget):
         # overlays colors set by the user
         self._overlayColors = numpy.zeros((self._maxLevelNumber + 1, 3), dtype=numpy.float32)
 
+        # as parent have to be the first argument of the widget to fit
+        # QtDesigner need but here plot can't be None by default.
+        assert plot is not None
         self._plot = plot
         self._maskName = '__MASK_TOOLS_%d' % id(self)  # Legend of the mask
 

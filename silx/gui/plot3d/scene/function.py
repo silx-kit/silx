@@ -35,6 +35,7 @@ import contextlib
 import logging
 import numpy
 
+from ... import _glutils
 from ..._glutils import gl
 
 from . import event
@@ -296,18 +297,10 @@ class DirectionalLight(event.Notifier, ProgramFunction):
 
 class Colormap(event.Notifier, ProgramFunction):
     # TODO use colors for out-of-bound values, for <=0 with log, for nan
-    # TODO texture-based colormap
 
     decl = """
-    #define CMAP_GRAY   0
-    #define CMAP_R_GRAY 1
-    #define CMAP_RED    2
-    #define CMAP_GREEN  3
-    #define CMAP_BLUE   4
-    #define CMAP_TEMP   5
-
     uniform struct {
-        int id;
+        sampler2D texture;
         bool isLog;
         float min;
         float oneOverRange;
@@ -328,60 +321,24 @@ class Colormap(event.Notifier, ProgramFunction):
             value = clamp(cmap.oneOverRange * (value - cmap.min), 0.0, 1.0);
         }
 
-        if (cmap.id == CMAP_GRAY) {
-            return vec4(value, value, value, 1.0);
-        }
-        else if (cmap.id == CMAP_R_GRAY) {
-            float invValue = 1.0 - value;
-            return vec4(invValue, invValue, invValue, 1.0);
-        }
-        else if (cmap.id == CMAP_RED) {
-            return vec4(value, 0.0, 0.0, 1.0);
-        }
-        else if (cmap.id == CMAP_GREEN) {
-            return vec4(0.0, value, 0.0, 1.0);
-        }
-        else if (cmap.id == CMAP_BLUE) {
-            return vec4(0.0, 0.0, value, 1.0);
-        }
-        else if (cmap.id == CMAP_TEMP) {
-            //red: 0.5->0.75: 0->1
-            //green: 0.->0.25: 0->1; 0.75->1.: 1->0
-            //blue: 0.25->0.5: 1->0
-            return vec4(
-                clamp(4.0 * value - 2.0, 0.0, 1.0),
-                1.0 - clamp(4.0 * abs(value - 0.5) - 1.0, 0.0, 1.0),
-                1.0 - clamp(4.0 * value - 1.0, 0.0, 1.0),
-                1.0);
-        }
-        else {
-            /* Unknown colormap */
-            return vec4(0.0, 0.0, 0.0, 1.0);
-        }
+        vec4 color = texture2D(cmap.texture, vec2(value, 0.5));
+        return color;
     }
     """
 
     call = "colormap"
 
-    _COLORMAPS = {
-        'gray': 0,
-        'reversed gray': 1,
-        'red': 2,
-        'green': 3,
-        'blue': 4,
-        'temperature': 5
-    }
-
-    COLORMAPS = tuple(_COLORMAPS.keys())
-    """Tuple of supported colormap names."""
-
     NORMS = 'linear', 'log'
     """Tuple of supported normalizations."""
 
-    def __init__(self, name='gray', norm='linear', range_=(1., 10.)):
+    _COLORMAP_TEXTURE_UNIT = 1
+    """Texture unit to use for storing the colormap"""
+
+    def __init__(self, colormap=None, norm='linear', range_=(1., 10.)):
         """Shader function to apply a colormap to a value.
 
-        :param str name: Name of the colormap.
+        :param colormap: RGB(A) color look-up table (default: gray)
+        :param colormap: numpy.ndarray of numpy.uint8 of dimension Nx3 or Nx4
         :param str norm: Normalization to apply: 'linear' (default) or 'log'.
         :param range_: Range of value to map to the colormap.
         :type range_: 2-tuple of float (begin, end).
@@ -389,24 +346,35 @@ class Colormap(event.Notifier, ProgramFunction):
         super(Colormap, self).__init__()
 
         # Init privates to default
-        self._name, self._norm, self._range = 'gray', 'linear', (1., 10.)
+        self._colormap, self._norm, self._range = None, 'linear', (1., 10.)
+
+        self._texture = None
+        self._update_texture = True
+
+        if colormap is None:
+            # default colormap
+            colormap = numpy.empty((256, 3), dtype=numpy.uint8)
+            colormap[:] = numpy.arange(256,
+                                       dtype=numpy.uint8)[:, numpy.newaxis]
 
         # Set to param values through properties to go through asserts
-        self.name = name
+        self.colormap = colormap
         self.norm = norm
         self.range_ = range_
 
     @property
-    def name(self):
-        """Name of the colormap in use."""
-        return self._name
+    def colormap(self):
+        """Color look-up table to use."""
+        return numpy.array(self._colormap, copy=True)
 
-    @name.setter
-    def name(self, name):
-        if name != self._name:
-            assert name in self.COLORMAPS
-            self._name = name
-            self.notify()
+    @colormap.setter
+    def colormap(self, colormap):
+        colormap = numpy.array(colormap, copy=True)
+        assert colormap.ndim == 2
+        assert colormap.shape[1] in (3, 4)
+        self._colormap = colormap
+        self._update_texture = True
+        self.notify()
 
     @property
     def norm(self):
@@ -459,7 +427,15 @@ class Colormap(event.Notifier, ProgramFunction):
         :param GLProgram program: The program to set-up.
                                   It MUST be in use and using this function.
         """
-        gl.glUniform1i(program.uniforms['cmap.id'], self._COLORMAPS[self.name])
+        self.prepareGL2(context)  # TODO see how to handle
+
+        if self._texture is None:  # No colormap
+            return
+
+        self._texture.bind()
+
+        gl.glUniform1i(program.uniforms['cmap.texture'],
+                       self._texture.texUnit)
         gl.glUniform1i(program.uniforms['cmap.isLog'], self._norm == 'log')
 
         min_, max_ = self.range_
@@ -469,3 +445,23 @@ class Colormap(event.Notifier, ProgramFunction):
         gl.glUniform1f(program.uniforms['cmap.min'], min_)
         gl.glUniform1f(program.uniforms['cmap.oneOverRange'],
                        (1. / (max_ - min_)) if max_ != min_ else 0.)
+
+    def prepareGL2(self, context):
+        if self._texture is None or self._update_texture:
+            if self._texture is not None:
+                self._texture.discard()
+
+            colormap = numpy.empty(
+                (16, self._colormap.shape[0], self._colormap.shape[1]),
+                dtype=self._colormap.dtype)
+            colormap[:] = self._colormap
+
+            format_ = gl.GL_RGBA if colormap.shape[-1] == 4 else gl.GL_RGB
+
+            self._texture = _glutils.Texture(
+                format_, colormap, format_,
+                texUnit=self._COLORMAP_TEXTURE_UNIT,
+                minFilter=gl.GL_NEAREST,
+                magFilter=gl.GL_NEAREST,
+                wrap=gl.GL_CLAMP_TO_EDGE)
+            self._update_texture = False

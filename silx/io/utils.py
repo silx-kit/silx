@@ -41,7 +41,7 @@ else:
 
 __authors__ = ["P. Knobel", "V. Valls"]
 __license__ = "MIT"
-__date__ = "28/08/2017"
+__date__ = "21/09/2017"
 
 
 logger = logging.getLogger(__name__)
@@ -383,8 +383,9 @@ def open(filename):  # pylint:disable=redefined-builtin
 
     Format supported:
     - h5 files, if `h5py` module is installed
-    - SPEC files
-    - a set of raster image formats (tiff, edf...) if `fabio` is installed
+    - SPEC files exposed as a NeXus layout
+    - raster files exposed as a NeXus layout (if `fabio` is installed)
+    - Numpy files ('npy' and 'npz' files)
 
     The file is opened in read-only mode.
 
@@ -395,11 +396,22 @@ def open(filename):  # pylint:disable=redefined-builtin
     if not os.path.isfile(filename):
         raise IOError("Filename '%s' must be a file path" % filename)
 
+    debugging_info = []
+
+    _, extension = os.path.splitext(filename)
+
     if not h5py_missing:
         if h5py.is_hdf5(filename):
             return h5py.File(filename, "r")
 
-    debugging_info = []
+    if extension in [".npz", ".npy"]:
+        try:
+            from . import rawh5
+            return rawh5.NumpyFile(filename)
+        except (IOError, ValueError) as e:
+            debugging_info.append((sys.exc_info(),
+                                  "File '%s' can't be read as a numpy file." % filename))
+
     try:
         from . import fabioh5
         return fabioh5.File(filename)

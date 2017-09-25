@@ -27,7 +27,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "10/04/2017"
+__date__ = "21/09/2017"
 
 from silx.gui import qt
 from .DataViewer import DataViewer
@@ -79,6 +79,14 @@ class DataViewerFrame(qt.QWidget):
                 """Avoid to create views while the instance is not created."""
                 super(_DataViewer, self)._initializeViews()
 
+            def _createDefaultViews(self, parent):
+                """Expose the original `createDefaultViews` function"""
+                return super(_DataViewer, self).createDefaultViews()
+
+            def createDefaultViews(self, parent=None):
+                """Allow the DataViewerFrame to override this function"""
+                return self.parent().createDefaultViews(parent)
+
         self.__dataViewer = _DataViewer(self)
         # initialize views when `self.__dataViewer` is set
         self.__dataViewer.initializeViews()
@@ -127,7 +135,7 @@ class DataViewerFrame(qt.QWidget):
         :param QWidget parent: QWidget parent of the views
         :rtype: list[silx.gui.data.DataViews.DataView]
         """
-        return self.__dataViewer.createDefaultViews(parent)
+        return self.__dataViewer._createDefaultViews(parent)
 
     def addView(self, view):
         """Allow to add a view to the dataview.

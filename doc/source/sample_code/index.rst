@@ -164,7 +164,18 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
        - QAction from :mod:`silx.gui.plot.actions`
        - QToolButton from :mod:`silx.gui.plot.PlotToolButtons`
        - QToolBar from :mod:`silx.gui.plot.PlotTools`
-       - :class:`ColorBarWidget` from :mod:`silx.gui.plot.ColorBar.
+       - :class:`ColorBarWidget` from :mod:`silx.gui.plot.ColorBar`.
+   * - :download:`printPreview.py <../../../examples/printPreview.py>`
+     - .. image:: img/printPreview.png
+         :height: 150px
+         :align: center
+     - This script illustrates how to add a print preview tool button to any plot
+       widget inheriting :class:`PlotWidget`.
+
+       Three plot widgets are instantiated. One of them uses a standalone
+       :class:`PrintPreviewToolButton`, while the other two use a
+       :class:`SingletonPrintPreviewToolButton` which allows them to send their content
+       to the same print preview page.
    * - :download:`scatterMask.py <../../../examples/scatterMask.py>`
      - .. image:: img/scatterMask.png
          :height: 150px
@@ -203,17 +214,17 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
    * - Source
      - Screenshot
      - Description
-   * - :download:`spectoh5.py <../../../examples/spectoh5.py>`
+   * - :download:`writetoh5.py <../../../examples/writetoh5.py>`
      -
-     - This script converts SPEC data files to HDF5 files.
+     - This script converts a supported data file (SPEC, EDF...) to a HDF5 file.
 
        By default, it creates a new output file or fails if the output file given
        on the command line already exist, but the user can choose to overwrite
-       existing files, or append SPEC data to existing HDF5 files.
+       an existing file, or append data to an existing HDF5 file.
 
        In case of appending data to HDF5 files, the user can choose between ignoring
        input data if a corresponding dataset already exists in the output file, or
-       overwriting existing datasets.
+       overwriting the existing dataset.
 
        By default, new scans are written to the root (/) of the HDF5 file, but it is
        possible to specify a different target path.

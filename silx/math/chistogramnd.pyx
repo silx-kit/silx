@@ -206,6 +206,12 @@ def chistogramnd(sample,
                          ''.format(histo_range=i_histo_range,
                                    n_dims=n_dims))
 
+    # check range value
+    if np.inf in histo_range:
+        raise ValueError('Range parameter should be finite value')
+    if np.nan in histo_range:
+        raise ValueError('Range value can\'t be nan')
+
     # checking n_bins size
     n_bins = np.array(n_bins, ndmin=1)
     if len(n_bins) == 1:
