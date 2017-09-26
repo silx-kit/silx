@@ -327,7 +327,7 @@ class Projection(OpenclProcessing):
         """
         copy a Nx * Ny slice to self.d_slice which is (Nx+2)*(Ny+2)
         """
-        ndrange = self.shape[::-1]
+        ndrange = (int(self.shape[1]), int(self.shape[0])) #self.shape[::-1] # pyopencl < 2015.2
         wg = None
         slice_shape_ocl = np.int32(ndrange)
         kernel_args = (
