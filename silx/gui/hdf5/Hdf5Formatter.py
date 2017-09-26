@@ -76,6 +76,12 @@ class Hdf5Formatter(qt.QObject):
     def humanReadableValue(self, dataset):
         if dataset.shape is None:
             return "No data"
+
+        dtype = dataset.dtype
+        if dataset.dtype.type == numpy.void:
+            if dtype.fields is None:
+                return "Raw data"
+
         if dataset.shape == tuple():
             numpy_object = dataset[()]
             text = self.__formatter.toString(numpy_object, dtype=dataset.dtype)
