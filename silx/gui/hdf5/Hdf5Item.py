@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "22/09/2017"
+__date__ = "26/09/2017"
 
 
 import numpy
@@ -37,6 +37,7 @@ from . import _utils
 from .Hdf5Node import Hdf5Node
 import silx.io.utils
 from silx.gui.data.TextFormatter import TextFormatter
+from silx.third_party import six
 
 _logger = logging.getLogger(__name__)
 
@@ -258,11 +259,11 @@ class Hdf5Item(Hdf5Node):
             return "No data"
         if dataset.shape == tuple():
             numpy_object = dataset[()]
-            text = _formatter.toString(numpy_object)
+            text = _formatter.toString(numpy_object, dtype=dataset.dtype)
         else:
             if dataset.size < 5 and dataset.compression is None:
                 numpy_object = dataset[0:5]
-                text = _formatter.toString(numpy_object)
+                text = _formatter.toString(numpy_object, dtype=dataset.dtype)
             else:
                 dimension = len(dataset.shape)
                 if dataset.compression is not None:
@@ -272,27 +273,46 @@ class Hdf5Item(Hdf5Node):
         return text
 
     def _humanReadableDType(self, dtype, full=False):
-        if dtype.type == numpy.string_:
+        if dtype == six.binary_type or numpy.issubdtype(dtype, numpy.string_):
             text = "string"
-        elif dtype.type == numpy.unicode_:
+            if full:
+                text = "ASCII " + text
+            return text
+        elif dtype == six.text_type or numpy.issubdtype(dtype, numpy.unicode_):
             text = "string"
+            if full:
+                text = "UTF-8 " + text
+            return text
         elif dtype.type == numpy.object_:
-            text = "object"
+            ref = h5py.check_dtype(ref=dtype)
+            if ref is not None:
+                return "reference"
+            vlen = h5py.check_dtype(vlen=dtype)
+            if vlen is not None:
+                text = self._humanReadableDType(vlen, full=full)
+                if full:
+                    text = "variable-length " + text
+                return text
+            return "object"
         elif dtype.type == numpy.bool_:
-            text = "bool"
+            return "bool"
         elif dtype.type == numpy.void:
             if dtype.fields is None:
-                text = "raw"
+                return "opaque"
             else:
                 if not full:
-                    text = "compound"
+                    return "compound"
                 else:
                     compound = [d[0] for d in dtype.fields.values()]
                     compound = [self._humanReadableDType(d) for d in compound]
-                    text = "compound(%s)" % ", ".join(compound)
-        else:
-            text = str(dtype)
-        return text
+                    return "compound(%s)" % ", ".join(compound)
+        elif numpy.issubdtype(dtype, numpy.integer):
+            if h5py is not None:
+                enumType = h5py.check_dtype(enum=dtype)
+                if enumType is not None:
+                    return "enum"
+
+        return str(dtype)
 
     def _humanReadableType(self, dataset, full=False):
         return self._humanReadableDType(dataset.dtype, full)
