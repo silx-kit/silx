@@ -30,7 +30,7 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "07/04/2017"
+__date__ = "26/09/2017"
 
 import functools
 import os.path
@@ -40,6 +40,13 @@ import silx.io
 from .TextFormatter import TextFormatter
 import silx.gui.hdf5
 from silx.gui.widgets import HierarchicalTableView
+from ..hdf5.Hdf5Formatter import Hdf5Formatter
+
+try:
+    import h5py
+except ImportError:
+    h5py = None
+
 
 _logger = logging.getLogger(__name__)
 
@@ -177,6 +184,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
         self.__obj = None
         self.__data = _TableData(columnCount=4)
         self.__formatter = None
+        self.__hdf5Formatter = Hdf5Formatter(self)
         formatter = TextFormatter(self)
         self.setFormatter(formatter)
         self.setObject(data)
@@ -207,7 +215,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
             value = cell.value()
             if callable(value):
                 value = value(self.__obj)
-            return str(value)
+            return value
         return None
 
     def flags(self, index):
@@ -247,6 +255,18 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
             self.endResetModel()
         else:
             self.reset()
+
+    def __formatHdf5Type(self, dataset):
+        """Format the HDF5 type"""
+        return self.__hdf5Formatter.humanReadableHdf5Type(dataset)
+
+    def __formatDType(self, dataset):
+        """Format the numpy dtype"""
+        return self.__hdf5Formatter.humanReadableType(dataset)
+
+    def __formatShape(self, dataset):
+        """Format the shape"""
+        return self.__hdf5Formatter.humanReadableShape(dataset)
 
     def __initProperties(self):
         """Initialize the list of available properties according to the defined
@@ -303,12 +323,17 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
                 self.__data.addHeaderValueRow("Physical", physical)
 
         if hasattr(obj, "dtype"):
+
             self.__data.addHeaderRow(headerLabel="Data info")
-            self.__data.addHeaderValueRow("dtype", lambda x: x.dtype)
+
+            if h5py is not None and hasattr(obj, "id"):
+                # display the HDF5 type
+                self.__data.addHeaderValueRow("HDF5 type", self.__formatHdf5Type)
+            self.__data.addHeaderValueRow("dtype", self.__formatDType)
             if hasattr(obj, "shape"):
-                self.__data.addHeaderValueRow("shape", lambda x: x.shape)
+                self.__data.addHeaderValueRow("shape", self.__formatShape)
             if hasattr(obj, "size"):
-                self.__data.addHeaderValueRow("size", lambda x: x.size)
+                self.__data.addHeaderValueRow("size", lambda x: str(x.size))
             if hasattr(obj, "chunks") and obj.chunks is not None:
                 self.__data.addHeaderValueRow("chunks", lambda x: x.chunks)
 
@@ -372,6 +397,8 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
         """
         if formatter is self.__formatter:
             return
+
+        self.__hdf5Formatter.setTextFormatter(formatter)
 
         if qt.qVersion() > "4.6":
             self.beginResetModel()
