@@ -162,3 +162,57 @@ class Hdf5Formatter(qt.QObject):
                     return "enum"
 
         return str(dtype)
+
+    def humanReadableHdf5Type(self, dataset):
+        """Format the internal HDF5 type as a string"""
+        t = dataset.id.get_type()
+        class_ = t.get_class()
+        if class_ == h5py.h5t.NO_CLASS:
+            return "NO_CLASS"
+        elif class_ == h5py.h5t.INTEGER:
+            return "INTEGER"
+        elif class_ == h5py.h5t.FLOAT:
+            return "FLOAT"
+        elif class_ == h5py.h5t.TIME:
+            return "TIME"
+        elif class_ == h5py.h5t.STRING:
+            charset = t.get_cset()
+            strpad = t.get_strpad()
+            text = ""
+
+            if strpad == h5py.h5t.STR_NULLTERM:
+                text += "NULLTERM"
+            elif strpad == h5py.h5t.STR_NULLPAD:
+                text += "NULLPAD"
+            elif strpad == h5py.h5t.STR_SPACEPAD:
+                text += "SPACEPAD"
+            else:
+                text += "UNKNOWN_STRPAD"
+
+            if t.is_variable_str():
+                text += " VARIABLE"
+
+            if charset == h5py.h5t.CSET_ASCII:
+                text += " ASCII"
+            elif charset == h5py.h5t.CSET_UTF8:
+                text += " UTF8"
+            else:
+                text += " UNKNOWN_CSET"
+
+            return text + " STRING"
+        elif class_ == h5py.h5t.BITFIELD:
+            return "BITFIELD"
+        elif class_ == h5py.h5t.OPAQUE:
+            return "OPAQUE"
+        elif class_ == h5py.h5t.COMPOUND:
+            return "COMPOUND"
+        elif class_ == h5py.h5t.REFERENCE:
+            return "REFERENCE"
+        elif class_ == h5py.h5t.ENUM:
+            return "ENUM"
+        elif class_ == h5py.h5t.VLEN:
+            return "VLEN"
+        elif class_ == h5py.h5t.ARRAY:
+            return "ARRAY"
+        else:
+            return "UNKNOWN_CLASS"
