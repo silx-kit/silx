@@ -118,10 +118,10 @@ Groups provide a :meth:`get` method that retrieves an item, or information about
 Like standard python dictionaries, a `default` parameter can be used to specify
 a value to be returned if the given name is not a member of the group.
 
-Two methods are provided ot visit recursively all members of a group, :meth:`visit`
+Two methods are provided to visit recursively all members of a group, :meth:`visit`
 and :meth:`visititems`. The former takes as argument a *callable* with the signature
-`callable(name) -> None or return value`. The latter  takes as argument a *callable*
-with the signature `callable(name, object) -> None or return value` (`object` being a
+``callable(name) -> None or return value``. The latter  takes as argument a *callable*
+with the signature ``callable(name, object) -> None or return value`` (``object`` being a
 a group or dataset instance.)
 
 Example
