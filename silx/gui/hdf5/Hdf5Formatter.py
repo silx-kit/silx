@@ -61,6 +61,27 @@ class Hdf5Formatter(qt.QObject):
             self.__formatter = TextFormatter(self)
         self.__formatter.formatChanged.connect(self.__formatChanged)
 
+    def textFormatter(self):
+        """Returns the used text formatter
+
+        :rtype: TextFormatter
+        """
+        return self.__formatter
+
+    def setTextFormatter(self, textFormatter):
+        """Set the text formatter to be used
+
+        :param TextFormatter textFormatter: The text formatter to use
+        """
+        if textFormatter is None:
+            raise ValueError("Formatter expected but None found")
+        if self.__formatter is textFormatter:
+            return
+        self.__formatter.formatChanged.disconnect(self.__formatChanged)
+        self.__formatter = textFormatter
+        self.__formatter.formatChanged.connect(self.__formatChanged)
+        self.__formatChanged()
+
     def __formatChanged(self):
         self.formatChanged.emit()
 
