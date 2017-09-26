@@ -27,7 +27,7 @@ data module to format data as text in the same way."""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "18/09/2017"
+__date__ = "26/09/2017"
 
 import numpy
 import numbers
@@ -312,6 +312,14 @@ class TextFormatter(qt.QObject):
                     template = self.__floatFormat
                     params = (data.real)
             return template % params
+        elif h5py is not None and isinstance(data, h5py.h5r.Reference):
+            dtype = h5py.special_dtype(ref=h5py.Reference)
+            text = self.__formatH5pyObject(data, dtype)
+            return text
+        elif h5py is not None and isinstance(data, h5py.h5r.RegionReference):
+            dtype = h5py.special_dtype(ref=h5py.RegionReference)
+            text = self.__formatH5pyObject(data, dtype)
+            return text
         elif isinstance(data, numpy.object_) or dtype is not None:
             if dtype is None:
                 dtype = data.dtype
