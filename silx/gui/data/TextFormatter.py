@@ -31,7 +31,6 @@ __date__ = "26/09/2017"
 
 import numpy
 import numbers
-import binascii
 from silx.third_party import six
 from silx.gui import qt
 
@@ -198,6 +197,29 @@ class TextFormatter(qt.QObject):
             text = "\"%s\"" % text.replace("\\", "\\\\").replace("\"", "\\\"")
         return text
 
+    def __formatBinary(self, data):
+        if isinstance(data, numpy.void):
+            if six.PY2:
+                data = [ord(d) for d in data.item()]
+            else:
+                data = data.item().astype(numpy.uint8)
+        else:
+            data = [ord(d) for d in data]
+        data = ["\\x%02X" % d for d in data]
+        if self.__useQuoteForText:
+            return "b\"%s\"" % "".join(data)
+        else:
+            return "".join(data)
+
+    def __formatSafeAscii(self, data):
+        data = [ord(d) for d in data]
+        data = [chr(d) if (d > 0x20 and d < 0x7F) else "\\x%02X" % d for d in data]
+        if self.__useQuoteForText:
+            data = [c if c != '"' else "\\" + c for c in data]
+            return "b\"%s\"" % "".join(data)
+        else:
+            return "".join(data)
+
     def __formatH5pyObject(self, data, dtype):
         # That's an HDF5 object
         ref = h5py.check_dtype(ref=dtype)
@@ -217,7 +239,7 @@ class TextFormatter(qt.QObject):
                     text = "%s" % data.decode("ascii")
                     return self.__formatText(text)
                 except UnicodeDecodeError:
-                    return "ENCODING_ERROR:0x" + binascii.hexlify(data).decode("ascii")
+                    return self.__formatSafeAscii(data)
         return None
 
     def toString(self, data, dtype=None):
@@ -248,7 +270,7 @@ class TextFormatter(qt.QObject):
             if data.dtype.fields is not None:
                 text = [self.toString(data[f], dtype) for f in dtype.fields]
                 return "(" + " ".join(text) + ")"
-            return "0x" + binascii.hexlify(data).decode("ascii")
+            return self.__formatBinary(data)
         elif isinstance(data, (numpy.unicode_, six.text_type)):
             return self.__formatText(data)
         elif isinstance(data, (numpy.string_, six.binary_type)):
@@ -259,7 +281,7 @@ class TextFormatter(qt.QObject):
                         text = "%s" % data.decode("ascii")
                         return self.__formatText(text)
                     except UnicodeDecodeError:
-                        return "ENCODING_ERROR:0x" + binascii.hexlify(data).decode("ascii")
+                        return self.__formatSafeAscii(data)
                 elif dtype.kind == 'O':
                     if h5py is not None:
                         text = self.__formatH5pyObject(data, dtype)
@@ -271,7 +293,7 @@ class TextFormatter(qt.QObject):
                 return self.__formatText(text)
             except UnicodeDecodeError:
                 pass
-            return "0x" + binascii.hexlify(data).decode("ascii")
+            return self.__formatBinary(data)
         elif isinstance(data, six.string_types):
             text = "%s" % data
             return self.__formatText(text)
