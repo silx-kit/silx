@@ -39,7 +39,7 @@ from silx.io.nxdata import NXdata
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "25/08/2017"
+__date__ = "26/09/2017"
 
 _logger = logging.getLogger(__name__)
 
@@ -705,10 +705,10 @@ class _ScalarView(DataView):
         self.getWidget().setText("")
 
     def setData(self, data):
-        data = self.normalizeData(data)
-        if silx.io.is_dataset(data):
-            data = data[()]
-        text = self.__formatter.toString(data)
+        d = self.normalizeData(data)
+        if silx.io.is_dataset(d):
+            d = d[()]
+        text = self.__formatter.toString(d, data.dtype)
         self.getWidget().setText(text)
 
     def axesNames(self, data, info):
