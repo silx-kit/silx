@@ -240,7 +240,7 @@ class Backprojection(OpenclProcessing):
         return pyopencl.LocalMemory(self.local_mem)  # constant for all image sizes
 
     def cpy2d_to_slice(self, dst):
-        ndrange = self.slice_shape[::-1]
+        ndrange = (int(self.slice_shape[1]), int(self.slice_shape[0])) # pyopencl < 2015.2
         slice_shape_ocl = np.int32(ndrange)
         wg = None
         kernel_args = (

@@ -238,7 +238,7 @@ class Projection(OpenclProcessing):
                 d_image,
                 offset=0,
                 origin=(1, 1),
-                region=self.shape[::-1]
+                region=(int(self.shape[1]), int(self.shape[0]))#self.shape[::-1] # pyopencl <= 2015.2
             )
 
     def transfer_to_slice(self, image):
@@ -309,7 +309,7 @@ class Projection(OpenclProcessing):
 
 
     def cpy2d_to_sino(self, dst):
-        ndrange = (self.dwidth, self.nprojs)
+        ndrange = (int(self.dwidth), int(self.nprojs)) # pyopencl < 2015.2
         sino_shape_ocl = np.int32(ndrange)
         wg = None
         kernel_args = (
