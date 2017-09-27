@@ -27,7 +27,7 @@ data module to format data as text in the same way."""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "26/09/2017"
+__date__ = "27/09/2017"
 
 import numpy
 import numbers
@@ -212,7 +212,8 @@ class TextFormatter(qt.QObject):
             return "".join(data)
 
     def __formatSafeAscii(self, data):
-        data = [ord(d) for d in data]
+        if six.PY2:
+            data = [ord(d) for d in data]
         data = [chr(d) if (d > 0x20 and d < 0x7F) else "\\x%02X" % d for d in data]
         if self.__useQuoteForText:
             data = [c if c != '"' else "\\" + c for c in data]

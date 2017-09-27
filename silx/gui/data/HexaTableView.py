@@ -32,6 +32,7 @@ import numpy
 import collections
 from silx.gui import qt
 import silx.io.utils
+from silx.third_party import six
 from silx.gui.widgets.TableWidget import CopySelectedCellsAction
 
 __authors__ = ["V. Valls"]
@@ -71,7 +72,10 @@ class _VoidConnector(object):
         bufferPos = pos & 0b1111111111
         data = self.__getBuffer(bufferId)
         value = data[bufferPos]
-        return ord(value)
+        if six.PY2:
+            return ord(value)
+        else:
+            return value
 
     def __len__(self):
         """
