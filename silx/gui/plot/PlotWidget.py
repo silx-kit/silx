@@ -938,8 +938,10 @@ class PlotWidget(qt.QMainWindow):
         When image parameters are not provided, if an image with the
         same legend is displayed in the plot, its parameters are used.
 
-        :param numpy.ndarray data: (nrows, ncolumns) data or
-                                   (nrows, ncolumns, RGBA) ubyte array
+        :param numpy.ndarray data:
+            (nrows, ncolumns) data or
+            (nrows, ncolumns, RGBA) ubyte array
+            Note: boolean values are converted to int8.
         :param str legend: The legend to be associated to the image (or None)
         :param info: User-defined information associated to the image
         :param bool replace: True (default) to delete already existing images
