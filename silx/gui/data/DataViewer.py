@@ -223,8 +223,6 @@ class DataViewer(qt.QFrame):
         """
         if self.__useAxisSelection:
             self.__displayedData = self.__numpySelection.selectedData()
-            # Avoid to lose the monkey-patched h5py dtype
-            self.__displayedData.dtype = self.__data.dtype
         else:
             self.__displayedData = self.__data
 
