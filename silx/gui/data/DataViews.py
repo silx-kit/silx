@@ -245,12 +245,12 @@ class DataView(object):
 
     def axesNames(self, data, info):
         """Returns names of the expected axes of the view, according to the
-        input data.
+        input data. A none value will disable the default axes selectior.
 
         :param data: Data to display
         :type data: numpy.ndarray or h5py.Dataset
         :param DataInfo info: Pre-computed information on the data
-        :rtype: list[str]
+        :rtype: list[str] or None
         """
         return []
 
@@ -368,7 +368,7 @@ class _EmptyView(DataView):
         DataView.__init__(self, parent, modeId=EMPTY_MODE)
 
     def axesNames(self, data, info):
-        return []
+        return None
 
     def createWidget(self, parent):
         return qt.QLabel(parent)
@@ -791,7 +791,7 @@ class _Hdf5View(DataView):
         widget.setData(data)
 
     def axesNames(self, data, info):
-        return []
+        return None
 
     def getDataPriority(self, data, info):
         widget = self.getWidget()
@@ -886,7 +886,7 @@ class _NXdataCurveView(DataView):
 
     def axesNames(self, data, info):
         # disabled (used by default axis selector widget in Hdf5Viewer)
-        return []
+        return None
 
     def clear(self):
         self.getWidget().clear()
@@ -933,7 +933,7 @@ class _NXdataXYVScatterView(DataView):
 
     def axesNames(self, data, info):
         # disabled (used by default axis selector widget in Hdf5Viewer)
-        return []
+        return None
 
     def clear(self):
         self.getWidget().clear()
@@ -982,7 +982,8 @@ class _NXdataImageView(DataView):
         return widget
 
     def axesNames(self, data, info):
-        return []
+        # disabled (used by default axis selector widget in Hdf5Viewer)
+        return None
 
     def clear(self):
         self.getWidget().clear()
@@ -1022,7 +1023,8 @@ class _NXdataStackView(DataView):
         return widget
 
     def axesNames(self, data, info):
-        return []
+        # disabled (used by default axis selector widget in Hdf5Viewer)
+        return None
 
     def clear(self):
         self.getWidget().clear()
