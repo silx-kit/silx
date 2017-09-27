@@ -55,9 +55,7 @@ class _VoidConnector(object):
             pos = bufferId << 10
             data = self.__data.tobytes()[pos:pos + 1024]
             self.__cache[bufferId] = data
-            print("create")
             if len(self.__cache) > 32:
-                print("remove")
                 self.__cache.popitem()
         else:
             data = self.__cache[bufferId]

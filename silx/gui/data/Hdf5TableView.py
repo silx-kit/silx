@@ -30,7 +30,7 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "26/09/2017"
+__date__ = "27/09/2017"
 
 import functools
 import os.path
@@ -262,7 +262,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
 
     def __formatDType(self, dataset):
         """Format the numpy dtype"""
-        return self.__hdf5Formatter.humanReadableType(dataset)
+        return self.__hdf5Formatter.humanReadableType(dataset, full=True)
 
     def __formatShape(self, dataset):
         """Format the shape"""

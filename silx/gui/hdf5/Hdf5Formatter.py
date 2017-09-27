@@ -27,7 +27,7 @@ text."""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "26/09/2017"
+__date__ = "27/09/2017"
 
 import numpy
 from silx.third_party import six
@@ -119,7 +119,8 @@ class Hdf5Formatter(qt.QObject):
         return text
 
     def humanReadableType(self, dataset, full=False):
-        return self.humanReadableDType(dataset.dtype, full)
+        dtype = dataset.dtype
+        return self.humanReadableDType(dtype, full)
 
     def humanReadableDType(self, dtype, full=False):
         if dtype == six.binary_type or numpy.issubdtype(dtype, numpy.string_):
@@ -161,7 +162,17 @@ class Hdf5Formatter(qt.QObject):
                 if enumType is not None:
                     return "enum"
 
-        return str(dtype)
+        text = str(dtype.newbyteorder('N'))
+        if full:
+            if dtype.byteorder == "<":
+                text = "Little-endian " + text
+            elif dtype.byteorder == ">":
+                text = "Big-endian " + text
+            elif dtype.byteorder == "=":
+                text = "Native " + text
+
+        dtype = dtype.newbyteorder('N')
+        return text
 
     def humanReadableHdf5Type(self, dataset):
         """Format the internal HDF5 type as a string"""
