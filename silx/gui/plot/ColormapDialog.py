@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -123,10 +123,13 @@ class ColormapDialog(qt.QDialog):
         self._dataRange = None
         self._minMaxWasEdited = False
 
-        self._colormapList = (
+        colormaps = [
             'gray', 'reversed gray',
             'temperature', 'red', 'green', 'blue', 'jet',
-            'viridis', 'magma', 'inferno', 'plasma')
+            'viridis', 'magma', 'inferno', 'plasma']
+        if 'hsv' in Colormap.getSupportedColormaps():
+            colormaps.append('hsv')
+        self._colormapList = tuple(colormaps)
 
         # Make the GUI
         vLayout = qt.QVBoxLayout(self)

@@ -50,6 +50,7 @@ from . import testStackView
 from . import testItem
 from . import testUtilsAxis
 from . import testLimitConstraints
+from . import testComplexImageView
 
 
 def suite():
@@ -75,5 +76,6 @@ def suite():
          testColormap.suite(),
          testItem.suite(),
          testUtilsAxis.suite(),
-         testLimitConstraints.suite()])
+         testLimitConstraints.suite(),
+         testComplexImageView.suite()])
     return test_suite

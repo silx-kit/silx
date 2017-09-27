@@ -149,6 +149,14 @@ Plotting widgets:
        stack of images in a :class:`PlotWindow` widget, with a frame browser
        to navigate in the stack. The profile tool can do a 2D profile on the
        stack of images.
+   * - .. image:: plot/img/ComplexImageView.png
+          :height: 150px
+          :align: center
+     - :class:`ComplexImageView` is a widget dedicated to visualize a single
+       2D dataset of complex data.
+       It allows to switch between viewing amplitude, phase, real, imaginary,
+       colored phase with amplitude or log10(amplitude) as brightness.
+
 
 Additional widgets:
 

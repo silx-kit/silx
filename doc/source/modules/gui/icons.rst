@@ -109,6 +109,8 @@ Available icons
      - item-object
    * - |last|
      - last
+   * - |math-amplitude|
+     - math-amplitude
    * - |math-average|
      - math-average
    * - |math-derive|
@@ -117,6 +119,8 @@ Available icons
      - math-energy
    * - |math-fit|
      - math-fit
+   * - |math-imaginary|
+     - math-imaginary
    * - |math-normalize|
      - math-normalize
    * - |math-peak-reset|
@@ -125,6 +129,14 @@ Available icons
      - math-peak-search
    * - |math-peak|
      - math-peak
+   * - |math-phase-color-log|
+     - math-phase-color-log
+   * - |math-phase-color|
+     - math-phase-color
+   * - |math-phase|
+     - math-phase
+   * - |math-real|
+     - math-real
    * - |math-sigma|
      - math-sigma
    * - |math-smooth|
@@ -301,14 +313,20 @@ Available icons
 .. |item-none| image:: ../../../../silx/resources/gui/icons/item-none.png
 .. |item-object| image:: ../../../../silx/resources/gui/icons/item-object.png
 .. |last| image:: ../../../../silx/resources/gui/icons/last.png
+.. |math-amplitude| image:: ../../../../silx/resources/gui/icons/math-amplitude.png
 .. |math-average| image:: ../../../../silx/resources/gui/icons/math-average.png
 .. |math-derive| image:: ../../../../silx/resources/gui/icons/math-derive.png
 .. |math-energy| image:: ../../../../silx/resources/gui/icons/math-energy.png
 .. |math-fit| image:: ../../../../silx/resources/gui/icons/math-fit.png
+.. |math-imaginary| image:: ../../../../silx/resources/gui/icons/math-imaginary.png
 .. |math-normalize| image:: ../../../../silx/resources/gui/icons/math-normalize.png
 .. |math-peak-reset| image:: ../../../../silx/resources/gui/icons/math-peak-reset.png
 .. |math-peak-search| image:: ../../../../silx/resources/gui/icons/math-peak-search.png
 .. |math-peak| image:: ../../../../silx/resources/gui/icons/math-peak.png
+.. |math-phase-color-log| image:: ../../../../silx/resources/gui/icons/math-phase-color-log.png
+.. |math-phase-color| image:: ../../../../silx/resources/gui/icons/math-phase-color.png
+.. |math-phase| image:: ../../../../silx/resources/gui/icons/math-phase.png
+.. |math-real| image:: ../../../../silx/resources/gui/icons/math-real.png
 .. |math-sigma| image:: ../../../../silx/resources/gui/icons/math-sigma.png
 .. |math-smooth| image:: ../../../../silx/resources/gui/icons/math-smooth.png
 .. |math-substract| image:: ../../../../silx/resources/gui/icons/math-substract.png

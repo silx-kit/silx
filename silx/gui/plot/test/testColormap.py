@@ -33,6 +33,7 @@ __date__ = "05/12/2016"
 
 import unittest
 import numpy
+from silx.test.utils import ParametricTestCase
 from silx.gui.plot.Colormap import Colormap
 
 
@@ -136,7 +137,7 @@ class TestDictAPI(unittest.TestCase):
             colormapObject = Colormap._fromDict(clm_dict)
 
 
-class TestObjectAPI(unittest.TestCase):
+class TestObjectAPI(ParametricTestCase):
     """Test the new Object API of the colormap"""
     def setUp(self):
         signalHasBeenEmitting = False
@@ -254,6 +255,27 @@ class TestObjectAPI(unittest.TestCase):
             (float('nan'), float('inf'), 1., -float('inf'), 2)), (1., 2.))
         self.assertEqual(cl4.getColormapRange(
             (float('nan'), float('inf'))), (1., 10.))
+
+    def testApplyToData(self):
+        """Test applyToData on different datasets"""
+        datasets = [
+            numpy.zeros((0, 0)),  # Empty array
+            numpy.array((numpy.nan, numpy.inf)),  # All non-finite
+            numpy.array((-numpy.inf, numpy.inf, 1.0, 2.0)),  # Some infinite
+        ]
+
+        for normalization in ('linear', 'log'):
+            colormap = Colormap(name='gray',
+                                normalization=normalization,
+                                vmin=None,
+                                vmax=None)
+
+            for data in datasets:
+                with self.subTest(data=data):
+                    image = colormap.applyToData(data)
+                    self.assertEqual(image.dtype, numpy.uint8)
+                    self.assertEqual(image.shape[-1], 4)
+                    self.assertEqual(image.shape[:-1], data.shape)
 
 
 def suite():
