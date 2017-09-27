@@ -68,7 +68,7 @@ def _phase2rgb(data):
     return _PHASE_COLORMAP.applyToData(phase)
 
 
-def _complex2rgbalog(data, amin=0.5, dlogs=2, smax=None):
+def _complex2rgbalog(data, amin=0., dlogs=2, smax=None):
     """Returns RGBA colors: colour-coded phases and log10(amplitude) in alpha.
 
     :param numpy.ndarray data: the complex data array to convert to RGBA
