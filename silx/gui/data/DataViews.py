@@ -123,7 +123,9 @@ class DataInfo(object):
             self.interpretation = None
 
         if hasattr(data, "dtype"):
-            self.isVoid = numpy.issubdtype(data.dtype, numpy.void)
+            if numpy.issubdtype(data.dtype, numpy.void):
+                # That's a real opaque type, else it is a structured type
+                self.isVoid = data.dtype.fields is None
             self.isNumeric = numpy.issubdtype(data.dtype, numpy.number)
             self.isRecord = data.dtype.fields is not None
             self.isComplex = numpy.issubdtype(data.dtype, numpy.complex)
