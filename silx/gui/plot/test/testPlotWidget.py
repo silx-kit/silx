@@ -271,7 +271,7 @@ class TestPlotImage(PlotWidgetTestCase, ParametricTestCase):
             numpy.all(numpy.equal(retrievedData, numpy.absolute(data))))
 
     def testPlotBooleanImage(self):
-        """Test that a boolean image is displayed and converted to uint8."""
+        """Test that a boolean image is displayed and converted to int8."""
         data = numpy.zeros((10, 10), dtype=numpy.bool)
         data[::2, ::2] = True
         self.plot.addImage(data, legend='boolean')
@@ -279,7 +279,7 @@ class TestPlotImage(PlotWidgetTestCase, ParametricTestCase):
         image = self.plot.getActiveImage()
         retrievedData = image.getData(copy=False)
         self.assertTrue(numpy.all(numpy.equal(retrievedData, data)))
-        self.assertIs(retrievedData.dtype.type, numpy.uint8)
+        self.assertIs(retrievedData.dtype.type, numpy.int8)
 
 
 class TestPlotCurve(PlotWidgetTestCase):
