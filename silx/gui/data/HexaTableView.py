@@ -29,6 +29,7 @@ hexadecimal viewer.
 from __future__ import division
 
 import numpy
+import collections
 from silx.gui import qt
 import silx.io.utils
 from silx.gui.widgets.TableWidget import CopySelectedCellsAction
@@ -39,10 +40,28 @@ __date__ = "27/09/2017"
 
 
 class _VoidConnector(object):
-    """Byte connector to a numpy.void data"""
+    """Byte connector to a numpy.void data.
+
+    It uses a cache of 32 x 1KB and a direct read access API from HDF5.
+    """
 
     def __init__(self, data):
+        self.__cache = collections.OrderedDict()
+        self.__len = data.itemsize
         self.__data = data
+
+    def __getBuffer(self, bufferId):
+        if bufferId not in self.__cache:
+            pos = bufferId << 10
+            data = self.__data.tobytes()[pos:pos + 1024]
+            self.__cache[bufferId] = data
+            print("create")
+            if len(self.__cache) > 32:
+                print("remove")
+                self.__cache.popitem()
+        else:
+            data = self.__cache[bufferId]
+        return data
 
     def __getitem__(self, pos):
         """Returns the value of the byte at the given position.
@@ -50,7 +69,11 @@ class _VoidConnector(object):
         :param uint pos: Position of the byte
         :rtype: int
         """
-        return ord(self.__data.item()[pos])
+        bufferId = pos >> 10
+        bufferPos = pos & 0b1111111111
+        data = self.__getBuffer(bufferId)
+        value = data[bufferPos]
+        return ord(value)
 
     def __len__(self):
         """
@@ -58,7 +81,7 @@ class _VoidConnector(object):
 
         :rtype: uint
         """
-        return len(self.__data.item())
+        return self.__len
 
 
 class HexaTableModel(qt.QAbstractTableModel):
@@ -191,10 +214,10 @@ class HexaTableModel(qt.QAbstractTableModel):
         self.__data = data
         if self.__data is not None:
             if silx.io.utils.is_dataset(self.__data):
-                self.__data = data[()]
+                data = data[()]
             elif isinstance(self.__data, numpy.ndarray):
-                self.__data = data[()]
-            self.__connector = _VoidConnector(self.__data)
+                data = data[()]
+            self.__connector = _VoidConnector(data)
 
         if qt.qVersion() > "4.6":
             self.endResetModel()
