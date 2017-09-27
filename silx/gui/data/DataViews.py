@@ -39,7 +39,7 @@ from silx.io.nxdata import NXdata
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "26/09/2017"
+__date__ = "27/09/2017"
 
 _logger = logging.getLogger(__name__)
 
@@ -53,6 +53,7 @@ RAW_MODE = 40
 RAW_ARRAY_MODE = 41
 RAW_RECORD_MODE = 42
 RAW_SCALAR_MODE = 43
+RAW_HEXA_MODE = 44
 STACK_MODE = 50
 HDF5_MODE = 60
 
@@ -92,6 +93,7 @@ class DataInfo(object):
         self.isArray = False
         self.interpretation = None
         self.isNumeric = False
+        self.isVoid = False
         self.isComplex = False
         self.isBoolean = False
         self.isRecord = False
@@ -121,6 +123,7 @@ class DataInfo(object):
             self.interpretation = None
 
         if hasattr(data, "dtype"):
+            self.isVoid = numpy.issubdtype(data.dtype, numpy.void)
             self.isNumeric = numpy.issubdtype(data.dtype, numpy.number)
             self.isRecord = data.dtype.fields is not None
             self.isComplex = numpy.issubdtype(data.dtype, numpy.complex)
@@ -767,6 +770,34 @@ class _RecordView(DataView):
         return DataView.UNSUPPORTED
 
 
+class _HexaView(DataView):
+    """View displaying data using text"""
+
+    def __init__(self, parent):
+        DataView.__init__(self, parent, modeId=RAW_HEXA_MODE)
+
+    def createWidget(self, parent):
+        from .HexaTableView import HexaTableView
+        widget = HexaTableView(parent)
+        return widget
+
+    def clear(self):
+        self.getWidget().setArrayData(None)
+
+    def setData(self, data):
+        data = self.normalizeData(data)
+        widget = self.getWidget()
+        widget.setArrayData(data)
+
+    def axesNames(self, data, info):
+        return []
+
+    def getDataPriority(self, data, info):
+        if info.isVoid:
+            return 2000
+        return DataView.UNSUPPORTED
+
+
 class _Hdf5View(DataView):
     """View displaying data using text"""
 
@@ -814,6 +845,7 @@ class _RawView(CompositeDataView):
             modeId=RAW_MODE,
             label="Raw",
             icon=icons.getQIcon("view-raw"))
+        self.addView(_HexaView(parent))
         self.addView(_ScalarView(parent))
         self.addView(_ArrayView(parent))
         self.addView(_RecordView(parent))
