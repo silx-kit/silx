@@ -34,7 +34,7 @@ from silx.gui.data.TextFormatter import TextFormatter
 
 __authors__ = ["V.A. Sole"]
 __license__ = "MIT"
-__date__ = "26/09/2017"
+__date__ = "27/09/2017"
 
 
 _logger = logging.getLogger(__name__)
@@ -296,8 +296,9 @@ class ArrayTableModel(qt.QAbstractTableModel):
         elif copy:
             # copy requested (default)
             self._array = numpy.array(data, copy=True)
-            # Avoid to lose the monkey-patched h5py dtype
-            self._array.dtype = data.dtype
+            if hasattr(data, "dtype"):
+                # Avoid to lose the monkey-patched h5py dtype
+                self._array.dtype = data.dtype
         elif not _is_array(data):
             raise TypeError("data is not a proper array. Try setting" +
                             " copy=True to convert it into a numpy array" +

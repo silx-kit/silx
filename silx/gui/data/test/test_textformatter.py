@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "18/09/2017"
+__date__ = "27/09/2017"
 
 import unittest
 import shutil
@@ -130,12 +130,12 @@ class TestTextFormatterWithH5py(TestCaseQt):
     def testBadAscii(self):
         d = self.create_dataset(data=b"\xF0\x9F\x92\x94")
         result = self.formatter.toString(d[()], dtype=d.dtype)
-        self.assertEquals(result, 'ENCODING_ERROR:0xf09f9294')
+        self.assertEquals(result, 'b"\\xF0\\x9F\\x92\\x94"')
 
     def testVoid(self):
         d = self.create_dataset(data=numpy.void(b"abc\xF0"))
         result = self.formatter.toString(d[()], dtype=d.dtype)
-        self.assertEquals(result, '0x616263f0')
+        self.assertEquals(result, 'b"\\x61\\x62\\x63\\xF0"')
 
     def testEnum(self):
         dtype = h5py.special_dtype(enum=('i', {"RED": 0, "GREEN": 1, "BLUE": 42}))
@@ -167,12 +167,12 @@ class TestTextFormatterWithH5py(TestCaseQt):
     def testArrayBadAscii(self):
         d = self.create_dataset(data=[b"\xF0\x9F\x92\x94"])
         result = self.formatter.toString(d[()], dtype=d.dtype)
-        self.assertEquals(result, '[ENCODING_ERROR:0xf09f9294]')
+        self.assertEquals(result, '[b"\\xF0\\x9F\\x92\\x94"]')
 
     def testArrayVoid(self):
         d = self.create_dataset(data=numpy.void([b"abc\xF0"]))
         result = self.formatter.toString(d[()], dtype=d.dtype)
-        self.assertEquals(result, '[0x616263f0]')
+        self.assertEquals(result, '[b"\\x61\\x62\\x63\\xF0"]')
 
     def testArrayEnum(self):
         dtype = h5py.special_dtype(enum=('i', {"RED": 0, "GREEN": 1, "BLUE": 42}))
