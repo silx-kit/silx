@@ -38,6 +38,29 @@ __license__ = "MIT"
 __date__ = "27/09/2017"
 
 
+class _VoidConnector(object):
+    """Byte connector to a numpy.void data"""
+
+    def __init__(self, data):
+        self.__data = data
+
+    def __getitem__(self, pos):
+        """Returns the value of the byte at the given position.
+
+        :param uint pos: Position of the byte
+        :rtype: int
+        """
+        return ord(self.__data.item()[pos])
+
+    def __len__(self):
+        """
+        Returns the number of available bytes.
+
+        :rtype: uint
+        """
+        return len(self.__data.item())
+
+
 class HexaTableModel(qt.QAbstractTableModel):
     """This data model provides access to a numpy void data.
 
@@ -53,6 +76,7 @@ class HexaTableModel(qt.QAbstractTableModel):
         qt.QAbstractTableModel.__init__(self, parent)
 
         self.__data = None
+        self.__connector = None
         self.setArrayData(data)
 
         if hasattr(qt.QFontDatabase, "systemFont"):
@@ -64,9 +88,9 @@ class HexaTableModel(qt.QAbstractTableModel):
 
     def rowCount(self, parent_idx=None):
         """Returns number of rows to be displayed in table"""
-        if self.__data is None:
+        if self.__connector is None:
             return 0
-        return ((len(self.__data.item()) - 1) >> 4) + 1
+        return ((len(self.__connector) - 1) >> 4) + 1
 
     def columnCount(self, parent_idx=None):
         """Returns number of columns to be displayed in table"""
@@ -78,7 +102,7 @@ class HexaTableModel(qt.QAbstractTableModel):
         if not index.isValid():
             return None
 
-        if self.__data is None:
+        if self.__connector is None:
             return None
 
         row = index.row()
@@ -90,10 +114,9 @@ class HexaTableModel(qt.QAbstractTableModel):
                 text = ""
                 for i in range(0x10):
                     pos = start + i
-                    if pos >= len(self.__data.item()):
+                    if pos >= len(self.__connector):
                         break
-                    data = self.__data.item()[pos]
-                    value = ord(data)
+                    value = self.__connector[pos]
                     if value > 0x20 and value < 0x7F:
                         text += chr(value)
                     else:
@@ -101,9 +124,9 @@ class HexaTableModel(qt.QAbstractTableModel):
                 return text
             else:
                 pos = (row << 4) + column
-                if pos < len(self.__data.item()):
-                    data = self.__data.item()[pos]
-                    return "%02X" % ord(data)
+                if pos < len(self.__connector):
+                    value = self.__connector[pos]
+                    return "%02X" % value
                 else:
                     return ""
         elif role == qt.Qt.FontRole:
@@ -111,7 +134,7 @@ class HexaTableModel(qt.QAbstractTableModel):
 
         elif role == qt.Qt.BackgroundColorRole:
             pos = (row << 4) + column
-            if column != 0x10 and pos >= len(self.__data.item()):
+            if column != 0x10 and pos >= len(self.__connector):
                 return self.__palette.color(qt.QPalette.Disabled, qt.QPalette.Background)
             else:
                 return None
@@ -152,7 +175,7 @@ class HexaTableModel(qt.QAbstractTableModel):
         row = index.row()
         column = index.column()
         pos = (row << 4) + column
-        if column != 0x10 and pos >= len(self.__data.item()):
+        if column != 0x10 and pos >= len(self.__connector):
             return qt.Qt.NoItemFlags
         return qt.QAbstractTableModel.flags(self, index)
 
@@ -164,12 +187,14 @@ class HexaTableModel(qt.QAbstractTableModel):
         if qt.qVersion() > "4.6":
             self.beginResetModel()
 
+        self.__connector = None
         self.__data = data
         if self.__data is not None:
             if silx.io.utils.is_dataset(self.__data):
                 self.__data = data[()]
             elif isinstance(self.__data, numpy.ndarray):
                 self.__data = data[()]
+            self.__connector = _VoidConnector(self.__data)
 
         if qt.qVersion() > "4.6":
             self.endResetModel()
