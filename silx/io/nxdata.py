@@ -72,10 +72,10 @@ def _get_attr(item, attr_name, default=None):
     if six.PY3:
         if hasattr(attr, "decode"):
             # byte-string
-            return attr.decode("ascii")
+            return attr.decode("utf8")
         elif isinstance(attr, numpy.ndarray) and hasattr(attr[0], "decode"):
             # array of byte-strinqs
-            return [element.decode("ascii") for element in attr]
+            return [element.decode("utf8") for element in attr]
         else:
             # attr is not a byte-strinq
             return attr
@@ -245,7 +245,7 @@ class NXdata(object):
         """h5py-like group object compliant with NeXus NXdata specification.
         """
 
-        self.signal = self.group[self.group.attrs["signal"]]
+        self.signal = self.group[_get_attr(self.group, "signal")]
         """Signal dataset in this NXdata group.
         """
 
@@ -268,7 +268,7 @@ class NXdata(object):
         # check if axis dataset defines @long_name
         for i, dsname in enumerate(self.axes_dataset_names):
             if dsname is not None and "long_name" in self.group[dsname].attrs:
-                self.axes_names.append(self.group[dsname].attrs["long_name"])
+                self.axes_names.append(_get_attr(self.group[dsname], "long_name"))
             else:
                 self.axes_names.append(dsname)
 
@@ -415,6 +415,8 @@ class NXdata(object):
             axes_dataset_names = [axes_dataset_names]
 
         for i, axis_name in enumerate(axes_dataset_names):
+            if hasattr(axis_name, "decode"):
+                axis_name = axis_name.decode()
             if axis_name == ".":
                 axes_dataset_names[i] = None
 
