@@ -117,6 +117,8 @@ Available icons
      - math-energy
    * - |math-fit|
      - math-fit
+   * - |math-mean-black|
+     - math-mean-black
    * - |math-normalize|
      - math-normalize
    * - |math-peak-reset|
@@ -125,6 +127,8 @@ Available icons
      - math-peak-search
    * - |math-peak|
      - math-peak
+   * - |math-sigma-black|
+     - math-sigma-black
    * - |math-sigma|
      - math-sigma
    * - |math-smooth|
@@ -305,10 +309,12 @@ Available icons
 .. |math-derive| image:: ../../../../silx/resources/gui/icons/math-derive.png
 .. |math-energy| image:: ../../../../silx/resources/gui/icons/math-energy.png
 .. |math-fit| image:: ../../../../silx/resources/gui/icons/math-fit.png
+.. |math-mean-black| image:: ../../../../silx/resources/gui/icons/math-mean-black.png
 .. |math-normalize| image:: ../../../../silx/resources/gui/icons/math-normalize.png
 .. |math-peak-reset| image:: ../../../../silx/resources/gui/icons/math-peak-reset.png
 .. |math-peak-search| image:: ../../../../silx/resources/gui/icons/math-peak-search.png
 .. |math-peak| image:: ../../../../silx/resources/gui/icons/math-peak.png
+.. |math-sigma-black| image:: ../../../../silx/resources/gui/icons/math-sigma-black.png
 .. |math-sigma| image:: ../../../../silx/resources/gui/icons/math-sigma.png
 .. |math-smooth| image:: ../../../../silx/resources/gui/icons/math-smooth.png
 .. |math-substract| image:: ../../../../silx/resources/gui/icons/math-substract.png

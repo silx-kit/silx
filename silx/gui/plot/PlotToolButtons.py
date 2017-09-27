@@ -279,3 +279,58 @@ class ProfileToolButton(PlotToolButton):
 
     def computeProfileIn2D(self):
         self._profileDimensionChanged(2)
+
+
+class MeanSumToolButton(PlotToolButton):
+    """Button used in Profile3DToolbar to switch between "sum"
+    and "mean" modes."""
+    sigAverageMethodChanged = qt.Signal(str)
+
+    def __init__(self, parent=None, plot=None):
+        self.STATE = {
+            "mean": {
+                "icon": icons.getQIcon('math-mean-black'),
+                "tooltip": "Compute profile by averaging samples in the" +
+                           " perpendicular direction (if width > 1)"
+            },
+            "sum": {
+                "icon": icons.getQIcon('math-sigma-black'),
+                "tooltip": "Compute profile by summing samples in the" +
+                           " perpendicular direction (if width > 1)"
+            }
+        }
+
+        super(MeanSumToolButton, self).__init__(parent=parent, plot=plot)
+
+        meanAction = qt.QAction(self.STATE["mean"]["icon"],
+                                "Mean profile", self)
+        meanAction.setToolTip(self.STATE["mean"]["tooltip"])
+        meanAction.triggered.connect(self.setMeanProfile)
+        meanAction.setIconVisibleInMenu(True)
+
+        sumAction = qt.QAction(self.STATE["sum"]["icon"],
+                               "Sum profile", self)
+        sumAction.setToolTip(self.STATE["sum"]["tooltip"])
+        sumAction.triggered.connect(self.setSumProfile)
+        sumAction.setIconVisibleInMenu(True)
+
+        menu = qt.QMenu(self)
+        menu.addAction(meanAction)
+        menu.addAction(sumAction)
+        self.setMenu(menu)
+        self.setPopupMode(qt.QToolButton.InstantPopup)
+        menu.setTitle('Select average method')
+
+    def _averageMethodChanged(self, averageMethod):
+        """Update icon in toolbar, emit averageMethod
+        :param str averageMethod: "mean" or "sum"
+        """
+        self.setIcon(self.STATE[averageMethod]["icon"])
+        self.setToolTip(self.STATE[averageMethod]["tooltip"])
+        self.sigAverageMethodChanged.emit(averageMethod)
+
+    def setMeanProfile(self):
+        self._averageMethodChanged("mean")
+
+    def setSumProfile(self):
+        self._averageMethodChanged("sum")

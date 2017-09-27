@@ -268,7 +268,7 @@ cdef class BilinearImage:
         return numpy.asarray(res).reshape(shape)
 
     @cython.boundscheck(False)
-    def profile_line(self, src, dst, int linewidth=1):
+    def profile_line(self, src, dst, int linewidth=1, str avgmethod="mean"):
         """Return the intensity profile of an image measured along a scan line.
 
         :param src: The start point of the scan line.
@@ -278,6 +278,10 @@ cdef class BilinearImage:
             in contrast to standard numpy indexing.
         :type dst: 2-tuple of numeric scalar
         :param int linewidth: Width of the scanline (unit image pixel).
+        :param str avgmethod: Average method ("mean" or "sum").
+            If "sum" is chosen, samples that are too close to the image edges
+            to provide full coverage are ignored (relevant only for diagonal
+            profiles of linewidth > 1)
         :return: The intensity profile along the scan line.
             The length of the profile is the ceil of the computed length
             of the scan line.
@@ -289,7 +293,10 @@ cdef class BilinearImage:
             float src_row, src_col, dst_row, dst_col, d_row, d_col
             float length, col_width, row_width, sum, row, col, new_row, new_col
             int lengt, i, j, cnt
+            int is_sum=0
             float[::1] result
+        if avgmethod == "sum":
+            is_sum = 1
         src_row, src_col = src
         dst_row, dst_col = dst
         if (src_row == dst_row) and (src_col == dst_col):
@@ -329,7 +336,12 @@ cdef class BilinearImage:
                         cnt = cnt + 1
                         sum = sum + self.c_funct(new_col, new_row)
                 if cnt:
-                    result[i] += sum / cnt
+                    if not is_sum:
+                        result[i] += sum / cnt
+                    # sum is only meaningful where the whole width of the
+                    # profile line is within the image
+                    elif cnt == linewidth:
+                        result[i] += sum
 
         # Ensures the result is exported as numpy array and not memory view.
         return numpy.asarray(result)
