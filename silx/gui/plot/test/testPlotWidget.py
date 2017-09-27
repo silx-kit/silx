@@ -76,23 +76,26 @@ class TestPlotWidget(PlotWidgetTestCase, ParametricTestCase):
         self.assertEqual(self.plot.getXAxis().getLabel(), xlabel)
         self.assertEqual(self.plot.getYAxis().getLabel(), ylabel)
 
+    def _checkLimits(self,
+                    expectedXLim=None,
+                    expectedYLim=None,
+                    expectedRatio=None):
+        """Assert that limits are as expected"""
+        xlim = self.plot.getXAxis().getLimits()
+        ylim = self.plot.getYAxis().getLimits()
+        ratio = abs(xlim[1] - xlim[0]) / abs(ylim[1] - ylim[0])
+
+        if expectedXLim is not None:
+            self.assertEqual(expectedXLim, xlim)
+
+        if expectedYLim is not None:
+            self.assertEqual(expectedYLim, ylim)
+
+        if expectedRatio is not None:
+            self.assertTrue(
+                numpy.allclose(expectedRatio, ratio, atol=0.01))
+
     def testChangeLimitsWithAspectRatio(self):
-        def checkLimits(expectedXLim=None, expectedYLim=None,
-                        expectedRatio=None):
-            xlim = self.plot.getXAxis().getLimits()
-            ylim = self.plot.getYAxis().getLimits()
-            ratio = abs(xlim[1] - xlim[0]) / abs(ylim[1] - ylim[0])
-
-            if expectedXLim is not None:
-                self.assertEqual(expectedXLim, xlim)
-
-            if expectedYLim is not None:
-                self.assertEqual(expectedYLim, ylim)
-
-            if expectedRatio is not None:
-                self.assertTrue(
-                    numpy.allclose(expectedRatio, ratio, atol=0.01))
-
         self.plot.setKeepDataAspectRatio()
         self.qapp.processEvents()
         xlim = self.plot.getXAxis().getLimits()
@@ -100,14 +103,43 @@ class TestPlotWidget(PlotWidgetTestCase, ParametricTestCase):
         defaultRatio = abs(xlim[1] - xlim[0]) / abs(ylim[1] - ylim[0])
 
         self.plot.getXAxis().setLimits(1., 10.)
-        checkLimits(expectedXLim=(1., 10.), expectedRatio=defaultRatio)
+        self._checkLimits(expectedXLim=(1., 10.), expectedRatio=defaultRatio)
         self.qapp.processEvents()
-        checkLimits(expectedXLim=(1., 10.), expectedRatio=defaultRatio)
+        self._checkLimits(expectedXLim=(1., 10.), expectedRatio=defaultRatio)
 
         self.plot.getYAxis().setLimits(1., 10.)
-        checkLimits(expectedYLim=(1., 10.), expectedRatio=defaultRatio)
+        self._checkLimits(expectedYLim=(1., 10.), expectedRatio=defaultRatio)
         self.qapp.processEvents()
-        checkLimits(expectedYLim=(1., 10.), expectedRatio=defaultRatio)
+        self._checkLimits(expectedYLim=(1., 10.), expectedRatio=defaultRatio)
+
+    def testResizeWidget(self):
+        """Test resizing the widget and receiving limitsChanged events"""
+        self.plot.resize(200, 200)
+        self.qapp.processEvents()
+
+        xlim = self.plot.getXAxis().getLimits()
+        ylim = self.plot.getYAxis().getLimits()
+
+        listener = SignalListener()
+        self.plot.getXAxis().sigLimitsChanged.connect(listener.partial('x'))
+        self.plot.getYAxis().sigLimitsChanged.connect(listener.partial('y'))
+
+        # Resize without aspect ratio
+        self.plot.resize(200, 300)
+        self.qapp.processEvents()
+        self._checkLimits(expectedXLim=xlim, expectedYLim=ylim)
+        self.assertEqual(listener.callCount(), 0)
+
+        # Resize with aspect ratio
+        self.plot.setKeepDataAspectRatio(True)
+        listener.clear()  # Clean-up received signal
+        self.qapp.processEvents()
+        self.assertEqual(listener.callCount(), 0)  # No event when redrawing
+
+        self.plot.resize(200, 200)
+        self.qapp.processEvents()
+
+        self.assertNotEqual(listener.callCount(), 0)
 
 
 class TestPlotImage(PlotWidgetTestCase, ParametricTestCase):

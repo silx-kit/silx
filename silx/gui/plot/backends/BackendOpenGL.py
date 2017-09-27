@@ -365,11 +365,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             super(BackendOpenGL, self).postRedisplay,
             qt.Qt.QueuedConnection)
 
-        # TODO is this needed? move it Plot?
-        self.setGraphXLimits(0., 100.)
-        self.setGraphYLimits(0., 100., axis='right')
-        self.setGraphYLimits(0., 100., axis='left')
-
         self.setAutoFillBackground(False)
         self.setMouseTracking(True)
 
@@ -927,9 +922,22 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                                        self._plotFrame.size[1], 0,
                                        1, -1)
 
+        # Store current ranges
+        previousXRange = self.getGraphXLimits()
+        previousYRange = self.getGraphYLimits(axis='left')
+        previousYRightRange = self.getGraphYLimits(axis='right')
+
         (xMin, xMax), (yMin, yMax), (y2Min, y2Max) = \
             self._plotFrame.dataRanges
         self.setLimits(xMin, xMax, yMin, yMax, y2Min, y2Max)
+
+        # If plot range has changed, then emit signal
+        if previousXRange != self.getGraphXLimits():
+            self._plot.getXAxis()._emitLimitsChanged()
+        if previousYRange != self.getGraphYLimits(axis='left'):
+            self._plot.getYAxis(axis='left')._emitLimitsChanged()
+        if previousYRightRange != self.getGraphYLimits(axis='right'):
+            self._plot.getYAxis(axis='right')._emitLimitsChanged()
 
     # Add methods
 

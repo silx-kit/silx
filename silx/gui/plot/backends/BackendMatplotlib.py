@@ -114,10 +114,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self._graphCursor = tuple()
         self.matplotlibVersion = matplotlib.__version__
 
-        self.setGraphXLimits(0., 100.)
-        self.setGraphYLimits(0., 100., axis='right')
-        self.setGraphYLimits(0., 100., axis='left')
-
         self._enableAxis('right', False)
 
     # Add methods
@@ -819,8 +815,21 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
     def draw(self):
         """Override canvas draw method to support faster draw of overlays."""
         if self._plot._getDirtyPlot():  # Need a full redraw
+            # Store previous limits
+            xLimits = self.getGraphXLimits()
+            yLimits = self.getGraphYLimits(axis='left')
+            yRightLimits = self.getGraphYLimits(axis='right')
+
             FigureCanvasQTAgg.draw(self)
             self._background = None  # Any saved background is dirty
+
+            # Check if limits changed due to a resize of the widget
+            if xLimits != self.getGraphXLimits():
+                self._plot.getXAxis()._emitLimitsChanged()
+            if yLimits != self.getGraphYLimits(axis='left'):
+                self._plot.getYAxis(axis='left')._emitLimitsChanged()
+            if yRightLimits != self.getGraphYLimits(axis='right'):
+                self._plot.getYAxis(axis='left')._emitLimitsChanged()
 
         if (self._overlays or self._graphCursor or
                 self._plot._getDirtyPlot() == 'overlay'):
