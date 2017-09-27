@@ -76,6 +76,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         # This attribute is used to ensure consistent values returned
         # when getting the limits at the expense of a replot
         self._dirtyLimits = True
+        self._axesDisplayed = True
 
         self.fig = Figure()
         self.fig.set_facecolor("w")
@@ -675,6 +676,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         :param bool displayed: If `True` axes are displayed. If `False` axes
             are not anymore visible and the margin used for them is removed.
         """
+        BackendBase.BackendBase.setAxesDisplayed(self, displayed)
         if displayed:
             # show axes and viewbox rect
             self.ax.set_axis_on()

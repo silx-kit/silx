@@ -1648,4 +1648,5 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         return self._plotFrame.plotOrigin + self._plotFrame.plotSize
 
     def setAxesDisplayed(self, displayed):
+        BackendBase.BackendBase.setAxesDisplayed(self, displayed)
         self._plotFrame.displayed = displayed

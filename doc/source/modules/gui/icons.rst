@@ -31,6 +31,8 @@ Available icons
      - 3d-plane
    * - |arrow-keys|
      - arrow-keys
+   * - |axis|
+     - axis
    * - |camera|
      - camera
    * - |clipboard|
@@ -260,6 +262,7 @@ Available icons
 .. |3d-plane-pan| image:: ../../../../silx/resources/gui/icons/3d-plane-pan.png
 .. |3d-plane| image:: ../../../../silx/resources/gui/icons/3d-plane.png
 .. |arrow-keys| image:: ../../../../silx/resources/gui/icons/arrow-keys.png
+.. |axis| image:: ../../../../silx/resources/gui/icons/axis.png
 .. |camera| image:: ../../../../silx/resources/gui/icons/camera.png
 .. |clipboard| image:: ../../../../silx/resources/gui/icons/clipboard.png
 .. |close| image:: ../../../../silx/resources/gui/icons/close.png
