@@ -494,6 +494,12 @@ class ProfileToolBar(qt.QToolBar):
         """
         if source is not self:
             self.clearProfile()
+
+            # Uncheck all drawing profile modes
+            self.hLineAction.setChecked(False)
+            self.vLineAction.setChecked(False)
+            self.lineAction.setChecked(False)
+
             if self.getProfileMainWindow() is not None:
                 self.getProfileMainWindow().hide()
 
