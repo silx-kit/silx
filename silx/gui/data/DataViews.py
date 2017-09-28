@@ -34,7 +34,7 @@ from silx.gui import qt, icons
 from silx.gui.data.TextFormatter import TextFormatter
 from silx.io import nxdata
 from silx.gui.hdf5 import H5Node
-from silx.io.nxdata import NXdata, _get_attr
+from silx.io.nxdata import NXdata, get_attr_as_string
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
@@ -114,7 +114,7 @@ class DataInfo(object):
 
         if silx.io.is_dataset(data):
             if "interpretation" in data.attrs:
-                self.interpretation = _get_attr(data, "signal")
+                self.interpretation = get_attr_as_string(data, "signal")
             else:
                 self.interpretation = None
         elif self.isNXdata:
@@ -835,7 +835,7 @@ class _NXdataCurveView(DataView):
     def setData(self, data):
         data = self.normalizeData(data)
         nxd = NXdata(data)
-        signal_name = _get_attr(data, "signal")
+        signal_name = get_attr_as_string(data, "signal")
         group_name = data.name
         if nxd.axes_dataset_names[-1] is not None:
             x_errors = nxd.get_axis_errors(nxd.axes_dataset_names[-1])
@@ -882,7 +882,7 @@ class _NXdataXYVScatterView(DataView):
     def setData(self, data):
         data = self.normalizeData(data)
         nxd = NXdata(data)
-        signal_name = _get_attr(data, "signal")
+        signal_name = get_attr_as_string(data, "signal")
         # signal_errors = nx.errors   # not supported
         group_name = data.name
         x_axis, y_axis = nxd.axes[-2:]
@@ -931,7 +931,7 @@ class _NXdataImageView(DataView):
     def setData(self, data):
         data = self.normalizeData(data)
         nxd = NXdata(data)
-        signal_name = _get_attr(data, "signal")
+        signal_name = get_attr_as_string(data, "signal")
         group_name = data.name
         y_axis, x_axis = nxd.axes[-2:]
         y_label, x_label = nxd.axes_names[-2:]
@@ -971,7 +971,7 @@ class _NXdataStackView(DataView):
     def setData(self, data):
         data = self.normalizeData(data)
         nxd = NXdata(data)
-        signal_name = _get_attr(data, "signal")
+        signal_name = get_attr_as_string(data, "signal")
         group_name = data.name
         z_axis, y_axis, x_axis = nxd.axes[-3:]
         z_label, y_label, x_label = nxd.axes_names[-3:]
