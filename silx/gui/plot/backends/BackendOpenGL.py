@@ -300,6 +300,7 @@ _texFragShd = """
 
     void main(void) {
         gl_FragColor = texture2D(tex, coords);
+        gl_FragColor.a = 1.0;
     }
     """
 
@@ -432,7 +433,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     @staticmethod
     def _setBlendFuncGL():
-        # glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        # gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
         gl.glBlendFuncSeparate(gl.GL_SRC_ALPHA,
                                gl.GL_ONE_MINUS_SRC_ALPHA,
                                gl.GL_ONE,
