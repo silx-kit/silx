@@ -492,15 +492,12 @@ class TestNodes(unittest.TestCase):
 
 
 def suite():
+    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
     test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestSave))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestH5Ls))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestOpen))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestNodes))
+    test_suite.addTest(loadTests(TestSave))
+    test_suite.addTest(loadTests(TestH5Ls))
+    test_suite.addTest(loadTests(TestOpen))
+    test_suite.addTest(loadTests(TestNodes))
     return test_suite
 
 
