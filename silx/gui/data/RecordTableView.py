@@ -37,7 +37,7 @@ from silx.gui.widgets.TableWidget import CopySelectedCellsAction
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "27/01/2017"
+__date__ = "26/09/2017"
 
 
 class _MultiLineItem(qt.QItemDelegate):
@@ -206,9 +206,9 @@ class RecordTableModel(qt.QAbstractTableModel):
                 data = data[key[1]]
 
         if role == qt.Qt.DisplayRole:
-            return self.__formatter.toString(data)
+            return self.__formatter.toString(data, dtype=self.__data.dtype)
         elif role == qt.Qt.EditRole:
-            return self.__editFormatter.toString(data)
+            return self.__editFormatter.toString(data, dtype=self.__data.dtype)
         return None
 
     def headerData(self, section, orientation, role=qt.Qt.DisplayRole):
@@ -269,7 +269,6 @@ class RecordTableModel(qt.QAbstractTableModel):
             self.__is_array = True
         else:
             self.__is_array = False
-
 
         self.__fields = []
         if data is not None:

@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "22/08/2017"
+__date__ = "22/09/2017"
 
 
 import os
@@ -228,12 +228,12 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
 
         # store used icons to avoid the cache to release it
         self.__icons = []
+        self.__icons.append(icons.getQIcon("item-none"))
         self.__icons.append(icons.getQIcon("item-0dim"))
         self.__icons.append(icons.getQIcon("item-1dim"))
         self.__icons.append(icons.getQIcon("item-2dim"))
         self.__icons.append(icons.getQIcon("item-3dim"))
         self.__icons.append(icons.getQIcon("item-ndim"))
-        self.__icons.append(icons.getQIcon("item-object"))
 
         self.__openedFiles = []
         """Store the list of files opened by the model itself."""

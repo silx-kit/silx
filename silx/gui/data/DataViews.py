@@ -39,7 +39,7 @@ from silx.io.nxdata import NXdata
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "25/08/2017"
+__date__ = "27/09/2017"
 
 _logger = logging.getLogger(__name__)
 
@@ -53,6 +53,7 @@ RAW_MODE = 40
 RAW_ARRAY_MODE = 41
 RAW_RECORD_MODE = 42
 RAW_SCALAR_MODE = 43
+RAW_HEXA_MODE = 44
 STACK_MODE = 50
 HDF5_MODE = 60
 
@@ -92,6 +93,7 @@ class DataInfo(object):
         self.isArray = False
         self.interpretation = None
         self.isNumeric = False
+        self.isVoid = False
         self.isComplex = False
         self.isBoolean = False
         self.isRecord = False
@@ -121,6 +123,9 @@ class DataInfo(object):
             self.interpretation = None
 
         if hasattr(data, "dtype"):
+            if numpy.issubdtype(data.dtype, numpy.void):
+                # That's a real opaque type, else it is a structured type
+                self.isVoid = data.dtype.fields is None
             self.isNumeric = numpy.issubdtype(data.dtype, numpy.number)
             self.isRecord = data.dtype.fields is not None
             self.isComplex = numpy.issubdtype(data.dtype, numpy.complex)
@@ -245,12 +250,12 @@ class DataView(object):
 
     def axesNames(self, data, info):
         """Returns names of the expected axes of the view, according to the
-        input data.
+        input data. A none value will disable the default axes selectior.
 
         :param data: Data to display
         :type data: numpy.ndarray or h5py.Dataset
         :param DataInfo info: Pre-computed information on the data
-        :rtype: list[str]
+        :rtype: list[str] or None
         """
         return []
 
@@ -368,7 +373,7 @@ class _EmptyView(DataView):
         DataView.__init__(self, parent, modeId=EMPTY_MODE)
 
     def axesNames(self, data, info):
-        return []
+        return None
 
     def createWidget(self, parent):
         return qt.QLabel(parent)
@@ -705,10 +710,10 @@ class _ScalarView(DataView):
         self.getWidget().setText("")
 
     def setData(self, data):
-        data = self.normalizeData(data)
-        if silx.io.is_dataset(data):
-            data = data[()]
-        text = self.__formatter.toString(data)
+        d = self.normalizeData(data)
+        if silx.io.is_dataset(d):
+            d = d[()]
+        text = self.__formatter.toString(d, data.dtype)
         self.getWidget().setText(text)
 
     def axesNames(self, data, info):
@@ -767,6 +772,34 @@ class _RecordView(DataView):
         return DataView.UNSUPPORTED
 
 
+class _HexaView(DataView):
+    """View displaying data using text"""
+
+    def __init__(self, parent):
+        DataView.__init__(self, parent, modeId=RAW_HEXA_MODE)
+
+    def createWidget(self, parent):
+        from .HexaTableView import HexaTableView
+        widget = HexaTableView(parent)
+        return widget
+
+    def clear(self):
+        self.getWidget().setArrayData(None)
+
+    def setData(self, data):
+        data = self.normalizeData(data)
+        widget = self.getWidget()
+        widget.setArrayData(data)
+
+    def axesNames(self, data, info):
+        return []
+
+    def getDataPriority(self, data, info):
+        if info.isVoid:
+            return 2000
+        return DataView.UNSUPPORTED
+
+
 class _Hdf5View(DataView):
     """View displaying data using text"""
 
@@ -791,7 +824,7 @@ class _Hdf5View(DataView):
         widget.setData(data)
 
     def axesNames(self, data, info):
-        return []
+        return None
 
     def getDataPriority(self, data, info):
         widget = self.getWidget()
@@ -814,6 +847,7 @@ class _RawView(CompositeDataView):
             modeId=RAW_MODE,
             label="Raw",
             icon=icons.getQIcon("view-raw"))
+        self.addView(_HexaView(parent))
         self.addView(_ScalarView(parent))
         self.addView(_ArrayView(parent))
         self.addView(_RecordView(parent))
@@ -886,7 +920,7 @@ class _NXdataCurveView(DataView):
 
     def axesNames(self, data, info):
         # disabled (used by default axis selector widget in Hdf5Viewer)
-        return []
+        return None
 
     def clear(self):
         self.getWidget().clear()
@@ -933,7 +967,7 @@ class _NXdataXYVScatterView(DataView):
 
     def axesNames(self, data, info):
         # disabled (used by default axis selector widget in Hdf5Viewer)
-        return []
+        return None
 
     def clear(self):
         self.getWidget().clear()
@@ -982,7 +1016,8 @@ class _NXdataImageView(DataView):
         return widget
 
     def axesNames(self, data, info):
-        return []
+        # disabled (used by default axis selector widget in Hdf5Viewer)
+        return None
 
     def clear(self):
         self.getWidget().clear()
@@ -1022,7 +1057,8 @@ class _NXdataStackView(DataView):
         return widget
 
     def axesNames(self, data, info):
-        return []
+        # disabled (used by default axis selector widget in Hdf5Viewer)
+        return None
 
     def clear(self):
         self.getWidget().clear()
