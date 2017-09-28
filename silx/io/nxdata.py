@@ -72,12 +72,12 @@ def get_attr_as_string(item, attr_name, default=None):
     if six.PY3:
         if hasattr(attr, "decode"):
             # byte-string
-            return attr.decode("utf8")
+            return attr.decode("utf-8")
         elif isinstance(attr, numpy.ndarray) and hasattr(attr[0], "decode"):
-            # array of byte-strinqs
-            return [element.decode("utf8") for element in attr]
+            # array of byte-strings
+            return [element.decode("utf-8") for element in attr]
         else:
-            # attr is not a byte-strinq
+            # attr is not a byte-string
             return attr
 
 
@@ -444,6 +444,9 @@ class NXdata(object):
         :return: Dataset with axis errors, or None
         :raise: KeyError if this group does not contain a dataset named axis_name
         """
+        # ensure axis_name is decoded, before comparing it with decoded attributes
+        if hasattr(axis_name, "decode"):
+            axis_name = axis_name.decode("utf-8")
         if axis_name not in self.group:
             # tolerate axis_name given as @long_name
             for item in self.group:
@@ -485,7 +488,7 @@ class NXdata(object):
                 axes_ds_names = list(axes_ds_names)
             assert isinstance(axes_ds_names, list)
             if hasattr(axes_ds_names[0], "decode"):
-                axes_ds_names = [ax_name.decode("utf8") for ax_name in axes_ds_names]
+                axes_ds_names = [ax_name.decode("utf-8") for ax_name in axes_ds_names]
             if axis_name not in axes_ds_names:
                 raise KeyError("group attr @axes does not mention a dataset " +
                                "named '%s'" % axis_name)
