@@ -480,9 +480,12 @@ class NXdata(object):
                 axes_ds_names = get_attr_as_string(self.signal, "axes")
             if isinstance(axes_ds_names, str):
                 axes_ds_names = [axes_ds_names]
-            elif not isinstance(axes_ds_names, list):
-                # transform numpy.ndarray(dtype('S21')) into list(str)
-                axes_ds_names = map(str, axes_ds_names)
+            elif isinstance(axes_ds_names, numpy.ndarray):
+                # transform numpy.ndarray into list
+                axes_ds_names = list(axes_ds_names)
+            assert isinstance(axes_ds_names, list)
+            if hasattr(axes_ds_names[0], "decode"):
+                axes_ds_names = [ax_name.decode("utf8") for ax_name in axes_ds_names]
             if axis_name not in axes_ds_names:
                 raise KeyError("group attr @axes does not mention a dataset " +
                                "named '%s'" % axis_name)
