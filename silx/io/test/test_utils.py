@@ -343,6 +343,25 @@ class TestOpen(unittest.TestCase):
             self.assertIsNotNone(f)
             self.assertIsInstance(f, h5py.File)
 
+    def testH5_withPath(self):
+        if h5py is None:
+            self.skipTest("H5py is missing")
+
+        f = utils.open(self.h5_filename + "::/group/group/dataset")
+        self.assertIsNotNone(f)
+        self.assertEqual(f.h5py_class, h5py.Dataset)
+        self.assertEqual(f[()], 50)
+        f.close()
+
+    def testH5With_withPath(self):
+        if h5py is None:
+            self.skipTest("H5py is missing")
+
+        with utils.open(self.h5_filename + "::/group/group") as f:
+            self.assertIsNotNone(f)
+            self.assertEqual(f.h5py_class, h5py.Group)
+            self.assertIn("dataset", f)
+
     def testSpec(self):
         f = utils.open(self.spec_filename)
         self.assertIsNotNone(f)
