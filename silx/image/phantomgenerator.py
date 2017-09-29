@@ -157,3 +157,4 @@ class PhantomGenerator(object):
         support_consts.fill(ell.c)
         return numpy.power(numpy.divide(supportZ1, support_consts),
                            2)
+

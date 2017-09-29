@@ -75,8 +75,8 @@ class LinAlg(OpenclProcessing):
         self.wg2D = None
         self.shape = shape
         self.ndrange2D = (
-            self.shape[1],
-            self.shape[0]
+            int(self.shape[1]),
+            int(self.shape[0])
         )
         self.do_checks = bool(do_checks)
         OpenclProcessing.compile_kernels(self, self.kernel_files)
