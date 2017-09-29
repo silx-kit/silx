@@ -28,7 +28,7 @@ package `silx.gui.hdf5` package.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "28/09/2017"
+__date__ = "29/09/2017"
 
 
 import logging
@@ -245,12 +245,12 @@ class H5Node(object):
         while item is not None:
             # stop before the root item (item without parent)
             if item.parent.parent is None:
-                result.append(item.obj.name)
+                name = item.obj.name
+                if name != "/":
+                    result.append(item.obj.name)
                 break
             else:
                 result.append(item.basename)
-            if item.parent.parent is None:
-                break
             item = item.parent
         if item is None:
             raise RuntimeError("The item does not have parent holding h5py.File")
