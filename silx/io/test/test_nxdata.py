@@ -231,6 +231,13 @@ class TestNXdata(unittest.TestCase):
         self.assertEqual(nxd.errors.shape, (2, 2, 3, 10))
         self.assertFalse(nxd.is_scatter or nxd.is_x_y_value_scatter)
         self.assertEqual(nxd.interpretation, "spectrum")
+        self.assertEqual(nxd.get_axis_errors("energy").shape,
+                         (10,))
+        # test getting axis errors by long_name
+        self.assertTrue(numpy.array_equal(nxd.get_axis_errors("Calibrated energy"),
+                                          nxd.get_axis_errors("energy")))
+        self.assertTrue(numpy.array_equal(nxd.get_axis_errors(b"Calibrated energy"),
+                                          nxd.get_axis_errors("energy")))
 
     def testImages(self):
         nxd = nxdata.NXdata(self.h5f["images/2D_regular_image"])
