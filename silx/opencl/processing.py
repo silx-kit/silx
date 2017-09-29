@@ -51,7 +51,7 @@ import gc
 from collections import namedtuple
 import numpy
 import threading
-from .common import ocl, pyopencl, release_cl_buffers
+from .common import ocl, pyopencl, release_cl_buffers, kernel_workgroup_size
 from .utils import concatenate_cl_kernel
 
 
@@ -185,6 +185,22 @@ class OpenclProcessing(object):
                 raise MemoryError(error)
 
         self.cl_mem.update(mem)
+
+    def add_to_cl_mem(self, parrays):
+        """
+        Add pyopencl.array, which are allocated by pyopencl, to self.cl_mem.
+        This should be used before calling allocate_buffers().
+
+        :param parrays: a dictionary of `pyopencl.array.Array` or `pyopencl.Buffer`
+        """
+        mem = self.cl_mem
+        for name, parr in parrays.items():
+            mem[name] = parr
+        self.cl_mem.update(mem)
+
+    def check_workgroup_size(self, kernel_name):
+        kernel = self.kernels.get_kernel(kernel_name)
+        self.compiletime_workgroup_size = kernel_workgroup_size(self.program, kernel)
 
     def free_buffers(self):
         """free all device.memory allocated on the device
