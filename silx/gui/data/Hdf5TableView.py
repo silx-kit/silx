@@ -30,7 +30,7 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "27/09/2017"
+__date__ = "29/09/2017"
 
 import functools
 import os.path
@@ -266,7 +266,11 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
 
     def __formatShape(self, dataset):
         """Format the shape"""
-        return self.__hdf5Formatter.humanReadableShape(dataset)
+        if dataset.shape is None or len(dataset.shape) <= 1:
+            return self.__hdf5Formatter.humanReadableShape(dataset)
+        size = dataset.size
+        shape = self.__hdf5Formatter.humanReadableShape(dataset)
+        return u"%s = %s" % (shape, size)
 
     def __initProperties(self):
         """Initialize the list of available properties according to the defined
@@ -332,8 +336,6 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
             self.__data.addHeaderValueRow("dtype", self.__formatDType)
             if hasattr(obj, "shape"):
                 self.__data.addHeaderValueRow("shape", self.__formatShape)
-            if hasattr(obj, "size"):
-                self.__data.addHeaderValueRow("size", lambda x: str(x.size))
             if hasattr(obj, "chunks") and obj.chunks is not None:
                 self.__data.addHeaderValueRow("chunks", lambda x: x.chunks)
 
