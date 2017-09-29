@@ -146,6 +146,10 @@ class SIRT(ReconstructionAlgorithm):
     :param deviceid: Integer with the device identifier, as given by clinfo
     :param profile: switch on profiling to be able to profile at the kernel level,
                     store profiling elements (makes code slightly slower)
+
+    .. warning:: This is a beta version of the SIRT algorithm. Reconstruction
+            fails for at least on CPU (Xeon E3-1245 v5) using the AMD opencl
+            implementation.
     """
 
     def __init__(self, sino_shape, slice_shape=None, axis_position=None, angles=None,
@@ -244,6 +248,9 @@ class TV(ReconstructionAlgorithm):
     :param profile: switch on profiling to be able to profile at the kernel
                     level, store profiling elements (makes code slightly slower)
 
+    .. warning:: This is a beta version of the Chambolle-Pock TV algorithm.
+            Reconstruction fails for at least on CPU (Xeon E3-1245 v5) using
+            the AMD opencl implementation.
     """
 
     def __init__(self, sino_shape, slice_shape=None, axis_position=None, angles=None,
