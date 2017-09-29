@@ -338,27 +338,27 @@ class ImageView(PlotWindow):
         self._radarView = RadarView()
         self._radarView.visibleRectDragged.connect(self._radarViewCB)
 
-        self._layout = qt.QGridLayout()
-        self._layout.addWidget(self.getWidgetHandle(), 0, 0)
-        self._layout.addWidget(self._histoVPlot.getWidgetHandle(), 0, 1)
-        self._layout.addWidget(self._histoHPlot.getWidgetHandle(), 1, 0)
-        self._layout.addWidget(self._radarView, 1, 1)
+        layout = qt.QGridLayout()
+        layout.addWidget(self.getWidgetHandle(), 0, 0)
+        layout.addWidget(self._histoVPlot.getWidgetHandle(), 0, 1)
+        layout.addWidget(self._histoHPlot.getWidgetHandle(), 1, 0)
+        layout.addWidget(self._radarView, 1, 1)
 
-        self._layout.setColumnMinimumWidth(0, self.IMAGE_MIN_SIZE)
-        self._layout.setColumnStretch(0, 1)
-        self._layout.setColumnMinimumWidth(1, self.HISTOGRAMS_HEIGHT)
-        self._layout.setColumnStretch(1, 0)
+        layout.setColumnMinimumWidth(0, self.IMAGE_MIN_SIZE)
+        layout.setColumnStretch(0, 1)
+        layout.setColumnMinimumWidth(1, self.HISTOGRAMS_HEIGHT)
+        layout.setColumnStretch(1, 0)
 
-        self._layout.setRowMinimumHeight(0, self.IMAGE_MIN_SIZE)
-        self._layout.setRowStretch(0, 1)
-        self._layout.setRowMinimumHeight(1, self.HISTOGRAMS_HEIGHT)
-        self._layout.setRowStretch(1, 0)
+        layout.setRowMinimumHeight(0, self.IMAGE_MIN_SIZE)
+        layout.setRowStretch(0, 1)
+        layout.setRowMinimumHeight(1, self.HISTOGRAMS_HEIGHT)
+        layout.setRowStretch(1, 0)
 
-        self._layout.setSpacing(0)
-        self._layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        layout.setContentsMargins(0, 0, 0, 0)
 
         centralWidget = qt.QWidget()
-        centralWidget.setLayout(self._layout)
+        centralWidget.setLayout(layout)
         self.setCentralWidget(centralWidget)
 
     def _dirtyCache(self):
@@ -645,7 +645,7 @@ class ImageView(PlotWindow):
         self._radarView.visibleRectDragged.disconnect(self._radarViewCB)
         self._radarView = radarView
         self._radarView.visibleRectDragged.connect(self._radarViewCB)
-        self._layout.addWidget(self._radarView, 1, 1)
+        self.centralWidget().layout().addWidget(self._radarView, 1, 1)
 
         self._updateYAxisInverted()
 
