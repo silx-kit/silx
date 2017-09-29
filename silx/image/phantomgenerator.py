@@ -23,9 +23,9 @@
 #
 # ###########################################################################*/
 
-__authors__ = ["N. Vigano", "H. Payno"]
+__authors__ = ["N. Vigano", "H. Payno", "P. Paleo"]
 __license__ = "MIT"
-__date__ = "15/09/2017"
+__date__ = "19/09/2017"
 
 import numpy
 
@@ -157,3 +157,4 @@ class PhantomGenerator(object):
         support_consts.fill(ell.c)
         return numpy.power(numpy.divide(supportZ1, support_consts),
                            2)
+
