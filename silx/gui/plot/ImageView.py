@@ -318,7 +318,7 @@ class ImageView(PlotWindow):
 
         self._histoHPlot = PlotWidget(backend=backend)
         self._histoHPlot.setInteractiveMode('zoom')
-        self._histoHPlot.setCallback(self._histoHPlotCB)
+        self._histoHPlot.sigPlotSignal.connect(self._histoHPlotCB)
         self._histoHPlot.getWidgetHandle().sizeHint = sizeHint
         self._histoHPlot.getWidgetHandle().minimumSizeHint = sizeHint
 
@@ -331,7 +331,7 @@ class ImageView(PlotWindow):
 
         self._histoVPlot = PlotWidget(backend=backend)
         self._histoVPlot.setInteractiveMode('zoom')
-        self._histoVPlot.setCallback(self._histoVPlotCB)
+        self._histoVPlot.sigPlotSignal.connect(self._histoVPlotCB)
         self._histoVPlot.getWidgetHandle().sizeHint = sizeHint
         self._histoVPlot.getWidgetHandle().minimumSizeHint = sizeHint
 
