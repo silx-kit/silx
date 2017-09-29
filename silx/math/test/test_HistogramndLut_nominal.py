@@ -543,23 +543,14 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
         type = self.sample.dtype.newbyteorder("L")
         sampleL = self.sample.astype(type)
 
-        try:
-            histo_inst = HistogramndLut(sampleB,
-                                     self.histo_range,
-                                     self.n_bins)
-        except:
-            self.assertTrue(False)
-        else:
-            self.assertTrue(True)
+        histo_inst = HistogramndLut(sampleB,
+                                 self.histo_range,
+                                 self.n_bins)
 
-        try:
-            histo_inst = HistogramndLut(sampleB,
-                                     self.histo_range,
-                                     self.n_bins)
-        except:
-            self.assertTrue(False)
-        else:
-            self.assertTrue(True)
+        histo_inst = HistogramndLut(sampleB,
+                                 self.histo_range,
+                                 self.n_bins)
+
 
 class TestHistogramndLut_nominal_1d(_TestHistogramndLut_nominal):
     ndims = 1
