@@ -56,7 +56,6 @@ except ImportError:
     _has_scipy = False
 
 
-
 # TODO move this function in math or image ?
 def gradient(img):
     '''
@@ -71,6 +70,7 @@ def gradient(img):
         slice_all[0] = d + 1
         slice_all.insert(1, slice(None))
     return gradient
+
 
 # TODO move this function in math or image ?
 def divergence(grad):
@@ -98,7 +98,6 @@ class TestLinAlg(unittest.TestCase):
         self.la = linalg.LinAlg(self.image.shape)
         self.allocate_arrays()
 
-
     def allocate_arrays(self):
         """
         Allocate various types of arrays for the tests
@@ -125,8 +124,6 @@ class TestLinAlg(unittest.TestCase):
         self.grad_ref_parray = parray.to_device(self.la.queue, tmp)
         self.grad_ref_buffer = self.grad_ref_parray.data
 
-
-
     def tearDown(self):
         self.image = None
         self.image2 = None
@@ -144,17 +141,14 @@ class TestLinAlg(unittest.TestCase):
         self.grad_ref_parray = None
         self.grad_ref_buffer = None
 
-
     def getfiles(self):
         # load 512x512 MRI phantom - TODO include Lena or ascent once a .npz is available
         self.image = np.load(utilstest.getfile("Brain512.npz"))["data"]
-
 
     def compare(self, result, reference, abstol, name):
         errmax = np.max(np.abs(result - reference))
         logger.info("%s: Max error = %e" % (name, errmax))
         self.assertTrue(errmax < abstol, str("%s: Max error is too high" % name))
-
 
     @unittest.skipUnless(ocl and mako, "pyopencl is missing")
     def test_gradient(self):
@@ -180,8 +174,6 @@ class TestLinAlg(unittest.TestCase):
             self.grad2[1] = self.grad.imag
             self.compare(self.grad2, self.grad_ref, 1e-6, str("gradient[src=%s, dst=parray]" % desc))
 
-
-
     @unittest.skipUnless(ocl and mako, "pyopencl is missing")
     def test_divergence(self):
         arrays = {
@@ -202,7 +194,6 @@ class TestLinAlg(unittest.TestCase):
             self.image2 = self.image_parray.get()
             self.compare(self.image2, self.div_ref, 1e-6, str("divergence[src=%s, dst=parray]" % desc))
 
-
     @unittest.skipUnless(ocl and mako and _has_scipy, "pyopencl and/or scipy is missing")
     def test_laplacian(self):
         laplacian_ref = laplace(self.image)
@@ -212,16 +203,12 @@ class TestLinAlg(unittest.TestCase):
         self.compare(laplacian_ocl, laplacian_ref, 1e-6, "laplacian")
 
 
-
-
-
 def suite():
     testSuite = unittest.TestSuite()
     testSuite.addTest(TestLinAlg("test_gradient"))
     testSuite.addTest(TestLinAlg("test_divergence"))
     testSuite.addTest(TestLinAlg("test_laplacian"))
     return testSuite
-
 
 
 if __name__ == '__main__':

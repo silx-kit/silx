@@ -31,13 +31,11 @@ __authors__ = ["P. Paleo"]
 __license__ = "MIT"
 __date__ = "10/08/2017"
 
-import logging
 import numpy as np
 
-from .common import pyopencl, kernel_workgroup_size
-from .processing import EventDescription, OpenclProcessing, BufferDescription
+from .common import pyopencl
+from .processing import EventDescription, OpenclProcessing
 
-from .backprojection import _sizeof, _idivup
 import pyopencl.array as parray
 cl = pyopencl
 
@@ -81,12 +79,10 @@ class LinAlg(OpenclProcessing):
         self.do_checks = bool(do_checks)
         OpenclProcessing.compile_kernels(self, self.kernel_files)
 
-
     @staticmethod
     def check_array(array, dtype, shape, arg_name):
         if array.shape != shape or array.dtype != dtype:
             raise ValueError("%s should be a %s array of type %s" %(arg_name, str(shape), str(dtype)))
-
 
     def get_data_references(self, src, dst, default_src_ref, default_dst_ref):
         """
@@ -110,12 +106,11 @@ class LinAlg(OpenclProcessing):
             src_ref = src.data
         elif isinstance(src, cl.Buffer):
             src_ref = src
-        else: # assuming numpy.ndarray
+        else:  # assuming numpy.ndarray
             evt = cl.enqueue_copy(self.queue, default_src_ref, src)
             self.events.append(EventDescription("copy H->D", evt))
             src_ref = default_src_ref
         return src_ref, dst_ref
-
 
     def gradient(self, image, dst=None, return_to_host=False):
         """
@@ -167,7 +162,6 @@ class LinAlg(OpenclProcessing):
             return res
         else:
             return dst
-
 
     def divergence(self, gradient, dst=None, return_to_host=False):
         """
@@ -222,4 +216,3 @@ class LinAlg(OpenclProcessing):
             return res
         else:
             return dst
-

@@ -76,7 +76,6 @@ class TestCpy2d(unittest.TestCase):
         self.allocate_arrays()
         self.program = cl.Program(self.ctx, get_opencl_code("array_utils")).build()
 
-
     def allocate_arrays(self):
         """
         Allocate various types of arrays for the tests
@@ -101,7 +100,6 @@ class TestCpy2d(unittest.TestCase):
         size_x = np.random.randint(2, high=min(self.shape1[1], self.shape2[1]) - max(offset1_x, offset2_x) + 1)
         self.transfer_shape = (size_y, size_x)
 
-
     def tearDown(self):
         self.array1 = None
         self.array2 = None
@@ -116,7 +114,6 @@ class TestCpy2d(unittest.TestCase):
         errmax = np.max(np.abs(result - reference))
         logger.info("Max error = %e" % (errmax))
         self.assertTrue(errmax == 0, str("Max error is too high"))#. PRNG state was %s" % str(self.prng_state)))
-
 
     @unittest.skipUnless(ocl and mako, "pyopencl is missing")
     def test_cpy2d(self):
@@ -155,13 +152,10 @@ class TestCpy2d(unittest.TestCase):
         self.compare(res, self.array2)
 
 
-
 def suite():
     testSuite = unittest.TestSuite()
     testSuite.addTest(TestCpy2d("test_cpy2d"))
     return testSuite
-
-
 
 if __name__ == '__main__':
     unittest.main(defaultTest="suite")

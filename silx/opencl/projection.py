@@ -34,7 +34,7 @@ __date__ = "26/06/2017"
 import logging
 import numpy as np
 
-from .common import pyopencl, kernel_workgroup_size
+from .common import pyopencl
 from .processing import EventDescription, OpenclProcessing, BufferDescription
 from .backprojection import _sizeof, _idivup
 
@@ -212,12 +212,12 @@ class Projection(OpenclProcessing):
             # TODO: create NoneEvent
             return self.transfer_to_slice(image2)
             #~ return pyopencl.enqueue_copy(
-                       #~ self.queue,
-                       #~ self.cl_mem["d_slice"].data,
-                       #~ image2,
-                       #~ origin=(1, 1),
-                       #~ region=image.shape[::-1]
-                   #~ )
+                        #~ self.queue,
+                        #~ self.cl_mem["d_slice"].data,
+                        #~ image2,
+                        #~ origin=(1, 1),
+                        #~ region=image.shape[::-1]
+                        #~ )
         else:
             return pyopencl.enqueue_copy(
                        self.queue,
@@ -303,10 +303,8 @@ class Projection(OpenclProcessing):
         pyopencl.enqueue_copy(self.queue, self.cl_mem["d_strideJoseph"], strideJoseph)
         pyopencl.enqueue_copy(self.queue, self.cl_mem["d_strideLine"], strideLine)
 
-
     def _get_local_mem(self):
         return pyopencl.LocalMemory(self.local_mem)  # constant for all image sizes
-
 
     def cpy2d_to_sino(self, dst):
         ndrange = (int(self.dwidth), int(self.nprojs)) # pyopencl < 2015.2
@@ -340,7 +338,6 @@ class Projection(OpenclProcessing):
             slice_shape_ocl
         )
         return self.kernels.cpy2d(self.queue, ndrange, wg, *kernel_args)
-
 
     def projection(self, image=None, dst=None):
         """Perform the projection on an input image
