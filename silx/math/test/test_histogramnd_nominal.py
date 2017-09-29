@@ -666,8 +666,6 @@ class _Test_Histogramnd_nominal(unittest.TestCase):
         self.assertTrue(np.array_equal(histo, expected_h))
         self.assertTrue(cumul is None)
 
-
-
     def test_nominal_last_bin_closed(self):
         """
         """
@@ -842,7 +840,6 @@ class _Test_Histogramnd_nominal(unittest.TestCase):
         self.assertTrue(np.array_equal(histo, expected_h))
         self.assertTrue(np.allclose(cumul, expected_c, rtol=10e-15))
 
-
     def test_accumulate_no_weights_at_init(self):
         """
         """
@@ -882,6 +879,34 @@ class _Test_Histogramnd_nominal(unittest.TestCase):
         self.assertEqual(cumul.dtype, np.float64)
         self.assertTrue(np.array_equal(histo, expected_h))
         self.assertTrue(np.array_equal(cumul, expected_c))
+
+    def testNoneNativeTypes(self):
+        type = self.sample.dtype.newbyteorder("B")
+        sampleB = self.sample.astype(type)
+
+        type = self.sample.dtype.newbyteorder("L")
+        sampleL = self.sample.astype(type)
+
+        try:
+            histo_inst = Histogramnd(sampleB,
+                                     self.histo_range,
+                                     self.n_bins,
+                                     weights=self.weights)
+        except:
+            self.assertTrue(False)
+        else:
+            self.assertTrue(True)
+
+        try:
+            histo_inst = Histogramnd(sampleL,
+                                     self.histo_range,
+                                     self.n_bins,
+                                     weights=self.weights)
+        except:
+            self.assertTure(False)
+        else:
+            self.assertTrue(True)
+
 
 class Test_chistogram_nominal_1d(_Test_chistogramnd_nominal):
     ndims = 1
