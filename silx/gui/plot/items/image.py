@@ -302,8 +302,7 @@ class ImageData(ImageBase, ColormapMixIn):
         else:
             # Apply colormap, in this case an new array is always returned
             colormap = self.getColormap()
-            image = applyColormapToData(self.getData(copy=False),
-                                        **colormap)
+            image = colormap.applyToData(self.getData(copy=False))
             return image
 
     def getAlternativeImageData(self, copy=True):
