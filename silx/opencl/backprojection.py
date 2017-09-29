@@ -402,12 +402,12 @@ class Backprojection(OpenclProcessing):
                 self.pyfft_plan.execute(self.d_sino_z.data, batch=self.num_projs, inverse=True)
                 # Copy the real part of d_sino_z[:, :self.num_bins] (complex64) to d_sino (float32)
                 ev = self.kernels.cpy2d_c2r(self.queue, self.shape[::-1], None,
-                                        self.d_sino,
-                                        self.d_sino_z.data,
-                                        self.num_bins,
-                                        self.num_projs,
-                                        np.int32(self.fft_size)
-                                        )
+                                            self.d_sino,
+                                            self.d_sino_z.data,
+                                            self.num_bins,
+                                            self.num_projs,
+                                            np.int32(self.fft_size)
+                                            )
                 events.append(EventDescription("conversion from complex padded sinogram to sinogram", ev))
                 events.append(self.transfer_device_to_texture(self.d_sino))
             if self.profile:
