@@ -887,25 +887,15 @@ class _Test_Histogramnd_nominal(unittest.TestCase):
         type = self.sample.dtype.newbyteorder("L")
         sampleL = self.sample.astype(type)
 
-        try:
-            histo_inst = Histogramnd(sampleB,
-                                     self.histo_range,
-                                     self.n_bins,
-                                     weights=self.weights)
-        except:
-            self.assertTrue(False)
-        else:
-            self.assertTrue(True)
+        histo_inst = Histogramnd(sampleB,
+                                 self.histo_range,
+                                 self.n_bins,
+                                 weights=self.weights)
 
-        try:
-            histo_inst = Histogramnd(sampleL,
-                                     self.histo_range,
-                                     self.n_bins,
-                                     weights=self.weights)
-        except:
-            self.assertTure(False)
-        else:
-            self.assertTrue(True)
+        histo_inst = Histogramnd(sampleL,
+                                 self.histo_range,
+                                 self.n_bins,
+                                 weights=self.weights)
 
 
 class Test_chistogram_nominal_1d(_Test_chistogramnd_nominal):
