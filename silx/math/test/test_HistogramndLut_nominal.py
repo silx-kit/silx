@@ -536,6 +536,30 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
         self.assertTrue(np.array_equal(histo, expected_h))
         self.assertTrue(np.array_equal(w_histo, expected_c))
 
+    def testNoneNativeTypes(self):
+        type = self.sample.dtype.newbyteorder("B")
+        sampleB = self.sample.astype(type)
+
+        type = self.sample.dtype.newbyteorder("L")
+        sampleL = self.sample.astype(type)
+
+        try:
+            histo_inst = HistogramndLut(sampleB,
+                                     self.histo_range,
+                                     self.n_bins)
+        except:
+            self.assertTrue(False)
+        else:
+            self.assertTrue(True)
+
+        try:
+            histo_inst = HistogramndLut(sampleB,
+                                     self.histo_range,
+                                     self.n_bins)
+        except:
+            self.assertTrue(False)
+        else:
+            self.assertTrue(True)
 
 class TestHistogramndLut_nominal_1d(_TestHistogramndLut_nominal):
     ndims = 1

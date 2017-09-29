@@ -156,7 +156,9 @@ def histogramnd_get_lut(sample,
     lut = np.zeros(n_elem, dtype=lut_dtype)
     histo = np.zeros(n_bins, dtype=np.uint32)
 
-    sample_c = np.ascontiguousarray(sample.reshape((sample.size,)))
+    dtype = sample.dtype.newbyteorder("N")
+    sample_c = np.ascontiguousarray(sample.reshape((sample.size,)),
+                                    dtype=dtype)
 
     histo_range_c = np.ascontiguousarray(histo_range.reshape((histo_range.size,)))
 
