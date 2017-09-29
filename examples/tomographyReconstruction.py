@@ -33,7 +33,7 @@ __date__ = "19/09/2017"
 from silx.opencl.projection import Projection
 from silx.opencl.backprojection import Backprojection
 from silx.opencl.reconstruction import SIRT, TV
-from silx.image.phantomgenerator import getMRIBrainPhantom
+from silx.image.phantomgenerator import PhantomGenerator
 import numpy as np
 
 from six.moves import input
@@ -51,7 +51,7 @@ def main():
     # ------------------------------------------------------------
     print("1. Projection")
     print("We first generate a synthetic sinogram by projecting an image, i.e computing its Radon Transform")
-    phantom = getMRIBrainPhantom()
+    phantom = PhantomGenerator.get2DPhantomSheppLogan(256)
     show_image(phantom, "phantom", "MRI brain phantom")
 
     # Number of projection angles. You can also provide an array of custom angles
