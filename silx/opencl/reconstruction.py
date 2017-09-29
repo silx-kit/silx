@@ -35,7 +35,7 @@ import logging
 import numpy as np
 
 from .common import pyopencl
-from .processing import EventDescription, OpenclProcessing, BufferDescription
+from .processing import OpenclProcessing
 from .backprojection import Backprojection
 from .projection import Projection
 from .linalg import LinAlg
@@ -48,30 +48,30 @@ cl = pyopencl
 
 
 class ReconstructionAlgorithm(OpenclProcessing):
-    """A parent class for all iterative tomographic reconstruction algorithms"""
+    """
+    A parent class for all iterative tomographic reconstruction algorithms
+
+    :param sino_shape: shape of the sinogram. The sinogram is in the format
+                       (n_b, n_a) where n_b is the number of detector bins and
+                       n_a is the number of angles.
+    :param slice_shape: Optional, shape of the reconstructed slice.
+                        By default, it is a square slice where the dimension
+                        is the "x dimension" of the sinogram (number of bins).
+    :param axis_position: Optional, axis position. Default is `(shape[1]-1)/2.0`.
+    :param angles: Optional, a list of custom angles in radian.
+    :param ctx: actual working context, left to None for automatic
+                initialization from device type or platformid/deviceid
+    :param devicetype: type of device, can be "CPU", "GPU", "ACC" or "ALL"
+    :param platformid: integer with the platform_identifier, as given by clinfo
+    :param deviceid: Integer with the device identifier, as given by clinfo
+    :param profile: switch on profiling to be able to profile at the kernel level,
+                    store profiling elements (makes code slightly slower)
+    """
 
     def __init__(self, sino_shape, slice_shape=None, axis_position=None, angles=None,
                  ctx=None, devicetype="all", platformid=None, deviceid=None,
                  profile=False
                  ):
-        """Constructor of the class for iterative tomographic reconstruction algorithms.
-
-        :param sino_shape: shape of the sinogram. The sinogram is in the format (n_b, n_a) where
-                      n_b is the number of detector bins and n_a is the number of angles.
-        :param slice_shape: Optional, shape of the reconstructed slice. By default, it is a
-                    square slice where the dimension is the "x dimension" of the sinogram (number
-                    of bins).
-        :param axis_position: Optional, axis position. Default is `(shape[1]-1)/2.0`.
-        :param angles: Optional, a list of custom angles in radian.
-        :param ctx: actual working context, left to None for automatic
-                    initialization from device type or platformid/deviceid
-        :param devicetype: type of device, can be "CPU", "GPU", "ACC" or "ALL"
-        :param platformid: integer with the platform_identifier, as given by clinfo
-        :param deviceid: Integer with the device identifier, as given by clinfo
-        :param profile: switch on profiling to be able to profile at the kernel level,
-                        store profiling elements (makes code slightly slower)
-        """
-
         OpenclProcessing.__init__(self, ctx=ctx, devicetype=devicetype,
                                   platformid=platformid, deviceid=deviceid,
                                   profile=profile)
@@ -100,7 +100,9 @@ class ReconstructionAlgorithm(OpenclProcessing):
         # Arrays
         self.d_data = parray.zeros(self.queue, sino_shape, dtype=np.float32)
         self.d_sino = parray.zeros_like(self.d_data)
-        self.d_x = parray.zeros(self.queue, self.backprojector.slice_shape, dtype=np.float32)
+        self.d_x = parray.zeros(self.queue,
+                                self.backprojector.slice_shape,
+                                dtype=np.float32)
         self.d_x_old = parray.zeros_like(self.d_x)
 
         self.add_to_cl_mem({
@@ -110,49 +112,46 @@ class ReconstructionAlgorithm(OpenclProcessing):
             "d_x_old": self.d_x_old,
         })
 
-
     def proj(self, d_slice, d_sino):
         """
         Project d_slice to d_sino
         """
-        self.projector.transfer_device_to_texture(d_slice.data)#.wait()
+        self.projector.transfer_device_to_texture(d_slice.data)  #.wait()
         self.projector.projection(dst=d_sino)
 
     def backproj(self, d_sino, d_slice):
         """
         Backproject d_sino to d_slice
         """
-        self.backprojector.transfer_device_to_texture(d_sino.data)#.wait()
+        self.backprojector.transfer_device_to_texture(d_sino.data)  #.wait()
         self.backprojector.backprojection(dst=d_slice)
 
 
-
-
-
 class SIRT(ReconstructionAlgorithm):
-    """A class for the SIRT algorithm"""
+    """
+    A class for the SIRT algorithm
+
+    :param sino_shape: shape of the sinogram. The sinogram is in the format
+                       (n_b, n_a) where n_b is the number of detector bins and
+                       n_a is the number of angles.
+    :param slice_shape: Optional, shape of the reconstructed slice.
+                        By default, it is a square slice where the dimension is
+                        the "x dimension" of the sinogram (number of bins).
+    :param axis_position: Optional, axis position. Default is `(shape[1]-1)/2.0`.
+    :param angles: Optional, a list of custom angles in radian.
+    :param ctx: actual working context, left to None for automatic
+                initialization from device type or platformid/deviceid
+    :param devicetype: type of device, can be "CPU", "GPU", "ACC" or "ALL"
+    :param platformid: integer with the platform_identifier, as given by clinfo
+    :param deviceid: Integer with the device identifier, as given by clinfo
+    :param profile: switch on profiling to be able to profile at the kernel level,
+                    store profiling elements (makes code slightly slower)
+    """
 
     def __init__(self, sino_shape, slice_shape=None, axis_position=None, angles=None,
                  ctx=None, devicetype="all", platformid=None, deviceid=None,
                  profile=False
                  ):
-        """Constructor of the class of the SIRT algorithm.
-
-        :param sino_shape: shape of the sinogram. The sinogram is in the format (n_b, n_a) where
-                      n_b is the number of detector bins and n_a is the number of angles.
-        :param slice_shape: Optional, shape of the reconstructed slice. By default, it is a
-                    square slice where the dimension is the "x dimension" of the sinogram (number
-                    of bins).
-        :param axis_position: Optional, axis position. Default is `(shape[1]-1)/2.0`.
-        :param angles: Optional, a list of custom angles in radian.
-        :param ctx: actual working context, left to None for automatic
-                    initialization from device type or platformid/deviceid
-        :param devicetype: type of device, can be "CPU", "GPU", "ACC" or "ALL"
-        :param platformid: integer with the platform_identifier, as given by clinfo
-        :param deviceid: Integer with the device identifier, as given by clinfo
-        :param profile: switch on profiling to be able to profile at the kernel level,
-                        store profiling elements (makes code slightly slower)
-        """
 
         ReconstructionAlgorithm.__init__(self, sino_shape, slice_shape=slice_shape,
                                          axis_position=axis_position, angles=angles,
@@ -160,36 +159,33 @@ class SIRT(ReconstructionAlgorithm):
                                          deviceid=deviceid, profile=profile)
         self.compute_preconditioners()
 
-
-
     def compute_preconditioners(self):
         """
-        Create a diagonal preconditioner for the projection and backprojection operator.
-        Each term of the diagonal is the sum of the projector/backprojector along rows [1],
-        i.e the projection/backprojection of an array of ones.
+        Create a diagonal preconditioner for the projection and backprojection
+        operator.
+        Each term of the diagonal is the sum of the projector/backprojector
+        along rows [1], i.e the projection/backprojection of an array of ones.
 
         [1] Jens Gregor and Thomas Benson,
             Computational Analysis and Improvement of SIRT,
             IEEE transactions on medical imaging, vol. 27, no. 7,  2008
         """
 
-
         # r_{i,i} = 1/(sum_j a_{i,j})
         slice_ones = np.ones(self.backprojector.slice_shape, dtype=np.float32)
-        R = 1./self.projector.projection(slice_ones) # could be all done on GPU, but I want extra checks
-        R[np.logical_not(np.isfinite(R))] = 1. # In the case where the rotation axis is excentred
+        R = 1./self.projector.projection(slice_ones)  # could be all done on GPU, but I want extra checks
+        R[np.logical_not(np.isfinite(R))] = 1.  # In the case where the rotation axis is excentred
         self.d_R = parray.to_device(self.queue, R)
         # c_{j,j} = 1/(sum_i a_{i,j})
         sino_ones = np.ones(self.sino_shape, dtype=np.float32)
         C = 1./self.backprojector.backprojection(sino_ones)
-        C[np.logical_not(np.isfinite(C))] = 1. # In the case where the rotation axis is excentred
+        C[np.logical_not(np.isfinite(C))] = 1.  # In the case where the rotation axis is excentred
         self.d_C = parray.to_device(self.queue, C)
 
         self.add_to_cl_mem({
             "d_R": self.d_R,
             "d_C": self.d_C
         })
-
 
     # TODO: compute and possibly return the residual
     def run(self, data, n_it):
@@ -226,35 +222,34 @@ class SIRT(ReconstructionAlgorithm):
     __call__ = run
 
 
-
-
-
-
 class TV(ReconstructionAlgorithm):
-    """A class for reconstruction with Total Variation regularization"""
+    """
+    A class for reconstruction with Total Variation regularization using the
+    Chambolle-Pock TV reconstruction algorithm.
+
+    :param sino_shape: shape of the sinogram. The sinogram is in the format
+                       (n_b, n_a) where n_b is the number of detector bins and
+                       n_a is the number of angles.
+    :param slice_shape: Optional, shape of the reconstructed slice. By default,
+                        it is a square slice where the dimension is the
+                        "x dimension" of the sinogram (number of bins).
+    :param axis_position: Optional, axis position. Default is
+                          `(shape[1]-1)/2.0`.
+    :param angles: Optional, a list of custom angles in radian.
+    :param ctx: actual working context, left to None for automatic
+                initialization from device type or platformid/deviceid
+    :param devicetype: type of device, can be "CPU", "GPU", "ACC" or "ALL"
+    :param platformid: integer with the platform_identifier, as given by clinfo
+    :param deviceid: Integer with the device identifier, as given by clinfo
+    :param profile: switch on profiling to be able to profile at the kernel
+                    level, store profiling elements (makes code slightly slower)
+
+    """
 
     def __init__(self, sino_shape, slice_shape=None, axis_position=None, angles=None,
                  ctx=None, devicetype="all", platformid=None, deviceid=None,
                  profile=False
                  ):
-        """Constructor of the class of the Chambolle-Pock TV reconstruction algorithm.
-
-        :param sino_shape: shape of the sinogram. The sinogram is in the format (n_b, n_a) where
-                      n_b is the number of detector bins and n_a is the number of angles.
-        :param slice_shape: Optional, shape of the reconstructed slice. By default, it is a
-                    square slice where the dimension is the "x dimension" of the sinogram (number
-                    of bins).
-        :param axis_position: Optional, axis position. Default is `(shape[1]-1)/2.0`.
-        :param angles: Optional, a list of custom angles in radian.
-        :param ctx: actual working context, left to None for automatic
-                    initialization from device type or platformid/deviceid
-        :param devicetype: type of device, can be "CPU", "GPU", "ACC" or "ALL"
-        :param platformid: integer with the platform_identifier, as given by clinfo
-        :param deviceid: Integer with the device identifier, as given by clinfo
-        :param profile: switch on profiling to be able to profile at the kernel level,
-                        store profiling elements (makes code slightly slower)
-        """
-
         ReconstructionAlgorithm.__init__(self, sino_shape, slice_shape=slice_shape,
                                          axis_position=axis_position, angles=angles,
                                          ctx=ctx, devicetype=devicetype, platformid=platformid,
@@ -286,15 +281,17 @@ class TV(ReconstructionAlgorithm):
 
         self.theta = 1.0
 
-
     def compute_preconditioners(self):
         """
-        Create a diagonal preconditioner for the projection and backprojection operator.
-        Each term of the diagonal is the sum of the projector/backprojector along rows [2],
+        Create a diagonal preconditioner for the projection and backprojection
+        operator.
+        Each term of the diagonal is the sum of the projector/backprojector
+        along rows [2],
         i.e the projection/backprojection of an array of ones.
 
         [2] T. Pock, A. Chambolle,
-            Diagonal preconditioning for first order primal-dual algorithms in convex optimization,
+            Diagonal preconditioning for first order primal-dual algorithms in
+            convex optimization,
             International Conference on Computer Vision, 2011
         """
 
@@ -303,8 +300,8 @@ class TV(ReconstructionAlgorithm):
         Sigma_k = 1./self.projector.projection(slice_ones)
         Sigma_k[np.logical_not(np.isfinite(Sigma_k))] = 1.
         self.d_Sigma_k = parray.to_device(self.queue, Sigma_k)
-        self.d_Sigma_kp1 = self.d_Sigma_k + 1 # TODO: memory vs computation
-        self.Sigma_grad = 1/2.0 # For discrete gradient, sum|D_i,j| = 2 along lines or cols
+        self.d_Sigma_kp1 = self.d_Sigma_k + 1  # TODO: memory vs computation
+        self.Sigma_grad = 1/2.0  # For discrete gradient, sum|D_i,j| = 2 along lines or cols
 
         # Compute the diagonal preconditioner "Tau"
         sino_ones = np.ones(self.sino_shape, dtype=np.float32)
@@ -317,7 +314,6 @@ class TV(ReconstructionAlgorithm):
             "d_Sigma_kp1": self.d_Sigma_kp1,
             "d_Tau": self.d_Tau
         })
-
 
     def run(self, data, n_it, Lambda, pos_constraint=False):
         """
@@ -345,7 +341,7 @@ class TV(ReconstructionAlgorithm):
             self.backproj(d_q, d_tmp)
             self.linalg.divergence(d_p)
             # TODO: this in less than three ops (one kernel ?)
-            d_g -= d_tmp # d_g -> L.d_image
+            d_g -= d_tmp  # d_g -> L.d_image
             d_g *= self.d_Tau
             d_x += d_g
 
@@ -375,9 +371,4 @@ class TV(ReconstructionAlgorithm):
             d_q /= self.d_Sigma_kp1
         return d_x
 
-
-
-
-
     __call__ = run
-
