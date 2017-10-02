@@ -214,6 +214,7 @@ class FabioReader(object):
         self.__counters = {}
         self.__positioners = {}
         self.__measurements = {}
+        self.__key_filters = set([])
         self.__data = None
         self.__frame_count = self.__fabio_file.nframes
         self._read(self.__fabio_file)
@@ -323,6 +324,13 @@ class FabioReader(object):
     def _read(self, fabio_file):
         """Read all metadata from the fabio file and store it into this
         object."""
+
+        self.__key_filters.clear()
+        if hasattr(fabio_file, "RESERVED_HEADER_KEYS"):
+            # Provided in fabio 0.5
+            for key in fabio_file.RESERVED_HEADER_KEYS:
+                self.__key_filters.add(key.lower())
+
         for frame in range(fabio_file.nframes):
             if fabio_file.nframes == 1:
                 header = fabio_file.header
@@ -330,10 +338,22 @@ class FabioReader(object):
                 header = fabio_file.getframe(frame).header
             self._read_frame(frame, header)
 
+    def _is_filtered_key(self, key):
+        """
+        If this function returns True, the :meth:`_read_key` while not be
+        called with this `key`while reading the metatdata frame.
+
+        :param str key: A key of the metadata
+        :rtype: bool
+        """
+        return key.lower() in self.__key_filters
+
     def _read_frame(self, frame_id, header):
         """Read all metadata from a frame and store it into this
         object."""
         for key, value in header.items():
+            if self._is_filtered_key(key):
+                continue
             self._read_key(frame_id, key, value)
 
     def _read_key(self, frame_id, name, value):
