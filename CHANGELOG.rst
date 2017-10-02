@@ -21,12 +21,13 @@ Change Log
  * Plot. Add a *ComplexImageView* widget, allowing to switch between
    different modes: amplitude, phase, real part, imaginary part,
    combined amplitude (brightness) + phase (color coded).
+ * Plot. Add signals on *PlotWidget* items (curves, images, markers...) notifying updates.
  * Plot3d. Rework interaction to use only the left mouse button.
    Add toolbar buttons for interaction modes.
  * Plot3d. Add a drop-down list tool button to reset viewpoint.
  * Plot3d. Support any colormap
  * StackView. Add a *setTitleCallback* method, to customize the plot title.
- * OpenCl. Implement Filtered Back-Projection.
+ * OpenCl. Implement a Filtered Back-Projection tomographic reconstruction.
  * OpenCl. Implement a forward tomographic projector and reconstruction.
  * Median filter. Add new modes (*reflect, mirror, shrink*) in addition to *nearest*.
  * Mask. Support loading of TIFF images.
@@ -43,10 +44,11 @@ Change Log
  * *silx test*. New command line application, to run silx tests.
  * *silx convert*. New command line application to convert supported data files to HDF5.
  * Add a *PrintPreview* widget, and a *PrintPreviewToolButton* to use it for a *PlotWidget*
- * Enable usage of *silx.resources* for other projects using a similar resource structure.
+ * Enable usage of *silx.resources* for other projects.
  * Documentation. Add a widget gallery.
- * Documentation is no longer hosted on pythonhosted.org, now exclusively on silx.org.
- * *silx* license is now fully MIT.
+ * The documentation is no longer hosted on pythonhosted.org,
+   it is now exclusively on *silx.org*.
+ * The *silx* license is now fully MIT, following the SpecFile library license change.
 
 
 0.5.0: 2017/05/12
