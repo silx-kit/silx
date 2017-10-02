@@ -71,40 +71,9 @@ import numpy
 from .. import qt
 from .Colormap import Colormap
 from . import PlotWidget
-
+from silx.gui.widgets.FloatEdit import FloatEdit
 
 _logger = logging.getLogger(__name__)
-
-
-class _FloatEdit(qt.QLineEdit):
-    """Field to edit a float value.
-
-    :param parent: See :class:`QLineEdit`
-    :param float value: The value to set the QLineEdit to.
-    """
-    def __init__(self, parent=None, value=None):
-        qt.QLineEdit.__init__(self, parent)
-        validator = qt.QDoubleValidator(self)
-        self.setValidator(validator)
-        self.setAlignment(qt.Qt.AlignRight)
-        if value is not None:
-            self.setValue(value)
-
-    def value(self):
-        """Return the QLineEdit current value as a float."""
-        text = self.text()
-        value, validated = self.validator().locale().toDouble(text)
-        if not validated:
-            self.setValue(value)
-        return value
-
-    def setValue(self, value):
-        """Set the current value of the LineEdit
-
-        :param float value: The value to set the QLineEdit to.
-        """
-        text = self.validator().locale().toString(value)
-        self.setText(text)
 
 
 class ColormapDialog(qt.QDialog):
@@ -182,14 +151,14 @@ class ColormapDialog(qt.QDialog):
         formLayout.addRow('Range:', self._rangeAutoscaleButton)
 
         # Min row
-        self._minValue = _FloatEdit(value=1.)
+        self._minValue = FloatEdit(parent=self, value=1.)
         self._minValue.setEnabled(False)
         self._minValue.textEdited.connect(self._minMaxTextEdited)
         self._minValue.editingFinished.connect(self._minEditingFinished)
         formLayout.addRow('\tMin:', self._minValue)
 
         # Max row
-        self._maxValue = _FloatEdit(value=10.)
+        self._maxValue = FloatEdit(parent=self, value=10.)
         self._maxValue.setEnabled(False)
         self._maxValue.textEdited.connect(self._minMaxTextEdited)
         self._maxValue.editingFinished.connect(self._maxEditingFinished)
