@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "29/08/2017"
+__date__ = "02/10/2017"
 
 import logging
 import numpy
@@ -311,9 +311,9 @@ class TestFabioH5(unittest.TestCase):
 
 
 def suite():
+    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
     test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestFabioH5))
+    test_suite.addTest(loadTests(TestFabioH5))
     return test_suite
 
 
