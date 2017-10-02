@@ -24,7 +24,7 @@
 
 __authors__ = ["D. Naudet"]
 __license__ = "MIT"
-__date__ = "01/02/2016"
+__date__ = "02/10/2017"
 
 cimport numpy  # noqa
 cimport cython
@@ -137,7 +137,7 @@ def chistogramnd(sample,
             non contiguous slice) then histogramnd will have to do make an
             internal copy.
     :type weighted_histo: *optional*, :class:`numpy.array`
-    
+
     :param wh_dtype: type of the weighted histogram array. This parameter is
         ignored if *weighted_histo* is provided. If not provided, the
         weighted histogram array will contain values of the same type as
@@ -149,8 +149,8 @@ def chistogramnd(sample,
         dimension.
     :rtype: *tuple* (:class:`numpy.array`, :class:`numpy.array`, `tuple`) or
         (:class:`numpy.array`, None, `tuple`)
-    """  # noqa
-    
+    """
+
     if wh_dtype is None:
         wh_dtype = np.double
     elif wh_dtype not in (np.double, np.float32):
@@ -1249,7 +1249,3 @@ cdef int _histogramnd_int32_t_int32_t_float(numpy.int32_t[:] sample,
                                                            option_flags,
                                                            weight_min,
                                                            weight_max)
-
-
-if __name__=='__main__':
-    pass
