@@ -61,7 +61,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "27/06/2017"
+__date__ = "02/10/2017"
 
 
 import logging
@@ -84,21 +84,27 @@ class _FloatEdit(qt.QLineEdit):
     """
     def __init__(self, parent=None, value=None):
         qt.QLineEdit.__init__(self, parent)
-        self.setValidator(qt.QDoubleValidator(self))
+        validator = qt.QDoubleValidator(self)
+        self.setValidator(validator)
         self.setAlignment(qt.Qt.AlignRight)
         if value is not None:
             self.setValue(value)
 
     def value(self):
         """Return the QLineEdit current value as a float."""
-        return float(self.text())
+        text = self.text()
+        value, validated = self.validator().locale().toDouble(text)
+        if not validated:
+            self.setValue(value)
+        return value
 
     def setValue(self, value):
         """Set the current value of the LineEdit
 
         :param float value: The value to set the QLineEdit to.
         """
-        self.setText('%g' % value)
+        text = self.validator().locale().toString(value)
+        self.setText(text)
 
 
 class ColormapDialog(qt.QDialog):
