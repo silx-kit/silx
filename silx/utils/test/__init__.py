@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "22/06/2017"
+__date__ = "02/10/2017"
 
 
 import unittest
@@ -33,6 +33,7 @@ from . import test_html
 from . import test_array_like
 from . import test_launcher
 from . import test_deprecation
+from . import test_proxy
 
 
 def suite():
@@ -42,4 +43,5 @@ def suite():
     test_suite.addTest(test_array_like.suite())
     test_suite.addTest(test_launcher.suite())
     test_suite.addTest(test_deprecation.suite())
+    test_suite.addTest(test_proxy.suite())
     return test_suite

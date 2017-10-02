@@ -6,7 +6,9 @@
 
 .. automodule:: silx.gui.plot.ImageView
 
-.. currentmodule:: silx.gui.plot.ImageView
+.. image:: img/ImageView.png
+   :height: 400
+   :align: center
 
 :class:`ImageView` class
 ------------------------
