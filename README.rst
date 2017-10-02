@@ -21,7 +21,9 @@ The current version provides :
   visualization of n-dimensional datasets.
 * Unified viewer (silx view filename) for HDF5, SPEC and image file formats
 * OpenGL-based widget to display 3D scalar field with isosurface and cutting plane.
-* image alignement (sift - OpenCL implementation)
+* Median filter on images (C and OpenCL implementations) 
+* Image alignement (sift - OpenCL implementation)
+* Fitlered backprojection and forward projection for tomography
 
 Installation
 ------------
@@ -44,9 +46,20 @@ Unofficial packages for different distributions are available :
 - Fedora 23 rpm packages are provided by Max IV at http://pubrepo.maxiv.lu.se/rpm/fc23/x86_64/
 - Arch Linux (AUR) packages are also available: https://aur.archlinux.org/packages/python-silx
 
-On Windows, pre-compiled binaries (aka Python wheels) are available for Python 2.7, 3.5 and 3.6.
+Beside this, we provide a certain number of wheels (pre-compiled binariy packages) to be installed
+onto a pre-existing Python installation:
 
-On MacOS, pre-compiled binaries (aka Python wheels) are available for Python 2.7.
+- On Windows, binary wheels are available for Python 2.7, 3.5 and 3.6.
+- On MacOS, binary wheels are available for Python 2.7, 3.4, 3.5 and 3.6.
+- On Linux, manylinux1 binariy wheels are available for Python 2.7, 3.4, 3.5 and 3.6.
+
+Those builds are made from "up-date" systems at the time of the release, i.e. they use
+the latest stable version of numpy (and cython). 
+Hence your system may use a fairly recent version of numpy to be compatible with silx.
+This can be achieved simply by::
+
+    pip install numpy --upgrade
+
 
 The latest development version can be obtained from the git repository::
 
@@ -116,11 +129,12 @@ See the `LICENSE <https://github.com/silx-kit/silx/blob/master/LICENSE>`_ and `c
 Citation
 --------
 
-silx releases can be cited by their DOI on Zenodo: |DOI:10.5281/zenodo.576042|
+silx releases can be cited by their DOI on Zenodo: |DOI:10.5281/zenodo.1000472|
 
 .. |Travis Status| image:: https://travis-ci.org/silx-kit/silx.svg?branch=master
    :target: https://travis-ci.org/silx-kit/silx
 .. |Appveyor Status| image:: https://ci.appveyor.com/api/projects/status/qgox9ei0wxwfagrb/branch/master?svg=true
    :target: https://ci.appveyor.com/project/ESRF/silx
-.. |DOI:10.5281/zenodo.576042| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.576042.svg
-   :target: https://doi.org/10.5281/zenodo.576042
+.. |DOI:10.5281/zenodo.1000472| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.1000472.svg
+   :target: https://doi.org/10.5281/zenodo.1000472
+
