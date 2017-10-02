@@ -8,25 +8,28 @@ radiation facilities.
 It aims at providing reading/writing different file formats, data reduction routines
 and a set of Qt widgets to browse and visualize data.
 
-The current version provides :
+The current version provides:
 
 * reading `HDF5 <https://www.hdfgroup.org/HDF5/>`_  file format (with support of
-  `SPEC <https://certif.com/spec.html>`_ file format)
+  `SPEC <https://certif.com/spec.html>`_ file format and
+  `FabIO <http://www.silx.org/doc/fabio/dev/getting_started.html#list-of-file-formats-that-fabio-can-read-and-write>`_
+  images)
 * histogramming
 * fitting
-* 1D and 2D visualization using multiple backends (matplotlib or OpenGL)
-* image plot widget with a set of associated tools (See
-  `changelog file <https://github.com/silx-kit/silx/blob/master/CHANGELOG.rst>`_).
-* Unified browser for HDF5, SPEC and image file formats supporting inspection and
+* 1D and 2D visualization widgets using multiple backends (matplotlib or OpenGL)
+* an OpenGL-based widget to display 3D scalar field with isosurface and cutting plane
+* an image plot widget with a set of associated tools
+* a unified browser for HDF5, SPEC and image file formats supporting inspection and
   visualization of n-dimensional datasets.
-* Unified viewer (silx view filename) for HDF5, SPEC and image file formats
-* OpenGL-based widget to display 3D scalar field with isosurface and cutting plane.
-* Median filter on images (C and OpenCL implementations) 
-* Image alignement (sift - OpenCL implementation)
-* Fitlered backprojection and forward projection for tomography
+* a unified viewer (*silx view filename*) for HDF5, SPEC and image file formats
+* a unified converter to HDF5 format (*silx convert filename*)
+* median filters on images (C and OpenCL implementations)
+* image alignement (sift - OpenCL implementation)
+* filtered backprojection and forward projection for tomography
 
 Installation
 ------------
+
 To install silx, run::
  
     pip install silx
@@ -55,7 +58,7 @@ onto a pre-existing Python installation:
 
 Those builds are made from "up-date" systems at the time of the release, i.e. they use
 the latest stable version of numpy (and cython). 
-Hence your system may use a fairly recent version of numpy to be compatible with silx.
+Hence your system should use a fairly recent version of numpy to be compatible with silx.
 This can be achieved simply by::
 
     pip install numpy --upgrade
@@ -79,10 +82,19 @@ The GUI widgets of the silx package depend on the following extra packages:
 * `matplotlib <http://matplotlib.org/>`_ for the silx.gui.plot package
 * `PyOpenGL <http://pyopengl.sourceforge.net/>`_ for the silx.gui.plot3d package
 
-Most modules and functions dealing with `HDF5 <https://www.hdfgroup.org/HDF5/>`_ input/output depend on the following extra package:
+Most modules and functions dealing with `HDF5 <https://www.hdfgroup.org/HDF5/>`_ input/output depend on:
+
 * `h5py <http://www.h5py.org/>`_
 
-* `ipython <https://ipython.org/>`_ and `qtconsole <https://pypi.python.org/pypi/qtconsole>`_ is required by silx.gui.console.py
+Parallel algorithms depend on:
+
+* `PyOpenCL <https://documen.tician.de/pyopencl/>`_
+
+The console widgets depend on:
+
+* `ipython <https://ipython.org/>`_
+* `qtconsole <https://pypi.python.org/pypi/qtconsole>`_
+
 
 Supported platforms: Linux, Windows, Mac OS X.
 
@@ -115,9 +127,8 @@ To run the tests, from the source directory, run::
 Examples
 --------
 
-Some examples are available in the source code repository. For example::
-
-    python examples/{exampleName.py}
+Some examples of sample code using silx are provided with the
+`silx documentation <http://www.silx.org/doc/silx/dev/sample_code/index.html>`_.
 
 
 License
