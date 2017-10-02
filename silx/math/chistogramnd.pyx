@@ -286,6 +286,7 @@ def chistogramnd(sample,
         option_flags |= histogramnd_c.HISTO_LAST_BIN_CLOSED
 
     sample_type = sample.dtype
+    sample_type = sample_type.newbyteorder('N')
 
     n_elem = sample.size // n_dims
 
@@ -300,9 +301,11 @@ def chistogramnd(sample,
                         'and weights:{1}.'
                         ''.format(sample_type, weights_type))
 
-    sample_c = np.ascontiguousarray(sample.reshape((sample.size,)))
+    sample_c = np.ascontiguousarray(sample.reshape((sample.size,)),
+                                    dtype=sample_type)
 
-    weights_c = (np.ascontiguousarray(weights.reshape((weights.size,)))
+    weights_c = (np.ascontiguousarray(weights.reshape((weights.size,)),
+                                      dtype=weights.dtype.newbyteorder('N'))
                  if weights is not None else None)
 
     histo_range_c = np.ascontiguousarray(histo_range.reshape((histo_range.size,)),
@@ -318,7 +321,8 @@ def chistogramnd(sample,
     else:
         cumul_c = None
 
-    bin_edges_c = np.ascontiguousarray(bin_edges.reshape((bin_edges.size,)))
+    bin_edges_c = np.ascontiguousarray(bin_edges.reshape((bin_edges.size,)),
+                                       dtype=bin_edges.dtype.newbyteorder('N'))
 
     rc = 0
 
