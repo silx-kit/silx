@@ -39,6 +39,7 @@ Change Log
  * IO. Lazy-loading of MCA data in *spech5*, to speed-up loading of the data tree.
  * IO. Support NPZ format (zipped archive of numpy NPY files).
  * IO. Support opening URI (*silx.io.open(filename::path)*).
+ * image add some tomography utils: phantomgenerator to produce Shepp-Logan phantom, funtion to compute center of rotation (calc_center_corr, calc_center_centroid) and rescale the intensity of an image (rescale_intensity)
  * *silx view*. Add command line option *--use-opengl-plot*.
  * *silx view*. Add command line option *--debug*, to print dataset reading errors.
  * *silx view*. Support opening URI (*silx view filename::path*).
