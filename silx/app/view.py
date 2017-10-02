@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "21/09/2017"
+__date__ = "02/10/2017"
 
 import sys
 import os
@@ -277,6 +277,8 @@ def main(argv):
         PlotWidget.setDefaultBackend("opengl")
 
     app = qt.QApplication([])
+    qt.QLocale.setDefault(qt.QLocale.c())
+
     sys.excepthook = qt.exceptionHandler
     window = Viewer()
     window.resize(qt.QSize(640, 480))
