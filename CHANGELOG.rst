@@ -21,9 +21,7 @@ Change Log
    
  * Plot3d:
  
-   * Rework interaction to use only the left mouse button.
-   * Add toolbar buttons for interaction modes.
-   * Add a drop-down list tool button to reset viewpoint.
+   * Rework toolbar and interaction to use only the left mouse button.
    * Support any colormap.
    
  * Hdf5TreeView:
