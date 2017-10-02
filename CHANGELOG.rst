@@ -4,6 +4,13 @@ Change Log
 0.6.0: 2017/10/02
 -----------------
 
+ * OpenCl. Tomography. Implement a Filtered Back-Projection reconstruction.
+ * OpenCl. Tomography. Implement a forward projector and reconstruction.
+ * Add a *PrintPreview* widget, and a *PrintPreviewToolButton* to use it for a *PlotWidget*.
+ * Plot. Add a context menu on right click (removes zoom-back control on right-click).
+ * Plot. Add a *ComplexImageView* widget, allowing to switch between
+   different modes: amplitude, phase, real part, imaginary part,
+   combined amplitude (brightness) + phase (color coded).
  * Hdf5TreeView. Better support and display of types.
    New column for displaying the kind of links.
    Broken nodes are now selectable.
@@ -15,26 +22,20 @@ Change Log
  * Plot. Make colormap an object, with signals (*sigChanged*).
  * Plot. Make axis an object, with signals.
    Allow axis synchronization between plots (*silx.gui.plot.utils.axis.SyncAxis*).
-   Allow adding of constraints on axes limits.
- * Plot. Add a context menu on right click (removes zoom-back control on right-click)
+   Allow adding constraints on axes limits.
  * Plot. Refactor plot actions, new sub-package *silx.gui.plot.actions*.
- * Plot. Add a *ComplexImageView* widget, allowing to switch between
-   different modes: amplitude, phase, real part, imaginary part,
-   combined amplitude (brightness) + phase (color coded).
  * Plot. Add signals on *PlotWidget* items (curves, images, markers...) notifying updates.
  * Plot3d. Rework interaction to use only the left mouse button.
    Add toolbar buttons for interaction modes.
  * Plot3d. Add a drop-down list tool button to reset viewpoint.
- * Plot3d. Support any colormap
+ * Plot3d. Support any colormap.
  * StackView. Add a *setTitleCallback* method, to customize the plot title.
- * OpenCl. Implement a Filtered Back-Projection tomographic reconstruction.
- * OpenCl. Implement a forward tomographic projector and reconstruction.
  * Median filter. Add new modes (*reflect, mirror, shrink*) in addition to *nearest*.
  * Mask. Support loading of TIFF images.
  * IO. Refactor *spech5* to share code with *fabioh5*.
    *Group* methods *.keys*, *.value* and *.items* now return lists in Python 2
    and iterators in Python 3.
- * IO. Rename module *spectoh5* to *convert*. Support all *fabio* formats.
+ * IO. Rename module *spectoh5* to *convert*. Add support for conversion of *fabio* formats.
  * IO. Lazy-loading of MCA data in *spech5*, to speed-up loading of the data tree.
  * IO. Support NPZ format (zipped archive of numpy NPY files).
  * IO. Support opening URI (*silx.io.open(filename::path)*).
@@ -43,10 +44,9 @@ Change Log
  * *silx view*. Support opening URI (*silx view filename::path*).
  * *silx test*. New command line application, to run silx tests.
  * *silx convert*. New command line application to convert supported data files to HDF5.
- * Add a *PrintPreview* widget, and a *PrintPreviewToolButton* to use it for a *PlotWidget*
  * Enable usage of *silx.resources* for other projects.
  * Documentation. Add a widget gallery.
- * The documentation is no longer hosted on pythonhosted.org,
+ * The documentation is no longer hosted on *pythonhosted.org*,
    it is now exclusively on *silx.org*.
  * The *silx* license is now fully MIT, following the SpecFile library license change.
 
