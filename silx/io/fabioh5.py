@@ -44,6 +44,12 @@ from . import commonh5
 from silx.third_party import six
 from silx import version as silx_version
 
+try:
+    import h5py
+except ImportError as e:
+    h5py = None
+
+
 _logger = logging.getLogger(__name__)
 
 
@@ -71,6 +77,7 @@ class RawHeaderData(commonh5.LazyLoadableDataset):
         """Initialize hold data by merging all headers of each frames.
         """
         headers = []
+        types = set([])
         for frame in range(self.__fabio_file.nframes):
             if self.__fabio_file.nframes == 1:
                 header = self.__fabio_file.header
@@ -81,10 +88,33 @@ class RawHeaderData(commonh5.LazyLoadableDataset):
             for key, value in header.items():
                 data.append("%s: %s" % (str(key), str(value)))
 
-            headers.append(u"\n".join(data).encode("utf-8"))
+            data = "\n".join(data)
+            try:
+                line = data.encode("ascii")
+                types.add(numpy.string_)
+            except UnicodeEncodeError:
+                try:
+                    line = data.encode("utf-8")
+                    types.add(numpy.unicode_)
+                except UnicodeEncodeError:
+                    # Fallback in void
+                    line = numpy.void(data)
+                    types.add(numpy.void)
 
-        # create the header list
-        return numpy.array(headers, dtype=numpy.string_)
+            headers.append(line)
+
+        if numpy.void in types:
+            dtype = numpy.void
+        elif numpy.unicode_ in types:
+            dtype = numpy.unicode_
+        else:
+            dtype = numpy.string_
+
+        if dtype == numpy.unicode_ and h5py is not None:
+            # h5py only support vlen unicode
+            dtype = h5py.special_dtype(vlen=six.text_type)
+
+        return numpy.array(headers, dtype=dtype)
 
 
 class MetadataGroup(commonh5.LazyLoadableGroup):
@@ -392,8 +422,10 @@ class FabioReader(object):
 
         if has_none:
             # Fix missing data according to the array type
-            if result_type.kind in ["S", "U"]:
-                none_value = ""
+            if result_type.kind == "S":
+                none_value = b""
+            elif result_type.kind == "U":
+                none_value = u""
             elif result_type.kind == "f":
                 none_value = numpy.float("NaN")
             elif result_type.kind == "i":
@@ -492,10 +524,10 @@ class FabioReader(object):
 
             result_type = numpy.result_type(*types)
 
-            if issubclass(result_type.type, numpy.string_):
+            if issubclass(result_type.type, (numpy.string_, six.binary_type)):
                 # use the raw data to create the result
                 return numpy.string_(value)
-            elif issubclass(result_type.type, numpy.unicode_):
+            elif issubclass(result_type.type, (numpy.unicode_, six.text_type)):
                 # use the raw data to create the result
                 return numpy.unicode_(value)
             else:
