@@ -1,3 +1,5 @@
+.. _sample-code:
+
 Sample Code
 ===========
 
