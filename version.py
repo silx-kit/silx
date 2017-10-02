@@ -114,7 +114,7 @@ def calc_hexversion(major=0, minor=0, micro=0, releaselevel="dev", serial=0):
 
 hexversion = calc_hexversion(*version_info)
 
-citation = "10.5281/zenodo.1000472"
+citation = "doi:10.5281/zenodo.1000472"
 
 if __name__ == "__main__":
     print(version)
