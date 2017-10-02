@@ -312,6 +312,38 @@ class TestFabioH5(unittest.TestCase):
         self.assertIs(data1._get_data(), data2._get_data())
         self.assertEqual(self.h5_image.get(data2.name, getlink=True).path, data1.name)
 
+    def test_dirty_header(self):
+        """Test that it does not fail"""
+        header = {}
+        header["foo"] = b'abc'
+        data = numpy.array([[0, 0], [0, 0]], dtype=numpy.int8)
+        fabio_image = fabio.edfimage.edfimage(data=data, header=header)
+        header = {}
+        header["foo"] = b'a\x90bc\xFE'
+        fabio_image.appendFrame(data=data, header=header)
+        h5_image = fabioh5.File(fabio_image=fabio_image)
+
+        scan_header_path = "/scan_0/instrument/file/scan_header"
+        self.assertIn(scan_header_path, h5_image)
+        data = h5_image[scan_header_path]
+        self.assertIsInstance(data[...], numpy.ndarray)
+
+    def test_unicode_header(self):
+        """Test that it does not fail"""
+        header = {}
+        header["foo"] = b'abc'
+        data = numpy.array([[0, 0], [0, 0]], dtype=numpy.int8)
+        fabio_image = fabio.edfimage.edfimage(data=data, header=header)
+        header = {}
+        header["foo"] = u'abc\u2764'
+        fabio_image.appendFrame(data=data, header=header)
+        h5_image = fabioh5.File(fabio_image=fabio_image)
+
+        scan_header_path = "/scan_0/instrument/file/scan_header"
+        self.assertIn(scan_header_path, h5_image)
+        data = h5_image[scan_header_path]
+        self.assertIsInstance(data[...], numpy.ndarray)
+
 
 class TestFabioH5WithEdf(unittest.TestCase):
 
