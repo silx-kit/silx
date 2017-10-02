@@ -27,9 +27,12 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "02/10/2017"
 
+import os
 import logging
 import numpy
 import unittest
+import tempfile
+import shutil
 
 _logger = logging.getLogger(__name__)
 
@@ -310,10 +313,53 @@ class TestFabioH5(unittest.TestCase):
         self.assertEqual(self.h5_image.get(data2.name, getlink=True).path, data1.name)
 
 
+class TestFabioH5WithEdf(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        if fabio is None:
+            raise unittest.SkipTest("fabio is needed")
+        if h5py is None:
+            raise unittest.SkipTest("h5py is needed")
+
+        cls.tmp_directory = tempfile.mkdtemp()
+
+        cls.edf_filename = os.path.join(cls.tmp_directory, "test.edf")
+
+        header = {
+            "integer": "-100",
+            "float": "1.0",
+            "string": "hi!",
+            "list_integer": "100 50 0",
+            "list_float": "1.0 2.0 3.5",
+            "string_looks_like_list": "2000 hi!",
+        }
+        data = numpy.array([[10, 11], [12, 13], [14, 15]], dtype=numpy.int64)
+        fabio_image = fabio.edfimage.edfimage(data, header)
+        fabio_image.write(cls.edf_filename)
+
+        cls.fabio_image = fabio.open(cls.edf_filename)
+        cls.h5_image = fabioh5.File(fabio_image=cls.fabio_image)
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.tmp_directory)
+
+    def test_reserved_format_metadata(self):
+        if fabio.version < "0.5.0":
+            self.skipTest("fabio >= 0.5.0 needed")
+
+        # The EDF contains reserved keys in the header
+        self.assertIn("HeaderID", self.fabio_image.header)
+        # We do not expose them in FabioH5
+        self.assertNotIn("/scan_0/instrument/detector_0/others/HeaderID", self.h5_image)
+
+
 def suite():
     loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
     test_suite = unittest.TestSuite()
     test_suite.addTest(loadTests(TestFabioH5))
+    test_suite.addTest(loadTests(TestFabioH5WithEdf))
     return test_suite
 
 
