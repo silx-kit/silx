@@ -546,11 +546,10 @@ class EdfFabioReader(FabioReader):
             self._read_mnemonic_key(frame_id, "counter", header)
         FabioReader._read_frame(self, frame_id, header)
 
-    def _read_key(self, frame_id, name, value):
-        """Overwrite the method to filter counter or motor keys."""
-        if name in self.__catch_keys:
-            return
-        FabioReader._read_key(self, frame_id, name, value)
+    def _is_filtered_key(self, key):
+        if key in self.__catch_keys:
+            return True
+        return FabioReader._is_filtered_key(self, key)
 
     def _get_mnemonic_key(self, base_key, header):
         mnemonic_values_key = base_key + "_mne"
