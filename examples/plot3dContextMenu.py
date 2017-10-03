@@ -94,7 +94,6 @@ app = qt.QApplication([])
 
 # Create the viewer main window
 window = ScalarFieldViewWithContextMenu()
-window.setAttribute(qt.Qt.WA_DeleteOnClose)
 
 # Create dummy data
 coords = numpy.linspace(-10, 10, 64)
