@@ -457,6 +457,7 @@ class _Plot2dView(DataView):
     def createWidget(self, parent):
         from silx.gui import plot
         widget = plot.Plot2D(parent=parent)
+        widget.getIntensityHistogramAction().setVisible(True)
         widget.setKeepDataAspectRatio(True)
         widget.getXAxis().setLabel('X')
         widget.getYAxis().setLabel('Y')
@@ -588,6 +589,7 @@ class _ComplexImageView(DataView):
     def createWidget(self, parent):
         from silx.gui.plot.ComplexImageView import ComplexImageView
         widget = ComplexImageView(parent=parent)
+        widget.getPlot().getIntensityHistogramAction().setVisible(True)
         widget.getPlot().setKeepDataAspectRatio(True)
         widget.getXAxis().setLabel('X')
         widget.getYAxis().setLabel('Y')
