@@ -101,7 +101,10 @@ def enabled(capacity, enable=True):
     :param bool enable:
         True (default) to enable during context, False to disable
     """
-    if enable:
+    if bool(enable) == glGetBoolean(capacity):
+        # Already in the right state: noop
+        yield
+    elif enable:
         glEnable(capacity)
         yield
         glDisable(capacity)
