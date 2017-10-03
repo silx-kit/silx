@@ -961,7 +961,7 @@ class Points(Geometry):
     varying float vSymbol;
     varying float vNormValue;
 
-    $clippinDecl
+    $clippingDecl
 
     /* Circle */
     #define SYMBOL_CIRCLE 1.0
@@ -1684,6 +1684,29 @@ class GroupDepthOffset(core.Group):
         # gl.glDepthFunc(gl.GL_LEQUAL)
         # TODO use epsilon for all rendering?
         # TODO issue with picking in depth buffer!
+
+
+class GroupNoDepth(core.Group):
+    """A group rendering its children without writing to the depth buffer
+
+    :param bool mask: True (default) to disable writing in the depth buffer
+    :param bool notest: True (default) to disable depth test
+    """
+
+    def __init__(self, children=(), mask=True, notest=True):
+        super(GroupNoDepth, self).__init__(children)
+        self._mask = bool(mask)
+        self._notest = bool(notest)
+
+    def renderGL2(self, ctx):
+        if self._mask:
+            gl.glDepthMask(gl.GL_FALSE)
+
+        with gl.disabled(gl.GL_DEPTH_TEST, disable=self._notest):
+            super(GroupNoDepth, self).renderGL2(ctx)
+
+        if self._mask:
+            gl.glDepthMask(gl.GL_TRUE)
 
 
 class GroupBBox(core.PrivateGroup):
