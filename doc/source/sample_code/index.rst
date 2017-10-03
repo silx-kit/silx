@@ -59,15 +59,6 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
        It shows the following widgets:
 
        - :class:WaitingPushButton: A button with a progress-like waiting animated icon
-   * - :download:`viewer3DVolume.py <../../../examples/viewer3DVolume.py>`
-     - .. image:: img/viewer3DVolume.png
-         :height: 150px
-         :align: center
-     - This script illustrates the use of silx.gui.plot3d.ScalarFieldView.
-
-       It loads a 3D scalar data set from a file and displays iso-surfaces and
-       an interactive cutting plane.
-       It can also be started without providing a file.
 
 :mod:`silx.gui.plot` sample code
 ++++++++++++++++++++++++++++++++
@@ -120,6 +111,7 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
      - This script illustrates the addition of a context menu to a PlotWidget.
 
        This is done by adding a custom context menu to the plot area of PlotWidget:
+
        - set the context menu policy of the plot area to Qt.CustomContextMenu.
        - connect to the plot area customContextMenuRequested signal.
 
@@ -205,6 +197,38 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
          :align: center
      - This script is an example to illustrate how to use axis synchronization
        tool.
+
+:mod:`silx.gui.plot3d` sample code
+++++++++++++++++++++++++++++++++++
+
+.. list-table::
+   :widths: 1 1 4
+   :header-rows: 1
+
+   * - Source
+     - Screenshot
+     - Description
+   * - :download:`plot3dContextMenu.py <../../../examples/plot3dContextMenu.py>`
+     - .. image:: img/plot3dContextMenu.png
+         :height: 150px
+         :align: center
+     - This script adds a context menu to a :class:`silx.gui.plot3d.ScalarFieldView`.
+
+       This is done by adding a custom context menu to the :class:`Plot3DWidget`:
+
+       - set the context menu policy to Qt.CustomContextMenu.
+       - connect to the customContextMenuRequested signal.
+
+       For more information on context menus, see Qt documentation.
+   * - :download:`viewer3DVolume.py <../../../examples/viewer3DVolume.py>`
+     - .. image:: img/viewer3DVolume.png
+         :height: 150px
+         :align: center
+     - This script illustrates the use of :class:`silx.gui.plot3d.ScalarFieldView`.
+
+       It loads a 3D scalar data set from a file and displays iso-surfaces and
+       an interactive cutting plane.
+       It can also be started without providing a file.
 
 :mod:`silx.io` sample code
 ++++++++++++++++++++++++++

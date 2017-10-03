@@ -22,9 +22,11 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This script adds a context menu to a silx.gui.plot3d.ScalarFieldView.
+"""
+This script adds a context menu to a :class:`silx.gui.plot3d.ScalarFieldView`.
 
-This is done by adding a custom context menu to the Plot3DWidget:
+This is done by adding a custom context menu to the :class:`Plot3DWidget`:
+
 - set the context menu policy to Qt.CustomContextMenu.
 - connect to the customContextMenuRequested signal.
 
