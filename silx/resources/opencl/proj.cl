@@ -159,7 +159,8 @@ __kernel void  forward_kernel(
 
     if((bidy*16 + tidy) < num_projections && (bidx*16 + tidx) < num_bins) {
         res *= Area;
-        if (normalize) res *= M_PI*0.5/num_projections;
+        if (normalize)
+            res *= M_PI_F * 0.5f / num_projections;
         d_Sino[dimrecx*(bidy*16 + tidy) + (bidx*16 + tidx)] = res;
     }
 }
@@ -338,7 +339,8 @@ __kernel void  forward_kernel_cpu(
 
     if((bidy*16 + tidy) < num_projections && (bidx*16 + tidx) < num_bins) {
         res *= Area;
-        if (normalize) res *= M_PI*0.5/num_projections;
+        if (normalize)
+            res *= M_PI_F * 0.5f / num_projections;
         d_Sino[dimrecx*(bidy*16 + tidy) + (bidx*16 + tidx)] = res;
     }
 }
