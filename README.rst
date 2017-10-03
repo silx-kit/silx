@@ -49,12 +49,12 @@ Unofficial packages for different distributions are available :
 - Fedora 23 rpm packages are provided by Max IV at http://pubrepo.maxiv.lu.se/rpm/fc23/x86_64/
 - Arch Linux (AUR) packages are also available: https://aur.archlinux.org/packages/python-silx
 
-Beside this, we provide a certain number of wheels (pre-compiled binariy packages) to be installed
+Beside this, we provide a certain number of wheels (pre-compiled binary packages) to be installed
 onto a pre-existing Python installation:
 
 - On Windows, binary wheels are available for Python 2.7, 3.5 and 3.6.
 - On MacOS, binary wheels are available for Python 2.7, 3.4, 3.5 and 3.6.
-- On Linux, manylinux1 binariy wheels are available for Python 2.7, 3.4, 3.5 and 3.6.
+- On Linux, manylinux1 binary wheels are available for Python 2.7, 3.4, 3.5 and 3.6.
 
 Those builds are made from "up-date" systems at the time of the release, i.e. they use
 the latest stable version of numpy (and cython). 
