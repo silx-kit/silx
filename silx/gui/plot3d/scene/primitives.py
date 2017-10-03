@@ -1176,8 +1176,7 @@ class ColorPoints(Geometry):
     _ATTR_INFO = _POINTS_ATTR_INFO
 
     def __init__(self, vertices, colors=(1., 1., 1., 1.), sizes=1.,
-                 indices=None, symbols=0.,
-                 minValue=None, maxValue=None):
+                 indices=None, symbols=0.):
         super(ColorPoints, self).__init__('points', indices,
                                           position=vertices,
                                           color=colors,
