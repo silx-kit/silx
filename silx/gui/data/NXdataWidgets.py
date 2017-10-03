@@ -175,8 +175,8 @@ class ArrayCurvePlot(qt.QWidget):
                                   xerror=self.__axis_errors,
                                   yerror=y_errors)
 
-        # x monotonically increasing: curve
-        elif numpy.all(numpy.diff(x) > 0):
+        # x monotonically increasing or decreasiing: curve
+        elif numpy.all(numpy.diff(x) > 0) or numpy.all(numpy.diff(x) < 0):
             self._plot.addCurve(x, y, legend=legend,
                                 xerror=self.__axis_errors,
                                 yerror=y_errors)
