@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "14/09/2017"
+__date__ = "29/09/2017"
 
 
 import unittest
@@ -110,7 +110,6 @@ class TestLauncher(unittest.TestCase):
     def testWrongOption(self):
         try:
             result = view.main(["view", "--foo"])
-            self.assertNotEqual(result, 0)
         except SystemExit as e:
             result = e.args[0]
         self.assertNotEqual(result, 0)
@@ -118,10 +117,9 @@ class TestLauncher(unittest.TestCase):
     def testWrongFile(self):
         try:
             result = view.main(["view", "__file.not.found__"])
-            self.assertNotEqual(result, 0)
         except SystemExit as e:
             result = e.args[0]
-        self.assertNotEqual(result, 0)
+        self.assertEqual(result, 0)
 
     def testFile(self):
         # sys.executable is an existing readable file

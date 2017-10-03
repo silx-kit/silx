@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,26 +22,44 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-__authors__ = ["T. Vincent", "P. Knobel"]
+"""Module contains a float editor
+"""
+
+from __future__ import division
+
+__authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "02/10/2017"
 
-
-import unittest
-from . import test_weakref
-from . import test_html
-from . import test_array_like
-from . import test_launcher
-from . import test_deprecation
-from . import test_proxy
+from .. import qt
 
 
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(test_weakref.suite())
-    test_suite.addTest(test_html.suite())
-    test_suite.addTest(test_array_like.suite())
-    test_suite.addTest(test_launcher.suite())
-    test_suite.addTest(test_deprecation.suite())
-    test_suite.addTest(test_proxy.suite())
-    return test_suite
+class FloatEdit(qt.QLineEdit):
+    """Field to edit a float value.
+
+    :param parent: See :class:`QLineEdit`
+    :param float value: The value to set the QLineEdit to.
+    """
+    def __init__(self, parent=None, value=None):
+        qt.QLineEdit.__init__(self, parent)
+        validator = qt.QDoubleValidator(self)
+        self.setValidator(validator)
+        self.setAlignment(qt.Qt.AlignRight)
+        if value is not None:
+            self.setValue(value)
+
+    def value(self):
+        """Return the QLineEdit current value as a float."""
+        text = self.text()
+        value, validated = self.validator().locale().toDouble(text)
+        if not validated:
+            self.setValue(value)
+        return value
+
+    def setValue(self, value):
+        """Set the current value of the LineEdit
+
+        :param float value: The value to set the QLineEdit to.
+        """
+        text = self.validator().locale().toString(value)
+        self.setText(text)

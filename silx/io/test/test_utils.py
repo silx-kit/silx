@@ -23,7 +23,7 @@
 # ############################################################################*/
 """Tests for utils module"""
 
-
+import io
 import numpy
 import os
 import re
@@ -47,7 +47,7 @@ except ImportError:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "11/01/2017"
+__date__ = "28/09/2017"
 
 
 expected_spec1 = r"""#F .*
@@ -289,20 +289,48 @@ class TestH5Ls(unittest.TestCase):
 class TestOpen(unittest.TestCase):
     """Test `silx.io.utils.open` function."""
 
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp_directory = tempfile.mkdtemp()
+        cls.createResources(cls.tmp_directory)
+
+    @classmethod
+    def createResources(cls, directory):
+
+        if h5py is not None:
+            cls.h5_filename = os.path.join(directory, "test.h5")
+            h5 = h5py.File(cls.h5_filename, mode="w")
+            h5["group/group/dataset"] = 50
+            h5.close()
+
+        cls.spec_filename = os.path.join(directory, "test.dat")
+        utils.savespec(cls.spec_filename, [1], [1.1], xlabel="x", ylabel="y",
+                       fmt=["%d", "%.2f"], close_file=True, scan_number=1)
+
+        if fabio is not None:
+            cls.edf_filename = os.path.join(directory, "test.edf")
+            header = fabio.fabioimage.OrderedDict()
+            header["integer"] = "10"
+            data = numpy.array([[10, 50], [50, 10]])
+            fabiofile = fabio.edfimage.EdfImage(data, header)
+            fabiofile.write(cls.edf_filename)
+
+        cls.txt_filename = os.path.join(directory, "test.txt")
+        f = io.open(cls.txt_filename, "w+t")
+        f.write(u"Kikoo")
+        f.close()
+
+        cls.missing_filename = os.path.join(directory, "test.missing")
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.tmp_directory)
+
     def testH5(self):
         if h5py is None:
             self.skipTest("H5py is missing")
 
-        # create a file
-        tmp = tempfile.NamedTemporaryFile(suffix=".h5", delete=True)
-        tmp.file.close()
-        h5 = h5py.File(tmp.name, "w")
-        g = h5.create_group("arrays")
-        g.create_dataset("scalar", data=10)
-        h5.close()
-
-        # load it
-        f = utils.open(tmp.name)
+        f = utils.open(self.h5_filename)
         self.assertIsNotNone(f)
         self.assertIsInstance(f, h5py.File)
         f.close()
@@ -311,42 +339,38 @@ class TestOpen(unittest.TestCase):
         if h5py is None:
             self.skipTest("H5py is missing")
 
-        # create a file
-        tmp = tempfile.NamedTemporaryFile(suffix=".h5", delete=True)
-        tmp.file.close()
-        h5 = h5py.File(tmp.name, "w")
-        g = h5.create_group("arrays")
-        g.create_dataset("scalar", data=10)
-        h5.close()
-
-        # load it
-        with utils.open(tmp.name) as f:
+        with utils.open(self.h5_filename) as f:
             self.assertIsNotNone(f)
             self.assertIsInstance(f, h5py.File)
 
-    def testSpec(self):
-        # create a file
-        tmp = tempfile.NamedTemporaryFile(mode="w+t", suffix=".dat", delete=True)
-        tmp.file.close()
-        utils.savespec(tmp.name, [1], [1.1], xlabel="x", ylabel="y",
-                       fmt=["%d", "%.2f"], close_file=True, scan_number=1)
+    def testH5_withPath(self):
+        if h5py is None:
+            self.skipTest("H5py is missing")
 
-        # load it
-        f = utils.open(tmp.name)
+        f = utils.open(self.h5_filename + "::/group/group/dataset")
+        self.assertIsNotNone(f)
+        self.assertEqual(f.h5py_class, h5py.Dataset)
+        self.assertEqual(f[()], 50)
+        f.close()
+
+    def testH5With_withPath(self):
+        if h5py is None:
+            self.skipTest("H5py is missing")
+
+        with utils.open(self.h5_filename + "::/group/group") as f:
+            self.assertIsNotNone(f)
+            self.assertEqual(f.h5py_class, h5py.Group)
+            self.assertIn("dataset", f)
+
+    def testSpec(self):
+        f = utils.open(self.spec_filename)
         self.assertIsNotNone(f)
         if h5py is not None:
             self.assertEquals(f.h5py_class, h5py.File)
         f.close()
 
     def testSpecWith(self):
-        # create a file
-        tmp = tempfile.NamedTemporaryFile(mode="w+t", suffix=".dat", delete=True)
-        tmp.file.close()
-        utils.savespec(tmp.name, [1], [1.1], xlabel="x", ylabel="y",
-                       fmt=["%d", "%.2f"], close_file=True, scan_number=1)
-
-        # load it
-        with utils.open(tmp.name) as f:
+        with utils.open(self.spec_filename) as f:
             self.assertIsNotNone(f)
             if h5py is not None:
                 self.assertEquals(f.h5py_class, h5py.File)
@@ -357,17 +381,7 @@ class TestOpen(unittest.TestCase):
         if fabio is None:
             self.skipTest("Fabio is missing")
 
-        # create a file
-        tmp = tempfile.NamedTemporaryFile(suffix=".edf", delete=True)
-        tmp.file.close()
-        header = fabio.fabioimage.OrderedDict()
-        header["integer"] = "10"
-        data = numpy.array([[10, 50], [50, 10]])
-        fabiofile = fabio.edfimage.EdfImage(data, header)
-        fabiofile.write(tmp.name)
-
-        # load it
-        f = utils.open(tmp.name)
+        f = utils.open(self.edf_filename)
         self.assertIsNotNone(f)
         self.assertEquals(f.h5py_class, h5py.File)
         f.close()
@@ -378,32 +392,16 @@ class TestOpen(unittest.TestCase):
         if fabio is None:
             self.skipTest("Fabio is missing")
 
-        # create a file
-        tmp = tempfile.NamedTemporaryFile(suffix=".edf", delete=True)
-        tmp.file.close()
-        header = fabio.fabioimage.OrderedDict()
-        header["integer"] = "10"
-        data = numpy.array([[10, 50], [50, 10]])
-        fabiofile = fabio.edfimage.EdfImage(data, header)
-        fabiofile.write(tmp.name)
-
-        # load it
-        with utils.open(tmp.name) as f:
+        with utils.open(self.edf_filename) as f:
             self.assertIsNotNone(f)
             self.assertEquals(f.h5py_class, h5py.File)
 
     def testUnsupported(self):
-        # create a file
-        tmp = tempfile.NamedTemporaryFile(mode="w+t", suffix=".txt", delete=True)
-        tmp.write("Kikoo")
-        tmp.close()
-
-        # load it
-        self.assertRaises(IOError, utils.open, tmp.name)
+        self.assertRaises(IOError, utils.open, self.txt_filename)
 
     def testNotExists(self):
         # load it
-        self.assertRaises(IOError, utils.open, "#$.")
+        self.assertRaises(IOError, utils.open, self.missing_filename)
 
 
 class TestNodes(unittest.TestCase):
@@ -494,15 +492,12 @@ class TestNodes(unittest.TestCase):
 
 
 def suite():
+    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
     test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestSave))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestH5Ls))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestOpen))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestNodes))
+    test_suite.addTest(loadTests(TestSave))
+    test_suite.addTest(loadTests(TestH5Ls))
+    test_suite.addTest(loadTests(TestOpen))
+    test_suite.addTest(loadTests(TestNodes))
     return test_suite
 
 

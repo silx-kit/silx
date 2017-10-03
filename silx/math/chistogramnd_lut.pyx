@@ -149,6 +149,7 @@ def histogramnd_get_lut(sample,
         lut_dtype = np.int16
     elif n_bins.prod(dtype=np.uint64) < 2**31:
         lut_dtype = np.int32
+
     else:
         lut_dtype = np.int64
 
@@ -156,15 +157,19 @@ def histogramnd_get_lut(sample,
     lut = np.zeros(n_elem, dtype=lut_dtype)
     histo = np.zeros(n_bins, dtype=np.uint32)
 
-    sample_c = np.ascontiguousarray(sample.reshape((sample.size,)))
+    dtype = sample.dtype.newbyteorder("N")
+    sample_c = np.ascontiguousarray(sample.reshape((sample.size,)),
+                                    dtype=dtype)
 
-    histo_range_c = np.ascontiguousarray(histo_range.reshape((histo_range.size,)))
+    histo_range_c = np.ascontiguousarray(histo_range.reshape((histo_range.size,)),
+                                         dtype=histo_range.dtype.newbyteorder("N"))
 
     n_bins_c = np.ascontiguousarray(n_bins.reshape((n_bins.size,)),
                                     dtype=np.int32)
 
     lut_c = np.ascontiguousarray(lut.reshape((lut.size,)))
-    histo_c = np.ascontiguousarray(histo.reshape((histo.size,)))
+    histo_c = np.ascontiguousarray(histo.reshape((histo.size,)),
+                                   dtype=histo.dtype.newbyteorder('N'))
 
     rc = 0
 
@@ -270,13 +275,17 @@ def histogramnd_from_lut(weights,
         raise ValueError('The LUT and weights arrays must have the same '
                          'number of elements.')
 
-    w_c = np.ascontiguousarray(weights.reshape((weights.size,)))
+    w_c = np.ascontiguousarray(weights.reshape((weights.size,)),
+                               dtype=weights.dtype.newbyteorder('N'))
 
-    h_c = np.ascontiguousarray(histo.reshape((histo.size,)))
+    h_c = np.ascontiguousarray(histo.reshape((histo.size,)),
+                               dtype=histo.dtype.newbyteorder('N'))
 
-    w_h_c = np.ascontiguousarray(weighted_histo.reshape((weighted_histo.size,)))  # noqa
+    w_h_c = np.ascontiguousarray(weighted_histo.reshape((weighted_histo.size,)),
+                                 dtype=weighted_histo.dtype.newbyteorder('N'))  # noqa
 
-    h_lut_c = np.ascontiguousarray(histo_lut.reshape((histo_lut.size,)))
+    h_lut_c = np.ascontiguousarray(histo_lut.reshape((histo_lut.size,)),
+                                   histo_lut.dtype.newbyteorder('N'))
 
     rc = 0
 

@@ -29,13 +29,14 @@ from __future__ import division
 
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "20/04/2017"
+__date__ = "02/10/2017"
 
 import os
 
 import numpy
 
 from silx.gui import qt, icons
+from silx.gui.widgets.FloatEdit import FloatEdit
 from silx.gui.plot.Colormap import Colormap
 from silx.gui.plot.Colors import rgba
 from .actions.mode import PanModeAction
@@ -756,15 +757,11 @@ class BaseMaskToolsWidget(qt.QWidget):
 
         form = qt.QFormLayout()
 
-        self.minLineEdit = qt.QLineEdit()
-        self.minLineEdit.setText('0')
-        self.minLineEdit.setValidator(qt.QDoubleValidator(self))
+        self.minLineEdit = FloatEdit(self, value=0)
         self.minLineEdit.setEnabled(False)
         form.addRow('Min:', self.minLineEdit)
 
-        self.maxLineEdit = qt.QLineEdit()
-        self.maxLineEdit.setText('0')
-        self.maxLineEdit.setValidator(qt.QDoubleValidator(self))
+        self.maxLineEdit = FloatEdit(self, value=0)
         self.maxLineEdit.setEnabled(False)
         form.addRow('Max:', self.maxLineEdit)
 
@@ -1029,20 +1026,20 @@ class BaseMaskToolsWidget(qt.QWidget):
         if self.belowThresholdAction.isChecked():
             if self.minLineEdit.text():
                 self._mask.updateBelowThreshold(self.levelSpinBox.value(),
-                                                float(self.minLineEdit.text()))
+                                                self.minLineEdit.value())
                 self._mask.commit()
 
         elif self.betweenThresholdAction.isChecked():
             if self.minLineEdit.text() and self.maxLineEdit.text():
-                min_ = float(self.minLineEdit.text())
-                max_ = float(self.maxLineEdit.text())
+                min_ = self.minLineEdit.value()
+                max_ = self.maxLineEdit.value()
                 self._mask.updateBetweenThresholds(self.levelSpinBox.value(),
                                                    min_, max_)
                 self._mask.commit()
 
         elif self.aboveThresholdAction.isChecked():
             if self.maxLineEdit.text():
-                max_ = float(self.maxLineEdit.text())
+                max_ = float(self.maxLineEdit.value())
                 self._mask.updateAboveThreshold(self.levelSpinBox.value(),
                                                 max_)
                 self._mask.commit()
