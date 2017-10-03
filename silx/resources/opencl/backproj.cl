@@ -130,11 +130,16 @@ __kernel void backproj_kernel(
 
 #define ADJACENT_PIXELS_VALS(arr, Nx, y, xm, xp) ((float2) (arr[y*Nx+xm], arr[y*Nx+xp]))
 
-float linear_interpolation(float2 vals, float x, int xm, int xp) {
+//Simple linear interpolator for working on the GPU
+static float linear_interpolation(float2 vals,
+                                  float x,
+                                  int xm,
+                                  int xp)
+{
     if (xm == xp)
-	return vals.s0; 
+        return vals.s0;
     else 
-	return (vals.s0 * (xp - x)) + (vals.s1 * (x - xm)); 
+        return (vals.s0 * (xp - x)) + (vals.s1 * (x - xm));
 }
 
 /**
