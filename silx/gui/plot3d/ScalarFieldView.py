@@ -357,6 +357,12 @@ class CutPlane(qt.QObject):
     This signal provides the new colormap.
     """
 
+    sigTransparencyChanged = qt.Signal()
+    """Signal emitted when the transparency of the plane has changed.
+
+    This signal is emitted when calling :meth:`setDisplayValuesBelowMin`.
+    """
+
     sigInterpolationChanged = qt.Signal(str)
     """Signal emitted when the cut plane interpolation has changed
 
@@ -526,6 +532,24 @@ class CutPlane(qt.QObject):
     #     :param float alpha: Transparency in [0., 1]
     #     """
     #     self._plane.alpha = alpha
+
+    def getDisplayValuesBelowMin(self):
+        """Return whether values <= colormap min are displayed or not.
+
+        :rtype: bool
+        """
+        return self._plane.colormap.displayValuesBelowMin
+
+    def setDisplayValuesBelowMin(self, display):
+        """Set whether to display values <= colormap min.
+
+        :param bool display: True to show values below min,
+                             False to discard them
+        """
+        display = bool(display)
+        if display != self.getDisplayValuesBelowMin():
+            self._plane.colormap.displayValuesBelowMin = display
+            self.sigTransparencyChanged.emit()
 
     def getColormap(self):
         """Returns the colormap set by :meth:`setColormap`.

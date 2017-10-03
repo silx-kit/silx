@@ -1069,6 +1069,35 @@ class PlaneInterpolationItem(SubjectItem):
         self.subject.getCutPlanes()[0].setInterpolation(interpolation)
 
 
+class PlaneDisplayBelowMinItem(SubjectItem):
+    """Toggle whether to display or not values <= colormap min of the cut plane
+
+    Item is checkable
+    """
+
+    def _init(self):
+        display = self.subject.getCutPlanes()[0].getDisplayValuesBelowMin()
+        self.setCheckable(True)
+        self.setCheckState(
+            qt.Qt.Checked if display else qt.Qt.Unchecked)
+        self.setData(self._pullData(), role=qt.Qt.DisplayRole, pushData=False)
+
+    def getSignals(self):
+        return [self.subject.getCutPlanes()[0].sigTransparencyChanged]
+
+    def leftClicked(self):
+        checked = self.checkState() == qt.Qt.Checked
+        self._setDisplayValuesBelowMin(checked)
+
+    def _pullData(self):
+        display = self.subject.getCutPlanes()[0].getDisplayValuesBelowMin()
+        self._setDisplayValuesBelowMin(display)
+        return "Displayed" if display else "Hidden"
+
+    def _setDisplayValuesBelowMin(self, display):
+        self.subject.getCutPlanes()[0].setDisplayValuesBelowMin(display)
+
+
 class PlaneColormapItem(ColormapBase):
     """
     colormap name item.
@@ -1239,6 +1268,11 @@ class PlaneGroup(SubjectItem):
         nameItem = qt.QStandardItem('Max')
         nameItem.setEditable(False)
         valueItem = PlaneMaxRangeItem(self.subject)
+        self.appendRow([nameItem, valueItem])
+
+        nameItem = qt.QStandardItem('Values<=Min')
+        nameItem.setEditable(False)
+        valueItem = PlaneDisplayBelowMinItem(self.subject)
         self.appendRow([nameItem, valueItem])
 
 
