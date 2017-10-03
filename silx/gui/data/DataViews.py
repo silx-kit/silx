@@ -39,7 +39,7 @@ from silx.io.nxdata import NXdata, get_attr_as_string
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "27/09/2017"
+__date__ = "03/10/2017"
 
 _logger = logging.getLogger(__name__)
 
@@ -100,6 +100,7 @@ class DataInfo(object):
         self.isNXdata = False
         self.shape = tuple()
         self.dim = 0
+        self.size = 0
 
         if data is None:
             return
@@ -152,6 +153,11 @@ class DataInfo(object):
             self.shape = tuple()
         if self.shape is not None:
             self.dim = len(self.shape)
+
+        if hasattr(data, "size"):
+            self.size = int(data.size)
+        else:
+            self.size = 1
 
     def normalizeData(self, data):
         """Returns a normalized data if the embed a numpy or a dataset.
