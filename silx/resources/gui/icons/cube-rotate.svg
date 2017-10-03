@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg version="1.1" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+<g transform="matrix(.47016 0 0 .47016 8.4669 -465.76)" stroke="#000">
+<rect transform="matrix(1 0 -.69517 .71885 0 0)" x="1018.3" y="1446.7" width="18" height="15.133" fill="none" stroke-linecap="square" stroke-miterlimit="0" stroke-width="1.1795"/>
+<rect x="12.5" y="1021.9" width="18" height="18" ry="0" fill="none" stroke-miterlimit="2"/>
+<rect transform="matrix(1 0 -.70625 .70796 0 0)" x="1031.7" y="1443.4" width="18" height="15.365" fill="#f7941e" fill-opacity=".81569" stroke-linecap="square" stroke-miterlimit="0" stroke-width="1.1885"/>
+<rect x="1.5" y="1032.9" width="18" height="18" ry="0" fill="#f7941e" fill-opacity=".81569" stroke-miterlimit="2"/>
+<path transform="matrix(0 -1 -.70641 .70781 0 0)" d="m-1070.3-42.826 17.725-0.01751 0.026 14.9-18.077 0.01751z" fill="#f7941e" fill-opacity=".81569" stroke-linejoin="bevel" stroke-miterlimit="0" stroke-width=".5949"/>
+</g>
+<path d="m20.844 3.6071c2.0047-0.09094 3.8084-0.12892 5.6292-0.1714l-2.4557 4.9793z"/>
+<path d="m24.868 5.9491c1.1349 0.30058 2.0533 0.6585 2.6879 1.0559 0.63468 0.39744 0.98564 0.83441 0.98564 1.2931 0 1.8347-5.6154 3.322-12.542 3.322-6.927 0-12.542-1.4873-12.542-3.322 0-0.45868 0.35096-0.89564 0.98564-1.2931 0.63468-0.39744 1.5531-0.75536 2.6879-1.0559" fill="none" stroke="#000" stroke-linecap="round" stroke-width="2"/>
+</svg>
