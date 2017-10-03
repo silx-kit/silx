@@ -304,7 +304,10 @@ class ColorItem(SubjectItem):
     def getEditor(self, parent, option, index):
         editor = QColorEditor(parent)
         editor.color = self.getColor()
-        editor.sigColorChanged.connect(self._editorSlot)
+
+        # Wrapping call in lambda is a workaround for PySide with Python 3
+        editor.sigColorChanged.connect(
+            lambda color: self._editorSlot(color))
         return editor
 
     def _editorSlot(self, color):
@@ -645,7 +648,9 @@ class IsoSurfaceColorItem(SubjectItem):
         color = self.subject.getColor()
         color.setAlpha(255)
         editor.color = color
-        editor.sigColorChanged.connect(self.__editorChanged)
+        # Wrapping call in lambda is a workaround for PySide with Python 3
+        editor.sigColorChanged.connect(
+            lambda color: self.__editorChanged(color))
         return editor
 
     def __editorChanged(self, color):
@@ -740,7 +745,9 @@ class IsoSurfaceAlphaItem(SubjectItem):
         color = self.subject.getColor()
         editor.setValue(color.alpha())
 
-        editor.valueChanged.connect(self.__editorChanged)
+        # Wrapping call in lambda is a workaround for PySide with Python 3
+        editor.valueChanged.connect(
+            lambda value: self.__editorChanged(value))
 
         return editor
 
@@ -1007,7 +1014,10 @@ class PlaneOrientationItem(SubjectItem):
         editor = qt.QComboBox(parent)
         for iconName, text, tooltip, normal in self._PLANE_ACTIONS:
             editor.addItem(getQIcon(iconName), text)
-        editor.currentIndexChanged[int].connect(self.__editorChanged)
+
+        # Wrapping call in lambda is a workaround for PySide with Python 3
+        editor.currentIndexChanged[int].connect(
+            lambda index: self.__editorChanged(index))
         return editor
 
     def __editorChanged(self, index):
@@ -1074,7 +1084,10 @@ class PlaneColormapItem(ColormapBase):
     def getEditor(self, parent, option, index):
         editor = qt.QComboBox(parent)
         editor.addItems(self.listValues)
-        editor.currentIndexChanged[int].connect(self.__editorChanged)
+
+        # Wrapping call in lambda is a workaround for PySide with Python 3
+        editor.currentIndexChanged[int].connect(
+            lambda index: self.__editorChanged(index))
 
         return editor
 
@@ -1154,7 +1167,10 @@ class NormalizationNode(ColormapBase):
     def getEditor(self, parent, option, index):
         editor = qt.QComboBox(parent)
         editor.addItems(self.listValues)
-        editor.currentIndexChanged[int].connect(self.__editorChanged)
+
+        # Wrapping call in lambda is a workaround for PySide with Python 3
+        editor.currentIndexChanged[int].connect(
+            lambda index: self.__editorChanged(index))
 
         return editor
 
