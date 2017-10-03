@@ -67,7 +67,7 @@ class RotateViewport(Plot3DAction):
         self._timer.setInterval(self._TIMEOUT_MS)  # 20fps
         self._timer.timeout.connect(self._rotate)
 
-        self.setIcon(getQIcon('edit-copy'))  # TODO
+        self.setIcon(getQIcon('cube-rotate'))
         self.setText('Rotate scene')
         self.setToolTip('Rotate the 3D scene around the vertical axis')
         self.setCheckable(True)
