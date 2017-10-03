@@ -427,6 +427,8 @@ class _Plot1dView(DataView):
         return ["y"]
 
     def getDataPriority(self, data, info):
+        if info.size <= 0:
+            return DataView.UNSUPPORTED
         if data is None or not info.isArray or not info.isNumeric:
             return DataView.UNSUPPORTED
         if info.dim < 1:
@@ -480,6 +482,8 @@ class _Plot2dView(DataView):
         return ["y", "x"]
 
     def getDataPriority(self, data, info):
+        if info.size <= 0:
+            return DataView.UNSUPPORTED
         if (data is None or
                 not info.isArray or
                 not (info.isNumeric or info.isBoolean)):
@@ -557,6 +561,8 @@ class _Plot3dView(DataView):
         return ["z", "y", "x"]
 
     def getDataPriority(self, data, info):
+        if info.size <= 0:
+            return DataView.UNSUPPORTED
         if data is None or not info.isArray or not info.isNumeric:
             return DataView.UNSUPPORTED
         if info.dim < 3:
@@ -602,6 +608,8 @@ class _ComplexImageView(DataView):
         return ["y", "x"]
 
     def getDataPriority(self, data, info):
+        if info.size <= 0:
+            return DataView.UNSUPPORTED
         if data is None or not info.isArray or not info.isComplex:
             return DataView.UNSUPPORTED
         if info.dim < 2:
@@ -637,6 +645,8 @@ class _ArrayView(DataView):
         return ["col", "row"]
 
     def getDataPriority(self, data, info):
+        if info.size <= 0:
+            return DataView.UNSUPPORTED
         if data is None or not info.isArray or info.isRecord:
             return DataView.UNSUPPORTED
         if info.dim < 2:
@@ -693,6 +703,8 @@ class _StackView(DataView):
         return ["depth", "y", "x"]
 
     def getDataPriority(self, data, info):
+        if info.size <= 0:
+            return DataView.UNSUPPORTED
         if data is None or not info.isArray or not info.isNumeric:
             return DataView.UNSUPPORTED
         if info.dim < 3:
@@ -729,6 +741,8 @@ class _ScalarView(DataView):
         return []
 
     def getDataPriority(self, data, info):
+        if info.size <= 0:
+            return DataView.UNSUPPORTED
         data = self.normalizeData(data)
         if info.shape is None:
             return DataView.UNSUPPORTED
@@ -766,6 +780,8 @@ class _RecordView(DataView):
         return ["data"]
 
     def getDataPriority(self, data, info):
+        if info.size <= 0:
+            return DataView.UNSUPPORTED
         if info.isRecord:
             return 40
         if data is None or not info.isArray:
@@ -804,6 +820,8 @@ class _HexaView(DataView):
         return []
 
     def getDataPriority(self, data, info):
+        if info.size <= 0:
+            return DataView.UNSUPPORTED
         if info.isVoid:
             return 2000
         return DataView.UNSUPPORTED
