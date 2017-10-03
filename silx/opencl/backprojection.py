@@ -29,10 +29,10 @@ from __future__ import absolute_import, print_function, with_statement, division
 
 __authors__ = ["A. Mirone, P. Paleo"]
 __license__ = "MIT"
-__date__ = "12/09/2017"
+__date__ = "03/10/2017"
 
 import logging
-import numpy as np
+import numpy
 
 from .common import pyopencl
 from .processing import EventDescription, OpenclProcessing, BufferDescription
@@ -51,13 +51,15 @@ try:
     _has_pyfft = True
 except ImportError:
     _has_pyfft = False
+# For silx v0.6 we disable the use FFT on GPU.
+_has_pyfft = False
 
 
 def _sizeof(Type):
     """
     return the size (in bytes) of a scalar type, like the C behavior
     """
-    return np.dtype(Type).itemsize
+    return numpy.dtype(Type).itemsize
 
 
 def _idivup(a, b):
@@ -65,6 +67,44 @@ def _idivup(a, b):
     return the integer division, plus one if `a` is not a multiple of `b`
     """
     return (a + (b - 1)) // b
+
+
+def fourier_filter(sino, filter_=None, fft_size=None):
+    """Simple numpy based implementation of fourier space filter
+    
+    :param sino: of shape shape = (num_projs, num_bins)
+    :param filter: filter function to apply in fourier space
+    :fft_size: size on which perform the fft. May be larger than the sino array 
+    :return: filtered sinogram
+    """
+    assert sino.ndim == 2
+    num_projs, num_bins = sino.shape
+    if fft_size is None:
+        fft_size = nextpow2(num_bins * 2 - 1)
+    else:
+        assert fft_size >= num_bins
+    if fft_size == num_bins:
+        sino_zeropadded = sino.astype(numpy.float32)
+    else:
+        sino_zeropadded = numpy.zeros((num_projs, fft_size),
+                                      dtype=numpy.complex64)
+        sino_zeropadded[:, :num_bins] = sino.astype(numpy.float32)
+
+    if filter_ is None:
+        h = numpy.zeros(fft_size, dtype=numpy.float32)
+        L2 = fft_size // 2 + 1
+        h[0] = 1 / 4.
+        j = numpy.linspace(1, L2, L2 // 2, False)
+        h[1:L2:2] = -1. / (numpy.pi ** 2 * j ** 2)
+        h[L2:] = numpy.copy(h[1:L2 - 1][::-1])
+        filter_ = numpy.fft.fft(h).astype(numpy.complex64)
+
+    # Linear convolution
+    sino_f = numpy.fft.fft(sino, fft_size)
+    sino_f = sino_f * filter_
+    sino_filtered = numpy.fft.ifft(sino_f)[:, :num_bins].real
+    # Send the filtered sinogram to device
+    return numpy.ascontiguousarray(sino_filtered, dtype=numpy.float32)
 
 
 class Backprojection(OpenclProcessing):
@@ -110,8 +150,8 @@ class Backprojection(OpenclProcessing):
                                   profile=profile)
         self.shape = sino_shape
 
-        self.num_bins = np.int32(sino_shape[1])
-        self.num_projs = np.int32(sino_shape[0])
+        self.num_bins = numpy.int32(sino_shape[1])
+        self.num_projs = numpy.int32(sino_shape[0])
         self.angles = angles
         if slice_shape is None:
             self.slice_shape = (self.num_bins, self.num_bins)
@@ -121,12 +161,12 @@ class Backprojection(OpenclProcessing):
             _idivup(self.slice_shape[0], 32) * 32,
             _idivup(self.slice_shape[1], 32) * 32
         )
-        self.slice = np.zeros(self.dimrec_shape, dtype=np.float32)
+        self.slice = numpy.zeros(self.dimrec_shape, dtype=numpy.float32)
         self.filter_name = filter_name if filter_name else "Ram-Lak"
         if axis_position:
-            self.axis_pos = np.float32(axis_position)
+            self.axis_pos = numpy.float32(axis_position)
         else:
-            self.axis_pos = np.float32((sino_shape[1] - 1.) / 2)
+            self.axis_pos = numpy.float32((sino_shape[1] - 1.) / 2)
         self.axis_array = None  # TODO: add axis correction front-end
         self.is_cpu = False
         if self.device.type == "CPU":
@@ -134,11 +174,11 @@ class Backprojection(OpenclProcessing):
 
         self.compute_fft_plans()
         self.buffers = [
-                       BufferDescription("_d_slice", np.prod(self.dimrec_shape), np.float32, mf.READ_WRITE),
-                       BufferDescription("d_sino", self.num_projs * self.num_bins, np.float32, mf.READ_WRITE),  # before transferring to texture (if available)
-                       BufferDescription("d_cos", self.num_projs, np.float32, mf.READ_ONLY),
-                       BufferDescription("d_sin", self.num_projs, np.float32, mf.READ_ONLY),
-                       BufferDescription("d_axes", self.num_projs, np.float32, mf.READ_ONLY),
+                       BufferDescription("_d_slice", numpy.prod(self.dimrec_shape), numpy.float32, mf.READ_WRITE),
+                       BufferDescription("d_sino", self.num_projs * self.num_bins, numpy.float32, mf.READ_WRITE),  # before transferring to texture (if available)
+                       BufferDescription("d_cos", self.num_projs, numpy.float32, mf.READ_ONLY),
+                       BufferDescription("d_sin", self.num_projs, numpy.float32, mf.READ_ONLY),
+                       BufferDescription("d_axes", self.num_projs, numpy.float32, mf.READ_ONLY),
                       ]
         self.allocate_buffers()
         if not(self.is_cpu):
@@ -149,10 +189,10 @@ class Backprojection(OpenclProcessing):
                 "d_filter": self.d_filter,
                 "d_sino_z": self.d_sino_z
             })
-        self.d_sino = self.cl_mem["d_sino"] # shorthand
+        self.d_sino = self.cl_mem["d_sino"]  # shorthand
         self.compute_angles()
 
-        self.local_mem = 256 * 3 * _sizeof(np.float32)  # constant for all image sizes
+        self.local_mem = 256 * 3 * _sizeof(numpy.float32)  # constant for all image sizes
         OpenclProcessing.compile_kernels(self, self.kernel_files)
         # check that workgroup can actually be (16, 16)
         self.check_workgroup_size("backproj_cpu_kernel")
@@ -165,19 +205,19 @@ class Backprojection(OpenclProcessing):
 
     def compute_angles(self):
         if self.angles is None:
-            self.angles = np.linspace(0, np.pi, self.num_projs, False)
-        h_cos = np.cos(self.angles).astype(np.float32)
-        h_sin = np.sin(self.angles).astype(np.float32)
+            self.angles = numpy.linspace(0, numpy.pi, self.num_projs, False)
+        h_cos = numpy.cos(self.angles).astype(numpy.float32)
+        h_sin = numpy.sin(self.angles).astype(numpy.float32)
         pyopencl.enqueue_copy(self.queue, self.cl_mem["d_cos"], h_cos)
         pyopencl.enqueue_copy(self.queue, self.cl_mem["d_sin"], h_sin)
         if self.axis_array:
             pyopencl.enqueue_copy(self.queue,
                                   self.cl_mem["d_axes"],
-                                  self.axis_array.astype(np.float32))
+                                  self.axis_array.astype(numpy.float32))
         else:
             pyopencl.enqueue_copy(self.queue,
                                   self.cl_mem["d_axes"],
-                                  np.ones(self.num_projs, dtype=np.float32) * self.axis_pos)
+                                  numpy.ones(self.num_projs, dtype=numpy.float32) * self.axis_pos)
 
     def allocate_textures(self):
         """
@@ -190,7 +230,7 @@ class Backprojection(OpenclProcessing):
                                                              pyopencl.channel_order.INTENSITY,
                                                              pyopencl.channel_type.FLOAT
                                                             ),
-                                        hostbuf=np.zeros(self.shape[::-1], dtype=np.float32)
+                                        hostbuf=numpy.zeros(self.shape[::-1], dtype=numpy.float32)
                                         )
 
     def compute_fft_plans(self):
@@ -203,10 +243,11 @@ class Backprojection(OpenclProcessing):
         if _has_pyfft:
             logger.debug("pyfft is available. Computing FFT plans...")
             # batched 1D transform
-            self.pyfft_plan = pyfft_Plan(self.fft_size, queue=self.queue)
+            self.pyfft_plan = pyfft_Plan(self.fft_size, queue=self.queue,
+                                         wait_for_finish=True)
             self.d_sino_z = parray.zeros(self.queue,
                                          (self.num_projs, self.fft_size),
-                                         dtype=np.complex64)
+                                         dtype=numpy.complex64)
             logger.debug("... done")
         else:
             logger.debug("pyfft not available, using numpy.fft")
@@ -219,46 +260,45 @@ class Backprojection(OpenclProcessing):
         """
         if self.filter_name == "Ram-Lak":
             L = self.fft_size
-            h = np.zeros(L, dtype=np.float32)
+            h = numpy.zeros(L, dtype=numpy.float32)
             L2 = L // 2 + 1
             h[0] = 1 / 4.
-            j = np.linspace(1, L2, L2 // 2, False)
-            h[1:L2:2] = -1. / (np.pi ** 2 * j ** 2)
-            h[L2:] = np.copy(h[1:L2 - 1][::-1])
+            j = numpy.linspace(1, L2, L2 // 2, False)
+            h[1:L2:2] = -1. / (numpy.pi ** 2 * j ** 2)
+            h[L2:] = numpy.copy(h[1:L2 - 1][::-1])
         else:
             # TODO: other filters
             raise ValueError("Filter %s is not available" % self.filter_name)
         self.filter = h
         if self.pyfft_plan:
-            self.d_filter = parray.to_device(self.queue, h.astype(np.complex64))
+            self.d_filter = parray.to_device(self.queue, h.astype(numpy.complex64))
             self.pyfft_plan.execute(self.d_filter.data)
         else:
-            self.filter = np.fft.fft(h).astype(np.complex64)
+            self.filter = numpy.fft.fft(h).astype(numpy.complex64)
             self.d_filter = None
 
     def _get_local_mem(self):
         return pyopencl.LocalMemory(self.local_mem)  # constant for all image sizes
 
     def cpy2d_to_slice(self, dst):
-        ndrange = (int(self.slice_shape[1]), int(self.slice_shape[0])) # pyopencl < 2015.2
-        slice_shape_ocl = np.int32(ndrange)
+        ndrange = (int(self.slice_shape[1]), int(self.slice_shape[0]))  # pyopencl < 2015.2
+        slice_shape_ocl = numpy.int32(ndrange)
         wg = None
         kernel_args = (
             dst.data,
             self.cl_mem["_d_slice"],
-            np.int32(self.slice_shape[1]),
-            np.int32(self.dimrec_shape[1]),
-            np.int32((0, 0)),
-            np.int32((0, 0)),
+            numpy.int32(self.slice_shape[1]),
+            numpy.int32(self.dimrec_shape[1]),
+            numpy.int32((0, 0)),
+            numpy.int32((0, 0)),
             slice_shape_ocl
         )
         return self.kernels.cpy2d(self.queue, ndrange, wg, *kernel_args)
 
-
     def transfer_to_texture(self, sino):
         sino2 = sino
-        if not(sino.flags["C_CONTIGUOUS"] and sino.dtype == np.float32):
-            sino2 = np.ascontiguousarray(sino, dtype=np.float32)
+        if not(sino.flags["C_CONTIGUOUS"] and sino.dtype == numpy.float32):
+            sino2 = numpy.ascontiguousarray(sino, dtype=numpy.float32)
         if self.is_cpu:
             return pyopencl.enqueue_copy(
                 self.queue,
@@ -293,7 +333,6 @@ class Backprojection(OpenclProcessing):
                 region=self.shape[::-1]
             )
 
-
     def backprojection(self, sino=None, dst=None):
         """Perform the backprojection on an input sinogram
 
@@ -304,7 +343,7 @@ class Backprojection(OpenclProcessing):
         events = []
         with self.sem:
 
-            if sino is not None: # assuming numpy.ndarray
+            if sino is not None:  # assuming numpy.ndarray
                 self.transfer_to_texture(sino)
             # Prepare arguments for the kernel call
             if self.is_cpu:
@@ -317,8 +356,8 @@ class Backprojection(OpenclProcessing):
                 self.axis_pos,  # axis position (float32)
                 self.cl_mem["_d_slice"],  # d_slice (__global float32*)
                 d_sino_ref,  # d_sino (__read_only image2d_t or float*)
-                np.float32(0),  # gpu_offset_x (float32)
-                np.float32(0),  # gpu_offset_y (float32)
+                numpy.float32(0),  # gpu_offset_x (float32)
+                numpy.float32(0),  # gpu_offset_y (float32)
                 self.cl_mem["d_cos"],  # d_cos (__global float32*)
                 self.cl_mem["d_sin"],  # d_sin (__global float32*)
                 self.cl_mem["d_axes"],  # d_axis  (__global float32*)
@@ -342,7 +381,7 @@ class Backprojection(OpenclProcessing):
                                            self.cl_mem["_d_slice"])
                 events.append(EventDescription("copy D->H result", ev))
                 ev.wait()
-                res = np.copy(self.slice)
+                res = numpy.copy(self.slice)
                 if self.dimrec_shape[0] > self.slice_shape[0] or self.dimrec_shape[1] > self.slice_shape[1]:
                     res = res[:self.slice_shape[0], :self.slice_shape[1]]
                 # if the slice is backprojected onto a bigger grid
@@ -371,30 +410,41 @@ class Backprojection(OpenclProcessing):
         if sino.shape[0] != self.num_projs or sino.shape[1] != self.num_bins:
             raise ValueError("Expected sinogram with (projs, bins) = (%d, %d)" % (self.num_projs, self.num_bins))
         if rescale:
-            sino = sino * np.pi / self.num_projs
+            sino = sino * numpy.pi / self.num_projs
+        events = []
         # if pyfft is available, all can be done on the device
         if self.d_filter is not None:
-            events = []
+
             # Zero-pad the sinogram.
             # TODO: this can be done on GPU with a "Memcpy2D":
             #  cl.enqueue_copy(queue, dst, src, host_origin=(0,0), buffer_origin=(0,0), region=shape, host_pitches=(sino.shape[1],), buffer_pitches=(self.fft_size,))
             # However it does not work properly, and raises an error for pyopencl < 2017.1
-            sino_zeropadded = np.zeros((sino.shape[0], self.fft_size), dtype=np.complex64)
-            sino_zeropadded[:, :self.num_bins] = sino.astype(np.float32)
-            sino_zeropadded = np.ascontiguousarray(sino_zeropadded, dtype=np.complex64)
+            sino_zeropadded = numpy.zeros((sino.shape[0], self.fft_size), dtype=numpy.complex64)
+            sino_zeropadded[:, :self.num_bins] = sino.astype(numpy.float32)
+            sino_zeropadded = numpy.ascontiguousarray(sino_zeropadded, dtype=numpy.complex64)
             with self.sem:
                 # send to GPU
                 ev = pyopencl.enqueue_copy(self.queue, self.d_sino_z.data, sino_zeropadded)
                 events.append(EventDescription("Send sino H->D", ev))
+
+                # debug
+#                 numpy.save("/tmp/Send_sino_%s.npy" % self.ctx.devices[0].platform.name.split()[0], self.d_sino_z.get())
+                # OK until then
+
                 # FFT (in-place)
                 self.pyfft_plan.execute(self.d_sino_z.data, batch=self.num_projs)
+
+                # debug
+#                 numpy.save("/tmp/FFT_inplace_%s.npy" % self.ctx.devices[0].platform.name.split()[0], self.d_sino_z.get())
+
+
                 # Multiply (complex-wise) with the the filter
                 ev = self.kernels.mult(self.queue,
                                        tuple(int(i) for i in self.d_sino_z.shape[::-1]),
                                        None,
                                        self.d_sino_z.data,
                                        self.d_filter.data,
-                                       np.int32(self.fft_size),
+                                       numpy.int32(self.fft_size),
                                        self.num_projs
                                        )
                 events.append(EventDescription("complex 2D-1D multiplication", ev))
@@ -406,28 +456,24 @@ class Backprojection(OpenclProcessing):
                                             self.d_sino_z.data,
                                             self.num_bins,
                                             self.num_projs,
-                                            np.int32(self.fft_size)
+                                            numpy.int32(self.fft_size)
                                             )
                 events.append(EventDescription("conversion from complex padded sinogram to sinogram", ev))
+                # debug
+#                 ev.wait()
+#                 h_sino = numpy.zeros(sino.shape, dtype=numpy.float32)
+#                 ev = pyopencl.enqueue_copy(self.queue, h_sino, self.d_sino)
+#                 ev.wait()
+#                 numpy.save("/tmp/filtered_sinogram_%s.npy" % self.ctx.devices[0].platform.name.split()[0], h_sino)
                 events.append(self.transfer_device_to_texture(self.d_sino))
-            if self.profile:
-                self.events += events
             # ------
         else:  # no pyfft
-            # Zero-padding of the sinogram
-            sino_zeropadded = np.zeros((sino.shape[0],
-                                        self.fft_size),
-                                       dtype=np.complex64)
-            sino_zeropadded[:, :self.num_bins] = sino.astype(np.float32)
-            # Linear convolution
-            sino_f = np.fft.fft(sino, self.fft_size)
-            sino_f = sino_f * self.filter
-            sino_filtered = np.fft.ifft(sino_f)[:, :self.num_bins].real
-            # Send the filtered sinogram to device
-            sino_filtered = np.ascontiguousarray(sino_filtered,
-                                                 dtype=np.float32)
+            sino_filtered = fourier_filter(sino, filter_=self.filter, fft_size=self.fft_size)
             with self.sem:
-                pyopencl.enqueue_copy(self.queue, self.d_sino, sino_filtered)
+                ev = pyopencl.enqueue_copy(self.queue, self.d_sino, sino_filtered)
+                events.append(EventDescription("Send filtered sino H->D", ev))
+        if self.profile:
+            self.events += events
 
     def filtered_backprojection(self, sino):
         """

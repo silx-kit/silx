@@ -14,18 +14,19 @@
  * :param transfer_shape: shape of the transfer array in the form (x, y)
  *
  */
-__kernel void cpy2d(
-                    __global float* dst,
-                    __global float* src,
+kernel void cpy2d(
+                    global float* dst,
+                    global float* src,
                     int dst_width,
                     int src_width,
                     int2 dst_offset,
                     int2 src_offset,
                     int2 transfer_shape)
 {
-    uint gidx = get_global_id(0);
-    uint gidy = get_global_id(1);
-    if (gidx < transfer_shape.x && gidy < transfer_shape.y) {
+    int gidx = get_global_id(0),
+        gidy = get_global_id(1);
+    if (gidx < transfer_shape.x && gidy < transfer_shape.y)
+    {
         dst[(dst_offset.y + gidy)*dst_width + (dst_offset.x + gidx)] = src[(src_offset.y + gidy)*src_width + (src_offset.x + gidx)];
     }
 }
