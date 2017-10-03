@@ -89,13 +89,13 @@ class TestFBP(unittest.TestCase):
         # ~ if sys.platform.startswith('darwin'):
             # ~ self.skipTest("Backprojection is not implemented on CPU for OS X yet")
         self.getfiles()
-        self.fbp = backprojection.Backprojection(self.sino.shape, profile=True)
+        self.fbp = backprojection.Backprojection(self.sino.shape, profile=False)
         if self.fbp.compiletime_workgroup_size < 16:
             self.skipTest("Current implementation of OpenCL backprojection is not supported on this platform yet")
 
     def tearDown(self):
         self.sino = None
-        self.fbp.log_profile()
+        # self.fbp.log_profile()
         self.fbp = None
 
     def getfiles(self):
