@@ -117,7 +117,7 @@ class DataInfo(object):
 
         if silx.io.is_dataset(data):
             if "interpretation" in data.attrs:
-                self.interpretation = get_attr_as_string(data, "signal")
+                self.interpretation = get_attr_as_string(data, "interpretation")
             else:
                 self.interpretation = None
         elif self.isNXdata:
