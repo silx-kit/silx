@@ -34,7 +34,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "2012-2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "02/08/2017"
+__date__ = "26/09/2017"
 __status__ = "stable"
 __all__ = ["ocl", "pyopencl", "mf", "release_cl_buffers", "allocate_cl_buffers",
            "measure_workgroup_size", "kernel_workgroup_size"]
@@ -400,7 +400,7 @@ class OpenCL(object):
         return None
 
     def create_context(self, devicetype="ALL", useFp64=False, platformid=None,
-                       deviceid=None, cached=True):
+                       deviceid=None, cached=True, memory=None):
         """
         Choose a device and initiate a context.
 
@@ -414,6 +414,7 @@ class OpenCL(object):
         :param platformid: integer
         :param deviceid: integer
         :param cached: True if we want to cache the context
+        :param memory: minimum amount of memory of the device
         :return: OpenCL context on the selected device
         """
         if (platformid is not None) and (deviceid is not None):
@@ -421,9 +422,11 @@ class OpenCL(object):
             deviceid = int(deviceid)
         else:
             if useFp64:
-                ids = ocl.select_device(type=devicetype, extensions=["cl_khr_int64_base_atomics"])
+                ids = ocl.select_device(type=devicetype, extensions=["cl_khr_int64_base_atomics"],
+                                        memory=memory)
             else:
-                ids = ocl.select_device(dtype=devicetype)
+                ids = ocl.select_device(dtype=devicetype,
+                                        memory=memory)
             if ids:
                 platformid, deviceid = ids
         if (platformid is not None) and (deviceid is not None):

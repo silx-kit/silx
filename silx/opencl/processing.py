@@ -41,7 +41,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "25/09/2017"
+__date__ = "26/09/2017"
 __status__ = "stable"
 
 
@@ -97,7 +97,7 @@ class OpenclProcessing(object):
     kernel_files = []
 
     def __init__(self, ctx=None, devicetype="all", platformid=None, deviceid=None,
-                 block_size=None, profile=False):
+                 block_size=None, profile=False, memory=None):
         """Constructor of the abstract OpenCL processing class
 
         :param ctx: actual working context, left to None for automatic
@@ -109,6 +109,7 @@ class OpenclProcessing(object):
                             out come of the compilation
         :param profile: switch on profiling to be able to profile at the kernel
                          level, store profiling elements (makes code slightly slower)
+        :param memory: minimum amount of memory available on the device
         """
         self.sem = threading.Semaphore()
         self.profile = None
