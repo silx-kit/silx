@@ -30,6 +30,7 @@ import re
 import shutil
 import tempfile
 import unittest
+import sys
 
 from .. import utils
 
@@ -288,6 +289,49 @@ class TestH5Ls(unittest.TestCase):
 
 class TestOpen(unittest.TestCase):
     """Test `silx.io.utils.open` function."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp_directory = tempfile.mkdtemp()
+        cls.createResources(cls.tmp_directory)
+
+    @classmethod
+    def createResources(cls, directory):
+
+        if h5py is not None:
+            cls.h5_filename = os.path.join(directory, "test.h5")
+            h5 = h5py.File(cls.h5_filename, mode="w")
+            h5["group/group/dataset"] = 50
+            h5.close()
+
+        cls.spec_filename = os.path.join(directory, "test.dat")
+        utils.savespec(cls.spec_filename, [1], [1.1], xlabel="x", ylabel="y",
+                       fmt=["%d", "%.2f"], close_file=True, scan_number=1)
+
+        if fabio is not None:
+            cls.edf_filename = os.path.join(directory, "test.edf")
+            header = fabio.fabioimage.OrderedDict()
+            header["integer"] = "10"
+            data = numpy.array([[10, 50], [50, 10]])
+            fabiofile = fabio.edfimage.EdfImage(data, header)
+            fabiofile.write(cls.edf_filename)
+
+        cls.txt_filename = os.path.join(directory, "test.txt")
+        f = io.open(cls.txt_filename, "w+t")
+        f.write(u"Kikoo")
+        f.close()
+
+        cls.missing_filename = os.path.join(directory, "test.missing")
+
+    @classmethod
+    def tearDownClass(cls):
+        if sys.platform == "win32" and fabio is not None:
+            # gc collect is needed to close a file descriptor
+            # opened by fabio and not released.
+            # https://github.com/silx-kit/fabio/issues/167
+            import gc
+            gc.collect()
+        shutil.rmtree(cls.tmp_directory)
 
     def testH5(self):
         if h5py is None:
