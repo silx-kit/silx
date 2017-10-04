@@ -28,19 +28,18 @@
 /************************ GPU VERSION (with textures) **************************/
 /*******************************************************************************/
 
-const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_LINEAR;
 
-__kernel void  forward_kernel(
-        __global float *d_Sino,
-        __read_only image2d_t d_slice,
+kernel void  forward_kernel(
+        global float *d_Sino,
+        read_only image2d_t d_slice,
         int dimslice,
         int num_bins,
-        __global float* angles_per_project ,
+        global float* angles_per_project ,
         float axis_position,
-        __global float *d_axis_corrections,
-        __global int* d_beginPos    ,
-        __global int* d_strideJoseph,
-        __global int* d_strideLine  ,
+        global float *d_axis_corrections,
+        global int* d_beginPos    ,
+        global int* d_strideJoseph,
+        global int* d_strideLine  ,
         int num_projections,
         int  dimrecx,
         int  dimrecy,
@@ -49,7 +48,7 @@ __kernel void  forward_kernel(
         int josephnoclip,
         int normalize)
 {
-
+    const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_LINEAR;
     const int tidx = get_local_id(0);
     const int bidx = get_group_id(0);
     const int tidy = get_local_id(1);
@@ -57,10 +56,10 @@ __kernel void  forward_kernel(
     float angle;
     float cos_angle,sin_angle ;
 
-    __local float corrections[16];
-    __local int beginPos[16*2];
-    __local int strideJoseph[16*2];
-    __local int strideLine[16*2];
+    local float corrections[16];
+    local int beginPos[16*2];
+    local int strideJoseph[16*2];
+    local int strideLine[16*2];
 
     // thread will use corrections[tidy]
     // All are read by first warp
@@ -172,17 +171,17 @@ __kernel void  forward_kernel(
 /*******************************************************************************/
 
 
-__kernel void  forward_kernel_cpu(
-        __global float *d_Sino,
-        __global float* d_slice,
+kernel void  forward_kernel_cpu(
+        global float *d_Sino,
+        global float* d_slice,
         int dimslice,
         int num_bins,
-        __global float* angles_per_project ,
+        global float* angles_per_project ,
         float axis_position,
-        __global float *d_axis_corrections,
-        __global int* d_beginPos    ,
-        __global int* d_strideJoseph,
-        __global int* d_strideLine  ,
+        global float *d_axis_corrections,
+        global int* d_beginPos    ,
+        global int* d_strideJoseph,
+        global int* d_strideLine  ,
         int num_projections,
         int  dimrecx,
         int  dimrecy,
@@ -199,10 +198,10 @@ __kernel void  forward_kernel_cpu(
     float angle;
     float cos_angle,sin_angle ;
 
-    __local float corrections[16];
-    __local int beginPos[16*2];
-    __local int strideJoseph[16*2];
-    __local int strideLine[16*2];
+    local float corrections[16];
+    local int beginPos[16*2];
+    local int strideJoseph[16*2];
+    local int strideLine[16*2];
 
     // thread will use corrections[tidy]
     // All are read by first warp
