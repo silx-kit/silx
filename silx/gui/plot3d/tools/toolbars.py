@@ -44,40 +44,39 @@ __license__ = "MIT"
 __date__ = "06/09/2017"
 
 import logging
+import weakref
 
 from silx.gui import qt
 
+from .ViewpointTools import ViewpointToolButton
 from .. import actions
 
 _logger = logging.getLogger(__name__)
 
 
-class InteractiveModeToolBar(qt.QToolBar):
-    """Toolbar providing icons to change the interaction mode
+class Plot3dWidgetToolBar(qt.QToolBar):
+    """Base class for toolbar associated to a Plot3DWidget
 
     :param parent: See :class:`QWidget`
     :param str title: Title of the toolbar.
     """
 
-    def __init__(self, parent=None, title='Plot3D Interaction'):
-        super(InteractiveModeToolBar, self).__init__(title, parent)
+    def __init__(self, parent=None, title=''):
+        super(Plot3dWidgetToolBar, self).__init__(title, parent)
 
-        self._plot3d = None
+        self._plot3DRef = None
 
-        self._rotateAction = actions.mode.RotateArcballAction(parent=self)
-        self.addAction(self._rotateAction)
-
-        self._panAction = actions.mode.PanAction(parent=self)
-        self.addAction(self._panAction)
+    def _plot3DWidgetChanged(self, widget):
+        """Override in subclass to handle change of Plot3DWidget"""
+        pass
 
     def setPlot3DWidget(self, widget):
         """Set the Plot3DWidget this toolbar is associated with
 
-        :param Plot3DWidget widget: The widget to copy/save/print
+        :param Plot3DWidget widget: The widget to control
         """
-        self._plot3d = widget
-        self.getRotateAction().setPlot3DWidget(widget)
-        self.getPanAction().setPlot3DWidget(widget)
+        self._plot3DRef = None if widget is None else weakref.ref(widget)
+        self._plot3DWidgetChanged(widget)
 
     def getPlot3DWidget(self):
         """Return the Plot3DWidget associated to this toolbar.
@@ -86,7 +85,28 @@ class InteractiveModeToolBar(qt.QToolBar):
 
         :rtype: qt.QWidget
         """
-        return self._plot3d
+        return None if self._plot3DRef is None else self._plot3DRef()
+
+
+class InteractiveModeToolBar(Plot3dWidgetToolBar):
+    """Toolbar providing icons to change the interaction mode
+
+    :param parent: See :class:`QWidget`
+    :param str title: Title of the toolbar.
+    """
+
+    def __init__(self, parent=None, title='Plot3D Interaction'):
+        super(InteractiveModeToolBar, self).__init__(parent, title)
+
+        self._rotateAction = actions.mode.RotateArcballAction(parent=self)
+        self.addAction(self._rotateAction)
+
+        self._panAction = actions.mode.PanAction(parent=self)
+        self.addAction(self._panAction)
+
+    def _plot3DWidgetChanged(self, widget):
+        self.getRotateAction().setPlot3DWidget(widget)
+        self.getPanAction().setPlot3DWidget(widget)
 
     def getRotateAction(self):
         """Returns the QAction setting rotate interaction of the Plot3DWidget
@@ -103,7 +123,7 @@ class InteractiveModeToolBar(qt.QToolBar):
         return self._panAction
 
 
-class OutputToolBar(qt.QToolBar):
+class OutputToolBar(Plot3dWidgetToolBar):
     """Toolbar providing icons to copy, save and print the OpenGL scene
 
     :param parent: See :class:`QWidget`
@@ -111,9 +131,7 @@ class OutputToolBar(qt.QToolBar):
     """
 
     def __init__(self, parent=None, title='Plot3D Output'):
-        super(OutputToolBar, self).__init__(title, parent)
-
-        self._plot3d = None
+        super(OutputToolBar, self).__init__(parent, title)
 
         self._copyAction = actions.io.CopyAction(parent=self)
         self.addAction(self._copyAction)
@@ -127,25 +145,11 @@ class OutputToolBar(qt.QToolBar):
         self._printAction = actions.io.PrintAction(parent=self)
         self.addAction(self._printAction)
 
-    def setPlot3DWidget(self, widget):
-        """Set the Plot3DWidget this toolbar is associated with
-
-        :param Plot3DWidget widget: The widget to copy/save/print
-        """
-        self._plot3d = widget
+    def _plot3DWidgetChanged(self, widget):
         self.getCopyAction().setPlot3DWidget(widget)
         self.getSaveAction().setPlot3DWidget(widget)
         self.getVideoRecordAction().setPlot3DWidget(widget)
         self.getPrintAction().setPlot3DWidget(widget)
-
-    def getPlot3DWidget(self):
-        """Return the Plot3DWidget associated to this toolbar.
-
-        If no widget is associated, it returns None.
-
-        :rtype: qt.QWidget
-        """
-        return self._plot3d
 
     def getCopyAction(self):
         """Returns the QAction performing copy to clipboard of the Plot3DWidget
@@ -174,3 +178,37 @@ class OutputToolBar(qt.QToolBar):
         :rtype: qt.QAction
         """
         return self._printAction
+
+
+class ViewpointToolBar(Plot3dWidgetToolBar):
+    """A toolbar providing icons to reset the viewpoint.
+
+    :param parent: See :class:`QToolBar`
+    :param str title: Title of the toolbar
+    """
+
+    def __init__(self, parent=None, title='Viewpoint control'):
+        super(ViewpointToolBar, self).__init__(parent, title)
+
+        self._viewpointToolButton = ViewpointToolButton(parent=self)
+        self.addWidget(self._viewpointToolButton)
+        self._rotateViewpointAction = actions.viewpoint.RotateViewport(parent=self)
+        self.addAction(self._rotateViewpointAction)
+
+    def _plot3DWidgetChanged(self, widget):
+        self.getViewpointToolButton().setPlot3DWidget(widget)
+        self.getRotateViewpointAction().setPlot3DWidget(widget)
+
+    def getViewpointToolButton(self):
+        """Returns the ViewpointToolButton to set viewpoint of the Plot3DWidget
+
+        :rtype: ViewpointToolButton
+        """
+        return self._viewpointToolButton
+
+    def getRotateViewpointAction(self):
+        """Returns the QAction to start/stop rotation of the Plot3DWidget
+
+        :rtype: qt.QAction
+        """
+        return self._rotateViewpointAction
