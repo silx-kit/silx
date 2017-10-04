@@ -25,9 +25,10 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "03/10/2017"
+__date__ = "04/10/2017"
 
 import os
+import sys
 import logging
 import numpy
 import unittest
@@ -385,6 +386,14 @@ class TestFabioH5WithEdf(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        cls.fabio_image = None
+        cls.h5_image = None
+        if sys.platform == "win32" and fabio is not None:
+            # gc collect is needed to close a file descriptor
+            # opened by fabio and not released.
+            # https://github.com/silx-kit/fabio/issues/167
+            import gc
+            gc.collect()
         shutil.rmtree(cls.tmp_directory)
 
     def test_reserved_format_metadata(self):
