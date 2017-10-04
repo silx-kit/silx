@@ -51,6 +51,7 @@ from . import testItem
 from . import testUtilsAxis
 from . import testLimitConstraints
 from . import testComplexImageView
+from . import testImageView
 
 
 def suite():
@@ -77,5 +78,6 @@ def suite():
          testItem.suite(),
          testUtilsAxis.suite(),
          testLimitConstraints.suite(),
-         testComplexImageView.suite()])
+         testComplexImageView.suite(),
+         testImageView.suite()])
     return test_suite

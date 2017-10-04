@@ -31,6 +31,8 @@ __license__ = "MIT"
 __date__ = "17/08/2017"
 
 
+import weakref
+
 import numpy
 
 from silx.image.bilinear import BilinearImage
@@ -348,7 +350,7 @@ class ProfileToolBar(qt.QToolBar):
                  title='Profile Selection'):
         super(ProfileToolBar, self).__init__(title, parent)
         assert plot is not None
-        self.plot = plot
+        self._plotRef = weakref.ref(plot)
 
         self._overlayColor = None
         self._defaultOverlayColor = 'red'  # update when active image change
@@ -441,6 +443,11 @@ class ProfileToolBar(qt.QToolBar):
         # listen to the profile window signals to clear profile polygon on close
         if self.getProfileMainWindow() is not None:
             self.getProfileMainWindow().sigClose.connect(self.clearProfile)
+
+    @property
+    def plot(self):
+        """The :class:`.PlotWidget` associated to the toolbar."""
+        return self._plotRef()
 
     @property
     @deprecated(since_version="0.6.0")

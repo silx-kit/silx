@@ -311,16 +311,13 @@ class ImageView(PlotWindow):
 
     def _initWidgets(self, backend):
         """Set-up layout and plots."""
-        # Monkey-patch for histogram size
-        # alternative: create a layout that does not use widget size hints
-        def sizeHint():
-            return qt.QSize(self.HISTOGRAMS_HEIGHT, self.HISTOGRAMS_HEIGHT)
-
         self._histoHPlot = PlotWidget(backend=backend)
+        self._histoHPlot.getWidgetHandle().setMinimumHeight(
+            self.HISTOGRAMS_HEIGHT)
+        self._histoHPlot.getWidgetHandle().setMaximumHeight(
+            self.HISTOGRAMS_HEIGHT)
         self._histoHPlot.setInteractiveMode('zoom')
         self._histoHPlot.sigPlotSignal.connect(self._histoHPlotCB)
-        self._histoHPlot.getWidgetHandle().sizeHint = sizeHint
-        self._histoHPlot.getWidgetHandle().minimumSizeHint = sizeHint
 
         self.setPanWithArrowKeys(True)
 
@@ -330,10 +327,12 @@ class ImageView(PlotWindow):
         self.sigActiveImageChanged.connect(self._activeImageChangedSlot)
 
         self._histoVPlot = PlotWidget(backend=backend)
+        self._histoVPlot.getWidgetHandle().setMinimumWidth(
+            self.HISTOGRAMS_HEIGHT)
+        self._histoVPlot.getWidgetHandle().setMaximumWidth(
+            self.HISTOGRAMS_HEIGHT)
         self._histoVPlot.setInteractiveMode('zoom')
         self._histoVPlot.sigPlotSignal.connect(self._histoVPlotCB)
-        self._histoVPlot.getWidgetHandle().sizeHint = sizeHint
-        self._histoVPlot.getWidgetHandle().minimumSizeHint = sizeHint
 
         self._radarView = RadarView()
         self._radarView.visibleRectDragged.connect(self._radarViewCB)
