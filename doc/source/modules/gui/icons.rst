@@ -57,6 +57,8 @@ Available icons
      - cube-left
    * - |cube-right|
      - cube-right
+   * - |cube-rotate|
+     - cube-rotate
    * - |cube-top|
      - cube-top
    * - |cube|
@@ -287,6 +289,7 @@ Available icons
 .. |cube-front| image:: ../../../../silx/resources/gui/icons/cube-front.png
 .. |cube-left| image:: ../../../../silx/resources/gui/icons/cube-left.png
 .. |cube-right| image:: ../../../../silx/resources/gui/icons/cube-right.png
+.. |cube-rotate| image:: ../../../../silx/resources/gui/icons/cube-rotate.png
 .. |cube-top| image:: ../../../../silx/resources/gui/icons/cube-top.png
 .. |cube| image:: ../../../../silx/resources/gui/icons/cube.png
 .. |document-open| image:: ../../../../silx/resources/gui/icons/document-open.png
