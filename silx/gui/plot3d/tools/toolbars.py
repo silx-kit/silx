@@ -192,7 +192,7 @@ class ViewpointToolBar(Plot3dWidgetToolBar):
 
         self._viewpointToolButton = ViewpointToolButton(parent=self)
         self.addWidget(self._viewpointToolButton)
-        self._rotateViewpointAction = actions.viewpoint.RotateViewport(parent=self)
+        self._rotateViewpointAction = actions.viewpoint.RotateViewpoint(parent=self)
         self.addAction(self._rotateViewpointAction)
 
     def _plot3DWidgetChanged(self, widget):

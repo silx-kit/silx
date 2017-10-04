@@ -169,7 +169,7 @@ class SideViewpointAction(_SetViewpointAction):
         self.setToolTip('Side view')
 
 
-class RotateViewport(Plot3DAction):
+class RotateViewpoint(Plot3DAction):
     """QAction to rotate the scene of a Plot3DWidget
 
     :param parent: See :class:`QAction`
@@ -183,7 +183,7 @@ class RotateViewport(Plot3DAction):
     """Rotation speed of the animation"""
 
     def __init__(self, parent, plot3d=None):
-        super(RotateViewport, self).__init__(parent, plot3d)
+        super(RotateViewpoint, self).__init__(parent, plot3d)
 
         self._previousTime = None
 
