@@ -397,8 +397,8 @@ class TestFabioH5WithEdf(unittest.TestCase):
         shutil.rmtree(cls.tmp_directory)
 
     def test_reserved_format_metadata(self):
-        if fabio.version < "0.5.0":
-            self.skipTest("fabio >= 0.5.0 needed")
+        if fabio.hexversion < 327920:  # 0.5.0 final
+            self.skipTest("fabio >= 0.5.0 final is needed")
 
         # The EDF contains reserved keys in the header
         self.assertIn("HeaderID", self.fabio_image.header)
