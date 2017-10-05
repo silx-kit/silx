@@ -4,7 +4,7 @@ Change Log
 0.6.0: 2017/10/02
 -----------------
 
- * OpenCl. Tomography. Implement a forward and a filtered back projection.
+ * OpenCl. Tomography. Implement a filtered back projection.
  * Add a *PrintPreview* widget and a *PrintPreviewToolButton* for *PlotWidget*.
  * Plot:
  
