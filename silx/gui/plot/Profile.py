@@ -653,19 +653,17 @@ class ProfileToolBar(qt.QToolBar):
             winGeom = self.window().frameGeometry()
             qapp = qt.QApplication.instance()
             screenGeom = qapp.desktop().availableGeometry(self)
-
             spaceOnLeftSide = winGeom.left()
             spaceOnRightSide = screenGeom.width() - winGeom.right()
 
             profileWindowWidth = profileMainWindow.frameGeometry().width()
-            if (profileWindowWidth < spaceOnRightSide or
-                    spaceOnRightSide > spaceOnLeftSide):
+            if (profileWindowWidth < spaceOnRightSide):
                 # Place profile on the right
                 profileMainWindow.move(winGeom.right(), winGeom.top())
-            else:
-                # Not enough place on the right, place profile on the left
+            elif(profileWindowWidth < spaceOnLeftSide):
+                # Place profile on the left
                 profileMainWindow.move(
-                        max(0, winGeom.left() - profileWindowWidth), winGeom.top())
+                    max(0, winGeom.left() - profileWindowWidth), winGeom.top())
 
             profileMainWindow.show()
         else:
