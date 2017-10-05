@@ -29,7 +29,7 @@ from __future__ import absolute_import, print_function, with_statement, division
 
 __authors__ = ["A. Mirone, P. Paleo"]
 __license__ = "MIT"
-__date__ = "03/10/2017"
+__date__ = "05/10/2017"
 
 import logging
 import numpy
@@ -104,7 +104,7 @@ def fourier_filter(sino, filter_=None, fft_size=None):
     sino_f = sino_f * filter_
     sino_filtered = numpy.fft.ifft(sino_f)[:, :num_bins].real
     # Send the filtered sinogram to device
-    return numpy.ascontiguousarray(sino_filtered, dtype=numpy.float32)
+    return numpy.ascontiguousarray(sino_filtered.real, dtype=numpy.float32)
 
 
 class Backprojection(OpenclProcessing):
@@ -168,6 +168,7 @@ class Backprojection(OpenclProcessing):
         else:
             self.axis_pos = numpy.float32((sino_shape[1] - 1.) / 2)
         self.axis_array = None  # TODO: add axis correction front-end
+
         self.is_cpu = False
         if self.device.type == "CPU":
             self.is_cpu = True
@@ -300,38 +301,44 @@ class Backprojection(OpenclProcessing):
         if not(sino.flags["C_CONTIGUOUS"] and sino.dtype == numpy.float32):
             sino2 = numpy.ascontiguousarray(sino, dtype=numpy.float32)
         if self.is_cpu:
-            return pyopencl.enqueue_copy(
-                self.queue,
-                self.d_sino,
-                sino2
-            )
+            ev = pyopencl.enqueue_copy(
+                                        self.queue,
+                                        self.d_sino,
+                                        sino2
+                                        )
+            what = "transfer filtered sino H->D buffer"
         else:
-            return pyopencl.enqueue_copy(
-                self.queue,
-                self.d_sino_tex,
-                sino2,
-                origin=(0, 0),
-                region=self.shape[::-1]
-            )
+            ev = pyopencl.enqueue_copy(
+                                       self.queue,
+                                       self.d_sino_tex,
+                                       sino2,
+                                       origin=(0, 0),
+                                       region=self.shape[::-1]
+                                       )
+            what = "transfer filtered sino H->D texture"
+        return EventDescription(what, ev)
 
     def transfer_device_to_texture(self, d_sino):
         if self.is_cpu:
             if id(self.d_sino) == id(d_sino):
                 return
-            return pyopencl.enqueue_copy(
-                self.queue,
-                self.d_sino,
-                d_sino
-            )
+            ev = pyopencl.enqueue_copy(
+                                       self.queue,
+                                       self.d_sino,
+                                       d_sino
+                                       )
+            what = "transfer filtered sino D->D buffer"
         else:
-            return pyopencl.enqueue_copy(
-                self.queue,
-                self.d_sino_tex,
-                d_sino,
-                offset=0,
-                origin=(0, 0),
-                region=self.shape[::-1]
-            )
+            ev = pyopencl.enqueue_copy(
+                                       self.queue,
+                                       self.d_sino_tex,
+                                       d_sino,
+                                       offset=0,
+                                       origin=(0, 0),
+                                       region=self.shape[::-1]
+                                       )
+            what = "transfer filtered sino D->D texture"
+        return EventDescription(what, ev)
 
     def backprojection(self, sino=None, dst=None):
         """Perform the backprojection on an input sinogram
@@ -344,7 +351,7 @@ class Backprojection(OpenclProcessing):
         with self.sem:
 
             if sino is not None:  # assuming numpy.ndarray
-                self.transfer_to_texture(sino)
+                events.append(self.transfer_to_texture(sino))
             # Prepare arguments for the kernel call
             if self.is_cpu:
                 d_sino_ref = self.d_sino
@@ -427,16 +434,8 @@ class Backprojection(OpenclProcessing):
                 ev = pyopencl.enqueue_copy(self.queue, self.d_sino_z.data, sino_zeropadded)
                 events.append(EventDescription("Send sino H->D", ev))
 
-                # debug
-#                 numpy.save("/tmp/Send_sino_%s.npy" % self.ctx.devices[0].platform.name.split()[0], self.d_sino_z.get())
-                # OK until then
-
                 # FFT (in-place)
                 self.pyfft_plan.execute(self.d_sino_z.data, batch=self.num_projs)
-
-                # debug
-#                 numpy.save("/tmp/FFT_inplace_%s.npy" % self.ctx.devices[0].platform.name.split()[0], self.d_sino_z.get())
-
 
                 # Multiply (complex-wise) with the the filter
                 ev = self.kernels.mult(self.queue,
@@ -470,8 +469,7 @@ class Backprojection(OpenclProcessing):
         else:  # no pyfft
             sino_filtered = fourier_filter(sino, filter_=self.filter, fft_size=self.fft_size)
             with self.sem:
-                ev = pyopencl.enqueue_copy(self.queue, self.d_sino, sino_filtered)
-                events.append(EventDescription("Send filtered sino H->D", ev))
+                events.append(self.transfer_to_texture(sino_filtered))
         if self.profile:
             self.events += events
 
