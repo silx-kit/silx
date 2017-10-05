@@ -28,7 +28,7 @@ Simple usage examples of the tomographic reconstruction algorithms
 """
 __authors__ = ["Pierre Paleo"]
 __license__ = "MIT"
-__date__ = "19/09/2017"
+__date__ = "05/10/2017"
 
 from silx.opencl.projection import Projection
 from silx.opencl.backprojection import Backprojection
@@ -40,9 +40,6 @@ from six.moves import input
 
 from silx.gui import qt
 from silx.gui.plot import Plot2D
-qapp = qt.QApplication([])
-
-
 
 def main():
     print("In this example, we show the silx tomography utilities.")
@@ -97,13 +94,11 @@ def main():
     print("We show how to reconstruct a sinogram with Total Variation (TV) regularization.")
     print("TV regularization deals with the undersampling by promoting piecewise-constant images")
     T = TV(sino_subsampled.shape)
-    # Reconstruct the current singoram
+    # Reconstruct the current sinogram
     n_it = 400
     rec_tv = T(sino_subsampled, n_it, 8e2, pos_constraint=True).get()
     show_image(rec_tv, "TV", str("Reconstruction with TV using %d iterations" % n_it))
 
-
-    global qapp
     plot = Plot2D()
     plot.setAttribute(qt.Qt.WA_DeleteOnClose)
     plot.getYAxis().setInverted(True)
@@ -114,11 +109,11 @@ def main():
     plot.addImage(rec_tv, legend="TV", replace=False, origin=(1024, 0))
     plot.setGraphTitle("Comparison of reconstruction methods for undersampled and noisy data")
     plot.show()
+    qt.qApp.processEvents()
     input("Press Enter to continue")
 
 
 def show_image(image, legend, title):
-    global qapp
     plot = Plot2D()
     plot.setAttribute(qt.Qt.WA_DeleteOnClose)
     plot.getYAxis().setInverted(True)
@@ -127,10 +122,12 @@ def show_image(image, legend, title):
     plot.addImage(image, legend=legend)
     plot.setGraphTitle(title)
     plot.show()
+    qt.qApp.processEvents()
     input("Press Enter to continue")
 
 
 if __name__ == "__main__":
+    qapp = qt.QApplication([])
     main()
 
 
