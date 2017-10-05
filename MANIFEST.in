@@ -6,6 +6,7 @@ include MANIFEST.in
 include run_tests.py
 include version.py
 include stdeb.cfg
+include build-deb.sh
 recursive-include silx *.pyx *.pxd *.pxi
 recursive-include silx *.h *.c *.hpp *.cpp
 recursive-include doc/source *.py *.rst *.png *.ico
