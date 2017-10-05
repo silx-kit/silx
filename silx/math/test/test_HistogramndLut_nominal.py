@@ -547,7 +547,7 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
                                  self.histo_range,
                                  self.n_bins)
 
-        histo_inst = HistogramndLut(sampleB,
+        histo_inst = HistogramndLut(sampleL,
                                  self.histo_range,
                                  self.n_bins)
 
