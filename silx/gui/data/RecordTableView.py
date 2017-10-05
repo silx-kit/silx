@@ -37,7 +37,7 @@ from silx.gui.widgets.TableWidget import CopySelectedCellsAction
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "26/09/2017"
+__date__ = "02/10/2017"
 
 
 class _MultiLineItem(qt.QItemDelegate):
@@ -273,7 +273,8 @@ class RecordTableModel(qt.QAbstractTableModel):
         self.__fields = []
         if data is not None:
             if data.dtype.fields is not None:
-                for name, (dtype, _index) in data.dtype.fields.items():
+                fields = sorted(data.dtype.fields.items(), key=lambda e: e[1][1])
+                for name, (dtype, _index) in fields:
                     if dtype.shape != tuple():
                         keys = itertools.product(*[range(x) for x in dtype.shape])
                         for key in keys:

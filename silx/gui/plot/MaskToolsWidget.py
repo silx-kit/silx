@@ -295,7 +295,11 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         self.plot.sigActiveImageChanged.connect(self._activeImageChanged)
 
     def hideEvent(self, event):
-        self.plot.sigActiveImageChanged.disconnect(self._activeImageChanged)
+        try:
+            self.plot.sigActiveImageChanged.disconnect(
+                self._activeImageChanged)
+        except (RuntimeError, TypeError):
+            pass
         if not self.browseAction.isChecked():
             self.browseAction.trigger()  # Disable drawing tool
 

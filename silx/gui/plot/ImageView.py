@@ -34,12 +34,7 @@ Basic usage of :class:`ImageView` is through the following methods:
   default colormap to use and update the currently displayed image.
 - :meth:`ImageView.setImage` to update the displayed image.
 
-The :class:`ImageView` uses :class:`PlotWindow` and also
-exposes :class:`silx.gui.plot.Plot` API for further control
-(plot title, axes labels, adding other images, ...).
-
-For an example of use, see the implementation of :class:`ImageViewMainWindow`,
-and `example/imageview.py`.
+For an example of use, see `imageview.py` in :ref:`sample-code`.
 """
 
 from __future__ import division
@@ -56,6 +51,7 @@ import numpy
 from .. import qt
 
 from . import items, PlotWindow, PlotWidget, actions
+from .Colormap import Colormap
 from .Colors import cursorColorForColormap
 from .PlotTools import LimitsToolBar
 from .Profile import ProfileToolBar
@@ -253,6 +249,10 @@ class ImageView(PlotWindow):
     Use :meth:`setImage` to control the displayed image.
     This class also provides the :class:`silx.gui.plot.Plot` API.
 
+    The :class:`ImageView` inherits from :class:`.PlotWindow` (which provides
+    the toolbars) and also exposes :class:`.PlotWidget` API for further
+    plot control (plot title, axes labels, aspect ratio, ...).
+
     :param parent: The parent of this widget or None.
     :param backend: The backend to use for the plot (default: matplotlib).
                     See :class:`.PlotWidget` for the list of supported backend.
@@ -318,7 +318,7 @@ class ImageView(PlotWindow):
 
         self._histoHPlot = PlotWidget(backend=backend)
         self._histoHPlot.setInteractiveMode('zoom')
-        self._histoHPlot.setCallback(self._histoHPlotCB)
+        self._histoHPlot.sigPlotSignal.connect(self._histoHPlotCB)
         self._histoHPlot.getWidgetHandle().sizeHint = sizeHint
         self._histoHPlot.getWidgetHandle().minimumSizeHint = sizeHint
 
@@ -331,34 +331,34 @@ class ImageView(PlotWindow):
 
         self._histoVPlot = PlotWidget(backend=backend)
         self._histoVPlot.setInteractiveMode('zoom')
-        self._histoVPlot.setCallback(self._histoVPlotCB)
+        self._histoVPlot.sigPlotSignal.connect(self._histoVPlotCB)
         self._histoVPlot.getWidgetHandle().sizeHint = sizeHint
         self._histoVPlot.getWidgetHandle().minimumSizeHint = sizeHint
 
         self._radarView = RadarView()
         self._radarView.visibleRectDragged.connect(self._radarViewCB)
 
-        self._layout = qt.QGridLayout()
-        self._layout.addWidget(self.getWidgetHandle(), 0, 0)
-        self._layout.addWidget(self._histoVPlot.getWidgetHandle(), 0, 1)
-        self._layout.addWidget(self._histoHPlot.getWidgetHandle(), 1, 0)
-        self._layout.addWidget(self._radarView, 1, 1)
+        layout = qt.QGridLayout()
+        layout.addWidget(self.getWidgetHandle(), 0, 0)
+        layout.addWidget(self._histoVPlot.getWidgetHandle(), 0, 1)
+        layout.addWidget(self._histoHPlot.getWidgetHandle(), 1, 0)
+        layout.addWidget(self._radarView, 1, 1)
 
-        self._layout.setColumnMinimumWidth(0, self.IMAGE_MIN_SIZE)
-        self._layout.setColumnStretch(0, 1)
-        self._layout.setColumnMinimumWidth(1, self.HISTOGRAMS_HEIGHT)
-        self._layout.setColumnStretch(1, 0)
+        layout.setColumnMinimumWidth(0, self.IMAGE_MIN_SIZE)
+        layout.setColumnStretch(0, 1)
+        layout.setColumnMinimumWidth(1, self.HISTOGRAMS_HEIGHT)
+        layout.setColumnStretch(1, 0)
 
-        self._layout.setRowMinimumHeight(0, self.IMAGE_MIN_SIZE)
-        self._layout.setRowStretch(0, 1)
-        self._layout.setRowMinimumHeight(1, self.HISTOGRAMS_HEIGHT)
-        self._layout.setRowStretch(1, 0)
+        layout.setRowMinimumHeight(0, self.IMAGE_MIN_SIZE)
+        layout.setRowStretch(0, 1)
+        layout.setRowMinimumHeight(1, self.HISTOGRAMS_HEIGHT)
+        layout.setRowStretch(1, 0)
 
-        self._layout.setSpacing(0)
-        self._layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        layout.setContentsMargins(0, 0, 0, 0)
 
         centralWidget = qt.QWidget()
-        centralWidget.setLayout(self._layout)
+        centralWidget.setLayout(layout)
         self.setCentralWidget(centralWidget)
 
     def _dirtyCache(self):
@@ -499,6 +499,9 @@ class ImageView(PlotWindow):
                                                data[y][x])
 
         elif eventDict['event'] == 'limitsChanged':
+            self._updateHistogramsLimits()
+
+    def _updateHistogramsLimits(self):
             # Do not handle histograms limitsChanged while
             # updating their limits from here.
             self._updatingLimits = True
@@ -506,7 +509,6 @@ class ImageView(PlotWindow):
             # Refresh histograms
             self._updateHistograms()
 
-            # could use eventDict['xdata'], eventDict['ydata'] instead
             xMin, xMax = self.getXAxis().getLimits()
             yMin, yMax = self.getYAxis().getLimits()
 
@@ -643,7 +645,7 @@ class ImageView(PlotWindow):
         self._radarView.visibleRectDragged.disconnect(self._radarViewCB)
         self._radarView = radarView
         self._radarView.visibleRectDragged.connect(self._radarViewCB)
-        self._layout.addWidget(self._radarView, 1, 1)
+        self.centralWidget().layout().addWidget(self._radarView, 1, 1)
 
         self._updateYAxisInverted()
 
@@ -693,41 +695,45 @@ class ImageView(PlotWindow):
         :param numpy.ndarray colors: Only used if name is None.
             Custom colormap colors as Nx3 or Nx4 RGB or RGBA arrays
         """
-        cmapDict = self.getDefaultColormap()
+        cmap = self.getDefaultColormap()
 
-        if isinstance(colormap, dict):
+        if isinstance(colormap, Colormap):
+            # Replace colormap
+            cmap = colormap
+
+            self.setDefaultColormap(cmap)
+
+            # Update active image colormap
+            activeImage = self.getActiveImage()
+            if isinstance(activeImage, items.ColormapMixIn):
+                activeImage.setColormap(cmap)
+
+        elif isinstance(colormap, dict):
             # Support colormap parameter as a dict
             assert normalization is None
             assert autoscale is None
             assert vmin is None
             assert vmax is None
             assert colors is None
-            for key, value in colormap.items():
-                cmapDict[key] = value
+            cmap._setFromDict(colormap)
 
         else:
             if colormap is not None:
-                cmapDict['name'] = colormap
+                cmap.setName(colormap)
             if normalization is not None:
-                cmapDict['normalization'] = normalization
-            if autoscale is not None:
-                cmapDict['autoscale'] = autoscale
-            if vmin is not None:
-                cmapDict['vmin'] = vmin
-            if vmax is not None:
-                cmapDict['vmax'] = vmax
+                cmap.setNormalization(normalization)
+            if autoscale:
+                cmap.setVRange(None, None)
+            else:
+                if vmin is not None:
+                    cmap.setVMin(vmin)
+                if vmax is not None:
+                    cmap.setVMax(vmax)
             if colors is not None:
-                cmapDict['colors'] = colors
+                cmap.setColormapLUT(colors)
 
-        cursorColor = cursorColorForColormap(cmapDict['name'])
+        cursorColor = cursorColorForColormap(cmap.getName())
         self.setInteractiveMode('zoom', color=cursorColor)
-
-        self.setDefaultColormap(cmapDict)
-
-        # Update active image colormap
-        activeImage = self.getActiveImage()
-        if isinstance(activeImage, items.ColormapMixIn):
-            activeImage.setColormap(self.getColormap())
 
     def setImage(self, image, origin=(0, 0), scale=(1., 1.),
                  copy=True, reset=True):
@@ -768,7 +774,7 @@ class ImageView(PlotWindow):
                       legend=self._imageLegend,
                       origin=origin, scale=scale,
                       colormap=self.getColormap(),
-                      replace=False)
+                      replace=False, resetzoom=False)
         self.setActiveImage(self._imageLegend)
         self._updateHistograms()
 
@@ -779,6 +785,8 @@ class ImageView(PlotWindow):
 
         if reset:
             self.resetZoom()
+        else:
+            self._updateHistogramsLimits()
 
 
 # ImageViewMainWindow #########################################################

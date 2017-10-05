@@ -28,7 +28,7 @@ package `silx.gui.hdf5` package.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "28/08/2017"
+__date__ = "29/09/2017"
 
 
 import logging
@@ -141,7 +141,10 @@ class H5Node(object):
         self.__h5py_item = h5py_item
 
     def __getattr__(self, name):
-        return object.__getattribute__(self.__h5py_object, name)
+        if hasattr(self.__h5py_object, name):
+            attr = getattr(self.__h5py_object, name)
+            return attr
+        raise AttributeError("H5Node has no attribute %s" % name)
 
     def __get_target(self, obj):
         """
@@ -242,30 +245,40 @@ class H5Node(object):
         while item is not None:
             # stop before the root item (item without parent)
             if item.parent.parent is None:
+                name = item.obj.name
+                if name != "/":
+                    result.append(item.obj.name)
                 break
-            result.append(item.basename)
+            else:
+                result.append(item.basename)
             item = item.parent
         if item is None:
             raise RuntimeError("The item does not have parent holding h5py.File")
         if result == []:
             return "/"
-        result.append("")
+        if not result[-1].startswith("/"):
+            result.append("")
         result.reverse()
-        return "/".join(result)
+        name = "/".join(result)
+        return name
 
-    def __file_item(self):
-        """Returns the parent item holding the :class:`h5py.File` object
+    def __get_local_file(self):
+        """Returns the file of the root of this tree
 
         :rtype: h5py.File
-        :raises RuntimeError: If no file are found
         """
         item = self.__h5py_item
-        while item is not None:
+        while item.parent.parent is not None:
             class_ = item.h5pyClass
             if class_ is not None and issubclass(class_, h5py.File):
-                return item
+                break
             item = item.parent
-        raise RuntimeError("The item does not have parent holding h5py.File")
+
+        class_ = item.h5pyClass
+        if class_ is not None and issubclass(class_, h5py.File):
+            return item.obj
+        else:
+            return item.obj.file
 
     @property
     def local_file(self):
@@ -277,8 +290,7 @@ class H5Node(object):
         :rtype: h5py.File
         :raises RuntimeException: If no file are found
         """
-        item = self.__file_item()
-        return item.obj
+        return self.__get_local_file()
 
     @property
     def local_filename(self):

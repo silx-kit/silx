@@ -25,6 +25,7 @@
 
 
 from silx.gui import qt
+from silx.gui.widgets.FloatEdit import FloatEdit
 
 
 class PrintGeometryWidget(qt.QWidget):
@@ -70,40 +71,28 @@ class PrintGeometryWidget(qt.QWidget):
         label = qt.QLabel(self)
         label.setText("X Offset:")
         self.mainLayout.addWidget(label, 2, 0)
-        self._xOffset = qt.QLineEdit(self)
-        validator = qt.QDoubleValidator(None)
-        self._xOffset.setValidator(validator)
-        self._xOffset.setText("0.1")
+        self._xOffset = FloatEdit(self, 0.1)
         self.mainLayout.addWidget(self._xOffset, 2, 1)
 
         # yOffset
         label = qt.QLabel(self)
         label.setText("Y Offset:")
         self.mainLayout.addWidget(label, 2, 2)
-        self._yOffset = qt.QLineEdit(self)
-        validator = qt.QDoubleValidator(None)
-        self._yOffset.setValidator(validator)
-        self._yOffset.setText("0.1")
+        self._yOffset = FloatEdit(self, 0.1)
         self.mainLayout.addWidget(self._yOffset, 2, 3)
 
         # width
         label = qt.QLabel(self)
         label.setText("Width:")
         self.mainLayout.addWidget(label, 3, 0)
-        self._width = qt.QLineEdit(self)
-        validator = qt.QDoubleValidator(None)
-        self._width.setValidator(validator)
-        self._width.setText("0.9")
+        self._width = FloatEdit(self, 0.9)
         self.mainLayout.addWidget(self._width, 3, 1)
 
         # height
         label = qt.QLabel(self)
         label.setText("Height:")
         self.mainLayout.addWidget(label, 3, 2)
-        self._height = qt.QLineEdit(self)
-        validator = qt.QDoubleValidator(None)
-        self._height.setValidator(validator)
-        self._height.setText("0.9")
+        self._height = FloatEdit(self, 0.9)
         self.mainLayout.addWidget(self._height, 3, 3)
 
         # aspect ratio
@@ -125,10 +114,10 @@ class PrintGeometryWidget(qt.QWidget):
         else:
             ddict['units'] = "page"
 
-        ddict['xOffset'] = float(self._xOffset.text())
-        ddict['yOffset'] = float(self._yOffset.text())
-        ddict['width'] = float(self._width.text())
-        ddict['height'] = float(self._height.text())
+        ddict['xOffset'] = self._xOffset.value()
+        ddict['yOffset'] = self._yOffset.value()
+        ddict['width'] = self._width.value()
+        ddict['height'] = self._height.value()
 
         if self._aspect.isChecked():
             ddict['keepAspectRatio'] = True

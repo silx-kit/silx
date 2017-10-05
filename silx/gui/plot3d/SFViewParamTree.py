@@ -30,7 +30,7 @@ from __future__ import absolute_import
 
 __authors__ = ["D. N."]
 __license__ = "MIT"
-__date__ = "10/01/2017"
+__date__ = "02/10/2017"
 
 import logging
 import sys
@@ -41,6 +41,7 @@ import numpy
 from silx.gui import qt
 from silx.gui.icons import getQIcon
 from silx.gui.plot.Colormap import Colormap
+from silx.gui.widgets.FloatEdit import FloatEdit
 
 from .ScalarFieldView import Isosurface
 
@@ -928,16 +929,14 @@ class PlaneMinRangeItem(ColormapBase):
         colormap.setVRange(vMin, vMax)
 
     def getEditor(self, parent, option, index):
-        editor = qt.QLineEdit(parent)
-        editor.setValidator(qt.QDoubleValidator(editor))
-        return editor
+        return FloatEdit(parent)
 
     def setEditorData(self, editor):
-        editor.setText(str(self._pullData()))
+        editor.setValue(self._pullData())
         return True
 
     def _setModelData(self, editor):
-        value = float(editor.text())
+        value = editor.value()
         self._setVMin(value)
         return True
 
@@ -966,16 +965,14 @@ class PlaneMaxRangeItem(ColormapBase):
         colormap.setVRange(vMin, vMax)
 
     def getEditor(self, parent, option, index):
-        editor = qt.QLineEdit(parent)
-        editor.setValidator(qt.QDoubleValidator(editor))
-        return editor
+        return FloatEdit(parent)
 
     def setEditorData(self, editor):
         editor.setText(str(self._pullData()))
         return True
 
     def _setModelData(self, editor):
-        value = float(editor.text())
+        value = editor.value()
         self._setVMax(value)
         return True
 

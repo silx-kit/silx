@@ -39,7 +39,7 @@ from silx.io.nxdata import NXdata, get_attr_as_string
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "27/09/2017"
+__date__ = "03/10/2017"
 
 _logger = logging.getLogger(__name__)
 
@@ -100,6 +100,7 @@ class DataInfo(object):
         self.isNXdata = False
         self.shape = tuple()
         self.dim = 0
+        self.size = 0
 
         if data is None:
             return
@@ -117,7 +118,7 @@ class DataInfo(object):
 
         if silx.io.is_dataset(data):
             if "interpretation" in data.attrs:
-                self.interpretation = get_attr_as_string(data, "signal")
+                self.interpretation = get_attr_as_string(data, "interpretation")
             else:
                 self.interpretation = None
         elif self.isNXdata:
@@ -152,6 +153,11 @@ class DataInfo(object):
             self.shape = tuple()
         if self.shape is not None:
             self.dim = len(self.shape)
+
+        if hasattr(data, "size"):
+            self.size = int(data.size)
+        else:
+            self.size = 1
 
     def normalizeData(self, data):
         """Returns a normalized data if the embed a numpy or a dataset.
@@ -421,6 +427,8 @@ class _Plot1dView(DataView):
         return ["y"]
 
     def getDataPriority(self, data, info):
+        if info.size <= 0:
+            return DataView.UNSUPPORTED
         if data is None or not info.isArray or not info.isNumeric:
             return DataView.UNSUPPORTED
         if info.dim < 1:
@@ -449,6 +457,7 @@ class _Plot2dView(DataView):
     def createWidget(self, parent):
         from silx.gui import plot
         widget = plot.Plot2D(parent=parent)
+        widget.getIntensityHistogramAction().setVisible(True)
         widget.setKeepDataAspectRatio(True)
         widget.getXAxis().setLabel('X')
         widget.getYAxis().setLabel('Y')
@@ -474,6 +483,8 @@ class _Plot2dView(DataView):
         return ["y", "x"]
 
     def getDataPriority(self, data, info):
+        if info.size <= 0:
+            return DataView.UNSUPPORTED
         if (data is None or
                 not info.isArray or
                 not (info.isNumeric or info.isBoolean)):
@@ -551,6 +562,8 @@ class _Plot3dView(DataView):
         return ["z", "y", "x"]
 
     def getDataPriority(self, data, info):
+        if info.size <= 0:
+            return DataView.UNSUPPORTED
         if data is None or not info.isArray or not info.isNumeric:
             return DataView.UNSUPPORTED
         if info.dim < 3:
@@ -576,6 +589,7 @@ class _ComplexImageView(DataView):
     def createWidget(self, parent):
         from silx.gui.plot.ComplexImageView import ComplexImageView
         widget = ComplexImageView(parent=parent)
+        widget.getPlot().getIntensityHistogramAction().setVisible(True)
         widget.getPlot().setKeepDataAspectRatio(True)
         widget.getXAxis().setLabel('X')
         widget.getYAxis().setLabel('Y')
@@ -596,6 +610,8 @@ class _ComplexImageView(DataView):
         return ["y", "x"]
 
     def getDataPriority(self, data, info):
+        if info.size <= 0:
+            return DataView.UNSUPPORTED
         if data is None or not info.isArray or not info.isComplex:
             return DataView.UNSUPPORTED
         if info.dim < 2:
@@ -631,6 +647,8 @@ class _ArrayView(DataView):
         return ["col", "row"]
 
     def getDataPriority(self, data, info):
+        if info.size <= 0:
+            return DataView.UNSUPPORTED
         if data is None or not info.isArray or info.isRecord:
             return DataView.UNSUPPORTED
         if info.dim < 2:
@@ -687,6 +705,8 @@ class _StackView(DataView):
         return ["depth", "y", "x"]
 
     def getDataPriority(self, data, info):
+        if info.size <= 0:
+            return DataView.UNSUPPORTED
         if data is None or not info.isArray or not info.isNumeric:
             return DataView.UNSUPPORTED
         if info.dim < 3:
@@ -723,6 +743,8 @@ class _ScalarView(DataView):
         return []
 
     def getDataPriority(self, data, info):
+        if info.size <= 0:
+            return DataView.UNSUPPORTED
         data = self.normalizeData(data)
         if info.shape is None:
             return DataView.UNSUPPORTED
@@ -760,6 +782,8 @@ class _RecordView(DataView):
         return ["data"]
 
     def getDataPriority(self, data, info):
+        if info.size <= 0:
+            return DataView.UNSUPPORTED
         if info.isRecord:
             return 40
         if data is None or not info.isArray:
@@ -798,6 +822,8 @@ class _HexaView(DataView):
         return []
 
     def getDataPriority(self, data, info):
+        if info.size <= 0:
+            return DataView.UNSUPPORTED
         if info.isVoid:
             return 2000
         return DataView.UNSUPPORTED

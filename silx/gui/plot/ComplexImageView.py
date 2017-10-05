@@ -32,7 +32,7 @@ from __future__ import absolute_import
 
 __authors__ = ["Vincent Favre-Nicolin", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "12/09/2017"
+__date__ = "02/10/2017"
 
 
 import logging
@@ -42,6 +42,7 @@ from .. import qt, icons
 from .PlotWindow import Plot2D
 from .Colormap import Colormap
 from . import items
+from silx.gui.widgets.FloatEdit import FloatEdit
 
 _logger = logging.getLogger(__name__)
 
@@ -200,10 +201,8 @@ class _AmplitudeRangeDialog(qt.QDialog):
             layout.addRow(
                 qt.QLabel('Data Amplitude Range: [%g, %g]' % (min_, max_)))
 
-        self._maxLineEdit = qt.QLineEdit(parent=self)
-        validator = qt.QDoubleValidator(self._maxLineEdit)
-        validator.setBottom(0.)
-        self._maxLineEdit.setValidator(validator)
+        self._maxLineEdit = FloatEdit(parent=self)
+        self._maxLineEdit.validator().setBottom(0.)
         self._maxLineEdit.setAlignment(qt.Qt.AlignRight)
 
         self._maxLineEdit.editingFinished.connect(self._rangeUpdated)
@@ -213,10 +212,8 @@ class _AmplitudeRangeDialog(qt.QDialog):
         self._autoscale.toggled.connect(self._autoscaleCheckBoxToggled)
         layout.addRow('', self._autoscale)
 
-        self._deltaLineEdit = qt.QLineEdit(parent=self)
-        validator = qt.QDoubleValidator(self._deltaLineEdit)
-        validator.setBottom(1.)
-        self._deltaLineEdit.setValidator(validator)
+        self._deltaLineEdit = FloatEdit(parent=self)
+        self._deltaLineEdit.validator().setBottom(1.)
         self._deltaLineEdit.setAlignment(qt.Qt.AlignRight)
         self._deltaLineEdit.editingFinished.connect(self._rangeUpdated)
         layout.addRow('Displayed delta (log10 unit):', self._deltaLineEdit)
@@ -244,10 +241,13 @@ class _AmplitudeRangeDialog(qt.QDialog):
             displayedMax = self._amplitudeRange[1]
         else:  # Autoscale without data
             displayedMax = ''
-        self._maxLineEdit.setText(str(displayedMax))
+        if displayedMax == "":
+            self._maxLineEdit.setText("")
+        else:
+            self._maxLineEdit.setValue(displayedMax)
         self._maxLineEdit.setEnabled(max_ is not None)
 
-        self._deltaLineEdit.setText(str(delta))
+        self._deltaLineEdit.setValue(delta)
 
         self._autoscale.setChecked(self._defaultDisplayedRange[0] is None)
 
@@ -257,8 +257,8 @@ class _AmplitudeRangeDialog(qt.QDialog):
             max_ = None
         else:
             maxStr = self._maxLineEdit.text()
-            max_ = float(maxStr) if maxStr else None
-        return max_, float(self._deltaLineEdit.text() or 2)
+            max_ = self._maxLineEdit.value() if maxStr else None
+        return max_, self._deltaLineEdit.value() if self._deltaLineEdit.text() else 2
 
     def _handleRejected(self):
         """Reset range info to default when rejected"""
@@ -276,7 +276,10 @@ class _AmplitudeRangeDialog(qt.QDialog):
                 max_ = ''
             else:
                 max_ = self._amplitudeRange[1]
-            self._maxLineEdit.setText(str(max_))
+            if max_ == "":
+                self._maxLineEdit.setText("")
+            else:
+                self._maxLineEdit.setValue(max_)
         self._maxLineEdit.setEnabled(not checked)
         self._rangeUpdated()
 
