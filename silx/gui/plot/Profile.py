@@ -666,8 +666,10 @@ class ProfileToolBar(qt.QToolBar):
                     max(0, winGeom.left() - profileWindowWidth), winGeom.top())
 
             profileMainWindow.show()
+            profileMainWindow.raise_()
         else:
             self.getProfilePlot().show()
+            profileMainWindow.raise_()
 
     def hideProfileWindow(self):
         """Hide profile window.
