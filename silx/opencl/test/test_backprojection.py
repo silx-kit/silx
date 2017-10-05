@@ -74,7 +74,6 @@ def clip_circle(img, center=None, radius=None):
     res = numpy.zeros_like(img)
     if radius is None:
         radius = img.shape[0] / 2. - 1
-    radius -= 10.0
     mask = M < radius * radius
     res[mask] = img[mask]
     return res
