@@ -41,7 +41,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "12/09/2017"
+__date__ = "03/10/2017"
 __status__ = "stable"
 
 
@@ -167,8 +167,8 @@ class OpenclProcessing(object):
             ualloc = 0
             for buf in buffers:
                 ualloc += numpy.dtype(buf.dtype).itemsize * buf.size
-            logger.info("%.3fMB are needed on device which has %.3fMB",
-                        ualloc / 1.0e6, self.device.memory / 1.0e6)
+            logger.info("%.3fMB are needed on device: %s,  which has %.3fMB",
+                        ualloc / 1.0e6, self.device, self.device.memory / 1.0e6)
 
             if ualloc >= self.device.memory:
                 raise MemoryError("Fatal error in allocate_buffers. Not enough "

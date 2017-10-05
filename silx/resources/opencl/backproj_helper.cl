@@ -30,27 +30,28 @@
  */
 
 
-__kernel void mult(
-                    __global float2* d_sino,
-                    __global float2* d_filter,
+kernel void mult(   global float2* d_sino,
+                    global float2* d_filter,
                     int num_bins,
                     int num_projs)
+{
+    int gid0 = get_global_id(0);
+    int gid1 = get_global_id(1);
+    if (gid0 < num_bins && gid1 < num_projs)
     {
-      int gid0 = get_global_id(0);
-      int gid1 = get_global_id(1);
-      if (gid0 < num_bins && gid1 < num_projs) {
         // d_sino[gid1*num_bins+gid0] *= d_filter[gid0];
         d_sino[gid1*num_bins+gid0].x *= d_filter[gid0].x;
         d_sino[gid1*num_bins+gid0].y *= d_filter[gid0].x;
       }
-    }
+}
 
-__kernel void cpy2d_c2r(
-                    __global float* d_sino,
-                    __global float2* d_sino_complex,
-                    int num_bins,
-                    int num_projs,
-                    int fft_size)
+// copy only the real part of the valid data to the real array
+kernel void cpy2d_c2r(
+                      global float* d_sino,
+                      global float2* d_sino_complex,
+                      int num_bins,
+                      int num_projs,
+                      int fft_size)
 {
     int gid0 = get_global_id(0);
     int gid1 = get_global_id(1);
