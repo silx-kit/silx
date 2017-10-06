@@ -116,7 +116,7 @@ class ArrayCurvePlot(qt.QWidget):
         :param title: Graph title
         """
         self.__signal = y
-        self.__signal_name = ylabel
+        self.__signal_name = ylabel or "Y"
         self.__signal_errors = yerror
         self.__axis = x
         self.__axis_name = xlabel
@@ -136,7 +136,7 @@ class ArrayCurvePlot(qt.QWidget):
 
         self._plot.setGraphTitle(title or "")
         self._plot.getXAxis().setLabel(self.__axis_name or "X")
-        self._plot.getYAxis().setLabel(self.__signal_name or "Y")
+        self._plot.getYAxis().setLabel(self.__signal_name)
         self._updateCurve()
 
         if not self.__selector_is_connected:
@@ -175,8 +175,8 @@ class ArrayCurvePlot(qt.QWidget):
                                   xerror=self.__axis_errors,
                                   yerror=y_errors)
 
-        # x monotonically increasing: curve
-        elif numpy.all(numpy.diff(x) > 0):
+        # x monotonically increasing or decreasiing: curve
+        elif numpy.all(numpy.diff(x) > 0) or numpy.all(numpy.diff(x) < 0):
             self._plot.addCurve(x, y, legend=legend,
                                 xerror=self.__axis_errors,
                                 yerror=y_errors)

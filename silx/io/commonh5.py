@@ -37,7 +37,7 @@ from .utils import is_dataset
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "21/09/2017"
+__date__ = "02/10/2017"
 
 
 class _MappingProxyType(collections.MutableMapping):
@@ -190,14 +190,29 @@ class Dataset(Node):
     def _check_data(self, data):
         """Check that the data provided by the dataset is valid.
 
-        :param numpy.ndarray data: Data associated to the dataset
+        It is valid when it can be stored in a HDF5 using h5py.
 
+        :param numpy.ndarray data: Data associated to the dataset
         :raises TypeError: In the case the data is not valid.
         """
+        if isinstance(data, (six.text_type, six.binary_type)):
+            return
+
         chartype = data.dtype.char
-        if chartype in ["U", "O"]:
-            msg = "Type of the dataset '%s' is not supported. Found '%s'."
-            raise TypeError(msg % (self.name, data.dtype))
+        if chartype == "U":
+            pass
+        elif chartype == "O":
+            d = h5py.special_dtype(vlen=data.dtype)
+            if d is not None:
+                return
+            d = h5py.special_dtype(ref=data.dtype)
+            if d is not None:
+                return
+        else:
+            return
+
+        msg = "Type of the dataset '%s' is not supported. Found '%s'."
+        raise TypeError(msg % (self.name, data.dtype))
 
     def _set_data(self, data):
         """Set the data exposed by the dataset.
