@@ -25,7 +25,7 @@ The current version provides:
 * a unified converter to HDF5 format (*silx convert filename*)
 * median filters on images (C and OpenCL implementations)
 * image alignement (sift - OpenCL implementation)
-* filtered backprojection and forward projection for tomography
+* filtered backprojection for tomography
 
 Installation
 ------------
@@ -140,7 +140,7 @@ See the `LICENSE <https://github.com/silx-kit/silx/blob/master/LICENSE>`_ and `c
 Citation
 --------
 
-silx releases can be cited by their DOI on Zenodo: |DOI:10.5281/zenodo.1000472|
+silx releases can be cited by their DOI on Zenodo: |DOI:10.5281/zenodo.1003146|
 
 .. |Travis Status| image:: https://travis-ci.org/silx-kit/silx.svg?branch=master
    :target: https://travis-ci.org/silx-kit/silx
