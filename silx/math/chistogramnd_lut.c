@@ -4,12 +4,12 @@
 {
     "distutils": {
         "depends": [
-            "/users/knobel/.local/lib/python2.7/site-packages/numpy/core/include/numpy/arrayobject.h", 
-            "/users/knobel/.local/lib/python2.7/site-packages/numpy/core/include/numpy/ufuncobject.h"
+            "/usr/lib/python2.7/dist-packages/numpy/core/include/numpy/arrayobject.h", 
+            "/usr/lib/python2.7/dist-packages/numpy/core/include/numpy/ufuncobject.h"
         ], 
         "include_dirs": [
             "silx/math/histogramnd/include", 
-            "/users/knobel/.local/lib/python2.7/site-packages/numpy/core/include"
+            "/usr/lib/python2.7/dist-packages/numpy/core/include"
         ], 
         "language": "c"
     }, 
@@ -2302,10 +2302,10 @@ static const char __pyx_k_strided_and_direct_or_indirect[] = "<strided and direc
 static const char __pyx_k_The_LUT_and_weights_arrays_must[] = "The LUT and weights arrays must have the same number of elements.";
 static const char __pyx_k_histo_range_error_expected_n_di[] = "<histo_range> error : expected {n_dims} sets of lower and upper bin edges, got the following instead : {histo_range}. (provided <sample> contains {n_dims}D values)";
 static const char __pyx_k_histogramnd_returned_an_error_0[] = "histogramnd returned an error : {0}";
-static const char __pyx_k_mntdirect__users_knobel_release[] = "/mntdirect/_users/knobel/release/silx/silx/math/chistogramnd_lut.pyx";
 static const char __pyx_k_n_bins_only_positive_values_all[] = "<n_bins> : only positive values allowed.";
 static const char __pyx_k_numpy_core_multiarray_failed_to[] = "numpy.core.multiarray failed to import";
 static const char __pyx_k_unknown_dtype_code_in_numpy_pxd[] = "unknown dtype code in numpy.pxd (%d)";
+static const char __pyx_k_users_kieffer_workspace_400_rel[] = "/users/kieffer/workspace-400/release/silx/silx/math/chistogramnd_lut.pyx";
 static const char __pyx_k_At_least_one_of_the_following_pa[] = "At least one of the following parameters has to be provided : <shape> or <histo> or <weighted_histo>";
 static const char __pyx_k_Buffer_view_does_not_expose_stri[] = "Buffer view does not expose strides";
 static const char __pyx_k_Can_only_create_a_buffer_that_is[] = "Can only create a buffer that is contiguous in memory.";
@@ -2521,7 +2521,6 @@ static PyObject *__pyx_n_s_lut_idx;
 static PyObject *__pyx_n_s_main;
 static PyObject *__pyx_n_s_max_idx;
 static PyObject *__pyx_n_s_memview;
-static PyObject *__pyx_kp_s_mntdirect__users_knobel_release;
 static PyObject *__pyx_n_s_mode;
 static PyObject *__pyx_n_s_n_bins;
 static PyObject *__pyx_n_s_n_bins_c;
@@ -2581,6 +2580,7 @@ static PyObject *__pyx_kp_s_unable_to_allocate_array_data;
 static PyObject *__pyx_kp_s_unable_to_allocate_shape_and_str;
 static PyObject *__pyx_kp_u_unknown_dtype_code_in_numpy_pxd;
 static PyObject *__pyx_n_s_unpack;
+static PyObject *__pyx_kp_s_users_kieffer_workspace_400_rel;
 static PyObject *__pyx_n_s_w_c;
 static PyObject *__pyx_n_s_w_dtype;
 static PyObject *__pyx_n_s_w_h_c;
@@ -7185,9 +7185,9 @@ static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_
   Py_ssize_t __pyx_v_itemsize;
   int __pyx_v_dtype_signed;
   char __pyx_v_kind;
+  int __pyx_v____pyx_int16_t_is_signed;
   int __pyx_v____pyx_int64_t_is_signed;
   int __pyx_v____pyx_int32_t_is_signed;
-  int __pyx_v____pyx_int16_t_is_signed;
   PyObject *__pyx_v_arg = NULL;
   PyObject *__pyx_v_dtype = NULL;
   PyObject *__pyx_v_arg_base = NULL;
@@ -7296,9 +7296,9 @@ static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_4_histogramnd_from_lut_
     __pyx_L11_try_end:;
   }
   __pyx_v_itemsize = -1L;
+  __pyx_v____pyx_int16_t_is_signed = (((__pyx_t_5numpy_int16_t)-1L) < 0);
   __pyx_v____pyx_int64_t_is_signed = (((__pyx_t_5numpy_int64_t)-1L) < 0);
   __pyx_v____pyx_int32_t_is_signed = (((__pyx_t_5numpy_int32_t)-1L) < 0);
-  __pyx_v____pyx_int16_t_is_signed = (((__pyx_t_5numpy_int16_t)-1L) < 0);
   if (unlikely(__pyx_v_args == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
     __PYX_ERR(0, 332, __pyx_L1_error)
@@ -23937,9 +23937,9 @@ static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_6_histogramnd_get_lut_f
   Py_ssize_t __pyx_v_itemsize;
   int __pyx_v_dtype_signed;
   char __pyx_v_kind;
+  int __pyx_v____pyx_int16_t_is_signed;
   int __pyx_v____pyx_int64_t_is_signed;
   int __pyx_v____pyx_int32_t_is_signed;
-  int __pyx_v____pyx_int16_t_is_signed;
   PyObject *__pyx_v_arg = NULL;
   PyObject *__pyx_v_dtype = NULL;
   PyObject *__pyx_v_arg_base = NULL;
@@ -24048,9 +24048,9 @@ static PyObject *__pyx_pf_4silx_4math_16chistogramnd_lut_6_histogramnd_get_lut_f
     __pyx_L11_try_end:;
   }
   __pyx_v_itemsize = -1L;
+  __pyx_v____pyx_int16_t_is_signed = (((__pyx_t_5numpy_int16_t)-1L) < 0);
   __pyx_v____pyx_int64_t_is_signed = (((__pyx_t_5numpy_int64_t)-1L) < 0);
   __pyx_v____pyx_int32_t_is_signed = (((__pyx_t_5numpy_int32_t)-1L) < 0);
-  __pyx_v____pyx_int16_t_is_signed = (((__pyx_t_5numpy_int16_t)-1L) < 0);
   if (unlikely(__pyx_v_args == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
     __PYX_ERR(0, 361, __pyx_L1_error)
@@ -46631,7 +46631,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_main, __pyx_k_main, sizeof(__pyx_k_main), 0, 0, 1, 1},
   {&__pyx_n_s_max_idx, __pyx_k_max_idx, sizeof(__pyx_k_max_idx), 0, 0, 1, 1},
   {&__pyx_n_s_memview, __pyx_k_memview, sizeof(__pyx_k_memview), 0, 0, 1, 1},
-  {&__pyx_kp_s_mntdirect__users_knobel_release, __pyx_k_mntdirect__users_knobel_release, sizeof(__pyx_k_mntdirect__users_knobel_release), 0, 0, 1, 0},
   {&__pyx_n_s_mode, __pyx_k_mode, sizeof(__pyx_k_mode), 0, 0, 1, 1},
   {&__pyx_n_s_n_bins, __pyx_k_n_bins, sizeof(__pyx_k_n_bins), 0, 0, 1, 1},
   {&__pyx_n_s_n_bins_c, __pyx_k_n_bins_c, sizeof(__pyx_k_n_bins_c), 0, 0, 1, 1},
@@ -46691,6 +46690,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_unable_to_allocate_shape_and_str, __pyx_k_unable_to_allocate_shape_and_str, sizeof(__pyx_k_unable_to_allocate_shape_and_str), 0, 0, 1, 0},
   {&__pyx_kp_u_unknown_dtype_code_in_numpy_pxd, __pyx_k_unknown_dtype_code_in_numpy_pxd, sizeof(__pyx_k_unknown_dtype_code_in_numpy_pxd), 0, 1, 0, 0},
   {&__pyx_n_s_unpack, __pyx_k_unpack, sizeof(__pyx_k_unpack), 0, 0, 1, 1},
+  {&__pyx_kp_s_users_kieffer_workspace_400_rel, __pyx_k_users_kieffer_workspace_400_rel, sizeof(__pyx_k_users_kieffer_workspace_400_rel), 0, 0, 1, 0},
   {&__pyx_n_s_w_c, __pyx_k_w_c, sizeof(__pyx_k_w_c), 0, 0, 1, 1},
   {&__pyx_n_s_w_dtype, __pyx_k_w_dtype, sizeof(__pyx_k_w_dtype), 0, 0, 1, 1},
   {&__pyx_n_s_w_h_c, __pyx_k_w_h_c, sizeof(__pyx_k_w_h_c), 0, 0, 1, 1},
@@ -47237,7 +47237,7 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__53 = PyTuple_Pack(26, __pyx_n_s_sample, __pyx_n_s_histo_range, __pyx_n_s_n_bins, __pyx_n_s_last_bin_closed, __pyx_n_s_s_shape, __pyx_n_s_n_dims, __pyx_n_s_i_histo_range, __pyx_n_s_err_histo_range, __pyx_n_s_sample_type, __pyx_n_s_n_elem, __pyx_n_s_lut_dtype, __pyx_n_s_lut, __pyx_n_s_histo, __pyx_n_s_dtype, __pyx_n_s_sample_c, __pyx_n_s_histo_range_c, __pyx_n_s_n_bins_c, __pyx_n_s_lut_c, __pyx_n_s_histo_c, __pyx_n_s_rc, __pyx_n_s_ex, __pyx_n_s_edges, __pyx_n_s_i_dim, __pyx_n_s_dim_edges, __pyx_n_s_rng_min, __pyx_n_s_rng_max); if (unlikely(!__pyx_tuple__53)) __PYX_ERR(0, 58, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__53);
   __Pyx_GIVEREF(__pyx_tuple__53);
-  __pyx_codeobj__54 = (PyObject*)__Pyx_PyCode_New(4, 0, 26, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__53, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_mntdirect__users_knobel_release, __pyx_n_s_histogramnd_get_lut, 58, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__54)) __PYX_ERR(0, 58, __pyx_L1_error)
+  __pyx_codeobj__54 = (PyObject*)__Pyx_PyCode_New(4, 0, 26, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__53, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_kieffer_workspace_400_rel, __pyx_n_s_histogramnd_get_lut, 58, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__54)) __PYX_ERR(0, 58, __pyx_L1_error)
 
   /* "silx/math/chistogramnd_lut.pyx":211
  * 
@@ -47249,7 +47249,7 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__55 = PyTuple_Pack(17, __pyx_n_s_weights, __pyx_n_s_histo_lut, __pyx_n_s_histo, __pyx_n_s_weighted_histo, __pyx_n_s_shape, __pyx_n_s_dtype, __pyx_n_s_weight_min, __pyx_n_s_weight_max, __pyx_n_s_w_dtype, __pyx_n_s_w_c, __pyx_n_s_h_c, __pyx_n_s_w_h_c, __pyx_n_s_h_lut_c, __pyx_n_s_rc, __pyx_n_s_filt_min_weights, __pyx_n_s_filt_max_weights, __pyx_n_s_ex); if (unlikely(!__pyx_tuple__55)) __PYX_ERR(0, 211, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__55);
   __Pyx_GIVEREF(__pyx_tuple__55);
-  __pyx_codeobj__56 = (PyObject*)__Pyx_PyCode_New(8, 0, 17, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__55, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_mntdirect__users_knobel_release, __pyx_n_s_histogramnd_from_lut, 211, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__56)) __PYX_ERR(0, 211, __pyx_L1_error)
+  __pyx_codeobj__56 = (PyObject*)__Pyx_PyCode_New(8, 0, 17, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__55, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_kieffer_workspace_400_rel, __pyx_n_s_histogramnd_from_lut, 211, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__56)) __PYX_ERR(0, 211, __pyx_L1_error)
 
   /* "silx/math/chistogramnd_lut.pyx":332
  * @cython.nonecheck(False)
@@ -47261,7 +47261,7 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__57 = PyTuple_Pack(10, __pyx_n_s_i_weights, __pyx_n_s_i_lut, __pyx_n_s_o_histo, __pyx_n_s_o_weighted_histo, __pyx_n_s_i_n_elems, __pyx_n_s_i_filt_min_weights, __pyx_n_s_i_weight_min, __pyx_n_s_i_filt_max_weights, __pyx_n_s_i_weight_max, __pyx_n_s_i); if (unlikely(!__pyx_tuple__57)) __PYX_ERR(0, 332, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__57);
   __Pyx_GIVEREF(__pyx_tuple__57);
-  __pyx_codeobj__58 = (PyObject*)__Pyx_PyCode_New(9, 0, 10, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__57, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_mntdirect__users_knobel_release, __pyx_n_s_histogramnd_from_lut_fused, 332, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__58)) __PYX_ERR(0, 332, __pyx_L1_error)
+  __pyx_codeobj__58 = (PyObject*)__Pyx_PyCode_New(9, 0, 10, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__57, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_kieffer_workspace_400_rel, __pyx_n_s_histogramnd_from_lut_fused, 332, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__58)) __PYX_ERR(0, 332, __pyx_L1_error)
 
   /* "silx/math/chistogramnd_lut.pyx":361
  * @cython.nonecheck(False)
@@ -47273,7 +47273,7 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__59 = PyTuple_Pack(17, __pyx_n_s_i_sample, __pyx_n_s_i_n_dims, __pyx_n_s_i_n_elems, __pyx_n_s_i_histo_range, __pyx_n_s_i_n_bins, __pyx_n_s_o_lut, __pyx_n_s_o_histo, __pyx_n_s_last_bin_closed, __pyx_n_s_i, __pyx_n_s_elem_idx, __pyx_n_s_max_idx, __pyx_n_s_lut_idx, __pyx_n_s_bin_idx, __pyx_n_s_elem_coord, __pyx_n_s_g_min, __pyx_n_s_g_max, __pyx_n_s_bins_range); if (unlikely(!__pyx_tuple__59)) __PYX_ERR(0, 361, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__59);
   __Pyx_GIVEREF(__pyx_tuple__59);
-  __pyx_codeobj__60 = (PyObject*)__Pyx_PyCode_New(8, 0, 17, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__59, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_mntdirect__users_knobel_release, __pyx_n_s_histogramnd_get_lut_fused, 361, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__60)) __PYX_ERR(0, 361, __pyx_L1_error)
+  __pyx_codeobj__60 = (PyObject*)__Pyx_PyCode_New(8, 0, 17, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__59, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_kieffer_workspace_400_rel, __pyx_n_s_histogramnd_get_lut_fused, 361, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__60)) __PYX_ERR(0, 361, __pyx_L1_error)
 
   /* "View.MemoryView":282
  *         return self.name

@@ -4,13 +4,13 @@
 {
     "distutils": {
         "depends": [
-            "/users/knobel/.local/lib/python2.7/site-packages/numpy/core/include/numpy/arrayobject.h", 
-            "/users/knobel/.local/lib/python2.7/site-packages/numpy/core/include/numpy/ufuncobject.h", 
+            "/usr/lib/python2.7/dist-packages/numpy/core/include/numpy/arrayobject.h", 
+            "/usr/lib/python2.7/dist-packages/numpy/core/include/numpy/ufuncobject.h", 
             "silx/math/histogramnd/include/histogramnd_c.h"
         ], 
         "include_dirs": [
             "silx/math/histogramnd/include", 
-            "/users/knobel/.local/lib/python2.7/site-packages/numpy/core/include"
+            "/usr/lib/python2.7/dist-packages/numpy/core/include"
         ], 
         "language": "c"
     }, 
@@ -2161,10 +2161,10 @@ static const char __pyx_k_Case_not_supported_sample_0_and[] = "Case not supporte
 static const char __pyx_k_histo_must_be_a_C_CONTIGUOUS_nu[] = "<histo> must be a C_CONTIGUOUS numpy array.";
 static const char __pyx_k_histo_range_error_expected_n_di[] = "<histo_range> error : expected {n_dims} sets of lower and upper bin edges, got the following instead : {histo_range}. (provided <sample> contains {n_dims}D values)";
 static const char __pyx_k_histogramnd_returned_an_error_0[] = "histogramnd returned an error : {0}";
-static const char __pyx_k_mntdirect__users_knobel_release[] = "/mntdirect/_users/knobel/release/silx/silx/math/chistogramnd.pyx";
 static const char __pyx_k_n_bins_only_positive_values_all[] = "<n_bins> : only positive values allowed.";
 static const char __pyx_k_numpy_core_multiarray_failed_to[] = "numpy.core.multiarray failed to import";
 static const char __pyx_k_unknown_dtype_code_in_numpy_pxd[] = "unknown dtype code in numpy.pxd (%d)";
+static const char __pyx_k_users_kieffer_workspace_400_rel[] = "/users/kieffer/workspace-400/release/silx/silx/math/chistogramnd.pyx";
 static const char __pyx_k_weighted_histo_must_be_a_C_CONT[] = "<weighted_histo> must be a C_CONTIGUOUS numpy array.";
 static const char __pyx_k_Buffer_view_does_not_expose_stri[] = "Buffer view does not expose strides";
 static const char __pyx_k_Can_only_create_a_buffer_that_is[] = "Can only create a buffer that is contiguous in memory.";
@@ -2276,7 +2276,6 @@ static PyObject *__pyx_n_s_last_bin_closed;
 static PyObject *__pyx_n_s_license;
 static PyObject *__pyx_n_s_main;
 static PyObject *__pyx_n_s_memview;
-static PyObject *__pyx_kp_s_mntdirect__users_knobel_release;
 static PyObject *__pyx_n_s_mode;
 static PyObject *__pyx_n_s_n_bins;
 static PyObject *__pyx_n_s_n_bins_c;
@@ -2329,6 +2328,7 @@ static PyObject *__pyx_kp_s_unable_to_allocate_array_data;
 static PyObject *__pyx_kp_s_unable_to_allocate_shape_and_str;
 static PyObject *__pyx_kp_u_unknown_dtype_code_in_numpy_pxd;
 static PyObject *__pyx_n_s_unpack;
+static PyObject *__pyx_kp_s_users_kieffer_workspace_400_rel;
 static PyObject *__pyx_n_s_w_shape;
 static PyObject *__pyx_n_s_weight_max;
 static PyObject *__pyx_n_s_weight_min;
@@ -26459,7 +26459,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_license, __pyx_k_license, sizeof(__pyx_k_license), 0, 0, 1, 1},
   {&__pyx_n_s_main, __pyx_k_main, sizeof(__pyx_k_main), 0, 0, 1, 1},
   {&__pyx_n_s_memview, __pyx_k_memview, sizeof(__pyx_k_memview), 0, 0, 1, 1},
-  {&__pyx_kp_s_mntdirect__users_knobel_release, __pyx_k_mntdirect__users_knobel_release, sizeof(__pyx_k_mntdirect__users_knobel_release), 0, 0, 1, 0},
   {&__pyx_n_s_mode, __pyx_k_mode, sizeof(__pyx_k_mode), 0, 0, 1, 1},
   {&__pyx_n_s_n_bins, __pyx_k_n_bins, sizeof(__pyx_k_n_bins), 0, 0, 1, 1},
   {&__pyx_n_s_n_bins_c, __pyx_k_n_bins_c, sizeof(__pyx_k_n_bins_c), 0, 0, 1, 1},
@@ -26512,6 +26511,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_unable_to_allocate_shape_and_str, __pyx_k_unable_to_allocate_shape_and_str, sizeof(__pyx_k_unable_to_allocate_shape_and_str), 0, 0, 1, 0},
   {&__pyx_kp_u_unknown_dtype_code_in_numpy_pxd, __pyx_k_unknown_dtype_code_in_numpy_pxd, sizeof(__pyx_k_unknown_dtype_code_in_numpy_pxd), 0, 1, 0, 0},
   {&__pyx_n_s_unpack, __pyx_k_unpack, sizeof(__pyx_k_unpack), 0, 0, 1, 1},
+  {&__pyx_kp_s_users_kieffer_workspace_400_rel, __pyx_k_users_kieffer_workspace_400_rel, sizeof(__pyx_k_users_kieffer_workspace_400_rel), 0, 0, 1, 0},
   {&__pyx_n_s_w_shape, __pyx_k_w_shape, sizeof(__pyx_k_w_shape), 0, 0, 1, 1},
   {&__pyx_n_s_weight_max, __pyx_k_weight_max, sizeof(__pyx_k_weight_max), 0, 0, 1, 1},
   {&__pyx_n_s_weight_min, __pyx_k_weight_min, sizeof(__pyx_k_weight_min), 0, 0, 1, 1},
@@ -26663,7 +26663,7 @@ static int __Pyx_InitCachedConstants(void) {
  *         raise TypeError('Case not supported - sample:{0} '
  *                         'and weights:{1}.'
  */
-  __pyx_codeobj__11 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_mntdirect__users_knobel_release, __pyx_n_s_raise_unsupported_type, 299, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__11)) __PYX_ERR(0, 299, __pyx_L1_error)
+  __pyx_codeobj__11 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_kieffer_workspace_400_rel, __pyx_n_s_raise_unsupported_type, 299, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__11)) __PYX_ERR(0, 299, __pyx_L1_error)
 
   /* "silx/math/chistogramnd.pyx":308
  * 
@@ -26951,7 +26951,7 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__37 = PyTuple_Pack(34, __pyx_n_s_sample, __pyx_n_s_histo_range, __pyx_n_s_n_bins, __pyx_n_s_weights, __pyx_n_s_weight_min, __pyx_n_s_weight_max, __pyx_n_s_last_bin_closed, __pyx_n_s_histo, __pyx_n_s_weighted_histo, __pyx_n_s_wh_dtype, __pyx_n_s_s_shape, __pyx_n_s_n_dims, __pyx_n_s_w_shape, __pyx_n_s_weights_type, __pyx_n_s_i_histo_range, __pyx_n_s_err_histo_range, __pyx_n_s_output_shape, __pyx_n_s_option_flags, __pyx_n_s_sample_type, __pyx_n_s_n_elem, __pyx_n_s_bin_edges, __pyx_n_s_raise_unsupported_type, __pyx_n_s_raise_unsupported_type, __pyx_n_s_sample_c, __pyx_n_s_weights_c, __pyx_n_s_histo_range_c, __pyx_n_s_n_bins_c, __pyx_n_s_histo_c, __pyx_n_s_cumul_c, __pyx_n_s_bin_edges_c, __pyx_n_s_rc, __pyx_n_s_edges, __pyx_n_s_offset, __pyx_n_s_i_dim); if (unlikely(!__pyx_tuple__37)) __PYX_ERR(0, 36, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__37);
   __Pyx_GIVEREF(__pyx_tuple__37);
-  __pyx_codeobj__38 = (PyObject*)__Pyx_PyCode_New(10, 0, 34, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__37, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_mntdirect__users_knobel_release, __pyx_n_s_chistogramnd, 36, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__38)) __PYX_ERR(0, 36, __pyx_L1_error)
+  __pyx_codeobj__38 = (PyObject*)__Pyx_PyCode_New(10, 0, 34, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__37, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_kieffer_workspace_400_rel, __pyx_n_s_chistogramnd, 36, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__38)) __PYX_ERR(0, 36, __pyx_L1_error)
 
   /* "View.MemoryView":282
  *         return self.name

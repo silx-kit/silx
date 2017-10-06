@@ -4,13 +4,13 @@
 {
     "distutils": {
         "depends": [
-            "/users/knobel/.local/lib/python2.7/site-packages/numpy/core/include/numpy/arrayobject.h", 
-            "/users/knobel/.local/lib/python2.7/site-packages/numpy/core/include/numpy/ufuncobject.h", 
+            "/usr/lib/python2.7/dist-packages/numpy/core/include/numpy/arrayobject.h", 
+            "/usr/lib/python2.7/dist-packages/numpy/core/include/numpy/ufuncobject.h", 
             "silx/math/marchingcubes/mc.hpp"
         ], 
         "include_dirs": [
             "silx/math/marchingcubes", 
-            "/users/knobel/.local/lib/python2.7/site-packages/numpy/core/include"
+            "/usr/lib/python2.7/dist-packages/numpy/core/include"
         ], 
         "language": "c++"
     }, 

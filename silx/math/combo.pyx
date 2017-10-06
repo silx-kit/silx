@@ -56,9 +56,11 @@ ctypedef fused _number:
     signed short
     signed int
     signed long
+    signed long long
     unsigned char
     unsigned short
     unsigned int
+    unsigned long
     unsigned long long
 
 
