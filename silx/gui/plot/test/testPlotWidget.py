@@ -371,6 +371,27 @@ class TestPlotCurve(PlotWidgetTestCase):
                            color=color, linestyle="-", symbol='o')
         self.plot.resetZoom()
 
+        # Test updating color array
+
+        # From array to array
+        newColors = numpy.ones((len(self.xData), 3), dtype=numpy.float32)
+        self.plot.addCurve(self.xData, self.yData,
+                           legend="curve 2",
+                           replace=False, resetzoom=False,
+                           color=newColors, symbol='o')
+
+        # Array to single color
+        self.plot.addCurve(self.xData, self.yData,
+                           legend="curve 2",
+                           replace=False, resetzoom=False,
+                           color='green', symbol='o')
+
+        # single color to array
+        self.plot.addCurve(self.xData, self.yData,
+                           legend="curve 2",
+                           replace=False, resetzoom=False,
+                           color=color, symbol='o')
+
 
 class TestPlotMarker(PlotWidgetTestCase):
     """Basic tests for add*Marker"""
