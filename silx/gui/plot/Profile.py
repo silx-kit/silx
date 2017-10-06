@@ -669,7 +669,7 @@ class ProfileToolBar(qt.QToolBar):
             profileMainWindow.raise_()
         else:
             self.getProfilePlot().show()
-            profileMainWindow.raise_()
+            self.getProfilePlot().raise_()
 
     def hideProfileWindow(self):
         """Hide profile window.
