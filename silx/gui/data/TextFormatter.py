@@ -245,6 +245,7 @@ class TextFormatter(qt.QObject):
 
     def toString(self, data, dtype=None):
         """Format a data into a string using formatter options
+
         :param object data: Data to render
         :param dtype: enforce a dtype (mostly used to remember the h5py dtype,
              special h5py dtypes are not propagated from array to items)

@@ -34,7 +34,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "2012-2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "02/08/2017"
+__date__ = "05/10/2017"
 __status__ = "stable"
 __all__ = ["ocl", "pyopencl", "mf", "release_cl_buffers", "allocate_cl_buffers",
            "measure_workgroup_size", "kernel_workgroup_size"]
@@ -419,6 +419,10 @@ class OpenCL(object):
         if (platformid is not None) and (deviceid is not None):
             platformid = int(platformid)
             deviceid = int(deviceid)
+        elif "PYOPENCL_CTX" in os.environ:
+            pyopencl_ctx = [int(i) if i.isdigit() else 0 for i in os.environ["PYOPENCL_CTX"].split(":")]
+            pyopencl_ctx += [0] * (2 - len(pyopencl_ctx))  # pad with 0
+            platformid, deviceid = pyopencl_ctx
         else:
             if useFp64:
                 ids = ocl.select_device(type=devicetype, extensions=["cl_khr_int64_base_atomics"])

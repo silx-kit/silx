@@ -53,23 +53,23 @@ from __future__ import absolute_import, print_function, division
 __authors__ = ["Jérôme Kieffer"]
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "12/05/2017"
+__date__ = "01/10/2017"
 __status__ = "production"
 __docformat__ = 'restructuredtext'
-__all__ = ["date", "version_info", "strictversion", "hexversion", "debianversion", "calc_hexversion"]
-
+__all__ = ["date", "version_info", "strictversion", "hexversion", "debianversion",
+           "calc_hexversion", "citation"]
 
 RELEASE_LEVEL_VALUE = {"dev": 0,
                        "alpha": 10,
                        "beta": 11,
-                       "gamma": 11,
-                       "rc": 12,
+                       "gamma": 12,
+                       "rc": 13,
                        "final": 15}
 
 MAJOR = 0
 MINOR = 6
 MICRO = 0
-RELEV = "dev"  # <16
+RELEV = "final"  # <16
 SERIAL = 0  # <16
 
 date = __date__
@@ -97,7 +97,7 @@ def calc_hexversion(major=0, minor=0, micro=0, releaselevel="dev", serial=0):
     :param micro: integer
     :param relev: integer or string
     :param serial: integer
-    :return: integerm always increasing with revision numbers
+    :return: integer always increasing with revision numbers
     """
     try:
         releaselevel = int(releaselevel)
@@ -113,6 +113,8 @@ def calc_hexversion(major=0, minor=0, micro=0, releaselevel="dev", serial=0):
 
 
 hexversion = calc_hexversion(*version_info)
+
+citation = "doi:10.5281/zenodo.1000472"
 
 if __name__ == "__main__":
     print(version)
