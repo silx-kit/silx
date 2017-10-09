@@ -560,7 +560,7 @@ class SpecH5(commonh5.File, SpecH5Group):
             self.add_node(scan_group)
 
     def close(self):
-        # or del self._sf?
+        self._sf.close()
         self._sf = None
 
 
