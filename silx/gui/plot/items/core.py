@@ -543,7 +543,7 @@ class ColorMixIn(object):
     def getColor(self):
         """Returns the RGBA color of the item
 
-        :rtype: 4-tuple of float in [0, 1]
+        :rtype: 4-tuple of float in [0, 1] or array of colors
         """
         return self._color
 
@@ -566,9 +566,8 @@ class ColorMixIn(object):
             else:  # Array of colors
                 assert color.ndim == 2
 
-        if self._color != color:
-            self._color = color
-            self._updated(ItemChangedType.COLOR)
+        self._color = color
+        self._updated(ItemChangedType.COLOR)
 
 
 class YAxisMixIn(object):

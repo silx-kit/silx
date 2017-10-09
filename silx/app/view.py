@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "21/09/2017"
+__date__ = "02/10/2017"
 
 import sys
 import os
@@ -219,7 +219,6 @@ def main(argv):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         'files',
-        type=argparse.FileType('rb'),
         nargs=argparse.ZERO_OR_MORE,
         help='Data file to show (h5 file, edf files, spec files)')
     parser.add_argument(
@@ -277,14 +276,18 @@ def main(argv):
         PlotWidget.setDefaultBackend("opengl")
 
     app = qt.QApplication([])
+    qt.QLocale.setDefault(qt.QLocale.c())
+
     sys.excepthook = qt.exceptionHandler
     window = Viewer()
     window.resize(qt.QSize(640, 480))
 
-    for f in options.files:
-        filename = f.name
-        f.close()
-        window.appendFile(filename)
+    for filename in options.files:
+        try:
+            window.appendFile(filename)
+        except IOError as e:
+            _logger.error(e.args[0])
+            _logger.debug("Backtrace", exc_info=True)
 
     window.show()
     result = app.exec_()

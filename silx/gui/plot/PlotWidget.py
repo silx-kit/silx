@@ -279,6 +279,9 @@ class PlotWidget(qt.QMainWindow):
     sigSetPanWithArrowKeys = qt.Signal(bool)
     """Signal emitted when pan with arrow keys has changed"""
 
+    _sigAxesVisibilityChanged = qt.Signal(bool)
+    """Signal emitted when the axes visibility changed"""
+
     sigContentChanged = qt.Signal(str, str, str)
     """Signal emitted when the content of the plot is changed.
 
@@ -430,6 +433,11 @@ class PlotWidget(qt.QMainWindow):
 
         self.setFocusPolicy(qt.Qt.StrongFocus)
         self.setFocus(qt.Qt.OtherFocusReason)
+
+        # Set default limits
+        self.setGraphXLimits(0., 100.)
+        self.setGraphYLimits(0., 100., axis='right')
+        self.setGraphYLimits(0., 100., axis='left')
 
     @staticmethod
     def setDefaultBackend(backend):
@@ -938,8 +946,10 @@ class PlotWidget(qt.QMainWindow):
         When image parameters are not provided, if an image with the
         same legend is displayed in the plot, its parameters are used.
 
-        :param numpy.ndarray data: (nrows, ncolumns) data or
-                                   (nrows, ncolumns, RGBA) ubyte array
+        :param numpy.ndarray data:
+            (nrows, ncolumns) data or
+            (nrows, ncolumns, RGBA) ubyte array
+            Note: boolean values are converted to int8.
         :param str legend: The legend to be associated to the image (or None)
         :param info: User-defined information associated to the image
         :param bool replace: True (default) to delete already existing images
@@ -2204,6 +2214,10 @@ class PlotWidget(qt.QMainWindow):
         """
         self._backend.setAxesDisplayed(displayed)
         self._setDirtyPlot()
+        self._sigAxesVisibilityChanged.emit(displayed)
+
+    def _isAxesDisplayed(self):
+        return self._backend.isAxesDisplayed()
 
     @property
     @deprecated(since_version='0.6')

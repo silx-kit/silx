@@ -28,6 +28,7 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "06/09/2017"
 
-from .Plot3DAction import Plot3DAction
-from . import io
-from . import mode
+from .Plot3DAction import Plot3DAction  # noqa
+from . import viewpoint  # noqa
+from . import io  # noqa
+from . import mode  # noqa

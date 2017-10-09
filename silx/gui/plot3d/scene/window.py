@@ -244,6 +244,7 @@ class Window(event.Notifier):
 
         void main(void) {
             gl_FragColor = texture2D(texture, textureCoord);
+            gl_FragColor.a = 1.0;
         }
         """)
 

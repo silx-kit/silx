@@ -36,37 +36,33 @@
 /*******************************************************************************/
 
 
-
-
-
-const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_LINEAR;
-
-__kernel void backproj_kernel(
+kernel void backproj_kernel(
     int num_proj,
     int num_bins,
     float axis_position,
-    __global float *d_SLICE,
-    __read_only image2d_t d_sino,
+    global float *d_SLICE,
+    read_only image2d_t d_sino,
     float gpu_offset_x,
     float gpu_offset_y,
-    __global float * d_cos_s, // precalculated cos(theta[i])
-    __global float * d_sin_s, // precalculated sin(theta[i])
-    __global float * d_axis_s, // array of axis positions (n_projs)
-    __local float* shared2)     // 768B of local mem
+    global float * d_cos_s,  // precalculated cos(theta[i])
+    global float* d_sin_s,   // precalculated sin(theta[i])
+    global float* d_axis_s,  // array of axis positions (n_projs)
+    local float* shared2)    // 768B of local mem
 {
+    const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_LINEAR;
     const int tidx = get_local_id(0); //threadIdx.x;
     const int bidx = get_group_id(0); //blockIdx.x;
     const int tidy = get_local_id(1); //threadIdx.y;
     const int bidy = get_group_id(1); //blockIdx.y;
 
-    //~ __local float shared[768];
+    //~ local float shared[768];
     //~ float  * sh_sin  = shared;
     //~ float  * sh_cos  = shared+256;
     //~ float  * sh_axis = sh_cos+256;
 
-    __local float sh_cos[256];
-    __local float sh_sin[256];
-    __local float sh_axis[256];
+    local float sh_cos[256];
+    local float sh_sin[256];
+    local float sh_axis[256];
 
     float pcos, psin;
     float h0, h1, h2, h3;
@@ -102,9 +98,9 @@ __kernel void backproj_kernel(
         h3 = (acorr05 + (bx00+1)*pcos - (by00+1)*psin);
 
         if(h0>=0 && h0<num_bins) res0 += read_imagef(d_sino, sampler, (float2) (h0 +0.5f,proj +0.5f)).x; // tex2D(texprojs,h0 +0.5f,proj +0.5f);
-        if(h1>=0 && h1<num_bins) res1 += read_imagef(d_sino, sampler, (float2) (h1 +0.5f,proj +0.5f)).x; //tex2D(texprojs,h1 +0.5f,proj +0.5f);
-        if(h2>=0 && h2<num_bins) res2 += read_imagef(d_sino, sampler, (float2) (h2 +0.5f,proj +0.5f)).x; //tex2D(texprojs,h2 +0.5f,proj +0.5f);
-        if(h3>=0 && h3<num_bins) res3 += read_imagef(d_sino, sampler, (float2) (h3 +0.5f,proj +0.5f)).x; //tex2D(texprojs,h3 +0.5f,proj +0.5f);
+        if(h1>=0 && h1<num_bins) res1 += read_imagef(d_sino, sampler, (float2) (h1 +0.5f,proj +0.5f)).x; // tex2D(texprojs,h1 +0.5f,proj +0.5f);
+        if(h2>=0 && h2<num_bins) res2 += read_imagef(d_sino, sampler, (float2) (h2 +0.5f,proj +0.5f)).x; // tex2D(texprojs,h2 +0.5f,proj +0.5f);
+        if(h3>=0 && h3<num_bins) res3 += read_imagef(d_sino, sampler, (float2) (h3 +0.5f,proj +0.5f)).x; // tex2D(texprojs,h3 +0.5f,proj +0.5f);
     }
     d_SLICE[ 32*get_num_groups(0)*(bidy*32+tidy*2+0) + bidx*32 + tidx*2 + 0] = res0;
     d_SLICE[ 32*get_num_groups(0)*(bidy*32+tidy*2+1) + bidx*32 + tidx*2 + 0] = res1;
@@ -130,11 +126,16 @@ __kernel void backproj_kernel(
 
 #define ADJACENT_PIXELS_VALS(arr, Nx, y, xm, xp) ((float2) (arr[y*Nx+xm], arr[y*Nx+xp]))
 
-float linear_interpolation(float2 vals, float x, int xm, int xp) {
+//Simple linear interpolator for working on the GPU
+static float linear_interpolation(float2 vals,
+                                  float x,
+                                  int xm,
+                                  int xp)
+{
     if (xm == xp)
-	return vals.s0; 
+        return vals.s0;
     else 
-	return (vals.s0 * (xp - x)) + (vals.s1 * (x - xm)); 
+        return (vals.s0 * (xp - x)) + (vals.s1 * (x - xm));
 }
 
 /**
@@ -142,27 +143,27 @@ float linear_interpolation(float2 vals, float x, int xm, int xp) {
  *  Same kernel as backproj_kernel, but targets the CPU (no texture)
  *
 **/
-__kernel void backproj_cpu_kernel(
+kernel void backproj_cpu_kernel(
     int num_proj,
     int num_bins,
     float axis_position,
-    __global float *d_SLICE,
-    __global float* d_sino,
+    global float *d_SLICE,
+    global float* d_sino,
     float gpu_offset_x,
     float gpu_offset_y,
-    __global float * d_cos_s, // precalculated cos(theta[i])
-    __global float * d_sin_s, // precalculated sin(theta[i])
-    __global float * d_axis_s, // array of axis positions (n_projs)
-    __local float* shared2)     // 768B of local mem
+    global float * d_cos_s, // precalculated cos(theta[i])
+    global float * d_sin_s, // precalculated sin(theta[i])
+    global float * d_axis_s, // array of axis positions (n_projs)
+    local float* shared2)     // 768B of local mem
 {
     const int tidx = get_local_id(0); //threadIdx.x;
     const int bidx = get_group_id(0); //blockIdx.x;
     const int tidy = get_local_id(1); //threadIdx.y;
     const int bidy = get_group_id(1); //blockIdx.y;
 
-    __local float sh_cos[256];
-    __local float sh_sin[256];
-    __local float sh_axis[256];
+    local float sh_cos[256];
+    local float sh_sin[256];
+    local float sh_axis[256];
 
     float pcos, psin;
     float h0, h1, h2, h3;

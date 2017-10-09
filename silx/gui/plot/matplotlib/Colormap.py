@@ -184,27 +184,40 @@ def getScalarMappable(colormap, data=None):
                 vmin, vmax = vmax, vmin
 
         # Set unset/negative bounds to positive bounds
-        if (vmin is None or vmax is None) and data is not None:
-            finiteData = data[numpy.isfinite(data)]
-            posData = finiteData[finiteData > 0]
-            if vmax is None:
-                # 1. as an ultimate fallback
-                vmax = posData.max() if posData.size > 0 else 1.
-            if vmin is None:
-                vmin = posData.min() if posData.size > 0 else vmax
-            if vmin > vmax:
-                vmin = vmax
+        if vmin is None or vmax is None:
+            # Convert to numpy array
+            data = numpy.array(data if data is not None else [], copy=False)
+
+            if data.size > 0:
+                finiteData = data[numpy.isfinite(data)]
+                posData = finiteData[finiteData > 0]
+                if vmax is None:
+                    # 1. as an ultimate fallback
+                    vmax = posData.max() if posData.size > 0 else 1.
+                if vmin is None:
+                    vmin = posData.min() if posData.size > 0 else vmax
+                if vmin > vmax:
+                    vmin = vmax
+            else:
+                vmin, vmax = 1., 1.
 
         norm = matplotlib.colors.LogNorm(vmin, vmax)
 
     else:  # Linear normalization
         if colormap.isAutoscale():
-            if data is None:
-                vmin, vmax = None, None
+            # Convert to numpy array
+            data = numpy.array(data if data is not None else [], copy=False)
+
+            if data.size == 0:
+                vmin, vmax = 1., 1.
             else:
                 finiteData = data[numpy.isfinite(data)]
-                vmin = finiteData.min()
-                vmax = finiteData.max()
+                if finiteData.size > 0:
+                    vmin = finiteData.min()
+                    vmax = finiteData.max()
+                else:
+                    vmin, vmax = 1., 1.
+
         else:
             vmin = colormap.getVMin()
             vmax = colormap.getVMax()

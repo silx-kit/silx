@@ -109,6 +109,24 @@ class AbstractDataViewerTests(TestCaseQt):
         self.assertEqual(DataViewer.RAW_MODE, widget.displayMode())
         self.assertIn(DataViewer.PLOT2D_MODE, availableModes)
 
+    def test_plot_2d_bool(self):
+        data = numpy.zeros((10, 10), dtype=numpy.bool)
+        data[::2, ::2] = True
+        widget = self.create_widget()
+        widget.setData(data)
+        availableModes = set([v.modeId() for v in widget.currentAvailableViews()])
+        self.assertEqual(DataViewer.RAW_MODE, widget.displayMode())
+        self.assertIn(DataViewer.PLOT2D_MODE, availableModes)
+
+    def test_plot_2d_complex_data(self):
+        data = numpy.arange(3 ** 2, dtype=numpy.complex)
+        data.shape = [3] * 2
+        widget = self.create_widget()
+        widget.setData(data)
+        availableModes = set([v.modeId() for v in widget.currentAvailableViews()])
+        self.assertEqual(DataViewer.RAW_MODE, widget.displayMode())
+        self.assertIn(DataViewer.PLOT2D_MODE, availableModes)
+
     def test_plot_3d_data(self):
         data = numpy.arange(3 ** 3)
         data.shape = [3] * 3

@@ -302,8 +302,7 @@ class ImageData(ImageBase, ColormapMixIn):
         else:
             # Apply colormap, in this case an new array is always returned
             colormap = self.getColormap()
-            image = applyColormapToData(self.getData(copy=False),
-                                        **colormap)
+            image = colormap.applyToData(self.getData(copy=False))
             return image
 
     def getAlternativeImageData(self, copy=True):
@@ -331,6 +330,14 @@ class ImageData(ImageBase, ColormapMixIn):
         """
         data = numpy.array(data, copy=copy)
         assert data.ndim == 2
+        if data.dtype.kind == 'b':
+            _logger.warning(
+                'Converting boolean image to int8 to plot it.')
+            data = numpy.array(data, copy=False, dtype=numpy.int8)
+        elif numpy.issubdtype(data.dtype, numpy.complex):
+            _logger.warning(
+                'Converting complex image to absolute value to plot it.')
+            data = numpy.absolute(data)
         self._data = data
 
         if alternative is not None:

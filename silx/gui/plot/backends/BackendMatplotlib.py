@@ -76,6 +76,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         # This attribute is used to ensure consistent values returned
         # when getting the limits at the expense of a replot
         self._dirtyLimits = True
+        self._axesDisplayed = True
 
         self.fig = Figure()
         self.fig.set_facecolor("w")
@@ -112,10 +113,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         self._graphCursor = tuple()
         self.matplotlibVersion = matplotlib.__version__
-
-        self.setGraphXLimits(0., 100.)
-        self.setGraphYLimits(0., 100., axis='right')
-        self.setGraphYLimits(0., 100., axis='left')
 
         self._enableAxis('right', False)
 
@@ -675,6 +672,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         :param bool displayed: If `True` axes are displayed. If `False` axes
             are not anymore visible and the margin used for them is removed.
         """
+        BackendBase.BackendBase.setAxesDisplayed(self, displayed)
         if displayed:
             # show axes and viewbox rect
             self.ax.set_axis_on()
@@ -817,8 +815,21 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
     def draw(self):
         """Override canvas draw method to support faster draw of overlays."""
         if self._plot._getDirtyPlot():  # Need a full redraw
+            # Store previous limits
+            xLimits = self.ax.get_xbound()
+            yLimits = self.ax.get_ybound()
+            yRightLimits = self.ax2.get_ybound()
+
             FigureCanvasQTAgg.draw(self)
             self._background = None  # Any saved background is dirty
+
+            # Check if limits changed due to a resize of the widget
+            if xLimits != self.ax.get_xbound():
+                self._plot.getXAxis()._emitLimitsChanged()
+            if yLimits != self.ax.get_ybound():
+                self._plot.getYAxis(axis='left')._emitLimitsChanged()
+            if yRightLimits != self.ax2.get_ybound():
+                self._plot.getYAxis(axis='left')._emitLimitsChanged()
 
         if (self._overlays or self._graphCursor or
                 self._plot._getDirtyPlot() == 'overlay'):

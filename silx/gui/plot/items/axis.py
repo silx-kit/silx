@@ -104,6 +104,11 @@ class Axis(qt.QObject):
         self._internalSetLimits(vmin, vmax)
         self._plot._setDirtyPlot()
 
+        self._emitLimitsChanged()
+
+    def _emitLimitsChanged(self):
+        """Emit axis sigLimitsChanged and PlotWidget limitsChanged event"""
+        vmin, vmax = self.getLimits()
         self.sigLimitsChanged.emit(vmin, vmax)
         self._plot._notifyLimitsChanged(emitSignal=False)
 

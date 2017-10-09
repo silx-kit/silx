@@ -136,11 +136,11 @@ bins ranges will be :
 * [0, 2.5[, [2.5, 5[, [5, 7.5[, [7.5, 10 **]** if last_bin_closed = **True**
 
 ....
-"""  # noqa
+"""
 
 __authors__ = ["D. Naudet"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "02/10/2017"
 
 import numpy as np
 from .chistogramnd import chistogramnd as _chistogramnd  # noqa
@@ -151,7 +151,7 @@ from .chistogramnd_lut import histogramnd_from_lut as _histo_from_lut
 class Histogramnd(object):
     """
     Computes the multidimensional histogram of some data.
-    """  # noqa
+    """
 
     def __init__(self,
                  sample,

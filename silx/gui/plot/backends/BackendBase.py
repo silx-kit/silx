@@ -59,6 +59,7 @@ class BackendBase(object):
         self.__yLimits = {'left': (1., 100.), 'right': (1., 100.)}
         self.__yAxisInverted = False
         self.__keepDataAspectRatio = False
+        self._axesDisplayed = True
         # Store a weakref to get access to the plot state.
         self._setPlot(plot)
 
@@ -496,4 +497,11 @@ class BackendBase(object):
         :param bool displayed: If `True` axes are displayed. If `False` axes
             are not anymore visible and the margin used for them is removed.
         """
-        raise NotImplementedError()
+        self._axesDisplayed = displayed
+
+    def isAxesDisplayed(self):
+        """private because in some case it is possible that one of the two axes
+        are displayed and not the other.
+        This only check status set to axes from the public API
+        """
+        return self._axesDisplayed

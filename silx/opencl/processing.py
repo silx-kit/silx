@@ -41,7 +41,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "26/09/2017"
+__date__ = "03/10/2017"
 __status__ = "stable"
 
 
@@ -51,7 +51,7 @@ import gc
 from collections import namedtuple
 import numpy
 import threading
-from .common import ocl, pyopencl, release_cl_buffers
+from .common import ocl, pyopencl, release_cl_buffers, kernel_workgroup_size
 from .utils import concatenate_cl_kernel
 
 
@@ -97,7 +97,7 @@ class OpenclProcessing(object):
     kernel_files = []
 
     def __init__(self, ctx=None, devicetype="all", platformid=None, deviceid=None,
-                 block_size=None, profile=False, memory=None):
+                 block_size=None, profile=False):
         """Constructor of the abstract OpenCL processing class
 
         :param ctx: actual working context, left to None for automatic
@@ -109,7 +109,6 @@ class OpenclProcessing(object):
                             out come of the compilation
         :param profile: switch on profiling to be able to profile at the kernel
                          level, store profiling elements (makes code slightly slower)
-        :param memory: minimum amount of memory available on the device
         """
         self.sem = threading.Semaphore()
         self.profile = None
@@ -126,7 +125,7 @@ class OpenclProcessing(object):
         platform = ocl.get_platform(platform_name)
         self.device = platform.get_device(device_name)
         self.cl_kernel_args = {}  # dict with all kernel arguments
-        self.queue = None
+
         self.set_profiling(profile)
         self.block_size = block_size
         self.program = None
@@ -141,13 +140,12 @@ class OpenclProcessing(object):
         self.ctx = None
         gc.collect()
 
-    def allocate_buffers(self, buffers=None, use_array=False):
+    def allocate_buffers(self, buffers=None):
         """
         Allocate OpenCL buffers required for a specific configuration
 
         :param buffers: a list of BufferDescriptions, leave to None for
                         paramatrized buffers.
-        :param use_array: use pyopencl.array instead of simple buffers
 
         Note that an OpenCL context also requires some memory, as well
         as Event and other OpenCL functionalities which cannot and are
@@ -168,9 +166,9 @@ class OpenclProcessing(object):
             # check if enough memory is available on the device
             ualloc = 0
             for buf in buffers:
-                ualloc += numpy.dtype(buf.dtype).itemsize * numpy.prod(buf.size)
-            logger.info("%.3fMB are needed on device which has %.3fMB",
-                        ualloc / 1.0e6, self.device.memory / 1.0e6)
+                ualloc += numpy.dtype(buf.dtype).itemsize * buf.size
+            logger.info("%.3fMB are needed on device: %s,  which has %.3fMB",
+                        ualloc / 1.0e6, self.device, self.device.memory / 1.0e6)
 
             if ualloc >= self.device.memory:
                 raise MemoryError("Fatal error in allocate_buffers. Not enough "
@@ -191,6 +189,22 @@ class OpenclProcessing(object):
                 raise MemoryError(error)
 
         self.cl_mem.update(mem)
+
+    def add_to_cl_mem(self, parrays):
+        """
+        Add pyopencl.array, which are allocated by pyopencl, to self.cl_mem.
+        This should be used before calling allocate_buffers().
+
+        :param parrays: a dictionary of `pyopencl.array.Array` or `pyopencl.Buffer`
+        """
+        mem = self.cl_mem
+        for name, parr in parrays.items():
+            mem[name] = parr
+        self.cl_mem.update(mem)
+
+    def check_workgroup_size(self, kernel_name):
+        kernel = self.kernels.get_kernel(kernel_name)
+        self.compiletime_workgroup_size = kernel_workgroup_size(self.program, kernel)
 
     def free_buffers(self):
         """free all device.memory allocated on the device

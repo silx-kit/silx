@@ -43,6 +43,7 @@ The following QAction are available:
 - :class:`ZoomBackAction`
 - :class:`ZoomInAction`
 - :class:`ZoomOutAction`
+- :class:'ShowAxisAction'
 """
 
 from __future__ import division
@@ -354,7 +355,7 @@ class ColormapAction(PlotAction):
                 dataMax = goodData.max()
             else:
                 qt.QMessageBox.warning(
-                    self, "No Data",
+                    None, "No Data",
                     "Image data does not contain any real value")
                 dataMin, dataMax = 1., 10.
 
@@ -391,6 +392,7 @@ class ColormapAction(PlotAction):
 
 class KeepAspectRatioAction(PlotAction):
     """QAction controlling aspect ratio on a :class:`.PlotWidget`.
+
     :param plot: :class:`.PlotWidget` instance on which to operate
     :param parent: See :class:`QAction`
     """
@@ -521,3 +523,27 @@ class PanWithArrowKeysAction(PlotAction):
 
     def _actionTriggered(self, checked=False):
         self.plot.setPanWithArrowKeys(checked)
+
+
+class ShowAxisAction(PlotAction):
+    """QAction controlling axis visibility on a :class:`.PlotWidget`.
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
+
+    def __init__(self, plot, parent=None):
+        tooltip = 'Show plot axis when checked, otherwise hide them'
+        PlotAction.__init__(self,
+                            plot,
+                            icon='axis',
+                            text='show axis',
+                            tooltip=tooltip,
+                            triggered=self._actionTriggered,
+                            checkable=True,
+                            parent=parent)
+        self.setChecked(self.plot._backend.isAxesDisplayed())
+        plot._sigAxesVisibilityChanged.connect(self.setChecked)
+
+    def _actionTriggered(self, checked=False):
+        self.plot.setAxesDisplayed(checked)

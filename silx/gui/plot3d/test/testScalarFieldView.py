@@ -52,17 +52,6 @@ class TestScalarFieldView(TestCaseQt, ParametricTestCase):
         self.widget = ScalarFieldView()
         self.widget.show()
 
-        # Create a parameter tree for the scalar field view
-        self.treeView = TreeView()
-        self.treeView.setSfView(self.widget)  # Attach the parameter tree to the view
-        self.treeView.show()
-
-        # Add the parameter tree to the main window in a dock widget
-        dock = qt.QDockWidget()
-        dock.setWindowTitle('Parameters')
-        dock.setWidget(self.treeView)
-        self.widget.addDockWidget(qt.Qt.RightDockWidgetArea, dock)
-
         # Commented as it slows down the tests
         # self.qWaitForWindowExposed(self.widget)
 
@@ -71,7 +60,6 @@ class TestScalarFieldView(TestCaseQt, ParametricTestCase):
         self.widget.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.widget.close()
         del self.widget
-        del self.treeView
         super(TestScalarFieldView, self).tearDown()
 
     @staticmethod

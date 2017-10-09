@@ -27,9 +27,15 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-__kernel void addition(__global float* a, __global float* b, __global float* res, int N)
+
+
+// "Hello_world" kernel to test if OpenCL is actually working
+kernel void addition(global float* a,
+                     global float* b,
+                     global float* res,
+                     int N)
 {
-    unsigned int i = get_global_id(0);
+    int i = get_global_id(0);
     if( i<N ){
         res[i] = a[i] + b[i];
     }
