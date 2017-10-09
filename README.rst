@@ -24,7 +24,7 @@ The current version provides:
 * a unified viewer (*silx view filename*) for HDF5, SPEC and image file formats
 * a unified converter to HDF5 format (*silx convert filename*)
 * median filters on images (C and OpenCL implementations)
-* image alignement (sift - OpenCL implementation)
+* image alignment (sift - OpenCL implementation)
 * filtered backprojection for tomography
 
 Installation
