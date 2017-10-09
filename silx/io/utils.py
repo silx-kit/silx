@@ -43,7 +43,7 @@ else:
 
 __authors__ = ["P. Knobel", "V. Valls"]
 __license__ = "MIT"
-__date__ = "28/09/2017"
+__date__ = "09/10/2017"
 
 
 logger = logging.getLogger(__name__)
@@ -318,7 +318,11 @@ def savespec(specfile, x, y, xlabel="X", ylabel="Y", fmt="%.7g",
 
     if close_file:
         f.close()
-        return None
+        f = None
+        if sys.platform == "win32":
+            # fix https://github.com/silx-kit/silx/issues/1274
+            import gc
+            gc.collect()
     return f
 
 
