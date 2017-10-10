@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "29/11/2017"
+__date__ = "05/12/2017"
 
 
 import logging
@@ -203,7 +203,7 @@ class Hdf5TreeView(qt.QTreeView):
         - If the item is not found, the selection do not change.
         - A none argument allow to deselect everything
 
-        :param h5py.Npde h5Object: The node to select
+        :param h5py.Node h5Object: The node to select
         """
         if h5Object is None:
             self.setCurrentIndex(qt.QModelIndex())
