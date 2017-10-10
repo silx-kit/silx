@@ -803,6 +803,12 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
 
     # replot control
 
+    def resizeEvent(self, event):
+        FigureCanvasQTAgg.resizeEvent(self, event)
+        if self._overlays or self._graphCursor:
+            # This is needed with matplotlib 1.5.x and 2.0.x
+            self._plot._setDirtyPlot()
+
     def _drawOverlays(self):
         """Draw overlays if any."""
         if self._overlays or self._graphCursor:
