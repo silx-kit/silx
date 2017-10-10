@@ -700,8 +700,6 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
     """Signal handling automatic asynchronous replot"""
 
     def __init__(self, plot, parent=None):
-        self._insideResizeEventMethod = False
-
         BackendMatplotlib.__init__(self, plot, parent)
         FigureCanvasQTAgg.__init__(self, self.fig)
         self.setParent(parent)
@@ -805,43 +803,10 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
 
     # replot control
 
-    def resizeEvent(self, event):
-        self._insideResizeEventMethod = True
-        # Need to dirty the whole plot on resize.
-        self._plot._setDirtyPlot()
-        FigureCanvasQTAgg.resizeEvent(self, event)
-        self._insideResizeEventMethod = False
-
-    def draw(self):
-        """Override canvas draw method to support faster draw of overlays."""
-        if self._plot._getDirtyPlot():  # Need a full redraw
-            # Store previous limits
-            xLimits = self.ax.get_xbound()
-            yLimits = self.ax.get_ybound()
-            yRightLimits = self.ax2.get_ybound()
-
-            FigureCanvasQTAgg.draw(self)
-            self._background = None  # Any saved background is dirty
-
-            # Check if limits changed due to a resize of the widget
-            if xLimits != self.ax.get_xbound():
-                self._plot.getXAxis()._emitLimitsChanged()
-            if yLimits != self.ax.get_ybound():
-                self._plot.getYAxis(axis='left')._emitLimitsChanged()
-            if yRightLimits != self.ax2.get_ybound():
-                self._plot.getYAxis(axis='left')._emitLimitsChanged()
-
-        if (self._overlays or self._graphCursor or
-                self._plot._getDirtyPlot() == 'overlay'):
-            # There are overlays or crosshair, or they is just no more overlays
-
-            # Specific case: called from resizeEvent:
-            # avoid store/restore background, just draw the overlay
-            if not self._insideResizeEventMethod:
-                if self._background is None:  # First store the background
-                    self._background = self.copy_from_bbox(self.fig.bbox)
-
-                self.restore_region(self._background)
+    def _drawOverlays(self):
+        """Draw overlays if any."""
+        if self._overlays or self._graphCursor:
+            # There is some overlays or crosshair
 
             # This assume that items are only on left/bottom Axes
             for item in self._overlays:
@@ -850,11 +815,52 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
             for item in self._graphCursor:
                 self.ax.draw_artist(item)
 
-            self.blit(self.fig.bbox)
+    def draw(self):
+        """Overload draw
+
+        It performs a full redraw (including overlays) of the plot.
+        It also resets background and emit limits changed signal.
+
+        This is directly called by matplotlib for widget resize.
+        """
+        # Store previous limits
+        xLimits = self.ax.get_xbound()
+        yLimits = self.ax.get_ybound()
+        yRightLimits = self.ax2.get_ybound()
+
+        FigureCanvasQTAgg.draw(self)
+        if self._overlays or self._graphCursor:
+            # Save background
+            self._background = self.copy_from_bbox(self.fig.bbox)
+        else:
+            self._background = None  # Reset background
+
+        # Check if limits changed due to a resize of the widget
+        if xLimits != self.ax.get_xbound():
+            self._plot.getXAxis()._emitLimitsChanged()
+        if yLimits != self.ax.get_ybound():
+            self._plot.getYAxis(axis='left')._emitLimitsChanged()
+        if yRightLimits != self.ax2.get_ybound():
+            self._plot.getYAxis(axis='left')._emitLimitsChanged()
+
+        self._drawOverlays()
 
     def replot(self):
         BackendMatplotlib.replot(self)
-        self.draw()
+
+        dirtyFlag = self._plot._getDirtyPlot()
+
+        if dirtyFlag == 'overlay':
+            # Only redraw overlays using fast rendering path
+            if self._background is None:
+                self._background = self.copy_from_bbox(self.fig.bbox)
+            self.restore_region(self._background)
+            self._drawOverlays()
+            self.blit(self.fig.bbox)
+
+        elif dirtyFlag:  # Need full redraw
+            self.draw()
+
 
     # cursor
 
