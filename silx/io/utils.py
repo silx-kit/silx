@@ -28,9 +28,11 @@ import os.path
 import sys
 import time
 import logging
+import collections
 
 from silx.utils.deprecation import deprecated
 from silx.utils.proxy import Proxy
+from silx.third_party import enum
 
 try:
     import h5py
@@ -45,6 +47,20 @@ __date__ = "05/12/2017"
 
 
 logger = logging.getLogger(__name__)
+
+
+class H5Type(enum.Enum):
+    """Identify a set of HDF5 concepts"""
+    DATASET = 1
+    GROUP = 2
+    FILE = 3
+    SOFT_LINK = 4
+    EXTERNAL_LINK = 5
+    HARD_LINK = 6
+
+
+_CLASSES_TYPE = None
+"""Store mapping between classes and types"""
 
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)  # noqa
 
@@ -482,16 +498,24 @@ class _MainNode(Proxy):
     def __init__(self, h5_node, h5_file):
         super(_MainNode, self).__init__(h5_node)
         self.__file = h5_file
-        self.__class = get_h5py_class(h5_node)
+        self.__class = get_h5_class(h5_node)
+
+    @property
+    def h5_class(self):
+        """Returns the HDF5 class which is mimicked by this class.
+
+        :rtype: H5Type
+        """
+        return self.__class
 
     @property
     def h5py_class(self):
         """Returns the h5py classes which is mimicked by this class. It can be
         one of `h5py.File, h5py.Group` or `h5py.Dataset`.
 
-        :rtype: Class
+        :rtype: h5py class
         """
-        return self.__class
+        return h5type_to_h5py_class(self.__class)
 
     def __enter__(self):
         return self
@@ -566,6 +590,87 @@ def load(filename):
     return open(filename)
 
 
+def _get_classes_type():
+    """Returns a mapping between Python classes and HDF5 concepts.
+
+    This function allow an lazy initialization to avoid recurssive import
+    of modules.
+    """
+    global _CLASSES_TYPE
+    from . import commonh5
+
+    if _CLASSES_TYPE is not None:
+        return _CLASSES_TYPE
+
+    _CLASSES_TYPE = collections.OrderedDict()
+
+    _CLASSES_TYPE[commonh5.Dataset] = H5Type.DATASET
+    _CLASSES_TYPE[commonh5.File] = H5Type.FILE
+    _CLASSES_TYPE[commonh5.Group] = H5Type.GROUP
+    _CLASSES_TYPE[commonh5.SoftLink] = H5Type.SOFT_LINK
+
+    if h5py is not None:
+        _CLASSES_TYPE[h5py.Dataset] = H5Type.DATASET
+        _CLASSES_TYPE[h5py.File] = H5Type.FILE
+        _CLASSES_TYPE[h5py.Group] = H5Type.GROUP
+        _CLASSES_TYPE[h5py.SoftLink] = H5Type.SOFT_LINK
+        _CLASSES_TYPE[h5py.HardLink] = H5Type.HARD_LINK
+        _CLASSES_TYPE[h5py.ExternalLink] = H5Type.EXTERNAL_LINK
+
+    return _CLASSES_TYPE
+
+
+def get_h5_class(obj=None, class_=None):
+    """
+    Returns the HDF5 type relative to the object or to the class.
+
+    :param obj: Instance of an object
+    :param class_: A class
+    :rtype: H5Type
+    """
+    if class_ is None:
+        class_ = obj.__class__
+
+    classes = _get_classes_type()
+    t = classes.get(class_, None)
+    if t is not None:
+        return t
+
+    if obj is not None:
+        if hasattr(obj, "h5_class"):
+            return obj.h5_class
+
+    for referencedClass_, type_ in classes.items():
+        if issubclass(class_, referencedClass_):
+            classes[class_] = type_
+            return type_
+
+    classes[class_] = None
+    return None
+
+
+def h5type_to_h5py_class(type_):
+    """
+    Returns an h5py class from an H5Type. None if nothing found.
+
+    :param H5Type type_:
+    :rtype: H5py class
+    """
+    if type_ == H5Type.FILE:
+        return h5py.File
+    if type_ == H5Type.GROUP:
+        return h5py.Group
+    if type_ == H5Type.DATASET:
+        return h5py.Dataset
+    if type_ == H5Type.SOFT_LINK:
+        return h5py.SoftLink
+    if type_ == H5Type.HARD_LINK:
+        return h5py.HardLink
+    if type_ == H5Type.EXTERNAL_LINK:
+        return h5py.ExternalLink
+    return None
+
+
 def get_h5py_class(obj):
     """Returns the h5py class from an object.
 
@@ -577,10 +682,8 @@ def get_h5py_class(obj):
     """
     if hasattr(obj, "h5py_class"):
         return obj.h5py_class
-    elif isinstance(obj, (h5py.File, h5py.Group, h5py.Dataset, h5py.SoftLink)):
-        return obj.__class__
-    else:
-        return None
+    type_ = get_h5_class(obj)
+    return h5type_to_h5py_class(type_)
 
 
 def is_file(obj):
@@ -589,22 +692,18 @@ def is_file(obj):
 
     :param obj: An object
     """
-    class_ = get_h5py_class(obj)
-    if class_ is None:
-        return False
-    return issubclass(class_, h5py.File)
+    t = get_h5_class(obj)
+    return t == H5Type.FILE
 
 
 def is_group(obj):
     """
-    True if the object is a h5py.Group-like object.
+    True if the object is a h5py.Group-like object. A file is a group.
 
     :param obj: An object
     """
-    class_ = get_h5py_class(obj)
-    if class_ is None:
-        return False
-    return issubclass(class_, h5py.Group)
+    t = get_h5_class(obj)
+    return t in [H5Type.GROUP, H5Type.FILE]
 
 
 def is_dataset(obj):
@@ -613,10 +712,8 @@ def is_dataset(obj):
 
     :param obj: An object
     """
-    class_ = get_h5py_class(obj)
-    if class_ is None:
-        return False
-    return issubclass(class_, h5py.Dataset)
+    t = get_h5_class(obj)
+    return t == H5Type.DATASET
 
 
 def is_softlink(obj):
@@ -625,10 +722,8 @@ def is_softlink(obj):
 
     :param obj: An object
     """
-    class_ = get_h5py_class(obj)
-    if class_ is None:
-        return False
-    return issubclass(class_, h5py.SoftLink)
+    t = get_h5_class(obj)
+    return t == H5Type.SOFT_LINK
 
 
 if h5py is None:
@@ -637,7 +732,3 @@ if h5py is None:
         raise h5py_import_error
 
     get_h5py_class = raise_h5py_missing
-    is_file = raise_h5py_missing
-    is_group = raise_h5py_missing
-    is_dataset = raise_h5py_missing
-    is_softlink = raise_h5py_missing
