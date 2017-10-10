@@ -30,7 +30,7 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "29/09/2017"
+__date__ = "10/10/2017"
 
 import functools
 import os.path
@@ -330,7 +330,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
 
             self.__data.addHeaderRow(headerLabel="Data info")
 
-            if h5py is not None and hasattr(obj, "id"):
+            if h5py is not None and hasattr(obj, "id") and hasattr(obj.id, "get_type"):
                 # display the HDF5 type
                 self.__data.addHeaderValueRow("HDF5 type", self.__formatHdf5Type)
             self.__data.addHeaderValueRow("dtype", self.__formatDType)
@@ -345,21 +345,22 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
         # h5py also expose fletcher32 and shuffle attributes, but it is also
         # part of the filters
         if hasattr(obj, "shape") and hasattr(obj, "id"):
-            dcpl = obj.id.get_create_plist()
-            if dcpl.get_nfilters() > 0:
-                self.__data.addHeaderRow(headerLabel="Compression info")
-                pos = _CellData(value="Position", isHeader=True)
-                hdf5id = _CellData(value="HDF5 ID", isHeader=True)
-                name = _CellData(value="Name", isHeader=True)
-                options = _CellData(value="Options", isHeader=True)
-                self.__data.addRow(pos, hdf5id, name, options)
-            for index in range(dcpl.get_nfilters()):
-                callback = lambda index, dataIndex, x: self.__get_filter_info(x, index)[dataIndex]
-                pos = _CellData(value=functools.partial(callback, index, 0))
-                hdf5id = _CellData(value=functools.partial(callback, index, 1))
-                name = _CellData(value=functools.partial(callback, index, 2))
-                options = _CellData(value=functools.partial(callback, index, 3))
-                self.__data.addRow(pos, hdf5id, name, options)
+            if hasattr(obj.id, "get_create_plist"):
+                dcpl = obj.id.get_create_plist()
+                if dcpl.get_nfilters() > 0:
+                    self.__data.addHeaderRow(headerLabel="Compression info")
+                    pos = _CellData(value="Position", isHeader=True)
+                    hdf5id = _CellData(value="HDF5 ID", isHeader=True)
+                    name = _CellData(value="Name", isHeader=True)
+                    options = _CellData(value="Options", isHeader=True)
+                    self.__data.addRow(pos, hdf5id, name, options)
+                for index in range(dcpl.get_nfilters()):
+                    callback = lambda index, dataIndex, x: self.__get_filter_info(x, index)[dataIndex]
+                    pos = _CellData(value=functools.partial(callback, index, 0))
+                    hdf5id = _CellData(value=functools.partial(callback, index, 1))
+                    name = _CellData(value=functools.partial(callback, index, 2))
+                    options = _CellData(value=functools.partial(callback, index, 3))
+                    self.__data.addRow(pos, hdf5id, name, options)
 
         if hasattr(obj, "attrs"):
             if len(obj.attrs) > 0:
