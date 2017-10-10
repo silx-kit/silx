@@ -33,6 +33,7 @@ __date__ = "08/11/2016"
 
 import contextlib
 import logging
+import string
 import numpy
 
 from ... import _glutils
@@ -296,9 +297,8 @@ class DirectionalLight(event.Notifier, ProgramFunction):
 
 
 class Colormap(event.Notifier, ProgramFunction):
-    # TODO use colors for out-of-bound values, for <=0 with log, for nan
 
-    decl = """
+    _declTemplate = string.Template("""
     uniform struct {
         sampler2D texture;
         bool isLog;
@@ -321,9 +321,17 @@ class Colormap(event.Notifier, ProgramFunction):
             value = clamp(cmap.oneOverRange * (value - cmap.min), 0.0, 1.0);
         }
 
+        $discard
+
         vec4 color = texture2D(cmap.texture, vec2(value, 0.5));
         return color;
     }
+    """)
+
+    _discardCode = """
+        if (value == 0.) {
+            discard;
+        }
     """
 
     call = "colormap"
@@ -346,7 +354,10 @@ class Colormap(event.Notifier, ProgramFunction):
         super(Colormap, self).__init__()
 
         # Init privates to default
-        self._colormap, self._norm, self._range = None, 'linear', (1., 10.)
+        self._colormap = None
+        self._norm = 'linear'
+        self._range = 1., 10.
+        self._displayValuesBelowMin = True
 
         self._texture = None
         self._update_texture = True
@@ -361,6 +372,12 @@ class Colormap(event.Notifier, ProgramFunction):
         self.colormap = colormap
         self.norm = norm
         self.range_ = range_
+
+    @property
+    def decl(self):
+        """Source code of the function declaration"""
+        return self._declTemplate.substitute(
+            discard="" if self.displayValuesBelowMin else self._discardCode)
 
     @property
     def colormap(self):
@@ -418,6 +435,19 @@ class Colormap(event.Notifier, ProgramFunction):
 
         if range_ != self._range:
             self._range = range_
+            self.notify()
+
+    @property
+    def displayValuesBelowMin(self):
+        """True to display values below colormap min, False to discard them.
+        """
+        return self._displayValuesBelowMin
+
+    @displayValuesBelowMin.setter
+    def displayValuesBelowMin(self, displayValuesBelowMin):
+        displayValuesBelowMin = bool(displayValuesBelowMin)
+        if self._displayValuesBelowMin != displayValuesBelowMin:
+            self._displayValuesBelowMin = displayValuesBelowMin
             self.notify()
 
     def setupProgram(self, context, program):
