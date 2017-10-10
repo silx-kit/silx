@@ -32,6 +32,7 @@ import collections
 
 from silx.utils.deprecation import deprecated
 from silx.utils.proxy import Proxy
+from silx.third_party import six
 from silx.third_party import enum
 
 try:
@@ -40,11 +41,16 @@ except ImportError as e:
     h5py = None
     h5py_import_error = e
 
+try:
+    import h5pyd
+except ImportError as e:
+    h5pyd = None
+    h5py_import_error = e
+
 
 __authors__ = ["P. Knobel", "V. Valls"]
 __license__ = "MIT"
 __date__ = "05/12/2017"
-
 
 logger = logging.getLogger(__name__)
 
@@ -441,6 +447,18 @@ def _open(filename):
     :raises: IOError if the file can't be loaded as an h5py.File like object
     :rtype: h5py.File
     """
+    uri = six.moves.urllib.parse.urlparse(filename)
+    if uri.netloc == '' or uri.scheme in ['', 'file']:
+        filename = uri.path
+    else:
+        if h5pyd is None:
+            raise IOError("URI '%s' unsupported. Try to install h5pyd." % filename)
+        path = uri.path
+        endpoint = "%s://%s" % (uri.scheme, uri.netloc)
+        if path.startswith("/"):
+            path = path[1:]
+        return h5pyd.File(path, 'r', endpoint=endpoint)
+
     if not os.path.isfile(filename):
         raise IOError("Filename '%s' must be a file path" % filename)
 
@@ -616,6 +634,14 @@ def _get_classes_type():
         _CLASSES_TYPE[h5py.SoftLink] = H5Type.SOFT_LINK
         _CLASSES_TYPE[h5py.HardLink] = H5Type.HARD_LINK
         _CLASSES_TYPE[h5py.ExternalLink] = H5Type.EXTERNAL_LINK
+
+    if h5pyd is not None:
+        _CLASSES_TYPE[h5pyd.Dataset] = H5Type.DATASET
+        _CLASSES_TYPE[h5pyd.File] = H5Type.FILE
+        _CLASSES_TYPE[h5pyd.Group] = H5Type.GROUP
+        _CLASSES_TYPE[h5pyd.SoftLink] = H5Type.SOFT_LINK
+        _CLASSES_TYPE[h5pyd.HardLink] = H5Type.HARD_LINK
+        _CLASSES_TYPE[h5pyd.ExternalLink] = H5Type.EXTERNAL_LINK
 
     return _CLASSES_TYPE
 
