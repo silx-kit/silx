@@ -681,10 +681,15 @@ cdef class SpecFile(object):
 
     def __dealloc__(self):
         """Destructor: Calls SfClose(self.handle)"""
+        self.close()
+
+    def close(self):
+        """Close the file descriptor"""
         # handle is NULL if SfOpen failed
         if self.handle:
             if specfile_wrapper.SfClose(self.handle):
                 _logger.warning("Error while closing SpecFile")
+            self.handle = NULL
 
     def __len__(self):
         """Return the number of scans in the SpecFile
