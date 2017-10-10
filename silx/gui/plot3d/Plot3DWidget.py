@@ -54,11 +54,24 @@ class _OverviewViewport(scene.Viewport):
     :param Camera camera: The camera to track.
     """
 
+    _SIZE = 100
+    """Size in pixels of the overview square"""
+
     def __init__(self, camera=None):
         super(_OverviewViewport, self).__init__()
-        self.size = 100, 100
+        self.size = self._SIZE, self._SIZE
+        self.background = None  # Disable clear
 
         self.scene.transforms = [transform.Scale(2.5, 2.5, 2.5)]
+
+        # Add a point to draw the background (in a group with depth mask)
+        backgroundPoint = primitives.ColorPoints(
+            vertices=[(0., 0., 0.)],
+            colors=(1., 1., 1., 0.5),
+            sizes=self._SIZE)
+        noDepthGroup = primitives.GroupNoDepth(mask=True, notest=True)
+        noDepthGroup.children.append(backgroundPoint)
+        self.scene.children.append(noDepthGroup)
 
         axes = primitives.Axes()
         self.scene.children.append(axes)
@@ -108,7 +121,6 @@ class Plot3DWidget(glu.OpenGLWidget):
 
         # Main viewport
         self.viewport = scene.Viewport()
-        self.viewport.background = 0.2, 0.2, 0.2, 1.
 
         self._sceneScale = transform.Scale(1., 1., 1.)
         self.viewport.scene.transforms = [self._sceneScale,
@@ -209,7 +221,6 @@ class Plot3DWidget(glu.OpenGLWidget):
         """
         color = rgba(color)
         self.viewport.background = color
-        self.overview.background = color[0]*0.5, color[1]*0.5, color[2]*0.5, 1.
 
     def getBackgroundColor(self):
         """Returns the RGBA background color (QColor)."""

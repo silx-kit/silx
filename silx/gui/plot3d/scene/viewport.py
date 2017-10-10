@@ -198,12 +198,17 @@ class Viewport(event.Notifier):
 
     @property
     def background(self):
-        """Background color of the viewport (4-tuple of float in [0, 1]"""
+        """Viewport's background color (4-tuple of float in [0, 1] or None)
+
+        The background color is used to clear to viewport.
+        If None, the viewport is not cleared
+        """
         return self._background
 
     @background.setter
     def background(self, color):
-        color = rgba(color)
+        if color is not None:
+            color = rgba(color)
         if self._background != color:
             self._background = color
             self._changed()
@@ -295,12 +300,16 @@ class Viewport(event.Notifier):
         gl.glHint(gl.GL_LINE_SMOOTH_HINT, gl.GL_NICEST)
         gl.glEnable(gl.GL_LINE_SMOOTH)
 
-        gl.glClearColor(*self.background)
+        if self.background is None:
+            gl.glClear(gl.GL_STENCIL_BUFFER_BIT |
+                       gl.GL_DEPTH_BUFFER_BIT)
+        else:
+            gl.glClearColor(*self.background)
 
-        # Prepare OpenGL
-        gl.glClear(gl.GL_COLOR_BUFFER_BIT |
-                   gl.GL_STENCIL_BUFFER_BIT |
-                   gl.GL_DEPTH_BUFFER_BIT)
+            # Prepare OpenGL
+            gl.glClear(gl.GL_COLOR_BUFFER_BIT |
+                       gl.GL_STENCIL_BUFFER_BIT |
+                       gl.GL_DEPTH_BUFFER_BIT)
 
         ctx = RenderContext(self, glContext)
         self.scene.render(ctx)
