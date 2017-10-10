@@ -1107,7 +1107,7 @@ class ColorPoints(Geometry):
     varying float vSymbol;
     varying vec4 vColor;
 
-    $clippingDecl;
+    $clippingDecl
 
     /* Circle */
     #define SYMBOL_CIRCLE 1.0
