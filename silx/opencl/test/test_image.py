@@ -80,10 +80,12 @@ class TestImage(unittest.TestCase):
         """
         tests the cast kernel
         """
-        ip = ImageProcessing(ctx=self.ctx, template=self.data)
+        ip = ImageProcessing(ctx=self.ctx, template=self.data, profile=True)
         res = ip.to_float(self.data)
-        print(res.shape)
-        print(res.dtype)
+        self.assertEqual(res.shape, self.data.shape, "shape")
+        self.assertEqual(res.dtype, numpy.float32, "dtype")
+        self.assertEqual(abs(res - self.data).max(), 0, "content")
+
     @unittest.skipUnless(ocl, "pyopencl is missing")
     def test_measurement(self):
         """

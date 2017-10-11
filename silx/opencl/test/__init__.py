@@ -24,7 +24,7 @@
 
 __authors__ = ["J. Kieffer"]
 __license__ = "MIT"
-__date__ = "01/09/2017"
+__date__ = "11/10/2017"
 
 import os
 import unittest
@@ -34,6 +34,8 @@ from . import test_backprojection
 from . import test_projection
 from . import test_linalg
 from . import test_array_utils
+from . import test_image
+
 
 def suite():
     test_suite = unittest.TestSuite()
@@ -43,6 +45,7 @@ def suite():
     test_suite.addTests(test_projection.suite())
     test_suite.addTests(test_linalg.suite())
     test_suite.addTests(test_array_utils.suite())
+    test_suite.addTests(test_image.suite())
 
     # Allow to remove sift from the project
     test_base_dir = os.path.dirname(__file__)

@@ -183,9 +183,13 @@ class OpenclProcessing(object):
 
             # do the allocation
             try:
-                for buf in buffers:
-                    size = numpy.dtype(buf.dtype).itemsize * buf.size
-                    mem[buf.name] = pyopencl.Buffer(self.ctx, buf.flags, int(size))
+                if use_array:
+                    for buf in buffers:
+                        mem[buf.name] = pyopencl.array.empty(self.queue, buf.size, buf.dtype)
+                else:
+                    for buf in buffers:
+                        size = numpy.dtype(buf.dtype).itemsize * numpy.prod(buf.size)
+                        mem[buf.name] = pyopencl.Buffer(self.ctx, buf.flags, int(size))
             except pyopencl.MemoryError as error:
                 release_cl_buffers(mem)
                 raise MemoryError(error)

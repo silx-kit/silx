@@ -144,18 +144,20 @@ class ImageProcessing(OpenclProcessing):
 
             # Cast to float:
             if (input_array is not None):
-                kernel = self.kernels.get_kernel(self.converter[img.dtype])
+                name = self.converter[img.dtype]
+                kernel = self.kernels.get_kernel(name)
                 ev = kernel(self.queue, (self.shape[1], self.shape[0]), None,
                             input_array.data, out_array.data,
                             numpy.int32(self.shape[1]), numpy.int32(self.shape[0])
                             )
-                events.append(EventDescription("cast -> float", evt))
+                events.append(EventDescription("cast %s" % name, evt))
 
         if self.profile:
             self.events += events
 
         if out is None:
-            return out_array.get()
+            res = out_array.get()
+            return res
         else:
             out_array.finish()
             return out_array
