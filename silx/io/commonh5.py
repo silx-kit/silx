@@ -32,12 +32,13 @@ import collections
 import h5py
 import numpy
 from silx.third_party import six
+import weakref
 
 from .utils import is_dataset
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "02/10/2017"
+__date__ = "11/10/2017"
 
 
 class _MappingProxyType(collections.MutableMapping):
@@ -90,7 +91,7 @@ class Node(object):
     """
 
     def __init__(self, name, parent=None, attrs=None):
-        self.__parent = parent
+        self._set_parent(parent)
         self.__basename = name
         self.__attrs = {}
         if attrs is not None:
@@ -114,21 +115,13 @@ class Node(object):
 
         :rtype: Node
         """
-        return self.__parent
-
-    @property
-    def file(self):
-        """Returns the file node of this node.
-
-        :rtype: Node
-        """
-        node = self
-        while node.__parent is not None:
-            node = node.__parent
-        if isinstance(node, File):
-            return node
+        if self.__parent is None:
+            parent = None
         else:
-            return None
+            parent = self.__parent()
+            if parent is None:
+                self.__parent = None
+        return parent
 
     def _set_parent(self, parent):
         """Set the parent of this node.
@@ -137,7 +130,24 @@ class Node(object):
 
         :param Node parent: New parent for this node
         """
-        self.__parent = parent
+        if parent is not None:
+            self.__parent = weakref.ref(parent)
+        else:
+            self.__parent = None
+
+    @property
+    def file(self):
+        """Returns the file node of this node.
+
+        :rtype: Node
+        """
+        node = self
+        while node.parent is not None:
+            node = node.parent
+        if isinstance(node, File):
+            return node
+        else:
+            return None
 
     @property
     def attrs(self):
@@ -154,11 +164,12 @@ class Node(object):
     def name(self):
         """Returns the HDF5 name of this node.
         """
-        if self.__parent is None:
+        parent = self.parent
+        if parent is None:
             return "/"
-        if self.__parent.name == "/":
+        if parent.name == "/":
             return "/" + self.basename
-        return self.__parent.name + "/" + self.basename
+        return parent.name + "/" + self.basename
 
     @property
     def basename(self):
