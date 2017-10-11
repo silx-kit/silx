@@ -365,6 +365,9 @@ if options.qt_binding:
     elif binding == "pyside":
         logger.info("Force using PySide")
         import PySide.QtCore  # noqa
+    elif binding == "pyside2":
+        logger.info("Force using PySide2")
+        import PySide2.QtCore  # noqa
     else:
         raise ValueError("Qt binding '%s' is unknown" % options.qt_binding)
 

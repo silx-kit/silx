@@ -43,6 +43,8 @@ from silx.gui import qt
 
 if qt.BINDING == 'PySide':
     from PySide.QtTest import QTest
+elif qt.BINDING == 'PySide2':
+    from PySide2.QtTest import QTest
 elif qt.BINDING == 'PyQt5':
     from PyQt5.QtTest import QTest
 elif qt.BINDING == 'PyQt4':
@@ -175,7 +177,7 @@ class TestCaseQt(unittest.TestCase):
                    if widget not in self.__previousWidgets]
         del self.__previousWidgets
 
-        if qt.BINDING == 'PySide':
+        if qt.BINDING in ('PySide', 'PySide2'):
             return  # Do not test for leaking widgets with PySide
 
         allowedLeakingWidgets = self.allowedLeakingWidgets
