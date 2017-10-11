@@ -34,10 +34,10 @@ Test suite for alignment module
 from __future__ import division, print_function
 
 __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
-__contact__ = "jerome.kieffer@esrf.eu" 
+__contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013-2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "15/03/2017"
+__date__ = "09/10/2017"
 
 import os
 import unittest
@@ -51,12 +51,12 @@ else:
     import scipy.misc
     import scipy.ndimage
 
-from silx.opencl import ocl
+from ...common import ocl
 if ocl:
     import pyopencl
     import pyopencl.array
 
-from ..alignment import LinearAlign
+from ...alignment import LinearAlign
 logger = logging.getLogger(__name__)
 PRINT_KEYPOINTS = False
 
