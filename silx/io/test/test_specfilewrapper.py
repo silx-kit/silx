@@ -27,7 +27,6 @@ __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "15/05/2017"
 
-import gc
 import locale
 import logging
 import numpy
@@ -120,17 +119,9 @@ class TestSpecfilewrapper(unittest.TestCase):
             os.write(fd, bytes(sftext, 'ascii'))
         os.close(fd)
 
-        fd2, cls.fname2 = tempfile.mkstemp(text=False)
-        if sys.version < '3.0':
-            os.write(fd2, sftext[370:-97])
-        else:
-            os.write(fd2, bytes(sftext[370:-97], 'ascii'))
-        os.close(fd2)
-
     @classmethod
     def tearDownClass(cls):
         os.unlink(cls.fname1)
-        os.unlink(cls.fname2)
 
     def setUp(self):
         self.sf = Specfile(self.fname1)
@@ -139,11 +130,7 @@ class TestSpecfilewrapper(unittest.TestCase):
         self.scan25 = self.sf.select("25.1")
 
     def tearDown(self):
-        del self.sf
-        del self.scan1
-        del self.scan1_2
-        del self.scan25
-        gc.collect()
+        self.sf.close()
 
     def test_number_of_scans(self):
         self.assertEqual(3, len(self.sf))

@@ -22,7 +22,6 @@
 #
 # ############################################################################*/
 """Tests for spech5"""
-import gc
 from numpy import array_equal
 import os
 import io
@@ -230,9 +229,7 @@ class TestSpecH5(unittest.TestCase):
         self.sfh5 = SpecH5(self.fname)
 
     def tearDown(self):
-        # fix Win32 permission error when deleting temp file
-        del self.sfh5
-        gc.collect()
+        self.sfh5.close()
 
     def testContainsFile(self):
         self.assertIn("/1.2/measurement", self.sfh5)
@@ -593,6 +590,7 @@ class TestSpecH5(unittest.TestCase):
             name_list = []
             # check if the object is working
             self.sfh5.visit(name_list.append)
+            sfh5.close()
 
 
 sftext_multi_mca_headers = """
@@ -638,9 +636,7 @@ class TestSpecH5MultiMca(unittest.TestCase):
         self.sfh5 = SpecH5(self.fname)
 
     def tearDown(self):
-        # fix Win32 permission error when deleting temp file
-        del self.sfh5
-        gc.collect()
+        self.sfh5.close()
 
     def testMcaCalib(self):
         mca0_calib = self.sfh5["/1.1/measurement/mca_0/info/calibration"]
@@ -770,9 +766,7 @@ class TestSpecH5NoDataCols(unittest.TestCase):
         self.sfh5 = SpecH5(self.fname)
 
     def tearDown(self):
-        # fix Win32 permission error when deleting temp file
-        del self.sfh5
-        gc.collect()
+        self.sfh5.close()
 
     def testScan1(self):
         # 1.1: single analyser, single spectrum, 151 channels
@@ -843,9 +837,7 @@ class TestSpecH5SlashInLabels(unittest.TestCase):
         self.sfh5 = SpecH5(self.fname)
 
     def tearDown(self):
-        # fix Win32 permission error when deleting temp file
-        del self.sfh5
-        gc.collect()
+        self.sfh5.close()
 
     def testLabels(self):
         """Ensure `/` is substituted with `%` and
