@@ -41,7 +41,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "03/10/2017"
+__date__ = "11/10/2017"
 __status__ = "stable"
 
 
@@ -97,7 +97,7 @@ class OpenclProcessing(object):
     kernel_files = []
 
     def __init__(self, ctx=None, devicetype="all", platformid=None, deviceid=None,
-                 block_size=None, profile=False):
+                 block_size=None, memory=None, profile=False):
         """Constructor of the abstract OpenCL processing class
 
         :param ctx: actual working context, left to None for automatic
@@ -107,6 +107,7 @@ class OpenclProcessing(object):
         :param deviceid: Integer with the device identifier, as given by clinfo
         :param block_size: preferred workgroup size, may vary depending on the
                             out come of the compilation
+        :param memory: minimum memory available on device
         :param profile: switch on profiling to be able to profile at the kernel
                          level, store profiling elements (makes code slightly slower)
         """
@@ -116,10 +117,13 @@ class OpenclProcessing(object):
         self.cl_mem = {}  # dict with all buffer allocated
         self.cl_program = None  # The actual OpenCL program
         self.cl_kernel_args = {}  # dict with all kernel arguments
+        self.queue = None
         if ctx:
             self.ctx = ctx
         else:
-            self.ctx = ocl.create_context(devicetype=devicetype, platformid=platformid, deviceid=deviceid)
+            self.ctx = ocl.create_context(devicetype=devicetype,
+                                          platformid=platformid, deviceid=deviceid,
+                                          memory=memory)
         device_name = self.ctx.devices[0].name.strip()
         platform_name = self.ctx.devices[0].platform.name.strip()
         platform = ocl.get_platform(platform_name)
@@ -140,13 +144,15 @@ class OpenclProcessing(object):
         self.ctx = None
         gc.collect()
 
-    def allocate_buffers(self, buffers=None):
+    def allocate_buffers(self, buffers=None, use_array=False):
         """
         Allocate OpenCL buffers required for a specific configuration
 
         :param buffers: a list of BufferDescriptions, leave to None for
                         paramatrized buffers.
-
+        :param use_array: allocate memory as pyopencl.array.Array 
+                            instead of pyopencl.Buffer 
+        
         Note that an OpenCL context also requires some memory, as well
         as Event and other OpenCL functionalities which cannot and are
         not taken into account here.  The memory required by a context
@@ -166,7 +172,7 @@ class OpenclProcessing(object):
             # check if enough memory is available on the device
             ualloc = 0
             for buf in buffers:
-                ualloc += numpy.dtype(buf.dtype).itemsize * buf.size
+                ualloc += numpy.dtype(buf.dtype).itemsize * numpy.prod(buf.size)
             logger.info("%.3fMB are needed on device: %s,  which has %.3fMB",
                         ualloc / 1.0e6, self.device, self.device.memory / 1.0e6)
 
