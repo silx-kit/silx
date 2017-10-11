@@ -15,7 +15,7 @@ qtconsole                 # For silx.gui.console
 matplotlib >= 1.2.0       # For silx.gui.plot
 PyOpenGL                  # For silx.gui.plot3d
 # PyQt4, PyQt5 or PySide  # For silx.gui
-# scipy                   # For silx.math.fit demo, silx.image.sift demo, silx.image.sift.test
+scipy                   # For silx.math.fit demo, silx.image.sift demo, silx.image.sift.test
 
 # Try to install a Qt binding from a wheel
 # This is no available for all configurations
@@ -24,6 +24,3 @@ PyOpenGL                  # For silx.gui.plot3d
 PyQt5; python_version >= '3.5'
 PyQt4; sys_platform == 'win32' and python_version == '2.7'  # From silx.org
 PyQt4; sys_platform == 'darwin' and python_version == '2.7'  # From silx.org
-
-# Require scipy when wheel is available
-scipy; sys_platform != 'win32'
