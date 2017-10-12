@@ -99,8 +99,9 @@ class TestImage(unittest.TestCase):
         """
         tests that all devices are working properly ...
         """
-        res = self.ip.to_float(self.data)
-        res2 = self.ip.normalize(res, -100, 100)
+        tmp = pyopencl.array.empty(self.ip.ctx, self.data.shape, "float32")
+        res = self.ip.to_float(self.data, out=tmp)
+        res2 = self.ip.normalize(tmp, -100, 100, copy=False)
         norm = (self.data.astype(numpy.float32) - self.data.min()) / (self.data.max() - self.data.min())
         ref2 = 200 * norm - 100
         self.assertLess(abs(res2 - ref2).max(), 3e-5, "content")
