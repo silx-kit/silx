@@ -160,6 +160,62 @@ class _ImagePreview(qt.QWidget):
             self.__plot.removeImage(legend="data")
 
 
+class _SideBar(qt.QListView):
+    """Sidebar containing shortcuts for common directories"""
+
+    def __init__(self, parent=None):
+        super(_SideBar, self).__init__(parent)
+        model = self._createModel()
+        self.setModel(model)
+        self.setEditTriggers(qt.QAbstractItemView.NoEditTriggers)
+
+    def _createModel(self):
+
+        # Get default shortcut
+        # There is no other way
+        d = qt.QFileDialog()
+        urls = d.sidebarUrls()
+        d = None
+
+        model = qt.QStandardItemModel(self)
+
+        names = {}
+        names[""] = "Computer"
+        names[qt.QDir.rootPath()] = "Computer"
+        names[qt.QDir.homePath()] = "Home"
+
+        style = qt.QApplication.style()
+
+        for url in urls:
+            path = url.toLocalFile()
+            if path in names:
+                name = names[path]
+            else:
+                name = path.rsplit("/", 1)[-1]
+
+            if name == "Computer":
+                icon = style.standardIcon(qt.QStyle.SP_ComputerIcon)
+            elif not os.path.exists(path):
+                icon = style.standardIcon(qt.QStyle.SP_MessageBoxCritical)
+            elif os.path.isdir(path):
+                icon = style.standardIcon(qt.QStyle.SP_DirIcon)
+            elif os.path.isfile(path):
+                icon = style.standardIcon(qt.QStyle.SP_FileIcon)
+            else:
+                icon = None
+
+            item = qt.QStandardItem(name)
+            item.setIcon(icon)
+            item.setData(url, role=qt.Qt.UserRole)
+            model.appendRow(item)
+
+        return model
+
+    def sizeHint(self):
+        index = self.model().index(0, 0)
+        return self.sizeHintForIndex(index) + qt.QSize(2 * self.frameWidth(), 2 * self.frameWidth())
+
+
 class ImageFileDialog(qt.QDialog):
     """The ImageFileDialog class provides a dialog that allow users to select
     an image from a file.
@@ -194,22 +250,33 @@ class ImageFileDialog(qt.QDialog):
 
         self.__h5 = None
         self.__fileModel = qt.QFileSystemModel(self)
+        self.__fileModel.directoryLoaded.connect(self.__directoryLoaded)
+
         self.__dataModel = Hdf5TreeModel(self)
         self.__initLayout()
 
         path = os.getcwd()
         self.__fileModel.setRootPath(path)
 
+    def _createSideBar(self):
+        return _SideBar(self)
+
     def __initLayout(self):
-        self.__fileLocationView = qt.QColumnView(self)
+        self.__sidebar = self._createSideBar()
+        self.__sidebar.clicked.connect(self.__shortcutClicked)
+        self.__sidebar.setSelectionMode(qt.QAbstractItemView.SingleSelection)
+
+        self.__fileLocationView = qt.QListView(self)
         self.__fileLocationView.setModel(self.__fileModel)
         self.__fileLocationView.selectionModel().selectionChanged.connect(self.__fileSelected)
         self.__fileLocationView.setSelectionMode(qt.QAbstractItemView.SingleSelection)
+        self.__fileLocationView.activated.connect(self.__fileActivated)
 
-        self.__dataLocationView = qt.QColumnView(self)
+        self.__dataLocationView = qt.QListView(self)
         self.__dataLocationView.setModel(self.__dataModel)
         self.__dataLocationView.selectionModel().selectionChanged.connect(self.__dataSelected)
         self.__dataLocationView.setSelectionMode(qt.QAbstractItemView.SingleSelection)
+        self.__dataLocationView.activated.connect(self.__dataActivated)
 
         self.__data = _ImagePreview(self)
         self.__data.setMinimumSize(200, 200)
@@ -222,20 +289,51 @@ class ImageFileDialog(qt.QDialog):
         self.__buttons.accepted.connect(self.accept)
         self.__buttons.rejected.connect(self.reject)
 
-        layout = qt.QVBoxLayout(self)
-
+        datasetSelection = qt.QWidget(self)
         layoutLeft = qt.QVBoxLayout()
+        layoutLeft.setContentsMargins(0, 0, 0, 0)
         layoutLeft.addWidget(self.__fileLocationView)
         layoutLeft.addWidget(self.__dataLocationView)
+        datasetSelection.setLayout(layoutLeft)
+        datasetSelection.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
 
-        layoutCentral = qt.QHBoxLayout()
-        layoutCentral.addLayout(layoutLeft)
-        layoutCentral.addWidget(self.__data)
+        imageSelection = qt.QWidget(self)
+        imageLayout = qt.QVBoxLayout()
+        imageLayout.addWidget(self.__data)
+        imageSelection.setLayout(imageLayout)
 
-        layout.addLayout(layoutCentral)
+        self.__splitter = qt.QSplitter(self)
+        self.__splitter.setContentsMargins(0, 0, 0, 0)
+        self.__splitter.addWidget(self.__sidebar)
+        self.__splitter.addWidget(datasetSelection)
+        self.__splitter.addWidget(imageSelection)
+        self.__splitter.setStretchFactor(1, 10)
+
+        layout = qt.QVBoxLayout(self)
+        layout.addWidget(self.__splitter)
         layout.addWidget(self.__buttons)
 
         self.setLayout(layout)
+
+    def __shortcutClicked(self):
+        indexes = self.__sidebar.selectionModel().selectedIndexes()
+        if len(indexes) == 1:
+            index = indexes[0]
+            url = self.__sidebar.model().data(index, role=qt.Qt.UserRole)
+            path = url.toLocalFile()
+            if path == "":
+                path = qt.QDir.rootPath()
+            self.__fileModel.setRootPath(path)
+
+    def __fileActivated(self, index):
+        if self.__fileModel.isDir(index):
+            view = self.__fileLocationView
+            view.setRootIndex(index)
+
+    def __directoryLoaded(self, path):
+        index = self.__fileModel.index(path)
+        view = self.__fileLocationView
+        view.setRootIndex(index)
 
     def __fileSelected(self, selected, deselected):
         self.__selectedFile = None
@@ -253,6 +351,15 @@ class ImageFileDialog(qt.QDialog):
                     _logger.debug("Backtrace", exc_info=True)
                 else:
                     self.__dataModel.insertH5pyObject(self.__h5)
+                    index = _indexFromH5Object(self.__dataModel, self.__h5)
+                    view = self.__dataLocationView
+                    view.setRootIndex(index)
+
+    def __dataActivated(self, index):
+        obj = index.data(role=Hdf5TreeModel.H5PY_OBJECT_ROLE)
+        if silx.io.is_group(obj):
+            view = self.__dataLocationView
+            view.setRootIndex(index)
 
     def __dataSelected(self):
         indexes = self.__dataLocationView.selectionModel().selectedIndexes()
