@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "11/10/2017"
+__date__ = "12/10/2017"
 
 import logging
 import numpy
@@ -48,10 +48,13 @@ if ocl:
 from ...test.utils import utilstest
 from ..image import ImageProcessing
 logger = logging.getLogger(__name__)
-from PIL import Image
+try:
+    from PIL import Image
+except ImportWarning:
+    Image = None
 
 
-@unittest.skipUnless(ocl, "PyOpenCl is missing")
+@unittest.skipUnless(ocl and Image, "PyOpenCl/Image is missing")
 class TestImage(unittest.TestCase):
 
     @classmethod
@@ -60,17 +63,22 @@ class TestImage(unittest.TestCase):
         if ocl:
             cls.ctx = ocl.create_context()
             cls.lena = utilstest.getfile("lena.png")
+            cls.data = numpy.asarray(Image.open(cls.lena))
+            cls.ip = ImageProcessing(ctx=cls.ctx, template=cls.data, profile=True)
 
     @classmethod
     def tearDownClass(cls):
         super(TestImage, cls).tearDownClass()
         cls.ctx = None
         cls.lena = None
+        cls.data = None
+        if logger.level <= logging.INFO:
+            logger.warning("\n".join(cls.ip.log_profile()))
+        cls.ip = None
 
     def setUp(self):
         if ocl is None:
             return
-        self.data = numpy.asarray(Image.open(self.lena))
 
     def tearDown(self):
         self.img = self.data = None
@@ -80,28 +88,28 @@ class TestImage(unittest.TestCase):
         """
         tests the cast kernel
         """
-        ip = ImageProcessing(ctx=self.ctx, template=self.data, profile=True)
-        res = ip.to_float(self.data)
+
+        res = self.ip.to_float(self.data)
         self.assertEqual(res.shape, self.data.shape, "shape")
         self.assertEqual(res.dtype, numpy.float32, "dtype")
         self.assertEqual(abs(res - self.data).max(), 0, "content")
 
     @unittest.skipUnless(ocl, "pyopencl is missing")
-    def test_measurement(self):
+    def test_normalize(self):
         """
         tests that all devices are working properly ...
         """
-        for platform in ocl.platforms:
-            for did, device in enumerate(platform.devices):
-                meas = _measure_workgroup_size((platform.id, device.id))
-                self.assertEqual(meas, device.max_work_group_size,
-                                 "Workgroup size for %s/%s: %s == %s" % (platform, device, meas, device.max_work_group_size))
+        res = self.ip.to_float(self.data)
+        res2 = self.ip.normalize(res, -100, 100)
+        norm = (self.data.astype(numpy.float32) - self.data.min()) / (self.data.max() - self.data.min())
+        ref2 = 200 * norm - 100
+        self.assertLess(abs(res2 - ref2).max(), 3e-5, "content")
 
 
 def suite():
     testSuite = unittest.TestSuite()
     testSuite.addTest(TestImage("test_cast"))
-    # testSuite.addTest(TestAddition("test_measurement"))
+    testSuite.addTest(TestImage("test_normalize"))
     return testSuite
 
 
