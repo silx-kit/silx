@@ -219,12 +219,12 @@ class ImageProcessing(OpenclProcessing):
                 stage1 = self.kernels.max_min_reduction_stage1
                 stage2 = self.kernels.max_min_reduction_stage2
                 local_mem = pyopencl.LocalMemory(int(self.wg_red * 8))
-                k1 = stage1(self.queue, (self.wg_red ** 2,), (self.wg_red,),
+                k1 = stage1(self.queue, (int(self.wg_red ** 2),), (int(self.wg_red),),
                             input_array.data,
                             self.cl_mem["tmp_max_min_d"].data,
                             size,
                             local_mem)
-                k2 = stage2(self.queue, (self.wg_red,), (self.wg_red,),
+                k2 = stage2(self.queue, (int(self.wg_red),), (int(self.wg_red),),
                             self.cl_mem["tmp_max_min_d"].data,
                             self.cl_mem["max_min_d"].data,
                             local_mem)
