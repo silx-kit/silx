@@ -14,9 +14,9 @@ ipython                   # For silx.gui.console
 qtconsole                 # For silx.gui.console
 matplotlib >= 1.2.0       # For silx.gui.plot
 PyOpenGL                  # For silx.gui.plot3d
-Pillow					  # for silx.opencl.image
+Pillow					  # for silx.opencl.image.test
+scipy                     # For silx.math.fit demo, silx.image.sift demo, silx.image.sift.test
 # PyQt4, PyQt5 or PySide  # For silx.gui
-scipy                   # For silx.math.fit demo, silx.image.sift demo, silx.image.sift.test
 
 # Try to install a Qt binding from a wheel
 # This is no available for all configurations
