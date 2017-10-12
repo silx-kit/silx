@@ -249,7 +249,8 @@ class ImageFileDialog(qt.QDialog):
                     self.__h5 = silx.io.open(path)
                     self.__selectedFile = path
                 except IOError as e:
-                    print(e)
+                    _logger.error("Error while loading file %s: %s", path, e.args[0])
+                    _logger.debug("Backtrace", exc_info=True)
                 else:
                     self.__dataModel.insertH5pyObject(self.__h5)
 
