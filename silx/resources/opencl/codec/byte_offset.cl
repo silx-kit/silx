@@ -74,7 +74,6 @@ kernel void mark_exceptions(global char* raw, int size, global int* mask,  globa
 kernel void treat_exceptions(global char* raw,
                              int size,
                              global int* mask,
-                             global int* cnt,
                              global int* exc,
                              global int* values,
                              global int* delta)
@@ -178,3 +177,29 @@ kernel void copy_values(global char* raw,
         }
     }
 }
+
+//Simple memset kernel for char arrays
+kernel void fill_char_mem(global char* ary,
+                          int size
+                          char pattern,
+                          int start_at)
+{
+    int gid = get_global_id(0);
+    if (gid >= start_at) && (gid < size))
+    {
+        ary[gid] = pattern;
+    }
+}
+
+//Simple memset kernel for int arrays
+kernel void fill_int_mem(global int* ary,
+                         int size
+                         int pattern)
+{
+    int gid = get_global_id(0);
+    if (gid < size)
+    {
+        ary[gid] = pattern;
+    }
+}
+
