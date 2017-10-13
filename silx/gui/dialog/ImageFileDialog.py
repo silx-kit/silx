@@ -280,6 +280,70 @@ class _SideBar(qt.QListView):
         return self.sizeHintForIndex(index) + qt.QSize(2 * self.frameWidth(), 2 * self.frameWidth())
 
 
+class _Browser(qt.QStackedWidget):
+
+    activated = qt.Signal(qt.QModelIndex)
+    selected = qt.Signal(qt.QModelIndex)
+
+    def __init__(self, parent, listView, detailView):
+        qt.QStackedWidget.__init__(self, parent)
+        self.__listView = listView
+        self.__detailView = detailView
+        self.insertWidget(0, self.__listView)
+        self.insertWidget(1, self.__detailView)
+
+        self.__listView.activated.connect(self.__emitActivated)
+        self.__detailView.activated.connect(self.__emitActivated)
+
+    def __emitActivated(self, index):
+        self.activated.emit(index)
+
+    def __emitSelected(self, selected, deselected):
+        if self.currentIndex() == 0:
+            indexes = self.__listView.selectionModel().selectedIndexes()
+        else:
+            indexes = self.__detailView.selectionModel().selectedIndexes()
+        if len(indexes) == 1:
+            index = indexes[0]
+            self.selected.emit(index)
+
+    def showList(self):
+        self.__listView.show()
+        self.__detailView.hide()
+        self.setCurrentIndex(0)
+
+    def showDetails(self):
+        self.__listView.hide()
+        self.__detailView.show()
+        self.setCurrentIndex(1)
+        self.__detailView.updateGeometry()
+
+    def setRootIndex(self, index):
+        """Sets the root item to the item at the given index.
+        """
+        rootIndex = self.__listView.rootIndex()
+        newModel = index.model()
+        if rootIndex is None or rootIndex.model() is not newModel:
+            # update the model
+            if self.__listView.selectionModel() is not None:
+                self.__listView.selectionModel().selectionChanged.disconnect()
+            if self.__detailView.selectionModel() is not None:
+                self.__detailView.selectionModel().selectionChanged.disconnect()
+            self.__listView.setModel(newModel)
+            self.__detailView.setModel(newModel)
+            self.__listView.selectionModel().selectionChanged.connect(self.__emitSelected)
+            self.__detailView.selectionModel().selectionChanged.connect(self.__emitSelected)
+
+        self.__listView.setRootIndex(index)
+        self.__detailView.setRootIndex(index)
+
+    def rootIndex(self):
+        """Returns the model index of the model's root item. The root item is
+        the parent item to the view's toplevel items. The root can be invalid.
+        """
+        return self.__listView.rootIndex()
+
+
 class ImageFileDialog(qt.QDialog):
     """The ImageFileDialog class provides a dialog that allow users to select
     an image from a file.
@@ -399,12 +463,20 @@ class ImageFileDialog(qt.QDialog):
         self.__sidebar.clicked.connect(self.__shortcutClicked)
         self.__sidebar.setSelectionMode(qt.QAbstractItemView.SingleSelection)
 
-        self.__browserView = qt.QListView(self)
-        self.__browserView.setSelectionMode(qt.QAbstractItemView.SingleSelection)
-        self.__browserView.activated.connect(self.__browsedItemActivated)
-        self.__browserView.setUniformItemSizes(True)
-        self.__browserView.setResizeMode(qt.QListView.Adjust)
-        self.__updateBrowserModel(self.__fileModel)
+        listView = qt.QListView(self)
+        listView.setSelectionMode(qt.QAbstractItemView.SingleSelection)
+        listView.setUniformItemSizes(True)
+        listView.setResizeMode(qt.QListView.Adjust)
+
+        treeView = qt.QTreeView(self)
+        treeView.setSelectionMode(qt.QAbstractItemView.SingleSelection)
+        treeView.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
+        treeView.setRootIsDecorated(False)
+        treeView.setItemsExpandable(False)
+
+        self.__browser = _Browser(self, listView, treeView)
+        self.__browser.activated.connect(self.__browsedItemActivated)
+        self.__browser.selected.connect(self.__browsedItemSelected)
 
         self.__data = _ImagePreview(self)
         self.__data.setMinimumSize(200, 200)
@@ -423,7 +495,7 @@ class ImageFileDialog(qt.QDialog):
         layoutLeft = qt.QVBoxLayout()
         layoutLeft.setContentsMargins(0, 0, 0, 0)
         layoutLeft.addWidget(self.__browseToolBar)
-        layoutLeft.addWidget(self.__browserView)
+        layoutLeft.addWidget(self.__browser)
         datasetSelection.setLayout(layoutLeft)
         datasetSelection.setSizePolicy(qt.QSizePolicy.MinimumExpanding, qt.QSizePolicy.Expanding)
 
@@ -452,52 +524,43 @@ class ImageFileDialog(qt.QDialog):
         raise NotImplementedError()
 
     def __navigateToParent(self):
-        index = self.__browserView.rootIndex()
+        index = self.__browser.rootIndex()
         if index.model() is self.__fileModel:
             # browse throw the file system
             index = index.parent()
             if index.isValid():
-                self.__browserView.setRootIndex(index)
+                self.__browser.setRootIndex(index)
         elif index.model() is self.__dataModel:
             index = index.parent()
             if index.isValid():
                 # browse throw the hdf5
-                self.__browserView.setRootIndex(index)
+                self.__browser.setRootIndex(index)
             else:
                 # go back to the file system
                 self.__navigateToParentDir()
 
     def __navigateToParentFile(self):
-        index = self.__browserView.rootIndex()
+        index = self.__browser.rootIndex()
         if index.model() is self.__dataModel:
             index = _indexFromH5Object(self.__dataModel, self.__h5)
-            self.__browserView.setRootIndex(index)
-
-    def __updateBrowserModel(self, model):
-        if self.__browserView.selectionModel() is not None:
-            self.__browserView.selectionModel().selectionChanged.disconnect()
-        self.__browserView.setModel(model)
-        self.__browserView.selectionModel().selectionChanged.connect(self.__browsedItemSelected)
+            self.__browser.setRootIndex(index)
 
     def __navigateToParentDir(self):
-        index = self.__browserView.rootIndex()
+        index = self.__browser.rootIndex()
         if index.model() is self.__dataModel:
-            self.__updateBrowserModel(self.__fileModel)
             index = self.__fileModel.index(self.__h5.file.filename)
             index = index.parent()
-            self.__browserView.setRootIndex(index)
+            self.__browser.setRootIndex(index)
             self.__dataModel.removeH5pyObject(self.__h5)
             self.__h5 = None
 
     def __showAsListView(self):
-        mode = qt.QListView.IconMode
-        self.__browserView.setViewMode(mode)
+        self.__browser.showList()
         self.__listViewAction.setChecked(True)
         self.__detailViewAction.setChecked(False)
 
     def __showAsDetailedView(self):
-        mode = qt.QListView.ListMode
-        self.__browserView.setViewMode(mode)
+        self.__browser.showDetails()
         self.__listViewAction.setChecked(False)
         self.__detailViewAction.setChecked(True)
 
@@ -514,27 +577,24 @@ class ImageFileDialog(qt.QDialog):
     def __browsedItemActivated(self, index):
         if index.model() is self.__fileModel:
             if self.__fileModel.isDir(index):
-                self.__browserView.setRootIndex(index)
+                self.__browser.setRootIndex(index)
             path = self.__fileModel.filePath(index)
             if os.path.isfile(path):
                 self.__fileActivated(index)
         elif index.model() is self.__dataModel:
             obj = index.data(role=Hdf5TreeModel.H5PY_OBJECT_ROLE)
             if silx.io.is_group(obj):
-                self.__browserView.setRootIndex(index)
+                self.__browser.setRootIndex(index)
 
-    def __browsedItemSelected(self, selected, deselected):
-        indexes = self.__browserView.selectionModel().selectedIndexes()
-        if len(indexes) == 1:
-            index = indexes[0]
-            if index.model() is self.__fileModel:
-                self.__dataSelected(None)
-            elif index.model() is self.__dataModel:
-                self.__dataSelected(index)
+    def __browsedItemSelected(self, index):
+        if index.model() is self.__fileModel:
+            self.__dataSelected(None)
+        elif index.model() is self.__dataModel:
+            self.__dataSelected(index)
 
     def __directoryLoaded(self, path):
         index = self.__fileModel.index(path)
-        self.__browserView.setRootIndex(index)
+        self.__browser.setRootIndex(index)
 
     def __fileActivated(self, index):
         self.__selectedFile = None
@@ -552,8 +612,7 @@ class ImageFileDialog(qt.QDialog):
             else:
                 self.__dataModel.insertH5pyObject(self.__h5)
                 index = _indexFromH5Object(self.__dataModel, self.__h5)
-                self.__updateBrowserModel(self.__dataModel)
-                self.__browserView.setRootIndex(index)
+                self.__browser.setRootIndex(index)
 
     def __dataSelected(self, index):
         self.__selectedImage = None
