@@ -399,21 +399,12 @@ class ImageFileDialog(qt.QDialog):
         self.__sidebar.clicked.connect(self.__shortcutClicked)
         self.__sidebar.setSelectionMode(qt.QAbstractItemView.SingleSelection)
 
-        self.__fileLocationView = qt.QListView(self)
-        self.__fileLocationView.setModel(self.__fileModel)
-        self.__fileLocationView.selectionModel().selectionChanged.connect(self.__fileSelected)
-        self.__fileLocationView.setSelectionMode(qt.QAbstractItemView.SingleSelection)
-        self.__fileLocationView.activated.connect(self.__fileActivated)
-        self.__fileLocationView.setUniformItemSizes(True)
-        self.__fileLocationView.setResizeMode(qt.QListView.Adjust)
-
-        self.__dataLocationView = qt.QListView(self)
-        self.__dataLocationView.setModel(self.__dataModel)
-        self.__dataLocationView.selectionModel().selectionChanged.connect(self.__dataSelected)
-        self.__dataLocationView.setSelectionMode(qt.QAbstractItemView.SingleSelection)
-        self.__dataLocationView.activated.connect(self.__dataActivated)
-        self.__dataLocationView.setUniformItemSizes(True)
-        self.__dataLocationView.setResizeMode(qt.QListView.Adjust)
+        self.__browserView = qt.QListView(self)
+        self.__browserView.setSelectionMode(qt.QAbstractItemView.SingleSelection)
+        self.__browserView.activated.connect(self.__browsedItemActivated)
+        self.__browserView.setUniformItemSizes(True)
+        self.__browserView.setResizeMode(qt.QListView.Adjust)
+        self.__updateBrowserModel(self.__fileModel)
 
         self.__data = _ImagePreview(self)
         self.__data.setMinimumSize(200, 200)
@@ -432,8 +423,7 @@ class ImageFileDialog(qt.QDialog):
         layoutLeft = qt.QVBoxLayout()
         layoutLeft.setContentsMargins(0, 0, 0, 0)
         layoutLeft.addWidget(self.__browseToolBar)
-        layoutLeft.addWidget(self.__fileLocationView)
-        layoutLeft.addWidget(self.__dataLocationView)
+        layoutLeft.addWidget(self.__browserView)
         datasetSelection.setLayout(layoutLeft)
         datasetSelection.setSizePolicy(qt.QSizePolicy.MinimumExpanding, qt.QSizePolicy.Expanding)
 
@@ -462,46 +452,52 @@ class ImageFileDialog(qt.QDialog):
         raise NotImplementedError()
 
     def __navigateToParent(self):
-        # Try to browse the data first
-        index = self.__dataLocationView.rootIndex()
-        if index.isValid():
+        index = self.__browserView.rootIndex()
+        if index.model() is self.__fileModel:
+            # browse throw the file system
             index = index.parent()
             if index.isValid():
-                self.__dataLocationView.setRootIndex(index)
-                return
+                self.__browserView.setRootIndex(index)
+        elif index.model() is self.__dataModel:
+            index = index.parent()
+            if index.isValid():
+                # browse throw the hdf5
+                self.__browserView.setRootIndex(index)
             else:
-                self.__dataModel.removeH5pyObject(self.__h5)
-                self.__h5 = None
-
-        # Then browse the file system
-        index = self.__fileLocationView.rootIndex()
-        index = index.parent()
-        if index.isValid():
-            self.__fileLocationView.setRootIndex(index)
+                # go back to the file system
+                self.__navigateToParentDir()
 
     def __navigateToParentFile(self):
-        index = self.__dataLocationView.rootIndex()
-        if index.isValid():
+        index = self.__browserView.rootIndex()
+        if index.model() is self.__dataModel:
             index = _indexFromH5Object(self.__dataModel, self.__h5)
-            self.__dataLocationView.setRootIndex(index)
+            self.__browserView.setRootIndex(index)
+
+    def __updateBrowserModel(self, model):
+        if self.__browserView.selectionModel() is not None:
+            self.__browserView.selectionModel().selectionChanged.disconnect()
+        self.__browserView.setModel(model)
+        self.__browserView.selectionModel().selectionChanged.connect(self.__browsedItemSelected)
 
     def __navigateToParentDir(self):
-        # Right now there is not difference here
-        self.__navigateToParentFile()
+        index = self.__browserView.rootIndex()
+        if index.model() is self.__dataModel:
+            self.__updateBrowserModel(self.__fileModel)
+            index = self.__fileModel.index(self.__h5.file.filename)
+            index = index.parent()
+            self.__browserView.setRootIndex(index)
+            self.__dataModel.removeH5pyObject(self.__h5)
+            self.__h5 = None
 
     def __showAsListView(self):
         mode = qt.QListView.IconMode
-        self.__fileLocationView.setViewMode(mode)
-        self.__dataLocationView.setViewMode(mode)
-
+        self.__browserView.setViewMode(mode)
         self.__listViewAction.setChecked(True)
         self.__detailViewAction.setChecked(False)
 
     def __showAsDetailedView(self):
         mode = qt.QListView.ListMode
-        self.__fileLocationView.setViewMode(mode)
-        self.__dataLocationView.setViewMode(mode)
-
+        self.__browserView.setViewMode(mode)
         self.__listViewAction.setChecked(False)
         self.__detailViewAction.setChecked(True)
 
@@ -515,50 +511,54 @@ class ImageFileDialog(qt.QDialog):
                 path = qt.QDir.rootPath()
             self.__fileModel.setRootPath(path)
 
-    def __fileActivated(self, index):
-        if self.__fileModel.isDir(index):
-            view = self.__fileLocationView
-            view.setRootIndex(index)
+    def __browsedItemActivated(self, index):
+        if index.model() is self.__fileModel:
+            if self.__fileModel.isDir(index):
+                self.__browserView.setRootIndex(index)
+            path = self.__fileModel.filePath(index)
+            if os.path.isfile(path):
+                self.__fileActivated(index)
+        elif index.model() is self.__dataModel:
+            obj = index.data(role=Hdf5TreeModel.H5PY_OBJECT_ROLE)
+            if silx.io.is_group(obj):
+                self.__browserView.setRootIndex(index)
+
+    def __browsedItemSelected(self, selected, deselected):
+        indexes = self.__browserView.selectionModel().selectedIndexes()
+        if len(indexes) == 1:
+            index = indexes[0]
+            if index.model() is self.__fileModel:
+                self.__dataSelected(None)
+            elif index.model() is self.__dataModel:
+                self.__dataSelected(index)
 
     def __directoryLoaded(self, path):
         index = self.__fileModel.index(path)
-        view = self.__fileLocationView
-        view.setRootIndex(index)
+        self.__browserView.setRootIndex(index)
 
-    def __fileSelected(self, selected, deselected):
+    def __fileActivated(self, index):
         self.__selectedFile = None
-        for i in selected.indexes():
-            path = self.__fileModel.filePath(i)
-            if os.path.isfile(path):
-                if self.__h5 is not None:
-                    self.__dataModel.removeH5pyObject(self.__h5)
-                    self.__h5 = None
-                try:
-                    self.__h5 = silx.io.open(path)
-                    self.__selectedFile = path
-                except IOError as e:
-                    _logger.error("Error while loading file %s: %s", path, e.args[0])
-                    _logger.debug("Backtrace", exc_info=True)
-                else:
-                    self.__dataModel.insertH5pyObject(self.__h5)
-                    index = _indexFromH5Object(self.__dataModel, self.__h5)
-                    view = self.__dataLocationView
-                    view.setRootIndex(index)
+        path = self.__fileModel.filePath(index)
+        if os.path.isfile(path):
+            if self.__h5 is not None:
+                self.__dataModel.removeH5pyObject(self.__h5)
+                self.__h5 = None
+            try:
+                self.__h5 = silx.io.open(path)
+                self.__selectedFile = path
+            except IOError as e:
+                _logger.error("Error while loading file %s: %s", path, e.args[0])
+                _logger.debug("Backtrace", exc_info=True)
+            else:
+                self.__dataModel.insertH5pyObject(self.__h5)
+                index = _indexFromH5Object(self.__dataModel, self.__h5)
+                self.__updateBrowserModel(self.__dataModel)
+                self.__browserView.setRootIndex(index)
 
-    def __dataActivated(self, index):
-        obj = index.data(role=Hdf5TreeModel.H5PY_OBJECT_ROLE)
-        if silx.io.is_group(obj):
-            view = self.__dataLocationView
-            view.setRootIndex(index)
-
-    def __dataSelected(self):
-        indexes = self.__dataLocationView.selectionModel().selectedIndexes()
+    def __dataSelected(self, index):
         self.__selectedImage = None
-
-        if len(indexes) == 1:
-            index = indexes[0]
-            model = self.__dataModel
-            obj = model.data(index, model.H5PY_OBJECT_ROLE)
+        if index is not None and index.model() is self.__dataModel:
+            obj = index.data(self.__dataModel.H5PY_OBJECT_ROLE)
             if silx.io.is_dataset(obj):
                 if len(obj.shape) == 2:
                     self.__selectedImage = obj
