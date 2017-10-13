@@ -460,7 +460,7 @@ class ImageFileDialog(qt.QDialog):
 
     def __initLayout(self):
         self.__sidebar = self._createSideBar()
-        self.__sidebar.clicked.connect(self.__shortcutClicked)
+        self.__sidebar.selectionModel().selectionChanged.connect(self.__shortcutSelected)
         self.__sidebar.setSelectionMode(qt.QAbstractItemView.SingleSelection)
 
         listView = qt.QListView(self)
@@ -564,7 +564,7 @@ class ImageFileDialog(qt.QDialog):
         self.__listViewAction.setChecked(False)
         self.__detailViewAction.setChecked(True)
 
-    def __shortcutClicked(self):
+    def __shortcutSelected(self):
         indexes = self.__sidebar.selectionModel().selectedIndexes()
         if len(indexes) == 1:
             index = indexes[0]
