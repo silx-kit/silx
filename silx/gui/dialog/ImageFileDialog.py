@@ -28,7 +28,7 @@ This module contains an :class:`ImageFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "12/10/2017"
+__date__ = "13/10/2017"
 
 import os
 import logging
@@ -110,6 +110,69 @@ def _indexFromH5Object(model, h5Object):
     return qt.QModelIndex()
 
 
+class _IconProvider(object):
+
+    FileDialogToParentDir = qt.QStyle.SP_CustomBase + 1
+
+    FileDialogToParentFile = qt.QStyle.SP_CustomBase + 2
+
+    def __init__(self):
+        self.__iconFileDialogToParentDir = None
+        self.__iconFileDialogToParentFile = None
+
+    def _createIconToParent(self, standardPixmap):
+        """
+
+        FIXME: It have to be tested for some OS (arrow icon do not have always
+        the same direction)
+        """
+        style = qt.QApplication.style()
+        baseIcon = style.standardIcon(qt.QStyle.SP_FileDialogToParent)
+        backgroundIcon = style.standardIcon(standardPixmap)
+        icon = qt.QIcon(self)
+
+        sizes = baseIcon.availableSizes()
+        sizes = sorted(sizes, key=lambda s: s.height())
+        sizes = filter(lambda s: s.height() < 100, sizes)
+        if len(sizes) > 0:
+            baseSize = sizes[-1]
+        else:
+            baseIcon.availableSizes()[0]
+        size = qt.QSize(baseSize.width(), baseSize.height() * 3 / 2)
+
+        modes = [qt.QIcon.Normal, qt.QIcon.Disabled]
+        for mode in modes:
+            pixmap = qt.QPixmap(size)
+            pixmap.fill(qt.Qt.transparent)
+            painter = qt.QPainter(pixmap)
+            painter.drawPixmap(0, 0, backgroundIcon.pixmap(baseSize, mode=mode))
+            painter.drawPixmap(0, size.height() / 3, baseIcon.pixmap(baseSize, mode=mode))
+            painter.end()
+            icon.addPixmap(pixmap, mode=mode)
+
+        return icon
+
+    def getFileDialogToParentDir(self):
+        if self.__iconFileDialogToParentDir is None:
+            self.__iconFileDialogToParentDir = self._createIconToParent(qt.QStyle.SP_DirIcon)
+        return self.__iconFileDialogToParentDir
+
+    def getFileDialogToParentFile(self):
+        if self.__iconFileDialogToParentFile is None:
+            self.__iconFileDialogToParentFile = self._createIconToParent(qt.QStyle.SP_FileIcon)
+        return self.__iconFileDialogToParentFile
+
+    def icon(self, kind):
+        if kind == self.FileDialogToParentDir:
+            return self.getFileDialogToParentDir()
+        elif kind == self.FileDialogToParentFile:
+            return self.getFileDialogToParentFile()
+        else:
+            style = qt.QApplication.style()
+            icon = style.standardIcon(kind)
+            return icon
+
+
 class _ImagePreview(qt.QWidget):
 
     def __init__(self, parent=None):
@@ -165,6 +228,7 @@ class _SideBar(qt.QListView):
 
     def __init__(self, parent=None):
         super(_SideBar, self).__init__(parent)
+        self.setUniformItemSizes(True)
         model = self._createModel()
         self.setModel(model)
         self.setEditTriggers(qt.QAbstractItemView.NoEditTriggers)
@@ -241,6 +305,9 @@ class ImageFileDialog(qt.QDialog):
             print("Nothing selected")
     """
 
+    _defaultIconProvider = None
+    """Lazy loaded default icon provider"""
+
     def __init__(self, parent=None):
         super(ImageFileDialog, self).__init__(parent)
 
@@ -254,12 +321,78 @@ class ImageFileDialog(qt.QDialog):
 
         self.__dataModel = Hdf5TreeModel(self)
         self.__initLayout()
+        self.__showAsListView()
 
         path = os.getcwd()
         self.__fileModel.setRootPath(path)
 
     def _createSideBar(self):
         return _SideBar(self)
+
+    def iconProvider(self):
+        iconProvider = self.__class__._defaultIconProvider
+        if iconProvider is None:
+            iconProvider = _IconProvider()
+            self.__class__._defaultIconProvider = iconProvider
+        return iconProvider
+
+    def _createBrowseToolBar(self):
+        toolbar = qt.QToolBar(self)
+        iconProvider = self.iconProvider()
+
+        back = qt.QAction(toolbar)
+        back.setText("Back")
+        back.setIcon(iconProvider.icon(qt.QStyle.SP_ArrowBack))
+        back.triggered.connect(self.__navigateBack)
+
+        forward = qt.QAction(toolbar)
+        forward.setText("Forward")
+        forward.setIcon(iconProvider.icon(qt.QStyle.SP_ArrowForward))
+        forward.triggered.connect(self.__navigateForward)
+
+        parentDirectory = qt.QAction(toolbar)
+        parentDirectory.setText("Parent directory")
+        parentDirectory.setIcon(iconProvider.icon(qt.QStyle.SP_FileDialogToParent))
+        parentDirectory.triggered.connect(self.__navigateToParent)
+
+        fileDirectory = qt.QAction(toolbar)
+        fileDirectory.setText("Root of the file")
+        fileDirectory.setIcon(iconProvider.icon(iconProvider.FileDialogToParentFile))
+        fileDirectory.triggered.connect(self.__navigateToParentFile)
+
+        parentFileDirectory = qt.QAction(toolbar)
+        parentFileDirectory.setText("Parent directory of the file")
+        parentFileDirectory.setIcon(iconProvider.icon(iconProvider.FileDialogToParentDir))
+        parentFileDirectory.triggered.connect(self.__navigateToParentDir)
+
+        listView = qt.QAction(toolbar)
+        listView.setText("List view")
+        listView.setIcon(iconProvider.icon(qt.QStyle.SP_FileDialogListView))
+        listView.triggered.connect(self.__showAsListView)
+        listView.setCheckable(True)
+
+        detailView = qt.QAction(toolbar)
+        detailView.setText("List view")
+        detailView.setIcon(iconProvider.icon(qt.QStyle.SP_FileDialogDetailedView))
+        detailView.triggered.connect(self.__showAsDetailedView)
+        detailView.setCheckable(True)
+
+        self.__listViewAction = listView
+        self.__detailViewAction = detailView
+
+        toolbar.addAction(back)
+        toolbar.addAction(forward)
+        toolbar.addSeparator()
+        toolbar.addAction(parentDirectory)
+        toolbar.addAction(fileDirectory)
+        toolbar.addAction(parentFileDirectory)
+        toolbar.addSeparator()
+        toolbar.addAction(listView)
+        toolbar.addAction(detailView)
+
+        toolbar.setStyleSheet("QToolBar { border: 0px }")
+
+        return toolbar
 
     def __initLayout(self):
         self.__sidebar = self._createSideBar()
@@ -271,12 +404,16 @@ class ImageFileDialog(qt.QDialog):
         self.__fileLocationView.selectionModel().selectionChanged.connect(self.__fileSelected)
         self.__fileLocationView.setSelectionMode(qt.QAbstractItemView.SingleSelection)
         self.__fileLocationView.activated.connect(self.__fileActivated)
+        self.__fileLocationView.setUniformItemSizes(True)
+        self.__fileLocationView.setResizeMode(qt.QListView.Adjust)
 
         self.__dataLocationView = qt.QListView(self)
         self.__dataLocationView.setModel(self.__dataModel)
         self.__dataLocationView.selectionModel().selectionChanged.connect(self.__dataSelected)
         self.__dataLocationView.setSelectionMode(qt.QAbstractItemView.SingleSelection)
         self.__dataLocationView.activated.connect(self.__dataActivated)
+        self.__dataLocationView.setUniformItemSizes(True)
+        self.__dataLocationView.setResizeMode(qt.QListView.Adjust)
 
         self.__data = _ImagePreview(self)
         self.__data.setMinimumSize(200, 200)
@@ -289,13 +426,16 @@ class ImageFileDialog(qt.QDialog):
         self.__buttons.accepted.connect(self.accept)
         self.__buttons.rejected.connect(self.reject)
 
+        self.__browseToolBar = self._createBrowseToolBar()
+
         datasetSelection = qt.QWidget(self)
         layoutLeft = qt.QVBoxLayout()
         layoutLeft.setContentsMargins(0, 0, 0, 0)
+        layoutLeft.addWidget(self.__browseToolBar)
         layoutLeft.addWidget(self.__fileLocationView)
         layoutLeft.addWidget(self.__dataLocationView)
         datasetSelection.setLayout(layoutLeft)
-        datasetSelection.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
+        datasetSelection.setSizePolicy(qt.QSizePolicy.MinimumExpanding, qt.QSizePolicy.Expanding)
 
         imageSelection = qt.QWidget(self)
         imageLayout = qt.QVBoxLayout()
@@ -314,6 +454,56 @@ class ImageFileDialog(qt.QDialog):
         layout.addWidget(self.__buttons)
 
         self.setLayout(layout)
+
+    def __navigateBack(self):
+        raise NotImplementedError()
+
+    def __navigateForward(self):
+        raise NotImplementedError()
+
+    def __navigateToParent(self):
+        # Try to browse the data first
+        index = self.__dataLocationView.rootIndex()
+        if index.isValid():
+            index = index.parent()
+            if index.isValid():
+                self.__dataLocationView.setRootIndex(index)
+                return
+            else:
+                self.__dataModel.removeH5pyObject(self.__h5)
+                self.__h5 = None
+
+        # Then browse the file system
+        index = self.__fileLocationView.rootIndex()
+        index = index.parent()
+        if index.isValid():
+            self.__fileLocationView.setRootIndex(index)
+
+    def __navigateToParentFile(self):
+        index = self.__dataLocationView.rootIndex()
+        if index.isValid():
+            index = _indexFromH5Object(self.__dataModel, self.__h5)
+            self.__dataLocationView.setRootIndex(index)
+
+    def __navigateToParentDir(self):
+        # Right now there is not difference here
+        self.__navigateToParentFile()
+
+    def __showAsListView(self):
+        mode = qt.QListView.IconMode
+        self.__fileLocationView.setViewMode(mode)
+        self.__dataLocationView.setViewMode(mode)
+
+        self.__listViewAction.setChecked(True)
+        self.__detailViewAction.setChecked(False)
+
+    def __showAsDetailedView(self):
+        mode = qt.QListView.ListMode
+        self.__fileLocationView.setViewMode(mode)
+        self.__dataLocationView.setViewMode(mode)
+
+        self.__listViewAction.setChecked(False)
+        self.__detailViewAction.setChecked(True)
 
     def __shortcutClicked(self):
         indexes = self.__sidebar.selectionModel().selectedIndexes()
