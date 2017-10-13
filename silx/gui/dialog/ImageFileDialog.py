@@ -228,10 +228,14 @@ class _SideBar(qt.QListView):
 
     def __init__(self, parent=None):
         super(_SideBar, self).__init__(parent)
+        self.__iconProvider = qt.QFileIconProvider()
         self.setUniformItemSizes(True)
         model = self._createModel()
         self.setModel(model)
         self.setEditTriggers(qt.QAbstractItemView.NoEditTriggers)
+
+    def iconProvider(self):
+        return self.__iconProvider
 
     def _createModel(self):
 
@@ -244,31 +248,26 @@ class _SideBar(qt.QListView):
         model = qt.QStandardItemModel(self)
 
         names = {}
-        names[""] = "Computer"
         names[qt.QDir.rootPath()] = "Computer"
         names[qt.QDir.homePath()] = "Home"
 
         style = qt.QApplication.style()
-
+        iconProvider = self.iconProvider()
         for url in urls:
             path = url.toLocalFile()
-            if path in names:
-                name = names[path]
-            else:
-                name = path.rsplit("/", 1)[-1]
-
-            if name == "Computer":
+            if path == "":
+                name = "Computer"
                 icon = style.standardIcon(qt.QStyle.SP_ComputerIcon)
-            elif not os.path.exists(path):
-                icon = style.standardIcon(qt.QStyle.SP_MessageBoxCritical)
-            elif os.path.isdir(path):
-                icon = style.standardIcon(qt.QStyle.SP_DirIcon)
-            elif os.path.isfile(path):
-                icon = style.standardIcon(qt.QStyle.SP_FileIcon)
             else:
-                icon = None
+                fileInfo = qt.QFileInfo(path)
+                name = names.get(path, fileInfo.fileName())
+                icon = iconProvider.icon(fileInfo)
 
-            item = qt.QStandardItem(name)
+            if icon.isNull():
+                icon = style.standardIcon(qt.QStyle.SP_MessageBoxCritical)
+
+            item = qt.QStandardItem()
+            item.setText(name)
             item.setIcon(icon)
             item.setData(url, role=qt.Qt.UserRole)
             model.appendRow(item)
