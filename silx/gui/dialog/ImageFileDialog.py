@@ -173,34 +173,126 @@ class _IconProvider(object):
             return icon
 
 
-class _ImagePreview(qt.QWidget):
+class _Slicing(qt.QWidget):
+
+    slicingChanged = qt.Signal()
 
     def __init__(self, parent=None):
         qt.QWidget.__init__(self, parent)
-        self.__plot = PlotWidget(self)
-        self.__plot.setAxesDisplayed(False)
-
-        layout = qt.QVBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self.__plot)
+        self.__shape = None
+        self.__axis = []
+        layout = qt.QVBoxLayout()
         self.setLayout(layout)
 
-        tools = qt.QToolBar(self)
-        tools.addAction(actions.mode.ZoomModeAction(self.__plot, self))
-        tools.addAction(actions.mode.PanModeAction(self.__plot, self))
+    def hasVisibleSliders(self):
+        return self.__visibleSliders > 0
 
-        tools2 = qt.QToolBar(self)
-        tools2.addAction(actions.control.ColormapAction(self.__plot, self))
+    def setShape(self, shape):
+        if self.__shape is not None:
+            # clean up
+            for widget in self.__axis:
+                self.layout().removeWidget(widget)
+                widget.deleteLater()
+            self.__axis = []
+
+        self.__shape = shape
+        self.__visibleSliders = 0
+
+        if shape is not None:
+            # create expected axes
+            for index in range(len(shape) - 2):
+                axis = qt.QSlider(self)
+                axis.setMinimum(0)
+                axis.setMaximum(shape[index] - 1)
+                axis.setOrientation(qt.Qt.Horizontal)
+                if shape[index] == 1:
+                    axis.setVisible(False)
+                else:
+                    self.__visibleSliders += 1
+
+                axis.valueChanged.connect(self.__axisValueChanged)
+                self.layout().addWidget(axis)
+                self.__axis.append(axis)
+
+        self.slicingChanged.emit()
+
+    def __axisValueChanged(self):
+        self.slicingChanged.emit()
+
+    def slicing(self):
+        slicing = []
+        for axes in self.__axis:
+            slicing.append(axes.value())
+        return tuple(slicing)
+
+
+class _ImagePreview(qt.QWidget):
+
+    def __init__(self, parent=None):
+        super(_ImagePreview, self).__init__(parent)
+
+        self.__plot = PlotWidget(self)
+        self.__plot.setAxesDisplayed(False)
+        self.__plot.setKeepDataAspectRatio(True)
+
+        frame = qt.QFrame(self)
+        frame.setFrameShape(qt.QFrame.StyledPanel)
+        layout = qt.QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(self.__plot)
+        frame.setLayout(layout)
+
+        toolbar = qt.QToolBar(self)
+        toolbar.setStyleSheet("QToolBar { border: 0px }")
+        toolbar.addAction(actions.mode.ZoomModeAction(self.__plot, self))
+        toolbar.addAction(actions.mode.PanModeAction(self.__plot, self))
+        toolbar.addSeparator()
+        toolbar.addAction(actions.control.ResetZoomAction(self.__plot, self))
+        toolbar.addSeparator()
+        toolbar.addAction(actions.control.ColormapAction(self.__plot, self))
 
         self.__size = qt.QLabel()
         status = qt.QStatusBar(self)
         status.addPermanentWidget(self.__size)
+        status.setSizeGripEnabled(False)
 
-        self.__plot.addToolBar(tools)
-        self.__plot.addToolBar(tools2)
-        self.__plot.setStatusBar(status)
+        self.__slicing = _Slicing()
+        self.__slicing.slicingChanged.connect(self.__slicingChanged)
 
-    def setImage(self, image):
+        layout = qt.QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(toolbar)
+        layout.addWidget(frame)
+        layout.addWidget(status)
+        layout.addWidget(self.__slicing)
+
+        self.setLayout(layout)
+
+    def setData(self, data):
+        self.__data = data
+        self.__selectedImage = None
+
+        if data is None or data.shape is None:
+            self.clear()
+            return
+
+        dim = len(data.shape)
+        if dim == 2:
+            self.__setImage(data)
+            self.__slicing.hide()
+        elif dim > 2:
+            self.__slicing.setShape(data.shape)
+            self.__slicing.setVisible(self.__slicing.hasVisibleSliders())
+        else:
+            self.__slicing.hide()
+            self.__setImage(None)
+
+    def __slicingChanged(self):
+        slicing = self.__slicing.slicing()
+        image = self.__data[slicing]
+        self.__setImage(image)
+
+    def __setImage(self, image):
         if image is None:
             self.clear()
             return
@@ -212,12 +304,17 @@ class _ImagePreview(qt.QWidget):
         axis = self.__plot.getYAxis()
         axis.setLimitsConstraints(0, image.shape[0])
 
+        self.__selectedImage = image
         shape = [str(i) for i in image.shape]
         text = u" \u00D7 ".join(shape)
         self.__size.setText(text)
 
+    def selectedImage(self):
+        return self.__selectedImage
+
     def clear(self):
         self.__size.setText("")
+        self.__slicing.hide()
         image = self.__plot.getImage("data")
         if image is not None:
             self.__plot.removeImage(legend="data")
@@ -500,6 +597,7 @@ class ImageFileDialog(qt.QDialog):
 
         imageSelection = qt.QWidget(self)
         imageLayout = qt.QVBoxLayout()
+        imageLayout.setContentsMargins(0, 0, 0, 0)
         imageLayout.addWidget(self.__data)
         imageSelection.setLayout(imageLayout)
 
@@ -614,14 +712,14 @@ class ImageFileDialog(qt.QDialog):
                 self.__browser.setRootIndex(index)
 
     def __dataSelected(self, index):
-        self.__selectedImage = None
+        selectedData = None
         if index is not None and index.model() is self.__dataModel:
             obj = index.data(self.__dataModel.H5PY_OBJECT_ROLE)
             if silx.io.is_dataset(obj):
-                if obj.shape is not None and len(obj.shape) == 2:
-                    self.__selectedImage = obj
+                if obj.shape is not None and len(obj.shape) >= 2:
+                    selectedData = obj
 
-        self.__data.setImage(self.__selectedImage)
+        self.__data.setData(selectedData)
 
     # Selected file
 
@@ -659,7 +757,7 @@ class ImageFileDialog(qt.QDialog):
 
         :rtype: numpy.ndarray
         """
-        return self.__selectedImage
+        return self.__data.selectedImage()
 
     # Filters
 
