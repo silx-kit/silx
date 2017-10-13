@@ -560,7 +560,7 @@ class ImageFileDialog(qt.QDialog):
         if index is not None and index.model() is self.__dataModel:
             obj = index.data(self.__dataModel.H5PY_OBJECT_ROLE)
             if silx.io.is_dataset(obj):
-                if len(obj.shape) == 2:
+                if obj.shape is not None and len(obj.shape) == 2:
                     self.__selectedImage = obj
 
         self.__data.setImage(self.__selectedImage)
