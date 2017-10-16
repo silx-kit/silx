@@ -71,17 +71,18 @@ kernel void mark_exceptions(global char* raw, int size, global int* mask,  globa
     }
 }
 //run with WG=1, as may as exceptions
-kernel void treat_exceptions(global char* raw,
-                             int size,
-                             global int* mask,
-                             global int* exc,
-                             global int* values,
-                             global int* delta)
+kernel void treat_exceptions(global char* raw, //raw compressed stream
+                             int size,         //size of the raw compressed stream
+                             global int* mask, //tells if the value is masked
+                             global int* exc,  //array storing the position of the start of exception zones
+                             global int* values,// stores decompressed values.
+                             global int* delta) // stores the size of the element --> deprecated.
 {
     int gid = get_global_id(0);
     int position = exc[gid];
     if ((position>0) && ((int)mask[position-1] !=0))
-    { // this is actually not another exception, remove from list
+    { // This is actually not another exception, remove from list.
+      // Those data will be treated by another workgroup.
         exc[gid] = -1;
     }
     else
@@ -94,13 +95,13 @@ kernel void treat_exceptions(global char* raw,
         {
             value = (int) raw[inp_pos];
             if (value == -128)
-            {
+            { // this correspond to 16 bits exception
                 uchar low_byte = raw[inp_pos+1];
                 char high_byte = raw[inp_pos+2] ;
 
                 next_value = high_byte<<8 | low_byte;
                 if (next_value == -32768)
-                {
+                { // this correspond to 32 bits exception
                     uchar low_byte1 = raw[inp_pos+3],
                           low_byte2 = raw[inp_pos+4],
                           low_byte3 = raw[inp_pos+5];
@@ -120,6 +121,7 @@ kernel void treat_exceptions(global char* raw,
             }
             values[inp_pos] = value;
             delta[inp_pos] = inc;
+            mask[inp_pos] = -1; // mark the processed data in the mask
             inp_pos += inc;
             out_pos += 1 ;
             is_masked = mask[inp_pos];
@@ -127,6 +129,61 @@ kernel void treat_exceptions(global char* raw,
     }
 }
 
+// copy the values of the non-exceptions elements based on the mask.
+// Set the value of the mask to the current position  or -2
+kernel void treat_simple(global char* raw,
+                         int size,
+                         global int* mask,
+                         global int* values)
+{
+    int gid = get_global_id(0);
+    int in_pos, value_size;
+    if (gid < size)
+    {
+        if (mask[gid] > 0)
+        { // convert the masked position from a positive  value to a negative one
+            mask[gid] = -2;
+        }
+        else if (mask[gid] == -1)
+        { // this is an exception and has already been treated.
+            mask[gid] = gid;
+        }
+        else
+        { // normal case
+            values[gid] = raw[gid];
+            mask[gid] = gid;
+        }
+    }
+}
+
+// copy the values of the elements to definitive position
+kernel void copy_result_int(global int* values,
+                            global int* indexes,
+                            int size,
+                            global int* output)
+{
+    int gid = get_global_id(0);
+    if (gid<size)
+    {
+        output[gid] = values[indexes[gid]];
+    }
+}
+
+// copy the values of the elements to definitive position
+kernel void copy_result_float(global int* values,
+                              global int* indexes,
+                              int size,
+                              global float* output)
+{
+    int gid = get_global_id(0);
+    if (gid<size)
+    {
+        output[gid] = (float) values[indexes[gid]];
+    }
+}
+
+
+//Deprecated from now on ...
 kernel void calc_size(int size,
                       global int* mask,
                       global int* delta)
@@ -142,6 +199,8 @@ kernel void calc_size(int size,
         }
     }
 }
+
+// copy the values of the elements without exceptions
 kernel void copy_values(global char* raw,
                         int size,
                         int datasize,
@@ -180,12 +239,12 @@ kernel void copy_values(global char* raw,
 
 //Simple memset kernel for char arrays
 kernel void fill_char_mem(global char* ary,
-                          int size
+                          int size,
                           char pattern,
                           int start_at)
 {
     int gid = get_global_id(0);
-    if (gid >= start_at) && (gid < size))
+    if ((gid >= start_at) && (gid < size))
     {
         ary[gid] = pattern;
     }
@@ -193,7 +252,7 @@ kernel void fill_char_mem(global char* ary,
 
 //Simple memset kernel for int arrays
 kernel void fill_int_mem(global int* ary,
-                         int size
+                         int size,
                          int pattern)
 {
     int gid = get_global_id(0);
