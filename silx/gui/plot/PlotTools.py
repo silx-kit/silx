@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "02/10/2017"
+__date__ = "16/10/2017"
 
 
 import logging
@@ -151,13 +151,16 @@ class PositionInfo(qt.QWidget):
         """
         if event['event'] == 'mouseMoved':
             x, y = event['x'], event['y']
-            self._updateStatusBar(x, y)
+            xPixel, yPixel = event['xpixel'], event['ypixel']
+            self._updateStatusBar(x, y, xPixel, yPixel)
 
-    def _updateStatusBar(self, x, y):
+    def _updateStatusBar(self, x, y, xPixel, yPixel):
         """Update information from the status bar using the definitions.
 
         :param float x: Position-x in data
         :param float y: Position-y in data
+        :param float xPixel: Position-x in pixels
+        :param float yPixel: Position-y in pixels
         """
         styleSheet = "color: rgb(0, 0, 0);"  # Default style
 
@@ -180,8 +183,6 @@ class PositionInfo(qt.QWidget):
                     closestInPixels = self.plot.dataToPixel(
                         xClosest, yClosest, axis=activeCurve.getYAxis())
                     if closestInPixels is not None:
-                        xPixel, yPixel = event['xpixel'], event['ypixel']
-
                         if (abs(closestInPixels[0] - xPixel) < 5 and
                                 abs(closestInPixels[1] - yPixel) < 5):
                             # Update label style sheet
