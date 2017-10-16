@@ -41,42 +41,40 @@ __date__ = "16/10/2017"
 __status__ = "production"
 
 import os
-import gc
 import numpy
-from ..common import ocl, pyopencl, kernel_workgroup_size
+from ..common import ocl, pyopencl
 from ..processing import BufferDescription, EventDescription, OpenclProcessing
-
 import logging
 logger = logging.getLogger(__name__)
-if not pyopencl:
+if pyopencl:
+    import pyopencl.algorithm
+else:
     logger.warning("No PyOpenCL, no byte-offset, please see fabio")
 
 
 class ByteOffset(OpenclProcessing):
     "Perform the byte offset decompression on the GPU"
-    def __init__(self, raw_size, dec_size=None, ctx=None, devicetype="all",
+    def __init__(self, raw_size, dec_size, ctx=None, devicetype="all",
                  platformid=None, deviceid=None,
                  block_size=None, profile=False):
         """Constructor of the Byte Offset decompressor 
         
+        :param raw_size: size of the raw stream, can be (slightly) larger than the array 
+        :param dec_size: size of the output array (mandatory)
         """
 
         OpenclProcessing.__init__(self, ctx=ctx, devicetype=devicetype,
                                   platformid=platformid, deviceid=deviceid,
                                   block_size=block_size, profile=profile)
         self.raw_size = int(raw_size)
-        if not dec_size:
-            dec_size = self.raw_size
         self.dec_size = int(dec_size)
 
         buffers = [
                     BufferDescription("raw", self.raw_size, numpy.int8, None),
-                    BufferDescription("mask", self.raw_size, numpy.int32, None),
+                    BufferDescription("mask", self.raw_size + 8, numpy.int32, None),
                     BufferDescription("exceptions", self.raw_size, numpy.int32, None),
                     BufferDescription("counter", 1, numpy.int32, None),
-                    BufferDescription("data_simple", self.raw_size, numpy.int32, None),
-                    BufferDescription("data_except", self.raw_size, numpy.int32, None),
-                    BufferDescription("delta", self.raw_size, numpy.int32, None),
+                    BufferDescription("data_non_compact", self.raw_size, numpy.int32, None),
                     BufferDescription("exceptions", self.raw_size, numpy.int32, None),
                     BufferDescription("data_float", self.dec_size, numpy.float32, None),
                     BufferDescription("data_int", self.dec_size, numpy.int32, None),
@@ -103,34 +101,19 @@ class ByteOffset(OpenclProcessing):
             events.append(EventDescription("copy raw H -> D", evt))
             evt = self.kernels.fill_int_mem(self.queue, (self.raw_size,), None,
                                             self.cl_mem["mask"].data,
-                                            numpy.int32(self.cl_mem["mask"].data.size),
+                                            numpy.int32(self.cl_mem["mask"].size),
                                             numpy.int32(0))
             events.append(EventDescription("memset mask buffer", evt))
             evt = self.kernels.fill_int_mem(self.queue, (self.raw_size,), None,
-                                            self.cl_mem["data_simple"].data,
+                                            self.cl_mem["data_non_compact"].data,
                                             numpy.int32(self.raw_size),
                                             numpy.int32(0))
-            events.append(EventDescription("memset data_simple", evt))
-            evt = self.kernels.fill_int_mem(self.queue, (self.raw_size,), None,
-                                            self.cl_mem["data_except"].data,
-                                            numpy.int32(self.raw_size),
-                                            numpy.int32(0))
-            events.append(EventDescription("memset data_except", evt))
-            evt = self.kernels.fill_int_mem(self.queue, (self.raw_size,), None,
-                                            self.cl_mem["delta"].data,
-                                            numpy.int32(self.raw_size),
-                                            numpy.int32(0))
-            events.append(EventDescription("memset delta", evt))
+            events.append(EventDescription("memset data_non_compact", evt))
             evt = self.kernels.fill_int_mem(self.queue, (1,), None,
                                             self.cl_mem["counter"].data,
                                             numpy.int32(1),
                                             numpy.int32(0))
             events.append(EventDescription("memset counter", evt))
-            evt = self.kernels.fill_int_mem(self.queue, (self.raw_size,), None,
-                                            self.cl_mem["exceptions"].data,
-                                            numpy.int32(self.raw_size),
-                                            numpy.int32(0))
-            events.append(EventDescription("memset exceptions", evt))
 
             evt = self.kernels.mark_exceptions(self.queue, (self.raw_size,), None,
                                                self.cl_mem["raw"].data,
@@ -150,18 +133,17 @@ class ByteOffset(OpenclProcessing):
                                                 numpy.int32(self.raw_size),
                                                 self.cl_mem["mask"].data,
                                                 self.cl_mem["exceptions"].data,
-                                                self.cl_mem["data_except"].data,
-                                                self.cl_mem["delta"].data
+                                                self.cl_mem["data_non_compact"].data
                                                 )
             events.append(EventDescription("treat_exceptions", evt))
             evt = self.kernels.treat_simple(self.queue, (self.raw_size,), None,
                                             self.cl_mem["raw"].data,
                                             numpy.int32(self.raw_size),
                                             self.cl_mem["mask"].data,
-                                            self.cl_mem["data_except"].data)
+                                            self.cl_mem["data_non_compact"].data)
             events.append(EventDescription("treat_simple", evt))
 
-            evt, cumsummed_d = pyopencl.array.cumsum(self.cl_mem["data_except"],
+            evt, cumsummed_d = pyopencl.array.cumsum(self.cl_mem["data_non_compact"],
                                                      numpy.int32, self.queue,
                                                      return_event=True,
                                                      wait_for=[evt])  # synchro here
@@ -186,7 +168,8 @@ class ByteOffset(OpenclProcessing):
                 else:
                     out = self.cl_mem["data_int"]
                     copy_results = self.kernels.copy_result_int
-            assert out.size >= size_out
+            if out.size != size_out:
+                print("out size: %s expected: %s" % (out.size, size_out))
             evt = copy_results(self.queue, (size_out,), None,
                                cumsummed_d.data,
                                indexes_d.data,

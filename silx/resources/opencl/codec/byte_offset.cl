@@ -75,8 +75,7 @@ kernel void treat_exceptions(global char* raw, //raw compressed stream
                              int size,         //size of the raw compressed stream
                              global int* mask, //tells if the value is masked
                              global int* exc,  //array storing the position of the start of exception zones
-                             global int* values,// stores decompressed values.
-                             global int* delta) // stores the size of the element --> deprecated.
+                             global int* values)// stores decompressed values.
 {
     int gid = get_global_id(0);
     int position = exc[gid];
@@ -120,7 +119,6 @@ kernel void treat_exceptions(global char* raw, //raw compressed stream
                 inc = 1;
             }
             values[inp_pos] = value;
-            delta[inp_pos] = inc;
             mask[inp_pos] = -1; // mark the processed data in the mask
             inp_pos += inc;
             out_pos += 1 ;
@@ -141,8 +139,9 @@ kernel void treat_simple(global char* raw,
     if (gid < size)
     {
         if (mask[gid] > 0)
-        { // convert the masked position from a positive  value to a negative one
+        { // convert the masked position from a positive value to a negative one
             mask[gid] = -2;
+            values[gid] = 0; //this prevents a full memset of the array
         }
         else if (mask[gid] == -1)
         { // this is an exception and has already been treated.
@@ -179,61 +178,6 @@ kernel void copy_result_float(global int* values,
     if (gid<size)
     {
         output[gid] = (float) values[indexes[gid]];
-    }
-}
-
-
-//Deprecated from now on ...
-kernel void calc_size(int size,
-                      global int* mask,
-                      global int* delta)
-{
-    int gid = get_global_id(0);
-    if (gid < size)
-    {
-        int is_masked;
-        is_masked = mask[gid];
-        if (!is_masked)
-        {
-            delta[gid] = 1;
-        }
-    }
-}
-
-// copy the values of the elements without exceptions
-kernel void copy_values(global char* raw,
-                        int size,
-                        int datasize,
-                        global int* values,
-                        global int* exception_values,
-                        global int* positions,
-                        global int* delta)
-{
-    int gid = get_global_id(0);
-    int in_pos, value_size;
-    if (gid < datasize)
-    {
-        if (gid == 0)
-        {
-            in_pos = 0;
-        }
-        else
-        {
-            in_pos = positions[gid-1];
-        }
-
-        if (in_pos < size)
-        {
-            value_size = delta[in_pos];
-            if (value_size == 1)
-            {
-                values[gid] = (int) raw[in_pos];
-            }
-            else if (value_size >1)
-            {
-                values[gid] = exception_values[in_pos];
-            }
-        }
     }
 }
 
