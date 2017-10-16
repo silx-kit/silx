@@ -110,6 +110,105 @@ def _indexFromH5Object(model, h5Object):
     return qt.QModelIndex()
 
 
+def _findClosestSubPath(hdf5Object, path):
+    """Find the closest existing path from the hdf5Object using a subset of the
+    provided path.
+
+    Returns None if no path found. It is possible if the path is a relative
+    path.
+
+    :param h5py.Node hdf5Object: An HDF5 node
+    :param str path: A path
+    :rtype: str
+    """
+    if path in ["", "/"]:
+        return "/"
+    names = path.split("/")
+    if path[0] == "/":
+        names.pop(0)
+    for i in range(len(names)):
+        n = len(names) - i
+        path2 = "/".join(names[0:n])
+        if path2 == "":
+            return ""
+        if path2 in hdf5Object:
+            return path2
+
+    if path[0] == "/":
+        return "/"
+    return None
+
+
+class _ImageUri(object):
+
+    def __init__(self, path=None, filename=None, dataPath=None, slice=None):
+        self.__isValid = False
+        if path is not None:
+            self.__fromPath(path)
+        else:
+            self.__filename = filename
+            self.__dataPath = dataPath
+            self.__slice = slice
+            self.__path = None
+            self.__isValid = self.__filename is not None
+
+    def __fromPath(self, path):
+        elements = path.split("::", 1)
+        self.__path = path
+        self.__filename = elements[0]
+        self.__slice = None
+        self.__dataPath = None
+        if len(elements) == 1:
+            pass
+        else:
+            selector = elements[1]
+            selectors = selector.split("[", 1)
+            self.__dataPath = selectors[0]
+            if len(selectors) == 2:
+                try:
+                    slicing = selectors[1].split("]", 1)[0]
+                    slicing = slicing.split(",")
+                    slicing = [int(s) for s in slicing]
+                    self.__slice = slicing
+                except ValueError:
+                    self.__isValid = False
+                    return
+
+        self.__isValid = True
+
+    def isValid(self):
+        return self.__isValid
+
+    def path(self):
+        if self.__path is not None:
+            return self.__path
+
+        if self.__path is None:
+            path = ""
+            selector = ""
+            if self.__filename is not None:
+                path += self.__filename
+            if self.__dataPath is not None:
+                selector += self.__dataPath
+            if self.__slice is not None:
+                selector += "[%s]" % ",".join([str(s) for s in self.__slice])
+            if selector != "":
+                return path + "::" + selector
+            else:
+                return path
+
+        return self.__path
+
+    def filename(self):
+        return self.__filename
+
+    def dataPath(self):
+        return self.__dataPath
+
+    def slice(self):
+        return self.__slice
+
+
 class _IconProvider(object):
 
     FileDialogToParentDir = qt.QStyle.SP_CustomBase + 1
@@ -225,6 +324,12 @@ class _Slicing(qt.QWidget):
             slicing.append(axes.value())
         return tuple(slicing)
 
+    def setSlicing(self, slicing):
+        for i, value in enumerate(slicing):
+            if i > len(self.__axis):
+                break
+            self.__axis[i].setValue(value)
+
 
 class _ImagePreview(qt.QWidget):
 
@@ -338,13 +443,33 @@ class _Browser(qt.QStackedWidget):
         self.activated.emit(index)
 
     def __emitSelected(self, selected, deselected):
+        index = self.selectedIndex()
+        if index is not None:
+            self.selected.emit(index)
+
+    def selectedIndex(self):
         if self.currentIndex() == 0:
-            indexes = self.__listView.selectionModel().selectedIndexes()
+            selectionModel = self.__listView.selectionModel()
         else:
-            indexes = self.__detailView.selectionModel().selectedIndexes()
+            selectionModel = self.__detailView.selectionModel()
+
+        if selectionModel is None:
+            return None
+
+        indexes = selectionModel.selectedIndexes()
         if len(indexes) == 1:
             index = indexes[0]
-            self.selected.emit(index)
+            return index
+        return None
+
+    def selectIndex(self, index):
+        if self.currentIndex() == 0:
+            selectionModel = self.__listView.selectionModel()
+        else:
+            selectionModel = self.__detailView.selectionModel()
+        if selectionModel is None:
+            return
+        selectionModel.setCurrentIndex(index, qt.QItemSelectionModel.ClearAndSelect)
 
     def showList(self):
         self.__listView.show()
@@ -361,6 +486,8 @@ class _Browser(qt.QStackedWidget):
         """Sets the root item to the item at the given index.
         """
         rootIndex = self.__listView.rootIndex()
+        if rootIndex == index:
+            return
         newModel = index.model()
         if rootIndex is None or rootIndex.model() is not newModel:
             # update the model
@@ -381,6 +508,23 @@ class _Browser(qt.QStackedWidget):
         the parent item to the view's toplevel items. The root can be invalid.
         """
         return self.__listView.rootIndex()
+
+
+class _DatasetConnector(object):
+
+    def __init__(self, dataset):
+        self.__dataset = dataset
+
+    @property
+    def shape(self):
+        return self.__dataset.shape
+
+    @property
+    def dim(self):
+        return len(self.__dataset.shape)
+
+    def __getitem__(self, selector):
+        return self.__dataset.__getitem__(selector)
 
 
 class _PathEdit(qt.QLineEdit):
@@ -483,6 +627,7 @@ class ImageFileDialog(qt.QDialog):
 
         self.__pathEdit = _PathEdit(self)
         self.__pathEdit.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Fixed)
+        self.__pathEdit.textChanged.connect(self.__pathChanged)
 
         self.__buttons = qt.QDialogButtonBox(self)
         self.__buttons.setSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed)
@@ -721,27 +866,34 @@ class ImageFileDialog(qt.QDialog):
             self.__dataSelected(None)
         elif index.model() is self.__dataModel:
             self.__dataSelected(index)
+        self.__updatePath()
 
     def __directoryLoaded(self, path):
         index = self.__fileModel.index(path)
         self.__browser.setRootIndex(index)
 
+    def __openHdf5File(self, filename):
+        if self.__h5 is not None:
+            self.__dataModel.removeH5pyObject(self.__h5)
+            self.__h5 = None
+        try:
+            self.__h5 = silx.io.open(filename)
+            self.__selectedFile = filename
+        except IOError as e:
+            _logger.error("Error while loading file %s: %s", filename, e.args[0])
+            _logger.debug("Backtrace", exc_info=True)
+            return None
+        else:
+            self.__dataModel.insertH5pyObject(self.__h5)
+            index = _indexFromH5Object(self.__dataModel, self.__h5)
+            return index
+
     def __fileActivated(self, index):
         self.__selectedFile = None
         path = self.__fileModel.filePath(index)
         if os.path.isfile(path):
-            if self.__h5 is not None:
-                self.__dataModel.removeH5pyObject(self.__h5)
-                self.__h5 = None
-            try:
-                self.__h5 = silx.io.open(path)
-                self.__selectedFile = path
-            except IOError as e:
-                _logger.error("Error while loading file %s: %s", path, e.args[0])
-                _logger.debug("Backtrace", exc_info=True)
-            else:
-                self.__dataModel.insertH5pyObject(self.__h5)
-                index = _indexFromH5Object(self.__dataModel, self.__h5)
+            index = self.__openHdf5File(path)
+            if index is not None:
                 self.__browser.setRootIndex(index)
 
     def __dataSelected(self, index):
@@ -764,7 +916,10 @@ class ImageFileDialog(qt.QDialog):
 
         dim = len(data.shape)
         if dim == 2:
+            self.__selectedImage = data
             self.__imagePreview.setImage(data)
+            self.__updateDataInfo()
+            self.__updatePath()
             self.__slicing.hide()
             button = self.__buttons.button(qt.QDialogButtonBox.Open)
             button.setEnabled(True)
@@ -783,6 +938,7 @@ class ImageFileDialog(qt.QDialog):
         self.__selectedImage = None
         self.__data = None
         self.__updateDataInfo()
+        self.__updatePath()
         button = self.__buttons.button(qt.QDialogButtonBox.Open)
         button.setEnabled(False)
 
@@ -795,6 +951,7 @@ class ImageFileDialog(qt.QDialog):
         self.__imagePreview.setImage(image)
         self.__selectedImage = image
         self.__updateDataInfo()
+        self.__updatePath()
 
     def __updateDataInfo(self):
         if self.__selectedImage is None:
@@ -805,6 +962,65 @@ class ImageFileDialog(qt.QDialog):
             shape = [str(i) for i in self.__data.shape]
             source = u" \u00D7 ".join(shape)
             self.__dataInfo.setText(u"%s \u2192 %s" % (source, destination))
+
+    def __updatePath(self):
+        index = self.__browser.selectedIndex()
+        if index is None:
+            index = self.__browser.rootIndex()
+
+        if index.model() is self.__fileModel:
+            filename = self.__fileModel.filePath(index)
+            dataPath = None
+        elif index.model() is self.__dataModel:
+            obj = index.data(role=Hdf5TreeModel.H5PY_OBJECT_ROLE)
+            filename = obj.file.filename
+            dataPath = obj.name
+        else:
+            filename = None
+            dataPath = None
+
+        if self.__slicing.isVisible():
+            slicing = self.__slicing.slicing()
+        else:
+            slicing = None
+
+        uri = _ImageUri(filename=filename, dataPath=dataPath, slice=slicing)
+        if uri.path() != self.__pathEdit.text():
+            old = self.__pathEdit.blockSignals(True)
+            self.__pathEdit.setText(uri.path())
+            self.__pathEdit.blockSignals(old)
+
+    def __pathChanged(self):
+        uri = _ImageUri(path=self.__pathEdit.text())
+        if uri.isValid():
+            if os.path.exists(uri.filename()):
+                self.__fileModel.setRootPath(uri.filename())
+                index = self.__fileModel.index(uri.filename())
+                if uri.dataPath() is not None:
+                    rootIndex = self.__openHdf5File(uri.filename())
+                    if rootIndex is not None:
+                        dataPath = uri.dataPath()
+                        if dataPath in self.__h5:
+                            obj = self.__h5[dataPath]
+                        else:
+                            path = _findClosestSubPath(self.__h5, dataPath)
+                            if path is None:
+                                path = "/"
+                            obj = self.__h5[path]
+
+                        if silx.io.is_file(obj):
+                            self.__browser.setRootIndex(rootIndex)
+                        elif silx.io.is_group(obj):
+                            index = _indexFromH5Object(rootIndex.model(), obj)
+                            self.__browser.setRootIndex(index)
+                        else:
+                            index = _indexFromH5Object(rootIndex.model(), obj)
+                            self.__browser.setRootIndex(index.parent())
+                            self.__browser.selectIndex(index)
+                else:
+                    self.__browser.setRootIndex(index)
+                if uri.slice() is not None:
+                    self.__slicing.setSlicing(uri.slice())
 
     # Selected file
 
