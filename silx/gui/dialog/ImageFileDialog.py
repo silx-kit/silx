@@ -28,7 +28,7 @@ This module contains an :class:`ImageFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "13/10/2017"
+__date__ = "16/10/2017"
 
 import os
 import logging
@@ -234,65 +234,15 @@ class _ImagePreview(qt.QWidget):
         self.__plot = PlotWidget(self)
         self.__plot.setAxesDisplayed(False)
         self.__plot.setKeepDataAspectRatio(True)
-
-        frame = qt.QFrame(self)
-        frame.setFrameShape(qt.QFrame.StyledPanel)
         layout = qt.QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.__plot)
-        frame.setLayout(layout)
-
-        toolbar = qt.QToolBar(self)
-        toolbar.setStyleSheet("QToolBar { border: 0px }")
-        toolbar.addAction(actions.mode.ZoomModeAction(self.__plot, self))
-        toolbar.addAction(actions.mode.PanModeAction(self.__plot, self))
-        toolbar.addSeparator()
-        toolbar.addAction(actions.control.ResetZoomAction(self.__plot, self))
-        toolbar.addSeparator()
-        toolbar.addAction(actions.control.ColormapAction(self.__plot, self))
-
-        self.__size = qt.QLabel()
-        status = qt.QStatusBar(self)
-        status.addPermanentWidget(self.__size)
-        status.setSizeGripEnabled(False)
-
-        self.__slicing = _Slicing()
-        self.__slicing.slicingChanged.connect(self.__slicingChanged)
-
-        layout = qt.QVBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(toolbar)
-        layout.addWidget(frame)
-        layout.addWidget(status)
-        layout.addWidget(self.__slicing)
-
         self.setLayout(layout)
 
-    def setData(self, data):
-        self.__data = data
-        self.__selectedImage = None
+    def plot(self):
+        return self.__plot
 
-        if data is None or data.shape is None:
-            self.clear()
-            return
-
-        dim = len(data.shape)
-        if dim == 2:
-            self.__setImage(data)
-            self.__slicing.hide()
-        elif dim > 2:
-            self.__slicing.setShape(data.shape)
-            self.__slicing.setVisible(self.__slicing.hasVisibleSliders())
-        else:
-            self.__slicing.hide()
-            self.__setImage(None)
-
-    def __slicingChanged(self):
-        slicing = self.__slicing.slicing()
-        image = self.__data[slicing]
-        self.__setImage(image)
-
-    def __setImage(self, image):
+    def setImage(self, image):
         if image is None:
             self.clear()
             return
@@ -304,17 +254,10 @@ class _ImagePreview(qt.QWidget):
         axis = self.__plot.getYAxis()
         axis.setLimitsConstraints(0, image.shape[0])
 
-        self.__selectedImage = image
-        shape = [str(i) for i in image.shape]
-        text = u" \u00D7 ".join(shape)
-        self.__size.setText(text)
-
-    def selectedImage(self):
-        return self.__selectedImage
+    def image(self):
+        return self.__image
 
     def clear(self):
-        self.__size.setText("")
-        self.__slicing.hide()
         image = self.__plot.getImage("data")
         if image is not None:
             self.__plot.removeImage(legend="data")
@@ -440,6 +383,26 @@ class _Browser(qt.QStackedWidget):
         return self.__listView.rootIndex()
 
 
+class _PathEdit(qt.QLineEdit):
+    pass
+
+
+class _CatchResizeEvent(qt.QObject):
+
+    resized = qt.Signal(qt.QResizeEvent)
+
+    def __init__(self, parent, target):
+        super(_CatchResizeEvent, self).__init__(parent)
+        self.__target = target
+        self.__target_oldResizeEvent = self.__target.resizeEvent
+        self.__target.resizeEvent = self.__resizeEvent
+
+    def __resizeEvent(self, event):
+        result = self.__target_oldResizeEvent(event)
+        self.resized.emit(event)
+        return result
+
+
 class ImageFileDialog(qt.QDialog):
     """The ImageFileDialog class provides a dialog that allow users to select
     an image from a file.
@@ -478,13 +441,75 @@ class ImageFileDialog(qt.QDialog):
         self.__h5 = None
         self.__fileModel = qt.QFileSystemModel(self)
         self.__fileModel.directoryLoaded.connect(self.__directoryLoaded)
-
-        self.__dataModel = Hdf5TreeModel(self)
-        self.__initLayout()
-        self.__showAsListView()
-
         path = os.getcwd()
         self.__fileModel.setRootPath(path)
+
+        self.__dataModel = Hdf5TreeModel(self)
+
+        self.__createWidgets()
+        self.__initLayout()
+        self.__showAsListView()
+        self.__clearData()
+
+    # User interface
+
+    def __createWidgets(self):
+        self.__sidebar = self._createSideBar()
+        self.__sidebar.selectionModel().selectionChanged.connect(self.__shortcutSelected)
+        self.__sidebar.setSelectionMode(qt.QAbstractItemView.SingleSelection)
+
+        listView = qt.QListView(self)
+        listView.setSelectionMode(qt.QAbstractItemView.SingleSelection)
+        listView.setUniformItemSizes(True)
+        listView.setResizeMode(qt.QListView.Adjust)
+
+        treeView = qt.QTreeView(self)
+        treeView.setSelectionMode(qt.QAbstractItemView.SingleSelection)
+        treeView.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
+        treeView.setRootIsDecorated(False)
+        treeView.setItemsExpandable(False)
+
+        self.__browser = _Browser(self, listView, treeView)
+        self.__browser.activated.connect(self.__browsedItemActivated)
+        self.__browser.selected.connect(self.__browsedItemSelected)
+
+        self.__imagePreview = _ImagePreview(self)
+        self.__imagePreview.setMinimumSize(200, 200)
+        self.__imagePreview.setMaximumSize(400, 16777215)
+        self.__imagePreview.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
+
+        self.__fileTypeCombo = qt.QComboBox(self)
+        self.__fileTypeCombo.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Fixed)
+
+        self.__pathEdit = _PathEdit(self)
+        self.__pathEdit.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Fixed)
+
+        self.__buttons = qt.QDialogButtonBox(self)
+        self.__buttons.setSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed)
+        types = qt.QDialogButtonBox.Open | qt.QDialogButtonBox.Cancel
+        self.__buttons.setStandardButtons(types)
+        self.__buttons.accepted.connect(self.accept)
+        self.__buttons.rejected.connect(self.reject)
+
+        self.__browseToolBar = self._createBrowseToolBar()
+
+        self.__previewToolBar = self._createPreviewToolbar(self.__imagePreview.plot())
+
+        self.__slicing = _Slicing(self)
+        self.__slicing.slicingChanged.connect(self.__slicingChanged)
+
+        self.__dataInfo = qt.QLabel(self)
+
+    def _createPreviewToolbar(self, plot):
+        toolbar = qt.QToolBar(self)
+        toolbar.setStyleSheet("QToolBar { border: 0px }")
+        toolbar.addAction(actions.mode.ZoomModeAction(plot, self))
+        toolbar.addAction(actions.mode.PanModeAction(plot, self))
+        toolbar.addSeparator()
+        toolbar.addAction(actions.control.ResetZoomAction(plot, self))
+        toolbar.addSeparator()
+        toolbar.addAction(actions.control.ColormapAction(plot, self))
+        return toolbar
 
     def _createSideBar(self):
         return _SideBar(self)
@@ -555,64 +580,72 @@ class ImageFileDialog(qt.QDialog):
         return toolbar
 
     def __initLayout(self):
-        self.__sidebar = self._createSideBar()
-        self.__sidebar.selectionModel().selectionChanged.connect(self.__shortcutSelected)
-        self.__sidebar.setSelectionMode(qt.QAbstractItemView.SingleSelection)
+        sideBarLayout = qt.QVBoxLayout()
+        sideBarLayout.setContentsMargins(0, 0, 0, 0)
+        dummyToolBar = qt.QWidget(self)
+        dummyToolBar.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Fixed)
+        dummyCombo = qt.QWidget(self)
+        dummyCombo.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Fixed)
+        sideBarLayout.addWidget(dummyToolBar)
+        sideBarLayout.addWidget(self.__sidebar)
+        sideBarLayout.addWidget(dummyCombo)
+        sideBarWidget = qt.QWidget(self)
+        sideBarWidget.setLayout(sideBarLayout)
 
-        listView = qt.QListView(self)
-        listView.setSelectionMode(qt.QAbstractItemView.SingleSelection)
-        listView.setUniformItemSizes(True)
-        listView.setResizeMode(qt.QListView.Adjust)
+        dummyCombo.setFixedHeight(self.__fileTypeCombo.height())
+        self.__resizeCombo = _CatchResizeEvent(self, self.__fileTypeCombo)
+        self.__resizeCombo.resized.connect(lambda e: dummyCombo.setFixedHeight(e.size().height()))
 
-        treeView = qt.QTreeView(self)
-        treeView.setSelectionMode(qt.QAbstractItemView.SingleSelection)
-        treeView.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
-        treeView.setRootIsDecorated(False)
-        treeView.setItemsExpandable(False)
-
-        self.__browser = _Browser(self, listView, treeView)
-        self.__browser.activated.connect(self.__browsedItemActivated)
-        self.__browser.selected.connect(self.__browsedItemSelected)
-
-        self.__data = _ImagePreview(self)
-        self.__data.setMinimumSize(200, 200)
-        self.__data.setMaximumSize(400, 16777215)
-        self.__data.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
-
-        self.__buttons = qt.QDialogButtonBox(self)
-        types = qt.QDialogButtonBox.Ok | qt.QDialogButtonBox.Cancel
-        self.__buttons.setStandardButtons(types)
-        self.__buttons.accepted.connect(self.accept)
-        self.__buttons.rejected.connect(self.reject)
-
-        self.__browseToolBar = self._createBrowseToolBar()
+        dummyToolBar.setFixedHeight(self.__browseToolBar.height())
+        self.__resizeToolbar = _CatchResizeEvent(self, self.__browseToolBar)
+        self.__resizeToolbar.resized.connect(lambda e: dummyToolBar.setFixedHeight(e.size().height()))
 
         datasetSelection = qt.QWidget(self)
         layoutLeft = qt.QVBoxLayout()
         layoutLeft.setContentsMargins(0, 0, 0, 0)
         layoutLeft.addWidget(self.__browseToolBar)
         layoutLeft.addWidget(self.__browser)
+        layoutLeft.addWidget(self.__fileTypeCombo)
         datasetSelection.setLayout(layoutLeft)
         datasetSelection.setSizePolicy(qt.QSizePolicy.MinimumExpanding, qt.QSizePolicy.Expanding)
+
+        imageFrame = qt.QFrame(self)
+        imageFrame.setFrameShape(qt.QFrame.StyledPanel)
+        layout = qt.QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        layout.addWidget(self.__imagePreview)
+        layout.addWidget(self.__dataInfo)
+        imageFrame.setLayout(layout)
 
         imageSelection = qt.QWidget(self)
         imageLayout = qt.QVBoxLayout()
         imageLayout.setContentsMargins(0, 0, 0, 0)
-        imageLayout.addWidget(self.__data)
+        imageLayout.addWidget(self.__previewToolBar)
+        imageLayout.addWidget(imageFrame)
+        imageLayout.addWidget(self.__slicing)
         imageSelection.setLayout(imageLayout)
 
         self.__splitter = qt.QSplitter(self)
         self.__splitter.setContentsMargins(0, 0, 0, 0)
-        self.__splitter.addWidget(self.__sidebar)
+        self.__splitter.addWidget(sideBarWidget)
         self.__splitter.addWidget(datasetSelection)
         self.__splitter.addWidget(imageSelection)
         self.__splitter.setStretchFactor(1, 10)
 
+        bottomLayout = qt.QHBoxLayout()
+        bottomLayout.setContentsMargins(0, 0, 0, 0)
+        bottomLayout.addWidget(self.__pathEdit)
+        bottomLayout.addWidget(self.__buttons)
+
         layout = qt.QVBoxLayout(self)
         layout.addWidget(self.__splitter)
-        layout.addWidget(self.__buttons)
+        layout.addLayout(bottomLayout)
 
         self.setLayout(layout)
+        self.updateGeometry()
+
+    # Logic
 
     def __navigateBack(self):
         raise NotImplementedError()
@@ -719,7 +752,59 @@ class ImageFileDialog(qt.QDialog):
                 if obj.shape is not None and len(obj.shape) >= 2:
                     selectedData = obj
 
-        self.__data.setData(selectedData)
+        self.__setData(selectedData)
+
+    def __setData(self, data):
+        self.__data = data
+        self.__selectedImage = None
+
+        if data is None or data.shape is None:
+            self.__clearData()
+            return
+
+        dim = len(data.shape)
+        if dim == 2:
+            self.__imagePreview.setImage(data)
+            self.__slicing.hide()
+            button = self.__buttons.button(qt.QDialogButtonBox.Open)
+            button.setEnabled(True)
+        elif dim > 2:
+            self.__slicing.setShape(data.shape)
+            self.__slicing.setVisible(self.__slicing.hasVisibleSliders())
+            self.__slicing.slicingChanged.emit()
+            button = self.__buttons.button(qt.QDialogButtonBox.Open)
+            button.setEnabled(True)
+        else:
+            self.__clearData()
+
+    def __clearData(self):
+        self.__imagePreview.setImage(None)
+        self.__slicing.hide()
+        self.__selectedImage = None
+        self.__data = None
+        self.__updateDataInfo()
+        button = self.__buttons.button(qt.QDialogButtonBox.Open)
+        button.setEnabled(False)
+
+    def __slicingChanged(self):
+        slicing = self.__slicing.slicing()
+        image = self.__data[slicing]
+        self.__setImage(image)
+
+    def __setImage(self, image):
+        self.__imagePreview.setImage(image)
+        self.__selectedImage = image
+        self.__updateDataInfo()
+
+    def __updateDataInfo(self):
+        if self.__selectedImage is None:
+            self.__dataInfo.setText("No data selected")
+        else:
+            shape = [str(i) for i in self.__selectedImage.shape]
+            destination = u" \u00D7 ".join(shape)
+            shape = [str(i) for i in self.__data.shape]
+            source = u" \u00D7 ".join(shape)
+            self.__dataInfo.setText(u"%s \u2192 %s" % (source, destination))
 
     # Selected file
 
@@ -757,7 +842,7 @@ class ImageFileDialog(qt.QDialog):
 
         :rtype: numpy.ndarray
         """
-        return self.__data.selectedImage()
+        return self.__selectedImage
 
     # Filters
 
