@@ -431,6 +431,7 @@ class _Browser(qt.QStackedWidget):
 
     activated = qt.Signal(qt.QModelIndex)
     selected = qt.Signal(qt.QModelIndex)
+    rootIndexChanged = qt.Signal(qt.QModelIndex)
 
     def __init__(self, parent, listView, detailView):
         qt.QStackedWidget.__init__(self, parent)
@@ -505,6 +506,7 @@ class _Browser(qt.QStackedWidget):
 
         self.__listView.setRootIndex(index)
         self.__detailView.setRootIndex(index)
+        self.rootIndexChanged.emit(index)
 
     def rootIndex(self):
         """Returns the model index of the model's root item. The root item is
@@ -570,7 +572,7 @@ class ImageFileDialog(qt.QDialog):
             print("Selection:")
             print(dialog.selectedFile())
             print(dialog.selectedImage())
-            print(dialog.selectedImagePath())
+            print(dialog.selectedPath())
         else:
             print("Nothing selected")
     """
@@ -583,7 +585,10 @@ class ImageFileDialog(qt.QDialog):
 
         self.__selectedFile = None
         self.__selectedImage = None
-        self.__selectedImagePath = None
+        self.__currentHistory = []
+        """Store history of URLs, last index one is the latest one"""
+        self.__currentHistoryLocation = -1
+        """Store the location in the history. Bigger is older"""
 
         self.__h5 = None
         self.__fileModel = qt.QFileSystemModel(self)
@@ -597,6 +602,7 @@ class ImageFileDialog(qt.QDialog):
         self.__initLayout()
         self.__showAsListView()
         self.__clearData()
+        self.__updatePath()
 
     # User interface
 
@@ -619,6 +625,7 @@ class ImageFileDialog(qt.QDialog):
         self.__browser = _Browser(self, listView, treeView)
         self.__browser.activated.connect(self.__browsedItemActivated)
         self.__browser.selected.connect(self.__browsedItemSelected)
+        self.__browser.rootIndexChanged.connect(self.__rootIndexChanged)
 
         self.__imagePreview = _ImagePreview(self)
         self.__imagePreview.setMinimumSize(200, 200)
@@ -640,6 +647,8 @@ class ImageFileDialog(qt.QDialog):
         self.__buttons.rejected.connect(self.reject)
 
         self.__browseToolBar = self._createBrowseToolBar()
+        self.__backwardAction.setEnabled(False)
+        self.__forwardAction.setEnabled(False)
 
         self.__previewToolBar = self._createPreviewToolbar(self.__imagePreview.plot())
 
@@ -673,15 +682,17 @@ class ImageFileDialog(qt.QDialog):
         toolbar = qt.QToolBar(self)
         iconProvider = self.iconProvider()
 
-        back = qt.QAction(toolbar)
-        back.setText("Back")
-        back.setIcon(iconProvider.icon(qt.QStyle.SP_ArrowBack))
-        back.triggered.connect(self.__navigateBack)
+        backward = qt.QAction(toolbar)
+        backward.setText("Back")
+        backward.setIcon(iconProvider.icon(qt.QStyle.SP_ArrowBack))
+        backward.triggered.connect(self.__navigateBackward)
+        self.__backwardAction = backward
 
         forward = qt.QAction(toolbar)
         forward.setText("Forward")
         forward.setIcon(iconProvider.icon(qt.QStyle.SP_ArrowForward))
         forward.triggered.connect(self.__navigateForward)
+        self.__forwardAction = forward
 
         parentDirectory = qt.QAction(toolbar)
         parentDirectory.setText("Parent directory")
@@ -713,7 +724,7 @@ class ImageFileDialog(qt.QDialog):
         self.__listViewAction = listView
         self.__detailViewAction = detailView
 
-        toolbar.addAction(back)
+        toolbar.addAction(backward)
         toolbar.addAction(forward)
         toolbar.addSeparator()
         toolbar.addAction(parentDirectory)
@@ -795,11 +806,19 @@ class ImageFileDialog(qt.QDialog):
 
     # Logic
 
-    def __navigateBack(self):
-        raise NotImplementedError()
+    def __navigateBackward(self):
+        """Navigate throug  the history one step backward."""
+        if len(self.__currentHistory) > 0 and self.__currentHistoryLocation > 0:
+            self.__currentHistoryLocation -= 1
+            url = self.__currentHistory[self.__currentHistoryLocation]
+            self.selectPath(url)
 
     def __navigateForward(self):
-        raise NotImplementedError()
+        """Navigate throug  the history one step forward."""
+        if len(self.__currentHistory) > 0 and self.__currentHistoryLocation < len(self.__currentHistory) - 1:
+            self.__currentHistoryLocation += 1
+            url = self.__currentHistory[self.__currentHistoryLocation]
+            self.selectPath(url)
 
     def __navigateToParent(self):
         index = self.__browser.rootIndex()
@@ -915,6 +934,7 @@ class ImageFileDialog(qt.QDialog):
 
         if data is None or data.shape is None:
             self.__clearData()
+            self.__updatePath()
             return
 
         dim = len(data.shape)
@@ -934,14 +954,15 @@ class ImageFileDialog(qt.QDialog):
             button.setEnabled(True)
         else:
             self.__clearData()
+            self.__updatePath()
 
     def __clearData(self):
+        """Clear the image part of the GUI"""
         self.__imagePreview.setImage(None)
         self.__slicing.hide()
         self.__selectedImage = None
         self.__data = None
         self.__updateDataInfo()
-        self.__updatePath()
         button = self.__buttons.button(qt.QDialogButtonBox.Open)
         button.setEnabled(False)
 
@@ -966,11 +987,7 @@ class ImageFileDialog(qt.QDialog):
             source = u" \u00D7 ".join(shape)
             self.__dataInfo.setText(u"%s \u2192 %s" % (source, destination))
 
-    def __updatePath(self):
-        index = self.__browser.selectedIndex()
-        if index is None:
-            index = self.__browser.rootIndex()
-
+    def __createUriFromIndex(self, index, useSlicingWidget=True):
         if index.model() is self.__fileModel:
             filename = self.__fileModel.filePath(index)
             dataPath = None
@@ -982,16 +999,39 @@ class ImageFileDialog(qt.QDialog):
             filename = None
             dataPath = None
 
-        if self.__slicing.isVisible():
+        if useSlicingWidget and self.__slicing.isVisible():
             slicing = self.__slicing.slicing()
         else:
             slicing = None
 
         uri = _ImageUri(filename=filename, dataPath=dataPath, slice=slicing)
+        return uri
+
+    def __updatePath(self):
+        index = self.__browser.selectedIndex()
+        if index is None:
+            index = self.__browser.rootIndex()
+        uri = self.__createUriFromIndex(index)
         if uri.path() != self.__pathEdit.text():
             old = self.__pathEdit.blockSignals(True)
             self.__pathEdit.setText(uri.path())
             self.__pathEdit.blockSignals(old)
+
+    def __rootIndexChanged(self, index):
+        uri = self.__createUriFromIndex(index, useSlicingWidget=False)
+
+        currentUri = None
+        if 0 <= self.__currentHistoryLocation < len(self.__currentHistory):
+            currentUri = self.__currentHistory[self.__currentHistoryLocation]
+
+        if currentUri is None or currentUri != uri.path():
+            # clean up the forward history
+            self.__currentHistory = self.__currentHistory[0:self.__currentHistoryLocation + 1]
+            self.__currentHistory.append(uri.path())
+            self.__currentHistoryLocation += 1
+
+        self.__forwardAction.setEnabled(len(self.__currentHistory) - 1 > self.__currentHistoryLocation)
+        self.__backwardAction.setEnabled(self.__currentHistoryLocation > 0)
 
     def __pathChanged(self):
         uri = _ImageUri(path=self.__pathEdit.text())
@@ -999,9 +1039,11 @@ class ImageFileDialog(qt.QDialog):
             if os.path.exists(uri.filename()):
                 self.__fileModel.setRootPath(uri.filename())
                 index = self.__fileModel.index(uri.filename())
-                if uri.dataPath() is not None:
+                rootIndex = None
+                if os.path.isfile(uri.filename()):
                     rootIndex = self.__openHdf5File(uri.filename())
-                    if rootIndex is not None:
+                if rootIndex is not None:
+                    if uri.dataPath() is not None:
                         dataPath = uri.dataPath()
                         if dataPath in self.__h5:
                             obj = self.__h5[dataPath]
@@ -1013,15 +1055,23 @@ class ImageFileDialog(qt.QDialog):
 
                         if silx.io.is_file(obj):
                             self.__browser.setRootIndex(rootIndex)
+                            self.__clearData()
                         elif silx.io.is_group(obj):
                             index = _indexFromH5Object(rootIndex.model(), obj)
                             self.__browser.setRootIndex(index)
+                            self.__clearData()
                         else:
                             index = _indexFromH5Object(rootIndex.model(), obj)
                             self.__browser.setRootIndex(index.parent())
                             self.__browser.selectIndex(index)
+                    else:
+                        self.__browser.setRootIndex(rootIndex)
+                        self.__clearData()
                 else:
                     self.__browser.setRootIndex(index)
+                    self.__clearData()
+
+                self.__slicing.setVisible(uri.slice() is not None)
                 if uri.slice() is not None:
                     self.__slicing.setSlicing(uri.slice())
 
@@ -1045,16 +1095,23 @@ class ImageFileDialog(qt.QDialog):
 
     # Selected image
 
-    def selectImagePath(self, path):
-        """Sets the image dialog's current image path."""
-        raise NotImplementedError()
+    def selectPath(self, path):
+        """Sets the image dialog's current image path.
 
-    def selectedImagePath(self):
+        :param str path: Path identifying an image or a path
+        """
+        self.__pathEdit.setText(path)
+        self.__pathChanged()
+
+    def selectedPath(self):
         """Returns the URI from the file path to the image.
+
+        If the dialog is not validated, the path can be an intermediat
+        selected path, or an invalid path.
 
         :rtype: str
         """
-        return self.__selectedImagePath
+        return self.__pathEdit.text()
 
     def selectedImage(self):
         """Returns the numpy array selected.
