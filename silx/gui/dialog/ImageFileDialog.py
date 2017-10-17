@@ -30,6 +30,7 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "17/10/2017"
 
+import sys
 import os
 import logging
 import silx.io
@@ -38,6 +39,7 @@ from silx.gui import qt
 from silx.gui.plot.PlotWidget import PlotWidget
 from silx.gui.hdf5.Hdf5TreeModel import Hdf5TreeModel
 from . import utils
+from .FileTypeComboBox import FileTypeComboBox
 
 
 _logger = logging.getLogger(__name__)
@@ -496,6 +498,9 @@ class ImageFileDialog(qt.QDialog):
 
         self.__h5 = None
         self.__fileModel = qt.QFileSystemModel(self)
+        # The common file dialog filter only on Mac OS X
+        self.__fileModel.setNameFilterDisables(sys.platform == "darwin")
+        self.__fileModel.setReadOnly(True)
         self.__fileModel.directoryLoaded.connect(self.__directoryLoaded)
         path = os.getcwd()
         self.__fileModel.setRootPath(path)
@@ -507,6 +512,10 @@ class ImageFileDialog(qt.QDialog):
         self.__showAsListView()
         self.__clearData()
         self.__updatePath()
+
+        # Update the file model filter
+        self.__fileTypeCombo.setCurrentIndex(0)
+        self.__filterSelected(0)
 
     # User interface
 
@@ -536,8 +545,11 @@ class ImageFileDialog(qt.QDialog):
         self.__imagePreview.setMaximumSize(400, 16777215)
         self.__imagePreview.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
 
-        self.__fileTypeCombo = qt.QComboBox(self)
+        self.__fileTypeCombo = FileTypeComboBox(self)
+        self.__fileTypeCombo.setDuplicatesEnabled(False)
+        self.__fileTypeCombo.setSizeAdjustPolicy(qt.QComboBox.AdjustToMinimumContentsLength)
         self.__fileTypeCombo.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Fixed)
+        self.__fileTypeCombo.activated[int].connect(self.__filterSelected)
 
         self.__pathEdit = _PathEdit(self)
         self.__pathEdit.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Fixed)
@@ -739,6 +751,8 @@ class ImageFileDialog(qt.QDialog):
             else:
                 # go back to the file system
                 self.__navigateToParentDir()
+        else:
+            assert(False)
 
     def __navigateToParentFile(self):
         index = self.__browser.rootIndex()
@@ -749,8 +763,8 @@ class ImageFileDialog(qt.QDialog):
     def __navigateToParentDir(self):
         index = self.__browser.rootIndex()
         if index.model() is self.__dataModel:
-            index = self.__fileModel.index(self.__h5.file.filename)
-            index = index.parent()
+            path = os.path.dirname(self.__h5.file.filename)
+            index = self.__fileModel.index(path)
             self.__browser.setRootIndex(index)
             self.__dataModel.removeH5pyObject(self.__h5)
             self.__h5 = None
@@ -831,6 +845,10 @@ class ImageFileDialog(qt.QDialog):
                     selectedData = obj
 
         self.__setData(selectedData)
+
+    def __filterSelected(self, index):
+        filters = self.__fileTypeCombo.itemExtensions(index)
+        self.__fileModel.setNameFilters(filters)
 
     def __setData(self, data):
         self.__data = data
@@ -1026,20 +1044,9 @@ class ImageFileDialog(qt.QDialog):
 
     # Filters
 
-    def nameFilters(self):
-        """Returns the file type filters that are in operation on this file
-        dialog."""
-        raise NotImplementedError()
-
-    def selectNameFilter(self, filter):
-        """Sets the current file type filter. Multiple filters can be passed
-        in filter by separating them with semicolons or spaces.
-        """
-        raise NotImplementedError()
-
     def selectedNameFilter(self):
         """Returns the filter that the user selected in the file dialog."""
-        raise NotImplementedError()
+        return self.__fileTypeCombo.currentText()
 
     # State
 
