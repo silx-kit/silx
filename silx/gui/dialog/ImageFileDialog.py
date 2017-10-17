@@ -28,7 +28,7 @@ This module contains an :class:`ImageFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "16/10/2017"
+__date__ = "17/10/2017"
 
 import os
 import logging
@@ -165,9 +165,12 @@ class _ImageUri(object):
             selectors = selector.split("[", 1)
             self.__dataPath = selectors[0]
             if len(selectors) == 2:
+                slicing = selectors[1].split("]", 1)
+                if len(slicing) < 2 or slicing[1] != "":
+                    self.__isValid = False
+                    return
+                slicing = slicing[0].split(",")
                 try:
-                    slicing = selectors[1].split("]", 1)[0]
-                    slicing = slicing.split(",")
                     slicing = [int(s) for s in slicing]
                     self.__slice = slicing
                 except ValueError:
