@@ -120,6 +120,7 @@ class TestConvertSpecHDF5(unittest.TestCase):
 
     def tearDown(self):
         self.h5f.close()
+        self.sfh5.close()
         os.unlink(self.h5_fname)
 
     def testAppendToHDF5(self):
