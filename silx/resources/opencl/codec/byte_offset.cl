@@ -41,12 +41,15 @@
  * - Finally a cum-sum is performed to retrieve the decompressed data
  */
 
-kernel void mark_exceptions(global char* raw, int size, global int* mask,  global int* cnt, global int* exc)
+kernel void mark_exceptions(global char* raw,
+                            int size,
+                            global int* mask,
+                            global int* cnt,
+                            global int* exc)
 {
-    int ws, gid, lid;
-    ws = get_local_size(0);
-    lid = get_local_id(0);
+    int gid, maxi;
     gid = get_global_id(0);
+    maxi = size - 1;
     if (gid<size)
     {
         int value, position;
@@ -56,20 +59,20 @@ kernel void mark_exceptions(global char* raw, int size, global int* mask,  globa
             position = atomic_inc(cnt);
             exc[position] = gid;
             atomic_inc(&mask[gid]);
-            atomic_inc(&mask[gid+1]);
-            atomic_inc(&mask[gid+2]);
-            if (((int) raw[gid+1] == 0) && ((int) raw[gid+2] == -128))
+            atomic_inc(&mask[min(gid+1, maxi)]);
+            atomic_inc(&mask[min(gid+2, maxi)]);
+            if (((int) raw[min(gid+1, maxi)] == 0) &&
+                ((int) raw[min(gid+2, maxi)] == -128))
             {
-                atomic_inc(&mask[gid+3]);
-                atomic_inc(&mask[gid+4]);
-                atomic_inc(&mask[gid+5]);
-                atomic_inc(&mask[gid+6]);
+                atomic_inc(&mask[min(gid+3, maxi)]);
+                atomic_inc(&mask[min(gid+4, maxi)]);
+                atomic_inc(&mask[min(gid+5, maxi)]);
+                atomic_inc(&mask[min(gid+6, maxi)]);
             }
-
         }
-
     }
 }
+
 //run with WG=1, as may as exceptions
 kernel void treat_exceptions(global char* raw, //raw compressed stream
                              int size,         //size of the raw compressed stream
@@ -135,7 +138,6 @@ kernel void treat_simple(global char* raw,
                          global int* values)
 {
     int gid = get_global_id(0);
-    int in_pos, value_size;
     if (gid < size)
     {
         if (mask[gid] > 0)
@@ -197,10 +199,11 @@ kernel void fill_char_mem(global char* ary,
 //Simple memset kernel for int arrays
 kernel void fill_int_mem(global int* ary,
                          int size,
-                         int pattern)
+                         int pattern,
+                         int start_at)
 {
     int gid = get_global_id(0);
-    if (gid < size)
+    if ((gid >= start_at) && (gid < size))
     {
         ary[gid] = pattern;
     }

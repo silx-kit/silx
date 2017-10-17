@@ -37,7 +37,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "16/10/2017"
+__date__ = "17/10/2017"
 __status__ = "production"
 
 import os
@@ -71,11 +71,10 @@ class ByteOffset(OpenclProcessing):
 
         buffers = [
                     BufferDescription("raw", self.raw_size, numpy.int8, None),
-                    BufferDescription("mask", self.raw_size + 8, numpy.int32, None),
+                    BufferDescription("mask", self.raw_size, numpy.int32, None),
                     BufferDescription("exceptions", self.raw_size, numpy.int32, None),
                     BufferDescription("counter", 1, numpy.int32, None),
                     BufferDescription("data_non_compact", self.raw_size, numpy.int32, None),
-                    BufferDescription("exceptions", self.raw_size, numpy.int32, None),
                     BufferDescription("data_float", self.dec_size, numpy.float32, None),
                     BufferDescription("data_int", self.dec_size, numpy.int32, None),
                    ]
@@ -85,39 +84,53 @@ class ByteOffset(OpenclProcessing):
     def dec(self, raw, as_float=False, out=None):
         """This function actually performs the decompression by calling the kernels
         """
-        # TODO: handle the case where size(raw) > allocated value
         events = []
         with self.sem:
+            wg = min(128, self.device.max_work_group_size)  # try to access data by 128 bytes
+            len_raw = numpy.int32(len(raw))
+            size = (len(raw) + wg - 1) & ~(wg - 1)
+
+            if len(raw) > self.raw_size:
+                logger.info("increase raw buffer size to %s", len(raw))
+                raw_size = len(raw)
+                buffers = {
+                           "raw": pyopencl.array.empty(self.queue, raw_size, dtype=numpy.int8),
+                           "mask": pyopencl.array.empty(self.queue, raw_size, dtype=numpy.int32),
+                           "exceptions": pyopencl.array.empty(self.queue, raw_size, dtype=numpy.int32),
+                           "data_non_compact": pyopencl.array.empty(self.queue, raw_size, dtype=numpy.int32),
+                           }
+                self.raw_size = raw_size
+                self.cl_mem.update(buffers)
             if self.raw_size > len(raw):
-                evt = self.kernels.fill_char_mem(self.queue, (self.raw_size,), None,
+                evt = self.kernels.fill_char_mem(self.queue, (size,), (wg,),
                                                  self.cl_mem["raw"].data,
                                                  numpy.int32(self.raw_size),
                                                  numpy.int8(0),
-                                                 numpy.int32(len(raw)))
+                                                 len_raw)
                 events.append(EventDescription("memset raw buffer", evt))
             evt = pyopencl.enqueue_copy(self.queue, self.cl_mem["raw"].data,
                                         raw,
                                         is_blocking=False)
             events.append(EventDescription("copy raw H -> D", evt))
-            evt = self.kernels.fill_int_mem(self.queue, (self.raw_size,), None,
+            evt = self.kernels.fill_int_mem(self.queue, (size,), (wg,),
                                             self.cl_mem["mask"].data,
-                                            numpy.int32(self.cl_mem["mask"].size),
-                                            numpy.int32(0))
+                                            len_raw,
+                                            numpy.int32(0), numpy.int32(0))
             events.append(EventDescription("memset mask buffer", evt))
-            evt = self.kernels.fill_int_mem(self.queue, (self.raw_size,), None,
+            evt = self.kernels.fill_int_mem(self.queue, (size,), (wg,),
                                             self.cl_mem["data_non_compact"].data,
-                                            numpy.int32(self.raw_size),
-                                            numpy.int32(0))
+                                            len_raw,
+                                            numpy.int32(0), numpy.int32(0))
             events.append(EventDescription("memset data_non_compact", evt))
             evt = self.kernels.fill_int_mem(self.queue, (1,), None,
                                             self.cl_mem["counter"].data,
                                             numpy.int32(1),
-                                            numpy.int32(0))
+                                            numpy.int32(0), numpy.int32(0))
             events.append(EventDescription("memset counter", evt))
 
-            evt = self.kernels.mark_exceptions(self.queue, (self.raw_size,), None,
+            evt = self.kernels.mark_exceptions(self.queue, (size,), (wg,),
                                                self.cl_mem["raw"].data,
-                                               numpy.int32(self.raw_size),
+                                               len_raw,
                                                self.cl_mem["mask"].data,
                                                self.cl_mem["counter"].data,
                                                self.cl_mem["exceptions"].data)
@@ -130,23 +143,23 @@ class ByteOffset(OpenclProcessing):
             nbexc = nb_exceptions[0]
             evt = self.kernels.treat_exceptions(self.queue, (nbexc,), (1,),
                                                 self.cl_mem["raw"].data,
-                                                numpy.int32(self.raw_size),
+                                                len_raw,
                                                 self.cl_mem["mask"].data,
                                                 self.cl_mem["exceptions"].data,
                                                 self.cl_mem["data_non_compact"].data
                                                 )
             events.append(EventDescription("treat_exceptions", evt))
-            evt = self.kernels.treat_simple(self.queue, (self.raw_size,), None,
+            evt = self.kernels.treat_simple(self.queue, (size,), (wg,),
                                             self.cl_mem["raw"].data,
-                                            numpy.int32(self.raw_size),
+                                            len_raw,
                                             self.cl_mem["mask"].data,
                                             self.cl_mem["data_non_compact"].data)
             events.append(EventDescription("treat_simple", evt))
 
             evt, cumsummed_d = pyopencl.array.cumsum(self.cl_mem["data_non_compact"],
                                                      numpy.int32, self.queue,
-                                                     return_event=True,
-                                                     wait_for=[evt])  # synchro here
+                                                     return_event=True)
+
             events.append(EventDescription("cumsum", evt))
 
             indexes_d, count_d, evt = pyopencl.algorithm.copy_if(self.cl_mem["mask"],
@@ -155,7 +168,9 @@ class ByteOffset(OpenclProcessing):
                                                                  )
             events.append(EventDescription("copy_if", evt))
             size_out = count_d.get()  # synchro here
-
+            if size_out != self.dec_size:
+                logger.info("decompressed size = %i, expected %i", size_out, self.dec_size)
+                size_out = min(size_out, self.dec_size)
             if out is not None:
                 if out.dtype == numpy.float32:
                     copy_results = self.kernels.copy_result_float
@@ -170,7 +185,7 @@ class ByteOffset(OpenclProcessing):
                     copy_results = self.kernels.copy_result_int
             if out.size != size_out:
                 print("out size: %s expected: %s" % (out.size, size_out))
-            evt = copy_results(self.queue, (size_out,), None,
+            evt = copy_results(self.queue, ((size_out + wg - 1) & ~(wg - 1),), (wg,),
                                cumsummed_d.data,
                                indexes_d.data,
                                numpy.int32(size_out),

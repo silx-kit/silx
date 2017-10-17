@@ -36,92 +36,54 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "16/10/2017"
+__date__ = "17/10/2017"
 
-import os
 import time
 import logging
 import numpy
 from silx.opencl import ocl
+from silx.opencl.codec import byte_offset
+import fabio
 import unittest
 logger = logging.getLogger(__name__)
 
 
-@unittest.skipUnless(ocl, "PyOpenCl is missing")
-class TestAlgebra(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        super(TestAlgebra, cls).setUpClass()
-        if ocl:
-            cls.ctx = ocl.create_context()
-            if logger.getEffectiveLevel() <= logging.INFO:
-                cls.PROFILE = True
-                cls.queue = pyopencl.CommandQueue(cls.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
-            else:
-                cls.PROFILE = False
-                cls.queue = pyopencl.CommandQueue(cls.ctx)
-            device = cls.ctx.devices[0]
-            device_id = device.platform.get_devices().index(device)
-            platform_id = pyopencl.get_platforms().index(device.platform)
-            cls.maxwg = ocl.platforms[platform_id].devices[device_id].max_work_group_size
-#             logger.warning("max_work_group_size: %s on (%s, %s)", cls.maxwg, platform_id, device_id)
+@unittest.skipUnless(ocl and fabio, "PyOpenCl or fabio is missing")
+class TestByteOffset(unittest.TestCase):
 
-    @classmethod
-    def tearDownClass(cls):
-        super(TestAlgebra, cls).tearDownClass()
-        cls.ctx = None
-        cls.queue = None
-
-    def setUp(self):
-        kernel_src = get_opencl_code(os.path.join("sift", "algebra.cl"))
-        self.program = pyopencl.Program(self.ctx, kernel_src).build()
-        self.wg = (32, 4)
-        if self.maxwg < self.wg[0] * self.wg[1]:
-            self.wg = (self.maxwg, 1)
-
-    def tearDown(self):
-        self.mat1 = None
-        self.mat2 = None
-        self.program = None
-
-    def test_combine(self):
+    def test_decompress(self):
         """
         tests the combine (linear combination) kernel
         """
-        width = numpy.int32(157)
-        height = numpy.int32(147)
-        coeff1 = numpy.random.rand(1)[0].astype(numpy.float32)
-        coeff2 = numpy.random.rand(1)[0].astype(numpy.float32)
-        mat1 = numpy.random.rand(height, width).astype(numpy.float32)
-        mat2 = numpy.random.rand(height, width).astype(numpy.float32)
+        shape = (2713, 2719)  #  (991, 997)
+        size = numpy.prod(shape)
+        nexcept = 2729
+        ref = numpy.random.poisson(200, numpy.prod(shape))
+        exception_loc = numpy.random.randint(0, size, size=nexcept)
+        exception_value = numpy.random.randint(0, 1000000, size=nexcept)
+        ref[exception_loc] = exception_value
+        ref.shape = shape
 
-        gpu_mat1 = pyopencl.array.to_device(self.queue, mat1)
-        gpu_mat2 = pyopencl.array.to_device(self.queue, mat2)
-        gpu_out = pyopencl.array.empty(self.queue, mat1.shape, dtype=numpy.float32, order="C")
-        shape = calc_size((width, height), self.wg)
-
+        raw = fabio.compression.compByteOffset(ref)
+        bo = byte_offset.ByteOffset(len(raw), size, profile=True)
         t0 = time.time()
-        try:
-            k1 = self.program.combine(self.queue, shape, None,
-                                      gpu_mat1.data, coeff1, gpu_mat2.data, coeff2,
-                                      gpu_out.data, numpy.int32(0),
-                                      width, height)
-        except pyopencl.LogicError as error:
-            logger.warning("%s in test_combine", error)
-        res = gpu_out.get()
+        res_cy = fabio.compression.decByteOffset(raw)
         t1 = time.time()
-        ref = my_combine(mat1, coeff1, mat2, coeff2)
+        res_cl = bo(raw)
         t2 = time.time()
-        delta = abs(ref - res).max()
-        logger.debug("delta=%s" % delta)
-        self.assert_(delta < 1e-4, "delta=%s" % (delta))
-        if self.PROFILE:
-            logger.debug("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
-            logger.debug("Linear combination took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
+        delta_cy = abs(ref.ravel() - res_cy).max()
+        delta_cl = abs(ref.ravel() - res_cl.get()).max()
+        self.assertEqual(delta_cy, 0, "Checks fabio works")
+        self.assertEqual(delta_cl, 0, "Checks opencl works")
+
+        logger.debug("Global execution time: fabio %.3fms, OpenCL: %.3fms.",
+                     1000.0 * (t1 - t0),
+                     1000.0 * (t2 - t1))
+        bo.log_profile()
 
 
 def suite():
     testSuite = unittest.TestSuite()
-     testSuite.addTest(TestByteOffset("test_byte_offset"))
+    testSuite.addTest(TestByteOffset("test_decompress"))
 #     testSuite.addTest(TestAlgebra("test_compact"))
     return testSuite
