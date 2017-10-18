@@ -175,7 +175,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "30/08/2017"
+__date__ = "18/10/2017"
 
 
 from collections import OrderedDict, namedtuple
@@ -612,8 +612,7 @@ class PlotWidget(qt.QMainWindow):
 
         if (kind == 'curve' and not self.getAllCurves(just_legend=True,
                                                       withhidden=True)):
-            self._colorIndex = 0
-            self._styleIndex = 0
+            self._resetColorAndStyle()
 
         self.notify('contentChanged', action='remove',
                     kind=kind, legend=legend)
@@ -779,6 +778,9 @@ class PlotWidget(qt.QMainWindow):
 
         # Check if curve was previously active
         wasActive = self.getActiveCurve(just_legend=True) == legend
+
+        if replace:
+            self._resetColorAndStyle()
 
         # Create/Update curve object
         curve = self.getCurve(legend)
@@ -2430,6 +2432,10 @@ class PlotWidget(qt.QMainWindow):
         'magma', 'inferno', 'plasma', 'viridis')
         """
         return Colormap.getSupportedColormaps()
+
+    def _resetColorAndStyle(self):
+        self._colorIndex = 0
+        self._styleIndex = 0
 
     def _getColorAndStyle(self):
         color = self.colorList[self._colorIndex]
