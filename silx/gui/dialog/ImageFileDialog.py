@@ -461,6 +461,53 @@ class _Browser(qt.QStackedWidget):
         """
         return self.__listView.rootIndex()
 
+    __serialVersion = 1
+    """Store the current version of the serialized data"""
+
+    @classmethod
+    def qualifiedName(cls):
+        cls.__module__ + "." + cls.__class__.__name__
+
+    def restoreState(self, state):
+        """Restores the dialogs's layout, history and current directory to the
+        state specified.
+
+        :param qt.QByeArray state: Stream containing the new state
+        :rtype: bool
+        """
+        stream = qt.QDataStream(state, qt.QIODevice.ReadOnly)
+
+        qualifiedName = stream.readString()
+        if qualifiedName != self.qualifiedName():
+            return False
+
+        version = stream.readInt32()
+        if version != self.__serialVersion:
+            return False
+
+        headerData = stream.readQVariant()
+        self.__detailView.header().restoreState(headerData)
+
+        viewMode = stream.readInt32()
+        self.setViewMode(viewMode)
+        return True
+
+    def saveState(self):
+        """Saves the state of the dialog's layout.
+
+        :rtype: qt.QByteArray
+        """
+        data = qt.QByteArray()
+        stream = qt.QDataStream(data, qt.QIODevice.WriteOnly)
+
+        qualifiedName = self.__module__ + "." + self.__class__.__name__
+        stream.writeString(qualifiedName)
+        stream.writeInt32(self.__serialVersion)
+        stream.writeQVariant(self.__detailView.header().saveState())
+        stream.writeInt32(self.viewMode())
+
+        return data
+
 
 class _FabioData(object):
 
@@ -1237,12 +1284,62 @@ class ImageFileDialog(qt.QDialog):
 
     # State
 
+    __serialVersion = 1
+    """Store the current version of the serialized data"""
+
+    @classmethod
+    def qualifiedName(cls):
+        cls.__module__ + "." + cls.__class__.__name__
+
     def restoreState(self, state):
         """Restores the dialogs's layout, history and current directory to the
-        state specified."""
-        raise NotImplementedError()
+        state specified.
+
+        :param qt.QByeArray state: Stream containing the new state
+        :rtype: bool
+        """
+        stream = qt.QDataStream(state, qt.QIODevice.ReadOnly)
+
+        qualifiedName = stream.readString()
+        if qualifiedName != self.qualifiedName():
+            return False
+
+        version = stream.readInt32()
+        if version != self.__serialVersion:
+            return False
+
+        splitterData = stream.readQVariant()
+        sidebarUrls = stream.readQVariantList()
+        history = stream.readQVariantList()
+        selectedDirectory = stream.readString()
+        browserData = stream.readQVariant()
+        viewMode = stream.readInt32()
+
+        self.__splitter.restoreState(splitterData)
+        self.__sidebar.setUrls(list(sidebarUrls))
+        self.setHistory(list(history))
+        self.__splitter.restoreState(browserData)
+        self.setDirectory(selectedDirectory)
+        self.setViewMode(viewMode)
+
+        return True
 
     def saveState(self):
         """Saves the state of the dialog's layout, history and current
-        directory."""
-        raise NotImplementedError()
+        directory.
+
+        :rtype: qt.QByteArray
+        """
+        data = qt.QByteArray()
+        stream = qt.QDataStream(data, qt.QIODevice.WriteOnly)
+
+        stream.writeString(self.qualifiedName())
+        stream.writeInt32(self.__serialVersion)
+        stream.writeQVariant(self.__splitter.saveState())
+        stream.writeQVariantList(self.__sidebar.urls())
+        stream.writeQVariantList(self.history())
+        stream.writeString(self.selectedDirectory())
+        stream.writeQVariant(self.__browser.saveState())
+        stream.writeInt32(self.viewMode())
+
+        return data
