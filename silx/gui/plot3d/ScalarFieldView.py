@@ -721,6 +721,7 @@ class ScalarFieldView(Plot3DWindow):
         # Transformations
         self._dataScale = transform.Scale()
         self._dataTranslate = transform.Translate()
+        self._dataTransform = transform.Matrix()   # default to identity
 
         self._foregroundColor = 1., 1., 1., 1.
         self._highlightColor = 0.7, 0.7, 0., 1.
@@ -729,7 +730,8 @@ class ScalarFieldView(Plot3DWindow):
         self._dataRange = None
 
         self._group = primitives.BoundedGroup()
-        self._group.transforms = [self._dataTranslate, self._dataScale]
+        self._group.transforms = [
+            self._dataTranslate, self._dataTransform, self._dataScale]
 
         self._selectionBox = primitives.Box()
         self._selectionBox.strokeSmooth = False
@@ -1084,6 +1086,27 @@ class ScalarFieldView(Plot3DWindow):
         """Returns the offset set by :meth:`setTranslation` as a numpy.ndarray.
         """
         return self._dataTranslate.translation
+
+    def setTransformMatrix(self, matrix3x3):
+        """Set the transform matrix applied to the data.
+
+        :param numpy.ndarray matrix: 3x3 transform matrix
+        """
+        matrix3x3 = numpy.array(matrix3x3, copy=True, dtype=numpy.float32)
+        if not numpy.all(numpy.equal(matrix3x3, self.getTransformMatrix())):
+            matrix = numpy.identity(4, dtype=numpy.float32)
+            matrix[:3, :3] = matrix3x3
+            self._dataTransform.setMatrix(matrix)
+            self.centerScene()  # Reset viewpoint
+
+    def getTransformMatrix(self):
+        """Returns the transform matrix applied to the data.
+
+        See :meth:`setTransformMatrix`.
+
+        :rtype: numpy.ndarray
+        """
+        return self._dataTransform.getMatrix()[:3, :3]
 
     # Axes labels
 
