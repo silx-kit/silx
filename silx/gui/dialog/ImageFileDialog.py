@@ -1065,6 +1065,8 @@ class ImageFileDialog(qt.QDialog):
                 elif self.__fabio is not None:
                     data = _FabioData(self.__fabio)
                     self.__setData(data)
+            else:
+                self.__clearData()
 
     def __dataSelected(self, index):
         selectedData = None
@@ -1227,6 +1229,8 @@ class ImageFileDialog(qt.QDialog):
                             self.__browser.setRootIndex(index)
                         elif self.__fabio is not None:
                             rootIndex = index
+                    else:
+                        self.__clearData()
 
                 if rootIndex is not None:
                     if rootIndex.model() == self.__dataModel:
