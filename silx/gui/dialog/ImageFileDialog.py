@@ -28,11 +28,13 @@ This module contains an :class:`ImageFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "17/10/2017"
+__date__ = "18/10/2017"
 
 import sys
 import os
 import logging
+import fabio
+import numpy
 import silx.io
 from silx.gui.plot import actions
 from silx.gui import qt
@@ -40,6 +42,7 @@ from silx.gui.plot.PlotWidget import PlotWidget
 from silx.gui.hdf5.Hdf5TreeModel import Hdf5TreeModel
 from . import utils
 from .FileTypeComboBox import FileTypeComboBox
+from silx.third_party import six
 
 
 _logger = logging.getLogger(__name__)
@@ -421,21 +424,37 @@ class _Browser(qt.QStackedWidget):
         return self.__listView.rootIndex()
 
 
-class _DatasetConnector(object):
+class _FabioData(object):
 
-    def __init__(self, dataset):
-        self.__dataset = dataset
+    def __init__(self, fabioFile):
+        self.__fabioFile = fabioFile
+
+    @property
+    def dtype(self):
+        # Let say it is a valid type
+        return numpy.dtype("float")
 
     @property
     def shape(self):
-        return self.__dataset.shape
-
-    @property
-    def dim(self):
-        return len(self.__dataset.shape)
+        if self.__fabioFile.nframes == 0:
+            return None
+        return [self.__fabioFile.nframes, slice(None), slice(None)]
 
     def __getitem__(self, selector):
-        return self.__dataset.__getitem__(selector)
+        if isinstance(selector, tuple) and len(selector) == 1:
+            selector = selector[0]
+
+        if isinstance(selector, six.integer_types):
+            if 0 <= selector < self.__fabioFile.nframes:
+                if self.__fabioFile.nframes == 1:
+                    return self.__fabioFile.data
+                else:
+                    frame = self.__fabioFile.getframe(selector)
+                    return frame.data
+            else:
+                raise ValueError("Invalid selector %s" % selector)
+        else:
+            raise TypeError("Unsupported selector type %s" % type(selector))
 
 
 class _PathEdit(qt.QLineEdit):
@@ -497,6 +516,7 @@ class ImageFileDialog(qt.QDialog):
         """Store the location in the history. Bigger is older"""
 
         self.__h5 = None
+        self.__fabio = None
         self.__fileModel = qt.QFileSystemModel(self)
         # The common file dialog filter only on Mac OS X
         self.__fileModel.setNameFilterDisables(sys.platform == "darwin")
@@ -766,8 +786,7 @@ class ImageFileDialog(qt.QDialog):
             path = os.path.dirname(self.__h5.file.filename)
             index = self.__fileModel.index(path)
             self.__browser.setRootIndex(index)
-            self.__dataModel.removeH5pyObject(self.__h5)
-            self.__h5 = None
+            self.__closeFile()
 
     def __showAsListView(self):
         self.__browser.showList()
@@ -802,20 +821,37 @@ class ImageFileDialog(qt.QDialog):
                 self.__browser.setRootIndex(index)
 
     def __browsedItemSelected(self, index):
-        if index.model() is self.__fileModel:
-            self.__dataSelected(None)
-        elif index.model() is self.__dataModel:
-            self.__dataSelected(index)
+        self.__dataSelected(index)
         self.__updatePath()
 
     def __directoryLoaded(self, path):
         index = self.__fileModel.index(path)
         self.__browser.setRootIndex(index)
 
-    def __openHdf5File(self, filename):
+    def __closeFile(self):
         if self.__h5 is not None:
             self.__dataModel.removeH5pyObject(self.__h5)
+            self.__h5.close()
             self.__h5 = None
+        if self.__fabio is not None:
+            if hasattr(self.__fabio, "close"):
+                self.__fabio.close()
+            self.__fabio = None
+
+    def __openFabioFile(self, filename):
+        self.__closeFile()
+        try:
+            self.__fabio = fabio.open(filename)
+            self.__selectedFile = filename
+        except Exception as e:
+            _logger.error("Error while loading file %s: %s", filename, e.args[0])
+            _logger.debug("Backtrace", exc_info=True)
+            return None
+        else:
+            return self.__fabio
+
+    def __openSilxFile(self, filename):
+        self.__closeFile()
         try:
             self.__h5 = silx.io.open(filename)
             self.__selectedFile = filename
@@ -825,24 +861,54 @@ class ImageFileDialog(qt.QDialog):
             return None
         else:
             self.__dataModel.insertH5pyObject(self.__h5)
-            index = utils.indexFromH5Object(self.__dataModel, self.__h5)
-            return index
+            return self.__h5
+
+    def __isSilxFile(self, filename):
+        _, ext = os.path.splitext(filename)
+        return ext in set([".h5", ".nx", ".npz", ".dat", ".spec"])
+
+    def __openFile(self, filename):
+        if self.__isSilxFile(filename):
+            h5 = self.__openSilxFile(filename)
+            if h5 is not None:
+                return True
+        else:
+            fabio = self.__openFabioFile(filename)
+            if fabio is not None:
+                return True
+        return False
 
     def __fileActivated(self, index):
         self.__selectedFile = None
         path = self.__fileModel.filePath(index)
         if os.path.isfile(path):
-            index = self.__openHdf5File(path)
-            if index is not None:
-                self.__browser.setRootIndex(index)
+            loaded = self.__openFile(path)
+            if loaded:
+                if self.__h5 is not None:
+                    index = utils.indexFromH5Object(self.__dataModel, self.__h5)
+                    self.__browser.setRootIndex(index)
+                elif self.__fabio is not None:
+                    data = _FabioData(self.__fabio)
+                    self.__setData(data)
 
     def __dataSelected(self, index):
         selectedData = None
-        if index is not None and index.model() is self.__dataModel:
-            obj = index.data(self.__dataModel.H5PY_OBJECT_ROLE)
-            if silx.io.is_dataset(obj):
-                if obj.shape is not None and len(obj.shape) >= 2:
-                    selectedData = obj
+        if index is not None:
+            if index.model() is self.__dataModel:
+                obj = index.data(self.__dataModel.H5PY_OBJECT_ROLE)
+                if silx.io.is_dataset(obj):
+                    if obj.shape is not None and len(obj.shape) >= 2:
+                        selectedData = obj
+            elif index.model() is self.__fileModel:
+                path = self.__fileModel.filePath(index)
+                if os.path.isfile(path):
+                    if not self.__isSilxFile(path):
+                        # Then it's flat frame container
+                        self.__openFabioFile(path)
+                        if self.__fabio is not None:
+                            selectedData = _FabioData(self.__fabio)
+            else:
+                assert(False)
 
         self.__setData(selectedData)
 
@@ -855,6 +921,11 @@ class ImageFileDialog(qt.QDialog):
         self.__selectedImage = None
 
         if data is None or data.shape is None:
+            self.__clearData()
+            self.__updatePath()
+            return
+
+        if data.dtype.kind not in set(["f", "u", "i", "b"]):
             self.__clearData()
             self.__updatePath()
             return
@@ -899,14 +970,22 @@ class ImageFileDialog(qt.QDialog):
         self.__updateDataInfo()
         self.__updatePath()
 
+    def __formatShape(self, shape):
+        result = []
+        for s in shape:
+            if isinstance(s, slice):
+                v = u"\u2026"
+            else:
+                v = str(s)
+            result.append(v)
+        return u" \u00D7 ".join(result)
+
     def __updateDataInfo(self):
         if self.__selectedImage is None:
             self.__dataInfo.setText("No data selected")
         else:
-            shape = [str(i) for i in self.__selectedImage.shape]
-            destination = u" \u00D7 ".join(shape)
-            shape = [str(i) for i in self.__data.shape]
-            source = u" \u00D7 ".join(shape)
+            destination = self.__formatShape(self.__selectedImage.shape)
+            source = self.__formatShape(self.__data.shape)
             self.__dataInfo.setText(u"%s \u2192 %s" % (source, destination))
 
     def __createUriFromIndex(self, index, useSlicingWidget=True):
@@ -963,32 +1042,46 @@ class ImageFileDialog(qt.QDialog):
                 index = self.__fileModel.index(uri.filename())
                 rootIndex = None
                 if os.path.isfile(uri.filename()):
-                    rootIndex = self.__openHdf5File(uri.filename())
-                if rootIndex is not None:
-                    if uri.dataPath() is not None:
-                        dataPath = uri.dataPath()
-                        if dataPath in self.__h5:
-                            obj = self.__h5[dataPath]
-                        else:
-                            path = utils.findClosestSubPath(self.__h5, dataPath)
-                            if path is None:
-                                path = "/"
-                            obj = self.__h5[path]
+                    loaded = self.__openFile(uri.filename())
+                    if loaded:
+                        if self.__h5 is not None:
+                            rootIndex = utils.indexFromH5Object(self.__dataModel, self.__h5)
+                            self.__browser.setRootIndex(index)
+                        elif self.__fabio is not None:
+                            rootIndex = index
 
-                        if silx.io.is_file(obj):
+                if rootIndex is not None:
+                    if rootIndex.model() == self.__dataModel:
+                        if uri.dataPath() is not None:
+                            dataPath = uri.dataPath()
+                            if dataPath in self.__h5:
+                                obj = self.__h5[dataPath]
+                            else:
+                                path = utils.findClosestSubPath(self.__h5, dataPath)
+                                if path is None:
+                                    path = "/"
+                                obj = self.__h5[path]
+
+                            if silx.io.is_file(obj):
+                                self.__browser.setRootIndex(rootIndex)
+                                self.__clearData()
+                            elif silx.io.is_group(obj):
+                                index = utils.indexFromH5Object(rootIndex.model(), obj)
+                                self.__browser.setRootIndex(index)
+                                self.__clearData()
+                            else:
+                                index = utils.indexFromH5Object(rootIndex.model(), obj)
+                                self.__browser.setRootIndex(index.parent())
+                                self.__browser.selectIndex(index)
+                        else:
                             self.__browser.setRootIndex(rootIndex)
                             self.__clearData()
-                        elif silx.io.is_group(obj):
-                            index = utils.indexFromH5Object(rootIndex.model(), obj)
-                            self.__browser.setRootIndex(index)
-                            self.__clearData()
-                        else:
-                            index = utils.indexFromH5Object(rootIndex.model(), obj)
-                            self.__browser.setRootIndex(index.parent())
-                            self.__browser.selectIndex(index)
-                    else:
-                        self.__browser.setRootIndex(rootIndex)
-                        self.__clearData()
+                    elif rootIndex.model() == self.__fileModel:
+                        # that's a fabio file
+                        self.__browser.setRootIndex(rootIndex.parent())
+                        self.__browser.selectIndex(rootIndex)
+                        # data = _FabioData(self.__fabio)
+                        # self.__setData(data)
                 else:
                     self.__browser.setRootIndex(index)
                     self.__clearData()
