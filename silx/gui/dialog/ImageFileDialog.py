@@ -608,7 +608,7 @@ class ImageFileDialog(qt.QDialog):
         self.__fileModel.setReadOnly(True)
         self.__fileModel.directoryLoaded.connect(self.__directoryLoaded)
         path = os.getcwd()
-        self.__fileModel.setRootPath(path)
+        self.__fileModel_setRootPath(path)
 
         self.__dataModel = Hdf5TreeModel(self)
 
@@ -910,7 +910,7 @@ class ImageFileDialog(qt.QDialog):
             path = url.toLocalFile()
             if path == "":
                 path = qt.QDir.rootPath()
-            self.__fileModel.setRootPath(path)
+            self.__fileModel_setRootPath(path)
 
     def __browsedItemActivated(self, index):
         if index.model() is self.__fileModel:
@@ -928,7 +928,23 @@ class ImageFileDialog(qt.QDialog):
         self.__dataSelected(index)
         self.__updatePath()
 
+    def __fileModel_setRootPath(self, path):
+        """Set the root path of the fileModel with a filter on the
+        directoryLoaded event.
+
+        Without this filter an extra event is received (at least with PyQt4)
+        when we use for the first time the sidebar.
+
+        :param str path: Path to load
+        """
+        self.__directoryLoadedFilter = path
+        self.__fileModel.setRootPath(path)
+
     def __directoryLoaded(self, path):
+        if self.__directoryLoadedFilter != path:
+            # Filter event which should not arrive in PyQt4
+            # The first click on the sidebar sent 2 events
+            return
         index = self.__fileModel.index(path)
         self.__browser.setRootIndex(index)
 
@@ -1145,7 +1161,7 @@ class ImageFileDialog(qt.QDialog):
         uri = _ImageUri(path=self.__pathEdit.text())
         if uri.isValid():
             if os.path.exists(uri.filename()):
-                self.__fileModel.setRootPath(uri.filename())
+                self.__fileModel_setRootPath(uri.filename())
                 index = self.__fileModel.index(uri.filename())
                 rootIndex = None
                 if os.path.isfile(uri.filename()):
@@ -1202,7 +1218,7 @@ class ImageFileDialog(qt.QDialog):
     def setDirectory(self, path):
         """Sets the image dialog's current directory."""
         self.__fileModel.reset()
-        self.__fileModel.setRootPath(path)
+        self.__fileModel_setRootPath(path)
 
     def selectedFile(self):
         """Returns the file path containing the selected data.
