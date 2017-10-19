@@ -256,6 +256,9 @@ class _ImagePreview(qt.QWidget):
         layout.addWidget(self.__plot)
         self.setLayout(layout)
 
+    def sizeHint(self):
+        return qt.QSize(200, 200)
+
     def plot(self):
         return self.__plot
 
@@ -630,15 +633,25 @@ class ImageFileDialog(qt.QDialog):
         self.__sidebar.setSelectionMode(qt.QAbstractItemView.SingleSelection)
 
         listView = qt.QListView(self)
+        listView.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
         listView.setSelectionMode(qt.QAbstractItemView.SingleSelection)
-        listView.setUniformItemSizes(True)
         listView.setResizeMode(qt.QListView.Adjust)
+        listView.setWrapping(True)
+        listView.setEditTriggers(qt.QAbstractItemView.EditKeyPressed)
+        listView.setContextMenuPolicy(qt.Qt.CustomContextMenu)
 
         treeView = qt.QTreeView(self)
-        treeView.setSelectionMode(qt.QAbstractItemView.SingleSelection)
         treeView.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
+        treeView.setSelectionMode(qt.QAbstractItemView.SingleSelection)
         treeView.setRootIsDecorated(False)
         treeView.setItemsExpandable(False)
+        treeView.setSortingEnabled(True)
+        treeView.header().setSortIndicator(0, qt.Qt.AscendingOrder)
+        treeView.header().setStretchLastSection(False)
+        treeView.setTextElideMode(qt.Qt.ElideMiddle)
+        treeView.setEditTriggers(qt.QAbstractItemView.EditKeyPressed)
+        treeView.setContextMenuPolicy(qt.Qt.CustomContextMenu)
+        treeView.setDragDropMode(qt.QAbstractItemView.InternalMove)
 
         self.__browser = _Browser(self, listView, treeView)
         self.__browser.activated.connect(self.__browsedItemActivated)
@@ -646,8 +659,6 @@ class ImageFileDialog(qt.QDialog):
         self.__browser.rootIndexChanged.connect(self.__rootIndexChanged)
 
         self.__imagePreview = _ImagePreview(self)
-        self.__imagePreview.setMinimumSize(200, 200)
-        self.__imagePreview.setMaximumSize(400, 16777215)
         self.__imagePreview.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
 
         self.__fileTypeCombo = FileTypeComboBox(self)
