@@ -27,7 +27,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "20/12/2016"
+__date__ = "19/10/2017"
 
 
 import unittest
@@ -43,7 +43,7 @@ class TestMinMax(ParametricTestCase):
     """Tests of min max combo"""
 
     FLOATING_DTYPES = 'float32', 'float64'
-    SIGNED_INT_DTYPES = 'uint8', 'uint16', 'uint32', 'uint64'
+    SIGNED_INT_DTYPES = 'int8', 'int16', 'int32', 'int64'
     UNSIGNED_INT_DTYPES = 'uint8', 'uint16', 'uint32', 'uint64'
     DTYPES = FLOATING_DTYPES + SIGNED_INT_DTYPES + UNSIGNED_INT_DTYPES
 
