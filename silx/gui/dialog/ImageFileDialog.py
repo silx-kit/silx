@@ -248,6 +248,7 @@ class _ImagePreview(qt.QWidget):
     def __init__(self, parent=None):
         super(_ImagePreview, self).__init__(parent)
 
+        self.__image = None
         self.__plot = PlotWidget(self)
         self.__plot.setAxesDisplayed(False)
         self.__plot.setKeepDataAspectRatio(True)
@@ -255,6 +256,10 @@ class _ImagePreview(qt.QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.__plot)
         self.setLayout(layout)
+
+    def resizeEvent(self, event):
+        self.__updateConstraints()
+        return qt.QWidget.resizeEvent(self, event)
 
     def sizeHint(self):
         return qt.QSize(200, 200)
@@ -269,10 +274,35 @@ class _ImagePreview(qt.QWidget):
 
         self.__plot.addImage(legend="data", data=image)
         self.__plot.resetZoom()
+        self.__image = image
+        self.__updateConstraints()
+
+    def __updateConstraints(self):
+        """
+        Update the constraints depending on the size of the widget
+        """
+        if self.__image is None:
+            return
+        size = self.size()
+        if size.width() == 0 or size.height() == 0:
+            return
+
+        heightData, widthData = self.__image.shape
+
+        widthContraint = heightData * size.width() / size.height()
+        if widthContraint > widthData:
+            heightContraint = heightData
+        else:
+            heightContraint = heightData * size.height() / size.width()
+            widthContraint = widthData
+
+        midWidth, midHeight = widthData * 0.5, heightData * 0.5
+        heightContraint, widthContraint = heightContraint * 0.5, widthContraint * 0.5
+
         axis = self.__plot.getXAxis()
-        axis.setLimitsConstraints(0, image.shape[1])
+        axis.setLimitsConstraints(midWidth - widthContraint, midWidth + widthContraint)
         axis = self.__plot.getYAxis()
-        axis.setLimitsConstraints(0, image.shape[0])
+        axis.setLimitsConstraints(midHeight - heightContraint, midHeight + heightContraint)
 
     def __imageItem(self):
         image = self.__plot.getImage("data")
@@ -291,6 +321,7 @@ class _ImagePreview(qt.QWidget):
         self.__plot.setDefaultColormap(colormap)
 
     def clear(self):
+        self.__image = None
         image = self.__imageItem()
         if image is not None:
             self.__plot.removeImage(legend="data")
