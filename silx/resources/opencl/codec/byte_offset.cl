@@ -43,11 +43,13 @@
 
 kernel void mark_exceptions(global char* raw,
                             int size,
+                            int full_size
                             global int* mask,
+                            global int* values,
                             global int* cnt,
                             global int* exc)
 {
-    int gid, maxi;
+    int gid;
     gid = get_global_id(0);
     maxi = size - 1;
     if (gid<size)
@@ -56,51 +58,67 @@ kernel void mark_exceptions(global char* raw,
         value = raw[gid];
         if (value == -128)
         {
+            int maxi;
+            values[gid] = 0;
             position = atomic_inc(cnt);
             exc[position] = gid;
-            atomic_inc(&mask[gid]);
-            atomic_inc(&mask[min(gid+1, maxi)]);
-            atomic_inc(&mask[min(gid+2, maxi)]);
+            maxi = size - 1;
             if (((int) raw[min(gid+1, maxi)] == 0) &&
                 ((int) raw[min(gid+2, maxi)] == -128))
             {
-                atomic_inc(&mask[min(gid+3, maxi)]);
-                atomic_inc(&mask[min(gid+4, maxi)]);
-                atomic_inc(&mask[min(gid+5, maxi)]);
-                atomic_inc(&mask[min(gid+6, maxi)]);
+                maxi = 7;
+            }
+            else
+            {
+                maxi = 3;
+            }
+            maxi = min(size, gid+maxi);
+            for (int i=gid; i<maxi; i++)
+            {// atomic does not matter as we are not actually counting
+                mask[i]=1;
             }
         }
+        else
+        { // treat simple data
+
+            values[gid] = value;
+        }
+    }
+    else if (gid<full_size)
+    {
+        mask[gid]=1;
+        values[gid] = 0;
     }
 }
 
 //run with WG=1, as may as exceptions
-kernel void treat_exceptions(global char* raw, //raw compressed stream
-                             int size,         //size of the raw compressed stream
-                             global int* mask, //tells if the value is masked
-                             global int* exc,  //array storing the position of the start of exception zones
+kernel void treat_exceptions(global char* raw,  //raw compressed stream
+                             int size,          //size of the raw compressed stream
+                             global char* mask, //tells if the value is masked
+                             global int* exc,   //array storing the position of the start of exception zones
                              global int* values)// stores decompressed values.
 {
     int gid = get_global_id(0);
     int position = exc[gid];
-    if ((position>0) && ((int)mask[position-1] !=0))
+    if ((position>0) && ((int)mask[position-1] != 0))
     { // This is actually not another exception, remove from list.
       // Those data will be treated by another workgroup.
         exc[gid] = -1;
     }
     else
     {
-        int inp_pos, out_pos, value, is_masked, next_value, inc;
+        int inp_pos, value, is_masked, next_value, inc;
         inp_pos = position;
-        out_pos = position;
         is_masked = mask[inp_pos];
-        while ((is_masked) && (inp_pos<size) && (out_pos<size))
+        while ((is_masked) && (inp_pos<size))
         {
             value = (int) raw[inp_pos];
             if (value == -128)
             { // this correspond to 16 bits exception
                 uchar low_byte = raw[inp_pos+1];
                 char high_byte = raw[inp_pos+2] ;
-
+                index[gid+1] = -1;
+                index[gid+2] = -1;
                 next_value = high_byte<<8 | low_byte;
                 if (next_value == -32768)
                 { // this correspond to 32 bits exception
@@ -110,6 +128,10 @@ kernel void treat_exceptions(global char* raw, //raw compressed stream
                     char high_byte4 = raw[inp_pos+6] ;
                     value = high_byte4<<24 | low_byte3<<16 | low_byte2<<8 | low_byte1;
                     inc = 7;
+                    index[gid+3] = -1;
+                    index[gid+4] = -1;
+                    index[gid+5] = -1;
+                    index[gid+6] = -1;
                 }
                 else
                 {
@@ -122,9 +144,9 @@ kernel void treat_exceptions(global char* raw, //raw compressed stream
                 inc = 1;
             }
             values[inp_pos] = value;
-            mask[inp_pos] = -1; // mark the processed data in the mask
+            index[inp_pos] = inc;
+            mask[inp_pos] = 0; // mark the processed data in the mask
             inp_pos += inc;
-            out_pos += 1 ;
             is_masked = mask[inp_pos];
         }
     }
@@ -161,12 +183,20 @@ kernel void treat_simple(global char* raw,
 kernel void copy_result_int(global int* values,
                             global int* indexes,
                             int size,
-                            global int* output)
+                            global int* output
+                            )
 {
     int gid = get_global_id(0);
     if (gid<size)
     {
-        output[gid] = values[indexes[gid]];
+        if (gid==0)
+        {
+            output[0] = values[0];
+        }
+        else if (indexes[gid]>indexes[gid-1])
+        {
+            output[indexes[gid]] = values[gid];
+        }
     }
 }
 
@@ -174,14 +204,51 @@ kernel void copy_result_int(global int* values,
 kernel void copy_result_float(global int* values,
                               global int* indexes,
                               int size,
-                              global float* output)
+                              global float* output
+                              )
 {
     int gid = get_global_id(0);
     if (gid<size)
     {
-        output[gid] = (float) values[indexes[gid]];
+        if (gid==0)
+        {
+            output[0] = (float) values[0];
+        }
+        else if (indexes[gid]>indexes[gid-1])
+        {
+            output[indexes[gid]] = (float) values[gid];
+        }
     }
 }
+
+
+// combined memset for all arrays used for Byte Offset decompression
+kernel void byte_offset_memset(global char* raw,
+                               global int* mask,
+                               global int* index,
+                               global int* result,
+                               int full_size,
+                               int actual_size,
+                              )
+{
+    int gid = get_global_id(0);
+    if (gid < full_size)
+    {
+        raw[gid] = 0;
+        index[gid] = 0;
+        result[gid] = 0;
+        if (gid<actual_size)
+        {
+            mask[gid] = 0;
+        }
+        else
+        {
+            mask[gid] = 1;
+        }
+
+    }
+}
+
 
 //Simple memset kernel for char arrays
 kernel void fill_char_mem(global char* ary,
