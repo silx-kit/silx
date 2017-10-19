@@ -29,6 +29,6 @@ __license__ = "MIT"
 __date__ = "08/11/2016"
 
 
-from .core import Elem, Group, PrivateGroup  # noqa
+from .core import Base, Elem, Group, PrivateGroup  # noqa
 from .viewport import Viewport  # noqa
 from .window import Window  # noqa
