@@ -28,7 +28,7 @@ This module contains an :class:`ImageFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "18/10/2017"
+__date__ = "19/10/2017"
 
 import sys
 import os
@@ -287,14 +287,15 @@ class _SideBar(qt.QListView):
         super(_SideBar, self).__init__(parent)
         self.__iconProvider = qt.QFileIconProvider()
         self.setUniformItemSizes(True)
-        model = self._createModel()
+        model = qt.QStandardItemModel(self)
         self.setModel(model)
+        self._initModel()
         self.setEditTriggers(qt.QAbstractItemView.NoEditTriggers)
 
     def iconProvider(self):
         return self.__iconProvider
 
-    def _createModel(self):
+    def _initModel(self):
 
         # Get default shortcut
         # There is no other way
@@ -303,6 +304,12 @@ class _SideBar(qt.QListView):
         d = None
 
         model = qt.QStandardItemModel(self)
+        self.setUrls(urls)
+        return model
+
+    def setUrls(self, urls):
+        model = self.model()
+        model.clear()
 
         names = {}
         names[qt.QDir.rootPath()] = "Computer"
@@ -329,7 +336,14 @@ class _SideBar(qt.QListView):
             item.setData(url, role=qt.Qt.UserRole)
             model.appendRow(item)
 
-        return model
+    def urls(self):
+        result = []
+        model = self.model()
+        for i in range(model.rowCount()):
+            index = model.index(i, 0)
+            url = model.data(index, qt.Qt.UserRole)
+            result.append(url)
+        return result
 
     def sizeHint(self):
         index = self.model().index(0, 0)
@@ -383,6 +397,30 @@ class _Browser(qt.QStackedWidget):
         if selectionModel is None:
             return
         selectionModel.setCurrentIndex(index, qt.QItemSelectionModel.ClearAndSelect)
+
+    def viewMode(self):
+        """Returns the current view mode.
+
+        :rtype: qt.QFileDialog.ViewMode
+        """
+        if self.currentIndex() == 0:
+            return qt.QFileDialog.List
+        elif self.currentIndex() == 1:
+            return qt.QFileDialog.Detail
+        else:
+            assert(False)
+
+    def setViewMode(self, mode):
+        """Set the current view mode.
+
+        :param qt.QFileDialog.ViewMode mode: The new view mode
+        """
+        if mode == qt.QFileDialog.Detail:
+            self.showDetails()
+        elif mode == qt.QFileDialog.List:
+            self.showList()
+        else:
+            assert(False)
 
     def showList(self):
         self.__listView.show()
@@ -788,15 +826,34 @@ class ImageFileDialog(qt.QDialog):
             self.__browser.setRootIndex(index)
             self.__closeFile()
 
+    def viewMode(self):
+        """Returns the current view mode.
+
+        :rtype: qt.QFileDialog.ViewMode
+        """
+        return self.__browser.viewMode()
+
+    def setViewMode(self, mode):
+        """Set the current view mode.
+
+        :param qt.QFileDialog.ViewMode mode: The new view mode
+        """
+        if mode == qt.QFileDialog.Detail:
+            self.__browser.showDetails()
+            self.__listViewAction.setChecked(False)
+            self.__detailViewAction.setChecked(True)
+        elif mode == qt.QFileDialog.List:
+            self.__browser.showList()
+            self.__listViewAction.setChecked(True)
+            self.__detailViewAction.setChecked(False)
+        else:
+            assert(False)
+
     def __showAsListView(self):
-        self.__browser.showList()
-        self.__listViewAction.setChecked(True)
-        self.__detailViewAction.setChecked(False)
+        self.setViewMode(qt.QFileDialog.List)
 
     def __showAsDetailedView(self):
-        self.__browser.showDetails()
-        self.__listViewAction.setChecked(False)
-        self.__detailViewAction.setChecked(True)
+        self.setViewMode(qt.QFileDialog.Detail)
 
     def __shortcutSelected(self):
         indexes = self.__sidebar.selectionModel().selectedIndexes()
@@ -1031,6 +1088,9 @@ class ImageFileDialog(qt.QDialog):
             self.__currentHistory.append(uri.path())
             self.__currentHistoryLocation += 1
 
+        self.__updateActionHistory()
+
+    def __updateActionHistory(self):
         self.__forwardAction.setEnabled(len(self.__currentHistory) - 1 > self.__currentHistoryLocation)
         self.__backwardAction.setEnabled(self.__currentHistoryLocation > 0)
 
@@ -1106,7 +1166,8 @@ class ImageFileDialog(qt.QDialog):
 
     def selectFile(self, path):
         """Sets the image dialog's current file."""
-        raise NotImplementedError()
+        self.__pathEdit.setText(path)
+        self.__pathChanged()
 
     # Selected image
 
@@ -1128,6 +1189,21 @@ class ImageFileDialog(qt.QDialog):
         """
         return self.__pathEdit.text()
 
+    def selectedDirectory(self):
+        """Returns the path from the current browsed directory.
+
+        :rtype: str
+        """
+        index = self.__browser.rootIndex()
+        if index.model() is self.__fileModel:
+            path = self.__fileModel.filePath(index)
+            if os.path.isfile(path):
+                path = os.path.dirname(path)
+            return path
+        elif index.model() is self.__dataModel:
+            path = os.path.dirname(self.__h5.file.filename)
+            return path
+
     def selectedImage(self):
         """Returns the numpy array selected.
 
@@ -1140,6 +1216,24 @@ class ImageFileDialog(qt.QDialog):
     def selectedNameFilter(self):
         """Returns the filter that the user selected in the file dialog."""
         return self.__fileTypeCombo.currentText()
+
+    # History
+
+    def history(self):
+        """Returns the browsing history of the filedialog as a list of paths.
+
+        :rtype: List<str>
+        """
+        if len(self.__currentHistory) <= 1:
+            return []
+        history = self.__currentHistory[0:self.__currentHistoryLocation]
+        return list(history)
+
+    def setHistory(self, history):
+        self.__currentHistory = []
+        self.__currentHistory.extend(history)
+        self.__currentHistoryLocation = len(self.__currentHistory) - 1
+        self.__updateActionHistory()
 
     # State
 
