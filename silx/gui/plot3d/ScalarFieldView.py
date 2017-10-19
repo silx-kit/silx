@@ -730,7 +730,12 @@ class ScalarFieldView(Plot3DWindow):
         self._dataRange = None
 
         self._group = primitives.BoundedGroup()
-        self._group.transforms = [
+
+        self._dataBBoxGroup = primitives.GroupBBox()
+        self._dataBBoxGroup.children = [self._group]
+        self._dataBBoxGroup.axesVisible = False
+        self._dataBBoxGroup.color = self._foregroundColor
+        self._dataBBoxGroup.transforms = [
             self._dataTranslate, self._dataTransform, self._dataScale]
 
         self._selectionBox = primitives.Box()
@@ -760,7 +765,7 @@ class ScalarFieldView(Plot3DWindow):
         self._group.children.append(self._isogroup)
 
         self._bbox = axes.LabelledAxes()
-        self._bbox.children = [self._group]
+        self._bbox.children = [self._dataBBoxGroup]
         self.getPlot3DWidget().viewport.scene.children.append(self._bbox)
 
         self._initPanPlaneAction()
@@ -1122,7 +1127,9 @@ class ScalarFieldView(Plot3DWindow):
 
         :param bool visible: True to show axes, False to hide
         """
-        self._bbox.boxVisible = bool(visible)
+        visible = bool(visible)
+        self._bbox.boxVisible = visible
+        self._dataBBoxGroup.boxVisible = visible
 
     def setAxesLabels(self, xlabel=None, ylabel=None, zlabel=None):
         """Set the text labels of the axes.
@@ -1182,6 +1189,7 @@ class ScalarFieldView(Plot3DWindow):
     def _updateColors(self):
         """Update item depending on foreground/highlight color"""
         self._bbox.tickColor = self._foregroundColor
+        self._dataBBoxGroup.color = self._foregroundColor
         self._selectionBox.strokeColor = self._foregroundColor
         if self.getInteractiveMode() == 'plane':
             self._cutPlane.setStrokeColor(self._highlightColor)
