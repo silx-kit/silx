@@ -274,11 +274,24 @@ class _ImagePreview(qt.QWidget):
         axis = self.__plot.getYAxis()
         axis.setLimitsConstraints(0, image.shape[0])
 
+    def __imageItem(self):
+        image = self.__plot.getImage("data")
+        return image
+
     def image(self):
         return self.__image
 
+    def colormap(self):
+        image = self.__imageItem()
+        if image is not None:
+            return image.getColormap()
+        return self.__plot.getDefaultColormap()
+
+    def setColormap(self, colormap):
+        self.__plot.setDefaultColormap(colormap)
+
     def clear(self):
-        image = self.__plot.getImage("data")
+        image = self.__imageItem()
         if image is not None:
             self.__plot.removeImage(legend="data")
 
@@ -1309,6 +1322,14 @@ class ImageFileDialog(qt.QDialog):
         self.__currentHistoryLocation = len(self.__currentHistory) - 1
         self.__updateActionHistory()
 
+    # Colormap
+
+    def colormap(self):
+        return self.__imagePreview.colormap()
+
+    def setColormap(self, colormap):
+        self.__imagePreview.setColormap(colormap)
+
     # State
 
     __serialVersion = 1
@@ -1341,6 +1362,7 @@ class ImageFileDialog(qt.QDialog):
         selectedDirectory = stream.readString()
         browserData = stream.readQVariant()
         viewMode = stream.readInt32()
+        colormap = utils.readColormap(stream)
 
         self.__splitter.restoreState(splitterData)
         self.__sidebar.setUrls(list(sidebarUrls))
@@ -1348,6 +1370,7 @@ class ImageFileDialog(qt.QDialog):
         self.__splitter.restoreState(browserData)
         self.setDirectory(selectedDirectory)
         self.setViewMode(viewMode)
+        self.setColormap(colormap)
 
         return True
 
@@ -1368,5 +1391,6 @@ class ImageFileDialog(qt.QDialog):
         stream.writeString(self.selectedDirectory())
         stream.writeQVariant(self.__browser.saveState())
         stream.writeInt32(self.viewMode())
+        utils.writeColormap(stream, self.colormap())
 
         return data

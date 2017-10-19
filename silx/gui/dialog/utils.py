@@ -28,10 +28,11 @@ This module contains utilitaries used by other dialog modules.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "17/10/2017"
+__date__ = "19/10/2017"
 
 from silx.gui import qt
 from silx.gui.hdf5.Hdf5TreeModel import Hdf5TreeModel
+from silx.gui.plot.Colormap import Colormap
 
 
 def indexFromH5Object(model, h5Object):
@@ -130,3 +131,43 @@ def findClosestSubPath(hdf5Object, path):
     if path[0] == "/":
         return "/"
     return None
+
+
+_colormapVersionSerial = 1
+
+
+def readColormap(stream):
+    """
+    Read a colormap from a stream
+
+    :param qt.QDataStream stream: Stream containing the state
+    """
+    version = stream.readUInt32()
+    if version != _colormapVersionSerial:
+        return None
+
+    haveColormap = stream.readBool()
+    if not haveColormap:
+        return None
+    name = stream.readString()
+    vmin = stream.readQVariant()
+    vmax = stream.readQVariant()
+    normalization = stream.readString()
+    return Colormap(name=name, normalization=normalization, vmin=vmin, vmax=vmax)
+
+
+def writeColormap(stream, colormap):
+    """
+    Write a colormap to a stream
+
+    :param qt.QDataStream stream: Stream to write the colormap
+    :param silx.gui.plot.Colormap.Colormap colormap: The colormap
+    """
+    stream.writeUInt32(_colormapVersionSerial)
+    stream.writeBool(colormap is not None)
+    if colormap is None:
+        return
+    stream.writeString(colormap.getName())
+    stream.writeQVariant(colormap.getVMin())
+    stream.writeQVariant(colormap.getVMax())
+    stream.writeString(colormap.getNormalization())
