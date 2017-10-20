@@ -342,6 +342,7 @@ class CutPlane(qt.QObject):
 
         # Plane with texture on the data bounding box
         self._dataPlane = cutplane.CutPlane(normal=(0, 1, 0))
+        self._dataPlane.strokeVisible = False
         self._dataPlane.alpha = 1.
         self._dataPlane.visible = self._visible
 
