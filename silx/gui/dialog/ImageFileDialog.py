@@ -686,8 +686,9 @@ class ImageFileDialog(qt.QDialog):
         listView.setSelectionMode(qt.QAbstractItemView.SingleSelection)
         listView.setResizeMode(qt.QListView.Adjust)
         listView.setWrapping(True)
-        listView.setEditTriggers(qt.QAbstractItemView.EditKeyPressed)
+        listView.setEditTriggers(qt.QAbstractItemView.NoEditTriggers)
         listView.setContextMenuPolicy(qt.Qt.CustomContextMenu)
+        utils.patchToConsumeReturnKey(listView)
 
         treeView = qt.QTreeView(self)
         treeView.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
@@ -698,9 +699,10 @@ class ImageFileDialog(qt.QDialog):
         treeView.header().setSortIndicator(0, qt.Qt.AscendingOrder)
         treeView.header().setStretchLastSection(False)
         treeView.setTextElideMode(qt.Qt.ElideMiddle)
-        treeView.setEditTriggers(qt.QAbstractItemView.EditKeyPressed)
+        treeView.setEditTriggers(qt.QAbstractItemView.NoEditTriggers)
         treeView.setContextMenuPolicy(qt.Qt.CustomContextMenu)
         treeView.setDragDropMode(qt.QAbstractItemView.InternalMove)
+        utils.patchToConsumeReturnKey(treeView)
 
         self.__browser = _Browser(self, listView, treeView)
         self.__browser.activated.connect(self.__browsedItemActivated)
@@ -719,6 +721,7 @@ class ImageFileDialog(qt.QDialog):
         self.__pathEdit = _PathEdit(self)
         self.__pathEdit.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Fixed)
         self.__pathEdit.textChanged.connect(self.__pathChanged)
+        utils.patchToConsumeReturnKey(self.__pathEdit)
 
         self.__buttons = qt.QDialogButtonBox(self)
         self.__buttons.setSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed)

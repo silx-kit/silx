@@ -28,8 +28,9 @@ This module contains utilitaries used by other dialog modules.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "19/10/2017"
+__date__ = "20/10/2017"
 
+import types
 from silx.gui import qt
 from silx.gui.hdf5.Hdf5TreeModel import Hdf5TreeModel
 from silx.gui.plot.Colormap import Colormap
@@ -131,6 +132,24 @@ def findClosestSubPath(hdf5Object, path):
     if path[0] == "/":
         return "/"
     return None
+
+
+def patchToConsumeReturnKey(widget):
+    """
+    Monkey-patch a widget to consume the return key instead of propagating it
+    to the dialog.
+    """
+    assert(not hasattr(widget, "_oldKeyPressEvent"))
+
+    def keyPressEvent(self, event):
+        k = event.key()
+        result = self._oldKeyPressEvent(event)
+        if k in [qt.Qt.Key_Return, qt.Qt.Key_Enter]:
+            event.accept()
+        return result
+
+    widget._oldKeyPressEvent = widget.keyPressEvent
+    widget.keyPressEvent = types.MethodType(keyPressEvent, widget)
 
 
 _colormapVersionSerial = 1
