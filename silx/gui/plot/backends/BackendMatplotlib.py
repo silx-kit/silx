@@ -608,12 +608,22 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self.ax2.set_xscale('log' if flag else 'linear')
         self.ax.set_xscale('log' if flag else 'linear')
 
+        # Make sur Y axis scale is set (it is reset with mpl 2.1.0)
+        isYLog = self._plot.isYAxisLogarithmic()
+        self.ax2.set_yscale('log' if isYLog else 'linear')
+        self.ax.set_yscale('log' if isYLog else 'linear')
+
     def setYAxisLogarithmic(self, flag):
         if matplotlib.__version__ >= "2.0.0":
             self.ax.cla()
             self.ax2.cla()
         self.ax2.set_yscale('log' if flag else 'linear')
         self.ax.set_yscale('log' if flag else 'linear')
+
+        # Make sur X axis scale is set (it is reset with mpl 2.1.0)
+        isXLog = self._plot.isXAxisLogarithmic()
+        self.ax2.set_xscale('log' if isXLog else 'linear')
+        self.ax.set_xscale('log' if isXLog else 'linear')
 
     def setYAxisInverted(self, flag):
         if self.ax.yaxis_inverted() != bool(flag):
