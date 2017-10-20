@@ -43,7 +43,7 @@
 
 kernel void mark_exceptions(global char* raw,
                             int size,
-                            int full_size
+                            int full_size,
                             global int* mask,
                             global int* values,
                             global int* cnt,
@@ -51,7 +51,6 @@ kernel void mark_exceptions(global char* raw,
 {
     int gid;
     gid = get_global_id(0);
-    maxi = size - 1;
     if (gid<size)
     {
         int value, position;
@@ -94,22 +93,21 @@ kernel void mark_exceptions(global char* raw,
 //run with WG=1, as may as exceptions
 kernel void treat_exceptions(global char* raw,  //raw compressed stream
                              int size,          //size of the raw compressed stream
-                             global char* mask, //tells if the value is masked
+                             global int* mask,  //tells if the value is masked
                              global int* exc,   //array storing the position of the start of exception zones
                              global int* values)// stores decompressed values.
 {
     int gid = get_global_id(0);
-    int position = exc[gid];
-    if ((position>0) && ((int)mask[position-1] != 0))
+    int inp_pos = exc[gid];
+    if ((inp_pos>0) && ((int)mask[inp_pos - 1] != 0))
     { // This is actually not another exception, remove from list.
       // Those data will be treated by another workgroup.
         exc[gid] = -1;
     }
     else
     {
-        int inp_pos, value, is_masked, next_value, inc;
-        inp_pos = position;
-        is_masked = mask[inp_pos];
+        int value, is_masked, next_value, inc;
+        is_masked = (mask[inp_pos] != 0);
         while ((is_masked) && (inp_pos<size))
         {
             value = (int) raw[inp_pos];
@@ -117,8 +115,8 @@ kernel void treat_exceptions(global char* raw,  //raw compressed stream
             { // this correspond to 16 bits exception
                 uchar low_byte = raw[inp_pos+1];
                 char high_byte = raw[inp_pos+2] ;
-                index[gid+1] = -1;
-                index[gid+2] = -1;
+                mask[inp_pos + 1] = 1;
+                mask[inp_pos + 2] = 1;
                 next_value = high_byte<<8 | low_byte;
                 if (next_value == -32768)
                 { // this correspond to 32 bits exception
@@ -128,10 +126,11 @@ kernel void treat_exceptions(global char* raw,  //raw compressed stream
                     char high_byte4 = raw[inp_pos+6] ;
                     value = high_byte4<<24 | low_byte3<<16 | low_byte2<<8 | low_byte1;
                     inc = 7;
-                    index[gid+3] = -1;
-                    index[gid+4] = -1;
-                    index[gid+5] = -1;
-                    index[gid+6] = -1;
+                    mask[inp_pos + 3] = 1;
+                    mask[inp_pos + 4] = 1;
+                    mask[inp_pos + 5] = 1;
+                    mask[inp_pos + 6] = 1;
+                    
                 }
                 else
                 {
@@ -144,10 +143,9 @@ kernel void treat_exceptions(global char* raw,  //raw compressed stream
                 inc = 1;
             }
             values[inp_pos] = value;
-            index[inp_pos] = inc;
-            mask[inp_pos] = 0; // mark the processed data in the mask
+            mask[inp_pos] = -1; // mark the processed data as valid in the mask
             inp_pos += inc;
-            is_masked = mask[inp_pos];
+            is_masked = (mask[inp_pos] != 0);
         }
     }
 }
@@ -182,20 +180,20 @@ kernel void treat_simple(global char* raw,
 // copy the values of the elements to definitive position
 kernel void copy_result_int(global int* values,
                             global int* indexes,
-                            int size,
+                            int in_size,
+                            int out_size,
                             global int* output
                             )
 {
     int gid = get_global_id(0);
-    if (gid<size)
+    if (gid < in_size)
     {
-        if (gid==0)
+        int current = max(indexes[gid], 0),
+               next = (gid >= (in_size - 1)) ? in_size : indexes[gid + 1];
+        //we keep always the last element
+        if ((current <= out_size) && (current < next))
         {
-            output[0] = values[0];
-        }
-        else if (indexes[gid]>indexes[gid-1])
-        {
-            output[indexes[gid]] = values[gid];
+            output[current] = values[gid];
         }
     }
 }
@@ -203,20 +201,19 @@ kernel void copy_result_int(global int* values,
 // copy the values of the elements to definitive position
 kernel void copy_result_float(global int* values,
                               global int* indexes,
-                              int size,
+                              int in_size,
+                              int out_size,
                               global float* output
                               )
 {
     int gid = get_global_id(0);
-    if (gid<size)
+    if (gid<in_size)
     {
-        if (gid==0)
+        int current = max(indexes[gid], 0),
+               next = (gid >= (in_size - 1)) ? in_size + 1 : indexes[gid + 1];
+        if ((current < out_size) && (current < next))
         {
-            output[0] = (float) values[0];
-        }
-        else if (indexes[gid]>indexes[gid-1])
-        {
-            output[indexes[gid]] = (float) values[gid];
+            output[current] = (float) values[gid];
         }
     }
 }
@@ -228,7 +225,7 @@ kernel void byte_offset_memset(global char* raw,
                                global int* index,
                                global int* result,
                                int full_size,
-                               int actual_size,
+                               int actual_size
                               )
 {
     int gid = get_global_id(0);

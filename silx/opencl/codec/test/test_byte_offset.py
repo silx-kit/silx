@@ -36,7 +36,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "17/10/2017"
+__date__ = "20/10/2017"
 
 import time
 import logging
@@ -53,7 +53,7 @@ class TestByteOffset(unittest.TestCase):
 
     def test_decompress(self):
         """
-        tests the combine (linear combination) kernel
+        tests the byte offset decompression on GPU
         """
         shape = (2713, 2719)  #  (991, 997)
         size = numpy.prod(shape)
@@ -81,9 +81,54 @@ class TestByteOffset(unittest.TestCase):
                      1000.0 * (t2 - t1))
         bo.log_profile()
 
+    def test_many_decompress(self, ntest=10):
+        """
+        tests the byte offset decompression on GPU, many images to ensure there 
+        is not leaking in memory 
+        """
+        shape = (991, 997)
+        size = numpy.prod(shape)
+        nexcept = 2729
+        ref = numpy.random.poisson(100, numpy.prod(shape))
+        ref.shape = shape
+        raw = fabio.compression.compByteOffset(ref)
+        bo = byte_offset.ByteOffset(len(raw), size, profile=False)
+        t0 = time.time()
+        res_cy = fabio.compression.decByteOffset(raw)
+        t1 = time.time()
+        res_cl = bo(raw)
+        t2 = time.time()
+        delta_cy = abs(ref.ravel() - res_cy).max()
+        delta_cl = abs(ref.ravel() - res_cl.get()).max()
+        self.assertEqual(delta_cy, 0, "Checks fabio works")
+        self.assertEqual(delta_cl, 0, "Checks opencl works")
+        logger.debug("Global execution time: fabio %.3fms, OpenCL: %.3fms.",
+                     1000.0 * (t1 - t0),
+                     1000.0 * (t2 - t1))
+
+        for i in range(ntest):
+            ref = numpy.random.poisson(200, numpy.prod(shape))
+            exception_loc = numpy.random.randint(0, size, size=nexcept)
+            exception_value = numpy.random.randint(0, 1000000, size=nexcept)
+            ref[exception_loc] = exception_value
+            ref.shape = shape
+            raw = fabio.compression.compByteOffset(ref)
+            t0 = time.time()
+            res_cy = fabio.compression.decByteOffset(raw)
+            t1 = time.time()
+            res_cl = bo(raw)
+            t2 = time.time()
+            delta_cy = abs(ref.ravel() - res_cy).max()
+            delta_cl = abs(ref.ravel() - res_cl.get()).max()
+            self.assertEqual(delta_cy, 0, "Checks fabio works #%i" % i)
+            self.assertEqual(delta_cl, 0, "Checks opencl works #%i" % i)
+
+            logger.debug("Global execution time: fabio %.3fms, OpenCL: %.3fms.",
+                         1000.0 * (t1 - t0),
+                         1000.0 * (t2 - t1))
 
 def suite():
     testSuite = unittest.TestSuite()
     testSuite.addTest(TestByteOffset("test_decompress"))
-#     testSuite.addTest(TestAlgebra("test_compact"))
+    testSuite.addTest(TestByteOffset("test_many_decompress"))
     return testSuite

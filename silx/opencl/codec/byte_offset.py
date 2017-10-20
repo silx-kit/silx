@@ -37,7 +37,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "19/10/2017"
+__date__ = "20/10/2017"
 __status__ = "production"
 
 import os
@@ -65,33 +65,35 @@ class ByteOffset(OpenclProcessing):
 
         OpenclProcessing.__init__(self, ctx=ctx, devicetype=devicetype,
                                   platformid=platformid, deviceid=deviceid,
-                                  block_size=min(block_size, 128), profile=profile)
+                                  block_size=block_size, profile=profile)
+        if self.block_size is None:
+            self.block_size = min(self.device.max_work_group_size, 128)
         wg = self.block_size
         self.raw_size = numpy.int32(raw_size)
         self.dec_size = numpy.int32(dec_size)
         self.padded_raw_size = (self.raw_size + wg - 1) & ~(wg - 1)
-        self.padded_dec_size = (self.dec_size + wg - 1) & ~(wg - 1)
         buffers = [
-                    BufferDescription("raw", self.raw_size, numpy.int8, None),
-                    BufferDescription("mask", self.raw_size, numpy.int32, None),
-                    BufferDescription("values", self.raw_size, numpy.int32, None),
-                    BufferDescription("exceptions", self.raw_size, numpy.int32, None),
+                    BufferDescription("raw", self.padded_raw_size, numpy.int8, None),
+                    BufferDescription("mask", self.padded_raw_size, numpy.int32, None),
+                    BufferDescription("values", self.padded_raw_size, numpy.int32, None),
+                    BufferDescription("exceptions", self.padded_raw_size, numpy.int32, None),
                     BufferDescription("counter", 1, numpy.int32, None),
                     BufferDescription("data_float", self.dec_size, numpy.float32, None),
                     BufferDescription("data_int", self.dec_size, numpy.int32, None),
                    ]
         self.allocate_buffers(buffers, use_array=True)
         self.compile_kernels([os.path.join("codec", "byte_offset")])
-        self.kernels.__setattr__("scan", self._init_double_scan)
+        self.kernels.__setattr__("scan", self._init_double_scan())
 
     def _init_double_scan(self):
         "generates a double scan on indexes and values in one operation"
+        arguments = "__global int *value", "__global int *index"
         int2 = pyopencl.tools.get_or_register_dtype("int2")
-        input_expr = "mask[i]?(int2)(0, 0):(int2)(value[i], 1)"
+        input_expr = "index[i]>0 ? (int2)(0, 0) : (int2)(value[i], 1)"
         scan_expr = "a+b"
         neutral = "(int2)(0,0)"
-        arguments = "__global int *value", "__global int *index"
         output_statement = "value[i] = item.s0; index[i+1] = item.s1;"
+        # if self.device.type == "GPU":
         if self.block_size >= 64:
             knl = pyopencl.algorithm.GenericScanKernel(self.ctx, int2, arguments, input_expr, scan_expr, neutral, output_statement)
         else:  # MacOS on CPU
@@ -104,39 +106,38 @@ class ByteOffset(OpenclProcessing):
         events = []
         with self.sem:
             len_raw = numpy.int32(len(raw))
-            if len_raw > self.raw_size:
-                logger.info("increase raw buffer size to %s", len(raw))
-                raw_size = len(raw)
-                buffers = {
-                           "raw": pyopencl.array.empty(self.queue, raw_size, dtype=numpy.int8),
-                           "mask": pyopencl.array.empty(self.queue, raw_size, dtype=numpy.int32),
-                           "exceptions": pyopencl.array.empty(self.queue, raw_size, dtype=numpy.int32),
-                           "values": pyopencl.array.empty(self.queue, raw_size, dtype=numpy.int32),
-                          }
-                self.raw_size = raw_size
+            if len_raw > self.padded_raw_size:
                 wg = self.block_size
+                raw_size = numpy.int32(len(raw))
+                self.raw_size = raw_size
                 self.padded_raw_size = (raw_size + wg - 1) & ~(wg - 1)
+                logger.info("increase raw buffer size to %s", self.padded_raw_size)
+                buffers = {
+                           "raw": pyopencl.array.empty(self.queue, self.padded_raw_size, dtype=numpy.int8),
+                           "mask": pyopencl.array.empty(self.queue, self.padded_raw_size, dtype=numpy.int32),
+                           "exceptions": pyopencl.array.empty(self.queue, self.padded_raw_size, dtype=numpy.int32),
+                           "values": pyopencl.array.empty(self.queue, self.padded_raw_size, dtype=numpy.int32),
+                          }
                 self.cl_mem.update(buffers)
+            else:
+                wg = self.block_size
 
             evt = pyopencl.enqueue_copy(self.queue, self.cl_mem["raw"].data,
                                         raw,
                                         is_blocking=False)
             events.append(EventDescription("copy raw H -> D", evt))
-
             evt = self.kernels.fill_int_mem(self.queue, (self.padded_raw_size,), (wg,),
                                             self.cl_mem["mask"].data,
                                             self.raw_size,
                                             numpy.int32(0),
                                             numpy.int32(0))
             events.append(EventDescription("memset mask", evt))
-
             evt = self.kernels.fill_int_mem(self.queue, (1,), (1,),
                                             self.cl_mem["counter"].data,
                                             numpy.int32(1),
                                             numpy.int32(0),
                                             numpy.int32(0))
             events.append(EventDescription("memset counter", evt))
-
             evt = self.kernels.mark_exceptions(self.queue, (self.padded_raw_size,), (wg,),
                                                self.cl_mem["raw"].data,
                                                len_raw,
@@ -152,36 +153,24 @@ class ByteOffset(OpenclProcessing):
             events.append(EventDescription("copy counter D -> H", evt))
             evt.wait()
             nbexc = nb_exceptions[0]
-            evt = self.kernels.treat_exceptions(self.queue, (nbexc,), (1,),
-                                                self.cl_mem["raw"].data,
-                                                len_raw,
-                                                self.cl_mem["mask"].data,
-                                                self.cl_mem["exceptions"].data,
-                                                self.cl_mem["values"].data
-                                                )
-            events.append(EventDescription("treat_exceptions", evt))
-#             evt = self.kernels.treat_simple(self.queue, (self.padded_raw_size,), (wg,),
-#                                             self.cl_mem["raw"].data,
-#                                             len_raw,
-#                                             self.cl_mem["mask"].data,
-#                                             self.cl_mem["values"].data)
-#             events.append(EventDescription("treat_simple", evt))
-#
-#             evt, cumsummed_d = pyopencl.array.cumsum(self.cl_mem["data_non_compact"],
-#                                                      numpy.int32, self.queue,
-#                                                      return_event=True)
-#
-#             events.append(EventDescription("cumsum", evt))
-#
-#             indexes_d, count_d, evt = pyopencl.algorithm.copy_if(self.cl_mem["mask"],
-#                                                                  predicate="ary[i]>=0",
-#                                                                  queue=self.queue,
-#                                                                  )
-#             events.append(EventDescription("copy_if", evt))
-#             size_out = count_d.get()  # synchro here
-#             if size_out != self.dec_size:
-#                 logger.info("decompressed size = %i, expected %i", size_out, self.dec_size)
-#                 size_out = min(size_out, self.dec_size)
+            if nbexc == 0:
+                logger.info("nbexc %i", nbexc)
+            else:
+                evt = self.kernels.treat_exceptions(self.queue, (nbexc,), (1,),
+                                                    self.cl_mem["raw"].data,
+                                                    len_raw,
+                                                    self.cl_mem["mask"].data,
+                                                    self.cl_mem["exceptions"].data,
+                                                    self.cl_mem["values"].data
+                                                    )
+                events.append(EventDescription("treat_exceptions", evt))
+
+            evt = self.kernels.scan(self.cl_mem["values"],
+                                    self.cl_mem["mask"],
+                                    queue=self.queue,
+                                    size=self.raw_size,
+                                    wait_for=(evt,))
+            events.append(EventDescription("double scan", evt))
             if out is not None:
                 if out.dtype == numpy.float32:
                     copy_results = self.kernels.copy_result_float
@@ -194,12 +183,11 @@ class ByteOffset(OpenclProcessing):
                 else:
                     out = self.cl_mem["data_int"]
                     copy_results = self.kernels.copy_result_int
-#             if out.size != size_out:
-#                 print("out size: %s expected: %s" % (out.size, size_out))
-            evt = copy_results(self.queue, self.padded_dec_size, (wg,),
-                               cumsummed_d.data,
-                               indexes_d.data,
-                               numpy.int32(size_out),
+            evt = copy_results(self.queue, (self.padded_raw_size,), (wg,),
+                               self.cl_mem["values"].data,
+                               self.cl_mem["mask"].data,
+                               self.raw_size,
+                               self.dec_size,
                                out.data
                                )
             events.append(EventDescription("copy_results", evt))
