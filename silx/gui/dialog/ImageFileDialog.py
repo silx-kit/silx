@@ -1089,7 +1089,12 @@ class ImageFileDialog(qt.QDialog):
 
     def __isSilxFile(self, filename):
         _, ext = os.path.splitext(filename)
-        return ext in set([".h5", ".nx", ".npz", ".dat", ".spec"])
+        ext = "*%s" % ext
+        formats = _silxutils.supportedFileFormats(fabio=False)
+        for extensions in formats.values():
+            if ext in extensions:
+                return True
+        return False
 
     def __openFile(self, filename):
         if self.__isSilxFile(filename):

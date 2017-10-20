@@ -30,9 +30,54 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "20/10/2017"
 
+import fabio
 from silx.gui import qt
 from silx.gui.hdf5.Hdf5TreeModel import Hdf5TreeModel
 from silx.gui.plot.Colormap import Colormap
+
+_fabioFormats = set([])
+
+
+def _fabioAvailableExtensions():
+    if len(_fabioFormats) > 0:
+        return _fabioFormats
+
+    formats = fabio.fabioformats.get_classes(reader=True)
+    allExtensions = set([])
+
+    for reader in formats:
+        if not hasattr(reader, "DESCRIPTION"):
+            continue
+        if not hasattr(reader, "DEFAULT_EXTENTIONS"):
+            continue
+
+        ext = reader.DEFAULT_EXTENTIONS
+        ext = ["*.%s" % e for e in ext]
+        allExtensions.update(ext)
+
+    allExtensions = list(sorted(list(allExtensions)))
+    _fabioFormats.extend(allExtensions)
+    return _fabioFormats
+
+
+def supportedFileFormats(h5py=True, spec=True, fabio=True, numpy=True):
+    """Returns the list of supported file extensions using silx.open.
+
+    :returns: A dictionary indexed by file description and containg a set of
+        extensions (an extension is a string like "*.ext").
+    :rtype: Dict[str, List[str]]
+    """
+    formats = {}
+    if h5py:
+        formats["HDF5 files"] = set(["*.h5", "*.hdf"])
+        formats["NeXus files"] = set(["*.nx", "*.nxs", "*.h5", "*.hdf"])
+    if spec:
+        formats["NeXus layout from spec files"] = set(["*.dat", "*.spec", "*.mca"])
+    if fabio:
+        formats["NeXus layout from fabio files"] = set(_fabioAvailableExtensions())
+    if numpy:
+        formats["Numpy binary files"] = set(["*.npz", "*.npy"])
+    return formats
 
 
 def indexFromH5Object(model, h5Object):
