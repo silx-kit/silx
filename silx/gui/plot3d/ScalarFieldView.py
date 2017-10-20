@@ -332,12 +332,18 @@ class CutPlane(qt.QObject):
         super(CutPlane, self).__init__(parent=sfView)
 
         self._dataRange = None
+        self._visible = False
 
-        self._plane = cutplane.CutPlane(normal=(0, 1, 0))
-        self._plane.alpha = 1.
-        self._plane.visible = self._visible = False
-        self._plane.addListener(self._planeChanged)
-        self._plane.plane.addListener(self._planePositionChanged)
+        # Plane stroke on the outer bounding box
+        self._planeStroke = primitives.PlaneInGroup(normal=(0, 1, 0))
+        self._planeStroke.visible = self._visible
+        self._planeStroke.addListener(self._planeChanged)
+        self._planeStroke.plane.addListener(self._planePositionChanged)
+
+        # Plane with texture on the data bounding box
+        self._dataPlane = cutplane.CutPlane(normal=(0, 1, 0))
+        self._dataPlane.alpha = 1.
+        self._dataPlane.visible = self._visible
 
         self._colormap = Colormap(
             name='gray', normalization='linear', vmin=None, vmax=None)
@@ -346,13 +352,13 @@ class CutPlane(qt.QObject):
 
         sfView.sigDataChanged.connect(self._sfViewDataChanged)
 
-    def _get3DPrimitive(self):
-        """Return the cut plane scene node"""
-        return self._plane
+    def _get3DPrimitives(self):
+        """Return the cut plane scene node."""
+        return self._planeStroke, self._dataPlane
 
     def _sfViewDataChanged(self):
         """Handle data change in the ScalarFieldView this plane belongs to"""
-        self._plane.setData(self.sender().getData(), copy=False)
+        self._dataPlane.setData(self.sender().getData(), copy=False)
 
         # Store data range info as 3-tuple of values
         self._dataRange = self.sender().getDataRange()
@@ -372,18 +378,28 @@ class CutPlane(qt.QObject):
 
     def _planePositionChanged(self, source, *args, **kwargs):
         """Handle update of cut plane position and normal"""
-        if self._plane.visible:
+        if self._planeStroke.visible:
+            planeStrokeToDataPlane = transform.StaticTransformList([
+                self._dataPlane.objectToSceneTransform.inverse(),
+                self._planeStroke.objectToSceneTransform])
+
+            point = planeStrokeToDataPlane.transformPoint(
+                self._planeStroke.plane.point)
+            normal = planeStrokeToDataPlane.transformNormal(
+                self._planeStroke.plane.normal)
+            self._dataPlane.plane.setPlane(point, normal)
+
             self.sigPlaneChanged.emit()
 
     # Plane position
 
     def moveToCenter(self):
         """Move cut plane to center of data set"""
-        self._plane.moveToCenter()
+        self._planeStroke.moveToCenter()
 
     def isValid(self):
         """Returns whether the cut plane is defined or not (bool)"""
-        return self._plane.isValid
+        return self._planeStroke.isValid
 
     def getNormal(self):
         """Returns the normal of the plane (as a unit vector)
@@ -391,14 +407,14 @@ class CutPlane(qt.QObject):
         :return: Normal (nx, ny, nz), vector is 0 if no plane is defined
         :rtype: numpy.ndarray
         """
-        return self._plane.plane.normal
+        return self._planeStroke.plane.normal
 
     def setNormal(self, normal):
         """Set the normal of the plane
 
         :param normal: 3-tuple of float: nx, ny, nz
         """
-        self._plane.plane.normal = normal
+        self._planeStroke.plane.normal = normal
 
     def getPoint(self):
         """Returns a point on the plane
@@ -406,7 +422,7 @@ class CutPlane(qt.QObject):
         :return: (x, y, z)
         :rtype: numpy.ndarray
         """
-        return self._plane.plane.point
+        return self._planeStroke.plane.point
 
     def getParameters(self):
         """Returns the plane equation parameters: a*x + b*y + c*z + d = 0
@@ -414,26 +430,28 @@ class CutPlane(qt.QObject):
         :return: Plane equation parameters: (a, b, c, d)
         :rtype: numpy.ndarray
         """
-        return self._plane.plane.parameters
+        return self._planeStroke.plane.parameters
 
     # Visibility
 
     def isVisible(self):
         """Returns True if the plane is visible, False otherwise"""
-        return self._plane.visible
+        return self._planeStroke.visible
 
     def setVisible(self, visible):
         """Set the visibility of the plane
 
         :param bool visible: True to make plane visible
         """
-        self._plane.visible = visible
+        visible = bool(visible)
+        self._planeStroke.visible = visible
+        self._dataPlane.visible = visible
 
     # Border stroke
 
     def getStrokeColor(self):
         """Returns the color of the plane border (QColor)"""
-        return qt.QColor.fromRgbF(*self._plane.color)
+        return qt.QColor.fromRgbF(*self._planeStroke.color)
 
     def setStrokeColor(self, color):
         """Set the color of the plane border.
@@ -442,7 +460,9 @@ class CutPlane(qt.QObject):
         :type color:
             QColor, str or array-like of 3 or 4 float in [0., 1.] or uint8
         """
-        self._plane.color = rgba(color)
+        color = rgba(color)
+        self._planeStroke.color = color
+        self._dataPlane.color = color
 
     # Data
 
@@ -466,7 +486,7 @@ class CutPlane(qt.QObject):
         :return: 'nearest' or 'linear'
         :rtype: str
         """
-        return self._plane.interpolation
+        return self._dataPlane.interpolation
 
     def setInterpolation(self, interpolation):
         """Set the interpolation used to display to cut plane
@@ -476,7 +496,7 @@ class CutPlane(qt.QObject):
         :param str interpolation: 'nearest' or 'linear'
         """
         if interpolation != self.getInterpolation():
-            self._plane.interpolation = interpolation
+            self._dataPlane.interpolation = interpolation
             self.sigInterpolationChanged.emit(interpolation)
 
     # Colormap
@@ -497,7 +517,7 @@ class CutPlane(qt.QObject):
 
         :rtype: bool
         """
-        return self._plane.colormap.displayValuesBelowMin
+        return self._dataPlane.colormap.displayValuesBelowMin
 
     def setDisplayValuesBelowMin(self, display):
         """Set whether to display values <= colormap min.
@@ -507,7 +527,7 @@ class CutPlane(qt.QObject):
         """
         display = bool(display)
         if display != self.getDisplayValuesBelowMin():
-            self._plane.colormap.displayValuesBelowMin = display
+            self._dataPlane.colormap.displayValuesBelowMin = display
             self.sigTransparencyChanged.emit()
 
     def getColormap(self):
@@ -561,12 +581,12 @@ class CutPlane(qt.QObject):
 
         :return: 2-tuple of float
         """
-        return self._plane.colormap.range_
+        return self._dataPlane.colormap.range_
 
     def _updateSceneColormap(self):
         """Synchronizes scene's colormap with Colormap object"""
         colormap = self.getColormap()
-        sceneCMap = self._plane.colormap
+        sceneCMap = self._dataPlane.colormap
 
         sceneCMap.colormap = colormap.getNColors()
 
@@ -738,6 +758,10 @@ class ScalarFieldView(Plot3DWindow):
         self._dataBBoxGroup.transforms = [
             self._dataTranslate, self._dataTransform, self._dataScale]
 
+        self._bbox = axes.LabelledAxes()
+        self._bbox.children = [self._dataBBoxGroup]
+        self.getPlot3DWidget().viewport.scene.children.append(self._bbox)
+
         self._selectionBox = primitives.Box()
         self._selectionBox.strokeSmooth = False
         self._selectionBox.strokeWidth = 1.
@@ -749,7 +773,9 @@ class ScalarFieldView(Plot3DWindow):
         self._cutPlane = CutPlane(sfView=self)
         self._cutPlane.sigVisibilityChanged.connect(
             self._planeVisibilityChanged)
-        self._group.children.append(self._cutPlane._get3DPrimitive())
+        planeStroke, dataPlane = self._cutPlane._get3DPrimitives()
+        self._bbox.children.append(planeStroke)
+        self._group.children.append(dataPlane)
 
         self._isogroup = primitives.GroupDepthOffset()
         self._isogroup.transforms = [
@@ -763,10 +789,6 @@ class ScalarFieldView(Plot3DWindow):
             transform.Translate(0.5, 0.5, 0.5)
         ]
         self._group.children.append(self._isogroup)
-
-        self._bbox = axes.LabelledAxes()
-        self._bbox.children = [self._dataBBoxGroup]
-        self.getPlot3DWidget().viewport.scene.children.append(self._bbox)
 
         self._initPanPlaneAction()
 
@@ -960,7 +982,7 @@ class ScalarFieldView(Plot3DWindow):
             self.getPlot3DWidget().eventHandler = \
                 interaction.PanPlaneZoomOnWheelControl(
                     self.getPlot3DWidget().viewport,
-                    self._cutPlane._get3DPrimitive(),
+                    self._cutPlane._get3DPrimitives()[0],
                     mode='position',
                     scaleTransform=sceneScale)
         else:
