@@ -411,28 +411,46 @@ class CutPlane(qt.QObject):
         """Returns whether the cut plane is defined or not (bool)"""
         return self._planeStroke.isValid
 
-    def getNormal(self):
+    def getNormal(self, coordinates='scene'):
         """Returns the normal of the plane (as a unit vector)
 
+        :param str coordinates: The coordinate system to use:
+            Either 'scene' (default) or 'array'
         :return: Normal (nx, ny, nz), vector is 0 if no plane is defined
         :rtype: numpy.ndarray
+        :raise ValueError: If coordinates is not correct
         """
-        return self._planeStroke.plane.normal
+        if coordinates == 'scene':
+            return self._planeStroke.plane.normal
+        elif coordinates == 'array':
+            return self._dataPlane.plane.normal
+        else:
+            raise ValueError(
+                'Unsupported coordinates: %s' % str(coordinates))
 
     def setNormal(self, normal):
-        """Set the normal of the plane
+        """Set the normal of the plane.
 
         :param normal: 3-tuple of float: nx, ny, nz
         """
         self._planeStroke.plane.normal = normal
 
-    def getPoint(self):
-        """Returns a point on the plane
+    def getPoint(self, coordinates='scene'):
+        """Returns a point on the plane.
 
+        :param str coordinates: The coordinate system to use:
+            Either 'scene' (default) or 'array'
         :return: (x, y, z)
         :rtype: numpy.ndarray
+        :raise ValueError: If coordinates is not correct
         """
-        return self._planeStroke.plane.point
+        if coordinates == 'scene':
+            return self._planeStroke.plane.point
+        elif coordinates == 'array':
+            return self._dataPlane.plane.point
+        else:
+            raise ValueError(
+                'Unsupported coordinates: %s' % str(coordinates))
 
     def setPoint(self, point, constraint=True):
         """Set a point contained in the plane.
@@ -449,13 +467,22 @@ class CutPlane(qt.QObject):
         if constraint:
             self._keepPlaneInBBox()
 
-    def getParameters(self):
+    def getParameters(self, coordinates='scene'):
         """Returns the plane equation parameters: a*x + b*y + c*z + d = 0
 
+        :param str coordinates: The coordinate system to use:
+            Either 'scene' (default) or 'array'
         :return: Plane equation parameters: (a, b, c, d)
         :rtype: numpy.ndarray
+        :raise ValueError: If coordinates is not correct
         """
-        return self._planeStroke.plane.parameters
+        if coordinates == 'scene':
+            return self._planeStroke.plane.parameters
+        elif coordinates == 'array':
+            return self._dataPlane.plane.parameters
+        else:
+            raise ValueError(
+                'Unsupported coordinates: %s' % str(coordinates))
 
     def setParameters(self, parameters, constraint=True):
         """Set the plane equation parameters: a*x + b*y + c*z + d = 0
@@ -650,7 +677,7 @@ class _CutPlaneImage(object):
     def __init__(self, cutPlane):
         # Init attributes with default values
         self._isValid = False
-        self._data = numpy.array([])
+        self._data = numpy.zeros((0, 0), dtype=numpy.float32)
         self._xLabel = ''
         self._yLabel = ''
         self._normalLabel = ''
@@ -669,19 +696,30 @@ class _CutPlaneImage(object):
             _logger.info("No data available")
             return
 
-        normal = cutPlane.getNormal()
-        point = numpy.array(cutPlane.getPoint(), dtype=numpy.int)
+        normal = cutPlane.getNormal(coordinates='array')
+        point = cutPlane.getPoint(coordinates='array')
 
-        if numpy.all(numpy.equal(normal, (1., 0., 0.))):
-            index = max(0, min(point[0], data.shape[2] - 1))
+        if numpy.linalg.norm(numpy.cross(normal, (1., 0., 0.))) < 0.0017:
+            if not 0 <= point[0] <= data.shape[2]:
+                _logger.info("Plane outside dataset")
+                return
+            index = max(0, min(int(point[0]), data.shape[2] - 1))
             slice_ = data[:, :, index]
             xAxisIndex, yAxisIndex, normalAxisIndex = 1, 2, 0  # y, z, x
-        elif numpy.all(numpy.equal(normal, (0., 1., 0.))):
-            index = max(0, min(point[1], data.shape[1] - 1))
+
+        elif numpy.linalg.norm(numpy.cross(normal, (0., 1., 0.))) < 0.0017:
+            if not 0 <= point[1] <= data.shape[1]:
+                _logger.info("Plane outside dataset")
+                return
+            index = max(0, min(int(point[1]), data.shape[1] - 1))
             slice_ = numpy.transpose(data[:, index, :])
             xAxisIndex, yAxisIndex, normalAxisIndex = 2, 0, 1  # z, x, y
-        elif numpy.all(numpy.equal(normal, (0., 0., 1.))):
-            index = max(0, min(point[2], data.shape[0] - 1))
+
+        elif numpy.linalg.norm(numpy.cross(normal, (0., 0., 1.))) < 0.0017:
+            if not 0 <= point[2] <= data.shape[0]:
+                _logger.info("Plane outside dataset")
+                return
+            index = max(0, min(int(point[2]), data.shape[0] - 1))
             slice_ = data[index, :, :]
             xAxisIndex, yAxisIndex, normalAxisIndex = 0, 1, 2  # x, y, z
         else:
