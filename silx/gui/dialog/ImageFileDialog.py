@@ -267,13 +267,12 @@ class _ImagePreview(qt.QWidget):
     def plot(self):
         return self.__plot
 
-    def setImage(self, image):
+    def setImage(self, image, resetzoom=True):
         if image is None:
             self.clear()
             return
 
-        self.__plot.addImage(legend="data", data=image)
-        self.__plot.resetZoom()
+        self.__plot.addImage(legend="data", data=image, resetzoom=resetzoom)
         self.__image = image
         self.__updateConstraints()
 
@@ -1119,19 +1118,12 @@ class ImageFileDialog(qt.QDialog):
 
         dim = len(data.shape)
         if dim == 2:
-            self.__selectedImage = data
-            self.__imagePreview.setImage(data)
-            self.__updateDataInfo()
-            self.__updatePath()
+            self.__setImage(data)
             self.__slicing.hide()
-            button = self.__buttons.button(qt.QDialogButtonBox.Open)
-            button.setEnabled(True)
         elif dim > 2:
             self.__slicing.setShape(data.shape)
             self.__slicing.setVisible(self.__slicing.hasVisibleSliders())
             self.__slicing.slicingChanged.emit()
-            button = self.__buttons.button(qt.QDialogButtonBox.Open)
-            button.setEnabled(True)
         else:
             self.__clearData()
             self.__updatePath()
@@ -1152,10 +1144,13 @@ class ImageFileDialog(qt.QDialog):
         self.__setImage(image)
 
     def __setImage(self, image):
-        self.__imagePreview.setImage(image)
+        resetzoom = self.__selectedImage is None
+        self.__imagePreview.setImage(image, resetzoom=resetzoom)
         self.__selectedImage = image
         self.__updateDataInfo()
         self.__updatePath()
+        button = self.__buttons.button(qt.QDialogButtonBox.Open)
+        button.setEnabled(True)
 
     def __formatShape(self, shape):
         result = []
