@@ -41,6 +41,7 @@ from silx.gui import qt
 from silx.gui.plot.PlotWidget import PlotWidget
 from silx.gui.hdf5.Hdf5TreeModel import Hdf5TreeModel
 from . import utils
+from . import _silxutils
 from .FileTypeComboBox import FileTypeComboBox
 from silx.third_party import six
 
@@ -959,7 +960,7 @@ class ImageFileDialog(qt.QDialog):
     def __navigateToParentFile(self):
         index = self.__browser.rootIndex()
         if index.model() is self.__dataModel:
-            index = utils.indexFromH5Object(self.__dataModel, self.__h5)
+            index = _silxutils.indexFromH5Object(self.__dataModel, self.__h5)
             self.__browser.setRootIndex(index)
 
     def __navigateToParentDir(self):
@@ -1108,7 +1109,7 @@ class ImageFileDialog(qt.QDialog):
             loaded = self.__openFile(path)
             if loaded:
                 if self.__h5 is not None:
-                    index = utils.indexFromH5Object(self.__dataModel, self.__h5)
+                    index = _silxutils.indexFromH5Object(self.__dataModel, self.__h5)
                     self.__browser.setRootIndex(index)
                 elif self.__fabio is not None:
                     data = _FabioData(self.__fabio)
@@ -1300,7 +1301,7 @@ class ImageFileDialog(qt.QDialog):
                     loaded = self.__openFile(uri.filename())
                     if loaded:
                         if self.__h5 is not None:
-                            rootIndex = utils.indexFromH5Object(self.__dataModel, self.__h5)
+                            rootIndex = _silxutils.indexFromH5Object(self.__dataModel, self.__h5)
                             self.__browser.setRootIndex(index)
                         elif self.__fabio is not None:
                             rootIndex = index
@@ -1323,11 +1324,11 @@ class ImageFileDialog(qt.QDialog):
                                 self.__browser.setRootIndex(rootIndex)
                                 self.__clearData()
                             elif silx.io.is_group(obj):
-                                index = utils.indexFromH5Object(rootIndex.model(), obj)
+                                index = _silxutils.indexFromH5Object(rootIndex.model(), obj)
                                 self.__browser.setRootIndex(index)
                                 self.__clearData()
                             else:
-                                index = utils.indexFromH5Object(rootIndex.model(), obj)
+                                index = _silxutils.indexFromH5Object(rootIndex.model(), obj)
                                 self.__browser.setRootIndex(index.parent())
                                 self.__browser.selectIndex(index)
                         else:
@@ -1478,7 +1479,7 @@ class ImageFileDialog(qt.QDialog):
         selectedDirectory = stream.readString()
         browserData = stream.readQVariant()
         viewMode = stream.readInt32()
-        colormap = utils.readColormap(stream)
+        colormap = _silxutils.readColormap(stream)
 
         self.__splitter.restoreState(splitterData)
         self.__sidebar.setUrls(list(sidebarUrls))
@@ -1507,6 +1508,6 @@ class ImageFileDialog(qt.QDialog):
         stream.writeString(self.selectedDirectory())
         stream.writeQVariant(self.__browser.saveState())
         stream.writeInt32(self.viewMode())
-        utils.writeColormap(stream, self.colormap())
+        _silxutils.writeColormap(stream, self.colormap())
 
         return data
