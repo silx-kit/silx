@@ -272,6 +272,9 @@ class _ImagePreview(qt.QWidget):
             self.clear()
             return
 
+        if self.__image is not None and image.shape != self.__image.shape:
+            resetzoom = True
+
         self.__plot.addImage(legend="data", data=image, resetzoom=resetzoom)
         self.__image = image
         self.__updateConstraints()
