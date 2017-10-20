@@ -351,6 +351,7 @@ class CutPlane(qt.QObject):
         self._updateSceneColormap()
 
         sfView.sigDataChanged.connect(self._sfViewDataChanged)
+        sfView.sigTransformChanged.connect(self._sfViewTransformChanged)
 
     def _get3DPrimitives(self):
         """Return the cut plane scene node."""
@@ -363,6 +364,18 @@ class CutPlane(qt.QObject):
             self._planeStroke.plane.point = numpy.clip(
                 self._planeStroke.plane.point,
                 a_min=bounds[0], a_max=bounds[1])
+
+    def _syncPlanes(self):
+        """Makes sure both planes are coplanar"""
+        planeStrokeToDataPlane = transform.StaticTransformList([
+            self._dataPlane.objectToSceneTransform.inverse(),
+            self._planeStroke.objectToSceneTransform])
+
+        point = planeStrokeToDataPlane.transformPoint(
+            self._planeStroke.plane.point)
+        normal = planeStrokeToDataPlane.transformNormal(
+            self._planeStroke.plane.normal)
+        self._dataPlane.plane.setPlane(point, normal)
 
     def _sfViewDataChanged(self):
         """Handle data change in the ScalarFieldView this plane belongs to"""
@@ -379,6 +392,12 @@ class CutPlane(qt.QObject):
 
         self._keepPlaneInBBox()
 
+    def _sfViewTransformChanged(self):
+        """Handle transform changed in the ScalarFieldView"""
+        self._keepPlaneInBBox()
+        self._syncPlanes()
+        self.sigPlaneChanged.emit()
+
     def _planeChanged(self, source, *args, **kwargs):
         """Handle events from the plane primitive"""
         # Using _visible for now, until scene as more info in events
@@ -389,16 +408,7 @@ class CutPlane(qt.QObject):
     def _planePositionChanged(self, source, *args, **kwargs):
         """Handle update of cut plane position and normal"""
         if self._planeStroke.visible:
-            planeStrokeToDataPlane = transform.StaticTransformList([
-                self._dataPlane.objectToSceneTransform.inverse(),
-                self._planeStroke.objectToSceneTransform])
-
-            point = planeStrokeToDataPlane.transformPoint(
-                self._planeStroke.plane.point)
-            normal = planeStrokeToDataPlane.transformNormal(
-                self._planeStroke.plane.normal)
-            self._dataPlane.plane.setPlane(point, normal)
-
+            self._syncPlanes()
             self.sigPlaneChanged.emit()
 
     # Plane position
@@ -805,6 +815,13 @@ class ScalarFieldView(Plot3DWindow):
     sigDataChanged = qt.Signal()
     """Signal emitted when the scalar data field has changed."""
 
+    sigTransformChanged = qt.Signal()
+    """Signal emitted when the transformation has changed.
+
+    It is emitted by :meth:`setTranslation`, :meth:`setTransformMatrix`,
+    :meth:`setScale`.
+    """
+
     sigSelectedRegionChanged = qt.Signal(object)
     """Signal emitted when the selected region has changed.
 
@@ -1173,6 +1190,7 @@ class ScalarFieldView(Plot3DWindow):
         scale = numpy.array((sx, sy, sz), dtype=numpy.float32)
         if not numpy.all(numpy.equal(scale, self.getScale())):
             self._dataScale.scale = scale
+            self.sigTransformChanged.emit()
             self.centerScene()  # Reset viewpoint
 
     def getScale(self):
@@ -1190,6 +1208,7 @@ class ScalarFieldView(Plot3DWindow):
         translation = numpy.array((x, y, z), dtype=numpy.float32)
         if not numpy.all(numpy.equal(translation, self.getTranslation())):
             self._dataTranslate.translation = translation
+            self.sigTransformChanged.emit()
             self.centerScene()  # Reset viewpoint
 
     def getTranslation(self):
@@ -1207,6 +1226,7 @@ class ScalarFieldView(Plot3DWindow):
             matrix = numpy.identity(4, dtype=numpy.float32)
             matrix[:3, :3] = matrix3x3
             self._dataTransform.setMatrix(matrix)
+            self.sigTransformChanged.emit()
             self.centerScene()  # Reset viewpoint
 
     def getTransformMatrix(self):
