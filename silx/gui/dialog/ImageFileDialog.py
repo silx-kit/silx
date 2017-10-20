@@ -356,6 +356,24 @@ class _SideBar(qt.QListView):
         self.setUrls(urls)
         return model
 
+    def setSelectedPath(self, path):
+        selected = None
+        model = self.model()
+        for i in range(model.rowCount()):
+            index = model.index(i, 0)
+            url = model.data(index, qt.Qt.UserRole)
+            urlPath = url.toLocalFile()
+            if urlPath == "":
+                urlPath = qt.QDir.rootPath()
+            if path == urlPath:
+                selected = index
+
+        selectionModel = self.selectionModel()
+        if selected is not None:
+            selectionModel.setCurrentIndex(selected, qt.QItemSelectionModel.ClearAndSelect)
+        else:
+            selectionModel.clear()
+
     def setUrls(self, urls):
         model = self.model()
         model.clear()
@@ -1253,6 +1271,19 @@ class ImageFileDialog(qt.QDialog):
             self.__currentHistoryLocation += 1
 
         self.__updateActionHistory()
+        self.__updateSidebar()
+
+    def __updateSidebar(self):
+        """Called when the current directory location change"""
+        selectionChanged = self.__sidebar.selectionModel().selectionChanged
+        selectionChanged.disconnect(self.__shortcutSelected)
+        index = self.__browser.rootIndex()
+        if index.model() == self.__fileModel:
+            path = self.__fileModel.filePath(index)
+            self.__sidebar.setSelectedPath(path)
+        else:
+            self.__sidebar.selectionModel().clear()
+        selectionChanged.connect(self.__shortcutSelected)
 
     def __updateActionHistory(self):
         self.__forwardAction.setEnabled(len(self.__currentHistory) - 1 > self.__currentHistoryLocation)
