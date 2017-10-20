@@ -754,6 +754,7 @@ class ScalarFieldView(Plot3DWindow):
         self._dataBBoxGroup = primitives.GroupBBox()
         self._dataBBoxGroup.children = [self._group]
         self._dataBBoxGroup.axesVisible = False
+        self._dataBBoxGroup.strokeWidth = 1.
         self._dataBBoxGroup.color = self._foregroundColor
         self._dataBBoxGroup.transforms = [
             self._dataTranslate, self._dataTransform, self._dataScale]
