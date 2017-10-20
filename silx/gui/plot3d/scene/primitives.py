@@ -888,6 +888,7 @@ class PlaneInGroup(core.PrivateGroup):
         self._color = None
         self.color = 1., 1., 1., 1.  # Set _color
         self._width = 2.
+        self._strokeVisible = True
 
         self._plane = utils.Plane(point, normal)
         self._plane.addListener(self._planeChanged)
@@ -924,6 +925,17 @@ class PlaneInGroup(core.PrivateGroup):
         self._width = float(width)
         if self._outline is not None:
             self._outline.width = self._width  # Sync width
+
+    @property
+    def strokeVisible(self):
+        """Whether surrounding stroke is visible or not (bool)."""
+        return self._strokeVisible
+
+    @strokeVisible.setter
+    def strokeVisible(self, visible):
+        self._strokeVisible = bool(visible)
+        if self._outline is not None:
+            self._outline.visible = self._strokeVisible
 
     # Plane access
 
@@ -995,6 +1007,7 @@ class PlaneInGroup(core.PrivateGroup):
                                       mode='loop',
                                       colors=self.color)
                 self._outline.width = self._width
+                self._outline.visible = self._strokeVisible
                 self._children.append(self._outline)
 
             # Update vertices, TODO only when necessary
