@@ -356,6 +356,14 @@ class CutPlane(qt.QObject):
         """Return the cut plane scene node."""
         return self._planeStroke, self._dataPlane
 
+    def _keepPlaneInBBox(self):
+        """Makes sure the plane intersect its parent bounding box if any"""
+        bounds = self._planeStroke.parent.bounds(dataBounds=True)
+        if bounds is not None:
+            self._planeStroke.plane.point = numpy.clip(
+                self._planeStroke.plane.point,
+                a_min=bounds[0], a_max=bounds[1])
+
     def _sfViewDataChanged(self):
         """Handle data change in the ScalarFieldView this plane belongs to"""
         self._dataPlane.setData(self.sender().getData(), copy=False)
@@ -368,6 +376,8 @@ class CutPlane(qt.QObject):
         # Update colormap range when autoscale
         if self.getColormap().isAutoscale():
             self._updateSceneColormap()
+
+        self._keepPlaneInBBox()
 
     def _planeChanged(self, source, *args, **kwargs):
         """Handle events from the plane primitive"""
@@ -424,6 +434,21 @@ class CutPlane(qt.QObject):
         """
         return self._planeStroke.plane.point
 
+    def setPoint(self, point, constraint=True):
+        """Set a point contained in the plane.
+
+        Warning: The plane might not intersect the bounding box of the data.
+
+        :param point: (x, y, z) position
+        :type point: 3-tuple of float
+        :param bool constraint:
+            True (default) to make sure the plane intersect data bounding box,
+            False to set the plane without any constraint.
+        """
+        self._planeStroke.plane.point = point
+        if constraint:
+            self._keepPlaneInBBox()
+
     def getParameters(self):
         """Returns the plane equation parameters: a*x + b*y + c*z + d = 0
 
@@ -431,6 +456,21 @@ class CutPlane(qt.QObject):
         :rtype: numpy.ndarray
         """
         return self._planeStroke.plane.parameters
+
+    def setParameters(self, parameters, constraint=True):
+        """Set the plane equation parameters: a*x + b*y + c*z + d = 0
+
+        Warning: The plane might not intersect the bounding box of the data.
+
+        :param parameters: (a, b, c, d) plane equation parameters.
+        :type parameters: 4-tuple of float
+        :param bool constraint:
+            True (default) to make sure the plane intersect data bounding box,
+            False to set the plane without any constraint.
+        """
+        self._planeStroke.plane.parameters = parameters
+        if constraint:
+            self._keepPlaneInBBox()
 
     # Visibility
 
