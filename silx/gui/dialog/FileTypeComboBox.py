@@ -28,7 +28,7 @@ This module contains utilitaries used by other dialog modules.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "17/10/2017"
+__date__ = "20/10/2017"
 
 import fabio
 from silx.gui import qt
@@ -86,7 +86,7 @@ class FileTypeComboBox(qt.QComboBox):
 
         index = self.count()
         self.addItem("All files (*)")
-        self.setItemData(index, e[1], role=self.EXTENSIONS_ROLE)
+        self.setItemData(index, ["*"], role=self.EXTENSIONS_ROLE)
         self.__allFilesIndex = index
 
     def itemExtensions(self, index):
