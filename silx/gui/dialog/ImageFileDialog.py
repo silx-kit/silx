@@ -727,6 +727,8 @@ class ImageFileDialog(qt.QDialog):
         self.__browseToolBar = self._createBrowseToolBar()
         self.__backwardAction.setEnabled(False)
         self.__forwardAction.setEnabled(False)
+        self.__fileDirectoryAction.setEnabled(False)
+        self.__parentFileDirectoryAction.setEnabled(False)
 
         self.__previewToolBar = self._createPreviewToolbar(self.__imagePreview.plot())
 
@@ -773,7 +775,7 @@ class ImageFileDialog(qt.QDialog):
         self.__forwardAction = forward
 
         parentDirectory = qt.QAction(toolbar)
-        parentDirectory.setText("Parent directory")
+        parentDirectory.setText("Go to parent")
         parentDirectory.setIcon(iconProvider.icon(qt.QStyle.SP_FileDialogToParent))
         parentDirectory.triggered.connect(self.__navigateToParent)
 
@@ -781,11 +783,13 @@ class ImageFileDialog(qt.QDialog):
         fileDirectory.setText("Root of the file")
         fileDirectory.setIcon(iconProvider.icon(iconProvider.FileDialogToParentFile))
         fileDirectory.triggered.connect(self.__navigateToParentFile)
+        self.__fileDirectoryAction = fileDirectory
 
         parentFileDirectory = qt.QAction(toolbar)
         parentFileDirectory.setText("Parent directory of the file")
         parentFileDirectory.setIcon(iconProvider.icon(iconProvider.FileDialogToParentDir))
         parentFileDirectory.triggered.connect(self.__navigateToParentDir)
+        self.__parentFileDirectoryAction = parentFileDirectory
 
         listView = qt.QAction(toolbar)
         listView.setText("List view")
@@ -1006,6 +1010,8 @@ class ImageFileDialog(qt.QDialog):
         self.__browser.setRootIndex(index)
 
     def __closeFile(self):
+        self.__fileDirectoryAction.setEnabled(False)
+        self.__parentFileDirectoryAction.setEnabled(False)
         if self.__h5 is not None:
             self.__dataModel.removeH5pyObject(self.__h5)
             self.__h5.close()
@@ -1037,6 +1043,8 @@ class ImageFileDialog(qt.QDialog):
             _logger.debug("Backtrace", exc_info=True)
             return None
         else:
+            self.__fileDirectoryAction.setEnabled(True)
+            self.__parentFileDirectoryAction.setEnabled(True)
             self.__dataModel.insertH5pyObject(self.__h5)
             return self.__h5
 
