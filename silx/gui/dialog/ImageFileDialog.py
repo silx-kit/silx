@@ -1315,6 +1315,12 @@ class ImageFileDialog(qt.QDialog):
                 self.__slicing.setVisible(uri.slice() is not None)
                 if uri.slice() is not None:
                     self.__slicing.setSlicing(uri.slice())
+            else:
+                self.__errorWhileLoadingFile = (uri.filename(), "File not found")
+                self.__clearData()
+        else:
+            self.__errorWhileLoadingFile = (uri.filename(), "Path invalid")
+            self.__clearData()
 
     # Selected file
 
