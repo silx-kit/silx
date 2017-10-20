@@ -71,7 +71,7 @@ class ByteOffset(OpenclProcessing):
         wg = self.block_size
         self.raw_size = numpy.int32(raw_size)
         self.dec_size = numpy.int32(dec_size)
-        self.padded_raw_size = (self.raw_size + wg - 1) & ~(wg - 1)
+        self.padded_raw_size = numpy.int32((self.raw_size + wg - 1) & ~(wg - 1))
         buffers = [
                     BufferDescription("raw", self.padded_raw_size, numpy.int8, None),
                     BufferDescription("mask", self.padded_raw_size, numpy.int32, None),
@@ -110,7 +110,7 @@ class ByteOffset(OpenclProcessing):
                 wg = self.block_size
                 raw_size = numpy.int32(len(raw))
                 self.raw_size = raw_size
-                self.padded_raw_size = (raw_size + wg - 1) & ~(wg - 1)
+                self.padded_raw_size = numpy.int32((raw_size + wg - 1) & ~(wg - 1))
                 logger.info("increase raw buffer size to %s", self.padded_raw_size)
                 buffers = {
                            "raw": pyopencl.array.empty(self.queue, self.padded_raw_size, dtype=numpy.int8),
@@ -128,7 +128,7 @@ class ByteOffset(OpenclProcessing):
             events.append(EventDescription("copy raw H -> D", evt))
             evt = self.kernels.fill_int_mem(self.queue, (self.padded_raw_size,), (wg,),
                                             self.cl_mem["mask"].data,
-                                            self.raw_size,
+                                            self.padded_raw_size,
                                             numpy.int32(0),
                                             numpy.int32(0))
             events.append(EventDescription("memset mask", evt))
@@ -168,7 +168,7 @@ class ByteOffset(OpenclProcessing):
             evt = self.kernels.scan(self.cl_mem["values"],
                                     self.cl_mem["mask"],
                                     queue=self.queue,
-                                    size=self.raw_size,
+                                    size=len_raw,
                                     wait_for=(evt,))
             events.append(EventDescription("double scan", evt))
             if out is not None:
@@ -186,7 +186,7 @@ class ByteOffset(OpenclProcessing):
             evt = copy_results(self.queue, (self.padded_raw_size,), (wg,),
                                self.cl_mem["values"].data,
                                self.cl_mem["mask"].data,
-                               self.raw_size,
+                               len_raw,
                                self.dec_size,
                                out.data
                                )
