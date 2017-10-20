@@ -28,7 +28,7 @@ of the :class:`Plot`.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "27/06/2017"
+__date__ = "20/10/2017"
 
 
 from collections import Sequence
@@ -38,7 +38,6 @@ import numpy
 
 from .core import (Item, LabelsMixIn, DraggableMixIn, ColormapMixIn,
                    AlphaMixIn, ItemChangedType)
-from ..Colors import applyColormapToData
 
 
 _logger = logging.getLogger(__name__)
@@ -62,7 +61,7 @@ def _convertImageToRgba32(image, copy=True):
     assert image.shape[-1] in (3, 4)
 
     # Convert type to uint8
-    if image.dtype.name != 'uin8':
+    if image.dtype.name != 'uint8':
         if image.dtype.kind == 'f':  # Float in [0, 1]
             image = (numpy.clip(image, 0., 1.) * 255).astype(numpy.uint8)
         elif image.dtype.kind == 'b':  # boolean
