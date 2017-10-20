@@ -2312,23 +2312,21 @@ class GroupBBox(core.PrivateGroup):
 
         # Using 1 of 3 primitives to render axes and/or bounding box
         # To avoid z-fighting between axes and bounding box
-        lineWidth = 2.
         self._boxWithAxes = BoxWithAxes(color)
         self._boxWithAxes.smooth = False
         self._boxWithAxes.transforms = self._boxTransforms
-        self._boxWithAxes.width = lineWidth
 
         self._box = Box(stroke=color, fill=(1., 1., 1., 0.))
         self._box.strokeSmooth = False
         self._box.transforms = self._boxTransforms
         self._box.visible = False
-        self._box.strokeWidth = lineWidth
 
         self._axes = Axes()
         self._axes.smooth = False
         self._axes.transforms = self._boxTransforms
         self._axes.visible = False
-        self._axes.width = lineWidth
+
+        self.strokeWidth = 2.
 
         self._children = [self._boxWithAxes, self._box, self._axes, self._group]
 
@@ -2362,7 +2360,7 @@ class GroupBBox(core.PrivateGroup):
     def children(self, iterable):
         self._group.children = iterable
 
-    # Give access to box color
+    # Give access to box color and stroke width
 
     @property
     def color(self):
@@ -2373,6 +2371,18 @@ class GroupBBox(core.PrivateGroup):
     def color(self, color):
         self._box.strokeColor = color
         self._boxWithAxes.color = color
+
+    @property
+    def strokeWidth(self):
+        """The width of the stroke lines in pixels (float)"""
+        return self._box.strokeWidth
+
+    @strokeWidth.setter
+    def strokeWidth(self, width):
+        width = float(width)
+        self._box.strokeWidth = width
+        self._boxWithAxes.width = width
+        self._axes.width = width
 
     # Toggle axes visibility
 
