@@ -28,7 +28,7 @@ This module contains an :class:`ImageFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "19/10/2017"
+__date__ = "20/10/2017"
 
 import sys
 import os
@@ -431,6 +431,8 @@ class _Browser(qt.QStackedWidget):
             return None
 
         indexes = selectionModel.selectedIndexes()
+        # Filter non-main columns
+        indexes = [i for i in indexes if i.column() == 0]
         if len(indexes) == 1:
             index = indexes[0]
             return index
