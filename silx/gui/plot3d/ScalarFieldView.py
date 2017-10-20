@@ -678,13 +678,13 @@ class _CutPlaneImage(object):
         # Init attributes with default values
         self._isValid = False
         self._data = numpy.zeros((0, 0), dtype=numpy.float32)
+        self._index = 0
         self._xLabel = ''
         self._yLabel = ''
         self._normalLabel = ''
-        self._scale = 1., 1.
-        self._translation = 0., 0.
-        self._index = 0
-        self._position = 0.
+        self._scale = float('nan'), float('nan')
+        self._translation = float('nan'), float('nan')
+        self._position = float('nan')
 
         sfView = cutPlane.parent()
         if not sfView or not cutPlane.isValid():
@@ -731,21 +731,25 @@ class _CutPlaneImage(object):
 
         self._isValid = True
         self._data = numpy.array(slice_, copy=True)
-
-        labels = sfView.getAxesLabels()
-        scale = sfView.getScale()
-        translation = sfView.getTranslation()
-
-        self._xLabel = labels[xAxisIndex]
-        self._yLabel = labels[yAxisIndex]
-        self._normalLabel = labels[normalAxisIndex]
-
-        self._scale = scale[xAxisIndex], scale[yAxisIndex]
-        self._translation = translation[xAxisIndex], translation[yAxisIndex]
-
         self._index = index
-        self._position = float(index * scale[normalAxisIndex] +
-                               translation[normalAxisIndex])
+
+        # Only store extra information when no transform matrix is set
+        # Otherwise this information can be meaningless
+        if numpy.all(numpy.equal(sfView.getTransformMatrix(),
+                                 numpy.identity(3, dtype=numpy.float32))):
+            labels = sfView.getAxesLabels()
+            self._xLabel = labels[xAxisIndex]
+            self._yLabel = labels[yAxisIndex]
+            self._normalLabel = labels[normalAxisIndex]
+
+            scale = sfView.getScale()
+            self._scale = scale[xAxisIndex], scale[yAxisIndex]
+
+            translation = sfView.getTranslation()
+            self._translation = translation[xAxisIndex], translation[yAxisIndex]
+
+            self._position = float(index * scale[normalAxisIndex] +
+                                   translation[normalAxisIndex])
 
     def isValid(self):
         """Returns True if the cut plane image is defined (bool)"""
