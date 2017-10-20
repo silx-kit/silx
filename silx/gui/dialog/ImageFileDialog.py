@@ -644,6 +644,7 @@ class ImageFileDialog(qt.QDialog):
     def __init__(self, parent=None):
         super(ImageFileDialog, self).__init__(parent)
 
+        self.__errorWhileLoadingFile = None
         self.__selectedFile = None
         self.__selectedImage = None
         self.__currentHistory = []
@@ -737,7 +738,14 @@ class ImageFileDialog(qt.QDialog):
         self.__slicing = _Slicing(self)
         self.__slicing.slicingChanged.connect(self.__slicingChanged)
 
+        self.__dataIcon = qt.QLabel(self)
+        self.__dataIcon.setSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed)
+        self.__dataIcon.setScaledContents(True)
+        self.__dataIcon.setMargin(2)
+        self.__dataIcon.setAlignment(qt.Qt.AlignCenter)
+
         self.__dataInfo = qt.QLabel(self)
+        self.__dataInfo.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Fixed)
 
     def _createPreviewToolbar(self, plot):
         toolbar = qt.QToolBar(self)
@@ -852,13 +860,18 @@ class ImageFileDialog(qt.QDialog):
         datasetSelection.setLayout(layoutLeft)
         datasetSelection.setSizePolicy(qt.QSizePolicy.MinimumExpanding, qt.QSizePolicy.Expanding)
 
+        infoLayout = qt.QHBoxLayout()
+        infoLayout.setContentsMargins(0, 0, 0, 0)
+        infoLayout.addWidget(self.__dataIcon)
+        infoLayout.addWidget(self.__dataInfo)
+
         imageFrame = qt.QFrame(self)
         imageFrame.setFrameShape(qt.QFrame.StyledPanel)
         layout = qt.QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         layout.addWidget(self.__imagePreview)
-        layout.addWidget(self.__dataInfo)
+        layout.addLayout(infoLayout)
         imageFrame.setLayout(layout)
 
         imageSelection = qt.QWidget(self)
@@ -1031,6 +1044,7 @@ class ImageFileDialog(qt.QDialog):
         except Exception as e:
             _logger.error("Error while loading file %s: %s", filename, e.args[0])
             _logger.debug("Backtrace", exc_info=True)
+            self.__errorWhileLoadingFile = filename, e.args[0]
             return None
         else:
             return self.__fabio
@@ -1043,6 +1057,7 @@ class ImageFileDialog(qt.QDialog):
         except IOError as e:
             _logger.error("Error while loading file %s: %s", filename, e.args[0])
             _logger.debug("Backtrace", exc_info=True)
+            self.__errorWhileLoadingFile = filename, e.args[0]
             return None
         else:
             self.__fileDirectoryAction.setEnabled(True)
@@ -1166,6 +1181,24 @@ class ImageFileDialog(qt.QDialog):
         return u" \u00D7 ".join(result)
 
     def __updateDataInfo(self):
+        if self.__errorWhileLoadingFile is not None:
+            filename, message = self.__errorWhileLoadingFile
+            message = "<b>Error while loading file '%s'</b><hr/>%s" % (filename, message)
+            size = self.__dataInfo.height()
+            icon = self.style().standardIcon(qt.QStyle.SP_MessageBoxCritical)
+            pixmap = icon.pixmap(size, size)
+
+            self.__dataInfo.setText("Error while loading file")
+            self.__dataInfo.setToolTip(message)
+            self.__dataIcon.setToolTip(message)
+            self.__dataIcon.setVisible(True)
+            self.__dataIcon.setPixmap(pixmap)
+
+            self.__errorWhileLoadingFile = None
+            return
+
+        self.__dataIcon.setVisible(False)
+        self.__dataInfo.setToolTip("")
         if self.__selectedImage is None:
             self.__dataInfo.setText("No data selected")
         else:
