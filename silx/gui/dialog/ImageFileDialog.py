@@ -669,6 +669,7 @@ class ImageFileDialog(qt.QDialog):
 
     def __init__(self, parent=None):
         super(ImageFileDialog, self).__init__(parent)
+        self.setWindowTitle("Open")
 
         self.__errorWhileLoadingFile = None
         self.__selectedFile = None
