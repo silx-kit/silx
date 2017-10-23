@@ -28,7 +28,7 @@ This module contains an :class:`ImageFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "20/10/2017"
+__date__ = "23/10/2017"
 
 import sys
 import os
@@ -272,6 +272,13 @@ class _ImagePreview(qt.QWidget):
         if image is None:
             self.clear()
             return
+
+        if self.__image is not None:
+            if hasattr(self.__image, "name"):
+                # in case of HDF5
+                if self.__image.name is None:
+                    # The dataset was closed
+                    self.__image = None
 
         if self.__image is not None and image.shape != self.__image.shape:
             resetzoom = True
