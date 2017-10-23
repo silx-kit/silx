@@ -983,11 +983,15 @@ class ImageFileDialog(qt.QDialog):
             index = index.parent()
             if index.isValid():
                 self.__browser.setRootIndex(index)
+                self.__browser.selectIndex(qt.QModelIndex())
+                self.__updatePath()
         elif index.model() is self.__dataModel:
             index = index.parent()
             if index.isValid():
                 # browse throw the hdf5
                 self.__browser.setRootIndex(index)
+                self.__browser.selectIndex(qt.QModelIndex())
+                self.__updatePath()
             else:
                 # go back to the file system
                 self.__navigateToParentDir()
@@ -999,6 +1003,8 @@ class ImageFileDialog(qt.QDialog):
         if index.model() is self.__dataModel:
             index = _silxutils.indexFromH5Object(self.__dataModel, self.__h5)
             self.__browser.setRootIndex(index)
+            self.__browser.selectIndex(qt.QModelIndex())
+            self.__updatePath()
 
     def __navigateToParentDir(self):
         index = self.__browser.rootIndex()
@@ -1006,7 +1012,9 @@ class ImageFileDialog(qt.QDialog):
             path = os.path.dirname(self.__h5.file.filename)
             index = self.__fileModel.index(path)
             self.__browser.setRootIndex(index)
+            self.__browser.selectIndex(qt.QModelIndex())
             self.__closeFile()
+            self.__updatePath()
 
     def viewMode(self):
         """Returns the current view mode.
@@ -1038,6 +1046,9 @@ class ImageFileDialog(qt.QDialog):
         self.setViewMode(qt.QFileDialog.Detail)
 
     def __shortcutSelected(self):
+        self.__browser.selectIndex(qt.QModelIndex())
+        self.__clearData()
+        self.__updatePath()
         indexes = self.__sidebar.selectionModel().selectedIndexes()
         if len(indexes) == 1:
             index = indexes[0]
