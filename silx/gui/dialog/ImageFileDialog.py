@@ -771,6 +771,7 @@ class ImageFileDialog(qt.QDialog):
         self.__browser.activated.connect(self.__browsedItemActivated)
         self.__browser.selected.connect(self.__browsedItemSelected)
         self.__browser.rootIndexChanged.connect(self.__rootIndexChanged)
+        self.__browser.setObjectName("browser")
 
         self.__imagePreview = _ImagePreview(self)
         self.__imagePreview.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
@@ -784,12 +785,16 @@ class ImageFileDialog(qt.QDialog):
         self.__pathEdit = _PathEdit(self)
         self.__pathEdit.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Fixed)
         self.__pathEdit.textChanged.connect(self.__pathChanged)
+        self.__pathEdit.setObjectName("url")
         utils.patchToConsumeReturnKey(self.__pathEdit)
 
         self.__buttons = qt.QDialogButtonBox(self)
         self.__buttons.setSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed)
         types = qt.QDialogButtonBox.Open | qt.QDialogButtonBox.Cancel
         self.__buttons.setStandardButtons(types)
+        self.__buttons.button(qt.QDialogButtonBox.Cancel).setObjectName("cancel")
+        self.__buttons.button(qt.QDialogButtonBox.Open).setObjectName("open")
+
         self.__buttons.accepted.connect(self.accept)
         self.__buttons.rejected.connect(self.reject)
 
@@ -825,7 +830,9 @@ class ImageFileDialog(qt.QDialog):
         return toolbar
 
     def _createSideBar(self):
-        return _SideBar(self)
+        sidebar = _SideBar(self)
+        sidebar.setObjectName("sidebar")
+        return sidebar
 
     def iconProvider(self):
         iconProvider = self.__class__._defaultIconProvider
@@ -840,41 +847,48 @@ class ImageFileDialog(qt.QDialog):
 
         backward = qt.QAction(toolbar)
         backward.setText("Back")
+        backward.setObjectName("backwardAction")
         backward.setIcon(iconProvider.icon(qt.QStyle.SP_ArrowBack))
         backward.triggered.connect(self.__navigateBackward)
         self.__backwardAction = backward
 
         forward = qt.QAction(toolbar)
         forward.setText("Forward")
+        forward.setObjectName("forwardAction")
         forward.setIcon(iconProvider.icon(qt.QStyle.SP_ArrowForward))
         forward.triggered.connect(self.__navigateForward)
         self.__forwardAction = forward
 
         parentDirectory = qt.QAction(toolbar)
         parentDirectory.setText("Go to parent")
+        parentDirectory.setObjectName("toParentAction")
         parentDirectory.setIcon(iconProvider.icon(qt.QStyle.SP_FileDialogToParent))
         parentDirectory.triggered.connect(self.__navigateToParent)
 
         fileDirectory = qt.QAction(toolbar)
         fileDirectory.setText("Root of the file")
+        fileDirectory.setObjectName("toRootFileAction")
         fileDirectory.setIcon(iconProvider.icon(iconProvider.FileDialogToParentFile))
         fileDirectory.triggered.connect(self.__navigateToParentFile)
         self.__fileDirectoryAction = fileDirectory
 
         parentFileDirectory = qt.QAction(toolbar)
         parentFileDirectory.setText("Parent directory of the file")
+        parentFileDirectory.setObjectName("toDirectoryAction")
         parentFileDirectory.setIcon(iconProvider.icon(iconProvider.FileDialogToParentDir))
         parentFileDirectory.triggered.connect(self.__navigateToParentDir)
         self.__parentFileDirectoryAction = parentFileDirectory
 
         listView = qt.QAction(toolbar)
         listView.setText("List view")
+        listView.setObjectName("listModeAction")
         listView.setIcon(iconProvider.icon(qt.QStyle.SP_FileDialogListView))
         listView.triggered.connect(self.__showAsListView)
         listView.setCheckable(True)
 
         detailView = qt.QAction(toolbar)
-        detailView.setText("List view")
+        detailView.setText("Detail view")
+        detailView.setObjectName("detailModeAction")
         detailView.setIcon(iconProvider.icon(qt.QStyle.SP_FileDialogDetailedView))
         detailView.triggered.connect(self.__showAsDetailedView)
         detailView.setCheckable(True)
