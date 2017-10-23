@@ -1083,6 +1083,12 @@ class ImageFileDialog(qt.QDialog):
         index = self.__fileModel.index(path)
         self.__browser.setRootIndex(index)
 
+    def __del__(self):
+        self.__clearData()
+        self.__closeFile()
+        self.__fileModel = None
+        self.__dataModel = None
+
     def __closeFile(self):
         self.__fileDirectoryAction.setEnabled(False)
         self.__parentFileDirectoryAction.setEnabled(False)
