@@ -708,6 +708,8 @@ class ImageFileDialog(qt.QDialog):
         self.__currentHistoryLocation = -1
         """Store the location in the history. Bigger is older"""
 
+        self.__processing = 0
+        """Number of asynchronous processing tasks"""
         self.__h5 = None
         self.__fabio = None
         self.__fileModel = qt.QFileSystemModel(self)
@@ -729,6 +731,11 @@ class ImageFileDialog(qt.QDialog):
         # Update the file model filter
         self.__fileTypeCombo.setCurrentIndex(0)
         self.__filterSelected(0)
+
+    def hasPendingEvents(self):
+        """Returns true if the dialog have asynchronous tasks working on the
+        background."""
+        return self.__processing > 0
 
     # User interface
 
@@ -1083,6 +1090,7 @@ class ImageFileDialog(qt.QDialog):
 
         :param str path: Path to load
         """
+        self.__processing += 1
         self.__directoryLoadedFilter = path
         self.__fileModel.setRootPath(path)
 
@@ -1093,6 +1101,8 @@ class ImageFileDialog(qt.QDialog):
             return
         index = self.__fileModel.index(path)
         self.__browser.setRootIndex(index)
+        self.__updatePath()
+        self.__processing -= 1
 
     def __del__(self):
         self.__clearData()
