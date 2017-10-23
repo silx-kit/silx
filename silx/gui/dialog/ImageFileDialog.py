@@ -1342,16 +1342,17 @@ class ImageFileDialog(qt.QDialog):
         uri = _ImageUri(path=self.__pathEdit.text())
         if uri.isValid():
             if os.path.exists(uri.filename()):
-                self.__fileModel_setRootPath(uri.filename())
-                index = self.__fileModel.index(uri.filename())
                 rootIndex = None
-                if os.path.isfile(uri.filename()):
+                if os.path.isdir(uri.filename()):
+                    self.__fileModel_setRootPath(uri.filename())
+                    index = self.__fileModel.index(uri.filename())
+                elif os.path.isfile(uri.filename()):
                     loaded = self.__openFile(uri.filename())
                     if loaded:
                         if self.__h5 is not None:
                             rootIndex = _silxutils.indexFromH5Object(self.__dataModel, self.__h5)
-                            self.__browser.setRootIndex(index)
                         elif self.__fabio is not None:
+                            index = self.__fileModel.index(uri.filename())
                             rootIndex = index
                     else:
                         self.__clearData()
