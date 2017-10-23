@@ -466,6 +466,13 @@ class _Browser(qt.QStackedWidget):
             return index
         return None
 
+    def model(self):
+        """Returns the current model."""
+        if self.currentIndex() == 0:
+            return self.__listView.model()
+        else:
+            return self.__detailView.model()
+
     def selectIndex(self, index):
         if self.currentIndex() == 0:
             selectionModel = self.__listView.selectionModel()
@@ -540,6 +547,28 @@ class _Browser(qt.QStackedWidget):
 
     __serialVersion = 1
     """Store the current version of the serialized data"""
+
+    def visualRect(self, index):
+        """Returns the rectangle on the viewport occupied by the item at index.
+
+        :param qt.QModelIndex index: An index
+        :rtype: QRect
+        """
+        if self.currentIndex() == 0:
+            return self.__listView.visualRect(index)
+        else:
+            return self.__detailView.visualRect(index)
+
+    def viewport(self):
+        """Returns the viewport widget.
+
+        :param qt.QModelIndex index: An index
+        :rtype: QRect
+        """
+        if self.currentIndex() == 0:
+            return self.__listView.viewport()
+        else:
+            return self.__detailView.viewport()
 
     @classmethod
     def qualifiedName(cls):
