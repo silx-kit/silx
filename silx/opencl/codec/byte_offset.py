@@ -184,7 +184,7 @@ class ByteOffset(OpenclProcessing):
             evt = self.kernels.scan(self.cl_mem["values"],
                                     self.cl_mem["mask"],
                                     queue=self.queue,
-                                    size=len_raw,
+                                    size=int(len_raw),
                                     wait_for=(evt,))
             events.append(EventDescription("double scan", evt))
             if out is not None:
