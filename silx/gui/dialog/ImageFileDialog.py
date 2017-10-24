@@ -28,7 +28,7 @@ This module contains an :class:`ImageFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "23/10/2017"
+__date__ = "24/10/2017"
 
 import sys
 import os
@@ -141,11 +141,12 @@ class _IconProvider(object):
         style = qt.QApplication.style()
         baseIcon = style.standardIcon(qt.QStyle.SP_FileDialogToParent)
         backgroundIcon = style.standardIcon(standardPixmap)
-        icon = qt.QIcon(self)
+        icon = qt.QIcon()
 
         sizes = baseIcon.availableSizes()
         sizes = sorted(sizes, key=lambda s: s.height())
         sizes = filter(lambda s: s.height() < 100, sizes)
+        sizes = list(sizes)
         if len(sizes) > 0:
             baseSize = sizes[-1]
         else:
@@ -570,10 +571,6 @@ class _Browser(qt.QStackedWidget):
         else:
             return self.__detailView.viewport()
 
-    @classmethod
-    def qualifiedName(cls):
-        cls.__module__ + "." + cls.__class__.__name__
-
     def restoreState(self, state):
         """Restores the dialogs's layout, history and current directory to the
         state specified.
@@ -583,8 +580,8 @@ class _Browser(qt.QStackedWidget):
         """
         stream = qt.QDataStream(state, qt.QIODevice.ReadOnly)
 
-        qualifiedName = stream.readString()
-        if qualifiedName != self.qualifiedName():
+        nameId = stream.readString()
+        if nameId != b"Browser":
             return False
 
         version = stream.readInt32()
@@ -606,8 +603,8 @@ class _Browser(qt.QStackedWidget):
         data = qt.QByteArray()
         stream = qt.QDataStream(data, qt.QIODevice.WriteOnly)
 
-        qualifiedName = self.__module__ + "." + self.__class__.__name__
-        stream.writeString(qualifiedName)
+        nameId = b"Browser"
+        stream.writeString(nameId)
         stream.writeInt32(self.__serialVersion)
         stream.writeQVariant(self.__detailView.header().saveState())
         stream.writeInt32(self.viewMode())
@@ -1442,7 +1439,6 @@ class ImageFileDialog(qt.QDialog):
 
     def setDirectory(self, path):
         """Sets the image dialog's current directory."""
-        self.__fileModel.reset()
         self.__fileModel_setRootPath(path)
 
     def selectedFile(self):
@@ -1538,7 +1534,7 @@ class ImageFileDialog(qt.QDialog):
 
     @classmethod
     def qualifiedName(cls):
-        cls.__module__ + "." + cls.__class__.__name__
+        return "%s.%s" % (cls.__module__, cls.__name__)
 
     def restoreState(self, state):
         """Restores the dialogs's layout, history and current directory to the
@@ -1550,7 +1546,7 @@ class ImageFileDialog(qt.QDialog):
         stream = qt.QDataStream(state, qt.QIODevice.ReadOnly)
 
         qualifiedName = stream.readString()
-        if qualifiedName != self.qualifiedName():
+        if qualifiedName.decode("ascii") != self.qualifiedName():
             return False
 
         version = stream.readInt32()
@@ -1584,7 +1580,8 @@ class ImageFileDialog(qt.QDialog):
         data = qt.QByteArray()
         stream = qt.QDataStream(data, qt.QIODevice.WriteOnly)
 
-        stream.writeString(self.qualifiedName())
+        s = self.qualifiedName()
+        stream.writeString(s.encode("ascii"))
         stream.writeInt32(self.__serialVersion)
         stream.writeQVariant(self.__splitter.saveState())
         stream.writeQVariantList(self.__sidebar.urls())
