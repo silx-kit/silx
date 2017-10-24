@@ -1582,7 +1582,7 @@ class ImageFileDialog(qt.QDialog):
         self.__splitter.restoreState(splitterData)
         self.__sidebar.setUrls(list(sidebarUrls))
         self.setHistory(list(history))
-        self.__splitter.restoreState(browserData)
+        self.__browser.restoreState(browserData)
         self.setDirectory(selectedDirectory)
         self.setViewMode(viewMode)
         self.setColormap(colormap)
