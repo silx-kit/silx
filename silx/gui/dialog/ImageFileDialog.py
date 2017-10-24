@@ -699,6 +699,7 @@ class ImageFileDialog(qt.QDialog):
         super(ImageFileDialog, self).__init__(parent)
         self.setWindowTitle("Open")
 
+        self.__directoryLoadedFilter = None
         self.__errorWhileLoadingFile = None
         self.__selectedFile = None
         self.__selectedImage = None
@@ -1103,6 +1104,8 @@ class ImageFileDialog(qt.QDialog):
 
         :param str path: Path to load
         """
+        if self.__directoryLoadedFilter == path:
+            return
         self.__processing += 1
         self.__directoryLoadedFilter = path
         self.__fileModel.setRootPath(path)
