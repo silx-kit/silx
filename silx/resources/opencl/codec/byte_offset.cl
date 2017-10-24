@@ -189,7 +189,7 @@ kernel void copy_result_int(global int* values,
     if (gid < in_size)
     {
         int current = max(indexes[gid], 0),
-               next = (gid >= (in_size - 1)) ? in_size : indexes[gid + 1];
+               next = (gid >= (in_size - 1)) ? in_size + 1 : indexes[gid + 1];
         //we keep always the last element
         if ((current <= out_size) && (current < next))
         {

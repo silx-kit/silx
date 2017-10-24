@@ -51,7 +51,8 @@ if pyopencl:
     if pyopencl.version.VERSION < (2016, 0):
         from pyopencl.scan import GenericScanKernel, GenericDebugScanKernel
     else:
-        from pyopencl.algorithm import GenericScanKernel, GenericDebugScanKernel
+        from pyopencl.algorithm import GenericScanKernel
+        from pyopencl.scan import GenericDebugScanKernel
 else:
     logger.warning("No PyOpenCL, no byte-offset, please see fabio")
 
@@ -73,9 +74,9 @@ class ByteOffset(OpenclProcessing):
         if self.block_size is None:
             self.block_size = min(self.device.max_work_group_size, 128)
         wg = self.block_size
-        self.raw_size = numpy.int32(raw_size)
+        self.raw_size = int(raw_size)
         self.dec_size = numpy.int32(dec_size)
-        self.padded_raw_size = numpy.int32((self.raw_size + wg - 1) & ~(wg - 1))
+        self.padded_raw_size = int((self.raw_size + wg - 1) & ~(wg - 1))
         buffers = [
                     BufferDescription("raw", self.padded_raw_size, numpy.int8, None),
                     BufferDescription("mask", self.padded_raw_size, numpy.int32, None),
@@ -97,12 +98,23 @@ class ByteOffset(OpenclProcessing):
         scan_expr = "a+b"
         neutral = "(int2)(0,0)"
         output_statement = "value[i] = item.s0; index[i+1] = item.s1;"
-        # if self.device.type == "GPU":
 
         if self.block_size >= 64:
-            knl = GenericScanKernel(self.ctx, int2, arguments, input_expr, scan_expr, neutral, output_statement)
+            knl = GenericScanKernel(self.ctx,
+                                    dtype=int2,
+                                    arguments=arguments,
+                                    input_expr=input_expr,
+                                    scan_expr=scan_expr,
+                                    neutral=neutral,
+                                    output_statement=output_statement)
         else:  # MacOS on CPU
-            knl = GenericDebugScanKernel(self.ctx, int2, arguments, input_expr, scan_expr, neutral, output_statement)
+            knl = GenericDebugScanKernel(self.ctx,
+                                         dtype=int2,
+                                         arguments=arguments,
+                                         input_expr=input_expr,
+                                         scan_expr=scan_expr,
+                                         neutral=neutral,
+                                         output_statement=output_statement)
         return knl
 
     def dec(self, raw, as_float=False, out=None):
@@ -113,9 +125,9 @@ class ByteOffset(OpenclProcessing):
             len_raw = numpy.int32(len(raw))
             if len_raw > self.padded_raw_size:
                 wg = self.block_size
-                raw_size = numpy.int32(len(raw))
+                raw_size = int(len_raw)
                 self.raw_size = raw_size
-                self.padded_raw_size = numpy.int32((raw_size + wg - 1) & ~(wg - 1))
+                self.padded_raw_size = (raw_size + wg - 1) & ~(wg - 1)
                 logger.info("increase raw buffer size to %s", self.padded_raw_size)
                 buffers = {
                            "raw": pyopencl.array.empty(self.queue, self.padded_raw_size, dtype=numpy.int8),
@@ -133,7 +145,7 @@ class ByteOffset(OpenclProcessing):
             events.append(EventDescription("copy raw H -> D", evt))
             evt = self.kernels.fill_int_mem(self.queue, (self.padded_raw_size,), (wg,),
                                             self.cl_mem["mask"].data,
-                                            self.padded_raw_size,
+                                            numpy.int32(self.padded_raw_size),
                                             numpy.int32(0),
                                             numpy.int32(0))
             events.append(EventDescription("memset mask", evt))
@@ -146,7 +158,7 @@ class ByteOffset(OpenclProcessing):
             evt = self.kernels.mark_exceptions(self.queue, (self.padded_raw_size,), (wg,),
                                                self.cl_mem["raw"].data,
                                                len_raw,
-                                               self.raw_size,
+                                               numpy.int32(self.raw_size),
                                                self.cl_mem["mask"].data,
                                                self.cl_mem["values"].data,
                                                self.cl_mem["counter"].data,
