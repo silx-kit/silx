@@ -582,10 +582,12 @@ class _Browser(qt.QStackedWidget):
 
         nameId = stream.readString()
         if nameId != b"Browser":
+            _logger.warning("Stored state contains an invalid name id. Browser restoration cancelled.")
             return False
 
         version = stream.readInt32()
         if version != self.__serialVersion:
+            _logger.warning("Stored state contains an invalid version. Browser restoration cancelled.")
             return False
 
         headerData = stream.readQVariant()
@@ -1547,10 +1549,12 @@ class ImageFileDialog(qt.QDialog):
 
         qualifiedName = stream.readString()
         if qualifiedName.decode("ascii") != self.qualifiedName():
+            _logger.warning("Stored state contains an invalid qualified name. ImageFileDialog restoration cancelled.")
             return False
 
         version = stream.readInt32()
         if version != self.__serialVersion:
+            _logger.warning("Stored state contains an invalid version. ImageFileDialog restoration cancelled.")
             return False
 
         splitterData = stream.readQVariant()
