@@ -170,8 +170,16 @@ def readColormap(stream):
     if isNone:
         return None
     name = stream.readString().decode("ascii")
-    vmin = stream.readQVariant()
-    vmax = stream.readQVariant()
+    isNull = stream.readBool()
+    if not isNull:
+        vmin = stream.readQVariant()
+    else:
+        vmin = None
+    isNull = stream.readBool()
+    if not isNull:
+        vmax = stream.readQVariant()
+    else:
+        vmax = None
     normalization = stream.readString().decode("ascii")
     return Colormap(name=name, normalization=normalization, vmin=vmin, vmax=vmax)
 
@@ -189,6 +197,10 @@ def writeColormap(stream, colormap):
     if colormap is None:
         return
     stream.writeString(colormap.getName().encode("ascii"))
-    stream.writeQVariant(colormap.getVMin())
-    stream.writeQVariant(colormap.getVMax())
+    stream.writeBool(colormap.getVMin() is None)
+    if colormap.getVMin() is not None:
+        stream.writeQVariant(colormap.getVMin())
+    stream.writeBool(colormap.getVMax() is None)
+    if colormap.getVMax() is not None:
+        stream.writeQVariant(colormap.getVMax())
     stream.writeString(colormap.getNormalization().encode("ascii"))
