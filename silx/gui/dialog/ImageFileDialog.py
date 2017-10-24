@@ -777,6 +777,7 @@ class ImageFileDialog(qt.QDialog):
         self.__imagePreview.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
 
         self.__fileTypeCombo = FileTypeComboBox(self)
+        self.__fileTypeCombo.setObjectName("fileTypeCombo")
         self.__fileTypeCombo.setDuplicatesEnabled(False)
         self.__fileTypeCombo.setSizeAdjustPolicy(qt.QComboBox.AdjustToMinimumContentsLength)
         self.__fileTypeCombo.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Fixed)
