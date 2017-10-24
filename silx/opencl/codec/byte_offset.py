@@ -125,9 +125,8 @@ class ByteOffset(OpenclProcessing):
             len_raw = numpy.int32(len(raw))
             if len_raw > self.padded_raw_size:
                 wg = self.block_size
-                raw_size = int(len_raw)
-                self.raw_size = raw_size
-                self.padded_raw_size = (raw_size + wg - 1) & ~(wg - 1)
+                self.raw_size = int(len(raw))
+                self.padded_raw_size = (self.raw_size + wg - 1) & ~(wg - 1)
                 logger.info("increase raw buffer size to %s", self.padded_raw_size)
                 buffers = {
                            "raw": pyopencl.array.empty(self.queue, self.padded_raw_size, dtype=numpy.int8),
@@ -169,7 +168,7 @@ class ByteOffset(OpenclProcessing):
                                         is_blocking=False)
             events.append(EventDescription("copy counter D -> H", evt))
             evt.wait()
-            nbexc = nb_exceptions[0]
+            nbexc = int(nb_exceptions[0])
             if nbexc == 0:
                 logger.info("nbexc %i", nbexc)
             else:
