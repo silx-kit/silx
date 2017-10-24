@@ -1529,6 +1529,16 @@ class ImageFileDialog(qt.QDialog):
     def setColormap(self, colormap):
         self.__imagePreview.setColormap(colormap)
 
+    # Sidebar
+
+    def setSidebarUrls(self, urls):
+        """Sets the urls that are located in the sidebar."""
+        self.__sidebar.setUrls(urls)
+
+    def sidebarUrls(self):
+        """Returns a list of urls that are currently in the sidebar."""
+        return self.__sidebar.urls()
+
     # State
 
     __serialVersion = 1
