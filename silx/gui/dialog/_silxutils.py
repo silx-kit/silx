@@ -28,7 +28,7 @@ This module contains utilitaries that should be moved into silx.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "20/10/2017"
+__date__ = "24/10/2017"
 
 import fabio
 from silx.gui import qt
@@ -158,7 +158,7 @@ def readColormap(stream):
 
     :param qt.QDataStream stream: Stream containing the state
     """
-    className = stream.readString()
+    className = stream.readString().decode("ascii")
     if className != Colormap.__name__:
         return None
 
@@ -169,10 +169,10 @@ def readColormap(stream):
     isNone = stream.readBool()
     if isNone:
         return None
-    name = stream.readString()
+    name = stream.readString().decode("ascii")
     vmin = stream.readQVariant()
     vmax = stream.readQVariant()
-    normalization = stream.readString()
+    normalization = stream.readString().decode("ascii")
     return Colormap(name=name, normalization=normalization, vmin=vmin, vmax=vmax)
 
 
@@ -183,12 +183,12 @@ def writeColormap(stream, colormap):
     :param qt.QDataStream stream: Stream to write the colormap
     :param silx.gui.plot.Colormap.Colormap colormap: The colormap
     """
-    stream.writeString(Colormap.__name__)
+    stream.writeString(Colormap.__name__.encode("ascii"))
     stream.writeUInt32(_colormapVersionSerial)
     stream.writeBool(colormap is None)
     if colormap is None:
         return
-    stream.writeString(colormap.getName())
+    stream.writeString(colormap.getName().encode("ascii"))
     stream.writeQVariant(colormap.getVMin())
     stream.writeQVariant(colormap.getVMax())
-    stream.writeString(colormap.getNormalization())
+    stream.writeString(colormap.getNormalization().encode("ascii"))
