@@ -98,8 +98,7 @@ class ByteOffset(OpenclProcessing):
         neutral = "(int2)(0,0)"
         output_statement = "value[i] = item.s0; index[i+1] = item.s1;"
         # if self.device.type == "GPU":
-        
-        if 
+
         if self.block_size >= 64:
             knl = GenericScanKernel(self.ctx, int2, arguments, input_expr, scan_expr, neutral, output_statement)
         else:  # MacOS on CPU
