@@ -37,7 +37,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "20/10/2017"
+__date__ = "24/10/2017"
 __status__ = "production"
 
 import os
@@ -47,7 +47,11 @@ from ..processing import BufferDescription, EventDescription, OpenclProcessing
 import logging
 logger = logging.getLogger(__name__)
 if pyopencl:
-    import pyopencl.algorithm
+    import pyopencl.version
+    if pyopencl.version.VERSION < (2016, 0):
+        from pyopencl.scan import GenericScanKernel, GenericDebugScanKernel
+    else:
+        from pyopencl.algorithm import GenericScanKernel, GenericDebugScanKernel
 else:
     logger.warning("No PyOpenCL, no byte-offset, please see fabio")
 
@@ -94,10 +98,12 @@ class ByteOffset(OpenclProcessing):
         neutral = "(int2)(0,0)"
         output_statement = "value[i] = item.s0; index[i+1] = item.s1;"
         # if self.device.type == "GPU":
+        
+        if 
         if self.block_size >= 64:
-            knl = pyopencl.algorithm.GenericScanKernel(self.ctx, int2, arguments, input_expr, scan_expr, neutral, output_statement)
+            knl = GenericScanKernel(self.ctx, int2, arguments, input_expr, scan_expr, neutral, output_statement)
         else:  # MacOS on CPU
-            knl = pyopencl.scan.GenericDebugScanKernel(self.ctx, int2, arguments, input_expr, scan_expr, neutral, output_statement)
+            knl = GenericDebugScanKernel(self.ctx, int2, arguments, input_expr, scan_expr, neutral, output_statement)
         return knl
 
     def dec(self, raw, as_float=False, out=None):
