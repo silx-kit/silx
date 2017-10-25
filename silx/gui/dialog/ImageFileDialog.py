@@ -528,14 +528,18 @@ class _Browser(qt.QStackedWidget):
         newModel = index.model()
         if rootIndex is None or rootIndex.model() is not newModel:
             # update the model
-            if self.__listView.selectionModel() is not None:
-                self.__listView.selectionModel().selectionChanged.disconnect()
-            if self.__detailView.selectionModel() is not None:
-                self.__detailView.selectionModel().selectionChanged.disconnect()
+            selectionModel = self.__listView.selectionModel()
+            if selectionModel is not None:
+                selectionModel.selectionChanged.disconnect()
+            selectionModel = self.__detailView.selectionModel()
+            if selectionModel is not None:
+                selectionModel.selectionChanged.disconnect()
             self.__listView.setModel(newModel)
             self.__detailView.setModel(newModel)
-            self.__listView.selectionModel().selectionChanged.connect(self.__emitSelected)
-            self.__detailView.selectionModel().selectionChanged.connect(self.__emitSelected)
+            selectionModel = self.__detailView.selectionModel()
+            selectionModel.selectionChanged.connect(self.__emitSelected)
+            selectionModel = self.__detailView.selectionModel()
+            selectionModel.selectionChanged.connect(self.__emitSelected)
 
         self.__listView.setRootIndex(index)
         self.__detailView.setRootIndex(index)
@@ -742,7 +746,8 @@ class ImageFileDialog(qt.QDialog):
 
     def __createWidgets(self):
         self.__sidebar = self._createSideBar()
-        self.__sidebar.selectionModel().selectionChanged.connect(self.__shortcutSelected)
+        sideBarModel = self.__sidebar.selectionModel()
+        sideBarModel.selectionChanged.connect(self.__shortcutSelected)
         self.__sidebar.setSelectionMode(qt.QAbstractItemView.SingleSelection)
 
         listView = qt.QListView(self)
@@ -1072,7 +1077,8 @@ class ImageFileDialog(qt.QDialog):
         self.__browser.selectIndex(qt.QModelIndex())
         self.__clearData()
         self.__updatePath()
-        indexes = self.__sidebar.selectionModel().selectedIndexes()
+        selectionModel = self.__sidebar.selectionModel()
+        indexes = selectionModel.selectedIndexes()
         if len(indexes) == 1:
             index = indexes[0]
             url = self.__sidebar.model().data(index, role=qt.Qt.UserRole)
@@ -1370,15 +1376,15 @@ class ImageFileDialog(qt.QDialog):
 
     def __updateSidebar(self):
         """Called when the current directory location change"""
-        selectionChanged = self.__sidebar.selectionModel().selectionChanged
-        selectionChanged.disconnect(self.__shortcutSelected)
+        selectionModel = self.__sidebar.selectionModel()
+        selectionModel.selectionChanged.disconnect(self.__shortcutSelected)
         index = self.__browser.rootIndex()
         if index.model() == self.__fileModel:
             path = self.__fileModel.filePath(index)
             self.__sidebar.setSelectedPath(path)
         else:
-            self.__sidebar.selectionModel().clear()
-        selectionChanged.connect(self.__shortcutSelected)
+            selectionModel.clear()
+        selectionModel.selectionChanged.connect(self.__shortcutSelected)
 
     def __updateActionHistory(self):
         self.__forwardAction.setEnabled(len(self.__currentHistory) - 1 > self.__currentHistoryLocation)
