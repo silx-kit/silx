@@ -26,7 +26,7 @@
 """
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "27/06/2017"
+__date__ = "23/10/2017"
 
 import numpy
 
@@ -175,18 +175,11 @@ class ArrayCurvePlot(qt.QWidget):
                                   xerror=self.__axis_errors,
                                   yerror=y_errors)
 
-        # x monotonically increasing or decreasiing: curve
-        elif numpy.all(numpy.diff(x) > 0) or numpy.all(numpy.diff(x) < 0):
+        else:
             self._plot.addCurve(x, y, legend=legend,
                                 xerror=self.__axis_errors,
                                 yerror=y_errors)
 
-        # scatter
-        else:
-            self._plot.addScatter(x, y, value=numpy.ones_like(y),
-                                  legend=legend,
-                                  xerror=self.__axis_errors,
-                                  yerror=y_errors)
         self._plot.resetZoom()
         self._plot.getXAxis().setLabel(self.__axis_name)
         self._plot.getYAxis().setLabel(self.__signal_name)
