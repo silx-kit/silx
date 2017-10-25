@@ -31,6 +31,7 @@ __date__ = "06/03/2017"
 
 
 import logging
+import numpy
 
 from .. import Colors
 from .core import (Points, LabelsMixIn, ColorMixIn, YAxisMixIn,
@@ -75,7 +76,7 @@ class Curve(Points, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixIn):
         xFiltered, yFiltered, xerror, yerror = self.getData(
             copy=False, displayed=True)
 
-        if len(xFiltered) == 0:
+        if len(xFiltered) == 0 or not numpy.any(numpy.isfinite(xFiltered)):
             return None  # No data to display, do not add renderer to backend
 
         return backend.addCurve(xFiltered, yFiltered, self.getLegend(),
