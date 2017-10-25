@@ -4,7 +4,8 @@
 #    Project: Byte-offset decompression in OpenCL
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2013-2017  European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2013-2017  European Synchrotron Radiation Facility,
+#                             Grenoble, France
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
 # files (the "Software"), to deal in the Software without
@@ -36,8 +37,9 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "20/10/2017"
+__date__ = "25/10/2017"
 
+import sys
 import time
 import logging
 import numpy
@@ -55,7 +57,7 @@ class TestByteOffset(unittest.TestCase):
         """
         tests the byte offset decompression on GPU
         """
-        shape = (2713, 2719)  #  (991, 997)
+        shape = (2713, 2719)
         size = numpy.prod(shape)
         nexcept = 2729
         ref = numpy.random.poisson(200, numpy.prod(shape))
@@ -65,7 +67,15 @@ class TestByteOffset(unittest.TestCase):
         ref.shape = shape
 
         raw = fabio.compression.compByteOffset(ref)
-        bo = byte_offset.ByteOffset(len(raw), size, profile=True)
+        try:
+            bo = byte_offset.ByteOffset(len(raw), size, profile=True)
+        except RuntimeError as err:
+            logger.warning(err)
+            if sys.platform == "darwin":
+                raise unittest.SkipTest("Byte-offset decompression is known to be buggy on MacOS-CPU")
+            else:
+                raise err
+
         t0 = time.time()
         res_cy = fabio.compression.decByteOffset(raw)
         t1 = time.time()
@@ -92,7 +102,14 @@ class TestByteOffset(unittest.TestCase):
         ref = numpy.random.poisson(100, numpy.prod(shape))
         ref.shape = shape
         raw = fabio.compression.compByteOffset(ref)
-        bo = byte_offset.ByteOffset(len(raw), size, profile=False)
+        try:
+            bo = byte_offset.ByteOffset(len(raw), size, profile=False)
+        except RuntimeError as err:
+            logger.warning(err)
+            if sys.platform == "darwin":
+                raise unittest.SkipTest("Byte-offset decompression is known to be buggy on MacOS-CPU")
+            else:
+                raise err
         t0 = time.time()
         res_cy = fabio.compression.decByteOffset(raw)
         t1 = time.time()
@@ -126,6 +143,7 @@ class TestByteOffset(unittest.TestCase):
             logger.debug("Global execution time: fabio %.3fms, OpenCL: %.3fms.",
                          1000.0 * (t1 - t0),
                          1000.0 * (t2 - t1))
+
 
 def suite():
     testSuite = unittest.TestSuite()
