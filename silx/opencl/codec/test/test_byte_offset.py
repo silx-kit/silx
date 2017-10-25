@@ -57,6 +57,7 @@ class TestByteOffset(unittest.TestCase):
         """
         tests the byte offset decompression on GPU
         """
+        import pyopencl
         shape = (2713, 2719)
         size = numpy.prod(shape)
         nexcept = 2729
@@ -69,12 +70,15 @@ class TestByteOffset(unittest.TestCase):
         raw = fabio.compression.compByteOffset(ref)
         try:
             bo = byte_offset.ByteOffset(len(raw), size, profile=True)
-        except RuntimeError as err:
+        except (RuntimeError, pyopencl.RuntimeError) as err:
             logger.warning(err)
             if sys.platform == "darwin":
                 raise unittest.SkipTest("Byte-offset decompression is known to be buggy on MacOS-CPU")
             else:
                 raise err
+        except Exception as err:
+            logger.warning(err)
+            logger.warning(type(err))
 
         t0 = time.time()
         res_cy = fabio.compression.decByteOffset(raw)
@@ -96,6 +100,7 @@ class TestByteOffset(unittest.TestCase):
         tests the byte offset decompression on GPU, many images to ensure there 
         is not leaking in memory 
         """
+        import pyopencl
         shape = (991, 997)
         size = numpy.prod(shape)
         nexcept = 2729
@@ -104,7 +109,7 @@ class TestByteOffset(unittest.TestCase):
         raw = fabio.compression.compByteOffset(ref)
         try:
             bo = byte_offset.ByteOffset(len(raw), size, profile=False)
-        except RuntimeError as err:
+        except (RuntimeError, pyopencl.RuntimeError) as err:
             logger.warning(err)
             if sys.platform == "darwin":
                 raise unittest.SkipTest("Byte-offset decompression is known to be buggy on MacOS-CPU")
