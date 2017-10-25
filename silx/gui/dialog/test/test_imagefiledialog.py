@@ -336,6 +336,9 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, AssertPathMixin):
         browser = dialog.findChildren(qt.QWidget, name="browser")[0]
         filename = _tmpDirectory + "/singleimage.edf"
         index = browser.rootIndex().model().index(filename)
+        # click
+        browser.selectIndex(index)
+        # double click
         browser.activated.emit(index)
         self.qWaitForPendingActions(dialog)
         # test
@@ -397,6 +400,9 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, AssertPathMixin):
         browser = dialog.findChildren(qt.QWidget, name="browser")[0]
         filename = _tmpDirectory + "/data.h5"
         index = browser.rootIndex().model().index(filename)
+        # click
+        browser.selectIndex(index)
+        # double click
         browser.activated.emit(index)
         self.qWaitForPendingActions(dialog)
         # test
