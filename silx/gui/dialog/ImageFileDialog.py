@@ -1584,7 +1584,9 @@ class ImageFileDialog(qt.QDialog):
         splitterData = stream.readQVariant()
         sidebarUrls = stream.readQVariantList()
         history = stream.readQVariantList()
-        selectedDirectory = stream.readString()
+        workingDirectory = stream.readString()
+        if workingDirectory is not None:
+            workingDirectory = workingDirectory.decode("utf-8")
         browserData = stream.readQVariant()
         viewMode = stream.readInt32()
         colormap = _silxutils.readColormap(stream)
@@ -1593,7 +1595,8 @@ class ImageFileDialog(qt.QDialog):
         self.__sidebar.setUrls(list(sidebarUrls))
         self.setHistory(list(history))
         self.__browser.restoreState(browserData)
-        self.setDirectory(selectedDirectory)
+        if workingDirectory is not None:
+            self.setDirectory(workingDirectory)
         self.setViewMode(viewMode)
         self.setColormap(colormap)
 
@@ -1614,7 +1617,7 @@ class ImageFileDialog(qt.QDialog):
         stream.writeQVariant(self.__splitter.saveState())
         stream.writeQVariantList(self.__sidebar.urls())
         stream.writeQVariantList(self.history())
-        stream.writeString(self.selectedDirectory())
+        stream.writeString(self.directory().encode("utf-8"))
         stream.writeQVariant(self.__browser.saveState())
         stream.writeInt32(self.viewMode())
         _silxutils.writeColormap(stream, self.colormap())
