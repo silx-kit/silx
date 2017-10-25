@@ -1106,17 +1106,24 @@ class ImageFileDialog(qt.QDialog):
 
         :param str path: Path to load
         """
-        if self.__directoryLoadedFilter == path:
-            return
+        assert(path is not None)
+        if self.hasPendingEvents():
+            # Make sure the asynchronous fileModel setRootPath is finished
+            qt.QApplication.instance().processEvents()
+
+        if self.__directoryLoadedFilter is not None:
+            if os.path.samefile(self.__directoryLoadedFilter, path):
+                return
         self.__processing += 1
         self.__directoryLoadedFilter = path
         self.__fileModel.setRootPath(path)
 
     def __directoryLoaded(self, path):
-        if self.__directoryLoadedFilter != path:
-            # Filter event which should not arrive in PyQt4
-            # The first click on the sidebar sent 2 events
-            return
+        if self.__directoryLoadedFilter is not None:
+            if not os.path.samefile(self.__directoryLoadedFilter, path):
+                # Filter event which should not arrive in PyQt4
+                # The first click on the sidebar sent 2 events
+                return
         index = self.__fileModel.index(path)
         self.__browser.setRootIndex(index)
         self.__updatePath()
