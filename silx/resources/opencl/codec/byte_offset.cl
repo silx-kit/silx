@@ -62,19 +62,17 @@ kernel void mark_exceptions(global char* raw,
             position = atomic_inc(cnt);
             exc[position] = gid;
             maxi = size - 1;
+            mask[gid] = 1;
+            mask[min(maxi, gid+1)] = 1;
+		    mask[min(maxi, gid+2)] = 1;
+
             if (((int) raw[min(gid+1, maxi)] == 0) &&
                 ((int) raw[min(gid+2, maxi)] == -128))
             {
-                maxi = 7;
-            }
-            else
-            {
-                maxi = 3;
-            }
-            maxi = min(size, gid+maxi);
-            for (int i=gid; i<maxi; i++)
-            {// atomic does not matter as we are not actually counting
-                mask[i]=1;
+                mask[min(maxi, gid+3)] = 1;
+    		    mask[min(maxi, gid+4)] = 1;
+                mask[min(maxi, gid+5)] = 1;
+    		    mask[min(maxi, gid+6)] = 1;
             }
         }
         else
