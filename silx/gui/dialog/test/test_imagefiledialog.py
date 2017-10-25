@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "24/10/2017"
+__date__ = "25/10/2017"
 
 
 import unittest
@@ -95,7 +95,24 @@ def tearDownModule():
     _tmpDirectory = None
 
 
-class TestImageFileDialogInteraction(utils.TestCaseQt):
+class AssertPathMixin(object):
+
+    def assertSamePath(self, path1, path2):
+        path1_ = os.path.normcase(path1)
+        path2_ = os.path.normcase(path2)
+        if path1_ != path2_:
+            # Use the unittest API to log and display error
+            self.assertEquals(path1, path2)
+
+    def assertNotSamePath(self, path1, path2):
+        path1_ = os.path.normcase(path1)
+        path2_ = os.path.normcase(path2)
+        if path1_ == path2_:
+            # Use the unittest API to log and display error
+            self.assertNotEquals(path1, path2)
+
+
+class TestImageFileDialogInteraction(utils.TestCaseQt, AssertPathMixin):
 
     def testDisplayAndKeyEscape(self):
         dialog = ImageFileDialog()
@@ -162,7 +179,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt):
         dialog.setDirectory(_tmpDirectory)
         self.qWaitForPendingActions(dialog)
 
-        self.assertEqual(url.text(), _tmpDirectory)
+        self.assertSamePath(url.text(), _tmpDirectory)
 
         if sidebar.model().rowCount() == 0:
             return
@@ -176,8 +193,8 @@ class TestImageFileDialogInteraction(utils.TestCaseQt):
 
         index = browser.rootIndex()
         path = index.model().filePath(index)
-        self.assertNotEqual(_tmpDirectory, path)
-        self.assertNotEqual(url.text(), _tmpDirectory)
+        self.assertNotSamePath(_tmpDirectory, path)
+        self.assertNotSamePath(url.text(), _tmpDirectory)
 
     def testClickOnDetailView(self):
         dialog = ImageFileDialog()
@@ -205,19 +222,19 @@ class TestImageFileDialogInteraction(utils.TestCaseQt):
         # init state
         dialog.selectPath(_tmpDirectory + "/data.h5::/group/image")
         self.qWaitForPendingActions(dialog)
-        self.assertEqual(url.text(), _tmpDirectory + "/data.h5::/group/image")
+        self.assertSamePath(url.text(), _tmpDirectory + "/data.h5::/group/image")
         # test
         self.mouseClick(toParentButton, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
-        self.assertEqual(url.text(), _tmpDirectory + "/data.h5::/")
+        self.assertSamePath(url.text(), _tmpDirectory + "/data.h5::/")
 
         self.mouseClick(toParentButton, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
-        self.assertEqual(url.text(), _tmpDirectory)
+        self.assertSamePath(url.text(), _tmpDirectory)
 
         self.mouseClick(toParentButton, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
-        self.assertEqual(url.text(), os.path.dirname(_tmpDirectory))
+        self.assertSamePath(url.text(), os.path.dirname(_tmpDirectory))
 
     def testClickOnBackToRootTool(self):
         dialog = ImageFileDialog()
@@ -231,12 +248,12 @@ class TestImageFileDialogInteraction(utils.TestCaseQt):
         # init state
         dialog.selectPath(_tmpDirectory + "/data.h5::/group/image")
         self.qWaitForPendingActions(dialog)
-        self.assertEqual(url.text(), _tmpDirectory + "/data.h5::/group/image")
+        self.assertSamePath(url.text(), _tmpDirectory + "/data.h5::/group/image")
         self.assertTrue(button.isEnabled())
         # test
         self.mouseClick(button, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
-        self.assertEqual(url.text(), _tmpDirectory + "/data.h5::/")
+        self.assertSamePath(url.text(), _tmpDirectory + "/data.h5::/")
         # self.assertFalse(button.isEnabled())
 
     def testClickOnBackToDirectoryTool(self):
@@ -251,12 +268,12 @@ class TestImageFileDialogInteraction(utils.TestCaseQt):
         # init state
         dialog.selectPath(_tmpDirectory + "/data.h5::/group/image")
         self.qWaitForPendingActions(dialog)
-        self.assertEqual(url.text(), _tmpDirectory + "/data.h5::/group/image")
+        self.assertSamePath(url.text(), _tmpDirectory + "/data.h5::/group/image")
         self.assertTrue(button.isEnabled())
         # test
         self.mouseClick(button, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
-        self.assertEqual(url.text(), _tmpDirectory)
+        self.assertSamePath(url.text(), _tmpDirectory)
         self.assertFalse(button.isEnabled())
 
     def testClickOnHistoryTools(self):
@@ -286,14 +303,14 @@ class TestImageFileDialogInteraction(utils.TestCaseQt):
         self.qWaitForPendingActions(dialog)
         self.assertTrue(forwardAction.isEnabled())
         self.assertTrue(backwardAction.isEnabled())
-        self.assertEqual(url.text(), _tmpDirectory + "/data.h5::/")
+        self.assertSamePath(url.text(), _tmpDirectory + "/data.h5::/")
 
         button = utils.getQToolButtonFromAction(forwardAction)
         self.mouseClick(button, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
         self.assertFalse(forwardAction.isEnabled())
         self.assertTrue(backwardAction.isEnabled())
-        self.assertEqual(url.text(), _tmpDirectory + "/data.h5::/group")
+        self.assertSamePath(url.text(), _tmpDirectory + "/data.h5::/group")
 
     def testSelectImageFromEdf(self):
         dialog = ImageFileDialog()
@@ -305,8 +322,8 @@ class TestImageFileDialogInteraction(utils.TestCaseQt):
         path = filename
         dialog.selectPath(path)
         self.assertTrue(dialog.selectedImage().shape, (100, 100))
-        self.assertTrue(dialog.selectedFile(), filename)
-        self.assertTrue(dialog.selectedPath(), filename)
+        self.assertSamePath(dialog.selectedFile(), filename)
+        self.assertSamePath(dialog.selectedPath(), filename)
 
     def testSelectImageFromEdf_Activate(self):
         dialog = ImageFileDialog()
@@ -323,8 +340,8 @@ class TestImageFileDialogInteraction(utils.TestCaseQt):
         self.qWaitForPendingActions(dialog)
         # test
         self.assertTrue(dialog.selectedImage().shape, (100, 100))
-        self.assertTrue(dialog.selectedFile(), filename)
-        self.assertTrue(dialog.selectedPath(), filename)
+        self.assertSamePath(dialog.selectedFile(), filename)
+        self.assertSamePath(dialog.selectedPath(), filename)
 
     def testSelectFrameFromEdf(self):
         dialog = ImageFileDialog()
@@ -338,8 +355,8 @@ class TestImageFileDialogInteraction(utils.TestCaseQt):
         # test
         self.assertTrue(dialog.selectedImage().shape, (100, 100))
         self.assertTrue(dialog.selectedImage()[0, 0], 1)
-        self.assertTrue(dialog.selectedFile(), filename)
-        self.assertTrue(dialog.selectedPath(), path)
+        self.assertSamePath(dialog.selectedFile(), filename)
+        self.assertSamePath(dialog.selectedPath(), path)
 
     def testSelectImageFromMsk(self):
         dialog = ImageFileDialog()
@@ -352,8 +369,8 @@ class TestImageFileDialogInteraction(utils.TestCaseQt):
         dialog.selectPath(path)
         # test
         self.assertTrue(dialog.selectedImage().shape, (100, 100))
-        self.assertTrue(dialog.selectedFile(), filename)
-        self.assertTrue(dialog.selectedPath(), filename)
+        self.assertSamePath(dialog.selectedFile(), filename)
+        self.assertSamePath(dialog.selectedPath(), filename)
 
     def testSelectImageFromH5(self):
         dialog = ImageFileDialog()
@@ -366,8 +383,8 @@ class TestImageFileDialogInteraction(utils.TestCaseQt):
         dialog.selectPath(path)
         # test
         self.assertTrue(dialog.selectedImage().shape, (100, 100))
-        self.assertTrue(dialog.selectedFile(), filename)
-        self.assertTrue(dialog.selectedPath(), path)
+        self.assertSamePath(dialog.selectedFile(), filename)
+        self.assertSamePath(dialog.selectedPath(), path)
 
     def testSelectH5_Activate(self):
         dialog = ImageFileDialog()
@@ -383,7 +400,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt):
         browser.activated.emit(index)
         self.qWaitForPendingActions(dialog)
         # test
-        self.assertTrue(dialog.selectedPath(), filename)
+        self.assertSamePath(dialog.selectedPath(), filename)
 
     def testSelectFrameFromH5(self):
         dialog = ImageFileDialog()
@@ -397,8 +414,8 @@ class TestImageFileDialogInteraction(utils.TestCaseQt):
         # test
         self.assertTrue(dialog.selectedImage().shape, (100, 100))
         self.assertTrue(dialog.selectedImage()[0, 0], 1)
-        self.assertTrue(dialog.selectedFile(), filename)
-        self.assertTrue(dialog.selectedPath(), path)
+        self.assertSamePath(dialog.selectedFile(), filename)
+        self.assertSamePath(dialog.selectedPath(), path)
 
     def testSelectBadFileFormat_Activate(self):
         dialog = ImageFileDialog()
@@ -441,7 +458,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt):
         self.assertEqual(browser.model().rowCount(browser.rootIndex()), 1)
 
 
-class TestImageFileDialogApi(utils.TestCaseQt):
+class TestImageFileDialogApi(utils.TestCaseQt, AssertPathMixin):
 
     def testSaveRestoreState(self):
         dialog = ImageFileDialog()
@@ -521,7 +538,7 @@ class TestImageFileDialogApi(utils.TestCaseQt):
         self.qWaitForPendingActions(dialog)
         dialog.selectPath(_tmpDirectory)
         self.qWaitForPendingActions(dialog)
-        self.assertEqual(dialog.selectedDirectory(), _tmpDirectory)
+        self.assertSamePath(dialog.directory(), _tmpDirectory)
 
     def testBadDataType(self):
         dialog = ImageFileDialog()
@@ -561,7 +578,7 @@ class TestImageFileDialogApi(utils.TestCaseQt):
         index = browser.rootIndex()
         obj = index.data(role=Hdf5TreeModel.H5PY_OBJECT_ROLE)
         self.assertEqual(obj.name, "/group")
-        self.assertEqual(dialog.selectedPath(), _tmpDirectory + "/data.h5::/group/foobar")
+        self.assertSamePath(dialog.selectedPath(), _tmpDirectory + "/data.h5::/group/foobar")
 
     def testBadSlicingPath(self):
         dialog = ImageFileDialog()
