@@ -95,7 +95,14 @@ def tearDownModule():
     _tmpDirectory = None
 
 
-class AssertPathMixin(object):
+class _UtilsMixin(object):
+
+    def qWaitForPendingActions(self, dialog):
+        for _ in range(20):
+            if not dialog.hasPendingEvents():
+                return
+            self.qWait(10)
+        raise RuntimeError("Still have pending actions")
 
     def assertSamePath(self, path1, path2):
         path1_ = os.path.normcase(path1)
@@ -112,7 +119,7 @@ class AssertPathMixin(object):
             self.assertNotEquals(path1, path2)
 
 
-class TestImageFileDialogInteraction(utils.TestCaseQt, AssertPathMixin):
+class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
 
     def testDisplayAndKeyEscape(self):
         dialog = ImageFileDialog()
@@ -123,13 +130,6 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, AssertPathMixin):
         self.keyClick(dialog, qt.Qt.Key_Escape)
         self.assertFalse(dialog.isVisible())
         self.assertEquals(dialog.result(), qt.QDialog.Rejected)
-
-    def qWaitForPendingActions(self, dialog):
-        for _ in range(10):
-            if not dialog.hasPendingEvents():
-                return
-            self.qWait(10)
-        raise RuntimeError("Still have pending actions")
 
     def testDisplayAndClickCancel(self):
         dialog = ImageFileDialog()
@@ -464,24 +464,18 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, AssertPathMixin):
         self.assertEqual(browser.model().rowCount(browser.rootIndex()), 1)
 
 
-class TestImageFileDialogApi(utils.TestCaseQt, AssertPathMixin):
+class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
 
     def testSaveRestoreState(self):
         dialog = ImageFileDialog()
         dialog.setDirectory(_tmpDirectory)
+        self.qWaitForPendingActions(dialog)
         state = dialog.saveState()
         dialog2 = ImageFileDialog()
         result = dialog2.restoreState(state)
         self.assertTrue(result)
 
-    def qWaitForPendingActions(self, dialog):
-        for _ in range(20):
-            if not dialog.hasPendingEvents():
-                return
-            self.qWait(10)
-        raise RuntimeError("Still have pending actions")
-
-    def _testPrintState(self):
+    def printState(self):
         dialog = ImageFileDialog()
         colormap = Colormap(normalization=Colormap.LOGARITHM)
         dialog.setColormap(colormap)
@@ -539,7 +533,7 @@ class TestImageFileDialogApi(utils.TestCaseQt, AssertPathMixin):
         dialog.setColormap(colormap)
         self.assertEqual(colormap.getNormalization(), "log")
 
-    def testSelectedDirectory(self):
+    def testDirectory(self):
         dialog = ImageFileDialog()
         self.qWaitForPendingActions(dialog)
         dialog.selectPath(_tmpDirectory)
