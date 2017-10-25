@@ -28,10 +28,27 @@ This module contains utilitaries used by other dialog modules.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "20/10/2017"
+__date__ = "25/10/2017"
 
+import os
+import sys
 import types
 from silx.gui import qt
+from silx.third_party import six
+
+
+def samefile(path1, path2):
+    """Portable :func:`os.path.samepath` function.
+
+    :param str path1: A path to a file
+    :param str path2: Another path to a file
+    :rtype: bool
+    """
+    if six.PY2 and sys.platform == "win32":
+        path1 = os.path.normcase(path1)
+        path2 = os.path.normcase(path2)
+        return path1 == path2
+    return os.path.samefile(path1, path2)
 
 
 def findClosestSubPath(hdf5Object, path):

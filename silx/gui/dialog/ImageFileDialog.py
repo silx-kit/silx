@@ -1112,7 +1112,7 @@ class ImageFileDialog(qt.QDialog):
             qt.QApplication.instance().processEvents()
 
         if self.__directoryLoadedFilter is not None:
-            if os.path.samefile(self.__directoryLoadedFilter, path):
+            if utils.samefile(self.__directoryLoadedFilter, path):
                 return
         self.__processing += 1
         self.__directoryLoadedFilter = path
@@ -1120,7 +1120,7 @@ class ImageFileDialog(qt.QDialog):
 
     def __directoryLoaded(self, path):
         if self.__directoryLoadedFilter is not None:
-            if not os.path.samefile(self.__directoryLoadedFilter, path):
+            if not utils.samefile(self.__directoryLoadedFilter, path):
                 # Filter event which should not arrive in PyQt4
                 # The first click on the sidebar sent 2 events
                 return
