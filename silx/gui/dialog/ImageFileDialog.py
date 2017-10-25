@@ -28,7 +28,7 @@ This module contains an :class:`ImageFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "24/10/2017"
+__date__ = "25/10/2017"
 
 import sys
 import os
@@ -274,14 +274,8 @@ class _ImagePreview(qt.QWidget):
             self.clear()
             return
 
-        if self.__image is not None:
-            if hasattr(self.__image, "name"):
-                # in case of HDF5
-                if self.__image.name is None:
-                    # The dataset was closed
-                    self.__image = None
-
-        if self.__image is not None and image.shape != self.__image.shape:
+        previousImage = self.image()
+        if previousImage is not None and image.shape != previousImage.shape:
             resetzoom = True
 
         self.__plot.addImage(legend="data", data=image, resetzoom=resetzoom)
@@ -292,13 +286,14 @@ class _ImagePreview(qt.QWidget):
         """
         Update the constraints depending on the size of the widget
         """
-        if self.__image is None:
+        image = self.image()
+        if image is None:
             return
         size = self.size()
         if size.width() == 0 or size.height() == 0:
             return
 
-        heightData, widthData = self.__image.shape
+        heightData, widthData = image.shape
 
         widthContraint = heightData * size.width() / size.height()
         if widthContraint > widthData:
@@ -320,6 +315,12 @@ class _ImagePreview(qt.QWidget):
         return image
 
     def image(self):
+        if self.__image is not None:
+            if hasattr(self.__image, "name"):
+                # in case of HDF5
+                if self.__image.name is None:
+                    # The dataset was closed
+                    self.__image = None
         return self.__image
 
     def colormap(self):
