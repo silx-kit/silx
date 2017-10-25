@@ -28,7 +28,7 @@ This module contains utilitaries used by other dialog modules.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "24/10/2017"
+__date__ = "25/10/2017"
 
 import fabio
 from silx.gui import qt
@@ -92,7 +92,7 @@ class FileTypeComboBox(qt.QComboBox):
     def itemExtensions(self, index):
         """Returns the extensions associated to an index."""
         result = self.itemData(index, self.EXTENSIONS_ROLE)
-        if result == qt.QVariant.Invalid:
+        if result is None:
             result = None
         return result
 
@@ -110,7 +110,7 @@ class FileTypeComboBox(qt.QComboBox):
     def itemFabioCodec(self, index):
         """Returns the fabio codec associated to an index."""
         result = self.itemData(index, self.FABIO_CODEC_ROLE)
-        if result == qt.QVariant.Invalid:
+        if result is None:
             result = None
         return result
 
