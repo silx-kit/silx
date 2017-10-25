@@ -58,6 +58,27 @@ from . import BackendBase
 from .._utils import FLOAT32_MINPOS
 
 
+def _preserveAxisLimits(method):
+    """If method may change axes limits (e.g. call self.ax.cla()),
+    this wrapper ensures the previous limits are restored.
+    """
+    def inner(self, *args, **kwargs):
+        xmin, xmax = self.getGraphXLimits()
+        ymin_left, ymax_left = self.getGraphYLimits('left')
+        ymin_right, ymax_right = self.getGraphYLimits('right')
+
+        method(self, *args, **kwargs)
+
+        if not self._plot.isXAxisAutoScale():
+            self.setGraphXLimits(xmin, xmax)
+
+        if not self._plot.isYAxisAutoScale():
+            self.setGraphYLimits(ymin_left, ymax_left, 'left')
+            self.setGraphYLimits(ymin_right, ymax_right, 'right')
+
+    return inner
+
+
 class BackendMatplotlib(BackendBase.BackendBase):
     """Base class for Matplotlib backend without a FigureCanvas.
 
@@ -601,6 +622,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     # Graph axes
 
+    @_preserveAxisLimits
     def setXAxisLogarithmic(self, flag):
         if matplotlib.__version__ >= "2.0.0":
             self.ax.cla()
@@ -608,12 +630,23 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self.ax2.set_xscale('log' if flag else 'linear')
         self.ax.set_xscale('log' if flag else 'linear')
 
+        # Make sur Y axis scale is set (it is reset with mpl 2.1.0)
+        isYLog = self._plot.isYAxisLogarithmic()
+        self.ax2.set_yscale('log' if isYLog else 'linear')
+        self.ax.set_yscale('log' if isYLog else 'linear')
+
+    @_preserveAxisLimits
     def setYAxisLogarithmic(self, flag):
         if matplotlib.__version__ >= "2.0.0":
             self.ax.cla()
             self.ax2.cla()
         self.ax2.set_yscale('log' if flag else 'linear')
         self.ax.set_yscale('log' if flag else 'linear')
+
+        # Make sur X axis scale is set (it is reset with mpl 2.1.0)
+        isXLog = self._plot.isXAxisLogarithmic()
+        self.ax2.set_xscale('log' if isXLog else 'linear')
+        self.ax.set_xscale('log' if isXLog else 'linear')
 
     def setYAxisInverted(self, flag):
         if self.ax.yaxis_inverted() != bool(flag):
