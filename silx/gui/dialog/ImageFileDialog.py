@@ -1487,7 +1487,7 @@ class ImageFileDialog(qt.QDialog):
         """
         return self.__pathEdit.text()
 
-    def selectedDirectory(self):
+    def directory(self):
         """Returns the path from the current browsed directory.
 
         :rtype: str
@@ -1501,6 +1501,8 @@ class ImageFileDialog(qt.QDialog):
         elif index.model() is self.__dataModel:
             path = os.path.dirname(self.__h5.file.filename)
             return path
+        else:
+            return qt.QDir.currentPath()
 
     def selectedImage(self):
         """Returns the numpy array selected.
