@@ -1,7 +1,9 @@
-# coding: utf-8
+# -*- coding: utf-8 -*-
 #
-# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
+#    Project: silx
+#             https://github.com/silx-kit/silx
 #
+#    Copyright (C) 2013-2017  European Synchrotron Radiation Facility, Grenoble, France
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
@@ -19,30 +21,17 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#
 
-from __future__ import division
-
-__contact__ = "jerome.kieffer@esrf.eu"
-__license__ = "MIT"
-__copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 __authors__ = ["J. Kieffer"]
-__date__ = "16/10/2017"
+__license__ = "MIT"
+__date__ = "13/10/2017"
 
-import os.path
-from numpy.distutils.misc_util import Configuration
-
-
-def configuration(parent_package='', top_path=None):
-    config = Configuration('opencl', parent_package, top_path)
-    path = os.path.dirname(os.path.abspath(__file__))
-    if os.path.exists(os.path.join(path, 'sift')):
-        config.add_subpackage('sift')
-    config.add_subpackage('codec')
-    config.add_subpackage('test')
-    return config
+import unittest
+from . import test_byte_offset
 
 
-if __name__ == "__main__":
-    from numpy.distutils.core import setup
-    setup(configuration=configuration)
+def suite():
+    testSuite = unittest.TestSuite()
+    testSuite.addTest(test_byte_offset.suite())
+
+    return testSuite
