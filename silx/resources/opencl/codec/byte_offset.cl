@@ -29,16 +29,17 @@
  */
 
 /* To decompress CBF byte-offset compressed in parallel on GPU one needs to:
- * - Mark regions with exceptions. This is a map kernel, the workgroup size does
- *   not matter. This generates the mask, counts the number of region and provides
- *   a start position for each of them.
- * - treat exceptions. For this, one thread in a workgoup treats a complete masked
- *   region in a serial fashion. All regions are treated in parallel.
- * - Normal pixels are marked having a size of 1 (TODO: do this with previous kernel + fill!)
- * - Valid pixels are copied (compact for zeros in delta)
- * - Input position is calculated from a cum_sum
- * - proper pixel values are copied
- * - Finally a cum-sum is performed to retrieve the decompressed data
+ * - Mark regions with exceptions and set values without exception.
+ *   This is a map kernel, the workgroup size does not matter.
+ *   This generates the values (zeros for exceptions), the exception mask,
+ *   counts the number of region and provides a start position for
+ *   each of them.
+ * - Treat exceptions. For this, one thread in a workgoup treats a complete
+ *   masked region in a serial fashion. All regions are treated in parallel.
+ *   Values written at this stage are marked in the mask with -1.
+ * - Double scan: inclusive cum sum for values, exclusive cum sum to generate
+ *   indices in output array. Values with mask = 1 are considered as 0.
+ * - Compact and copy output by removing duplicated values in exceptions
  */
 
 kernel void mark_exceptions(global char* raw,
