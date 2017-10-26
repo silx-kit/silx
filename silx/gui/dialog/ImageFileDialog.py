@@ -737,6 +737,20 @@ class ImageFileDialog(qt.QDialog):
         self.__fileTypeCombo.setCurrentIndex(0)
         self.__filterSelected(0)
 
+    def __del__(self):
+        print("__del__")
+        self.clear()
+        super(ImageFileDialog, self).__del__()
+
+    def clear(self):
+        """Ëxpicit method to clear the dialog.
+        After this call it is not anymore possible to use the widget.
+        """
+        self.__clearData()
+        self.__closeFile()
+        self.__fileModel = None
+        self.__dataModel = None
+
     def hasPendingEvents(self):
         """Returns true if the dialog have asynchronous tasks working on the
         background."""
@@ -1134,12 +1148,6 @@ class ImageFileDialog(qt.QDialog):
         self.__browser.setRootIndex(index)
         self.__updatePath()
         self.__processing -= 1
-
-    def __del__(self):
-        self.__clearData()
-        self.__closeFile()
-        self.__fileModel = None
-        self.__dataModel = None
 
     def __closeFile(self):
         self.__fileDirectoryAction.setEnabled(False)
