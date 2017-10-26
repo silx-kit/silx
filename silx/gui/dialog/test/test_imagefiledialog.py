@@ -84,6 +84,7 @@ def setUpModule():
         f["cube"] = [data, data + 1, data + 2]
         f["complex_image"] = data * 1j
         f["group/image"] = data
+        f.close()
 
     filename = _tmpDirectory + "/badformat.edf"
     with io.open(filename, "wb") as f:
@@ -128,8 +129,20 @@ class _UtilsMixin(object):
 
 class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
 
+    def setUp(self):
+        self.dialog = None
+
+    def tearDown(self):
+        if self.dialog is not None:
+            self.dialog.clear()
+            self.dialog = None
+
+    def createDialog(self):
+        self.dialog = ImageFileDialog()
+        return self.dialog
+
     def testDisplayAndKeyEscape(self):
-        dialog = ImageFileDialog()
+        dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
         self.assertTrue(dialog.isVisible())
@@ -139,7 +152,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertEquals(dialog.result(), qt.QDialog.Rejected)
 
     def testDisplayAndClickCancel(self):
-        dialog = ImageFileDialog()
+        dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
         self.assertTrue(dialog.isVisible())
@@ -151,7 +164,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertEquals(dialog.result(), qt.QDialog.Rejected)
 
     def testDisplayAndClickLockedOpen(self):
-        dialog = ImageFileDialog()
+        dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
         self.assertTrue(dialog.isVisible())
@@ -163,7 +176,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertEquals(dialog.result(), qt.QDialog.Rejected)
 
     def testDisplayAndClickOpen(self):
-        dialog = ImageFileDialog()
+        dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
         self.assertTrue(dialog.isVisible())
@@ -176,7 +189,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertEquals(dialog.result(), qt.QDialog.Accepted)
 
     def testClickOnShortcut(self):
-        dialog = ImageFileDialog()
+        dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
 
@@ -204,7 +217,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertNotSamePath(url.text(), _tmpDirectory)
 
     def testClickOnDetailView(self):
-        dialog = ImageFileDialog()
+        dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
 
@@ -219,7 +232,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertEqual(dialog.viewMode(), qt.QFileDialog.List)
 
     def testClickOnBackToParentTool(self):
-        dialog = ImageFileDialog()
+        dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
 
@@ -245,7 +258,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertSamePath(url.text(), os.path.dirname(_tmpDirectory))
 
     def testClickOnBackToRootTool(self):
-        dialog = ImageFileDialog()
+        dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
 
@@ -265,7 +278,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         # self.assertFalse(button.isEnabled())
 
     def testClickOnBackToDirectoryTool(self):
-        dialog = ImageFileDialog()
+        dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
 
@@ -285,7 +298,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertFalse(button.isEnabled())
 
     def testClickOnHistoryTools(self):
-        dialog = ImageFileDialog()
+        dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
 
@@ -321,7 +334,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertSamePath(url.text(), _tmpDirectory + "/data.h5::/group")
 
     def testSelectImageFromEdf(self):
-        dialog = ImageFileDialog()
+        dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
 
@@ -334,7 +347,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertSamePath(dialog.selectedPath(), filename)
 
     def testSelectImageFromEdf_Activate(self):
-        dialog = ImageFileDialog()
+        dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
 
@@ -355,7 +368,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertSamePath(dialog.selectedPath(), filename)
 
     def testSelectFrameFromEdf(self):
-        dialog = ImageFileDialog()
+        dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
 
@@ -370,7 +383,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertSamePath(dialog.selectedPath(), path)
 
     def testSelectImageFromMsk(self):
-        dialog = ImageFileDialog()
+        dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
 
@@ -384,7 +397,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertSamePath(dialog.selectedPath(), filename)
 
     def testSelectImageFromH5(self):
-        dialog = ImageFileDialog()
+        dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
 
@@ -398,7 +411,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertSamePath(dialog.selectedPath(), path)
 
     def testSelectH5_Activate(self):
-        dialog = ImageFileDialog()
+        dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
 
@@ -417,7 +430,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertSamePath(dialog.selectedPath(), filename)
 
     def testSelectFrameFromH5(self):
-        dialog = ImageFileDialog()
+        dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
 
@@ -432,7 +445,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertSamePath(dialog.selectedPath(), path)
 
     def testSelectBadFileFormat_Activate(self):
-        dialog = ImageFileDialog()
+        dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
 
@@ -448,7 +461,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertTrue(dialog.selectedPath(), filename)
 
     def testFilterExtensions(self):
-        dialog = ImageFileDialog()
+        dialog = self.createDialog()
         browser = dialog.findChildren(qt.QWidget, name="browser")[0]
         filters = utils.findChildren(dialog, qt.QAction, name="fileTypeCombo")[0]
         dialog.show()
@@ -473,6 +486,18 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
 
 
 class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
+
+    def setUp(self):
+        self.dialog = None
+
+    def tearDown(self):
+        if self.dialog is not None:
+            self.dialog.clear()
+            self.dialog = None
+
+    def createDialog(self):
+        self.dialog = ImageFileDialog()
+        return self.dialog
 
     def testSaveRestoreState(self):
         dialog = ImageFileDialog()
@@ -511,14 +536,14 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
                 b'\x01\x01\x00\x00\x00\x04log\x00'
         state = qt.QByteArray(state)
 
-        dialog = ImageFileDialog()
+        dialog = self.createDialog()
         result = dialog.restoreState(state)
         self.assertTrue(result)
         colormap = dialog.colormap()
         self.assertTrue(colormap.getNormalization(), "log")
 
     def testHistory(self):
-        dialog = ImageFileDialog()
+        dialog = self.createDialog()
         history = dialog.history()
         dialog.setHistory([])
         self.assertEqual(dialog.history(), [])
@@ -526,7 +551,7 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         self.assertEqual(dialog.history(), history)
 
     def testSidebarUrls(self):
-        dialog = ImageFileDialog()
+        dialog = self.createDialog()
         urls = dialog.sidebarUrls()
         dialog.setSidebarUrls([])
         self.assertEqual(dialog.sidebarUrls(), [])
@@ -534,7 +559,7 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         self.assertEqual(dialog.sidebarUrls(), urls)
 
     def testColomap(self):
-        dialog = ImageFileDialog()
+        dialog = self.createDialog()
         colormap = dialog.colormap()
         self.assertEqual(colormap.getNormalization(), "linear")
         colormap = Colormap(normalization=Colormap.LOGARITHM)
@@ -542,38 +567,38 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         self.assertEqual(colormap.getNormalization(), "log")
 
     def testDirectory(self):
-        dialog = ImageFileDialog()
+        dialog = self.createDialog()
         self.qWaitForPendingActions(dialog)
         dialog.selectPath(_tmpDirectory)
         self.qWaitForPendingActions(dialog)
         self.assertSamePath(dialog.directory(), _tmpDirectory)
 
     def testBadDataType(self):
-        dialog = ImageFileDialog()
+        dialog = self.createDialog()
         dialog.selectPath(_tmpDirectory + "/data.h5::/complex_image")
         self.qWaitForPendingActions(dialog)
         self.assertIsNone(dialog.selectedImage())
 
     def testBadDataShape(self):
-        dialog = ImageFileDialog()
+        dialog = self.createDialog()
         dialog.selectPath(_tmpDirectory + "/data.h5::/scalar")
         self.qWaitForPendingActions(dialog)
         self.assertIsNone(dialog.selectedImage())
 
     def testBadDataFormat(self):
-        dialog = ImageFileDialog()
+        dialog = self.createDialog()
         dialog.selectPath(_tmpDirectory + "/badformat.edf")
         self.qWaitForPendingActions(dialog)
         self.assertIsNone(dialog.selectedImage())
 
     def testBadPath(self):
-        dialog = ImageFileDialog()
+        dialog = self.createDialog()
         dialog.selectPath("#$%/#$%")
         self.qWaitForPendingActions(dialog)
         self.assertIsNone(dialog.selectedImage())
 
     def testBadSubpath(self):
-        dialog = ImageFileDialog()
+        dialog = self.createDialog()
         self.qWaitForPendingActions(dialog)
 
         browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
@@ -589,7 +614,7 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         self.assertSamePath(dialog.selectedPath(), _tmpDirectory + "/data.h5::/group/foobar")
 
     def testBadSlicingPath(self):
-        dialog = ImageFileDialog()
+        dialog = self.createDialog()
         self.qWaitForPendingActions(dialog)
         dialog.selectPath(_tmpDirectory + "/data.h5::/cube[a;45,-90]")
         self.qWaitForPendingActions(dialog)
