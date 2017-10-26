@@ -2647,6 +2647,13 @@ class PlotWidget(qt.QMainWindow):
         xAuto = self._xAxis.isAutoScale()
         yAuto = self._yAxis.isAutoScale()
 
+        # With log axes, autoscale if limits are <= 0
+        # This avoids issues with toggling log scale with matplotlib 2.1.0
+        if self._xAxis.getScale() == self._xAxis.LOGARITHMIC and xLimits[0] <= 0:
+            xAuto = True
+        if self._yAxis.getScale() == self._yAxis.LOGARITHMIC and (yLimits[0] <= 0 or y2Limits[0] <= 0):
+            yAuto = True
+
         if not xAuto and not yAuto:
             _logger.debug("Nothing to autoscale")
         else:  # Some axes to autoscale
