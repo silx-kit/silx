@@ -695,6 +695,9 @@ class ImageFileDialog(qt.QDialog):
             print(dialog.selectedPath())
         else:
             print("Nothing selected")
+
+        # Make sure loaded files are closed properly
+        dialog.clear()
     """
 
     _defaultIconProvider = None
