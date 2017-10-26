@@ -741,9 +741,10 @@ class ImageFileDialog(qt.QDialog):
         self.__filterSelected(0)
 
     def __del__(self):
-        print("__del__")
         self.clear()
-        super(ImageFileDialog, self).__del__()
+        superInstance = super(ImageFileDialog, self)
+        if hasattr(superInstance, "__del__"):
+            superInstance.__del__()
 
     def clear(self):
         """Ëxpicit method to clear the dialog.
