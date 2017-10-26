@@ -36,7 +36,32 @@ debianversion=$(python -c"import version; print(version.debianversion)")
 deb_name=$(echo "$source_project" | tr '[:upper:]' '[:lower:]')
 
 # target system
-debian_version=$(grep -o '[0-9]*' /etc/issue)
+if [ -f /etc/debian_version ]
+then 
+    debian_version=$(cat /etc/debian_version | cut -d. -f1 | grep -o '[0-9]*')
+    if [ -z $debian_version ]
+    then
+    #we are probably on a ubuntu platform
+        debian_version=$(cat /etc/debian_version | cut -d/ -f1)
+        case $debian_version in
+            squeeze)
+                debian_version=6
+                ;;
+            wheezy)
+                debian_version=7
+                ;;
+            jessie)
+                debian_version=8
+                ;;
+            stretch)
+                debian_version=9
+                ;;
+        esac
+    fi
+
+else
+    debian_version=0
+fi
 target_system=debian${debian_version}
 
 project_directory="`dirname \"$0\"`"
@@ -85,14 +110,23 @@ do
           ;;
       --debian7)
           debian_version=7
+	  target_system=debian${debian_version}
+          dist_directory=${project_directory}/dist/${target_system}
+          build_directory=${project_directory}/build/${target_system}
           shift
           ;;
       --debian8)
           debian_version=8
+	  target_system=debian${debian_version}
+          dist_directory=${project_directory}/dist/${target_system}
+          build_directory=${project_directory}/build/${target_system}
           shift
           ;;
       --debian9)
           debian_version=9
+	  target_system=debian${debian_version}
+          dist_directory=${project_directory}/dist/${target_system}
+          build_directory=${project_directory}/build/${target_system}
           shift
           ;;
       -*)
