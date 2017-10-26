@@ -584,7 +584,7 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
 
         # an existing node is browsed, but the wrong path is selected
         index = browser.rootIndex()
-        obj = index.data(role=Hdf5TreeModel.H5PY_OBJECT_ROLE)
+        obj = index.model().data(index, role=Hdf5TreeModel.H5PY_OBJECT_ROLE)
         self.assertEqual(obj.name, "/group")
         self.assertSamePath(dialog.selectedPath(), _tmpDirectory + "/data.h5::/group/foobar")
 
