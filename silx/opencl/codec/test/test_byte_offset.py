@@ -76,9 +76,6 @@ class TestByteOffset(unittest.TestCase):
                 raise unittest.SkipTest("Byte-offset decompression is known to be buggy on MacOS-CPU")
             else:
                 raise err
-        except Exception as err:
-            logger.warning(err)
-            logger.warning(type(err))
 
         t0 = time.time()
         res_cy = fabio.compression.decByteOffset(raw)

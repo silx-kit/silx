@@ -29,16 +29,17 @@
  */
 
 /* To decompress CBF byte-offset compressed in parallel on GPU one needs to:
- * - Mark regions with exceptions. This is a map kernel, the workgroup size does
- *   not matter. This generates the mask, counts the number of region and provides
- *   a start position for each of them.
- * - treat exceptions. For this, one thread in a workgoup treats a complete masked
- *   region in a serial fashion. All regions are treated in parallel.
- * - Normal pixels are marked having a size of 1 (TODO: do this with previous kernel + fill!)
- * - Valid pixels are copied (compact for zeros in delta)
- * - Input position is calculated from a cum_sum
- * - proper pixel values are copied
- * - Finally a cum-sum is performed to retrieve the decompressed data
+ * - Mark regions with exceptions and set values without exception.
+ *   This is a map kernel, the workgroup size does not matter.
+ *   This generates the values (zeros for exceptions), the exception mask,
+ *   counts the number of region and provides a start position for
+ *   each of them.
+ * - Treat exceptions. For this, one thread in a workgoup treats a complete
+ *   masked region in a serial fashion. All regions are treated in parallel.
+ *   Values written at this stage are marked in the mask with -1.
+ * - Double scan: inclusive cum sum for values, exclusive cum sum to generate
+ *   indices in output array. Values with mask = 1 are considered as 0.
+ * - Compact and copy output by removing duplicated values in exceptions
  */
 
 kernel void mark_exceptions(global char* raw,
@@ -64,15 +65,15 @@ kernel void mark_exceptions(global char* raw,
             maxi = size - 1;
             mask[gid] = 1;
             mask[min(maxi, gid+1)] = 1;
-		    mask[min(maxi, gid+2)] = 1;
+            mask[min(maxi, gid+2)] = 1;
 
             if (((int) raw[min(gid+1, maxi)] == 0) &&
                 ((int) raw[min(gid+2, maxi)] == -128))
             {
                 mask[min(maxi, gid+3)] = 1;
-    		    mask[min(maxi, gid+4)] = 1;
+                mask[min(maxi, gid+4)] = 1;
                 mask[min(maxi, gid+5)] = 1;
-    		    mask[min(maxi, gid+6)] = 1;
+                mask[min(maxi, gid+6)] = 1;
             }
         }
         else
@@ -97,12 +98,7 @@ kernel void treat_exceptions(global char* raw,  //raw compressed stream
 {
     int gid = get_global_id(0);
     int inp_pos = exc[gid];
-    if ((inp_pos>0) && ((int)mask[inp_pos - 1] != 0))
-    { // This is actually not another exception, remove from list.
-      // Those data will be treated by another workgroup.
-        exc[gid] = -1;
-    }
-    else
+    if ((inp_pos<=0) || ((int)mask[inp_pos - 1] == 0))
     {
         int value, is_masked, next_value, inc;
         is_masked = (mask[inp_pos] != 0);
@@ -113,8 +109,6 @@ kernel void treat_exceptions(global char* raw,  //raw compressed stream
             { // this correspond to 16 bits exception
                 uchar low_byte = raw[inp_pos+1];
                 char high_byte = raw[inp_pos+2] ;
-                mask[inp_pos + 1] = 1;
-                mask[inp_pos + 2] = 1;
                 next_value = high_byte<<8 | low_byte;
                 if (next_value == -32768)
                 { // this correspond to 32 bits exception
@@ -124,11 +118,6 @@ kernel void treat_exceptions(global char* raw,  //raw compressed stream
                     char high_byte4 = raw[inp_pos+6] ;
                     value = high_byte4<<24 | low_byte3<<16 | low_byte2<<8 | low_byte1;
                     inc = 7;
-                    mask[inp_pos + 3] = 1;
-                    mask[inp_pos + 4] = 1;
-                    mask[inp_pos + 5] = 1;
-                    mask[inp_pos + 6] = 1;
-                    
                 }
                 else
                 {
@@ -144,33 +133,6 @@ kernel void treat_exceptions(global char* raw,  //raw compressed stream
             mask[inp_pos] = -1; // mark the processed data as valid in the mask
             inp_pos += inc;
             is_masked = (mask[inp_pos] != 0);
-        }
-    }
-}
-
-// copy the values of the non-exceptions elements based on the mask.
-// Set the value of the mask to the current position  or -2
-kernel void treat_simple(global char* raw,
-                         int size,
-                         global int* mask,
-                         global int* values)
-{
-    int gid = get_global_id(0);
-    if (gid < size)
-    {
-        if (mask[gid] > 0)
-        { // convert the masked position from a positive value to a negative one
-            mask[gid] = -2;
-            values[gid] = 0; //this prevents a full memset of the array
-        }
-        else if (mask[gid] == -1)
-        { // this is an exception and has already been treated.
-            mask[gid] = gid;
-        }
-        else
-        { // normal case
-            values[gid] = raw[gid];
-            mask[gid] = gid;
         }
     }
 }
