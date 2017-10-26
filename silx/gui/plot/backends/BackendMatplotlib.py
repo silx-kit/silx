@@ -833,8 +833,10 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
         if matplotlib.__version__ >= "2.0.0":
             try:
                 FigureCanvasQTAgg.draw(self)
-            except ValueError:
-                pass
+            except ValueError as err:
+                _logger.debug(
+                    "ValueError caught while calling FigureCanvasQTAgg.draw: "
+                    "'%s'", err)
         else:
             FigureCanvasQTAgg.draw(self)
 
