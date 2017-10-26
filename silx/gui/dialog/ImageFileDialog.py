@@ -1599,9 +1599,11 @@ class ImageFileDialog(qt.QDialog):
             _logger.warning("Stored state contains an invalid version. ImageFileDialog restoration cancelled.")
             return False
 
+        result = True
+
         splitterData = stream.readQVariant()
-        sidebarUrls = stream.readQVariantList()
-        history = stream.readQVariantList()
+        sidebarUrls = stream.readQStringList()
+        history = stream.readQStringList()
         workingDirectory = stream.readString()
         if workingDirectory is not None:
             workingDirectory = workingDirectory.decode("utf-8")
@@ -1609,16 +1611,18 @@ class ImageFileDialog(qt.QDialog):
         viewMode = stream.readInt32()
         colormap = _silxutils.readColormap(stream)
 
-        self.__splitter.restoreState(splitterData)
+        result &= self.__splitter.restoreState(splitterData)
+        sidebarUrls = [qt.QUrl(s.decode("utf-8")) for s in sidebarUrls]
         self.__sidebar.setUrls(list(sidebarUrls))
+        history = [s.decode("utf-8") for s in history]
         self.setHistory(list(history))
-        self.__browser.restoreState(browserData)
         if workingDirectory is not None:
             self.setDirectory(workingDirectory)
+        result &= self.__browser.restoreState(browserData)
         self.setViewMode(viewMode)
         self.setColormap(colormap)
 
-        return True
+        return result
 
     def saveState(self):
         """Saves the state of the dialog's layout, history and current
@@ -1633,8 +1637,10 @@ class ImageFileDialog(qt.QDialog):
         stream.writeString(s.encode("ascii"))
         stream.writeInt32(self.__serialVersion)
         stream.writeQVariant(self.__splitter.saveState())
-        stream.writeQVariantList(self.__sidebar.urls())
-        stream.writeQVariantList(self.history())
+        strings = [s.toString().encode("utf-8") for s in self.__sidebar.urls()]
+        stream.writeQStringList(strings)
+        strings = [s.encode("utf-8") for s in self.history()]
+        stream.writeQStringList(strings)
         stream.writeString(self.directory().encode("utf-8"))
         stream.writeQVariant(self.__browser.saveState())
         stream.writeInt32(self.viewMode())
