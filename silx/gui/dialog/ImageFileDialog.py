@@ -536,7 +536,7 @@ class _Browser(qt.QStackedWidget):
                 selectionModel.selectionChanged.disconnect()
             self.__listView.setModel(newModel)
             self.__detailView.setModel(newModel)
-            selectionModel = self.__detailView.selectionModel()
+            selectionModel = self.__listView.selectionModel()
             selectionModel.selectionChanged.connect(self.__emitSelected)
             selectionModel = self.__detailView.selectionModel()
             selectionModel.selectionChanged.connect(self.__emitSelected)
