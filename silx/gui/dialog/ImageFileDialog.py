@@ -1095,7 +1095,7 @@ class ImageFileDialog(qt.QDialog):
             if os.path.isfile(path):
                 self.__fileActivated(index)
         elif index.model() is self.__dataModel:
-            obj = index.data(role=Hdf5TreeModel.H5PY_OBJECT_ROLE)
+            obj = self.__dataModel.data(index, role=Hdf5TreeModel.H5PY_OBJECT_ROLE)
             if silx.io.is_group(obj):
                 self.__browser.setRootIndex(index)
 
@@ -1221,7 +1221,7 @@ class ImageFileDialog(qt.QDialog):
         selectedData = None
         if index is not None:
             if index.model() is self.__dataModel:
-                obj = index.data(self.__dataModel.H5PY_OBJECT_ROLE)
+                obj = self.__dataModel.data(index, self.__dataModel.H5PY_OBJECT_ROLE)
                 if silx.io.is_dataset(obj):
                     if obj.shape is not None and len(obj.shape) >= 2:
                         selectedData = obj
@@ -1333,7 +1333,7 @@ class ImageFileDialog(qt.QDialog):
             filename = self.__fileModel.filePath(index)
             dataPath = None
         elif index.model() is self.__dataModel:
-            obj = index.data(role=Hdf5TreeModel.H5PY_OBJECT_ROLE)
+            obj = self.__dataModel.data(index, role=Hdf5TreeModel.H5PY_OBJECT_ROLE)
             filename = obj.file.filename
             dataPath = obj.name
         else:
