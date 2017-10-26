@@ -462,8 +462,8 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
 
     def testFilterExtensions(self):
         dialog = self.createDialog()
-        browser = dialog.findChildren(qt.QWidget, name="browser")[0]
-        filters = utils.findChildren(dialog, qt.QAction, name="fileTypeCombo")[0]
+        browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
+        filters = utils.findChildren(dialog, qt.QWidget, name="fileTypeCombo")[0]
         dialog.show()
         self.qWaitForWindowExposed(dialog)
         dialog.selectPath(_tmpDirectory)
