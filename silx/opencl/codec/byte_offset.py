@@ -62,9 +62,11 @@ class ByteOffset(OpenclProcessing):
     def __init__(self, raw_size, dec_size, ctx=None, devicetype="all",
                  platformid=None, deviceid=None,
                  block_size=None, profile=False):
-        """Constructor of the Byte Offset decompressor 
-        
-        :param raw_size: size of the raw stream, can be (slightly) larger than the array 
+        """Constructor of the Byte Offset decompressor.
+
+        See :class:`OpenclProcessing` for optional arguments description.
+
+        :param raw_size: size of the raw stream, can be (slightly) larger than the array
         :param dec_size: size of the output array (mandatory)
         """
 
@@ -117,8 +119,15 @@ class ByteOffset(OpenclProcessing):
                                          output_statement=output_statement)
         return knl
 
-    def dec(self, raw, as_float=False, out=None):
+    def decode(self, raw, as_float=False, out=None):
         """This function actually performs the decompression by calling the kernels
+
+        :param numpy.ndarray raw: The compressed data as a 1D numpy array of char.
+        :param bool as_float: True to decompress as float32,
+                              False (default) to decompress as int32
+        :param pyopencl.array out: pyopencl array in which to place the result.
+        :return: The decompressed image as an pyopencl array.
+        :rtype: pyopencl.array
         """
         events = []
         with self.sem:
@@ -211,4 +220,4 @@ class ByteOffset(OpenclProcessing):
                 self.events += events
         return out
 
-    __call__ = dec
+    __call__ = decode
