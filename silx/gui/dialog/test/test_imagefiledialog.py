@@ -144,7 +144,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.qWaitForWindowExposed(dialog)
         self.assertTrue(dialog.isVisible())
 
-        button = dialog.findChildren(qt.QPushButton, name="cancel")[0]
+        button = utils.findChildren(dialog, qt.QPushButton, name="cancel")[0]
         self.mouseClick(button, qt.Qt.LeftButton)
         self.assertFalse(dialog.isVisible())
         self.assertFalse(dialog.isVisible())
@@ -156,7 +156,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.qWaitForWindowExposed(dialog)
         self.assertTrue(dialog.isVisible())
 
-        button = dialog.findChildren(qt.QPushButton, name="open")[0]
+        button = utils.findChildren(dialog, qt.QPushButton, name="open")[0]
         self.mouseClick(button, qt.Qt.LeftButton)
         # open button locked, dialog is not closed
         self.assertTrue(dialog.isVisible())
@@ -170,7 +170,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         filename = _tmpDirectory + "/singleimage.edf"
         dialog.selectFile(filename)
 
-        button = dialog.findChildren(qt.QPushButton, name="open")[0]
+        button = utils.findChildren(dialog, qt.QPushButton, name="open")[0]
         self.mouseClick(button, qt.Qt.LeftButton)
         self.assertFalse(dialog.isVisible())
         self.assertEquals(dialog.result(), qt.QDialog.Accepted)
@@ -180,9 +180,9 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         dialog.show()
         self.qWaitForWindowExposed(dialog)
 
-        sidebar = dialog.findChildren(qt.QListView, name="sidebar")[0]
-        url = dialog.findChildren(qt.QLineEdit, name="url")[0]
-        browser = dialog.findChildren(qt.QWidget, name="browser")[0]
+        sidebar = utils.findChildren(dialog, qt.QListView, name="sidebar")[0]
+        url = utils.findChildren(dialog, qt.QLineEdit, name="url")[0]
+        browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
         dialog.setDirectory(_tmpDirectory)
         self.qWaitForPendingActions(dialog)
 
@@ -208,12 +208,13 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         dialog.show()
         self.qWaitForWindowExposed(dialog)
 
-        action = dialog.findChildren(qt.QAction, name="listModeAction")[0]
-        listModeButton = utils.getQToolButtonFromAction(action)
-        action = dialog.findChildren(qt.QAction, name="detailModeAction")[0]
+        action = utils.findChildren(dialog, qt.QAction, name="detailModeAction")[0]
         detailModeButton = utils.getQToolButtonFromAction(action)
         self.mouseClick(detailModeButton, qt.Qt.LeftButton)
         self.assertEqual(dialog.viewMode(), qt.QFileDialog.Detail)
+
+        action = utils.findChildren(dialog, qt.QAction, name="listModeAction")[0]
+        listModeButton = utils.getQToolButtonFromAction(action)
         self.mouseClick(listModeButton, qt.Qt.LeftButton)
         self.assertEqual(dialog.viewMode(), qt.QFileDialog.List)
 
@@ -222,8 +223,8 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         dialog.show()
         self.qWaitForWindowExposed(dialog)
 
-        url = dialog.findChildren(qt.QLineEdit, name="url")[0]
-        action = dialog.findChildren(qt.QAction, name="toParentAction")[0]
+        url = utils.findChildren(dialog, qt.QLineEdit, name="url")[0]
+        action = utils.findChildren(dialog, qt.QAction, name="toParentAction")[0]
         toParentButton = utils.getQToolButtonFromAction(action)
 
         # init state
@@ -248,8 +249,8 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         dialog.show()
         self.qWaitForWindowExposed(dialog)
 
-        url = dialog.findChildren(qt.QLineEdit, name="url")[0]
-        action = dialog.findChildren(qt.QAction, name="toRootFileAction")[0]
+        url = utils.findChildren(dialog, qt.QLineEdit, name="url")[0]
+        action = utils.findChildren(dialog, qt.QAction, name="toRootFileAction")[0]
         button = utils.getQToolButtonFromAction(action)
 
         # init state
@@ -268,8 +269,8 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         dialog.show()
         self.qWaitForWindowExposed(dialog)
 
-        url = dialog.findChildren(qt.QLineEdit, name="url")[0]
-        action = dialog.findChildren(qt.QAction, name="toDirectoryAction")[0]
+        url = utils.findChildren(dialog, qt.QLineEdit, name="url")[0]
+        action = utils.findChildren(dialog, qt.QAction, name="toDirectoryAction")[0]
         button = utils.getQToolButtonFromAction(action)
 
         # init state
@@ -288,9 +289,9 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         dialog.show()
         self.qWaitForWindowExposed(dialog)
 
-        url = dialog.findChildren(qt.QLineEdit, name="url")[0]
-        forwardAction = dialog.findChildren(qt.QAction, name="forwardAction")[0]
-        backwardAction = dialog.findChildren(qt.QAction, name="backwardAction")[0]
+        url = utils.findChildren(dialog, qt.QLineEdit, name="url")[0]
+        forwardAction = utils.findChildren(dialog, qt.QAction, name="forwardAction")[0]
+        backwardAction = utils.findChildren(dialog, qt.QAction, name="backwardAction")[0]
 
         dialog.setDirectory(_tmpDirectory)
         self.qWaitForPendingActions(dialog)
@@ -340,7 +341,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         # init state
         dialog.selectPath(_tmpDirectory)
         self.qWaitForPendingActions(dialog)
-        browser = dialog.findChildren(qt.QWidget, name="browser")[0]
+        browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
         filename = _tmpDirectory + "/singleimage.edf"
         index = browser.rootIndex().model().index(filename)
         # click
@@ -404,7 +405,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         # init state
         dialog.selectPath(_tmpDirectory)
         self.qWaitForPendingActions(dialog)
-        browser = dialog.findChildren(qt.QWidget, name="browser")[0]
+        browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
         filename = _tmpDirectory + "/data.h5"
         index = browser.rootIndex().model().index(filename)
         # click
@@ -438,7 +439,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         # init state
         dialog.selectPath(_tmpDirectory)
         self.qWaitForPendingActions(dialog)
-        browser = dialog.findChildren(qt.QWidget, name="browser")[0]
+        browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
         filename = _tmpDirectory + "/badformat.edf"
         index = browser.rootIndex().model().index(filename)
         browser.activated.emit(index)
@@ -449,7 +450,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
     def testFilterExtensions(self):
         dialog = ImageFileDialog()
         browser = dialog.findChildren(qt.QWidget, name="browser")[0]
-        filters = dialog.findChildren(qt.QWidget, name="fileTypeCombo")[0]
+        filters = utils.findChildren(dialog, qt.QAction, name="fileTypeCombo")[0]
         dialog.show()
         self.qWaitForWindowExposed(dialog)
         dialog.selectPath(_tmpDirectory)
@@ -575,7 +576,7 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         dialog = ImageFileDialog()
         self.qWaitForPendingActions(dialog)
 
-        browser = dialog.findChildren(qt.QWidget, name="browser")[0]
+        browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
 
         dialog.selectPath(_tmpDirectory + "/data.h5::/group/foobar")
         self.qWaitForPendingActions(dialog)
