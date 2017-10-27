@@ -96,21 +96,19 @@ class _ImageUri(object):
         if self.__path is not None:
             return self.__path
 
-        if self.__path is None:
-            path = ""
-            selector = ""
-            if self.__filename is not None:
-                path += self.__filename
-            if self.__dataPath is not None:
-                selector += self.__dataPath
-            if self.__slice is not None:
-                selector += "[%s]" % ",".join([str(s) for s in self.__slice])
-            if selector != "":
-                return path + "::" + selector
-            else:
-                return path
+        path = ""
+        selector = ""
+        if self.__filename is not None:
+            path += self.__filename
+        if self.__dataPath is not None:
+            selector += self.__dataPath
+        if self.__slice is not None:
+            selector += "[%s]" % ",".join([str(s) for s in self.__slice])
 
-        return self.__path
+        if selector != "":
+            return path + "::" + selector
+        else:
+            return path
 
     def filename(self):
         return self.__filename
