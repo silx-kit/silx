@@ -60,7 +60,10 @@ class _ImageUri(object):
             self.__dataPath = dataPath
             self.__slice = slice
             self.__path = None
-            self.__isValid = self.__filename is not None
+            if self.__filename == "":
+                self.__isValid = self.__dataPath is None and self.__slice is None
+            else:
+                self.__isValid = self.__filename is not None
 
     def __fromPath(self, path):
         elements = path.split("::", 1)
@@ -371,8 +374,6 @@ class _SideBar(qt.QListView):
             index = model.index(i, 0)
             url = model.data(index, qt.Qt.UserRole)
             urlPath = url.toLocalFile()
-            if urlPath == "":
-                urlPath = qt.QDir.rootPath()
             if path == urlPath:
                 selected = index
 
@@ -517,13 +518,13 @@ class _Browser(qt.QStackedWidget):
         self.setCurrentIndex(1)
         self.__detailView.updateGeometry()
 
-    def setRootIndex(self, index):
+    def setRootIndex(self, index, model=None):
         """Sets the root item to the item at the given index.
         """
         rootIndex = self.__listView.rootIndex()
-        if rootIndex == index:
-            return
-        newModel = index.model()
+        newModel = model or index.model()
+        assert(newModel is not None)
+
         if rootIndex is None or rootIndex.model() is not newModel:
             # update the model
             selectionModel = self.__listView.selectionModel()
@@ -887,6 +888,7 @@ class ImageFileDialog(qt.QDialog):
         parentDirectory.setObjectName("toParentAction")
         parentDirectory.setIcon(iconProvider.icon(qt.QStyle.SP_FileDialogToParent))
         parentDirectory.triggered.connect(self.__navigateToParent)
+        self.__toParentAction = parentDirectory
 
         fileDirectory = qt.QAction(toolbar)
         fileDirectory.setText("Root of the file")
@@ -1025,10 +1027,9 @@ class ImageFileDialog(qt.QDialog):
         if index.model() is self.__fileModel:
             # browse throw the file system
             index = index.parent()
-            if index.isValid():
-                self.__browser.setRootIndex(index)
-                self.__browser.selectIndex(qt.QModelIndex())
-                self.__updatePath()
+            self.__browser.setRootIndex(index, model=self.__fileModel)
+            self.__browser.selectIndex(qt.QModelIndex())
+            self.__updatePath()
         elif index.model() is self.__dataModel:
             index = index.parent()
             if index.isValid():
@@ -1040,7 +1041,8 @@ class ImageFileDialog(qt.QDialog):
                 # go back to the file system
                 self.__navigateToParentDir()
         else:
-            assert(False)
+            # Root of the file system (my computer)
+            pass
 
     def __navigateToParentFile(self):
         index = self.__browser.rootIndex()
@@ -1099,8 +1101,6 @@ class ImageFileDialog(qt.QDialog):
             index = indexes[0]
             url = self.__sidebar.model().data(index, role=qt.Qt.UserRole)
             path = url.toLocalFile()
-            if path == "":
-                path = qt.QDir.rootPath()
             self.__fileModel_setRootPath(path)
 
     def __browsedItemActivated(self, index):
@@ -1114,6 +1114,8 @@ class ImageFileDialog(qt.QDialog):
             obj = self.__dataModel.data(index, role=Hdf5TreeModel.H5PY_OBJECT_ROLE)
             if silx.io.is_group(obj):
                 self.__browser.setRootIndex(index)
+        else:
+            assert(False)
 
     def __browsedItemSelected(self, index):
         self.__dataSelected(index)
@@ -1136,9 +1138,17 @@ class ImageFileDialog(qt.QDialog):
         if self.__directoryLoadedFilter is not None:
             if utils.samefile(self.__directoryLoadedFilter, path):
                 return
-        self.__processing += 1
         self.__directoryLoadedFilter = path
-        self.__fileModel.setRootPath(path)
+        self.__processing += 1
+        index = self.__fileModel.setRootPath(path)
+        if not index.isValid():
+            self.__processing -= 1
+            self.__browser.setRootIndex(index, model=self.__fileModel)
+            self.__clearData()
+            self.__updatePath()
+        else:
+            # asynchronous process
+            pass
 
     def __directoryLoaded(self, path):
         if self.__directoryLoadedFilter is not None:
@@ -1147,7 +1157,7 @@ class ImageFileDialog(qt.QDialog):
                 # The first click on the sidebar sent 2 events
                 return
         index = self.__fileModel.index(path)
-        self.__browser.setRootIndex(index)
+        self.__browser.setRootIndex(index, model=self.__fileModel)
         self.__updatePath()
         self.__processing -= 1
 
@@ -1347,7 +1357,8 @@ class ImageFileDialog(qt.QDialog):
             filename = obj.file.filename
             dataPath = obj.name
         else:
-            filename = None
+            # root of the computer
+            filename = ""
             dataPath = None
 
         if useSlicingWidget and self.__slicing.isVisible():
@@ -1381,6 +1392,7 @@ class ImageFileDialog(qt.QDialog):
             self.__currentHistory.append(uri.path())
             self.__currentHistoryLocation += 1
 
+        self.__toParentAction.setEnabled(index.isValid())
         self.__updateActionHistory()
         self.__updateSidebar()
 
@@ -1391,6 +1403,9 @@ class ImageFileDialog(qt.QDialog):
         index = self.__browser.rootIndex()
         if index.model() == self.__fileModel:
             path = self.__fileModel.filePath(index)
+            self.__sidebar.setSelectedPath(path)
+        elif index.model() is None:
+            path = ""
             self.__sidebar.setSelectedPath(path)
         else:
             selectionModel.clear()
@@ -1403,7 +1418,9 @@ class ImageFileDialog(qt.QDialog):
     def __pathChanged(self):
         uri = _ImageUri(path=self.__pathEdit.text())
         if uri.isValid():
-            if os.path.exists(uri.filename()):
+            if uri.filename() == "":
+                self.__fileModel_setRootPath("")
+            elif os.path.exists(uri.filename()):
                 rootIndex = None
                 if os.path.isdir(uri.filename()):
                     self.__fileModel_setRootPath(uri.filename())
@@ -1451,6 +1468,8 @@ class ImageFileDialog(qt.QDialog):
                         self.__browser.selectIndex(rootIndex)
                         # data = _FabioData(self.__fabio)
                         # self.__setData(data)
+                    else:
+                        assert(False)
                 else:
                     self.__browser.setRootIndex(index)
                     self.__clearData()
