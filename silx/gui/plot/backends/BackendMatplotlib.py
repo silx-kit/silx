@@ -602,10 +602,32 @@ class BackendMatplotlib(BackendBase.BackendBase):
     # Graph axes
 
     def setXAxisLogarithmic(self, flag):
+        # Workaround for matplotlib 2.1.0 when one tries to set an axis
+        # to log scale with both limits <= 0
+        # In this case a draw with positive limits is needed first
+        if flag and matplotlib.__version__ >= '2.1.0':
+            xlim = self.ax.get_xlim()
+            if xlim[0] <= 0 and xlim[1] <= 0:
+                self.ax.set_xlim(1, 10)
+                self.draw()
+
         self.ax2.set_xscale('log' if flag else 'linear')
         self.ax.set_xscale('log' if flag else 'linear')
 
     def setYAxisLogarithmic(self, flag):
+        # Workaround for matplotlib 2.1.0 when one tries to set an axis
+        # to log scale with both limits <= 0
+        # In this case a draw with positive limits is needed first
+        if flag and matplotlib.__version__ >= '2.1.0':
+            redraw = False
+            for axis in (self.ax, self.ax2):
+                ylim = axis.get_ylim()
+                if ylim[0] <= 0 and ylim[1] <= 0:
+                    axis.set_ylim(1, 10)
+                    redraw = True
+            if redraw:
+                self.draw()
+
         self.ax2.set_yscale('log' if flag else 'linear')
         self.ax.set_yscale('log' if flag else 'linear')
 
