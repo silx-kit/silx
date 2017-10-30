@@ -27,18 +27,13 @@ __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 __authors__ = ["J. Kieffer"]
-__date__ = "16/10/2017"
+__date__ = "13/10/2017"
 
-import os.path
 from numpy.distutils.misc_util import Configuration
 
 
 def configuration(parent_package='', top_path=None):
-    config = Configuration('opencl', parent_package, top_path)
-    path = os.path.dirname(os.path.abspath(__file__))
-    if os.path.exists(os.path.join(path, 'sift')):
-        config.add_subpackage('sift')
-    config.add_subpackage('codec')
+    config = Configuration('codec', parent_package, top_path)
     config.add_subpackage('test')
     return config
 
