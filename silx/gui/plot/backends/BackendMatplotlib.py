@@ -602,16 +602,10 @@ class BackendMatplotlib(BackendBase.BackendBase):
     # Graph axes
 
     def setXAxisLogarithmic(self, flag):
-        if matplotlib.__version__ >= "2.0.0":
-            self.ax.cla()
-            self.ax2.cla()
         self.ax2.set_xscale('log' if flag else 'linear')
         self.ax.set_xscale('log' if flag else 'linear')
 
     def setYAxisLogarithmic(self, flag):
-        if matplotlib.__version__ >= "2.0.0":
-            self.ax.cla()
-            self.ax2.cla()
         self.ax2.set_yscale('log' if flag else 'linear')
         self.ax.set_yscale('log' if flag else 'linear')
 
@@ -834,7 +828,18 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
         yLimits = self.ax.get_ybound()
         yRightLimits = self.ax2.get_ybound()
 
-        FigureCanvasQTAgg.draw(self)
+        # Starting with mpl 2.1.0, toggling autoscale raises a ValueError
+        # in some situations. See #1081, #1136, #1163,
+        if matplotlib.__version__ >= "2.0.0":
+            try:
+                FigureCanvasQTAgg.draw(self)
+            except ValueError as err:
+                _logger.debug(
+                    "ValueError caught while calling FigureCanvasQTAgg.draw: "
+                    "'%s'", err)
+        else:
+            FigureCanvasQTAgg.draw(self)
+
         if self._overlays or self._graphCursor:
             # Save background
             self._background = self.copy_from_bbox(self.fig.bbox)
