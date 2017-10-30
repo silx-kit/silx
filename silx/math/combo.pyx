@@ -49,6 +49,7 @@ cdef extern from "isnan.h":
 import numpy
 
 
+# All supported types
 ctypedef fused _number:
     float
     double
@@ -64,7 +65,9 @@ ctypedef fused _number:
     unsigned long
     unsigned long long
 
-ctypedef fused _float:
+# All supported floating types:
+# cython.floating + long double
+ctypedef fused _floating:
     float
     double
     long double
@@ -150,7 +153,7 @@ def _min_max(_number[::1] data, bint min_positive=False):
         else:
             min_pos = 0
 
-        if _number in cython.floating:
+        if _number in _floating:
             # For floating, loop until first not NaN value
             for index in range(length):
                 value = data[index]
@@ -213,13 +216,13 @@ def _min_max(_number[::1] data, bint min_positive=False):
 @cython.initializedcheck(False)
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def _finite_min_max(_float[::1] data, bint min_positive=False):
+def _finite_min_max(_floating[::1] data, bint min_positive=False):
     """:func:`min_max` implementation for floats skipping infinite values
 
     See :func:`min_max` for documentation.
     """
     cdef:
-        _float value, minimum, min_pos, maximum
+        _floating value, minimum, min_pos, maximum
         unsigned int length
         unsigned int index = 0
         unsigned int min_index = 0
