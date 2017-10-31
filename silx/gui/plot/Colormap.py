@@ -145,12 +145,12 @@ class Colormap(qt.QObject):
         return colors
 
     def setName(self, name):
-        """Set the name of the colormap and load the colors corresponding to
-        the name
+        """Set the name of the colormap to use.
 
-        :param str name: the name of the colormap (should be in ['gray',
+        :param str name: The name of the colormap.
+            At least the following names are supported: 'gray',
             'reversed gray', 'temperature', 'red', 'green', 'blue', 'jet',
-            'viridis', 'magma', 'inferno', 'plasma']
+            'viridis', 'magma', 'inferno', 'plasma'.
         """
         assert name in self.getSupportedColormaps()
         self._name = str(name)
@@ -158,10 +158,10 @@ class Colormap(qt.QObject):
         self.sigChanged.emit()
 
     def getColormapLUT(self):
-        """Return the list of colors for the colormap. None if not set
+        """Return the list of colors for the colormap or None if not set
         
-        :return: the list of colors for the colormap. None if not set
-        :rtype: numpy.ndarray
+        :return: the list of colors for the colormap or None if not set
+        :rtype: numpy.ndarray or None
         """
         if self._colors is None:
             return None
@@ -173,7 +173,7 @@ class Colormap(qt.QObject):
 
         :param numpy.ndarray colors: the colors of the LUT
 
-        .. warning: this will set the value of name to an empty string
+        .. warning: this will set the value of name to None
         """
         self._setColors(colors)
         if len(colors) is 0:
