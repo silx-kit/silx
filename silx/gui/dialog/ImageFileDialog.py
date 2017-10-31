@@ -44,7 +44,6 @@ from . import utils
 from . import _silxutils
 from .FileTypeComboBox import FileTypeComboBox
 from silx.third_party import six
-from .SafeFileIconProvider import SafeFileIconProvider
 
 
 _logger = logging.getLogger(__name__)
@@ -721,9 +720,16 @@ class ImageFileDialog(qt.QDialog):
         self.__h5 = None
         self.__fabio = None
 
-        self.__fileModel = qt.QFileSystemModel(self)
-        iconProvider = SafeFileIconProvider()
-        self.__fileModel.setIconProvider(iconProvider)
+        if qt.qVersion() < "5.0":
+            # On Qt4 it is needed to provide a safe file system model
+            from .SafeFileSystemModel import SafeFileSystemModel
+            self.__fileModel = SafeFileSystemModel(self)
+        else:
+            # On Qt5 a safe icon provider is still needed to avoid freeze
+            self.__fileModel = qt.QFileSystemModel(self)
+            from .SafeFileIconProvider import SafeFileIconProvider
+            iconProvider = SafeFileIconProvider()
+            self.__fileModel.setIconProvider(iconProvider)
 
         # The common file dialog filter only on Mac OS X
         self.__fileModel.setNameFilterDisables(sys.platform == "darwin")
@@ -1034,7 +1040,8 @@ class ImageFileDialog(qt.QDialog):
         if index.model() is self.__fileModel:
             # browse throw the file system
             index = index.parent()
-            self.__browser.setRootIndex(index, model=self.__fileModel)
+            path = self.__fileModel.filePath(index)
+            self.__fileModel_setRootPath(path)
             self.__browser.selectIndex(qt.QModelIndex())
             self.__updatePath()
         elif index.model() is self.__dataModel:
@@ -1112,9 +1119,9 @@ class ImageFileDialog(qt.QDialog):
 
     def __browsedItemActivated(self, index):
         if index.model() is self.__fileModel:
-            if self.__fileModel.isDir(index):
-                self.__browser.setRootIndex(index)
             path = self.__fileModel.filePath(index)
+            if self.__fileModel.isDir(index):
+                self.__fileModel_setRootPath(path)
             if os.path.isfile(path):
                 self.__fileActivated(index)
         elif index.model() is self.__dataModel:
