@@ -1032,17 +1032,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                 data = numpy.array(data, dtype=numpy.float32, order='C')
 
             colormapIsLog = colormap.getNormalization() == 'log'
-
             cmapRange = colormap.getColormapRange(data=data)
-
-            # Retrieve colormap LUT from name and color array
-            colormapDisp = Colormap(name=colormap.getName(),
-                                    normalization=Colormap.LINEAR,
-                                    vmin=0,
-                                    vmax=255,
-                                    colors=colormap.getColormapLUT())
-            colormapLut = colormapDisp.applyToData(
-                numpy.arange(256, dtype=numpy.uint8))
+            colormapLut = colormap.getColors(nbColors=256)
 
             image = GLPlotColormap(data,
                                    origin,
