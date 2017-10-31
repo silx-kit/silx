@@ -724,14 +724,16 @@ class ImageFileDialog(qt.QDialog):
         self.__fileModel.setNameFilterDisables(sys.platform == "darwin")
         self.__fileModel.setReadOnly(True)
         self.__fileModel.directoryLoaded.connect(self.__directoryLoaded)
-        path = os.getcwd()
-        self.__fileModel_setRootPath(path)
 
         self.__dataModel = Hdf5TreeModel(self)
 
         self.__createWidgets()
         self.__initLayout()
         self.__showAsListView()
+
+        path = os.getcwd()
+        self.__fileModel_setRootPath(path)
+
         self.__clearData()
         self.__updatePath()
 
