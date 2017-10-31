@@ -277,6 +277,17 @@ class TestObjectAPI(ParametricTestCase):
                     self.assertEqual(image.shape[-1], 4)
                     self.assertEqual(image.shape[:-1], data.shape)
 
+    def testGetNColors(self):
+        """Test getNColors method"""
+        # specific LUT
+        colormap = Colormap(name=None,
+                            colors=((0, 0, 0), (1, 1, 1)),
+                            vmin=1000,
+                            vmax=2000)
+        colors = colormap.getNColors()
+        self.assertTrue(numpy.all(numpy.equal(
+            colors,
+            ((0, 0, 0, 255), (255, 255, 255, 255)))))
 
 def suite():
     test_suite = unittest.TestSuite()
