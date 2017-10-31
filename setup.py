@@ -752,7 +752,7 @@ def get_project_configuration(dry_run):
 
     setup_kwargs.update(name=PROJECT,
                         version=get_version(),
-                        url="https://github.com/silx-kit/silx",
+                        url="http://www.silx.org/",
                         author="data analysis unit",
                         author_email="silx@esrf.fr",
                         classifiers=classifiers,
