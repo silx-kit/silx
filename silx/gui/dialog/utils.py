@@ -48,6 +48,12 @@ def samefile(path1, path2):
         path1 = os.path.normcase(path1)
         path2 = os.path.normcase(path2)
         return path1 == path2
+    if path1 == path2:
+        return True
+    if path1 == "":
+        return False
+    if path2 == "":
+        return False
     return os.path.samefile(path1, path2)
 
 
