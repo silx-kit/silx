@@ -130,8 +130,8 @@ class Colormap(qt.QObject):
         # Handle default value for nbColors
         if nbColors is None:
             lut = self.getColormapLUT()
-            if lut is not None:  # In this case the LUT is returned directly
-                return lut
+            if lut is not None:  # In this case uses LUT length
+                nbColors = len(lut)
             else:  # Default to 256
                 nbColors = 256
 
