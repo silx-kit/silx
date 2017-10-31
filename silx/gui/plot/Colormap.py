@@ -116,6 +116,34 @@ class Colormap(qt.QObject):
         else:
             self._colors = numpy.array(colors, copy=True)
 
+    def getColors(self, nbColors=None):
+        """Returns the color table of the colormap.
+
+        :param nbColors:
+            The number of colors in the returned array or None for the default value.
+            The default value is 256 for colormap with a name (see :meth:`setName`) and
+            it is the size of the LUT for colormap defined with :meth:`setColormapLUT`.
+        :type nbColors: int or None
+        :return: 2D array of uint8 of shape (nbColors, 4)
+        :rtype: numpy.ndarray
+        """
+        # Handle default value for nbColors
+        if nbColors is None:
+            lut = self.getColormapLUT()
+            if lut is not None:  # In this case the LUT is returned directly
+                return lut
+            else:  # Default to 256
+                nbColors = 256
+
+        nbColors = int(nbColors)
+
+        colormap = self.copy()
+        colormap.setNormalization(Colormap.LINEAR)
+        colormap.setVRange(vmin=None, vmax=None)
+        colors = colormap.applyToData(
+            numpy.arange(nbColors, dtype=numpy.int))
+        return colors
+
     def setName(self, name):
         """Set the name of the colormap and load the colors corresponding to
         the name
