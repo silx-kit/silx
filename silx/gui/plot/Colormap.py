@@ -163,7 +163,10 @@ class Colormap(qt.QObject):
         :return: the list of colors for the colormap. None if not set
         :rtype: numpy.ndarray
         """
-        return self._colors
+        if self._colors is None:
+            return None
+        else:
+            return numpy.array(self._colors, copy=True)
 
     def setColormapLUT(self, colors):
         """Set the colors of the colormap.
