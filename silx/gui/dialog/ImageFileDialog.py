@@ -44,6 +44,7 @@ from . import utils
 from . import _silxutils
 from .FileTypeComboBox import FileTypeComboBox
 from silx.third_party import six
+from .SafeFileIconProvider import SafeFileIconProvider
 
 
 _logger = logging.getLogger(__name__)
@@ -719,7 +720,11 @@ class ImageFileDialog(qt.QDialog):
         """Number of asynchronous processing tasks"""
         self.__h5 = None
         self.__fabio = None
+
         self.__fileModel = qt.QFileSystemModel(self)
+        iconProvider = SafeFileIconProvider()
+        self.__fileModel.setIconProvider(iconProvider)
+
         # The common file dialog filter only on Mac OS X
         self.__fileModel.setNameFilterDisables(sys.platform == "darwin")
         self.__fileModel.setReadOnly(True)
