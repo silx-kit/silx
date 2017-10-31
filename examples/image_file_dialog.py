@@ -76,6 +76,12 @@ class DialogExample(qt.QMainWindow):
         b3.clicked.connect(self.__openDialogAtHome)
         layout.addWidget(b3)
 
+        b4 = qt.QPushButton(self)
+        b4.setMinimumHeight(50)
+        b4.setText("Open a file image dialog at computer root")
+        b4.clicked.connect(self.openDialogAtComputer)
+        layout.addWidget(b4)
+
         self.setCentralWidget(widget)
 
     def __printSelection(self, dialog):
@@ -132,6 +138,22 @@ class DialogExample(qt.QMainWindow):
     def __openDialogAtHome(self):
         # Clear the dialog
         path = qt.QDir.homePath()
+        dialog = ImageFileDialog()
+        dialog.setDirectory(path)
+
+        # Execute the dialog as modal
+        result = dialog.exec_()
+
+        # Reach the result
+        if result:
+            print("Selection:")
+            self.__printSelection(dialog)
+        else:
+            print("Nothing selected")
+
+    def openDialogAtComputer(self):
+        # Clear the dialog
+        path = ""
         dialog = ImageFileDialog()
         dialog.setDirectory(path)
 
