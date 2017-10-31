@@ -62,7 +62,7 @@ class Colormap(qt.QObject):
             Nx3 or Nx4 numpy array of RGB(A) colors,
             either uint8 or float in [0, 1].
             If 'name' is None, then this array is used as the colormap.
-    :param str norm: Normalization: 'linear' (default) or 'log'
+    :param str normalization: Normalization: 'linear' (default) or 'log'
     :param float vmin:
         Lower bound of the colormap or None for autoscale (default)
     :param float vmax:
@@ -79,6 +79,7 @@ class Colormap(qt.QObject):
     """Tuple of managed normalizations"""
 
     sigChanged = qt.Signal()
+    """Signal emitted when the colormap has changed."""
 
     def __init__(self, name='gray', colors=None, normalization=LINEAR, vmin=None, vmax=None):
         qt.QObject.__init__(self)
@@ -129,16 +130,15 @@ class Colormap(qt.QObject):
         self.sigChanged.emit()
 
     def getColormapLUT(self):
-        """Return the list of colors for the colormap. None if not setted
+        """Return the list of colors for the colormap. None if not set
         
-        :return: the list of colors for the colormap. None if not setted
+        :return: the list of colors for the colormap. None if not set
         :rtype: numpy.ndarray
         """
         return self._colors
 
     def setColormapLUT(self, colors):
-        """
-        Set the colors of the colormap.
+        """Set the colors of the colormap.
 
         :param numpy.ndarray colors: the colors of the LUT
 
@@ -267,8 +267,7 @@ class Colormap(qt.QObject):
         return vmin, vmax
 
     def setVRange(self, vmin, vmax):
-        """
-        Set bounds to the colormap
+        """Set the bounds of the colormap
 
         :param vmin: Lower bound of the colormap or None for autoscale
             (default)
@@ -361,9 +360,9 @@ class Colormap(qt.QObject):
         return colormap
 
     def copy(self):
-        """
+        """Return a copy of the Colormap.
 
-        :return: a copy of the Colormap object
+        :rtype: Colormap
         """
         return Colormap(name=self._name,
                         colors=copy_mdl.copy(self._colors),
