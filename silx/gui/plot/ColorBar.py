@@ -533,7 +533,7 @@ class _ColorScale(qt.QWidget):
             return
 
         indices = numpy.linspace(0., 1., self._NB_CONTROL_POINTS)
-        colors = colormap.getColors(nbColors=self._NB_CONTROL_POINTS)
+        colors = colormap.getNColors(nbColors=self._NB_CONTROL_POINTS)
         self._gradient = qt.QLinearGradient(0, 1, 0, 0)
         self._gradient.setCoordinateMode(qt.QGradient.StretchToDeviceMode)
         self._gradient.setStops(

@@ -116,8 +116,8 @@ class Colormap(qt.QObject):
         else:
             self._colors = numpy.array(colors, copy=True)
 
-    def getColors(self, nbColors=None):
-        """Returns the color table of the colormap.
+    def getNColors(self, nbColors=None):
+        """Returns N colors computed by sampling the colormap regularly.
 
         :param nbColors:
             The number of colors in the returned array or None for the default value.

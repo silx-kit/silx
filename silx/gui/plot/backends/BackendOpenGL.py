@@ -1033,7 +1033,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
             colormapIsLog = colormap.getNormalization() == 'log'
             cmapRange = colormap.getColormapRange(data=data)
-            colormapLut = colormap.getColors(nbColors=256)
+            colormapLut = colormap.getNColors(nbColors=256)
 
             image = GLPlotColormap(data,
                                    origin,
