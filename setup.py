@@ -196,7 +196,7 @@ class BuildMan(Command):
         env = dict((str(k), str(v)) for k, v in os.environ.items())
         env["PYTHONPATH"] = os.pathsep.join(path)
         if not os.path.isdir("build/man"):
-	    os.makedirs("build/man")
+            os.makedirs("build/man")
         import subprocess
         import tempfile
         import stat
