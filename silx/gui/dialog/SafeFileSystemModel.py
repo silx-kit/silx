@@ -332,6 +332,10 @@ class _RawFileSystemModel(qt.QAbstractItemModel):
                 result = style.standardIcon(qt.QStyle.SP_FileIcon)
         return result
 
+    def _item(self, index):
+        item = self.__getItem(index)
+        return item
+
     def fileInfo(self, index):
         item = self.__getItem(index)
         result = item.fileInfo()
@@ -520,15 +524,17 @@ class SafeFileSystemModel(qt.QSortFilterProxyModel):
         sourceModel = self.sourceModel()
         sortColumn = self.sortColumn()
         if sortColumn == _RawFileSystemModel.NAME_COLUMN:
-            left = sourceModel.fileInfo(leftSourceIndex)
-            right = sourceModel.fileInfo(rightSourceIndex)
+            leftItem = sourceModel._item(leftSourceIndex)
+            rightItem = sourceModel._item(rightSourceIndex)
+            leftInfo = leftItem.fileInfo()
+            rightInfo = rightItem.fileInfo()
             if sys.platform != "darwin":
                 # Sort directories before files
-                leftIsDir = left.isDir()
-                rightIsDir = right.isDir()
+                leftIsDir = leftInfo.isDir()
+                rightIsDir = rightInfo.isDir()
                 if leftIsDir ^ rightIsDir:
                     return leftIsDir
-            return left.fileName().lower() < right.fileName().lower()
+            return leftItem.fileName().lower() < rightItem.fileName().lower()
         elif sortColumn == _RawFileSystemModel.SIZE_COLUMN:
             left = sourceModel.fileInfo(leftSourceIndex)
             right = sourceModel.fileInfo(rightSourceIndex)
@@ -554,7 +560,8 @@ class SafeFileSystemModel(qt.QSortFilterProxyModel):
         index = sourceModel.index(sourceRow, 0, sourceParent)
         if not index.isValid():
             return True
-        fileInfo = sourceModel.fileInfo(index)
+        item = sourceModel._item(index)
+        fileInfo = item.fileInfo()
         if fileInfo is None:
             return False
 
@@ -572,7 +579,7 @@ class SafeFileSystemModel(qt.QSortFilterProxyModel):
         hideDot = (filters & qt.QDir.NoDot) or (filters & qt.QDir.NoDotAndDotDot)
         hideDotDot = (filters & qt.QDir.NoDotDot) or (filters & qt.QDir.NoDotAndDotDot)
 
-        fileName = fileInfo.fileName()
+        fileName = item.fileName()
         isDot = fileName == "."
         isDotDot = fileName == ".."
         isSystem = not fileInfo.isDir() and not fileInfo.isFile()
@@ -595,13 +602,13 @@ class SafeFileSystemModel(qt.QSortFilterProxyModel):
         if fileInfo.isDir() and (filters & qt.QDir.AllDirs):
             return True
 
-        return self.__nameFiltersAccepted(fileInfo)
+        return self.__nameFiltersAccepted(item)
 
-    def __nameFiltersAccepted(self, fileInfo):
+    def __nameFiltersAccepted(self, item):
         if len(self.__nameFilters) == 0:
             return True
 
-        fileName = fileInfo.fileName()
+        fileName = item.fileName()
         for reg in self.__nameFilters:
             if reg.exactMatch(fileName):
                 return True
@@ -658,8 +665,8 @@ class SafeFileSystemModel(qt.QSortFilterProxyModel):
         filters = sourceModel.flags(index)
 
         if self.__nameFilterDisables:
-            fileInfo = sourceModel.fileInfo(index)
-            if not self.__nameFiltersAccepted(fileInfo):
+            item = sourceModel._item(index)
+            if not self.__nameFiltersAccepted(item):
                 filters &= ~qt.Qt.ItemIsEnabled
 
         return filters
