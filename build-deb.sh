@@ -110,21 +110,21 @@ do
           ;;
       --debian7)
           debian_version=7
-	  target_system=debian${debian_version}
+          target_system=debian${debian_version}
           dist_directory=${project_directory}/dist/${target_system}
           build_directory=${project_directory}/build/${target_system}
           shift
           ;;
       --debian8)
           debian_version=8
-	  target_system=debian${debian_version}
+          target_system=debian${debian_version}
           dist_directory=${project_directory}/dist/${target_system}
           build_directory=${project_directory}/build/${target_system}
           shift
           ;;
       --debian9)
           debian_version=9
-	  target_system=debian${debian_version}
+          target_system=debian${debian_version}
           dist_directory=${project_directory}/dist/${target_system}
           build_directory=${project_directory}/build/${target_system}
           shift
@@ -142,126 +142,126 @@ done
 
 clean_up()
 {
-	echo "Clean working dir:"
-	# clean up previous build
-	rm -rf ${build_directory}
-	# create the build context
-	mkdir -p ${build_directory}
+    echo "Clean working dir:"
+    # clean up previous build
+    rm -rf ${build_directory}
+    # create the build context
+    mkdir -p ${build_directory}
 }
 
 build_deb_8_plus () {
-	echo "Build for debian 8 or newer using actual packaging" 
-	tarname=${project}_${debianversion}.orig.tar.gz
-	clean_up
-	python setup.py debian_src
-	cp -f dist/${tarname} ${build_directory}
-	if [ -f dist/${project}-testimages.tar.gz ]
-	then
-	  cp -f dist/${project}-testimages.tar.gz ${build_directory}
-	fi
-	
-	cd ${build_directory}
-	tar -xzf ${tarname}
-	
-	directory=${project}-${strictversion}
-	newname=${deb_name}_${debianversion}.orig.tar.gz
-	
-	#echo tarname $tarname newname $newname
-	if [ $tarname != $newname ]
-	then
-	  if [ -h $newname ]
-	  then
-	    rm ${newname}
-	  fi
-	    ln -s ${tarname} ${newname}
-	fi
-	
-	if [ -f ${project}-testimages.tar.gz ]
-	then
-	  if [ ! -h  ${deb_name}_${debianversion}.orig-testimages.tar.gz ]
-	  then
-	    ln -s ${project}-testimages.tar.gz ${deb_name}_${debianversion}.orig-testimages.tar.gz
-	  fi
-	fi
-	
-	cd ${directory}
-	cp -r ${project_directory}/package/${target_system} debian
-	cp ${project_directory}/copyright debian
-	
-	#handle test images
-	if [ -f ../${deb_name}_${debianversion}.orig-testimages.tar.gz ]
-	then
-	  if [ ! -d testimages ]
-	  then
-	    mkdir testimages
-	  fi
-	  cd testimages
-	  tar -xzf  ../${deb_name}_${debianversion}.orig-testimages.tar.gz
-	  cd ..
-	else
-	  # Disable to skip tests during build
-	  echo No test data
-	  #export PYBUILD_DISABLE_python2=test
-	  #export PYBUILD_DISABLE_python3=test
-	  #export DEB_BUILD_OPTIONS=nocheck
-	fi
-	
-	dch -v ${debianversion}-1 "upstream development build of ${project} ${version}"
-	dch --bpo "${project} snapshot ${version} built for ${target_system}"
-	dpkg-buildpackage -r
-	rc=$?
-	
-	if [ $rc -eq 0 ]; then
-	  # move packages to dist directory
-	  echo Build succeeded...
-	  rm -rf ${dist_directory}
-	  mkdir -p ${dist_directory}
-	  mv ${build_directory}/*.deb ${dist_directory}
-	  mv ${build_directory}/*.x* ${dist_directory}
-	  mv ${build_directory}/*.dsc ${dist_directory}
-	  mv ${build_directory}/*.changes ${dist_directory}
-	  cd ../../..
-	else
-	  echo Build failed, please investigate ...
-	  exit "$rc"
-	fi
+    echo "Build for debian 8 or newer using actual packaging" 
+    tarname=${project}_${debianversion}.orig.tar.gz
+    clean_up
+    python setup.py debian_src
+    cp -f dist/${tarname} ${build_directory}
+    if [ -f dist/${project}-testimages.tar.gz ]
+    then
+      cp -f dist/${project}-testimages.tar.gz ${build_directory}
+    fi
+    
+    cd ${build_directory}
+    tar -xzf ${tarname}
+    
+    directory=${project}-${strictversion}
+    newname=${deb_name}_${debianversion}.orig.tar.gz
+    
+    #echo tarname $tarname newname $newname
+    if [ $tarname != $newname ]
+    then
+      if [ -h $newname ]
+      then
+        rm ${newname}
+      fi
+        ln -s ${tarname} ${newname}
+    fi
+    
+    if [ -f ${project}-testimages.tar.gz ]
+    then
+      if [ ! -h  ${deb_name}_${debianversion}.orig-testimages.tar.gz ]
+      then
+        ln -s ${project}-testimages.tar.gz ${deb_name}_${debianversion}.orig-testimages.tar.gz
+      fi
+    fi
+    
+    cd ${directory}
+    cp -r ${project_directory}/package/${target_system} debian
+    cp ${project_directory}/copyright debian
+    
+    #handle test images
+    if [ -f ../${deb_name}_${debianversion}.orig-testimages.tar.gz ]
+    then
+      if [ ! -d testimages ]
+      then
+        mkdir testimages
+      fi
+      cd testimages
+      tar -xzf  ../${deb_name}_${debianversion}.orig-testimages.tar.gz
+      cd ..
+    else
+      # Disable to skip tests during build
+      echo No test data
+      #export PYBUILD_DISABLE_python2=test
+      #export PYBUILD_DISABLE_python3=test
+      #export DEB_BUILD_OPTIONS=nocheck
+    fi
+    
+    dch -v ${debianversion}-1 "upstream development build of ${project} ${version}"
+    dch --bpo "${project} snapshot ${version} built for ${target_system}"
+    dpkg-buildpackage -r
+    rc=$?
+    
+    if [ $rc -eq 0 ]; then
+      # move packages to dist directory
+      echo Build succeeded...
+      rm -rf ${dist_directory}
+      mkdir -p ${dist_directory}
+      mv ${build_directory}/*.deb ${dist_directory}
+      mv ${build_directory}/*.x* ${dist_directory}
+      mv ${build_directory}/*.dsc ${dist_directory}
+      mv ${build_directory}/*.changes ${dist_directory}
+      cd ../../..
+    else
+      echo Build failed, please investigate ...
+      exit "$rc"
+    fi
 }
 
 build_deb_7_minus () {
-	echo "Build for debian 7 or older using stdeb"
-	tarname=${project}-${strictversion}.tar.gz
-	clean_up
-	
-	python setup.py sdist
-	cp -f dist/${tarname} ${build_directory}
-	cd ${build_directory}
-	tar -xzf ${tarname}
-	cd ${project}-${strictversion}
-	
-	if [ $use_python3 = 1 ]
-	then
-	  echo Using Python 2+3
-	  python3 setup.py --command-packages=stdeb.command sdist_dsc --with-python2=True --with-python3=True --no-python3-scripts=True build --no-cython bdist_deb
-	  rc=$?
-	else
-	  echo Using Python 2
-	  # bdist_deb feed /usr/bin using setup.py entry-points
-	  python setup.py --command-packages=stdeb.command build --no-cython bdist_deb
-	  rc=$?
-	fi
-	
-	# move packages to dist directory
-	rm -rf ${dist_directory}
-	mkdir -p ${dist_directory}
-	mv -f deb_dist/*.deb ${dist_directory}
-	
-	# back to the root
-	cd ../../..
+    echo "Build for debian 7 or older using stdeb"
+    tarname=${project}-${strictversion}.tar.gz
+    clean_up
+    
+    python setup.py sdist
+    cp -f dist/${tarname} ${build_directory}
+    cd ${build_directory}
+    tar -xzf ${tarname}
+    cd ${project}-${strictversion}
+    
+    if [ $use_python3 = 1 ]
+    then
+      echo Using Python 2+3
+      python3 setup.py --command-packages=stdeb.command sdist_dsc --with-python2=True --with-python3=True --no-python3-scripts=True build --no-cython bdist_deb
+      rc=$?
+    else
+      echo Using Python 2
+      # bdist_deb feed /usr/bin using setup.py entry-points
+      python setup.py --command-packages=stdeb.command build --no-cython bdist_deb
+      rc=$?
+    fi
+    
+    # move packages to dist directory
+    rm -rf ${dist_directory}
+    mkdir -p ${dist_directory}
+    mv -f deb_dist/*.deb ${dist_directory}
+    
+    # back to the root
+    cd ../../..
 }
 
 if [ $debian_version -ge 8 ]
 then 
-	build_deb_8_plus
+    build_deb_8_plus
 else
     build_deb_7_minus
 fi
