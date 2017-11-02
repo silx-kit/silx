@@ -125,11 +125,16 @@ class _Item(object):
         if path[-1] == "/":
             path = path[:-1]
         names = path.split("/")
+        caseSensitive = qt.QFSFileEngine(path).caseSensitive()
         count = len(names)
         cursor = self
         for name in names:
             for item in cursor.child():
-                if item.fileName() == name:
+                if caseSensitive:
+                    same = item.fileName() == name
+                else:
+                    same = item.fileName().lower() == name.lower()
+                if same:
                     cursor = item
                     count -= 1
                     break
