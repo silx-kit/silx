@@ -49,7 +49,7 @@ class _Item(object):
         self.__children = None
         self.__absolutePath = None
 
-    def isDriver(self):
+    def isDrive(self):
         return self.parent().parent() is None
 
     def isRoot(self):
@@ -61,10 +61,10 @@ class _Item(object):
 
         This function uses in most cases the default
         `qt.QFileInfo.absoluteFilePath`. But it is known to freeze the file
-        system with network drivers.
+        system with network drives.
 
-        This function uses `qt.QFileInfo.filePath` in case of root drivers, to
-        avoid this kind of issues. In case of driver, the result is the same,
+        This function uses `qt.QFileInfo.filePath` in case of root drives, to
+        avoid this kind of issues. In case of drive, the result is the same,
         while the file path is already absolute.
 
         :rtype: str
@@ -72,7 +72,7 @@ class _Item(object):
         if self.__absolutePath is None:
             if self.isRoot():
                 path = ""
-            elif self.isDriver():
+            elif self.isDrive():
                 path = self.__fileInfo.filePath()
             else:
                 path = os.path.join(self.parent().absoluteFilePath(), self.__fileInfo.fileName())
@@ -105,7 +105,7 @@ class _Item(object):
         return self.__fileInfo.filePath()
 
     def fileName(self):
-        if self.isDriver():
+        if self.isDrive():
             name = self.absoluteFilePath()
             if name[-1] == "/":
                 name = name[:-1]
@@ -324,7 +324,7 @@ class _RawFileSystemModel(qt.QAbstractItemModel):
             style = qt.QApplication.instance().style()
             if item.isRoot():
                 result = style.standardIcon(qt.QStyle.SP_ComputerIcon)
-            elif item.isDriver():
+            elif item.isDrive():
                 result = style.standardIcon(qt.QStyle.SP_DriveHDIcon)
             elif item.isDir():
                 result = style.standardIcon(qt.QStyle.SP_DirIcon)
@@ -389,8 +389,8 @@ class _RawFileSystemModel(qt.QAbstractItemModel):
         else:
             if item.isRoot():
                 result = "Computer"
-            elif item.isDriver():
-                result = "Driver"
+            elif item.isDrive():
+                result = "Drive"
             elif item.isDir():
                 result = "Directory"
             else:
