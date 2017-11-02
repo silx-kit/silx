@@ -515,6 +515,36 @@ class SafeFileSystemModel(qt.QSortFilterProxyModel):
         index = self.mapFromSource(index)
         return index
 
+    def lessThan(self, leftSourceIndex, rightSourceIndex):
+        sourceModel = self.sourceModel()
+        sortColumn = self.sortColumn()
+        if sortColumn == _RawFileSystemModel.NAME_COLUMN:
+            left = sourceModel.fileInfo(leftSourceIndex)
+            right = sourceModel.fileInfo(rightSourceIndex)
+            if sys.platform != "darwin":
+                # Sort directories before files
+                leftIsDir = left.isDir()
+                rightIsDir = right.isDir()
+                if leftIsDir ^ rightIsDir:
+                    return leftIsDir
+            return left.fileName().lower() < right.fileName().lower()
+        elif sortColumn == _RawFileSystemModel.SIZE_COLUMN:
+            left = sourceModel.fileInfo(leftSourceIndex)
+            right = sourceModel.fileInfo(rightSourceIndex)
+            return left.size() < right.size()
+        elif sortColumn == _RawFileSystemModel.TYPE_COLUMN:
+            left = sourceModel.type(leftSourceIndex)
+            right = sourceModel.type(rightSourceIndex)
+            return left < right
+        elif sortColumn == _RawFileSystemModel.LAST_MODIFIED_COLUMN:
+            left = sourceModel.fileInfo(leftSourceIndex)
+            right = sourceModel.fileInfo(rightSourceIndex)
+            return left.lastModified() < right.lastModified()
+        else:
+            _logger.warning("Unsupported sorted column %d", sortColumn)
+
+        return False
+
     def filterAcceptsRow(self, sourceRow, sourceParent):
         if not sourceParent.isValid():
             return True
