@@ -1485,7 +1485,7 @@ class ImageFileDialog(qt.QDialog):
                     else:
                         assert(False)
                 else:
-                    self.__browser.setRootIndex(index)
+                    self.__browser.setRootIndex(index, model=self.__fileModel)
                     self.__clearData()
 
                 self.__slicing.setVisible(uri.slice() is not None)
