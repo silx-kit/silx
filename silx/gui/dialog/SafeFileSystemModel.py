@@ -240,13 +240,14 @@ class _RawFileSystemModel(qt.QAbstractItemModel):
         elif role == qt.QFileSystemModel.FileNameRole:
             return self.fileName(index)
         elif role == qt.Qt.DecorationRole:
-            icon = self.fileIcon(index)
-            if icon is None or icon.isNull():
-                if self.isDir(index):
-                    self.__iconProvider.icon(qt.QFileIconProvider.Folder)
-                else:
-                    self.__iconProvider.icon(qt.QFileIconProvider.File)
-            return icon
+            if column == self.NAME_COLUMN:
+                icon = self.fileIcon(index)
+                if icon is None or icon.isNull():
+                    if self.isDir(index):
+                        self.__iconProvider.icon(qt.QFileIconProvider.Folder)
+                    else:
+                        self.__iconProvider.icon(qt.QFileIconProvider.File)
+                return icon
         elif role == qt.Qt.TextAlignmentRole:
             if column == self.SIZE_COLUMN:
                 return qt.Qt.AlignRight
