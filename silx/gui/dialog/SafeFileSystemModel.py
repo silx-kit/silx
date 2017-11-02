@@ -149,14 +149,14 @@ class _Item(object):
             items = qt.QDir.drives()
         else:
             directory = qt.QDir(self.absoluteFilePath())
-            items = directory.entryInfoList(qt.QDir.AllEntries | qt.QDir.NoDotAndDotDot)
+            items = directory.entryInfoList()
         for fileInfo in items:
             i = _Item(fileInfo)
             self.__children.append(i)
             i._setParent(self)
 
 
-class SafeFileSystemModel(qt.QAbstractItemModel):
+class _RawFileSystemModel(qt.QAbstractItemModel):
     """
     This class implement a file system model and try to avoid freeze. On Qt4,
     :class:`qt.QFileSystemModel` is known to freeze the file system when
@@ -165,6 +165,9 @@ class SafeFileSystemModel(qt.QAbstractItemModel):
     To avoid this behaviour, this class does not use
     `qt.QFileInfo.absoluteFilePath` nor `qt.QFileInfo.canonicalPath` to reach
     information on drives.
+
+    This model do not take care of sorting and filtering. This features are
+    managed by another model, by composition.
 
     And because it is the end of life of Qt4, we do not implement asynchronous
     loading of files as it is done by :class:`qt.QFileSystemModel`, nor some
@@ -424,24 +427,29 @@ class SafeFileSystemModel(qt.QAbstractItemModel):
         # FIXME: invalidate the model
         self.__iconProvider = provider
 
+    # bool               resolveSymlinks() const
+    # void               setResolveSymlinks(bool enable)
+
     def setNameFilterDisables(self, enable):
-        # FIXME: invalidate the model
-        self.__nameFilterDisables = enable
+        return None
 
     def nameFilterDisables(self):
-        return self.__nameFilterDisables
+        return None
 
     def myComputer(self, role=qt.Qt.DisplayRole):
-        # FIXME: implement it
         return None
 
     def setNameFilters(self, filters):
-        # FIXME: implement it
         return
 
     def nameFilters(self):
-        # FIXME: implement it
         return None
+
+    def filter(self):
+        return self.__filters
+
+    def setFilter(self, filters):
+        return
 
     def setReadOnly(self, enable):
         assert(enable is True)
@@ -449,7 +457,223 @@ class SafeFileSystemModel(qt.QAbstractItemModel):
     def isReadOnly(self):
         return False
 
-    # QDir::Filters      filter() const
-    # bool               resolveSymlinks() const
-    # void               setFilter(QDir::Filters filters)
-    # void               setResolveSymlinks(bool enable)
+
+class SafeFileSystemModel(qt.QSortFilterProxyModel):
+    """
+    This class implement a file system model and try to avoid freeze. On Qt4,
+    :class:`qt.QFileSystemModel` is known to freeze the file system when
+    network drives are available.
+
+    To avoid this behaviour, this class does not use
+    `qt.QFileInfo.absoluteFilePath` nor `qt.QFileInfo.canonicalPath` to reach
+    information on drives.
+
+    And because it is the end of life of Qt4, we do not implement asynchronous
+    loading of files as it is done by :class:`qt.QFileSystemModel`, nor some
+    useful features.
+    """
+
+    def __init__(self, parent=None):
+        qt.QSortFilterProxyModel.__init__(self, parent=parent)
+        self.__nameFilterDisables = sys.platform == "darwin"
+        self.__nameFilters = []
+        self.__filters = qt.QDir.AllEntries | qt.QDir.NoDotAndDotDot | qt.QDir.AllDirs
+        sourceModel = _RawFileSystemModel(self)
+        self.setSourceModel(sourceModel)
+
+    @property
+    def directoryLoaded(self):
+        return self.sourceModel().directoryLoaded
+
+    @property
+    def rootPathChanged(self):
+        return self.sourceModel().rootPathChanged
+
+    def index(self, *args, **kwargs):
+        path_api = False
+        path_api |= len(args) >= 1 and isinstance(args[0], six.string_types)
+        path_api |= "path" in kwargs
+
+        if path_api:
+            return self.__indexFromPath(*args, **kwargs)
+        else:
+            return self.__index(*args, **kwargs)
+
+    def __index(self, row, column, parent=qt.QModelIndex()):
+        return qt.QSortFilterProxyModel.index(self, row, column, parent)
+
+    def __indexFromPath(self, path, column=0):
+        """
+        Uses the index(str) C++ API
+
+        :rtype: qt.QModelIndex
+        """
+        if path == "":
+            return qt.QModelIndex()
+
+        index = self.sourceModel().index(path, column)
+        index = self.mapFromSource(index)
+        return index
+
+    def filterAcceptsRow(self, sourceRow, sourceParent):
+        if not sourceParent.isValid():
+            return True
+
+        sourceModel = self.sourceModel()
+        index = sourceModel.index(sourceRow, 0, sourceParent)
+        if not index.isValid():
+            return True
+        fileInfo = sourceModel.fileInfo(index)
+        if fileInfo is None:
+            return False
+
+        filters = self.__filters
+        filterPermissions = ((filters & qt.QDir.PermissionMask)
+                            and (filters & qt.QDir.PermissionMask) != qt.QDir.PermissionMask)
+        hideDirs = not (filters & (qt.QDir.Dirs | qt.QDir.AllDirs))
+        hideFiles = not (filters & qt.QDir.Files)
+        hideReadable = not (not filterPermissions or (filters & qt.QDir.Readable))
+        hideWritable = not (not filterPermissions or (filters & qt.QDir.Writable))
+        hideExecutable = not (not filterPermissions or (filters & qt.QDir.Executable))
+        hideHidden = not (filters & qt.QDir.Hidden)
+        hideSystem = not (filters & qt.QDir.System)
+        hideSymlinks = (filters & qt.QDir.NoSymLinks)
+        hideDot = (filters & qt.QDir.NoDot) or (filters & qt.QDir.NoDotAndDotDot)
+        hideDotDot = (filters & qt.QDir.NoDotDot) or (filters & qt.QDir.NoDotAndDotDot)
+
+        fileName = fileInfo.fileName()
+        isDot = fileName == "."
+        isDotDot = fileName == ".."
+        isSystem = not fileInfo.isDir() and not fileInfo.isFile()
+
+        if ((hideHidden and not (isDot or isDotDot) and fileInfo.isHidden())
+            or (hideSystem and isSystem)
+            or (hideDirs and fileInfo.isDir())
+            or (hideFiles and fileInfo.isFile())
+            or (hideSymlinks and fileInfo.isSymLink())
+            or (hideReadable and fileInfo.isReadable())
+            or (hideWritable and fileInfo.isWritable())
+            or (hideExecutable and fileInfo.isExecutable())
+            or (hideDot and isDot)
+            or (hideDotDot and isDotDot)):
+            return False
+
+        if self.__nameFilterDisables:
+            return True
+
+        if fileInfo.isDir() and (filters & qt.QDir.AllDirs):
+            return True
+
+        return self.__nameFiltersAccepted(fileInfo)
+
+    def __nameFiltersAccepted(self, fileInfo):
+        if len(self.__nameFilters) == 0:
+            return True
+
+        fileName = fileInfo.fileName()
+        for reg in self.__nameFilters:
+            if reg.exactMatch(fileName):
+                return True
+        return False
+
+    def setNameFilterDisables(self, enable):
+        self.__nameFilterDisables = enable
+        self.invalidateFilter()
+
+    def nameFilterDisables(self):
+        return self.__nameFilterDisables
+
+    def myComputer(self, role=qt.Qt.DisplayRole):
+        return self.sourceModel().myComputer(role)
+
+    def setNameFilters(self, filters):
+        self.__nameFilters = []
+        isCaseSensitive = self.__filters & qt.QDir.CaseSensitive
+        caseSensitive = qt.Qt.CaseSensitive if isCaseSensitive  else qt.Qt.CaseInsensitive
+        for filter in filters:
+            reg = qt.QRegExp(filter, caseSensitive, qt.QRegExp.Wildcard)
+            self.__nameFilters.append(reg)
+        self.invalidateFilter()
+
+    def nameFilters(self):
+        return [f.pattern() for f in self.__nameFilters]
+
+    def filter(self):
+        return self.__filters
+
+    def setFilter(self, filters):
+        self.__filters = filters
+        # In case of change of case sensitivity
+        self.setNameFilters(self.nameFilters())
+        self.invalidateFilter()
+
+    def setReadOnly(self, enable):
+        assert(enable is True)
+
+    def isReadOnly(self):
+        return False
+
+    def rootPath(self):
+        return self.sourceModel().rootPath()
+
+    def setRootPath(self, path):
+        index = self.sourceModel().setRootPath(path)
+        index = self.mapFromSource(index)
+        return index
+
+    def flags(self, index):
+        sourceModel = self.sourceModel()
+        index = self.mapToSource(index)
+        filters = sourceModel.flags(index)
+
+        if self.__nameFilterDisables:
+            fileInfo = sourceModel.fileInfo(index)
+            if not self.__nameFiltersAccepted(fileInfo):
+                filters &= ~qt.Qt.ItemIsEnabled
+
+        return filters
+
+    def fileIcon(self, index):
+        sourceModel = self.sourceModel()
+        index = self.mapToSource(index)
+        return sourceModel.fileIcon(index)
+
+    def fileInfo(self, index):
+        sourceModel = self.sourceModel()
+        index = self.mapToSource(index)
+        return sourceModel.fileInfo(index)
+
+    def fileName(self, index):
+        sourceModel = self.sourceModel()
+        index = self.mapToSource(index)
+        return sourceModel.fileName(index)
+
+    def filePath(self, index):
+        sourceModel = self.sourceModel()
+        index = self.mapToSource(index)
+        return sourceModel.filePath(index)
+
+    def isDir(self, index):
+        sourceModel = self.sourceModel()
+        index = self.mapToSource(index)
+        return sourceModel.isDir(index)
+
+    def lastModified(self, index):
+        sourceModel = self.sourceModel()
+        index = self.mapToSource(index)
+        return sourceModel.lastModified(index)
+
+    def permissions(self, index):
+        sourceModel = self.sourceModel()
+        index = self.mapToSource(index)
+        return sourceModel.permissions(index)
+
+    def size(self, index):
+        sourceModel = self.sourceModel()
+        index = self.mapToSource(index)
+        return sourceModel.size(index)
+
+    def type(self, index):
+        sourceModel = self.sourceModel()
+        index = self.mapToSource(index)
+        return sourceModel.type(index)
