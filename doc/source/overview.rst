@@ -26,6 +26,11 @@ Project
 - `Source repository <https://github.com/silx-kit/silx>`_
 - `Issue tracker <https://github.com/silx-kit/silx/issues>`_
 - Mailing list: silx@esrf.fr (`Archive <http://www.silx.org/lurker/list/silx.en.html>`_)
+  To register:
+
+    - from inside ESRF use the `sympa web page <http://sympa.esrf.fr>`_,
+    - from outside ESRF, send an email to `silx-subscribe@esrf.fr <mailto:silx-subscribe@esrf.fr>`_.
+
 - Continuous integration
 
   - Linux and MacOS X: `Travis <https://travis-ci.org/silx-kit/silx>`_
