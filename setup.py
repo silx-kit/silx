@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "02/10/2017"
+__date__ = "16/10/2017"
 __license__ = "MIT"
 
 
@@ -717,6 +717,7 @@ def get_project_configuration(dry_run):
             'gui/icons/*/*.png',
             'opencl/*.cl',
             'opencl/sift/*.cl',
+            'opencl/codec/*.cl',
             'gui/colormaps/*.npy'],
     }
 
@@ -749,7 +750,7 @@ def get_project_configuration(dry_run):
 
     setup_kwargs.update(name=PROJECT,
                         version=get_version(),
-                        url="https://github.com/silx-kit/silx",
+                        url="http://www.silx.org/",
                         author="data analysis unit",
                         author_email="silx@esrf.fr",
                         classifiers=classifiers,
