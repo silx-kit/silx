@@ -530,9 +530,11 @@ class _Browser(qt.QStackedWidget):
             selectionModel = self.__listView.selectionModel()
             if selectionModel is not None:
                 selectionModel.selectionChanged.disconnect()
+                selectionModel.clear()
             selectionModel = self.__detailView.selectionModel()
             if selectionModel is not None:
                 selectionModel.selectionChanged.disconnect()
+                selectionModel.clear()
             self.__listView.setModel(newModel)
             self.__detailView.setModel(newModel)
             selectionModel = self.__listView.selectionModel()
