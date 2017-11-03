@@ -32,12 +32,13 @@ import collections
 import h5py
 import numpy
 from silx.third_party import six
+import weakref
 
 from .utils import is_dataset
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "28/08/2017"
+__date__ = "11/10/2017"
 
 
 class _MappingProxyType(collections.MutableMapping):
@@ -90,11 +91,14 @@ class Node(object):
     """
 
     def __init__(self, name, parent=None, attrs=None):
-        self.__parent = parent
+        self._set_parent(parent)
         self.__basename = name
         self.__attrs = {}
         if attrs is not None:
             self.__attrs.update(attrs)
+
+    def _set_basename(self, name):
+        self.__basename = name
 
     @property
     def h5py_class(self):
@@ -111,21 +115,13 @@ class Node(object):
 
         :rtype: Node
         """
-        return self.__parent
-
-    @property
-    def file(self):
-        """Returns the file node of this node.
-
-        :rtype: Node
-        """
-        node = self
-        while node.__parent is not None:
-            node = node.__parent
-        if isinstance(node, File):
-            return node
+        if self.__parent is None:
+            parent = None
         else:
-            return None
+            parent = self.__parent()
+            if parent is None:
+                self.__parent = None
+        return parent
 
     def _set_parent(self, parent):
         """Set the parent of this node.
@@ -134,7 +130,24 @@ class Node(object):
 
         :param Node parent: New parent for this node
         """
-        self.__parent = parent
+        if parent is not None:
+            self.__parent = weakref.ref(parent)
+        else:
+            self.__parent = None
+
+    @property
+    def file(self):
+        """Returns the file node of this node.
+
+        :rtype: Node
+        """
+        node = self
+        while node.parent is not None:
+            node = node.parent
+        if isinstance(node, File):
+            return node
+        else:
+            return None
 
     @property
     def attrs(self):
@@ -151,11 +164,12 @@ class Node(object):
     def name(self):
         """Returns the HDF5 name of this node.
         """
-        if self.__parent is None:
+        parent = self.parent
+        if parent is None:
             return "/"
-        if self.__parent.name == "/":
+        if parent.name == "/":
             return "/" + self.basename
-        return self.__parent.name + "/" + self.basename
+        return parent.name + "/" + self.basename
 
     @property
     def basename(self):
@@ -187,14 +201,29 @@ class Dataset(Node):
     def _check_data(self, data):
         """Check that the data provided by the dataset is valid.
 
-        :param numpy.ndarray data: Data associated to the dataset
+        It is valid when it can be stored in a HDF5 using h5py.
 
+        :param numpy.ndarray data: Data associated to the dataset
         :raises TypeError: In the case the data is not valid.
         """
+        if isinstance(data, (six.text_type, six.binary_type)):
+            return
+
         chartype = data.dtype.char
-        if chartype in ["U", "O"]:
-            msg = "Type of the dataset '%s' is not supported. Found '%s'."
-            raise TypeError(msg % (self.name, data.dtype))
+        if chartype == "U":
+            pass
+        elif chartype == "O":
+            d = h5py.special_dtype(vlen=data.dtype)
+            if d is not None:
+                return
+            d = h5py.special_dtype(ref=data.dtype)
+            if d is not None:
+                return
+        else:
+            return
+
+        msg = "Type of the dataset '%s' is not supported. Found '%s'."
+        raise TypeError(msg % (self.name, data.dtype))
 
     def _set_data(self, data):
         """Set the data exposed by the dataset.
@@ -633,6 +662,61 @@ class Group(Node):
             obj = node
         return obj
 
+    def __setitem__(self, name, obj):
+        """Add an object to the group.
+
+        :param str name: Location on the group to store the object.
+            This path name must not exists.
+        :param object obj: Object to store on the file. According to the type,
+            the behaviour will not be the same.
+
+            - `commonh5.SoftLink`: Create the corresponding link.
+            - `numpy.ndarray`: The array is converted to a dataset object.
+            - `commonh5.Node`: A hard link should be created pointing to the
+                given object. This implementation uses a soft link.
+                If the node do not have parent it is connected to the tree
+                without using a link (that's a hard link behaviour).
+            - other object: Convert first the object with ndarray and then
+                store it. ValueError if the resulting array dtype is not
+                supported.
+        """
+        if name in self:
+            # From the h5py API
+            raise RuntimeError("Unable to create link (name already exists)")
+
+        elements = name.rsplit("/", 1)
+        if len(elements) == 1:
+            parent = self
+            basename = elements[0]
+        else:
+            group_path, basename = elements
+            if group_path in self:
+                parent = self[group_path]
+            else:
+                parent = self.create_group(group_path)
+
+        if isinstance(obj, SoftLink):
+            obj._set_basename(basename)
+            node = obj
+        elif isinstance(obj, Node):
+            if obj.parent is None:
+                obj._set_basename(basename)
+                node = obj
+            else:
+                node = SoftLink(basename, obj.name)
+        elif isinstance(obj, numpy.dtype):
+            node = Dataset(basename, data=obj)
+        elif isinstance(obj, numpy.ndarray):
+            node = Dataset(basename, data=obj)
+        else:
+            data = numpy.array(obj)
+            try:
+                node = Dataset(basename, data=data)
+            except TypeError as e:
+                raise ValueError(e.args[0])
+
+        parent.add_node(node)
+
     def __getitem__(self, name):
         """Return a child from his name.
 
@@ -784,10 +868,24 @@ class Group(Node):
         """
         if not self._is_editable():
             raise RuntimeError("File is not editable")
-        if "/" in name:
-            raise TypeError("Path are not supported")
-        group = Group(name)
-        self.add_node(group)
+        if name in self:
+            raise ValueError("Unable to create group (name already exists)")
+
+        if name.startswith("/"):
+            name = name[1:]
+            return self.file.create_group(name)
+
+        elements = name.split('/')
+        group = self
+        for basename in elements:
+            if basename in group:
+                group = group[basename]
+                if not isinstance(group, Group):
+                    raise RuntimeError("Unable to create group (group parent is missing")
+            else:
+                node = Group(basename)
+                group.add_node(node)
+                group = node
         return group
 
     def create_dataset(self, name, shape=None, dtype=None, data=None, **kwds):

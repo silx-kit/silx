@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "22/08/2017"
+__date__ = "22/09/2017"
 
 
 import os
@@ -135,6 +135,7 @@ class LoadingItemRunnable(qt.QRunnable):
         """Process the file loading. The worker is used as holder
         of the data and the signal. The result is sent as a signal.
         """
+        h5file = None
         try:
             h5file = silx_io.open(self.filename)
             newItem = self.__loadItemTree(self.oldItem, h5file)
@@ -143,6 +144,8 @@ class LoadingItemRunnable(qt.QRunnable):
             # Should be logged
             error = e
             newItem = None
+            if h5file is not None:
+                h5file.close()
 
         # Take care of None value in case of PySide
         newItem = _wrapNone(newItem)
@@ -205,7 +208,6 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
     def __init__(self, parent=None):
         super(Hdf5TreeModel, self).__init__(parent)
 
-        self.treeView = parent
         self.header_labels = [None] * len(self.COLUMN_IDS)
         self.header_labels[self.NAME_COLUMN] = 'Name'
         self.header_labels[self.TYPE_COLUMN] = 'Type'
@@ -224,14 +226,36 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         self.__animatedIcon.iconChanged.connect(self.__updateLoadingItems)
         self.__runnerSet = set([])
 
-        # store used icons to avoid to avoid the cache to release it
+        # store used icons to avoid the cache to release it
         self.__icons = []
+        self.__icons.append(icons.getQIcon("item-none"))
         self.__icons.append(icons.getQIcon("item-0dim"))
         self.__icons.append(icons.getQIcon("item-1dim"))
         self.__icons.append(icons.getQIcon("item-2dim"))
         self.__icons.append(icons.getQIcon("item-3dim"))
         self.__icons.append(icons.getQIcon("item-ndim"))
-        self.__icons.append(icons.getQIcon("item-object"))
+
+        self.__openedFiles = []
+        """Store the list of files opened by the model itself."""
+        # FIXME: It should managed one by one by Hdf5Item itself
+
+    def __del__(self):
+        self._closeOpened()
+        s = super(Hdf5TreeModel, self)
+        if hasattr(s, "__del__"):
+            # else it fail on Python 3
+            s.__del__()
+
+    def _closeOpened(self):
+        """Close files which was opened by this model.
+
+        This function may be removed in the future.
+
+        File are opened by the model when it was inserted using
+        `insertFileAsync`, `insertFile`, `appendFile`."""
+        for h5file in self.__openedFiles:
+            h5file.close()
+        self.__openedFiles = []
 
     def __updateLoadingItems(self, icon):
         for i in range(self.__root.childCount()):
@@ -259,6 +283,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         self.__root.removeChildAtIndex(row)
         self.endRemoveRows()
         if newItem is not None:
+            self.__openedFiles.append(newItem.obj)
             self.beginInsertRows(rootIndex, row, row)
             self.__root.insertChild(row, newItem)
             self.endInsertRows()
@@ -588,6 +613,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         """
         try:
             h5file = silx_io.open(filename)
+            self.__openedFiles.append(h5file)
             self.insertH5pyObject(h5file, row=row)
         except IOError:
             _logger.debug("File '%s' can't be read.", filename, exc_info=True)

@@ -35,6 +35,7 @@ __date__ = "26/01/2017"
 from silx.gui import qt
 
 from .Plot3DWidget import Plot3DWidget
+from .actions.viewpoint import RotateViewport
 from .tools import OutputToolBar, InteractiveModeToolBar
 from .tools import ViewpointToolButton
 
@@ -58,6 +59,7 @@ class Plot3DWindow(qt.QMainWindow):
 
         toolbar = qt.QToolBar(self)
         toolbar.addWidget(ViewpointToolButton(plot3D=self._plot3D))
+        toolbar.addAction(RotateViewport(parent=toolbar, plot3d=self._plot3D))
         self.addToolBar(toolbar)
 
         toolbar = OutputToolBar(parent=self)

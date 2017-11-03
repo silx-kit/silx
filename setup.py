@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "30/08/2017"
+__date__ = "16/10/2017"
 __license__ = "MIT"
 
 
@@ -114,6 +114,7 @@ classifiers = ["Development Status :: 4 - Beta",
                "Programming Language :: Python :: 2.7",
                "Programming Language :: Python :: 3.4",
                "Programming Language :: Python :: 3.5",
+               "Programming Language :: Python :: 3.6",
                "Programming Language :: Python :: Implementation :: CPython",
                "Topic :: Scientific/Engineering :: Physics",
                "Topic :: Software Development :: Libraries :: Python Modules",
@@ -194,16 +195,13 @@ class BuildMan(Command):
 
         env = dict((str(k), str(v)) for k, v in os.environ.items())
         env["PYTHONPATH"] = os.pathsep.join(path)
-
+        if not os.path.isdir("build/man"):
+            os.makedirs("build/man")
         import subprocess
-
-        status = subprocess.call(["mkdir", "-p", "build/man"])
-        if status != 0:
-            raise RuntimeError("Fail to create build/man directory")
+        import tempfile
+        import stat
 
         try:
-            import tempfile
-            import stat
             script_name = None
 
             # help2man expect a single executable file to extract the help
@@ -716,9 +714,10 @@ def get_project_configuration(dry_run):
             'gui/icons/*.svg',
             'gui/icons/*.mng',
             'gui/icons/*.gif',
-            'gui/icons/animated/*.png',
+            'gui/icons/*/*.png',
             'opencl/*.cl',
             'opencl/sift/*.cl',
+            'opencl/codec/*.cl',
             'gui/colormaps/*.npy'],
     }
 
@@ -751,7 +750,7 @@ def get_project_configuration(dry_run):
 
     setup_kwargs.update(name=PROJECT,
                         version=get_version(),
-                        url="https://github.com/silx-kit/silx",
+                        url="http://www.silx.org/",
                         author="data analysis unit",
                         author_email="silx@esrf.fr",
                         classifiers=classifiers,

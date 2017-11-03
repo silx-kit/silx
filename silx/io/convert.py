@@ -60,7 +60,7 @@ from silx.io import is_dataset, is_group, is_softlink
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "24/08/2017"
+__date__ = "14/09/2017"
 
 _logger = logging.getLogger(__name__)
 
@@ -111,16 +111,19 @@ class Hdf5Writer(object):
                  h5path='/',
                  overwrite_data=False,
                  link_type="soft",
-                 create_dataset_args=None):
+                 create_dataset_args=None,
+                 min_size=500):
         """
 
         :param h5path: Target path where the scan groups will be written
             in the output HDF5 file.
         :param bool overwrite_data:
             See documentation of :func:`write_to_h5`
-        :param str link_type: ``"hard"`` (default) or ``"soft"``
+        :param str link_type: ``"hard"`` or ``"soft"`` (default)
         :param dict create_dataset_args: Dictionary of args you want to pass to
             ``h5py.File.create_dataset``.
+            See documentation of :func:`write_to_h5`
+        :param int min_size:
             See documentation of :func:`write_to_h5`
         """
         self.h5path = h5path
@@ -136,6 +139,8 @@ class Hdf5Writer(object):
         if create_dataset_args is None:
             create_dataset_args = {}
         self.create_dataset_args = create_dataset_args
+
+        self.min_size = min_size
 
         self.overwrite_data = overwrite_data   # boolean
 
@@ -191,8 +196,8 @@ class Hdf5Writer(object):
                 del self._h5f[h5_name]
 
             if self.overwrite_data or not member_initially_exists:
-                # fancy arguments don't apply to scalars (shape==())
-                if obj.shape == ():
+                # fancy arguments don't apply to small dataset
+                if obj.size < self.min_size:
                     ds = self._h5f.create_dataset(h5_name, data=obj.value)
                 else:
                     ds = self._h5f.create_dataset(h5_name, data=obj.value,
@@ -223,7 +228,7 @@ class Hdf5Writer(object):
 
 def write_to_h5(infile, h5file, h5path='/', mode="a",
                 overwrite_data=False, link_type="soft",
-                create_dataset_args=None):
+                create_dataset_args=None, min_size=500):
     """Write content of a h5py-like object into a HDF5 file.
 
     :param infile: Path of input file, or :class:`commonh5.File` object
@@ -243,33 +248,42 @@ def write_to_h5(infile, h5file, h5path='/', mode="a",
     :param dict create_dataset_args: Dictionary of args you want to pass to
         ``h5py.File.create_dataset``. This allows you to specify filters and
         compression parameters. Don't specify ``name`` and ``data``.
-        These arguments don't apply to scalar datasets.
+        These arguments are only applied to datasets larger than 1MB.
+    :param int min_size: Minimum number of elements in a dataset to apply
+        chunking and compression. Default is 500.
 
     The structure of the spec data in an HDF5 file is described in the
     documentation of :mod:`silx.io.spech5`.
     """
-    if not is_group(infile):
-        # assume that it is a string and let silx.io.open test the type
-        h5pylike = silx.io.open(infile)
-    else:
-        h5pylike = infile
-
     writer = Hdf5Writer(h5path=h5path,
                         overwrite_data=overwrite_data,
                         link_type=link_type,
-                        create_dataset_args=create_dataset_args)
+                        create_dataset_args=create_dataset_args,
+                        min_size=min_size)
 
-    if not isinstance(h5file, h5py.File):
-        # If h5file is a file path, open and close it
+    # both infile and h5file can be either file handle or a file name: 4 cases
+    if not isinstance(h5file, h5py.File) and not is_group(infile):
+        with silx.io.open(infile) as h5pylike:
+            with h5py.File(h5file, mode) as h5f:
+                writer.write(h5pylike, h5f)
+    elif isinstance(h5file, h5py.File) and not is_group(infile):
+        with silx.io.open(infile) as h5pylike:
+            writer.write(h5pylike, h5file)
+    elif is_group(infile) and not isinstance(h5file, h5py.File):
         with h5py.File(h5file, mode) as h5f:
-            writer.write(h5pylike, h5f)
+            writer.write(infile, h5f)
     else:
-        writer.write(h5pylike, h5file)
+        writer.write(infile, h5file)
 
 
 def convert(infile, h5file, mode="w-", create_dataset_args=None):
     """Convert a supported file into an HDF5 file, write scans into the
     root group (``/``).
+
+    This is a convenience shortcut to call::
+
+        write_to_h5(h5like, h5file, h5path='/',
+                    mode="w-", link_type="soft")
 
     :param infile: Path of input file or :class:`commonh5.File` object
         or :class:`commonh5.Group` object
@@ -280,11 +294,6 @@ def convert(infile, h5file, mode="w-", create_dataset_args=None):
     :param create_dataset_args: Dictionary of args you want to pass to
         ``h5py.File.create_dataset``. This allows you to specify filters and
         compression parameters. Don't specify ``name`` and ``data``.
-
-    This is a convenience shortcut to call::
-
-        write_to_h5(h5like, h5file, h5path='/',
-                    mode="w-", link_type="soft")
     """
     if mode not in ["w", "w-"]:
         raise IOError("File mode must be 'w' or 'w-'. Use write_to_h5" +

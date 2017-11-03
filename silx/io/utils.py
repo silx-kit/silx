@@ -28,7 +28,9 @@ import os.path
 import sys
 import time
 import logging
+
 from silx.utils.deprecation import deprecated
+from silx.utils.proxy import Proxy
 
 try:
     import h5py
@@ -41,7 +43,7 @@ else:
 
 __authors__ = ["P. Knobel", "V. Valls"]
 __license__ = "MIT"
-__date__ = "28/08/2017"
+__date__ = "28/09/2017"
 
 
 logger = logging.getLogger(__name__)
@@ -377,14 +379,15 @@ def h5ls(h5group, lvl=0):
     return h5repr
 
 
-def open(filename):  # pylint:disable=redefined-builtin
+def _open(filename):
     """
     Load a file as an `h5py.File`-like object.
 
     Format supported:
     - h5 files, if `h5py` module is installed
-    - SPEC files
-    - a set of raster image formats (tiff, edf...) if `fabio` is installed
+    - SPEC files exposed as a NeXus layout
+    - raster files exposed as a NeXus layout (if `fabio` is installed)
+    - Numpy files ('npy' and 'npz' files)
 
     The file is opened in read-only mode.
 
@@ -395,11 +398,22 @@ def open(filename):  # pylint:disable=redefined-builtin
     if not os.path.isfile(filename):
         raise IOError("Filename '%s' must be a file path" % filename)
 
+    debugging_info = []
+
+    _, extension = os.path.splitext(filename)
+
     if not h5py_missing:
         if h5py.is_hdf5(filename):
             return h5py.File(filename, "r")
 
-    debugging_info = []
+    if extension in [".npz", ".npy"]:
+        try:
+            from . import rawh5
+            return rawh5.NumpyFile(filename)
+        except (IOError, ValueError) as e:
+            debugging_info.append((sys.exc_info(),
+                                  "File '%s' can't be read as a numpy file." % filename))
+
     try:
         from . import fabioh5
         return fabioh5.File(filename)
@@ -422,6 +436,84 @@ def open(filename):  # pylint:disable=redefined-builtin
     for exc_info, message in debugging_info:
         logger.debug(message, exc_info=exc_info)
     raise IOError("File '%s' can't be read as HDF5" % filename)
+
+
+class _MainNode(Proxy):
+    """A main node is a sub node of the HDF5 tree which is responsible of the
+    closure of the file.
+
+    It is a proxy to the sub node, plus support context manager and `close`
+    method usually provided by `h5py.File`.
+
+    :param h5_node: Target to the proxy.
+    :param h5_file: Main file. This object became the owner of this file.
+    """
+
+    def __init__(self, h5_node, h5_file):
+        super(_MainNode, self).__init__(h5_node)
+        self.__file = h5_file
+        self.__class = get_h5py_class(h5_node)
+
+    @property
+    def h5py_class(self):
+        """Returns the h5py classes which is mimicked by this class. It can be
+        one of `h5py.File, h5py.Group` or `h5py.Dataset`.
+
+        :rtype: Class
+        """
+        return self.__class
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+    def close(self):
+        """Close the file"""
+        self.__file.close()
+        self.__file = None
+
+
+def open(filename):  # pylint:disable=redefined-builtin
+    """
+    Open a file as an `h5py`-like object.
+
+    Format supported:
+    - h5 files, if `h5py` module is installed
+    - SPEC files exposed as a NeXus layout
+    - raster files exposed as a NeXus layout (if `fabio` is installed)
+    - Numpy files ('npy' and 'npz' files)
+
+    The filename can be trailled an HDF5 path using the separator `::`. In this
+    case the object returned is a proxy to the target node, implementing the
+    `close` function and supporting `with` context.
+
+    The file is opened in read-only mode.
+
+    :param str filename: A filename which can containt an HDF5 path by using
+        `::` separator.
+    :raises: IOError if the file can't be loaded or path can't be found
+    :rtype: h5py-like node
+    """
+    if "::" in filename:
+        filename, h5_path = filename.split("::")
+    else:
+        filename, h5_path = filename, "/"
+
+    h5_file = _open(filename)
+
+    if h5_path in ["/", ""]:
+        # Short cut
+        return h5_file
+
+    if h5_path not in h5_file:
+        msg = "File '%s' do not contains path '%s'." % (filename, h5_path)
+        raise IOError(msg)
+
+    node = h5_file[h5_path]
+    proxy = _MainNode(node, h5_file)
+    return proxy
 
 
 @deprecated

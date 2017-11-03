@@ -175,7 +175,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "30/08/2017"
+__date__ = "18/10/2017"
 
 
 from collections import OrderedDict, namedtuple
@@ -278,6 +278,9 @@ class PlotWidget(qt.QMainWindow):
 
     sigSetPanWithArrowKeys = qt.Signal(bool)
     """Signal emitted when pan with arrow keys has changed"""
+
+    _sigAxesVisibilityChanged = qt.Signal(bool)
+    """Signal emitted when the axes visibility changed"""
 
     sigContentChanged = qt.Signal(str, str, str)
     """Signal emitted when the content of the plot is changed.
@@ -430,6 +433,11 @@ class PlotWidget(qt.QMainWindow):
 
         self.setFocusPolicy(qt.Qt.StrongFocus)
         self.setFocus(qt.Qt.OtherFocusReason)
+
+        # Set default limits
+        self.setGraphXLimits(0., 100.)
+        self.setGraphYLimits(0., 100., axis='right')
+        self.setGraphYLimits(0., 100., axis='left')
 
     @staticmethod
     def setDefaultBackend(backend):
@@ -604,8 +612,7 @@ class PlotWidget(qt.QMainWindow):
 
         if (kind == 'curve' and not self.getAllCurves(just_legend=True,
                                                       withhidden=True)):
-            self._colorIndex = 0
-            self._styleIndex = 0
+            self._resetColorAndStyle()
 
         self.notify('contentChanged', action='remove',
                     kind=kind, legend=legend)
@@ -771,6 +778,9 @@ class PlotWidget(qt.QMainWindow):
 
         # Check if curve was previously active
         wasActive = self.getActiveCurve(just_legend=True) == legend
+
+        if replace:
+            self._resetColorAndStyle()
 
         # Create/Update curve object
         curve = self.getCurve(legend)
@@ -938,8 +948,10 @@ class PlotWidget(qt.QMainWindow):
         When image parameters are not provided, if an image with the
         same legend is displayed in the plot, its parameters are used.
 
-        :param numpy.ndarray data: (nrows, ncolumns) data or
-                                   (nrows, ncolumns, RGBA) ubyte array
+        :param numpy.ndarray data:
+            (nrows, ncolumns) data or
+            (nrows, ncolumns, RGBA) ubyte array
+            Note: boolean values are converted to int8.
         :param str legend: The legend to be associated to the image (or None)
         :param info: User-defined information associated to the image
         :param bool replace: True (default) to delete already existing images
@@ -2204,6 +2216,10 @@ class PlotWidget(qt.QMainWindow):
         """
         self._backend.setAxesDisplayed(displayed)
         self._setDirtyPlot()
+        self._sigAxesVisibilityChanged.emit(displayed)
+
+    def _isAxesDisplayed(self):
+        return self._backend.isAxesDisplayed()
 
     @property
     @deprecated(since_version='0.6')
@@ -2305,7 +2321,7 @@ class PlotWidget(qt.QMainWindow):
         flag = bool(flag)
         self._backend.setKeepDataAspectRatio(flag=flag)
         self._setDirtyPlot()
-        self.resetZoom()
+        self._forceResetZoom()
         self.notify('setKeepDataAspectRatio', state=flag)
 
     def getGraphGrid(self):
@@ -2416,6 +2432,10 @@ class PlotWidget(qt.QMainWindow):
         'magma', 'inferno', 'plasma', 'viridis')
         """
         return Colormap.getSupportedColormaps()
+
+    def _resetColorAndStyle(self):
+        self._colorIndex = 0
+        self._styleIndex = 0
 
     def _getColorAndStyle(self):
         color = self.colorList[self._colorIndex]
@@ -2600,6 +2620,66 @@ class PlotWidget(qt.QMainWindow):
         self._backend.replot()
         self._dirty = False  # reset dirty flag
 
+    def _forceResetZoom(self, dataMargins=None):
+        """Reset the plot limits to the bounds of the data and redraw the plot.
+
+        This method forces a reset zoom and does not check axis autoscale.
+
+        Extra margins can be added around the data inside the plot area
+        (see :meth:`setDataMargins`).
+        Margins are given as one ratio of the data range per limit of the
+        data (xMin, xMax, yMin and yMax limits).
+        For log scale, extra margins are applied in log10 of the data.
+
+        :param dataMargins: Ratios of margins to add around the data inside
+                            the plot area for each side (default: no margins).
+        :type dataMargins: A 4-tuple of float as (xMin, xMax, yMin, yMax).
+        """
+        if dataMargins is None:
+            dataMargins = self._defaultDataMargins
+
+        # Get data range
+        ranges = self.getDataRange()
+        xmin, xmax = (1., 100.) if ranges.x is None else ranges.x
+        ymin, ymax = (1., 100.) if ranges.y is None else ranges.y
+        if ranges.yright is None:
+            ymin2, ymax2 = None, None
+        else:
+            ymin2, ymax2 = ranges.yright
+
+        # Add margins around data inside the plot area
+        newLimits = list(_utils.addMarginsToLimits(
+            dataMargins,
+            self._xAxis._isLogarithmic(),
+            self._yAxis._isLogarithmic(),
+            xmin, xmax, ymin, ymax, ymin2, ymax2))
+
+        if self.isKeepDataAspectRatio():
+            # Use limits with margins to keep ratio
+            xmin, xmax, ymin, ymax = newLimits[:4]
+
+            # Compute bbox wth figure aspect ratio
+            plotWidth, plotHeight = self.getPlotBoundsInPixels()[2:]
+            plotRatio = plotHeight / plotWidth
+
+            if plotRatio > 0.:
+                dataRatio = (ymax - ymin) / (xmax - xmin)
+                if dataRatio < plotRatio:
+                    # Increase y range
+                    ycenter = 0.5 * (ymax + ymin)
+                    yrange = (xmax - xmin) * plotRatio
+                    newLimits[2] = ycenter - 0.5 * yrange
+                    newLimits[3] = ycenter + 0.5 * yrange
+
+                elif dataRatio > plotRatio:
+                    # Increase x range
+                    xcenter = 0.5 * (xmax + xmin)
+                    xrange_ = (ymax - ymin) / plotRatio
+                    newLimits[0] = xcenter - 0.5 * xrange_
+                    newLimits[1] = xcenter + 0.5 * xrange_
+
+        self.setLimits(*newLimits)
+
     def resetZoom(self, dataMargins=None):
         """Reset the plot limits to the bounds of the data and redraw the plot.
 
@@ -2617,9 +2697,6 @@ class PlotWidget(qt.QMainWindow):
                             the plot area for each side (default: no margins).
         :type dataMargins: A 4-tuple of float as (xMin, xMax, yMin, yMax).
         """
-        if dataMargins is None:
-            dataMargins = self._defaultDataMargins
-
         xLimits = self._xAxis.getLimits()
         yLimits = self._yAxis.getLimits()
         y2Limits = self._yRightAxis.getLimits()
@@ -2627,52 +2704,19 @@ class PlotWidget(qt.QMainWindow):
         xAuto = self._xAxis.isAutoScale()
         yAuto = self._yAxis.isAutoScale()
 
+        # With log axes, autoscale if limits are <= 0
+        # This avoids issues with toggling log scale with matplotlib 2.1.0
+        if self._xAxis.getScale() == self._xAxis.LOGARITHMIC and xLimits[0] <= 0:
+            xAuto = True
+        if self._yAxis.getScale() == self._yAxis.LOGARITHMIC and (yLimits[0] <= 0 or y2Limits[0] <= 0):
+            yAuto = True
+
         if not xAuto and not yAuto:
             _logger.debug("Nothing to autoscale")
         else:  # Some axes to autoscale
+            self._forceResetZoom(dataMargins=dataMargins)
 
-            # Get data range
-            ranges = self.getDataRange()
-            xmin, xmax = (1., 100.) if ranges.x is None else ranges.x
-            ymin, ymax = (1., 100.) if ranges.y is None else ranges.y
-            if ranges.yright is None:
-                ymin2, ymax2 = None, None
-            else:
-                ymin2, ymax2 = ranges.yright
-
-            # Add margins around data inside the plot area
-            newLimits = list(_utils.addMarginsToLimits(
-                dataMargins,
-                self._xAxis._isLogarithmic(),
-                self._yAxis._isLogarithmic(),
-                xmin, xmax, ymin, ymax, ymin2, ymax2))
-
-            if self.isKeepDataAspectRatio():
-                # Use limits with margins to keep ratio
-                xmin, xmax, ymin, ymax = newLimits[:4]
-
-                # Compute bbox wth figure aspect ratio
-                plotWidth, plotHeight = self.getPlotBoundsInPixels()[2:]
-                plotRatio = plotHeight / plotWidth
-
-                if plotRatio > 0.:
-                    dataRatio = (ymax - ymin) / (xmax - xmin)
-                    if dataRatio < plotRatio:
-                        # Increase y range
-                        ycenter = 0.5 * (ymax + ymin)
-                        yrange = (xmax - xmin) * plotRatio
-                        newLimits[2] = ycenter - 0.5 * yrange
-                        newLimits[3] = ycenter + 0.5 * yrange
-
-                    elif dataRatio > plotRatio:
-                        # Increase x range
-                        xcenter = 0.5 * (xmax + xmin)
-                        xrange_ = (ymax - ymin) / plotRatio
-                        newLimits[0] = xcenter - 0.5 * xrange_
-                        newLimits[1] = xcenter + 0.5 * xrange_
-
-            self.setLimits(*newLimits)
-
+            # Restore limits for axis not in autoscale
             if not xAuto and yAuto:
                 self.setGraphXLimits(*xLimits)
             elif xAuto and not yAuto:
@@ -2681,8 +2725,6 @@ class PlotWidget(qt.QMainWindow):
                         y2Limits[0], y2Limits[1], axis='right')
                 if yLimits is not None:
                     self.setGraphYLimits(yLimits[0], yLimits[1], axis='left')
-
-        self._setDirtyPlot()
 
         if (xLimits != self._xAxis.getLimits() or
                 yLimits != self._yAxis.getLimits() or

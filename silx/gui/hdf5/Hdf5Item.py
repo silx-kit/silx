@@ -25,10 +25,9 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "28/08/2017"
+__date__ = "26/09/2017"
 
 
-import numpy
 import logging
 import collections
 from .. import qt
@@ -37,6 +36,7 @@ from . import _utils
 from .Hdf5Node import Hdf5Node
 import silx.io.utils
 from silx.gui.data.TextFormatter import TextFormatter
+from ..hdf5.Hdf5Formatter import Hdf5Formatter
 
 _logger = logging.getLogger(__name__)
 
@@ -47,6 +47,8 @@ except ImportError as e:
     raise e
 
 _formatter = TextFormatter()
+_hdf5Formatter = Hdf5Formatter(textFormatter=_formatter)
+# FIXME: The formatter should be an attribute of the Hdf5Model
 
 
 class Hdf5Item(Hdf5Node):
@@ -121,6 +123,14 @@ class Hdf5Item(Hdf5Node):
         :rtype: bool
         """
         return self.__isBroken
+
+    def _getFormatter(self):
+        """
+        Returns an Hdf5Formatter
+
+        :rtype: Hdf5Formatter
+        """
+        return _hdf5Formatter
 
     def _expectedChildCount(self):
         if self.isGroupObj():
@@ -240,64 +250,9 @@ class Hdf5Item(Hdf5Node):
                 name = "item-%ddim" % len(obj.shape)
             else:
                 name = "item-ndim"
-            if str(obj.dtype) == "object":
-                name = "item-object"
             icon = icons.getQIcon(name)
             return icon
         return None
-
-    def _humanReadableShape(self, dataset):
-        if dataset.shape is None:
-            return "none"
-        if dataset.shape == tuple():
-            return "scalar"
-        shape = [str(i) for i in dataset.shape]
-        text = u" \u00D7 ".join(shape)
-        return text
-
-    def _humanReadableValue(self, dataset):
-        if dataset.shape is None:
-            return "No data"
-        if dataset.shape == tuple():
-            numpy_object = dataset[()]
-            text = _formatter.toString(numpy_object)
-        else:
-            if dataset.size < 5 and dataset.compression is None:
-                numpy_object = dataset[0:5]
-                text = _formatter.toString(numpy_object)
-            else:
-                dimension = len(dataset.shape)
-                if dataset.compression is not None:
-                    text = "Compressed %dD data" % dimension
-                else:
-                    text = "%dD data" % dimension
-        return text
-
-    def _humanReadableDType(self, dtype, full=False):
-        if dtype.type == numpy.string_:
-            text = "string"
-        elif dtype.type == numpy.unicode_:
-            text = "string"
-        elif dtype.type == numpy.object_:
-            text = "object"
-        elif dtype.type == numpy.bool_:
-            text = "bool"
-        elif dtype.type == numpy.void:
-            if dtype.fields is None:
-                text = "raw"
-            else:
-                if not full:
-                    text = "compound"
-                else:
-                    compound = [d[0] for d in dtype.fields.values()]
-                    compound = [self._humanReadableDType(d) for d in compound]
-                    text = "compound(%s)" % ", ".join(compound)
-        else:
-            text = str(dtype)
-        return text
-
-    def _humanReadableType(self, dataset, full=False):
-        return self._humanReadableDType(dataset.dtype, full)
 
     def _createTooltipAttributes(self):
         """
@@ -311,9 +266,9 @@ class Hdf5Item(Hdf5Node):
             attributeDict["#Title"] = "HDF5 Dataset"
             attributeDict["Name"] = self.basename
             attributeDict["Path"] = self.obj.name
-            attributeDict["Shape"] = self._humanReadableShape(self.obj)
-            attributeDict["Value"] = self._humanReadableValue(self.obj)
-            attributeDict["Data type"] = self._humanReadableType(self.obj, full=True)
+            attributeDict["Shape"] = self._getFormatter().humanReadableShape(self.obj)
+            attributeDict["Value"] = self._getFormatter().humanReadableValue(self.obj)
+            attributeDict["Data type"] = self._getFormatter().humanReadableType(self.obj, full=True)
         elif issubclass(self.h5pyClass, h5py.Group):
             attributeDict["#Title"] = "HDF5 Group"
             attributeDict["Name"] = self.basename
@@ -378,7 +333,7 @@ class Hdf5Item(Hdf5Node):
                 return ""
             class_ = self.h5pyClass
             if issubclass(class_, h5py.Dataset):
-                text = self._humanReadableType(self.obj)
+                text = self._getFormatter().humanReadableType(self.obj)
             else:
                 text = ""
             return text
@@ -397,7 +352,7 @@ class Hdf5Item(Hdf5Node):
             class_ = self.h5pyClass
             if not issubclass(class_, h5py.Dataset):
                 return ""
-            return self._humanReadableShape(self.obj)
+            return self._getFormatter().humanReadableShape(self.obj)
         return None
 
     def dataValue(self, role):
@@ -411,7 +366,7 @@ class Hdf5Item(Hdf5Node):
                 return ""
             if not issubclass(self.h5pyClass, h5py.Dataset):
                 return ""
-            return self._humanReadableValue(self.obj)
+            return self._getFormatter().humanReadableValue(self.obj)
         return None
 
     def dataDescription(self, role):

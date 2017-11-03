@@ -53,6 +53,7 @@ def suite():
     from ..gui import test as test_gui
     from ..utils import test as test_utils
     from ..opencl import test as test_ocl
+    from ..app import test as test_app
     test_suite = unittest.TestSuite()
     # test sx first cause qui tests load ipython module
     test_suite.addTest(test_sx.suite())
@@ -65,6 +66,8 @@ def suite():
     test_suite.addTest(test_math.suite())
     test_suite.addTest(test_image.suite())
     test_suite.addTest(test_ocl.suite())
+    test_suite.addTest(test_app.suite())
+
     return test_suite
 
 

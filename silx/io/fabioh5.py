@@ -33,6 +33,7 @@
 """
 
 import collections
+import datetime
 import logging
 import numbers
 
@@ -41,6 +42,13 @@ import numpy
 
 from . import commonh5
 from silx.third_party import six
+from silx import version as silx_version
+
+try:
+    import h5py
+except ImportError as e:
+    h5py = None
+
 
 _logger = logging.getLogger(__name__)
 
@@ -69,6 +77,7 @@ class RawHeaderData(commonh5.LazyLoadableDataset):
         """Initialize hold data by merging all headers of each frames.
         """
         headers = []
+        types = set([])
         for frame in range(self.__fabio_file.nframes):
             if self.__fabio_file.nframes == 1:
                 header = self.__fabio_file.header
@@ -79,10 +88,33 @@ class RawHeaderData(commonh5.LazyLoadableDataset):
             for key, value in header.items():
                 data.append("%s: %s" % (str(key), str(value)))
 
-            headers.append(u"\n".join(data).encode("utf-8"))
+            data = "\n".join(data)
+            try:
+                line = data.encode("ascii")
+                types.add(numpy.string_)
+            except UnicodeEncodeError:
+                try:
+                    line = data.encode("utf-8")
+                    types.add(numpy.unicode_)
+                except UnicodeEncodeError:
+                    # Fallback in void
+                    line = numpy.void(data)
+                    types.add(numpy.void)
 
-        # create the header list
-        return numpy.array(headers, dtype=numpy.string_)
+            headers.append(line)
+
+        if numpy.void in types:
+            dtype = numpy.void
+        elif numpy.unicode_ in types:
+            dtype = numpy.unicode_
+        else:
+            dtype = numpy.string_
+
+        if dtype == numpy.unicode_ and h5py is not None:
+            # h5py only support vlen unicode
+            dtype = h5py.special_dtype(vlen=six.text_type)
+
+        return numpy.array(headers, dtype=dtype)
 
 
 class MetadataGroup(commonh5.LazyLoadableGroup):
@@ -212,6 +244,7 @@ class FabioReader(object):
         self.__counters = {}
         self.__positioners = {}
         self.__measurements = {}
+        self.__key_filters = set([])
         self.__data = None
         self.__frame_count = self.__fabio_file.nframes
         self._read(self.__fabio_file)
@@ -321,6 +354,13 @@ class FabioReader(object):
     def _read(self, fabio_file):
         """Read all metadata from the fabio file and store it into this
         object."""
+
+        self.__key_filters.clear()
+        if hasattr(fabio_file, "RESERVED_HEADER_KEYS"):
+            # Provided in fabio 0.5
+            for key in fabio_file.RESERVED_HEADER_KEYS:
+                self.__key_filters.add(key.lower())
+
         for frame in range(fabio_file.nframes):
             if fabio_file.nframes == 1:
                 header = fabio_file.header
@@ -328,10 +368,22 @@ class FabioReader(object):
                 header = fabio_file.getframe(frame).header
             self._read_frame(frame, header)
 
+    def _is_filtered_key(self, key):
+        """
+        If this function returns True, the :meth:`_read_key` while not be
+        called with this `key`while reading the metatdata frame.
+
+        :param str key: A key of the metadata
+        :rtype: bool
+        """
+        return key.lower() in self.__key_filters
+
     def _read_frame(self, frame_id, header):
         """Read all metadata from a frame and store it into this
         object."""
         for key, value in header.items():
+            if self._is_filtered_key(key):
+                continue
             self._read_key(frame_id, key, value)
 
     def _read_key(self, frame_id, name, value):
@@ -370,8 +422,10 @@ class FabioReader(object):
 
         if has_none:
             # Fix missing data according to the array type
-            if result_type.kind in ["S", "U"]:
-                none_value = ""
+            if result_type.kind == "S":
+                none_value = b""
+            elif result_type.kind == "U":
+                none_value = u""
             elif result_type.kind == "f":
                 none_value = numpy.float("NaN")
             elif result_type.kind == "i":
@@ -470,10 +524,10 @@ class FabioReader(object):
 
             result_type = numpy.result_type(*types)
 
-            if issubclass(result_type.type, numpy.string_):
+            if issubclass(result_type.type, (numpy.string_, six.binary_type)):
                 # use the raw data to create the result
                 return numpy.string_(value)
-            elif issubclass(result_type.type, numpy.unicode_):
+            elif issubclass(result_type.type, (numpy.unicode_, six.text_type)):
                 # use the raw data to create the result
                 return numpy.unicode_(value)
             else:
@@ -524,11 +578,10 @@ class EdfFabioReader(FabioReader):
             self._read_mnemonic_key(frame_id, "counter", header)
         FabioReader._read_frame(self, frame_id, header)
 
-    def _read_key(self, frame_id, name, value):
-        """Overwrite the method to filter counter or motor keys."""
-        if name in self.__catch_keys:
-            return
-        FabioReader._read_key(self, frame_id, name, value)
+    def _is_filtered_key(self, key):
+        if key in self.__catch_keys:
+            return True
+        return FabioReader._is_filtered_key(self, key)
 
     def _get_mnemonic_key(self, base_key, header):
         mnemonic_values_key = base_key + "_mne"
@@ -647,7 +700,10 @@ class File(commonh5.File):
         elif fabio_image is not None:
             self.__fabio_image = fabio_image
             file_name = self.__fabio_image.filename
-        attrs = {"NX_class": "NXroot"}
+        attrs = {"NX_class": "NXroot",
+                 "file_time": datetime.datetime.now().isoformat(),
+                 "file_name": file_name,
+                 "creator": "silx %s" % silx_version}
         commonh5.File.__init__(self, name=file_name, attrs=attrs)
         self.__fabio_reader = self.create_fabio_reader(self.__fabio_image)
         scan = self.create_scan_group(self.__fabio_image, self.__fabio_reader)

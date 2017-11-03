@@ -28,7 +28,7 @@ of the :class:`Plot`.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "27/06/2017"
+__date__ = "20/10/2017"
 
 
 from collections import Sequence
@@ -38,7 +38,6 @@ import numpy
 
 from .core import (Item, LabelsMixIn, DraggableMixIn, ColormapMixIn,
                    AlphaMixIn, ItemChangedType)
-from ..Colors import applyColormapToData
 
 
 _logger = logging.getLogger(__name__)
@@ -62,7 +61,7 @@ def _convertImageToRgba32(image, copy=True):
     assert image.shape[-1] in (3, 4)
 
     # Convert type to uint8
-    if image.dtype.name != 'uin8':
+    if image.dtype.name != 'uint8':
         if image.dtype.kind == 'f':  # Float in [0, 1]
             image = (numpy.clip(image, 0., 1.) * 255).astype(numpy.uint8)
         elif image.dtype.kind == 'b':  # boolean
@@ -232,8 +231,16 @@ class ImageBase(Item, LabelsMixIn, DraggableMixIn, AlphaMixIn):
             scale = float(scale[0]), float(scale[1])
         else:  # single value scale
             scale = float(scale), float(scale)
+
         if scale != self._scale:
             self._scale = scale
+
+            # TODO hackish data range implementation
+            if self.isVisible():
+                plot = self.getPlot()
+                if plot is not None:
+                    plot._invalidateDataRange()
+
             self._updated(ItemChangedType.SCALE)
 
 
@@ -294,8 +301,7 @@ class ImageData(ImageBase, ColormapMixIn):
         else:
             # Apply colormap, in this case an new array is always returned
             colormap = self.getColormap()
-            image = applyColormapToData(self.getData(copy=False),
-                                        **colormap)
+            image = colormap.applyToData(self.getData(copy=False))
             return image
 
     def getAlternativeImageData(self, copy=True):
@@ -323,6 +329,14 @@ class ImageData(ImageBase, ColormapMixIn):
         """
         data = numpy.array(data, copy=copy)
         assert data.ndim == 2
+        if data.dtype.kind == 'b':
+            _logger.warning(
+                'Converting boolean image to int8 to plot it.')
+            data = numpy.array(data, copy=False, dtype=numpy.int8)
+        elif numpy.issubdtype(data.dtype, numpy.complex):
+            _logger.warning(
+                'Converting complex image to absolute value to plot it.')
+            data = numpy.absolute(data)
         self._data = data
 
         if alternative is not None:

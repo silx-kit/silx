@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "27/06/2017"
+__date__ = "16/10/2017"
 
 
 import logging
@@ -40,6 +40,7 @@ import weakref
 import numpy
 
 from .. import qt
+from silx.gui.widgets.FloatEdit import FloatEdit
 
 _logger = logging.getLogger(__name__)
 
@@ -150,13 +151,16 @@ class PositionInfo(qt.QWidget):
         """
         if event['event'] == 'mouseMoved':
             x, y = event['x'], event['y']
-            self._updateStatusBar(x, y)
+            xPixel, yPixel = event['xpixel'], event['ypixel']
+            self._updateStatusBar(x, y, xPixel, yPixel)
 
-    def _updateStatusBar(self, x, y):
+    def _updateStatusBar(self, x, y, xPixel, yPixel):
         """Update information from the status bar using the definitions.
 
         :param float x: Position-x in data
         :param float y: Position-y in data
+        :param float xPixel: Position-x in pixels
+        :param float yPixel: Position-y in pixels
         """
         styleSheet = "color: rgb(0, 0, 0);"  # Default style
 
@@ -179,8 +183,6 @@ class PositionInfo(qt.QWidget):
                     closestInPixels = self.plot.dataToPixel(
                         xClosest, yClosest, axis=activeCurve.getYAxis())
                     if closestInPixels is not None:
-                        xPixel, yPixel = event['xpixel'], event['ypixel']
-
                         if (abs(closestInPixels[0] - xPixel) < 5 and
                                 abs(closestInPixels[1] - yPixel) < 5):
                             # Update label style sheet
@@ -239,22 +241,6 @@ class LimitsToolBar(qt.QToolBar):
     :param str title: See :class:`QToolBar`.
     """
 
-    class _FloatEdit(qt.QLineEdit):
-        """Field to edit a float value."""
-        def __init__(self, value=None, *args, **kwargs):
-            qt.QLineEdit.__init__(self, *args, **kwargs)
-            self.setValidator(qt.QDoubleValidator(self))
-            self.setFixedWidth(100)
-            self.setAlignment(qt.Qt.AlignLeft)
-            if value is not None:
-                self.setValue(value)
-
-        def value(self):
-            return float(self.text())
-
-        def setValue(self, value):
-            self.setText('%g' % value)
-
     def __init__(self, parent=None, plot=None, title='Limits'):
         super(LimitsToolBar, self).__init__(title, parent)
         assert plot is not None
@@ -275,23 +261,23 @@ class LimitsToolBar(qt.QToolBar):
 
         self.addWidget(qt.QLabel('Limits: '))
         self.addWidget(qt.QLabel(' X: '))
-        self._xMinFloatEdit = self._FloatEdit(xMin)
+        self._xMinFloatEdit = FloatEdit(self, xMin)
         self._xMinFloatEdit.editingFinished[()].connect(
             self._xFloatEditChanged)
         self.addWidget(self._xMinFloatEdit)
 
-        self._xMaxFloatEdit = self._FloatEdit(xMax)
+        self._xMaxFloatEdit = FloatEdit(self, xMax)
         self._xMaxFloatEdit.editingFinished[()].connect(
             self._xFloatEditChanged)
         self.addWidget(self._xMaxFloatEdit)
 
         self.addWidget(qt.QLabel(' Y: '))
-        self._yMinFloatEdit = self._FloatEdit(yMin)
+        self._yMinFloatEdit = FloatEdit(self, yMin)
         self._yMinFloatEdit.editingFinished[()].connect(
             self._yFloatEditChanged)
         self.addWidget(self._yMinFloatEdit)
 
-        self._yMaxFloatEdit = self._FloatEdit(yMax)
+        self._yMaxFloatEdit = FloatEdit(self, yMax)
         self._yMaxFloatEdit.editingFinished[()].connect(
             self._yFloatEditChanged)
         self.addWidget(self._yMaxFloatEdit)

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -61,7 +61,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "27/06/2017"
+__date__ = "02/10/2017"
 
 
 import logging
@@ -71,34 +71,9 @@ import numpy
 from .. import qt
 from .Colormap import Colormap
 from . import PlotWidget
-
+from silx.gui.widgets.FloatEdit import FloatEdit
 
 _logger = logging.getLogger(__name__)
-
-
-class _FloatEdit(qt.QLineEdit):
-    """Field to edit a float value.
-
-    :param parent: See :class:`QLineEdit`
-    :param float value: The value to set the QLineEdit to.
-    """
-    def __init__(self, parent=None, value=None):
-        qt.QLineEdit.__init__(self, parent)
-        self.setValidator(qt.QDoubleValidator(self))
-        self.setAlignment(qt.Qt.AlignRight)
-        if value is not None:
-            self.setValue(value)
-
-    def value(self):
-        """Return the QLineEdit current value as a float."""
-        return float(self.text())
-
-    def setValue(self, value):
-        """Set the current value of the LineEdit
-
-        :param float value: The value to set the QLineEdit to.
-        """
-        self.setText('%g' % value)
 
 
 class ColormapDialog(qt.QDialog):
@@ -123,10 +98,13 @@ class ColormapDialog(qt.QDialog):
         self._dataRange = None
         self._minMaxWasEdited = False
 
-        self._colormapList = (
+        colormaps = [
             'gray', 'reversed gray',
             'temperature', 'red', 'green', 'blue', 'jet',
-            'viridis', 'magma', 'inferno', 'plasma')
+            'viridis', 'magma', 'inferno', 'plasma']
+        if 'hsv' in Colormap.getSupportedColormaps():
+            colormaps.append('hsv')
+        self._colormapList = tuple(colormaps)
 
         # Make the GUI
         vLayout = qt.QVBoxLayout(self)
@@ -173,14 +151,14 @@ class ColormapDialog(qt.QDialog):
         formLayout.addRow('Range:', self._rangeAutoscaleButton)
 
         # Min row
-        self._minValue = _FloatEdit(value=1.)
+        self._minValue = FloatEdit(parent=self, value=1.)
         self._minValue.setEnabled(False)
         self._minValue.textEdited.connect(self._minMaxTextEdited)
         self._minValue.editingFinished.connect(self._minEditingFinished)
         formLayout.addRow('\tMin:', self._minValue)
 
         # Max row
-        self._maxValue = _FloatEdit(value=10.)
+        self._maxValue = FloatEdit(parent=self, value=10.)
         self._maxValue.setEnabled(False)
         self._maxValue.textEdited.connect(self._minMaxTextEdited)
         self._maxValue.editingFinished.connect(self._maxEditingFinished)

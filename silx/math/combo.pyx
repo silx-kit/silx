@@ -56,9 +56,11 @@ ctypedef fused _number:
     signed short
     signed int
     signed long
+    signed long long
     unsigned char
     unsigned short
     unsigned int
+    unsigned long
     unsigned long long
 
 
@@ -311,7 +313,9 @@ def min_max(data not None, bint min_positive=False, bint finite=False):
               min_positive and argmin_positive are None.
     :raises: ValueError if data is empty
     """
-    data = numpy.ascontiguousarray(data).ravel()
+    data = numpy.array(data, copy=False)
+    native_endian_dtype = data.dtype.newbyteorder('N')
+    data = numpy.ascontiguousarray(data, dtype=native_endian_dtype).ravel()
     if finite and data.dtype.kind == 'f':
         return _finite_min_max(data, min_positive)
     else:

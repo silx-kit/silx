@@ -295,7 +295,11 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         self.plot.sigActiveImageChanged.connect(self._activeImageChanged)
 
     def hideEvent(self, event):
-        self.plot.sigActiveImageChanged.disconnect(self._activeImageChanged)
+        try:
+            self.plot.sigActiveImageChanged.disconnect(
+                self._activeImageChanged)
+        except (RuntimeError, TypeError):
+            pass
         if not self.browseAction.isChecked():
             self.browseAction.trigger()  # Disable drawing tool
 
@@ -351,8 +355,9 @@ class MaskToolsWidget(BaseMaskToolsWidget):
     def _activeImageChanged(self, *args):
         """Update widget and mask according to active image changes"""
         activeImage = self.plot.getActiveImage()
-        if activeImage is None or activeImage.getLegend() == self._maskName:
-            # No active image or active image is the mask...
+        if (activeImage is None or activeImage.getLegend() == self._maskName or
+                activeImage.getData(copy=False).size == 0):
+            # No active image or active image is the mask or image has no data...
             self.setEnabled(False)
 
             self._data = numpy.zeros((0, 0), dtype=numpy.uint8)

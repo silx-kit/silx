@@ -11,3 +11,4 @@
    medianfilter.rst
    shapes.rst
    sift.rst
+   backprojection.rst

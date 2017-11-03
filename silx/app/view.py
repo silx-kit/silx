@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "18/08/2017"
+__date__ = "02/10/2017"
 
 import sys
 import os
@@ -81,7 +81,8 @@ class Viewer(qt.QMainWindow):
 
         self.setCentralWidget(main_panel)
 
-        self.__treeview.selectionModel().selectionChanged.connect(self.displayData)
+        model = self.__treeview.selectionModel()
+        model.selectionChanged.connect(self.displayData)
         self.__treeview.addContextMenuCallback(self.closeAndSyncCustomContextMenu)
 
         treeModel = self.__treeview.findHdf5TreeModel()
@@ -146,13 +147,14 @@ class Viewer(qt.QMainWindow):
         extensions["HDF5 files"] = "*.h5 *.hdf"
         extensions["NeXus files"] = "*.nx *.nxs *.h5 *.hdf"
         # no dependancy
-        extensions["Spec files"] = "*.dat *.spec *.mca"
+        extensions["NeXus layout from spec files"] = "*.dat *.spec *.mca"
+        extensions["Numpy binary files"] = "*.npz *.npy"
         # expect fabio
-        extensions["EDF files"] = "*.edf"
-        extensions["TIFF image files"] = "*.tif *.tiff"
-        extensions["NumPy binary files"] = "*.npy"
-        extensions["CBF files"] = "*.cbf"
-        extensions["MarCCD image files"] = "*.mccd"
+        extensions["NeXus layout from raster images"] = "*.edf *.tif *.tiff *.cbf *.mccd"
+        extensions["NeXus layout from EDF files"] = "*.edf"
+        extensions["NeXus layout from TIFF image files"] = "*.tif *.tiff"
+        extensions["NeXus layout from CBF files"] = "*.cbf"
+        extensions["NeXus layout from MarCCD image files"] = "*.mccd"
 
         filters = []
         filters.append("All supported files (%s)" % " ".join(extensions.values()))
@@ -217,7 +219,6 @@ def main(argv):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         'files',
-        type=argparse.FileType('rb'),
         nargs=argparse.ZERO_OR_MORE,
         help='Data file to show (h5 file, edf files, spec files)')
     parser.add_argument(
@@ -275,14 +276,18 @@ def main(argv):
         PlotWidget.setDefaultBackend("opengl")
 
     app = qt.QApplication([])
+    qt.QLocale.setDefault(qt.QLocale.c())
+
     sys.excepthook = qt.exceptionHandler
     window = Viewer()
     window.resize(qt.QSize(640, 480))
 
-    for f in options.files:
-        filename = f.name
-        f.close()
-        window.appendFile(filename)
+    for filename in options.files:
+        try:
+            window.appendFile(filename)
+        except IOError as e:
+            _logger.error(e.args[0])
+            _logger.debug("Backtrace", exc_info=True)
 
     window.show()
     result = app.exec_()

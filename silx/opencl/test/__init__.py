@@ -24,13 +24,17 @@
 
 __authors__ = ["J. Kieffer"]
 __license__ = "MIT"
-__date__ = "01/09/2017"
+__date__ = "17/10/2017"
 
 import os
 import unittest
 from . import test_addition
 from . import test_medfilt
 from . import test_backprojection
+from . import test_projection
+from . import test_linalg
+from . import test_array_utils
+from ..codec import test as test_codec
 
 
 def suite():
@@ -38,7 +42,10 @@ def suite():
     test_suite.addTests(test_addition.suite())
     test_suite.addTests(test_medfilt.suite())
     test_suite.addTests(test_backprojection.suite())
-
+    test_suite.addTests(test_projection.suite())
+    test_suite.addTests(test_linalg.suite())
+    test_suite.addTests(test_array_utils.suite())
+    test_suite.addTests(test_codec.suite())
     # Allow to remove sift from the project
     test_base_dir = os.path.dirname(__file__)
     sift_dir = os.path.join(test_base_dir, "..", "sift")

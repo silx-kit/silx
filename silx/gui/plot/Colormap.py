@@ -238,19 +238,23 @@ class Colormap(qt.QObject):
 
         if vmin is None or vmax is None:  # Handle autoscale
             # Get min/max from data
-            if data is not None and len(data) > 0:
-                if self.getNormalization() == self.LOGARITHM:
-                    result = min_max(data, min_positive=True, finite=True)
-                    min_ = result.min_positive  # >0 or None
-                    max_ = result.maximum  # can be <= 0
+            if data is not None:
+                data = numpy.array(data, copy=False)
+                if data.size == 0:  # Fallback an array but no data
+                    min_, max_ = self._getDefaultMin(), self._getDefaultMax()
                 else:
-                    min_, max_ = min_max(data, min_positive=False, finite=True)
+                    if self.getNormalization() == self.LOGARITHM:
+                        result = min_max(data, min_positive=True, finite=True)
+                        min_ = result.min_positive  # >0 or None
+                        max_ = result.maximum  # can be <= 0
+                    else:
+                        min_, max_ = min_max(data, min_positive=False, finite=True)
 
-                # Handle fallback
-                if min_ is None or not numpy.isfinite(min_):
-                    min_ = self._getDefaultMin()
-                if max_ is None or not numpy.isfinite(max_):
-                    max_ = self._getDefaultMax()
+                    # Handle fallback
+                    if min_ is None or not numpy.isfinite(min_):
+                        min_ = self._getDefaultMin()
+                    if max_ is None or not numpy.isfinite(max_):
+                        max_ = self._getDefaultMax()
             else:  # Fallback if no data is provided
                 min_, max_ = self._getDefaultMin(), self._getDefaultMax()
 

@@ -35,7 +35,7 @@ from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "26/04/2017"
+__date__ = "03/10/2017"
 
 
 _logger = logging.getLogger(__name__)
@@ -144,7 +144,7 @@ class DataViewer(qt.QFrame):
             DataViews._Hdf5View,
             DataViews._NXdataView,
             DataViews._Plot1dView,
-            DataViews._Plot2dView,
+            DataViews._ImageView,
             DataViews._Plot3dView,
             DataViews._RawView,
             DataViews._StackView,
@@ -201,7 +201,7 @@ class DataViewer(qt.QFrame):
         self.__numpySelection.clear()
         info = DataViews.DataInfo(self.__data)
         axisNames = self.__currentView.axesNames(self.__data, info)
-        if info.isArray and self.__data is not None and len(axisNames) > 0:
+        if info.isArray and info.size != 0 and self.__data is not None and axisNames is not None:
             self.__useAxisSelection = True
             self.__numpySelection.setAxisNames(axisNames)
             self.__numpySelection.setCustomAxis(self.__currentView.customAxisNames())

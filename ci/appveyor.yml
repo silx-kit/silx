@@ -30,12 +30,6 @@ environment:
           QT_BINDING: "PyQt5"
           QT_PINNED_VERSION: "==5.8.2"
           WITH_GL_TEST: True
-  
-        # Python 3.5
-        - PYTHON_DIR: "C:\\Python35-x64"
-          QT_BINDING: "PyQt5"
-          QT_PINNED_VERSION: "==5.8.2"
-          WITH_GL_TEST: True
 
         # Python 2.7
         - PYTHON_DIR: "C:\\Python27-x64"
@@ -68,7 +62,7 @@ build_script:
 
     # Install build dependencies
     - "pip install --upgrade wheel"
-    - "pip install --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ --upgrade numpy"
+    - "pip install --upgrade numpy"
 
     # Print Python info
     - "python ci\\info_platform.py"

@@ -24,7 +24,7 @@
 
 __authors__ = ["D. Naudet"]
 __license__ = "MIT"
-__date__ = "01/02/2016"
+__date__ = "02/10/2017"
 
 cimport numpy  # noqa
 cimport cython
@@ -137,7 +137,7 @@ def chistogramnd(sample,
             non contiguous slice) then histogramnd will have to do make an
             internal copy.
     :type weighted_histo: *optional*, :class:`numpy.array`
-    
+
     :param wh_dtype: type of the weighted histogram array. This parameter is
         ignored if *weighted_histo* is provided. If not provided, the
         weighted histogram array will contain values of the same type as
@@ -149,8 +149,8 @@ def chistogramnd(sample,
         dimension.
     :rtype: *tuple* (:class:`numpy.array`, :class:`numpy.array`, `tuple`) or
         (:class:`numpy.array`, None, `tuple`)
-    """  # noqa
-    
+    """
+
     if wh_dtype is None:
         wh_dtype = np.double
     elif wh_dtype not in (np.double, np.float32):
@@ -205,6 +205,12 @@ def chistogramnd(sample,
                          '{n_dims}D values)'
                          ''.format(histo_range=i_histo_range,
                                    n_dims=n_dims))
+
+    # check range value
+    if np.inf in histo_range:
+        raise ValueError('Range parameter should be finite value')
+    if np.nan in histo_range:
+        raise ValueError('Range value can\'t be nan')
 
     # checking n_bins size
     n_bins = np.array(n_bins, ndmin=1)
@@ -280,6 +286,7 @@ def chistogramnd(sample,
         option_flags |= histogramnd_c.HISTO_LAST_BIN_CLOSED
 
     sample_type = sample.dtype
+    sample_type = sample_type.newbyteorder('N')
 
     n_elem = sample.size // n_dims
 
@@ -294,9 +301,11 @@ def chistogramnd(sample,
                         'and weights:{1}.'
                         ''.format(sample_type, weights_type))
 
-    sample_c = np.ascontiguousarray(sample.reshape((sample.size,)))
+    sample_c = np.ascontiguousarray(sample.reshape((sample.size,)),
+                                    dtype=sample_type)
 
-    weights_c = (np.ascontiguousarray(weights.reshape((weights.size,)))
+    weights_c = (np.ascontiguousarray(weights.reshape((weights.size,)),
+                                      dtype=weights.dtype.newbyteorder('N'))
                  if weights is not None else None)
 
     histo_range_c = np.ascontiguousarray(histo_range.reshape((histo_range.size,)),
@@ -312,7 +321,8 @@ def chistogramnd(sample,
     else:
         cumul_c = None
 
-    bin_edges_c = np.ascontiguousarray(bin_edges.reshape((bin_edges.size,)))
+    bin_edges_c = np.ascontiguousarray(bin_edges.reshape((bin_edges.size,)),
+                                       dtype=bin_edges.dtype.newbyteorder('N'))
 
     rc = 0
 
@@ -1239,7 +1249,3 @@ cdef int _histogramnd_int32_t_int32_t_float(numpy.int32_t[:] sample,
                                                            option_flags,
                                                            weight_min,
                                                            weight_max)
-
-
-if __name__=='__main__':
-    pass

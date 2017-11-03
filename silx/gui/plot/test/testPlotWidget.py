@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -76,23 +76,26 @@ class TestPlotWidget(PlotWidgetTestCase, ParametricTestCase):
         self.assertEqual(self.plot.getXAxis().getLabel(), xlabel)
         self.assertEqual(self.plot.getYAxis().getLabel(), ylabel)
 
+    def _checkLimits(self,
+                    expectedXLim=None,
+                    expectedYLim=None,
+                    expectedRatio=None):
+        """Assert that limits are as expected"""
+        xlim = self.plot.getXAxis().getLimits()
+        ylim = self.plot.getYAxis().getLimits()
+        ratio = abs(xlim[1] - xlim[0]) / abs(ylim[1] - ylim[0])
+
+        if expectedXLim is not None:
+            self.assertEqual(expectedXLim, xlim)
+
+        if expectedYLim is not None:
+            self.assertEqual(expectedYLim, ylim)
+
+        if expectedRatio is not None:
+            self.assertTrue(
+                numpy.allclose(expectedRatio, ratio, atol=0.01))
+
     def testChangeLimitsWithAspectRatio(self):
-        def checkLimits(expectedXLim=None, expectedYLim=None,
-                        expectedRatio=None):
-            xlim = self.plot.getXAxis().getLimits()
-            ylim = self.plot.getYAxis().getLimits()
-            ratio = abs(xlim[1] - xlim[0]) / abs(ylim[1] - ylim[0])
-
-            if expectedXLim is not None:
-                self.assertEqual(expectedXLim, xlim)
-
-            if expectedYLim is not None:
-                self.assertEqual(expectedYLim, ylim)
-
-            if expectedRatio is not None:
-                self.assertTrue(
-                    numpy.allclose(expectedRatio, ratio, atol=0.01))
-
         self.plot.setKeepDataAspectRatio()
         self.qapp.processEvents()
         xlim = self.plot.getXAxis().getLimits()
@@ -100,14 +103,43 @@ class TestPlotWidget(PlotWidgetTestCase, ParametricTestCase):
         defaultRatio = abs(xlim[1] - xlim[0]) / abs(ylim[1] - ylim[0])
 
         self.plot.getXAxis().setLimits(1., 10.)
-        checkLimits(expectedXLim=(1., 10.), expectedRatio=defaultRatio)
+        self._checkLimits(expectedXLim=(1., 10.), expectedRatio=defaultRatio)
         self.qapp.processEvents()
-        checkLimits(expectedXLim=(1., 10.), expectedRatio=defaultRatio)
+        self._checkLimits(expectedXLim=(1., 10.), expectedRatio=defaultRatio)
 
         self.plot.getYAxis().setLimits(1., 10.)
-        checkLimits(expectedYLim=(1., 10.), expectedRatio=defaultRatio)
+        self._checkLimits(expectedYLim=(1., 10.), expectedRatio=defaultRatio)
         self.qapp.processEvents()
-        checkLimits(expectedYLim=(1., 10.), expectedRatio=defaultRatio)
+        self._checkLimits(expectedYLim=(1., 10.), expectedRatio=defaultRatio)
+
+    def testResizeWidget(self):
+        """Test resizing the widget and receiving limitsChanged events"""
+        self.plot.resize(200, 200)
+        self.qapp.processEvents()
+
+        xlim = self.plot.getXAxis().getLimits()
+        ylim = self.plot.getYAxis().getLimits()
+
+        listener = SignalListener()
+        self.plot.getXAxis().sigLimitsChanged.connect(listener.partial('x'))
+        self.plot.getYAxis().sigLimitsChanged.connect(listener.partial('y'))
+
+        # Resize without aspect ratio
+        self.plot.resize(200, 300)
+        self.qapp.processEvents()
+        self._checkLimits(expectedXLim=xlim, expectedYLim=ylim)
+        self.assertEqual(listener.callCount(), 0)
+
+        # Resize with aspect ratio
+        self.plot.setKeepDataAspectRatio(True)
+        listener.clear()  # Clean-up received signal
+        self.qapp.processEvents()
+        self.assertEqual(listener.callCount(), 0)  # No event when redrawing
+
+        self.plot.resize(200, 200)
+        self.qapp.processEvents()
+
+        self.assertNotEqual(listener.callCount(), 0)
 
 
 class TestPlotImage(PlotWidgetTestCase, ParametricTestCase):
@@ -260,6 +292,27 @@ class TestPlotImage(PlotWidgetTestCase, ParametricTestCase):
         }
         self.plot.addImage(DATA_2D, legend="image 1", colormap=colormap)
 
+    def testPlotComplexImage(self):
+        """Test that a complex image is displayed as its absolute value."""
+        data = numpy.linspace(1, 1j, 100).reshape(10, 10)
+        self.plot.addImage(data, legend='complex')
+
+        image = self.plot.getActiveImage()
+        retrievedData = image.getData(copy=False)
+        self.assertTrue(
+            numpy.all(numpy.equal(retrievedData, numpy.absolute(data))))
+
+    def testPlotBooleanImage(self):
+        """Test that a boolean image is displayed and converted to int8."""
+        data = numpy.zeros((10, 10), dtype=numpy.bool)
+        data[::2, ::2] = True
+        self.plot.addImage(data, legend='boolean')
+
+        image = self.plot.getActiveImage()
+        retrievedData = image.getData(copy=False)
+        self.assertTrue(numpy.all(numpy.equal(retrievedData, data)))
+        self.assertIs(retrievedData.dtype.type, numpy.int8)
+
 
 class TestPlotCurve(PlotWidgetTestCase):
     """Basic tests for addCurve."""
@@ -317,6 +370,27 @@ class TestPlotCurve(PlotWidgetTestCase):
                            replace=False, resetzoom=False,
                            color=color, linestyle="-", symbol='o')
         self.plot.resetZoom()
+
+        # Test updating color array
+
+        # From array to array
+        newColors = numpy.ones((len(self.xData), 3), dtype=numpy.float32)
+        self.plot.addCurve(self.xData, self.yData,
+                           legend="curve 2",
+                           replace=False, resetzoom=False,
+                           color=newColors, symbol='o')
+
+        # Array to single color
+        self.plot.addCurve(self.xData, self.yData,
+                           legend="curve 2",
+                           replace=False, resetzoom=False,
+                           color='green', symbol='o')
+
+        # single color to array
+        self.plot.addCurve(self.xData, self.yData,
+                           legend="curve 2",
+                           replace=False, resetzoom=False,
+                           color=color, symbol='o')
 
 
 class TestPlotMarker(PlotWidgetTestCase):

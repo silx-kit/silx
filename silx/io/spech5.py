@@ -174,12 +174,14 @@ is that you should decode strings before using them in **Python 3**::
 
 """
 
+import datetime
 import logging
 import numpy
 import re
 import sys
 import io
 
+from silx import version as silx_version
 from .specfile import SpecFile
 from . import commonh5
 
@@ -197,7 +199,7 @@ except ImportError:
 
 
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)  # noqa
-integer_types = (int, long,)  if sys.version_info[0] == 2 else (int,)  # noqa
+integer_types = (int, long,) if sys.version_info[0] == 2 else (int,)  # noqa
 
 
 def _get_number_of_mca_analysers(scan):
@@ -545,7 +547,10 @@ class SpecH5(commonh5.File, SpecH5Group):
 
         self._sf = SpecFile(filename)
 
-        attrs = {"NX_class": "NXroot"}
+        attrs = {"NX_class": "NXroot",
+                 "file_time": datetime.datetime.now().isoformat(),
+                 "file_name": filename,
+                 "creator": "silx %s" % silx_version}
         commonh5.File.__init__(self, filename, attrs=attrs)
         assert self.attrs["NX_class"] == "NXroot"
 
@@ -555,7 +560,7 @@ class SpecH5(commonh5.File, SpecH5Group):
             self.add_node(scan_group)
 
     def close(self):
-        # or del self._sf?
+        self._sf.close()
         self._sf = None
 
 
@@ -774,13 +779,11 @@ class MeasurementGroup(commonh5.Group, SpecH5Group):
 
         num_analysers = _get_number_of_mca_analysers(scan)
         for anal_idx in range(num_analysers):
-            self.add_node(MeasurementMcaGroup(parent=self,
-                                              analyser_index=anal_idx,
-                                              scan=scan))
+            self.add_node(MeasurementMcaGroup(parent=self, analyser_index=anal_idx))
 
 
 class MeasurementMcaGroup(commonh5.Group, SpecH5Group):
-    def __init__(self, parent, analyser_index, scan):
+    def __init__(self, parent, analyser_index):
         basename = "mca_%d" % analyser_index
         commonh5.Group.__init__(self, name=basename, parent=parent,
                                 attrs={})

@@ -30,7 +30,7 @@ from __future__ import absolute_import
 
 __authors__ = ["D. N."]
 __license__ = "MIT"
-__date__ = "10/01/2017"
+__date__ = "02/10/2017"
 
 import logging
 import sys
@@ -41,6 +41,7 @@ import numpy
 from silx.gui import qt
 from silx.gui.icons import getQIcon
 from silx.gui.plot.Colormap import Colormap
+from silx.gui.widgets.FloatEdit import FloatEdit
 
 from .ScalarFieldView import Isosurface
 
@@ -303,7 +304,10 @@ class ColorItem(SubjectItem):
     def getEditor(self, parent, option, index):
         editor = QColorEditor(parent)
         editor.color = self.getColor()
-        editor.sigColorChanged.connect(self._editorSlot)
+
+        # Wrapping call in lambda is a workaround for PySide with Python 3
+        editor.sigColorChanged.connect(
+            lambda color: self._editorSlot(color))
         return editor
 
     def _editorSlot(self, color):
@@ -644,7 +648,9 @@ class IsoSurfaceColorItem(SubjectItem):
         color = self.subject.getColor()
         color.setAlpha(255)
         editor.color = color
-        editor.sigColorChanged.connect(self.__editorChanged)
+        # Wrapping call in lambda is a workaround for PySide with Python 3
+        editor.sigColorChanged.connect(
+            lambda color: self.__editorChanged(color))
         return editor
 
     def __editorChanged(self, color):
@@ -739,7 +745,9 @@ class IsoSurfaceAlphaItem(SubjectItem):
         color = self.subject.getColor()
         editor.setValue(color.alpha())
 
-        editor.valueChanged.connect(self.__editorChanged)
+        # Wrapping call in lambda is a workaround for PySide with Python 3
+        editor.valueChanged.connect(
+            lambda value: self.__editorChanged(value))
 
         return editor
 
@@ -928,16 +936,14 @@ class PlaneMinRangeItem(ColormapBase):
         colormap.setVRange(vMin, vMax)
 
     def getEditor(self, parent, option, index):
-        editor = qt.QLineEdit(parent)
-        editor.setValidator(qt.QDoubleValidator(editor))
-        return editor
+        return FloatEdit(parent)
 
     def setEditorData(self, editor):
-        editor.setText(str(self._pullData()))
+        editor.setValue(self._pullData())
         return True
 
     def _setModelData(self, editor):
-        value = float(editor.text())
+        value = editor.value()
         self._setVMin(value)
         return True
 
@@ -966,16 +972,14 @@ class PlaneMaxRangeItem(ColormapBase):
         colormap.setVRange(vMin, vMax)
 
     def getEditor(self, parent, option, index):
-        editor = qt.QLineEdit(parent)
-        editor.setValidator(qt.QDoubleValidator(editor))
-        return editor
+        return FloatEdit(parent)
 
     def setEditorData(self, editor):
         editor.setText(str(self._pullData()))
         return True
 
     def _setModelData(self, editor):
-        value = float(editor.text())
+        value = editor.value()
         self._setVMax(value)
         return True
 
@@ -1010,7 +1014,10 @@ class PlaneOrientationItem(SubjectItem):
         editor = qt.QComboBox(parent)
         for iconName, text, tooltip, normal in self._PLANE_ACTIONS:
             editor.addItem(getQIcon(iconName), text)
-        editor.currentIndexChanged[int].connect(self.__editorChanged)
+
+        # Wrapping call in lambda is a workaround for PySide with Python 3
+        editor.currentIndexChanged[int].connect(
+            lambda index: self.__editorChanged(index))
         return editor
 
     def __editorChanged(self, index):
@@ -1062,6 +1069,35 @@ class PlaneInterpolationItem(SubjectItem):
         self.subject.getCutPlanes()[0].setInterpolation(interpolation)
 
 
+class PlaneDisplayBelowMinItem(SubjectItem):
+    """Toggle whether to display or not values <= colormap min of the cut plane
+
+    Item is checkable
+    """
+
+    def _init(self):
+        display = self.subject.getCutPlanes()[0].getDisplayValuesBelowMin()
+        self.setCheckable(True)
+        self.setCheckState(
+            qt.Qt.Checked if display else qt.Qt.Unchecked)
+        self.setData(self._pullData(), role=qt.Qt.DisplayRole, pushData=False)
+
+    def getSignals(self):
+        return [self.subject.getCutPlanes()[0].sigTransparencyChanged]
+
+    def leftClicked(self):
+        checked = self.checkState() == qt.Qt.Checked
+        self._setDisplayValuesBelowMin(checked)
+
+    def _pullData(self):
+        display = self.subject.getCutPlanes()[0].getDisplayValuesBelowMin()
+        self._setDisplayValuesBelowMin(display)
+        return "Displayed" if display else "Hidden"
+
+    def _setDisplayValuesBelowMin(self, display):
+        self.subject.getCutPlanes()[0].setDisplayValuesBelowMin(display)
+
+
 class PlaneColormapItem(ColormapBase):
     """
     colormap name item.
@@ -1071,12 +1107,16 @@ class PlaneColormapItem(ColormapBase):
 
     listValues = ['gray', 'reversed gray',
                   'temperature', 'red',
-                  'green', 'blue']
+                  'green', 'blue',
+                  'viridis', 'magma', 'inferno', 'plasma']
 
     def getEditor(self, parent, option, index):
         editor = qt.QComboBox(parent)
         editor.addItems(self.listValues)
-        editor.currentIndexChanged[int].connect(self.__editorChanged)
+
+        # Wrapping call in lambda is a workaround for PySide with Python 3
+        editor.currentIndexChanged[int].connect(
+            lambda index: self.__editorChanged(index))
 
         return editor
 
@@ -1156,7 +1196,10 @@ class NormalizationNode(ColormapBase):
     def getEditor(self, parent, option, index):
         editor = qt.QComboBox(parent)
         editor.addItems(self.listValues)
-        editor.currentIndexChanged[int].connect(self.__editorChanged)
+
+        # Wrapping call in lambda is a workaround for PySide with Python 3
+        editor.currentIndexChanged[int].connect(
+            lambda index: self.__editorChanged(index))
 
         return editor
 
@@ -1225,6 +1268,11 @@ class PlaneGroup(SubjectItem):
         nameItem = qt.QStandardItem('Max')
         nameItem.setEditable(False)
         valueItem = PlaneMaxRangeItem(self.subject)
+        self.appendRow([nameItem, valueItem])
+
+        nameItem = qt.QStandardItem('Values<=Min')
+        nameItem.setEditable(False)
+        valueItem = PlaneDisplayBelowMinItem(self.subject)
         self.appendRow([nameItem, valueItem])
 
 

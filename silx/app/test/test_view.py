@@ -26,13 +26,29 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "12/04/2017"
+__date__ = "29/09/2017"
 
 
 import unittest
-from silx.gui.test.utils import TestCaseQt
-from .. import view
 import sys
+import os
+
+
+# TODO: factor this code with silx.gui.test
+with_qt = False
+if sys.platform.startswith('linux') and not os.environ.get('DISPLAY', ''):
+    reason = 'test disabled (DISPLAY env. variable not set)'
+    view = None
+    TestCaseQt = unittest.TestCase
+elif os.environ.get('WITH_QT_TEST', 'True') == 'False':
+    reason = "test disabled (env. variable WITH_QT_TEST=False)"
+    view = None
+    TestCaseQt = unittest.TestCase
+else:
+    from silx.gui.test.utils import TestCaseQt
+    from .. import view
+    with_qt = True
+    reason = ""
 
 
 class QApplicationMock(object):
@@ -64,6 +80,7 @@ class ViewerMock(object):
         pass
 
 
+@unittest.skipUnless(with_qt, "Qt binding required for TestLauncher")
 class TestLauncher(unittest.TestCase):
     """Test command line parsing"""
 
@@ -83,9 +100,9 @@ class TestLauncher(unittest.TestCase):
         super(TestLauncher, cls).tearDownClass()
 
     def testHelp(self):
+        # option -h must cause a raise SystemExit or a return 0
         try:
             result = view.main(["view", "--help"])
-            self.assertNotEqual(result, 0)
         except SystemExit as e:
             result = e.args[0]
         self.assertEqual(result, 0)
@@ -93,7 +110,6 @@ class TestLauncher(unittest.TestCase):
     def testWrongOption(self):
         try:
             result = view.main(["view", "--foo"])
-            self.assertNotEqual(result, 0)
         except SystemExit as e:
             result = e.args[0]
         self.assertNotEqual(result, 0)
@@ -101,10 +117,9 @@ class TestLauncher(unittest.TestCase):
     def testWrongFile(self):
         try:
             result = view.main(["view", "__file.not.found__"])
-            self.assertNotEqual(result, 0)
         except SystemExit as e:
             result = e.args[0]
-        self.assertNotEqual(result, 0)
+        self.assertEqual(result, 0)
 
     def testFile(self):
         # sys.executable is an existing readable file
@@ -118,8 +133,10 @@ class TestLauncher(unittest.TestCase):
 class TestViewer(TestCaseQt):
     """Test for Viewer class"""
 
+    @unittest.skipUnless(with_qt, reason)
     def testConstruct(self):
-        widget = view.Viewer()
+        if view is not None:
+            widget = view.Viewer()
         self.qWaitForWindowExposed(widget)
 
 

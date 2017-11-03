@@ -1,6 +1,62 @@
 Change Log
 ==========
 
+0.6.0: 2017/10/02
+-----------------
+
+ * OpenCl. Tomography. Implement a filtered back projection.
+ * Add a *PrintPreview* widget and a *PrintPreviewToolButton* for *PlotWidget*.
+ * Plot:
+ 
+   * Add a context menu on right click.
+   * Add a *ComplexImageView* widget.
+   * Merged abstract *Plot* class with *PlotWidget* class.
+   * Make colormap an object with signals (*sigChanged*)
+   * Add a colorbar widget *silx.gui.plot.ColorBar*.
+   * Make axis an object, allow axis synchronization between plots,
+     allow adding constraints on axes limits.
+   * Refactor plot actions, new sub-package *silx.gui.plot.actions*.
+   * Add signals on *PlotWidget* items notifying updates.
+   * Mask. Support loading of TIFF images.
+   
+ * Plot3d:
+ 
+   * Rework toolbar and interaction to use only the left mouse button.
+   * Support any colormap.
+   
+ * Hdf5TreeView:
+ 
+   * Add an API to select a single tree node item (*setSelectedH5Node*)
+   * Better support and display of types.
+   * New column for displaying the kind of links.
+   * Broken nodes are now selectable.
+
+ * StackView. Add a *setTitleCallback* method.
+ * Median filter. Add new modes (*reflect, mirror, shrink*) in addition to *nearest*.
+
+ * IO:
+ 
+   * Rename module *spectoh5* to *convert*. Add support for conversion of *fabio* formats.
+   * Support NPZ format.
+   * Support opening an URI (*silx.io.open(filename::path)*).
+   * *Group* methods *.keys*, *.value* and *.items* now return lists in Python 2
+     and iterators in Python 3.
+   
+ * Image. Add tomography utils: *phantomgenerator* to produce Shepp-Logan phantom, function to compute center of rotation (*calc_center_corr*, *calc_center_centroid*) and rescale the intensity of an image (*rescale_intensity*).
+ 
+ * Commands:
+   
+   * *silx view*:
+     
+     * Add command line option *--use-opengl-plot*.
+     * Add command line option *--debug*, to print dataset reading errors.
+     * Support opening URI (*silx view filename::path*).
+     
+   * *silx convert*. New command line application to convert supported data files to HDF5.
+   
+ * Enable usage of *silx.resources* for other projects.
+ * The *silx* license is now fully MIT.
+
 
 0.5.0: 2017/05/12
 -----------------
