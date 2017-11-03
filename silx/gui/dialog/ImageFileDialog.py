@@ -1645,9 +1645,9 @@ class ImageFileDialog(qt.QDialog):
         colormap = _silxutils.readColormap(stream)
 
         result &= self.__splitter.restoreState(splitterData)
-        sidebarUrls = [qt.QUrl(s.decode("utf-8")) for s in sidebarUrls]
+        sidebarUrls = [qt.QUrl(s) for s in sidebarUrls]
         self.__sidebar.setUrls(list(sidebarUrls))
-        history = [s.decode("utf-8") for s in history]
+        history = [s for s in history]
         self.setHistory(list(history))
         if workingDirectory is not None:
             self.setDirectory(workingDirectory)
@@ -1670,9 +1670,9 @@ class ImageFileDialog(qt.QDialog):
         stream.writeString(s.encode("ascii"))
         stream.writeInt32(self.__serialVersion)
         stream.writeQVariant(self.__splitter.saveState())
-        strings = [s.toString().encode("utf-8") for s in self.__sidebar.urls()]
+        strings = [u"%s" % s.toString() for s in self.__sidebar.urls()]
         stream.writeQStringList(strings)
-        strings = [s.encode("utf-8") for s in self.history()]
+        strings = [u"%s" % s for s in self.history()]
         stream.writeQStringList(strings)
         stream.writeString(self.directory().encode("utf-8"))
         stream.writeQVariant(self.__browser.saveState())
