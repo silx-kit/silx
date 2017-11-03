@@ -154,7 +154,8 @@ class _Item(object):
             items = qt.QDir.drives()
         else:
             directory = qt.QDir(self.absoluteFilePath())
-            items = directory.entryInfoList()
+            filters = qt.QDir.AllEntries | qt.QDir.Hidden | qt.QDir.System
+            items = directory.entryInfoList(filters)
         for fileInfo in items:
             i = _Item(fileInfo)
             self.__children.append(i)
