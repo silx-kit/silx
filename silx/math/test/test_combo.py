@@ -42,7 +42,9 @@ from silx.math.combo import min_max
 class TestMinMax(ParametricTestCase):
     """Tests of min max combo"""
 
-    FLOATING_DTYPES = 'float32', 'float64', 'float128'
+    FLOATING_DTYPES = 'float32', 'float64'
+    if hasattr(numpy, "float128"):
+        FLOATING_DTYPES += ('float128',)
     SIGNED_INT_DTYPES = 'int8', 'int16', 'int32', 'int64'
     UNSIGNED_INT_DTYPES = 'uint8', 'uint16', 'uint32', 'uint64'
     DTYPES = FLOATING_DTYPES + SIGNED_INT_DTYPES + UNSIGNED_INT_DTYPES
