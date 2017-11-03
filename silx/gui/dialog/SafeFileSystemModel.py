@@ -166,7 +166,7 @@ class _RawFileSystemModel(qt.QAbstractItemModel):
     This class implement a file system model and try to avoid freeze. On Qt4,
     :class:`qt.QFileSystemModel` is known to freeze the file system when
     network drives are available.
-    
+
     To avoid this behaviour, this class does not use
     `qt.QFileInfo.absoluteFilePath` nor `qt.QFileInfo.canonicalPath` to reach
     information on drives.
@@ -182,7 +182,7 @@ class _RawFileSystemModel(qt.QAbstractItemModel):
     __directoryLoadedSync = qt.Signal(str)
     """This signal is connected asynchronously to a slot. It allows to
     emit directoryLoaded as an asynchronous signal."""
-    
+
     directoryLoaded = qt.Signal(str)
     """This signal is emitted when the gatherer thread has finished to load the
     path."""
@@ -571,8 +571,8 @@ class SafeFileSystemModel(qt.QSortFilterProxyModel):
             return False
 
         filters = self.__filters
-        filterPermissions = ((filters & qt.QDir.PermissionMask)
-                            and (filters & qt.QDir.PermissionMask) != qt.QDir.PermissionMask)
+        filterPermissions = ((filters & qt.QDir.PermissionMask) and
+                             (filters & qt.QDir.PermissionMask) != qt.QDir.PermissionMask)
         hideDirs = not (filters & (qt.QDir.Dirs | qt.QDir.AllDirs))
         hideFiles = not (filters & qt.QDir.Files)
         hideReadable = not (not filterPermissions or (filters & qt.QDir.Readable))
@@ -589,16 +589,16 @@ class SafeFileSystemModel(qt.QSortFilterProxyModel):
         isDotDot = fileName == ".."
         isSystem = not fileInfo.isDir() and not fileInfo.isFile()
 
-        if ((hideHidden and not (isDot or isDotDot) and fileInfo.isHidden())
-            or (hideSystem and isSystem)
-            or (hideDirs and fileInfo.isDir())
-            or (hideFiles and fileInfo.isFile())
-            or (hideSymlinks and fileInfo.isSymLink())
-            or (hideReadable and fileInfo.isReadable())
-            or (hideWritable and fileInfo.isWritable())
-            or (hideExecutable and fileInfo.isExecutable())
-            or (hideDot and isDot)
-            or (hideDotDot and isDotDot)):
+        if ((hideHidden and not (isDot or isDotDot) and fileInfo.isHidden()) or
+           (hideSystem and isSystem) or
+           (hideDirs and fileInfo.isDir()) or
+           (hideFiles and fileInfo.isFile()) or
+           (hideSymlinks and fileInfo.isSymLink()) or
+           (hideReadable and fileInfo.isReadable()) or
+           (hideWritable and fileInfo.isWritable()) or
+           (hideExecutable and fileInfo.isExecutable()) or
+           (hideDot and isDot) or
+           (hideDotDot and isDotDot)):
             return False
 
         if self.__nameFilterDisables:
@@ -632,9 +632,9 @@ class SafeFileSystemModel(qt.QSortFilterProxyModel):
     def setNameFilters(self, filters):
         self.__nameFilters = []
         isCaseSensitive = self.__filters & qt.QDir.CaseSensitive
-        caseSensitive = qt.Qt.CaseSensitive if isCaseSensitive  else qt.Qt.CaseInsensitive
-        for filter in filters:
-            reg = qt.QRegExp(filter, caseSensitive, qt.QRegExp.Wildcard)
+        caseSensitive = qt.Qt.CaseSensitive if isCaseSensitive else qt.Qt.CaseInsensitive
+        for f in filters:
+            reg = qt.QRegExp(f, caseSensitive, qt.QRegExp.Wildcard)
             self.__nameFilters.append(reg)
         self.invalidateFilter()
 
