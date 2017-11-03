@@ -28,7 +28,7 @@ This module contains an :class:`ImageFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "25/10/2017"
+__date__ = "03/11/2017"
 
 import sys
 import os
@@ -51,14 +51,14 @@ _logger = logging.getLogger(__name__)
 
 class _ImageUri(object):
 
-    def __init__(self, path=None, filename=None, dataPath=None, slice=None):
+    def __init__(self, path=None, filename=None, dataPath=None, slicing=None):
         self.__isValid = False
         if path is not None:
             self.__fromPath(path)
         else:
             self.__filename = filename
             self.__dataPath = dataPath
-            self.__slice = slice
+            self.__slice = slicing
             self.__path = None
             if self.__filename == "":
                 self.__isValid = self.__dataPath is None and self.__slice is None
@@ -1380,7 +1380,7 @@ class ImageFileDialog(qt.QDialog):
         else:
             slicing = None
 
-        uri = _ImageUri(filename=filename, dataPath=dataPath, slice=slicing)
+        uri = _ImageUri(filename=filename, dataPath=dataPath, slicing=slicing)
         return uri
 
     def __updatePath(self):
