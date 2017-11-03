@@ -28,7 +28,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent, H. Payno"]
 __license__ = "MIT"
-__date__ = "16/08/2017"
+__date__ = "18/10/2017"
 
 
 import logging
@@ -305,6 +305,13 @@ class BackendMatplotlib(BackendBase.BackendBase):
             xstep = 1 if scale[0] >= 0. else -1
             ystep = 1 if scale[1] >= 0. else -1
             data = data[::ystep, ::xstep]
+
+        if matplotlib.__version__ < "2.1":
+            # matplotlib 1.4.2 do not support float128
+            if data.dtype == numpy.float128:
+                _logger.warning("Your matplotlib version do not support "
+                                "float128. Data converted to floa64.")
+                data = data.astype(numpy.float64)
 
         image.set_data(data)
 

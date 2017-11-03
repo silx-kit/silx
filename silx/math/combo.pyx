@@ -30,7 +30,7 @@ of first occurrences (i.e., argmin/argmax) in a single pass.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "16/08/2017"
+__date__ = "18/10/2017"
 
 cimport cython
 
@@ -49,9 +49,11 @@ cdef extern from "isnan.h":
 import numpy
 
 
+# All supported types
 ctypedef fused _number:
     float
     double
+    long double
     signed char
     signed short
     signed int
@@ -62,6 +64,13 @@ ctypedef fused _number:
     unsigned int
     unsigned long
     unsigned long long
+
+# All supported floating types:
+# cython.floating + long double
+ctypedef fused _floating:
+    float
+    double
+    long double
 
 
 class _MinMaxResult(object):
@@ -122,7 +131,7 @@ def _min_max(_number[::1] data, bint min_positive=False):
     See :func:`min_max` for documentation.
     """
     cdef:
-        _number value, minimum, minpos, maximum
+        _number value, minimum, min_pos, maximum
         unsigned int length
         unsigned int index = 0
         unsigned int min_index = 0
@@ -144,7 +153,7 @@ def _min_max(_number[::1] data, bint min_positive=False):
         else:
             min_pos = 0
 
-        if _number in cython.floating:
+        if _number in _floating:
             # For floating, loop until first not NaN value
             for index in range(length):
                 value = data[index]
@@ -182,7 +191,7 @@ def _min_max(_number[::1] data, bint min_positive=False):
                     break
 
             # Loop until the end
-            for index in range(index+1, length):
+            for index in range(index + 1, length):
                 value = data[index]
                 if value > maximum:
                     maximum = value
@@ -207,13 +216,13 @@ def _min_max(_number[::1] data, bint min_positive=False):
 @cython.initializedcheck(False)
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def _finite_min_max(cython.floating[::1] data, bint min_positive=False):
+def _finite_min_max(_floating[::1] data, bint min_positive=False):
     """:func:`min_max` implementation for floats skipping infinite values
 
     See :func:`min_max` for documentation.
     """
     cdef:
-        cython.floating value, minimum, minpos, maximum
+        _floating value, minimum, min_pos, maximum
         unsigned int length
         unsigned int index = 0
         unsigned int min_index = 0
