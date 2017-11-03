@@ -1553,7 +1553,7 @@ class ImageFileDialog(qt.QDialog):
             path = os.path.dirname(self.__h5.file.filename)
             return path
         else:
-            return qt.QDir.currentPath()
+            return ""
 
     def selectedImage(self):
         """Returns the numpy array selected.
