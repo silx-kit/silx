@@ -60,7 +60,7 @@ class _ImageUri(object):
             self.__dataPath = dataPath
             self.__slice = slicing
             self.__path = None
-            if self.__filename == "":
+            if self.__filename in ["", "/"]:
                 self.__isValid = self.__dataPath is None and self.__slice is None
             else:
                 self.__isValid = self.__filename is not None
@@ -396,6 +396,8 @@ class _SideBar(qt.QListView):
         for url in urls:
             path = url.toLocalFile()
             if path == "":
+                if sys.platform != "win32":
+                    url = qt.QUrl(qt.QDir.rootPath())
                 name = "Computer"
                 icon = style.standardIcon(qt.QStyle.SP_ComputerIcon)
             else:
@@ -1408,7 +1410,17 @@ class ImageFileDialog(qt.QDialog):
             self.__currentHistory.append(uri.path())
             self.__currentHistoryLocation += 1
 
-        self.__toParentAction.setEnabled(index.isValid())
+        if index.model() != self.__dataModel:
+            if sys.platform == "win32":
+                # path == ""
+                isRoot = not index.isValid()
+            else:
+                # path in ["", "/"]
+                isRoot = not index.isValid() or not index.parent().isValid()
+        else:
+            isRoot = False
+
+        self.__toParentAction.setEnabled(not isRoot)
         self.__updateActionHistory()
         self.__updateSidebar()
 
@@ -1434,8 +1446,8 @@ class ImageFileDialog(qt.QDialog):
     def __pathChanged(self):
         uri = _ImageUri(path=self.__pathEdit.text())
         if uri.isValid():
-            if uri.filename() == "":
-                self.__fileModel_setRootPath("")
+            if uri.filename() in ["", "/"]:
+                self.__fileModel_setRootPath(qt.QDir.rootPath())
             elif os.path.exists(uri.filename()):
                 rootIndex = None
                 if os.path.isdir(uri.filename()):
