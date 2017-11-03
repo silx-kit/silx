@@ -118,7 +118,7 @@ class _Item(object):
     def _setParent(self, parent):
         self.__parent = weakref.ref(parent)
 
-    def findChlidrenByPath(self, path):
+    def findChildrenByPath(self, path):
         if path == "":
             return self
         path = path.replace("\\", "/")
@@ -288,7 +288,7 @@ class _RawFileSystemModel(qt.QAbstractItemModel):
         if path == "":
             return qt.QModelIndex()
 
-        item = self.__computer.findChlidrenByPath(path)
+        item = self.__computer.findChildrenByPath(path)
         if item is None:
             return qt.QModelIndex()
 
@@ -421,7 +421,7 @@ class _RawFileSystemModel(qt.QAbstractItemModel):
         if self.__currentPath == path:
             return
         self.__currentPath = path
-        item = self.__computer.findChlidrenByPath(path)
+        item = self.__computer.findChildrenByPath(path)
         self.__emitRootPathChanged(path)
         if item is None or item.parent() is None:
             return qt.QModelIndex()
