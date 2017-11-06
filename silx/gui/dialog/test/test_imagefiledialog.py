@@ -622,6 +622,19 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         colormap = dialog.colormap()
         self.assertTrue(colormap.getNormalization(), "log")
 
+    def testRestoreRobusness(self):
+        """What's happen if you try to open a config file with a different
+        binding."""
+        state = qt.QByteArray(self.STATE_VERSION1_PYQT4)
+        dialog = self.createDialog()
+        dialog.restoreState(state)
+        state = qt.QByteArray(self.STATE_VERSION1_PYQT5)
+        dialog = self.createDialog()
+        dialog.restoreState(state)
+        state = qt.QByteArray(self.STATE_VERSION1_PYSIDE)
+        dialog = self.createDialog()
+        dialog.restoreState(state)
+
     def testHistory(self):
         dialog = self.createDialog()
         history = dialog.history()
