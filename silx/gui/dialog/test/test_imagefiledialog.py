@@ -204,7 +204,8 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         urls = sidebar.urls()
         if len(urls) == 0:
             self.skipTest("No sidebar path")
-        if not os.path.exists(urls[0].path()):
+        path = urls[0].path()
+        if path != "" and not os.path.exists(path):
             self.skipTest("Sidebar path do not exists")
 
         index = sidebar.model().index(0, 0)
