@@ -62,7 +62,7 @@ class Colormap(qt.QObject):
             Nx3 or Nx4 numpy array of RGB(A) colors,
             either uint8 or float in [0, 1].
             If 'name' is None, then this array is used as the colormap.
-    :param str norm: Normalization: 'linear' (default) or 'log'
+    :param str normalization: Normalization: 'linear' (default) or 'log'
     :param float vmin:
         Lower bound of the colormap or None for autoscale (default)
     :param float vmax:
@@ -79,6 +79,7 @@ class Colormap(qt.QObject):
     """Tuple of managed normalizations"""
 
     sigChanged = qt.Signal()
+    """Signal emitted when the colormap has changed."""
 
     def __init__(self, name='gray', colors=None, normalization=LINEAR, vmin=None, vmax=None):
         qt.QObject.__init__(self)
@@ -115,13 +116,41 @@ class Colormap(qt.QObject):
         else:
             self._colors = numpy.array(colors, copy=True)
 
-    def setName(self, name):
-        """Set the name of the colormap and load the colors corresponding to
-        the name
+    def getNColors(self, nbColors=None):
+        """Returns N colors computed by sampling the colormap regularly.
 
-        :param str name: the name of the colormap (should be in ['gray',
+        :param nbColors:
+            The number of colors in the returned array or None for the default value.
+            The default value is 256 for colormap with a name (see :meth:`setName`) and
+            it is the size of the LUT for colormap defined with :meth:`setColormapLUT`.
+        :type nbColors: int or None
+        :return: 2D array of uint8 of shape (nbColors, 4)
+        :rtype: numpy.ndarray
+        """
+        # Handle default value for nbColors
+        if nbColors is None:
+            lut = self.getColormapLUT()
+            if lut is not None:  # In this case uses LUT length
+                nbColors = len(lut)
+            else:  # Default to 256
+                nbColors = 256
+
+        nbColors = int(nbColors)
+
+        colormap = self.copy()
+        colormap.setNormalization(Colormap.LINEAR)
+        colormap.setVRange(vmin=None, vmax=None)
+        colors = colormap.applyToData(
+            numpy.arange(nbColors, dtype=numpy.int))
+        return colors
+
+    def setName(self, name):
+        """Set the name of the colormap to use.
+
+        :param str name: The name of the colormap.
+            At least the following names are supported: 'gray',
             'reversed gray', 'temperature', 'red', 'green', 'blue', 'jet',
-            'viridis', 'magma', 'inferno', 'plasma']
+            'viridis', 'magma', 'inferno', 'plasma'.
         """
         assert name in self.getSupportedColormaps()
         self._name = str(name)
@@ -129,20 +158,22 @@ class Colormap(qt.QObject):
         self.sigChanged.emit()
 
     def getColormapLUT(self):
-        """Return the list of colors for the colormap. None if not setted
+        """Return the list of colors for the colormap or None if not set
         
-        :return: the list of colors for the colormap. None if not setted
-        :rtype: numpy.ndarray
+        :return: the list of colors for the colormap or None if not set
+        :rtype: numpy.ndarray or None
         """
-        return self._colors
+        if self._colors is None:
+            return None
+        else:
+            return numpy.array(self._colors, copy=True)
 
     def setColormapLUT(self, colors):
-        """
-        Set the colors of the colormap.
+        """Set the colors of the colormap.
 
         :param numpy.ndarray colors: the colors of the LUT
 
-        .. warning: this will set the value of name to an empty string
+        .. warning: this will set the value of name to None
         """
         self._setColors(colors)
         if len(colors) is 0:
@@ -267,8 +298,7 @@ class Colormap(qt.QObject):
         return vmin, vmax
 
     def setVRange(self, vmin, vmax):
-        """
-        Set bounds to the colormap
+        """Set the bounds of the colormap
 
         :param vmin: Lower bound of the colormap or None for autoscale
             (default)
@@ -361,9 +391,9 @@ class Colormap(qt.QObject):
         return colormap
 
     def copy(self):
-        """
+        """Return a copy of the Colormap.
 
-        :return: a copy of the Colormap object
+        :rtype: Colormap
         """
         return Colormap(name=self._name,
                         colors=copy_mdl.copy(self._colors),

@@ -609,14 +609,7 @@ class CutPlane(qt.QObject):
         colormap = self.getColormap()
         sceneCMap = self._plane.colormap
 
-        indices = numpy.linspace(0., 1., 256)
-        colormapDisp = Colormap(name=colormap.getName(),
-                                normalization=Colormap.LINEAR,
-                                vmin=None,
-                                vmax=None,
-                                colors=colormap.getColormapLUT())
-        colors = colormapDisp.applyToData(indices)
-        sceneCMap.colormap = colors
+        sceneCMap.colormap = colormap.getNColors()
 
         sceneCMap.norm = colormap.getNormalization()
         range_ = colormap.getColormapRange(data=self._dataRange)
