@@ -635,6 +635,20 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         dialog = self.createDialog()
         dialog.restoreState(state)
 
+    def testRestoreNonExistingDirectory(self):
+        directory = os.path.join(_tmpDirectory, "dir")
+        os.mkdir(directory)
+        dialog = ImageFileDialog()
+        dialog.setDirectory(directory)
+        self.qWaitForPendingActions(dialog)
+        state = dialog.saveState()
+        os.rmdir(directory)
+
+        dialog2 = ImageFileDialog()
+        result = dialog2.restoreState(state)
+        self.assertTrue(result)
+        self.assertNotEquals(dialog2.directory(), directory)
+
     def testHistory(self):
         dialog = self.createDialog()
         history = dialog.history()
