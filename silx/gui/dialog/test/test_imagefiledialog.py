@@ -201,8 +201,11 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
 
         self.assertSamePath(url.text(), _tmpDirectory)
 
-        if sidebar.model().rowCount() == 0:
-            return
+        urls = sidebar.urls()
+        if len(urls) == 0:
+            self.skipTest("No sidebar path")
+        if not os.path.exists(urls[0].path()):
+            self.skipTest("Sidebar path do not exists")
 
         index = sidebar.model().index(0, 0)
         # rect = sidebar.visualRect(index)
