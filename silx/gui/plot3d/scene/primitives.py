@@ -138,10 +138,19 @@ class Geometry(core.Elem):
         # Makes sure it is an array
         array = numpy.array(array, copy=False)
 
-        # Cast all float to float32
         dtype = None
-        if numpy.dtype(array.dtype).kind == 'f':
+        if array.dtype.kind == 'f' and array.dtype.itemsize != 4:
+            # Cast  to float32
+            _logger.info('Cast array to float32')
             dtype = numpy.float32
+        elif array.dtype.itemsize > 4:
+            # Cast (u)int64 to (u)int32
+            if array.dtype.kind == 'i':
+                _logger.info('Cast array to int32')
+                dtype = numpy.int32
+            elif array.dtype.kind == 'u':
+                _logger.info('Cast array to uint32')
+                dtype = numpy.uint32
 
         return numpy.array(array, dtype=dtype, order='C', copy=copy)
 
