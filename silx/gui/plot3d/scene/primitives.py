@@ -286,6 +286,7 @@ class Geometry(core.Elem):
                 # This might be a costy check
                 assert indices.max() < self.nbVertices
             self._indices = indices
+        self.notify()
 
     def getIndices(self, copy=True):
         """Returns the numpy.ndarray corresponding to the indices.
