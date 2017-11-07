@@ -28,7 +28,7 @@ This module contains an :class:`ImageFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "06/11/2017"
+__date__ = "07/11/2017"
 
 import sys
 import os
@@ -1149,7 +1149,7 @@ class ImageFileDialog(qt.QDialog):
         :param str path: Path to load
         """
         assert(path is not None)
-        if not os.path.exists(path):
+        if path != "" and not os.path.exists(path):
             return
         if self.hasPendingEvents():
             # Make sure the asynchronous fileModel setRootPath is finished
