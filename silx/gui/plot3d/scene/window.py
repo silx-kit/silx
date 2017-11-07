@@ -124,18 +124,26 @@ class ContextGL2(Context):
 
     # programs
 
-    def prog(self, vertexShaderSrc, fragmentShaderSrc):
+    def prog(self, vertexShaderSrc, fragmentShaderSrc, attrib0='position'):
         """Cache program within context.
 
         WARNING: No clean-up.
+
+        :param str vertexShaderSrc: Vertex shader source code
+        :param str fragmentShaderSrc: Fragment shader source code
+        :param str attrib0:
+            Attribute's name to bind to position 0 (default: 'position').
+            On some platform, this attribute MUST be active and with an
+            array attached to it in order for the rendering to occur....
         """
         assert self.isCurrent
-        key = vertexShaderSrc, fragmentShaderSrc
-        prog = self._programs.get(key, None)
-        if prog is None:
-            prog = _glutils.Program(vertexShaderSrc, fragmentShaderSrc)
-            self._programs[key] = prog
-        return prog
+        key = vertexShaderSrc, fragmentShaderSrc, attrib0
+        program = self._programs.get(key, None)
+        if program is None:
+            program = _glutils.Program(
+                vertexShaderSrc, fragmentShaderSrc, attrib0=attrib0)
+            self._programs[key] = program
+        return program
 
     # VBOs
 
