@@ -16,10 +16,9 @@ import threading
 import numpy as np
 cimport numpy as np
 cimport cython
-from . cimport qhull
-from . cimport setlist
+from silx.third_party._local.scipy_spatial cimport qhull
+from silx.third_party._local.scipy_spatial cimport setlist
 from libc cimport stdlib
-from scipy._lib.messagestream cimport MessageStream
 
 from numpy.compat import asbytes
 import os
@@ -29,7 +28,7 @@ import tempfile
 cdef extern from "numpy/npy_math.h":
     double nan "NPY_NAN"
 
-__all__ = ['Delaunay', 'ConvexHull', 'Voronoi', 'HalfspaceIntersection', 'tsearch']
+__all__ = ['Delaunay']
 
 #------------------------------------------------------------------------------
 # Qhull interface
@@ -172,6 +171,8 @@ cdef extern from "qhull/src/libqhull_r.h":
     void qh_setdelaunay(qhT *, int dim, int count, pointT *points) nogil
     coordT* qh_sethalfspace_all(qhT *, int dim, int count, coordT* halfspaces, pointT *feasible)
 
+    void QHULL_LIB_CHECK()
+
 cdef extern from "qhull/src/io_r.h":
     ctypedef enum qh_RIDGE:
         qh_RIDGEall
@@ -200,26 +201,13 @@ cdef extern from "qhull/src/mem_r.h":
 from libc.string cimport memcpy
 from libc.stdlib cimport qsort
 
-#------------------------------------------------------------------------------
-# LAPACK interface
-#------------------------------------------------------------------------------
-
-cdef extern from "qhull_misc.h":
-    void qhull_misc_lib_check()
-    void qh_dgetrf(int *m, int *n, double *a, int *lda, int *ipiv,
-                   int *info) nogil
-    void qh_dgetrs(char *trans, int *n, int *nrhs, double *a, int *lda,
-                   int *ipiv, double *b, int *ldb, int *info) nogil
-    void qh_dgecon(char *norm, int *n, double *a, int *lda, double *anorm,
-                   double *rcond, double *work, int *iwork, int *info) nogil
-
 
 #------------------------------------------------------------------------------
 # Qhull wrapper
 #------------------------------------------------------------------------------
 
 # Check Qhull library compatibility at import time
-qhull_misc_lib_check()
+(QHULL_LIB_CHECK)
 
 
 class QhullError(RuntimeError):
@@ -235,7 +223,6 @@ cdef class _Qhull:
 
     cdef list _point_arrays
     cdef list _dual_point_arrays
-    cdef MessageStream _messages
 
     cdef public bytes options
     cdef public bytes mode_option
@@ -263,7 +250,6 @@ cdef class _Qhull:
         cdef int exitcode
 
         self._qh = NULL
-        self._messages = MessageStream()
 
         points = np.ascontiguousarray(points, dtype=np.double)
 
@@ -330,8 +316,6 @@ cdef class _Qhull:
 
         options_c = <char*>options
 
-        self._messages.clear()
-
         cdef coordT* coord
         cdef int i
         with nogil:
@@ -339,24 +323,22 @@ cdef class _Qhull:
             if self._qh == NULL:
                 with gil:
                     raise MemoryError("memory allocation failed")
-            qh_zero(self._qh, self._messages.handle)
+            qh_zero(self._qh, stderr)
             if interior_point is not None:
                 coord = <coordT*>interior_point.data
             else:
                 coord = NULL
             exitcode = qh_new_qhull(self._qh, self.ndim, self.numpoints,
                                     <realT*>points.data, 0,
-                                    options_c, NULL, self._messages.handle, coord)
+                                    options_c, NULL, stderr, coord)
 
         if exitcode != 0:
-            msg = self._messages.get()
             self.close()
-            raise QhullError(msg)
+            raise QhullError()
 
     @cython.final
     def __del__(self):
         self.close()
-        self._messages.close()
 
     def check_active(self):
         if self._qh == NULL:
@@ -377,8 +359,6 @@ cdef class _Qhull:
 
         stdlib.free(self._qh)
         self._qh = NULL
-
-        self._messages.close()
 
         if curlong != 0 or totlong != 0:
             raise QhullError(
@@ -422,13 +402,11 @@ cdef class _Qhull:
         else:
             arr = np.array(points, dtype=np.double, order="C", copy=True)
 
-        self._messages.clear()
-
         try:
             # nonlocal error handling
             exitcode = setjmp(self._qh[0].errexit)
             if exitcode != 0:
-                raise QhullError(self._messages.get())
+                raise QhullError()
             self._qh[0].NOerrexit = 0
 
             # add points to triangulation
@@ -1055,91 +1033,7 @@ def _get_barycentric_transforms(np.ndarray[np.double_t, ndim=2] points,
     These are stacked into the `Tinvs` returned.
 
     """
-    cdef np.ndarray[np.double_t, ndim=2] T
-    cdef np.ndarray[np.double_t, ndim=3] Tinvs
-    cdef int isimplex
-    cdef int i, j, n, nrhs, lda, ldb, info
-    cdef int ipiv[NPY_MAXDIMS+1]
-    cdef int ndim, nsimplex
-    cdef double centroid[NPY_MAXDIMS]
-    cdef double c[NPY_MAXDIMS+1]
-    cdef double *transform
-    cdef double anorm, rcond
-    cdef double rcond_limit
-
-    cdef double work[4*NPY_MAXDIMS]
-    cdef int iwork[NPY_MAXDIMS]
-
-    cdef double x1, x2, x3
-    cdef double y1, y2, y3
-    cdef double det
-
-    ndim = points.shape[1]
-    nsimplex = simplices.shape[0]
-
-    T = np.zeros((ndim, ndim), dtype=np.double)
-    Tinvs = np.zeros((nsimplex, ndim+1, ndim), dtype=np.double)
-
-    # Maximum inverse condition number to allow: we want at least three
-    # of the digits be significant, to be safe
-    rcond_limit = 1000*eps
-
-    with nogil:
-        for isimplex in xrange(nsimplex):
-            for i in xrange(ndim):
-                Tinvs[isimplex,ndim,i] = points[simplices[isimplex,ndim],i]
-                for j in xrange(ndim):
-                    T[i,j] = (points[simplices[isimplex,j],i]
-                              - Tinvs[isimplex,ndim,i])
-                Tinvs[isimplex,i,i] = 1
-
-            # compute 1-norm for estimating condition number
-            anorm = _matrix_norm1(ndim, <double*>T.data)
-
-            # LU decomposition
-            n = ndim
-            nrhs = ndim
-            lda = ndim
-            ldb = ndim
-            qh_dgetrf(&n, &n, <double*>T.data, &lda, ipiv, &info)
-
-            # Check condition number
-            if info == 0:
-                qh_dgecon("1", &n, <double*>T.data, &lda, &anorm, &rcond,
-                          work, iwork, &info)
-
-                if rcond < rcond_limit:
-                    # The transform seems singular
-                    info = 1
-
-            # Compute transform
-            if info == 0:
-                qh_dgetrs("N", &n, &nrhs, <double*>T.data, &lda, ipiv,
-                          (<double*>Tinvs.data) + ndim*(ndim+1)*isimplex,
-                          &ldb, &info)
-
-            # Deal with degenerate simplices
-            if info != 0:
-                for i in range(ndim+1):
-                    for j in range(ndim):
-                        Tinvs[isimplex,i,j] = nan
-
-    return Tinvs
-
-@cython.boundscheck(False)
-cdef double _matrix_norm1(int n, double *a) nogil:
-    """Compute the 1-norm of a square matrix given in in Fortran order"""
-    cdef double maxsum = 0, colsum
-    cdef int i, j
-
-    for j in range(n):
-        colsum = 0
-        for i in range(n):
-            colsum += fabs(a[0])
-            a += 1
-        if maxsum < colsum:
-            maxsum = colsum
-    return maxsum
+    raise NotImplementedError()  # To remove dependency on lapack
 
 cdef int _barycentric_inside(int ndim, double *transform,
                              double *x, double *c, double eps) nogil:
@@ -2136,22 +2030,6 @@ class Delaunay(_QhullUser):
         z[...,-1] += self.paraboloid_shift
         return z
 
-def tsearch(tri, xi):
-    """
-    tsearch(tri, xi)
-
-    Find simplices containing the given points. This function does the
-    same thing as `Delaunay.find_simplex`.
-
-    .. versionadded:: 0.9
-
-    See Also
-    --------
-    Delaunay.find_simplex
-
-    """
-    return tri.find_simplex(xi)
-
 Delaunay.add_points.__func__.__doc__ = _QhullUser._add_points.__doc__
 
 #------------------------------------------------------------------------------
@@ -2203,535 +2081,3 @@ cdef int _get_delaunay_info(DelaunayInfo_t *info,
     info.max_bound = <double*>max_bound.data
 
     return 0
-
-
-#------------------------------------------------------------------------------
-# Convex hulls
-#------------------------------------------------------------------------------
-
-class ConvexHull(_QhullUser):
-    """
-    ConvexHull(points, incremental=False, qhull_options=None)
-
-    Convex hulls in N dimensions.
-
-    .. versionadded:: 0.12.0
-
-    Parameters
-    ----------
-    points : ndarray of floats, shape (npoints, ndim)
-        Coordinates of points to construct a convex hull from
-    incremental : bool, optional
-        Allow adding new points incrementally. This takes up some additional
-        resources.
-    qhull_options : str, optional
-        Additional options to pass to Qhull. See Qhull manual
-        for details. (Default: "Qx" for ndim > 4 and "" otherwise)
-        Option "Qt" is always enabled.
-
-    Attributes
-    ----------
-    points : ndarray of double, shape (npoints, ndim)
-        Coordinates of input points.
-    vertices : ndarray of ints, shape (nvertices,)
-        Indices of points forming the vertices of the convex hull.
-        For 2-D convex hulls, the vertices are in counterclockwise order.
-        For other dimensions, they are in input order.
-    simplices : ndarray of ints, shape (nfacet, ndim)
-        Indices of points forming the simplical facets of the convex hull.
-    neighbors : ndarray of ints, shape (nfacet, ndim)
-        Indices of neighbor facets for each facet.
-        The kth neighbor is opposite to the kth vertex.
-        -1 denotes no neighbor.
-    equations : ndarray of double, shape (nfacet, ndim+1)
-        [normal, offset] forming the hyperplane equation of the facet
-        (see `Qhull documentation <http://www.qhull.org/>`__  for more).
-    coplanar : ndarray of int, shape (ncoplanar, 3)
-        Indices of coplanar points and the corresponding indices of
-        the nearest facets and nearest vertex indices.  Coplanar
-        points are input points which were *not* included in the
-        triangulation due to numerical precision issues.
-
-        If option "Qc" is not specified, this list is not computed.
-    area : float
-        Area of the convex hull
-    volume : float
-        Volume of the convex hull
-
-    Raises
-    ------
-    QhullError
-        Raised when Qhull encounters an error condition, such as
-        geometrical degeneracy when options to resolve are not enabled.
-    ValueError
-        Raised if an incompatible array is given as input.
-
-    Notes
-    -----
-    The convex hull is computed using the 
-    `Qhull library <http://www.qhull.org/>`__.
-
-    Examples
-    --------
-
-    Convex hull of a random set of points:
-
-    >>> from scipy.spatial import ConvexHull
-    >>> points = np.random.rand(30, 2)   # 30 random points in 2-D
-    >>> hull = ConvexHull(points)
-
-    Plot it:
-
-    >>> import matplotlib.pyplot as plt
-    >>> plt.plot(points[:,0], points[:,1], 'o')
-    >>> for simplex in hull.simplices:
-    ...     plt.plot(points[simplex, 0], points[simplex, 1], 'k-')
-
-    We could also have directly used the vertices of the hull, which
-    for 2-D are guaranteed to be in counterclockwise order:
-
-    >>> plt.plot(points[hull.vertices,0], points[hull.vertices,1], 'r--', lw=2)
-    >>> plt.plot(points[hull.vertices[0],0], points[hull.vertices[0],1], 'ro')
-    >>> plt.show()
-
-    References
-    ----------
-    .. [Qhull] http://www.qhull.org/
-
-    """
-
-    def __init__(self, points, incremental=False, qhull_options=None):
-        if np.ma.isMaskedArray(points):
-            raise ValueError('Input points cannot be a masked array')
-        points = np.ascontiguousarray(points, dtype=np.double)
-
-        if qhull_options is None:
-            qhull_options = b""
-            if points.shape[1] >= 5:
-                qhull_options += b"Qx"
-        else:
-            qhull_options = asbytes(qhull_options)
-
-        # Run qhull
-        qhull = _Qhull(b"i", points, qhull_options, required_options=b"Qt",
-                       incremental=incremental)
-        _QhullUser.__init__(self, qhull, incremental=incremental)
-
-    def _update(self, qhull):
-        qhull.triangulate()
-
-        self.simplices, self.neighbors, self.equations, self.coplanar = \
-                       qhull.get_simplex_facet_array()
-
-        self.volume, self.area = qhull.volume_area()
-
-        if qhull.ndim == 2:
-            self._vertices = qhull.get_extremes_2d()
-        else:
-            self._vertices = None
-
-        self.nsimplex = self.simplices.shape[0]
-
-        _QhullUser._update(self, qhull)
-
-    def add_points(self, points, restart=False):
-        self._add_points(points, restart)
-
-    @property
-    def points(self):
-        return self._points
-
-    @property
-    def vertices(self):
-        if self._vertices is None:
-            self._vertices = np.unique(self.simplices)
-        return self._vertices
-
-ConvexHull.add_points.__func__.__doc__ = _QhullUser._add_points.__doc__
-
-#------------------------------------------------------------------------------
-# Voronoi diagrams
-#------------------------------------------------------------------------------
-
-class Voronoi(_QhullUser):
-    """
-    Voronoi(points, furthest_site=False, incremental=False, qhull_options=None)
-
-    Voronoi diagrams in N dimensions.
-
-    .. versionadded:: 0.12.0
-
-    Parameters
-    ----------
-    points : ndarray of floats, shape (npoints, ndim)
-        Coordinates of points to construct a convex hull from
-    furthest_site : bool, optional
-        Whether to compute a furthest-site Voronoi diagram. Default: False
-    incremental : bool, optional
-        Allow adding new points incrementally. This takes up some additional
-        resources.
-    qhull_options : str, optional
-        Additional options to pass to Qhull. See Qhull manual
-        for details. (Default: "Qbb Qc Qz Qx" for ndim > 4 and
-        "Qbb Qc Qz" otherwise. Incremental mode omits "Qz".)
-
-    Attributes
-    ----------
-    points : ndarray of double, shape (npoints, ndim)
-        Coordinates of input points.
-    vertices : ndarray of double, shape (nvertices, ndim)
-        Coordinates of the Voronoi vertices.
-    ridge_points : ndarray of ints, shape ``(nridges, 2)``
-        Indices of the points between which each Voronoi ridge lies.
-    ridge_vertices : list of list of ints, shape ``(nridges, *)``
-        Indices of the Voronoi vertices forming each Voronoi ridge.
-    regions : list of list of ints, shape ``(nregions, *)``
-        Indices of the Voronoi vertices forming each Voronoi region.
-        -1 indicates vertex outside the Voronoi diagram.
-    point_region : list of ints, shape (npoints)
-        Index of the Voronoi region for each input point.
-        If qhull option "Qc" was not specified, the list will contain -1
-        for points that are not associated with a Voronoi region.
-
-    Raises
-    ------
-    QhullError
-        Raised when Qhull encounters an error condition, such as
-        geometrical degeneracy when options to resolve are not enabled.
-    ValueError
-        Raised if an incompatible array is given as input.
-
-    Notes
-    -----
-    The Voronoi diagram is computed using the 
-    `Qhull library <http://www.qhull.org/>`__.
-
-    Examples
-    --------
-    Voronoi diagram for a set of point:
-
-    >>> points = np.array([[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2],
-    ...                    [2, 0], [2, 1], [2, 2]])
-    >>> from scipy.spatial import Voronoi, voronoi_plot_2d
-    >>> vor = Voronoi(points)
-
-    Plot it:
-
-    >>> import matplotlib.pyplot as plt
-    >>> voronoi_plot_2d(vor)
-    >>> plt.show()
-
-    The Voronoi vertices:
-
-    >>> vor.vertices
-    array([[ 0.5,  0.5],
-           [ 1.5,  0.5],
-           [ 0.5,  1.5],
-           [ 1.5,  1.5]])
-
-    There is a single finite Voronoi region, and four finite Voronoi
-    ridges:
-
-    >>> vor.regions
-    [[], [-1, 0], [-1, 1], [1, -1, 0], [3, -1, 2], [-1, 3], [-1, 2], [3, 2, 0, 1], [2, -1, 0], [3, -1, 1]]
-    >>> vor.ridge_vertices
-    [[-1, 0], [-1, 0], [-1, 1], [-1, 1], [0, 1], [-1, 3], [-1, 2], [2, 3], [-1, 3], [-1, 2], [0, 2], [1, 3]]
-
-    The ridges are perpendicular between lines drawn between the following
-    input points:
-
-    >>> vor.ridge_points
-    array([[0, 1],
-           [0, 3],
-           [6, 3],
-           [6, 7],
-           [3, 4],
-           [5, 8],
-           [5, 2],
-           [5, 4],
-           [8, 7],
-           [2, 1],
-           [4, 1],
-           [4, 7]], dtype=int32)
-
-    """
-    def __init__(self, points, furthest_site=False, incremental=False,
-                 qhull_options=None):
-        if np.ma.isMaskedArray(points):
-            raise ValueError('Input points cannot be a masked array')
-        points = np.ascontiguousarray(points, dtype=np.double)
-
-        if qhull_options is None:
-            if not incremental:
-                qhull_options = b"Qbb Qc Qz"
-            else:
-                qhull_options = b"Qc"
-            if points.shape[1] >= 5:
-                qhull_options += b" Qx"
-        else:
-            qhull_options = asbytes(qhull_options)
-
-        # Run qhull
-        qhull = _Qhull(b"v", points, qhull_options, furthest_site=furthest_site,
-                       incremental=incremental)
-        _QhullUser.__init__(self, qhull, incremental=incremental)
-
-    def _update(self, qhull):
-        self.vertices, self.ridge_points, self.ridge_vertices, \
-                       self.regions, self.point_region = \
-                       qhull.get_voronoi_diagram()
-
-        self._ridge_dict = None
-
-        _QhullUser._update(self, qhull)
-
-    def add_points(self, points, restart=False):
-        self._add_points(points, restart)
-
-    @property
-    def points(self):
-        return self._points
-
-    @property
-    def ridge_dict(self):
-        if self._ridge_dict is None:
-            self._ridge_dict = dict(zip(map(tuple, self.ridge_points.tolist()),
-                                        self.ridge_vertices))
-        return self._ridge_dict
-
-Voronoi.add_points.__func__.__doc__ = _QhullUser._add_points.__doc__
-
-#------------------------------------------------------------------------------
-# Halfspace Intersection
-#------------------------------------------------------------------------------
-
-class HalfspaceIntersection(_QhullUser):
-    """
-    HalfspaceIntersection(halfspaces, interior_point, incremental=False, qhull_options=None)
-
-    Halfspace intersections in N dimensions.
-
-    .. versionadded:: 0.19.0
-
-    Parameters
-    ----------
-    halfspaces : ndarray of floats, shape (nineq, ndim+1)
-        Stacked Inequalities of the form Ax + b <= 0 in format [A; b]
-    interior_point : ndarray of floats, shape (ndim,)
-        Point clearly inside the region defined by halfspaces. Also called a feasible
-        point, it can be obtained by linear programming.
-    incremental : bool, optional
-        Allow adding new halfspaces incrementally. This takes up some additional
-        resources.
-    qhull_options : str, optional
-        Additional options to pass to Qhull. See Qhull manual
-        for details. (Default: "Qx" for ndim > 4 and "" otherwise)
-        Option "H" is always enabled.
-
-    Attributes
-    ----------
-    halfspaces : ndarray of double, shape (nineq, ndim+1)
-        Input halfspaces.
-    interior_point :ndarray of floats, shape (ndim,)
-        Input interior point.
-    intersections : ndarray of double, shape (ninter, ndim)
-        Intersections of all halfspaces.
-    dual_points : ndarray of double, shape (nineq, ndim)
-        Dual points of the input halfspaces.
-    dual_facets : list of lists of ints
-        Indices of points forming the (non necessarily simplicial) facets of
-        the dual convex hull.
-    dual_vertices : ndarray of ints, shape (nvertices,)
-        Indices of halfspaces forming the vertices of the dual convex hull.
-        For 2-D convex hulls, the vertices are in counterclockwise order.
-        For other dimensions, they are in input order.
-    dual_equations : ndarray of double, shape (nfacet, ndim+1)
-        [normal, offset] forming the hyperplane equation of the dual facet
-        (see `Qhull documentation <http://www.qhull.org/>`__  for more).
-    dual_area : float
-        Area of the dual convex hull
-    dual_volume : float
-        Volume of the dual convex hull
-
-    Raises
-    ------
-    QhullError
-        Raised when Qhull encounters an error condition, such as
-        geometrical degeneracy when options to resolve are not enabled.
-    ValueError
-        Raised if an incompatible array is given as input.
-
-    Notes
-    -----
-    The intersections are computed using the
-    `Qhull library <http://www.qhull.org/>`__.
-    This reproduces the "qhalf" functionality of Qhull.
-
-    Examples
-    --------
-
-    Halfspace intersection of planes forming some polygon
-
-    >>> from scipy.spatial import HalfspaceIntersection
-    >>> import numpy as np
-    >>> halfspaces = np.array([[-1, 0., 0.],
-    ...                        [0., -1., 0.],
-    ...                        [2., 1., -4.],
-    ...                        [-0.5, 1., -2.]])
-    >>> feasible_point = np.array([0.5, 0.5])
-    >>> hs = HalfspaceIntersection(halfspaces, feasible_point)
-
-    Plot halfspaces as filled regions and intersection points:
-
-    >>> import matplotlib.pyplot as plt
-    >>> fig = plt.figure()
-    >>> ax = fig.add_subplot('111', aspect='equal')
-    >>> xlim, ylim = (-1, 3), (-1, 3)
-    >>> ax.set_xlim(xlim)
-    >>> ax.set_ylim(ylim)
-    >>> x = np.linspace(-1, 3, 100)
-    >>> symbols = ['-', '+', 'x', '*']
-    >>> signs = [0, 0, -1, -1]
-    >>> fmt = {"color": None, "edgecolor": "b", "alpha": 0.5}
-    >>> for h, sym, sign in zip(halfspaces, symbols, signs):
-    ...     hlist = h.tolist()
-    ...     fmt["hatch"] = sym
-    ...     if h[1]== 0:
-    ...         ax.axvline(-h[2]/h[0], label='{}x+{}y+{}=0'.format(*hlist))
-    ...         xi = np.linspace(xlim[sign], -h[2]/h[0], 100)
-    ...         ax.fill_between(xi, ylim[0], ylim[1], **fmt)
-    ...     else:
-    ...         ax.plot(x, (-h[2]-h[0]*x)/h[1], label='{}x+{}y+{}=0'.format(*hlist))
-    ...         ax.fill_between(x, (-h[2]-h[0]*x)/h[1], ylim[sign], **fmt)
-    >>> x, y = zip(*hs.intersections)
-    >>> ax.plot(x, y, 'o', markersize=8)
-
-    By default, qhull does not provide with a way to compute an interior point.
-    This can easily be computed using linear programming. Considering halfspaces
-    of the form :math:`Ax + b \leq 0`, solving the linear program:
-
-    .. math::
-
-        max \: y
-
-        s.t. Ax + y ||A_i|| \leq -b
-
-    With :math:`A_i` being the rows of A, i.e. the normals to each plane.
-
-    Will yield a point x that is furthest inside the convex polyhedron. To
-    be precise, it is the center of the largest hypersphere of radius y
-    inscribed in the polyhedron. This point is called the Chebyshev center
-    of the polyhedron (see [1]_ 4.3.1, pp148-149). The
-    equations outputted by Qhull are always normalized.
-
-    >>> from scipy.optimize import linprog
-    >>> from matplotlib.patches import Circle
-    >>> norm_vector = np.reshape(np.linalg.norm(halfspaces[:, :-1], axis=1),
-    ...     (halfspaces.shape[0], 1))
-    >>> c = np.zeros((halfspaces.shape[1],))
-    >>> c[-1] = -1
-    >>> A = np.hstack((halfspaces[:, :-1], norm_vector))
-    >>> b = - halfspaces[:, -1:]
-    >>> res = linprog(c, A_ub=A, b_ub=b)
-    >>> x = res.x[:-1]
-    >>> y = res.x[-1]
-    >>> circle = Circle(x, radius=y, alpha=0.3)
-    >>> ax.add_patch(circle)
-    >>> plt.legend(bbox_to_anchor=(1.6, 1.0))
-    >>> plt.show()
-
-    References
-    ----------
-    .. [Qhull] http://www.qhull.org/
-    .. [1] S. Boyd, L. Vandenberghe, Convex Optimization, available
-           at http://stanford.edu/~boyd/cvxbook/
-
-    """
-
-    def __init__(self, halfspaces, interior_point,
-                    incremental=False, qhull_options=None):
-        if np.ma.isMaskedArray(halfspaces):
-            raise ValueError('Input halfspaces cannot be a masked array')
-        if np.ma.isMaskedArray(interior_point):
-            raise ValueError('Input interior point cannot be a masked array')
-        if interior_point.shape != (halfspaces.shape[1]-1,):
-            raise ValueError('Feasible point must be a (ndim-1,) array')
-        halfspaces = np.ascontiguousarray(halfspaces, dtype=np.double)
-        self.interior_point = np.ascontiguousarray(interior_point, dtype=np.double)
-
-        if qhull_options is None:
-            qhull_options = b""
-            if halfspaces.shape[1] >= 6:
-                qhull_options += b"Qx"
-        else:
-            qhull_options = asbytes(qhull_options)
-
-        # Run qhull
-        mode_option = "H"
-        qhull = _Qhull(mode_option.encode(), halfspaces, qhull_options, required_options=None,
-                       incremental=incremental, interior_point=interior_point)
-
-        _QhullUser.__init__(self, qhull, incremental=incremental)
-
-    def _update(self, qhull):
-        self.dual_facets, self.dual_equations = qhull.get_hull_facets()
-
-        self.dual_points = qhull.get_hull_points()
-
-        self.dual_volume, self.dual_area = qhull.volume_area()
-
-        self.intersections = self.dual_equations[:, :-1]/-self.dual_equations[:, -1:] + self.interior_point
-
-        if qhull.ndim == 2:
-            self._vertices = qhull.get_extremes_2d()
-        else:
-            self._vertices = None
-
-        _QhullUser._update(self, qhull)
-
-        self.ndim = self.halfspaces.shape[1] - 1
-        self.nineq = self.halfspaces.shape[0]
-
-    def add_halfspaces(self, halfspaces, restart=False):
-        """
-        add_halfspaces(halfspaces, restart=False)
-
-        Process a set of additional new halfspaces.
-
-        Parameters
-        ----------
-        halfspaces : ndarray
-            New halfspaces to add. The dimensionality should match that of the
-            initial halfspaces.
-        restart : bool, optional
-            Whether to restart processing from scratch, rather than
-            adding halfspaces incrementally.
-
-        Raises
-        ------
-        QhullError
-            Raised when Qhull encounters an error condition, such as
-            geometrical degeneracy when options to resolve are not enabled.
-
-        See Also
-        --------
-        close
-
-        Notes
-        -----
-        You need to specify ``incremental=True`` when constructing the
-        object to be able to add halfspaces incrementally. Incremental addition
-        of halfspaces is also not possible after `close` has been called.
-
-        """
-        self._add_points(halfspaces, restart, self.interior_point)
-
-    @property
-    def halfspaces(self):
-        return self._points
-
-    @property
-    def dual_vertices(self):
-        if self._vertices is None:
-            self._vertices = np.unique(np.array(self.dual_facets))
-        return self._vertices
