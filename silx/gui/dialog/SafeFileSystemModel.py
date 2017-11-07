@@ -55,6 +55,20 @@ class _Item(object):
     def isRoot(self):
         return self.parent() is None
 
+    def isDir(self):
+        """
+        Returns true if the path is a directory.
+
+        The default `qt.QFileInfo.isDir` can freeze the file system with
+        network drives. This function avoid the freeze in case of browsing
+        the root.
+        """
+        if self.isDrive():
+            # A drive is a directory, we don't have to synchronize the
+            # drive to know that
+            return True
+        return self.__fileInfo.isDir()
+
     def absoluteFilePath(self):
         """
         Returns an absolute path including the file name.
@@ -369,7 +383,7 @@ class _RawFileSystemModel(qt.QAbstractItemModel):
 
     def isDir(self, index):
         item = self.__getItem(index)
-        result = item.fileInfo().isDir()
+        result = item.isDir()
         return result
 
     def lastModified(self, index):
@@ -532,12 +546,10 @@ class SafeFileSystemModel(qt.QSortFilterProxyModel):
         if sortColumn == _RawFileSystemModel.NAME_COLUMN:
             leftItem = sourceModel._item(leftSourceIndex)
             rightItem = sourceModel._item(rightSourceIndex)
-            leftInfo = leftItem.fileInfo()
-            rightInfo = rightItem.fileInfo()
             if sys.platform != "darwin":
                 # Sort directories before files
-                leftIsDir = leftInfo.isDir()
-                rightIsDir = rightInfo.isDir()
+                leftIsDir = leftItem.isDir()
+                rightIsDir = rightItem.isDir()
                 if leftIsDir ^ rightIsDir:
                     return leftIsDir
             return leftItem.fileName().lower() < rightItem.fileName().lower()
@@ -588,24 +600,25 @@ class SafeFileSystemModel(qt.QSortFilterProxyModel):
         fileName = item.fileName()
         isDot = fileName == "."
         isDotDot = fileName == ".."
-        isSystem = not fileInfo.isDir() and not fileInfo.isFile()
+        isSystem = not item.isDir() and not fileInfo.isFile()
 
-        if ((hideHidden and not (isDot or isDotDot) and fileInfo.isHidden()) or
-           (hideSystem and isSystem) or
-           (hideDirs and fileInfo.isDir()) or
-           (hideFiles and fileInfo.isFile()) or
-           (hideSymlinks and fileInfo.isSymLink()) or
-           (hideReadable and fileInfo.isReadable()) or
-           (hideWritable and fileInfo.isWritable()) or
-           (hideExecutable and fileInfo.isExecutable()) or
-           (hideDot and isDot) or
-           (hideDotDot and isDotDot)):
-            return False
+        if not item.isDrive():
+            if ((hideHidden and not (isDot or isDotDot) and fileInfo.isHidden()) or
+               (hideSystem and isSystem) or
+               (hideDirs and item.isDir()) or
+               (hideFiles and fileInfo.isFile()) or
+               (hideSymlinks and fileInfo.isSymLink()) or
+               (hideReadable and fileInfo.isReadable()) or
+               (hideWritable and fileInfo.isWritable()) or
+               (hideExecutable and fileInfo.isExecutable()) or
+               (hideDot and isDot) or
+               (hideDotDot and isDotDot)):
+                return False
 
         if self.__nameFilterDisables:
             return True
 
-        if fileInfo.isDir() and (filters & qt.QDir.AllDirs):
+        if item.isDir() and (filters & qt.QDir.AllDirs):
             return True
 
         return self.__nameFiltersAccepted(item)
