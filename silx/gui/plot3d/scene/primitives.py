@@ -97,6 +97,8 @@ class Geometry(core.Elem):
         self._vbos = {}  # Store current vbos
         self._unsyncAttributes = []  # Store attributes to copy to vbos
         self.__bounds = None  # Cache object's bounds
+        # Attribute names defining the object bounds
+        self.__boundsAttributeNames = ('position',)
 
         assert mode in self._MODES
         self._mode = mode
@@ -116,9 +118,11 @@ class Geometry(core.Elem):
             nbvertices = len(self._indices)
         else:
             nbvertices = self.nbVertices
-        assert nbvertices >= mincheck
-        if modulocheck != 0:
-            assert (nbvertices % modulocheck) == 0
+
+        if nbvertices != 0:
+            assert nbvertices >= mincheck
+            if modulocheck != 0:
+                assert (nbvertices % modulocheck) == 0
 
     @staticmethod
     def _glReadyArray(array, copy=True):
@@ -191,7 +195,7 @@ class Geometry(core.Elem):
             if len(array.shape) == 2:  # Store this in a VBO
                 self._unsyncAttributes.append(name)
 
-            if name == 'position':  # Reset bounds
+            if name in self.boundsAttributeNames:  # Reset bounds
                 self.__bounds = None
 
         self.notify()
@@ -287,16 +291,59 @@ class Geometry(core.Elem):
         else:
             return numpy.array(self._indices, copy=copy)
 
+    @property
+    def boundsAttributeNames(self):
+        """Tuple of attribute names defining the bounds of the object.
+
+        Attributes name are taken in the given order to compute the
+        (x, y, z) the bounding box, e.g.::
+
+        geometry.boundsAttributeNames = 'position'
+        geometry.boundsAttributeNames = 'x', 'y', 'z'
+        """
+        return self.__boundsAttributeNames
+
+    @boundsAttributeNames.setter
+    def boundsAttributeNames(self, names):
+        self.__boundsAttributeNames = tuple(str(name) for name in names)
+        self.__bounds = None
+        self.notify()
+
     def _bounds(self, dataBounds=False):
         if self.__bounds is None:
+            if len(self.boundsAttributeNames) == 0:
+                return None  # No bounds
+
             self.__bounds = numpy.zeros((2, 3), dtype=numpy.float32)
-            # Support vertex with to 2 to 4 coordinates
-            positions = self._attributes['position']
-            self.__bounds[0, :positions.shape[1]] = \
-                numpy.nanmin(positions, axis=0)[:3]
-            self.__bounds[1, :positions.shape[1]] = \
-                numpy.nanmax(positions, axis=0)[:3]
+
+            # Coordinates defined in one or more attributes
+            index = 0
+            for name in self.boundsAttributeNames:
+                if index == 3:
+                    _logger.error("Too many attributes defining bounds")
+                    break
+
+                attribute = self._attributes[name]
+                assert attribute.ndim in (1, 2)
+                if attribute.ndim == 1:  # Single value
+                    min_ = attribute
+                    max_ = attribute
+                else:  # Array of values, compute min/max
+                    min_ = numpy.nanmin(attribute, axis=0)
+                    max_ = numpy.nanmax(attribute, axis=0)
+
+                toCopy = min(len(min_), 3-index)
+                if toCopy != len(min_):
+                     _logger.error("Attribute defining bounds"
+                                   " has too many dimensions")
+
+                self.__bounds[0, index:index+toCopy] = min_[:toCopy]
+                self.__bounds[1, index:index+toCopy] = max_[:toCopy]
+
+                index += toCopy
+
             self.__bounds[numpy.isnan(self.__bounds)] = 0.  # Avoid NaNs
+
         return self.__bounds.copy()
 
     def prepareGL2(self, ctx):
