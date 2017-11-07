@@ -182,26 +182,26 @@ class Geometry(core.Elem):
             array = self._glReadyArray(array, copy=copy)
 
             if name not in self._ATTR_INFO:
-                _logger.info('Not checking attibute %s dimensions', name)
+                _logger.info('Not checking attribute %s dimensions', name)
             else:
                 checks = self._ATTR_INFO[name]
 
-                if (len(array.shape) == 1 and checks['lastDim'] == (1,) and
+                if (array.ndim == 1 and checks['lastDim'] == (1,) and
                         len(array) > 1):
                     array = array.reshape((len(array), 1))
 
                 # Checks
-                assert len(array.shape) in checks['dims'], "Attr %s" % name
+                assert array.ndim in checks['dims'], "Attr %s" % name
                 assert array.shape[-1] in checks['lastDim'], "Attr %s" % name
 
             # Check length against another attribute array
             # Causes problems when updating
             # nbVertices = self.nbVertices
-            # if len(array.shape) == 2 and nbVertices is not None:
+            # if array.ndim == 2 and nbVertices is not None:
             #     assert len(array) == nbVertices
 
             self._attributes[name] = array
-            if len(array.shape) == 2:  # Store this in a VBO
+            if array.ndim == 2:  # Store this in a VBO
                 self._unsyncAttributes.append(name)
 
             if name in self.boundsAttributeNames:  # Reset bounds
@@ -251,7 +251,7 @@ class Geometry(core.Elem):
                 array = self._attributes[name]
                 assert array is not None
 
-                if len(array.shape) == 1:
+                if array.ndim == 1:
                     assert len(array) in (1, 2, 3, 4)
                     gl.glDisableVertexAttribArray(attribute)
                     _glVertexAttribFunc = getattr(
