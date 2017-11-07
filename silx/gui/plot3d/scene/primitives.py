@@ -47,6 +47,7 @@ from . import event
 from . import core
 from . import transform
 from . import utils
+from .function import Colormap
 
 _logger = logging.getLogger(__name__)
 
@@ -965,10 +966,14 @@ class PlaneInGroup(core.PrivateGroup):
 
 # Points ######################################################################
 
-_POINTS_ATTR_INFO = Geometry._ATTR_INFO.copy()
-_POINTS_ATTR_INFO.update(value={'dims': (1, 2), 'lastDim': (1,)},
-                         size={'dims': (1, 2), 'lastDim': (1,)},
-                         symbol={'dims': (1, 2), 'lastDim': (1,)})
+_POINTS_ATTR_INFO = {
+    'x': {'dims': (1, 2), 'lastDim': (1,)},
+    'y': {'dims': (1, 2), 'lastDim': (1,)},
+    'z': {'dims': (1, 2), 'lastDim': (1,)},
+    'value': {'dims': (1, 2), 'lastDim': (1,)},
+    'size': {'dims': (1, 2), 'lastDim': (1,)},
+    'symbol': {'dims': (1, 2), 'lastDim': (1,)}
+}
 
 
 class Points(Geometry):
@@ -976,7 +981,9 @@ class Points(Geometry):
     _shaders = ("""
     #version 120
 
-    attribute vec3 position;
+    attribute float x;
+    attribute float y;
+    attribute float z;
     attribute float symbol;
     attribute float value;
     attribute float size;
@@ -984,27 +991,20 @@ class Points(Geometry):
     uniform mat4 matrix;
     uniform mat4 transformMat;
 
-    uniform vec2 valRange;
-
     varying vec4 vCameraPosition;
     varying float vSymbol;
-    varying float vNormValue;
+    varying float vValue;
     varying float vSize;
 
     void main(void)
     {
         vSymbol = symbol;
 
-        vNormValue = clamp((value - valRange.x) / (valRange.y - valRange.x),
-                           0.0, 1.0);
+        vValue = value;
 
-        bool isValueInRange = value >= valRange.x && value <= valRange.y;
-        if (isValueInRange) {
-            gl_Position = matrix * vec4(position, 1.0);
-        } else {
-            gl_Position = vec4(2.0, 0.0, 0.0, 1.0); /* Get clipped */
-        }
-        vCameraPosition = transformMat * vec4(position, 1.0);
+        vec4 positionVec4 = vec4(x, y, z, 1.0);
+        gl_Position = matrix * positionVec4;
+        vCameraPosition = transformMat * positionVec4;
 
         gl_PointSize = size;
         vSize = size;
@@ -1016,7 +1016,9 @@ class Points(Geometry):
     varying vec4 vCameraPosition;
     varying float vSize;
     varying float vSymbol;
-    varying float vNormValue;
+    varying float vValue;
+
+    $colormapDecl
 
     $clippingDecl
 
@@ -1066,8 +1068,6 @@ class Points(Geometry):
     {
         $clippingCall(vCameraPosition);
 
-        gl_FragColor = vec4(0.5 * vNormValue + 0.5, 0.0, 0.0, 1.0);
-
         float alpha = 1.0;
         float symbol = floor(vSymbol);
         if (1 == 1) { //symbol == SYMBOL_CIRCLE) {
@@ -1080,51 +1080,59 @@ class Points(Geometry):
         if (alpha == 0.0) {
             discard;
         }
+
+        gl_FragColor = $colormapCall(vValue);
         gl_FragColor.a *= alpha;
     }
     """))
 
     _ATTR_INFO = _POINTS_ATTR_INFO
 
-    # TODO Add colormap, light?
-
-    def __init__(self, vertices, values=0., sizes=1., indices=None,
-                 symbols=0.,
-                 minValue=None, maxValue=None):
+    def __init__(self, x, y, z, value=0., size=1., indices=None,
+                 symbol=0., colormap=None):
         super(Points, self).__init__('points', indices,
-                                     position=vertices,
-                                     value=values,
-                                     size=sizes,
-                                     symbol=symbols)
+                                     x=x,
+                                     y=y,
+                                     z=z,
+                                     value=value,
+                                     size=size,
+                                     symbol=symbol)
+        self.boundsAttributeNames = 'x', 'y', 'z'
 
-        values = self._attributes['value']
-        self._minValue = values.min() if minValue is None else minValue
-        self._maxValue = values.max() if maxValue is None else maxValue
+        self._colormap = colormap or Colormap()  # Default colormap
+        self._colormap.addListener(self._cmapChanged)
 
-    minValue = event.notifyProperty('_minValue')
-    maxValue = event.notifyProperty('_maxValue')
+    @property
+    def colormap(self):
+        """The colormap used to render the image"""
+        return self._colormap
+
+    def _cmapChanged(self, source, *args, **kwargs):
+        """Broadcast colormap changes"""
+        self.notify(*args, **kwargs)
 
     def renderGL2(self, ctx):
         fragment = self._shaders[1].substitute(
             clippingDecl=ctx.clipper.fragDecl,
-            clippingCall=ctx.clipper.fragCall)
-        prog = ctx.glCtx.prog(self._shaders[0], fragment)
-        prog.use()
+            clippingCall=ctx.clipper.fragCall,
+            colormapDecl=self.colormap.decl,
+            colormapCall=self.colormap.call)
+        program = ctx.glCtx.prog(self._shaders[0], fragment, attrib0='x')
+        program.use()
+        self.colormap.setupProgram(ctx, program)
 
         gl.glEnable(gl.GL_VERTEX_PROGRAM_POINT_SIZE)  # OpenGL 2
         gl.glEnable(gl.GL_POINT_SPRITE)  # OpenGL 2
         # gl.glEnable(gl.GL_PROGRAM_POINT_SIZE)
 
-        prog.setUniformMatrix('matrix', ctx.objectToNDC.matrix)
-        prog.setUniformMatrix('transformMat',
-                              ctx.objectToCamera.matrix,
-                              safe=True)
+        program.setUniformMatrix('matrix', ctx.objectToNDC.matrix)
+        program.setUniformMatrix('transformMat',
+                                 ctx.objectToCamera.matrix,
+                                 safe=True)
 
-        ctx.clipper.setupProgram(ctx, prog)
+        ctx.clipper.setupProgram(ctx, program)
 
-        gl.glUniform2f(prog.uniforms['valRange'], self.minValue, self.maxValue)
-
-        self._draw(prog)
+        self._draw(program)
 
 
 class ColorPoints(Geometry):
