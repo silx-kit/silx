@@ -361,7 +361,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         if matplotlib.__version__ < "2.1":
             # matplotlib 1.4.2 do not support float128
-            if data.dtype == numpy.float128:
+            dtype = data.dtype
+            if dtype.kind == "f" and dtype.itemsize >= 16:
                 _logger.warning("Your matplotlib version do not support "
                                 "float128. Data converted to floa64.")
                 data = data.astype(numpy.float64)
