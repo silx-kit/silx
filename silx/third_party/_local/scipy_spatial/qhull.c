@@ -34983,7 +34983,7 @@ PyMODINIT_FUNC PyInit_qhull(void)
   /* "silx/third_party/_local/scipy_spatial/qhull.pyx":210
  * 
  * # Check Qhull library compatibility at import time
- * (QHULL_LIB_CHECK)             # <<<<<<<<<<<<<<
+ * QHULL_LIB_CHECK             # <<<<<<<<<<<<<<
  * 
  * 
  */

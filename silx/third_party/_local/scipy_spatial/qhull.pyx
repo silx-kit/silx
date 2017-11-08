@@ -207,7 +207,7 @@ from libc.stdlib cimport qsort
 #------------------------------------------------------------------------------
 
 # Check Qhull library compatibility at import time
-(QHULL_LIB_CHECK)
+QHULL_LIB_CHECK
 
 
 class QhullError(RuntimeError):
