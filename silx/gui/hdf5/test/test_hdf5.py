@@ -31,6 +31,7 @@ __date__ = "22/09/2017"
 
 import time
 import os
+import sys
 import unittest
 import tempfile
 import numpy
@@ -65,6 +66,8 @@ def create_NXentry(group, name):
 class TestHdf5TreeModel(TestCaseQt):
 
     def setUp(self):
+        if sys.platform == "win32" and qt.qVersion() == "5.9.2":
+            self.skipTest("Skipped to avoid segfault on win32 + Qt 5.9.1")
         super(TestHdf5TreeModel, self).setUp()
         if h5py is None:
             self.skipTest("h5py is not available")
@@ -684,6 +687,8 @@ class TestHdf5TreeView(TestCaseQt):
     """Test to check that icons module."""
 
     def setUp(self):
+        if sys.platform == "win32" and qt.qVersion() == "5.9.2":
+            self.skipTest("Skipped to avoid segfault on win32 + Qt 5.9.1")
         super(TestHdf5TreeView, self).setUp()
         if h5py is None:
             self.skipTest("h5py is not available")
