@@ -211,6 +211,8 @@ elif BINDING == 'PyQt5':
 
 elif BINDING == 'PySide2':
     _logger.debug('Using PySide2 bindings')
+    _logger.warning(
+        'Using PySide2 Qt binding: PySide2 support in silx is experimental!')
 
     import PySide2 as QtBinding  # noqa
 
