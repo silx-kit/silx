@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "15/12/2016"
+__date__ = "09/11/2017"
 
 
 import unittest
@@ -37,13 +37,14 @@ from silx.gui.test.utils import TestCaseQt
 from silx.gui.test.utils import SignalListener
 from silx.gui.widgets.ThreadPoolPushButton import ThreadPoolPushButton
 from silx.test.utils import TestLogging
+from silx.test.utils import test_options
 
 
 class TestThreadPoolPushButton(TestCaseQt):
 
     def setUp(self):
-        if sys.platform == "win32" and qt.qVersion() == "5.9.2":
-            self.skipTest("Skipped to avoid segfault on win32 + Qt 5.9.1")
+        if test_options.SKIP_TEST_FOR_ISSUE_936:
+            self.skipTest(test_options.SKIP_TEST_FOR_ISSUE_936_REASON)
         super(TestThreadPoolPushButton, self).setUp()
         self._result = []
 

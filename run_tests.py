@@ -289,6 +289,13 @@ def configure_test_options(test_options, options):
     if options.low_mem or os.environ.get('SILX_TEST_LOW_MEM', 'True') == 'False':
         test_options.TEST_LOW_MEM = True
 
+    if test_options.WITH_QT_TEST:
+        module_name = PROJECT_NAME + '.gui.qt'
+        logger.info('Import %s', module_name)
+        qt_module = importer(module_name)
+        if sys.platform == "win32" and qt_module.qVersion() == "5.9.2":
+            options.SKIP_TEST_FOR_ISSUE_936 = True
+
 
 from argparse import ArgumentParser
 epilog = """Environment variables:

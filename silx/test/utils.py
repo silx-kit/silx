@@ -58,6 +58,7 @@ utilstest = ExternalResources(project="silx",
 
 
 class TestOptions(object):
+    """Store global informations to custom execution of the unittests."""
 
     WITH_QT_TEST = True
     """Qt tests are included"""
@@ -76,6 +77,13 @@ class TestOptions(object):
 
     """Skip tests using too much memory"""
     TEST_LOW_MEM = False
+
+    SKIP_TEST_FOR_ISSUE_936 = False
+    """Avoid to segfault the tests by skipping few tests
+    https://github.com/silx-kit/silx/issues/936
+    """
+    SKIP_TEST_FOR_ISSUE_936_REASON = "Workaround to avoid segfault on win32 + Qt 5.9.1"
+    """Reason for the skip"""
 
 
 test_options = TestOptions

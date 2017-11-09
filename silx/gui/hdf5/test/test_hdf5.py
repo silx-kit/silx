@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "22/09/2017"
+__date__ = "09/11/2017"
 
 
 import time
@@ -41,6 +41,7 @@ from silx.gui import qt
 from silx.gui.test.utils import TestCaseQt
 from silx.gui import hdf5
 from silx.io import commonh5
+from silx.test.utils import test_options
 
 try:
     import h5py
@@ -66,8 +67,8 @@ def create_NXentry(group, name):
 class TestHdf5TreeModel(TestCaseQt):
 
     def setUp(self):
-        if sys.platform == "win32" and qt.qVersion() == "5.9.2":
-            self.skipTest("Skipped to avoid segfault on win32 + Qt 5.9.1")
+        if test_options.SKIP_TEST_FOR_ISSUE_936:
+            self.skipTest(test_options.SKIP_TEST_FOR_ISSUE_936_REASON)
         super(TestHdf5TreeModel, self).setUp()
         if h5py is None:
             self.skipTest("h5py is not available")
@@ -687,8 +688,8 @@ class TestHdf5TreeView(TestCaseQt):
     """Test to check that icons module."""
 
     def setUp(self):
-        if sys.platform == "win32" and qt.qVersion() == "5.9.2":
-            self.skipTest("Skipped to avoid segfault on win32 + Qt 5.9.1")
+        if test_options.SKIP_TEST_FOR_ISSUE_936:
+            self.skipTest(test_options.SKIP_TEST_FOR_ISSUE_936_REASON)
         super(TestHdf5TreeView, self).setUp()
         if h5py is None:
             self.skipTest("h5py is not available")
