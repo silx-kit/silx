@@ -125,6 +125,11 @@ class Geometry(core.Elem):
             if modulocheck != 0:
                 assert (nbvertices % modulocheck) == 0
 
+    @property
+    def drawMode(self):
+        """Kind of primitive to renderin :attr:`_MODES` (str)"""
+        return self._mode
+
     @staticmethod
     def _glReadyArray(array, copy=True):
         """Making a contiguous array, checking float types.
@@ -1801,15 +1806,24 @@ class ColormapMesh3D(Geometry):
                  normal=None,
                  mode='triangles',
                  indices=None):
-        #assert mode in self._TRIANGLE_MODES
         super(ColormapMesh3D, self).__init__(mode, indices,
                                              position=position,
                                              normal=normal,
                                              value=value)
 
+        self._lineWidth = 1.0
+        self._lineSmooth = True
         self._culling = None
         self._colormap = colormap or Colormap()  # Default colormap
         self._colormap.addListener(self._cmapChanged)
+
+    lineWidth = event.notifyProperty('_lineWidth', converter=float,
+                                 doc="Width of the line in pixels.")
+
+    lineSmooth = event.notifyProperty(
+        '_lineSmooth',
+        converter=bool,
+        doc="Smooth line rendering enabled (bool, default: True)")
 
     @property
     def culling(self):
@@ -1867,7 +1881,12 @@ class ColormapMesh3D(Geometry):
                                  ctx.objectToCamera.matrix,
                                  safe=True)
 
-        self._draw(program)
+        if self.drawMode in self._LINE_MODES:
+            gl.glLineWidth(self.lineWidth)
+            with gl.enabled(gl.GL_LINE_SMOOTH, self.lineSmooth):
+                self._draw(program)
+        else:
+            self._draw(program)
 
         if self.culling is not None:
             gl.glDisable(gl.GL_CULL_FACE)
