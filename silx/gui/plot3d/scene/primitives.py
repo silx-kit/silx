@@ -966,24 +966,118 @@ class PlaneInGroup(core.PrivateGroup):
 
 # Points ######################################################################
 
-_POINTS_ATTR_INFO = {
-    'x': {'dims': (1, 2), 'lastDim': (1,)},
-    'y': {'dims': (1, 2), 'lastDim': (1,)},
-    'z': {'dims': (1, 2), 'lastDim': (1,)},
-    'value': {'dims': (1, 2), 'lastDim': (1,)},
-    'size': {'dims': (1, 2), 'lastDim': (1,)},
-    'symbol': {'dims': (1, 2), 'lastDim': (1,)}
-}
 
 class Points(Geometry):
     """A set of data points with an associated value and size."""
+
+    DIAMOND = 'd'
+    CIRCLE = 'o'
+    SQUARE = 's'
+    PLUS = '+'
+    X_MARKER = 'x'
+    ASTERISK = '*'
+    H_LINE = '_'
+    V_LINE = '|'
+
+    SUPPORTED_MARKERS = (DIAMOND, CIRCLE, SQUARE, PLUS,
+                         X_MARKER, ASTERISK, H_LINE, V_LINE)
+    """List of supported markers:
+
+    - 'd' diamond
+    - 'o' circle
+    - 's' square
+    - '+' cross
+    - 'x' x-cross
+    - '*' asterisk
+    - '_' horizontal line
+    - '|' vertical line
+    """
+
+    _MARKER_FUNCTIONS = {
+        DIAMOND: """
+        float alphaSymbol(vec2 coord, float size) {
+            vec2 centerCoord = abs(coord - vec2(0.5, 0.5));
+            float f = centerCoord.x + centerCoord.y;
+            return clamp(size * (0.5 - f), 0.0, 1.0);
+        }
+        """,
+        CIRCLE: """
+        float alphaSymbol(vec2 coord, float size) {
+            float radius = 0.5;
+            float r = distance(coord, vec2(0.5, 0.5));
+            return clamp(size * (radius - r), 0.0, 1.0);
+        }
+        """,
+        SQUARE: """
+        float alphaSymbol(vec2 coord, float size) {
+            return 1.0;
+        }
+        """,
+        PLUS: """
+        float alphaSymbol(vec2 coord, float size) {
+            vec2 d = abs(size * (coord - vec2(0.5, 0.5)));
+            if (min(d.x, d.y) < 0.5) {
+                return 1.0;
+            } else {
+                return 0.0;
+            }
+        }
+        """,
+        X_MARKER: """
+        float alphaSymbol(vec2 coord, float size) {
+            vec2 pos = floor(size * coord) + 0.5;
+            vec2 d_x = abs(pos.x + vec2(- pos.y, pos.y - size));
+            if (min(d_x.x, d_x.y) <= 0.5) {
+                return 1.0;
+            } else {
+                return 0.0;
+            }
+        }
+        """,
+        ASTERISK: """
+        float alphaSymbol(vec2 coord, float size) {
+            /* Combining +, x and circle */
+            vec2 d_plus = abs(size * (coord - vec2(0.5, 0.5)));
+            vec2 pos = floor(size * coord) + 0.5;
+            vec2 d_x = abs(pos.x + vec2(- pos.y, pos.y - size));
+            if (min(d_plus.x, d_plus.y) < 0.5) {
+                return 1.0;
+            } else if (min(d_x.x, d_x.y) <= 0.5) {
+                float r = distance(coord, vec2(0.5, 0.5));
+                return clamp(size * (0.5 - r), 0.0, 1.0);
+            } else {
+                return 0.0;
+            }
+        }
+        """,
+        H_LINE: """
+        float alphaSymbol(vec2 coord, float size) {
+            float dy = abs(size * (coord.y - 0.5));
+            if (dy < 0.5) {
+                return 1.0;
+            } else {
+                return 0.0;
+            }
+        }
+        """,
+        V_LINE: """
+        float alphaSymbol(vec2 coord, float size) {
+            float dx = abs(size * (coord.x - 0.5));
+            if (dx < 0.5) {
+                return 1.0;
+            } else {
+                return 0.0;
+            }
+        }
+        """
+    }
+
     _shaders = ("""
     #version 120
 
     attribute float x;
     attribute float y;
     attribute float z;
-    attribute float symbol;
     attribute float value;
     attribute float size;
 
@@ -991,14 +1085,11 @@ class Points(Geometry):
     uniform mat4 transformMat;
 
     varying vec4 vCameraPosition;
-    varying float vSymbol;
     varying float vValue;
     varying float vSize;
 
     void main(void)
     {
-        vSymbol = symbol;
-
         vValue = value;
 
         vec4 positionVec4 = vec4(x, y, z, 1.0);
@@ -1014,68 +1105,19 @@ class Points(Geometry):
 
     varying vec4 vCameraPosition;
     varying float vSize;
-    varying float vSymbol;
     varying float vValue;
 
     $colormapDecl
 
     $clippingDecl
 
-    /* Circle */
-    #define SYMBOL_CIRCLE 1.0
-
-    float alphaCircle(vec2 coord, float size) {
-        float radius = 0.5;
-        float r = distance(coord, vec2(0.5, 0.5));
-        return clamp(size * (radius - r), 0.0, 1.0);
-    }
-
-    /* Half lines */
-    #define SYMBOL_H_LINE 2.0
-    #define LEFT 1.0
-    #define RIGHT 2.0
-    #define SYMBOL_V_LINE 3.0
-    #define UP 1.0
-    #define DOWN 2.0
-
-    float alphaLine(vec2 coord, float size, float direction)
-    {
-        vec2 delta = abs(size * (coord - 0.5));
-
-        if (direction == SYMBOL_H_LINE) {
-            return (delta.y < 0.5) ? 1.0 : 0.0;
-        }
-        else if (direction == SYMBOL_H_LINE + LEFT) {
-            return (coord.x <= 0.5 && delta.y < 0.5) ? 1.0 : 0.0;
-        }
-        else if (direction == SYMBOL_H_LINE + RIGHT) {
-            return (coord.x >= 0.5 && delta.y < 0.5) ? 1.0 : 0.0;
-        }
-        else if (direction == SYMBOL_V_LINE) {
-            return (delta.x < 0.5) ? 1.0 : 0.0;
-        }
-        else if (direction == SYMBOL_V_LINE + UP) {
-            return (coord.y <= 0.5 && delta.x < 0.5) ? 1.0 : 0.0;
-        }
-        else if (direction == SYMBOL_V_LINE + DOWN) {
-             return (coord.y >= 0.5 && delta.x < 0.5) ? 1.0 : 0.0;
-        }
-        return 1.0;
-    }
+    $alphaSymbolDecl
 
     void main(void)
     {
         $clippingCall(vCameraPosition);
 
-        float alpha = 1.0;
-        float symbol = floor(vSymbol);
-        if (1 == 1) { //symbol == SYMBOL_CIRCLE) {
-            alpha = alphaCircle(gl_PointCoord, vSize);
-        }
-        else if (symbol >= SYMBOL_H_LINE &&
-                 symbol <= (SYMBOL_V_LINE + DOWN)) {
-            alpha = alphaLine(gl_PointCoord, vSize, symbol);
-        }
+        float alpha = alphaSymbol(gl_PointCoord, vSize);
         if (alpha == 0.0) {
             discard;
         }
@@ -1085,18 +1127,24 @@ class Points(Geometry):
     }
     """))
 
-    _ATTR_INFO = _POINTS_ATTR_INFO
+    _ATTR_INFO = {
+        'x': {'dims': (1, 2), 'lastDim': (1,)},
+        'y': {'dims': (1, 2), 'lastDim': (1,)},
+        'z': {'dims': (1, 2), 'lastDim': (1,)},
+        'value': {'dims': (1, 2), 'lastDim': (1,)},
+        'size': {'dims': (1, 2), 'lastDim': (1,)},
+    }
 
-    def __init__(self, x, y, z, value=0., size=1., indices=None,
-                 symbol=0., colormap=None):
+    def __init__(self, x, y, z, value=0., size=1.,
+                 indices=None, colormap=None):
         super(Points, self).__init__('points', indices,
                                      x=x,
                                      y=y,
                                      z=z,
                                      value=value,
-                                     size=size,
-                                     symbol=symbol)
+                                     size=size)
         self.boundsAttributeNames = 'x', 'y', 'z'
+        self._marker = 'o'
 
         self._colormap = colormap or Colormap()  # Default colormap
         self._colormap.addListener(self._cmapChanged)
@@ -1110,12 +1158,29 @@ class Points(Geometry):
         """Broadcast colormap changes"""
         self.notify(*args, **kwargs)
 
+    @property
+    def marker(self):
+        """The marker symbol used to display the scatter plot (str)
+
+        See :attr:`SUPPORTED_MARKERS` for the list of supported marker string.
+        """
+        return self._marker
+
+    @marker.setter
+    def marker(self, marker):
+        marker = str(marker)
+        assert marker in self.SUPPORTED_MARKERS
+        if marker != self._marker:
+            self._marker = marker
+            self.notify()
+
     def renderGL2(self, ctx):
         fragment = self._shaders[1].substitute(
             clippingDecl=ctx.clipper.fragDecl,
             clippingCall=ctx.clipper.fragCall,
             colormapDecl=self.colormap.decl,
-            colormapCall=self.colormap.call)
+            colormapCall=self.colormap.call,
+            alphaSymbolDecl=self._MARKER_FUNCTIONS[self.marker])
         program = ctx.glCtx.prog(self._shaders[0], fragment, attrib0='x')
         program.use()
         self.colormap.setupProgram(ctx, program)
@@ -1134,7 +1199,7 @@ class Points(Geometry):
         self._draw(program)
 
 
-class ColorPoints(Geometry):
+class ColorPoints(Geometry):  # TODO update according to Points
     """A set of points with an associated color and size."""
 
     _shaders = ("""
@@ -1237,7 +1302,7 @@ class ColorPoints(Geometry):
     }
     """))
 
-    _ATTR_INFO = _POINTS_ATTR_INFO
+    _ATTR_INFO = Points._ATTR_INFO  # TODO not right
 
     def __init__(self, vertices, colors=(1., 1., 1., 1.), sizes=1.,
                  indices=None, symbols=0.):
@@ -1730,17 +1795,17 @@ class ColormapMesh3D(Geometry):
     """))
 
     def __init__(self,
-                 positions,
-                 values,
+                 position,
+                 value,
                  colormap=None,
-                 normals=None,
+                 normal=None,
                  mode='triangles',
                  indices=None):
-        assert mode in self._TRIANGLE_MODES
+        #assert mode in self._TRIANGLE_MODES
         super(ColormapMesh3D, self).__init__(mode, indices,
-                                             position=positions,
-                                             normal=normals,
-                                             value=values)
+                                             position=position,
+                                             normal=normal,
+                                             value=value)
 
         self._culling = None
         self._colormap = colormap or Colormap()  # Default colormap
