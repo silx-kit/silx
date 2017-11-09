@@ -437,7 +437,12 @@ logger.warning("Test %s %s from %s",
 test_module_name = PROJECT_NAME + '.test'
 logger.info('Import %s', test_module_name)
 test_module = importer(test_module_name)
-test_options = test_module.TestOptions
+
+test_utils_module_name = PROJECT_NAME + '.test.utils'
+logger.info('Import %s', test_utils_module_name)
+test_utils = importer(test_utils_module_name)
+
+test_options = test_utils.test_options
 configure_test_options(test_options, options)
 test_suite = unittest.TestSuite()
 
