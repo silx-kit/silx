@@ -34,7 +34,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "03/08/2017"
+__date__ = "09/11/2017"
 
 
 import os
@@ -55,6 +55,30 @@ utilstest = ExternalResources(project="silx",
                               env_key="SILX_DATA",
                               timeout=60)
 "This is the instance to be used. Singleton-like feature provided by module"
+
+
+class TestOptions(object):
+
+    WITH_QT_TEST = True
+    """Qt tests are included"""
+
+    WITH_QT_TEST_REASON = ""
+    """Reason for Qt tests are disabled if any"""
+
+    WITH_OPENCL_TEST = True
+    """OpenCL tests are included"""
+
+    WITH_GL_TEST = True
+    """OpenGL tests are included"""
+
+    WITH_GL_TEST_REASON = ""
+    """Reason for OpenGL tests are disabled if any"""
+
+    """Skip tests using too much memory"""
+    TEST_LOW_MEM = False
+
+
+test_options = TestOptions
 
 # Parametric Test Base Class ##################################################
 

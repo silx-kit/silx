@@ -26,12 +26,13 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "05/01/2017"
+__date__ = "09/11/2017"
 
 
 import logging
 import os
 import unittest
+from silx.test.utils import test_options
 
 
 _logger = logging.getLogger(__name__)
@@ -40,15 +41,14 @@ _logger = logging.getLogger(__name__)
 def suite():
     test_suite = unittest.TestSuite()
 
-    if os.environ.get('WITH_GL_TEST', 'True') == 'False':
+    if not test_options.WITH_GL_TEST:
         # Explicitly disabled tests
-        _logger.warning(
-            "silx.gui.plot3d tests disabled (WITH_GL_TEST=False)")
+        msg = "silx.gui.plot3d tests disabled: %s" % test_options.WITH_GL_TEST_REASON
+        _logger.warning(msg)
 
         class SkipPlot3DTest(unittest.TestCase):
             def runTest(self):
-                self.skipTest(
-                    "silx.gui.plot3d tests disabled (WITH_GL_TEST=False)")
+                self.skipTest(test_options.WITH_GL_TEST_REASON)
 
         test_suite.addTest(SkipPlot3DTest())
         return test_suite
