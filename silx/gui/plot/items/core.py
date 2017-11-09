@@ -415,9 +415,20 @@ class SymbolMixIn(object):
     _DEFAULT_SYMBOL_SIZE = 6.0
     """Default marker size of the item"""
 
+    _SUPPORTED_SYMBOLS = 'o', '.', ',', '+', 'x', 'd', 's', ''
+    """List of supported symbols"""
+
     def __init__(self):
         self._symbol = self._DEFAULT_SYMBOL
         self._symbol_size = self._DEFAULT_SYMBOL_SIZE
+
+    @classmethod
+    def getSupportedSymbols(cls):
+        """Returns the list of supported symbol names.
+
+        :rtype: tuple of str
+        """
+        return cls._SUPPORTED_SYMBOLS
 
     def getSymbol(self):
         """Return the point marker type.
@@ -443,9 +454,9 @@ class SymbolMixIn(object):
 
         :param str symbol: Marker type
         """
-        assert symbol in ('o', '.', ',', '+', 'x', 'd', 's', '', None)
         if symbol is None:
             symbol = self._DEFAULT_SYMBOL
+        assert symbol in self.getSupportedSymbols()
         if symbol != self._symbol:
             self._symbol = symbol
             self._updated(ItemChangedType.SYMBOL)
