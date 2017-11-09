@@ -37,7 +37,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "15/03/2017"
+__date__ = "09/11/2017"
 
 
 import os
@@ -65,6 +65,7 @@ if ocl:
 from ..utils import calc_size, get_opencl_code, matching_correction
 from ..plan import SiftPlan
 from ..match import MatchPlan
+from silx.test.utils import test_options
 logger = logging.getLogger(__name__)
 
 
@@ -117,7 +118,7 @@ class TestTransform(unittest.TestCase):
         image_height, image_width = output_height, output_width
         return image, image_height, image_width
 
-    @unittest.skipIf(os.environ.get("SILX_TEST_LOW_MEM") == "True", "low mem")
+    @unittest.skipIf(test_options.TEST_LOW_MEM, "low mem")
     def test_transform(self):
         '''
         tests transform kernel

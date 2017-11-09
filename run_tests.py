@@ -281,6 +281,37 @@ def build_project(name, root_dir):
     return home
 
 
+def configure_test_options(test_options, options):
+    """Configure the TestOptions class from the command line arguments and the
+    environment variables
+    """
+    if not options.gui:
+        test_options.WITH_QT_TEST = False
+        test_options.WITH_QT_TEST_REASON = "Skipped by command line"
+    elif os.environ.get('WITH_QT_TEST', 'True') == 'False':
+        test_options.WITH_QT_TEST = False
+        test_options.WITH_QT_TEST_REASON = "Skipped by WITH_QT_TEST env var"
+    elif sys.platform.startswith('linux') and not os.environ.get('DISPLAY', ''):
+        test_options.WITH_QT_TEST = False
+        test_options.WITH_QT_TEST_REASON = "DISPLAY env variable not set"
+
+    if not options.opencl or os.environ.get('SILX_OPENCL', 'True') == 'False':
+        test_options.WITH_OPENCL_TEST = False
+        # That's an easy way to skip OpenCL tests
+        # It disable the use of OpenCL on the full silx project
+        os.environ['SILX_OPENCL'] = "False"
+
+    if not options.opengl:
+        test_options.WITH_GL_TEST = False
+        test_options.WITH_GL_TEST_REASON = "Skipped by command line"
+    elif os.environ.get('WITH_GL_TEST', 'True') == 'False':
+        test_options.WITH_GL_TEST = False
+        test_options.WITH_GL_TEST_REASON = "Skipped by WITH_GL_TEST env var"
+
+    if options.low_mem or os.environ.get('SILX_TEST_LOW_MEM', 'True') == 'False':
+        test_options.TEST_LOW_MEM = True
+
+
 from argparse import ArgumentParser
 epilog = """Environment variables:
 WITH_QT_TEST=False to disable graphical tests
@@ -343,18 +374,6 @@ elif options.verbose > 1:
     logger.info("Set log level: DEBUG")
     test_verbosity = 2
     use_buffer = False
-
-if not options.gui:
-    os.environ["WITH_QT_TEST"] = "False"
-
-if not options.opencl:
-    os.environ["SILX_OPENCL"] = "False"
-
-if not options.opengl:
-    os.environ["WITH_GL_TEST"] = "False"
-
-if options.low_mem:
-    os.environ["SILX_TEST_LOW_MEM"] = "True"
 
 if options.coverage:
     logger.info("Running test-coverage")
@@ -437,6 +456,12 @@ test_module_name = PROJECT_NAME + '.test'
 logger.info('Import %s', test_module_name)
 test_module = importer(test_module_name)
 
+test_utils_module_name = PROJECT_NAME + '.test.utils'
+logger.info('Import %s', test_utils_module_name)
+test_utils = importer(test_utils_module_name)
+
+test_options = test_utils.test_options
+configure_test_options(test_options, options)
 test_suite = unittest.TestSuite()
 
 if not options.test_name:
