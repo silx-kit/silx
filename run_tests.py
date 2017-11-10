@@ -277,7 +277,7 @@ def configure_test_options(test_options, options):
         test_options.WITH_OPENCL_TEST = False
         # There is still a dependancy from silx.opencl.common
         # There it is needed to set this env variable
-        os.environ['SILX_OPENCL'] = False
+        os.environ['SILX_OPENCL'] = "False"
 
     if not options.opengl:
         test_options.WITH_GL_TEST = False
