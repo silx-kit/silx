@@ -1,6 +1,20 @@
 Change Log
 ==========
 
+0.6.1: 2017/11/10
+-----------------
+
+ * Plot:
+
+    * Fix switching to logarithmic axes, which was broken by new
+      matplotlib version 2.1.0.
+    * Support displaying float128 data with matplotlib < 2.1.0.
+    * Fix minor bugs with the crosshair cursor and the legends widget.
+
+ * Update documentation on Zenodo DOI and Debian packages installation.
+ * Fix the Debian packaging script for Ubuntu distributions.
+
+
 0.6.0: 2017/10/02
 -----------------
 
