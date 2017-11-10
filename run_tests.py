@@ -302,7 +302,7 @@ def configure_test_options(test_options, options):
 
         if sys.platform == "win32" and qt_module.qVersion() == "5.9.2":
             test_options.SKIP_TEST_FOR_ISSUE_936 = True
-        logger.error("SKIP_TEST_FOR_ISSUE_936 %s", options.SKIP_TEST_FOR_ISSUE_936)
+        logger.error("SKIP_TEST_FOR_ISSUE_936 %s", test_options.SKIP_TEST_FOR_ISSUE_936)
 
 
 from argparse import ArgumentParser
