@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "09/11/2017"
+__date__ = "10/11/2017"
 
 
 import time
@@ -67,6 +67,7 @@ def create_NXentry(group, name):
 class TestHdf5TreeModel(TestCaseQt):
 
     def setUp(self):
+        print("SKIP_TEST_FOR_ISSUE_936", test_options.SKIP_TEST_FOR_ISSUE_936)
         if test_options.SKIP_TEST_FOR_ISSUE_936:
             self.skipTest(test_options.SKIP_TEST_FOR_ISSUE_936_REASON)
         super(TestHdf5TreeModel, self).setUp()
@@ -688,6 +689,7 @@ class TestHdf5TreeView(TestCaseQt):
     """Test to check that icons module."""
 
     def setUp(self):
+        print("SKIP_TEST_FOR_ISSUE_936", test_options.SKIP_TEST_FOR_ISSUE_936)
         if test_options.SKIP_TEST_FOR_ISSUE_936:
             self.skipTest(test_options.SKIP_TEST_FOR_ISSUE_936_REASON)
         super(TestHdf5TreeView, self).setUp()

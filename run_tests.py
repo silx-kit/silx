@@ -296,13 +296,13 @@ def configure_test_options(test_options, options):
         module_name = PROJECT_NAME + '.gui.qt'
         logger.info('Import %s', module_name)
         qt_module = importer(module_name)
-        logger.error(qt_module.qVersion(), type(qt_module.qVersion()))
-        logger.error(sys.platform, type(sys.platform))
-        logger.error(qt_module.PYQT_VERSION_STR, type(qt_module.PYQT_VERSION_STR))
+        logger.error("%s %s", qt_module.qVersion(), type(qt_module.qVersion()))
+        logger.error("%s %s", sys.platform, type(sys.platform))
+        logger.error("%s %s", qt_module.PYQT_VERSION_STR, type(qt_module.PYQT_VERSION_STR))
 
         if sys.platform == "win32" and qt_module.qVersion() == "5.9.2":
             options.SKIP_TEST_FOR_ISSUE_936 = True
-        logger.error("SKIP_TEST_FOR_ISSUE_936", options.SKIP_TEST_FOR_ISSUE_936)
+        logger.error("SKIP_TEST_FOR_ISSUE_936 %s", options.SKIP_TEST_FOR_ISSUE_936)
 
 
 from argparse import ArgumentParser
