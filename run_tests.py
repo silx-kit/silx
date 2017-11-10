@@ -263,6 +263,7 @@ def configure_test_options(test_options, options):
     """Configure the TestOptions class from the command line arguments and the
     environment variables
     """
+    logger.error("configure_test_options")
     if not options.gui:
         test_options.WITH_QT_TEST = False
         test_options.WITH_QT_TEST_REASON = "Skipped by command line"
@@ -289,18 +290,19 @@ def configure_test_options(test_options, options):
     if options.low_mem or os.environ.get('SILX_TEST_LOW_MEM', 'True') == 'False':
         test_options.TEST_LOW_MEM = True
 
+    logger.error("######### Debug #########")
+    logger.error("WITH_QT_TEST %s", test_options.WITH_QT_TEST)
     if test_options.WITH_QT_TEST:
         module_name = PROJECT_NAME + '.gui.qt'
         logger.info('Import %s', module_name)
         qt_module = importer(module_name)
-        print("######### Debug #########")
-        print(qt_module.qVersion(), type(qt_module.qVersion()))
-        print(sys.platform, type(sys.platform))
-        print(qt_module.PYQT_VERSION_STR, type(qt_module.PYQT_VERSION_STR))
+        logger.error(qt_module.qVersion(), type(qt_module.qVersion()))
+        logger.error(sys.platform, type(sys.platform))
+        logger.error(qt_module.PYQT_VERSION_STR, type(qt_module.PYQT_VERSION_STR))
 
         if sys.platform == "win32" and qt_module.qVersion() == "5.9.2":
             options.SKIP_TEST_FOR_ISSUE_936 = True
-        print("SKIP_TEST_FOR_ISSUE_936", options.SKIP_TEST_FOR_ISSUE_936)
+        logger.error("SKIP_TEST_FOR_ISSUE_936", options.SKIP_TEST_FOR_ISSUE_936)
 
 
 from argparse import ArgumentParser
