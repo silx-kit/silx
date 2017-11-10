@@ -32,6 +32,7 @@ __date__ = "10/11/2017"
 import unittest
 import time
 import sys
+import logging
 from silx.gui import qt
 from silx.gui.test.utils import TestCaseQt
 from silx.gui.test.utils import SignalListener
@@ -40,10 +41,13 @@ from silx.test.utils import TestLogging
 from silx.test.utils import test_options
 
 
+_logger = logging.getLogger(__name__)
+
+
 class TestThreadPoolPushButton(TestCaseQt):
 
     def setUp(self):
-        print("SKIP_TEST_FOR_ISSUE_936", test_options.SKIP_TEST_FOR_ISSUE_936)
+        _logger.error("SKIP_TEST_FOR_ISSUE_936: %s", test_options.SKIP_TEST_FOR_ISSUE_936)
         if test_options.SKIP_TEST_FOR_ISSUE_936:
             self.skipTest(test_options.SKIP_TEST_FOR_ISSUE_936_REASON)
         super(TestThreadPoolPushButton, self).setUp()

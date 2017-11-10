@@ -34,7 +34,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "09/11/2017"
+__date__ = "10/11/2017"
 
 
 import os
@@ -55,6 +55,15 @@ utilstest = ExternalResources(project="silx",
                               env_key="SILX_DATA",
                               timeout=60)
 "This is the instance to be used. Singleton-like feature provided by module"
+
+
+_logger.error("LOADING silx.test.utils")
+_logger.error("FROM:")
+import traceback
+tt = traceback.extract_stack()
+for t in tt:
+    _logger.error("%s", t)
+_logger.error("--------------------")
 
 
 class TestOptions(object):
