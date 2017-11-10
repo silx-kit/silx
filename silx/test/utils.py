@@ -34,7 +34,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "03/08/2017"
+__date__ = "10/11/2017"
 
 
 import os
@@ -55,6 +55,47 @@ utilstest = ExternalResources(project="silx",
                               env_key="SILX_DATA",
                               timeout=60)
 "This is the instance to be used. Singleton-like feature provided by module"
+
+
+_logger.error("LOADING silx.test.utils")
+_logger.error("FROM:")
+import traceback
+tt = traceback.extract_stack()
+for t in tt:
+    _logger.error("%s", t)
+_logger.error("--------------------")
+
+
+class TestOptions(object):
+    """Store global informations to custom execution of the unittests."""
+
+    WITH_QT_TEST = True
+    """Qt tests are included"""
+
+    WITH_QT_TEST_REASON = ""
+    """Reason for Qt tests are disabled if any"""
+
+    WITH_OPENCL_TEST = True
+    """OpenCL tests are included"""
+
+    WITH_GL_TEST = True
+    """OpenGL tests are included"""
+
+    WITH_GL_TEST_REASON = ""
+    """Reason for OpenGL tests are disabled if any"""
+
+    """Skip tests using too much memory"""
+    TEST_LOW_MEM = False
+
+    SKIP_TEST_FOR_ISSUE_936 = False
+    """Avoid to segfault the tests by skipping few tests
+    https://github.com/silx-kit/silx/issues/936
+    """
+    SKIP_TEST_FOR_ISSUE_936_REASON = "Workaround to avoid segfault on win32 + Qt 5.9.1"
+    """Reason for the skip"""
+
+
+test_options = TestOptions
 
 # Parametric Test Base Class ##################################################
 

@@ -32,7 +32,7 @@ Test coverage dependencies: coverage, lxml.
 """
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "03/08/2017"
+__date__ = "10/11/2017"
 __license__ = "MIT"
 
 import distutils.util
@@ -259,6 +259,52 @@ def build_project(name, root_dir):
     return home
 
 
+def configure_test_options(test_options, options):
+    """Configure the TestOptions class from the command line arguments and the
+    environment variables
+    """
+    logger.error("configure_test_options")
+    if not options.gui:
+        test_options.WITH_QT_TEST = False
+        test_options.WITH_QT_TEST_REASON = "Skipped by command line"
+    elif os.environ.get('WITH_QT_TEST', 'True') == 'False':
+        test_options.WITH_QT_TEST = False
+        test_options.WITH_QT_TEST_REASON = "Skipped by WITH_QT_TEST env var"
+    elif sys.platform.startswith('linux') and not os.environ.get('DISPLAY', ''):
+        test_options.WITH_QT_TEST = False
+        test_options.WITH_QT_TEST_REASON = "DISPLAY env variable not set"
+
+    if not options.opencl or os.environ.get('SILX_OPENCL', 'True') == 'False':
+        test_options.WITH_OPENCL_TEST = False
+        # There is still a dependancy from silx.opencl.common
+        # There it is needed to set this env variable
+        os.environ['SILX_OPENCL'] = "False"
+
+    if not options.opengl:
+        test_options.WITH_GL_TEST = False
+        test_options.WITH_GL_TEST_REASON = "Skipped by command line"
+    elif os.environ.get('WITH_GL_TEST', 'True') == 'False':
+        test_options.WITH_GL_TEST = False
+        test_options.WITH_GL_TEST_REASON = "Skipped by WITH_GL_TEST env var"
+
+    if options.low_mem or os.environ.get('SILX_TEST_LOW_MEM', 'True') == 'False':
+        test_options.TEST_LOW_MEM = True
+
+    logger.error("######### Debug #########")
+    logger.error("WITH_QT_TEST %s", test_options.WITH_QT_TEST)
+    if test_options.WITH_QT_TEST:
+        module_name = PROJECT_NAME + '.gui.qt'
+        logger.info('Import %s', module_name)
+        qt_module = importer(module_name)
+        logger.error("%s %s", qt_module.qVersion(), type(qt_module.qVersion()))
+        logger.error("%s %s", sys.platform, type(sys.platform))
+        logger.error("%s %s", qt_module.PYQT_VERSION_STR, type(qt_module.PYQT_VERSION_STR))
+
+        if sys.platform == "win32" and qt_module.qVersion() == "5.9.2":
+            test_options.SKIP_TEST_FOR_ISSUE_936 = True
+        logger.error("SKIP_TEST_FOR_ISSUE_936 %s", test_options.SKIP_TEST_FOR_ISSUE_936)
+
+
 from argparse import ArgumentParser
 epilog = """Environment variables:
 WITH_QT_TEST=False to disable graphical tests
@@ -321,18 +367,6 @@ elif options.verbose > 1:
     logger.info("Set log level: DEBUG")
     test_verbosity = 2
     use_buffer = False
-
-if not options.gui:
-    os.environ["WITH_QT_TEST"] = "False"
-
-if not options.opencl:
-    os.environ["SILX_OPENCL"] = "False"
-
-if not options.opengl:
-    os.environ["WITH_GL_TEST"] = "False"
-
-if options.low_mem:
-    os.environ["SILX_TEST_LOW_MEM"] = "True"
 
 if options.coverage:
     logger.info("Running test-coverage")
@@ -412,6 +446,12 @@ test_module_name = PROJECT_NAME + '.test'
 logger.info('Import %s', test_module_name)
 test_module = importer(test_module_name)
 
+test_utils_module_name = PROJECT_NAME + '.test.utils'
+logger.info('Import %s', test_utils_module_name)
+test_utils = importer(test_utils_module_name)
+
+test_options = test_utils.test_options
+configure_test_options(test_options, options)
 test_suite = unittest.TestSuite()
 
 if not options.test_name:

@@ -26,21 +26,30 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "15/12/2016"
+__date__ = "10/11/2017"
 
 
 import unittest
 import time
+import sys
+import logging
 from silx.gui import qt
 from silx.gui.test.utils import TestCaseQt
 from silx.gui.test.utils import SignalListener
 from silx.gui.widgets.ThreadPoolPushButton import ThreadPoolPushButton
 from silx.test.utils import TestLogging
+from silx.test.utils import test_options
+
+
+_logger = logging.getLogger(__name__)
 
 
 class TestThreadPoolPushButton(TestCaseQt):
 
     def setUp(self):
+        _logger.error("SKIP_TEST_FOR_ISSUE_936: %s", test_options.SKIP_TEST_FOR_ISSUE_936)
+        if test_options.SKIP_TEST_FOR_ISSUE_936:
+            self.skipTest(test_options.SKIP_TEST_FOR_ISSUE_936_REASON)
         super(TestThreadPoolPushButton, self).setUp()
         self._result = []
 

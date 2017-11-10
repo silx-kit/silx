@@ -26,11 +26,13 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "22/09/2017"
+__date__ = "10/11/2017"
 
 
 import time
 import os
+import sys
+import logging
 import unittest
 import tempfile
 import numpy
@@ -40,6 +42,7 @@ from silx.gui import qt
 from silx.gui.test.utils import TestCaseQt
 from silx.gui import hdf5
 from silx.io import commonh5
+from silx.test.utils import test_options
 
 try:
     import h5py
@@ -47,6 +50,7 @@ except ImportError:
     h5py = None
 
 
+_logger = logging.getLogger(__name__)
 _called = 0
 
 
@@ -65,6 +69,9 @@ def create_NXentry(group, name):
 class TestHdf5TreeModel(TestCaseQt):
 
     def setUp(self):
+        _logger.error("SKIP_TEST_FOR_ISSUE_936: %s", test_options.SKIP_TEST_FOR_ISSUE_936)
+        if test_options.SKIP_TEST_FOR_ISSUE_936:
+            self.skipTest(test_options.SKIP_TEST_FOR_ISSUE_936_REASON)
         super(TestHdf5TreeModel, self).setUp()
         if h5py is None:
             self.skipTest("h5py is not available")
@@ -684,6 +691,9 @@ class TestHdf5TreeView(TestCaseQt):
     """Test to check that icons module."""
 
     def setUp(self):
+        _logger.error("SKIP_TEST_FOR_ISSUE_936: %s", test_options.SKIP_TEST_FOR_ISSUE_936)
+        if test_options.SKIP_TEST_FOR_ISSUE_936:
+            self.skipTest(test_options.SKIP_TEST_FOR_ISSUE_936_REASON)
         super(TestHdf5TreeView, self).setUp()
         if h5py is None:
             self.skipTest("h5py is not available")
