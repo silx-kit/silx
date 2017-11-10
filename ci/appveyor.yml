@@ -30,15 +30,6 @@ environment:
           QT_BINDING: "PyQt5"
           WITH_GL_TEST: True
 
-        # Python 2.7
-        - PYTHON_DIR: "C:\\Python27-x64"
-          QT_BINDING: "PyQt4"
-          WITH_GL_TEST: False
-
-        - PYTHON_DIR: "C:\\Python27-x64"
-          QT_BINDING: "PySide"
-          WITH_GL_TEST: False
-
 install:
     # Add Python to PATH
     - "SET PATH=%PYTHON_DIR%;%PYTHON_DIR%\\Scripts;%PATH%"

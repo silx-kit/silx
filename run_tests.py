@@ -32,7 +32,7 @@ Test coverage dependencies: coverage, lxml.
 """
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "09/11/2017"
+__date__ = "10/11/2017"
 __license__ = "MIT"
 
 import distutils.util
@@ -293,8 +293,14 @@ def configure_test_options(test_options, options):
         module_name = PROJECT_NAME + '.gui.qt'
         logger.info('Import %s', module_name)
         qt_module = importer(module_name)
+        print("######### Debug #########")
+        print(qt_module.qVersion(), type(qt_module.qVersion()))
+        print(sys.platform, type(sys.platform))
+        print(qt_module.PYQT_VERSION_STR, type(qt_module.PYQT_VERSION_STR))
+
         if sys.platform == "win32" and qt_module.qVersion() == "5.9.2":
             options.SKIP_TEST_FOR_ISSUE_936 = True
+        print("SKIP_TEST_FOR_ISSUE_936", options.SKIP_TEST_FOR_ISSUE_936)
 
 
 from argparse import ArgumentParser
