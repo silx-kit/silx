@@ -301,7 +301,7 @@ def configure_test_options(test_options, options):
         logger.error("%s %s", qt_module.PYQT_VERSION_STR, type(qt_module.PYQT_VERSION_STR))
 
         if sys.platform == "win32" and qt_module.qVersion() == "5.9.2":
-            options.SKIP_TEST_FOR_ISSUE_936 = True
+            test_options.SKIP_TEST_FOR_ISSUE_936 = True
         logger.error("SKIP_TEST_FOR_ISSUE_936 %s", options.SKIP_TEST_FOR_ISSUE_936)
 
 
