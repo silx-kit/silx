@@ -220,7 +220,7 @@ class Axis(qt.QObject):
         for item in self._plot._getItems(withhidden=True):
             item._updated()
         self._plot._invalidateDataRange()
-        self._plot.resetZoom()
+        self._plot._forceResetZoom()
 
         self.sigScaleChanged.emit(self._scale)
         if emitLog:

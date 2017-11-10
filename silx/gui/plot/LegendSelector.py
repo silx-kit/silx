@@ -29,7 +29,7 @@ This widget is meant to work with :class:`PlotWindow`.
 
 __authors__ = ["V.A. Sole", "T. Rueter", "T. Vincent"]
 __license__ = "MIT"
-__data__ = "08/08/2016"
+__data__ = "16/10/2017"
 
 
 import logging
@@ -971,9 +971,10 @@ class LegendsDockWidget(qt.QDockWidget):
     def renameCurve(self, oldLegend, newLegend):
         """Change the name of a curve using remove and addCurve
 
-        :param str oldLegend: The legend of the curve to be change
+        :param str oldLegend: The legend of the curve to be changed
         :param str newLegend: The new legend of the curve
         """
+        is_active = self.plot.getActiveCurve(just_legend=True) == oldLegend
         curve = self.plot.getCurve(oldLegend)
         self.plot.remove(oldLegend, kind='curve')
         self.plot.addCurve(curve.getXData(copy=False),
@@ -992,6 +993,8 @@ class LegendsDockWidget(qt.QDockWidget):
                            selectable=curve.isSelectable(),
                            fill=curve.isFill(),
                            resetzoom=False)
+        if is_active:
+            self.plot.setActiveCurve(newLegend)
 
     def _legendSignalHandler(self, ddict):
         """Handles events from the LegendListView signal"""

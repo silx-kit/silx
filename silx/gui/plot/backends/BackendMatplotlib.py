@@ -28,7 +28,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent, H. Payno"]
 __license__ = "MIT"
-__date__ = "16/08/2017"
+__date__ = "18/10/2017"
 
 
 import logging
@@ -305,6 +305,14 @@ class BackendMatplotlib(BackendBase.BackendBase):
             xstep = 1 if scale[0] >= 0. else -1
             ystep = 1 if scale[1] >= 0. else -1
             data = data[::ystep, ::xstep]
+
+        if matplotlib.__version__ < "2.1":
+            # matplotlib 1.4.2 do not support float128
+            dtype = data.dtype
+            if dtype.kind == "f" and dtype.itemsize >= 16:
+                _logger.warning("Your matplotlib version do not support "
+                                "float128. Data converted to floa64.")
+                data = data.astype(numpy.float64)
 
         image.set_data(data)
 
@@ -602,16 +610,32 @@ class BackendMatplotlib(BackendBase.BackendBase):
     # Graph axes
 
     def setXAxisLogarithmic(self, flag):
-        if matplotlib.__version__ >= "2.0.0":
-            self.ax.cla()
-            self.ax2.cla()
+        # Workaround for matplotlib 2.1.0 when one tries to set an axis
+        # to log scale with both limits <= 0
+        # In this case a draw with positive limits is needed first
+        if flag and matplotlib.__version__ >= '2.1.0':
+            xlim = self.ax.get_xlim()
+            if xlim[0] <= 0 and xlim[1] <= 0:
+                self.ax.set_xlim(1, 10)
+                self.draw()
+
         self.ax2.set_xscale('log' if flag else 'linear')
         self.ax.set_xscale('log' if flag else 'linear')
 
     def setYAxisLogarithmic(self, flag):
-        if matplotlib.__version__ >= "2.0.0":
-            self.ax.cla()
-            self.ax2.cla()
+        # Workaround for matplotlib 2.1.0 when one tries to set an axis
+        # to log scale with both limits <= 0
+        # In this case a draw with positive limits is needed first
+        if flag and matplotlib.__version__ >= '2.1.0':
+            redraw = False
+            for axis in (self.ax, self.ax2):
+                ylim = axis.get_ylim()
+                if ylim[0] <= 0 and ylim[1] <= 0:
+                    axis.set_ylim(1, 10)
+                    redraw = True
+            if redraw:
+                self.draw()
+
         self.ax2.set_yscale('log' if flag else 'linear')
         self.ax.set_yscale('log' if flag else 'linear')
 
@@ -700,8 +724,6 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
     """Signal handling automatic asynchronous replot"""
 
     def __init__(self, plot, parent=None):
-        self._insideResizeEventMethod = False
-
         BackendMatplotlib.__init__(self, plot, parent)
         FigureCanvasQTAgg.__init__(self, self.fig)
         self.setParent(parent)
@@ -806,42 +828,15 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
     # replot control
 
     def resizeEvent(self, event):
-        self._insideResizeEventMethod = True
-        # Need to dirty the whole plot on resize.
-        self._plot._setDirtyPlot()
         FigureCanvasQTAgg.resizeEvent(self, event)
-        self._insideResizeEventMethod = False
+        if self._overlays or self._graphCursor:
+            # This is needed with matplotlib 1.5.x and 2.0.x
+            self._plot._setDirtyPlot()
 
-    def draw(self):
-        """Override canvas draw method to support faster draw of overlays."""
-        if self._plot._getDirtyPlot():  # Need a full redraw
-            # Store previous limits
-            xLimits = self.ax.get_xbound()
-            yLimits = self.ax.get_ybound()
-            yRightLimits = self.ax2.get_ybound()
-
-            FigureCanvasQTAgg.draw(self)
-            self._background = None  # Any saved background is dirty
-
-            # Check if limits changed due to a resize of the widget
-            if xLimits != self.ax.get_xbound():
-                self._plot.getXAxis()._emitLimitsChanged()
-            if yLimits != self.ax.get_ybound():
-                self._plot.getYAxis(axis='left')._emitLimitsChanged()
-            if yRightLimits != self.ax2.get_ybound():
-                self._plot.getYAxis(axis='left')._emitLimitsChanged()
-
-        if (self._overlays or self._graphCursor or
-                self._plot._getDirtyPlot() == 'overlay'):
-            # There are overlays or crosshair, or they is just no more overlays
-
-            # Specific case: called from resizeEvent:
-            # avoid store/restore background, just draw the overlay
-            if not self._insideResizeEventMethod:
-                if self._background is None:  # First store the background
-                    self._background = self.copy_from_bbox(self.fig.bbox)
-
-                self.restore_region(self._background)
+    def _drawOverlays(self):
+        """Draw overlays if any."""
+        if self._overlays or self._graphCursor:
+            # There is some overlays or crosshair
 
             # This assume that items are only on left/bottom Axes
             for item in self._overlays:
@@ -850,11 +845,63 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
             for item in self._graphCursor:
                 self.ax.draw_artist(item)
 
-            self.blit(self.fig.bbox)
+    def draw(self):
+        """Overload draw
+
+        It performs a full redraw (including overlays) of the plot.
+        It also resets background and emit limits changed signal.
+
+        This is directly called by matplotlib for widget resize.
+        """
+        # Store previous limits
+        xLimits = self.ax.get_xbound()
+        yLimits = self.ax.get_ybound()
+        yRightLimits = self.ax2.get_ybound()
+
+        # Starting with mpl 2.1.0, toggling autoscale raises a ValueError
+        # in some situations. See #1081, #1136, #1163,
+        if matplotlib.__version__ >= "2.0.0":
+            try:
+                FigureCanvasQTAgg.draw(self)
+            except ValueError as err:
+                _logger.debug(
+                    "ValueError caught while calling FigureCanvasQTAgg.draw: "
+                    "'%s'", err)
+        else:
+            FigureCanvasQTAgg.draw(self)
+
+        if self._overlays or self._graphCursor:
+            # Save background
+            self._background = self.copy_from_bbox(self.fig.bbox)
+        else:
+            self._background = None  # Reset background
+
+        # Check if limits changed due to a resize of the widget
+        if xLimits != self.ax.get_xbound():
+            self._plot.getXAxis()._emitLimitsChanged()
+        if yLimits != self.ax.get_ybound():
+            self._plot.getYAxis(axis='left')._emitLimitsChanged()
+        if yRightLimits != self.ax2.get_ybound():
+            self._plot.getYAxis(axis='left')._emitLimitsChanged()
+
+        self._drawOverlays()
 
     def replot(self):
         BackendMatplotlib.replot(self)
-        self.draw()
+
+        dirtyFlag = self._plot._getDirtyPlot()
+
+        if dirtyFlag == 'overlay':
+            # Only redraw overlays using fast rendering path
+            if self._background is None:
+                self._background = self.copy_from_bbox(self.fig.bbox)
+            self.restore_region(self._background)
+            self._drawOverlays()
+            self.blit(self.fig.bbox)
+
+        elif dirtyFlag:  # Need full redraw
+            self.draw()
+
 
     # cursor
 
