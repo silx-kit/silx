@@ -887,7 +887,7 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
             if yLimits != self.ax.get_ybound():
                 self._plot.getYAxis(axis='left')._emitLimitsChanged()
             if yRightLimits != self.ax2.get_ybound():
-                self._plot.getYAxis(axis='left')._emitLimitsChanged()
+                self._plot.getYAxis(axis='right')._emitLimitsChanged()
 
         self._drawOverlays()
 
