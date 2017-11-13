@@ -763,7 +763,7 @@ class CurvesROIDockWidget(qt.QDockWidget):
             self.plot.remove('ROI min', kind='marker')
             self.plot.remove('ROI max', kind='marker')
             if self._middleROIMarkerFlag:
-                self.remove('ROI middle', kind='marker')
+                self.plot.remove('ROI middle', kind='marker')
             roiList, roiDict = self.roiWidget.getROIListAndDict()
             nrois = len(roiList)
             if nrois == 0:
