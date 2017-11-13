@@ -46,7 +46,7 @@ ROI are defined by :
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "27/06/2017"
+__date__ = "13/11/2017"
 
 from collections import OrderedDict
 
@@ -657,6 +657,19 @@ class CurvesROIDockWidget(qt.QDockWidget):
         action = super(CurvesROIDockWidget, self).toggleViewAction()
         action.setIcon(icons.getQIcon('plot-roi'))
         return action
+
+    def setMiddleROIMarkerFlag(self, flag=True):
+        """Activate or deactivate middle marker.
+
+        This allows shifting both min and max limits at once, by dragging
+        a marker located in the middle.
+
+        :param bool flag: True to activate middle ROI marker
+        """
+        if flag:
+            self._middleROIMarkerFlag = True
+        else:
+            self._middleROIMarkerFlag = False
 
     def _visibilityChangedHandler(self, visible):
         """Handle widget's visibilty updates.
