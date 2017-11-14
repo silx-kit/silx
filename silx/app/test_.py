@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "04/08/2017"
+__date__ = "14/11/2017"
 
 import sys
 import os
@@ -84,6 +84,44 @@ class TextTestResultWithSkipList(unittest.TextTestResult):
         self.printErrorList("SKIPPED", self.skipped)
 
 
+def configureTestOptions(options):
+    """Configure the TestOptions class from the command line arguments and the
+    environment variables
+    """
+    from silx.test.utils import test_options
+
+    if not options.gui:
+        test_options.WITH_QT_TEST = False
+        test_options.WITH_QT_TEST_REASON = "Skipped by command line"
+    elif os.environ.get('WITH_QT_TEST', 'True') == 'False':
+        test_options.WITH_QT_TEST = False
+        test_options.WITH_QT_TEST_REASON = "Skipped by WITH_QT_TEST env var"
+    elif sys.platform.startswith('linux') and not os.environ.get('DISPLAY', ''):
+        test_options.WITH_QT_TEST = False
+        test_options.WITH_QT_TEST_REASON = "DISPLAY env variable not set"
+
+    if not options.opencl or os.environ.get('SILX_OPENCL', 'True') == 'False':
+        test_options.WITH_OPENCL_TEST = False
+        # That's an easy way to skip OpenCL tests
+        # It disable the use of OpenCL on the full silx project
+        os.environ['SILX_OPENCL'] = "False"
+
+    if not options.opengl:
+        test_options.WITH_GL_TEST = False
+        test_options.WITH_GL_TEST_REASON = "Skipped by command line"
+    elif os.environ.get('WITH_GL_TEST', 'True') == 'False':
+        test_options.WITH_GL_TEST = False
+        test_options.WITH_GL_TEST_REASON = "Skipped by WITH_GL_TEST env var"
+
+    if options.low_mem or os.environ.get('SILX_TEST_LOW_MEM', 'True') == 'False':
+        test_options.TEST_LOW_MEM = True
+
+    if test_options.WITH_QT_TEST:
+        from silx.gui import qt
+        if sys.platform == "win32" and qt.qVersion() == "5.9.2":
+            test_options.SKIP_TEST_FOR_ISSUE_936 = True
+
+
 def main(argv):
     """
     Main function to launch the unittests as an application
@@ -127,17 +165,7 @@ def main(argv):
         test_verbosity = 2
         use_buffer = False
 
-    if not options.gui:
-        os.environ["WITH_QT_TEST"] = "False"
-
-    if not options.opencl:
-        os.environ["SILX_OPENCL"] = "False"
-
-    if not options.opengl:
-        os.environ["WITH_GL_TEST"] = "False"
-
-    if options.low_mem:
-        os.environ["SILX_TEST_LOW_MEM"] = "True"
+    configureTestOptions(options)
 
     if options.qt_binding:
         binding = options.qt_binding.lower()
