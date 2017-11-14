@@ -727,6 +727,8 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
         FigureCanvasQTAgg.__init__(self, self.fig)
         self.setParent(parent)
 
+        self._limitsBeforeResize = None
+
         FigureCanvasQTAgg.setSizePolicy(
             self, qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
         FigureCanvasQTAgg.updateGeometry(self)
@@ -827,8 +829,12 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
     # replot control
 
     def resizeEvent(self, event):
+        # Store current limits
+        self._limitsBeforeResize = (
+            self.ax.get_xbound(), self.ax.get_ybound(), self.ax2.get_ybound())
+
         FigureCanvasQTAgg.resizeEvent(self, event)
-        if self._overlays or self._graphCursor:
+        if self.isKeepDataAspectRatio() or self._overlays or self._graphCursor:
             # This is needed with matplotlib 1.5.x and 2.0.x
             self._plot._setDirtyPlot()
 
@@ -852,11 +858,6 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
 
         This is directly called by matplotlib for widget resize.
         """
-        # Store previous limits
-        xLimits = self.ax.get_xbound()
-        yLimits = self.ax.get_ybound()
-        yRightLimits = self.ax2.get_ybound()
-
         # Starting with mpl 2.1.0, toggling autoscale raises a ValueError
         # in some situations. See #1081, #1136, #1163,
         if matplotlib.__version__ >= "2.0.0":
@@ -876,12 +877,16 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
             self._background = None  # Reset background
 
         # Check if limits changed due to a resize of the widget
-        if xLimits != self.ax.get_xbound():
-            self._plot.getXAxis()._emitLimitsChanged()
-        if yLimits != self.ax.get_ybound():
-            self._plot.getYAxis(axis='left')._emitLimitsChanged()
-        if yRightLimits != self.ax2.get_ybound():
-            self._plot.getYAxis(axis='left')._emitLimitsChanged()
+        if self._limitsBeforeResize is not None:
+            xLimits, yLimits, yRightLimits = self._limitsBeforeResize
+            self._limitsBeforeResize = None
+
+            if xLimits != self.ax.get_xbound():
+                self._plot.getXAxis()._emitLimitsChanged()
+            if yLimits != self.ax.get_ybound():
+                self._plot.getYAxis(axis='left')._emitLimitsChanged()
+            if yRightLimits != self.ax2.get_ybound():
+                self._plot.getYAxis(axis='right')._emitLimitsChanged()
 
         self._drawOverlays()
 
