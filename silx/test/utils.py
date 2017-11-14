@@ -34,10 +34,9 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "09/11/2017"
+__date__ = "14/11/2017"
 
 
-import os
 import contextlib
 import functools
 import logging
