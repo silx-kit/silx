@@ -6,8 +6,9 @@ Change Log
 
  * Plot:
 
-    * Fix switching to logarithmic axes, which was broken by new
-      matplotlib version 2.1.0.
+    * Fix logarithmic axes, broken by new matplotlib version 2.1.0.
+    * Fix axis limits changed signal, not emitted with matplotlib 1.5.x and 2.0.x
+      when the widget is resized.
     * Support displaying float128 data with matplotlib < 2.1.0.
     * Fix minor bugs with the crosshair cursor and the legends widget.
 
