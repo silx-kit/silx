@@ -74,8 +74,8 @@ class TestOptions(object):
     WITH_GL_TEST_REASON = ""
     """Reason for OpenGL tests are disabled if any"""
 
-    """Skip tests using too much memory"""
     TEST_LOW_MEM = False
+    """Skip tests using too much memory"""
 
 
 test_options = TestOptions
