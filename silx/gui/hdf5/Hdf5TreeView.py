@@ -114,7 +114,7 @@ class Hdf5TreeView(qt.QTreeView):
                 callback(event)
             except KeyboardInterrupt:
                 raise
-            except:
+            except Exception:
                 # make sure no user callback crash the application
                 _logger.error("Error while calling callback", exc_info=True)
                 pass
