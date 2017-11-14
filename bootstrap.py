@@ -23,6 +23,20 @@ logging.basicConfig()
 logger = logging.getLogger("bootstrap")
 
 
+def is_debug_python():
+    """Returns true if the Python interpreter is in debug mode."""
+    try:
+        import sysconfig
+    except ImportError:  # pragma nocover
+        # Python < 2.7
+        import distutils.sysconfig as sysconfig
+
+    if sysconfig.get_config_var("Py_DEBUG"):
+        return True
+
+    return hasattr(sys, "gettotalrefcount")
+
+
 def _distutils_dir_name(dname="lib"):
     """
     Returns the name of a distutils build directory
@@ -30,6 +44,8 @@ def _distutils_dir_name(dname="lib"):
     platform = distutils.util.get_platform()
     architecture = "%s.%s-%i.%i" % (dname, platform,
                                     sys.version_info[0], sys.version_info[1])
+    if is_debug_python():
+        architecture += "-pydebug"
     return architecture
 
 

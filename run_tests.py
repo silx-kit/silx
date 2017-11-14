@@ -231,6 +231,20 @@ def report_rst(cov, package, version="0.0.0", base=""):
     return os.linesep.join(res)
 
 
+def is_debug_python():
+    """Returns true if the Python interpreter is in debug mode."""
+    try:
+        import sysconfig
+    except ImportError:  # pragma nocover
+        # Python < 2.7
+        import distutils.sysconfig as sysconfig
+
+    if sysconfig.get_config_var("Py_DEBUG"):
+        return True
+
+    return hasattr(sys, "gettotalrefcount")
+
+
 def build_project(name, root_dir):
     """Run python setup.py build for the project.
 
@@ -243,6 +257,8 @@ def build_project(name, root_dir):
     platform = distutils.util.get_platform()
     architecture = "lib.%s-%i.%i" % (platform,
                                      sys.version_info[0], sys.version_info[1])
+    if is_debug_python():
+        architecture += "-pydebug"
 
     if os.environ.get("PYBUILD_NAME") == name:
         # we are in the debian packaging way
