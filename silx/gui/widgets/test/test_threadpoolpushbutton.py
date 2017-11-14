@@ -31,6 +31,7 @@ __date__ = "15/12/2016"
 
 import unittest
 import time
+import sys
 from silx.gui import qt
 from silx.gui.test.utils import TestCaseQt
 from silx.gui.test.utils import SignalListener
@@ -41,6 +42,8 @@ from silx.test.utils import TestLogging
 class TestThreadPoolPushButton(TestCaseQt):
 
     def setUp(self):
+        if sys.platform == "win32" and qt.qVersion() == "5.9.2":
+            self.skipTest("Skipped to avoid segfault on win32 + Qt 5.9.1")
         super(TestThreadPoolPushButton, self).setUp()
         self._result = []
 
