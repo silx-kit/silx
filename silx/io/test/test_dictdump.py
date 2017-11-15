@@ -93,6 +93,24 @@ class TestDictToH5(unittest.TestCase):
                 min(ddict["city attributes"]["Europe"]["France"]["Grenoble"]["coordinates"]),
                 5.7196)
 
+    def testH5Overwrite(self):
+        dd = ConfigDict({'t': True})
+
+        dicttoh5(h5file=self.h5_fname, treedict=dd, mode='a')
+        dd = ConfigDict({'t': False})
+        with self.assertRaises(RuntimeError):
+            dicttoh5(h5file=self.h5_fname, treedict=dd, mode='a',
+                     overwrite_data=False)
+
+        res = h5todict(self.h5_fname)
+        assert(res['t'] == True)
+
+        dicttoh5(h5file=self.h5_fname, treedict=dd, mode='a',
+                 overwrite_data=True)
+
+        res = h5todict(self.h5_fname)
+        assert(res['t'] == False)
+
 
 @unittest.skipIf(h5py_missing, "Could not import h5py")
 class TestH5ToDict(unittest.TestCase):
