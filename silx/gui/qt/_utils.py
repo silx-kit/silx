@@ -42,3 +42,19 @@ def supportedImageFormats():
         convert = lambda data: str(data, 'ascii')
     formats = qt.QImageReader.supportedImageFormats()
     return set([convert(data) for data in formats])
+
+
+__globalThreadPoolInstance = None
+"""Store the own silx global thread pool"""
+
+
+def silxGlobalThreadPool():
+    """"Manage an own QThreadPool to avoid issue on Qt5 Windows with the
+    default Qt global thread pool.
+
+    :rtype: qt.QThreadPool
+    """
+    global __globalThreadPoolInstance
+    if __globalThreadPoolInstance is  None:
+        __globalThreadPoolInstance = qt.QThreadPool()
+    return __globalThreadPoolInstance
