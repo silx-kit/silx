@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,9 +24,9 @@
 # ###########################################################################*/
 """Basic tests for CurvesROIWidget"""
 
-__authors__ = ["T. Vincent"]
+__authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "15/05/2017"
+__date__ = "16/11/2017"
 
 
 import logging
@@ -104,6 +104,11 @@ class TestCurvesROIWidget(TestCaseQt):
             self.widget.roiWidget.load(self.tmpFile)
 
             del self.tmpFile
+
+    def testMiddleMarker(self):
+        """Plot with curves: test all ROI widget buttons"""
+        self.widget.roiWidget.setMiddleROIMarkerFlag(True)
+        self.testWithCurves()
 
     def testCalculation(self):
         x = numpy.arange(100.)
