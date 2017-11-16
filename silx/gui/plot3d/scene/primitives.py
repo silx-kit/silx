@@ -350,8 +350,8 @@ class Geometry(core.Elem):
 
                 toCopy = min(len(min_), 3-index)
                 if toCopy != len(min_):
-                     _logger.error("Attribute defining bounds"
-                                   " has too many dimensions")
+                    _logger.error("Attribute defining bounds"
+                                  " has too many dimensions")
 
                 self.__bounds[0, index:index+toCopy] = min_[:toCopy]
                 self.__bounds[1, index:index+toCopy] = max_[:toCopy]
@@ -1818,7 +1818,7 @@ class ColormapMesh3D(Geometry):
         self._colormap.addListener(self._cmapChanged)
 
     lineWidth = event.notifyProperty('_lineWidth', converter=float,
-                                 doc="Width of the line in pixels.")
+                                     doc="Width of the line in pixels.")
 
     lineSmooth = event.notifyProperty(
         '_lineSmooth',
@@ -1948,7 +1948,7 @@ class ImageData(Geometry):
 
     def __init__(self, data, copy=True, colormap=None):
         super(ImageData, self).__init__(mode='triangle_strip',
-            position=self._UNIT_SQUARE)
+                                        position=self._UNIT_SQUARE)
 
         self._texture = None
         self._update_texture = True
@@ -2140,9 +2140,9 @@ class ImageRgba(Geometry):
     _UNIT_SQUARE = numpy.array(((0., 0.), (1., 0.), (0., 1.), (1., 1.)),
                                dtype=numpy.float32)
 
-    def __init__(self, data, copy=True, colormap=None):
+    def __init__(self, data, copy=True):
         super(ImageRgba, self).__init__(mode='triangle_strip',
-            position=self._UNIT_SQUARE)
+                                        position=self._UNIT_SQUARE)
 
         self._texture = None
         self._update_texture = True
