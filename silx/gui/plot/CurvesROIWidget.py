@@ -57,6 +57,7 @@ import sys
 import numpy
 
 from silx.io import dictdump
+from silx.utils import deprecation
 from .. import icons, qt
 
 
@@ -151,6 +152,8 @@ class CurvesROIWidget(qt.QWidget):
         self.saveButton.clicked.connect(self._save)
         self.roiTable.sigROITableSignal.connect(self._forward)
 
+        self._middleROIMarkerFlag = False
+
     @property
     def roiFileDir(self):
         """The directory from which to load/save ROI from/to files."""
@@ -213,6 +216,19 @@ class CurvesROIWidget(qt.QWidget):
                                      key=lambda roi_name: roidict[roi_name].get(order))
 
         return OrderedDict([(name, roidict[name]) for name in ordered_roilist])
+
+    def setMiddleROIMarkerFlag(self, flag=True):
+        """Activate or deactivate middle marker.
+
+        This allows shifting both min and max limits at once, by dragging
+        a marker located in the middle.
+
+        :param bool flag: True to activate middle ROI marker
+        """
+        if flag:
+            self._middleROIMarkerFlag = True
+        else:
+            self._middleROIMarkerFlag = False
 
     def _add(self):
         """Add button clicked handler"""
@@ -630,7 +646,6 @@ class CurvesROIDockWidget(qt.QDockWidget):
         self.plot = plot
 
         self.currentROI = None
-        self._middleROIMarkerFlag = False
 
         self._isConnected = False  # True if connected to plot signals
         self._isInit = False
@@ -658,18 +673,9 @@ class CurvesROIDockWidget(qt.QDockWidget):
         action.setIcon(icons.getQIcon('plot-roi'))
         return action
 
+    @deprecation.deprecated(replacement="roiWidget.setMiddleROIMarkerFlag")
     def setMiddleROIMarkerFlag(self, flag=True):
-        """Activate or deactivate middle marker.
-
-        This allows shifting both min and max limits at once, by dragging
-        a marker located in the middle.
-
-        :param bool flag: True to activate middle ROI marker
-        """
-        if flag:
-            self._middleROIMarkerFlag = True
-        else:
-            self._middleROIMarkerFlag = False
+        self.roiWidget.setMiddleROIMarkerFlag(flag)
 
     def _visibilityChangedHandler(self, visible):
         """Handle widget's visibilty updates.
@@ -715,7 +721,7 @@ class CurvesROIDockWidget(qt.QDockWidget):
 
             if label == 'ROI min':
                 roiDict[self.currentROI]['from'] = x
-                if self._middleROIMarkerFlag:
+                if self.roiWidget._middleROIMarkerFlag:
                     pos = 0.5 * (roiDict[self.currentROI]['to'] +
                                  roiDict[self.currentROI]['from'])
                     self.plot.addXMarker(pos,
@@ -725,7 +731,7 @@ class CurvesROIDockWidget(qt.QDockWidget):
                                          draggable=True)
             elif label == 'ROI max':
                 roiDict[self.currentROI]['to'] = x
-                if self._middleROIMarkerFlag:
+                if self.roiWidget._middleROIMarkerFlag:
                     pos = 0.5 * (roiDict[self.currentROI]['to'] +
                                  roiDict[self.currentROI]['from'])
                     self.plot.addXMarker(pos,
@@ -762,7 +768,7 @@ class CurvesROIDockWidget(qt.QDockWidget):
             todata = xmin + 0.75 * (xmax - xmin)
             self.plot.remove('ROI min', kind='marker')
             self.plot.remove('ROI max', kind='marker')
-            if self._middleROIMarkerFlag:
+            if self.roiWidget._middleROIMarkerFlag:
                 self.plot.remove('ROI middle', kind='marker')
             roiList, roiDict = self.roiWidget.getROIListAndDict()
             nrois = len(roiList)
@@ -789,7 +795,7 @@ class CurvesROIDockWidget(qt.QDockWidget):
                                  text='ROI max',
                                  color=color,
                                  draggable=draggable)
-            if draggable and self._middleROIMarkerFlag:
+            if draggable and self.roiWidget._middleROIMarkerFlag:
                 pos = 0.5 * (fromdata + todata)
                 self.plot.addXMarker(pos,
                                      legend='ROI middle',
@@ -812,7 +818,7 @@ class CurvesROIDockWidget(qt.QDockWidget):
         elif ddict['event'] in ['DelROI', "ResetROI"]:
             self.plot.remove('ROI min', kind='marker')
             self.plot.remove('ROI max', kind='marker')
-            if self._middleROIMarkerFlag:
+            if self.roiWidget._middleROIMarkerFlag:
                 self.plot.remove('ROI middle', kind='marker')
             roiList, roiDict = self.roiWidget.getROIListAndDict()
             roiDictKeys = list(roiDict.keys())
@@ -854,7 +860,7 @@ class CurvesROIDockWidget(qt.QDockWidget):
                                  text='ROI max',
                                  color=color,
                                  draggable=draggable)
-            if draggable and self._middleROIMarkerFlag:
+            if draggable and self.roiWidget._middleROIMarkerFlag:
                 pos = 0.5 * (fromdata + todata)
                 self.plot.addXMarker(pos,
                                      legend='ROI middle',
