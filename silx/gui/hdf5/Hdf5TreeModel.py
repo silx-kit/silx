@@ -599,9 +599,9 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         # start loading the real one
         runnable = LoadingItemRunnable(filename, item)
         runnable.itemReady.connect(self.__itemReady)
-        self.__runnerSet.add(runnable)
         runnable.runnerFinished.connect(self.__releaseRunner)
-        qt.QThreadPool.globalInstance().start(runnable)
+        self.__runnerSet.add(runnable)
+        qt.silxGlobalThreadPool().start(runnable)
 
     def __releaseRunner(self, runner):
         self.__runnerSet.remove(runner)

@@ -201,7 +201,7 @@ class ThreadPoolPushButton(WaitingPushButton):
             return
         self.__runnerStarted()
         runner = self._createRunner(self.__callable, self.__args, self.__kwargs)
-        qt.QThreadPool.globalInstance().start(runner)
+        qt.silxGlobalThreadPool().start(runner)
         self.__runnerSet.add(runner)
 
     def __releaseRunner(self, runner):
