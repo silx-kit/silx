@@ -238,6 +238,7 @@ def dicttoh5(treedict, h5file, h5path='/',
                         else:
                             logger.warning('key (%s) already exists. '
                                            'Not overwriting.' % (h5path + key))
+                            continue
 
                     h5f.create_dataset(h5path + key,
                                        data=ds)
@@ -248,6 +249,7 @@ def dicttoh5(treedict, h5file, h5path='/',
                         else:
                             logger.warning('key (%s) already exists. '
                                            'Not overwriting.' % (h5path + key))
+                            continue
 
                     h5f.create_dataset(h5path + key,
                                        data=ds,
