@@ -1945,8 +1945,11 @@ class _Image(Geometry):
 
         self.isBackfaceVisible = True
 
-    def setData(self, data):
+    def setData(self, data, copy=True):
         assert isinstance(data, numpy.ndarray)
+
+        if copy:
+            data = numpy.array(data, copy=True)
 
         self._data = data
         self._update_texture = True
@@ -2102,7 +2105,7 @@ class ImageData(_Image):
         # TODO support (u)int8|16
         assert data.ndim == 2
 
-        super(ImageData, self).setData(data)
+        super(ImageData, self).setData(data, copy=False)
 
     @property
     def colormap(self):
@@ -2154,7 +2157,7 @@ class ImageRgba(_Image):
         else:
             assert data.dtype == numpy.dtype(numpy.uint8)
 
-        super(ImageRgba, self).setData(data)
+        super(ImageRgba, self).setData(data, copy=False)
 
     def _textureFormat(self):
         format_ = gl.GL_RGBA if self._data.shape[2] == 4 else gl.GL_RGB
