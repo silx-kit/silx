@@ -1007,6 +1007,48 @@ class PlaneInGroup(core.PrivateGroup):
             super(PlaneInGroup, self).renderGL2(ctx)
 
 
+class BoundedGroup(core.Group):
+    """Group with data bounds"""
+
+    _shape = None  # To provide a default value without overriding __init__
+
+    @property
+    def shape(self):
+        """Data shape (depth, height, width) of this group or None"""
+        return self._shape
+
+    @shape.setter
+    def shape(self, shape):
+        if shape is None:
+            self._shape = None
+        else:
+            depth, height, width = shape
+            self._shape = float(depth), float(height), float(width)
+
+    @property
+    def size(self):
+        """Data size (width, height, depth) of this group or None"""
+        shape = self.shape
+        if shape is None:
+            return None
+        else:
+            return shape[2], shape[1], shape[0]
+
+    @size.setter
+    def size(self, size):
+        if size is None:
+            self.shape = None
+        else:
+            self.shape = size[2], size[1], size[0]
+
+    def _bounds(self, dataBounds=False):
+        if dataBounds and self.size is not None:
+            return numpy.array(((0., 0., 0.), self.size),
+                               dtype=numpy.float32)
+        else:
+            return super(BoundedGroup, self)._bounds(dataBounds)
+
+
 # Points ######################################################################
 
 class _Points(Geometry):
