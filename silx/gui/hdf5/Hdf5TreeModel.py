@@ -587,6 +587,9 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             row = self.__root.childCount()
         self.insertNode(row, Hdf5Item(text=text, obj=h5pyObject, parent=self.__root))
 
+    def hasPendingOperations(self):
+        return len(self.__runnerSet) > 0
+
     def insertFileAsync(self, filename, row=-1):
         if not os.path.isfile(filename):
             raise IOError("Filename '%s' must be a file path" % filename)

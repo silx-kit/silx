@@ -69,6 +69,14 @@ class TestHdf5TreeModel(TestCaseQt):
         if h5py is None:
             self.skipTest("h5py is not available")
 
+    def waitForPendingOperations(self, model):
+        for i in range(10):
+            if not model.hasPendingOperations():
+                break
+            self.qWait(10)
+        else:
+            raise RuntimeError("Still waiting for a pending operation")
+
     @contextmanager
     def h5TempFile(self):
         # create tmp file
@@ -120,8 +128,8 @@ class TestHdf5TreeModel(TestCaseQt):
                 self.assertEquals(model.rowCount(qt.QModelIndex()), 0)
                 model.insertFileAsync(filename)
                 index = model.index(0, 0, qt.QModelIndex())
-                self.assertIsInstance(model.nodeFromIndex(index), hdf5.Hdf5Item.Hdf5LoadingItem)
-                self.qWait(0.2)
+                self.assertIsInstance(model.nodeFromIndex(index), hdf5.Hdf5LoadingItem.Hdf5LoadingItem)
+                self.waitForPendingOperations(model)
                 index = model.index(0, 0, qt.QModelIndex())
                 self.assertIsInstance(model.nodeFromIndex(index), hdf5.Hdf5Item.Hdf5Item)
             finally:
