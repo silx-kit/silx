@@ -61,6 +61,7 @@ class Geometry(core.Elem):
                      lines, line_strip, loop, triangles, triangle_strip, fan
     :param indices: Array of vertex indices or None
     :param bool copy: True (default) to copy the data, False to use as is.
+    :param str attrib0: Name of the attribute that MUST be an array.
     :param attributes: Provide list of attributes as extra parameters.
     """
 
@@ -92,14 +93,21 @@ class Geometry(core.Elem):
 
     _TRIANGLE_MODES = 'triangles', 'triangle_strip', 'fan'
 
-    def __init__(self, mode, indices=None, copy=True, **attributes):
+    def __init__(self,
+                 mode,
+                 indices=None,
+                 copy=True,
+                 attrib0='position',
+                 **attributes):
         super(Geometry, self).__init__()
+
+        self._attrib0 = str(attrib0)
 
         self._vbos = {}  # Store current vbos
         self._unsyncAttributes = []  # Store attributes to copy to vbos
         self.__bounds = None  # Cache object's bounds
         # Attribute names defining the object bounds
-        self.__boundsAttributeNames = ('position',)
+        self.__boundsAttributeNames = (self._attrib0,)
 
         assert mode in self._MODES
         self._mode = mode
@@ -171,6 +179,11 @@ class Geometry(core.Elem):
                 return len(array)
         return None
 
+    @property
+    def attrib0(self):
+        """Attribute name that MUST be an array (str)"""
+        return self._attrib0
+
     def setAttribute(self, name, array, copy=True):
         """Set attribute with provided array.
 
@@ -199,6 +212,10 @@ class Geometry(core.Elem):
                 # Checks
                 assert array.ndim in checks['dims'], "Attr %s" % name
                 assert array.shape[-1] in checks['lastDim'], "Attr %s" % name
+
+            # Makes sure attrib0 is considered as an array of values
+            if name == self.attrib0 and array.ndim == 1:
+                array.shape = 1, -1
 
             # Check length against another attribute array
             # Causes problems when updating
@@ -992,9 +1009,8 @@ class PlaneInGroup(core.PrivateGroup):
 
 # Points ######################################################################
 
-
-class Points(Geometry):
-    """A set of data points with an associated value and size."""
+class _Points(Geometry):
+    """Base class to render a set of points."""
 
     DIAMOND = 'd'
     CIRCLE = 'o'
@@ -1098,20 +1114,20 @@ class Points(Geometry):
         """
     }
 
-    _shaders = ("""
+    _shaders = (string.Template("""
     #version 120
 
     attribute float x;
     attribute float y;
     attribute float z;
-    attribute float value;
+    attribute $valueType value;
     attribute float size;
 
     uniform mat4 matrix;
     uniform mat4 transformMat;
 
     varying vec4 vCameraPosition;
-    varying float vValue;
+    varying $valueType vValue;
     varying float vSize;
 
     void main(void)
@@ -1125,15 +1141,15 @@ class Points(Geometry):
         gl_PointSize = size;
         vSize = size;
     }
-    """,
+    """),
                 string.Template("""
     #version 120
 
     varying vec4 vCameraPosition;
     varying float vSize;
-    varying float vValue;
+    varying $valueType vValue;
 
-    $colormapDecl
+    $valueToColorDecl
 
     $clippingDecl
 
@@ -1148,7 +1164,7 @@ class Points(Geometry):
             discard;
         }
 
-        gl_FragColor = $colormapCall(vValue);
+        gl_FragColor = $valueToColorCall(vValue);
         gl_FragColor.a *= alpha;
     }
     """))
@@ -1157,32 +1173,19 @@ class Points(Geometry):
         'x': {'dims': (1, 2), 'lastDim': (1,)},
         'y': {'dims': (1, 2), 'lastDim': (1,)},
         'z': {'dims': (1, 2), 'lastDim': (1,)},
-        'value': {'dims': (1, 2), 'lastDim': (1,)},
         'size': {'dims': (1, 2), 'lastDim': (1,)},
     }
 
-    def __init__(self, x, y, z, value=0., size=1.,
-                 indices=None, colormap=None):
-        super(Points, self).__init__('points', indices,
-                                     x=x,
-                                     y=y,
-                                     z=z,
-                                     value=value,
-                                     size=size)
+    def __init__(self, x, y, z, value, size=1., indices=None):
+        super(_Points, self).__init__('points', indices,
+                                      x=x,
+                                      y=y,
+                                      z=z,
+                                      value=value,
+                                      size=size,
+                                      attrib0='x')
         self.boundsAttributeNames = 'x', 'y', 'z'
         self._marker = 'o'
-
-        self._colormap = colormap or Colormap()  # Default colormap
-        self._colormap.addListener(self._cmapChanged)
-
-    @property
-    def colormap(self):
-        """The colormap used to render the image"""
-        return self._colormap
-
-    def _cmapChanged(self, source, *args, **kwargs):
-        """Broadcast colormap changes"""
-        self.notify(*args, **kwargs)
 
     @property
     def marker(self):
@@ -1200,16 +1203,31 @@ class Points(Geometry):
             self._marker = marker
             self.notify()
 
+    def _shaderValueDefinition(self):
+        """Type definition, fragment shader declaration, fragment shader call
+        """
+        raise NotImplementedError(
+            "This method must be implemented in subclass")
+
+    def _renderGL2PreDrawHook(self, ctx, program):
+        """Override in subclass to run code before calling gl draw"""
+        pass
+
     def renderGL2(self, ctx):
-        fragment = self._shaders[1].substitute(
+        valueType, valueToColorDecl, valueToColorCall = \
+            self._shaderValueDefinition()
+        vertexShader = self._shaders[0].substitute(
+            valueType=valueType)
+        fragmentShader = self._shaders[1].substitute(
             clippingDecl=ctx.clipper.fragDecl,
             clippingCall=ctx.clipper.fragCall,
-            colormapDecl=self.colormap.decl,
-            colormapCall=self.colormap.call,
+            valueType=valueType,
+            valueToColorDecl=valueToColorDecl,
+            valueToColorCall=valueToColorCall,
             alphaSymbolDecl=self._MARKER_FUNCTIONS[self.marker])
-        program = ctx.glCtx.prog(self._shaders[0], fragment, attrib0='x')
+        program = ctx.glCtx.prog(vertexShader, fragmentShader,
+                                 attrib0=self.attrib0)
         program.use()
-        self.colormap.setupProgram(ctx, program)
 
         gl.glEnable(gl.GL_VERTEX_PROGRAM_POINT_SIZE)  # OpenGL 2
         gl.glEnable(gl.GL_POINT_SPRITE)  # OpenGL 2
@@ -1222,141 +1240,69 @@ class Points(Geometry):
 
         ctx.clipper.setupProgram(ctx, program)
 
+        self._renderGL2PreDrawHook(ctx, program)
+
         self._draw(program)
 
 
-class ColorPoints(Geometry):  # TODO update according to Points
+class Points(_Points):
+    """A set of data points with an associated value and size."""
+
+    _ATTR_INFO = _Points._ATTR_INFO.copy()
+    _ATTR_INFO.update({'value': {'dims': (1, 2), 'lastDim': (1,)}})
+
+    def __init__(self, x, y, z, value=0., size=1.,
+                 indices=None, colormap=None):
+        super(Points, self).__init__(x=x,
+                                     y=y,
+                                     z=z,
+                                     indices=indices,
+                                     size=size,
+                                     value=value)
+
+        self._colormap = colormap or Colormap()  # Default colormap
+        self._colormap.addListener(self._cmapChanged)
+
+    @property
+    def colormap(self):
+        """The colormap used to render the image"""
+        return self._colormap
+
+    def _cmapChanged(self, source, *args, **kwargs):
+        """Broadcast colormap changes"""
+        self.notify(*args, **kwargs)
+
+    def _shaderValueDefinition(self):
+        """Type definition, fragment shader declaration, fragment shader call
+        """
+        return 'float', self.colormap.decl, self.colormap.call
+
+    def _renderGL2PreDrawHook(self, ctx, program):
+        """Set-up colormap before calling gl draw"""
+        self.colormap.setupProgram(ctx, program)
+
+
+class ColorPoints(_Points):
     """A set of points with an associated color and size."""
 
-    _shaders = ("""
-    #version 120
+    _ATTR_INFO = _Points._ATTR_INFO.copy()
+    _ATTR_INFO.update({'value': {'dims': (1, 2), 'lastDim': (4,)}})
 
-    attribute vec3 position;
-    attribute float symbol;
-    attribute vec4 color;
-    attribute float size;
+    def __init__(self, x, y, z, color=(1., 1., 1., 1.), size=1.,
+                 indices=None):
+        super(ColorPoints, self).__init__(x=x,
+                                          y=y,
+                                          z=z,
+                                          indices=indices,
+                                          size=size,
+                                          value=color)
 
-    uniform mat4 matrix;
-    uniform mat4 transformMat;
+    def _shaderValueDefinition(self):
+        """Type definition, fragment shader declaration, fragment shader call
+        """
+        return 'vec4', '', ''
 
-    varying vec4 vCameraPosition;
-    varying float vSymbol;
-    varying vec4 vColor;
-    varying float vSize;
-
-    void main(void)
-    {
-        vCameraPosition = transformMat * vec4(position, 1.0);
-        vSymbol = symbol;
-        vColor = color;
-        gl_Position = matrix * vec4(position, 1.0);
-        gl_PointSize = size;
-        vSize = size;
-    }
-    """,
-                string.Template("""
-    #version 120
-
-    varying vec4 vCameraPosition;
-    varying float vSize;
-    varying float vSymbol;
-    varying vec4 vColor;
-
-    $clippingDecl
-
-    /* Circle */
-    #define SYMBOL_CIRCLE 1.0
-
-    float alphaCircle(vec2 coord, float size) {
-        float radius = 0.5;
-        float r = distance(coord, vec2(0.5, 0.5));
-        return clamp(size * (radius - r), 0.0, 1.0);
-    }
-
-    /* Half lines */
-    #define SYMBOL_H_LINE 2.0
-    #define LEFT 1.0
-    #define RIGHT 2.0
-    #define SYMBOL_V_LINE 3.0
-    #define UP 1.0
-    #define DOWN 2.0
-
-    float alphaLine(vec2 coord, float size, float direction)
-    {
-        vec2 delta = abs(size * (coord - 0.5));
-
-        if (direction == SYMBOL_H_LINE) {
-            return (delta.y < 0.5) ? 1.0 : 0.0;
-        }
-        else if (direction == SYMBOL_H_LINE + LEFT) {
-            return (coord.x <= 0.5 && delta.y < 0.5) ? 1.0 : 0.0;
-        }
-        else if (direction == SYMBOL_H_LINE + RIGHT) {
-            return (coord.x >= 0.5 && delta.y < 0.5) ? 1.0 : 0.0;
-        }
-        else if (direction == SYMBOL_V_LINE) {
-            return (delta.x < 0.5) ? 1.0 : 0.0;
-        }
-        else if (direction == SYMBOL_V_LINE + UP) {
-            return (coord.y <= 0.5 && delta.x < 0.5) ? 1.0 : 0.0;
-        }
-        else if (direction == SYMBOL_V_LINE + DOWN) {
-             return (coord.y >= 0.5 && delta.x < 0.5) ? 1.0 : 0.0;
-        }
-        return 1.0;
-    }
-
-    void main(void)
-    {
-        $clippingCall(vCameraPosition);
-
-        gl_FragColor = vColor;
-
-        float alpha = 1.0;
-        float symbol = floor(vSymbol);
-        if (1 == 1) { //symbol == SYMBOL_CIRCLE) {
-            alpha = alphaCircle(gl_PointCoord, vSize);
-        }
-        else if (symbol >= SYMBOL_H_LINE &&
-                 symbol <= (SYMBOL_V_LINE + DOWN)) {
-            alpha = alphaLine(gl_PointCoord, vSize, symbol);
-        }
-        if (alpha == 0.0) {
-            discard;
-        }
-        gl_FragColor.a *= alpha;
-    }
-    """))
-
-    _ATTR_INFO = Points._ATTR_INFO  # TODO not right
-
-    def __init__(self, vertices, colors=(1., 1., 1., 1.), sizes=1.,
-                 indices=None, symbols=0.):
-        super(ColorPoints, self).__init__('points', indices,
-                                          position=vertices,
-                                          color=colors,
-                                          size=sizes,
-                                          symbol=symbols)
-
-    def renderGL2(self, ctx):
-        fragment = self._shaders[1].substitute(
-            clippingDecl=ctx.clipper.fragDecl,
-            clippingCall=ctx.clipper.fragCall)
-        prog = ctx.glCtx.prog(self._shaders[0], fragment)
-        prog.use()
-
-        gl.glEnable(gl.GL_VERTEX_PROGRAM_POINT_SIZE)  # OpenGL 2
-        gl.glEnable(gl.GL_POINT_SPRITE)  # OpenGL 2
-        # gl.glEnable(gl.GL_PROGRAM_POINT_SIZE)
-
-        prog.setUniformMatrix('matrix', ctx.objectToNDC.matrix)
-        prog.setUniformMatrix('transformMat',
-                              ctx.objectToCamera.matrix,
-                              safe=True)
-
-        ctx.clipper.setupProgram(ctx, prog)
-
-        self._draw(prog)
+    # TODO get/set color as attribute name is different
 
 
 class GridPoints(Geometry):
