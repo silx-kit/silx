@@ -41,9 +41,12 @@ except ImportError:
 
 from collections import defaultdict
 
+from silx.test.utils import TestLogging
+
 from ..configdict import ConfigDict
-from ..dictdump import dicttoh5, dicttojson, dicttoini, dump
+from ..dictdump import dicttoh5, dicttojson, dump
 from ..dictdump import h5todict, load
+from ..dictdump import logger as dictdump_logger
 
 
 def tree():
@@ -98,7 +101,7 @@ class TestDictToH5(unittest.TestCase):
 
         dicttoh5(h5file=self.h5_fname, treedict=dd, mode='a')
         dd = ConfigDict({'t': False})
-        with self.assertRaises(RuntimeError):
+        with TestLogging(dictdump_logger, warning=1):
             dicttoh5(h5file=self.h5_fname, treedict=dd, mode='a',
                      overwrite_data=False)
 
