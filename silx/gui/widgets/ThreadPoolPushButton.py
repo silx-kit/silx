@@ -207,6 +207,9 @@ class ThreadPoolPushButton(WaitingPushButton):
     def __releaseRunner(self, runner):
         self.__runnerSet.remove(runner)
 
+    def hasPendingOperations(self):
+        return len(self.__runnerSet) > 0
+
     def _createRunner(self, function, args, kwargs):
         """Create a QRunnable from a callable object.
 

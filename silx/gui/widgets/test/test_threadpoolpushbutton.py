@@ -44,6 +44,14 @@ class TestThreadPoolPushButton(TestCaseQt):
         super(TestThreadPoolPushButton, self).setUp()
         self._result = []
 
+    def waitForPendingOperations(self, object):
+        for i in range(50):
+            if not object.hasPendingOperations():
+                break
+            self.qWait(10)
+        else:
+            raise RuntimeError("Still waiting for a pending operation")
+
     def _trace(self, name, delay=0):
         self._result.append(name)
         if delay != 0:
@@ -61,7 +69,7 @@ class TestThreadPoolPushButton(TestCaseQt):
         button.executeCallable()
         time.sleep(0.1)
         self.assertListEqual(self._result, ["a"])
-        self.qapp.processEvents()
+        self.waitForPendingOperations(button)
 
     def testMultiExecution(self):
         button = ThreadPoolPushButton()
@@ -69,9 +77,8 @@ class TestThreadPoolPushButton(TestCaseQt):
         number = qt.QThreadPool.globalInstance().maxThreadCount() * 2
         for _ in range(number):
             button.executeCallable()
-        time.sleep(number * 0.01 + 0.1)
+        self.waitForPendingOperations(button)
         self.assertListEqual(self._result, ["a"] * number)
-        self.qapp.processEvents()
 
     def testSaturateThreadPool(self):
         button = ThreadPoolPushButton()
@@ -79,9 +86,8 @@ class TestThreadPoolPushButton(TestCaseQt):
         number = qt.QThreadPool.globalInstance().maxThreadCount() * 2
         for _ in range(number):
             button.executeCallable()
-        time.sleep(number * 0.1 + 0.1)
+        self.waitForPendingOperations(button)
         self.assertListEqual(self._result, ["a"] * number)
-        self.qapp.processEvents()
 
     def testSuccess(self):
         listener = SignalListener()
