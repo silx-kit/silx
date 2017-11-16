@@ -130,7 +130,6 @@ class LoadingItemRunnable(qt.QRunnable):
         item = Hdf5Item(text=text, obj=h5obj, parent=oldItem.parent, populateAll=True)
         return item
 
-    @qt.Slot()
     def run(self):
         """Process the file loading. The worker is used as holder
         of the data and the signal. The result is sent as a signal.
