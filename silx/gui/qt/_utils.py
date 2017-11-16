@@ -30,15 +30,15 @@ __license__ = "MIT"
 __date__ = "30/11/2016"
 
 import sys
-from ._qt import BINDING, QImageReader
+from . import _qt as qt
 
 
 def supportedImageFormats():
     """Return a set of string of file format extensions supported by the
     Qt runtime."""
-    if sys.version_info[0] < 3 or BINDING == 'PySide':
+    if sys.version_info[0] < 3 or qt.BINDING == 'PySide':
         convert = str
     else:
         convert = lambda data: str(data, 'ascii')
-    formats = QImageReader.supportedImageFormats()
+    formats = qt.QImageReader.supportedImageFormats()
     return set([convert(data) for data in formats])
