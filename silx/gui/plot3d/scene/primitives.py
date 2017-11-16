@@ -1302,7 +1302,25 @@ class ColorPoints(_Points):
         """
         return 'vec4', '', ''
 
-    # TODO get/set color as attribute name is different
+    def setColor(self, color, copy=True):
+        """Set colors
+
+        :param color: Single RGBA color or
+                      2D array of color of length number of points
+        :param bool copy: True to copy colors (default),
+                          False to use provided array (Do not modify!)
+        """
+        self.setAttribute('value', color, copy=copy)
+
+    def getColor(self, copy=True):
+        """Returns the color or array of colors of the points.
+
+        :param copy: True to get a copy (default),
+                     False to return internal array (Do not modify!)
+        :return: Color or array of colors
+        :rtype: numpy.ndarray
+        """
+        return self.getAttribute('value', copy=copy)
 
 
 class GridPoints(Geometry):
