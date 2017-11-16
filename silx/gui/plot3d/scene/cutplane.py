@@ -348,10 +348,11 @@ class CutPlane(PlaneInGroup):
             return cachevertices
 
         # Cache is not OK, rebuild it
-        boxvertices = bounds[0] + Box._vertices.copy()*(bounds[1] - bounds[0])
-        lineindices = Box._lineIndices
+        boxVertices = Box.getVertices(copy=True)
+        boxVertices = bounds[0] + boxVertices * (bounds[1] - bounds[0])
+        lineIndices = Box.getLineIndices(copy=False)
         vertices = utils.boxPlaneIntersect(
-            boxvertices, lineindices, self.plane.normal, self.plane.point)
+            boxVertices, lineIndices, self.plane.normal, self.plane.point)
 
         self._cache = bounds, vertices if len(vertices) != 0 else None
 

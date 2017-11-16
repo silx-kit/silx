@@ -127,7 +127,7 @@ class Geometry(core.Elem):
 
     @property
     def drawMode(self):
-        """Kind of primitive to renderin :attr:`_MODES` (str)"""
+        """Kind of primitive to render, in :attr:`_MODES` (str)"""
         return self._mode
 
     @staticmethod
@@ -679,6 +679,26 @@ class Box(core.PrivateGroup):
         self._size = None
         self.size = size
 
+    @classmethod
+    def getLineIndices(cls, copy=True):
+        """Returns 2D array of Box lines indices
+
+        :param copy: True (default) to get a copy,
+                     False to get internal array (Do not modify!)
+        :rtype: numpy.ndarray
+        """
+        return numpy.array(cls._lineIndices, copy=copy)
+
+    @classmethod
+    def getVertices(cls, copy=True):
+        """Returns 2D array of Box corner coordinates.
+
+        :param copy: True (default) to get a copy,
+                     False to get internal array (Do not modify!)
+        :rtype: numpy.ndarray
+        """
+        return numpy.array(cls._vertices, copy=copy)
+
     @property
     def size(self):
         """Size of the box (sx, sy, sz)"""
@@ -928,10 +948,11 @@ class PlaneInGroup(core.PrivateGroup):
             return cachevertices
 
         # Cache is not OK, rebuild it
-        boxvertices = bounds[0] + Box._vertices.copy()*(bounds[1] - bounds[0])
-        lineindices = Box._lineIndices
+        boxVertices = Box.getVertices(copy=True)
+        boxVertices = bounds[0] + boxVertices * (bounds[1] - bounds[0])
+        lineIndices = Box.getLineIndices(copy=False)
         vertices = utils.boxPlaneIntersect(
-            boxvertices, lineindices, self.plane.normal, self.plane.point)
+            boxVertices, lineIndices, self.plane.normal, self.plane.point)
 
         self._cache = bounds, vertices if len(vertices) != 0 else None
 
