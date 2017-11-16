@@ -1879,8 +1879,8 @@ class ColormapMesh3D(Geometry):
 
 # ImageData ##################################################################
 
-class ImageData(Geometry):
-    """Display a 2x2 data array with a texture."""
+class _Image(Geometry):
+    """Base class for ImageData and ImageRgba"""
 
     _shaders = ("""
     attribute vec2 position;
@@ -1910,15 +1910,15 @@ class ImageData(Geometry):
     uniform sampler2D data;
     uniform float alpha;
 
-    $colormapDecl
+    $imageDecl
 
     $clippingDecl
+
     $lightingFunction
 
     void main(void)
     {
-        float value = texture2D(data, vTexCoords).r;
-        vec4 color = $colormapCall(value);
+        vec4 color = imageColor(data, vTexCoords);
         color.a = alpha;
 
         $clippingCall(vCameraPosition);
@@ -1931,203 +1931,9 @@ class ImageData(Geometry):
     _UNIT_SQUARE = numpy.array(((0., 0.), (1., 0.), (0., 1.), (1., 1.)),
                                dtype=numpy.float32)
 
-    def __init__(self, data, copy=True, colormap=None):
-        super(ImageData, self).__init__(mode='triangle_strip',
-                                        position=self._UNIT_SQUARE)
-
-        self._texture = None
-        self._update_texture = True
-        self._update_texture_filter = False
-        self._data = None
-        self.setData(data, copy)
-        self._alpha = 1.
-        self._colormap = colormap or Colormap()  # Default colormap
-        self._colormap.addListener(self._cmapChanged)
-        self._interpolation = 'linear'
-
-        self.isBackfaceVisible = True
-
-    def setData(self, data, copy=True):
-        data = numpy.array(data, copy=copy, order='C', dtype=numpy.float32)
-        # TODO support (u)int8|16
-        assert data.ndim == 2
-
-        self._data = data
-        self._update_texture = True
-        # By updating the position rather thant always using a unit square
-        # we benefit from Geometry bounds handling
-        self.setAttribute('position', self._UNIT_SQUARE * self._data.shape)
-        self.notify()
-
-    def getData(self, copy=True):
-        return numpy.array(self._data, copy=copy)
-
-    @property
-    def interpolation(self):
-        """The texture interpolation mode: 'linear' or 'nearest'"""
-        return self._interpolation
-
-    @interpolation.setter
-    def interpolation(self, interpolation):
-        assert interpolation in ('linear', 'nearest')
-        self._interpolation = interpolation
-        self._update_texture_filter = True
-        self.notify()
-
-    @property
-    def alpha(self):
-        """Transparency of the image, float in [0, 1]"""
-        return self._alpha
-
-    @alpha.setter
-    def alpha(self, alpha):
-        self._alpha = float(alpha)
-        self.notify()
-
-    @property
-    def colormap(self):
-        """The colormap used to render the image"""
-        return self._colormap
-
-    def _cmapChanged(self, source, *args, **kwargs):
-        """Broadcast colormap changes"""
-        self.notify(*args, **kwargs)
-
-    def prepareGL2(self, ctx):
-        if self._texture is None or self._update_texture:
-            if self._texture is not None:
-                self._texture.discard()
-
-            if self.interpolation == 'nearest':
-                filter_ = gl.GL_NEAREST
-            else:
-                filter_ = gl.GL_LINEAR
-            self._update_texture = False
-            self._update_texture_filter = False
-            if self._data.size == 0:
-                self._texture = None
-            else:
-                self._texture = _glutils.Texture(
-                    gl.GL_R32F, self._data, gl.GL_RED,
-                    minFilter=filter_,
-                    magFilter=filter_,
-                    wrap=gl.GL_CLAMP_TO_EDGE)
-
-        if self._update_texture_filter and self._texture is not None:
-            self._update_texture_filter = False
-            if self.interpolation == 'nearest':
-                filter_ = gl.GL_NEAREST
-            else:
-                filter_ = gl.GL_LINEAR
-            self._texture.minFilter = filter_
-            self._texture.magFilter = filter_
-
-        super(ImageData, self).prepareGL2(ctx)
-
-    def renderGL2(self, ctx):
-        if self._texture is None:
-            return  # Nothing to render
-
-        with self.viewport.light.turnOff():
-            self._renderGL2(ctx)
-
-    def _renderGL2(self, ctx):
-        fragment = self._shaders[1].substitute(
-            clippingDecl=ctx.clipper.fragDecl,
-            clippingCall=ctx.clipper.fragCall,
-            lightingFunction=ctx.viewport.light.fragmentDef,
-            lightingCall=ctx.viewport.light.fragmentCall,
-            colormapDecl=self.colormap.decl,
-            colormapCall=self.colormap.call
-            )
-        program = ctx.glCtx.prog(self._shaders[0], fragment)
-        program.use()
-
-        ctx.viewport.light.setupProgram(ctx, program)
-        self.colormap.setupProgram(ctx, program)
-
-        if not self.isBackfaceVisible:
-            gl.glCullFace(gl.GL_BACK)
-            gl.glEnable(gl.GL_CULL_FACE)
-
-        program.setUniformMatrix('matrix', ctx.objectToNDC.matrix)
-        program.setUniformMatrix('transformMat',
-                                 ctx.objectToCamera.matrix,
-                                 safe=True)
-        gl.glUniform1f(program.uniforms['alpha'], self._alpha)
-
-        shape = self._data.shape
-        gl.glUniform2f(program.uniforms['dataScale'], 1./shape[0], 1./shape[1])
-
-        gl.glUniform1i(program.uniforms['data'], self._texture.texUnit)
-
-        ctx.clipper.setupProgram(ctx, program)
-
-        self._texture.bind()
-        self._draw(program)
-
-        if not self.isBackfaceVisible:
-            gl.glDisable(gl.GL_CULL_FACE)
-
-
-# ImageRgba ##################################################################
-
-# TODO refactor, there is a lot of copy-paste here
-class ImageRgba(Geometry):
-    """Display a 2x2 RGBA image with a texture.
-
-    Supports images of float in [0, 1] and uint8.
-    """
-
-    _shaders = ("""
-    attribute vec2 position;
-
-    uniform mat4 matrix;
-    uniform mat4 transformMat;
-    uniform vec2 dataScale;
-
-    varying vec4 vCameraPosition;
-    varying vec3 vPosition;
-    varying vec3 vNormal;
-    varying vec2 vTexCoords;
-
-    void main(void)
-    {
-        vec4 positionVec4 = vec4(position, 0.0, 1.0);
-        vCameraPosition = transformMat * positionVec4;
-        vPosition = positionVec4.xyz;
-        vTexCoords = dataScale * position;
-        gl_Position = matrix * positionVec4;
-    }
-    """,
-                string.Template("""
-    varying vec4 vCameraPosition;
-    varying vec3 vPosition;
-    varying vec2 vTexCoords;
-    uniform sampler2D data;
-    uniform float alpha;
-
-    $clippingDecl
-    $lightingFunction
-
-    void main(void)
-    {
-        vec4 color = texture2D(data, vTexCoords);
-        color.a *= alpha;
-
-        $clippingCall(vCameraPosition);
-
-        vec3 normal = vec3(0.0, 0.0, 1.0);
-        gl_FragColor = $lightingCall(color, vPosition, normal);
-    }
-    """))
-
-    _UNIT_SQUARE = numpy.array(((0., 0.), (1., 0.), (0., 1.), (1., 1.)),
-                               dtype=numpy.float32)
-
     def __init__(self, data, copy=True):
-        super(ImageRgba, self).__init__(mode='triangle_strip',
-                                        position=self._UNIT_SQUARE)
+        super(_Image, self).__init__(mode='triangle_strip',
+                                     position=self._UNIT_SQUARE)
 
         self._texture = None
         self._update_texture = True
@@ -2139,20 +1945,12 @@ class ImageRgba(Geometry):
 
         self.isBackfaceVisible = True
 
-    def setData(self, data, copy=True):
-        data = numpy.array(data, copy=copy, order='C')
-        assert data.ndim == 3
-        assert data.shape[2] in (3, 4)
-        if data.dtype.kind == 'f':
-            if data.dtype != numpy.dtype(numpy.float32):
-                _logger.warning("Converting image data to float32")
-                data = numpy.array(data, dtype=numpy.float32, copy=False)
-        else:
-            assert data.dtype == numpy.dtype(numpy.uint8)
+    def setData(self, data):
+        assert isinstance(data, numpy.ndarray)
 
         self._data = data
         self._update_texture = True
-        # By updating the position rather thant always using a unit square
+        # By updating the position rather than always using a unit square
         # we benefit from Geometry bounds handling
         self.setAttribute('position', self._UNIT_SQUARE * self._data.shape[:2])
         self.notify()
@@ -2182,6 +1980,14 @@ class ImageRgba(Geometry):
         self._alpha = float(alpha)
         self.notify()
 
+    def _textureFormat(self):
+        """Implement this method to provide texture internal format and format
+
+        :return: 2-tuple of gl flags (internalFormat, format)
+        """
+        raise NotImplementedError(
+            "This method must be implemented in a subclass")
+
     def prepareGL2(self, ctx):
         if self._texture is None or self._update_texture:
             if self._texture is not None:
@@ -2196,11 +2002,11 @@ class ImageRgba(Geometry):
             if self._data.size == 0:
                 self._texture = None
             else:
-                format_ = gl.GL_RGBA if self._data.shape[2] == 4 else gl.GL_RGB
-
+                internalFormat, format_ = self._textureFormat()
                 self._texture = _glutils.Texture(
-                    format_,
+                    internalFormat,
                     self._data,
+                    format_,
                     minFilter=filter_,
                     magFilter=filter_,
                     wrap=gl.GL_CLAMP_TO_EDGE)
@@ -2214,7 +2020,7 @@ class ImageRgba(Geometry):
             self._texture.minFilter = filter_
             self._texture.magFilter = filter_
 
-        super(ImageRgba, self).prepareGL2(ctx)
+        super(_Image, self).prepareGL2(ctx)
 
     def renderGL2(self, ctx):
         if self._texture is None:
@@ -2223,12 +2029,22 @@ class ImageRgba(Geometry):
         with self.viewport.light.turnOff():
             self._renderGL2(ctx)
 
+    def _renderGL2PreDrawHook(self, ctx, program):
+        """Override in subclass to run code before calling gl draw"""
+        pass
+
+    def _shaderImageColorDecl(self):
+        """Returns fragment shader imageColor function declaration"""
+        raise NotImplementedError(
+            "This method must be implemented in a subclass")
+
     def _renderGL2(self, ctx):
         fragment = self._shaders[1].substitute(
             clippingDecl=ctx.clipper.fragDecl,
             clippingCall=ctx.clipper.fragCall,
             lightingFunction=ctx.viewport.light.fragmentDef,
             lightingCall=ctx.viewport.light.fragmentCall,
+            imageDecl=self._shaderImageColorDecl()
             )
         program = ctx.glCtx.prog(self._shaders[0], fragment)
         program.use()
@@ -2253,10 +2069,99 @@ class ImageRgba(Geometry):
         ctx.clipper.setupProgram(ctx, program)
 
         self._texture.bind()
+
+        self._renderGL2PreDrawHook(ctx, program)
+
         self._draw(program)
 
         if not self.isBackfaceVisible:
             gl.glDisable(gl.GL_CULL_FACE)
+
+
+class ImageData(_Image):
+    """Display a 2x2 data array with a texture."""
+
+    _imageDecl = string.Template("""
+    $colormapDecl
+
+    vec4 imageColor(sampler2D data, vec2 texCoords) {
+        float value = texture2D(data, texCoords).r;
+        vec4 color = $colormapCall(value);
+        return color;
+    }
+    """)
+
+    def __init__(self, data, copy=True, colormap=None):
+        super(ImageData, self).__init__(data, copy=copy)
+
+        self._colormap = colormap or Colormap()  # Default colormap
+        self._colormap.addListener(self._cmapChanged)
+
+    def setData(self, data, copy=True):
+        data = numpy.array(data, copy=copy, order='C', dtype=numpy.float32)
+        # TODO support (u)int8|16
+        assert data.ndim == 2
+
+        super(ImageData, self).setData(data)
+
+    @property
+    def colormap(self):
+        """The colormap used to render the image"""
+        return self._colormap
+
+    def _cmapChanged(self, source, *args, **kwargs):
+        """Broadcast colormap changes"""
+        self.notify(*args, **kwargs)
+
+    def _textureFormat(self):
+        return gl.GL_R32F, gl.GL_RED
+
+    def _renderGL2PreDrawHook(self, ctx, program):
+        self.colormap.setupProgram(ctx, program)
+
+    def _shaderImageColorDecl(self):
+        return self._imageDecl.substitute(
+            colormapDecl=self.colormap.decl,
+            colormapCall=self.colormap.call)
+
+
+# ImageRgba ##################################################################
+
+class ImageRgba(_Image):
+    """Display a 2x2 RGBA image with a texture.
+
+    Supports images of float in [0, 1] and uint8.
+    """
+
+    _imageDecl = """
+    vec4 imageColor(sampler2D data, vec2 texCoords) {
+        vec4 color = texture2D(data, texCoords);
+        return color;
+    }
+    """
+
+    def __init__(self, data, copy=True):
+        super(ImageRgba, self).__init__(data, copy=copy)
+
+    def setData(self, data, copy=True):
+        data = numpy.array(data, copy=copy, order='C')
+        assert data.ndim == 3
+        assert data.shape[2] in (3, 4)
+        if data.dtype.kind == 'f':
+            if data.dtype != numpy.dtype(numpy.float32):
+                _logger.warning("Converting image data to float32")
+                data = numpy.array(data, dtype=numpy.float32, copy=False)
+        else:
+            assert data.dtype == numpy.dtype(numpy.uint8)
+
+        super(ImageRgba, self).setData(data)
+
+    def _textureFormat(self):
+        format_ = gl.GL_RGBA if self._data.shape[2] == 4 else gl.GL_RGB
+        return format_, format_
+
+    def _shaderImageColorDecl(self):
+        return self._imageDecl
 
 
 # Group ######################################################################
