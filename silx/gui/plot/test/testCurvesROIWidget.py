@@ -108,7 +108,15 @@ class TestCurvesROIWidget(TestCaseQt):
     def testMiddleMarker(self):
         """Plot with curves: test all ROI widget buttons"""
         self.widget.roiWidget.setMiddleROIMarkerFlag(True)
-        self.testWithCurves()
+
+        # Add a ROI
+        self.mouseClick(self.widget.roiWidget.addButton, qt.Qt.LeftButton)
+
+        xleftMarker = self.plot._getMarker(legend='ROI min').getXPosition()
+        xMiddleMarker = self.plot._getMarker(legend='ROI middle').getXPosition()
+        xRightMarker = self.plot._getMarker(legend='ROI max').getXPosition()
+        self.assertAlmostEqual(xMiddleMarker,
+                               xleftMarker + (xRightMarker - xleftMarker) / 2.)
 
     def testCalculation(self):
         x = numpy.arange(100.)
