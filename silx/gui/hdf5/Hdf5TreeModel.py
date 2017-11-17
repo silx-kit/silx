@@ -130,7 +130,6 @@ class LoadingItemRunnable(qt.QRunnable):
         item = Hdf5Item(text=text, obj=h5obj, parent=oldItem.parent, populateAll=True)
         return item
 
-    @qt.Slot()
     def run(self):
         """Process the file loading. The worker is used as holder
         of the data and the signal. The result is sent as a signal.
@@ -283,6 +282,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         self.__root.removeChildAtIndex(row)
         self.endRemoveRows()
         if newItem is not None:
+            rootIndex = qt.QModelIndex()
             self.__openedFiles.append(newItem.obj)
             self.beginInsertRows(rootIndex, row, row)
             self.__root.insertChild(row, newItem)
@@ -587,6 +587,9 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             row = self.__root.childCount()
         self.insertNode(row, Hdf5Item(text=text, obj=h5pyObject, parent=self.__root))
 
+    def hasPendingOperations(self):
+        return len(self.__runnerSet) > 0
+
     def insertFileAsync(self, filename, row=-1):
         if not os.path.isfile(filename):
             raise IOError("Filename '%s' must be a file path" % filename)
@@ -599,9 +602,9 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         # start loading the real one
         runnable = LoadingItemRunnable(filename, item)
         runnable.itemReady.connect(self.__itemReady)
-        self.__runnerSet.add(runnable)
         runnable.runnerFinished.connect(self.__releaseRunner)
-        qt.QThreadPool.globalInstance().start(runnable)
+        self.__runnerSet.add(runnable)
+        qt.silxGlobalThreadPool().start(runnable)
 
     def __releaseRunner(self, runner):
         self.__runnerSet.remove(runner)
