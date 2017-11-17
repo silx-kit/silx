@@ -232,9 +232,25 @@ def dicttoh5(treedict, h5file, h5path='/',
                 ds = _prepare_hdf5_dataset(treedict[key])
                 # can't apply filters on scalars (datasets with shape == () )
                 if ds.shape == () or create_dataset_args is None:
+                    if h5path + key in h5f:
+                        if overwrite_data is True:
+                            del h5f[h5path + key]
+                        else:
+                            logger.warning('key (%s) already exists. '
+                                           'Not overwriting.' % (h5path + key))
+                            continue
+
                     h5f.create_dataset(h5path + key,
                                        data=ds)
                 else:
+                    if h5path + key in h5f:
+                        if overwrite_data is True:
+                            del h5f[h5path + key]
+                        else:
+                            logger.warning('key (%s) already exists. '
+                                           'Not overwriting.' % (h5path + key))
+                            continue
+
                     h5f.create_dataset(h5path + key,
                                        data=ds,
                                        **create_dataset_args)
