@@ -248,7 +248,7 @@ class GroupItem(DataItem3D):
         self._items = []
 
     def addItem(self, item, index=None):
-        """Append an item to the group
+        """Add an item to the group
 
         :param Item3D item: The item  to add
         :param int index: The index at which to place the item.
@@ -293,7 +293,7 @@ class GroupItem(DataItem3D):
         item.setParent(None)
         self.sigItemRemoved.emit(item)
 
-    def clear(self):
+    def clearItems(self):
         """Remove all item from the group."""
         for item in self.getItems():
             self.removeItem(item)

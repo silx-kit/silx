@@ -32,12 +32,14 @@ __date__ = "26/10/2017"
 
 import logging
 
+import numpy
+
 from .. import qt
 from ..plot.Colors import rgba
 
 from .Plot3DWindow import Plot3DWindow
 from .scene import axes
-from .items import GroupItem
+from . import items
 
 
 _logger = logging.getLogger(__name__)
@@ -53,7 +55,7 @@ class SceneView(Plot3DWindow):
         self._foregroundColor = 1., 1., 1., 1.
         self._highlightColor = 0.7, 0.7, 0., 1.
 
-        self._sceneGroup = GroupItem(parent=self)
+        self._sceneGroup = items.GroupItem(parent=self)
 
         self._bbox = axes.LabelledAxes()
         self._bbox.children = [self._sceneGroup._getScenePrimitive()]
@@ -65,6 +67,126 @@ class SceneView(Plot3DWindow):
         :rtype: GroupItem
         """
         return self._sceneGroup
+
+    # Add/remove items
+
+    def add3DScalarField(self, data, copy=True, index=None):
+        """Add 3D scalar data volume to :class:`SceneView` content.
+
+        Dataset order is zyx (i.e., first dimension is z).
+
+        :param data: 3D array
+        :type data: 3D numpy.ndarray of float32 with shape at least (2, 2, 2)
+        :param bool copy:
+            True (default) to make a copy,
+            False to avoid copy (DO NOT MODIFY data afterwards)
+        :param int index: The index at which to place the item.
+                          By default it is appended to the end of the list.
+        :return: The newly created scalar volume item
+        :rtype: items.ScalarField3D
+        """
+        volume = items.ScalarField3D()
+        volume.setData(data, copy=copy)
+        self.addItem(volume, index)
+        return volume
+
+    def add3DScatter(self, x, y, z, value, copy=True, index=None):
+        """Add 3D scatter data to :class:`SceneView` content.
+
+        :param numpy.ndarray x: Array of X coordinates (single value not accepted)
+        :param y: Points Y coordinate (array-like or single value)
+        :param z: Points Z coordinate (array-like or single value)
+        :param value: Points values (array-like or single value)
+        :param bool copy:
+            True (default) to copy the data,
+            False to use provided data (do not modify!)
+        :param int index: The index at which to place the item.
+                          By default it is appended to the end of the list.
+        :return: The newly created 3D scatter item
+        :rtype: items.Scatter3D
+        """
+        scatter3d = items.Scatter3D()
+        scatter3d.setData(x=x, y=y, z=z, value=value, copy=copy)
+        self.addItem(scatter3d, index)
+        return scatter3d
+
+    def add2DScatter(self, x, y, value, copy=True, index=None):
+        """Add 2D scatter data to :class:`SceneView` content.
+
+        Provided arrays must have the same length.
+
+        :param numpy.ndarray x: X coordinates (array-like)
+        :param numpy.ndarray y: Y coordinates (array-like)
+        :param value: Points value: array-like or single scalar
+        :param bool copy: True (default) to copy the data,
+                          False to use as is (do not modify!).
+        :param int index: The index at which to place the item.
+                          By default it is appended to the end of the list.
+        :return: The newly created 2D scatter item
+        :rtype: items.Scatter2D
+        """
+        scatter2d = items.Scatter2D()
+        scatter2d.setData(x=x, y=y, value=value, copy=copy)
+        self.addItem(scatter2d, index)
+        return scatter2d
+
+    def addImage(self, data, copy=True, index=None):
+        """Add a 2D data or RGB(A) image to :class:`SceneView` content.
+
+        2D data is casted to float32.
+        RGBA supported formats are: float32 in [0, 1] and uint8.
+
+        :param numpy.ndarray data: Image as a 2D data array or
+            RGBA image as a 3D array (height, width, channels)
+        :param bool copy: True (default) to copy the data,
+                          False to use as is (do not modify!).
+        :param int index: The index at which to place the item.
+                          By default it is appended to the end of the list.
+        :return: The newly created image item
+        :rtype: items.ImageData or items.ImageRgba
+        :raise ValueError: For arrays of unsupported dimensions
+        """
+        data = numpy.array(data, copy=False)
+        if data.ndim == 2:
+            image = items.ImageData()
+        elif data.ndim == 3:
+            image = items.ImageRgba()
+        else:
+            raise ValueError("Unsupported array dimensions: %d" % data.ndim)
+        image.setData(data, copy=copy)
+        self.addItem(image, index)
+        return image
+
+    def addItem(self, item, index=None):
+        """Add an item to :class:`SceneView` content
+
+        :param Item3D item: The item  to add
+        :param int index: The index at which to place the item.
+                          By default it is appended to the end of the list.
+        :raise ValueError: If the item is already in the :class:`SceneView`.
+        """
+        return self.getSceneGroup().addItem(item, index)
+
+    def removeItem(self, item):
+        """Remove an item from :class:`SceneView` content.
+
+        :param Item3D item: The item to remove from the scene
+        :raises ValueError: If the item does not belong to the group
+        """
+        return self.getSceneGroup().removeItem(item)
+
+    def getItems(self):
+        """Returns the list of :class:`SceneView` items.
+
+        Only items in the top-level group are returned.
+
+        :rtype: tuple
+        """
+        return self.getSceneGroup().getItems()
+
+    def clearItems(self):
+        """Remove all item from :class:`SceneView`."""
+        return self.getSceneGroup().clear()
 
     # Axes labels
 
