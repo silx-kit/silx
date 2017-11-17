@@ -56,5 +56,8 @@ def silxGlobalThreadPool():
     """
     global __globalThreadPoolInstance
     if __globalThreadPoolInstance is  None:
-        __globalThreadPoolInstance = qt.QThreadPool()
+        tp = qt.QThreadPool()
+        # This pointless command fixes a segfault with PyQt 5.9.1 on Windows
+        tp.setMaxThreadCount(tp.maxThreadCount())
+        __globalThreadPoolInstance = tp
     return __globalThreadPoolInstance
