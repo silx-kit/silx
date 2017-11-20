@@ -51,7 +51,7 @@ _logger = logging.getLogger(__name__)
 
 
 class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
-    """Class representing a cutting plane in a 3D array
+    """Class representing a cutting plane in a :class:`ScalarField3D` item.
 
     :param parent: 3D Data set in which the cut plane is applied.
     """
@@ -106,7 +106,7 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
 
 
 class Isosurface(Item3D):
-    """Class representing an iso-surface
+    """Class representing an iso-surface in a :class:`ScalarField3D` item.
 
     :param parent: The DataItem3D this iso-surface belongs to
     """
@@ -344,7 +344,7 @@ class ScalarField3D(DataItem3D):
     # Cut Plane
 
     def getCutPlanes(self):
-        """Return an iterable of all cut planes of this item.
+        """Return an iterable of all :class:`CutPlane` of this item.
 
         This includes hidden cut planes.
 
@@ -368,7 +368,7 @@ class ScalarField3D(DataItem3D):
     """
 
     def addIsosurface(self, level, color):
-        """Add an iso-surface to this item.
+        """Add an :class:`Isosurface` to this item.
 
         :param level:
             The value at which to build the iso-surface or a callable
@@ -379,6 +379,7 @@ class ScalarField3D(DataItem3D):
         :param color: RGBA color of the isosurface
         :type color: str or array-like of 4 float in [0., 1.]
         :return: Isosurface object describing this isosurface
+        :rtype: Isosurface
         """
         isosurface = Isosurface(parent=self)
         isosurface.setColor(color)
@@ -397,13 +398,13 @@ class ScalarField3D(DataItem3D):
         return isosurface
 
     def getIsosurfaces(self):
-        """Return an iterable of all iso-surfaces of this item"""
+        """Return an iterable of all :class:`Isosurface` instance of this item"""
         return tuple(self._isosurfaces)
 
     def removeIsosurface(self, isosurface):
         """Remove an iso-surface from this item.
 
-        :param isosurface: The isosurface object to remove"""
+        :param Isosurface isosurface: The isosurface object to remove"""
         if isosurface not in self.getIsosurfaces():
             _logger.warning(
                 "Try to remove isosurface that is not in the list: %s",
@@ -415,7 +416,7 @@ class ScalarField3D(DataItem3D):
             self.sigIsosurfaceRemoved.emit(isosurface)
 
     def clearIsosurfaces(self):
-        """Remove all iso-surfaces from this item."""
+        """Remove all :class:`Isosurface` instances from this item."""
         for isosurface in self.getIsosurfaces():
             self.removeIsosurface(isosurface)
 

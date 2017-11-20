@@ -120,7 +120,7 @@ class Item3D(qt.QObject):
 # TODO add anchor (i.e. center of rotation)
 # TODO add bounding box visible + color
 class DataItem3D(Item3D):
-    """Base class representing a data item in the scene.
+    """Base class representing a data item with transform in the scene.
 
     :param parent: The View widget this item belongs to.
     :param primitive: An optional primitive to use as scene primitive
