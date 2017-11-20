@@ -74,7 +74,7 @@ class TestThreadPoolPushButton(TestCaseQt):
     def testMultiExecution(self):
         button = ThreadPoolPushButton()
         button.setCallable(self._trace, "a", 0)
-        number = qt.QThreadPool.globalInstance().maxThreadCount()
+        number = qt.silxGlobalThreadPool().maxThreadCount()
         for _ in range(number):
             button.executeCallable()
         self.waitForPendingOperations(button)
@@ -83,7 +83,7 @@ class TestThreadPoolPushButton(TestCaseQt):
     def testSaturateThreadPool(self):
         button = ThreadPoolPushButton()
         button.setCallable(self._trace, "a", 100)
-        number = qt.QThreadPool.globalInstance().maxThreadCount() * 2
+        number = qt.silxGlobalThreadPool().maxThreadCount() * 2
         for _ in range(number):
             button.executeCallable()
         self.waitForPendingOperations(button)
