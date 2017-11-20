@@ -195,6 +195,12 @@ Additional widgets:
 
    * - Widget
      - Description
+   * - .. image:: plot3d/img/SceneView.png
+          :height: 150px
+          :align: center
+     - :class:`SceneView` is a :class:`Plot3DWindow` providing a 3D scene for visualizing different kind of data.
+       It can display 2D images, 2D scatter data, 3D scatter data and 3D volumes with different visualizations.
+       Sample code: See ``plot3dSceneView.py`` in :ref:`plot3d-sample-code`.
    * - .. image:: plot3d/img/ScalarFieldView.png
           :height: 150px
           :align: center
