@@ -281,37 +281,6 @@ def build_project(name, root_dir):
     return home
 
 
-def configure_test_options(test_options, options):
-    """Configure the TestOptions class from the command line arguments and the
-    environment variables
-    """
-    if not options.gui:
-        test_options.WITH_QT_TEST = False
-        test_options.WITH_QT_TEST_REASON = "Skipped by command line"
-    elif os.environ.get('WITH_QT_TEST', 'True') == 'False':
-        test_options.WITH_QT_TEST = False
-        test_options.WITH_QT_TEST_REASON = "Skipped by WITH_QT_TEST env var"
-    elif sys.platform.startswith('linux') and not os.environ.get('DISPLAY', ''):
-        test_options.WITH_QT_TEST = False
-        test_options.WITH_QT_TEST_REASON = "DISPLAY env variable not set"
-
-    if not options.opencl or os.environ.get('SILX_OPENCL', 'True') == 'False':
-        test_options.WITH_OPENCL_TEST = False
-        # That's an easy way to skip OpenCL tests
-        # It disable the use of OpenCL on the full silx project
-        os.environ['SILX_OPENCL'] = "False"
-
-    if not options.opengl:
-        test_options.WITH_GL_TEST = False
-        test_options.WITH_GL_TEST_REASON = "Skipped by command line"
-    elif os.environ.get('WITH_GL_TEST', 'True') == 'False':
-        test_options.WITH_GL_TEST = False
-        test_options.WITH_GL_TEST_REASON = "Skipped by WITH_GL_TEST env var"
-
-    if options.low_mem or os.environ.get('SILX_TEST_LOW_MEM', 'True') == 'False':
-        test_options.TEST_LOW_MEM = True
-
-
 from argparse import ArgumentParser
 epilog = """Environment variables:
 WITH_QT_TEST=False to disable graphical tests
@@ -339,6 +308,8 @@ parser.add_argument("-v", "--verbose", default=0,
                     help="Increase verbosity. Option -v prints additional " +
                          "INFO messages. Use -vv for full verbosity, " +
                          "including debug messages and test help strings.")
+parser.add_argument("--qt-binding", dest="qt_binding", default=None,
+                    help="Force using a Qt binding, from 'PyQt4', 'PyQt5', or 'PySide'")
 parser.add_argument("-x", "--no-gui", dest="gui", default=True,
                     action="store_false",
                     help="Disable the test of the graphical use interface")
@@ -351,8 +322,7 @@ parser.add_argument("-o", "--no-opencl", dest="opencl", default=True,
 parser.add_argument("-l", "--low-mem", dest="low_mem", default=False,
                     action="store_true",
                     help="Disable test with large memory consumption (>100Mbyte")
-parser.add_argument("--qt-binding", dest="qt_binding", default=None,
-                    help="Force using a Qt binding, from 'PyQt4', 'PyQt5', or 'PySide'")
+
 
 default_test_name = "%s.test.suite" % PROJECT_NAME
 parser.add_argument("test_name", nargs='*',
@@ -459,9 +429,8 @@ test_module = importer(test_module_name)
 test_utils_module_name = PROJECT_NAME + '.test.utils'
 logger.info('Import %s', test_utils_module_name)
 test_utils = importer(test_utils_module_name)
+test_utils.configure_test_options(options)
 
-test_options = test_utils.test_options
-configure_test_options(test_options, options)
 test_suite = unittest.TestSuite()
 
 if not options.test_name:

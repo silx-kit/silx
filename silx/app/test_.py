@@ -25,10 +25,9 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "14/11/2017"
+__date__ = "20/11/2017"
 
 import sys
-import os
 import argparse
 import logging
 import unittest
@@ -84,44 +83,6 @@ class TextTestResultWithSkipList(unittest.TextTestResult):
         self.printErrorList("SKIPPED", self.skipped)
 
 
-def configureTestOptions(options):
-    """Configure the TestOptions class from the command line arguments and the
-    environment variables
-    """
-    from silx.test.utils import test_options
-
-    if not options.gui:
-        test_options.WITH_QT_TEST = False
-        test_options.WITH_QT_TEST_REASON = "Skipped by command line"
-    elif os.environ.get('WITH_QT_TEST', 'True') == 'False':
-        test_options.WITH_QT_TEST = False
-        test_options.WITH_QT_TEST_REASON = "Skipped by WITH_QT_TEST env var"
-    elif sys.platform.startswith('linux') and not os.environ.get('DISPLAY', ''):
-        test_options.WITH_QT_TEST = False
-        test_options.WITH_QT_TEST_REASON = "DISPLAY env variable not set"
-
-    if not options.opencl or os.environ.get('SILX_OPENCL', 'True') == 'False':
-        test_options.WITH_OPENCL_TEST = False
-        # That's an easy way to skip OpenCL tests
-        # It disable the use of OpenCL on the full silx project
-        os.environ['SILX_OPENCL'] = "False"
-
-    if not options.opengl:
-        test_options.WITH_GL_TEST = False
-        test_options.WITH_GL_TEST_REASON = "Skipped by command line"
-    elif os.environ.get('WITH_GL_TEST', 'True') == 'False':
-        test_options.WITH_GL_TEST = False
-        test_options.WITH_GL_TEST_REASON = "Skipped by WITH_GL_TEST env var"
-
-    if options.low_mem or os.environ.get('SILX_TEST_LOW_MEM', 'True') == 'False':
-        test_options.TEST_LOW_MEM = True
-
-    if test_options.WITH_QT_TEST:
-        from silx.gui import qt
-        if sys.platform == "win32" and qt.qVersion() == "5.9.2":
-            test_options.SKIP_TEST_FOR_ISSUE_936 = True
-
-
 def main(argv):
     """
     Main function to launch the unittests as an application
@@ -135,6 +96,8 @@ def main(argv):
                         help="Increase verbosity. Option -v prints additional " +
                              "INFO messages. Use -vv for full verbosity, " +
                              "including debug messages and test help strings.")
+    parser.add_argument("--qt-binding", dest="qt_binding", default=None,
+                        help="Force using a Qt binding, from 'PyQt4', 'PyQt5', or 'PySide'")
     parser.add_argument("-x", "--no-gui", dest="gui", default=True,
                         action="store_false",
                         help="Disable the test of the graphical use interface")
@@ -147,8 +110,6 @@ def main(argv):
     parser.add_argument("-l", "--low-mem", dest="low_mem", default=False,
                         action="store_true",
                         help="Disable test with large memory consumption (>100Mbyte")
-    parser.add_argument("--qt-binding", dest="qt_binding", default=None,
-                        help="Force using a Qt binding, from 'PyQt4', 'PyQt5', or 'PySide'")
 
     options = parser.parse_args(argv[1:])
 
@@ -165,8 +126,6 @@ def main(argv):
         test_verbosity = 2
         use_buffer = False
 
-    configureTestOptions(options)
-
     if options.qt_binding:
         binding = options.qt_binding.lower()
         if binding == "pyqt4":
@@ -180,6 +139,9 @@ def main(argv):
             import PySide.QtCore  # noqa
         else:
             raise ValueError("Qt binding '%s' is unknown" % options.qt_binding)
+
+    from silx.test import utils
+    utils.configure_test_options(options)
 
     # Run the tests
     runnerArgs = {}
