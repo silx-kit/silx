@@ -1,10 +1,7 @@
-# coding: ascii
-#
-# JK: Numpy.distutils which imports this does not handle utf-8 in version<1.12
-#
+# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,25 +22,30 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+"""Wrapper module for `scipy.spatial.Delaunay` class.
 
-__authors__ = ["Valentin Valls"]
+Uses a local copy of `scipy.spatial.Delaunay` if available,
+else it loads it from `scipy`.
+
+It should be used like that:
+
+.. code-block::
+
+    from silx.third_party.scipy_spatial import Delaunay
+
+"""
+
+from __future__ import absolute_import
+
+__authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "07/11/2017"
 
-import os
-from numpy.distutils.misc_util import Configuration
+try:
+    # try to import silx local copy of Delaunay
+    from ._local.scipy_spatial import Delaunay  # noqa
+except ImportError:
+    # else import it from the python path
+    from scipy.spatial import Delaunay  # noqa
 
-
-def configuration(parent_package='', top_path=None):
-    config = Configuration('third_party', parent_package, top_path)
-    # includes _local only if it is available
-    local_path = os.path.join(top_path, parent_package, "third_party", "_local")
-    if os.path.exists(local_path):
-        config.add_subpackage('_local')
-        config.add_subpackage('_local.scipy_spatial')
-    return config
-
-
-if __name__ == "__main__":
-    from numpy.distutils.core import setup
-    setup(configuration=configuration)
+__all__ = ['Delaunay']
