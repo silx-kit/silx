@@ -50,7 +50,10 @@ class _Item(object):
         self.__absolutePath = None
 
     def isDrive(self):
-        return self.parent().parent() is None
+        if sys.platform == "win32":
+            return self.parent().parent() is None
+        else:
+            return False
 
     def isRoot(self):
         return self.parent() is None
