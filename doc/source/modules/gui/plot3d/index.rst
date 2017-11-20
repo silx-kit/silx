@@ -23,6 +23,7 @@ The following sub-modules are available:
 
    plot3dwidget.rst
    plot3dwindow.rst
+   sceneview.rst
    scalarfieldview.rst
    sfviewparamtree.rst
    tools.rst
