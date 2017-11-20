@@ -137,6 +137,11 @@ class _Item(object):
         return os.path.basename(self.absoluteFilePath())
 
     def fileInfo(self):
+        """
+        Returns the Qt file info.
+
+        :rtype: Qt.QFileInfo
+        """
         return self.__fileInfo
 
     def _setParent(self, parent):
