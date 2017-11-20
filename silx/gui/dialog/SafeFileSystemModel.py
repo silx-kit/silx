@@ -585,6 +585,75 @@ class SafeFileSystemModel(qt.QSortFilterProxyModel):
 
         return False
 
+    def __filtersAccepted(self, item, filters):
+        """
+        Check individual flag filters.
+        """
+        if not (filters & (qt.QDir.Dirs | qt.QDir.AllDirs)):
+            # Hide dirs
+            if item.isDir():
+                return False
+        if not (filters & qt.QDir.Files):
+            # Hide files
+            if item.isFile():
+                return False
+        if not (filters & qt.QDir.Drives):
+            # Hide drives
+            if item.isDrive():
+                return False
+
+        fileInfo = item.fileInfo()
+        if fileInfo is None:
+            return False
+
+        filterPermissions = (filters & qt.QDir.PermissionMask) != 0
+        if filterPermissions and (filters & (qt.QDir.Dirs | qt.QDir.Files)):
+            if (filters & qt.QDir.Readable):
+                # Hide unreadable
+                if not fileInfo.isReadable():
+                    return False
+            if (filters & qt.QDir.Writable):
+                # Hide unwritable
+                if not fileInfo.isWritable():
+                    return False
+            if (filters & qt.QDir.Executable):
+                # Hide unexecutable
+                if not fileInfo.isExecutable():
+                    return False
+
+        if (filters & qt.QDir.NoSymLinks):
+            # Hide sym links
+            if fileInfo.isSymLink():
+                return False
+
+        if not (filters & qt.QDir.System):
+            # Hide system
+            if not item.isDir() and not item.isFile():
+                return False
+
+        fileName = item.fileName()
+        isDot = fileName == "."
+        isDotDot = fileName == ".."
+
+        if not (filters & qt.QDir.Hidden):
+            # Hide hidden
+            if not (isDot or isDotDot) and fileInfo.isHidden():
+                return False
+
+        if filters & (qt.QDir.NoDot | qt.QDir.NoDotDot | qt.QDir.NoDotAndDotDot):
+            # Hide parent/self references
+            if filters & qt.QDir.NoDot:
+                if isDot:
+                    return False
+            if filters & qt.QDir.NoDotDot:
+                if isDotDot:
+                    return False
+            if filters & qt.QDir.NoDotAndDotDot:
+                if isDot or isDotDot:
+                    return False
+
+        return True
+
     def filterAcceptsRow(self, sourceRow, sourceParent):
         if not sourceParent.isValid():
             return True
@@ -594,46 +663,23 @@ class SafeFileSystemModel(qt.QSortFilterProxyModel):
         if not index.isValid():
             return True
         item = sourceModel._item(index)
-        fileInfo = item.fileInfo()
-        if fileInfo is None:
-            return False
 
         filters = self.__filters
-        filterPermissions = ((filters & qt.QDir.PermissionMask) and
-                             (filters & qt.QDir.PermissionMask) != qt.QDir.PermissionMask)
-        hideDirs = not (filters & (qt.QDir.Dirs | qt.QDir.AllDirs))
-        hideFiles = not (filters & qt.QDir.Files)
-        hideReadable = not (not filterPermissions or (filters & qt.QDir.Readable))
-        hideWritable = not (not filterPermissions or (filters & qt.QDir.Writable))
-        hideExecutable = not (not filterPermissions or (filters & qt.QDir.Executable))
-        hideHidden = not (filters & qt.QDir.Hidden)
-        hideSystem = not (filters & qt.QDir.System)
-        hideSymlinks = (filters & qt.QDir.NoSymLinks)
-        hideDot = (filters & qt.QDir.NoDot) or (filters & qt.QDir.NoDotAndDotDot)
-        hideDotDot = (filters & qt.QDir.NoDotDot) or (filters & qt.QDir.NoDotAndDotDot)
 
-        fileName = item.fileName()
-        isDot = fileName == "."
-        isDotDot = fileName == ".."
-        isSystem = not item.isDir() and not fileInfo.isFile()
+        if item.isDrive():
+            # Let say a user always have access to a drive
+            # It avoid to access to fileInfo then avoid to freeze the file
+            # system
+            return True
 
-        if not item.isDrive():
-            if ((hideHidden and not (isDot or isDotDot) and fileInfo.isHidden()) or
-               (hideSystem and isSystem) or
-               (hideDirs and item.isDir()) or
-               (hideFiles and fileInfo.isFile()) or
-               (hideSymlinks and fileInfo.isSymLink()) or
-               (hideReadable and fileInfo.isReadable()) or
-               (hideWritable and fileInfo.isWritable()) or
-               (hideExecutable and fileInfo.isExecutable()) or
-               (hideDot and isDot) or
-               (hideDotDot and isDotDot)):
-                return False
+        if not self.__filtersAccepted(item, filters):
+            return False
 
         if self.__nameFilterDisables:
             return True
 
         if item.isDir() and (filters & qt.QDir.AllDirs):
+            # dont apply the filters to directory names
             return True
 
         return self.__nameFiltersAccepted(item)
