@@ -28,7 +28,7 @@ This module contains an :class:`SafeFileSystemModel`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "31/10/2017"
+__date__ = "20/11/2017"
 
 import sys
 import os.path
@@ -54,6 +54,16 @@ class _Item(object):
 
     def isRoot(self):
         return self.parent() is None
+
+    def isFile(self):
+        """
+        Returns true if the path is a file.
+
+        It avoid to access to the `Qt.QFileInfo` in case the file is a drive.
+        """
+        if self.isDrive():
+            return False
+        return self.__fileInfo.isFile()
 
     def isDir(self):
         """
