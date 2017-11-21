@@ -58,6 +58,7 @@ import numpy
 
 from silx.io import dictdump
 from silx.utils import deprecation
+
 from .. import icons, qt
 
 
@@ -85,10 +86,14 @@ class CurvesROIWidget(qt.QWidget):
       'rowheader'
     """
 
-    def __init__(self, parent=None, name=None):
+    sigROISignal = qt.Signal(object)
+
+    def __init__(self, parent=None, name=None, plot=None):
         super(CurvesROIWidget, self).__init__(parent)
         if name is not None:
             self.setWindowTitle(name)
+        assert plot is not None
+        self.plot = plot
         layout = qt.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
@@ -152,7 +157,18 @@ class CurvesROIWidget(qt.QWidget):
         self.saveButton.clicked.connect(self._save)
         self.roiTable.sigROITableSignal.connect(self._forward)
 
+        self.currentROI = None
         self._middleROIMarkerFlag = False
+        self._isConnected = False  # True if connected to plot signals
+        self._isInit = False
+
+    def showEvent(self, event):
+        self._visibilityChangedHandler(visible=True)
+        qt.QWidget.showEvent(self, event)
+
+    def hideEvent(self, event):
+        self._visibilityChangedHandler(visible=False)
+        qt.QWidget.hideEvent(self, event)
 
     @property
     def roiFileDir(self):
@@ -380,6 +396,322 @@ class CurvesROIWidget(qt.QWidget):
     def setHeader(self, text='ROIs'):
         """Set the header text of this widget"""
         self.headerLabel.setText("<b>%s<\b>" % text)
+
+    def _roiSignal(self, ddict):
+        """Handle ROI widget signal"""
+        _logger.debug("CurvesROIWidget._roiSignal %s", str(ddict))
+        if ddict['event'] == "AddROI":
+            xmin, xmax = self.plot.getXAxis().getLimits()
+            fromdata = xmin + 0.25 * (xmax - xmin)
+            todata = xmin + 0.75 * (xmax - xmin)
+            self.plot.remove('ROI min', kind='marker')
+            self.plot.remove('ROI max', kind='marker')
+            if self._middleROIMarkerFlag:
+                self.plot.remove('ROI middle', kind='marker')
+            roiList, roiDict = self.roiTable.getROIListAndDict()
+            nrois = len(roiList)
+            if nrois == 0:
+                newroi = "ICR"
+                fromdata, dummy0, todata, dummy1 = self._getAllLimits()
+                draggable = False
+                color = 'black'
+            else:
+                for i in range(nrois):
+                    i += 1
+                    newroi = "newroi %d" % i
+                    if newroi not in roiList:
+                        break
+                color = 'blue'
+                draggable = True
+            self.plot.addXMarker(fromdata,
+                                 legend='ROI min',
+                                 text='ROI min',
+                                 color=color,
+                                 draggable=draggable)
+            self.plot.addXMarker(todata,
+                                 legend='ROI max',
+                                 text='ROI max',
+                                 color=color,
+                                 draggable=draggable)
+            if draggable and self._middleROIMarkerFlag:
+                pos = 0.5 * (fromdata + todata)
+                self.plot.addXMarker(pos,
+                                     legend='ROI middle',
+                                     text="",
+                                     color='yellow',
+                                     draggable=draggable)
+            roiList.append(newroi)
+            roiDict[newroi] = {}
+            if newroi == "ICR":
+                roiDict[newroi]['type'] = "Default"
+            else:
+                roiDict[newroi]['type'] = self.plot.getXAxis().getLabel()
+            roiDict[newroi]['from'] = fromdata
+            roiDict[newroi]['to'] = todata
+            self.roiTable.fillFromROIDict(roilist=roiList,
+                                          roidict=roiDict,
+                                          currentroi=newroi)
+            self.currentROI = newroi
+            self.calculateRois()
+        elif ddict['event'] in ['DelROI', "ResetROI"]:
+            self.plot.remove('ROI min', kind='marker')
+            self.plot.remove('ROI max', kind='marker')
+            if self._middleROIMarkerFlag:
+                self.plot.remove('ROI middle', kind='marker')
+            roiList, roiDict = self.roiTable.getROIListAndDict()
+            roiDictKeys = list(roiDict.keys())
+            if len(roiDictKeys):
+                currentroi = roiDictKeys[0]
+            else:
+                # create again the ICR
+                ddict = {"event": "AddROI"}
+                return self._roiSignal(ddict)
+
+            self.roiTable.fillFromROIDict(roilist=roiList,
+                                          roidict=roiDict,
+                                          currentroi=currentroi)
+            self.currentROI = currentroi
+
+        elif ddict['event'] == 'LoadROI':
+            self.calculateRois()
+
+        elif ddict['event'] == 'selectionChanged':
+            _logger.debug("Selection changed")
+            self.roilist, self.roidict = self.roiTable.getROIListAndDict()
+            fromdata = ddict['roi']['from']
+            todata = ddict['roi']['to']
+            self.plot.remove('ROI min', kind='marker')
+            self.plot.remove('ROI max', kind='marker')
+            if ddict['key'] == 'ICR':
+                draggable = False
+                color = 'black'
+            else:
+                draggable = True
+                color = 'blue'
+            self.plot.addXMarker(fromdata,
+                                 legend='ROI min',
+                                 text='ROI min',
+                                 color=color,
+                                 draggable=draggable)
+            self.plot.addXMarker(todata,
+                                 legend='ROI max',
+                                 text='ROI max',
+                                 color=color,
+                                 draggable=draggable)
+            if draggable and self._middleROIMarkerFlag:
+                pos = 0.5 * (fromdata + todata)
+                self.plot.addXMarker(pos,
+                                     legend='ROI middle',
+                                     text="",
+                                     color='yellow',
+                                     draggable=True)
+            self.currentROI = ddict['key']
+            if ddict['colheader'] in ['From', 'To']:
+                dict0 = {}
+                dict0['event'] = "SetActiveCurveEvent"
+                dict0['legend'] = self.plot.getActiveCurve(just_legend=1)
+                self.plot.setActiveCurve(dict0['legend'])
+            elif ddict['colheader'] == 'Raw Counts':
+                pass
+            elif ddict['colheader'] == 'Net Counts':
+                pass
+            else:
+                self._emitCurrentROISignal()
+
+        else:
+            _logger.debug("Unknown or ignored event %s", ddict['event'])
+
+    def _getAllLimits(self):
+        """Retrieve the limits based on the curves."""
+        curves = self.plot.getAllCurves()
+        if not curves:
+            return 1.0, 1.0, 100., 100.
+
+        xmin, ymin = None, None
+        xmax, ymax = None, None
+
+        for curve in curves:
+            x = curve.getXData(copy=False)
+            y = curve.getYData(copy=False)
+            if xmin is None:
+                xmin = x.min()
+            else:
+                xmin = min(xmin, x.min())
+            if xmax is None:
+                xmax = x.max()
+            else:
+                xmax = max(xmax, x.max())
+            if ymin is None:
+                ymin = y.min()
+            else:
+                ymin = min(ymin, y.min())
+            if ymax is None:
+                ymax = y.max()
+            else:
+                ymax = max(ymax, y.max())
+
+        return xmin, ymin, xmax, ymax
+
+    @deprecation.deprecated(replacement="calculateRois",
+                            reason="CamelCase convention")
+    def calculateROIs(self, *args, **kw):
+        self.calculateRois(*args, **kw)
+
+    def calculateRois(self, roiList=None, roiDict=None):
+        """Compute ROI information"""
+        if roiList is None or roiDict is None:
+            roiList, roiDict = self.roiTable.getROIListAndDict()
+
+        activeCurve = self.plot.getActiveCurve(just_legend=False)
+        if activeCurve is None:
+            xproc = None
+            yproc = None
+            self.setHeader()
+        else:
+            x = activeCurve.getXData(copy=False)
+            y = activeCurve.getYData(copy=False)
+            legend = activeCurve.getLegend()
+            idx = numpy.argsort(x, kind='mergesort')
+            xproc = numpy.take(x, idx)
+            yproc = numpy.take(y, idx)
+            self.setHeader('ROIs of %s' % legend)
+
+        for key in roiList:
+            if key == 'ICR':
+                if xproc is not None:
+                    roiDict[key]['from'] = xproc.min()
+                    roiDict[key]['to'] = xproc.max()
+                else:
+                    roiDict[key]['from'] = 0
+                    roiDict[key]['to'] = -1
+            fromData = roiDict[key]['from']
+            toData = roiDict[key]['to']
+            if xproc is not None:
+                idx = numpy.nonzero((fromData <= xproc) &
+                                    (xproc <= toData))[0]
+                if len(idx):
+                    xw = xproc[idx]
+                    yw = yproc[idx]
+                    rawCounts = yw.sum(dtype=numpy.float)
+                    deltaX = xw[-1] - xw[0]
+                    deltaY = yw[-1] - yw[0]
+                    if deltaX > 0.0:
+                        slope = (deltaY / deltaX)
+                        background = yw[0] + slope * (xw - xw[0])
+                        netCounts = (rawCounts -
+                                     background.sum(dtype=numpy.float))
+                    else:
+                        netCounts = 0.0
+                else:
+                    rawCounts = 0.0
+                    netCounts = 0.0
+                roiDict[key]['rawcounts'] = rawCounts
+                roiDict[key]['netcounts'] = netCounts
+            else:
+                roiDict[key].pop('rawcounts', None)
+                roiDict[key].pop('netcounts', None)
+
+        self.roiTable.fillFromROIDict(
+                roilist=roiList,
+                roidict=roiDict,
+                currentroi=self.currentROI if self.currentROI in roiList else None)
+
+    def _emitCurrentROISignal(self):
+        ddict = {}
+        ddict['event'] = "currentROISignal"
+        _roiList, roiDict = self.roiTable.getROIListAndDict()
+        if self.currentROI in roiDict:
+            ddict['ROI'] = roiDict[self.currentROI]
+        else:
+            self.currentROI = None
+        ddict['current'] = self.currentROI
+        self.sigROISignal.emit(ddict)
+
+    def _handleROIMarkerEvent(self, ddict):
+        """Handle plot signals related to marker events."""
+        if ddict['event'] == 'markerMoved':
+
+            label = ddict['label']
+            if label not in ['ROI min', 'ROI max', 'ROI middle']:
+                return
+
+            roiList, roiDict = self.roiTable.getROIListAndDict()
+            if self.currentROI is None:
+                return
+            if self.currentROI not in roiDict:
+                return
+            x = ddict['x']
+
+            if label == 'ROI min':
+                roiDict[self.currentROI]['from'] = x
+                if self._middleROIMarkerFlag:
+                    pos = 0.5 * (roiDict[self.currentROI]['to'] +
+                                 roiDict[self.currentROI]['from'])
+                    self.plot.addXMarker(pos,
+                                         legend='ROI middle',
+                                         text='',
+                                         color='yellow',
+                                         draggable=True)
+            elif label == 'ROI max':
+                roiDict[self.currentROI]['to'] = x
+                if self._middleROIMarkerFlag:
+                    pos = 0.5 * (roiDict[self.currentROI]['to'] +
+                                 roiDict[self.currentROI]['from'])
+                    self.plot.addXMarker(pos,
+                                         legend='ROI middle',
+                                         text='',
+                                         color='yellow',
+                                         draggable=True)
+            elif label == 'ROI middle':
+                delta = x - 0.5 * (roiDict[self.currentROI]['from'] +
+                                   roiDict[self.currentROI]['to'])
+                roiDict[self.currentROI]['from'] += delta
+                roiDict[self.currentROI]['to'] += delta
+                self.plot.addXMarker(roiDict[self.currentROI]['from'],
+                                     legend='ROI min',
+                                     text='ROI min',
+                                     color='blue',
+                                     draggable=True)
+                self.plot.addXMarker(roiDict[self.currentROI]['to'],
+                                     legend='ROI max',
+                                     text='ROI max',
+                                     color='blue',
+                                     draggable=True)
+            else:
+                return
+            self.calculateRois(roiList, roiDict)
+            self._emitCurrentROISignal()
+
+    def _visibilityChangedHandler(self, visible):
+        """Handle widget's visibility updates.
+
+        It is connected to plot signals only when visible.
+        """
+        if visible:
+            if not self._isInit:
+                # Deferred ROI widget init finalization
+                self._isInit = True
+                self.sigROIWidgetSignal.connect(self._roiSignal)
+                # initialize with the ICR
+                self._roiSignal({'event': "AddROI"})
+
+            if not self._isConnected:
+                self.plot.sigPlotSignal.connect(self._handleROIMarkerEvent)
+                self.plot.sigActiveCurveChanged.connect(
+                    self._activeCurveChanged)
+                self._isConnected = True
+
+                self.calculateRois()
+        else:
+            if self._isConnected:
+                self.plot.sigPlotSignal.disconnect(self._handleROIMarkerEvent)
+                self.plot.sigActiveCurveChanged.disconnect(
+                    self._activeCurveChanged)
+                self._isConnected = False
+
+    def _activeCurveChanged(self, *args):
+        """Recompute ROIs when active curve changed."""
+        self.calculateRois()
 
 
 class ROITable(qt.QTableWidget):
@@ -638,6 +970,9 @@ class CurvesROIDockWidget(qt.QDockWidget):
     :param name: See :class:`QDockWidget`
     """
     sigROISignal = qt.Signal(object)
+    """Deprecated signal for backward compatibility with silx < 0.7.
+    Prefer connecting directly to :attr:`CurvesRoiWidget.sigRoiSignal`
+    """
 
     def __init__(self, parent=None, plot=None, name=None):
         super(CurvesROIDockWidget, self).__init__(name, parent)
@@ -645,24 +980,24 @@ class CurvesROIDockWidget(qt.QDockWidget):
         assert plot is not None
         self.plot = plot
 
-        self.currentROI = None
-
-        self._isConnected = False  # True if connected to plot signals
-        self._isInit = False
-
-        self.roiWidget = CurvesROIWidget(self, name)
+        self.roiWidget = CurvesROIWidget(self, name, plot=plot)
         """Main widget of type :class:`CurvesROIWidget`"""
 
         # convenience methods to offer a simpler API allowing to ignore
         # the details of the underlying implementation
-        self.calculateROIs = self.calculateRois
+        # (ALL DEPRECATED)
+        self.calculateROIs = self.calculateRois = self.roiWidget.calculateRois
         self.setRois = self.roiWidget.setRois
         self.getRois = self.roiWidget.getRois
+        self.roiWidget.sigROISignal.connect(self._forwardSigROISignal)
+        self.currentROI = self.roiWidget.currentROI
 
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.setWidget(self.roiWidget)
 
-        self.visibilityChanged.connect(self._visibilityChangedHandler)
+    def _forwardSigROISignal(self, ddict):
+        # emit deprecated signal for backward compatibility (silx < 0.7)
+        self.sigROISignal.emit(ddict)
 
     def toggleViewAction(self):
         """Returns a checkable action that shows or closes this widget.
@@ -673,324 +1008,10 @@ class CurvesROIDockWidget(qt.QDockWidget):
         action.setIcon(icons.getQIcon('plot-roi'))
         return action
 
-    @deprecation.deprecated(replacement="roiWidget.setMiddleROIMarkerFlag")
-    def setMiddleROIMarkerFlag(self, flag=True):
-        self.roiWidget.setMiddleROIMarkerFlag(flag)
-
-    def _visibilityChangedHandler(self, visible):
-        """Handle widget's visibilty updates.
-
-        It is connected to plot signals only when visible.
-        """
-        if visible:
-            if not self._isInit:
-                # Deferred ROI widget init finalization
-                self._isInit = True
-                self.roiWidget.sigROIWidgetSignal.connect(self._roiSignal)
-                # initialize with the ICR
-                self._roiSignal({'event': "AddROI"})
-
-            if not self._isConnected:
-                self.plot.sigPlotSignal.connect(self._handleROIMarkerEvent)
-                self.plot.sigActiveCurveChanged.connect(
-                    self._activeCurveChanged)
-                self._isConnected = True
-
-                self.calculateROIs()
-        else:
-            if self._isConnected:
-                self.plot.sigPlotSignal.disconnect(self._handleROIMarkerEvent)
-                self.plot.sigActiveCurveChanged.disconnect(
-                    self._activeCurveChanged)
-                self._isConnected = False
-
-    def _handleROIMarkerEvent(self, ddict):
-        """Handle plot signals related to marker events."""
-        if ddict['event'] == 'markerMoved':
-
-            label = ddict['label']
-            if label not in ['ROI min', 'ROI max', 'ROI middle']:
-                return
-
-            roiList, roiDict = self.roiWidget.getROIListAndDict()
-            if self.currentROI is None:
-                return
-            if self.currentROI not in roiDict:
-                return
-            x = ddict['x']
-
-            if label == 'ROI min':
-                roiDict[self.currentROI]['from'] = x
-                if self.roiWidget._middleROIMarkerFlag:
-                    pos = 0.5 * (roiDict[self.currentROI]['to'] +
-                                 roiDict[self.currentROI]['from'])
-                    self.plot.addXMarker(pos,
-                                         legend='ROI middle',
-                                         text='',
-                                         color='yellow',
-                                         draggable=True)
-            elif label == 'ROI max':
-                roiDict[self.currentROI]['to'] = x
-                if self.roiWidget._middleROIMarkerFlag:
-                    pos = 0.5 * (roiDict[self.currentROI]['to'] +
-                                 roiDict[self.currentROI]['from'])
-                    self.plot.addXMarker(pos,
-                                         legend='ROI middle',
-                                         text='',
-                                         color='yellow',
-                                         draggable=True)
-            elif label == 'ROI middle':
-                delta = x - 0.5 * (roiDict[self.currentROI]['from'] +
-                                   roiDict[self.currentROI]['to'])
-                roiDict[self.currentROI]['from'] += delta
-                roiDict[self.currentROI]['to'] += delta
-                self.plot.addXMarker(roiDict[self.currentROI]['from'],
-                                     legend='ROI min',
-                                     text='ROI min',
-                                     color='blue',
-                                     draggable=True)
-                self.plot.addXMarker(roiDict[self.currentROI]['to'],
-                                     legend='ROI max',
-                                     text='ROI max',
-                                     color='blue',
-                                     draggable=True)
-            else:
-                return
-            self.calculateROIs(roiList, roiDict)
-            self._emitCurrentROISignal()
-
-    def _roiSignal(self, ddict):
-        """Handle ROI widget signal"""
-        _logger.debug("PlotWindow._roiSignal %s", str(ddict))
-        if ddict['event'] == "AddROI":
-            xmin, xmax = self.plot.getXAxis().getLimits()
-            fromdata = xmin + 0.25 * (xmax - xmin)
-            todata = xmin + 0.75 * (xmax - xmin)
-            self.plot.remove('ROI min', kind='marker')
-            self.plot.remove('ROI max', kind='marker')
-            if self.roiWidget._middleROIMarkerFlag:
-                self.plot.remove('ROI middle', kind='marker')
-            roiList, roiDict = self.roiWidget.getROIListAndDict()
-            nrois = len(roiList)
-            if nrois == 0:
-                newroi = "ICR"
-                fromdata, dummy0, todata, dummy1 = self._getAllLimits()
-                draggable = False
-                color = 'black'
-            else:
-                for i in range(nrois):
-                    i += 1
-                    newroi = "newroi %d" % i
-                    if newroi not in roiList:
-                        break
-                color = 'blue'
-                draggable = True
-            self.plot.addXMarker(fromdata,
-                                 legend='ROI min',
-                                 text='ROI min',
-                                 color=color,
-                                 draggable=draggable)
-            self.plot.addXMarker(todata,
-                                 legend='ROI max',
-                                 text='ROI max',
-                                 color=color,
-                                 draggable=draggable)
-            if draggable and self.roiWidget._middleROIMarkerFlag:
-                pos = 0.5 * (fromdata + todata)
-                self.plot.addXMarker(pos,
-                                     legend='ROI middle',
-                                     text="",
-                                     color='yellow',
-                                     draggable=draggable)
-            roiList.append(newroi)
-            roiDict[newroi] = {}
-            if newroi == "ICR":
-                roiDict[newroi]['type'] = "Default"
-            else:
-                roiDict[newroi]['type'] = self.plot.getXAxis().getLabel()
-            roiDict[newroi]['from'] = fromdata
-            roiDict[newroi]['to'] = todata
-            self.roiWidget.fillFromROIDict(roilist=roiList,
-                                           roidict=roiDict,
-                                           currentroi=newroi)
-            self.currentROI = newroi
-            self.calculateROIs()
-        elif ddict['event'] in ['DelROI', "ResetROI"]:
-            self.plot.remove('ROI min', kind='marker')
-            self.plot.remove('ROI max', kind='marker')
-            if self.roiWidget._middleROIMarkerFlag:
-                self.plot.remove('ROI middle', kind='marker')
-            roiList, roiDict = self.roiWidget.getROIListAndDict()
-            roiDictKeys = list(roiDict.keys())
-            if len(roiDictKeys):
-                currentroi = roiDictKeys[0]
-            else:
-                # create again the ICR
-                ddict = {"event": "AddROI"}
-                return self._roiSignal(ddict)
-
-            self.roiWidget.fillFromROIDict(roilist=roiList,
-                                           roidict=roiDict,
-                                           currentroi=currentroi)
-            self.currentROI = currentroi
-
-        elif ddict['event'] == 'LoadROI':
-            self.calculateROIs()
-
-        elif ddict['event'] == 'selectionChanged':
-            _logger.debug("Selection changed")
-            self.roilist, self.roidict = self.roiWidget.getROIListAndDict()
-            fromdata = ddict['roi']['from']
-            todata = ddict['roi']['to']
-            self.plot.remove('ROI min', kind='marker')
-            self.plot.remove('ROI max', kind='marker')
-            if ddict['key'] == 'ICR':
-                draggable = False
-                color = 'black'
-            else:
-                draggable = True
-                color = 'blue'
-            self.plot.addXMarker(fromdata,
-                                 legend='ROI min',
-                                 text='ROI min',
-                                 color=color,
-                                 draggable=draggable)
-            self.plot.addXMarker(todata,
-                                 legend='ROI max',
-                                 text='ROI max',
-                                 color=color,
-                                 draggable=draggable)
-            if draggable and self.roiWidget._middleROIMarkerFlag:
-                pos = 0.5 * (fromdata + todata)
-                self.plot.addXMarker(pos,
-                                     legend='ROI middle',
-                                     text="",
-                                     color='yellow',
-                                     draggable=True)
-            self.currentROI = ddict['key']
-            if ddict['colheader'] in ['From', 'To']:
-                dict0 = {}
-                dict0['event'] = "SetActiveCurveEvent"
-                dict0['legend'] = self.plot.getActiveCurve(just_legend=1)
-                self.plot.setActiveCurve(dict0['legend'])
-            elif ddict['colheader'] == 'Raw Counts':
-                pass
-            elif ddict['colheader'] == 'Net Counts':
-                pass
-            else:
-                self._emitCurrentROISignal()
-
-        else:
-            _logger.debug("Unknown or ignored event %s", ddict['event'])
-
-    def _activeCurveChanged(self, *args):
-        """Recompute ROIs when active curve changed."""
-        self.calculateROIs()
-
-    def calculateRois(self, roiList=None, roiDict=None):
-        """Compute ROI information"""
-        if roiList is None or roiDict is None:
-            roiList, roiDict = self.roiWidget.getROIListAndDict()
-
-        activeCurve = self.plot.getActiveCurve(just_legend=False)
-        if activeCurve is None:
-            xproc = None
-            yproc = None
-            self.roiWidget.setHeader()
-        else:
-            x = activeCurve.getXData(copy=False)
-            y = activeCurve.getYData(copy=False)
-            legend = activeCurve.getLegend()
-            idx = numpy.argsort(x, kind='mergesort')
-            xproc = numpy.take(x, idx)
-            yproc = numpy.take(y, idx)
-            self.roiWidget.setHeader('ROIs of %s' % legend)
-
-        for key in roiList:
-            if key == 'ICR':
-                if xproc is not None:
-                    roiDict[key]['from'] = xproc.min()
-                    roiDict[key]['to'] = xproc.max()
-                else:
-                    roiDict[key]['from'] = 0
-                    roiDict[key]['to'] = -1
-            fromData = roiDict[key]['from']
-            toData = roiDict[key]['to']
-            if xproc is not None:
-                idx = numpy.nonzero((fromData <= xproc) &
-                                    (xproc <= toData))[0]
-                if len(idx):
-                    xw = xproc[idx]
-                    yw = yproc[idx]
-                    rawCounts = yw.sum(dtype=numpy.float)
-                    deltaX = xw[-1] - xw[0]
-                    deltaY = yw[-1] - yw[0]
-                    if deltaX > 0.0:
-                        slope = (deltaY / deltaX)
-                        background = yw[0] + slope * (xw - xw[0])
-                        netCounts = (rawCounts -
-                                     background.sum(dtype=numpy.float))
-                    else:
-                        netCounts = 0.0
-                else:
-                    rawCounts = 0.0
-                    netCounts = 0.0
-                roiDict[key]['rawcounts'] = rawCounts
-                roiDict[key]['netcounts'] = netCounts
-            else:
-                roiDict[key].pop('rawcounts', None)
-                roiDict[key].pop('netcounts', None)
-
-        self.roiWidget.fillFromROIDict(
-            roilist=roiList,
-            roidict=roiDict,
-            currentroi=self.currentROI if self.currentROI in roiList else None)
-
-    def _emitCurrentROISignal(self):
-        ddict = {}
-        ddict['event'] = "currentROISignal"
-        _roiList, roiDict = self.roiWidget.getROIListAndDict()
-        if self.currentROI in roiDict:
-            ddict['ROI'] = roiDict[self.currentROI]
-        else:
-            self.currentROI = None
-        ddict['current'] = self.currentROI
-        self.sigROISignal.emit(ddict)
-
-    def _getAllLimits(self):
-        """Retrieve the limits based on the curves."""
-        curves = self.plot.getAllCurves()
-        if not curves:
-            return 1.0, 1.0, 100., 100.
-
-        xmin, ymin = None, None
-        xmax, ymax = None, None
-
-        for curve in curves:
-            x = curve.getXData(copy=False)
-            y = curve.getYData(copy=False)
-            if xmin is None:
-                xmin = x.min()
-            else:
-                xmin = min(xmin, x.min())
-            if xmax is None:
-                xmax = x.max()
-            else:
-                xmax = max(xmax, x.max())
-            if ymin is None:
-                ymin = y.min()
-            else:
-                ymin = min(ymin, y.min())
-            if ymax is None:
-                ymax = y.max()
-            else:
-                ymax = max(ymax, y.max())
-
-        return xmin, ymin, xmax, ymax
-
     def showEvent(self, event):
         """Make sure this widget is raised when it is shown
         (when it is first created as a tab in PlotWindow or when it is shown
         again after hiding).
         """
         self.raise_()
+        qt.QDockWidget.showEvent(self, event)

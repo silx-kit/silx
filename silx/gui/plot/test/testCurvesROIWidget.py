@@ -106,7 +106,7 @@ class TestCurvesROIWidget(TestCaseQt):
             del self.tmpFile
 
     def testMiddleMarker(self):
-        """Plot with curves: test all ROI widget buttons"""
+        """Test with middle marker enabled"""
         self.widget.roiWidget.setMiddleROIMarkerFlag(True)
 
         # Add a ROI
