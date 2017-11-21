@@ -1110,8 +1110,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     def addMarker(self, x, y, legend, text, color,
                   selectable, draggable,
-                  symbol, constraint, overlay):
-        # TODO handle overlay
+                  symbol, constraint):
 
         if symbol is None:
             symbol = '+'

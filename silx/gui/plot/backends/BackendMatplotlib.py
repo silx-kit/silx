@@ -380,7 +380,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     def addMarker(self, x, y, legend, text, color,
                   selectable, draggable,
-                  symbol, constraint, overlay):
+                  symbol, constraint):
         legend = "__MARKER__" + legend
 
         xmin, xmax = self.getGraphXLimits()

@@ -69,8 +69,7 @@ class _BaseMarker(Item, DraggableMixIn, ColorMixIn):
             selectable=self.isSelectable(),
             draggable=self.isDraggable(),
             symbol=symbol,
-            constraint=self.getConstraint(),
-            overlay=self.isOverlay())
+            constraint=self.getConstraint())
 
     def isOverlay(self):
         """Return true if marker is drawn as an overlay.
