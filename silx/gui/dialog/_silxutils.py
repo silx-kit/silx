@@ -28,7 +28,7 @@ This module contains utilitaries that should be moved into silx.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "24/10/2017"
+__date__ = "21/11/2017"
 
 import fabio
 from silx.gui import qt
@@ -39,6 +39,7 @@ _fabioFormats = set([])
 
 
 def _fabioAvailableExtensions():
+    global _fabioFormats
     if len(_fabioFormats) > 0:
         return _fabioFormats
 
@@ -56,7 +57,7 @@ def _fabioAvailableExtensions():
         allExtensions.update(ext)
 
     allExtensions = list(sorted(list(allExtensions)))
-    _fabioFormats.extend(allExtensions)
+    _fabioFormats = set(allExtensions)
     return _fabioFormats
 
 

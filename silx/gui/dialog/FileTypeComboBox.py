@@ -28,10 +28,29 @@ This module contains utilitaries used by other dialog modules.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "25/10/2017"
+__date__ = "21/11/2017"
 
 import fabio
+from . import _silxutils
 from silx.gui import qt
+
+
+class Codec(object):
+
+    def __init__(self, any_fabio=False, any_silx=False, fabio_codec=None, auto=False):
+        self.__any_fabio = any_fabio
+        self.__any_silx = any_silx
+        self.fabio_codec = fabio_codec
+        self.__auto = auto
+
+    def is_autodetect(self):
+        return self.__auto
+
+    def is_fabio_codec(self):
+        return self.__any_fabio or self.fabio_codec is not None
+
+    def is_silx_codec(self):
+        return self.__any_silx
 
 
 class FileTypeComboBox(qt.QComboBox):
@@ -43,13 +62,68 @@ class FileTypeComboBox(qt.QComboBox):
 
     EXTENSIONS_ROLE = qt.Qt.UserRole + 1
 
-    FABIO_CODEC_ROLE = qt.Qt.UserRole + 2
+    CODEC_ROLE = qt.Qt.UserRole + 2
+
+    INDENTATION = u"\u2022 "
 
     def __init__(self, parent=None):
         qt.QComboBox.__init__(self, parent)
         self.__initItems()
 
     def __initItems(self):
+        self.__insertFabioFormats()
+        self.__insertSilxFormats()
+        self.__insertAllSupported()
+        self.__insertAnyFiles()
+
+    def __insertAnyFiles(self):
+        index = self.count()
+        self.addItem("All files (*)")
+        self.setItemData(index, ["*"], role=self.EXTENSIONS_ROLE)
+        self.setItemData(index, Codec(auto=True), role=self.CODEC_ROLE)
+
+    def __insertAllSupported(self):
+        allExtensions = set([])
+        for index in range(self.count()):
+            ext = self.itemExtensions(index)
+            allExtensions.update(ext)
+        allExtensions = allExtensions - set("*")
+        list(sorted(list(allExtensions)))
+        index = 0
+        self.insertItem(index, "All supported files")
+        self.setItemData(index, allExtensions, role=self.EXTENSIONS_ROLE)
+        self.setItemData(index, Codec(auto=True), role=self.CODEC_ROLE)
+
+    def __insertSilxFormats(self):
+        formats = _silxutils.supportedFileFormats()
+
+        extensions = []
+        allExtensions = set([])
+
+        for description, ext in formats.items():
+            allExtensions.update(ext)
+            if ext == []:
+                ext = ["*"]
+            extensions.append((description, ext, "silx"))
+        extensions = list(sorted(extensions))
+
+        allExtensions = list(sorted(list(allExtensions)))
+        index = self.count()
+        self.addItem("All supported files, using Silx")
+        self.setItemData(index, allExtensions, role=self.EXTENSIONS_ROLE)
+        self.setItemData(index, Codec(any_silx=True), role=self.CODEC_ROLE)
+
+        for e in extensions:
+            index = self.count()
+            if len(e[1]) < 10:
+                self.addItem("%s%s (%s)" % (self.INDENTATION, e[0], " ".join(e[1])))
+            else:
+                self.addItem("%s%s" % (self.INDENTATION, e[0]))
+            codec = Codec(any_silx=True)
+            self.setItemData(index, e[1], role=self.EXTENSIONS_ROLE)
+            self.setItemData(index, codec, role=self.CODEC_ROLE)
+
+    def __insertFabioFormats(self):
         formats = fabio.fabioformats.get_classes(reader=True)
 
         extensions = []
@@ -71,23 +145,19 @@ class FileTypeComboBox(qt.QComboBox):
 
         allExtensions = list(sorted(list(allExtensions)))
         index = self.count()
-        self.addItem("All supported files")
+        self.addItem("All supported files, using Fabio")
         self.setItemData(index, allExtensions, role=self.EXTENSIONS_ROLE)
-        self.__allSupportedFilesIndex = index
+        self.setItemData(index, Codec(any_fabio=True), role=self.CODEC_ROLE)
 
         for e in extensions:
             index = self.count()
             if len(e[1]) < 10:
-                self.addItem("%s (%s)" % (e[0], " ".join(e[1])))
+                self.addItem("%s%s (%s)" % (self.INDENTATION, e[0], " ".join(e[1])))
             else:
                 self.addItem(e[0])
+            codec = Codec(fabio_codec=e[2])
             self.setItemData(index, e[1], role=self.EXTENSIONS_ROLE)
-            self.setItemData(index, e[2], role=self.FABIO_CODEC_ROLE)
-
-        index = self.count()
-        self.addItem("All files (*)")
-        self.setItemData(index, ["*"], role=self.EXTENSIONS_ROLE)
-        self.__allFilesIndex = index
+            self.setItemData(index, codec, role=self.CODEC_ROLE)
 
     def itemExtensions(self, index):
         """Returns the extensions associated to an index."""
@@ -101,21 +171,21 @@ class FileTypeComboBox(qt.QComboBox):
         index = self.currentIndex()
         return self.itemExtensions(index)
 
-    def indexFromFabioCodec(self, fabioCodec):
+    def indexFromCodec(self, fabioCodec):
         for i in range(self.count()):
-            if self.itemFabioCodec(i) == fabioCodec:
+            if self.itemCodec(i) == fabioCodec:
                 return i
         return -1
 
-    def itemFabioCodec(self, index):
-        """Returns the fabio codec associated to an index."""
-        result = self.itemData(index, self.FABIO_CODEC_ROLE)
+    def itemCodec(self, index):
+        """Returns the codec associated to an index."""
+        result = self.itemData(index, self.CODEC_ROLE)
         if result is None:
             result = None
         return result
 
-    def currentFabioCodec(self):
-        """Returns the current selected fabio codec. None if nothing selected
-        or if the item is not a fabio codec"""
+    def currentCodec(self):
+        """Returns the current selected codec. None if nothing selected
+        or if the item is not a codec"""
         index = self.currentIndex()
-        return self.itemFabioCodec(index)
+        return self.itemCodec(index)
