@@ -383,6 +383,9 @@ class BackendMatplotlib(BackendBase.BackendBase):
                   symbol, constraint, overlay):
         legend = "__MARKER__" + legend
 
+        xmin, xmax = self.getGraphXLimits()
+        ymin, ymax = self.getGraphYLimits(axis='left')
+
         if x is not None and y is not None:
             line = self.ax.plot(x, y, label=legend,
                                 linestyle=" ",
@@ -390,7 +393,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                                 marker=symbol,
                                 markersize=10.)[-1]
 
-            if text is not None:
+            if text is not None and xmin <= x <= xmax and ymin <= y <= ymax:
                 xtmp, ytmp = self.ax.transData.transform_point((x, y))
                 inv = self.ax.transData.inverted()
                 xtmp, ytmp = inv.transform_point((xtmp, ytmp))
@@ -408,9 +411,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         elif x is not None:
             line = self.ax.axvline(x, label=legend, color=color)
-            if text is not None:
+            if text is not None and xmin <= x <= xmax:
                 text = " " + text
-                ymin, ymax = self.getGraphYLimits(axis='left')
                 delta = abs(ymax - ymin)
                 if ymin > ymax:
                     ymax = ymin
@@ -423,9 +425,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
         elif y is not None:
             line = self.ax.axhline(y, label=legend, color=color)
 
-            if text is not None:
+            if text is not None and ymin <= y <= ymax:
                 text = " " + text
-                xmin, xmax = self.getGraphXLimits()
                 delta = abs(xmax - xmin)
                 if xmin > xmax:
                     xmax = xmin
@@ -441,11 +442,11 @@ class BackendMatplotlib(BackendBase.BackendBase):
         if selectable or draggable:
             line.set_picker(5)
 
-        if overlay:
-            line.set_animated(True)
-            if hasattr(line, '_infoText'):
-                line._infoText.set_animated(True)
-            self._overlays.add(line)
+        # All markers are overlays
+        line.set_animated(True)
+        if hasattr(line, '_infoText'):
+            line._infoText.set_animated(True)
+        self._overlays.add(line)
 
         return line
 
