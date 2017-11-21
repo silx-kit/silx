@@ -28,7 +28,7 @@ This module contains an :class:`SafeFileSystemModel`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "20/11/2017"
+__date__ = "21/11/2017"
 
 import sys
 import os.path
@@ -103,6 +103,8 @@ class _Item(object):
                 path = self.__fileInfo.filePath()
             else:
                 path = os.path.join(self.parent().absoluteFilePath(), self.__fileInfo.fileName())
+                if path == "":
+                    return "/"
             self.__absolutePath = path
         return self.__absolutePath
 
