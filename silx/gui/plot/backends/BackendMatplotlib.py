@@ -443,6 +443,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         if overlay:
             line.set_animated(True)
+            if hasattr(line, '_infoText'):
+                line._infoText.set_animated(True)
             self._overlays.add(line)
 
         return line
@@ -846,6 +848,8 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
             # This assume that items are only on left/bottom Axes
             for item in self._overlays:
                 self.ax.draw_artist(item)
+                if hasattr(item, "_infoText"):  # For markers text
+                    self.ax.draw_artist(item._infoText)
 
             for item in self._graphCursor:
                 self.ax.draw_artist(item)
