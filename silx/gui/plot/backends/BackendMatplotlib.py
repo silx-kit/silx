@@ -394,17 +394,13 @@ class BackendMatplotlib(BackendBase.BackendBase):
                                 markersize=10.)[-1]
 
             if text is not None and xmin <= x <= xmax and ymin <= y <= ymax:
-                xtmp, ytmp = self.ax.transData.transform_point((x, y))
-                inv = self.ax.transData.inverted()
-                xtmp, ytmp = inv.transform_point((xtmp, ytmp))
-
                 if symbol is None:
                     valign = 'baseline'
                 else:
                     valign = 'top'
                     text = "  " + text
 
-                line._infoText = self.ax.text(x, ytmp, text,
+                line._infoText = self.ax.text(x, y, text,
                                               color=color,
                                               horizontalalignment='left',
                                               verticalalignment=valign)
