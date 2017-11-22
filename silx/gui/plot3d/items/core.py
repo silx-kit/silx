@@ -130,13 +130,17 @@ class DataItem3D(Item3D):
         Item3D.__init__(self, parent=parent, primitive=primitive)
 
         # Transformations
-        self._rotate = transform.Rotate()
         self._translate = transform.Translate()
+        self._rotateForwardTranslation = transform.Translate()
+        self._rotate = transform.Rotate()
+        self._rotateBackwardTranslation = transform.Translate()
+        self._translateFromRotationCenter = transform.Translate()
         self._matrix = transform.Matrix()
         self._scale = transform.Scale()
 
         self._getScenePrimitive().transforms = [
-            self._translate, self._rotate, self._matrix, self._scale]
+            self._translate, self._rotateForwardTranslation, self._rotate, self._rotateBackwardTranslation,
+            self._matrix, self._scale]
 
     # Transformations
 
@@ -178,11 +182,12 @@ class DataItem3D(Item3D):
         """
         return self._translate.translation
 
-    def setRotation(self, angle=0., axis=(0., 0., 1.)):  # TODO add center of rotation
+    def setRotation(self, angle=0., axis=(0., 0., 1.), center=(0., 0., 0.)):
         """Set the rotation of the item in the scene
 
         :param float angle: The rotation angle in degrees.
         :param axis: The (x, y, z) coordinates of the rotation axis.
+        :param center: The (x, y, z) coordinates of the center of rotation
         """
         axis = numpy.array(axis, dtype=numpy.float32)
         assert axis.ndim == 1
@@ -190,15 +195,20 @@ class DataItem3D(Item3D):
         if (self._rotate.angle != angle or
                 not numpy.all(numpy.equal(axis, self._rotate.axis))):
             self._rotate.setAngleAxis(angle, axis)
+            self._rotateForwardTranslation.translation = center
+            self._rotateBackwardTranslation.translation = \
+                - self._rotateForwardTranslation.translation
             self._updated(Item3DChangedType.TRANSFORM)
 
     def getRotation(self):
         """Returns the rotation set by :meth:`setRotation`.
 
-        :return: (angle, axis)
+        :return: (angle, axis, center)
         :rtype: tuple
         """
-        return self._rotate.angle, self._rotate.axis
+        return (self._rotate.angle,
+                self._rotate.axis,
+                self._rotateForwardTranslation.translation)
 
     def setMatrix(self, matrix=None):
         """Set the transform matrix
