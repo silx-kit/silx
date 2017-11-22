@@ -189,7 +189,7 @@ class BackendBase(object):
 
     def addMarker(self, x, y, legend, text, color,
                   selectable, draggable,
-                  symbol, constraint, overlay):
+                  symbol, constraint):
         """Add a point, vertical line or horizontal line marker to the plot.
 
         :param float x: Horizontal position of the marker in graph coordinates.
@@ -221,9 +221,6 @@ class BackendBase(object):
         :type constraint: None or a callable that takes the coordinates of
                           the current cursor position in the plot as input
                           and that returns the filtered coordinates.
-        :param bool overlay: True if marker is an overlay (Default: False).
-                             This allows for rendering optimization if this
-                             marker is changed often.
         :return: Handle used by the backend to univocally access the marker
         """
         return legend
