@@ -28,7 +28,7 @@ This module contains an :class:`SafeFileSystemModel`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "21/11/2017"
+__date__ = "22/11/2017"
 
 import sys
 import os.path
@@ -701,7 +701,7 @@ class SafeFileSystemModel(qt.QSortFilterProxyModel):
 
     def setNameFilterDisables(self, enable):
         self.__nameFilterDisables = enable
-        self.invalidateFilter()
+        self.invalidate()
 
     def nameFilterDisables(self):
         return self.__nameFilterDisables
@@ -716,7 +716,7 @@ class SafeFileSystemModel(qt.QSortFilterProxyModel):
         for f in filters:
             reg = qt.QRegExp(f, caseSensitive, qt.QRegExp.Wildcard)
             self.__nameFilters.append(reg)
-        self.invalidateFilter()
+        self.invalidate()
 
     def nameFilters(self):
         return [f.pattern() for f in self.__nameFilters]
@@ -728,7 +728,7 @@ class SafeFileSystemModel(qt.QSortFilterProxyModel):
         self.__filters = filters
         # In case of change of case sensitivity
         self.setNameFilters(self.nameFilters())
-        self.invalidateFilter()
+        self.invalidate()
 
     def setReadOnly(self, enable):
         assert(enable is True)
