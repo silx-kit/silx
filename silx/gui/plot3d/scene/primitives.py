@@ -1720,12 +1720,14 @@ class Mesh3D(Geometry):
                  colors,
                  normals=None,
                  mode='triangles',
-                 indices=None):
+                 indices=None,
+                 copy=True):
         assert mode in self._TRIANGLE_MODES
         super(Mesh3D, self).__init__(mode, indices,
                                      position=positions,
                                      normal=normals,
-                                     color=colors)
+                                     color=colors,
+                                     copy=copy)
 
         self._culling = None
 
