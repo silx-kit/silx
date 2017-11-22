@@ -28,7 +28,7 @@ This module contains utilitaries used by other dialog modules.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "21/11/2017"
+__date__ = "22/11/2017"
 
 import fabio
 from . import _silxutils
@@ -171,9 +171,19 @@ class FileTypeComboBox(qt.QComboBox):
         index = self.currentIndex()
         return self.itemExtensions(index)
 
-    def indexFromCodec(self, fabioCodec):
+    def indexFromCodec(self, codecName):
         for i in range(self.count()):
-            if self.itemCodec(i) == fabioCodec:
+            codec = self.itemCodec(i)
+            if codecName == "auto":
+                if codec.is_autodetect():
+                    return i
+            elif codecName == "silx":
+                if codec.is_silx_codec():
+                    return i
+            elif codecName == "fabio":
+                if codec.is_fabio_codec() and codec.fabio_codec is None:
+                    return i
+            elif codecName == codec.fabio_codec:
                 return i
         return -1
 
