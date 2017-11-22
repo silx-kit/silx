@@ -498,8 +498,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
         return container
 
     def _updateMarkers(self):
-        xmin, xmax = self.getGraphXLimits()
-        ymin, ymax = self.getGraphYLimits(axis='left')
+        xmin, xmax = self.ax.get_xbound()
+        ymin, ymax = self.ax.get_ybound()
         for item in self._overlays:
             if isinstance(item, _MarkerContainer):
                 item.updateMarkerText(xmin, xmax, ymin, ymax)
