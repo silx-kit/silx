@@ -13,6 +13,7 @@ The following classes are items that describes the content of a :class:`SceneVie
 - :class:`~silx.gui.plot3d.items.scatter.Scatter3D`
 - :class:`~silx.gui.plot3d.items.volume.ScalarField3D`
 - :class:`~silx.gui.plot3d.items.clipplane.ClipPlane`
+- :class:`~silx.gui.plot3d.items.mesh.Mesh`
 - :class:`~silx.gui.plot3d.items.core.GroupItem`
 
 2D images
@@ -122,6 +123,20 @@ Clipping plane
 :class:`ClipPlane` inherits from :class:`.Item3D` and also provides its API.
 
 .. autoclass:: ClipPlane
+   :show-inheritance:
+   :members:
+
+3D mesh
+-------
+
+.. currentmodule:: silx.gui.plot3d.items.mesh
+
+:class:`Mesh`
++++++++++++++
+
+:class:`Mesh` inherits from :class:`.DataItem3D` and also provides its API.
+
+.. autoclass:: Mesh
    :show-inheritance:
    :members:
 
