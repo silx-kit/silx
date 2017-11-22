@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "06/11/2017"
+__date__ = "22/11/2017"
 
 
 import unittest
@@ -246,15 +246,16 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         url = utils.findChildren(dialog, qt.QLineEdit, name="url")[0]
         action = utils.findChildren(dialog, qt.QAction, name="toParentAction")[0]
         toParentButton = utils.getQToolButtonFromAction(action)
+        filename = _tmpDirectory + "/data.h5"
 
         # init state
-        dialog.selectPath(_tmpDirectory + "/data.h5::/group/image")
+        dialog.selectPath("%s::/group/image" % filename)
         self.qWaitForPendingActions(dialog)
-        self.assertSamePath(url.text(), _tmpDirectory + "/data.h5::/group/image")
+        self.assertSamePath(url.text(), "silx:%s::/group/image" % filename)
         # test
         self.mouseClick(toParentButton, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
-        self.assertSamePath(url.text(), _tmpDirectory + "/data.h5::/")
+        self.assertSamePath(url.text(), "silx:%s::/" % filename)
 
         self.mouseClick(toParentButton, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
@@ -272,16 +273,17 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         url = utils.findChildren(dialog, qt.QLineEdit, name="url")[0]
         action = utils.findChildren(dialog, qt.QAction, name="toRootFileAction")[0]
         button = utils.getQToolButtonFromAction(action)
+        filename = _tmpDirectory + "/data.h5"
 
         # init state
-        dialog.selectPath(_tmpDirectory + "/data.h5::/group/image")
+        dialog.selectPath("silx:%s::/group/image" % filename)
         self.qWaitForPendingActions(dialog)
-        self.assertSamePath(url.text(), _tmpDirectory + "/data.h5::/group/image")
+        self.assertSamePath(url.text(), "silx:%s::/group/image" % filename)
         self.assertTrue(button.isEnabled())
         # test
         self.mouseClick(button, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
-        self.assertSamePath(url.text(), _tmpDirectory + "/data.h5::/")
+        self.assertSamePath(url.text(), "silx:%s::/" % filename)
         # self.assertFalse(button.isEnabled())
 
     def testClickOnBackToDirectoryTool(self):
@@ -292,11 +294,12 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         url = utils.findChildren(dialog, qt.QLineEdit, name="url")[0]
         action = utils.findChildren(dialog, qt.QAction, name="toDirectoryAction")[0]
         button = utils.getQToolButtonFromAction(action)
+        filename = _tmpDirectory + "/data.h5"
 
         # init state
-        dialog.selectPath(_tmpDirectory + "/data.h5::/group/image")
+        dialog.selectPath("%s::/group/image" % filename)
         self.qWaitForPendingActions(dialog)
-        self.assertSamePath(url.text(), _tmpDirectory + "/data.h5::/group/image")
+        self.assertSamePath(url.text(), "silx:%s::/group/image" % filename)
         self.assertTrue(button.isEnabled())
         # test
         self.mouseClick(button, qt.Qt.LeftButton)
@@ -316,16 +319,17 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         url = utils.findChildren(dialog, qt.QLineEdit, name="url")[0]
         forwardAction = utils.findChildren(dialog, qt.QAction, name="forwardAction")[0]
         backwardAction = utils.findChildren(dialog, qt.QAction, name="backwardAction")[0]
+        filename = _tmpDirectory + "/data.h5"
 
         dialog.setDirectory(_tmpDirectory)
         self.qWaitForPendingActions(dialog)
         # No way to use QTest.mouseDClick with QListView, QListWidget
         # Then we feed the history using selectPath
-        dialog.selectPath(_tmpDirectory + "/data.h5")
+        dialog.selectPath(filename)
         self.qWaitForPendingActions(dialog)
-        dialog.selectPath(_tmpDirectory + "/data.h5::/")
+        dialog.selectPath("silx:%s::/" % filename)
         self.qWaitForPendingActions(dialog)
-        dialog.selectPath(_tmpDirectory + "/data.h5::/group")
+        dialog.selectPath("silx:%s::/group" % filename)
         self.qWaitForPendingActions(dialog)
         self.assertFalse(forwardAction.isEnabled())
         self.assertTrue(backwardAction.isEnabled())
@@ -335,14 +339,14 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.qWaitForPendingActions(dialog)
         self.assertTrue(forwardAction.isEnabled())
         self.assertTrue(backwardAction.isEnabled())
-        self.assertSamePath(url.text(), _tmpDirectory + "/data.h5::/")
+        self.assertSamePath(url.text(), "silx:%s::/" % filename)
 
         button = utils.getQToolButtonFromAction(forwardAction)
         self.mouseClick(button, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
         self.assertFalse(forwardAction.isEnabled())
         self.assertTrue(backwardAction.isEnabled())
-        self.assertSamePath(url.text(), _tmpDirectory + "/data.h5::/group")
+        self.assertSamePath(url.text(), "silx:%s::/group" % filename)
 
     def testSelectImageFromEdf(self):
         dialog = self.createDialog()
@@ -355,7 +359,8 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         dialog.selectPath(path)
         self.assertTrue(dialog.selectedImage().shape, (100, 100))
         self.assertSamePath(dialog.selectedFile(), filename)
-        self.assertSamePath(dialog.selectedPath(), filename)
+        path = "fabio:" + path
+        self.assertSamePath(dialog.selectedPath(), path)
 
     def testSelectImageFromEdf_Activate(self):
         dialog = self.createDialog()
@@ -367,6 +372,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.qWaitForPendingActions(dialog)
         browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
         filename = _tmpDirectory + "/singleimage.edf"
+        path = "fabio:" + filename
         index = browser.rootIndex().model().index(filename)
         # click
         browser.selectIndex(index)
@@ -376,7 +382,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         # test
         self.assertTrue(dialog.selectedImage().shape, (100, 100))
         self.assertSamePath(dialog.selectedFile(), filename)
-        self.assertSamePath(dialog.selectedPath(), filename)
+        self.assertSamePath(dialog.selectedPath(), path)
 
     def testSelectFrameFromEdf(self):
         dialog = self.createDialog()
@@ -385,7 +391,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
 
         # init state
         filename = _tmpDirectory + "/multiframe.edf"
-        path = filename + "::[1]"
+        path = "fabio:" + filename + "::[1]"
         dialog.selectPath(path)
         # test
         self.assertTrue(dialog.selectedImage().shape, (100, 100))
@@ -400,12 +406,12 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
 
         # init state
         filename = _tmpDirectory + "/singleimage.msk"
-        path = filename
+        path = "fabio:" + filename
         dialog.selectPath(path)
         # test
         self.assertTrue(dialog.selectedImage().shape, (100, 100))
         self.assertSamePath(dialog.selectedFile(), filename)
-        self.assertSamePath(dialog.selectedPath(), filename)
+        self.assertSamePath(dialog.selectedPath(), "fabio:" + filename)
 
     def testSelectImageFromH5(self):
         dialog = self.createDialog()
@@ -414,7 +420,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
 
         # init state
         filename = _tmpDirectory + "/data.h5"
-        path = filename + "::/image"
+        path = "silx:" + filename + "::/image"
         dialog.selectPath(path)
         # test
         self.assertTrue(dialog.selectedImage().shape, (100, 100))
@@ -431,6 +437,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.qWaitForPendingActions(dialog)
         browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
         filename = _tmpDirectory + "/data.h5"
+        path = "silx:%s::/" % filename
         index = browser.rootIndex().model().index(filename)
         # click
         browser.selectIndex(index)
@@ -438,7 +445,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         browser.activated.emit(index)
         self.qWaitForPendingActions(dialog)
         # test
-        self.assertSamePath(dialog.selectedPath(), filename)
+        self.assertSamePath(dialog.selectedPath(), path)
 
     def testSelectFrameFromH5(self):
         dialog = self.createDialog()
@@ -447,7 +454,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
 
         # init state
         filename = _tmpDirectory + "/data.h5"
-        path = filename + "::/cube[1]"
+        path = "silx:%s::/cube[1]" % filename
         dialog.selectPath(path)
         # test
         self.assertTrue(dialog.selectedImage().shape, (100, 100))

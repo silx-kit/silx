@@ -28,7 +28,7 @@ This module contains an :class:`ImageFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "07/11/2017"
+__date__ = "22/11/2017"
 
 import sys
 import os
@@ -51,7 +51,7 @@ _logger = logging.getLogger(__name__)
 
 class _ImageUri(object):
 
-    def __init__(self, path=None, filename=None, dataPath=None, slicing=None):
+    def __init__(self, path=None, filename=None, dataPath=None, slicing=None, scheme=None):
         self.__isValid = False
         if path is not None:
             self.__fromPath(path)
@@ -59,16 +59,26 @@ class _ImageUri(object):
             self.__filename = filename
             self.__dataPath = dataPath
             self.__slice = slicing
+            self.__scheme = scheme
             self.__path = None
             if self.__filename in ["", "/"]:
                 self.__isValid = self.__dataPath is None and self.__slice is None
             else:
                 self.__isValid = self.__filename is not None
+            if self.__scheme not in [None, "silx", "fabio"]:
+                self.__isValid = False
 
     def __fromPath(self, path):
         elements = path.split("::", 1)
         self.__path = path
-        self.__filename = elements[0]
+
+        scheme_and_filename = elements[0].split(":", 1)
+        if len(scheme_and_filename) == 2:
+            self.__scheme = scheme_and_filename[0]
+            self.__filename = scheme_and_filename[1]
+        else:
+            self.__scheme = None
+            self.__filename = scheme_and_filename[0]
         self.__slice = None
         self.__dataPath = None
         if len(elements) == 1:
@@ -90,7 +100,7 @@ class _ImageUri(object):
                     self.__isValid = False
                     return
 
-        self.__isValid = True
+        self.__isValid = self.__scheme in [None, "silx", "fabio"]
 
     def isValid(self):
         return self.__isValid
@@ -109,9 +119,11 @@ class _ImageUri(object):
             selector += "[%s]" % ",".join([str(s) for s in self.__slice])
 
         if selector != "":
-            return path + "::" + selector
-        else:
-            return path
+            path = path + "::" + selector
+
+        if self.__scheme is not None:
+            path = self.__scheme + ":" + path
+        return path
 
     def filename(self):
         return self.__filename
@@ -121,6 +133,9 @@ class _ImageUri(object):
 
     def slice(self):
         return self.__slice
+
+    def scheme(self):
+        return self.__scheme
 
 
 class _IconProvider(object):
@@ -1202,9 +1217,9 @@ class ImageFileDialog(qt.QDialog):
             _logger.error("Error while loading file %s: %s", filename, e.args[0])
             _logger.debug("Backtrace", exc_info=True)
             self.__errorWhileLoadingFile = filename, e.args[0]
-            return None
+            return False
         else:
-            return self.__fabio
+            return True
 
     def __openSilxFile(self, filename):
         self.__closeFile()
@@ -1215,14 +1230,16 @@ class ImageFileDialog(qt.QDialog):
             _logger.error("Error while loading file %s: %s", filename, e.args[0])
             _logger.debug("Backtrace", exc_info=True)
             self.__errorWhileLoadingFile = filename, e.args[0]
-            return None
+            return False
         else:
             self.__fileDirectoryAction.setEnabled(True)
             self.__parentFileDirectoryAction.setEnabled(True)
             self.__dataModel.insertH5pyObject(self.__h5)
-            return self.__h5
+            return True
 
-    def __isSilxFile(self, filename):
+    def __isSilxHavePriority(self, filename):
+        """Silx have priority when there is a specific decoder
+        """
         _, ext = os.path.splitext(filename)
         ext = "*%s" % ext
         formats = _silxutils.supportedFileFormats(fabio=False)
@@ -1232,13 +1249,23 @@ class ImageFileDialog(qt.QDialog):
         return False
 
     def __openFile(self, filename):
-        if self.__isSilxFile(filename):
-            h5 = self.__openSilxFile(filename)
-            if h5 is not None:
-                return True
-        else:
-            fabio = self.__openFabioFile(filename)
-            if fabio is not None:
+        codec = self.__fileTypeCombo.currentCodec()
+        openners = []
+        if codec.is_autodetect():
+            if self.__isSilxHavePriority(filename):
+                openners.append(self.__openSilxFile)
+                openners.append(self.__openFabioFile)
+            else:
+                openners.append(self.__openFabioFile)
+                openners.append(self.__openSilxFile)
+        elif codec.is_silx_codec():
+            openners.append(self.__openSilxFile)
+        elif codec.is_fabio_codec():
+            openners.append(self.__openFabioFile)
+
+        for openner in openners:
+            ref = openner(filename)
+            if ref is not None:
                 return True
         return False
 
@@ -1254,6 +1281,7 @@ class ImageFileDialog(qt.QDialog):
                 elif self.__fabio is not None:
                     data = _FabioData(self.__fabio)
                     self.__setData(data)
+                self.__updatePath()
             else:
                 self.__clearData()
 
@@ -1268,7 +1296,10 @@ class ImageFileDialog(qt.QDialog):
             elif index.model() is self.__fileModel:
                 path = self.__fileModel.filePath(index)
                 if os.path.isfile(path):
-                    if not self.__isSilxFile(path):
+                    codec = self.__fileTypeCombo.currentCodec()
+                    is_fabio_decoder = codec.is_fabio_codec()
+                    is_fabio_have_priority = not codec.is_silx_codec() and not self.__isSilxHavePriority(path)
+                    if is_fabio_decoder or is_fabio_have_priority:
                         # Then it's flat frame container
                         self.__openFabioFile(path)
                         if self.__fabio is not None:
@@ -1386,7 +1417,25 @@ class ImageFileDialog(qt.QDialog):
         else:
             slicing = None
 
-        uri = _ImageUri(filename=filename, dataPath=dataPath, slicing=slicing)
+        if self.__fabio is not None:
+            scheme = "fabio"
+        elif self.__h5 is not None:
+            scheme = "silx"
+        else:
+            if os.path.isfile(filename):
+                codec = self.__fileTypeCombo.currentCodec()
+                if codec.is_fabio_codec():
+                    scheme = "fabio"
+                elif codec.is_silx_codec():
+                    scheme = "silx"
+                else:
+                    scheme = None
+            else:
+                scheme = None
+
+            filename
+
+        uri = _ImageUri(filename=filename, dataPath=dataPath, slicing=slicing, scheme=scheme)
         return uri
 
     def __updatePath(self):
@@ -1456,7 +1505,12 @@ class ImageFileDialog(qt.QDialog):
                     self.__fileModel_setRootPath(uri.filename())
                     index = self.__fileModel.index(uri.filename())
                 elif os.path.isfile(uri.filename()):
-                    loaded = self.__openFile(uri.filename())
+                    if uri.scheme() == "silx":
+                        loaded = self.__openSilxFile(uri.filename())
+                    elif uri.scheme() == "fabio":
+                        loaded = self.__openFabioFile(uri.filename())
+                    else:
+                        loaded = self.__openFile(uri.filename())
                     if loaded:
                         if self.__h5 is not None:
                             rootIndex = _silxutils.indexFromH5Object(self.__dataModel, self.__h5)
