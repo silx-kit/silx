@@ -5,7 +5,7 @@
 
 .. automodule:: silx.gui.plot3d.ScalarFieldView
 
-For sample code using ScalarFieldView, see :doc:`viewer3dvolume_example`
+For sample code using ScalarFieldView, see :ref:`plot3d-sample-code`
 
 .. currentmodule:: silx.gui.plot3d.ScalarFieldView
 

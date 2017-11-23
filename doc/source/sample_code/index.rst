@@ -198,6 +198,8 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
      - This script is an example to illustrate how to use axis synchronization
        tool.
 
+.. _plot3d-sample-code:
+
 :mod:`silx.gui.plot3d` sample code
 ++++++++++++++++++++++++++++++++++
 

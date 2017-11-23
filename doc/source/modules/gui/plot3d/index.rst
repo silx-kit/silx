@@ -32,7 +32,7 @@ The following sub-modules are available:
 Sample code
 -----------
 
-- :doc:`viewer3dvolume_example`: Sample code using :class:`ScalarFieldView`
+See :ref:`plot3d-sample-code`
 
 Internals
 ---------
