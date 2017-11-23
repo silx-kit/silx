@@ -28,7 +28,7 @@ This module contains an :class:`ImageFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "22/11/2017"
+__date__ = "23/11/2017"
 
 import sys
 import os
@@ -1298,6 +1298,7 @@ class ImageFileDialog(qt.QDialog):
                     if obj.shape is not None and len(obj.shape) >= 2:
                         selectedData = obj
             elif index.model() is self.__fileModel:
+                self.__closeFile()
                 path = self.__fileModel.filePath(index)
                 if os.path.isfile(path):
                     codec = self.__fileTypeCombo.currentCodec()
