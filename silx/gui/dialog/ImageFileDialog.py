@@ -552,8 +552,12 @@ class _Browser(qt.QStackedWidget):
             if selectionModel is not None:
                 selectionModel.selectionChanged.disconnect()
                 selectionModel.clear()
+            pIndex = qt.QPersistentModelIndex(index)
             self.__listView.setModel(newModel)
+            # changing the model of the tree view change the index mapping
+            # that is why we are using a persistance model index
             self.__detailView.setModel(newModel)
+            index = pIndex.model().index(pIndex.row(), pIndex.column(), pIndex.parent())
             selectionModel = self.__listView.selectionModel()
             selectionModel.selectionChanged.connect(self.__emitSelected)
             selectionModel = self.__detailView.selectionModel()
