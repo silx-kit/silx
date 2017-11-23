@@ -33,7 +33,7 @@ __date__ = "15/11/2017"
 
 import numpy
 
-from silx.third_party import enum
+from silx.third_party import enum, six
 
 from ... import qt
 from ...plot.items import ItemChangedType
@@ -137,10 +137,29 @@ class DataItem3D(Item3D):
         self._translateFromRotationCenter = transform.Translate()
         self._matrix = transform.Matrix()
         self._scale = transform.Scale()
+        # Group transforms to do to data before rotation
+        # This is useful to handle rotation center relative to bbox
+        self._transformObjectToRotate = transform.TransformList(
+            [self._matrix, self._scale])
+        self._transformObjectToRotate.addListener(self._updateRotationCenter)
+
+        self._rotationCenter = 0., 0., 0.
 
         self._getScenePrimitive().transforms = [
-            self._translate, self._rotateForwardTranslation, self._rotate, self._rotateBackwardTranslation,
-            self._matrix, self._scale]
+            self._translate,
+            self._rotateForwardTranslation,
+            self._rotate,
+            self._rotateBackwardTranslation,
+            self._transformObjectToRotate]
+
+    def _updated(self, event=None):
+        """Handle MixIn class updates.
+
+        :param event: The event to send to :attr:`sigItemChanged` signal.
+        """
+        if event == ItemChangedType.DATA:
+            self._updateRotationCenter()
+        super(DataItem3D, self)._updated(event)
 
     # Transformations
 
@@ -182,7 +201,72 @@ class DataItem3D(Item3D):
         """
         return self._translate.translation
 
-    def setRotation(self, angle=0., axis=(0., 0., 1.), center=(0., 0., 0.)):
+    _ROTATION_CENTER_TAGS = 'lower', 'center', 'upper'
+
+    def _updateRotationCenter(self, *args, **kwargs):
+        """Update rotation center relative to bounding box"""
+        center = []
+        for index, position in enumerate(self.getRotationCenter()):
+            # Patch position relative to bounding box
+            if position in self._ROTATION_CENTER_TAGS:
+                bounds = self._getScenePrimitive().bounds(
+                    transformed=False, dataBounds=True)
+                bounds = self._transformObjectToRotate.transformBounds(bounds)
+
+                if bounds is None:
+                    position = 0.
+                elif position == 'lower':
+                    position = bounds[0, index]
+                elif position == 'center':
+                    position = 0.5 * (bounds[0, index] + bounds[1, index])
+                elif position == 'upper':
+                    position = bounds[1, index]
+
+            center.append(position)
+
+        if not numpy.all(numpy.equal(
+                center, self._rotateForwardTranslation.translation)):
+            self._rotateForwardTranslation.translation = center
+            self._rotateBackwardTranslation.translation = \
+                - self._rotateForwardTranslation.translation
+            self._updated(Item3DChangedType.TRANSFORM)
+
+    def setRotationCenter(self, x=0., y=0., z=0.):
+         """Set the center of rotation of the item.
+
+         Position of the rotation center is either a float
+         for an absolute position or one of the following
+         string to define a position relative to the item's bounding box:
+         'lower', 'center', 'upper'
+
+         :param x: rotation center position on the X axis
+         :rtype: float or str
+         :param y: rotation center position on the Y axis
+         :rtype: float or str
+         :param z: rotation center position on the Z axis
+         :rtype: float or str
+         """
+         center = []
+         for position in (x, y, z):
+             if isinstance(position, six.string_types):
+                 assert position in self._ROTATION_CENTER_TAGS
+             else:
+                 position = float(position)
+             center.append(position)
+         center = tuple(center)
+
+         if center != self._rotationCenter:
+             self._rotationCenter = center
+             self._updateRotationCenter()
+
+    def getRotationCenter(self):
+        """Returns the rotation center set by :meth:`setRotationCenter`.
+
+        :rtype: tuple
+        """
+        return self._rotationCenter
+
+    def setRotation(self, angle=0., axis=(0., 0., 1.)):
         """Set the rotation of the item in the scene
 
         :param float angle: The rotation angle in degrees.
@@ -195,20 +279,15 @@ class DataItem3D(Item3D):
         if (self._rotate.angle != angle or
                 not numpy.all(numpy.equal(axis, self._rotate.axis))):
             self._rotate.setAngleAxis(angle, axis)
-            self._rotateForwardTranslation.translation = center
-            self._rotateBackwardTranslation.translation = \
-                - self._rotateForwardTranslation.translation
             self._updated(Item3DChangedType.TRANSFORM)
 
     def getRotation(self):
         """Returns the rotation set by :meth:`setRotation`.
 
-        :return: (angle, axis, center)
+        :return: (angle, axis)
         :rtype: tuple
         """
-        return (self._rotate.angle,
-                self._rotate.axis,
-                self._rotateForwardTranslation.translation)
+        return self._rotate.angle, self._rotate.axis,
 
     def setMatrix(self, matrix=None):
         """Set the transform matrix
