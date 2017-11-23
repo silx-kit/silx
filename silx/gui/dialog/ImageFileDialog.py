@@ -1433,8 +1433,6 @@ class ImageFileDialog(qt.QDialog):
             else:
                 scheme = None
 
-            filename
-
         uri = _ImageUri(filename=filename, dataPath=dataPath, slicing=slicing, scheme=scheme)
         return uri
 
