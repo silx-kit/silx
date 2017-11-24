@@ -142,7 +142,8 @@ class ViewSettingsItem(qt.QStandardItem):
             titleItem.setEditable(False)
             self.appendRow([titleItem, cls(subject)])
 
-        nameItem = DirectionalLightGroup(subject, 'Light Direction')
+        nameItem = DirectionalLightGroup(
+            subject.getPlot3DWidget(), 'Light Direction')
         valueItem = qt.QStandardItem()
         self.appendRow([nameItem, valueItem])
 

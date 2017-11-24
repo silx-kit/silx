@@ -192,15 +192,17 @@ class _DirectionalLightProxy(qt.QObject):
 
 
 class DirectionalLightGroup(SubjectItem):
-    """
-    Root Item for the directional light
+    """Root Item for directional light configuration.
+
+    :param Plot3DWidget plot3dWidget:
+        The :class:`Plot3DWidget` to configure
     """
 
-    def __init__(self, subject, *args):
+    def __init__(self, plot3dWidget, *args):
         self._light = _DirectionalLightProxy(
-            subject.getPlot3DWidget().viewport.light)
+            plot3dWidget.viewport.light)
 
-        super(DirectionalLightGroup, self).__init__(subject, *args)
+        super(DirectionalLightGroup, self).__init__(plot3dWidget, *args)
 
     def _init(self):
 
