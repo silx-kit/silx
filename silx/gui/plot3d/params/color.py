@@ -23,7 +23,7 @@
 #
 # ###########################################################################*/
 """
-This module provides a tree widget to set/view parameters of a ScalarFieldView.
+This module provides a parameter tree color item and associated color editor.
 """
 
 from __future__ import absolute_import
@@ -38,21 +38,33 @@ from ... import qt
 from .SubjectItem import SubjectItem
 
 
-class QColorEditor(qt.QWidget):
+class ColorEditor(qt.QWidget):
     """
     QColor editor.
     """
+
     sigColorChanged = qt.Signal(object)
+    """Signal emitted when the color changed in the dialog."""
 
-    color = property(lambda self: qt.QColor(self.__color))
+    def getColor(self):
+        """Returns current color of the editor
 
-    @color.setter
-    def color(self, color):
+        :rtype: QColor
+        """
+        return qt.QColor(self.__color)
+
+    def setColor(self, color):
+        """Set the editor current color
+
+        :param color: The current color
+        """
         self._setColor(color)
         self.__previousColor = color
 
+    color = property(lambda self: qt.QColor(self.__color))
+
     def __init__(self, *args, **kwargs):
-        super(QColorEditor, self).__init__(*args, **kwargs)
+        super(ColorEditor, self).__init__(*args, **kwargs)
         layout = qt.QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         button = qt.QToolButton()
@@ -100,13 +112,14 @@ class QColorEditor(qt.QWidget):
 
 
 class ColorItem(SubjectItem):
-    """color item."""
+    """Parameter tree editable color item."""
+
     editable = True
     persistent = True
 
     def getEditor(self, parent, option, index):
-        editor = QColorEditor(parent)
-        editor.color = self.getColor()
+        editor = ColorEditor(parent)
+        editor.setColor(self.getColor())
 
         # Wrapping call in lambda is a workaround for PySide with Python 3
         editor.sigColorChanged.connect(
@@ -124,5 +137,20 @@ class ColorItem(SubjectItem):
         self.getColor()
 
     def setColor(self, color):
-        """Override to implement actual color setter"""
+        """Set the current color
+
+        Override to implement actual color setter
+
+        :param QColor color
+        """
         pass
+
+    def getColor(self):
+        """Return the current color
+
+        Override to implement color getter
+
+        :rtype: QColor
+        """
+        raise NotImplementedError(
+            "This method must be implemented in subclass")

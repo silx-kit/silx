@@ -42,7 +42,7 @@ from silx.gui.plot.Colormap import Colormap
 from silx.gui.widgets.FloatEdit import FloatEdit
 
 from .ScalarFieldView import Isosurface
-from .params import SubjectItem, ColorItem, QColorEditor
+from .params import SubjectItem, ColorItem, ColorEditor
 
 _logger = logging.getLogger(__name__)
 
@@ -565,10 +565,10 @@ class IsoSurfaceColorItem(SubjectItem):
         return self.getSubject().sigColorChanged
 
     def getEditor(self, parent, option, index):
-        editor = QColorEditor(parent)
+        editor = ColorEditor(parent)
         color = self.getSubject().getColor()
         color.setAlpha(255)
-        editor.color = color
+        editor.setColor(color)
         # Wrapping call in lambda is a workaround for PySide with Python 3
         editor.sigColorChanged.connect(
             lambda color: self.__editorChanged(color))
