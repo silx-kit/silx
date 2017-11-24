@@ -35,4 +35,4 @@ __date__ = "24/11/2017"
 
 from .SubjectItem import SubjectItem  # noqa
 from .color import ColorItem, ColorEditor  # noqa
-from .light import DirectionalLightGroup  # noqa
+from .light import DirectionalLightItem  # noqa

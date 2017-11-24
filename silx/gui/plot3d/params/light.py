@@ -81,7 +81,7 @@ class _LightDirectionAngleBaseItem(SubjectItem):
         return True
 
 
-class LightAzimuthAngleItem(_LightDirectionAngleBaseItem):
+class _LightAzimuthAngleItem(_LightDirectionAngleBaseItem):
     """Light direction azimuth angle item."""
 
     def getSignals(self):
@@ -94,7 +94,7 @@ class LightAzimuthAngleItem(_LightDirectionAngleBaseItem):
          self.getSubject().setAzimuthAngle(value)
 
 
-class LightAltitudeAngleItem(_LightDirectionAngleBaseItem):
+class _LightAltitudeAngleItem(_LightDirectionAngleBaseItem):
     """Light direction altitude angle item."""
 
     def getSignals(self):
@@ -191,7 +191,7 @@ class _DirectionalLightProxy(qt.QObject):
         self._light.direction = x, y, z
 
 
-class DirectionalLightGroup(SubjectItem):
+class DirectionalLightItem(SubjectItem):
     """Root Item for directional light configuration.
 
     :param Plot3DWidget plot3dWidget:
@@ -202,16 +202,16 @@ class DirectionalLightGroup(SubjectItem):
         self._light = _DirectionalLightProxy(
             plot3dWidget.viewport.light)
 
-        super(DirectionalLightGroup, self).__init__(plot3dWidget, *args)
+        super(DirectionalLightItem, self).__init__(plot3dWidget, *args)
 
     def _init(self):
 
         nameItem = qt.QStandardItem('Azimuth')
         nameItem.setEditable(False)
-        valueItem = LightAzimuthAngleItem(self._light)
+        valueItem = _LightAzimuthAngleItem(self._light)
         self.appendRow([nameItem, valueItem])
 
         nameItem = qt.QStandardItem('Altitude')
         nameItem.setEditable(False)
-        valueItem = LightAltitudeAngleItem(self._light)
+        valueItem = _LightAltitudeAngleItem(self._light)
         self.appendRow([nameItem, valueItem])

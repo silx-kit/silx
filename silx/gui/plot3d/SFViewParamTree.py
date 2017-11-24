@@ -42,7 +42,7 @@ from silx.gui.plot.Colormap import Colormap
 from silx.gui.widgets.FloatEdit import FloatEdit
 
 from .ScalarFieldView import Isosurface
-from .params import SubjectItem, ColorItem, ColorEditor, DirectionalLightGroup
+from .params import SubjectItem, ColorItem, ColorEditor, DirectionalLightItem
 
 _logger = logging.getLogger(__name__)
 
@@ -142,7 +142,7 @@ class ViewSettingsItem(qt.QStandardItem):
             titleItem.setEditable(False)
             self.appendRow([titleItem, cls(subject)])
 
-        nameItem = DirectionalLightGroup(
+        nameItem = DirectionalLightItem(
             subject.getPlot3DWidget(), 'Light Direction')
         valueItem = qt.QStandardItem()
         self.appendRow([nameItem, valueItem])
