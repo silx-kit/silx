@@ -88,10 +88,10 @@ class _LightAzimuthAngleItem(_LightDirectionAngleBaseItem):
         return self.getSubject().sigAzimuthAngleChanged
 
     def _pullData(self):
-         return self.getSubject().getAzimuthAngle()
+        return self.getSubject().getAzimuthAngle()
 
     def _pushData(self, value, role=qt.Qt.UserRole):
-         self.getSubject().setAzimuthAngle(value)
+        self.getSubject().setAzimuthAngle(value)
 
 
 class _LightAltitudeAngleItem(_LightDirectionAngleBaseItem):
@@ -101,10 +101,10 @@ class _LightAltitudeAngleItem(_LightDirectionAngleBaseItem):
         return self.getSubject().sigAltitudeAngleChanged
 
     def _pullData(self):
-         return self.getSubject().getAltitudeAngle()
+        return self.getSubject().getAltitudeAngle()
 
     def _pushData(self, value, role=qt.Qt.UserRole):
-         self.getSubject().setAltitudeAngle(value)
+        self.getSubject().setAltitudeAngle(value)
 
 
 class _DirectionalLightProxy(qt.QObject):

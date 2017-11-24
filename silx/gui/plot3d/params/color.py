@@ -141,7 +141,7 @@ class ColorItem(SubjectItem):
 
         Override to implement actual color setter
 
-        :param QColor color
+        :param QColor color: The current color
         """
         pass
 
