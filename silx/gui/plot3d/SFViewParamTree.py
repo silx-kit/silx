@@ -355,6 +355,183 @@ class HighlightColorItem(ColorItem):
         return self.subject.getHighlightColor()
 
 
+class _LightDirectionAngleBaseItem(SubjectItem):
+    """Base class for directional light angle item."""
+    editable = True
+    persistent = True
+
+    def _init(self):
+        pass
+
+    def getSignals(self):
+        """Override to provide signals to listen"""
+        raise NotImplementedError("MUST be implemented in subclass")
+
+    def _pullData(self):
+        """Override in subclass to get current angle"""
+        raise NotImplementedError("MUST be implemented in subclass")
+
+    def _pushData(self, value, role=qt.Qt.UserRole):
+        """Override in subclass to set the angle"""
+        raise NotImplementedError("MUST be implemented in subclass")
+
+    def getEditor(self, parent, option, index):
+        editor = qt.QSlider(parent)
+        editor.setOrientation(qt.Qt.Horizontal)
+        editor.setMinimum(-90)
+        editor.setMaximum(90)
+        editor.setValue(self._pullData())
+
+        # Wrapping call in lambda is a workaround for PySide with Python 3
+        editor.valueChanged.connect(
+            lambda value: self._pushData(value))
+
+        return editor
+
+    def setEditorData(self, editor):
+        editor.setValue(self._pullData())
+        return True
+
+    def _setModelData(self, editor):
+        value = editor.value()
+        self._pushData(value)
+        return True
+
+
+class LightAzimuthAngleItem(_LightDirectionAngleBaseItem):
+    """Light direction azimuth angle item."""
+
+    def getSignals(self):
+        return self.subject.sigAzimuthAngleChanged
+
+    def _pullData(self):
+         return self.subject.getAzimuthAngle()
+
+    def _pushData(self, value, role=qt.Qt.UserRole):
+         self.subject.setAzimuthAngle(value)
+
+
+class LightAltitudeAngleItem(_LightDirectionAngleBaseItem):
+    """Light direction altitude angle item."""
+
+    def getSignals(self):
+        return self.subject.sigAltitudeAngleChanged
+
+    def _pullData(self):
+         return self.subject.getAltitudeAngle()
+
+    def _pushData(self, value, role=qt.Qt.UserRole):
+         self.subject.setAltitudeAngle(value)
+
+
+class _DirectionalLightProxy(qt.QObject):
+    """Proxy to handle directional light with angles rather than vector.
+    """
+
+    sigAzimuthAngleChanged = qt.Signal()
+    """Signal sent when the azimuth angle has changed."""
+
+    sigAltitudeAngleChanged = qt.Signal()
+    """Signal sent when altitude angle has changed."""
+
+    def __init__(self, light):
+        super(_DirectionalLightProxy, self).__init__()
+        self._light = light
+        light.addListener(self._directionUpdated)
+        self._azimuth = 0.
+        self._altitude = 0.
+
+    def getAzimuthAngle(self):
+        """Returns the signed angle in the horizontal plane.
+
+         Unit: degrees.
+        The 0 angle corresponds to the axis perpendicular to the screen.
+
+        :rtype: float
+        """
+        return self._azimuth
+
+    def getAltitudeAngle(self):
+        """Returns the signed vertical angle from the horizontal plane.
+
+        Unit: degrees.
+        Range: [-90, +90]
+
+        :rtype: float
+        """
+        return self._altitude
+
+    def setAzimuthAngle(self, angle):
+        """Set the horizontal angle.
+
+        :param float angle: Angle from -z axis in zx plane in degrees.
+        """
+        if angle != self._azimuth:
+            self._azimuth = angle
+            self._updateLight()
+            self.sigAzimuthAngleChanged.emit()
+
+    def setAltitudeAngle(self, angle):
+        """Set the horizontal angle.
+
+        :param float angle: Angle from -z axis in zy plane in degrees.
+        """
+        if angle != self._altitude:
+            self._altitude = angle
+            self._updateLight()
+            self.sigAltitudeAngleChanged.emit()
+
+    def _directionUpdated(self, *args, **kwargs):
+        """Handle light direction update in the scene"""
+        # Invert direction to manipulate the 'source' pointing to
+        # the center of the viewport
+        x, y, z = - self._light.direction
+
+        # Horizontal plane is plane xz
+        azimuth = numpy.degrees(numpy.arctan2(x, z))
+        altitude = numpy.degrees(numpy.pi/2. - numpy.arccos(y))
+
+        if (abs(azimuth - self.getAzimuthAngle()) > 0.01 and
+                abs(abs(altitude) - 90.) >= 0.001):  # Do not update when at zenith
+            self.setAzimuthAngle(azimuth)
+
+        if abs(altitude - self.getAltitudeAngle()) > 0.01:
+            self.setAltitudeAngle(altitude)
+
+    def _updateLight(self):
+        """Update light direction in the scene"""
+        azimuth = numpy.radians(self._azimuth)
+        delta = numpy.pi/2. - numpy.radians(self._altitude)
+        z = - numpy.sin(delta) * numpy.cos(azimuth)
+        x = - numpy.sin(delta) * numpy.sin(azimuth)
+        y = - numpy.cos(delta)
+        self._light.direction = x, y, z
+
+
+class DirectionalLightGroup(SubjectItem):
+    """
+    Root Item for the directional light
+    """
+
+    def __init__(self,subject, *args):
+        self._light = _DirectionalLightProxy(
+            subject.getPlot3DWidget().viewport.light)
+
+        super(DirectionalLightGroup, self).__init__(subject, *args)
+
+    def _init(self):
+
+        nameItem = qt.QStandardItem('Azimuth')
+        nameItem.setEditable(False)
+        valueItem = LightAzimuthAngleItem(self._light)
+        self.appendRow([nameItem, valueItem])
+
+        nameItem = qt.QStandardItem('Altitude')
+        nameItem.setEditable(False)
+        valueItem = LightAltitudeAngleItem(self._light)
+        self.appendRow([nameItem, valueItem])
+
+
 class BoundingBoxItem(SubjectItem):
     """Bounding box, axes labels and grid visibility item.
 
@@ -402,13 +579,19 @@ class ViewSettingsItem(qt.QStandardItem):
 
         self.setEditable(False)
 
-        classes = (BackgroundColorItem, ForegroundColorItem,
+        classes = (BackgroundColorItem,
+                   ForegroundColorItem,
                    HighlightColorItem,
-                   BoundingBoxItem, OrientationIndicatorItem)
+                   BoundingBoxItem,
+                   OrientationIndicatorItem)
         for cls in classes:
             titleItem = qt.QStandardItem(cls.itemName)
             titleItem.setEditable(False)
             self.appendRow([titleItem, cls(subject)])
+
+        nameItem = DirectionalLightGroup(subject, 'Light Direction')
+        valueItem = qt.QStandardItem()
+        self.appendRow([nameItem, valueItem])
 
 
 # Data information ############################################################
