@@ -28,7 +28,7 @@ This module contains an :class:`ImageFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "23/11/2017"
+__date__ = "24/11/2017"
 
 import sys
 import os
@@ -535,6 +535,20 @@ class _Browser(qt.QStackedWidget):
         self.setCurrentIndex(1)
         self.__detailView.updateGeometry()
 
+    def clear(self):
+        self.__listView.setRootIndex(qt.QModelIndex())
+        self.__detailView.setRootIndex(qt.QModelIndex())
+        selectionModel = self.__listView.selectionModel()
+        if selectionModel is not None:
+            selectionModel.selectionChanged.disconnect()
+            selectionModel.clear()
+        selectionModel = self.__detailView.selectionModel()
+        if selectionModel is not None:
+            selectionModel.selectionChanged.disconnect()
+            selectionModel.clear()
+        self.__listView.setModel(None)
+        self.__detailView.setModel(None)
+
     def setRootIndex(self, index, model=None):
         """Sets the root item to the item at the given index.
         """
@@ -786,6 +800,7 @@ class ImageFileDialog(qt.QDialog):
         After this call it is not anymore possible to use the widget.
         """
         self.__clearData()
+        self.__browser.clear()
         self.__closeFile()
         self.__fileModel = None
         self.__dataModel = None
