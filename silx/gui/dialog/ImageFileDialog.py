@@ -557,7 +557,7 @@ class _Browser(qt.QStackedWidget):
             # changing the model of the tree view change the index mapping
             # that is why we are using a persistance model index
             self.__detailView.setModel(newModel)
-            index = pIndex.model().index(pIndex.row(), pIndex.column(), pIndex.parent())
+            index = newModel.index(pIndex.row(), pIndex.column(), pIndex.parent())
             selectionModel = self.__listView.selectionModel()
             selectionModel.selectionChanged.connect(self.__emitSelected)
             selectionModel = self.__detailView.selectionModel()
@@ -844,7 +844,7 @@ class ImageFileDialog(qt.QDialog):
 
         self.__pathEdit = _PathEdit(self)
         self.__pathEdit.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Fixed)
-        self.__pathEdit.textChanged.connect(self.__pathChanged)
+        self.__pathEdit.textChanged.connect(self.__textChanged)
         self.__pathEdit.setObjectName("url")
         utils.patchToConsumeReturnKey(self.__pathEdit)
 
@@ -1496,6 +1496,9 @@ class ImageFileDialog(qt.QDialog):
     def __updateActionHistory(self):
         self.__forwardAction.setEnabled(len(self.__currentHistory) - 1 > self.__currentHistoryLocation)
         self.__backwardAction.setEnabled(self.__currentHistoryLocation > 0)
+
+    def __textChanged(self, text):
+        self.__pathChanged()
 
     def __pathChanged(self):
         uri = _ImageUri(path=self.__pathEdit.text())
