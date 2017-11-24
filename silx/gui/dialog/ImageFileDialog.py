@@ -796,7 +796,7 @@ class ImageFileDialog(qt.QDialog):
             superInstance.__del__()
 
     def clear(self):
-        """Ëxpicit method to clear the dialog.
+        """Expicit method to clear the dialog.
         After this call it is not anymore possible to use the widget.
         """
         self.__clearData()
