@@ -95,7 +95,7 @@ class SubjectItem(qt.QStandardItem):
         self.setEditable(self.editable)
 
         self.__subject = None
-        self.subject = subject
+        self.setSubject(subject)
 
     def setData(self, value, role=qt.Qt.UserRole, pushData=True):
         """
@@ -114,13 +114,11 @@ class SubjectItem(qt.QStandardItem):
                 value = setValue
         super(SubjectItem, self).setData(value, role)
 
-    @property
-    def subject(self):
+    def getSubject(self):
         """The subject this item is observing"""
         return None if self.__subject is None else self.__subject()
 
-    @subject.setter
-    def subject(self, subject):
+    def setSubject(self, subject):
         if self.__subject is not None:
             raise ValueError('Subject already set '
                              ' (subject change not supported).')
@@ -144,7 +142,7 @@ class SubjectItem(qt.QStandardItem):
                                      kwargs=kwargs)
             return slotfn
 
-        if self.__subject is not None:
+        if self.getSubject() is not None:
             self.__slots = slots = []
 
             signals = self.getSignals()
@@ -329,30 +327,30 @@ class BackgroundColorItem(ColorItem):
     itemName = 'Background'
 
     def setColor(self, color):
-        self.subject.setBackgroundColor(color)
+        self.getSubject().setBackgroundColor(color)
 
     def getColor(self):
-        return self.subject.getBackgroundColor()
+        return self.getSubject().getBackgroundColor()
 
 
 class ForegroundColorItem(ColorItem):
     itemName = 'Foreground'
 
     def setColor(self, color):
-        self.subject.setForegroundColor(color)
+        self.getSubject().setForegroundColor(color)
 
     def getColor(self):
-        return self.subject.getForegroundColor()
+        return self.getSubject().getForegroundColor()
 
 
 class HighlightColorItem(ColorItem):
     itemName = 'Highlight'
 
     def setColor(self, color):
-        self.subject.setHighlightColor(color)
+        self.getSubject().setHighlightColor(color)
 
     def getColor(self):
-        return self.subject.getHighlightColor()
+        return self.getSubject().getHighlightColor()
 
 
 class _LightDirectionAngleBaseItem(SubjectItem):
@@ -402,26 +400,26 @@ class LightAzimuthAngleItem(_LightDirectionAngleBaseItem):
     """Light direction azimuth angle item."""
 
     def getSignals(self):
-        return self.subject.sigAzimuthAngleChanged
+        return self.getSubject().sigAzimuthAngleChanged
 
     def _pullData(self):
-         return self.subject.getAzimuthAngle()
+         return self.getSubject().getAzimuthAngle()
 
     def _pushData(self, value, role=qt.Qt.UserRole):
-         self.subject.setAzimuthAngle(value)
+         self.getSubject().setAzimuthAngle(value)
 
 
 class LightAltitudeAngleItem(_LightDirectionAngleBaseItem):
     """Light direction altitude angle item."""
 
     def getSignals(self):
-        return self.subject.sigAltitudeAngleChanged
+        return self.getSubject().sigAltitudeAngleChanged
 
     def _pullData(self):
-         return self.subject.getAltitudeAngle()
+         return self.getSubject().getAltitudeAngle()
 
     def _pushData(self, value, role=qt.Qt.UserRole):
-         self.subject.setAltitudeAngle(value)
+         self.getSubject().setAltitudeAngle(value)
 
 
 class _DirectionalLightProxy(qt.QObject):
@@ -513,7 +511,7 @@ class DirectionalLightGroup(SubjectItem):
     Root Item for the directional light
     """
 
-    def __init__(self,subject, *args):
+    def __init__(self, subject, *args):
         self._light = _DirectionalLightProxy(
             subject.getPlot3DWidget().viewport.light)
 
@@ -540,14 +538,14 @@ class BoundingBoxItem(SubjectItem):
     itemName = 'Bounding Box'
 
     def _init(self):
-        visible = self.subject.isBoundingBoxVisible()
+        visible = self.getSubject().isBoundingBoxVisible()
         self.setCheckable(True)
         self.setCheckState(qt.Qt.Checked if visible else qt.Qt.Unchecked)
 
     def leftClicked(self):
         checked = (self.checkState() == qt.Qt.Checked)
-        if checked != self.subject.isBoundingBoxVisible():
-            self.subject.setBoundingBoxVisible(checked)
+        if checked != self.getSubject().isBoundingBoxVisible():
+            self.getSubject().setBoundingBoxVisible(checked)
 
 
 class OrientationIndicatorItem(SubjectItem):
@@ -558,13 +556,13 @@ class OrientationIndicatorItem(SubjectItem):
     itemName = 'Axes indicator'
 
     def _init(self):
-        plot3d = self.subject.getPlot3DWidget()
+        plot3d = self.getSubject().getPlot3DWidget()
         visible = plot3d.isOrientationIndicatorVisible()
         self.setCheckable(True)
         self.setCheckState(qt.Qt.Checked if visible else qt.Qt.Unchecked)
 
     def leftClicked(self):
-        plot3d = self.subject.getPlot3DWidget()
+        plot3d = self.getSubject().getPlot3DWidget()
         checked = (self.checkState() == qt.Qt.Checked)
         if checked != plot3d.isOrientationIndicatorVisible():
             plot3d.setOrientationIndicatorVisible(checked)
@@ -602,7 +600,7 @@ class DataChangedItem(SubjectItem):
     """
 
     def getSignals(self):
-        subject = self.subject
+        subject = self.getSubject()
         if subject:
             return subject.sigDataChanged
         return None
@@ -615,7 +613,7 @@ class DataTypeItem(DataChangedItem):
     itemName = 'dtype'
 
     def _pullData(self):
-        data = self.subject.getData(copy=False)
+        data = self.getSubject().getData(copy=False)
         return ((data is not None) and str(data.dtype)) or 'N/A'
 
 
@@ -623,7 +621,7 @@ class DataShapeItem(DataChangedItem):
     itemName = 'size'
 
     def _pullData(self):
-        data = self.subject.getData(copy=False)
+        data = self.getSubject().getData(copy=False)
         if data is None:
             return 'N/A'
         else:
@@ -634,7 +632,7 @@ class OffsetItem(DataChangedItem):
     itemName = 'offset'
 
     def _pullData(self):
-        offset = self.subject.getTranslation()
+        offset = self.getSubject().getTranslation()
         return ((offset is not None) and str(offset)) or 'N/A'
 
 
@@ -642,7 +640,7 @@ class ScaleItem(DataChangedItem):
     itemName = 'scale'
 
     def _pullData(self):
-        scale = self.subject.getScale()
+        scale = self.getSubject().getScale()
         return ((scale is not None) and str(scale)) or 'N/A'
 
 
@@ -669,13 +667,13 @@ class IsoSurfaceRootItem(SubjectItem):
     """
 
     def getSignals(self):
-        subject = self.subject
+        subject = self.getSubject()
         return [subject.sigColorChanged,
                 subject.sigVisibilityChanged]
 
     def _subjectChanged(self, signalIdx=None, args=None, kwargs=None):
         if signalIdx == 0:
-            color = self.subject.getColor()
+            color = self.getSubject().getColor()
             self.setData(color, qt.Qt.DecorationRole)
         elif signalIdx == 1:
             visible = args[0]
@@ -684,30 +682,30 @@ class IsoSurfaceRootItem(SubjectItem):
     def _init(self):
         self.setCheckable(True)
 
-        isosurface = self.subject
+        isosurface = self.getSubject()
         color = isosurface.getColor()
         visible = isosurface.isVisible()
         self.setData(color, qt.Qt.DecorationRole)
         self.setCheckState((visible and qt.Qt.Checked) or qt.Qt.Unchecked)
 
         nameItem = qt.QStandardItem('Level')
-        sliderItem = IsoSurfaceLevelSlider(self.subject)
+        sliderItem = IsoSurfaceLevelSlider(self.getSubject())
         self.appendRow([nameItem, sliderItem])
 
         nameItem = qt.QStandardItem('Color')
         nameItem.setEditable(False)
-        valueItem = IsoSurfaceColorItem(self.subject)
+        valueItem = IsoSurfaceColorItem(self.getSubject())
         self.appendRow([nameItem, valueItem])
 
         nameItem = qt.QStandardItem('Opacity')
         nameItem.setTextAlignment(qt.Qt.AlignLeft | qt.Qt.AlignTop)
         nameItem.setEditable(False)
-        valueItem = IsoSurfaceAlphaItem(self.subject)
+        valueItem = IsoSurfaceAlphaItem(self.getSubject())
         self.appendRow([nameItem, valueItem])
 
         nameItem = qt.QStandardItem()
         nameItem.setEditable(False)
-        valueItem = IsoSurfaceAlphaLegendItem(self.subject)
+        valueItem = IsoSurfaceAlphaLegendItem(self.getSubject())
         valueItem.setEditable(False)
         self.appendRow([nameItem, valueItem])
 
@@ -718,17 +716,17 @@ class IsoSurfaceRootItem(SubjectItem):
                                       'Remove the selected iso-surface?',
                                       buttons=buttons)
         if ans == qt.QMessageBox.Ok:
-            sfview = self.subject.parent()
+            sfview = self.getSubject().parent()
             if sfview:
-                sfview.removeIsosurface(self.subject)
+                sfview.removeIsosurface(self.getSubject())
                 return False
         return False
 
     def leftClicked(self):
         checked = (self.checkState() == qt.Qt.Checked)
-        visible = self.subject.isVisible()
+        visible = self.getSubject().isVisible()
         if checked != visible:
-            self.subject.setVisible(checked)
+            self.getSubject().setVisible(checked)
 
 
 class IsoSurfaceLevelItem(SubjectItem):
@@ -738,7 +736,7 @@ class IsoSurfaceLevelItem(SubjectItem):
     editable = True
 
     def getSignals(self):
-        subject = self.subject
+        subject = self.getSubject()
         return [subject.sigLevelChanged,
                 subject.sigVisibilityChanged]
 
@@ -754,11 +752,11 @@ class IsoSurfaceLevelItem(SubjectItem):
         return True
 
     def _pullData(self):
-        return self.subject.getLevel()
+        return self.getSubject().getLevel()
 
     def _pushData(self, value, role=qt.Qt.UserRole):
-        self.subject.setLevel(value)
-        return self.subject.getLevel()
+        self.getSubject().setLevel(value)
+        return self.getSubject().getLevel()
 
 
 class _IsoLevelSlider(qt.QSlider):
@@ -766,16 +764,16 @@ class _IsoLevelSlider(qt.QSlider):
 
     def __init__(self, parent, subject):
         super(_IsoLevelSlider, self).__init__(parent=parent)
-        self.subject = subject
+        self._subject = subject
 
         self.sliderReleased.connect(self.__sliderReleased)
 
-        self.subject.sigLevelChanged.connect(self.setLevel)
-        self.subject.parent().sigDataChanged.connect(self.__dataChanged)
+        self._subject.sigLevelChanged.connect(self.setLevel)
+        self._subject.parent().sigDataChanged.connect(self.__dataChanged)
 
     def setLevel(self, level):
         """Set slider from iso-surface level"""
-        dataRange = self.subject.parent().getDataRange()
+        dataRange = self._subject.parent().getDataRange()
 
         if dataRange is not None:
             width = dataRange[-1] - dataRange[0]
@@ -786,17 +784,17 @@ class _IsoLevelSlider(qt.QSlider):
 
     def __dataChanged(self):
         """Handles data update to refresh slider range if needed"""
-        self.setLevel(self.subject.getLevel())
+        self.setLevel(self._subject.getLevel())
 
     def __sliderReleased(self):
         value = self.value()
-        dataRange = self.subject.parent().getDataRange()
+        dataRange = self._subject.parent().getDataRange()
         if dataRange is not None:
             min_, _, max_ = dataRange
             width = max_ - min_
             sliderWidth = self.maximum() - self.minimum()
             level = min_ + width * value / sliderWidth
-            self.subject.setLevel(level)
+            self._subject.setLevel(level)
 
 
 class IsoSurfaceLevelSlider(IsoSurfaceLevelItem):
@@ -807,14 +805,14 @@ class IsoSurfaceLevelSlider(IsoSurfaceLevelItem):
     persistent = True
 
     def getEditor(self, parent, option, index):
-        editor = _IsoLevelSlider(parent, self.subject)
+        editor = _IsoLevelSlider(parent, self.getSubject())
         editor.setOrientation(qt.Qt.Horizontal)
         editor.setMinimum(0)
         editor.setMaximum(self.nTicks)
 
         editor.setSingleStep(1)
 
-        editor.setLevel(self.subject.getLevel())
+        editor.setLevel(self.getSubject().getLevel())
         return editor
 
     def setEditorData(self, editor):
@@ -832,11 +830,11 @@ class IsoSurfaceColorItem(SubjectItem):
     persistent = True
 
     def getSignals(self):
-        return self.subject.sigColorChanged
+        return self.getSubject().sigColorChanged
 
     def getEditor(self, parent, option, index):
         editor = QColorEditor(parent)
-        color = self.subject.getColor()
+        color = self.getSubject().getColor()
         color.setAlpha(255)
         editor.color = color
         # Wrapping call in lambda is a workaround for PySide with Python 3
@@ -845,12 +843,12 @@ class IsoSurfaceColorItem(SubjectItem):
         return editor
 
     def __editorChanged(self, color):
-        color.setAlpha(self.subject.getColor().alpha())
-        self.subject.setColor(color)
+        color.setAlpha(self.getSubject().getColor().alpha())
+        self.getSubject().setColor(color)
 
     def _pushData(self, value, role=qt.Qt.UserRole):
-        self.subject.setColor(value)
-        return self.subject.getColor()
+        self.getSubject().setColor(value)
+        return self.getSubject().getColor()
 
 
 class QColorEditor(qt.QWidget):
@@ -925,7 +923,7 @@ class IsoSurfaceAlphaItem(SubjectItem):
         pass
 
     def getSignals(self):
-        return self.subject.sigColorChanged
+        return self.getSubject().sigColorChanged
 
     def getEditor(self, parent, option, index):
         editor = qt.QSlider(parent)
@@ -933,7 +931,7 @@ class IsoSurfaceAlphaItem(SubjectItem):
         editor.setMinimum(0)
         editor.setMaximum(255)
 
-        color = self.subject.getColor()
+        color = self.getSubject().getColor()
         editor.setValue(color.alpha())
 
         # Wrapping call in lambda is a workaround for PySide with Python 3
@@ -943,9 +941,9 @@ class IsoSurfaceAlphaItem(SubjectItem):
         return editor
 
     def __editorChanged(self, value):
-        color = self.subject.getColor()
+        color = self.getSubject().getColor()
         color.setAlpha(value)
-        self.subject.setColor(color)
+        self.getSubject().setColor(color)
 
     def setEditorData(self, editor):
         return True
@@ -979,11 +977,11 @@ class IsoSurfaceCount(SubjectItem):
     """
 
     def getSignals(self):
-        subject = self.subject
+        subject = self.getSubject()
         return [subject.sigIsosurfaceAdded, subject.sigIsosurfaceRemoved]
 
     def _pullData(self):
-        return len(self.subject.getIsosurfaces())
+        return len(self.getSubject().getIsosurfaces())
 
 
 class IsoSurfaceAddRemoveWidget(qt.QWidget):
@@ -1013,7 +1011,7 @@ class IsoSurfaceAddRemoveWidget(qt.QWidget):
         layout.addStretch(1)
 
     def __addClicked(self):
-        sfview = self._item.subject
+        sfview = self._item.getSubject()
         if not sfview:
             return
         dataRange = sfview.getDataRange()
@@ -1042,7 +1040,7 @@ class IsoSurfaceGroup(SubjectItem):
     Root item for the list of isosurface items.
     """
     def getSignals(self):
-        subject = self.subject
+        subject = self.getSubject()
         return [subject.sigIsosurfaceAdded, subject.sigIsosurfaceRemoved]
 
     def _subjectChanged(self, signalIdx=None, args=None, kwargs=None):
@@ -1071,19 +1069,18 @@ class IsoSurfaceGroup(SubjectItem):
     def __removeIsosurface(self, isosurface):
         for row in range(self.rowCount()):
             child = self.child(row)
-            subject = getattr(child, 'subject', None)
-            if subject == isosurface:
+            getSubject = getattr(child, 'getSubject', None)
+            if getSubject is not None and getSubject() == isosurface:
                 self.takeRow(row)
                 break
 
     def _init(self):
-        nameItem = IsoSurfaceAddRemoveItem(self.subject)
+        nameItem = IsoSurfaceAddRemoveItem(self.getSubject())
         valueItem = qt.QStandardItem()
         valueItem.setEditable(False)
         self.appendRow([nameItem, valueItem])
 
-        subject = self.subject
-        isosurfaces = subject.getIsosurfaces()
+        isosurfaces = self.getSubject().getIsosurfaces()
         for isosurface in isosurfaces:
             self.__addIsosurface(isosurface)
 
@@ -1096,7 +1093,7 @@ class ColormapBase(SubjectItem):
     """
 
     def getSignals(self):
-        return [self.subject.getCutPlanes()[0].sigColormapChanged]
+        return [self.getSubject().getCutPlanes()[0].sigColormapChanged]
 
 
 class PlaneMinRangeItem(ColormapBase):
@@ -1107,7 +1104,7 @@ class PlaneMinRangeItem(ColormapBase):
     editable = True
 
     def _pullData(self):
-        colormap = self.subject.getCutPlanes()[0].getColormap()
+        colormap = self.getSubject().getCutPlanes()[0].getColormap()
         auto = colormap.isAutoscale()
         if auto == self.isEnabled():
             self._enableRow(not auto)
@@ -1117,7 +1114,7 @@ class PlaneMinRangeItem(ColormapBase):
         self._setVMin(value)
 
     def _setVMin(self, value):
-        colormap = self.subject.getCutPlanes()[0].getColormap()
+        colormap = self.getSubject().getCutPlanes()[0].getColormap()
         vMin = value
         vMax = colormap.getVMax()
 
@@ -1147,14 +1144,14 @@ class PlaneMaxRangeItem(ColormapBase):
     editable = True
 
     def _pullData(self):
-        colormap = self.subject.getCutPlanes()[0].getColormap()
+        colormap = self.getSubject().getCutPlanes()[0].getColormap()
         auto = colormap.isAutoscale()
         if auto == self.isEnabled():
             self._enableRow(not auto)
-        return self.subject.getCutPlanes()[0].getColormap().getVMax()
+        return self.getSubject().getCutPlanes()[0].getColormap().getVMax()
 
     def _setVMax(self, value):
-        colormap = self.subject.getCutPlanes()[0].getColormap()
+        colormap = self.getSubject().getCutPlanes()[0].getColormap()
         vMin = colormap.getVMin()
         vMax = value
         if vMin is not None and value < vMin:
@@ -1192,10 +1189,10 @@ class PlaneOrientationItem(SubjectItem):
     )
 
     def getSignals(self):
-        return [self.subject.getCutPlanes()[0].sigPlaneChanged]
+        return [self.getSubject().getCutPlanes()[0].sigPlaneChanged]
 
     def _pullData(self):
-        currentNormal = self.subject.getCutPlanes()[0].getNormal()
+        currentNormal = self.getSubject().getCutPlanes()[0].getNormal()
         for _, text, _, normal in self._PLANE_ACTIONS:
             if numpy.array_equal(normal, currentNormal):
                 return text
@@ -1213,7 +1210,7 @@ class PlaneOrientationItem(SubjectItem):
 
     def __editorChanged(self, index):
         normal = self._PLANE_ACTIONS[index][3]
-        plane = self.subject.getCutPlanes()[0]
+        plane = self.getSubject().getCutPlanes()[0]
         plane.setNormal(normal)
         plane.moveToCenter()
 
@@ -1238,26 +1235,26 @@ class PlaneInterpolationItem(SubjectItem):
     """
 
     def _init(self):
-        interpolation = self.subject.getCutPlanes()[0].getInterpolation()
+        interpolation = self.getSubject().getCutPlanes()[0].getInterpolation()
         self.setCheckable(True)
         self.setCheckState(
             qt.Qt.Checked if interpolation == 'linear' else qt.Qt.Unchecked)
         self.setData(self._pullData(), role=qt.Qt.DisplayRole, pushData=False)
 
     def getSignals(self):
-        return [self.subject.getCutPlanes()[0].sigInterpolationChanged]
+        return [self.getSubject().getCutPlanes()[0].sigInterpolationChanged]
 
     def leftClicked(self):
         checked = self.checkState() == qt.Qt.Checked
         self._setInterpolation('linear' if checked else 'nearest')
 
     def _pullData(self):
-        interpolation = self.subject.getCutPlanes()[0].getInterpolation()
+        interpolation = self.getSubject().getCutPlanes()[0].getInterpolation()
         self._setInterpolation(interpolation)
         return interpolation[0].upper() + interpolation[1:]
 
     def _setInterpolation(self, interpolation):
-        self.subject.getCutPlanes()[0].setInterpolation(interpolation)
+        self.getSubject().getCutPlanes()[0].setInterpolation(interpolation)
 
 
 class PlaneDisplayBelowMinItem(SubjectItem):
@@ -1267,26 +1264,26 @@ class PlaneDisplayBelowMinItem(SubjectItem):
     """
 
     def _init(self):
-        display = self.subject.getCutPlanes()[0].getDisplayValuesBelowMin()
+        display = self.getSubject().getCutPlanes()[0].getDisplayValuesBelowMin()
         self.setCheckable(True)
         self.setCheckState(
             qt.Qt.Checked if display else qt.Qt.Unchecked)
         self.setData(self._pullData(), role=qt.Qt.DisplayRole, pushData=False)
 
     def getSignals(self):
-        return [self.subject.getCutPlanes()[0].sigTransparencyChanged]
+        return [self.getSubject().getCutPlanes()[0].sigTransparencyChanged]
 
     def leftClicked(self):
         checked = self.checkState() == qt.Qt.Checked
         self._setDisplayValuesBelowMin(checked)
 
     def _pullData(self):
-        display = self.subject.getCutPlanes()[0].getDisplayValuesBelowMin()
+        display = self.getSubject().getCutPlanes()[0].getDisplayValuesBelowMin()
         self._setDisplayValuesBelowMin(display)
         return "Displayed" if display else "Hidden"
 
     def _setDisplayValuesBelowMin(self, display):
-        self.subject.getCutPlanes()[0].setDisplayValuesBelowMin(display)
+        self.getSubject().getCutPlanes()[0].setDisplayValuesBelowMin(display)
 
 
 class PlaneColormapItem(ColormapBase):
@@ -1313,11 +1310,11 @@ class PlaneColormapItem(ColormapBase):
 
     def __editorChanged(self, index):
         colormapName = self.listValues[index]
-        colormap = self.subject.getCutPlanes()[0].getColormap()
+        colormap = self.getSubject().getCutPlanes()[0].getColormap()
         colormap.setName(colormapName)
 
     def setEditorData(self, editor):
-        colormapName = self.subject.getCutPlanes()[0].getColormap().getName()
+        colormapName = self.getSubject().getCutPlanes()[0].getColormap().getName()
         try:
             index = self.listValues.index(colormapName)
         except ValueError:
@@ -1331,7 +1328,7 @@ class PlaneColormapItem(ColormapBase):
         return True
 
     def _pullData(self):
-        return self.subject.getCutPlanes()[0].getColormap().getName()
+        return self.getSubject().getCutPlanes()[0].getColormap().getName()
 
 
 class PlaneAutoScaleItem(ColormapBase):
@@ -1341,7 +1338,7 @@ class PlaneAutoScaleItem(ColormapBase):
     """
 
     def _init(self):
-        colorMap = self.subject.getCutPlanes()[0].getColormap()
+        colorMap = self.getSubject().getCutPlanes()[0].getColormap()
         self.setCheckable(True)
         self.setCheckState((colorMap.isAutoscale() and qt.Qt.Checked)
                            or qt.Qt.Unchecked)
@@ -1352,7 +1349,7 @@ class PlaneAutoScaleItem(ColormapBase):
         self._setAutoScale(checked)
 
     def _setAutoScale(self, auto):
-        view3d = self.subject
+        view3d = self.getSubject()
         colormap = view3d.getCutPlanes()[0].getColormap()
 
         if auto != colormap.isAutoscale():
@@ -1367,7 +1364,7 @@ class PlaneAutoScaleItem(ColormapBase):
             colormap.setVRange(vMin, vMax)
 
     def _pullData(self):
-        auto = self.subject.getCutPlanes()[0].getColormap().isAutoscale()
+        auto = self.getSubject().getCutPlanes()[0].getColormap().isAutoscale()
         self._setAutoScale(auto)
         if auto:
             data = 'Auto'
@@ -1395,15 +1392,15 @@ class NormalizationNode(ColormapBase):
         return editor
 
     def __editorChanged(self, index):
-        colorMap = self.subject.getCutPlanes()[0].getColormap()
+        colorMap = self.getSubject().getCutPlanes()[0].getColormap()
         normalization = self.listValues[index]
-        self.subject.getCutPlanes()[0].setColormap(name=colorMap.getName(),
-                                                   norm=normalization,
-                                                   vmin=colorMap.getVMin(),
-                                                   vmax=colorMap.getVMax())
+        self.getSubject().getCutPlanes()[0].setColormap(name=colorMap.getName(),
+                                                        norm=normalization,
+                                                        vmin=colorMap.getVMin(),
+                                                        vmax=colorMap.getVMax())
 
     def setEditorData(self, editor):
-        normalization = self.subject.getCutPlanes()[0].getColormap().getNormalization()
+        normalization = self.getSubject().getCutPlanes()[0].getColormap().getNormalization()
         index = self.listValues.index(normalization)
         editor.setCurrentIndex(index)
         return True
@@ -1413,7 +1410,7 @@ class NormalizationNode(ColormapBase):
         return True
 
     def _pullData(self):
-        return self.subject.getCutPlanes()[0].getColormap().getNormalization()
+        return self.getSubject().getCutPlanes()[0].getColormap().getNormalization()
 
 
 class PlaneGroup(SubjectItem):
@@ -1423,47 +1420,47 @@ class PlaneGroup(SubjectItem):
     def _init(self):
         valueItem = qt.QStandardItem()
         valueItem.setEditable(False)
-        nameItem = PlaneVisibleItem(self.subject, 'Visible')
+        nameItem = PlaneVisibleItem(self.getSubject(), 'Visible')
         self.appendRow([nameItem, valueItem])
 
         nameItem = qt.QStandardItem('Colormap')
         nameItem.setEditable(False)
-        valueItem = PlaneColormapItem(self.subject)
+        valueItem = PlaneColormapItem(self.getSubject())
         self.appendRow([nameItem, valueItem])
 
         nameItem = qt.QStandardItem('Normalization')
         nameItem.setEditable(False)
-        valueItem = NormalizationNode(self.subject)
+        valueItem = NormalizationNode(self.getSubject())
         self.appendRow([nameItem, valueItem])
 
         nameItem = qt.QStandardItem('Orientation')
         nameItem.setEditable(False)
-        valueItem = PlaneOrientationItem(self.subject)
+        valueItem = PlaneOrientationItem(self.getSubject())
         self.appendRow([nameItem, valueItem])
 
         nameItem = qt.QStandardItem('Interpolation')
         nameItem.setEditable(False)
-        valueItem = PlaneInterpolationItem(self.subject)
+        valueItem = PlaneInterpolationItem(self.getSubject())
         self.appendRow([nameItem, valueItem])
 
         nameItem = qt.QStandardItem('Autoscale')
         nameItem.setEditable(False)
-        valueItem = PlaneAutoScaleItem(self.subject)
+        valueItem = PlaneAutoScaleItem(self.getSubject())
         self.appendRow([nameItem, valueItem])
 
         nameItem = qt.QStandardItem('Min')
         nameItem.setEditable(False)
-        valueItem = PlaneMinRangeItem(self.subject)
+        valueItem = PlaneMinRangeItem(self.getSubject())
         self.appendRow([nameItem, valueItem])
 
         nameItem = qt.QStandardItem('Max')
         nameItem.setEditable(False)
-        valueItem = PlaneMaxRangeItem(self.subject)
+        valueItem = PlaneMaxRangeItem(self.getSubject())
         self.appendRow([nameItem, valueItem])
 
         nameItem = qt.QStandardItem('Values<=Min')
         nameItem.setEditable(False)
-        valueItem = PlaneDisplayBelowMinItem(self.subject)
+        valueItem = PlaneDisplayBelowMinItem(self.getSubject())
         self.appendRow([nameItem, valueItem])
 
 
@@ -1473,13 +1470,13 @@ class PlaneVisibleItem(SubjectItem):
     Item is checkable.
     """
     def _init(self):
-        plane = self.subject.getCutPlanes()[0]
+        plane = self.getSubject().getCutPlanes()[0]
         self.setCheckable(True)
         self.setCheckState((plane.isVisible() and qt.Qt.Checked)
                            or qt.Qt.Unchecked)
 
     def leftClicked(self):
-        plane = self.subject.getCutPlanes()[0]
+        plane = self.getSubject().getCutPlanes()[0]
         checked = (self.checkState() == qt.Qt.Checked)
         if checked != plane.isVisible():
             plane.setVisible(checked)
