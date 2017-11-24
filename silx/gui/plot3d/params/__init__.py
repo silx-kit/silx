@@ -33,6 +33,7 @@ __license__ = "MIT"
 __date__ = "24/11/2017"
 
 
-from .SubjectItem import SubjectItem  # noqa
 from .color import ColorItem, ColorEditor  # noqa
 from .light import DirectionalLightItem  # noqa
+from .SubjectItem import SubjectItem  # noqa
+from .TreeView import TreeView, TreeViewModelBase  # noqa
