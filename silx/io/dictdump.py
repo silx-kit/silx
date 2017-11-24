@@ -225,6 +225,13 @@ def dicttoh5(treedict, h5file, h5path='/',
 
             elif treedict[key] is None or (isinstance(treedict[key], dict) and
                                            not len(treedict[key])):
+                if (h5path + key) in h5f:
+                    if overwrite_data is True:
+                        del h5f[h5path + key]
+                    else:
+                        logger.warning('key (%s) already exists. '
+                                       'Not overwriting.' % (h5path + key))
+                        continue
                 # Create empty group
                 h5f.create_group(h5path + key)
 
