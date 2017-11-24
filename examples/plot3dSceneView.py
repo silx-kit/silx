@@ -72,8 +72,8 @@ imageRgba.setTranslation(SIZE*.15, SIZE*.15, 0.)  # Translate the image
 
 # Set imageRgba properties
 # Rotate the image by 45 degrees around its center
-imageRgba.setRotation(45., axis=(0., 0., 1.),
-                      center=(SIZE*.7*.5, SIZE*.7*.5, 0.))
+imageRgba.setRotationCenter('center', 'center', 0.)
+imageRgba.setRotation(45., axis=(0., 0., 1.))
 imageRgba.setScale(0.7, 0.7, 0.7)  # Scale down image
 
 
