@@ -36,7 +36,7 @@ from . import _qt as qt
 def supportedImageFormats():
     """Return a set of string of file format extensions supported by the
     Qt runtime."""
-    if sys.version_info[0] < 3 or qt.BINDING == 'PySide':
+    if sys.version_info[0] < 3 or qt.BINDING in ('PySide', 'PySide2'):
         convert = str
     else:
         convert = lambda data: str(data, 'ascii')
