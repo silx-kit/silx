@@ -28,7 +28,7 @@ This module contains an :class:`ImageFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "24/11/2017"
+__date__ = "27/11/2017"
 
 import sys
 import os
@@ -371,16 +371,36 @@ class _SideBar(qt.QListView):
         return self.__iconProvider
 
     def _initModel(self):
-
-        # Get default shortcut
-        # There is no other way
-        d = qt.QFileDialog()
-        urls = d.sidebarUrls()
-        d = None
-
-        model = qt.QStandardItemModel(self)
+        urls = self._getDefaultUrls()
         self.setUrls(urls)
-        return model
+
+    def _getDefaultUrls(self):
+        """Returns the default shortcuts.
+
+        It uses the default QFileDialog shortcuts if it is possible, else
+        provides a link to the computer's root and the user's home.
+
+        :rtype: List[str]
+        """
+        urls = []
+        if qt.qVersion() >= "5.0" and sys.platform in ["linux", "linux2"]:
+            # Avoid segfault on PyQt5 + gtk
+            pass
+        else:
+            # Get default shortcut
+            # There is no other way
+            d = qt.QFileDialog(self)
+            # Needed to be able to reach the sidebar urls
+            d.setOption(qt.QFileDialog.DontUseNativeDialog, True)
+            urls = d.sidebarUrls()
+            d.deleteLater()
+            d = None
+
+        if len(urls) == 0:
+            urls.append(qt.QUrl("file://"))
+            urls.append(qt.QUrl("file://" + qt.QDir.homePath()))
+
+        return urls
 
     def setSelectedPath(self, path):
         selected = None
