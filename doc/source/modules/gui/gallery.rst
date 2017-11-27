@@ -200,7 +200,6 @@ Additional widgets:
           :align: center
      - :class:`ScalarFieldView` is a :class:`Plot3DWindow` dedicated to display 3D scalar field.
        It can display iso-surfaces and an interactive cutting plane.
-       Sample code: :doc:`plot3d/viewer3dvolume_example`.
    * - .. image:: plot3d/img/Plot3DWindow.png
           :height: 150px
           :align: center
@@ -216,7 +215,7 @@ Additional widgets:
          :align: center
      - :class:`SFViewParamTree` is a :class:`QTreeView` widget that can be attached to a :class:`ScalarFieldView`.
        It displays current parameters of the :class:`ScalarFieldView` and allows to modify it.
-       Sample code: :doc:`plot3d/viewer3dvolume_example`.
+       See :ref:`plot3d-sample-code`.
 
 
 :mod:`silx.gui.widgets` Widgets
