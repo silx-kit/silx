@@ -45,7 +45,131 @@ from .Plot3DAction import Plot3DAction
 _logger = logging.getLogger(__name__)
 
 
-class RotateViewport(Plot3DAction):
+class _SetViewpointAction(Plot3DAction):
+    """Base class for actions setting a Plot3DWidget viewpoint
+
+    :param parent: See :class:`QAction`
+    :param str face: The name of the predefined viewpoint
+    :param Plot3DWidget plot3d: Plot3DWidget the action is associated with
+    """
+    def __init__(self, parent, face, plot3d=None):
+        super(_SetViewpointAction, self).__init__(parent, plot3d)
+        assert face in ('side', 'front', 'back', 'left', 'right', 'top', 'bottom')
+        self._face = face
+
+        self.setIconVisibleInMenu(True)
+        self.setCheckable(False)
+        self.triggered[bool].connect(self._triggered)
+
+    def _triggered(self, checked=False):
+        plot3d = self.getPlot3DWidget()
+        if plot3d is None:
+            _logger.error(
+                'Cannot start/stop rotation, no associated Plot3DWidget')
+        else:
+            plot3d.viewport.camera.extrinsic.reset(face=self._face)
+            plot3d.centerScene()
+
+
+class FrontViewpointAction(_SetViewpointAction):
+    """QAction to set Plot3DWidget viewpoint to look from the front
+
+    :param parent: See :class:`QAction`
+    :param Plot3DWidget plot3d: Plot3DWidget the action is associated with
+    """
+    def __init__(self, parent, plot3d=None):
+        super(FrontViewpointAction, self).__init__(parent, 'front', plot3d)
+
+        self.setIcon(getQIcon('cube-front'))
+        self.setText('Front')
+        self.setToolTip('View along the -Z axis')
+
+
+class BackViewpointAction(_SetViewpointAction):
+    """QAction to set Plot3DWidget viewpoint to look from the back
+
+    :param parent: See :class:`QAction`
+    :param Plot3DWidget plot3d: Plot3DWidget the action is associated with
+    """
+    def __init__(self, parent, plot3d=None):
+        super(BackViewpointAction, self).__init__(parent, 'back', plot3d)
+
+        self.setIcon(getQIcon('cube-back'))
+        self.setText('Back')
+        self.setToolTip('View along the +Z axis')
+
+
+class LeftViewpointAction(_SetViewpointAction):
+    """QAction to set Plot3DWidget viewpoint to look from the left
+
+    :param parent: See :class:`QAction`
+    :param Plot3DWidget plot3d: Plot3DWidget the action is associated with
+    """
+    def __init__(self, parent, plot3d=None):
+        super(LeftViewpointAction, self).__init__(parent, 'left', plot3d)
+
+        self.setIcon(getQIcon('cube-left'))
+        self.setText('Left')
+        self.setToolTip('View along the +X axis')
+
+
+class RightViewpointAction(_SetViewpointAction):
+    """QAction to set Plot3DWidget viewpoint to look from the right
+
+    :param parent: See :class:`QAction`
+    :param Plot3DWidget plot3d: Plot3DWidget the action is associated with
+    """
+    def __init__(self, parent, plot3d=None):
+        super(RightViewpointAction, self).__init__(parent, 'right', plot3d)
+
+        self.setIcon(getQIcon('cube-right'))
+        self.setText('Right')
+        self.setToolTip('View along the -X axis')
+
+
+class TopViewpointAction(_SetViewpointAction):
+    """QAction to set Plot3DWidget viewpoint to look from the top
+
+    :param parent: See :class:`QAction`
+    :param Plot3DWidget plot3d: Plot3DWidget the action is associated with
+    """
+    def __init__(self, parent, plot3d=None):
+        super(TopViewpointAction, self).__init__(parent, 'top', plot3d)
+
+        self.setIcon(getQIcon('cube-top'))
+        self.setText('Top')
+        self.setToolTip('View along the -Y axis')
+
+
+class BottomViewpointAction(_SetViewpointAction):
+    """QAction to set Plot3DWidget viewpoint to look from the bottom
+
+    :param parent: See :class:`QAction`
+    :param Plot3DWidget plot3d: Plot3DWidget the action is associated with
+    """
+    def __init__(self, parent, plot3d=None):
+        super(BottomViewpointAction, self).__init__(parent, 'bottom', plot3d)
+
+        self.setIcon(getQIcon('cube-bottom'))
+        self.setText('Bottom')
+        self.setToolTip('View along the +Y axis')
+
+
+class SideViewpointAction(_SetViewpointAction):
+    """QAction to set Plot3DWidget viewpoint to look from the side
+
+    :param parent: See :class:`QAction`
+    :param Plot3DWidget plot3d: Plot3DWidget the action is associated with
+    """
+    def __init__(self, parent, plot3d=None):
+        super(SideViewpointAction, self).__init__(parent, 'side', plot3d)
+
+        self.setIcon(getQIcon('cube'))
+        self.setText('Side')
+        self.setToolTip('Side view')
+
+
+class RotateViewpoint(Plot3DAction):
     """QAction to rotate the scene of a Plot3DWidget
 
     :param parent: See :class:`QAction`
@@ -59,7 +183,7 @@ class RotateViewport(Plot3DAction):
     """Rotation speed of the animation"""
 
     def __init__(self, parent, plot3d=None):
-        super(RotateViewport, self).__init__(parent, plot3d)
+        super(RotateViewpoint, self).__init__(parent, plot3d)
 
         self._previousTime = None
 

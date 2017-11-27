@@ -12,4 +12,7 @@
 .. automodule:: silx.gui.plot3d.actions.mode
    :members:
 
+.. automodule:: silx.gui.plot3d.actions.viewpoint
+   :members:
+
 .. autoclass:: Plot3DAction

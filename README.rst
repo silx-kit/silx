@@ -53,7 +53,7 @@ Beside this, we provide a certain number of wheels (pre-compiled binary packages
 onto a pre-existing Python installation:
 
 - On Windows, binary wheels are available for Python 2.7, 3.5 and 3.6.
-- On MacOS, binary wheels are available for Python 2.7, 3.4, 3.5 and 3.6.
+- On MacOS, binary wheels are available for Python 2.7, 3.5 and 3.6.
 - On Linux, manylinux1 binary wheels are available for Python 2.7, 3.4, 3.5 and 3.6.
 
 Those builds are made from "up-date" systems at the time of the release, i.e. they use

@@ -30,15 +30,34 @@ __license__ = "MIT"
 __date__ = "30/11/2016"
 
 import sys
-from ._qt import BINDING, QImageReader
+from . import _qt as qt
 
 
 def supportedImageFormats():
     """Return a set of string of file format extensions supported by the
     Qt runtime."""
-    if sys.version_info[0] < 3 or BINDING in ('PySide', 'PySide2'):
+    if sys.version_info[0] < 3 or qt.BINDING in ('PySide', 'PySide2'):
         convert = str
     else:
         convert = lambda data: str(data, 'ascii')
-    formats = QImageReader.supportedImageFormats()
+    formats = qt.QImageReader.supportedImageFormats()
     return set([convert(data) for data in formats])
+
+
+__globalThreadPoolInstance = None
+"""Store the own silx global thread pool"""
+
+
+def silxGlobalThreadPool():
+    """"Manage an own QThreadPool to avoid issue on Qt5 Windows with the
+    default Qt global thread pool.
+
+    :rtype: qt.QThreadPool
+    """
+    global __globalThreadPoolInstance
+    if __globalThreadPoolInstance is  None:
+        tp = qt.QThreadPool()
+        # This pointless command fixes a segfault with PyQt 5.9.1 on Windows
+        tp.setMaxThreadCount(tp.maxThreadCount())
+        __globalThreadPoolInstance = tp
+    return __globalThreadPoolInstance

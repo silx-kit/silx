@@ -37,7 +37,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "25/10/2017"
+__date__ = "10/11/2017"
 
 import sys
 import time
@@ -45,7 +45,10 @@ import logging
 import numpy
 from silx.opencl import ocl
 from silx.opencl.codec import byte_offset
-import fabio
+try:
+    import fabio
+except:
+    fabio = None
 import unittest
 logger = logging.getLogger(__name__)
 

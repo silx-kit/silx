@@ -201,11 +201,14 @@ class ThreadPoolPushButton(WaitingPushButton):
             return
         self.__runnerStarted()
         runner = self._createRunner(self.__callable, self.__args, self.__kwargs)
-        qt.QThreadPool.globalInstance().start(runner)
+        qt.silxGlobalThreadPool().start(runner)
         self.__runnerSet.add(runner)
 
     def __releaseRunner(self, runner):
         self.__runnerSet.remove(runner)
+
+    def hasPendingOperations(self):
+        return len(self.__runnerSet) > 0
 
     def _createRunner(self, function, args, kwargs):
         """Create a QRunnable from a callable object.

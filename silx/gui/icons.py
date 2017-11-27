@@ -328,7 +328,8 @@ def getQIcon(name):
     """
     if name not in _cached_icons:
         qfile = getQFile(name)
-        icon = qt.QIcon(qfile.fileName())
+        pixmap = qt.QPixmap(qfile.fileName())
+        icon = qt.QIcon(pixmap)
         _cached_icons[name] = icon
     else:
         icon = _cached_icons[name]
