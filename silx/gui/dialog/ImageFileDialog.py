@@ -74,8 +74,13 @@ class _ImageUri(object):
 
         scheme_and_filename = elements[0].split(":", 1)
         if len(scheme_and_filename) == 2:
-            self.__scheme = scheme_and_filename[0]
-            self.__filename = scheme_and_filename[1]
+            if len(scheme_and_filename[0]) <= 2:
+                # Windows driver
+                self.__scheme = None
+                self.__filename = elements[0]
+            else:
+                self.__scheme = scheme_and_filename[0]
+                self.__filename = scheme_and_filename[1]
         else:
             self.__scheme = None
             self.__filename = scheme_and_filename[0]
