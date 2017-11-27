@@ -102,7 +102,7 @@ class SubjectItem(qt.QStandardItem):
         Overloaded method from QStandardItem. The pushData keyword tells
         the item to push data to the subject if the role is equal to EditRole.
         This is useful to let this method know if the setData method was called
-        internaly or from the view.
+        internally or from the view.
 
         :param value: the value ti set to data
         :param role: role in the item
@@ -742,8 +742,16 @@ class IsoSurfaceLevelItem(SubjectItem):
         return [subject.sigLevelChanged,
                 subject.sigVisibilityChanged]
 
+    def getEditor(self, parent, option, index):
+        return FloatEdit(parent)
+
     def setEditorData(self, editor):
+        editor.setValue(self._pullData())
         return False
+
+    def _setModelData(self, editor):
+        self._pushData(editor.value())
+        return True
 
     def _pullData(self):
         return self.subject.getLevel()
