@@ -40,6 +40,7 @@ import fabio
 from silx.gui import qt
 from silx.gui.test import utils
 from ..ImageFileDialog import ImageFileDialog
+from ..ImageFileDialog import _ImageUri
 from silx.gui.plot.Colormap import Colormap
 from silx.gui.hdf5 import Hdf5TreeModel
 
@@ -121,6 +122,105 @@ class _UtilsMixin(object):
         if path1_ == path2_:
             # Use the unittest API to log and display error
             self.assertNotEquals(path1, path2)
+
+
+class TestImageUri(unittest.TestCase):
+
+    def testRelativeFilename(self):
+        uri = _ImageUri("foobar.edf")
+        self.assertTrue(uri.isValid())
+        self.assertEqual(uri.scheme(), None)
+        self.assertEqual(uri.filename(), "foobar.edf")
+        self.assertEqual(uri.dataPath(), None)
+        self.assertEqual(uri.slice(), None)
+
+    def testAbsoluteFilename(self):
+        uri = _ImageUri("/foo/foobar.edf")
+        self.assertTrue(uri.isValid())
+        self.assertEqual(uri.scheme(), None)
+        self.assertEqual(uri.filename(), "/foo/foobar.edf")
+        self.assertEqual(uri.dataPath(), None)
+        self.assertEqual(uri.slice(), None)
+
+    def testDataPath(self):
+        uri = _ImageUri("/foo/foobar.h5::/foo/bar")
+        self.assertTrue(uri.isValid())
+        self.assertEqual(uri.scheme(), None)
+        self.assertEqual(uri.filename(), "/foo/foobar.h5")
+        self.assertEqual(uri.dataPath(), "/foo/bar")
+        self.assertEqual(uri.slice(), None)
+
+    def testSlice(self):
+        uri = _ImageUri("/foo/foobar.h5::/foo/bar[5,1]")
+        self.assertTrue(uri.isValid())
+        self.assertEqual(uri.scheme(), None)
+        self.assertEqual(uri.filename(), "/foo/foobar.h5")
+        self.assertEqual(uri.dataPath(), "/foo/bar")
+        self.assertEqual(uri.slice(), [5, 1])
+
+    def testWindowsPathDataSlice(self):
+        uri = _ImageUri("C:/foo/foobar.h5::/foo/bar[5,1]")
+        self.assertTrue(uri.isValid())
+        self.assertEqual(uri.scheme(), None)
+        self.assertEqual(uri.filename(), "C:/foo/foobar.h5")
+        self.assertEqual(uri.dataPath(), "/foo/bar")
+        self.assertEqual(uri.slice(), [5, 1])
+
+    def testSchemePathDataSlice(self):
+        uri = _ImageUri("silx:/foo/foobar.h5::/foo/bar[5,1]")
+        self.assertTrue(uri.isValid())
+        self.assertEqual(uri.scheme(), "silx")
+        self.assertEqual(uri.filename(), "/foo/foobar.h5")
+        self.assertEqual(uri.dataPath(), "/foo/bar")
+        self.assertEqual(uri.slice(), [5, 1])
+
+    def testSchemeWindowsPathDataSlice(self):
+        uri = _ImageUri("silx:C:/foo/foobar.h5::/foo/bar[5,1]")
+        self.assertTrue(uri.isValid())
+        self.assertEqual(uri.scheme(), "silx")
+        self.assertEqual(uri.filename(), "C:/foo/foobar.h5")
+        self.assertEqual(uri.dataPath(), "/foo/bar")
+        self.assertEqual(uri.slice(), [5, 1])
+
+    def testEmpty(self):
+        uri = _ImageUri("")
+        self.assertTrue(uri.isValid())
+        self.assertEqual(uri.scheme(), None)
+        self.assertEqual(uri.filename(), "")
+        self.assertEqual(uri.dataPath(), None)
+        self.assertEqual(uri.slice(), None)
+
+    def testBadSlice(self):
+        uri = _ImageUri("/foo/foobar.h5::/foo/bar[5,,1]")
+        self.assertFalse(uri.isValid())
+        self.assertEqual(uri.scheme(), None)
+        self.assertEqual(uri.filename(), "/foo/foobar.h5")
+        self.assertEqual(uri.dataPath(), "/foo/bar")
+        self.assertEqual(uri.slice(), None)
+
+    def testBadSlice2(self):
+        uri = _ImageUri("/foo/foobar.h5::/foo/bar[5")
+        self.assertFalse(uri.isValid())
+        self.assertEqual(uri.scheme(), None)
+        self.assertEqual(uri.filename(), "/foo/foobar.h5")
+        self.assertEqual(uri.dataPath(), "/foo/bar")
+        self.assertEqual(uri.slice(), None)
+
+    def testBadSlice3(self):
+        uri = _ImageUri("/foo/foobar.h5::/foo/bar[]")
+        self.assertFalse(uri.isValid())
+        self.assertEqual(uri.scheme(), None)
+        self.assertEqual(uri.filename(), "/foo/foobar.h5")
+        self.assertEqual(uri.dataPath(), "/foo/bar")
+        self.assertEqual(uri.slice(), None)
+
+    def testBadScheme(self):
+        uri = _ImageUri("foo:/foo/foobar.h5::/foo/bar[5,1]")
+        self.assertFalse(uri.isValid())
+        self.assertEqual(uri.scheme(), "foo")
+        self.assertEqual(uri.filename(), "/foo/foobar.h5")
+        self.assertEqual(uri.dataPath(), "/foo/bar")
+        self.assertEqual(uri.slice(), [5, 1])
 
 
 class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
@@ -742,6 +842,7 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
 def suite():
     test_suite = unittest.TestSuite()
     loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
+    test_suite.addTest(loadTests(TestImageUri))
     test_suite.addTest(loadTests(TestImageFileDialogInteraction))
     test_suite.addTest(loadTests(TestImageFileDialogApi))
     return test_suite
