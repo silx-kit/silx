@@ -77,7 +77,7 @@ class Item3D(qt.QObject):
     """
 
     def __init__(self, parent, primitive=None):
-        super(Item3D, self).__init__(parent)
+        qt.QObject.__init__(self, parent)
 
         if primitive is None:
             primitive = scene.Group()

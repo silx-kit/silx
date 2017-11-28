@@ -34,6 +34,7 @@ import numpy
 from silx.math.combo import min_max
 from ... import qt
 
+from ...plot.items.core import ItemMixInBase
 from ...plot.items.core import ColormapMixIn as _ColormapMixIn
 from ...plot.items.core import SymbolMixIn as _SymbolMixIn
 from ...plot.Colors import rgba
@@ -42,7 +43,7 @@ from ..scene import primitives
 from .core import Item3DChangedType, ItemChangedType
 
 
-class InterpolationMixIn(object):
+class InterpolationMixIn(ItemMixInBase):
     """Mix-in class for image interpolation mode
 
     :param str mode: 'linear' (default) or 'nearest'
@@ -189,7 +190,7 @@ class SymbolMixIn(_SymbolMixIn):
             return symbol, size
 
 
-class PlaneMixIn(object):
+class PlaneMixIn(ItemMixInBase):
     """Mix-in class for plane items (based on PlaneInGroup primitive)"""
 
     def __init__(self, plane):
