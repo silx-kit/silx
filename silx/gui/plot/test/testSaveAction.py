@@ -26,7 +26,7 @@
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "28/11/2011"
+__date__ = "28/11/2017"
 
 
 import unittest
