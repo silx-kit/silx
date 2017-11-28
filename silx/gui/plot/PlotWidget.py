@@ -2533,6 +2533,7 @@ class PlotWidget(qt.QMainWindow):
         if ddict['event'] in ["legendClicked", "curveClicked"]:
             if ddict['button'] == "left":
                 self.setActiveCurve(ddict['label'])
+                qt.QToolTip.showText(self.cursor().pos(), ddict['label'])
 
     def saveGraph(self, filename, fileFormat=None, dpi=None, **kw):
         """Save a snapshot of the plot.
