@@ -28,7 +28,7 @@ This module contains an :class:`ImageFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "27/11/2017"
+__date__ = "28/11/2017"
 
 import sys
 import os
@@ -646,8 +646,8 @@ class _Browser(qt.QStackedWidget):
         """
         stream = qt.QDataStream(state, qt.QIODevice.ReadOnly)
 
-        nameId = stream.readString()
-        if nameId != b"Browser":
+        nameId = stream.readQString()
+        if nameId != "Browser":
             _logger.warning("Stored state contains an invalid name id. Browser restoration cancelled.")
             return False
 
@@ -671,8 +671,8 @@ class _Browser(qt.QStackedWidget):
         data = qt.QByteArray()
         stream = qt.QDataStream(data, qt.QIODevice.WriteOnly)
 
-        nameId = b"Browser"
-        stream.writeString(nameId)
+        nameId = u"Browser"
+        stream.writeQString(nameId)
         stream.writeInt32(self.__serialVersion)
         stream.writeQVariant(self.__detailView.header().saveState())
         stream.writeInt32(self.viewMode())
@@ -1736,8 +1736,8 @@ class ImageFileDialog(qt.QDialog):
         """
         stream = qt.QDataStream(state, qt.QIODevice.ReadOnly)
 
-        qualifiedName = stream.readString()
-        if qualifiedName.decode("ascii") != self.qualifiedName():
+        qualifiedName = stream.readQString()
+        if qualifiedName != self.qualifiedName():
             _logger.warning("Stored state contains an invalid qualified name. ImageFileDialog restoration cancelled.")
             return False
 
@@ -1751,9 +1751,7 @@ class ImageFileDialog(qt.QDialog):
         splitterData = stream.readQVariant()
         sidebarUrls = stream.readQStringList()
         history = stream.readQStringList()
-        workingDirectory = stream.readString()
-        if workingDirectory is not None:
-            workingDirectory = workingDirectory.decode("utf-8")
+        workingDirectory = stream.readQString()
         browserData = stream.readQVariant()
         viewMode = stream.readInt32()
         colormap = _silxutils.readColormap(stream)
@@ -1781,14 +1779,14 @@ class ImageFileDialog(qt.QDialog):
         stream = qt.QDataStream(data, qt.QIODevice.WriteOnly)
 
         s = self.qualifiedName()
-        stream.writeString(s.encode("ascii"))
+        stream.writeQString(u"%s" % s)
         stream.writeInt32(self.__serialVersion)
         stream.writeQVariant(self.__splitter.saveState())
         strings = [u"%s" % s.toString() for s in self.__sidebar.urls()]
         stream.writeQStringList(strings)
         strings = [u"%s" % s for s in self.history()]
         stream.writeQStringList(strings)
-        stream.writeString(self.directory().encode("utf-8"))
+        stream.writeQString(u"%s" % self.directory())
         stream.writeQVariant(self.__browser.saveState())
         stream.writeInt32(self.viewMode())
         _silxutils.writeColormap(stream, self.colormap())

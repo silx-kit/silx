@@ -28,9 +28,10 @@ This module contains utilitaries that should be moved into silx.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "21/11/2017"
+__date__ = "28/11/2017"
 
 import fabio
+from silx.third_party import six
 from silx.gui import qt
 from silx.gui.hdf5.Hdf5TreeModel import Hdf5TreeModel
 from silx.gui.plot.Colormap import Colormap
@@ -159,7 +160,7 @@ def readColormap(stream):
 
     :param qt.QDataStream stream: Stream containing the state
     """
-    className = stream.readString().decode("ascii")
+    className = stream.readQString()
     if className != Colormap.__name__:
         return None
 
@@ -170,7 +171,7 @@ def readColormap(stream):
     isNone = stream.readBool()
     if isNone:
         return None
-    name = stream.readString().decode("ascii")
+    name = stream.readQString()
     isNull = stream.readBool()
     if not isNull:
         vmin = stream.readQVariant()
@@ -181,7 +182,7 @@ def readColormap(stream):
         vmax = stream.readQVariant()
     else:
         vmax = None
-    normalization = stream.readString().decode("ascii")
+    normalization = stream.readQString()
     return Colormap(name=name, normalization=normalization, vmin=vmin, vmax=vmax)
 
 
@@ -192,16 +193,16 @@ def writeColormap(stream, colormap):
     :param qt.QDataStream stream: Stream to write the colormap
     :param silx.gui.plot.Colormap.Colormap colormap: The colormap
     """
-    stream.writeString(Colormap.__name__.encode("ascii"))
+    stream.writeQString(Colormap.__name__)
     stream.writeUInt32(_colormapVersionSerial)
     stream.writeBool(colormap is None)
     if colormap is None:
         return
-    stream.writeString(colormap.getName().encode("ascii"))
+    stream.writeQString(colormap.getName())
     stream.writeBool(colormap.getVMin() is None)
     if colormap.getVMin() is not None:
         stream.writeQVariant(colormap.getVMin())
     stream.writeBool(colormap.getVMax() is None)
     if colormap.getVMax() is not None:
         stream.writeQVariant(colormap.getVMax())
-    stream.writeString(colormap.getNormalization().encode("ascii"))
+    stream.writeQString(colormap.getNormalization())
