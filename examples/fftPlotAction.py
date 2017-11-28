@@ -179,7 +179,7 @@ y2 = numpy.cos(twopi * 7 * (x - numpy.pi / 3))
 # 5 periods of square wave, amplitude 2
 y3 = numpy.zeros_like(x)
 for i in [0, 2, 4, 6, 8]:
-    y3[i * len(x) / 10:(i + 1) * len(x) / 10] = 2
+    y3[i * len(x) // 10:(i + 1) * len(x) // 10] = 2
 
 plotwin.addCurve(x, y1, legend="sin")
 plotwin.addCurve(x, y2, legend="cos")
