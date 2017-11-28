@@ -226,8 +226,8 @@ class SaveAction(PlotAction):
         curve = curves[0]
         scanno = 1
         try:
-            xlabel = curve.getXLabel() or self.plot.getGraphXlabel()
-            ylabel = curve.getYLabel() or self.plot.getGraphYlabel(curve.getYAxis())
+            xlabel = curve.getXLabel() or self.plot.getGraphXLabel()
+            ylabel = curve.getYLabel() or self.plot.getGraphYLabel(curve.getYAxis())
             specfile = savespec(filename,
                                 curve.getXData(copy=False),
                                 curve.getYData(copy=False),
@@ -243,8 +243,8 @@ class SaveAction(PlotAction):
         for curve in curves[1:]:
             try:
                 scanno += 1
-                xlabel = curve.getXLabel() or self.plot.getGraphXlabel()
-                ylabel = curve.getYLabel() or self.plot.getGraphYlabel(curve.getYAxis())
+                xlabel = curve.getXLabel() or self.plot.getGraphXLabel()
+                ylabel = curve.getYLabel() or self.plot.getGraphYLabel(curve.getYAxis())
                 specfile = savespec(specfile,
                                     curve.getXData(copy=False),
                                     curve.getYData(copy=False),
