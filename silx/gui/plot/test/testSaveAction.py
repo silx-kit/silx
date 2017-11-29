@@ -77,7 +77,7 @@ class TestSaveAction(unittest.TestCase):
 
             # graph X&Y labels are used when no curve label is specified
             self.assertIn("#S 2 graph y label", file_content)
-            self.assertIn("#L curve0 X  curve0 Y", file_content)
+            self.assertIn("#L curve1 X  graph y label", file_content)
 
             self.assertIn("#S 3 curve2 Y", file_content)
             self.assertIn("#L graph x label  curve2 Y", file_content)
