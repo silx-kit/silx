@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This package provides classes that describes :class:`.SceneView` content.
+"""This package provides classes that describes :class:`.SceneWidget` content.
 """
 
 from __future__ import absolute_import

@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides a window to view data sets in 3D."""
+"""This module provides a widget to view data sets in 3D."""
 
 from __future__ import absolute_import
 
@@ -30,26 +30,24 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "26/10/2017"
 
-import logging
-
 import numpy
 
 from .. import qt
 from ..plot.Colors import rgba
 
-from .Plot3DWindow import Plot3DWindow
+from .Plot3DWidget import Plot3DWidget
 from .scene import axes
 from . import items
 
 
-_logger = logging.getLogger(__name__)
+__all__ = ['items', 'SceneWidget']
 
 
-class SceneView(Plot3DWindow):
+class SceneWidget(Plot3DWidget):
     """Widget displaying data sets in 3D"""
 
     def __init__(self, parent=None):
-        super(SceneView, self).__init__(parent)
+        super(SceneWidget, self).__init__(parent)
         self._items = []
 
         self._foregroundColor = 1., 1., 1., 1.
@@ -59,7 +57,7 @@ class SceneView(Plot3DWindow):
 
         self._bbox = axes.LabelledAxes()
         self._bbox.children = [self._sceneGroup._getScenePrimitive()]
-        self.getPlot3DWidget().viewport.scene.children.append(self._bbox)
+        self.viewport.scene.children.append(self._bbox)
 
     def getSceneGroup(self):
         """Returns the root group of the scene
@@ -71,7 +69,7 @@ class SceneView(Plot3DWindow):
     # Add/remove items
 
     def add3DScalarField(self, data, copy=True, index=None):
-        """Add 3D scalar data volume to :class:`SceneView` content.
+        """Add 3D scalar data volume to :class:`SceneWidget` content.
 
         Dataset order is zyx (i.e., first dimension is z).
 
@@ -91,7 +89,7 @@ class SceneView(Plot3DWindow):
         return volume
 
     def add3DScatter(self, x, y, z, value, copy=True, index=None):
-        """Add 3D scatter data to :class:`SceneView` content.
+        """Add 3D scatter data to :class:`SceneWidget` content.
 
         :param numpy.ndarray x: Array of X coordinates (single value not accepted)
         :param y: Points Y coordinate (array-like or single value)
@@ -111,7 +109,7 @@ class SceneView(Plot3DWindow):
         return scatter3d
 
     def add2DScatter(self, x, y, value, copy=True, index=None):
-        """Add 2D scatter data to :class:`SceneView` content.
+        """Add 2D scatter data to :class:`SceneWidget` content.
 
         Provided arrays must have the same length.
 
@@ -131,7 +129,7 @@ class SceneView(Plot3DWindow):
         return scatter2d
 
     def addImage(self, data, copy=True, index=None):
-        """Add a 2D data or RGB(A) image to :class:`SceneView` content.
+        """Add a 2D data or RGB(A) image to :class:`SceneWidget` content.
 
         2D data is casted to float32.
         RGBA supported formats are: float32 in [0, 1] and uint8.
@@ -158,17 +156,17 @@ class SceneView(Plot3DWindow):
         return image
 
     def addItem(self, item, index=None):
-        """Add an item to :class:`SceneView` content
+        """Add an item to :class:`SceneWidget` content
 
         :param Item3D item: The item  to add
         :param int index: The index at which to place the item.
                           By default it is appended to the end of the list.
-        :raise ValueError: If the item is already in the :class:`SceneView`.
+        :raise ValueError: If the item is already in the :class:`SceneWidget`.
         """
         return self.getSceneGroup().addItem(item, index)
 
     def removeItem(self, item):
-        """Remove an item from :class:`SceneView` content.
+        """Remove an item from :class:`SceneWidget` content.
 
         :param Item3D item: The item to remove from the scene
         :raises ValueError: If the item does not belong to the group
@@ -176,7 +174,7 @@ class SceneView(Plot3DWindow):
         return self.getSceneGroup().removeItem(item)
 
     def getItems(self):
-        """Returns the list of :class:`SceneView` items.
+        """Returns the list of :class:`SceneWidget` items.
 
         Only items in the top-level group are returned.
 
@@ -185,7 +183,7 @@ class SceneView(Plot3DWindow):
         return self.getSceneGroup().getItems()
 
     def clearItems(self):
-        """Remove all item from :class:`SceneView`."""
+        """Remove all item from :class:`SceneWidget`."""
         return self.getSceneGroup().clear()
 
     # Axes labels
@@ -238,7 +236,7 @@ class SceneView(Plot3DWindow):
     def getAxesLabels(self):
         """Returns the text labels of the axes
 
-        >>> widget = SceneView()
+        >>> widget = SceneWidget()
         >>> widget.setAxesLabels(xlabel='X')
 
         You can get the labels either as a 3-tuple:

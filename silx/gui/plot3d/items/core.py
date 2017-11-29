@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides the base class for items of the :class:`.SceneView`.
+"""This module provides the base class for items of the :class:`.SceneWidget`.
 """
 
 from __future__ import absolute_import
