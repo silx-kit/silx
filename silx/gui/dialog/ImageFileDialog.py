@@ -1124,7 +1124,7 @@ class ImageFileDialog(qt.QDialog):
     def __navigateToParentFile(self):
         index = self.__browser.rootIndex()
         if index.model() is self.__dataModel:
-            index = _silxutils.indexFromH5Object(self.__dataModel, self.__h5)
+            index = self.__dataModel.indexFromH5Object(self.__h5)
             self.__browser.setRootIndex(index)
             self.__browser.selectIndex(qt.QModelIndex())
             self.__updatePath()
@@ -1320,7 +1320,7 @@ class ImageFileDialog(qt.QDialog):
             loaded = self.__openFile(path)
             if loaded:
                 if self.__h5 is not None:
-                    index = _silxutils.indexFromH5Object(self.__dataModel, self.__h5)
+                    index = self.__dataModel.indexFromH5Object(self.__h5)
                     self.__browser.setRootIndex(index)
                 elif self.__fabio is not None:
                     data = _FabioData(self.__fabio)
@@ -1559,7 +1559,7 @@ class ImageFileDialog(qt.QDialog):
                         loaded = self.__openFile(uri.filename())
                     if loaded:
                         if self.__h5 is not None:
-                            rootIndex = _silxutils.indexFromH5Object(self.__dataModel, self.__h5)
+                            rootIndex = self.__dataModel.indexFromH5Object(self.__h5)
                         elif self.__fabio is not None:
                             index = self.__fileModel.index(uri.filename())
                             rootIndex = index
@@ -1582,11 +1582,11 @@ class ImageFileDialog(qt.QDialog):
                                 self.__browser.setRootIndex(rootIndex)
                                 self.__clearData()
                             elif silx.io.is_group(obj):
-                                index = _silxutils.indexFromH5Object(rootIndex.model(), obj)
+                                index = self.__dataModel.indexFromH5Object(obj)
                                 self.__browser.setRootIndex(index)
                                 self.__clearData()
                             else:
-                                index = _silxutils.indexFromH5Object(rootIndex.model(), obj)
+                                index = self.__dataModel.indexFromH5Object(obj)
                                 self.__browser.setRootIndex(index.parent())
                                 self.__browser.selectIndex(index)
                         else:
