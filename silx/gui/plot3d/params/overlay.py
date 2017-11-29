@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,19 +23,37 @@
 #
 # ###########################################################################*/
 """
-This module provides building blocks for tree widgets to set/view parameters.
+This module provides a parameter tree color item and associated color editor.
 """
 
 from __future__ import absolute_import
 
-__authors__ = ["T. Vincent"]
+__authors__ = ["D. N."]
 __license__ = "MIT"
-__date__ = "24/11/2017"
+__date__ = "02/10/2017"
 
 
-from .color import (BackgroundColorItem, ColorItem, ColorEditor,  # noqa
-                    ForegroundColorItem, HighlightColorItem)  # noqa
-from .light import DirectionalLightItem  # noqa
-from .overlay import OrientationIndicatorItem  # noqa
-from .SubjectItem import SubjectItem  # noqa
-from .TreeView import TreeView, TreeViewModelBase  # noqa
+from ... import qt
+from .SubjectItem import SubjectItem
+
+
+class OrientationIndicatorItem(SubjectItem):
+    """Plot3DWidget orientation indicator visibility item.
+
+    Item is checkable.
+
+    Subject is a Plot3DWidget.
+    """
+    ITEM_NAME = 'Axes indicator'
+
+    def _init(self):
+        plot3d = self.getSubject()
+        visible = plot3d.isOrientationIndicatorVisible()
+        self.setCheckable(True)
+        self.setCheckState(qt.Qt.Checked if visible else qt.Qt.Unchecked)
+
+    def leftClicked(self):
+        plot3d = self.getSubject()
+        checked = (self.checkState() == qt.Qt.Checked)
+        if checked != plot3d.isOrientationIndicatorVisible():
+            plot3d.setOrientationIndicatorVisible(checked)

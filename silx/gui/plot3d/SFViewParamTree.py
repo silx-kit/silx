@@ -67,26 +67,6 @@ class BoundingBoxItem(params.SubjectItem):
             self.getSubject().setBoundingBoxVisible(checked)
 
 
-class OrientationIndicatorItem(params.SubjectItem):
-    """Orientation indicator visibility item.
-
-    Item is checkable.
-    """
-    ITEM_NAME = 'Axes indicator'
-
-    def _init(self):
-        plot3d = self.getSubject().getPlot3DWidget()
-        visible = plot3d.isOrientationIndicatorVisible()
-        self.setCheckable(True)
-        self.setCheckState(qt.Qt.Checked if visible else qt.Qt.Unchecked)
-
-    def leftClicked(self):
-        plot3d = self.getSubject().getPlot3DWidget()
-        checked = (self.checkState() == qt.Qt.Checked)
-        if checked != plot3d.isOrientationIndicatorVisible():
-            plot3d.setOrientationIndicatorVisible(checked)
-
-
 class ViewSettingsItem(qt.QStandardItem):
     """Viewport settings"""
 
@@ -99,12 +79,17 @@ class ViewSettingsItem(qt.QStandardItem):
         classes = (params.BackgroundColorItem,
                    params.ForegroundColorItem,
                    params.HighlightColorItem,
-                   BoundingBoxItem,
-                   OrientationIndicatorItem)
+                   BoundingBoxItem)
         for cls in classes:
             titleItem = qt.QStandardItem(cls.ITEM_NAME)
             titleItem.setEditable(False)
             self.appendRow([titleItem, cls(subject)])
+
+        nameItem = qt.QStandardItem(params.OrientationIndicatorItem.ITEM_NAME)
+        nameItem.setEditable(False)
+        valueItem = params.OrientationIndicatorItem(subject.getPlot3DWidget())
+        self.appendRow([nameItem, valueItem])
+
 
         nameItem = params.DirectionalLightItem(
             subject.getPlot3DWidget(), 'Light Direction')
