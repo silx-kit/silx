@@ -28,7 +28,7 @@ This module contains utilitaries that should be moved into silx.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "28/11/2017"
+__date__ = "29/11/2017"
 
 import fabio
 from silx.third_party import six
@@ -149,60 +149,3 @@ def indexFromH5Object(model, h5Object):
     if found:
         return foundIndices[-1]
     return qt.QModelIndex()
-
-
-_colormapVersionSerial = 1
-
-
-def readColormap(stream):
-    """
-    Read a colormap from a stream
-
-    :param qt.QDataStream stream: Stream containing the state
-    """
-    className = stream.readQString()
-    if className != Colormap.__name__:
-        return None
-
-    version = stream.readUInt32()
-    if version != _colormapVersionSerial:
-        return None
-
-    isNone = stream.readBool()
-    if isNone:
-        return None
-    name = stream.readQString()
-    isNull = stream.readBool()
-    if not isNull:
-        vmin = stream.readQVariant()
-    else:
-        vmin = None
-    isNull = stream.readBool()
-    if not isNull:
-        vmax = stream.readQVariant()
-    else:
-        vmax = None
-    normalization = stream.readQString()
-    return Colormap(name=name, normalization=normalization, vmin=vmin, vmax=vmax)
-
-
-def writeColormap(stream, colormap):
-    """
-    Write a colormap to a stream
-
-    :param qt.QDataStream stream: Stream to write the colormap
-    :param silx.gui.plot.Colormap.Colormap colormap: The colormap
-    """
-    stream.writeQString(Colormap.__name__)
-    stream.writeUInt32(_colormapVersionSerial)
-    stream.writeBool(colormap is None)
-    if colormap is None:
-        return
-    stream.writeQString(colormap.getName())
-    stream.writeBool(colormap.getVMin() is None)
-    if colormap.getVMin() is not None:
-        stream.writeQVariant(colormap.getVMin())
-    stream.writeBool(colormap.getVMax() is None)
-    if colormap.getVMax() is not None:
-        stream.writeQVariant(colormap.getVMax())
-    stream.writeQString(colormap.getNormalization())

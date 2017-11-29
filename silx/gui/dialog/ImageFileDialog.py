@@ -28,7 +28,7 @@ This module contains an :class:`ImageFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "28/11/2017"
+__date__ = "29/11/2017"
 
 import sys
 import os
@@ -1754,7 +1754,7 @@ class ImageFileDialog(qt.QDialog):
         workingDirectory = stream.readQString()
         browserData = stream.readQVariant()
         viewMode = stream.readInt32()
-        colormap = _silxutils.readColormap(stream)
+        colormapData = stream.readQVariant()
 
         result &= self.__splitter.restoreState(splitterData)
         sidebarUrls = [qt.QUrl(s) for s in sidebarUrls]
@@ -1765,7 +1765,7 @@ class ImageFileDialog(qt.QDialog):
             self.setDirectory(workingDirectory)
         result &= self.__browser.restoreState(browserData)
         self.setViewMode(viewMode)
-        self.setColormap(colormap)
+        result &= self.colormap().restoreState(colormapData)
 
         return result
 
@@ -1789,6 +1789,6 @@ class ImageFileDialog(qt.QDialog):
         stream.writeQString(u"%s" % self.directory())
         stream.writeQVariant(self.__browser.saveState())
         stream.writeInt32(self.viewMode())
-        _silxutils.writeColormap(stream, self.colormap())
+        stream.writeQVariant(self.colormap().saveState())
 
         return data
