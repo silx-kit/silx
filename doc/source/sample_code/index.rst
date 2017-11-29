@@ -231,14 +231,15 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
        It loads a 3D scalar data set from a file and displays iso-surfaces and
        an interactive cutting plane.
        It can also be started without providing a file.
-   * - :download:`plot3dSceneView.py <../../../examples/plot3dSceneView.py>`
-     - .. image:: img/plot3dSceneView.png
+   * - :download:`plot3dSceneWindow.py <../../../examples/plot3dSceneWindow.py>`
+     - .. image:: img/plot3dSceneWindow.png
          :height: 150px
          :align: center
-     - This script displays the different items of :class:`silx.gui.plot3d.SceneView`.
+     - This script displays the different items of :class:`~silx.gui.plot3d.SceneWindow`.
 
-       It shows the different visualizations of :class:`silx.gui.plot3d.SceneView`,
-       and illustrates the API to set those items.
+       It shows the different visualizations of :class:`~silx.gui.plot3d.SceneWindow`
+       and :class:`~silx.gui.plot3d.SceneWidget`.
+       It illustrates the API to set those items.
 
        It features:
 

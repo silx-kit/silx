@@ -1,9 +1,9 @@
 .. currentmodule:: silx.gui.plot3d
 
-:mod:`items`: SceneView items
+:mod:`items`: SceneWidget items
 =============================
 
-The following classes are items that describes the content of a :class:`SceneView`:
+The following classes are items that describes the content of a :class:`SceneWidget`:
 
 .. currentmodule:: silx.gui.plot3d.items
 

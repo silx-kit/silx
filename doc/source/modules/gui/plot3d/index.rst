@@ -23,7 +23,8 @@ The following sub-modules are available:
 
    plot3dwidget.rst
    plot3dwindow.rst
-   sceneview.rst
+   scenewidget.rst
+   scenewindow.rst
    scalarfieldview.rst
    sfviewparamtree.rst
    tools.rst
@@ -42,8 +43,3 @@ Internals
    :maxdepth: 2
 
    dev.rst
-
-.. toctree::
-   :hidden:
-
-   viewer3dvolume_example.rst

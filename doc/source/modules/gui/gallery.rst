@@ -195,12 +195,19 @@ Additional widgets:
 
    * - Widget
      - Description
-   * - .. image:: plot3d/img/SceneView.png
+   * - .. image:: plot3d/img/SceneWindow.png
           :height: 150px
           :align: center
-     - :class:`SceneView` is a :class:`Plot3DWindow` providing a 3D scene for visualizing different kind of data.
+     - :class:`SceneWindow` is a :class:`QMainWindow` embedding a 3D data visualization :class:`SceneWidget`
+       and associated toolbars.
        It can display 2D images, 2D scatter data, 3D scatter data and 3D volumes with different visualizations.
-       Sample code: See ``plot3dSceneView.py`` in :ref:`plot3d-sample-code`.
+       See ``plot3dSceneWindow.py`` in :ref:`plot3d-sample-code`.
+   * - .. image:: plot3d/img/SceneWidget.png
+          :height: 150px
+          :align: center
+     - :class:`SceneWidget` is a :class:`Plot3DWidget` providing a 3D scene for visualizing different kind of data.
+       It can display 2D images, 2D scatter data, 3D scatter data and 3D volumes with different visualizations.
+       See ``plot3dSceneWindow.py`` in :ref:`plot3d-sample-code`.
    * - .. image:: plot3d/img/ScalarFieldView.png
           :height: 150px
           :align: center
