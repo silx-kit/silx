@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "04/08/2017"
+__date__ = "28/11/2017"
 
 
 import unittest
@@ -52,6 +52,7 @@ from . import testUtilsAxis
 from . import testLimitConstraints
 from . import testComplexImageView
 from . import testImageView
+from . import testSaveAction
 
 
 def suite():
@@ -79,5 +80,6 @@ def suite():
          testUtilsAxis.suite(),
          testLimitConstraints.suite(),
          testComplexImageView.suite(),
-         testImageView.suite()])
+         testImageView.suite(),
+         testSaveAction.suite()])
     return test_suite
