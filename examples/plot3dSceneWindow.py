@@ -23,10 +23,11 @@
 #
 # ###########################################################################*/
 """
-This script displays the different items of :class:`silx.gui.plot3d.SceneView`.
+This script displays the different items of :class:`~silx.gui.plot3d.SceneWindow`.
 
-It shows the different visualizations of :class:`silx.gui.plot3d.SceneView`,
-and illustrates the API to set those items.
+It shows the different visualizations of :class:`~silx.gui.plot3d.SceneWindow`
+and :class:`~silx.gui.plot3d.SceneWidget`.
+It illustrates the API to set those items.
 
 It features:
 
@@ -47,17 +48,20 @@ __date__ = "17/11/2017"
 import numpy
 
 from silx.gui import qt
-from silx.gui.plot3d.SceneView import SceneView, items
+from silx.gui.plot3d.SceneWindow import SceneWindow, items
 
 SIZE = 1024
 
 # Create QApplication
 qapp = qt.QApplication([])
 
-# Create a SceneView widget
-sceneView = SceneView()
-sceneView.setBackgroundColor((0.8, 0.8, 0.8, 1.))
-sceneView.setForegroundColor((0.1, 0.1, 0.1, 1.))
+# Create a SceneWindow widget
+window = SceneWindow()
+
+# Get the SceneWidget contained in the window and set its colors
+sceneWidget = window.getSceneWidget()
+sceneWidget.setBackgroundColor((0.8, 0.8, 0.8, 1.))
+sceneWidget.setForegroundColor((0.1, 0.1, 0.1, 1.))
 
 
 # 2D Image ###
@@ -65,7 +69,7 @@ sceneView.setForegroundColor((0.1, 0.1, 0.1, 1.))
 # Add a dummy RGBA image
 img = numpy.random.random(3 * SIZE ** 2).reshape(SIZE, SIZE, 3)  # Dummy image
 
-imageRgba = sceneView.addImage(img)  # Add ImageRgba item to the scene
+imageRgba = sceneWidget.addImage(img)  # Add ImageRgba item to the scene
 
 # Set imageRgba transform
 imageRgba.setTranslation(SIZE*.15, SIZE*.15, 0.)  # Translate the image
@@ -79,7 +83,7 @@ imageRgba.setScale(0.7, 0.7, 0.7)  # Scale down image
 
 # Add a data image
 data = numpy.arange(SIZE ** 2).reshape(SIZE, SIZE)  # Dummy data
-imageData = sceneView.addImage(data)  # Add ImageData item to the scene
+imageData = sceneWidget.addImage(data)  # Add ImageData item to the scene
 
 # Set imageData transform
 imageData.setTranslation(0., SIZE, 0.)  # Translate the image
@@ -100,7 +104,7 @@ values = numpy.exp(- 11. * ((x - .5) ** 2 + (y - .5) ** 2))
 for row, heightMap in enumerate((False, True)):
     for col, mode in enumerate(('points', 'lines', 'solid')):
         # Add a new scatter
-        item = sceneView.add2DScatter(x, y, values)
+        item = sceneWidget.add2DScatter(x, y, values)
 
         # Set 2D scatter item tranform
         item.setTranslation(SIZE + col * SIZE, row * SIZE, 0.)
@@ -119,7 +123,7 @@ for row, heightMap in enumerate((False, True)):
 # The group children share the group transform
 group = items.GroupItem()  # Create a new group item
 group.setTranslation(SIZE * 4, 0., 0.)  # Translate the group
-sceneView.addItem(group)  # Add the group as an item of the scene
+sceneWidget.addItem(group)  # Add the group as an item of the scene
 
 
 # Clipping plane ###
@@ -186,8 +190,8 @@ cutPlane.getColormap().setName('jet')  # Set cut plane's colormap
 cutPlane.setNormal((0., 0., 1.))  # Set cut plane's normal
 cutPlane.moveToCenter()  # Place the cut plane at the center of the volume
 
-# Show the SceneView widget
-sceneView.show()
+# Show the SceneWidget widget
+window.show()
 
 # Run Qt event loop
 qapp.exec_()
