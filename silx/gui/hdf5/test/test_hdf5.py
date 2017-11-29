@@ -210,9 +210,7 @@ class TestHdf5TreeModel(TestCaseQt):
             model.dropMimeData(mimeData, qt.Qt.CopyAction, 0, 0, qt.QModelIndex())
             self.assertEquals(model.rowCount(qt.QModelIndex()), 1)
             # after sync
-            time.sleep(0.1)
-            self.qapp.processEvents()
-            time.sleep(0.1)
+            self.waitForPendingOperations(model)
             index = model.index(0, 0, qt.QModelIndex())
             self.assertIsInstance(model.nodeFromIndex(index), hdf5.Hdf5Item.Hdf5Item)
             # clean up
