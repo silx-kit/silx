@@ -49,43 +49,12 @@ _logger = logging.getLogger(__name__)
 
 # View settings ###############################################################
 
-
-class BackgroundColorItem(params.ColorItem):
-    itemName = 'Background'
-
-    def setColor(self, color):
-        self.getSubject().setBackgroundColor(color)
-
-    def getColor(self):
-        return self.getSubject().getBackgroundColor()
-
-
-class ForegroundColorItem(params.ColorItem):
-    itemName = 'Foreground'
-
-    def setColor(self, color):
-        self.getSubject().setForegroundColor(color)
-
-    def getColor(self):
-        return self.getSubject().getForegroundColor()
-
-
-class HighlightColorItem(params.ColorItem):
-    itemName = 'Highlight'
-
-    def setColor(self, color):
-        self.getSubject().setHighlightColor(color)
-
-    def getColor(self):
-        return self.getSubject().getHighlightColor()
-
-
 class BoundingBoxItem(params.SubjectItem):
     """Bounding box, axes labels and grid visibility item.
 
     Item is checkable.
     """
-    itemName = 'Bounding Box'
+    ITEM_NAME = 'Bounding Box'
 
     def _init(self):
         visible = self.getSubject().isBoundingBoxVisible()
@@ -103,7 +72,7 @@ class OrientationIndicatorItem(params.SubjectItem):
 
     Item is checkable.
     """
-    itemName = 'Axes indicator'
+    ITEM_NAME = 'Axes indicator'
 
     def _init(self):
         plot3d = self.getSubject().getPlot3DWidget()
@@ -127,13 +96,13 @@ class ViewSettingsItem(qt.QStandardItem):
 
         self.setEditable(False)
 
-        classes = (BackgroundColorItem,
-                   ForegroundColorItem,
-                   HighlightColorItem,
+        classes = (params.BackgroundColorItem,
+                   params.ForegroundColorItem,
+                   params.HighlightColorItem,
                    BoundingBoxItem,
                    OrientationIndicatorItem)
         for cls in classes:
-            titleItem = qt.QStandardItem(cls.itemName)
+            titleItem = qt.QStandardItem(cls.ITEM_NAME)
             titleItem.setEditable(False)
             self.appendRow([titleItem, cls(subject)])
 

@@ -154,3 +154,51 @@ class ColorItem(SubjectItem):
         """
         raise NotImplementedError(
             "This method must be implemented in subclass")
+
+
+class BackgroundColorItem(ColorItem):
+    """Background color item.
+
+    Subject must have get|setBackgroundColor methods.
+    """
+
+    ITEM_NAME = 'Background'
+    """Description (title) of the item"""
+
+    def setColor(self, color):
+        self.getSubject().setBackgroundColor(color)
+
+    def getColor(self):
+        return self.getSubject().getBackgroundColor()
+
+
+class ForegroundColorItem(ColorItem):
+    """Foreground color item.
+
+    Subject must have get|setForegroundColor methods.
+    """
+
+    ITEM_NAME = 'Foreground'
+    """Description (title) of the item"""
+
+    def setColor(self, color):
+        self.getSubject().setForegroundColor(color)
+
+    def getColor(self):
+        return self.getSubject().getForegroundColor()
+
+
+class HighlightColorItem(ColorItem):
+    """Highlight color item.
+
+    Subject must have get|setHightlightColor methods.
+    """
+
+    ITEM_NAME = 'Highlight'
+    """Description (title) of the item"""
+
+    def setColor(self, color):
+        self.getSubject().setHighlightColor(color)
+
+    def getColor(self):
+        return self.getSubject().getHighlightColor()
