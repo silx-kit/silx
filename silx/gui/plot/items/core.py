@@ -136,7 +136,7 @@ class Item(qt.QObject):
     """
 
     def __init__(self):
-        super(Item, self).__init__()
+        qt.QObject.__init__(self)
         self._dirty = True
         self._plotRef = None
         self._visible = True
@@ -312,7 +312,24 @@ class Item(qt.QObject):
 
 # Mix-in classes ##############################################################
 
-class LabelsMixIn(object):
+class ItemMixInBase(qt.QObject):
+    """Base class for Item mix-in"""
+
+    def _updated(self, event=None, checkVisibility=True):
+        """This is implemented in :class:`Item`.
+
+        Mark the item as dirty (i.e., needing update).
+        This also triggers Plot.replot.
+
+        :param event: The event to send to :attr:`sigItemChanged` signal.
+        :param bool checkVisibility: True to only mark as dirty if visible,
+                                     False to always mark as dirty.
+        """
+        raise RuntimeError(
+            "Issue with Mix-In class inheritance order")
+
+
+class LabelsMixIn(ItemMixInBase):
     """Mix-in class for items with x and y labels
 
     Setters are private, otherwise it needs to check the plot
@@ -352,7 +369,7 @@ class LabelsMixIn(object):
         self._ylabel = str(label)
 
 
-class DraggableMixIn(object):
+class DraggableMixIn(ItemMixInBase):
     """Mix-in class for draggable items"""
 
     def __init__(self):
@@ -375,7 +392,7 @@ class DraggableMixIn(object):
         self._draggable = bool(draggable)
 
 
-class ColormapMixIn(object):
+class ColormapMixIn(ItemMixInBase):
     """Mix-in class for items with colormap"""
 
     def __init__(self):
@@ -406,7 +423,7 @@ class ColormapMixIn(object):
         self._updated(ItemChangedType.COLORMAP)
 
 
-class SymbolMixIn(object):
+class SymbolMixIn(ItemMixInBase):
     """Mix-in class for items with symbol type"""
 
     _DEFAULT_SYMBOL = ''
@@ -482,7 +499,7 @@ class SymbolMixIn(object):
             self._updated(ItemChangedType.SYMBOL_SIZE)
 
 
-class LineMixIn(object):
+class LineMixIn(ItemMixInBase):
     """Mix-in class for item with line"""
 
     _DEFAULT_LINEWIDTH = 1.
@@ -542,7 +559,7 @@ class LineMixIn(object):
             self._updated(ItemChangedType.LINE_STYLE)
 
 
-class ColorMixIn(object):
+class ColorMixIn(ItemMixInBase):
     """Mix-in class for item with color"""
 
     _DEFAULT_COLOR = (0., 0., 0., 1.)
@@ -581,7 +598,7 @@ class ColorMixIn(object):
         self._updated(ItemChangedType.COLOR)
 
 
-class YAxisMixIn(object):
+class YAxisMixIn(ItemMixInBase):
     """Mix-in class for item with yaxis"""
 
     _DEFAULT_YAXIS = 'left'
@@ -611,7 +628,7 @@ class YAxisMixIn(object):
             self._updated(ItemChangedType.YAXIS)
 
 
-class FillMixIn(object):
+class FillMixIn(ItemMixInBase):
     """Mix-in class for item with fill"""
 
     def __init__(self):
@@ -635,7 +652,7 @@ class FillMixIn(object):
             self._updated(ItemChangedType.FILL)
 
 
-class AlphaMixIn(object):
+class AlphaMixIn(ItemMixInBase):
     """Mix-in class for item with opacity"""
 
     def __init__(self):
