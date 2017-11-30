@@ -43,7 +43,7 @@ else:
 
 __authors__ = ["P. Knobel", "V. Valls"]
 __license__ = "MIT"
-__date__ = "28/09/2017"
+__date__ = "29/11/2017"
 
 
 logger = logging.getLogger(__name__)
@@ -51,6 +51,38 @@ logger = logging.getLogger(__name__)
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)  # noqa
 
 builtin_open = open
+
+
+def supported_extensions(flat_formats=True):
+    """Returns the list file extensions supported by `silx.open`.
+
+    The result filter out formats when the expected module is not available.
+
+    :param bool flat_formats: If true, also include flat formats like npy or
+        edf (while the expected module is available)
+    :returns: A dictionary indexed by file description and containg a set of
+        extensions (an extension is a string like "*.ext").
+    :rtype: Dict[str, Set[str]]
+    """
+    formats = {}
+    if h5py is not None:
+        formats["HDF5 files"] = set(["*.h5", "*.hdf"])
+        formats["NeXus files"] = set(["*.nx", "*.nxs", "*.h5", "*.hdf"])
+    formats["NeXus layout from spec files"] = set(["*.dat", "*.spec", "*.mca"])
+    if flat_formats:
+        try:
+            import fabioh5
+        except ImportError:
+            fabioh5 = None
+        if fabioh5 is not None:
+            formats["NeXus layout from fabio files"] = set(fabioh5.available_extensions())
+    if numpy is not None:
+        extensions = ["*.npz"]
+        if flat_formats:
+            extensions.append("*.npy")
+
+        formats["Numpy binary files"] = set(extensions)
+    return formats
 
 
 def save1D(fname, x, y, xlabel=None, ylabels=None, filetype=None,

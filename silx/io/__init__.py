@@ -36,6 +36,7 @@ from .utils import is_dataset
 from .utils import is_file
 from .utils import is_group
 from .utils import is_softlink
+from .utils import supported_extensions
 
 # avoid to import open with "import *"
 __all = locals().keys()
