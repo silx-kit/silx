@@ -437,3 +437,70 @@ class Colormap(qt.QObject):
                 self.getVMax() == other.getVMax() and
                 numpy.array_equal(self.getColormapLUT(), other.getColormapLUT())
                 )
+
+    _SERIAL_VERSION = 1
+
+    def restoreState(self, byteArray):
+        """
+        Read the colormap state from a QByteArray.
+
+        :param qt.QByteArray byteArray: Stream containing the state
+        :return: True if the restoration sussseed
+        :rtype: bool
+        """
+        stream = qt.QDataStream(byteArray, qt.QIODevice.ReadOnly)
+
+        className = stream.readQString()
+        if className != self.__class__.__name__:
+            _logger.warning("Classname mismatch. Found %s." % className)
+            return False
+
+        version = stream.readUInt32()
+        if version != self._SERIAL_VERSION:
+            _logger.warning("Serial version mismatch. Found %d." % version)
+            return False
+
+        name = stream.readQString()
+        isNull = stream.readBool()
+        if not isNull:
+            vmin = stream.readQVariant()
+        else:
+            vmin = None
+        isNull = stream.readBool()
+        if not isNull:
+            vmax = stream.readQVariant()
+        else:
+            vmax = None
+        normalization = stream.readQString()
+
+        # emit change event only once
+        old = self.blockSignals(True)
+        try:
+            self.setName(name)
+            self.setNormalization(normalization)
+            self.setVRange(vmin, vmax)
+        finally:
+            self.blockSignals(old)
+        self.sigChanged.emit()
+        return True
+
+    def saveState(self):
+        """
+        Save state of the colomap into a QDataStream.
+
+        :rtype: qt.QByteArray
+        """
+        data = qt.QByteArray()
+        stream = qt.QDataStream(data, qt.QIODevice.WriteOnly)
+
+        stream.writeQString(self.__class__.__name__)
+        stream.writeUInt32(self._SERIAL_VERSION)
+        stream.writeQString(self.getName())
+        stream.writeBool(self.getVMin() is None)
+        if self.getVMin() is not None:
+            stream.writeQVariant(self.getVMin())
+        stream.writeBool(self.getVMax() is None)
+        if self.getVMax() is not None:
+            stream.writeQVariant(self.getVMax())
+        stream.writeQString(self.getNormalization())
+        return data
