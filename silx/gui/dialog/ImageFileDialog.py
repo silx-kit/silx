@@ -28,7 +28,7 @@ This module contains an :class:`ImageFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "29/11/2017"
+__date__ = "30/11/2017"
 
 import sys
 import os
@@ -41,7 +41,6 @@ from silx.gui import qt
 from silx.gui.plot.PlotWidget import PlotWidget
 from silx.gui.hdf5.Hdf5TreeModel import Hdf5TreeModel
 from . import utils
-from . import _silxutils
 from .FileTypeComboBox import FileTypeComboBox
 from silx.third_party import six
 
@@ -1286,7 +1285,7 @@ class ImageFileDialog(qt.QDialog):
         """
         _, ext = os.path.splitext(filename)
         ext = "*%s" % ext
-        formats = _silxutils.supportedFileFormats(fabio=False)
+        formats = silx.io.supported_extensions(flat_formats=False)
         for extensions in formats.values():
             if ext in extensions:
                 return True

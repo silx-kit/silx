@@ -28,10 +28,10 @@ This module contains utilitaries used by other dialog modules.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "22/11/2017"
+__date__ = "30/11/2017"
 
 import fabio
-from . import _silxutils
+import silx.io
 from silx.gui import qt
 
 
@@ -95,7 +95,7 @@ class FileTypeComboBox(qt.QComboBox):
         self.setItemData(index, Codec(auto=True), role=self.CODEC_ROLE)
 
     def __insertSilxFormats(self):
-        formats = _silxutils.supportedFileFormats()
+        formats = silx.io.supported_extensions()
 
         extensions = []
         allExtensions = set([])
