@@ -957,7 +957,7 @@ class _NXdataCurveView(DataView):
     def setData(self, data):
         data = self.normalizeData(data)
         nxd = NXdata(data)
-        signal_name = get_attr_as_string(data, "signal")
+        signal_name = nxd.signal_name
         group_name = data.name
         if nxd.axes_dataset_names[-1] is not None:
             x_errors = nxd.get_axis_errors(nxd.axes_dataset_names[-1])
