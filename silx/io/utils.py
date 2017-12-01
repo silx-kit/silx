@@ -76,10 +76,10 @@ def supported_extensions(flat_formats=True):
             fabioh5 = None
         if fabioh5 is not None:
             formats["NeXus layout from fabio files"] = set(fabioh5.supported_extensions())
-    if numpy is not None:
-        extensions = ["*.npz"]
-        if flat_formats:
-            extensions.append("*.npy")
+
+    extensions = ["*.npz"]
+    if flat_formats:
+        extensions.append("*.npy")
 
         formats["Numpy binary files"] = set(extensions)
     return formats
