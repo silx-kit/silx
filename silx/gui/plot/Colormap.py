@@ -29,7 +29,7 @@ from __future__ import absolute_import
 
 __authors__ = ["T. Vincent", "H.Payno"]
 __license__ = "MIT"
-__date__ = "05/12/2016"
+__date__ = "29/11/2017"
 
 from silx.gui import qt
 import copy as copy_mdl
@@ -159,7 +159,7 @@ class Colormap(qt.QObject):
 
     def getColormapLUT(self):
         """Return the list of colors for the colormap or None if not set
-        
+
         :return: the list of colors for the colormap or None if not set
         :rtype: numpy.ndarray or None
         """
@@ -184,7 +184,7 @@ class Colormap(qt.QObject):
 
     def getNormalization(self):
         """Return the normalization of the colormap ('log' or 'linear')
-        
+
         :return: the normalization of the colormap
         :rtype: str
         """
@@ -200,7 +200,7 @@ class Colormap(qt.QObject):
 
     def getVMin(self):
         """Return the lower bound of the colormap
-        
+
          :return: the lower bound of the colormap
          :rtype: float or None
          """
@@ -216,7 +216,7 @@ class Colormap(qt.QObject):
         if vmin is not None:
             if self._vmax is not None and vmin >= self._vmax:
                 err = "Can't set vmin because vmin >= vmax."
-                err += "vmin = %s, vmax = %s" %(vmin, self._vmax)
+                err += "vmin = %s, vmax = %s" % (vmin, self._vmax)
                 raise ValueError(err)
 
         self._vmin = vmin
@@ -224,7 +224,7 @@ class Colormap(qt.QObject):
 
     def getVMax(self):
         """Return the upper bounds of the colormap or None
-        
+
         :return: the upper bounds of the colormap or None
         :rtype: float or None
         """
@@ -239,7 +239,7 @@ class Colormap(qt.QObject):
         if vmax is not None:
             if self._vmin is not None and vmax <= self._vmin:
                 err = "Can't set vmax because vmax <= vmin."
-                err += "vmin = %s, vmax = %s" %(self._vmin, vmax)
+                err += "vmin = %s, vmax = %s" % (self._vmin, vmax)
                 raise ValueError(err)
 
         self._vmax = vmax
@@ -308,7 +308,7 @@ class Colormap(qt.QObject):
         if vmin is not None and vmax is not None:
             if vmin >= vmax:
                 err = "Can't set vmin and vmax because vmin >= vmax"
-                err += "vmin = %s, vmax = %s" %(vmin, self._vmax)
+                err += "vmin = %s, vmax = %s" % (vmin, self._vmax)
                 raise ValueError(err)
 
         self._vmin = vmin
@@ -438,3 +438,69 @@ class Colormap(qt.QObject):
                 numpy.array_equal(self.getColormapLUT(), other.getColormapLUT())
                 )
 
+    _SERIAL_VERSION = 1
+
+    def restoreState(self, byteArray):
+        """
+        Read the colormap state from a QByteArray.
+
+        :param qt.QByteArray byteArray: Stream containing the state
+        :return: True if the restoration sussseed
+        :rtype: bool
+        """
+        stream = qt.QDataStream(byteArray, qt.QIODevice.ReadOnly)
+
+        className = stream.readQString()
+        if className != self.__class__.__name__:
+            _logger.warning("Classname mismatch. Found %s." % className)
+            return False
+
+        version = stream.readUInt32()
+        if version != self._SERIAL_VERSION:
+            _logger.warning("Serial version mismatch. Found %d." % version)
+            return False
+
+        name = stream.readQString()
+        isNull = stream.readBool()
+        if not isNull:
+            vmin = stream.readQVariant()
+        else:
+            vmin = None
+        isNull = stream.readBool()
+        if not isNull:
+            vmax = stream.readQVariant()
+        else:
+            vmax = None
+        normalization = stream.readQString()
+
+        # emit change event only once
+        old = self.blockSignals(True)
+        try:
+            self.setName(name)
+            self.setNormalization(normalization)
+            self.setVRange(vmin, vmax)
+        finally:
+            self.blockSignals(old)
+        self.sigChanged.emit()
+        return True
+
+    def saveState(self):
+        """
+        Save state of the colomap into a QDataStream.
+
+        :rtype: qt.QByteArray
+        """
+        data = qt.QByteArray()
+        stream = qt.QDataStream(data, qt.QIODevice.WriteOnly)
+
+        stream.writeQString(self.__class__.__name__)
+        stream.writeUInt32(self._SERIAL_VERSION)
+        stream.writeQString(self.getName())
+        stream.writeBool(self.getVMin() is None)
+        if self.getVMin() is not None:
+            stream.writeQVariant(self.getVMin())
+        stream.writeBool(self.getVMax() is None)
+        if self.getVMax() is not None:
+            stream.writeQVariant(self.getVMax())
+        stream.writeQString(self.getNormalization())
+        return data
