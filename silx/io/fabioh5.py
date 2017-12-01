@@ -56,8 +56,8 @@ _logger = logging.getLogger(__name__)
 _fabio_extensions = set([])
 
 
-def available_extensions():
-    """Returns all available extensions supported by fabio.
+def supported_extensions():
+    """Returns all extensions supported by fabio.
 
     :returns: A set containing extensions like "*.edf".
     :rtype: Set[str]

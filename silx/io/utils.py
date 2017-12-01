@@ -43,7 +43,7 @@ else:
 
 __authors__ = ["P. Knobel", "V. Valls"]
 __license__ = "MIT"
-__date__ = "29/11/2017"
+__date__ = "01/12/2017"
 
 
 logger = logging.getLogger(__name__)
@@ -75,7 +75,7 @@ def supported_extensions(flat_formats=True):
         except ImportError:
             fabioh5 = None
         if fabioh5 is not None:
-            formats["NeXus layout from fabio files"] = set(fabioh5.available_extensions())
+            formats["NeXus layout from fabio files"] = set(fabioh5.supported_extensions())
     if numpy is not None:
         extensions = ["*.npz"]
         if flat_formats:
