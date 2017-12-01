@@ -61,8 +61,8 @@ except ImportError:
 
 
 def arrow_start(kplist):
-#     x_ref = kplist.x
-#     y_ref = kplist.y
+    # x_ref = kplist.x
+    # y_ref = kplist.y
     angle_ref = kplist.angle
     scale_ref = kplist.scale
     x_ref2 = kplist.x + scale_ref * numpy.cos(angle_ref)
@@ -158,11 +158,11 @@ class LinearAlign(object):
             logger.warning("Reducing keypoint list from %i to %i because of the ROI" % (self.ref_kp.size, masked.sum()))
             self.ref_kp = self.ref_kp[masked]
         self.match = MatchPlan(context=self.ctx, profile=self.profile, max_workgroup_size=self.max_workgroup_size)
-#        Allocate reference keypoints on the GPU within match context:
+        # Allocate reference keypoints on the GPU within match context:
         self.buffers["ref_kp_gpu"] = pyopencl.array.to_device(self.match.queue, self.ref_kp)
         # TODO optimize match so that the keypoint2 can be optional
         self.fill_value = 0
-#        print self.ctx.devices[0]
+        # print self.ctx.devices[0]
         if self.profile:
             self.queue = pyopencl.CommandQueue(self.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
         else:
@@ -222,7 +222,6 @@ class LinearAlign(object):
                 workgroup_size = kernel_workgroup_size(program, one_function)
                 self.kernels[kernel+"."+one_function.function_name] = workgroup_size
 
-
     def _free_kernels(self):
         """
         free all kernels
@@ -235,8 +234,8 @@ class LinearAlign(object):
 
         :param img: numpy array containing the image to align to reference
         :param return_all: return in addition ot the image, keypoints, matching keypoints, and transformations as a dict
-        :param reltive: update reference keypoints with those from current image to perform relative alignment
-        :return: aligned image or all informations
+        :param relative: update reference keypoints with those from current image to perform relative alignment
+        :return: aligned image, or all informations, or None if no matching keypoints
         """
         logger.debug("ref_keypoints: %s" % self.ref_kp.size)
         if self.RGB:
@@ -249,16 +248,14 @@ class LinearAlign(object):
                 self.events.append(("Copy H->D", cpy))
             cpy.wait()
             kp = self.sift.keypoints(self.buffers["input"])
-#            print("ref %s img %s" % (self.buffers["ref_kp_gpu"].shape, kp.shape))
             logger.debug("mod image keypoints: %s" % kp.size)
             raw_matching = self.match.match(self.buffers["ref_kp_gpu"], kp, raw_results=True)
-#            print(raw_matching.max(axis=0))
 
             matching = numpy.recarray(shape=raw_matching.shape, dtype=MatchPlan.dtype_kp)
             len_match = raw_matching.shape[0]
             if len_match == 0:
                 logger.warning("No matching keypoints")
-                return
+                return None
             matching[:, 0] = self.ref_kp[raw_matching[:, 0]]
             matching[:, 1] = kp[raw_matching[:, 1]]
 
@@ -296,7 +293,6 @@ class LinearAlign(object):
                 outlayer += abs((distance - distance.mean()) / distance.std()) > 4
                 outlayer += abs((dangle - dangle.mean()) / dangle.std()) > 4
                 outlayer += abs((dscale - dscale.mean()) / dscale.std()) > 4
-#                 print(outlayer)
                 outlayersum = outlayer.sum()
                 if outlayersum > 0 and not numpy.isinf(outlayersum):
                     matching2 = matching[outlayer == 0]
@@ -325,7 +321,6 @@ class LinearAlign(object):
                     self.relative_transfo = numpy.dot(transfo, self.relative_transfo)
                 matrix = numpy.ascontiguousarray(self.relative_transfo[:2, :2], dtype=numpy.float32)
                 offset = numpy.ascontiguousarray(self.relative_transfo[:2, 2], dtype=numpy.float32)
-#                print(self.relative_transfo)
             cpy1 = pyopencl.enqueue_copy(self.queue, self.buffers["matrix"].data, matrix)
             cpy2 = pyopencl.enqueue_copy(self.queue, self.buffers["offset"].data, offset)
             if self.profile:
@@ -337,7 +332,6 @@ class LinearAlign(object):
             else:
                 shape = self.shape[1], self.shape[0]
                 transform = self.program.transform
-#             print(kernel_workgroup_size(self.program, transform), self.wg, self.ctx.devices[0].max_work_item_sizes)
             ev = transform(self.queue, calc_size(shape, self.wg), self.wg,
                            self.buffers["input"].data,
                            self.buffers["output"].data,
@@ -353,16 +347,16 @@ class LinearAlign(object):
                 self.events += [("transform", ev)]
             result = self.buffers["output"].get()
 
-#        print (self.buffers["offset"])
         if return_all:
-#            corr = numpy.dot(matrix, numpy.vstack((matching[:, 1].y, matching[:, 1].x))).T - \
-#                   offset.T - numpy.vstack((matching[:, 0].y, matching[:, 0].x)).T
+            # corr = numpy.dot(matrix, numpy.vstack((matching[:, 1].y, matching[:, 1].x))).T - \
+            #        offset.T - numpy.vstack((matching[:, 0].y, matching[:, 0].x)).T
             corr = numpy.dot(matrix, numpy.vstack((matching[:, 0].y, matching[:, 0].x))).T + offset.T - numpy.vstack((matching[:, 1].y, matching[:, 1].x)).T
             rms = numpy.sqrt((corr * corr).sum(axis=-1).mean())
 
             # Todo: calculate the RMS of deplacement and return it:
             return {"result": result, "keypoint": kp, "matching": matching, "offset": offset, "matrix": matrix, "rms": rms}
         return result
+
     __call__ = align
 
     def log_profile(self):
@@ -370,8 +364,8 @@ class LinearAlign(object):
         If we are in debugging mode, prints out all timing for every single OpenCL call
         """
         t = 0.0
-#         orient = 0.0
-#         descr = 0.0
+        # orient = 0.0
+        # descr = 0.0
         if self.profile:
             for e in self.events:
                 if "__len__" in dir(e) and len(e) >= 2:
