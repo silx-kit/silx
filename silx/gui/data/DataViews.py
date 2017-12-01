@@ -1055,7 +1055,7 @@ class _NXdataImageView(DataView):
     def setData(self, data):
         data = self.normalizeData(data)
         nxd = NXdata(data)
-        signal_name = get_attr_as_string(data, "signal")
+        signal_name = nxd.signal_name
         group_name = data.name
         y_axis, x_axis = nxd.axes[-2:]
         y_label, x_label = nxd.axes_names[-2:]
@@ -1096,7 +1096,7 @@ class _NXdataStackView(DataView):
     def setData(self, data):
         data = self.normalizeData(data)
         nxd = NXdata(data)
-        signal_name = get_attr_as_string(data, "signal")
+        signal_name = nxd.signal_name
         group_name = data.name
         z_axis, y_axis, x_axis = nxd.axes[-3:]
         z_label, y_label, x_label = nxd.axes_names[-3:]
