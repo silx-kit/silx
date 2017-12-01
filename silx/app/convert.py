@@ -50,8 +50,13 @@ def main(argv):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         'input_files',
-        nargs="+",
-        help='Input files (EDF, SPEC)')
+        nargs="*",
+        help='Input files (EDF, SPEC).')
+    # input_files and --filepattern are mutually exclusive
+    parser.add_argument(
+        '--file-pattern',
+        help='File name pattern for loading a series of indexed files'
+             '(toto_%%04d.edf). Incompatible with argument input_files')
     parser.add_argument(
         '-o', '--output-uri',
         nargs="?",
@@ -133,17 +138,32 @@ def main(argv):
 
     options = parser.parse_args(argv[1:])
 
-    # some shells (windows) don't interpret wildcard characters (*, ?, [])
-    old_input_list = list(options.input_files)
-    options.input_files = []
-    for fname in old_input_list:
-        globbed_files = glob(fname)
-        if not globbed_files:
-            # no files found, keep the name as it is, to raise an error later
-            options.input_files += [fname]
+    # mutually exclusive arguments, at least one of them is required
+    if bool(options.input_files) == bool(options.file_pattern is not None):     # XOR
+        if not options.input_files:
+            message = "You must specify either input files (at least one), "
+            message += "or a file pattern."
         else:
-            options.input_files += globbed_files
-        old_input_list = None
+            message = "You cannot specify input files and a file pattern"
+            message += " at the same time."
+        _logger.error(message)
+        return -1
+    elif options.input_files:
+        # some shells (windows) don't interpret wildcard characters (*, ?, [])
+        old_input_list = list(options.input_files)
+        options.input_files = []
+        for fname in old_input_list:
+            globbed_files = glob(fname)
+            if not globbed_files:
+                # no files found, keep the name as it is, to raise an error later
+                options.input_files += [fname]
+            else:
+                options.input_files += globbed_files
+    else:
+        options.input_files = []
+        # TODO
+        print(options.file_pattern)
+        raise NotImplementedError("TODO options.file_pattern to file list conversion")
 
     if options.debug:
         logging.root.setLevel(logging.DEBUG)
