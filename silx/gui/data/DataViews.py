@@ -964,9 +964,12 @@ class _NXdataCurveView(DataView):
         else:
             x_errors = None
 
+        x_id = nxd.axes_dataset_names[-1]
+
         self.getWidget().setCurveData(nxd.signal, nxd.axes[-1],
                                       yerror=nxd.errors, xerror=x_errors,
                                       ylabel=signal_name, xlabel=nxd.axes_names[-1],
+                                      x_id=x_id,
                                       title="NXdata group " + group_name)
 
     def getDataPriority(self, data, info):
@@ -1020,9 +1023,12 @@ class _NXdataXYVScatterView(DataView):
         else:
             y_errors = None
 
+        y_id, x_id = nxd.axes_dataset_names[-2:]
+
         self.getWidget().setCurveData(y_axis, x_axis, values=nxd.signal,
                                       yerror=y_errors, xerror=x_errors,
                                       ylabel=signal_name, xlabel=x_label,
+                                      y_id=y_id, x_id=x_id,
                                       title="NXdata group " + group_name)
 
     def getDataPriority(self, data, info):
@@ -1058,10 +1064,12 @@ class _NXdataImageView(DataView):
         group_name = data.name
         y_axis, x_axis = nxd.axes[-2:]
         y_label, x_label = nxd.axes_names[-2:]
+        y_id, x_id = nxd.axes_dataset_names[-2:]
 
         self.getWidget().setImageData(
                      nxd.signal, x_axis=x_axis, y_axis=y_axis,
                      signal_name=signal_name, xlabel=x_label, ylabel=y_label,
+                     x_id=x_id, y_id=y_id,
                      title="NXdata group %s: %s" % (group_name, signal_name))
 
     def getDataPriority(self, data, info):
@@ -1099,9 +1107,11 @@ class _NXdataStackView(DataView):
         group_name = data.name
         z_axis, y_axis, x_axis = nxd.axes[-3:]
         z_label, y_label, x_label = nxd.axes_names[-3:]
+        z_id, y_id, x_id = nxd.axes_dataset_names[-3:]
 
         self.getWidget().setStackData(
                      nxd.signal, x_axis=x_axis, y_axis=y_axis, z_axis=z_axis,
+                     x_id=x_id, y_id=y_id, z_id=z_id,
                      signal_name=signal_name,
                      xlabel=x_label, ylabel=y_label, zlabel=z_label,
                      title="NXdata group %s: %s" % (group_name, signal_name))
