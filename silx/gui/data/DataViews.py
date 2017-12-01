@@ -1007,7 +1007,7 @@ class _NXdataXYVScatterView(DataView):
     def setData(self, data):
         data = self.normalizeData(data)
         nxd = NXdata(data)
-        signal_name = get_attr_as_string(data, "signal")
+        signal_name = nxd.signal_name
         # signal_errors = nx.errors   # not supported
         group_name = data.name
         x_axis, y_axis = nxd.axes[-2:]
@@ -1027,9 +1027,10 @@ class _NXdataXYVScatterView(DataView):
 
         self.getWidget().setCurveData(y_axis, x_axis, values=nxd.signal,
                                       yerror=y_errors, xerror=x_errors,
-                                      ylabel=signal_name, xlabel=x_label,
+                                      ylabel=y_label, xlabel=x_label,
                                       y_id=y_id, x_id=x_id,
-                                      title="NXdata group " + group_name)
+                                      title="NXdata group " + group_name +
+                                            ", coloured by " + signal_name)
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)

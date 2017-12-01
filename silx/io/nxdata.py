@@ -245,9 +245,20 @@ class NXdata(object):
         """h5py-like group object compliant with NeXus NXdata specification.
         """
 
+        self.signal_dataset_name = get_attr_as_string(self.group, "signal")
+        """Name of the signal dataset.
+        This name is guaranteed to be different from all the axes dataset
+        names (:attr:`axes_dataset_names`)."""
+
         self.signal = self.group[get_attr_as_string(self.group, "signal")]
         """Signal dataset in this NXdata group.
         """
+
+        self.signal_name = get_attr_as_string(self.signal, "long_name")
+        """Signal long name, as specified in the @long_name attribute of the
+        signal dataset. If not specified, the dataset name is used."""
+        if self.signal_name is None:
+            self.signal_name = self.signal_dataset_name
 
         # ndim will be available in very recent h5py versions only
         self.signal_ndim = getattr(self.signal, "ndim",
