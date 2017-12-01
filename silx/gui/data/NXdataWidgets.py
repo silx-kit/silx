@@ -96,7 +96,6 @@ class ArrayCurvePlot(qt.QWidget):
     def setCurveData(self, y, x=None, values=None,
                      yerror=None, xerror=None,
                      ylabel=None, xlabel=None,
-                     y_id=None, x_id=None,
                      title=None):
         """
 
@@ -115,8 +114,6 @@ class ArrayCurvePlot(qt.QWidget):
         :param xerror: 1-D dataset of errors for x, or None
         :param ylabel: Label for Y axis
         :param xlabel: Label for X axis
-        :param str y_id: Unique name for Y axis.
-        :param str x_id: Unique name for X axis.
         :param title: Graph title
         """
         self.__signal = y
@@ -131,7 +128,7 @@ class ArrayCurvePlot(qt.QWidget):
             self._selector.selectionChanged.disconnect(self._updateCurve)
             self.__selector_is_connected = False
         self._selector.setData(y)
-        self._selector.setAxisNames([y_id or "Y"])
+        self._selector.setAxisNames(["Y"])
 
         if len(y.shape) < 2:
             self.selectorDock.hide()
@@ -250,7 +247,6 @@ class ArrayImagePlot(qt.QWidget):
                      x_axis=None, y_axis=None,
                      signal_name=None,
                      xlabel=None, ylabel=None,
-                     x_id=None, y_id=None,
                      title=None):
         """
 
@@ -265,8 +261,6 @@ class ArrayImagePlot(qt.QWidget):
         :param signal_name: Label used in the legend
         :param xlabel: Label for X axis
         :param ylabel: Label for Y axis
-        :param str x_id: Unique name for X axis.
-        :param str y_id: Unique name for Y axis.
         :param title: Graph title
         """
         if self.__selector_is_connected:
@@ -281,7 +275,7 @@ class ArrayImagePlot(qt.QWidget):
         self.__y_axis_name = ylabel
 
         self._selector.setData(signal)
-        self._selector.setAxisNames([y_id or "Y", x_id or "X"])
+        self._selector.setAxisNames(["Y", "X"])
 
         if len(signal.shape) < 3:
             self.selectorDock.hide()
@@ -412,7 +406,6 @@ class ArrayStackPlot(qt.QWidget):
                      x_axis=None, y_axis=None, z_axis=None,
                      signal_name=None,
                      xlabel=None, ylabel=None, zlabel=None,
-                     x_id=None, y_id=None, z_id=None,
                      title=None):
         """
 
@@ -431,9 +424,6 @@ class ArrayStackPlot(qt.QWidget):
         :param xlabel: Label for X axis
         :param ylabel: Label for Y axis
         :param zlabel: Label for Z axis
-        :param str x_id: Unique name for X axis.
-        :param str y_id: Unique name for Y axis.
-        :param str z_id: Unique name for Z axis.
         :param title: Graph title
         """
         if self.__selector_is_connected:
@@ -450,7 +440,7 @@ class ArrayStackPlot(qt.QWidget):
         self.__z_axis_name = zlabel
 
         self._selector.setData(signal)
-        self._selector.setAxisNames([y_id or "Y", x_id or "X", z_id or "Z"])
+        self._selector.setAxisNames(["Y", "X", "Z"])
 
         self._stack_view.setGraphTitle(title or "")
         # by default, the z axis is the image position (dimension not plotted)
