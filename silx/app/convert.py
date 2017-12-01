@@ -24,13 +24,11 @@
 """Convert silx supported data files into HDF5 files"""
 
 import ast
-import sys
 import os
 import argparse
 from glob import glob
 import logging
 import numpy
-import silx
 
 
 __authors__ = ["P. Knobel"]
