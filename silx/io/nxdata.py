@@ -246,9 +246,7 @@ class NXdata(object):
         """
 
         self.signal_dataset_name = get_attr_as_string(self.group, "signal")
-        """Name of the signal dataset.
-        This name is guaranteed to be different from all the axes dataset
-        names (:attr:`axes_dataset_names`)."""
+        """Name of the signal dataset."""
 
         self.signal = self.group[get_attr_as_string(self.group, "signal")]
         """Signal dataset in this NXdata group.
