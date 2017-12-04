@@ -1235,6 +1235,7 @@ class ImageFileDialog(qt.QDialog):
             if not utils.samefile(self.__directoryLoadedFilter, path):
                 # Filter event which should not arrive in PyQt4
                 # The first click on the sidebar sent 2 events
+                self.__processing -= 1
                 return
         index = self.__fileModel.index(path)
         self.__browser.setRootIndex(index, model=self.__fileModel)
@@ -1628,9 +1629,14 @@ class ImageFileDialog(qt.QDialog):
         """
         return self.__selectedFile
 
-    def selectFile(self, path):
+    def selectFile(self, filename):
         """Sets the image dialog's current file."""
-        self.__pathEdit.setText(path)
+        self.__directoryLoadedFilter = ""
+        old = self.__pathEdit.blockSignals(True)
+        try:
+            self.__pathEdit.setText(filename)
+        finally:
+            self.__pathEdit.blockSignals(old)
         self.__pathChanged()
 
     # Selected image
@@ -1640,7 +1646,12 @@ class ImageFileDialog(qt.QDialog):
 
         :param str path: Path identifying an image or a path
         """
-        self.__pathEdit.setText(path)
+        self.__directoryLoadedFilter = ""
+        old = self.__pathEdit.blockSignals(True)
+        try:
+            self.__pathEdit.setText(path)
+        finally:
+            self.__pathEdit.blockSignals(old)
         self.__pathChanged()
 
     def selectedPath(self):
