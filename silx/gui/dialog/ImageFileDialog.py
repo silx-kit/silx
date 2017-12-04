@@ -919,6 +919,7 @@ class ImageFileDialog(qt.QDialog):
 
     def _createPreviewToolbar(self, plot):
         toolbar = qt.QToolBar(self)
+        toolbar.setIconSize(qt.QSize(16, 16))
         toolbar.setStyleSheet("QToolBar { border: 0px }")
         toolbar.addAction(actions.mode.ZoomModeAction(plot, self))
         toolbar.addAction(actions.mode.PanModeAction(plot, self))
@@ -942,6 +943,7 @@ class ImageFileDialog(qt.QDialog):
 
     def _createBrowseToolBar(self):
         toolbar = qt.QToolBar(self)
+        toolbar.setIconSize(qt.QSize(16, 16))
         iconProvider = self.iconProvider()
 
         backward = qt.QAction(toolbar)
