@@ -53,6 +53,36 @@ except ImportError as e:
 _logger = logging.getLogger(__name__)
 
 
+_fabio_extensions = set([])
+
+
+def supported_extensions():
+    """Returns all extensions supported by fabio.
+
+    :returns: A set containing extensions like "*.edf".
+    :rtype: Set[str]
+    """
+    global _fabio_extensions
+    if len(_fabio_extensions) > 0:
+        return _fabio_extensions
+
+    formats = fabio.fabioformats.get_classes(reader=True)
+    all_extensions = set([])
+
+    for reader in formats:
+        if not hasattr(reader, "DESCRIPTION"):
+            continue
+        if not hasattr(reader, "DEFAULT_EXTENTIONS"):
+            continue
+
+        ext = reader.DEFAULT_EXTENTIONS
+        ext = ["*.%s" % e for e in ext]
+        all_extensions.update(ext)
+
+    _fabio_extensions = set(all_extensions)
+    return _fabio_extensions
+
+
 class FrameData(commonh5.LazyLoadableDataset):
     """Expose a cube of image from a Fabio file using `FabioReader` as
     cache."""
