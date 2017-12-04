@@ -578,6 +578,16 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         # test
         self.assertTrue(dialog.selectedPath(), filename)
 
+    def _countSelectableItems(self, model, rootIndex):
+        selectable = 0
+        for i in range(model.rowCount(rootIndex)):
+            index = model.index(i, 0, rootIndex)
+            flags = model.flags(index)
+            isEnabled = (int(flags) & qt.Qt.ItemIsEnabled) != 0
+            if isEnabled:
+                selectable += 1
+        return selectable
+
     def testFilterExtensions(self):
         dialog = self.createDialog()
         browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
@@ -586,21 +596,21 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.qWaitForWindowExposed(dialog)
         dialog.selectPath(_tmpDirectory)
         self.qWaitForPendingActions(dialog)
-        self.assertEqual(browser.model().rowCount(browser.rootIndex()), 5)
+        self.assertEqual(self._countSelectableItems(browser.model(), browser.rootIndex()), 5)
 
         codecName = fabio.edfimage.EdfImage.codec_name()
         index = filters.indexFromCodec(codecName)
         filters.setCurrentIndex(index)
         filters.activated[int].emit(index)
         self.qWait(50)
-        self.assertEqual(browser.model().rowCount(browser.rootIndex()), 3)
+        self.assertEqual(self._countSelectableItems(browser.model(), browser.rootIndex()), 3)
 
         codecName = fabio.fit2dmaskimage.Fit2dMaskImage.codec_name()
         index = filters.indexFromCodec(codecName)
         filters.setCurrentIndex(index)
         filters.activated[int].emit(index)
         self.qWait(50)
-        self.assertEqual(browser.model().rowCount(browser.rootIndex()), 1)
+        self.assertEqual(self._countSelectableItems(browser.model(), browser.rootIndex()), 1)
 
 
 class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
