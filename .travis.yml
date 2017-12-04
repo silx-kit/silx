@@ -122,4 +122,4 @@ script:
 
 after_failure:
     # Display result as base64, while it is not possible to expose files
-    - "for f in ./build/test-debug/*.png; do echo $f as base64; echo $( base64 $f); done"
+    - "for f in ./build/test-debug/*.png; do echo $f as base64; echo $( base64 $f) | fold -w 80; done"
