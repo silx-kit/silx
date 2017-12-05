@@ -155,12 +155,12 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
     :param parent: The View widget this item belongs to.
     """
 
-    _MODES_UNUSED_PROPERTIES = {
-        'points': ('lineWidth',),
-        'lines': ('symbol', 'symbolSize'),
-        'solid': ('lineWidth', 'symbol', 'symbolSize')
+    _VISUALIZATION_PROPERTIES = {
+        'points': ('symbol', 'symbolSize'),
+        'lines':  ('lineWidth',),
+        'solid': (),
     }
-    """Dict {visualization mode: property names not used in this mode}"""
+    """Dict {visualization mode: property names used in this mode}"""
 
     def __init__(self, parent=None):
         DataItem3D.__init__(self, parent=parent)
@@ -196,16 +196,16 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
 
         super(Scatter2D, self)._updated(event)
 
-    def getSupportedVisualizationModes(self):
+    def supportedVisualizations(self):
         """Returns the list of supported visualization modes.
 
         See :meth:`setVisualizationModes`
 
         :rtype: tuple of str
         """
-        return tuple(self._MODES_UNUSED_PROPERTIES.keys())
+        return tuple(self._VISUALIZATION_PROPERTIES.keys())
 
-    def setVisualizationMode(self, mode):
+    def setVisualization(self, mode):
         """Set the visualization mode of the data.
 
         Supported visualization modes are:
@@ -217,33 +217,37 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
         :param str mode: Mode of representation to use
         """
         mode = str(mode)
-        assert mode in self.getSupportedVisualizationModes()
+        assert mode in self.supportedVisualizations()
 
-        if mode != self.getVisualizationMode():
+        if mode != self.getVisualization():
             self._visualizationMode = mode
             self._updateScene()
             self._updated(Item3DChangedType.VISUALIZATION_MODE)
 
-    def getVisualizationMode(self):
+    def getVisualization(self):
         """Returns the current visualization mode.
 
-         See :meth:`setVisualizationMode`
+         See :meth:`setVisualization`
 
         :rtype: str
         """
         return self._visualizationMode
 
-    def getVisualizationModeUnusedProperties(self, mode=None):
-        """Return unused properties that are not used in a visualization mode.
+    def isPropertyEnabled(self, name, visualization=None):
+        """Returns true if the property is used with visualization mode.
 
-        :param str mode: The visualization mode for which to get the info.
-                         By default, it is the current mode.
-        :return: List of property names
-        :rtype: tuple of str
+        :param str name: The name of the property to check, in:
+                         'lineWidth', 'symbol', 'symbolSize'
+        :param str visualization:
+            The visualization mode for which to get the info.
+            By default, it is the current visualization mode.
+        :return:
         """
-        if mode is None:
-            mode = self.getVisualizationMode()
-        return self._MODES_UNUSED_PROPERTIES[mode]
+        assert name in ('lineWidth', 'symbol', 'symbolSize')
+        if visualization is None:
+            visualization = self.getVisualization()
+        assert visualization in self.supportedVisualizations()
+        return name in self._VISUALIZATION_PROPERTIES[visualization]
 
     def setHeightMap(self, heightMap):
         """Set whether to display the data has a height map or not.
@@ -379,7 +383,7 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
         if len(x) == 0:
             return  # Nothing to display
 
-        mode = self.getVisualizationMode()
+        mode = self.getVisualization()
         heightMap = self.isHeightMap()
 
         if mode == 'points':

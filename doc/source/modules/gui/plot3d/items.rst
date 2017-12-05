@@ -54,8 +54,8 @@ The following classes are items that describes the content of a :class:`SceneWid
 
 .. autoclass:: Scatter2D
    :members: getData, setData, getXData, getYData, getValues,
-             getSupportedVisualizationModes, getVisualizationModeUnusedProperties,
-             getVisualizationMode, setVisualizationMode,
+             supportedVisualizations, isPropertyEnabled,
+             getVisualization, setVisualization,
              isHeightMap, setHeightMap,
              getLineWidth, setLineWidth,
              getColormap, setColormap,

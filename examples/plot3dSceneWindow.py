@@ -110,7 +110,7 @@ for row, heightMap in enumerate((False, True)):
 
         # Set 2D scatter item properties
         item.setHeightMap(heightMap)
-        item.setVisualizationMode(mode)
+        item.setVisualization(mode)
         item.getColormap().setName('viridis')
         item.setLineWidth(2.)
 
