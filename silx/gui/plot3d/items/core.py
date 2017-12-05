@@ -262,7 +262,7 @@ class DataItem3D(Item3D):
     def getRotationCenter(self):
         """Returns the rotation center set by :meth:`setRotationCenter`.
 
-        :rtype: tuple
+        :rtype: 3-tuple of float or str
         """
         return self._rotationCenter
 
@@ -285,9 +285,9 @@ class DataItem3D(Item3D):
         """Returns the rotation set by :meth:`setRotation`.
 
         :return: (angle, axis)
-        :rtype: tuple
+        :rtype: 2-tuple (float, numpy.ndarray)
         """
-        return self._rotate.angle, self._rotate.axis,
+        return self._rotate.angle, self._rotate.axis
 
     def setMatrix(self, matrix=None):
         """Set the transform matrix
