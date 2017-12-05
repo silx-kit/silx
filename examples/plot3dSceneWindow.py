@@ -73,8 +73,6 @@ imageRgba = sceneWidget.addImage(img)  # Add ImageRgba item to the scene
 
 # Set imageRgba transform
 imageRgba.setTranslation(SIZE*.15, SIZE*.15, 0.)  # Translate the image
-
-# Set imageRgba properties
 # Rotate the image by 45 degrees around its center
 imageRgba.setRotationCenter('center', 'center', 0.)
 imageRgba.setRotation(45., axis=(0., 0., 1.))
