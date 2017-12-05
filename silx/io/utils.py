@@ -23,6 +23,10 @@
 # ############################################################################*/
 """ I/O utility functions"""
 
+__authors__ = ["P. Knobel", "V. Valls"]
+__license__ = "MIT"
+__date__ = "05/12/2017"
+
 import numpy
 import os.path
 import sys
@@ -47,10 +51,6 @@ except ImportError as e:
     h5pyd = None
     h5py_import_error = e
 
-
-__authors__ = ["P. Knobel", "V. Valls"]
-__license__ = "MIT"
-__date__ = "05/12/2017"
 
 logger = logging.getLogger(__name__)
 
