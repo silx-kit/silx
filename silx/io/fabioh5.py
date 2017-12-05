@@ -37,7 +37,7 @@ import datetime
 import logging
 import numbers
 
-import fabio
+import fabio.file_series
 import numpy
 
 from . import commonh5
@@ -99,20 +99,17 @@ class FrameData(commonh5.LazyLoadableDataset):
 class RawHeaderData(commonh5.LazyLoadableDataset):
     """Lazy loadable raw header"""
 
-    def __init__(self, name, fabio_file, parent=None):
+    def __init__(self, name, fabio_reader, parent=None):
         commonh5.LazyLoadableDataset.__init__(self, name, parent)
-        self.__fabio_file = fabio_file
+        self.__fabio_reader = fabio_reader
 
     def _create_data(self):
         """Initialize hold data by merging all headers of each frames.
         """
         headers = []
         types = set([])
-        for frame in range(self.__fabio_file.nframes):
-            if self.__fabio_file.nframes == 1:
-                header = self.__fabio_file.header
-            else:
-                header = self.__fabio_file.getframe(frame).header
+        for fabio_frame in self.__fabio_reader.iter_frames():
+            header = fabio_frame.header
 
             data = []
             for key, value in header.items():
@@ -276,11 +273,40 @@ class FabioReader(object):
         self.__measurements = {}
         self.__key_filters = set([])
         self.__data = None
-        self.__frame_count = self.__fabio_file.nframes
-        self._read(self.__fabio_file)
+        self.__frame_count = self.frame_count()
+        self._read()
 
     def fabio_file(self):
         return self.__fabio_file
+
+    def frame_count(self):
+        """Returns the number of frames available."""
+        if isinstance(self.__fabio_file, fabio.file_series.file_series):
+            return len(self.__fabio_file)
+        elif isinstance(self.__fabio_file, fabio.fabioimage.FabioImage):
+            return self.__fabio_file.nframes
+        else:
+            raise TypeError("Unsupported type %s", self.__fabio_file.__class__)
+
+    def iter_frames(self):
+        """Iter all the available frames.
+
+        A frame provides at least `data` and `header` attributes.
+        """
+        if isinstance(self.__fabio_file, fabio.file_series.file_series):
+            for file_number in range(len(self.__fabio_file)):
+                with self.__fabio_file.jump_image(file_number) as fabio_image:
+                    # return the first frame only
+                    assert(fabio_image.nframes == 1)
+                    yield fabio_image
+        elif isinstance(self.__fabio_file, fabio.fabioimage.FabioImage):
+            for frame_count in range(self.__fabio_file.nframes):
+                if self.__fabio_file.nframes == 1:
+                    yield self.__fabio_file
+                else:
+                    yield self.__fabio_file.getframe(frame_count)
+        else:
+            raise TypeError("Unsupported type %s", self.__fabio_file.__class__)
 
     def _create_data(self):
         """Initialize hold data by merging all frames into a single cube.
@@ -291,12 +317,8 @@ class FabioReader(object):
         The computation is cached into the class, and only done ones.
         """
         images = []
-        for frame in range(self.__fabio_file.nframes):
-            if self.__fabio_file.nframes == 1:
-                image = self.__fabio_file.data
-            else:
-                image = self.__fabio_file.getframe(frame).data
-            images.append(image)
+        for fabio_frame in self.iter_frames():
+            images.append(fabio_frame.data)
 
         # returns the data without extra dim in case of single frame
         if len(images) == 1:
@@ -381,22 +403,25 @@ class FabioReader(object):
             self.__measurements[name] = [None] * self.__frame_count
         self.__measurements[name][frame_id] = value
 
-    def _read(self, fabio_file):
-        """Read all metadata from the fabio file and store it into this
-        object."""
-
+    def _enable_key_filters(self, fabio_file):
         self.__key_filters.clear()
         if hasattr(fabio_file, "RESERVED_HEADER_KEYS"):
             # Provided in fabio 0.5
             for key in fabio_file.RESERVED_HEADER_KEYS:
                 self.__key_filters.add(key.lower())
 
-        for frame in range(fabio_file.nframes):
-            if fabio_file.nframes == 1:
-                header = fabio_file.header
-            else:
-                header = fabio_file.getframe(frame).header
-            self._read_frame(frame, header)
+    def _read(self):
+        """Read all metadata from the fabio file and store it into this
+        object."""
+
+        file_series = isinstance(self.__fabio_file, fabio.file_series.file_series)
+        if not file_series:
+            self._enable_key_filters(self.__fabio_file)
+
+        for frame_id, fabio_frame in enumerate(self.iter_frames()):
+            if file_series:
+                self._enable_key_filters(fabio_frame)
+            self._read_frame(frame_id, fabio_frame.header)
 
     def _is_filtered_key(self, key):
         """
@@ -752,7 +777,7 @@ class File(commonh5.File):
         measurement = MeasurementGroup("measurement", fabio_reader, attrs={"NX_class": "NXcollection"})
         file_ = commonh5.Group("file", attrs={"NX_class": "NXcollection"})
         positioners = MetadataGroup("positioners", fabio_reader, FabioReader.POSITIONER, attrs={"NX_class": "NXpositioner"})
-        raw_header = RawHeaderData("scan_header", fabio_image, self)
+        raw_header = RawHeaderData("scan_header", fabio_reader, self)
         detector = DetectorGroup("detector_0", fabio_reader)
 
         scan.add_node(instrument)
