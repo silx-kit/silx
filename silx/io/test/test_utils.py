@@ -48,7 +48,7 @@ except ImportError:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "28/09/2017"
+__date__ = "10/10/2017"
 
 
 expected_spec1 = r"""#F .*
@@ -443,7 +443,7 @@ class TestNodes(unittest.TestCase):
 
         class Foo(object):
             def __init__(self):
-                self.h5py_class = h5py.File
+                self.h5_class = utils.H5Type.FILE
         obj = Foo()
         self.assertTrue(utils.is_file(obj))
         self.assertTrue(utils.is_group(obj))
@@ -455,7 +455,7 @@ class TestNodes(unittest.TestCase):
 
         class Foo(object):
             def __init__(self):
-                self.h5py_class = h5py.Group
+                self.h5_class = utils.H5Type.GROUP
         obj = Foo()
         self.assertFalse(utils.is_file(obj))
         self.assertTrue(utils.is_group(obj))
@@ -467,7 +467,7 @@ class TestNodes(unittest.TestCase):
 
         class Foo(object):
             def __init__(self):
-                self.h5py_class = h5py.Dataset
+                self.h5_class = utils.H5Type.DATASET
         obj = Foo()
         self.assertFalse(utils.is_file(obj))
         self.assertFalse(utils.is_group(obj))
@@ -491,7 +491,7 @@ class TestNodes(unittest.TestCase):
 
         class Foo(object):
             def __init__(self):
-                self.h5py_class = int
+                self.h5_class = int
         obj = Foo()
         self.assertFalse(utils.is_file(obj))
         self.assertFalse(utils.is_group(obj))
