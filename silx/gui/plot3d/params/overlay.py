@@ -22,26 +22,38 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-__authors__ = ["T. Vincent"]
+"""
+This module provides a parameter tree color item and associated color editor.
+"""
+
+from __future__ import absolute_import
+
+__authors__ = ["D. N."]
 __license__ = "MIT"
-__date__ = "25/07/2016"
+__date__ = "02/10/2017"
 
 
-from numpy.distutils.misc_util import Configuration
+from ... import qt
+from .SubjectItem import SubjectItem
 
 
-def configuration(parent_package='', top_path=None):
-    config = Configuration('plot3d', parent_package, top_path)
-    config.add_subpackage('actions')
-    config.add_subpackage('params')
-    config.add_subpackage('scene')
-    config.add_subpackage('tools')
-    config.add_subpackage('test')
-    config.add_subpackage('utils')
-    return config
+class OrientationIndicatorItem(SubjectItem):
+    """Plot3DWidget orientation indicator visibility item.
 
+    Item is checkable.
 
-if __name__ == "__main__":
-    from numpy.distutils.core import setup
+    Subject is a Plot3DWidget.
+    """
+    ITEM_NAME = 'Axes indicator'
 
-    setup(configuration=configuration)
+    def _init(self):
+        plot3d = self.getSubject()
+        visible = plot3d.isOrientationIndicatorVisible()
+        self.setCheckable(True)
+        self.setCheckState(qt.Qt.Checked if visible else qt.Qt.Unchecked)
+
+    def leftClicked(self):
+        plot3d = self.getSubject()
+        checked = (self.checkState() == qt.Qt.Checked)
+        if checked != plot3d.isOrientationIndicatorVisible():
+            plot3d.setOrientationIndicatorVisible(checked)

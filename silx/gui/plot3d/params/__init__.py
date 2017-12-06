@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,26 +22,20 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+"""
+This module provides building blocks for tree widgets to set/view parameters.
+"""
+
+from __future__ import absolute_import
+
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "25/07/2016"
+__date__ = "24/11/2017"
 
 
-from numpy.distutils.misc_util import Configuration
-
-
-def configuration(parent_package='', top_path=None):
-    config = Configuration('plot3d', parent_package, top_path)
-    config.add_subpackage('actions')
-    config.add_subpackage('params')
-    config.add_subpackage('scene')
-    config.add_subpackage('tools')
-    config.add_subpackage('test')
-    config.add_subpackage('utils')
-    return config
-
-
-if __name__ == "__main__":
-    from numpy.distutils.core import setup
-
-    setup(configuration=configuration)
+from .color import (BackgroundColorItem, ColorItem, ColorEditor,  # noqa
+                    ForegroundColorItem, HighlightColorItem)  # noqa
+from .light import DirectionalLightItem  # noqa
+from .overlay import OrientationIndicatorItem  # noqa
+from .SubjectItem import SubjectItem  # noqa
+from .TreeView import TreeView, TreeViewModelBase  # noqa
