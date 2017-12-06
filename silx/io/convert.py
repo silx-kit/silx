@@ -271,22 +271,22 @@ def write_to_h5(infile, h5file, h5path='/', mode="a",
     if not isinstance(h5file, h5py.File) and not is_group(infile):
         with silx.io.open(infile) as h5pylike:
             if not _is_commonh5_group(h5pylike):
-                raise IOError("Cannot convert HDF5 to HDF5")
+                raise IOError("Cannot convert HDF5 file %s to HDF5" % infile)
             with h5py.File(h5file, mode) as h5f:
                 writer.write(h5pylike, h5f)
     elif isinstance(h5file, h5py.File) and not is_group(infile):
         with silx.io.open(infile) as h5pylike:
             if not _is_commonh5_group(h5pylike):
-                raise IOError("Cannot convert HDF5 to HDF5")
+                raise IOError("Cannot convert HDF5 file %s to HDF5" % infile)
             writer.write(h5pylike, h5file)
     elif is_group(infile) and not isinstance(h5file, h5py.File):
         if not _is_commonh5_group(infile):
-            raise IOError("Cannot convert HDF5 to HDF5")
+            raise IOError("Cannot convert HDF5 file %s to HDF5" % infile.file.name)
         with h5py.File(h5file, mode) as h5f:
             writer.write(infile, h5f)
     else:
         if not _is_commonh5_group(infile):
-            raise IOError("Cannot convert HDF5 to HDF5")
+            raise IOError("Cannot convert HDF5 file %s to HDF5" % infile.file.name)
         writer.write(infile, h5file)
 
 
