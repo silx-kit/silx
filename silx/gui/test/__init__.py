@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "05/01/2017"
+__date__ = "28/11/2017"
 
 
 import logging
@@ -72,6 +72,7 @@ def suite():
     from ..hdf5 import test as test_hdf5
     from ..widgets import test as test_widgets
     from ..data import test as test_data
+    from ..dialog import test as test_dialog
     from . import test_qt
     # Console tests disabled due to corruption of python environment
     # (see issue #538 on github)
@@ -94,7 +95,6 @@ def suite():
 
         test_plot3d_suite = SkipPlot3DTest
 
-
     test_suite.addTest(test_qt.suite())
     test_suite.addTest(test_plot.suite())
     test_suite.addTest(test_fit.suite())
@@ -105,4 +105,5 @@ def suite():
     test_suite.addTest(test_data.suite())
     test_suite.addTest(test_utils.suite())
     test_suite.addTest(test_plot3d_suite())
+    test_suite.addTest(test_dialog.suite())
     return test_suite

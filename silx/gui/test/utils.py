@@ -456,3 +456,14 @@ def getQToolButtonFromAction(action):
         if isinstance(widget, qt.QToolButton):
             return widget
     return None
+
+
+def findChildren(parent, kind, name=None):
+    if qt.BINDING == "PySide" and name is not None:
+        result = []
+        for obj in parent.findChildren(kind):
+            if obj.objectName() == name:
+                result.append(obj)
+        return result
+    else:
+        return parent.findChildren(kind, name=name)
