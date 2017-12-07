@@ -94,7 +94,7 @@ def main(argv):
              ' the data into a specific group in the output file: '
              '/path/to/file::/path/to/group. '
              'By default, the filename uses the current date and time:'
-             ' %Y%m%d-%H%M%S.h5')
+             ' YYYYmmdd-HHMMSS.h5')
     parser.add_argument(
         '-m', '--mode',
         default="w-",
@@ -225,8 +225,8 @@ def main(argv):
         dirname = os.path.dirname(options.file_pattern)
         file_pattern_re = c_format_string_to_re(options.file_pattern)
         files_in_dir = glob(os.path.join(dirname, "*"))
-        matching_files_in_dir = filter(lambda name: re.match(file_pattern_re, name),
-                                       files_in_dir)
+        matching_files_in_dir = list(filter(lambda name: re.match(file_pattern_re, name),
+                                            files_in_dir))
         _logger.debug("""
             Processing file_pattern
             dirname: %s
@@ -234,6 +234,9 @@ def main(argv):
             files_in_dir: %s
             matching_files_in_dir: %s
             """, dirname, file_pattern_re, files_in_dir, matching_files_in_dir)
+        if not matching_files_in_dir:
+            _logger.error("No file matching --file-pattern found.")
+            return -1
         options.input_files = sorted(matching_files_in_dir)
 
     # Test that the output path is writeable
