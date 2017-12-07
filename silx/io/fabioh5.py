@@ -740,17 +740,26 @@ class EdfFabioReader(FabioReader):
             else:
                 raise Exception("State unexpected (base_key: %s)" % base_key)
 
+    def _get_first_header(self):
+        """
+        ..note:: This function can be cached
+        """
+        fabio_file = self.fabio_file()
+        if isinstance(fabio_file, fabio.file_series.file_series):
+            return fabio_file.jump_image(0).header
+        return fabio_file.header
+
     def has_ub_matrix(self):
         """Returns true if a UB matrix is available.
 
         :rtype: bool
         """
-        header = self.fabio_file().header
+        header = self._get_first_header()
         expected_keys = set(["UB_mne", "UB_pos", "sample_mne", "sample_pos"])
         return expected_keys.issubset(header)
 
     def parse_ub_matrix(self):
-        header = self.fabio_file().header
+        header = self._get_first_header()
         ub_data = self._get_mnemonic_key("UB", header)
         s_data = self._get_mnemonic_key("sample", header)
         if len(ub_data) > 9:
