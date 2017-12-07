@@ -29,6 +29,7 @@ import argparse
 from glob import glob
 import logging
 import numpy
+import re
 
 
 __authors__ = ["P. Knobel"]
@@ -38,6 +39,34 @@ __date__ = "12/09/2017"
 
 _logger = logging.getLogger(__name__)
 """Module logger"""
+
+
+def c_format_string_to_re(pattern_string):
+    """
+
+    :param pattern_string: C style format string with integer patterns
+        (e.g. "%d", "%04d").
+        Not supported: fixed length padded with whitespaces (e.g "%4d", "%-4d")
+    :return: Equivalent regular expression (e.g. "\d+", "\d{4}")
+    """
+    # escape dots
+    pattern_string = pattern_string.replace(".", "\.")
+
+    # %d
+    pattern_string = pattern_string.replace("%d", "[-+]?\d+")
+
+    # %0nd
+    for sub_pattern in re.findall("%0\d+d", pattern_string):
+        print(sub_pattern)
+        n = int(re.search("%0(\d+)d", sub_pattern).group(1))
+        if n == 1:
+            re_sub_pattern = "[+-]?\d"
+        else:
+            re_sub_pattern = "[\d+-]\d{%d}" % (n - 1)
+        pattern_string = pattern_string.replace(sub_pattern, re_sub_pattern, 1)
+
+    # add EOL ($)
+    return pattern_string + "$"
 
 
 def main(argv):
@@ -138,37 +167,10 @@ def main(argv):
 
     options = parser.parse_args(argv[1:])
 
-    # mutually exclusive arguments, at least one of them is required
-    if bool(options.input_files) == bool(options.file_pattern is not None):     # XOR
-        if not options.input_files:
-            message = "You must specify either input files (at least one), "
-            message += "or a file pattern."
-        else:
-            message = "You cannot specify input files and a file pattern"
-            message += " at the same time."
-        _logger.error(message)
-        return -1
-    elif options.input_files:
-        # some shells (windows) don't interpret wildcard characters (*, ?, [])
-        old_input_list = list(options.input_files)
-        options.input_files = []
-        for fname in old_input_list:
-            globbed_files = glob(fname)
-            if not globbed_files:
-                # no files found, keep the name as it is, to raise an error later
-                options.input_files += [fname]
-            else:
-                options.input_files += globbed_files
-    else:
-        options.input_files = []
-        # TODO
-        print(options.file_pattern)
-        raise NotImplementedError("TODO options.file_pattern to file list conversion")
-
     if options.debug:
         logging.root.setLevel(logging.DEBUG)
 
-    # Import most of the things here to be sure to use the right logging level
+    # Import after parsing --debug
     try:
         # it should be loaded before h5py
         import hdf5plugin  # noqa
@@ -194,6 +196,43 @@ def main(argv):
         message = "Module 'hdf5plugin' is not installed. It supports additional hdf5"\
             + " compressions. You can install it using \"pip install hdf5plugin\"."
         _logger.debug(message)
+
+    # Process input arguments (mutually exclusive arguments)
+    if bool(options.input_files) == bool(options.file_pattern is not None):
+        if not options.input_files:
+            message = "You must specify either input files (at least one), "
+            message += "or a file pattern."
+        else:
+            message = "You cannot specify input files and a file pattern"
+            message += " at the same time."
+        _logger.error(message)
+        return -1
+    elif options.input_files:
+        # some shells (windows) don't interpret wildcard characters (*, ?, [])
+        old_input_list = list(options.input_files)
+        options.input_files = []
+        for fname in old_input_list:
+            globbed_files = glob(fname)
+            if not globbed_files:
+                # no files found, keep the name as it is, to raise an error later
+                options.input_files += [fname]
+            else:
+                options.input_files += globbed_files
+    else:
+        # File series
+        dirname = os.path.dirname(options.file_pattern)
+        file_pattern_re = c_format_string_to_re(options.file_pattern)
+        files_in_dir = glob(os.path.join(dirname, "*"))
+        matching_files_in_dir = filter(lambda name: re.match(file_pattern_re, name),
+                                       files_in_dir)
+        _logger.debug("""
+            Processing file_pattern
+            dirname: %s
+            file_pattern_re: %s
+            files_in_dir: %s
+            matching_files_in_dir: %s
+            """, dirname, file_pattern_re, files_in_dir, matching_files_in_dir)
+        options.input_files = sorted(matching_files_in_dir)
 
     # Test that the output path is writeable
     if options.output_uri is None:
@@ -281,21 +320,32 @@ def main(argv):
         create_dataset_args["fletcher32"] = True
 
     with h5py.File(output_name, mode=options.mode) as h5f:
-        for input_name in options.input_files:
-            hdf5_path_for_file = hdf5_path
-            if not options.no_root_group:
-                hdf5_path_for_file = hdf5_path.rstrip("/") + "/" + os.path.basename(input_name)
-            write_to_h5(input_name, h5f,
-                        h5path=hdf5_path_for_file,
+        if options.file_pattern is not None:
+            # File series
+            import silx.io.fabioh5
+            input_file = silx.io.fabioh5.File(file_series=options.input_files)
+            write_to_h5(input_file, h5f,
+                        h5path=hdf5_path,
                         overwrite_data=options.overwrite_data,
                         create_dataset_args=create_dataset_args,
                         min_size=options.min_size)
 
-            # append the convert command to the creator attribute, for NeXus files
-            creator = h5f[hdf5_path_for_file].attrs.get("creator", b"").decode()
-            convert_command = " ".join(argv)
-            if convert_command not in creator:
-                h5f[hdf5_path_for_file].attrs["creator"] = \
-                    numpy.string_(creator + "; convert command: %s" % " ".join(argv))
+        else:
+            for input_name in options.input_files:
+                hdf5_path_for_file = hdf5_path
+                if not options.no_root_group:
+                    hdf5_path_for_file = hdf5_path.rstrip("/") + "/" + os.path.basename(input_name)
+                write_to_h5(input_name, h5f,
+                            h5path=hdf5_path_for_file,
+                            overwrite_data=options.overwrite_data,
+                            create_dataset_args=create_dataset_args,
+                            min_size=options.min_size)
+
+        # append the convert command to the creator attribute, for NeXus files
+        creator = h5f.attrs.get("creator", b"").decode()
+        convert_command = " ".join(argv)
+        if convert_command not in creator:
+            h5f.attrs["creator"] = \
+                numpy.string_(creator + "; convert command: %s" % " ".join(argv))
 
     return 0
