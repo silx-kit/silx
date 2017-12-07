@@ -27,7 +27,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "30/08/2017"
+__date__ = "06/12/2017"
 
 import logging
 from ... import qt
@@ -66,7 +66,7 @@ class Axis(qt.QObject):
     """Signal emitted when axis autoscale has changed"""
 
     sigLimitsChanged = qt.Signal(float, float)
-    """Signal emitted when axis autoscale has changed"""
+    """Signal emitted when axis limits have changed"""
 
     def __init__(self, plot):
         """Constructor
@@ -262,7 +262,7 @@ class Axis(qt.QObject):
 
     def setLimitsConstraints(self, minPos=None, maxPos=None):
         """
-        Set a constaints on the position of the axes.
+        Set a constraint on the position of the axes.
 
         :param float minPos: Minimum allowed axis value.
         :param float maxPos: Maximum allowed axis value.
@@ -283,7 +283,7 @@ class Axis(qt.QObject):
 
     def setRangeConstraints(self, minRange=None, maxRange=None):
         """
-        Set a constaints on the position of the axes.
+        Set a constraint on the position of the axes.
 
         :param float minRange: Minimum allowed left-to-right span across the
             view
