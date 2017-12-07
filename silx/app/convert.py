@@ -30,6 +30,7 @@ from glob import glob
 import logging
 import numpy
 import re
+import time
 
 
 __authors__ = ["P. Knobel"]
@@ -88,11 +89,12 @@ def main(argv):
              '(toto_%%04d.edf). Incompatible with argument input_files')
     parser.add_argument(
         '-o', '--output-uri',
-        nargs="?",
-        help='Output file (HDF5). If omitted, it will be the '
-             'concatenated input file names, with a ".h5" suffix added.'
-             ' An URI can be provided to write the data into a specific '
-             'group in the output file: /path/to/file::/path/to/group')
+        default=time.strftime("%Y%m%d-%H%M%S") + '.h5',
+        help='Output file name (HDF5). An URI can be provided to write'
+             ' the data into a specific group in the output file: '
+             '/path/to/file::/path/to/group. '
+             'By default, the filename uses the current date and time:'
+             ' %Y%m%d-%H%M%S.h5')
     parser.add_argument(
         '-m', '--mode',
         default="w-",
@@ -235,16 +237,10 @@ def main(argv):
         options.input_files = sorted(matching_files_in_dir)
 
     # Test that the output path is writeable
-    if options.output_uri is None:
-        input_basenames = [os.path.basename(name) for name in options.input_files]
-        output_name = ''.join(input_basenames) + ".h5"
-        _logger.info("No output file specified, using %s", output_name)
-        hdf5_path = "/"
+    if "::" in options.output_uri:
+        output_name, hdf5_path = options.output_uri.split("::")
     else:
-        if "::" in options.output_uri:
-            output_name, hdf5_path = options.output_uri.split("::")
-        else:
-            output_name, hdf5_path = options.output_uri, "/"
+        output_name, hdf5_path = options.output_uri, "/"
 
     if os.path.isfile(output_name):
         if options.mode == "w-":
