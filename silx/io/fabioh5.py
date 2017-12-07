@@ -312,12 +312,17 @@ class FabioReader(object):
             self.__fabio_file = fabio.open(file_name)
             self.__must_be_closed = True
         elif fabio_image is not None:
-            self.__fabio_file = fabio_image
+            if isinstance(fabio_image, fabio.fabioimage.FabioImage):
+                self.__fabio_file = fabio_image
+            else:
+                raise TypeError("FabioImage expected but %s found.", fabio_image.__class__)
         elif file_series is not None:
             if isinstance(file_series, list):
-                self.__fabio_file = fabio.file_series.file_series(file_series)
+                self.__fabio_file = _FileSeries(file_series)
             elif isinstance(file_series, fabio.file_series.file_series):
                 self.__fabio_file = file_series
+            else:
+                raise TypeError("file_series or list expected but %s found.", file_series.__class__)
 
     def close(self):
         """Close the object, and free up associated resources.
