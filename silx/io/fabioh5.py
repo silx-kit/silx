@@ -36,6 +36,7 @@ import collections
 import datetime
 import logging
 import numbers
+import os
 
 import fabio.file_series
 import numpy
@@ -266,8 +267,18 @@ class FabioReader(object):
     COUNTER = 1
     POSITIONER = 2
 
-    def __init__(self, fabio_file):
-        self.__fabio_file = fabio_file
+    def __init__(self, file_name=None, fabio_image=None, file_series=None):
+        """
+        Constructor
+
+        :param str file_name: File name of the image file to read
+        :param fabio.fabioimage.FabioImage fabio_image: An already openned
+            :class:`fabio.fabioimage.FabioImage` instance.
+        :param Union[list[str],fabio.file_series.file_series] file_series: An
+            list of file name or a :class:`fabio.file_series.file_series`
+            instance
+        """
+        self.__load(file_name, fabio_image, file_series)
         self.__counters = {}
         self.__positioners = {}
         self.__measurements = {}
@@ -275,6 +286,40 @@ class FabioReader(object):
         self.__data = None
         self.__frame_count = self.frame_count()
         self._read()
+
+    def __load(self, file_name=None, fabio_image=None, file_series=None):
+        if file_name is not None and fabio_image:
+            raise TypeError("Parameters file_name and fabio_image are mutually exclusive.")
+        if file_name is not None and fabio_image:
+            raise TypeError("Parameters fabio_image and file_series are mutually exclusive.")
+
+        self.__must_be_closed = False
+
+        if file_name is not None:
+            self.__fabio_file = fabio.open(file_name)
+            self.__must_be_closed = True
+        elif fabio_image is not None:
+            self.__fabio_file = fabio_image
+        elif file_series is not None:
+            if isinstance(file_series, list):
+                self.__fabio_file = fabio.file_series.file_series(file_series)
+            elif isinstance(file_series, fabio.file_series.file_series):
+                self.__fabio_file = file_series
+
+    def close(self):
+        """Close the object, and free up associated resources.
+
+        The associated FabioImage is closed only if the object was created from
+        a filename by this class itself.
+
+        After calling this method, attempts to use the object (and children)
+        may fail.
+        """
+        if self.__must_be_closed:
+            # It looks like there is no close on FabioImage
+            # self.__fabio_image.close()
+            pass
+        self.__fabio_image = None
 
     def fabio_file(self):
         return self.__fabio_file
@@ -613,8 +658,8 @@ class EdfFabioReader(FabioReader):
     motor_mne are parsed using a special way.
     """
 
-    def __init__(self, fabio_file):
-        FabioReader.__init__(self, fabio_file)
+    def __init__(self, file_name=None, fabio_image=None, file_series=None):
+        FabioReader.__init__(self, file_name, fabio_image, file_series)
         self.__unit_cell_abc = None
         self.__unit_cell_alphabetagamma = None
         self.__ub_matrix = None
@@ -745,26 +790,30 @@ class File(commonh5.File):
     """Class which handle a fabio image as a mimick of a h5py.File.
     """
 
-    def __init__(self, file_name=None, fabio_image=None):
-        self.__must_be_closed = False
-        if file_name is not None and fabio_image is not None:
-            raise TypeError("Parameters file_name and fabio_image are mutually exclusive.")
-        if file_name is not None:
-            self.__fabio_image = fabio.open(file_name)
-            self.__must_be_closed = True
-        elif fabio_image is not None:
-            self.__fabio_image = fabio_image
-            file_name = self.__fabio_image.filename
+    def __init__(self, file_name=None, fabio_image=None, file_series=None):
+        """
+        Constructor
+
+        :param str file_name: File name of the image file to read
+        :param fabio.fabioimage.FabioImage fabio_image: An already openned
+            :class:`fabio.fabioimage.FabioImage` instance.
+        :param Union[list[str],fabio.file_series.file_series] file_series: An
+            list of file name or a :class:`fabio.file_series.file_series`
+            instance
+        """
+        self.__fabio_reader = self.create_fabio_reader(file_name, fabio_image, file_series)
+        if fabio_image is not None:
+            file_name = fabio_image.filename
+
         attrs = {"NX_class": "NXroot",
                  "file_time": datetime.datetime.now().isoformat(),
                  "file_name": file_name,
                  "creator": "silx %s" % silx_version}
         commonh5.File.__init__(self, name=file_name, attrs=attrs)
-        self.__fabio_reader = self.create_fabio_reader(self.__fabio_image)
-        scan = self.create_scan_group(self.__fabio_image, self.__fabio_reader)
+        scan = self.create_scan_group(self.__fabio_reader)
         self.add_node(scan)
 
-    def create_scan_group(self, fabio_image, fabio_reader):
+    def create_scan_group(self, fabio_reader):
         """Factory to create the scan group.
 
         :param FabioImage fabio_image: A Fabio image
@@ -793,26 +842,43 @@ class File(commonh5.File):
 
         return scan
 
-    def create_fabio_reader(self, fabio_file):
+    def create_fabio_reader(self, file_name, fabio_image, file_series):
         """Factory to create fabio reader.
 
         :rtype: FabioReader"""
-        if isinstance(fabio_file, fabio.edfimage.EdfImage):
-            metadata = EdfFabioReader(fabio_file)
+        use_edf_reader = False
+        first_file_name = None
+        first_image = None
+
+        if isinstance(file_series, list):
+            first_file_name = file_series[0]
+        elif isinstance(file_series, fabio.file_series.file_series):
+            first_image = file_series.first_image()
+        elif fabio_image is not None:
+            first_image = fabio_image
         else:
-            metadata = FabioReader(fabio_file)
-        return metadata
+            first_file_name = file_name
+
+        if first_file_name is not None:
+            _, ext = os.path.splitext(first_file_name)
+            ext = ext[1:]
+            use_edf_reader = ext in fabio.edfimage.EdfImage.DEFAULT_EXTENTIONS
+        elif first_image is not None:
+            use_edf_reader = isinstance(first_image, fabio.edfimage.EdfImage)
+        else:
+            assert(False)
+
+        if use_edf_reader:
+            reader = EdfFabioReader(file_name, fabio_image, file_series)
+        else:
+            reader = FabioReader(file_name, fabio_image, file_series)
+        return reader
 
     def close(self):
         """Close the object, and free up associated resources.
 
-        The associated FabioImage is closed anyway the object was created from
-        a filename or from a FabioImage.
-
-        After calling this method, attempts to use the object may fail.
+        After calling this method, attempts to use the object (and children)
+        may fail.
         """
-        if self.__must_be_closed:
-            # It looks like there is no close on FabioImage
-            # self.__fabio_image.close()
-            pass
-        self.__fabio_image = None
+        self.__fabio_reader.close()
+        self.__fabio_reader = None
