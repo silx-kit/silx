@@ -87,10 +87,33 @@ class TestColormapDialog(TestCaseQt):
 
     def testGUIAccept(self):
         """Make sure the colormap is modify if go through accept"""
-        pass
+        assert self.colormap.isAutoscale() is False
+        self.colormapDiag.show()
+        self.colormapDiag.setColormap(self.colormap)
+        self.colormapDiag._rangeAutoscaleButton.setChecked(True)
+        self.colormapDiag.accept()
+        self.assertTrue(self.colormap.isAutoscale() is True)
 
     def testGUIReject(self):
         """Make sure the colormap is modify if go through reject"""
+        assert self.colormap.isAutoscale() is False
+        self.colormapDiag.show()
+        self.colormapDiag.setColormap(self.colormap)
+        self.colormapDiag._rangeAutoscaleButton.setChecked(True)
+        self.colormapDiag.reject()
+        self.assertTrue(self.colormap.isAutoscale() is False)
+
+    def testGUIClose(self):
+        """Make sure the colormap is modify if go through reject"""
+        assert self.colormap.isAutoscale() is False
+        self.colormapDiag.show()
+        self.colormapDiag.setColormap(self.colormap)
+        self.colormapDiag._rangeAutoscaleButton.setChecked(True)
+        self.colormapDiag.close()
+        self.assertTrue(self.colormap.isAutoscale() is False)
+
+    def testSetColormapIsCorrect(self):
+        """Make sure the interface fir the colormap when set a new colormap"""
         pass
 
     def testColormapDel(self):
