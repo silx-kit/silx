@@ -40,6 +40,9 @@ associated tools.
 :doc:`modules/index`
     Documentation of the packages included in *silx*
 
+:doc:`applications/index`
+    Documentation of the applications provided by *silx*
+
 :doc:`modules/gui/gallery`
     Widgets gallery and screenshots
 

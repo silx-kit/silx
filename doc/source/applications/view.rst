@@ -29,7 +29,7 @@ and to view this data in plot widgets or in simple table views.
    * - |imgViewImg|
      - Image view
    * - |imgViewTable|
-     - Viewing raw data as values in a tabl
+     - Viewing raw data as values in a table
    * - |imgViewHdf5|
      - Viewing metadata and HDF5 attributes
 
@@ -45,10 +45,9 @@ Usage
 Options
 -------
 
-  files              Data file to show (h5 file, edf files, spec files)
-  -h, --help         show this help message and exit
-  --debug            Set logging system in debug mode
-  --use-opengl-plot  Use OpenGL for plots (instead of matplotlib)
+  -h, --help           Show this help message and exit
+  --debug              Set logging system in debug mode
+  --use-opengl-plot    Use OpenGL for plots (instead of matplotlib)
 
 
 Examples of usage
