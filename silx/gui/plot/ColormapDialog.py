@@ -153,19 +153,12 @@ class ColormapDialog(qt.QDialog):
         self._plotInit()
         vLayout.addWidget(self._plot)
 
-        # Close button
-        buttonsWidget = qt.QWidget()
-        vLayout.addWidget(buttonsWidget)
-
-        buttonsLayout = qt.QHBoxLayout(buttonsWidget)
-
-        okButton = qt.QPushButton('OK')
-        okButton.clicked.connect(self.accept)
-        buttonsLayout.addWidget(okButton)
-
-        cancelButton = qt.QPushButton('Cancel')
-        cancelButton.clicked.connect(self.reject)
-        buttonsLayout.addWidget(cancelButton)
+        types = qt.QDialogButtonBox.Ok | qt.QDialogButtonBox.Cancel
+        _buttons = qt.QDialogButtonBox(parent=self)
+        _buttons.setStandardButtons(types)
+        self.layout().addWidget(_buttons)
+        _buttons.accepted.connect(self.accept)
+        _buttons.rejected.connect(self.reject)
 
         # colormap window can not be resized
         self.setFixedSize(vLayout.minimumSize())
