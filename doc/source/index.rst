@@ -20,6 +20,7 @@ associated tools.
    description/index.rst
    tutorials.rst
    modules/index.rst
+   applications/index.rst
    changelog.rst
    license.rst
    virtualenv.rst
