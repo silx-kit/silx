@@ -62,7 +62,10 @@ cmapDocTestSuite = doctest.DocTestSuite(ColormapDialog, tearDown=_tearDownQt)
 
 
 class TestColormapDialog(TestCaseQt, ParametricTestCase):
+    """Test the ColormapDialog."""
     def setUp(self):
+        TestCaseQt.setUp(self)
+        ParametricTestCase.setUp(self)
         self.colormap = Colormap(name='gray', vmin=0.0, vmax=1.0,
                                  normalization='linear')
 
@@ -72,6 +75,8 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
     def tearDown(self):
         self.colormapDiag.close()
         del self.colormapDiag
+        ParametricTestCase.tearDown(self)
+        TestCaseQt.tearDown(self)
 
     def testGUIEdition(self):
         """Make sure the colormap is correctly edited"""
