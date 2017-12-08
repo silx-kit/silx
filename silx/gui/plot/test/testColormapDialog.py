@@ -35,6 +35,8 @@ import unittest
 from silx.gui.test.utils import qWaitForWindowExposedAndActivate
 from silx.gui import qt
 from silx.gui.plot import ColormapDialog
+from silx.gui.test.utils import TestCaseQt
+from silx.gui.plot.Colormap import Colormap
 
 
 # Makes sure a QApplication exists
@@ -58,9 +60,55 @@ cmapDocTestSuite = doctest.DocTestSuite(ColormapDialog, tearDown=_tearDownQt)
 """Test suite of tests from the module's docstrings."""
 
 
+class TestColormapDialog(TestCaseQt):
+    def setUp(self):
+        self.colormap = Colormap(name='gray', vmin=0.0, vmax=1.0,
+                                 normalization='linear')
+
+        self.colormapDiag = ColormapDialog.ColormapDialog()
+        self.colormapDiag.setAttribute(qt.Qt.WA_DeleteOnClose)
+
+    def tearDown(self):
+        self.colormapDiag.close()
+        del self.colormapDiag
+
+    def testGUIEdition(self):
+        """Make sure the colormap is correctly edited"""
+        self.colormapDiag.setColormap(self.colormap)
+        self.colormapDiag._rangeAutoscaleButton.setChecked(False)
+        self.colormapDiag._comboBoxColormap.setCurrentIndex(3)
+        self.colormapDiag._normButtonLog.setChecked(True)
+        self.colormapDiag.setDataRange(10.0, 20.0)
+        self.assertTrue(self.colormap.getName() == 'red')
+        self.assertTrue(self.colormapDiag.getColormap().getName() == 'red')
+        self.assertTrue(self.colormap.getNormalization() == 'log')
+        self.assertTrue(self.colormap.getVMin() == 10)
+        self.assertTrue(self.colormap.getVMax() == 20)
+
+    def testGUIAccept(self):
+        """Make sure the colormap is modify if go through accept"""
+        pass
+
+    def testGUIReject(self):
+        """Make sure the colormap is modify if go through reject"""
+        pass
+
+    def testColormapDel(self):
+        """Check behavior if the colormap has been deleted outside"""
+        pass
+
+    def testColormapEditedOutside(self):
+        """Make sure the GUI is still up to date if the colormap is modified
+        outside"""
+        pass
+
+
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(cmapDocTestSuite)
+    for testClass in (TestColormapDialog, ):
+        test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(
+            testClass))
     return test_suite
 
 

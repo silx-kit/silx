@@ -106,13 +106,14 @@ class ColormapDialog(qt.QDialog):
         self._comboBoxColormap = qt.QComboBox()
         for cmap in preferredColormaps():
             self._comboBoxColormap.addItem(cmap.title(), cmap)
-        self._comboBoxColormap.activated[int].connect(self._updateColormapFrmGUI)
+        self._comboBoxColormap.currentIndexChanged[int].connect(self._updateColormapFrmGUI)
         formLayout.addRow('Colormap:', self._comboBoxColormap)
 
         # Normalization row
         self._normButtonLinear = qt.QRadioButton('Linear')
         self._normButtonLinear.setChecked(True)
         self._normButtonLog = qt.QRadioButton('Log')
+        self._normButtonLog.toggled.connect(self._activeLogNorm)
 
         normButtonGroup = qt.QButtonGroup(self)
         normButtonGroup.setExclusive(True)
@@ -338,6 +339,8 @@ class ColormapDialog(qt.QDialog):
             min_, max_ = float(min_), float(max_)
             assert min_ <= max_
             self._dataRange = min_, max_
+            if self._colormap():
+                self._colormap().setVRange(min_, max_)
             if self._rangeAutoscaleButton.isChecked():
                 self._minValue.setValue(min_)
                 self._maxValue.setValue(max_)
@@ -451,8 +454,9 @@ class ColormapDialog(qt.QDialog):
                 self._colormap().setVRange(None, None)
             else:
                 dataRange = self.getDataRange()
-                self._colormap().setVMin(dataRange[0])
-                self._colormap().setVMax(dataRange[1])
+                if dataRange is not None:
+                    self._colormap().setVMin(dataRange[0])
+                    self._colormap().setVMax(dataRange[1])
 
     def _minMaxTextEdited(self, text):
         """Handle _minValue and _maxValue textEdited signal"""
@@ -499,3 +503,8 @@ class ColormapDialog(qt.QDialog):
         else:
             # Use QDialog keyPressEvent
             super(ColormapDialog, self).keyPressEvent(event)
+
+    def _activeLogNorm(self, isLog):
+        if self._colormap():
+            norm = Colormap.LOGARITHM if isLog is True else Colormap.LINEAR
+            self._colormap().setNormalization(norm)
