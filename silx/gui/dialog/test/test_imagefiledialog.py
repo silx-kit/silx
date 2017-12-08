@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "29/11/2017"
+__date__ = "08/12/2017"
 
 
 import unittest
@@ -643,6 +643,14 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         self.assertTrue(dialog2.colormap().getNormalization(), "log")
 
     def printState(self):
+        """
+        Print state of the ImageFileDialog.
+
+        Can be used to add or regenerate `STATE_VERSION1_QT4` or
+        `STATE_VERSION1_QT5`.
+
+        >>> ./run_tests.py -v silx.gui.dialog.test.test_imagefiledialog.TestImageFileDialogApi.printState
+        """
         dialog = ImageFileDialog()
         colormap = Colormap(normalization=Colormap.LOGARITHM)
         dialog.setDirectory("")
@@ -688,6 +696,7 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         b'\x00\x00\x0C\x00\x00\x00\x000\x00\x00\x00\x10\x00C\x00o\x00l\x00'\
         b'o\x00r\x00m\x00a\x00p\x00\x00\x00\x01\x00\x00\x00\x08\x00g\x00'\
         b'r\x00a\x00y\x01\x01\x00\x00\x00\x06\x00l\x00o\x00g'
+    """Serialized state on Qt4. Generated using :meth:`printState`"""
 
     STATE_VERSION1_QT5 = b''\
         b'\x00\x00\x00^\x00s\x00i\x00l\x00x\x00.\x00g\x00u\x00i\x00.\x00'\
@@ -712,6 +721,7 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         b'\x00\x0C\x00\x00\x00\x000\x00\x00\x00\x10\x00C\x00o\x00l\x00o'\
         b'\x00r\x00m\x00a\x00p\x00\x00\x00\x01\x00\x00\x00\x08\x00g\x00'\
         b'r\x00a\x00y\x01\x01\x00\x00\x00\x06\x00l\x00o\x00g'
+    """Serialized state on Qt5. Generated using :meth:`printState`"""
 
     def testAvoidRestoreRegression_Version1(self):
         version = qt.qVersion().split(".")[0]
