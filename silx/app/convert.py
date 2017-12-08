@@ -120,6 +120,7 @@ def drop_indices_after_end(filenames, regex, end):
             output_filenames.append(fname)
     return output_filenames
 
+
 def main(argv):
     """
     Main function to launch the converter as an application
@@ -162,13 +163,13 @@ def main(argv):
              'This argument must be '
              'used with --file-pattern. Provide as many start indices as '
              'are indices in the file pattern, separated by commas. For '
-             'instance: "--filepattern toto_%d.edf --begin 100", or '
-             ' "--filepattern toto_%d_%04d_%02d.edf --begin 100,2000,5".')
+             'instance: "--filepattern toto_%%d.edf --begin 100", or '
+             ' "--filepattern toto_%%d_%%04d_%%02d.edf --begin 100,2000,5".')
     parser.add_argument(
         '--end',
         help='Last file index, or last file indices to be considered. '
              'The same rules as with argument --begin apply.'
-             'Example: "--filepattern toto_%d_%d.edf --end 199,1999"')
+             'Example: "--filepattern toto_%%d_%%d.edf --end 199,1999"')
     parser.add_argument(
         '--no-root-group',
         action="store_true",
