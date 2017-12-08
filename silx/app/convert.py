@@ -56,21 +56,69 @@ def c_format_string_to_re(pattern_string):
     pattern_string = pattern_string.replace(".", "\.")
 
     # %d
-    pattern_string = pattern_string.replace("%d", "[-+]?\d+")
+    pattern_string = pattern_string.replace("%d", "([-+]?\d+)")
 
     # %0nd
     for sub_pattern in re.findall("%0\d+d", pattern_string):
         print(sub_pattern)
         n = int(re.search("%0(\d+)d", sub_pattern).group(1))
         if n == 1:
-            re_sub_pattern = "[+-]?\d"
+            re_sub_pattern = "([+-]?\d)"
         else:
-            re_sub_pattern = "[\d+-]\d{%d}" % (n - 1)
+            re_sub_pattern = "([\d+-]\d{%d})" % (n - 1)
         pattern_string = pattern_string.replace(sub_pattern, re_sub_pattern, 1)
 
-    # add EOL ($)
-    return pattern_string + "$"
+    return pattern_string
 
+
+def drop_indices_before_begin(filenames, regex, begin):
+    """
+
+    :param list(str) filenames: list of filenames
+    :param str regex: Regexp used to find indices in a filename
+    :param str begin: Comma separated list of begin indices
+    :return: List of filenames with only indices >= begin
+    """
+    begin_indices = list(map(int, begin.split(",")))
+    output_filenames = []
+    for fname in filenames:
+        m = re.match(regex, fname)
+        file_indices = list(map(int, m.groups()))
+        if len(file_indices) != len(begin_indices):
+            raise IOError("Number of indices found in filename "
+                          "does not match number of parsed end indices.")
+        good_indices = True
+        for i, fidx in enumerate(file_indices):
+            if fidx < begin_indices[i]:
+                good_indices = False
+        if good_indices:
+            output_filenames.append(fname)
+    return output_filenames
+
+
+def drop_indices_after_end(filenames, regex, end):
+    """
+
+    :param list(str) filenames: list of filenames
+    :param str regex: Regexp used to find indices in a filename
+    :param str end: Comma separated list of end indices
+    :return: List of filenames with only indices <= end
+    """
+    end_indices = list(map(int, end.split(",")))
+    output_filenames = []
+    for fname in filenames:
+        m = re.match(regex, fname)
+        file_indices = list(map(int, m.groups()))
+        if len(file_indices) != len(end_indices):
+            raise IOError("Number of indices found in filename "
+                          "does not match number of parsed end indices.")
+        good_indices = True
+        for i, fidx in enumerate(file_indices):
+            if fidx > end_indices[i]:
+                good_indices = False
+        if good_indices:
+            output_filenames.append(fname)
+    return output_filenames
 
 def main(argv):
     """
@@ -108,6 +156,19 @@ def main(argv):
              '"w" (write, existing file is lost), '
              '"w-" (write, fail if file exists) or '
              '"a" (read/write if exists, create otherwise)')
+    parser.add_argument(
+        '--begin',
+        help='First file index, or first file indices to be considered. '
+             'This argument must be '
+             'used with --file-pattern. Provide as many start indices as '
+             'are indices in the file pattern, separated by commas. For '
+             'instance: "--filepattern toto_%d.edf --begin 100", or '
+             ' "--filepattern toto_%d_%04d_%02d.edf --begin 100,2000,5".')
+    parser.add_argument(
+        '--end',
+        help='Last file index, or last file indices to be considered. '
+             'The same rules as with argument --begin apply.'
+             'Example: "--filepattern toto_%d_%d.edf --end 199,1999"')
     parser.add_argument(
         '--no-root-group',
         action="store_true",
@@ -230,21 +291,36 @@ def main(argv):
     else:
         # File series
         dirname = os.path.dirname(options.file_pattern)
-        file_pattern_re = c_format_string_to_re(options.file_pattern)
+        file_pattern_re = c_format_string_to_re(options.file_pattern) + "$"
         files_in_dir = glob(os.path.join(dirname, "*"))
-        matching_files_in_dir = list(filter(lambda name: re.match(file_pattern_re, name),
-                                            files_in_dir))
         _logger.debug("""
             Processing file_pattern
             dirname: %s
             file_pattern_re: %s
             files_in_dir: %s
-            matching_files_in_dir: %s
-            """, dirname, file_pattern_re, files_in_dir, matching_files_in_dir)
-        if not matching_files_in_dir:
+            """, dirname, file_pattern_re, files_in_dir)
+
+        options.input_files = sorted(list(filter(lambda name: re.match(file_pattern_re, name),
+                                                 files_in_dir)))
+        _logger.debug("options.input_files: %s", options.input_files)
+
+        if options.begin is not None:
+            options.input_files = drop_indices_before_begin(options.input_files,
+                                                            file_pattern_re,
+                                                            options.begin)
+            _logger.debug("options.input_files after applying --begin: %s",
+                          options.input_files)
+
+        if options.end is not None:
+            options.input_files = drop_indices_after_end(options.input_files,
+                                                         file_pattern_re,
+                                                         options.end)
+            _logger.debug("options.input_files after applying --end: %s",
+                          options.input_files)
+
+        if not options.input_files:
             _logger.error("No file matching --file-pattern found.")
             return -1
-        options.input_files = sorted(matching_files_in_dir)
 
     # Test that the output path is writeable
     if "::" in options.output_uri:
