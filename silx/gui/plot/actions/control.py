@@ -365,29 +365,10 @@ class ColormapAction(PlotAction):
             # hist, bin_edges = numpy.histogram(goodData, bins=256)
             # self._dialog.setHistogram(hist, bin_edges)
 
-        self._dialog.setColormap(name=colormap.getName(),
-                                 normalization=colormap.getNormalization(),
-                                 autoscale=colormap.isAutoscale(),
-                                 vmin=colormap.getVMin(),
-                                 vmax=colormap.getVMax(),
-                                 colors=colormap.getColormapLUT())
+        self._dialog.setColormap(colormap=colormap)
 
         # Run the dialog listening to colormap change
-        self._dialog.sigColormapChanged.connect(self._colormapChanged)
-        result = self._dialog.exec_()
-        self._dialog.sigColormapChanged.disconnect(self._colormapChanged)
-
-        if not result:  # Restore the previous colormap
-            self._colormapChanged(colormap)
-
-    def _colormapChanged(self, colormap):
-        # Update default colormap
-        self.plot.setDefaultColormap(colormap)
-
-        # Update active image colormap
-        activeImage = self.plot.getActiveImage()
-        if isinstance(activeImage, items.ColormapMixIn):
-            activeImage.setColormap(colormap)
+        self._dialog.show()
 
 
 class KeepAspectRatioAction(PlotAction):
