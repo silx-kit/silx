@@ -437,7 +437,7 @@ class ColormapDialog(qt.QDialog):
         else:
             vmin = self._minValue.value()
             vmax = self._maxValue.value()
-        if self._colormap() and (vmin is None or vmax is None or vmin < vmax):
+        if self._colormap():
             self._colormap().sigChanged.disconnect(self._applyColormap)
             self._colormap().setVRange(vmin, vmax)
             self._colormap().sigChanged.connect(self._applyColormap)
