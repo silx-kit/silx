@@ -28,9 +28,12 @@ This module contains utilitaries used by other dialog modules.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "30/11/2017"
+__date__ = "08/12/2017"
 
-import fabio
+try:
+    import fabio
+except ImportError:
+    fabio = None
 import silx.io
 from silx.gui import qt
 
@@ -71,7 +74,8 @@ class FileTypeComboBox(qt.QComboBox):
         self.__initItems()
 
     def __initItems(self):
-        self.__insertFabioFormats()
+        if fabio is not None:
+            self.__insertFabioFormats()
         self.__insertSilxFormats()
         self.__insertAllSupported()
         self.__insertAnyFiles()
