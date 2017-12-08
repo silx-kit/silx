@@ -420,6 +420,8 @@ class ColormapDialog(qt.QDialog):
 
             self._rangeAutoscaleButton.setChecked(self._colormap().isAutoscale())
             if self._colormap().isAutoscale():
+                self._minValue.setEnabled(False)
+                self._maxValue.setEnabled(False)
                 self._minValue.setEnabled(True)
                 self._maxValue.setEnabled(True)
                 dataRange = self.getDataRange()
@@ -427,6 +429,8 @@ class ColormapDialog(qt.QDialog):
                     self._minValue.setValue(dataRange[0])
                     self._maxValue.setValue(dataRange[1])
             else:
+                self._minValue.setEnabled(True)
+                self._maxValue.setEnabled(True)
                 self._minValue.setEnabled(False)
                 self._maxValue.setEnabled(False)
             # Do it once for all the changes
