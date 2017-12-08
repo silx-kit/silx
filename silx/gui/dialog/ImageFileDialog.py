@@ -170,7 +170,7 @@ class _IconProvider(object):
         if len(sizes) > 0:
             baseSize = sizes[-1]
         else:
-            baseIcon.availableSizes()[0]
+            baseSize = baseIcon.availableSizes()[0]
         size = qt.QSize(baseSize.width(), baseSize.height() * 3 / 2)
 
         modes = [qt.QIcon.Normal, qt.QIcon.Disabled]
