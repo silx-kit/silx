@@ -442,10 +442,11 @@ class ColormapDialog(qt.QDialog):
             vmin = self._minValue.value()
             vmax = self._maxValue.value()
         norm = Colormap.LINEAR if isNormLinear else Colormap.LOGARITHM
-        self._colormap().setVRange(vmin, vmax)
-        self._colormap().setNormalization(norm)
-        self._colormap().setName(
-            str(self._comboBoxColormap.currentText()).lower())
+        if self._colormap():
+            self._colormap().setVRange(vmin, vmax)
+            self._colormap().setNormalization(norm)
+            self._colormap().setName(
+                str(self._comboBoxColormap.currentText()).lower())
 
         self._plotUpdate()
 

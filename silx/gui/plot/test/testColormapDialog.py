@@ -141,8 +141,13 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
                         self.assertTrue(self.colormapDiag._maxValue.isEnabled())
 
     def testColormapDel(self):
-        """Check behavior if the colormap has been deleted outside"""
-        pass
+        """Check behavior if the colormap has been deleted outside. For now
+        we make sure the colormap is still running and nothing more"""
+        self.colormapDiag.setColormap(self.colormap)
+        self.colormapDiag.show()
+        del self.colormap
+        self.assertTrue(self.colormapDiag.getColormap() is None)
+        self.colormapDiag.setDataRange(0, 20)
 
     def testColormapEditedOutside(self):
         """Make sure the GUI is still up to date if the colormap is modified
