@@ -1565,8 +1565,9 @@ class ImageFileDialog(qt.QDialog):
                         elif self.__fabio is not None:
                             index = self.__fileModel.index(uri.filename())
                             rootIndex = index
-                    else:
-                        self.__clearData()
+                    if rootIndex is None:
+                        index = self.__fileModel.index(uri.filename())
+                        index = index.parent()
 
                 if rootIndex is not None:
                     if rootIndex.model() == self.__dataModel:
