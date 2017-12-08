@@ -475,6 +475,7 @@ class ColormapDialog(qt.QDialog):
                     self._colormap().sigChanged.disconnect(self._applyColormap)
                     self._colormap().setVRange(dataRange[0], dataRange[1])
                     self._colormap().sigChanged.connect(self._applyColormap)
+        self._plotUpdate()
 
     def _minMaxTextEdited(self, text):
         """Handle _minValue and _maxValue textEdited signal"""
