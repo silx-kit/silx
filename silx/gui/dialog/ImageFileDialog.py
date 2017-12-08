@@ -1185,6 +1185,8 @@ class ImageFileDialog(qt.QDialog):
             self.__fileModel_setRootPath(path)
 
     def __browsedItemActivated(self, index):
+        if not index.isValid():
+            return
         if index.model() is self.__fileModel:
             path = self.__fileModel.filePath(index)
             if self.__fileModel.isDir(index):
