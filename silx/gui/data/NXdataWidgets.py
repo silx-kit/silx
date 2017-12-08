@@ -89,13 +89,14 @@ class ArrayCurvePlot(qt.QWidget):
 
         layout = qt.QGridLayout()
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self._plot,  0, 0)
+        layout.addWidget(self._plot, 0, 0)
 
         self.setLayout(layout)
 
     def setCurveData(self, y, x=None, values=None,
                      yerror=None, xerror=None,
-                     ylabel=None, xlabel=None, title=None):
+                     ylabel=None, xlabel=None,
+                     title=None):
         """
 
         :param y: dataset to be represented by the y (vertical) axis.
@@ -127,7 +128,7 @@ class ArrayCurvePlot(qt.QWidget):
             self._selector.selectionChanged.disconnect(self._updateCurve)
             self.__selector_is_connected = False
         self._selector.setData(y)
-        self._selector.setAxisNames([ylabel or "Y"])
+        self._selector.setAxisNames(["Y"])
 
         if len(y.shape) < 2:
             self.selectorDock.hide()
@@ -274,7 +275,7 @@ class ArrayImagePlot(qt.QWidget):
         self.__y_axis_name = ylabel
 
         self._selector.setData(signal)
-        self._selector.setAxisNames([ylabel or "Y", xlabel or "X"])
+        self._selector.setAxisNames(["Y", "X"])
 
         if len(signal.shape) < 3:
             self.selectorDock.hide()
@@ -439,7 +440,7 @@ class ArrayStackPlot(qt.QWidget):
         self.__z_axis_name = zlabel
 
         self._selector.setData(signal)
-        self._selector.setAxisNames([ylabel or "Y", xlabel or "X", zlabel or "Z"])
+        self._selector.setAxisNames(["Y", "X", "Z"])
 
         self._stack_view.setGraphTitle(title or "")
         # by default, the z axis is the image position (dimension not plotted)

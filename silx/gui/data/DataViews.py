@@ -957,7 +957,7 @@ class _NXdataCurveView(DataView):
     def setData(self, data):
         data = self.normalizeData(data)
         nxd = NXdata(data)
-        signal_name = get_attr_as_string(data, "signal")
+        signal_name = nxd.signal_name
         group_name = data.name
         if nxd.axes_dataset_names[-1] is not None:
             x_errors = nxd.get_axis_errors(nxd.axes_dataset_names[-1])
@@ -1004,7 +1004,7 @@ class _NXdataXYVScatterView(DataView):
     def setData(self, data):
         data = self.normalizeData(data)
         nxd = NXdata(data)
-        signal_name = get_attr_as_string(data, "signal")
+        signal_name = nxd.signal_name
         # signal_errors = nx.errors   # not supported
         group_name = data.name
         x_axis, y_axis = nxd.axes[-2:]
@@ -1022,8 +1022,9 @@ class _NXdataXYVScatterView(DataView):
 
         self.getWidget().setCurveData(y_axis, x_axis, values=nxd.signal,
                                       yerror=y_errors, xerror=x_errors,
-                                      ylabel=signal_name, xlabel=x_label,
-                                      title="NXdata group " + group_name)
+                                      ylabel=y_label, xlabel=x_label,
+                                      title="NXdata group " + group_name +
+                                            ", coloured by " + signal_name)
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
@@ -1054,7 +1055,7 @@ class _NXdataImageView(DataView):
     def setData(self, data):
         data = self.normalizeData(data)
         nxd = NXdata(data)
-        signal_name = get_attr_as_string(data, "signal")
+        signal_name = nxd.signal_name
         group_name = data.name
         y_axis, x_axis = nxd.axes[-2:]
         y_label, x_label = nxd.axes_names[-2:]
@@ -1095,7 +1096,7 @@ class _NXdataStackView(DataView):
     def setData(self, data):
         data = self.normalizeData(data)
         nxd = NXdata(data)
-        signal_name = get_attr_as_string(data, "signal")
+        signal_name = nxd.signal_name
         group_name = data.name
         z_axis, y_axis, x_axis = nxd.axes[-3:]
         z_label, y_label, x_label = nxd.axes_names[-3:]

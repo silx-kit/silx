@@ -258,9 +258,12 @@ class NumpyAxesSelector(qt.QWidget):
         The size of the list will constrain the dimension of the resulting
         array.
 
-        :param list[str] axesNames: List of string identifying axis names
+        :param list[str] axesNames: List of distinct strings identifying axis names
         """
         self.__axisNames = list(axesNames)
+        assert len(set(self.__axisNames)) == len(self.__axisNames),\
+            "Non-unique axes names: %s" % self.__axisNames
+
         delta = len(self.__axis) - len(self.__axisNames)
         if delta < 0:
             delta = 0
@@ -415,7 +418,6 @@ class NumpyAxesSelector(qt.QWidget):
             else:
                 selection.append(slice(None))
                 axisNames.append(name)
-
         self.__selection = tuple(selection)
         # get a view with few fixed dimensions
         # with a h5py dataset, it create a copy
