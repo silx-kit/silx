@@ -447,17 +447,18 @@ def _open(filename):
     :raises: IOError if the file can't be loaded as an h5py.File like object
     :rtype: h5py.File
     """
-    uri = six.moves.urllib.parse.urlparse(filename)
-    if uri.netloc == '' or uri.scheme in ['', 'file']:
-        filename = uri.path
-    else:
-        if h5pyd is None:
-            raise IOError("URI '%s' unsupported. Try to install h5pyd." % filename)
-        path = uri.path
-        endpoint = "%s://%s" % (uri.scheme, uri.netloc)
-        if path.startswith("/"):
-            path = path[1:]
-        return h5pyd.File(path, 'r', endpoint=endpoint)
+    if "://" in filename:
+        uri = six.moves.urllib.parse.urlparse(filename)
+        if uri.netloc == '' or uri.scheme in ['', 'file']:
+            filename = uri.path
+        else:
+            if h5pyd is None:
+                raise IOError("URI '%s' unsupported. Try to install h5pyd." % filename)
+            path = uri.path
+            endpoint = "%s://%s" % (uri.scheme, uri.netloc)
+            if path.startswith("/"):
+                path = path[1:]
+            return h5pyd.File(path, 'r', endpoint=endpoint)
 
     if not os.path.isfile(filename):
         raise IOError("Filename '%s' must be a file path" % filename)

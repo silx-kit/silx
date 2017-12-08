@@ -170,8 +170,8 @@ class _IconProvider(object):
         if len(sizes) > 0:
             baseSize = sizes[-1]
         else:
-            baseIcon.availableSizes()[0]
-        size = qt.QSize(baseSize.width(), baseSize.height() * 3 / 2)
+            baseSize = baseIcon.availableSizes()[0]
+        size = qt.QSize(baseSize.width(), baseSize.height() * 3 // 2)
 
         modes = [qt.QIcon.Normal, qt.QIcon.Disabled]
         for mode in modes:
@@ -179,7 +179,7 @@ class _IconProvider(object):
             pixmap.fill(qt.Qt.transparent)
             painter = qt.QPainter(pixmap)
             painter.drawPixmap(0, 0, backgroundIcon.pixmap(baseSize, mode=mode))
-            painter.drawPixmap(0, size.height() / 3, baseIcon.pixmap(baseSize, mode=mode))
+            painter.drawPixmap(0, size.height() // 3, baseIcon.pixmap(baseSize, mode=mode))
             painter.end()
             icon.addPixmap(pixmap, mode=mode)
 
@@ -1565,8 +1565,9 @@ class ImageFileDialog(qt.QDialog):
                         elif self.__fabio is not None:
                             index = self.__fileModel.index(uri.filename())
                             rootIndex = index
-                    else:
-                        self.__clearData()
+                    if rootIndex is None:
+                        index = self.__fileModel.index(uri.filename())
+                        index = index.parent()
 
                 if rootIndex is not None:
                     if rootIndex.model() == self.__dataModel:
