@@ -307,8 +307,8 @@ class Colormap(qt.QObject):
         """
         if vmin is not None and vmax is not None:
             if vmin >= vmax:
-                err = "Can't set vmin and vmax because vmin >= vmax"
-                err += "vmin = %s, vmax = %s" % (vmin, self._vmax)
+                err = "Can't set vmin and vmax because vmin >= vmax " \
+                      "vmin = %s, vmax = %s" % (vmin, vmax)
                 raise ValueError(err)
 
         self._vmin = vmin
