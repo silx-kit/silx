@@ -32,6 +32,8 @@ import numpy
 import re
 import time
 
+import silx.io.fabioh5
+
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
@@ -108,7 +110,8 @@ def main(argv):
         help='This option disables the default behavior of creating a '
              'root group (entry) for each file to be converted. When '
              'merging multiple input files, this can cause conflicts '
-             'when datasets have the same name (see --overwrite-data).')
+             'when datasets have the same name (see --overwrite-data). '
+             'This option has no effect when using --file-pattern.')
     parser.add_argument(
         '--overwrite-data',
         action="store_true",
@@ -321,15 +324,18 @@ def main(argv):
     with h5py.File(output_name, mode=options.mode) as h5f:
         if options.file_pattern is not None:
             # File series
-            import silx.io.fabioh5
-            input_file = silx.io.fabioh5.File(file_series=options.input_files)
-            write_to_h5(input_file, h5f,
+            input_group = silx.io.fabioh5.File(file_series=options.input_files)
+            if hdf5_path != "/":
+                # we want to append only data and headers to an existing file
+                input_group = input_group["/scan_0/instrument/detector_0"]
+            write_to_h5(input_group, h5f,
                         h5path=hdf5_path,
                         overwrite_data=options.overwrite_data,
                         create_dataset_args=create_dataset_args,
                         min_size=options.min_size)
 
         else:
+            # single file or unrelated files
             for input_name in options.input_files:
                 hdf5_path_for_file = hdf5_path
                 if not options.no_root_group:
