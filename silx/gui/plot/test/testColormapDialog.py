@@ -37,6 +37,7 @@ from silx.gui import qt
 from silx.gui.plot import ColormapDialog
 from silx.gui.test.utils import TestCaseQt
 from silx.gui.plot.Colormap import Colormap
+from silx.test.utils import ParametricTestCase
 
 
 # Makes sure a QApplication exists
@@ -60,7 +61,7 @@ cmapDocTestSuite = doctest.DocTestSuite(ColormapDialog, tearDown=_tearDownQt)
 """Test suite of tests from the module's docstrings."""
 
 
-class TestColormapDialog(TestCaseQt):
+class TestColormapDialog(TestCaseQt, ParametricTestCase):
     def setUp(self):
         self.colormap = Colormap(name='gray', vmin=0.0, vmax=1.0,
                                  normalization='linear')
@@ -114,7 +115,30 @@ class TestColormapDialog(TestCaseQt):
 
     def testSetColormapIsCorrect(self):
         """Make sure the interface fir the colormap when set a new colormap"""
-        pass
+        self.colormap.setName('red')
+        for norm in (Colormap.NORMALIZATIONS):
+            for autoscale in (True, False):
+                if autoscale is True:
+                    self.colormap.setVRange(None, None)
+                else:
+                    self.colormap.setVRange(11, 101)
+                self.colormap.setNormalization(norm)
+                with self.subTest(colormap=self.colormap):
+                    self.colormapDiag.setColormap(self.colormap)
+                    self.assertTrue(
+                        self.colormapDiag._normButtonLinear.isChecked() == (norm is Colormap.LINEAR))
+                    self.assertTrue(
+                        self.colormapDiag._comboBoxColormap.currentText() == 'Red')
+                    self.assertTrue(
+                        self.colormapDiag._rangeAutoscaleButton.isChecked() == autoscale)
+                    if autoscale is False:
+                        self.assertTrue(self.colormapDiag._minValue.value() == 11)
+                        self.assertTrue(self.colormapDiag._maxValue.value() == 101)
+                        self.assertFalse(self.colormapDiag._minValue.isEnabled())
+                        self.assertFalse(self.colormapDiag._maxValue.isEnabled())
+                    else:
+                        self.assertTrue(self.colormapDiag._minValue.isEnabled())
+                        self.assertTrue(self.colormapDiag._maxValue.isEnabled())
 
     def testColormapDel(self):
         """Check behavior if the colormap has been deleted outside"""
