@@ -31,11 +31,12 @@ To run the following sample code, a QApplication must be initialized.
 Create the colormap dialog and set the colormap description and data range:
 
 >>> from silx.gui.plot.ColormapDialog import ColormapDialog
+>>> from silx.gui.plot.Colormap import Colormap
 
 >>> dialog = ColormapDialog()
 
->>> dialog.setColormap(name='red', normalization='log',
-...                    autoscale=False, vmin=1., vmax=2.)
+>>> dialog.setColormap(Colormap(name='red', normalization='log',
+...                             vmin=1., vmax=2.))
 >>> dialog.setDataRange(1., 100.)  # This scale the width of the plot area
 >>> dialog.show()
 
@@ -83,13 +84,6 @@ class ColormapDialog(qt.QDialog):
     :param str title: The QDialog title
     """
 
-    sigColormapChanged = qt.Signal(Colormap)
-    """Signal triggered when the colormap is changed.
-
-    It provides a dict describing the colormap to the slot.
-    This dict can be used with :class:`Plot`.
-    """
-
     def __init__(self, parent=None, title="Colormap Dialog"):
         qt.QDialog.__init__(self, parent)
         self.setWindowTitle(title)
@@ -111,7 +105,7 @@ class ColormapDialog(qt.QDialog):
         self._comboBoxColormap = qt.QComboBox()
         for cmap in preferredColormaps():
             self._comboBoxColormap.addItem(cmap.title(), cmap)
-        self._comboBoxColormap.activated[int].connect(self._notify)
+        self._comboBoxColormap.activated[int].connect(self._updateColormapFrmGUI)
         formLayout.addRow('Colormap:', self._comboBoxColormap)
 
         # Normalization row
@@ -123,7 +117,7 @@ class ColormapDialog(qt.QDialog):
         normButtonGroup.setExclusive(True)
         normButtonGroup.addButton(self._normButtonLinear)
         normButtonGroup.addButton(self._normButtonLog)
-        normButtonGroup.buttonClicked[int].connect(self._notify)
+        normButtonGroup.buttonClicked[int].connect(self._updateColormapFrmGUI)
 
         normLayout = qt.QHBoxLayout()
         normLayout.setContentsMargins(0, 0, 0, 0)
@@ -137,7 +131,7 @@ class ColormapDialog(qt.QDialog):
         self._rangeAutoscaleButton = qt.QCheckBox('Autoscale')
         self._rangeAutoscaleButton.setChecked(True)
         self._rangeAutoscaleButton.toggled.connect(self._autoscaleToggled)
-        self._rangeAutoscaleButton.clicked.connect(self._notify)
+        self._rangeAutoscaleButton.clicked.connect(self._updateColormapFrmGUI)
         formLayout.addRow('Range:', self._rangeAutoscaleButton)
 
         # Min row
@@ -176,8 +170,8 @@ class ColormapDialog(qt.QDialog):
         self.setFixedSize(vLayout.minimumSize())
 
         # Set the colormap to default values
-        self.setColormap(name='gray', normalization='linear',
-                         autoscale=True, vmin=1., vmax=10.)
+        self.setColormap(Colormap(name='gray', normalization='linear',
+                         vmin=None, vmax=None))
 
     def _plotInit(self):
         """Init the plot to display the range and the values"""
@@ -224,16 +218,6 @@ class ColormapDialog(qt.QDialog):
         else:
             x = [minmd, end, start, maxpd]
             y = [1, 1, 0, 0]
-
-        # Display the colormap on the side
-        # colormap = {'name': self.getColormap()['name'],
-        #             'normalization': self.getColormap()['normalization'],
-        #             'autoscale': True, 'vmin': 1., 'vmax': 256.}
-        # self._plot.addImage((1 + numpy.arange(256)).reshape(256, -1),
-        #                     xScale=(minmd - marge, marge),
-        #                     yScale=(1., 2./256.),
-        #                     legend='colormap',
-        #                     colormap=colormap)
 
         self._plot.addCurve(x, y,
                             legend="ConstrainedCurve",
@@ -283,7 +267,7 @@ class ColormapDialog(qt.QDialog):
             # This will recreate the markers while interacting...
             # It might break if marker interaction is changed
             if event['event'] == 'markerMoved':
-                self._notify()
+                self._updateColormapFrmGUI()
             else:
                 self._plotUpdate(updateMarkers=False)
 
@@ -356,7 +340,7 @@ class ColormapDialog(qt.QDialog):
             if self._rangeAutoscaleButton.isChecked():
                 self._minValue.setValue(min_)
                 self._maxValue.setValue(max_)
-                self._notify()
+                self._updateColormapFrmGUI()
             else:
                 self._plotUpdate()
 
@@ -364,26 +348,35 @@ class ColormapDialog(qt.QDialog):
         """Return the colormap description as a :class:`.Colormap`.
 
         """
-        isNormLinear = self._normButtonLinear.isChecked()
-        if self._rangeAutoscaleButton.isChecked():
-            vmin = None
-            vmax = None
-        else:
-            vmin = self._minValue.value()
-            vmax = self._maxValue.value()
-        norm = Colormap.LINEAR if isNormLinear else Colormap.LOGARITHM
+        return self._colormap
 
-        name = self._comboBoxColormap.itemData(
-            self._comboBoxColormap.currentIndex(), qt.Qt.UserRole)
-        colormap = Colormap(
-                        name=name,
-                        normalization=norm,
-                        vmin=vmin,
-                        vmax=vmax)
-        return colormap
+    def resetColormap(self):
+        """
+        Reset the colormap state before modification.
 
-    def setColormap(self, name=None, normalization=None,
-                    autoscale=None, vmin=None, vmax=None, colors=None):
+        ..note :: the colormap reference state is the state when set or the
+                  state when validated
+        """
+        self._colormap._setFromDict(self._colormapStoredState)
+        self._plotUpdate()
+
+    def accept(self):
+        self.storeCurrentState()
+        qt.QDialog.accept(self)
+
+    def storeCurrentState(self):
+        """
+        save the current value sof the colormap if the user want to undo is
+        modifications
+        """
+        self._colormapStoredState = self._colormap._toDict()
+        self._applyColormap()
+
+    def reject(self):
+        self.resetColormap()
+        qt.QDialog.reject(self)
+
+    def setColormap(self, colormap):
         """Set the colormap description
 
         If some arguments are not provided, the current values are used.
@@ -394,52 +387,66 @@ class ColormapDialog(qt.QDialog):
         :param float vmin: The min value, ignored if autoscale is True
         :param float vmax: The max value, ignored if autoscale is True
         """
-        if name is not None:
-            capitalizedName = name.title()
+        assert isinstance(colormap, Colormap)
+        self._colormap = colormap
+        self.storeCurrentState()
+        self._applyColormap()
 
-            # Check if colormap is available in the combo box
-            if self._comboBoxColormap.findData(name, qt.Qt.UserRole) == -1:
-                self._comboBoxColormap.addItem(capitalizedName, name)
-
-            index = self._comboBoxColormap.findData(name, qt.Qt.UserRole)
+    def _applyColormap(self):
+        if self._colormap.getName() is not None:
+            index = self._comboBoxColormap.findData(
+                self._colormap.getName(), qt.Qt.UserRole)
             self._comboBoxColormap.setCurrentIndex(index)
 
-        if normalization is not None:
-            assert normalization in Colormap.NORMALIZATIONS
-            self._normButtonLinear.setChecked(normalization == Colormap.LINEAR)
-            self._normButtonLog.setChecked(normalization == Colormap.LOGARITHM)
+        if self._colormap.getNormalization() is not None:
+            assert self._colormap.getNormalization() in Colormap.NORMALIZATIONS
+            self._normButtonLinear.setChecked(
+                self._colormap.getNormalization() == Colormap.LINEAR)
+            self._normButtonLog.setChecked(
+                self._colormap.getNormalization() == Colormap.LOGARITHM)
 
-        if vmin is not None:
-            self._minValue.setValue(vmin)
+        if self._colormap.getVMin() is not None:
+            self._minValue.setValue(self._colormap.getVMin())
 
-        if vmax is not None:
-            self._maxValue.setValue(vmax)
+        if self._colormap.getVMax() is not None:
+            self._maxValue.setValue(self._colormap.getVMax())
 
-        if autoscale is not None:
-            self._rangeAutoscaleButton.setChecked(autoscale)
-            if autoscale:
-                dataRange = self.getDataRange()
-                if dataRange is not None:
-                    self._minValue.setValue(dataRange[0])
-                    self._maxValue.setValue(dataRange[1])
+        self._rangeAutoscaleButton.setChecked(self._colormap.isAutoscale())
+        if self._colormap.isAutoscale():
+            dataRange = self.getDataRange()
+            if dataRange is not None:
+                self._minValue.setValue(dataRange[0])
+                self._maxValue.setValue(dataRange[1])
 
         # Do it once for all the changes
-        self._notify()
+        self._updateColormapFrmGUI()
 
-    def _notify(self, *args, **kwargs):
+    def _updateColormapFrmGUI(self, *args, **kwargs):
         """Emit the signal for colormap change"""
+        isNormLinear = self._normButtonLinear.isChecked()
+        if self._rangeAutoscaleButton.isChecked():
+            vmin = None
+            vmax = None
+        else:
+            vmin = self._minValue.value()
+            vmax = self._maxValue.value()
+        norm = Colormap.LINEAR if isNormLinear else Colormap.LOGARITHM
+        self._colormap.setVRange(vmin, vmax)
+        self._colormap.setNormalization(norm)
+        self._colormap.setName(str(self._comboBoxColormap.currentText()).lower())
+
         self._plotUpdate()
-        self.sigColormapChanged.emit(self.getColormap())
 
     def _autoscaleToggled(self, checked):
         """Handle autoscale changes by enabling/disabling min/max fields"""
         self._minValue.setEnabled(not checked)
         self._maxValue.setEnabled(not checked)
         if checked:
+            self._colormap.setVRange(None, None)
+        else:
             dataRange = self.getDataRange()
-            if dataRange is not None:
-                self._minValue.setValue(dataRange[0])
-                self._maxValue.setValue(dataRange[1])
+            self._colormap.setVMin(dataRange[0])
+            self._colormap.setVMax(dataRange[1])
 
     def _minMaxTextEdited(self, text):
         """Handle _minValue and _maxValue textEdited signal"""
@@ -457,7 +464,7 @@ class ColormapDialog(qt.QDialog):
             # Fix start value
             if self._minValue.value() > self._maxValue.value():
                 self._minValue.setValue(self._maxValue.value())
-            self._notify()
+            self._updateColormapFrmGUI()
 
     def _maxEditingFinished(self):
         """Handle _maxValue editingFinished signal
@@ -471,7 +478,7 @@ class ColormapDialog(qt.QDialog):
             # Fix end value
             if self._minValue.value() > self._maxValue.value():
                 self._maxValue.setValue(self._minValue.value())
-            self._notify()
+            self._updateColormapFrmGUI()
 
     def keyPressEvent(self, event):
         """Override key handling.
