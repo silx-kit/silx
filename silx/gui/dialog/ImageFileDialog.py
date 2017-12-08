@@ -171,7 +171,7 @@ class _IconProvider(object):
             baseSize = sizes[-1]
         else:
             baseSize = baseIcon.availableSizes()[0]
-        size = qt.QSize(baseSize.width(), baseSize.height() * 3 / 2)
+        size = qt.QSize(baseSize.width(), baseSize.height() * 3 // 2)
 
         modes = [qt.QIcon.Normal, qt.QIcon.Disabled]
         for mode in modes:
@@ -179,7 +179,7 @@ class _IconProvider(object):
             pixmap.fill(qt.Qt.transparent)
             painter = qt.QPainter(pixmap)
             painter.drawPixmap(0, 0, backgroundIcon.pixmap(baseSize, mode=mode))
-            painter.drawPixmap(0, size.height() / 3, baseIcon.pixmap(baseSize, mode=mode))
+            painter.drawPixmap(0, size.height() // 3, baseIcon.pixmap(baseSize, mode=mode))
             painter.end()
             icon.addPixmap(pixmap, mode=mode)
 
