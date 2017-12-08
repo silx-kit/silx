@@ -87,8 +87,12 @@ def main(argv):
     # input_files and --filepattern are mutually exclusive
     parser.add_argument(
         '--file-pattern',
-        help='File name pattern for loading a series of indexed files'
-             '(toto_%%04d.edf). Incompatible with argument input_files')
+        help='File name pattern for loading a series of indexed files '
+             '(toto_%%04d.edf). This argument is incompatible with argument '
+             'input_files. If an output URI with a HDF5 path is provided, '
+             'only the content of the NXdetector group will be copied there. '
+             'If no HDF5 path, or just "/", is given, a complete NXdata '
+             'structure will be created.')
     parser.add_argument(
         '-o', '--output-uri',
         default=time.strftime("%Y%m%d-%H%M%S") + '.h5',
