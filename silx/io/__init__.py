@@ -26,7 +26,7 @@
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "30/11/2017"
+__date__ = "11/12/2017"
 
 
 from .utils import open  # pylint:disable=redefined-builtin
@@ -37,6 +37,7 @@ from .utils import is_file
 from .utils import is_group
 from .utils import is_softlink
 from .utils import supported_extensions
+from .utils import get_data
 
 # avoid to import open with "import *"
 __all = locals().keys()

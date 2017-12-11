@@ -24,6 +24,7 @@ Top-level functions
 
 .. autofunction:: silx.io.open
 .. autofunction:: silx.io.save1D
+.. autofunction:: silx.io.get_data
 
 .. autofunction:: silx.io.is_dataset
 .. autofunction:: silx.io.is_group
