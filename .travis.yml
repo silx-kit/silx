@@ -37,6 +37,7 @@ matrix:
 
         - language: generic
           os: osx
+          osx_image: xcode9.2
           env:
               - BUILD_COMMAND=bdist_wheel
               - WITH_QT_TEST=True
