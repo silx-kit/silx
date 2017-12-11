@@ -28,13 +28,13 @@ This module contains an :class:`ImageFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "08/12/2017"
+__date__ = "11/12/2017"
 
 import sys
 import os
 import logging
 import numpy
-import silx.io
+import silx.io.url
 from silx.gui.plot import actions
 from silx.gui import qt
 from silx.gui.plot.PlotWidget import PlotWidget
@@ -49,100 +49,6 @@ except ImportError:
 
 
 _logger = logging.getLogger(__name__)
-
-
-class _ImageUri(object):
-
-    def __init__(self, path=None, filename=None, dataPath=None, slicing=None, scheme=None):
-        self.__isValid = False
-        if path is not None:
-            self.__fromPath(path)
-        else:
-            self.__filename = filename
-            self.__dataPath = dataPath
-            self.__slice = slicing
-            self.__scheme = scheme
-            self.__path = None
-            if self.__filename in ["", "/"]:
-                self.__isValid = self.__dataPath is None and self.__slice is None
-            else:
-                self.__isValid = self.__filename is not None
-            if self.__scheme not in [None, "silx", "fabio"]:
-                self.__isValid = False
-
-    def __fromPath(self, path):
-        elements = path.split("::", 1)
-        self.__path = path
-
-        scheme_and_filename = elements[0].split(":", 1)
-        if len(scheme_and_filename) == 2:
-            if len(scheme_and_filename[0]) <= 2:
-                # Windows driver
-                self.__scheme = None
-                self.__filename = elements[0]
-            else:
-                self.__scheme = scheme_and_filename[0]
-                self.__filename = scheme_and_filename[1]
-        else:
-            self.__scheme = None
-            self.__filename = scheme_and_filename[0]
-        self.__slice = None
-        self.__dataPath = None
-        if len(elements) == 1:
-            pass
-        else:
-            selector = elements[1]
-            selectors = selector.split("[", 1)
-            self.__dataPath = selectors[0]
-            if len(selectors) == 2:
-                slicing = selectors[1].split("]", 1)
-                if len(slicing) < 2 or slicing[1] != "":
-                    self.__isValid = False
-                    return
-                slicing = slicing[0].split(",")
-                try:
-                    slicing = [int(s) for s in slicing]
-                    self.__slice = slicing
-                except ValueError:
-                    self.__isValid = False
-                    return
-
-        self.__isValid = self.__scheme in [None, "silx", "fabio"]
-
-    def isValid(self):
-        return self.__isValid
-
-    def path(self):
-        if self.__path is not None:
-            return self.__path
-
-        path = ""
-        selector = ""
-        if self.__filename is not None:
-            path += self.__filename
-        if self.__dataPath is not None:
-            selector += self.__dataPath
-        if self.__slice is not None:
-            selector += "[%s]" % ",".join([str(s) for s in self.__slice])
-
-        if selector != "":
-            path = path + "::" + selector
-
-        if self.__scheme is not None:
-            path = self.__scheme + ":" + path
-        return path
-
-    def filename(self):
-        return self.__filename
-
-    def dataPath(self):
-        return self.__dataPath
-
-    def slice(self):
-        return self.__slice
-
-    def scheme(self):
-        return self.__scheme
 
 
 class _IconProvider(object):
@@ -1491,7 +1397,7 @@ class ImageFileDialog(qt.QDialog):
             else:
                 scheme = None
 
-        uri = _ImageUri(filename=filename, dataPath=dataPath, slicing=slicing, scheme=scheme)
+        uri = silx.io.url.DataUrl(file_path=filename, data_path=dataPath, data_slice=slicing, scheme=scheme)
         return uri
 
     def __updatePath(self):
@@ -1554,36 +1460,36 @@ class ImageFileDialog(qt.QDialog):
         self.__pathChanged()
 
     def __pathChanged(self):
-        uri = _ImageUri(path=self.__pathEdit.text())
-        if uri.isValid():
-            if uri.filename() in ["", "/"]:
+        uri = silx.io.url.DataUrl(path=self.__pathEdit.text())
+        if uri.is_valid() or uri.path() == "":
+            if uri.path() in ["", "/"] or uri.file_path() in ["", "/"]:
                 self.__fileModel_setRootPath(qt.QDir.rootPath())
-            elif os.path.exists(uri.filename()):
+            elif os.path.exists(uri.file_path()):
                 rootIndex = None
-                if os.path.isdir(uri.filename()):
-                    self.__fileModel_setRootPath(uri.filename())
-                    index = self.__fileModel.index(uri.filename())
-                elif os.path.isfile(uri.filename()):
+                if os.path.isdir(uri.file_path()):
+                    self.__fileModel_setRootPath(uri.file_path())
+                    index = self.__fileModel.index(uri.file_path())
+                elif os.path.isfile(uri.file_path()):
                     if uri.scheme() == "silx":
-                        loaded = self.__openSilxFile(uri.filename())
+                        loaded = self.__openSilxFile(uri.file_path())
                     elif uri.scheme() == "fabio":
-                        loaded = self.__openFabioFile(uri.filename())
+                        loaded = self.__openFabioFile(uri.file_path())
                     else:
-                        loaded = self.__openFile(uri.filename())
+                        loaded = self.__openFile(uri.file_path())
                     if loaded:
                         if self.__h5 is not None:
                             rootIndex = self.__dataModel.indexFromH5Object(self.__h5)
                         elif self.__fabio is not None:
-                            index = self.__fileModel.index(uri.filename())
+                            index = self.__fileModel.index(uri.file_path())
                             rootIndex = index
                     if rootIndex is None:
-                        index = self.__fileModel.index(uri.filename())
+                        index = self.__fileModel.index(uri.file_path())
                         index = index.parent()
 
                 if rootIndex is not None:
                     if rootIndex.model() == self.__dataModel:
-                        if uri.dataPath() is not None:
-                            dataPath = uri.dataPath()
+                        if uri.data_path() is not None:
+                            dataPath = uri.data_path()
                             if dataPath in self.__h5:
                                 obj = self.__h5[dataPath]
                             else:
@@ -1618,14 +1524,14 @@ class ImageFileDialog(qt.QDialog):
                     self.__browser.setRootIndex(index, model=self.__fileModel)
                     self.__clearData()
 
-                self.__slicing.setVisible(uri.slice() is not None)
-                if uri.slice() is not None:
-                    self.__slicing.setSlicing(uri.slice())
+                self.__slicing.setVisible(uri.data_slice() is not None)
+                if uri.data_slice() is not None:
+                    self.__slicing.setSlicing(uri.data_slice())
             else:
-                self.__errorWhileLoadingFile = (uri.filename(), "File not found")
+                self.__errorWhileLoadingFile = (uri.file_path(), "File not found")
                 self.__clearData()
         else:
-            self.__errorWhileLoadingFile = (uri.filename(), "Path invalid")
+            self.__errorWhileLoadingFile = (uri.file_path(), "Path invalid")
             self.__clearData()
 
     # Selected file

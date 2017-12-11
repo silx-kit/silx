@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "08/12/2017"
+__date__ = "11/12/2017"
 
 
 import unittest
@@ -46,10 +46,10 @@ try:
 except ImportError:
     h5py = None
 
+import silx.io.url
 from silx.gui import qt
 from silx.gui.test import utils
 from ..ImageFileDialog import ImageFileDialog
-from ..ImageFileDialog import _ImageUri
 from silx.gui.plot.Colormap import Colormap
 from silx.gui.hdf5 import Hdf5TreeModel
 
@@ -127,105 +127,6 @@ class _UtilsMixin(object):
         if path1_ == path2_:
             # Use the unittest API to log and display error
             self.assertNotEquals(path1, path2)
-
-
-class TestImageUri(unittest.TestCase):
-
-    def testRelativeFilename(self):
-        uri = _ImageUri("foobar.edf")
-        self.assertTrue(uri.isValid())
-        self.assertEqual(uri.scheme(), None)
-        self.assertEqual(uri.filename(), "foobar.edf")
-        self.assertEqual(uri.dataPath(), None)
-        self.assertEqual(uri.slice(), None)
-
-    def testAbsoluteFilename(self):
-        uri = _ImageUri("/foo/foobar.edf")
-        self.assertTrue(uri.isValid())
-        self.assertEqual(uri.scheme(), None)
-        self.assertEqual(uri.filename(), "/foo/foobar.edf")
-        self.assertEqual(uri.dataPath(), None)
-        self.assertEqual(uri.slice(), None)
-
-    def testDataPath(self):
-        uri = _ImageUri("/foo/foobar.h5::/foo/bar")
-        self.assertTrue(uri.isValid())
-        self.assertEqual(uri.scheme(), None)
-        self.assertEqual(uri.filename(), "/foo/foobar.h5")
-        self.assertEqual(uri.dataPath(), "/foo/bar")
-        self.assertEqual(uri.slice(), None)
-
-    def testSlice(self):
-        uri = _ImageUri("/foo/foobar.h5::/foo/bar[5,1]")
-        self.assertTrue(uri.isValid())
-        self.assertEqual(uri.scheme(), None)
-        self.assertEqual(uri.filename(), "/foo/foobar.h5")
-        self.assertEqual(uri.dataPath(), "/foo/bar")
-        self.assertEqual(uri.slice(), [5, 1])
-
-    def testWindowsPathDataSlice(self):
-        uri = _ImageUri("C:/foo/foobar.h5::/foo/bar[5,1]")
-        self.assertTrue(uri.isValid())
-        self.assertEqual(uri.scheme(), None)
-        self.assertEqual(uri.filename(), "C:/foo/foobar.h5")
-        self.assertEqual(uri.dataPath(), "/foo/bar")
-        self.assertEqual(uri.slice(), [5, 1])
-
-    def testSchemePathDataSlice(self):
-        uri = _ImageUri("silx:/foo/foobar.h5::/foo/bar[5,1]")
-        self.assertTrue(uri.isValid())
-        self.assertEqual(uri.scheme(), "silx")
-        self.assertEqual(uri.filename(), "/foo/foobar.h5")
-        self.assertEqual(uri.dataPath(), "/foo/bar")
-        self.assertEqual(uri.slice(), [5, 1])
-
-    def testSchemeWindowsPathDataSlice(self):
-        uri = _ImageUri("silx:C:/foo/foobar.h5::/foo/bar[5,1]")
-        self.assertTrue(uri.isValid())
-        self.assertEqual(uri.scheme(), "silx")
-        self.assertEqual(uri.filename(), "C:/foo/foobar.h5")
-        self.assertEqual(uri.dataPath(), "/foo/bar")
-        self.assertEqual(uri.slice(), [5, 1])
-
-    def testEmpty(self):
-        uri = _ImageUri("")
-        self.assertTrue(uri.isValid())
-        self.assertEqual(uri.scheme(), None)
-        self.assertEqual(uri.filename(), "")
-        self.assertEqual(uri.dataPath(), None)
-        self.assertEqual(uri.slice(), None)
-
-    def testBadSlice(self):
-        uri = _ImageUri("/foo/foobar.h5::/foo/bar[5,,1]")
-        self.assertFalse(uri.isValid())
-        self.assertEqual(uri.scheme(), None)
-        self.assertEqual(uri.filename(), "/foo/foobar.h5")
-        self.assertEqual(uri.dataPath(), "/foo/bar")
-        self.assertEqual(uri.slice(), None)
-
-    def testBadSlice2(self):
-        uri = _ImageUri("/foo/foobar.h5::/foo/bar[5")
-        self.assertFalse(uri.isValid())
-        self.assertEqual(uri.scheme(), None)
-        self.assertEqual(uri.filename(), "/foo/foobar.h5")
-        self.assertEqual(uri.dataPath(), "/foo/bar")
-        self.assertEqual(uri.slice(), None)
-
-    def testBadSlice3(self):
-        uri = _ImageUri("/foo/foobar.h5::/foo/bar[]")
-        self.assertFalse(uri.isValid())
-        self.assertEqual(uri.scheme(), None)
-        self.assertEqual(uri.filename(), "/foo/foobar.h5")
-        self.assertEqual(uri.dataPath(), "/foo/bar")
-        self.assertEqual(uri.slice(), None)
-
-    def testBadScheme(self):
-        uri = _ImageUri("foo:/foo/foobar.h5::/foo/bar[5,1]")
-        self.assertFalse(uri.isValid())
-        self.assertEqual(uri.scheme(), "foo")
-        self.assertEqual(uri.filename(), "/foo/foobar.h5")
-        self.assertEqual(uri.dataPath(), "/foo/bar")
-        self.assertEqual(uri.slice(), [5, 1])
 
 
 class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
@@ -358,13 +259,16 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         filename = _tmpDirectory + "/data.h5"
 
         # init state
-        dialog.selectPath("%s::/group/image" % filename)
+        path = silx.io.url.DataUrl(file_path=filename, data_path="/group/image").path()
+        dialog.selectPath(path)
         self.qWaitForPendingActions(dialog)
-        self.assertSamePath(url.text(), "silx:%s::/group/image" % filename)
+        path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/group/image").path()
+        self.assertSamePath(url.text(), path)
         # test
         self.mouseClick(toParentButton, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
-        self.assertSamePath(url.text(), "silx:%s::/" % filename)
+        path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/").path()
+        self.assertSamePath(url.text(), path)
 
         self.mouseClick(toParentButton, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
@@ -387,14 +291,16 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         filename = _tmpDirectory + "/data.h5"
 
         # init state
-        dialog.selectPath("silx:%s::/group/image" % filename)
+        path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/group/image").path()
+        dialog.selectPath(path)
         self.qWaitForPendingActions(dialog)
-        self.assertSamePath(url.text(), "silx:%s::/group/image" % filename)
+        self.assertSamePath(url.text(), path)
         self.assertTrue(button.isEnabled())
         # test
         self.mouseClick(button, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
-        self.assertSamePath(url.text(), "silx:%s::/" % filename)
+        path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/").path()
+        self.assertSamePath(url.text(), path)
         # self.assertFalse(button.isEnabled())
 
     def testClickOnBackToDirectoryTool(self):
@@ -410,9 +316,11 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         filename = _tmpDirectory + "/data.h5"
 
         # init state
-        dialog.selectPath("%s::/group/image" % filename)
+        path = silx.io.url.DataUrl(file_path=filename, data_path="/group/image").path()
+        dialog.selectPath(path)
         self.qWaitForPendingActions(dialog)
-        self.assertSamePath(url.text(), "silx:%s::/group/image" % filename)
+        path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/group/image").path()
+        self.assertSamePath(url.text(), path)
         self.assertTrue(button.isEnabled())
         # test
         self.mouseClick(button, qt.Qt.LeftButton)
@@ -442,9 +350,11 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         # Then we feed the history using selectPath
         dialog.selectPath(filename)
         self.qWaitForPendingActions(dialog)
-        dialog.selectPath("silx:%s::/" % filename)
+        path2 = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/").path()
+        dialog.selectPath(path2)
         self.qWaitForPendingActions(dialog)
-        dialog.selectPath("silx:%s::/group" % filename)
+        path3 = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/group").path()
+        dialog.selectPath(path3)
         self.qWaitForPendingActions(dialog)
         self.assertFalse(forwardAction.isEnabled())
         self.assertTrue(backwardAction.isEnabled())
@@ -454,14 +364,14 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.qWaitForPendingActions(dialog)
         self.assertTrue(forwardAction.isEnabled())
         self.assertTrue(backwardAction.isEnabled())
-        self.assertSamePath(url.text(), "silx:%s::/" % filename)
+        self.assertSamePath(url.text(), path2)
 
         button = utils.getQToolButtonFromAction(forwardAction)
         self.mouseClick(button, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
         self.assertFalse(forwardAction.isEnabled())
         self.assertTrue(backwardAction.isEnabled())
-        self.assertSamePath(url.text(), "silx:%s::/group" % filename)
+        self.assertSamePath(url.text(), path3)
 
     def testSelectImageFromEdf(self):
         if fabio is None:
@@ -476,7 +386,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         dialog.selectPath(path)
         self.assertTrue(dialog.selectedImage().shape, (100, 100))
         self.assertSamePath(dialog.selectedFile(), filename)
-        path = "fabio:" + path
+        path = silx.io.url.DataUrl(scheme="fabio", file_path=filename).path()
         self.assertSamePath(dialog.selectedPath(), path)
 
     def testSelectImageFromEdf_Activate(self):
@@ -491,7 +401,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.qWaitForPendingActions(dialog)
         browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
         filename = _tmpDirectory + "/singleimage.edf"
-        path = "fabio:" + filename
+        path = silx.io.url.DataUrl(scheme="fabio", file_path=filename).path()
         index = browser.rootIndex().model().index(filename)
         # click
         browser.selectIndex(index)
@@ -512,7 +422,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
 
         # init state
         filename = _tmpDirectory + "/multiframe.edf"
-        path = "fabio:" + filename + "::[1]"
+        path = silx.io.url.DataUrl(scheme="fabio", file_path=filename, data_slice=(1,)).path()
         dialog.selectPath(path)
         # test
         self.assertTrue(dialog.selectedImage().shape, (100, 100))
@@ -529,12 +439,12 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
 
         # init state
         filename = _tmpDirectory + "/singleimage.msk"
-        path = "fabio:" + filename
+        path = silx.io.url.DataUrl(scheme="fabio", file_path=filename).path()
         dialog.selectPath(path)
         # test
         self.assertTrue(dialog.selectedImage().shape, (100, 100))
         self.assertSamePath(dialog.selectedFile(), filename)
-        self.assertSamePath(dialog.selectedPath(), "fabio:" + filename)
+        self.assertSamePath(dialog.selectedPath(), path)
 
     def testSelectImageFromH5(self):
         if h5py is None:
@@ -545,7 +455,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
 
         # init state
         filename = _tmpDirectory + "/data.h5"
-        path = "silx:" + filename + "::/image"
+        path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/image").path()
         dialog.selectPath(path)
         # test
         self.assertTrue(dialog.selectedImage().shape, (100, 100))
@@ -564,7 +474,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.qWaitForPendingActions(dialog)
         browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
         filename = _tmpDirectory + "/data.h5"
-        path = "silx:%s::/" % filename
+        path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/").path()
         index = browser.rootIndex().model().index(filename)
         # click
         browser.selectIndex(index)
@@ -583,7 +493,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
 
         # init state
         filename = _tmpDirectory + "/data.h5"
-        path = "silx:%s::/cube[1]" % filename
+        path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/cube", data_slice=(1, )).path()
         dialog.selectPath(path)
         # test
         self.assertTrue(dialog.selectedImage().shape, (100, 100))
@@ -886,7 +796,6 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
 def suite():
     test_suite = unittest.TestSuite()
     loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestImageUri))
     test_suite.addTest(loadTests(TestImageFileDialogInteraction))
     test_suite.addTest(loadTests(TestImageFileDialogApi))
     return test_suite
