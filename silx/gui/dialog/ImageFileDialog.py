@@ -1363,7 +1363,7 @@ class ImageFileDialog(qt.QDialog):
             source = self.__formatShape(self.__data.shape)
             self.__dataInfo.setText(u"%s \u2192 %s" % (source, destination))
 
-    def __createUriFromIndex(self, index, useSlicingWidget=True):
+    def __createUrlFromIndex(self, index, useSlicingWidget=True):
         if index.model() is self.__fileModel:
             filename = self.__fileModel.filePath(index)
             dataPath = None
@@ -1397,30 +1397,30 @@ class ImageFileDialog(qt.QDialog):
             else:
                 scheme = None
 
-        uri = silx.io.url.DataUrl(file_path=filename, data_path=dataPath, data_slice=slicing, scheme=scheme)
-        return uri
+        url = silx.io.url.DataUrl(file_path=filename, data_path=dataPath, data_slice=slicing, scheme=scheme)
+        return url
 
     def __updatePath(self):
         index = self.__browser.selectedIndex()
         if index is None:
             index = self.__browser.rootIndex()
-        uri = self.__createUriFromIndex(index)
-        if uri.path() != self.__pathEdit.text():
+        url = self.__createUrlFromIndex(index)
+        if url.path() != self.__pathEdit.text():
             old = self.__pathEdit.blockSignals(True)
-            self.__pathEdit.setText(uri.path())
+            self.__pathEdit.setText(url.path())
             self.__pathEdit.blockSignals(old)
 
     def __rootIndexChanged(self, index):
-        uri = self.__createUriFromIndex(index, useSlicingWidget=False)
+        url = self.__createUrlFromIndex(index, useSlicingWidget=False)
 
-        currentUri = None
+        currentUrl = None
         if 0 <= self.__currentHistoryLocation < len(self.__currentHistory):
-            currentUri = self.__currentHistory[self.__currentHistoryLocation]
+            currentUrl = self.__currentHistory[self.__currentHistoryLocation]
 
-        if currentUri is None or currentUri != uri.path():
+        if currentUrl is None or currentUrl != url.path():
             # clean up the forward history
             self.__currentHistory = self.__currentHistory[0:self.__currentHistoryLocation + 1]
-            self.__currentHistory.append(uri.path())
+            self.__currentHistory.append(url.path())
             self.__currentHistoryLocation += 1
 
         if index.model() != self.__dataModel:
@@ -1460,36 +1460,36 @@ class ImageFileDialog(qt.QDialog):
         self.__pathChanged()
 
     def __pathChanged(self):
-        uri = silx.io.url.DataUrl(path=self.__pathEdit.text())
-        if uri.is_valid() or uri.path() == "":
-            if uri.path() in ["", "/"] or uri.file_path() in ["", "/"]:
+        url = silx.io.url.DataUrl(path=self.__pathEdit.text())
+        if url.is_valid() or url.path() == "":
+            if url.path() in ["", "/"] or url.file_path() in ["", "/"]:
                 self.__fileModel_setRootPath(qt.QDir.rootPath())
-            elif os.path.exists(uri.file_path()):
+            elif os.path.exists(url.file_path()):
                 rootIndex = None
-                if os.path.isdir(uri.file_path()):
-                    self.__fileModel_setRootPath(uri.file_path())
-                    index = self.__fileModel.index(uri.file_path())
-                elif os.path.isfile(uri.file_path()):
-                    if uri.scheme() == "silx":
-                        loaded = self.__openSilxFile(uri.file_path())
-                    elif uri.scheme() == "fabio":
-                        loaded = self.__openFabioFile(uri.file_path())
+                if os.path.isdir(url.file_path()):
+                    self.__fileModel_setRootPath(url.file_path())
+                    index = self.__fileModel.index(url.file_path())
+                elif os.path.isfile(url.file_path()):
+                    if url.scheme() == "silx":
+                        loaded = self.__openSilxFile(url.file_path())
+                    elif url.scheme() == "fabio":
+                        loaded = self.__openFabioFile(url.file_path())
                     else:
-                        loaded = self.__openFile(uri.file_path())
+                        loaded = self.__openFile(url.file_path())
                     if loaded:
                         if self.__h5 is not None:
                             rootIndex = self.__dataModel.indexFromH5Object(self.__h5)
                         elif self.__fabio is not None:
-                            index = self.__fileModel.index(uri.file_path())
+                            index = self.__fileModel.index(url.file_path())
                             rootIndex = index
                     if rootIndex is None:
-                        index = self.__fileModel.index(uri.file_path())
+                        index = self.__fileModel.index(url.file_path())
                         index = index.parent()
 
                 if rootIndex is not None:
                     if rootIndex.model() == self.__dataModel:
-                        if uri.data_path() is not None:
-                            dataPath = uri.data_path()
+                        if url.data_path() is not None:
+                            dataPath = url.data_path()
                             if dataPath in self.__h5:
                                 obj = self.__h5[dataPath]
                             else:
@@ -1524,14 +1524,14 @@ class ImageFileDialog(qt.QDialog):
                     self.__browser.setRootIndex(index, model=self.__fileModel)
                     self.__clearData()
 
-                self.__slicing.setVisible(uri.data_slice() is not None)
-                if uri.data_slice() is not None:
-                    self.__slicing.setSlicing(uri.data_slice())
+                self.__slicing.setVisible(url.data_slice() is not None)
+                if url.data_slice() is not None:
+                    self.__slicing.setSlicing(url.data_slice())
             else:
-                self.__errorWhileLoadingFile = (uri.file_path(), "File not found")
+                self.__errorWhileLoadingFile = (url.file_path(), "File not found")
                 self.__clearData()
         else:
-            self.__errorWhileLoadingFile = (uri.file_path(), "Path invalid")
+            self.__errorWhileLoadingFile = (url.file_path(), "Path invalid")
             self.__clearData()
 
     # Selected file
@@ -1573,7 +1573,7 @@ class ImageFileDialog(qt.QDialog):
         self.__pathChanged()
 
     def selectedPath(self):
-        """Returns the URI from the file path to the image.
+        """Returns the URL from the file path to the image.
 
         If the dialog is not validated, the path can be an intermediat
         selected path, or an invalid path.
