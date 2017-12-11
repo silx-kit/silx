@@ -29,14 +29,12 @@ __license__ = "MIT"
 __date__ = "11/12/2017"
 
 
-import sys
-
-
 class DataUrl(object):
-    """Non-mutable object to parse and reach information identifying a link to
-    a data.
+    """Non-mutable object to parse a string representing a resource data
+    locator.
 
     It supports:
+
     - path to file and path inside file to the data
     - data slicing
     - fabio or silx access to the data
@@ -60,11 +58,26 @@ class DataUrl(object):
     >>> # Is also support parsing of file access for convenience
     >>> DataUrl("./foo/bar/image.edf")
     >>> DataUrl("C:/data/")
-    """
 
+    :param str path: Path representing a link to a data. If specified, other
+        arguments are not used.
+    :param str file_path: Link to the file containing the the data.
+        None if there is no data selection.
+    :param str data_path: Data selection applyed to the data file selected.
+        None if there is no data selection.
+    :param Tuple[int,slice,Ellipse] slicing: Slicing applyed of the selected
+        data. None if no slicing applyed.
+    :param Union[str,None] scheme: Scheme of the URL. "silx", "fabio" or None
+        is supported. Other strings can be provided, but :meth:`is_valid` while
+        be false.
+    """
     def __init__(self, path=None, file_path=None, data_path=None, slicing=None, scheme=None):
         self.__is_valid = False
         if path is not None:
+            assert(file_path is None)
+            assert(data_path is None)
+            assert(slicing is None)
+            assert(scheme is None)
             self.__parse_from_path(path)
         else:
             self.__file_path = file_path

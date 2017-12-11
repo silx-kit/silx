@@ -16,6 +16,7 @@
    specfile.rst
    specfilewrapper.rst
    spech5.rst
+   url.rst
    utils.rst
 
 Top-level functions
