@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,26 +22,29 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+"""This module provides a scene clip plane class.
+"""
+
+from __future__ import absolute_import
+
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "25/07/2016"
+__date__ = "15/11/2017"
 
 
-from numpy.distutils.misc_util import Configuration
+from ..scene import primitives
+
+from .core import Item3D
+from .mixins import PlaneMixIn
 
 
-def configuration(parent_package='', top_path=None):
-    config = Configuration('plot3d', parent_package, top_path)
-    config.add_subpackage('actions')
-    config.add_subpackage('items')
-    config.add_subpackage('scene')
-    config.add_subpackage('tools')
-    config.add_subpackage('test')
-    config.add_subpackage('utils')
-    return config
+class ClipPlane(Item3D, PlaneMixIn):
+    """Represents a clipping plane that clips following items within the group.
 
+    For now only on clip plane is allowed at once in a scene.
+    """
 
-if __name__ == "__main__":
-    from numpy.distutils.core import setup
-
-    setup(configuration=configuration)
+    def __init__(self, parent=None):
+        plane = primitives.ClipPlane()
+        Item3D.__init__(self, parent=parent, primitive=plane)
+        PlaneMixIn.__init__(self, plane=plane)

@@ -231,6 +231,23 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
        It loads a 3D scalar data set from a file and displays iso-surfaces and
        an interactive cutting plane.
        It can also be started without providing a file.
+   * - :download:`plot3dSceneWindow.py <../../../examples/plot3dSceneWindow.py>`
+     - .. image:: img/plot3dSceneWindow.png
+         :height: 150px
+         :align: center
+     - This script displays the different items of :class:`~silx.gui.plot3d.SceneWindow`.
+
+       It shows the different visualizations of :class:`~silx.gui.plot3d.SceneWindow`
+       and :class:`~silx.gui.plot3d.SceneWidget`.
+       It illustrates the API to set those items.
+
+       It features:
+
+       - 2D images: data and RGBA images
+       - 2D scatter data, displayed either as markers, wireframe or surface.
+       - 3D scatter plot
+       - 3D scalar field with iso-surface and cutting plane.
+       - A clipping plane.
 
 :mod:`silx.io` sample code
 ++++++++++++++++++++++++++
