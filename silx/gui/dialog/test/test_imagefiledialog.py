@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "29/11/2017"
+__date__ = "08/12/2017"
 
 
 import unittest
@@ -36,18 +36,22 @@ import shutil
 import os
 import sys
 import io
-import fabio
+
+try:
+    import fabio
+except ImportError:
+    fabio = None
+try:
+    import h5py
+except ImportError:
+    h5py = None
+
 from silx.gui import qt
 from silx.gui.test import utils
 from ..ImageFileDialog import ImageFileDialog
 from ..ImageFileDialog import _ImageUri
 from silx.gui.plot.Colormap import Colormap
 from silx.gui.hdf5 import Hdf5TreeModel
-
-try:
-    import h5py
-except ImportError:
-    h5py = None
 
 _tmpDirectory = None
 
@@ -59,19 +63,20 @@ def setUpModule():
     data = numpy.arange(100 * 100)
     data.shape = 100, 100
 
-    filename = _tmpDirectory + "/singleimage.edf"
-    image = fabio.edfimage.EdfImage(data=data)
-    image.write(filename)
+    if fabio is not None:
+        filename = _tmpDirectory + "/singleimage.edf"
+        image = fabio.edfimage.EdfImage(data=data)
+        image.write(filename)
 
-    filename = _tmpDirectory + "/multiframe.edf"
-    image = fabio.edfimage.EdfImage(data=data)
-    image.appendFrame(data=data + 1)
-    image.appendFrame(data=data + 2)
-    image.write(filename)
+        filename = _tmpDirectory + "/multiframe.edf"
+        image = fabio.edfimage.EdfImage(data=data)
+        image.appendFrame(data=data + 1)
+        image.appendFrame(data=data + 2)
+        image.write(filename)
 
-    filename = _tmpDirectory + "/singleimage.msk"
-    image = fabio.fit2dmaskimage.Fit2dMaskImage(data=data % 2 == 1)
-    image.write(filename)
+        filename = _tmpDirectory + "/singleimage.msk"
+        image = fabio.fit2dmaskimage.Fit2dMaskImage(data=data % 2 == 1)
+        image.write(filename)
 
     if h5py is not None:
         filename = _tmpDirectory + "/data.h5"
@@ -274,6 +279,8 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertEquals(dialog.result(), qt.QDialog.Rejected)
 
     def testDisplayAndClickOpen(self):
+        if fabio is None:
+            self.skipTest("fabio is missing")
         dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
@@ -339,6 +346,8 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertEqual(dialog.viewMode(), qt.QFileDialog.List)
 
     def testClickOnBackToParentTool(self):
+        if h5py is None:
+            self.skipTest("h5py is missing")
         dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
@@ -366,6 +375,8 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertSamePath(url.text(), os.path.dirname(_tmpDirectory))
 
     def testClickOnBackToRootTool(self):
+        if h5py is None:
+            self.skipTest("h5py is missing")
         dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
@@ -387,6 +398,8 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         # self.assertFalse(button.isEnabled())
 
     def testClickOnBackToDirectoryTool(self):
+        if h5py is None:
+            self.skipTest("h5py is missing")
         dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
@@ -412,6 +425,8 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.allowedLeakingWidgets = 1
 
     def testClickOnHistoryTools(self):
+        if h5py is None:
+            self.skipTest("h5py is missing")
         dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
@@ -449,6 +464,8 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertSamePath(url.text(), "silx:%s::/group" % filename)
 
     def testSelectImageFromEdf(self):
+        if fabio is None:
+            self.skipTest("fabio is missing")
         dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
@@ -463,6 +480,8 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertSamePath(dialog.selectedPath(), path)
 
     def testSelectImageFromEdf_Activate(self):
+        if fabio is None:
+            self.skipTest("fabio is missing")
         dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
@@ -485,6 +504,8 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertSamePath(dialog.selectedPath(), path)
 
     def testSelectFrameFromEdf(self):
+        if fabio is None:
+            self.skipTest("fabio is missing")
         dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
@@ -500,6 +521,8 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertSamePath(dialog.selectedPath(), path)
 
     def testSelectImageFromMsk(self):
+        if fabio is None:
+            self.skipTest("fabio is missing")
         dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
@@ -514,6 +537,8 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertSamePath(dialog.selectedPath(), "fabio:" + filename)
 
     def testSelectImageFromH5(self):
+        if h5py is None:
+            self.skipTest("h5py is missing")
         dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
@@ -528,6 +553,8 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertSamePath(dialog.selectedPath(), path)
 
     def testSelectH5_Activate(self):
+        if h5py is None:
+            self.skipTest("h5py is missing")
         dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
@@ -548,6 +575,8 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertSamePath(dialog.selectedPath(), path)
 
     def testSelectFrameFromH5(self):
+        if h5py is None:
+            self.skipTest("h5py is missing")
         dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
@@ -589,6 +618,10 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         return selectable
 
     def testFilterExtensions(self):
+        if h5py is None:
+            self.skipTest("h5py is missing")
+        if fabio is None:
+            self.skipTest("fabio is missing")
         dialog = self.createDialog()
         browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
         filters = utils.findChildren(dialog, qt.QWidget, name="fileTypeCombo")[0]
@@ -643,6 +676,14 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         self.assertTrue(dialog2.colormap().getNormalization(), "log")
 
     def printState(self):
+        """
+        Print state of the ImageFileDialog.
+
+        Can be used to add or regenerate `STATE_VERSION1_QT4` or
+        `STATE_VERSION1_QT5`.
+
+        >>> ./run_tests.py -v silx.gui.dialog.test.test_imagefiledialog.TestImageFileDialogApi.printState
+        """
         dialog = ImageFileDialog()
         colormap = Colormap(normalization=Colormap.LOGARITHM)
         dialog.setDirectory("")
@@ -688,6 +729,7 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         b'\x00\x00\x0C\x00\x00\x00\x000\x00\x00\x00\x10\x00C\x00o\x00l\x00'\
         b'o\x00r\x00m\x00a\x00p\x00\x00\x00\x01\x00\x00\x00\x08\x00g\x00'\
         b'r\x00a\x00y\x01\x01\x00\x00\x00\x06\x00l\x00o\x00g'
+    """Serialized state on Qt4. Generated using :meth:`printState`"""
 
     STATE_VERSION1_QT5 = b''\
         b'\x00\x00\x00^\x00s\x00i\x00l\x00x\x00.\x00g\x00u\x00i\x00.\x00'\
@@ -712,6 +754,7 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         b'\x00\x0C\x00\x00\x00\x000\x00\x00\x00\x10\x00C\x00o\x00l\x00o'\
         b'\x00r\x00m\x00a\x00p\x00\x00\x00\x01\x00\x00\x00\x08\x00g\x00'\
         b'r\x00a\x00y\x01\x01\x00\x00\x00\x06\x00l\x00o\x00g'
+    """Serialized state on Qt5. Generated using :meth:`printState`"""
 
     def testAvoidRestoreRegression_Version1(self):
         version = qt.qVersion().split(".")[0]
@@ -785,12 +828,16 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         self.assertSamePath(dialog.directory(), _tmpDirectory)
 
     def testBadDataType(self):
+        if h5py is None:
+            self.skipTest("h5py is missing")
         dialog = self.createDialog()
         dialog.selectPath(_tmpDirectory + "/data.h5::/complex_image")
         self.qWaitForPendingActions(dialog)
         self.assertIsNone(dialog.selectedImage())
 
     def testBadDataShape(self):
+        if h5py is None:
+            self.skipTest("h5py is missing")
         dialog = self.createDialog()
         dialog.selectPath(_tmpDirectory + "/data.h5::/scalar")
         self.qWaitForPendingActions(dialog)
@@ -809,6 +856,8 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         self.assertIsNone(dialog.selectedImage())
 
     def testBadSubpath(self):
+        if h5py is None:
+            self.skipTest("h5py is missing")
         dialog = self.createDialog()
         self.qWaitForPendingActions(dialog)
 
@@ -825,6 +874,8 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         self.assertSamePath(dialog.selectedPath(), _tmpDirectory + "/data.h5::/group/foobar")
 
     def testBadSlicingPath(self):
+        if h5py is None:
+            self.skipTest("h5py is missing")
         dialog = self.createDialog()
         self.qWaitForPendingActions(dialog)
         dialog.selectPath(_tmpDirectory + "/data.h5::/cube[a;45,-90]")

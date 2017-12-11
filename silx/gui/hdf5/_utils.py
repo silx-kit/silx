@@ -28,7 +28,7 @@ package `silx.gui.hdf5` package.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "10/10/2017"
+__date__ = "08/12/2017"
 
 
 import logging
@@ -37,12 +37,6 @@ import silx.io.utils
 from silx.utils.html import escape
 
 _logger = logging.getLogger(__name__)
-
-try:
-    import h5py
-except ImportError as e:
-    _logger.error("Module %s requires h5py", __name__)
-    raise e
 
 
 class Hdf5ContextMenuEvent(object):
@@ -279,13 +273,13 @@ class H5Node(object):
         """
         item = self.__h5py_item
         while item.parent.parent is not None:
-            class_ = item.h5pyClass
-            if class_ is not None and issubclass(class_, h5py.File):
+            class_ = silx.io.utils.get_h5_class(class_=item.h5pyClass)
+            if class_ == silx.io.utils.H5Type.FILE:
                 break
             item = item.parent
 
-        class_ = item.h5pyClass
-        if class_ is not None and issubclass(class_, h5py.File):
+        class_ = silx.io.utils.get_h5_class(class_=item.h5pyClass)
+        if class_ == silx.io.utils.H5Type.FILE:
             return item.obj
         else:
             return item.obj.file

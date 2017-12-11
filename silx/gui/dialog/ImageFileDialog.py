@@ -28,12 +28,11 @@ This module contains an :class:`ImageFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "30/11/2017"
+__date__ = "08/12/2017"
 
 import sys
 import os
 import logging
-import fabio
 import numpy
 import silx.io
 from silx.gui.plot import actions
@@ -43,6 +42,10 @@ from silx.gui.hdf5.Hdf5TreeModel import Hdf5TreeModel
 from . import utils
 from .FileTypeComboBox import FileTypeComboBox
 from silx.third_party import six
+try:
+    import fabio
+except ImportError:
+    fabio = None
 
 
 _logger = logging.getLogger(__name__)
@@ -1182,6 +1185,8 @@ class ImageFileDialog(qt.QDialog):
             self.__fileModel_setRootPath(path)
 
     def __browsedItemActivated(self, index):
+        if not index.isValid():
+            return
         if index.model() is self.__fileModel:
             path = self.__fileModel.filePath(index)
             if self.__fileModel.isDir(index):
@@ -1257,6 +1262,8 @@ class ImageFileDialog(qt.QDialog):
     def __openFabioFile(self, filename):
         self.__closeFile()
         try:
+            if fabio is None:
+                raise ImportError("Fabio module is not available")
             self.__fabio = fabio.open(filename)
             self.__selectedFile = filename
         except Exception as e:
@@ -1300,13 +1307,16 @@ class ImageFileDialog(qt.QDialog):
         if codec.is_autodetect():
             if self.__isSilxHavePriority(filename):
                 openners.append(self.__openSilxFile)
-                openners.append(self.__openFabioFile)
+                if fabio is not None:
+                    openners.append(self.__openFabioFile)
             else:
-                openners.append(self.__openFabioFile)
+                if fabio is not None:
+                    openners.append(self.__openFabioFile)
                 openners.append(self.__openSilxFile)
         elif codec.is_silx_codec():
             openners.append(self.__openSilxFile)
         elif codec.is_fabio_codec():
+            # It is requested to use fabio, anyway fabio is here or not
             openners.append(self.__openFabioFile)
 
         for openner in openners:
@@ -1348,9 +1358,10 @@ class ImageFileDialog(qt.QDialog):
                     is_fabio_have_priority = not codec.is_silx_codec() and not self.__isSilxHavePriority(path)
                     if is_fabio_decoder or is_fabio_have_priority:
                         # Then it's flat frame container
-                        self.__openFabioFile(path)
-                        if self.__fabio is not None:
-                            selectedData = _FabioData(self.__fabio)
+                        if fabio is not None:
+                            self.__openFabioFile(path)
+                            if self.__fabio is not None:
+                                selectedData = _FabioData(self.__fabio)
             else:
                 assert(False)
 
