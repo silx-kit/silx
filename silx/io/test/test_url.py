@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "08/12/2017"
+__date__ = "11/12/2017"
 
 
 import unittest
@@ -134,7 +134,7 @@ class TestDataUrl(unittest.TestCase):
 
     def test_empty(self):
         url = DataUrl("")
-        expected = [True, False, None, "", None, None]
+        expected = [False, False, None, "", None, None]
         self.assertUrl(url, expected)
 
     def test_unknown_scheme(self):

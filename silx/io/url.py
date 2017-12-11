@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "08/12/2017"
+__date__ = "11/12/2017"
 
 
 import sys
@@ -76,19 +76,21 @@ class DataUrl(object):
 
     def __check_validity(self):
         """Check the validity of the attributes."""
-        if self.__file_path in ["", "/"]:
-            self.__is_valid = self.__data_path is None and self.__slice is None
-        else:
-            self.__is_valid = self.__file_path is not None
-
-        if self.__scheme not in [None, "silx", "fabio"]:
+        if self.__file_path in [None, ""]:
             self.__is_valid = False
+            return
 
-        if self.__scheme == "fabio":
-            self.__is_valid = self.__is_valid and self.__data_path is None
+        if self.__scheme is None:
+            self.__is_valid = True
+        elif self.__scheme == "fabio":
+            self.__is_valid = self.__data_path is None
         elif self.__scheme == "silx":
+            # If there is a slice you must have a data path
+            # But you can have a data path without slice
             slice_implies_data = (self.__data_path is None and self.__slice is None) or self.__data_path is not None
-            self.__is_valid = self.__is_valid and slice_implies_data
+            self.__is_valid = slice_implies_data
+        else:
+            self.__is_valid = False
 
     def __parse_from_path(self, path):
         """Parse the path and initialize attributes.
