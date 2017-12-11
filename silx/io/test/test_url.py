@@ -40,7 +40,7 @@ class TestDataUrl(unittest.TestCase):
         self.assertEqual(url.scheme(), expected[2])
         self.assertEqual(url.file_path(), expected[3])
         self.assertEqual(url.data_path(), expected[4])
-        self.assertEqual(url.slice(), expected[5])
+        self.assertEqual(url.data_slice(), expected[5])
 
     def test_fabio_absolute(self):
         url = DataUrl("fabio:///data/image.edf::[2]")
@@ -173,23 +173,23 @@ class TestDataUrl(unittest.TestCase):
         self.assertUrl(url, expected)
 
     def test_create_relative_url(self):
-        url = DataUrl(scheme="silx", file_path="./foo.h5", data_path="/", slicing=(5, 1))
+        url = DataUrl(scheme="silx", file_path="./foo.h5", data_path="/", data_slice=(5, 1))
         self.assertEqual(url.path(), "silx:./foo.h5::/[5,1]")
 
     def test_create_absolute_url(self):
-        url = DataUrl(scheme="silx", file_path="/foo.h5", data_path="/", slicing=(5, 1))
+        url = DataUrl(scheme="silx", file_path="/foo.h5", data_path="/", data_slice=(5, 1))
         self.assertEqual(url.path(), "silx:///foo.h5::/[5,1]")
 
     def test_create_absolute_windows_url(self):
-        url = DataUrl(scheme="silx", file_path="C:/foo.h5", data_path="/", slicing=(5, 1))
+        url = DataUrl(scheme="silx", file_path="C:/foo.h5", data_path="/", data_slice=(5, 1))
         self.assertEqual(url.path(), "silx:///C:/foo.h5::/[5,1]")
 
     def test_create_slice_url(self):
-        url = DataUrl(scheme="silx", file_path="/foo.h5", data_path="/", slicing=(5, 1, Ellipsis, slice(None)))
+        url = DataUrl(scheme="silx", file_path="/foo.h5", data_path="/", data_slice=(5, 1, Ellipsis, slice(None)))
         self.assertEqual(url.path(), "silx:///foo.h5::/[5,1,...,:]")
 
     def test_wrong_url(self):
-        url = DataUrl(scheme="silx", file_path="/foo.h5", slicing=(5, 1))
+        url = DataUrl(scheme="silx", file_path="/foo.h5", data_slice=(5, 1))
         self.assertFalse(url.is_valid())
 
 

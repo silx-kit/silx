@@ -65,24 +65,24 @@ class DataUrl(object):
         None if there is no data selection.
     :param str data_path: Data selection applyed to the data file selected.
         None if there is no data selection.
-    :param Tuple[int,slice,Ellipse] slicing: Slicing applyed of the selected
+    :param Tuple[int,slice,Ellipse] data_slice: Slicing applyed of the selected
         data. None if no slicing applyed.
     :param Union[str,None] scheme: Scheme of the URL. "silx", "fabio" or None
         is supported. Other strings can be provided, but :meth:`is_valid` while
         be false.
     """
-    def __init__(self, path=None, file_path=None, data_path=None, slicing=None, scheme=None):
+    def __init__(self, path=None, file_path=None, data_path=None, data_slice=None, scheme=None):
         self.__is_valid = False
         if path is not None:
             assert(file_path is None)
             assert(data_path is None)
-            assert(slicing is None)
+            assert(data_slice is None)
             assert(scheme is None)
             self.__parse_from_path(path)
         else:
             self.__file_path = file_path
             self.__data_path = data_path
-            self.__slice = slicing
+            self.__data_slice = data_slice
             self.__scheme = scheme
             self.__path = None
             self.__check_validity()
@@ -100,7 +100,7 @@ class DataUrl(object):
         elif self.__scheme == "silx":
             # If there is a slice you must have a data path
             # But you can have a data path without slice
-            slice_implies_data = (self.__data_path is None and self.__slice is None) or self.__data_path is not None
+            slice_implies_data = (self.__data_path is None and self.__data_slice is None) or self.__data_path is not None
             self.__is_valid = slice_implies_data
         else:
             self.__is_valid = False
@@ -144,7 +144,7 @@ class DataUrl(object):
                 file_path = "/" + file_path
         self.__file_path = file_path
 
-        self.__slice = None
+        self.__data_slice = None
         self.__data_path = None
         if len(elements) == 1:
             pass
@@ -157,14 +157,14 @@ class DataUrl(object):
             self.__data_path = data_path
 
             if len(selectors) == 2:
-                slicing = selectors[1].split("]", 1)
-                if len(slicing) < 2 or slicing[1] != "":
+                data_slice = selectors[1].split("]", 1)
+                if len(data_slice) < 2 or data_slice[1] != "":
                     self.__is_valid = False
                     return
-                slicing = slicing[0].split(",")
+                data_slice = data_slice[0].split(",")
                 try:
-                    slicing = tuple(str_to_slice(s) for s in slicing)
-                    self.__slice = slicing
+                    data_slice = tuple(str_to_slice(s) for s in data_slice)
+                    self.__data_slice = data_slice
                 except ValueError:
                     self.__is_valid = False
                     return
@@ -186,15 +186,15 @@ class DataUrl(object):
         if self.__path is not None:
             return self.__path
 
-        def slice_to_string(slicing):
-            if slicing == Ellipsis:
+        def slice_to_string(data_slice):
+            if data_slice == Ellipsis:
                 return "..."
-            elif slicing == slice(None):
+            elif data_slice == slice(None):
                 return ":"
-            elif isinstance(slicing, int):
-                return str(slicing)
+            elif isinstance(data_slice, int):
+                return str(data_slice)
             else:
-                raise TypeError("Unexpected slicing type. Found %s" % type(slicing))
+                raise TypeError("Unexpected slicing type. Found %s" % type(data_slice))
 
         path = ""
         selector = ""
@@ -202,8 +202,8 @@ class DataUrl(object):
             path += self.__file_path
         if self.__data_path is not None:
             selector += self.__data_path
-        if self.__slice is not None:
-            selector += "[%s]" % ",".join([slice_to_string(s) for s in self.__slice])
+        if self.__data_slice is not None:
+            selector += "[%s]" % ",".join([slice_to_string(s) for s in self.__data_slice])
 
         if selector != "":
             path = path + "::" + selector
@@ -252,14 +252,14 @@ class DataUrl(object):
         """
         return self.__data_path
 
-    def slice(self):
+    def data_slice(self):
         """Returns the slicing applyed to the data.
 
         It is a tuple containing numbers, slice or ellipses.
 
         :rtype: Tuple[int, slice, Ellipse]
         """
-        return self.__slice
+        return self.__data_slice
 
     def scheme(self):
         """Returns the scheme. It can be None if no scheme is specified.
