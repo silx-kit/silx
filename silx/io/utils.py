@@ -25,7 +25,7 @@
 
 __authors__ = ["P. Knobel", "V. Valls"]
 __license__ = "MIT"
-__date__ = "05/12/2017"
+__date__ = "11/12/2017"
 
 import numpy
 import os.path
@@ -707,6 +707,9 @@ def get_h5py_class(obj):
     :param obj: An object
     :return: An h5py object
     """
+    if h5py is None:
+        logger.error("get_h5py_class/is_file/is_group/is_dataset requires h5py")
+        raise h5py_import_error
     if hasattr(obj, "h5py_class"):
         return obj.h5py_class
     type_ = get_h5_class(obj)
@@ -751,11 +754,3 @@ def is_softlink(obj):
     """
     t = get_h5_class(obj)
     return t == H5Type.SOFT_LINK
-
-
-if h5py is None:
-    def raise_h5py_missing(obj):
-        logger.error("get_h5py_class/is_file/is_group/is_dataset requires h5py")
-        raise h5py_import_error
-
-    get_h5py_class = raise_h5py_missing
