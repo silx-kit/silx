@@ -34,9 +34,10 @@ Create the colormap dialog and set the colormap description and data range:
 >>> from silx.gui.plot.Colormap import Colormap
 
 >>> dialog = ColormapDialog()
+>>> colormap = Colormap(name='red', normalization='log',
+...                     vmin=1., vmax=2.)
 
->>> dialog.setColormap(Colormap(name='red', normalization='log',
-...                             vmin=1., vmax=2.))
+>>> dialog.setColormap(colormap)
 >>> dialog.setDataRange(1., 100.)  # This scale the width of the plot area
 >>> dialog.show()
 
