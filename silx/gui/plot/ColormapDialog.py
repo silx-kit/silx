@@ -153,12 +153,21 @@ class ColormapDialog(qt.QDialog):
         self._plotInit()
         vLayout.addWidget(self._plot)
 
+        # define modal buttons
         types = qt.QDialogButtonBox.Ok | qt.QDialogButtonBox.Cancel
-        _buttons = qt.QDialogButtonBox(parent=self)
-        _buttons.setStandardButtons(types)
-        self.layout().addWidget(_buttons)
-        _buttons.accepted.connect(self.accept)
-        _buttons.rejected.connect(self.reject)
+        self._buttonsModal = qt.QDialogButtonBox(parent=self)
+        self._buttonsModal.setStandardButtons(types)
+        self.layout().addWidget(self._buttonsModal)
+        self._buttonsModal.accepted.connect(self.accept)
+        self._buttonsModal.rejected.connect(self.reject)
+
+        # define non modal buttons
+        types = qt.QDialogButtonBox.Close | qt.QDialogButtonBox.Reset
+        self._buttonsNonModal = qt.QDialogButtonBox(parent=self)
+        self._buttonsNonModal.setStandardButtons(types)
+        self.layout().addWidget(self._buttonsNonModal)
+        self._buttonsNonModal.button(qt.QDialogButtonBox.Close).clicked.connect(self.accept)
+        self._buttonsNonModal.button(qt.QDialogButtonBox.Reset).clicked.connect(self.resetColormap)
 
         # colormap window can not be resized
         self.setFixedSize(vLayout.minimumSize())
@@ -166,6 +175,14 @@ class ColormapDialog(qt.QDialog):
         # Set the colormap to default values
         self.setColormap(Colormap(name='gray', normalization='linear',
                          vmin=None, vmax=None))
+
+        self.setModal(self.isModal())
+
+    def setModal(self, modal):
+        assert type(modal) is bool
+        self._buttonsNonModal.setVisible(not modal)
+        self._buttonsModal.setVisible(modal)
+        qt.QDialog.setModal(self, modal)
 
     def _plotInit(self):
         """Init the plot to display the range and the values"""
