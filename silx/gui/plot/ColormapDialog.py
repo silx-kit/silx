@@ -120,7 +120,7 @@ class ColormapDialog(qt.QDialog):
         normButtonGroup.setExclusive(True)
         normButtonGroup.addButton(self._normButtonLinear)
         normButtonGroup.addButton(self._normButtonLog)
-        normButtonGroup.buttonClicked[int].connect(self._updateLinearNorm)
+        self._normButtonLinear.toggled[bool].connect(self._updateLinearNorm)
 
         normLayout = qt.QHBoxLayout()
         normLayout.setContentsMargins(0, 0, 0, 0)
