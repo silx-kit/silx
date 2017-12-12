@@ -73,7 +73,6 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.colormapDiag.setAttribute(qt.Qt.WA_DeleteOnClose)
 
     def tearDown(self):
-        self.colormapDiag.close()
         del self.colormapDiag
         ParametricTestCase.tearDown(self)
         TestCaseQt.tearDown(self)
@@ -139,6 +138,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
             button=qt.Qt.LeftButton
         )
         self.assertTrue(self.colormap.isAutoscale() is False)
+        self.colormapDiag.close()
 
     def testGUIClose(self):
         """Make sure the colormap is modify if go through reject"""
