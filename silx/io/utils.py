@@ -827,7 +827,7 @@ def get_data(url):
             fabio_file = fabio.open(url.file_path())
         except Exception:
             logger.debug("Error while opening %s with fabio", url.file_path(), exc_info=True)
-            IOError("Error while opening %s with fabio (use debug for more information)" % url.path())
+            raise IOError("Error while opening %s with fabio (use debug for more information)" % url.path())
 
         if fabio_file.nframes == 1:
             if index != 0:
