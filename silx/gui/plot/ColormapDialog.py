@@ -404,12 +404,11 @@ class ColormapDialog(qt.QDialog):
                     self._colormap.getName(), qt.Qt.UserRole)
                 self._comboBoxColormap.setCurrentIndex(index)
 
-            if self._colormap().getNormalization() is not None:
-                assert self._colormap().getNormalization() in Colormap.NORMALIZATIONS
-                self._normButtonLinear.setChecked(
-                    self._colormap().getNormalization() == Colormap.LINEAR)
-                self._normButtonLog.setChecked(
-                    self._colormap().getNormalization() == Colormap.LOGARITHM)
+            assert self._colormap().getNormalization() in Colormap.NORMALIZATIONS
+            self._normButtonLinear.setChecked(
+                self._colormap().getNormalization() == Colormap.LINEAR)
+            self._normButtonLog.setChecked(
+                self._colormap().getNormalization() == Colormap.LOGARITHM)
 
             if self._colormap().getVMin() is not None:
                 self._minValue.setValue(self._colormap().getVMin())
@@ -445,10 +444,10 @@ class ColormapDialog(qt.QDialog):
         self._plotUpdate()
 
     def _updateName(self):
-        self._colormap().sigChanged.disconnect(self._applyColormap)
-        self._colormap().setName(
-            str(self._comboBoxColormap.currentText()).lower())
         if self._colormap():
+            self._colormap().sigChanged.disconnect(self._applyColormap)
+            self._colormap().setName(
+                str(self._comboBoxColormap.currentText()).lower())
             self._colormap().sigChanged.connect(self._applyColormap)
         self._plotUpdate()
 
@@ -457,7 +456,6 @@ class ColormapDialog(qt.QDialog):
             self._colormap().sigChanged.disconnect(self._applyColormap)
             norm = Colormap.LINEAR if isNormLinear else Colormap.LOGARITHM
             self._colormap().setNormalization(norm)
-        if self._colormap():
             self._colormap().sigChanged.connect(self._applyColormap)
         self._plotUpdate()
 
