@@ -103,13 +103,12 @@ class TestConvertCommand(unittest.TestCase):
             result = e.args[0]
         self.assertEqual(result, 0)
 
-    @unittest.skipUnless(h5py is None,
-                         "h5py is installed, this test is specific to h5py missing")
     @utils.test_logging(convert._logger.name, error=1)
     def testH5pyNotInstalled(self):
-        result = convert.main(["convert", "foo.spec", "bar.edf"])
-        # we explicitly return -1 if h5py is not imported
-        self.assertNotEqual(result, 0)
+        with utils.EnsureImportError("h5py"):
+            result = convert.main(["convert", "foo.spec", "bar.edf"])
+            # we explicitly return -1 if h5py is not imported
+            self.assertNotEqual(result, 0)
 
     @unittest.skipIf(h5py is None, "h5py is required to test convert")
     def testWrongOption(self):
