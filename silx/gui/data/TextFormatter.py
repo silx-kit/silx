@@ -27,7 +27,7 @@ data module to format data as text in the same way."""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "27/09/2017"
+__date__ = "12/12/2017"
 
 import numpy
 import numbers
@@ -203,8 +203,9 @@ class TextFormatter(qt.QObject):
                 data = [ord(d) for d in data.item()]
             else:
                 data = data.item().astype(numpy.uint8)
-        else:
+        elif six.PY2:
             data = [ord(d) for d in data]
+            # In python3 data is already a bytes array
         data = ["\\x%02X" % d for d in data]
         if self.__useQuoteForText:
             return "b\"%s\"" % "".join(data)
