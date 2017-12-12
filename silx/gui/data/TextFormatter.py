@@ -33,11 +33,15 @@ import numpy
 import numbers
 from silx.third_party import six
 from silx.gui import qt
+import logging
 
 try:
     import h5py
 except ImportError:
     h5py = None
+
+
+_logger = logging.getLogger(__name__)
 
 
 class TextFormatter(qt.QObject):
@@ -222,6 +226,31 @@ class TextFormatter(qt.QObject):
         else:
             return "".join(data)
 
+    def __formatCharString(self, data):
+        """Format text of char.
+
+        From the specifications we expect to have ASCII, but we also allow
+        CP1252 in case.
+
+        If no encoding fits, it will display readable ASCII chars and escaped
+        using the python syntax for non decoded characters.
+
+        :param data: A binary string of char expected in ASCII
+        :rtype: str
+        """
+        encodings = ["ascii", "cp1252"]
+        for encoding in encodings:
+            try:
+                text = "%s" % data.decode(encoding)
+                return self.__formatText(text)
+            except UnicodeDecodeError:
+                if encoding == "ascii":
+                    # Here we can spam errors, this is definitly a badly
+                    # generated file
+                    _logger.error("Invalid ASCII string %s. Try fallback with cp1252", data)
+                pass
+        return self.__formatSafeAscii(data)
+
     def __formatH5pyObject(self, data, dtype):
         # That's an HDF5 object
         ref = h5py.check_dtype(ref=dtype)
@@ -237,11 +266,7 @@ class TextFormatter(qt.QObject):
                 return self.__formatText(data)
             elif vlen == six.binary_type:
                 # HDF5 ASCII
-                try:
-                    text = "%s" % data.decode("ascii")
-                    return self.__formatText(text)
-                except UnicodeDecodeError:
-                    return self.__formatSafeAscii(data)
+                return self.__formatCharString(data)
         return None
 
     def toString(self, data, dtype=None):
@@ -277,14 +302,12 @@ class TextFormatter(qt.QObject):
         elif isinstance(data, (numpy.unicode_, six.text_type)):
             return self.__formatText(data)
         elif isinstance(data, (numpy.string_, six.binary_type)):
+            if dtype is None and hasattr(data, "dtype"):
+                dtype = data.dtype
             if dtype is not None:
                 # Maybe a sub item from HDF5
                 if dtype.kind == 'S':
-                    try:
-                        text = "%s" % data.decode("ascii")
-                        return self.__formatText(text)
-                    except UnicodeDecodeError:
-                        return self.__formatSafeAscii(data)
+                    return self.__formatCharString(data)
                 elif dtype.kind == 'O':
                     if h5py is not None:
                         text = self.__formatH5pyObject(data, dtype)
