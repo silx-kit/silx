@@ -222,10 +222,6 @@ def test_logging(logger=None, critical=None, error=None,
     return decorator
 
 
-
-
-
-
 # Temporary directory context #################################################
 
 @contextlib.contextmanager
@@ -241,6 +237,57 @@ def temp_dir():
         yield tmp_dir
     finally:
         shutil.rmtree(tmp_dir)
+
+
+# Simulate missing library context
+class EnsureImportError(object):
+    """This context manager allows to simulate the unavailability
+    of a library, even if it is actually available. It ensures that
+    an ImportError is raised if the code inside the context tries to
+    import the module.
+
+    It can be used to test that a correct fallback library is used,
+    or that the expected error code is returned.
+
+    Trivial example::
+
+        from silx.test.utils import EnsureImportError
+
+        with EnsureImportError("h5py"):
+            try:
+                import h5py
+            except ImportError:
+                print("Good")
+
+    .. note::
+
+        This context manager does not remove the library from the namespace,
+        if it is already imported. It only ensures that any attempt to import
+        it again will cause an ImportError to be raised.
+    """
+    def __init__(self, name):
+        """
+
+        :param str name: Name of module to be hidden (e.g. "h5py")
+        """
+        self.module_name = name
+
+    def __enter__(self):
+        """Simulate failed import by setting sys.modules[name]=None"""
+        if self.module_name not in sys.modules:
+            self._delete_on_exit = True
+            self._backup = None
+        else:
+            self._delete_on_exit = False
+            self._backup = sys.modules[self.module_name]
+        sys.modules[self.module_name] = None
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Restore previous state"""
+        if self._delete_on_exit:
+            del sys.modules[self.module_name]
+        else:
+            sys.modules[self.module_name] = self._backup
 
 
 # Synthetic data and random noise #############################################
