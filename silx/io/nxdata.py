@@ -100,10 +100,22 @@ def is_valid_nxdata(group):   # noqa
     if get_attr_as_string(group, "NX_class") != "NXdata":
         return False
     if "signal" not in group.attrs:
-        _logger.warning("NXdata group does not define a signal attr.")
-        return False
+        _logger.warning("NXdata group does not define a signal attr. "
+                        "Testing legacy specification.")
+        signal_name = None
+        for key in group:
+            if "signal" in group[key].attrs:
+                signal_name = key
+                signal_attr = group[key].attrs["signal"]
+                if signal_attr in [1, b"1", u"1"]:
+                    # This is the main (default) signal
+                    break
+        if signal_name is None:
+            _logger.warning("No dataset with a signal attr found")
+            return False
+    else:
+        signal_name = get_attr_as_string(group, "signal")
 
-    signal_name = get_attr_as_string(group, "signal")
     if signal_name not in group or not is_dataset(group[signal_name]):
         _logger.warning(
             "Cannot find signal dataset '%s' in NXdata group" % signal_name)
@@ -245,10 +257,7 @@ class NXdata(object):
         """h5py-like group object compliant with NeXus NXdata specification.
         """
 
-        self.signal_dataset_name = get_attr_as_string(self.group, "signal")
-        """Name of the signal dataset."""
-
-        self.signal = self.group[get_attr_as_string(self.group, "signal")]
+        self.signal = self.group[self.signal_dataset_name]
         """Signal dataset in this NXdata group.
         """
 
@@ -283,6 +292,21 @@ class NXdata(object):
 
         # excludes scatters
         self.signal_is_1d = self.signal_is_1d and len(self.axes) <= 1  # excludes n-D scatters
+
+    @property
+    def signal_dataset_name(self):
+        """Name of the signal dataset."""
+        signal_dataset_name = get_attr_as_string(self.group, "signal")
+        if signal_dataset_name is None:
+            # find a dataset with @signal == 1
+            for dsname in self.group:
+                signal_attr = self.group[dsname].attrs.get("signal")
+                if signal_attr in [1, b"1", u"1"]:
+                    # This is the main (default) signal
+                    signal_dataset_name = dsname
+                    break
+        assert signal_dataset_name is not None
+        return signal_dataset_name
 
     @property
     def interpretation(self):
