@@ -38,7 +38,7 @@ Create the colormap dialog and set the colormap description and data range:
 ...                     vmin=1., vmax=2.)
 
 >>> dialog.setColormap(colormap)
->>> dialog.setDataRange(1., 100.)  # This scale the width of the plot area
+>>> colormap.setVRange(1., 100.)  # This scale the width of the plot area
 >>> dialog.show()
 
 Get the colormap description (compatible with :class:`Plot`) from the dialog:
@@ -91,7 +91,6 @@ class ColormapDialog(qt.QDialog):
         self.setWindowTitle(title)
 
         self._histogramData = None
-        self._dataRange = None
         self._minMaxWasEdited = False
 
         # Make the GUI
@@ -187,9 +186,7 @@ class ColormapDialog(qt.QDialog):
 
         :param bool updateMarkers: True to update markers, False otherwith
         """
-        dataRange = self.getDataRange()
-
-        if dataRange is None:
+        if not (hasattr(self, '_colormap') and self._colormap()):
             if self._plot.isVisibleTo(self):
                 self._plot.setVisible(False)
                 self.setFixedSize(self.layout().minimumSize())
@@ -199,7 +196,7 @@ class ColormapDialog(qt.QDialog):
             self._plot.setVisible(True)
             self.setFixedSize(self.layout().minimumSize())
 
-        dataMin, dataMax = dataRange
+        dataMin, dataMax = self._colormap().getColormapRange()
         marge = (abs(dataMax) + abs(dataMin)) / 6.0
         minmd = dataMin - marge
         maxpd = dataMax + marge
@@ -289,8 +286,6 @@ class ColormapDialog(qt.QDialog):
         if hist is None or bin_edges is None:
             self._histogramData = None
             self._plot.remove(legend='Histogram', kind='curve')
-            self.setDataRange()  # Remove data range
-
         else:
             hist = numpy.array(hist, copy=True)
             bin_edges = numpy.array(bin_edges, copy=True)
@@ -308,40 +303,8 @@ class ColormapDialog(qt.QDialog):
                                 fill=True)
 
             # Update the data range
-            self.setDataRange(bin_edges[0], bin_edges[-1])
-
-    def getDataRange(self):
-        """Returns the data range used for the histogram area.
-
-        :return: (dataMin, dataMax) or None if no data range is set
-        :rtype: 2-tuple of float
-        """
-        return self._dataRange
-
-    def setDataRange(self, min_=None, max_=None):
-        """Set the range of data to use for the range of the histogram area.
-
-        :param float min_: The min of the data or None to disable range.
-        :param float max_: The max of the data or None to disable range.
-        """
-        if min_ is None or max_ is None:
-            self._dataRange = None
-            self._plotUpdate()
-
-        else:
-            min_, max_ = float(min_), float(max_)
-            assert min_ <= max_
-            self._dataRange = min_, max_
-            if self._colormap():
-                self._colormap().sigChanged.disconnect(self._applyColormap)
-                self._colormap().setVRange(min_, max_)
-                self._colormap().sigChanged.connect(self._applyColormap)
-            if self._rangeAutoscaleButton.isChecked():
-                self._minValue.setValue(min_)
-                self._maxValue.setValue(max_)
-                self._updateMinMax()
-            else:
-                self._plotUpdate()
+            if hasattr(self, '_colormap') and self._colormap():
+                self._colormap().setVRange(bin_edges[0], bin_edges[-1])
 
     def getColormap(self):
         """Return the colormap description as a :class:`.Colormap`.
@@ -420,7 +383,7 @@ class ColormapDialog(qt.QDialog):
             if self._colormap().isAutoscale():
                 self._minValue.setEnabled(False)
                 self._maxValue.setEnabled(False)
-                dataRange = self.getDataRange()
+                dataRange = self._colormap().getColormapRange()
                 if dataRange is not None:
                     self._minValue.setValue(dataRange[0])
                     self._maxValue.setValue(dataRange[1])
@@ -467,13 +430,19 @@ class ColormapDialog(qt.QDialog):
             if checked:
                 self._colormap().sigChanged.disconnect(self._applyColormap)
                 self._colormap().setVRange(None, None)
+                dataRange = self._colormap().getColormapRange()
+                min_, max_ = dataRange
+                self._minValue.setValue(min_)
+                self._maxValue.setValue(max_)
                 self._colormap().sigChanged.connect(self._applyColormap)
             else:
-                dataRange = self.getDataRange()
-                if dataRange is not None:
-                    self._colormap().sigChanged.disconnect(self._applyColormap)
-                    self._colormap().setVRange(dataRange[0], dataRange[1])
-                    self._colormap().sigChanged.connect(self._applyColormap)
+                dataRange = self._colormap().getColormapRange()
+                min_, max_ = dataRange
+                self._colormap().sigChanged.disconnect(self._applyColormap)
+                self._colormap().setVRange(min_, max_)
+                self._minValue.setValue(min_)
+                self._maxValue.setValue(max_)
+                self._colormap().sigChanged.connect(self._applyColormap)
         self._plotUpdate()
 
     def _minMaxTextEdited(self, text):

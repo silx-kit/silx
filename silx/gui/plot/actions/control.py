@@ -360,7 +360,6 @@ class ColormapAction(PlotAction):
                 dataMin, dataMax = 1., 10.
 
             self._dialog.setHistogram()  # Reset histogram if any
-            self._dialog.setDataRange(dataMin, dataMax)
             # The histogram should be done in a worker thread
             # hist, bin_edges = numpy.histogram(goodData, bins=256)
             # self._dialog.setHistogram(hist, bin_edges)
