@@ -16,6 +16,7 @@
    specfile.rst
    specfilewrapper.rst
    spech5.rst
+   url.rst
    utils.rst
 
 Top-level functions
@@ -23,6 +24,7 @@ Top-level functions
 
 .. autofunction:: silx.io.open
 .. autofunction:: silx.io.save1D
+.. autofunction:: silx.io.get_data
 
 .. autofunction:: silx.io.is_dataset
 .. autofunction:: silx.io.is_group

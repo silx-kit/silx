@@ -11,4 +11,3 @@ API Reference
    resources.rst
    utils/index.rst
    test/index.rst
-

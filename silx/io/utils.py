@@ -25,7 +25,7 @@
 
 __authors__ = ["P. Knobel", "V. Valls"]
 __license__ = "MIT"
-__date__ = "05/12/2017"
+__date__ = "11/12/2017"
 
 import numpy
 import os.path
@@ -38,6 +38,7 @@ from silx.utils.deprecation import deprecated
 from silx.utils.proxy import Proxy
 from silx.third_party import six
 from silx.third_party import enum
+import silx.io.url
 
 try:
     import h5py
@@ -707,6 +708,9 @@ def get_h5py_class(obj):
     :param obj: An object
     :return: An h5py object
     """
+    if h5py is None:
+        logger.error("get_h5py_class/is_file/is_group/is_dataset requires h5py")
+        raise h5py_import_error
     if hasattr(obj, "h5py_class"):
         return obj.h5py_class
     type_ = get_h5_class(obj)
@@ -753,9 +757,89 @@ def is_softlink(obj):
     return t == H5Type.SOFT_LINK
 
 
-if h5py is None:
-    def raise_h5py_missing(obj):
-        logger.error("get_h5py_class/is_file/is_group/is_dataset requires h5py")
-        raise h5py_import_error
+def get_data(url):
+    """Returns a numpy data from an URL.
 
-    get_h5py_class = raise_h5py_missing
+    Examples:
+
+    >>> # 1st frame from an EDF using silx.io.open
+    >>> data = silx.io.get_data("silx:/users/foo/image.edf::/scan_0/instrument/detector_0/data[0]")
+
+    >>> # 1st frame from an EDF using fabio
+    >>> data = silx.io.get_data("fabio:/users/foo/image.edf::[0]")
+
+    Yet 2 schemes are supported by the function.
+
+    - If `silx` scheme is used, the file is opened using
+        :meth:`silx.io.open`
+        and the data is reach using usually NeXus paths.
+    - If `fabio` scheme is used, the file is opened using :meth:`fabio.open`
+        from the FabIO library.
+        No data path have to be specified, but each frames can be accessed
+        using the data slicing.
+        This shortcut of :meth:`silx.io.open` allow to have a faster access to
+        the data.
+
+    .. seealso:: :class:`silx.io.url.DataUrl`
+
+    :param Union[str,silx.io.url.DataUrl]: A data URL
+    :rtype: Union[numpy.ndarray, numpy.generic]
+    :raises ImportError: If the mandatory library to read the file is not
+        available.
+    :raises ValueError: If the URL is not valid or do not match the data
+    :raises IOError: If the file is not found or in case of internal error of
+        :meth:`fabio.open` or :meth:`silx.io.open`. In this last case more
+        informations are displayed in debug mode.
+    """
+    if not isinstance(url, silx.io.url.DataUrl):
+        url = silx.io.url.DataUrl(url)
+
+    if not url.is_valid():
+        raise ValueError("URL '%s' is not valid" % url.path())
+
+    if not os.path.exists(url.file_path()):
+        raise IOError("File '%s' not found" % url.file_path())
+
+    if url.scheme() == "silx":
+        data_path = url.data_path()
+        data_slice = url.data_slice()
+
+        with open(url.file_path()) as h5:
+            if data_path not in h5:
+                raise ValueError("Data path from URL '%s' not found" % url.path())
+            data = h5[data_path]
+            if data_slice is not None:
+                data = data[data_slice]
+            else:
+                # works for scalar and array
+                data = data[()]
+
+    elif url.scheme() == "fabio":
+        import fabio
+        data_slice = url.data_slice()
+        if data_slice is None or len(data_slice) != 1:
+            raise ValueError("Fabio slice expect a single frame, but %s found" % data_slice)
+        index = data_slice[0]
+        if not isinstance(index, int):
+            raise ValueError("Fabio slice expect a single integer, but %s found" % data_slice)
+
+        try:
+            fabio_file = fabio.open(url.file_path())
+        except Exception:
+            logger.debug("Error while opening %s with fabio", url.file_path(), exc_info=True)
+            raise IOError("Error while opening %s with fabio (use debug for more information)" % url.path())
+
+        if fabio_file.nframes == 1:
+            if index != 0:
+                raise ValueError("Only a single frame availalbe. Slice %s out of range" % index)
+            data = fabio_file.data
+        else:
+            data = fabio_file.getframe(index).data
+
+        # There is no explicit close
+        fabio_file = None
+
+    else:
+        raise ValueError("Scheme '%s' not supported" % url.scheme())
+
+    return data

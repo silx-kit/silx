@@ -24,7 +24,7 @@
 
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "20/09/2017"
+__date__ = "08/12/2017"
 
 import unittest
 
@@ -39,6 +39,7 @@ from .test_utils import suite as test_utils_suite
 from .test_nxdata import suite as test_nxdata_suite
 from .test_commonh5 import suite as test_commonh5_suite
 from .test_rawh5 import suite as test_rawh5_suite
+from .test_url import suite as test_url_suite
 
 
 def suite():
@@ -54,4 +55,5 @@ def suite():
     test_suite.addTest(test_nxdata_suite())
     test_suite.addTest(test_commonh5_suite())
     test_suite.addTest(test_rawh5_suite())
+    test_suite.addTest(test_url_suite())
     return test_suite
