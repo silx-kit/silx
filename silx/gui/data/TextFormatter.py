@@ -27,7 +27,7 @@ data module to format data as text in the same way."""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "12/12/2017"
+__date__ = "13/12/2017"
 
 import numpy
 import numbers
@@ -230,25 +230,24 @@ class TextFormatter(qt.QObject):
         """Format text of char.
 
         From the specifications we expect to have ASCII, but we also allow
-        CP1252 in case.
+        CP1252 in some ceases as fallback.
 
-        If no encoding fits, it will display readable ASCII chars and escaped
-        using the python syntax for non decoded characters.
+        If no encoding fits, it will display a readable ASCII chars, with
+        escaped chars (using the python syntax) for non decoded characters.
 
         :param data: A binary string of char expected in ASCII
         :rtype: str
         """
-        encodings = ["ascii", "cp1252"]
-        for encoding in encodings:
-            try:
-                text = "%s" % data.decode(encoding)
-                return self.__formatText(text)
-            except UnicodeDecodeError:
-                if encoding == "ascii":
-                    # Here we can spam errors, this is definitly a badly
-                    # generated file
-                    _logger.error("Invalid ASCII string %s. Try fallback with cp1252", data)
-                pass
+        try:
+            text = "%s" % data.decode("ascii")
+            return self.__formatText(text)
+        except UnicodeDecodeError:
+            # Here we can spam errors, this is definitly a badly
+            # generated file
+            _logger.error("Invalid ASCII string %s.", data)
+            if data == b"\xB0":
+                _logger.error("Fallback using cp1252 encoding")
+                return self.__formatText(u"\u00B0")
         return self.__formatSafeAscii(data)
 
     def __formatH5pyObject(self, data, dtype):
