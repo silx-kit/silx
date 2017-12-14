@@ -108,8 +108,8 @@ class _BoundaryWidget(qt.QWidget):
     def getFiniteValue(self):
         return self._numVal.value()
 
-    def setValue(self, value):
-        self._autoCB.setChecked(value is None)
+    def setValue(self, value, isAuto=False):
+        self._autoCB.setChecked(isAuto or value is None)
         if value is not None:
             self._numVal.setValue(value)
 
@@ -433,9 +433,11 @@ class ColormapDialog(qt.QDialog):
                 self._colormap().getNormalization() == Colormap.LINEAR)
             self._normButtonLog.setChecked(
                 self._colormap().getNormalization() == Colormap.LOGARITHM)
-
-            self._minValue.setValue(self._colormap().getVMin())
-            self._maxValue.setValue(self._colormap().getVMax())
+            vmin = self._colormap().getVMin()
+            vmax = self._colormap().getVMax()
+            dataRange = self._colormap().getColormapRange()
+            self._minValue.setValue(vmin or dataRange[0], isAuto=vmin is None)
+            self._maxValue.setValue(vmax or dataRange[1], isAuto=vmax is None)
 
             self._ignoreColormapChange = False
             self._plotUpdate()
