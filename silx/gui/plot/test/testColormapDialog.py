@@ -88,7 +88,6 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         colormapDiag2.setColormap(self.colormap)
         self.colormapDiag.setColormap(self.colormap)
 
-        self.colormapDiag._rangeAutoscaleButton.setChecked(False)
         self.colormapDiag._comboBoxColormap.setCurrentIndex(3)
         self.colormapDiag._normButtonLog.setChecked(True)
         self.assertTrue(self.colormap.getName() == 'red')
@@ -99,8 +98,8 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         # checked second colormap dialog
         self.assertTrue(colormapDiag2._comboBoxColormap.currentText() == 'Red')
         self.assertTrue(colormapDiag2._normButtonLog.isChecked())
-        self.assertTrue(int(colormapDiag2._minValue.value()) == 10)
-        self.assertTrue(int(colormapDiag2._maxValue.value()) == 20)
+        self.assertTrue(int(colormapDiag2._minValue.getValue()) == 10)
+        self.assertTrue(int(colormapDiag2._maxValue.getValue()) == 20)
         colormapDiag2.close()
 
     def testGUIModalOk(self):
@@ -109,7 +108,9 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.colormapDiag.setModal(True)
         self.colormapDiag.show()
         self.colormapDiag.setColormap(self.colormap)
-        self.colormapDiag._rangeAutoscaleButton.setChecked(True)
+        self.assertTrue(self.colormap.getVMin() is not None)
+        self.colormapDiag._minValue.setValue(None)
+        self.assertTrue(self.colormap.getVMin() is None)
         self.mouseClick(
             widget=self.colormapDiag._buttonsModal.button(qt.QDialogButtonBox.Ok),
             button=qt.Qt.LeftButton
@@ -122,36 +123,42 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.colormapDiag.setModal(True)
         self.colormapDiag.show()
         self.colormapDiag.setColormap(self.colormap)
-        self.colormapDiag._rangeAutoscaleButton.setChecked(True)
+        self.assertTrue(self.colormap.getVMin() is not None)
+        self.colormapDiag._minValue.setValue(None)
+        self.assertTrue(self.colormap.getVMin() is None)
         self.mouseClick(
             widget=self.colormapDiag._buttonsModal.button(qt.QDialogButtonBox.Cancel),
             button=qt.Qt.LeftButton
         )
-        self.assertTrue(self.colormap.isAutoscale() is False)
+        self.assertTrue(self.colormap.getVMin() is not None)
 
     def testGUIModalClose(self):
         assert self.colormap.isAutoscale() is False
         self.colormapDiag.setModal(False)
         self.colormapDiag.show()
         self.colormapDiag.setColormap(self.colormap)
-        self.colormapDiag._rangeAutoscaleButton.setChecked(True)
+        self.assertTrue(self.colormap.getVMin() is not None)
+        self.colormapDiag._minValue.setValue(None)
+        self.assertTrue(self.colormap.getVMin() is None)
         self.mouseClick(
             widget=self.colormapDiag._buttonsNonModal.button(qt.QDialogButtonBox.Close),
             button=qt.Qt.LeftButton
         )
-        self.assertTrue(self.colormap.isAutoscale() is True)
+        self.assertTrue(self.colormap.getVMin() is None)
 
     def testGUIModalReset(self):
         assert self.colormap.isAutoscale() is False
         self.colormapDiag.setModal(False)
         self.colormapDiag.show()
         self.colormapDiag.setColormap(self.colormap)
-        self.colormapDiag._rangeAutoscaleButton.setChecked(True)
+        self.assertTrue(self.colormap.getVMin() is not None)
+        self.colormapDiag._minValue.setValue(None)
+        self.assertTrue(self.colormap.getVMin() is None)
         self.mouseClick(
             widget=self.colormapDiag._buttonsNonModal.button(qt.QDialogButtonBox.Reset),
             button=qt.Qt.LeftButton
         )
-        self.assertTrue(self.colormap.isAutoscale() is False)
+        self.assertTrue(self.colormap.getVMin() is not None)
         self.colormapDiag.close()
 
     def testGUIClose(self):
@@ -159,9 +166,11 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         assert self.colormap.isAutoscale() is False
         self.colormapDiag.show()
         self.colormapDiag.setColormap(self.colormap)
-        self.colormapDiag._rangeAutoscaleButton.setChecked(True)
+        self.assertTrue(self.colormap.getVMin() is not None)
+        self.colormapDiag._minValue.setValue(None)
+        self.assertTrue(self.colormap.getVMin() is None)
         self.colormapDiag.close()
-        self.assertTrue(self.colormap.isAutoscale() is True)
+        self.assertTrue(self.colormap.getVMin() is None)
 
     def testSetColormapIsCorrect(self):
         """Make sure the interface fir the colormap when set a new colormap"""
@@ -180,15 +189,17 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
                     self.assertTrue(
                         self.colormapDiag._comboBoxColormap.currentText() == 'Red')
                     self.assertTrue(
-                        self.colormapDiag._rangeAutoscaleButton.isChecked() == autoscale)
+                        self.colormapDiag._minValue.isAutoChecked() == autoscale)
+                    self.assertTrue(
+                        self.colormapDiag._maxValue.isAutoChecked() == autoscale)
                     if autoscale is False:
-                        self.assertTrue(self.colormapDiag._minValue.value() == 11)
-                        self.assertTrue(self.colormapDiag._maxValue.value() == 101)
+                        self.assertTrue(self.colormapDiag._minValue.getValue() == 11)
+                        self.assertTrue(self.colormapDiag._maxValue.getValue() == 101)
                         self.assertTrue(self.colormapDiag._minValue.isEnabled())
                         self.assertTrue(self.colormapDiag._maxValue.isEnabled())
                     else:
-                        self.assertFalse(self.colormapDiag._minValue.isEnabled())
-                        self.assertFalse(self.colormapDiag._maxValue.isEnabled())
+                        self.assertFalse(self.colormapDiag._minValue._numVal.isEnabled())
+                        self.assertFalse(self.colormapDiag._maxValue._numVal.isEnabled())
 
     def testColormapDel(self):
         """Check behavior if the colormap has been deleted outside. For now
@@ -211,15 +222,17 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.colormap.setNormalization(Colormap.LOGARITHM)
         self.assertFalse(self.colormapDiag._normButtonLinear.isChecked())
         self.colormap.setVRange(11, 201)
-        self.assertTrue(self.colormapDiag._minValue.value() == 11)
-        self.assertTrue(self.colormapDiag._maxValue.value() == 201)
-        self.assertTrue(self.colormapDiag._minValue.isEnabled())
-        self.assertTrue(self.colormapDiag._maxValue.isEnabled())
-        self.assertFalse(self.colormapDiag._rangeAutoscaleButton.isChecked())
+        self.assertTrue(self.colormapDiag._minValue.getValue() == 11)
+        self.assertTrue(self.colormapDiag._maxValue.getValue() == 201)
+        self.assertTrue(self.colormapDiag._minValue._numVal.isEnabled())
+        self.assertTrue(self.colormapDiag._maxValue._numVal.isEnabled())
+        self.assertFalse(self.colormapDiag._minValue.isAutoChecked())
+        self.assertFalse(self.colormapDiag._maxValue.isAutoChecked())
         self.colormap.setVRange(None, None)
-        self.assertFalse(self.colormapDiag._minValue.isEnabled())
-        self.assertFalse(self.colormapDiag._maxValue.isEnabled())
-        self.assertTrue(self.colormapDiag._rangeAutoscaleButton.isChecked())
+        self.assertFalse(self.colormapDiag._minValue._numVal.isEnabled())
+        self.assertFalse(self.colormapDiag._maxValue._numVal.isEnabled())
+        self.assertTrue(self.colormapDiag._minValue.isAutoChecked())
+        self.assertTrue(self.colormapDiag._maxValue.isAutoChecked())
 
     def testSetColormapScenario(self):
         colormap1 = Colormap(name='gray', vmin=10.0, vmax=20.0,
