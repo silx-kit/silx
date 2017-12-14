@@ -96,14 +96,14 @@ class ColormapDialog(qt.QDialog):
         # Make the GUI
         vLayout = qt.QVBoxLayout(self)
 
-        formWidget = qt.QWidget()
+        formWidget = qt.QWidget(parent=self)
         vLayout.addWidget(formWidget)
         formLayout = qt.QFormLayout(formWidget)
         formLayout.setContentsMargins(10, 10, 10, 10)
         formLayout.setSpacing(0)
 
         # Colormap row
-        self._comboBoxColormap = qt.QComboBox()
+        self._comboBoxColormap = qt.QComboBox(parent=formWidget)
         for cmap in preferredColormaps():
             self._comboBoxColormap.addItem(cmap.title(), cmap)
         self._comboBoxColormap.currentIndexChanged[int].connect(self._updateName)
