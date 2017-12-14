@@ -327,47 +327,39 @@ class ColormapAction(PlotAction):
             plot, icon='colormap', text='Colormap',
             tooltip="Change colormap",
             triggered=self._actionTriggered,
-            checkable=False, parent=parent)
+            checkable=True, parent=parent)
 
     def _actionTriggered(self, checked=False):
         """Create a cmap dialog and update active image and default cmap."""
         # Create the dialog if not already existing
         if self._dialog is None:
             self._dialog = ColormapDialog()
+            self._dialog.finished.connect(self._setUnChecked)
+            self._dialog.setModal(False)
+            self._updateColormap()
+            self.plot.sigActiveImageChanged.connect(self._updateColormap)
 
+        # Run the dialog listening to colormap change
+        if checked is True:
+            self._dialog.show()
+        else:
+            self._dialog.hide()
+
+    def _setUnChecked(self):
+        self.setChecked(False)
+
+    def _updateColormap(self):
         image = self.plot.getActiveImage()
         if not isinstance(image, items.ColormapMixIn):
             # No active image or active image is RGBA,
             # set dialog from default info
             colormap = self.plot.getDefaultColormap()
-
-            self._dialog.setHistogram()  # Reset histogram and range if any
-
         else:
             # Set dialog from active image
             colormap = image.getColormap()
 
-            data = image.getData(copy=False)
-
-            goodData = data[numpy.isfinite(data)]
-            if goodData.size > 0:
-                dataMin = goodData.min()
-                dataMax = goodData.max()
-            else:
-                qt.QMessageBox.warning(
-                    None, "No Data",
-                    "Image data does not contain any real value")
-                dataMin, dataMax = 1., 10.
-
-            self._dialog.setHistogram()  # Reset histogram if any
-            # The histogram should be done in a worker thread
-            # hist, bin_edges = numpy.histogram(goodData, bins=256)
-            # self._dialog.setHistogram(hist, bin_edges)
-
+        self._dialog.setHistogram()
         self._dialog.setColormap(colormap=colormap)
-
-        # Run the dialog listening to colormap change
-        self._dialog.show()
 
 
 class KeepAspectRatioAction(PlotAction):
