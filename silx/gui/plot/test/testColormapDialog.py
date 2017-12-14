@@ -191,29 +191,22 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.colormapDiag.setColormap(self.colormap)
         self.colormapDiag.show()
 
-        print(1)
         self.colormap.setName('red')
         self.assertTrue(
             self.colormapDiag._comboBoxColormap.currentText() == 'Red')
-        print(2)
-
         self.colormap.setNormalization(Colormap.LOGARITHM)
-        print(3)
-
         self.assertFalse(self.colormapDiag._normButtonLinear.isChecked())
-        print(4)
-
         self.colormap.setVRange(11, 201)
         self.assertTrue(self.colormapDiag._minValue.value() == 11)
         self.assertTrue(self.colormapDiag._maxValue.value() == 201)
         self.assertTrue(self.colormapDiag._minValue.isEnabled())
         self.assertTrue(self.colormapDiag._maxValue.isEnabled())
         self.assertFalse(self.colormapDiag._rangeAutoscaleButton.isChecked())
-
         self.colormap.setVRange(None, None)
         self.assertFalse(self.colormapDiag._minValue.isEnabled())
         self.assertFalse(self.colormapDiag._maxValue.isEnabled())
         self.assertTrue(self.colormapDiag._rangeAutoscaleButton.isChecked())
+
 
 def suite():
     test_suite = unittest.TestSuite()
