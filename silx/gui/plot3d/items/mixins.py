@@ -269,6 +269,16 @@ class PlaneMixIn(ItemMixInBase):
         """
         return self.__plane.plane.parameters
 
+    def setParameters(self, parameters):
+        """Set the plane equation parameters: a*x + b*y + c*z + d = 0
+
+        Warning: The plane might not intersect the bounding box of the data.
+        The given parameters will be normalized.
+
+        :param parameters: (a, b, c, d) equation parameters
+        """
+        self.__plane.plane.parameters = parameters
+
     # Border stroke
 
     def getStrokeColor(self):

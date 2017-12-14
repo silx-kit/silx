@@ -271,7 +271,6 @@ class DataItem3D(Item3D):
 
         :param float angle: The rotation angle in degrees.
         :param axis: The (x, y, z) coordinates of the rotation axis.
-        :param center: The (x, y, z) coordinates of the center of rotation
         """
         axis = numpy.array(axis, dtype=numpy.float32)
         assert axis.ndim == 1
