@@ -81,8 +81,13 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         TestCaseQt.tearDown(self)
 
     def testGUIEdition(self):
-        """Make sure the colormap is correctly edited"""
+        """Make sure the colormap is correctly edited and also that the
+        modification are correctly updated if an other colormapdialog is
+        editing the same colormap"""
+        colormapDiag2 = ColormapDialog.ColormapDialog()
+        colormapDiag2.setColormap(self.colormap)
         self.colormapDiag.setColormap(self.colormap)
+
         self.colormapDiag._rangeAutoscaleButton.setChecked(False)
         self.colormapDiag._comboBoxColormap.setCurrentIndex(3)
         self.colormapDiag._normButtonLog.setChecked(True)
@@ -91,6 +96,12 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.assertTrue(self.colormap.getNormalization() == 'log')
         self.assertTrue(self.colormap.getVMin() == 10)
         self.assertTrue(self.colormap.getVMax() == 20)
+        # checked second colormap dialog
+        self.assertTrue(colormapDiag2._comboBoxColormap.currentText() == 'Red')
+        self.assertTrue(colormapDiag2._normButtonLog.isChecked())
+        self.assertTrue(int(colormapDiag2._minValue.value()) == 10)
+        self.assertTrue(int(colormapDiag2._maxValue.value()) == 20)
+        colormapDiag2.close()
 
     def testGUIModalOk(self):
         """Make sure the colormap is modify if go through accept"""
@@ -273,6 +284,20 @@ class TestColormapAction(TestCaseQt):
         self.plot.remove('img3')
         self.plot.remove('img1')
         self.assertTrue(self.colormapDialog.getColormap() is self.defaultColormap)
+
+    def testShowHideColormapDialog(self):
+        self.assertFalse(self.plot.getColormapAction().isChecked())
+        self.plot.getColormapAction()._actionTriggered()
+        # _qapp.processEvents()
+        # self.assertTrue(self.plot.getColormapAction().isChecked())
+        self.plot.addImage(data=numpy.random.rand(10, 10), legend='img1',
+                           replace=False, origin=(0, 0),
+                           colormap=self.colormap1)
+        self.colormap1.setName('red')
+        self.plot.getColormapAction()._actionTriggered()
+        self.colormap1.setName('blue')
+        self.colormapDialog.close()
+        self.assertFalse(self.plot.getColormapAction().isChecked())
 
 
 def suite():
