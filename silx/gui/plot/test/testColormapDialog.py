@@ -38,6 +38,9 @@ from silx.gui.plot import ColormapDialog
 from silx.gui.test.utils import TestCaseQt
 from silx.gui.plot.Colormap import Colormap
 from silx.test.utils import ParametricTestCase
+from silx.gui.plot.PlotWindow import PlotWindow
+
+import numpy.random
 
 
 # Makes sure a QApplication exists
@@ -207,11 +210,75 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.assertFalse(self.colormapDiag._maxValue.isEnabled())
         self.assertTrue(self.colormapDiag._rangeAutoscaleButton.isChecked())
 
+    def testSetColormapScenario(self):
+        colormap1 = Colormap(name='gray', vmin=10.0, vmax=20.0,
+                             normalization='linear')
+        colormap2 = Colormap(name='red', vmin=10.0, vmax=20.0,
+                             normalization='log')
+        colormap3 = Colormap(name='blue', vmin=None, vmax=None,
+                             normalization='linear')
+        self.colormapDiag.setColormap(self.colormap)
+        self.colormapDiag.setColormap(colormap1)
+        del colormap1
+        self.colormapDiag.setColormap(colormap2)
+        del colormap2
+        self.colormapDiag.setColormap(colormap3)
+        del colormap3
+
+
+class TestColormapAction(TestCaseQt):
+    def setUp(self):
+        TestCaseQt.setUp(self)
+        self.plot = PlotWindow()
+        self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
+
+        self.colormap1 = Colormap(name='blue', vmin=0.0, vmax=1.0,
+                                  normalization='linear')
+        self.colormap2 = Colormap(name='red', vmin=10.0, vmax=100.0,
+                                  normalization='log')
+        self.defaultColormap = self.plot.getDefaultColormap()
+
+        self.plot.getColormapAction()._actionTriggered()
+        self.colormapDialog = self.plot.getColormapAction()._dialog
+        self.colormapDialog.setAttribute(qt.Qt.WA_DeleteOnClose)
+
+    def tearDown(self):
+        self.colormapDialog.close()
+        self.plot.close()
+        del self.colormapDialog
+        del self.plot
+        TestCaseQt.tearDown(self)
+
+    def testActiveColormap(self):
+        self.assertTrue(self.colormapDialog.getColormap() is self.defaultColormap)
+
+        self.plot.addImage(data=numpy.random.rand(10, 10), legend='img1',
+                           replace=False, origin=(0, 0),
+                           colormap=self.colormap1)
+        self.plot.setActiveImage('img1')
+        self.assertTrue(self.colormapDialog.getColormap() is self.colormap1)
+
+        self.plot.addImage(data=numpy.random.rand(10, 10), legend='img2',
+                           replace=False, origin=(0, 0),
+                           colormap=self.colormap2)
+        self.plot.addImage(data=numpy.random.rand(10, 10), legend='img3',
+                           replace=False, origin=(0, 0))
+
+        self.plot.setActiveImage('img3')
+        self.assertTrue(self.colormapDialog.getColormap() is self.defaultColormap)
+        self.plot.getActiveImage().setColormap(self.colormap2)
+        self.assertTrue(self.colormapDialog.getColormap() is self.colormap2)
+
+        self.plot.remove('img2')
+        self.plot.remove('img3')
+        self.plot.remove('img1')
+        self.assertTrue(self.colormapDialog.getColormap() is self.defaultColormap)
+
 
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(cmapDocTestSuite)
-    for testClass in (TestColormapDialog, ):
+    for testClass in (TestColormapDialog, TestColormapAction):
         test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(
             testClass))
     return test_suite
