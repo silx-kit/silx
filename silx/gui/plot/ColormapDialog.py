@@ -90,6 +90,16 @@ class ColormapDialog(qt.QDialog):
         qt.QDialog.__init__(self, parent)
         self.setWindowTitle(title)
 
+        self._ignoreColormapChange = False
+        """Used as a semaphore to avoid editing the colormap object when we are
+        only attempt to display it.
+        Used instead of n connect and disconnect of the sigChanged. The
+        disconnection to sigChanged was also limiting when this colormapdialog
+        is used in the colormapaction and associated to the activeImageChanged.
+        (because the activeImageChanged is send when the colormap changed and
+        the self.setcolormap is a callback)
+        """
+
         self._histogramData = None
         self._minMaxWasEdited = False
 
@@ -180,6 +190,7 @@ class ColormapDialog(qt.QDialog):
 
     def close(self):
         self.accept()
+        qt.QDialog.close(self)
 
     def setModal(self, modal):
         assert type(modal) is bool
@@ -324,7 +335,9 @@ class ColormapDialog(qt.QDialog):
 
             # Update the data range
             if hasattr(self, '_colormap') and self._colormap():
+                self._ignoreColormapChange = True
                 self._colormap().setVRange(bin_edges[0], bin_edges[-1])
+                self._ignoreColormapChange = False
 
     def getColormap(self):
         """Return the colormap description as a :class:`.Colormap`.
@@ -340,9 +353,9 @@ class ColormapDialog(qt.QDialog):
                   state when validated
         """
         if self._colormap():
-            self._colormap().sigChanged.disconnect(self._applyColormap)
+            self._ignoreColormapChange = True
             self._colormap()._setFromDict(self._colormapStoredState)
-            self._colormap().sigChanged.connect(self._applyColormap)
+            self._ignoreColormapChange = False
             self._plotUpdate()
 
     def accept(self):
@@ -373,6 +386,9 @@ class ColormapDialog(qt.QDialog):
         :param float vmax: The max value, ignored if autoscale is True
         """
         assert isinstance(colormap, Colormap)
+        if self._ignoreColormapChange is True:
+            return
+
         if hasattr(self, '_colormap') and self._colormap():
             self._colormap().sigChanged.disconnect(self._applyColormap)
         self._colormap = weakref.ref(colormap)
@@ -381,25 +397,12 @@ class ColormapDialog(qt.QDialog):
         self._applyColormap()
 
     def _applyColormap(self):
-        def reconnectButtons():
-            self._normButtonLog.toggled.connect(self._activeLogNorm)
-            self._normButtonLinear.toggled[bool].connect(
-                self._updateLinearNorm)
-            self._rangeAutoscaleButton.toggled.connect(self._autoscaleToggled)
-            self._comboBoxColormap.currentIndexChanged[int].connect(
-                self._updateName)
-
-        def disconnectButtons():
-            self._comboBoxColormap.currentIndexChanged[int].disconnect(
-                self._updateName)
-            self._normButtonLinear.toggled[bool].disconnect(
-                self._updateLinearNorm)
-            self._normButtonLog.toggled.disconnect(self._activeLogNorm)
-            self._rangeAutoscaleButton.toggled.disconnect(self._autoscaleToggled)
+        if self._ignoreColormapChange is True:
+            return
 
         if self._colormap():
-            self._colormap().sigChanged.disconnect(self._applyColormap)
-            disconnectButtons()
+            self._ignoreColormapChange = True
+
             if self._colormap().getName() is not None:
                 index = self._comboBoxColormap.findData(
                     self._colormap.getName(), qt.Qt.UserRole)
@@ -428,12 +431,13 @@ class ColormapDialog(qt.QDialog):
             else:
                 self._minValue.setEnabled(True)
                 self._maxValue.setEnabled(True)
-            # Do it once for all the changes
+            self._ignoreColormapChange = False
             self._plotUpdate()
-            self._colormap().sigChanged.connect(self._applyColormap)
-            reconnectButtons()
 
     def _updateMinMax(self):
+        if self._ignoreColormapChange is True:
+            return
+        self._ignoreColormapChange = True
         if self._rangeAutoscaleButton.isChecked():
             vmin = None
             vmax = None
@@ -441,48 +445,52 @@ class ColormapDialog(qt.QDialog):
             vmin = self._minValue.value()
             vmax = self._maxValue.value()
         if self._colormap():
-            self._colormap().sigChanged.disconnect(self._applyColormap)
             self._colormap().setVRange(vmin, vmax)
-            self._colormap().sigChanged.connect(self._applyColormap)
+        self._ignoreColormapChange = False
         self._plotUpdate()
 
     def _updateName(self):
+        if self._ignoreColormapChange is True:
+            return
+
         if self._colormap():
-            self._colormap().sigChanged.disconnect(self._applyColormap)
+            self._ignoreColormapChange = True
             self._colormap().setName(
                 str(self._comboBoxColormap.currentText()).lower())
-            self._colormap().sigChanged.connect(self._applyColormap)
-        self._plotUpdate()
+            self._ignoreColormapChange = False
 
     def _updateLinearNorm(self, isNormLinear):
+        if self._ignoreColormapChange is True:
+            return
+
         if self._colormap():
-            self._colormap().sigChanged.disconnect(self._applyColormap)
+            self._ignoreColormapChange = True
             norm = Colormap.LINEAR if isNormLinear else Colormap.LOGARITHM
             self._colormap().setNormalization(norm)
-            self._colormap().sigChanged.connect(self._applyColormap)
-        self._plotUpdate()
+            self._ignoreColormapChange = False
 
     def _autoscaleToggled(self, checked):
         """Handle autoscale changes by enabling/disabling min/max fields"""
+        if self._ignoreColormapChange is True:
+            return
+
+        self._ignoreColormapChange = True
         self._minValue.setEnabled(not checked)
         self._maxValue.setEnabled(not checked)
         if self._colormap():
             if checked:
-                self._colormap().sigChanged.disconnect(self._applyColormap)
                 self._colormap().setVRange(None, None)
                 dataRange = self._colormap().getColormapRange()
                 min_, max_ = dataRange
                 self._minValue.setValue(min_)
                 self._maxValue.setValue(max_)
-                self._colormap().sigChanged.connect(self._applyColormap)
             else:
                 dataRange = self._colormap().getColormapRange()
                 min_, max_ = dataRange
-                self._colormap().sigChanged.disconnect(self._applyColormap)
                 self._colormap().setVRange(min_, max_)
                 self._minValue.setValue(min_)
                 self._maxValue.setValue(max_)
-                self._colormap().sigChanged.connect(self._applyColormap)
+        self._ignoreColormapChange = False
         self._plotUpdate()
 
     def _minMaxTextEdited(self, text):
@@ -532,6 +540,10 @@ class ColormapDialog(qt.QDialog):
             super(ColormapDialog, self).keyPressEvent(event)
 
     def _activeLogNorm(self, isLog):
+        if self._ignoreColormapChange is True:
+            return
         if self._colormap():
+            self._ignoreColormapChange = True
             norm = Colormap.LOGARITHM if isLog is True else Colormap.LINEAR
             self._colormap().setNormalization(norm)
+            self._ignoreColormapChange = False
