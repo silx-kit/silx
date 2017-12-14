@@ -178,6 +178,9 @@ class ColormapDialog(qt.QDialog):
 
         self.setModal(self.isModal())
 
+    def close(self):
+        self.accept()
+
     def setModal(self, modal):
         assert type(modal) is bool
         self._buttonsNonModal.setVisible(not modal)

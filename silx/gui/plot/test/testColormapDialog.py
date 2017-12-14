@@ -147,7 +147,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.colormapDiag.setColormap(self.colormap)
         self.colormapDiag._rangeAutoscaleButton.setChecked(True)
         self.colormapDiag.close()
-        self.assertTrue(self.colormap.isAutoscale() is False)
+        self.assertTrue(self.colormap.isAutoscale() is True)
 
     def testSetColormapIsCorrect(self):
         """Make sure the interface fir the colormap when set a new colormap"""
