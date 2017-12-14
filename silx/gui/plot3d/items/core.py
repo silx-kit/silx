@@ -31,6 +31,8 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "15/11/2017"
 
+from collections import defaultdict
+
 import numpy
 
 from silx.third_party import enum, six
@@ -60,6 +62,9 @@ class Item3DChangedType(enum.Enum):
     ISO_LEVEL = 'isoLevelChanged'
     """Isosurface level changed flag."""
 
+    LABEL = 'labelChanged'
+    """Item's label changed flag."""
+
 
 class Item3D(qt.QObject):
     """Base class representing an item in the scene.
@@ -67,6 +72,9 @@ class Item3D(qt.QObject):
     :param parent: The View widget this item belongs to.
     :param primitive: An optional primitive to use as scene primitive
     """
+
+    _LABEL_INDICES = defaultdict(int)
+    """Store per class label indices"""
 
     sigItemChanged = qt.Signal(object)
     """Signal emitted when an item's property has changed.
@@ -84,6 +92,12 @@ class Item3D(qt.QObject):
 
         self._primitive = primitive
 
+        labelIndex = self._LABEL_INDICES[self.__class__]
+        self._label = six.text_type(self.__class__.__name__)
+        if labelIndex != 0:
+            self._label += u' %d' % labelIndex
+        self._LABEL_INDICES[self.__class__] += 1
+
     def _getScenePrimitive(self):
         """Return the group containing the item rendering"""
         return self._primitive
@@ -95,6 +109,25 @@ class Item3D(qt.QObject):
         """
         if event is not None:
             self.sigItemChanged.emit(event)
+
+    # Label
+
+    def getLabel(self):
+        """Returns the label associated to this item.
+
+        :rtype: str
+        """
+        return self._label
+
+    def setLabel(self, label):
+        """Set the label associated to this item.
+
+        :param str label:
+        """
+        label = six.text_type(label)
+        if label != self._label:
+            self._label = label
+            self._updated(Item3DChangedType.LABEL)
 
     # Visibility
 
@@ -117,7 +150,6 @@ class Item3D(qt.QObject):
             self._updated(ItemChangedType.VISIBLE)
 
 
-# TODO add anchor (i.e. center of rotation)
 # TODO add bounding box visible + color
 class DataItem3D(Item3D):
     """Base class representing a data item with transform in the scene.
