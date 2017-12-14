@@ -381,7 +381,25 @@ class ColormapDialog(qt.QDialog):
         self._applyColormap()
 
     def _applyColormap(self):
+        def reconnectButtons():
+            self._normButtonLog.toggled.connect(self._activeLogNorm)
+            self._normButtonLinear.toggled[bool].connect(
+                self._updateLinearNorm)
+            self._rangeAutoscaleButton.toggled.connect(self._autoscaleToggled)
+            self._comboBoxColormap.currentIndexChanged[int].connect(
+                self._updateName)
+
+        def disconnectButtons():
+            self._comboBoxColormap.currentIndexChanged[int].disconnect(
+                self._updateName)
+            self._normButtonLinear.toggled[bool].disconnect(
+                self._updateLinearNorm)
+            self._normButtonLog.toggled.disconnect(self._activeLogNorm)
+            self._rangeAutoscaleButton.toggled.disconnect(self._autoscaleToggled)
+
         if self._colormap():
+            self._colormap().sigChanged.disconnect(self._applyColormap)
+            disconnectButtons()
             if self._colormap().getName() is not None:
                 index = self._comboBoxColormap.findData(
                     self._colormap.getName(), qt.Qt.UserRole)
@@ -412,6 +430,8 @@ class ColormapDialog(qt.QDialog):
                 self._maxValue.setEnabled(True)
             # Do it once for all the changes
             self._plotUpdate()
+            self._colormap().sigChanged.connect(self._applyColormap)
+            reconnectButtons()
 
     def _updateMinMax(self):
         if self._rangeAutoscaleButton.isChecked():
