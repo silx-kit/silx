@@ -69,7 +69,7 @@ import logging
 import numpy
 
 from .. import qt
-from .Colormap import Colormap
+from .Colormap import Colormap, preferredColormaps
 from . import PlotWidget
 from silx.gui.widgets.FloatEdit import FloatEdit
 
@@ -98,14 +98,6 @@ class ColormapDialog(qt.QDialog):
         self._dataRange = None
         self._minMaxWasEdited = False
 
-        colormaps = [
-            'gray', 'reversed gray',
-            'temperature', 'red', 'green', 'blue', 'jet',
-            'viridis', 'magma', 'inferno', 'plasma']
-        if 'hsv' in Colormap.getSupportedColormaps():
-            colormaps.append('hsv')
-        self._colormapList = tuple(colormaps)
-
         # Make the GUI
         vLayout = qt.QVBoxLayout(self)
 
@@ -117,10 +109,8 @@ class ColormapDialog(qt.QDialog):
 
         # Colormap row
         self._comboBoxColormap = qt.QComboBox()
-        for cmap in self._colormapList:
-            # Capitalize first letters
-            cmap = ' '.join(w[0].upper() + w[1:] for w in cmap.split())
-            self._comboBoxColormap.addItem(cmap)
+        for cmap in preferredColormaps():
+            self._comboBoxColormap.addItem(cmap.title(), cmap)
         self._comboBoxColormap.activated[int].connect(self._notify)
         formLayout.addRow('Colormap:', self._comboBoxColormap)
 
@@ -382,8 +372,11 @@ class ColormapDialog(qt.QDialog):
             vmin = self._minValue.value()
             vmax = self._maxValue.value()
         norm = Colormap.LINEAR if isNormLinear else Colormap.LOGARITHM
+
+        name = self._comboBoxColormap.itemData(
+            self._comboBoxColormap.currentIndex(), qt.Qt.UserRole)
         colormap = Colormap(
-                        name=str(self._comboBoxColormap.currentText()).lower(),
+                        name=name,
                         normalization=norm,
                         vmin=vmin,
                         vmax=vmax)
@@ -402,8 +395,13 @@ class ColormapDialog(qt.QDialog):
         :param float vmax: The max value, ignored if autoscale is True
         """
         if name is not None:
-            assert name in self._colormapList
-            index = self._colormapList.index(name)
+            capitalizedName = name.title()
+
+            # Check if colormap is available in the combo box
+            if self._comboBoxColormap.findData(name, qt.Qt.UserRole) == -1:
+                self._comboBoxColormap.addItem(capitalizedName, name)
+
+            index = self._comboBoxColormap.findData(name, qt.Qt.UserRole)
             self._comboBoxColormap.setCurrentIndex(index)
 
         if normalization is not None:
