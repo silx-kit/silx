@@ -58,7 +58,7 @@ class TestSigItemChangedSignal(PlotWidgetTestCase):
         curve.setData(numpy.arange(100), numpy.arange(100))
 
         # SymbolMixIn
-        curve.setSymbol('o')
+        curve.setSymbol('Circle')
         curve.setSymbol('d')
         curve.setSymbolSize(20)
 
@@ -220,10 +220,28 @@ class TestSigItemChangedSignal(PlotWidgetTestCase):
                           (ItemChangedType.DATA,)])
 
 
+class TestSymbol(PlotWidgetTestCase):
+    """Test item's symbol """
+
+    def test(self):
+        """Test sigItemChanged for curve"""
+        self.plot.addCurve(numpy.arange(10), numpy.arange(10), legend='test')
+        curve = self.plot.getCurve('test')
+
+        # SymbolMixIn
+        curve.setSymbol('o')
+        name = curve.getSymbolName()
+        self.assertEqual('Circle', name)
+
+        name = curve.getSymbolName('d')
+        self.assertEqual('Diamond', name)
+
+
 def suite():
     test_suite = unittest.TestSuite()
     loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
     test_suite.addTest(loadTests(TestSigItemChangedSignal))
+    test_suite.addTest(loadTests(TestSymbol))
     return test_suite
 
 
