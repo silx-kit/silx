@@ -401,7 +401,8 @@ class ColormapDialog(qt.QDialog):
             if self._comboBoxColormap.findData(name, qt.Qt.UserRole) == -1:
                 self._comboBoxColormap.addItem(capitalizedName, name)
 
-            self._comboBoxColormap.setCurrentText(capitalizedName)
+            index = self._comboBoxColormap.findData(name, qt.Qt.UserRole)
+            self._comboBoxColormap.setCurrentIndex(index)
 
         if normalization is not None:
             assert normalization in Colormap.NORMALIZATIONS
