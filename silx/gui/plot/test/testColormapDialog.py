@@ -88,7 +88,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         colormapDiag2.setColormap(self.colormap)
         self.colormapDiag.setColormap(self.colormap)
 
-        self.colormapDiag._comboBoxColormap.setCurrentIndex(3)
+        self.colormapDiag._comboBoxColormap.setCurrentName('red')
         self.colormapDiag._normButtonLog.setChecked(True)
         self.assertTrue(self.colormap.getName() == 'red')
         self.assertTrue(self.colormapDiag.getColormap().getName() == 'red')
@@ -96,7 +96,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.assertTrue(self.colormap.getVMin() == 10)
         self.assertTrue(self.colormap.getVMax() == 20)
         # checked second colormap dialog
-        self.assertTrue(colormapDiag2._comboBoxColormap.currentText() == 'Red')
+        self.assertTrue(colormapDiag2._comboBoxColormap.getCurrentName() == 'red')
         self.assertTrue(colormapDiag2._normButtonLog.isChecked())
         self.assertTrue(int(colormapDiag2._minValue.getValue()) == 10)
         self.assertTrue(int(colormapDiag2._maxValue.getValue()) == 20)
@@ -187,7 +187,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
                     self.assertTrue(
                         self.colormapDiag._normButtonLinear.isChecked() == (norm is Colormap.LINEAR))
                     self.assertTrue(
-                        self.colormapDiag._comboBoxColormap.currentText() == 'Red')
+                        self.colormapDiag._comboBoxColormap.getCurrentName() == 'red')
                     self.assertTrue(
                         self.colormapDiag._minValue.isAutoChecked() == autoscale)
                     self.assertTrue(
@@ -208,7 +208,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.colormapDiag.show()
         del self.colormap
         self.assertTrue(self.colormapDiag.getColormap() is None)
-        self.colormapDiag._comboBoxColormap.setCurrentIndex(2)
+        self.colormapDiag._comboBoxColormap.setCurrentName('blue')
 
     def testColormapEditedOutside(self):
         """Make sure the GUI is still up to date if the colormap is modified
@@ -218,7 +218,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
 
         self.colormap.setName('red')
         self.assertTrue(
-            self.colormapDiag._comboBoxColormap.currentText() == 'Red')
+            self.colormapDiag._comboBoxColormap.getCurrentName() == 'red')
         self.colormap.setNormalization(Colormap.LOGARITHM)
         self.assertFalse(self.colormapDiag._normButtonLinear.isChecked())
         self.colormap.setVRange(11, 201)
@@ -257,7 +257,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         """
         def getFirstNotPreferredColormap():
             cms = Colormap.getSupportedColormaps()
-            preferred = self.colormapDiag._colormapList
+            preferred = ColormapDialog._ColormapNameCombox.colormaps
             for cm in cms:
                 if cm not in preferred:
                     return cm
@@ -269,12 +269,12 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.colormapDiag.setColormap(colormap)
         self.colormapDiag.show()
         cb = self.colormapDiag._comboBoxColormap
-        self.assertTrue(cb.currentText().lower() == colormapName.lower())
+        self.assertTrue(cb.getCurrentName() == colormapName)
         cb.setCurrentIndex(0)
-        index = cb.findText(colormapName)
+        index = cb.findColormap(colormapName)
         assert index is not 0  # if 0 then the rest of the test has no sense
         cb.setCurrentIndex(index)
-        self.assertTrue(cb.currentText().lower() == colormapName.lower())
+        self.assertTrue(cb.getCurrentName() == colormapName)
 
 
 class TestColormapAction(TestCaseQt):

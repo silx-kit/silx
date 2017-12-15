@@ -61,9 +61,9 @@ The updates of the colormap description are also available through the signal:
 
 from __future__ import division
 
-__authors__ = ["V.A. Sole", "T. Vincent"]
+__authors__ = ["V.A. Sole", "T. Vincent", "H. Payno"]
 __license__ = "MIT"
-__date__ = "02/10/2017"
+__date__ = "15/12/2017"
 
 
 import logging
@@ -114,6 +114,46 @@ class _BoundaryWidget(qt.QWidget):
             self._numVal.setValue(value)
 
 
+class _ColormapNameCombox(qt.QComboBox):
+    def __init__(self, parent=None):
+        qt.QComboBox.__init__(self, parent)
+        self.__initItems()
+
+    ORIGINAL_NAME = qt.Qt.UserRole + 1
+
+    colormaps = [
+        'gray', 'reversed gray',
+        'temperature', 'red', 'green', 'blue', 'jet',
+        'viridis', 'magma', 'inferno', 'plasma']
+
+    if 'hsv' in Colormap.getSupportedColormaps():
+        colormaps.append('hsv')
+
+    def __initItems(self):
+
+
+        _colormapList = tuple(self.colormaps)
+
+        for colormapName in _colormapList:
+            index = self.count()
+            self.addItem(str.title(colormapName))
+            self.setItemData(index, colormapName, role=self.ORIGINAL_NAME)
+
+    def getCurrentName(self):
+        return self.itemData(self.currentIndex(), self.ORIGINAL_NAME)
+
+    def findColormap(self, name):
+        return self.findData(name, role=self.ORIGINAL_NAME)
+
+    def setCurrentName(self, name):
+        index = self.findColormap(name)
+        if index < 0:
+            index = self.count()
+            self.addItem(str.title(name))
+            self.setItemData(index, name, role=self.ORIGINAL_NAME)
+        self.setCurrentIndex(index)
+
+
 class ColormapDialog(qt.QDialog):
     """A QDialog widget to set the colormap.
 
@@ -148,9 +188,7 @@ class ColormapDialog(qt.QDialog):
         formLayout.setSpacing(0)
 
         # Colormap row
-        self._comboBoxColormap = qt.QComboBox(parent=formWidget)
-        for cmap in preferredColormaps():
-            self._comboBoxColormap.addItem(cmap.title(), cmap)
+        self._comboBoxColormap = _ColormapNameCombox(parent=formWidget)
         self._comboBoxColormap.currentIndexChanged[int].connect(self._updateName)
         formLayout.addRow('Colormap:', self._comboBoxColormap)
 
@@ -424,12 +462,8 @@ class ColormapDialog(qt.QDialog):
             self._ignoreColormapChange = True
 
             if self._colormap().getName() is not None:
-                index = self._comboBoxColormap.findData(
-                    self._colormap.getName(), qt.Qt.UserRole)
-                if index < 0:
-                    self._comboBoxColormap.addItem(name.title(), name)
-                    index = self._comboBoxColormap.findText(name)
-                self._comboBoxColormap.setCurrentIndex(index)
+                name = self._colormap().getName()
+                self._comboBoxColormap.setCurrentName(name)
 
             assert self._colormap().getNormalization() in Colormap.NORMALIZATIONS
             self._normButtonLinear.setChecked(
@@ -463,7 +497,7 @@ class ColormapDialog(qt.QDialog):
         if self._colormap():
             self._ignoreColormapChange = True
             self._colormap().setName(
-                str(self._comboBoxColormap.currentText()))
+                self._comboBoxColormap.getCurrentName())
             self._ignoreColormapChange = False
 
     def _updateLinearNorm(self, isNormLinear):
