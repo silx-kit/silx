@@ -235,6 +235,8 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.assertTrue(self.colormapDiag._maxValue.isAutoChecked())
 
     def testSetColormapScenario(self):
+        """Test of a simple scenario of a colormap dialog editing several
+        colormap"""
         colormap1 = Colormap(name='gray', vmin=10.0, vmax=20.0,
                              normalization='linear')
         colormap2 = Colormap(name='red', vmin=10.0, vmax=20.0,
@@ -248,6 +250,31 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         del colormap2
         self.colormapDiag.setColormap(colormap3)
         del colormap3
+
+    def testNotPreferredColormap(self):
+        """Test that the colormapEditor is able to edit a colormap which is not
+        part of the 'prefered colormap'
+        """
+        def getFirstNotPreferredColormap():
+            cms = Colormap.getSupportedColormaps()
+            preferred = self.colormapDiag._colormapList
+            for cm in cms:
+                if cm not in preferred:
+                    return cm
+            return None
+
+        colormapName = getFirstNotPreferredColormap()
+        assert colormapName is not None
+        colormap = Colormap(name=colormapName)
+        self.colormapDiag.setColormap(colormap)
+        self.colormapDiag.show()
+        cb = self.colormapDiag._comboBoxColormap
+        self.assertTrue(cb.currentText().lower() == colormapName.lower())
+        cb.setCurrentIndex(0)
+        index = cb.findText(colormapName)
+        assert index is not 0  # if 0 then the rest of the test has no sense
+        cb.setCurrentIndex(index)
+        self.assertTrue(cb.currentText().lower() == colormapName.lower())
 
 
 class TestColormapAction(TestCaseQt):

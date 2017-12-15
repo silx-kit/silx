@@ -426,6 +426,9 @@ class ColormapDialog(qt.QDialog):
             if self._colormap().getName() is not None:
                 index = self._comboBoxColormap.findData(
                     self._colormap.getName(), qt.Qt.UserRole)
+                if index < 0:
+                    self._comboBoxColormap.addItem(name.title(), name)
+                    index = self._comboBoxColormap.findText(name)
                 self._comboBoxColormap.setCurrentIndex(index)
 
             assert self._colormap().getNormalization() in Colormap.NORMALIZATIONS
@@ -460,7 +463,7 @@ class ColormapDialog(qt.QDialog):
         if self._colormap():
             self._ignoreColormapChange = True
             self._colormap().setName(
-                str(self._comboBoxColormap.currentText()).lower())
+                str(self._comboBoxColormap.currentText()))
             self._ignoreColormapChange = False
 
     def _updateLinearNorm(self, isNormLinear):
