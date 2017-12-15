@@ -31,7 +31,7 @@ from __future__ import absolute_import
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "20/10/2017"
+__date__ = "15/12/2017"
 
 import logging
 from silx.gui import qt
@@ -86,7 +86,7 @@ class DialogExample(qt.QMainWindow):
 
     def __printSelection(self, dialog):
         print(dialog.selectedFile())
-        print(dialog.selectedImage())
+        print(dialog.selectedData())
         print(dialog.selectedPath())
 
     def __openDefaultFileDialog(self):

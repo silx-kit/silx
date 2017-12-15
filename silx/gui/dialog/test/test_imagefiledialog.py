@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "11/12/2017"
+__date__ = "15/12/2017"
 
 
 import unittest
@@ -384,7 +384,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         filename = _tmpDirectory + "/singleimage.edf"
         path = filename
         dialog.selectPath(path)
-        self.assertTrue(dialog.selectedImage().shape, (100, 100))
+        self.assertTrue(dialog.selectedData().shape, (100, 100))
         self.assertSamePath(dialog.selectedFile(), filename)
         path = silx.io.url.DataUrl(scheme="fabio", file_path=filename).path()
         self.assertSamePath(dialog.selectedPath(), path)
@@ -409,7 +409,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         browser.activated.emit(index)
         self.qWaitForPendingActions(dialog)
         # test
-        self.assertTrue(dialog.selectedImage().shape, (100, 100))
+        self.assertTrue(dialog.selectedData().shape, (100, 100))
         self.assertSamePath(dialog.selectedFile(), filename)
         self.assertSamePath(dialog.selectedPath(), path)
 
@@ -425,8 +425,8 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         path = silx.io.url.DataUrl(scheme="fabio", file_path=filename, data_slice=(1,)).path()
         dialog.selectPath(path)
         # test
-        self.assertTrue(dialog.selectedImage().shape, (100, 100))
-        self.assertTrue(dialog.selectedImage()[0, 0], 1)
+        self.assertTrue(dialog.selectedData().shape, (100, 100))
+        self.assertTrue(dialog.selectedData()[0, 0], 1)
         self.assertSamePath(dialog.selectedFile(), filename)
         self.assertSamePath(dialog.selectedPath(), path)
 
@@ -442,7 +442,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         path = silx.io.url.DataUrl(scheme="fabio", file_path=filename).path()
         dialog.selectPath(path)
         # test
-        self.assertTrue(dialog.selectedImage().shape, (100, 100))
+        self.assertTrue(dialog.selectedData().shape, (100, 100))
         self.assertSamePath(dialog.selectedFile(), filename)
         self.assertSamePath(dialog.selectedPath(), path)
 
@@ -458,7 +458,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/image").path()
         dialog.selectPath(path)
         # test
-        self.assertTrue(dialog.selectedImage().shape, (100, 100))
+        self.assertTrue(dialog.selectedData().shape, (100, 100))
         self.assertSamePath(dialog.selectedFile(), filename)
         self.assertSamePath(dialog.selectedPath(), path)
 
@@ -496,8 +496,8 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/cube", data_slice=(1, )).path()
         dialog.selectPath(path)
         # test
-        self.assertTrue(dialog.selectedImage().shape, (100, 100))
-        self.assertTrue(dialog.selectedImage()[0, 0], 1)
+        self.assertTrue(dialog.selectedData().shape, (100, 100))
+        self.assertTrue(dialog.selectedData()[0, 0], 1)
         self.assertSamePath(dialog.selectedFile(), filename)
         self.assertSamePath(dialog.selectedPath(), path)
 
@@ -743,7 +743,7 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         dialog = self.createDialog()
         dialog.selectPath(_tmpDirectory + "/data.h5::/complex_image")
         self.qWaitForPendingActions(dialog)
-        self.assertIsNone(dialog.selectedImage())
+        self.assertIsNone(dialog.selectedData())
 
     def testBadDataShape(self):
         if h5py is None:
@@ -751,19 +751,19 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         dialog = self.createDialog()
         dialog.selectPath(_tmpDirectory + "/data.h5::/scalar")
         self.qWaitForPendingActions(dialog)
-        self.assertIsNone(dialog.selectedImage())
+        self.assertIsNone(dialog.selectedData())
 
     def testBadDataFormat(self):
         dialog = self.createDialog()
         dialog.selectPath(_tmpDirectory + "/badformat.edf")
         self.qWaitForPendingActions(dialog)
-        self.assertIsNone(dialog.selectedImage())
+        self.assertIsNone(dialog.selectedData())
 
     def testBadPath(self):
         dialog = self.createDialog()
         dialog.selectPath("#$%/#$%")
         self.qWaitForPendingActions(dialog)
-        self.assertIsNone(dialog.selectedImage())
+        self.assertIsNone(dialog.selectedData())
 
     def testBadSubpath(self):
         if h5py is None:
@@ -775,7 +775,7 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
 
         dialog.selectPath(_tmpDirectory + "/data.h5::/group/foobar")
         self.qWaitForPendingActions(dialog)
-        self.assertIsNone(dialog.selectedImage())
+        self.assertIsNone(dialog.selectedData())
 
         # an existing node is browsed, but the wrong path is selected
         index = browser.rootIndex()
@@ -790,7 +790,7 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         self.qWaitForPendingActions(dialog)
         dialog.selectPath(_tmpDirectory + "/data.h5::/cube[a;45,-90]")
         self.qWaitForPendingActions(dialog)
-        self.assertIsNone(dialog.selectedImage())
+        self.assertIsNone(dialog.selectedData())
 
 
 def suite():

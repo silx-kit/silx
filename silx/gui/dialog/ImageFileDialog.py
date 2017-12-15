@@ -232,7 +232,7 @@ class ImageFileDialog(AbstractDataFileDialog):
         if result:
             print("Selection:")
             print(dialog.selectedFile())
-            print(dialog.selectedImage())
+            print(dialog.selectedData())
             print(dialog.selectedPath())
         else:
             print("Nothing selected")
@@ -315,10 +315,3 @@ class ImageFileDialog(AbstractDataFileDialog):
                 v = str(s)
             result.append(v)
         return u" \u00D7 ".join(result)
-
-    def selectedImage(self):
-        """Returns the numpy type selected.
-
-        :rtype: numpy.ndarray
-        """
-        return self.selectedData()
