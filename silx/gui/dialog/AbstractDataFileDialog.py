@@ -1186,16 +1186,6 @@ class AbstractDataFileDialog(qt.QDialog):
         button = self.__buttons.button(qt.QDialogButtonBox.Open)
         button.setEnabled(True)
 
-    def __formatShape(self, shape):
-        result = []
-        for s in shape:
-            if isinstance(s, slice):
-                v = u"\u2026"
-            else:
-                v = str(s)
-            result.append(v)
-        return u" \u00D7 ".join(result)
-
     def __updateDataInfo(self):
         if self.__errorWhileLoadingFile is not None:
             filename, message = self.__errorWhileLoadingFile
@@ -1218,9 +1208,24 @@ class AbstractDataFileDialog(qt.QDialog):
         if self.__selectedData is None:
             self.__dataInfo.setText("No data selected")
         else:
-            destination = self.__formatShape(self.__selectedData.shape)
-            source = self.__formatShape(self.__data.shape)
-            self.__dataInfo.setText(u"%s \u2192 %s" % (source, destination))
+            text = self._displayedDataInfo(self.__data, self.__selectedData)
+            self.__dataInfo.setVisible(text is not None)
+            if text is not None:
+                self.__dataInfo.setText(text)
+
+    def _displayedDataInfo(self, dataBeforeSelection, dataAfterSelection):
+        """Returns the text displayed under the data preview.
+
+        This zone is used to display error in case or problem of data selection
+        or problems with IO.
+
+        :param numpy.ndarray dataAfterSelection: Data as it is after the
+            selection widget (basically the data from the preview widget)
+        :param numpy.ndarray dataAfterSelection: Data as it is before the
+            selection widget (basically the data from the browsing widget)
+        :rtype: bool
+        """
+        return None
 
     def __createUrlFromIndex(self, index, useSelectorWidget=True):
         if index.model() is self.__fileModel:

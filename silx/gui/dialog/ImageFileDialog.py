@@ -290,6 +290,32 @@ class ImageFileDialog(AbstractDataFileDialog):
         dim = len(data.shape)
         return dim == 2
 
+    def _displayedDataInfo(self, dataBeforeSelection, dataAfterSelection):
+        """Returns the text displayed under the data preview.
+
+        This zone is used to display error in case or problem of data selection
+        or problems with IO.
+
+        :param numpy.ndarray dataAfterSelection: Data as it is after the
+            selection widget (basically the data from the preview widget)
+        :param numpy.ndarray dataAfterSelection: Data as it is before the
+            selection widget (basically the data from the browsing widget)
+        :rtype: bool
+        """
+        destination = self.__formatShape(dataAfterSelection.shape)
+        source = self.__formatShape(dataBeforeSelection.shape)
+        return u"%s \u2192 %s" % (source, destination)
+
+    def __formatShape(self, shape):
+        result = []
+        for s in shape:
+            if isinstance(s, slice):
+                v = u"\u2026"
+            else:
+                v = str(s)
+            result.append(v)
+        return u" \u00D7 ".join(result)
+
     def selectedImage(self):
         """Returns the numpy type selected.
 
