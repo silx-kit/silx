@@ -36,7 +36,7 @@ from silx.gui.test.utils import qWaitForWindowExposedAndActivate
 from silx.gui import qt
 from silx.gui.plot import ColormapDialog
 from silx.gui.test.utils import TestCaseQt
-from silx.gui.plot.Colormap import Colormap
+from silx.gui.plot.Colormap import Colormap, preferredColormaps
 from silx.test.utils import ParametricTestCase
 from silx.gui.plot.PlotWindow import PlotWindow
 
@@ -257,7 +257,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         """
         def getFirstNotPreferredColormap():
             cms = Colormap.getSupportedColormaps()
-            preferred = ColormapDialog._ColormapNameCombox.colormaps
+            preferred = preferredColormaps()
             for cm in cms:
                 if cm not in preferred:
                     return cm

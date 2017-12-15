@@ -121,20 +121,8 @@ class _ColormapNameCombox(qt.QComboBox):
 
     ORIGINAL_NAME = qt.Qt.UserRole + 1
 
-    colormaps = [
-        'gray', 'reversed gray',
-        'temperature', 'red', 'green', 'blue', 'jet',
-        'viridis', 'magma', 'inferno', 'plasma']
-
-    if 'hsv' in Colormap.getSupportedColormaps():
-        colormaps.append('hsv')
-
     def __initItems(self):
-
-
-        _colormapList = tuple(self.colormaps)
-
-        for colormapName in _colormapList:
+        for colormapName in preferredColormaps():
             index = self.count()
             self.addItem(str.title(colormapName))
             self.setItemData(index, colormapName, role=self.ORIGINAL_NAME)
