@@ -28,7 +28,7 @@ This module contains an :class:`ImageFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "11/12/2017"
+__date__ = "15/12/2017"
 
 import sys
 import os
@@ -117,7 +117,7 @@ class _IconProvider(object):
 
 class _Slicing(qt.QWidget):
 
-    slicingChanged = qt.Signal()
+    selectionChanged = qt.Signal()
 
     def __init__(self, parent=None):
         qt.QWidget.__init__(self, parent)
@@ -126,10 +126,21 @@ class _Slicing(qt.QWidget):
         layout = qt.QVBoxLayout()
         self.setLayout(layout)
 
-    def hasVisibleSliders(self):
+    def hasVisibleSelectors(self):
         return self.__visibleSliders > 0
 
-    def setShape(self, shape):
+    def isUsed(self):
+        if self.__shape is None:
+            return None
+        return len(self.__shape) > 2
+
+    def getSelectedData(self, data):
+        slicing = self.slicing()
+        image = data[slicing]
+        return image
+
+    def setData(self, data):
+        shape = data.shape
         if self.__shape is not None:
             # clean up
             for widget in self.__axis:
@@ -156,10 +167,10 @@ class _Slicing(qt.QWidget):
                 self.layout().addWidget(axis)
                 self.__axis.append(axis)
 
-        self.slicingChanged.emit()
+        self.selectionChanged.emit()
 
     def __axisValueChanged(self):
-        self.slicingChanged.emit()
+        self.selectionChanged.emit()
 
     def slicing(self):
         slicing = []
@@ -179,7 +190,7 @@ class _ImagePreview(qt.QWidget):
     def __init__(self, parent=None):
         super(_ImagePreview, self).__init__(parent)
 
-        self.__image = None
+        self.__data = None
         self.__plot = PlotWidget(self)
         self.__plot.setAxesDisplayed(False)
         self.__plot.setKeepDataAspectRatio(True)
@@ -198,24 +209,25 @@ class _ImagePreview(qt.QWidget):
     def plot(self):
         return self.__plot
 
-    def setImage(self, image, resetzoom=True):
-        if image is None:
+    def setData(self, data, fromDataSelector=False):
+        resetzoom = not fromDataSelector
+        if data is None:
             self.clear()
             return
 
-        previousImage = self.image()
-        if previousImage is not None and image.shape != previousImage.shape:
+        previousImage = self.data()
+        if previousImage is not None and data.shape != previousImage.shape:
             resetzoom = True
 
-        self.__plot.addImage(legend="data", data=image, resetzoom=resetzoom)
-        self.__image = image
+        self.__plot.addImage(legend="data", data=data, resetzoom=resetzoom)
+        self.__data = data
         self.__updateConstraints()
 
     def __updateConstraints(self):
         """
         Update the constraints depending on the size of the widget
         """
-        image = self.image()
+        image = self.data()
         if image is None:
             return
         size = self.size()
@@ -243,14 +255,14 @@ class _ImagePreview(qt.QWidget):
         image = self.__plot.getImage("data")
         return image
 
-    def image(self):
-        if self.__image is not None:
-            if hasattr(self.__image, "name"):
+    def data(self):
+        if self.__data is not None:
+            if hasattr(self.__data, "name"):
                 # in case of HDF5
-                if self.__image.name is None:
+                if self.__data.name is None:
                     # The dataset was closed
-                    self.__image = None
-        return self.__image
+                    self.__data = None
+        return self.__data
 
     def colormap(self):
         image = self.__imageItem()
@@ -262,7 +274,7 @@ class _ImagePreview(qt.QWidget):
         self.__plot.setDefaultColormap(colormap)
 
     def clear(self):
-        self.__image = None
+        self.__data = None
         image = self.__imageItem()
         if image is not None:
             self.__plot.removeImage(legend="data")
@@ -674,12 +686,15 @@ class ImageFileDialog(qt.QDialog):
 
     def __init__(self, parent=None):
         super(ImageFileDialog, self).__init__(parent)
+        self._init()
+
+    def _init(self):
         self.setWindowTitle("Open")
 
         self.__directoryLoadedFilter = None
         self.__errorWhileLoadingFile = None
         self.__selectedFile = None
-        self.__selectedImage = None
+        self.__selectedData = None
         self.__currentHistory = []
         """Store history of URLs, last index one is the latest one"""
         self.__currentHistoryLocation = -1
@@ -731,6 +746,9 @@ class ImageFileDialog(qt.QDialog):
     def clear(self):
         """Expicit method to clear the dialog.
         After this call it is not anymore possible to use the widget.
+
+        This method is triggered by the destruction of the object. Then it can
+        be triggered more than once.
         """
         self.__clearData()
         self.__browser.clear()
@@ -780,8 +798,7 @@ class ImageFileDialog(qt.QDialog):
         self.__browser.rootIndexChanged.connect(self.__rootIndexChanged)
         self.__browser.setObjectName("browser")
 
-        self.__imagePreview = _ImagePreview(self)
-        self.__imagePreview.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
+        self.__previewWidget = self._createPreviewWidget(self)
 
         self.__fileTypeCombo = FileTypeComboBox(self)
         self.__fileTypeCombo.setObjectName("fileTypeCombo")
@@ -812,10 +829,10 @@ class ImageFileDialog(qt.QDialog):
         self.__fileDirectoryAction.setEnabled(False)
         self.__parentFileDirectoryAction.setEnabled(False)
 
-        self.__previewToolBar = self._createPreviewToolbar(self.__imagePreview.plot())
+        self.__selectorWidget = self._createSelectorWidget(self)
+        self.__selectorWidget.selectionChanged.connect(self.__selectorWidgetChanged)
 
-        self.__slicing = _Slicing(self)
-        self.__slicing.slicingChanged.connect(self.__slicingChanged)
+        self.__previewToolBar = self._createPreviewToolbar(self, self.__previewWidget, self.__selectorWidget)
 
         self.__dataIcon = qt.QLabel(self)
         self.__dataIcon.setSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed)
@@ -826,16 +843,25 @@ class ImageFileDialog(qt.QDialog):
         self.__dataInfo = qt.QLabel(self)
         self.__dataInfo.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Fixed)
 
-    def _createPreviewToolbar(self, plot):
-        toolbar = qt.QToolBar(self)
+    def _createPreviewWidget(self, parent):
+        previewWidget = _ImagePreview(parent)
+        previewWidget.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
+        return previewWidget
+
+    def _createSelectorWidget(self, parent):
+        return _Slicing(parent)
+
+    def _createPreviewToolbar(self, parent, dataPreviewWidget, dataSelectorWidget):
+        plot = dataPreviewWidget.plot()
+        toolbar = qt.QToolBar(parent)
         toolbar.setIconSize(qt.QSize(16, 16))
         toolbar.setStyleSheet("QToolBar { border: 0px }")
-        toolbar.addAction(actions.mode.ZoomModeAction(plot, self))
-        toolbar.addAction(actions.mode.PanModeAction(plot, self))
+        toolbar.addAction(actions.mode.ZoomModeAction(plot, parent))
+        toolbar.addAction(actions.mode.PanModeAction(plot, parent))
         toolbar.addSeparator()
-        toolbar.addAction(actions.control.ResetZoomAction(plot, self))
+        toolbar.addAction(actions.control.ResetZoomAction(plot, parent))
         toolbar.addSeparator()
-        toolbar.addAction(actions.control.ColormapAction(plot, self))
+        toolbar.addAction(actions.control.ColormapAction(plot, parent))
         return toolbar
 
     def _createSideBar(self):
@@ -961,7 +987,7 @@ class ImageFileDialog(qt.QDialog):
         layout = qt.QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
-        layout.addWidget(self.__imagePreview)
+        layout.addWidget(self.__previewWidget)
         layout.addLayout(infoLayout)
         imageFrame.setLayout(layout)
 
@@ -970,7 +996,7 @@ class ImageFileDialog(qt.QDialog):
         imageLayout.setContentsMargins(0, 0, 0, 0)
         imageLayout.addWidget(self.__previewToolBar)
         imageLayout.addWidget(imageFrame)
-        imageLayout.addWidget(self.__slicing)
+        imageLayout.addWidget(self.__selectorWidget)
         imageSelection.setLayout(imageLayout)
 
         self.__splitter = qt.QSplitter(self)
@@ -1279,8 +1305,32 @@ class ImageFileDialog(qt.QDialog):
 
     def __setData(self, data):
         self.__data = data
-        self.__selectedImage = None
+        self.__selectedData = None
 
+        if self._isDataSupportable(data):
+            if self.__selectorWidget is not None:
+                self.__selectorWidget.setData(data)
+                if not self.__selectorWidget.isUsed():
+                    self.__setSelectedData(data)
+                    self.__selectorWidget.hide()
+                else:
+                    self.__selectorWidget.setData(data)
+                    self.__selectorWidget.setVisible(self.__selectorWidget.hasVisibleSelectors())
+                    self.__selectorWidget.selectionChanged.emit()
+            else:
+                self.__setSelectedData(data)
+        else:
+            self.__clearData()
+            self.__updatePath()
+
+    def _isDataSupportable(self, data):
+        """Check if the selected data can be supported at one point.
+
+        If true, the data selector will be checked and it will update the data
+        preview. Else the selecting is disabled.
+
+        :rtype: bool
+        """
         if data is None or data.shape is None:
             self.__clearData()
             self.__updatePath()
@@ -1292,36 +1342,28 @@ class ImageFileDialog(qt.QDialog):
             return
 
         dim = len(data.shape)
-        if dim == 2:
-            self.__setImage(data)
-            self.__slicing.hide()
-        elif dim > 2:
-            self.__slicing.setShape(data.shape)
-            self.__slicing.setVisible(self.__slicing.hasVisibleSliders())
-            self.__slicing.slicingChanged.emit()
-        else:
-            self.__clearData()
-            self.__updatePath()
+        return dim >= 2
 
     def __clearData(self):
         """Clear the image part of the GUI"""
-        self.__imagePreview.setImage(None)
-        self.__slicing.hide()
-        self.__selectedImage = None
+        if self.__previewWidget is not None:
+            self.__previewWidget.setData(None)
+        self.__selectorWidget.hide()
+        self.__selectedData = None
         self.__data = None
         self.__updateDataInfo()
         button = self.__buttons.button(qt.QDialogButtonBox.Open)
         button.setEnabled(False)
 
-    def __slicingChanged(self):
-        slicing = self.__slicing.slicing()
-        image = self.__data[slicing]
-        self.__setImage(image)
+    def __selectorWidgetChanged(self):
+        image = self.__selectorWidget.getSelectedData(self.__data)
+        self.__setSelectedData(image)
 
-    def __setImage(self, image):
-        resetzoom = self.__selectedImage is None
-        self.__imagePreview.setImage(image, resetzoom=resetzoom)
-        self.__selectedImage = image
+    def __setSelectedData(self, data):
+        if self.__previewWidget is not None:
+            fromDataSelector = self.__selectedData is not None
+            self.__previewWidget.setData(data, fromDataSelector=fromDataSelector)
+        self.__selectedData = data
         self.__updateDataInfo()
         self.__updatePath()
         button = self.__buttons.button(qt.QDialogButtonBox.Open)
@@ -1356,14 +1398,14 @@ class ImageFileDialog(qt.QDialog):
 
         self.__dataIcon.setVisible(False)
         self.__dataInfo.setToolTip("")
-        if self.__selectedImage is None:
+        if self.__selectedData is None:
             self.__dataInfo.setText("No data selected")
         else:
-            destination = self.__formatShape(self.__selectedImage.shape)
+            destination = self.__formatShape(self.__selectedData.shape)
             source = self.__formatShape(self.__data.shape)
             self.__dataInfo.setText(u"%s \u2192 %s" % (source, destination))
 
-    def __createUrlFromIndex(self, index, useSlicingWidget=True):
+    def __createUrlFromIndex(self, index, useSelectorWidget=True):
         if index.model() is self.__fileModel:
             filename = self.__fileModel.filePath(index)
             dataPath = None
@@ -1376,8 +1418,8 @@ class ImageFileDialog(qt.QDialog):
             filename = ""
             dataPath = None
 
-        if useSlicingWidget and self.__slicing.isVisible():
-            slicing = self.__slicing.slicing()
+        if useSelectorWidget and self.__selectorWidget.isVisible():
+            slicing = self.__selectorWidget.slicing()
         else:
             slicing = None
 
@@ -1411,7 +1453,7 @@ class ImageFileDialog(qt.QDialog):
             self.__pathEdit.blockSignals(old)
 
     def __rootIndexChanged(self, index):
-        url = self.__createUrlFromIndex(index, useSlicingWidget=False)
+        url = self.__createUrlFromIndex(index, useSelectorWidget=False)
 
         currentUrl = None
         if 0 <= self.__currentHistoryLocation < len(self.__currentHistory):
@@ -1524,9 +1566,9 @@ class ImageFileDialog(qt.QDialog):
                     self.__browser.setRootIndex(index, model=self.__fileModel)
                     self.__clearData()
 
-                self.__slicing.setVisible(url.data_slice() is not None)
+                self.__selectorWidget.setVisible(url.data_slice() is not None)
                 if url.data_slice() is not None:
-                    self.__slicing.setSlicing(url.data_slice())
+                    self.__selectorWidget.setSlicing(url.data_slice())
             else:
                 self.__errorWhileLoadingFile = (url.file_path(), "File not found")
                 self.__clearData()
@@ -1599,12 +1641,19 @@ class ImageFileDialog(qt.QDialog):
         else:
             return ""
 
-    def selectedImage(self):
-        """Returns the numpy array selected.
+    def selectedData(self):
+        """Returns the data selected.
 
         :rtype: numpy.ndarray
         """
-        return self.__selectedImage
+        return self.__selectedData
+
+    def selectedImage(self):
+        """Returns the numpy type selected.
+
+        :rtype: numpy.ndarray
+        """
+        return self.selectedData()
 
     # Filters
 
@@ -1633,10 +1682,14 @@ class ImageFileDialog(qt.QDialog):
     # Colormap
 
     def colormap(self):
-        return self.__imagePreview.colormap()
+        if self.__previewWidget is None:
+            raise RuntimeError("No preview widget defined")
+        return self.__previewWidget.colormap()
 
     def setColormap(self, colormap):
-        self.__imagePreview.setColormap(colormap)
+        if self.__previewWidget is None:
+            raise RuntimeError("No preview widget defined")
+        self.__previewWidget.setColormap(colormap)
 
     # Sidebar
 
