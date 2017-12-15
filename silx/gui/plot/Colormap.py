@@ -504,3 +504,47 @@ class Colormap(qt.QObject):
             stream.writeQVariant(self.getVMax())
         stream.writeQString(self.getNormalization())
         return data
+
+
+_PREFERRED_COLORMAPS = DEFAULT_COLORMAPS
+"""
+Tuple of preferred colormap names accessed with :meth:`preferredColormaps`.
+"""
+
+
+def preferredColormaps():
+    """Returns the name of the preferred colormaps.
+
+    This list is used by widgets allowing to change the colormap
+    like the :class:`ColormapDialog` as a subset of colormap choices.
+
+    :rtype: tuple of str
+    """
+    return _PREFERRED_COLORMAPS
+
+
+def setPreferredColormaps(colormaps):
+    """Set the list of preferred colormap names.
+
+    Warning: If a colormap name is not available
+    it will be removed from the list.
+
+    :param colormaps: Not empty list of colormap names
+    :type colormaps: iterable of str
+    :raise ValueError: if the list of available preferred colormaps is empty.
+    """
+    supportedColormaps = Colormap.getSupportedColormaps()
+    colormaps = tuple(
+        cmap for cmap in colormaps if cmap in supportedColormaps)
+    if len(colormaps) == 0:
+        raise ValueError("Cannot set preferred colormaps to an empty list")
+
+    global _PREFERRED_COLORMAPS
+    _PREFERRED_COLORMAPS = colormaps
+
+
+# Initialize preferred colormaps
+setPreferredColormaps(('gray', 'reversed gray',
+                       'temperature', 'red', 'green', 'blue', 'jet',
+                       'viridis', 'magma', 'inferno', 'plasma',
+                       'hsv'))
