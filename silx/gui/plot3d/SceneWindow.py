@@ -37,6 +37,8 @@ from silx.gui import qt
 from .SceneWidget import SceneWidget
 from .tools import OutputToolBar, InteractiveModeToolBar, ViewpointToolBar
 
+from .ParamTreeView import ParamTreeView
+
 # Imported here for convenience
 from . import items  # noqa
 
@@ -67,12 +69,27 @@ class SceneWindow(qt.QMainWindow):
             self.addToolBar(toolbar)
             self.addActions(toolbar.actions())
 
+        self._paramTreeView = ParamTreeView()
+        self._paramTreeView.setModel(self._sceneWidget.model())
+
+        dock = qt.QDockWidget()
+        dock.setWindowTitle('Parameters')
+        dock.setWidget(self._sceneTreeView)
+        self.addDockWidget(qt.Qt.RightDockWidgetArea, dock)
+
     def getSceneWidget(self):
         """Returns the :class:`SceneWidget` of this window.
 
         :rtype: SceneWidget
         """
         return self._sceneWidget
+
+    def getParamTreeView(self):
+        """Returns the :class:`ParamTreeView` of this window.
+
+        :rtype: ParamTreeView
+        """
+        return self._paramTreeView
 
     def getInteractiveModeToolBar(self):
         """Returns the interactive mode toolbar.
