@@ -74,7 +74,7 @@ class SceneWindow(qt.QMainWindow):
 
         dock = qt.QDockWidget()
         dock.setWindowTitle('Parameters')
-        dock.setWidget(self._sceneTreeView)
+        dock.setWidget(self._paramTreeView)
         self.addDockWidget(qt.Qt.RightDockWidgetArea, dock)
 
     def getSceneWidget(self):
