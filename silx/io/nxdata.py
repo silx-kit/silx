@@ -111,7 +111,7 @@ def is_valid_nxdata(group):   # noqa
                     # This is the main (default) signal
                     break
         if signal_name is None:
-            _logger.warning("No dataset with a signal attr found")
+            _logger.warning("No dataset with a @signal=1 attr found")
             return False
     else:
         signal_name = get_attr_as_string(group, "signal")
@@ -397,6 +397,8 @@ class NXdata(object):
                             " Valid values: " + ", ".join(allowed_interpretations))
         return interpretation
 
+    # TODO: support older NXdata specifications,
+    # TODO: consistency in number of elements with axes_dataset_names
     @property
     def axes(self):
         """List of the axes datasets.
@@ -488,13 +490,45 @@ class NXdata(object):
         "." in that position in the *@axes* array), `None` is inserted in the
         output list in its position.
         """
+        numbered_names = []     # used in case of @axis=0 (old spec)
         axes_dataset_names = get_attr_as_string(self.group, "axes")
         if axes_dataset_names is None:
-            axes_dataset_names = get_attr_as_string(self.group, "axes")
+            # try @axes on signal dataset (older NXdata specification)
+            axes_dataset_names = get_attr_as_string(self.signal, "axes")
+            if axes_dataset_names is not None:
+                # we expect a comma separated string
+                if hasattr(axes_dataset_names, "split"):
+                    axes_dataset_names = axes_dataset_names.split(":")
+            else:
+                # try @axis on the individual datasets (oldest NXdata specification)
+                for dsname in self.group:
+                    if not is_dataset(self.group[dsname]):
+                        continue
+                    axis_attr = self.group[dsname].attrs.get("axis")
+                    if axis_attr is not None:
+                        try:
+                            axis_num = int(axis_attr)
+                        except (ValueError, TypeError):
+                            _logger.warning("Could not interpret attr @axis as"
+                                            "int on dataset %s", dsname)
+                            continue
+                        numbered_names.append((axis_num, dsname))
 
         ndims = len(self.signal.shape)
         if axes_dataset_names is None:
-            return [None] * ndims
+            if numbered_names:
+                axes_dataset_names = []
+                numbers = [a[0] for a in numbered_names]
+                names = [a[1] for a in numbered_names]
+                for i in ndims:
+                    if i in numbers:
+                        axes_dataset_names.append(names[numbers.index(i)])
+                    else:
+                        axes_dataset_names.append(None)
+                # TODO: take @interpretiation into account (maybe less dimensions)
+                return axes_dataset_names
+            else:
+                return [None] * ndims
 
         if isinstance(axes_dataset_names, str):
             axes_dataset_names = [axes_dataset_names]
