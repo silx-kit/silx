@@ -432,8 +432,16 @@ class SymbolMixIn(ItemMixInBase):
     _DEFAULT_SYMBOL_SIZE = 6.0
     """Default marker size of the item"""
 
-    _SUPPORTED_SYMBOLS = 'o', '.', ',', '+', 'x', 'd', 's', ''
-    """List of supported symbols"""
+    _SUPPORTED_SYMBOLS = collections.OrderedDict((
+        ('o', 'Circle'),
+        ('d', 'Diamond'),
+        ('s', 'Square'),
+        ('+', 'Plus'),
+        ('x', 'Cross'),
+        ('.', 'Point'),
+        (',', 'Pixel'),
+        ('', 'None')))
+    """Dict of supported symbols"""
 
     def __init__(self):
         self._symbol = self._DEFAULT_SYMBOL
@@ -445,7 +453,19 @@ class SymbolMixIn(ItemMixInBase):
 
         :rtype: tuple of str
         """
-        return cls._SUPPORTED_SYMBOLS
+        return tuple(cls._SUPPORTED_SYMBOLS.keys())
+
+    def getSymbolName(self, symbol=None):
+        """Returns human-readable name for a symbol.
+
+        :param str symbol: The symbol from which to get the name.
+                           Default: current symbol.
+        :rtype: str
+        :raise KeyError: if symbol is not in :meth:`getSupportedSymbols`.
+        """
+        if symbol is None:
+            symbol = self.getSymbol()
+        return self._SUPPORTED_SYMBOLS[symbol]
 
     def getSymbol(self):
         """Return the point marker type.
@@ -469,11 +489,19 @@ class SymbolMixIn(ItemMixInBase):
 
         See :meth:`getSymbol`.
 
-        :param str symbol: Marker type
+        :param str symbol: Marker type or marker name
         """
         if symbol is None:
             symbol = self._DEFAULT_SYMBOL
-        assert symbol in self.getSupportedSymbols()
+
+        elif symbol not in self.getSupportedSymbols():
+            for symbolCode, name in self._SUPPORTED_SYMBOLS.items():
+                if name.lower() == symbol.lower():
+                    symbol = symbolCode
+                    break
+            else:
+                raise ValueError('Unsupported symbol %s' % str(symbol))
+
         if symbol != self._symbol:
             self._symbol = symbol
             self._updated(ItemChangedType.SYMBOL)
