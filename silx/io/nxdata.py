@@ -397,27 +397,24 @@ class NXdata(object):
                             " Valid values: " + ", ".join(allowed_interpretations))
         return interpretation
 
-    # TODO: support older NXdata specifications,
-    # TODO: consistency in number of elements with axes_dataset_names
     @property
     def axes(self):
         """List of the axes datasets.
 
         The list typically has as many elements as there are dimensions in the
-        signal dataset, the exception being scatter plots which typically
-        use a 1D signal and several 1D axes of the same size.
+        signal dataset, the exception being scatter plots which use a 1D
+        signal and multiple 1D axes of the same size.
 
         If an axis dataset applies to several dimensions of the signal, it
         will be repeated in the list.
 
-        If a dimension of the signal has no dimension scale (i.e. there is a
-        "." in that position in the *@axes* array), `None` is inserted in the
-        output list in its position.
+        If a dimension of the signal has no dimension scale, `None` is
+        inserted in its position in the list.
 
         .. note::
 
-            In theory, the *@axes* attribute defines as many entries as there
-            are dimensions in the signal. In such a case, there is no ambiguity.
+            The *@axes* attribute should define as many entries as there
+            are dimensions in the signal, to avoid  any ambiguity.
             If this is not the case, this implementation relies on the existence
             of an *@interpretation* (*spectrum* or *image*) attribute in the
             *signal* dataset.
@@ -426,47 +423,20 @@ class NXdata(object):
 
             If an axis dataset defines attributes @first_good or @last_good,
             the output will be a numpy array resulting from slicing that
-            axis to keep only the good index range: axis[first_good:last_good + 1]
+            axis (*axis[first_good:last_good + 1]*).
 
         :rtype: list[Dataset or 1D array or None]
         """
         if self._axes is not None:
             # use cache
             return self._axes
-        ndims = len(self.signal.shape)
-        axes_names = get_attr_as_string(self.group, "axes")
-        interpretation = self.interpretation
+        axes = []
+        for axis_name in self.axes_dataset_names:
+            if axis_name is None:
+                axes.append(None)
+            else:
+                axes.append(self.group[axis_name])
 
-        if axes_names is None:
-            self._axes = [None for _i in range(ndims)]
-            return self._axes
-
-        if isinstance(axes_names, str):
-            axes_names = [axes_names]
-
-        if len(axes_names) == ndims:
-            # axes is a list of strings, one axis per dim is explicitly defined
-            axes = [None] * ndims
-            for i, axis_n in enumerate(axes_names):
-                if axis_n != ".":
-                    axes[i] = self.group[axis_n]
-        elif interpretation is not None:
-            # case of @interpretation attribute defined: we expect 1, 2 or 3 axes
-            # corresponding to the 1, 2, or 3 last dimensions of the signal
-            assert len(axes_names) == _INTERPDIM[interpretation]
-            axes = [None] * (ndims - _INTERPDIM[interpretation])
-            for axis_n in axes_names:
-                if axis_n != ".":
-                    axes.append(self.group[axis_n])
-                else:
-                    axes.append(None)
-        else:   # scatter
-            axes = []
-            for axis_n in axes_names:
-                if axis_n != ".":
-                    axes.append(self.group[axis_n])
-                else:
-                    axes.append(None)
         # keep only good range of axis data
         for i, axis in enumerate(axes):
             if axis is None:
@@ -482,7 +452,8 @@ class NXdata(object):
 
     @property
     def axes_dataset_names(self):
-        """
+        """List of axes dataset names.
+
         If an axis dataset applies to several dimensions of the signal, its
         name will be repeated in the list.
 
@@ -525,7 +496,6 @@ class NXdata(object):
                         axes_dataset_names.append(names[numbers.index(i)])
                     else:
                         axes_dataset_names.append(None)
-                # TODO: take @interpretiation into account (maybe less dimensions)
                 return axes_dataset_names
             else:
                 return [None] * ndims
@@ -541,6 +511,7 @@ class NXdata(object):
 
         if len(axes_dataset_names) != ndims:
             if self.is_scatter and ndims == 1:
+                # case of a 1D signal with arbitrary number of axes
                 return list(axes_dataset_names)
             # @axes may only define 1 or 2 axes if @interpretation=spectrum/image.
             # Use the existing names for the last few dims, and prepend with Nones.
