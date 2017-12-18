@@ -491,7 +491,7 @@ class NXdata(object):
                 axes_dataset_names = []
                 numbers = [a[0] for a in numbered_names]
                 names = [a[1] for a in numbered_names]
-                for i in ndims:
+                for i in range(ndims):
                     if i in numbers:
                         axes_dataset_names.append(names[numbers.index(i)])
                     else:
