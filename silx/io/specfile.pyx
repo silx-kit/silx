@@ -630,9 +630,9 @@ def is_specfile(filename):
     if not os.path.isfile(filename):
         return False
     # test for presence of #S or #F in first two lines
-    f = open(filename)
+    f = open(filename, "rb")
     for i, line in enumerate(f):
-        if line.startswith("#S ") or line.startswith("#F "):
+        if line.startswith(b"#S ") or line.startswith(b"#F "):
             f.close()
             return True
         if i >= 10:
