@@ -583,7 +583,7 @@ class TestGetData(unittest.TestCase):
         if h5py is None:
             self.skipTest("H5py is missing")
         if fabio is None:
-            self.skipTest("H5py is missing")
+            self.skipTest("fabio is missing")
         url = "silx:%s::/scan_0/instrument/detector_0/data" % self.edf_filename
         data = utils.get_data(url=url)
         self.assertEqual(data.shape, (2, 2))
@@ -591,7 +591,7 @@ class TestGetData(unittest.TestCase):
 
     def test_fabio_frame(self):
         if fabio is None:
-            self.skipTest("H5py is missing")
+            self.skipTest("fabio is missing")
         url = "fabio:%s::[1]" % self.edf_multiframe_filename
         data = utils.get_data(url=url)
         self.assertEqual(data.shape, (2, 2))
@@ -599,7 +599,7 @@ class TestGetData(unittest.TestCase):
 
     def test_fabio_singleframe(self):
         if fabio is None:
-            self.skipTest("H5py is missing")
+            self.skipTest("fabio is missing")
         url = "fabio:%s::[0]" % self.edf_filename
         data = utils.get_data(url=url)
         self.assertEqual(data.shape, (2, 2))
@@ -607,11 +607,13 @@ class TestGetData(unittest.TestCase):
 
     def test_fabio_too_much_frames(self):
         if fabio is None:
-            self.skipTest("H5py is missing")
+            self.skipTest("fabio is missing")
         url = "fabio:%s::[...]" % self.edf_multiframe_filename
         self.assertRaises(ValueError, utils.get_data, url)
 
     def test_fabio_no_frame(self):
+        if fabio is None:
+            self.skipTest("fabio is missing")
         url = "fabio:%s::" % self.edf_filename
         self.assertRaises(ValueError, utils.get_data, url)
 
@@ -621,7 +623,7 @@ class TestGetData(unittest.TestCase):
 
     def test_no_scheme(self):
         if fabio is None:
-            self.skipTest("H5py is missing")
+            self.skipTest("fabio is missing")
         url = "%s::/group/group/array2d[5]" % self.h5_filename
         self.assertRaises((ValueError, IOError), utils.get_data, url)
 
