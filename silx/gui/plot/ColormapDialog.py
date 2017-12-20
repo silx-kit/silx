@@ -362,7 +362,6 @@ class ColormapDialog(qt.QDialog):
         """Set the histogram to display.
 
         This update the data range with the bounds of the bins.
-        See :meth:`setDataRange`.
 
         :param hist: array-like of counts or None to hide histogram
         :param bin_edges: array-like of bins edges or None to hide histogram
