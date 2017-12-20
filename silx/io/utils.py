@@ -25,7 +25,7 @@
 
 __authors__ = ["P. Knobel", "V. Valls"]
 __license__ = "MIT"
-__date__ = "11/12/2017"
+__date__ = "19/12/2017"
 
 import numpy
 import os.path
@@ -465,42 +465,43 @@ def _open(filename):
         raise IOError("Filename '%s' must be a file path" % filename)
 
     debugging_info = []
+    try:
+        _, extension = os.path.splitext(filename)
 
-    _, extension = os.path.splitext(filename)
+        if extension in [".npz", ".npy"]:
+            try:
+                from . import rawh5
+                return rawh5.NumpyFile(filename)
+            except (IOError, ValueError) as e:
+                debugging_info.append((sys.exc_info(),
+                                      "File '%s' can't be read as a numpy file." % filename))
 
-    if extension in [".npz", ".npy"]:
+        if h5py is not None:
+            if h5py.is_hdf5(filename):
+                return h5py.File(filename, "r")
+
         try:
-            from . import rawh5
-            return rawh5.NumpyFile(filename)
-        except (IOError, ValueError) as e:
+            from . import fabioh5
+            return fabioh5.File(filename)
+        except ImportError:
+            debugging_info.append((sys.exc_info(), "fabioh5 can't be loaded."))
+        except Exception:
             debugging_info.append((sys.exc_info(),
-                                  "File '%s' can't be read as a numpy file." % filename))
+                                   "File '%s' can't be read as fabio file." % filename))
 
-    if h5py is not None:
-        if h5py.is_hdf5(filename):
-            return h5py.File(filename, "r")
+        try:
+            from . import spech5
+            return spech5.SpecH5(filename)
+        except ImportError:
+            debugging_info.append((sys.exc_info(),
+                                   "spech5 can't be loaded."))
+        except IOError:
+            debugging_info.append((sys.exc_info(),
+                                   "File '%s' can't be read as spec file." % filename))
+    finally:
+        for exc_info, message in debugging_info:
+            logger.debug(message, exc_info=exc_info)
 
-    try:
-        from . import fabioh5
-        return fabioh5.File(filename)
-    except ImportError:
-        debugging_info.append((sys.exc_info(), "fabioh5 can't be loaded."))
-    except Exception:
-        debugging_info.append((sys.exc_info(),
-                               "File '%s' can't be read as fabio file." % filename))
-
-    try:
-        from . import spech5
-        return spech5.SpecH5(filename)
-    except ImportError:
-        debugging_info.append((sys.exc_info(),
-                               "spech5 can't be loaded."))
-    except IOError:
-        debugging_info.append((sys.exc_info(),
-                               "File '%s' can't be read as spec file." % filename))
-
-    for exc_info, message in debugging_info:
-        logger.debug(message, exc_info=exc_info)
     raise IOError("File '%s' can't be read as HDF5" % filename)
 
 
