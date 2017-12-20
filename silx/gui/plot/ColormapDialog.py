@@ -409,7 +409,7 @@ class ColormapDialog(qt.QDialog):
             self._ignoreColormapChange = True
             self._colormap()._setFromDict(self._colormapStoredState)
             self._ignoreColormapChange = False
-            self._plotUpdate()
+            self._applyColormap()
 
     def accept(self):
         self.storeCurrentState()
