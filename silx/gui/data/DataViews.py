@@ -36,10 +36,11 @@ from silx.gui.data.TextFormatter import TextFormatter
 from silx.io import nxdata
 from silx.gui.hdf5 import H5Node
 from silx.io.nxdata import NXdata, get_attr_as_string
+from silx.gui.plot.Colormap import Colormap
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "03/10/2017"
+__date__ = "20/12/2017"
 
 _logger = logging.getLogger(__name__)
 
@@ -172,6 +173,9 @@ class DataView(object):
     """Priority returned when the requested data can't be displayed by the
     view."""
 
+    _defaultColormap = None
+    """Store a default colormap shared with all the views"""
+
     def __init__(self, parent, modeId=None, icon=None, label=None):
         """Constructor
 
@@ -186,6 +190,16 @@ class DataView(object):
         if icon is None:
             icon = qt.QIcon()
         self.__icon = icon
+
+    @staticmethod
+    def defaultColormap():
+        """Returns a shared colormap as default for all the views.
+
+        :rtype: Colormap
+        """
+        if DataView._defaultColormap is None:
+            DataView._defaultColormap = Colormap(name="viridis")
+        return DataView._defaultColormap
 
     def icon(self):
         """Returns the default icon"""
@@ -457,6 +471,7 @@ class _Plot2dView(DataView):
     def createWidget(self, parent):
         from silx.gui import plot
         widget = plot.Plot2D(parent=parent)
+        widget.setDefaultColormap(self.defaultColormap())
         widget.getIntensityHistogramAction().setVisible(True)
         widget.setKeepDataAspectRatio(True)
         widget.getXAxis().setLabel('X')
@@ -681,6 +696,7 @@ class _StackView(DataView):
     def createWidget(self, parent):
         from silx.gui import plot
         widget = plot.StackView(parent=parent)
+        widget.setColormap(self.defaultColormap())
         widget.setKeepDataAspectRatio(True)
         widget.setLabels(self.axesNames(None, None))
         # hide default option panel
@@ -699,6 +715,8 @@ class _StackView(DataView):
     def setData(self, data):
         data = self.normalizeData(data)
         self.getWidget().setStack(stack=data, reset=self.__resetZoomNextTime)
+        # Override the colormap, while setStack overwrite it
+        self.getWidget().setColormap(self.defaultColormap())
         self.__resetZoomNextTime = False
 
     def axesNames(self, data, info):
@@ -1043,6 +1061,7 @@ class _NXdataImageView(DataView):
     def createWidget(self, parent):
         from silx.gui.data.NXdataWidgets import ArrayImagePlot
         widget = ArrayImagePlot(parent)
+        widget.getPlot().setDefaultColormap(self.defaultColormap())
         return widget
 
     def axesNames(self, data, info):
@@ -1084,6 +1103,7 @@ class _NXdataStackView(DataView):
     def createWidget(self, parent):
         from silx.gui.data.NXdataWidgets import ArrayStackPlot
         widget = ArrayStackPlot(parent)
+        widget.getStackView().setColormap(self.defaultColormap())
         return widget
 
     def axesNames(self, data, info):
@@ -1101,11 +1121,14 @@ class _NXdataStackView(DataView):
         z_axis, y_axis, x_axis = nxd.axes[-3:]
         z_label, y_label, x_label = nxd.axes_names[-3:]
 
-        self.getWidget().setStackData(
+        widget = self.getWidget()
+        widget.setStackData(
                      nxd.signal, x_axis=x_axis, y_axis=y_axis, z_axis=z_axis,
                      signal_name=signal_name,
                      xlabel=x_label, ylabel=y_label, zlabel=z_label,
                      title="NXdata group %s: %s" % (group_name, signal_name))
+        # Override the colormap, while setStack overwrite it
+        widget.getStackView().setColormap(self.defaultColormap())
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
