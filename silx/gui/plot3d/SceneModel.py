@@ -33,6 +33,7 @@ __license__ = "MIT"
 __date__ = "05/12/2017"
 
 
+import collections
 import functools
 import weakref
 
@@ -45,6 +46,256 @@ from .._utils import convertArrayToQImage
 from ..plot.Colormap import preferredColormaps
 from .. import qt
 from . import items
+
+
+class BaseRowNode(qt.QObject):
+    """Base class for node of the tree model representing a row.
+
+    The root node parent MUST be set to the QAbstractItemModel it belongs to.
+    By default item is enabled.
+
+    :param children: Iterable of BaseRowNode to start with (not signaled)
+    """
+
+    def __init__(self, children=()):
+        super(BaseRowNode, self).__init__()
+        self.__children = []
+        for child in children:
+            print('add child', child)
+            assert isinstance(child, BaseRowNode)
+            child.setParent(self)
+            self.__children.append(child)
+        self.__flags = collections.defaultdict(lambda: qt.Qt.ItemIsEnabled)
+
+    def model(self):
+        """Return the model this node belongs to.
+
+        :rtype: QAbstractItemModel
+        """
+        parent = self.parent()
+        if isinstance(parent, BaseRowNode):
+            return self.parent().model()
+        else:
+            assert isinstance(parent, qt.QAbstractItemModel)
+            return parent
+
+    def index(self, column=0):
+        """Return corresponding index in the model.
+
+        :param int column: The column to make the index for
+        :rtype: QModelIndex
+        """
+        parent = self.parent()
+        model = self.model()
+
+        if parent is model:  # Root node
+            return qt.QModelIndex()
+        else:
+            parentIndex = parent.index()
+            row = parent.children().index(self)
+            return model.index(row, column, parentIndex)
+
+    def columnCount(self):
+        """Returns number of columns (default: 2)
+
+        :rtype: int
+        """
+        return 2
+
+    def children(self):
+        """Returns the list of children nodes
+
+        :rtype: tuple of Node
+        """
+        return tuple(self.__children)
+
+    def rowCount(self):
+        """Returns number of rows
+
+        :rtype: int
+        """
+        return len(self.children())
+
+    def addRowNode(self, node, row=None):
+        """Add a node to the children
+
+        :param Node node: The node to add
+        :param int index: The index at which to insert it or
+                          None to append
+        """
+        if row is None:
+            row = self.rowCount()
+        assert row <= self.rowCount()
+
+        parent = self.index()
+        model = self.model()
+        model.beginInsertRows(parent, row, row)
+
+        self.__children.insert(row, node)
+        node.setParent(self)
+
+        model.endInsertRows()
+
+    def removeRowNode(self, rowOrNode):
+        """Remove a node from the children list.
+
+        It removes either a node or a row index.
+
+        :param rowOrNode: Node or row number to remove
+        """
+        if isinstance(rowOrNode, Node):
+            row = self.__children.index(rowOrNode)
+        else:
+            row = rowOrNode
+        assert row < self.rowCount()
+
+        model = self.model()
+        parent = self.index()
+        model.beginRemoveRows(parent, row, row)
+
+        node = self.__children.pop(row)
+        node.setParent(None)
+
+        model.endRemoveRows()
+
+    def data(self, column, role):
+        """Returns data for given column and role
+
+        :param int column: Column index for this row
+        :param int role: The role to get
+        :return: Corresponding data (Default: None)
+        """
+        return None
+
+    def setData(self, column, value, role):
+        """Set data for given column and role
+
+        :param int column: Column index for this row
+        :param value: The data to set
+        :param int role: The role to set
+        :return: True on success, False on failure
+        :rtype: bool
+        """
+        return False
+
+    def setFlags(self, flags, column=None):
+        """Set the static flags to return.
+
+        Default is ItemIsEnabled for all columns.
+
+        :param int column: The column for which to set the flags
+        :param flags: Item flags
+        """
+        if column is None:
+            self.__flags = collections.defaultdict(lambda : flags)
+        else:
+            self.__flags[column] = flags
+
+    def flags(self, column):
+        """Returns flags for given column
+
+        :rtype: int"""
+        return self.__flags[column]
+
+
+class StaticRowNode(BaseRowNode):
+    """Row with static data.
+
+    :param tuple display: List of data for DisplayRole for each column
+    :param dict roles: Optional mapping of roles to list of data.
+    :param children: Iterable of BaseRowNode to start with (not signaled)
+    """
+
+    def __init__(self, display=('', None), roles=None, children=()):
+        super(StaticRowNode, self).__init__(children)
+        self._dataByRoles = {} if roles is None else roles
+        self._dataByRoles[qt.Qt.DisplayRole] = display
+
+        self.setFlags(qt.Qt.ItemIsEnabled)
+
+    def data(self, column, role):
+        if role in self._dataByRoles:
+            dataRow = self._dataByRoles[role]
+            if column < len(dataRow):
+                return dataRow[column]
+        return super(StaticRowNode, self).data(column, role)
+
+    def columnCount(self):
+        return len(self._dataByRoles[qt.Qt.DisplayRole])
+
+
+class ProxyRowNode(BaseRowNode):
+    """Provides a node to proxy a data accessible through functions.
+
+    Warning: Only weak reference are kept on fget and fset.
+
+    :param str name: The name of this node
+    :param callable fget: A callable returning the data
+    :param callable fset:
+        An optional callable setting the data with data as a single argument.
+    :param notify:
+        An optional signal emitted when data has changed.
+    """
+
+    def __init__(self, name='',
+                 fget=None, fset=None, notify=None,
+                 toModelData=None, fromModelData=None,
+                 editorHint=None):
+
+        super(ProxyRowNode, self).__init__()
+        self.__name = name
+        self.__editorHint = editorHint
+
+        assert fget is not None
+        self._fget = WeakMethodProxy(fget)
+        self._fset = WeakMethodProxy(fset) if fset is not None else None
+        if fset is not None:
+            self.setFlags(qt.Qt.ItemIsEditable, 1)
+        self._toModelData = toModelData
+        self._fromModelData = fromModelData
+
+        if notify is not None:
+            notify.connect(self._notified)  # TODO support sigItemChanged flags
+
+    def _notified(self, *args, **kwargs):
+        index = self.index(column=1)
+        model = self.model()
+        model.dataChanged.emit(index, index)
+
+    def data(self, column, role):
+        if column == 0:
+            if role == qt.Qt.DisplayRole:
+                return self.__name
+
+        elif column == 1:
+            if role == qt.Qt.UserRole:  # EditorHint
+                return self.__editorHint
+            elif role in (qt.Qt.DisplayRole, qt.Qt.EditRole):
+                data = self._fget()
+                if self._toModelData is not None:
+                    return self._toModelData(data)
+
+        return super(ProxyRowNode, self).data(column, role)
+
+    def setData(self, column, value, role):
+        if role == qt.Qt.EditRole and self._fset is not None:
+            if self._fromModelData is not None:
+                value = self._fromModelData(value)
+            self._fset(value)
+            return True
+
+        return super(ProxyRowNode, self).setData(column, value, role)
+
+
+class ColorProxyRowNode(ProxyRowNode):
+
+    def data(self, column, role):
+        if column == 1:  # Show color as decoration, not text
+            if role == qt.Qt.DisplayRole:
+                return None
+            if role == qt.Qt.DecorationRole:
+                role = qt.Qt.DisplayRole
+        return super(ProxyRowNode, self).data(column, role)
 
 
 class Node(qt.QObject):
@@ -1095,7 +1346,55 @@ class GroupItemNode(DataItem3DNode):
         model.endRemoveRows()
 
 
-class Root(Node):
+class Style(Node):
+    """Node for :class:`SceneWidget` style settings."""
+    def __init__(self, parent, sceneWidget):
+        super(Style, self).__init__(
+            parent, name='Style')
+
+        bgColor = ColorProxyNode(
+            self,
+            name='Background',
+            fget=sceneWidget.getBackgroundColor,
+            fset=sceneWidget.setBackgroundColor)
+
+        fgColor = ColorProxyNode(
+            self,
+            name='Foreground',
+            fget=sceneWidget.getForegroundColor,
+            fset=sceneWidget.setForegroundColor)
+
+        highlightColor = ColorProxyNode(
+            self,
+            name='Highlight',
+            fget=sceneWidget.getHighlightColor,
+            fset=sceneWidget.setHighlightColor)
+
+        boundingBox = ProxyNode(
+            self,
+            name='Bounding Box',
+            fget=sceneWidget.isBoundingBoxVisible,
+            fset=sceneWidget.setBoundingBoxVisible)
+
+        axesIndicator = ProxyNode(
+            self,
+            name='Axes Indicator',
+            fget=sceneWidget.isOrientationIndicatorVisible,
+            fset=sceneWidget.setOrientationIndicatorVisible)
+
+        lightDirection = DirectionalLightNode(
+            self,
+            sceneWidget.viewport.light)
+
+        self.setChildren((bgColor,
+                          fgColor,
+                          highlightColor,
+                          boundingBox,
+                          axesIndicator,
+                          lightDirection))
+
+
+class Root(BaseRowNode):
     """Root node of :class:`SceneWidget` parameters.
 
     It has two children:
@@ -1104,19 +1403,31 @@ class Root(Node):
     """
 
     def __init__(self, model, sceneWidget):
-        super(Root, self).__init__(parent=model)
+        style = StaticRowNode(('Style', None))
+
+        super(Root, self).__init__(children=[style])
+        self.setParent(model)  # Needed for root node
         self._sceneWidget = weakref.ref(sceneWidget)
 
-        self.setChildren((
-            Style(self, sceneWidget),
-            GroupItemNode(self, sceneWidget.getSceneGroup())))
+        bgColor = ColorProxyRowNode(
+            name='Background',
+            fget=sceneWidget.getBackgroundColor,
+            fset=sceneWidget.setBackgroundColor)
 
-    def getChildren(self):
+        style.addRowNode(bgColor)
+
+        fgColor = ColorProxyRowNode(
+            name='Foreground',
+            fget=sceneWidget.getForegroundColor,
+            fset=sceneWidget.setForegroundColor)
+        style.addRowNode(fgColor)
+
+    def children(self):
         sceneWidget = self._sceneWidget()
         if sceneWidget is None:
             return ()
         else:
-            return super(Root, self).getChildren()
+            return super(Root, self).children()
 
 
 class SceneModel(qt.QAbstractItemModel):
@@ -1126,6 +1437,7 @@ class SceneModel(qt.QAbstractItemModel):
     """
 
     def __init__(self, parent):
+        self._root = None
         super(SceneModel, self).__init__(parent)
         self._sceneWidget = weakref.ref(parent)
         self._root = Root(self, parent)
@@ -1152,7 +1464,7 @@ class SceneModel(qt.QAbstractItemModel):
             return qt.QModelIndex()
 
         item = self._itemFromIndex(parent)
-        return self.createIndex(row, column, item.getChildren()[row])
+        return self.createIndex(row, column, item.children()[row])
 
     def parent(self, index):
         if not index.isValid():
@@ -1164,7 +1476,7 @@ class SceneModel(qt.QAbstractItemModel):
         ancestor = parent.parent()
 
         if ancestor is not self:  # root node
-            children = ancestor.getChildren()
+            children = ancestor.children()
             row = children.index(parent)
             return self.createIndex(row, 0, parent)
 
@@ -1172,60 +1484,29 @@ class SceneModel(qt.QAbstractItemModel):
 
     def rowCount(self, parent=qt.QModelIndex()):
         item = self._itemFromIndex(parent)
-        return len(item.getChildren())
+        return item.rowCount()
 
     def columnCount(self, parent=qt.QModelIndex()):
-        return 2
+        item = self._itemFromIndex(parent)
+        return item.columnCount()
 
     def data(self, index, role=qt.Qt.DisplayRole):
         item = self._itemFromIndex(index)
         column = index.column()
-        if column == 0:
-            if role in (qt.Qt.DisplayRole, qt.Qt.EditRole):
-                return item.name()
-            elif role == qt.Qt.CheckStateRole and item.isCheckable():
-                return item.data(role)
-
-        elif column == 1:
-            if role in item.supportedRoles():
-                return item.data(role)
-
-        return None
-
-    # TODO
-    # def hasChildren(self, parent=qt.QModelIndex()):
-    #     return True
+        return item.data(column, role)
 
     def setData(self, index, value, role=qt.Qt.EditRole):
         item = self._itemFromIndex(index)
-        if (role == qt.Qt.CheckStateRole and
-                index.row() == 0 and
-                item.isCheckable() and
-                item.setData(value, role)):
+        column = index.column()
+        if item.setData(column, value, role):
             self.dataChanged.emit(index, index)
             return True
-
-        if item.isEditable() and item.setData(value, role):
-            self.dataChanged.emit(index, index)
-            return True
-
         return False
 
     def flags(self, index):
-        item = index.internalPointer() if index.isValid() else self._root
-
-        flags = qt.Qt.NoItemFlags
-        if item.isEnabled():
-            flags |= qt.Qt.ItemIsEnabled
-
-            if index.column() == 1 and item.isEditable():
-                flags |= qt.Qt.ItemIsEditable
-
-        if index.column() == 0 and item.isCheckable():
-            flags |= qt.Qt.ItemIsEditable
-            flags |= qt.Qt.ItemIsUserCheckable
-
-        return flags
+        item = self._itemFromIndex(index)
+        column = index.column()
+        return item.flags(column)
 
     def headerData(self, section, orientation, role=qt.Qt.DisplayRole):
         if orientation == qt.Qt.Horizontal and role == qt.Qt.DisplayRole:
