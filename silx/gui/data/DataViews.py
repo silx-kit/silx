@@ -40,7 +40,7 @@ from silx.gui.plot.Colormap import Colormap
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "20/12/2017"
+__date__ = "21/12/2017"
 
 _logger = logging.getLogger(__name__)
 
@@ -604,6 +604,7 @@ class _ComplexImageView(DataView):
     def createWidget(self, parent):
         from silx.gui.plot.ComplexImageView import ComplexImageView
         widget = ComplexImageView(parent=parent)
+        widget.setColormap(self.defaultColormap())
         widget.getPlot().getIntensityHistogramAction().setVisible(True)
         widget.getPlot().setKeepDataAspectRatio(True)
         widget.getXAxis().setLabel('X')
