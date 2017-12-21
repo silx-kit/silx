@@ -149,9 +149,37 @@ class TestByteOffset(unittest.TestCase):
                          1000.0 * (t1 - t0),
                          1000.0 * (t2 - t1))
 
+    def test_compress(self):
+        """Test byte offset compression"""
+        import pyopencl
+
+        shape = (2713, 2719)
+        size = numpy.prod(shape)
+        nexcept = 2729
+        ref = numpy.random.poisson(200, numpy.prod(shape))
+        exception_loc = numpy.random.randint(0, size, size=nexcept)
+        exception_value = numpy.random.randint(0, 1000000, size=nexcept)
+        ref[exception_loc] = exception_value
+        ref.shape = shape
+
+        raw = fabio.compression.compByteOffset(ref)
+        try:
+            bo = byte_offset.ByteOffset(len(raw), size, profile=True)
+        except (RuntimeError, pyopencl.RuntimeError) as err:
+            logger.warning(err)
+            if sys.platform == "darwin":
+                raise unittest.SkipTest("Byte-offset decompression is known to be buggy on MacOS-CPU")
+            else:
+                raise err
+
+        compressed_array = bo.encode(ref)
+        compressed_stream = compressed_array.get().tostring()
+        self.assertEqual(raw, compressed_stream)
+
 
 def suite():
     testSuite = unittest.TestSuite()
     testSuite.addTest(TestByteOffset("test_decompress"))
     testSuite.addTest(TestByteOffset("test_many_decompress"))
+    testSuite.addTest(TestByteOffset("test_compress"))
     return testSuite
