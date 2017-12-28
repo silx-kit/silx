@@ -43,11 +43,19 @@
 	  -- 16 KB per multiprocessor for <=1.3 compute capability (GTX <= 295), that allows to process N<=30 keypoints per thread
 	  -- 48 KB per multiprocessor for >=2.x compute capability (GTX >= 465, Quadro 4000), that allows to process N<=95 keypoints per thread
 
+    Mind to include sift.cl
 */
 
+/* Deprecated:
 typedef float4 keypoint;
-#define MIN(i,j) ( (i)<(j) ? (i):(j) )
-#define MAX(i,j) ( (i)<(j) ? (j):(i) )
+
+Defined in sift.cl
+typedef struct actual_keypoint
+{
+    float col, row, scale, angle;
+} actual_keypoint;
+*/
+
 #ifndef WORKGROUP_SIZE
 	#define WORKGROUP_SIZE 128
 #endif
@@ -87,15 +95,15 @@ This kernel has to be run with as (8,4,4) workgroup size
 */
 
 
-__kernel void descriptor(
-	__global keypoint* keypoints,
-	__global unsigned char *descriptors,
-	__global float* grad,
-	__global float* orim,
+kernel void descriptor(
+	global actual_keypoint* keypoints,
+	global unsigned char *descriptors,
+	global float* grad,
+	global float* orim,
 	int octsize,
 	int keypoints_start,
 //	int keypoints_end,	
-	__global int* keypoints_end, //passing counter value to avoid to read it each time
+	global int* keypoints_end, //passing counter value to avoid to read it each time
 	int grad_width,
 	int grad_height)
 {
@@ -105,30 +113,34 @@ __kernel void descriptor(
 	int lid2 = get_local_id(2); //[0,4[
 	int lid = (lid0*4+lid1)*4+lid2; //[0,128[
 	int groupid = get_group_id(0);
-	keypoint k = keypoints[groupid];
-	if (!(keypoints_start <= groupid && groupid < *keypoints_end && k.s1 >=0.0f))
+	actual_keypoint kp = keypoints[groupid];
+	if (!(keypoints_start <= groupid && groupid < *keypoints_end && kp.row >=0.0f))
 		return;
 		
-	int i,j,j2;
+	int i, j, j2;
 	
-	__local volatile float histogram[128];
-	__local volatile float hist2[128*8];
+	local volatile float histogram[128];
+	local volatile float hist2[128*8];
 			
-	float rx, cx;
-	float row = k.s1/octsize, col = k.s0/octsize, angle = k.s3;
-	int	irow = (int) (row + 0.5f), icol = (int) (col + 0.5f);
-	float sine = sin((float) angle), cosine = cos((float) angle);
-	float spacing = k.s2/octsize * 3.0f;
-	int radius = (int) ((1.414f * spacing * 2.5f) + 0.5f);
-	
-	int imin = -64 +32*lid1,
-		jmin = -64 +32*lid2;
-	int imax = imin+32,
+	float rx, cx,
+	      row = kp.row/octsize,
+	      col = kp.col/octsize,
+	      angle = kp.angle,
+	      spacing = kp.scale/octsize * 3.0f,
+          sine = sin((float) angle),
+          cosine = cos((float) angle);
+	int	irow = (int) (row + 0.5f),
+	    icol = (int) (col + 0.5f),
+	    radius = (int) ((1.414f * spacing * 2.5f) + 0.5f),
+	    imin = -64 +32*lid1,
+		jmin = -64 +32*lid2,
+		imax = imin+32,
 		jmax = jmin+32;
 		
 	//memset
 	histogram[lid] = 0.0f;
-	for (i=0; i < 8; i++) hist2[lid*8+i] = 0.0f;
+	for (i=0; i < 8; i++)
+	    hist2[lid*8+i] = 0.0f;
 	
 	for (i=imin; i < imax; i++) {
 		for (j2=jmin/8; j2 < jmax/8; j2++) {	
@@ -284,10 +296,10 @@ __kernel void descriptor(
 	
 	barrier(CLK_LOCAL_MEM_FENCE);
 	//finally, cast to integer
-		descriptors[128*groupid+lid]
-		= (unsigned char) MIN(255,(unsigned char)(512.0f*histogram[lid]));
+	int intval =  (int)(512.0f * histogram[lid]);
+	descriptors[128*groupid+lid] = (uchar) min(255, intval);
 	
-}
+}//end kernel
 
 
 

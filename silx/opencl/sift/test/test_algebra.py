@@ -36,7 +36,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "15/03/2017"
+__date__ = "25/09/2017"
 
 import os
 import time
@@ -99,7 +99,7 @@ class TestAlgebra(unittest.TestCase):
         cls.queue = None
 
     def setUp(self):
-        kernel_src = get_opencl_code(os.path.join("sift", "algebra.cl"))
+        kernel_src = os.linesep.join(get_opencl_code(os.path.join("sift", i)) for i in ("sift.cl", "algebra.cl"))
         self.program = pyopencl.Program(self.ctx, kernel_src).build()
         self.wg = (32, 4)
         if self.maxwg < self.wg[0] * self.wg[1]:
@@ -173,7 +173,7 @@ class TestAlgebra(unittest.TestCase):
             k1 = self.program.compact(self.queue, shape, wg,
                                       gpu_keypoints.data, output.data, counter.data, startkeypoints, nbkeypoints)
         except pyopencl.LogicError as error:
-            logger.warning("%s in test_combine", error)
+            logger.warning("%s in test_compact", error)
         res = output.get()
         count = counter.get()[0]
         t1 = time.time()
@@ -192,7 +192,7 @@ class TestAlgebra(unittest.TestCase):
         self.assertEqual(count, count_ref, "counters are the same")
         logger.debug("delta=%s", delta)
         if self.PROFILE:
-            logger.debug("Global execution time: CPU %.3fms, GPU: %.3fms.",1000.0 * (t2 - t1), 1000.0 * (t1 - t0))
+            logger.debug("Global execution time: CPU %.3fms, GPU: %.3fms.", 1000.0 * (t2 - t1), 1000.0 * (t1 - t0))
             logger.debug("Compact operation took %.3fms", 1e-6 * (k1.profile.end - k1.profile.start))
 
 

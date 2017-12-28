@@ -399,8 +399,8 @@ class OpenCL(object):
         # Nothing found
         return None
 
-    def create_context(self, devicetype="ALL", memory=None, useFp64=False,
-                       platformid=None, deviceid=None, cached=True):
+    def create_context(self, devicetype="ALL", useFp64=False, platformid=None,
+                       deviceid=None, cached=True, memory=None):
         """
         Choose a device and initiate a context.
 
@@ -410,11 +410,11 @@ class OpenCL(object):
         E.g.: If Nvidia driver is installed, GPU will succeed but CPU will fail.
               The AMD SDK kit is required for CPU via OpenCL.
         :param devicetype: string in ["cpu","gpu", "all", "acc"]
-        :param memory: select device with at least this amount of memory
         :param useFp64: boolean specifying if double precision will be used
         :param platformid: integer
         :param deviceid: integer
         :param cached: True if we want to cache the context
+        :param memory: minimum amount of memory of the device
         :return: OpenCL context on the selected device
         """
         if (platformid is not None) and (deviceid is not None):
@@ -426,10 +426,9 @@ class OpenCL(object):
             platformid, deviceid = pyopencl_ctx
         else:
             if useFp64:
-                ids = ocl.select_device(type=devicetype, memory=memory,
-                                        extensions=["cl_khr_int64_base_atomics"])
+                ids = ocl.select_device(type=devicetype, extensions=["cl_khr_int64_base_atomics"])
             else:
-                ids = ocl.select_device(dtype=devicetype, memory=memory)
+                ids = ocl.select_device(dtype=devicetype)
             if ids:
                 platformid, deviceid = ids
         if (platformid is not None) and (deviceid is not None):
