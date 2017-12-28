@@ -35,6 +35,7 @@ import unittest
 import numpy
 from silx.test.utils import ParametricTestCase
 from silx.gui.plot.Colormap import Colormap
+from silx.gui.plot.Colormap import preferredColormaps, setPreferredColormaps
 
 
 class TestDictAPI(unittest.TestCase):
@@ -277,10 +278,51 @@ class TestObjectAPI(ParametricTestCase):
                     self.assertEqual(image.shape[-1], 4)
                     self.assertEqual(image.shape[:-1], data.shape)
 
+    def testGetNColors(self):
+        """Test getNColors method"""
+        # specific LUT
+        colormap = Colormap(name=None,
+                            colors=((0, 0, 0), (1, 1, 1)),
+                            vmin=1000,
+                            vmax=2000)
+        colors = colormap.getNColors()
+        self.assertTrue(numpy.all(numpy.equal(
+            colors,
+            ((0, 0, 0, 255), (255, 255, 255, 255)))))
+
+
+
+class TestPreferredColormaps(unittest.TestCase):
+    """Test get|setPreferredColormaps functions"""
+
+    def setUp(self):
+        # Save preferred colormaps
+        self._colormaps = preferredColormaps()
+
+    def tearDown(self):
+        # Restore saved preferred colormaps
+        setPreferredColormaps(self._colormaps)
+
+    def test(self):
+        colormaps = 'viridis', 'magma'
+
+        setPreferredColormaps(colormaps)
+        self.assertEqual(preferredColormaps(), colormaps)
+
+        with self.assertRaises(ValueError):
+            setPreferredColormaps(())
+
+        with self.assertRaises(ValueError):
+            setPreferredColormaps(('This is not a colormap',))
+
+        colormaps = 'red', 'green'
+        setPreferredColormaps(('This is not a colormap',) + colormaps)
+        self.assertEqual(preferredColormaps(), colormaps)
+
 
 def suite():
     test_suite = unittest.TestSuite()
-    for ui in (TestDictAPI, TestObjectAPI):
+    for ui in (TestDictAPI, TestObjectAPI, TestPreferredColormaps):
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(ui))
 

@@ -195,12 +195,24 @@ Additional widgets:
 
    * - Widget
      - Description
+   * - .. image:: plot3d/img/SceneWindow.png
+          :height: 150px
+          :align: center
+     - :class:`SceneWindow` is a :class:`QMainWindow` embedding a 3D data visualization :class:`SceneWidget`
+       and associated toolbars.
+       It can display 2D images, 2D scatter data, 3D scatter data and 3D volumes with different visualizations.
+       See ``plot3dSceneWindow.py`` in :ref:`plot3d-sample-code`.
+   * - .. image:: plot3d/img/SceneWidget.png
+          :height: 150px
+          :align: center
+     - :class:`SceneWidget` is a :class:`Plot3DWidget` providing a 3D scene for visualizing different kind of data.
+       It can display 2D images, 2D scatter data, 3D scatter data and 3D volumes with different visualizations.
+       See ``plot3dSceneWindow.py`` in :ref:`plot3d-sample-code`.
    * - .. image:: plot3d/img/ScalarFieldView.png
           :height: 150px
           :align: center
      - :class:`ScalarFieldView` is a :class:`Plot3DWindow` dedicated to display 3D scalar field.
        It can display iso-surfaces and an interactive cutting plane.
-       Sample code: :doc:`plot3d/viewer3dvolume_example`.
    * - .. image:: plot3d/img/Plot3DWindow.png
           :height: 150px
           :align: center
@@ -216,7 +228,7 @@ Additional widgets:
          :align: center
      - :class:`SFViewParamTree` is a :class:`QTreeView` widget that can be attached to a :class:`ScalarFieldView`.
        It displays current parameters of the :class:`ScalarFieldView` and allows to modify it.
-       Sample code: :doc:`plot3d/viewer3dvolume_example`.
+       See :ref:`plot3d-sample-code`.
 
 
 :mod:`silx.gui.widgets` Widgets

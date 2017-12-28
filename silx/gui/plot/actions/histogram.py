@@ -39,6 +39,7 @@ __license__ = "MIT"
 
 from . import PlotAction
 from silx.math.histogram import Histogramnd
+from silx.math.combo import min_max
 import numpy
 import logging
 from silx.gui import qt
@@ -107,8 +108,7 @@ class PixelIntensitiesHistoAction(PlotAction):
                          image[:, :, 1] * 0.587 +
                          image[:, :, 2] * 0.114)
 
-            xmin = numpy.nanmin(image)
-            xmax = numpy.nanmax(image)
+            xmin, xmax = min_max(image, min_positive=False, finite=True)
             nbins = min(1024, int(numpy.sqrt(image.size)))
             data_range = xmin, xmax
 

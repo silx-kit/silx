@@ -29,7 +29,7 @@ from __future__ import absolute_import
 
 __authors__ = ["T. Vincent", "H.Payno"]
 __license__ = "MIT"
-__date__ = "05/12/2016"
+__date__ = "29/11/2017"
 
 from silx.gui import qt
 import copy as copy_mdl
@@ -62,7 +62,7 @@ class Colormap(qt.QObject):
             Nx3 or Nx4 numpy array of RGB(A) colors,
             either uint8 or float in [0, 1].
             If 'name' is None, then this array is used as the colormap.
-    :param str norm: Normalization: 'linear' (default) or 'log'
+    :param str normalization: Normalization: 'linear' (default) or 'log'
     :param float vmin:
         Lower bound of the colormap or None for autoscale (default)
     :param float vmax:
@@ -79,6 +79,7 @@ class Colormap(qt.QObject):
     """Tuple of managed normalizations"""
 
     sigChanged = qt.Signal()
+    """Signal emitted when the colormap has changed."""
 
     def __init__(self, name='gray', colors=None, normalization=LINEAR, vmin=None, vmax=None):
         qt.QObject.__init__(self)
@@ -115,13 +116,41 @@ class Colormap(qt.QObject):
         else:
             self._colors = numpy.array(colors, copy=True)
 
-    def setName(self, name):
-        """Set the name of the colormap and load the colors corresponding to
-        the name
+    def getNColors(self, nbColors=None):
+        """Returns N colors computed by sampling the colormap regularly.
 
-        :param str name: the name of the colormap (should be in ['gray',
+        :param nbColors:
+            The number of colors in the returned array or None for the default value.
+            The default value is 256 for colormap with a name (see :meth:`setName`) and
+            it is the size of the LUT for colormap defined with :meth:`setColormapLUT`.
+        :type nbColors: int or None
+        :return: 2D array of uint8 of shape (nbColors, 4)
+        :rtype: numpy.ndarray
+        """
+        # Handle default value for nbColors
+        if nbColors is None:
+            lut = self.getColormapLUT()
+            if lut is not None:  # In this case uses LUT length
+                nbColors = len(lut)
+            else:  # Default to 256
+                nbColors = 256
+
+        nbColors = int(nbColors)
+
+        colormap = self.copy()
+        colormap.setNormalization(Colormap.LINEAR)
+        colormap.setVRange(vmin=None, vmax=None)
+        colors = colormap.applyToData(
+            numpy.arange(nbColors, dtype=numpy.int))
+        return colors
+
+    def setName(self, name):
+        """Set the name of the colormap to use.
+
+        :param str name: The name of the colormap.
+            At least the following names are supported: 'gray',
             'reversed gray', 'temperature', 'red', 'green', 'blue', 'jet',
-            'viridis', 'magma', 'inferno', 'plasma']
+            'viridis', 'magma', 'inferno', 'plasma'.
         """
         assert name in self.getSupportedColormaps()
         self._name = str(name)
@@ -129,20 +158,22 @@ class Colormap(qt.QObject):
         self.sigChanged.emit()
 
     def getColormapLUT(self):
-        """Return the list of colors for the colormap. None if not setted
-        
-        :return: the list of colors for the colormap. None if not setted
-        :rtype: numpy.ndarray
+        """Return the list of colors for the colormap or None if not set
+
+        :return: the list of colors for the colormap or None if not set
+        :rtype: numpy.ndarray or None
         """
-        return self._colors
+        if self._colors is None:
+            return None
+        else:
+            return numpy.array(self._colors, copy=True)
 
     def setColormapLUT(self, colors):
-        """
-        Set the colors of the colormap.
+        """Set the colors of the colormap.
 
         :param numpy.ndarray colors: the colors of the LUT
 
-        .. warning: this will set the value of name to an empty string
+        .. warning: this will set the value of name to None
         """
         self._setColors(colors)
         if len(colors) is 0:
@@ -153,7 +184,7 @@ class Colormap(qt.QObject):
 
     def getNormalization(self):
         """Return the normalization of the colormap ('log' or 'linear')
-        
+
         :return: the normalization of the colormap
         :rtype: str
         """
@@ -169,7 +200,7 @@ class Colormap(qt.QObject):
 
     def getVMin(self):
         """Return the lower bound of the colormap
-        
+
          :return: the lower bound of the colormap
          :rtype: float or None
          """
@@ -183,9 +214,9 @@ class Colormap(qt.QObject):
             value)
         """
         if vmin is not None:
-            if self._vmax is not None and vmin >= self._vmax:
-                err = "Can't set vmin because vmin >= vmax."
-                err += "vmin = %s, vmax = %s" %(vmin, self._vmax)
+            if self._vmax is not None and vmin > self._vmax:
+                err = "Can't set vmin because vmin >= vmax. " \
+                      "vmin = %s, vmax = %s" % (vmin, self._vmax)
                 raise ValueError(err)
 
         self._vmin = vmin
@@ -193,7 +224,7 @@ class Colormap(qt.QObject):
 
     def getVMax(self):
         """Return the upper bounds of the colormap or None
-        
+
         :return: the upper bounds of the colormap or None
         :rtype: float or None
         """
@@ -206,9 +237,9 @@ class Colormap(qt.QObject):
             (default)
         """
         if vmax is not None:
-            if self._vmin is not None and vmax <= self._vmin:
-                err = "Can't set vmax because vmax <= vmin."
-                err += "vmin = %s, vmax = %s" %(self._vmin, vmax)
+            if self._vmin is not None and vmax < self._vmin:
+                err = "Can't set vmax because vmax <= vmin. " \
+                      "vmin = %s, vmax = %s" % (self._vmin, vmax)
                 raise ValueError(err)
 
         self._vmax = vmax
@@ -267,8 +298,7 @@ class Colormap(qt.QObject):
         return vmin, vmax
 
     def setVRange(self, vmin, vmax):
-        """
-        Set bounds to the colormap
+        """Set the bounds of the colormap
 
         :param vmin: Lower bound of the colormap or None for autoscale
             (default)
@@ -276,9 +306,9 @@ class Colormap(qt.QObject):
             (default)
         """
         if vmin is not None and vmax is not None:
-            if vmin >= vmax:
-                err = "Can't set vmin and vmax because vmin >= vmax"
-                err += "vmin = %s, vmax = %s" %(vmin, self._vmax)
+            if vmin > vmax:
+                err = "Can't set vmin and vmax because vmin >= vmax " \
+                      "vmin = %s, vmax = %s" % (vmin, vmax)
                 raise ValueError(err)
 
         self._vmin = vmin
@@ -361,9 +391,9 @@ class Colormap(qt.QObject):
         return colormap
 
     def copy(self):
-        """
+        """Return a copy of the Colormap.
 
-        :return: a copy of the Colormap object
+        :rtype: Colormap
         """
         return Colormap(name=self._name,
                         colors=copy_mdl.copy(self._colors),
@@ -408,3 +438,113 @@ class Colormap(qt.QObject):
                 numpy.array_equal(self.getColormapLUT(), other.getColormapLUT())
                 )
 
+    _SERIAL_VERSION = 1
+
+    def restoreState(self, byteArray):
+        """
+        Read the colormap state from a QByteArray.
+
+        :param qt.QByteArray byteArray: Stream containing the state
+        :return: True if the restoration sussseed
+        :rtype: bool
+        """
+        stream = qt.QDataStream(byteArray, qt.QIODevice.ReadOnly)
+
+        className = stream.readQString()
+        if className != self.__class__.__name__:
+            _logger.warning("Classname mismatch. Found %s." % className)
+            return False
+
+        version = stream.readUInt32()
+        if version != self._SERIAL_VERSION:
+            _logger.warning("Serial version mismatch. Found %d." % version)
+            return False
+
+        name = stream.readQString()
+        isNull = stream.readBool()
+        if not isNull:
+            vmin = stream.readQVariant()
+        else:
+            vmin = None
+        isNull = stream.readBool()
+        if not isNull:
+            vmax = stream.readQVariant()
+        else:
+            vmax = None
+        normalization = stream.readQString()
+
+        # emit change event only once
+        old = self.blockSignals(True)
+        try:
+            self.setName(name)
+            self.setNormalization(normalization)
+            self.setVRange(vmin, vmax)
+        finally:
+            self.blockSignals(old)
+        self.sigChanged.emit()
+        return True
+
+    def saveState(self):
+        """
+        Save state of the colomap into a QDataStream.
+
+        :rtype: qt.QByteArray
+        """
+        data = qt.QByteArray()
+        stream = qt.QDataStream(data, qt.QIODevice.WriteOnly)
+
+        stream.writeQString(self.__class__.__name__)
+        stream.writeUInt32(self._SERIAL_VERSION)
+        stream.writeQString(self.getName())
+        stream.writeBool(self.getVMin() is None)
+        if self.getVMin() is not None:
+            stream.writeQVariant(self.getVMin())
+        stream.writeBool(self.getVMax() is None)
+        if self.getVMax() is not None:
+            stream.writeQVariant(self.getVMax())
+        stream.writeQString(self.getNormalization())
+        return data
+
+
+_PREFERRED_COLORMAPS = DEFAULT_COLORMAPS
+"""
+Tuple of preferred colormap names accessed with :meth:`preferredColormaps`.
+"""
+
+
+def preferredColormaps():
+    """Returns the name of the preferred colormaps.
+
+    This list is used by widgets allowing to change the colormap
+    like the :class:`ColormapDialog` as a subset of colormap choices.
+
+    :rtype: tuple of str
+    """
+    return _PREFERRED_COLORMAPS
+
+
+def setPreferredColormaps(colormaps):
+    """Set the list of preferred colormap names.
+
+    Warning: If a colormap name is not available
+    it will be removed from the list.
+
+    :param colormaps: Not empty list of colormap names
+    :type colormaps: iterable of str
+    :raise ValueError: if the list of available preferred colormaps is empty.
+    """
+    supportedColormaps = Colormap.getSupportedColormaps()
+    colormaps = tuple(
+        cmap for cmap in colormaps if cmap in supportedColormaps)
+    if len(colormaps) == 0:
+        raise ValueError("Cannot set preferred colormaps to an empty list")
+
+    global _PREFERRED_COLORMAPS
+    _PREFERRED_COLORMAPS = colormaps
+
+
+# Initialize preferred colormaps
+setPreferredColormaps(('gray', 'reversed gray',
+                       'temperature', 'red', 'green', 'blue', 'jet',
+                       'viridis', 'magma', 'inferno', 'plasma',
+                       'hsv'))

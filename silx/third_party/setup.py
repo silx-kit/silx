@@ -4,7 +4,7 @@
 #
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,7 @@
 
 __authors__ = ["Valentin Valls"]
 __license__ = "MIT"
-__date__ = "26/04/2017"
+__date__ = "07/11/2017"
 
 import os
 from numpy.distutils.misc_util import Configuration
@@ -40,6 +40,7 @@ def configuration(parent_package='', top_path=None):
     local_path = os.path.join(top_path, parent_package, "third_party", "_local")
     if os.path.exists(local_path):
         config.add_subpackage('_local')
+        config.add_subpackage('_local.scipy_spatial')
     return config
 
 

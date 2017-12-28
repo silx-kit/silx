@@ -100,10 +100,22 @@ def is_valid_nxdata(group):   # noqa
     if get_attr_as_string(group, "NX_class") != "NXdata":
         return False
     if "signal" not in group.attrs:
-        _logger.warning("NXdata group does not define a signal attr.")
-        return False
+        _logger.warning("NXdata group does not define a signal attr. "
+                        "Testing legacy specification.")
+        signal_name = None
+        for key in group:
+            if "signal" in group[key].attrs:
+                signal_name = key
+                signal_attr = group[key].attrs["signal"]
+                if signal_attr in [1, b"1", u"1"]:
+                    # This is the main (default) signal
+                    break
+        if signal_name is None:
+            _logger.warning("No dataset with a @signal=1 attr found")
+            return False
+    else:
+        signal_name = get_attr_as_string(group, "signal")
 
-    signal_name = get_attr_as_string(group, "signal")
     if signal_name not in group or not is_dataset(group[signal_name]):
         _logger.warning(
             "Cannot find signal dataset '%s' in NXdata group" % signal_name)
@@ -245,9 +257,18 @@ class NXdata(object):
         """h5py-like group object compliant with NeXus NXdata specification.
         """
 
-        self.signal = self.group[get_attr_as_string(self.group, "signal")]
-        """Signal dataset in this NXdata group.
+        self.signal = self.group[self.signal_dataset_name]
+        """Main signal dataset in this NXdata group.
+
+        In case more than one signal is present in this group,
+        the other ones can be found in :attr:`signals`.
         """
+
+        self.signal_name = get_attr_as_string(self.signal, "long_name")
+        """Signal long name, as specified in the @long_name attribute of the
+        signal dataset. If not specified, the dataset name is used."""
+        if self.signal_name is None:
+            self.signal_name = self.signal_dataset_name
 
         # ndim will be available in very recent h5py versions only
         self.signal_ndim = getattr(self.signal, "ndim",
@@ -274,6 +295,70 @@ class NXdata(object):
 
         # excludes scatters
         self.signal_is_1d = self.signal_is_1d and len(self.axes) <= 1  # excludes n-D scatters
+
+    @property
+    def signal_dataset_name(self):
+        """Name of the main signal dataset."""
+        signal_dataset_name = get_attr_as_string(self.group, "signal")
+        if signal_dataset_name is None:
+            # find a dataset with @signal == 1
+            for dsname in self.group:
+                signal_attr = self.group[dsname].attrs.get("signal")
+                if signal_attr in [1, b"1", u"1"]:
+                    # This is the main (default) signal
+                    signal_dataset_name = dsname
+                    break
+        assert signal_dataset_name is not None
+        return signal_dataset_name
+
+    @property
+    def signal_dataset_names(self):
+        """Sorted list of names of all the signal datasets.
+
+        In most instances, there will be only one signal.
+        But a now deprecated NXdata specification enabled having several
+        datasets with attributes `@signal=1, @signal=2...`."""
+        numbered_names = []
+        for dsname in self.group:
+            if dsname == self.signal_dataset_name:
+                # main signal, must be first in sorted list
+                numbered_names.append((float("-inf"), dsname))
+                continue
+            ds = self.group[dsname]
+            signal_attr = ds.attrs.get("signal")
+            if not is_dataset(ds):
+                _logger.warning("%s is not a dataset (%s)",
+                                dsname, type(ds))
+                continue
+            if signal_attr is not None:
+                try:
+                    signal_number = int(signal_attr)
+                except (ValueError, TypeError):
+                    _logger.warning("Could not interpret attr @signal=%s on dataset %s",
+                                    signal_attr, dsname)
+                    continue
+                numbered_names.append((signal_number, dsname))
+        return [a[1] for a in sorted(numbered_names)]
+
+    @property
+    def signal_names(self):
+        """Similar to :attr:`signal_dataset_names`, but the @long_name
+        is used when this attribute is present, instead of the dataset name.
+        """
+        signal_names = []
+        for sdn in self.signal_dataset_names:
+            if "long_name" in self.group[sdn].attrs:
+                signal_names.append(self.group[sdn].attrs["long_name"])
+            else:
+                signal_names.append(sdn)
+        return signal_names
+
+    @property
+    def signals(self):
+        """Sorted list of all signal datasets.
+        See :attr:`signal_dataset_names`
+        for an explanation why there can be more than 1 signal."""
+        return [self.group[dsname] for dsname in self.signal_dataset_names]
 
     @property
     def interpretation(self):
@@ -317,20 +402,19 @@ class NXdata(object):
         """List of the axes datasets.
 
         The list typically has as many elements as there are dimensions in the
-        signal dataset, the exception being scatter plots which typically
-        use a 1D signal and several 1D axes of the same size.
+        signal dataset, the exception being scatter plots which use a 1D
+        signal and multiple 1D axes of the same size.
 
         If an axis dataset applies to several dimensions of the signal, it
         will be repeated in the list.
 
-        If a dimension of the signal has no dimension scale (i.e. there is a
-        "." in that position in the *@axes* array), `None` is inserted in the
-        output list in its position.
+        If a dimension of the signal has no dimension scale, `None` is
+        inserted in its position in the list.
 
         .. note::
 
-            In theory, the *@axes* attribute defines as many entries as there
-            are dimensions in the signal. In such a case, there is no ambiguity.
+            The *@axes* attribute should define as many entries as there
+            are dimensions in the signal, to avoid  any ambiguity.
             If this is not the case, this implementation relies on the existence
             of an *@interpretation* (*spectrum* or *image*) attribute in the
             *signal* dataset.
@@ -339,47 +423,20 @@ class NXdata(object):
 
             If an axis dataset defines attributes @first_good or @last_good,
             the output will be a numpy array resulting from slicing that
-            axis to keep only the good index range: axis[first_good:last_good + 1]
+            axis (*axis[first_good:last_good + 1]*).
 
         :rtype: list[Dataset or 1D array or None]
         """
         if self._axes is not None:
             # use cache
             return self._axes
-        ndims = len(self.signal.shape)
-        axes_names = get_attr_as_string(self.group, "axes")
-        interpretation = self.interpretation
+        axes = []
+        for axis_name in self.axes_dataset_names:
+            if axis_name is None:
+                axes.append(None)
+            else:
+                axes.append(self.group[axis_name])
 
-        if axes_names is None:
-            self._axes = [None for _i in range(ndims)]
-            return self._axes
-
-        if isinstance(axes_names, str):
-            axes_names = [axes_names]
-
-        if len(axes_names) == ndims:
-            # axes is a list of strings, one axis per dim is explicitly defined
-            axes = [None] * ndims
-            for i, axis_n in enumerate(axes_names):
-                if axis_n != ".":
-                    axes[i] = self.group[axis_n]
-        elif interpretation is not None:
-            # case of @interpretation attribute defined: we expect 1, 2 or 3 axes
-            # corresponding to the 1, 2, or 3 last dimensions of the signal
-            assert len(axes_names) == _INTERPDIM[interpretation]
-            axes = [None] * (ndims - _INTERPDIM[interpretation])
-            for axis_n in axes_names:
-                if axis_n != ".":
-                    axes.append(self.group[axis_n])
-                else:
-                    axes.append(None)
-        else:   # scatter
-            axes = []
-            for axis_n in axes_names:
-                if axis_n != ".":
-                    axes.append(self.group[axis_n])
-                else:
-                    axes.append(None)
         # keep only good range of axis data
         for i, axis in enumerate(axes):
             if axis is None:
@@ -395,7 +452,8 @@ class NXdata(object):
 
     @property
     def axes_dataset_names(self):
-        """
+        """List of axes dataset names.
+
         If an axis dataset applies to several dimensions of the signal, its
         name will be repeated in the list.
 
@@ -403,13 +461,44 @@ class NXdata(object):
         "." in that position in the *@axes* array), `None` is inserted in the
         output list in its position.
         """
+        numbered_names = []     # used in case of @axis=0 (old spec)
         axes_dataset_names = get_attr_as_string(self.group, "axes")
         if axes_dataset_names is None:
-            axes_dataset_names = get_attr_as_string(self.group, "axes")
+            # try @axes on signal dataset (older NXdata specification)
+            axes_dataset_names = get_attr_as_string(self.signal, "axes")
+            if axes_dataset_names is not None:
+                # we expect a comma separated string
+                if hasattr(axes_dataset_names, "split"):
+                    axes_dataset_names = axes_dataset_names.split(":")
+            else:
+                # try @axis on the individual datasets (oldest NXdata specification)
+                for dsname in self.group:
+                    if not is_dataset(self.group[dsname]):
+                        continue
+                    axis_attr = self.group[dsname].attrs.get("axis")
+                    if axis_attr is not None:
+                        try:
+                            axis_num = int(axis_attr)
+                        except (ValueError, TypeError):
+                            _logger.warning("Could not interpret attr @axis as"
+                                            "int on dataset %s", dsname)
+                            continue
+                        numbered_names.append((axis_num, dsname))
 
         ndims = len(self.signal.shape)
         if axes_dataset_names is None:
-            return [None] * ndims
+            if numbered_names:
+                axes_dataset_names = []
+                numbers = [a[0] for a in numbered_names]
+                names = [a[1] for a in numbered_names]
+                for i in range(ndims):
+                    if i in numbers:
+                        axes_dataset_names.append(names[numbers.index(i)])
+                    else:
+                        axes_dataset_names.append(None)
+                return axes_dataset_names
+            else:
+                return [None] * ndims
 
         if isinstance(axes_dataset_names, str):
             axes_dataset_names = [axes_dataset_names]
@@ -422,6 +511,7 @@ class NXdata(object):
 
         if len(axes_dataset_names) != ndims:
             if self.is_scatter and ndims == 1:
+                # case of a 1D signal with arbitrary number of axes
                 return list(axes_dataset_names)
             # @axes may only define 1 or 2 axes if @interpretation=spectrum/image.
             # Use the existing names for the last few dims, and prepend with Nones.

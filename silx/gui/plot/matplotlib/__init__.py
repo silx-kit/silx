@@ -59,6 +59,11 @@ elif qt.BINDING == 'PyQt4':
     matplotlib.rcParams['backend'] = 'Qt4Agg'
     import matplotlib.backends.backend_qt4agg as backend
 
+elif qt.BINDING == 'PySide2':
+    matplotlib.rcParams['backend'] = 'Qt5Agg'
+    matplotlib.rcParams['backend.qt5'] = 'PySide2'
+    import matplotlib.backends.backend_qt5agg as backend
+
 elif qt.BINDING == 'PyQt5':
     matplotlib.rcParams['backend'] = 'Qt5Agg'
     import matplotlib.backends.backend_qt5agg as backend

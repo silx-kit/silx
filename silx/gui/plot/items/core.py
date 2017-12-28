@@ -136,7 +136,7 @@ class Item(qt.QObject):
     """
 
     def __init__(self):
-        super(Item, self).__init__()
+        qt.QObject.__init__(self)
         self._dirty = True
         self._plotRef = None
         self._visible = True
@@ -312,7 +312,24 @@ class Item(qt.QObject):
 
 # Mix-in classes ##############################################################
 
-class LabelsMixIn(object):
+class ItemMixInBase(qt.QObject):
+    """Base class for Item mix-in"""
+
+    def _updated(self, event=None, checkVisibility=True):
+        """This is implemented in :class:`Item`.
+
+        Mark the item as dirty (i.e., needing update).
+        This also triggers Plot.replot.
+
+        :param event: The event to send to :attr:`sigItemChanged` signal.
+        :param bool checkVisibility: True to only mark as dirty if visible,
+                                     False to always mark as dirty.
+        """
+        raise RuntimeError(
+            "Issue with Mix-In class inheritance order")
+
+
+class LabelsMixIn(ItemMixInBase):
     """Mix-in class for items with x and y labels
 
     Setters are private, otherwise it needs to check the plot
@@ -352,7 +369,7 @@ class LabelsMixIn(object):
         self._ylabel = str(label)
 
 
-class DraggableMixIn(object):
+class DraggableMixIn(ItemMixInBase):
     """Mix-in class for draggable items"""
 
     def __init__(self):
@@ -375,7 +392,7 @@ class DraggableMixIn(object):
         self._draggable = bool(draggable)
 
 
-class ColormapMixIn(object):
+class ColormapMixIn(ItemMixInBase):
     """Mix-in class for items with colormap"""
 
     def __init__(self):
@@ -406,7 +423,7 @@ class ColormapMixIn(object):
         self._updated(ItemChangedType.COLORMAP)
 
 
-class SymbolMixIn(object):
+class SymbolMixIn(ItemMixInBase):
     """Mix-in class for items with symbol type"""
 
     _DEFAULT_SYMBOL = ''
@@ -415,9 +432,40 @@ class SymbolMixIn(object):
     _DEFAULT_SYMBOL_SIZE = 6.0
     """Default marker size of the item"""
 
+    _SUPPORTED_SYMBOLS = collections.OrderedDict((
+        ('o', 'Circle'),
+        ('d', 'Diamond'),
+        ('s', 'Square'),
+        ('+', 'Plus'),
+        ('x', 'Cross'),
+        ('.', 'Point'),
+        (',', 'Pixel'),
+        ('', 'None')))
+    """Dict of supported symbols"""
+
     def __init__(self):
         self._symbol = self._DEFAULT_SYMBOL
         self._symbol_size = self._DEFAULT_SYMBOL_SIZE
+
+    @classmethod
+    def getSupportedSymbols(cls):
+        """Returns the list of supported symbol names.
+
+        :rtype: tuple of str
+        """
+        return tuple(cls._SUPPORTED_SYMBOLS.keys())
+
+    def getSymbolName(self, symbol=None):
+        """Returns human-readable name for a symbol.
+
+        :param str symbol: The symbol from which to get the name.
+                           Default: current symbol.
+        :rtype: str
+        :raise KeyError: if symbol is not in :meth:`getSupportedSymbols`.
+        """
+        if symbol is None:
+            symbol = self.getSymbol()
+        return self._SUPPORTED_SYMBOLS[symbol]
 
     def getSymbol(self):
         """Return the point marker type.
@@ -441,11 +489,19 @@ class SymbolMixIn(object):
 
         See :meth:`getSymbol`.
 
-        :param str symbol: Marker type
+        :param str symbol: Marker type or marker name
         """
-        assert symbol in ('o', '.', ',', '+', 'x', 'd', 's', '', None)
         if symbol is None:
             symbol = self._DEFAULT_SYMBOL
+
+        elif symbol not in self.getSupportedSymbols():
+            for symbolCode, name in self._SUPPORTED_SYMBOLS.items():
+                if name.lower() == symbol.lower():
+                    symbol = symbolCode
+                    break
+            else:
+                raise ValueError('Unsupported symbol %s' % str(symbol))
+
         if symbol != self._symbol:
             self._symbol = symbol
             self._updated(ItemChangedType.SYMBOL)
@@ -471,7 +527,7 @@ class SymbolMixIn(object):
             self._updated(ItemChangedType.SYMBOL_SIZE)
 
 
-class LineMixIn(object):
+class LineMixIn(ItemMixInBase):
     """Mix-in class for item with line"""
 
     _DEFAULT_LINEWIDTH = 1.
@@ -531,7 +587,7 @@ class LineMixIn(object):
             self._updated(ItemChangedType.LINE_STYLE)
 
 
-class ColorMixIn(object):
+class ColorMixIn(ItemMixInBase):
     """Mix-in class for item with color"""
 
     _DEFAULT_COLOR = (0., 0., 0., 1.)
@@ -570,7 +626,7 @@ class ColorMixIn(object):
         self._updated(ItemChangedType.COLOR)
 
 
-class YAxisMixIn(object):
+class YAxisMixIn(ItemMixInBase):
     """Mix-in class for item with yaxis"""
 
     _DEFAULT_YAXIS = 'left'
@@ -600,7 +656,7 @@ class YAxisMixIn(object):
             self._updated(ItemChangedType.YAXIS)
 
 
-class FillMixIn(object):
+class FillMixIn(ItemMixInBase):
     """Mix-in class for item with fill"""
 
     def __init__(self):
@@ -624,7 +680,7 @@ class FillMixIn(object):
             self._updated(ItemChangedType.FILL)
 
 
-class AlphaMixIn(object):
+class AlphaMixIn(ItemMixInBase):
     """Mix-in class for item with opacity"""
 
     def __init__(self):

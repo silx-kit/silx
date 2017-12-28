@@ -28,7 +28,7 @@ package `silx.gui.hdf5` package.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "29/09/2017"
+__date__ = "08/12/2017"
 
 
 import logging
@@ -37,12 +37,6 @@ import silx.io.utils
 from silx.utils.html import escape
 
 _logger = logging.getLogger(__name__)
-
-try:
-    import h5py
-except ImportError as e:
-    _logger.error("Module %s requires h5py", __name__)
-    raise e
 
 
 class Hdf5ContextMenuEvent(object):
@@ -168,12 +162,13 @@ class H5Node(object):
             e = elements.pop(0)
             path = path + "/" + e
             link = obj.parent.get(path, getlink=True)
+            classlink = silx.io.utils.get_h5_class(link)
 
-            if isinstance(link, h5py.ExternalLink):
+            if classlink == silx.io.utils.H5Type.EXTERNAL_LINK:
                 subpath = "/".join(elements)
                 external_obj = obj.parent.get(self.basename + "/" + subpath)
                 return self.__get_target(external_obj)
-            elif silx.io.utils.is_softlink(link):
+            elif classlink == silx.io.utils.H5Type.SOFT_LINK:
                 # Restart from this stat
                 path = ""
                 root_elements = link.path.split("/")
@@ -202,13 +197,22 @@ class H5Node(object):
         return self.__h5py_object
 
     @property
+    def h5type(self):
+        """Returns the node type, as an H5Type.
+
+        :rtype: H5Node
+        """
+        return silx.io.utils.get_h5_class(self.__h5py_object)
+
+    @property
     def ntype(self):
         """Returns the node type, as an h5py class.
 
         :rtype:
             :class:`h5py.File`, :class:`h5py.Group` or :class:`h5py.Dataset`
         """
-        return silx.io.utils.get_h5py_class(self.__h5py_object)
+        type_ = self.h5Class
+        return silx.io.utils.h5type_to_h5py_class(type_)
 
     @property
     def basename(self):
@@ -269,13 +273,13 @@ class H5Node(object):
         """
         item = self.__h5py_item
         while item.parent.parent is not None:
-            class_ = item.h5pyClass
-            if class_ is not None and issubclass(class_, h5py.File):
+            class_ = silx.io.utils.get_h5_class(class_=item.h5pyClass)
+            if class_ == silx.io.utils.H5Type.FILE:
                 break
             item = item.parent
 
-        class_ = item.h5pyClass
-        if class_ is not None and issubclass(class_, h5py.File):
+        class_ = silx.io.utils.get_h5_class(class_=item.h5pyClass)
+        if class_ == silx.io.utils.H5Type.FILE:
             return item.obj
         else:
             return item.obj.file
@@ -313,8 +317,8 @@ class H5Node(object):
 
         :rtype: str
         """
-        class_ = self.__h5py_item.h5pyClass
-        if class_ is not None and issubclass(class_, h5py.File):
+        class_ = self.__h5py_item.h5Class
+        if class_ is not None and class_ == silx.io.utils.H5Type.FILE:
             return ""
         return self.__h5py_item.basename
 
@@ -327,10 +331,11 @@ class H5Node(object):
         :rtype: h5py.File
         :raises RuntimeError: If no file are found
         """
-        if isinstance(self.__h5py_object, h5py.ExternalLink):
+        class_ = silx.io.utils.get_h5_class(self.__h5py_object)
+        if class_ == silx.io.utils.H5Type.EXTERNAL_LINK:
             # It means the link is broken
             raise RuntimeError("No file node found")
-        if isinstance(self.__h5py_object, h5py.SoftLink):
+        if class_ == silx.io.utils.H5Type.SOFT_LINK:
             # It means the link is broken
             return self.local_file
 
@@ -347,10 +352,11 @@ class H5Node(object):
 
         :rtype: str
         """
-        if isinstance(self.__h5py_object, h5py.ExternalLink):
+        class_ = silx.io.utils.get_h5_class(self.__h5py_object)
+        if class_ == silx.io.utils.H5Type.EXTERNAL_LINK:
             # It means the link is broken
             return self.__h5py_object.path
-        if isinstance(self.__h5py_object, h5py.SoftLink):
+        if class_ == silx.io.utils.H5Type.SOFT_LINK:
             # It means the link is broken
             return self.__h5py_object.path
 
@@ -367,10 +373,11 @@ class H5Node(object):
 
         :rtype: str
         """
-        if isinstance(self.__h5py_object, h5py.ExternalLink):
+        class_ = silx.io.utils.get_h5_class(self.__h5py_object)
+        if class_ == silx.io.utils.H5Type.EXTERNAL_LINK:
             # It means the link is broken
             return self.__h5py_object.filename
-        if isinstance(self.__h5py_object, h5py.SoftLink):
+        if class_ == silx.io.utils.H5Type.SOFT_LINK:
             # It means the link is broken
             return self.local_file.filename
 

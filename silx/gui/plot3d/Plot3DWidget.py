@@ -66,9 +66,10 @@ class _OverviewViewport(scene.Viewport):
 
         # Add a point to draw the background (in a group with depth mask)
         backgroundPoint = primitives.ColorPoints(
-            vertices=[(0., 0., 0.)],
-            colors=(1., 1., 1., 0.5),
-            sizes=self._SIZE)
+            x=0., y=0., z=0.,
+            color=(1., 1., 1., 0.5),
+            size=self._SIZE)
+        backgroundPoint.marker = 'o'
         noDepthGroup = primitives.GroupNoDepth(mask=True, notest=True)
         noDepthGroup.children.append(backgroundPoint)
         self.scene.children.append(noDepthGroup)

@@ -31,6 +31,7 @@ __date__ = "18/10/2016"
 
 
 import unittest
+import numpy
 
 from silx.test.utils import ParametricTestCase
 
@@ -39,6 +40,19 @@ from silx.gui.plot._utils import ticklayout
 
 class TestTickLayout(ParametricTestCase):
     """Test ticks layout algorithms"""
+
+    def testTicks(self):
+        """Test of :func:`ticks`"""
+        tests = {  # (vmin, vmax): ref_ticks
+            (1., 1.): (1.,),
+            (0.5, 10.5): (2.0, 4.0, 6.0, 8.0, 10.0),
+            (0.001, 0.005): (0.001, 0.002, 0.003, 0.004, 0.005)
+            }
+
+        for (vmin, vmax), ref_ticks in tests.items():
+            with self.subTest(vmin=vmin, vmax=vmax):
+                ticks, labels = ticklayout.ticks(vmin, vmax)
+                self.assertTrue(numpy.allclose(ticks, ref_ticks))
 
     def testNiceNumbers(self):
         """Minimalistic tests of :func:`niceNumbers`"""

@@ -29,6 +29,7 @@ matrix:
 
         - language: generic
           os: osx
+          osx_image: xcode7.3
           env:
               - BUILD_COMMAND=bdist_wheel
               - WITH_QT_TEST=True
@@ -121,4 +122,4 @@ script:
 
 after_failure:
     # Display result as base64, while it is not possible to expose files
-    - "for f in ./build/test-debug/*.png; do echo $f as base64; echo $( base64 $f); done"
+    - "for f in ./build/test-debug/*.png; do echo $f as base64; echo $( base64 $f) | fold -w 400; done"

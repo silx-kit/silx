@@ -31,88 +31,11 @@ __license__ = "MIT"
 __date__ = "08/09/2017"
 
 
+import weakref
+
 from silx.gui import qt
 from silx.gui.icons import getQIcon
-
-
-class _ViewpointActionGroup(qt.QActionGroup):
-    """ActionGroup of actions to reset the viewpoint.
-
-    As for QActionGroup, add group's actions to the widget with:
-    `widget.addActions(actionGroup.actions())`
-
-    :param Plot3DWidget plot3D: The widget for which to control the viewpoint
-    :param parent: See :class:`QActionGroup`
-    """
-
-    # Action information: icon name, text, tooltip
-    _RESET_CAMERA_ACTIONS = (
-        ('cube-front', 'Front', 'View along the -Z axis'),
-        ('cube-back', 'Back', 'View along the +Z axis'),
-        ('cube-top', 'Top', 'View along the -Y'),
-        ('cube-bottom', 'Bottom', 'View along the +Y'),
-        ('cube-right', 'Right', 'View along the -X'),
-        ('cube-left', 'Left', 'View along the +X'),
-        ('cube', 'Side', 'Side view')
-    )
-
-    def __init__(self, plot3D, parent=None):
-        super(_ViewpointActionGroup, self).__init__(parent)
-        self.setExclusive(False)
-
-        self._plot3D = plot3D
-
-        for actionInfo in self._RESET_CAMERA_ACTIONS:
-            iconname, text, tooltip = actionInfo
-
-            action = qt.QAction(getQIcon(iconname), text, None)
-            action.setIconVisibleInMenu(True)
-            action.setCheckable(False)
-            action.setToolTip(tooltip)
-            self.addAction(action)
-
-        self.triggered[qt.QAction].connect(self._actionGroupTriggered)
-
-    def _actionGroupTriggered(self, action):
-        actionname = action.text().lower()
-
-        self._plot3D.viewport.camera.extrinsic.reset(face=actionname)
-        self._plot3D.centerScene()
-
-
-class ViewpointToolBar(qt.QToolBar):
-    """A toolbar providing icons to reset the viewpoint.
-
-    :param parent: See :class:`QToolBar`
-    :param Plot3DWidget plot3D: The widget to control
-    :param str title: Title of the toolbar
-    """
-
-    def __init__(self, parent=None, plot3D=None, title='Viewpoint control'):
-        super(ViewpointToolBar, self).__init__(title, parent)
-
-        self._actionGroup = _ViewpointActionGroup(plot3D)
-        assert plot3D is not None
-        self._plot3D = plot3D
-        self.addActions(self._actionGroup.actions())
-
-        # Choosing projection disabled for now
-        # Add projection combo box
-        # comboBoxProjection = qt.QComboBox()
-        # comboBoxProjection.addItem('Perspective')
-        # comboBoxProjection.addItem('Parallel')
-        # comboBoxProjection.setToolTip(
-        #     'Choose the projection:'
-        #     ' perspective or parallel (i.e., orthographic)')
-        # comboBoxProjection.currentIndexChanged[(str)].connect(
-        #     self._comboBoxProjectionCurrentIndexChanged)
-        # self.addWidget(qt.QLabel('Projection:'))
-        # self.addWidget(comboBoxProjection)
-
-    # def _comboBoxProjectionCurrentIndexChanged(self, text):
-    #     """Projection combo box listener"""
-    #     self._plot3D.setProjection(
-    #         'perspective' if text == 'Perspective' else 'orthographic')
+from .. import actions
 
 
 class ViewpointToolButton(qt.QToolButton):
@@ -122,14 +45,40 @@ class ViewpointToolButton(qt.QToolButton):
     :param Plot3DWiddget plot3D: The widget to control
     """
 
-    def __init__(self, parent=None, plot3D=None):
+    def __init__(self, parent=None):
         super(ViewpointToolButton, self).__init__(parent)
 
-        self._actionGroup = _ViewpointActionGroup(plot3D)
+        self._plot3DRef = None
 
         menu = qt.QMenu(self)
-        menu.addActions(self._actionGroup.actions())
+        menu.addAction(actions.viewpoint.FrontViewpointAction(parent=self))
+        menu.addAction(actions.viewpoint.BackViewpointAction(parent=self))
+        menu.addAction(actions.viewpoint.TopViewpointAction(parent=self))
+        menu.addAction(actions.viewpoint.BottomViewpointAction(parent=self))
+        menu.addAction(actions.viewpoint.RightViewpointAction(parent=self))
+        menu.addAction(actions.viewpoint.LeftViewpointAction(parent=self))
+        menu.addAction(actions.viewpoint.SideViewpointAction(parent=self))
+
         self.setMenu(menu)
         self.setPopupMode(qt.QToolButton.InstantPopup)
         self.setIcon(getQIcon('cube'))
         self.setToolTip('Reset the viewpoint to a defined position')
+
+    def setPlot3DWidget(self, widget):
+        """Set the Plot3DWidget this toolbar is associated with
+
+        :param Plot3DWidget widget: The widget to control
+        """
+        self._plot3DRef = None if widget is None else weakref.ref(widget)
+
+        for action in self.menu().actions():
+            action.setPlot3DWidget(widget)
+
+    def getPlot3DWidget(self):
+        """Return the Plot3DWidget associated to this toolbar.
+
+        If no widget is associated, it returns None.
+
+        :rtype: qt.QWidget
+        """
+        return None if self._plot3DRef is None else self._plot3DRef()

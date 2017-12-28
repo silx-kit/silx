@@ -26,7 +26,7 @@
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "15/05/2017"
+__date__ = "11/12/2017"
 
 
 from .utils import open  # pylint:disable=redefined-builtin
@@ -36,6 +36,11 @@ from .utils import is_dataset
 from .utils import is_file
 from .utils import is_group
 from .utils import is_softlink
+from .utils import supported_extensions
+from .utils import get_data
 
 # avoid to import open with "import *"
-__all__ = ["save1D", "is_dataset", "is_file", "is_group", "is_softlink"]
+__all = locals().keys()
+__all = filter(lambda x: not x.startswith("_"), __all)
+__all = filter(lambda x: x != "open", __all)
+__all__ = list(__all)

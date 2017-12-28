@@ -29,7 +29,7 @@ The :class:`PlotWindow` is a subclass of :class:`.PlotWidget`.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "17/08/2017"
+__date__ = "22/11/2017"
 
 import collections
 import logging
@@ -427,16 +427,22 @@ class PlotWindow(PlotWidget):
         return self._legendsDockWidget
 
     @property
-    @deprecated(replacement="getCurvesRoiDockWidget()", since_version="0.4.0")
+    @deprecated(replacement="getCurvesRoiWidget()", since_version="0.4.0")
     def curvesROIDockWidget(self):
         return self.getCurvesRoiDockWidget()
 
     def getCurvesRoiDockWidget(self):
-        """DockWidget with curves' ROI panel (lazy-loaded).
+        # Undocumented for a "soft deprecation" in version 0.7.0
+        # (still used internally for lazy loading)
+        if self._curvesROIDockWidget is None:
+            self._curvesROIDockWidget = CurvesROIDockWidget(
+                plot=self, name='Regions Of Interest')
+            self._curvesROIDockWidget.hide()
+            self.addTabbedDockWidget(self._curvesROIDockWidget)
+        return self._curvesROIDockWidget
 
-        The widget returned is a :class:`CurvesROIDockWidget`.
-        Its central widget is a :class:`CurvesROIWidget`
-        accessible as :attr:`CurvesROIDockWidget.roiWidget`.
+    def getCurvesRoiWidget(self):
+        """Return the :class:`CurvesROIWidget`.
 
         :class:`silx.gui.plot.CurvesROIWidget.CurvesROIWidget` offers a getter
         and a setter for the ROI data:
@@ -444,12 +450,7 @@ class PlotWindow(PlotWidget):
             - :meth:`CurvesROIWidget.getRois`
             - :meth:`CurvesROIWidget.setRois`
         """
-        if self._curvesROIDockWidget is None:
-            self._curvesROIDockWidget = CurvesROIDockWidget(
-                plot=self, name='Regions Of Interest')
-            self._curvesROIDockWidget.hide()
-            self.addTabbedDockWidget(self._curvesROIDockWidget)
-        return self._curvesROIDockWidget
+        return self.getCurvesRoiDockWidget().roiWidget
 
     @property
     @deprecated(replacement="getMaskToolsDockWidget()", since_version="0.4.0")

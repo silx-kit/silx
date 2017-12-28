@@ -27,17 +27,21 @@ data module to format data as text in the same way."""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "27/09/2017"
+__date__ = "13/12/2017"
 
 import numpy
 import numbers
 from silx.third_party import six
 from silx.gui import qt
+import logging
 
 try:
     import h5py
 except ImportError:
     h5py = None
+
+
+_logger = logging.getLogger(__name__)
 
 
 class TextFormatter(qt.QObject):
@@ -203,8 +207,9 @@ class TextFormatter(qt.QObject):
                 data = [ord(d) for d in data.item()]
             else:
                 data = data.item().astype(numpy.uint8)
-        else:
+        elif six.PY2:
             data = [ord(d) for d in data]
+            # In python3 data is already a bytes array
         data = ["\\x%02X" % d for d in data]
         if self.__useQuoteForText:
             return "b\"%s\"" % "".join(data)
@@ -221,6 +226,30 @@ class TextFormatter(qt.QObject):
         else:
             return "".join(data)
 
+    def __formatCharString(self, data):
+        """Format text of char.
+
+        From the specifications we expect to have ASCII, but we also allow
+        CP1252 in some ceases as fallback.
+
+        If no encoding fits, it will display a readable ASCII chars, with
+        escaped chars (using the python syntax) for non decoded characters.
+
+        :param data: A binary string of char expected in ASCII
+        :rtype: str
+        """
+        try:
+            text = "%s" % data.decode("ascii")
+            return self.__formatText(text)
+        except UnicodeDecodeError:
+            # Here we can spam errors, this is definitly a badly
+            # generated file
+            _logger.error("Invalid ASCII string %s.", data)
+            if data == b"\xB0":
+                _logger.error("Fallback using cp1252 encoding")
+                return self.__formatText(u"\u00B0")
+        return self.__formatSafeAscii(data)
+
     def __formatH5pyObject(self, data, dtype):
         # That's an HDF5 object
         ref = h5py.check_dtype(ref=dtype)
@@ -236,11 +265,7 @@ class TextFormatter(qt.QObject):
                 return self.__formatText(data)
             elif vlen == six.binary_type:
                 # HDF5 ASCII
-                try:
-                    text = "%s" % data.decode("ascii")
-                    return self.__formatText(text)
-                except UnicodeDecodeError:
-                    return self.__formatSafeAscii(data)
+                return self.__formatCharString(data)
         return None
 
     def toString(self, data, dtype=None):
@@ -276,14 +301,12 @@ class TextFormatter(qt.QObject):
         elif isinstance(data, (numpy.unicode_, six.text_type)):
             return self.__formatText(data)
         elif isinstance(data, (numpy.string_, six.binary_type)):
+            if dtype is None and hasattr(data, "dtype"):
+                dtype = data.dtype
             if dtype is not None:
                 # Maybe a sub item from HDF5
                 if dtype.kind == 'S':
-                    try:
-                        text = "%s" % data.decode("ascii")
-                        return self.__formatText(text)
-                    except UnicodeDecodeError:
-                        return self.__formatSafeAscii(data)
+                    return self.__formatCharString(data)
                 elif dtype.kind == 'O':
                     if h5py is not None:
                         text = self.__formatH5pyObject(data, dtype)

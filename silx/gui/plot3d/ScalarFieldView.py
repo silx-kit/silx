@@ -56,48 +56,6 @@ from .tools import InteractiveModeToolBar
 _logger = logging.getLogger(__name__)
 
 
-class _BoundedGroup(scene.Group):
-    """Group with data bounds"""
-
-    _shape = None  # To provide a default value without overriding __init__
-
-    @property
-    def shape(self):
-        """Data shape (depth, height, width) of this group or None"""
-        return self._shape
-
-    @shape.setter
-    def shape(self, shape):
-        if shape is None:
-            self._shape = None
-        else:
-            depth, height, width = shape
-            self._shape = float(depth), float(height), float(width)
-
-    @property
-    def size(self):
-        """Data size (width, height, depth) of this group or None"""
-        shape = self.shape
-        if shape is None:
-            return None
-        else:
-            return shape[2], shape[1], shape[0]
-
-    @size.setter
-    def size(self, size):
-        if size is None:
-            self.shape = None
-        else:
-            self.shape = size[2], size[1], size[0]
-
-    def _bounds(self, dataBounds=False):
-        if dataBounds and self.size is not None:
-            return numpy.array(((0., 0., 0.), self.size),
-                               dtype=numpy.float32)
-        else:
-            return super(_BoundedGroup, self)._bounds(dataBounds)
-
-
 class Isosurface(qt.QObject):
     """Class representing an iso-surface
 
@@ -609,14 +567,7 @@ class CutPlane(qt.QObject):
         colormap = self.getColormap()
         sceneCMap = self._plane.colormap
 
-        indices = numpy.linspace(0., 1., 256)
-        colormapDisp = Colormap(name=colormap.getName(),
-                                normalization=Colormap.LINEAR,
-                                vmin=None,
-                                vmax=None,
-                                colors=colormap.getColormapLUT())
-        colors = colormapDisp.applyToData(indices)
-        sceneCMap.colormap = colors
+        sceneCMap.colormap = colormap.getNColors()
 
         sceneCMap.norm = colormap.getNormalization()
         range_ = colormap.getColormapRange(data=self._dataRange)
@@ -776,7 +727,7 @@ class ScalarFieldView(Plot3DWindow):
         self._data = None
         self._dataRange = None
 
-        self._group = _BoundedGroup()
+        self._group = primitives.BoundedGroup()
         self._group.transforms = [self._dataTranslate, self._dataScale]
 
         self._selectionBox = primitives.Box()

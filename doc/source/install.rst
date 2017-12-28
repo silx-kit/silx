@@ -2,7 +2,7 @@
 Installation steps
 ==================
 
-*silx* supports `Python <https://www.python.org/>`_ versions 2.7, 3.4 and 3.5.
+*silx* supports `Python <https://www.python.org/>`_ versions 2.7, 3.4 or later.
 
 To install *silx* on Windows, read the `Windows instructions`_.
 

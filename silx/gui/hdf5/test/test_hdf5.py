@@ -69,6 +69,14 @@ class TestHdf5TreeModel(TestCaseQt):
         if h5py is None:
             self.skipTest("h5py is not available")
 
+    def waitForPendingOperations(self, model):
+        for i in range(10):
+            if not model.hasPendingOperations():
+                break
+            self.qWait(10)
+        else:
+            raise RuntimeError("Still waiting for a pending operation")
+
     @contextmanager
     def h5TempFile(self):
         # create tmp file
@@ -115,21 +123,17 @@ class TestHdf5TreeModel(TestCaseQt):
 
     def testInsertFilenameAsync(self):
         with self.h5TempFile() as filename:
-            model = hdf5.Hdf5TreeModel()
-            self.assertEquals(model.rowCount(qt.QModelIndex()), 0)
-            model.insertFileAsync(filename)
-            index = model.index(0, 0, qt.QModelIndex())
-            self.assertIsInstance(model.nodeFromIndex(index), hdf5.Hdf5LoadingItem.Hdf5LoadingItem)
-            time.sleep(0.1)
-            self.qapp.processEvents()
-            time.sleep(0.1)
-            index = model.index(0, 0, qt.QModelIndex())
-            self.assertIsInstance(model.nodeFromIndex(index), hdf5.Hdf5Item.Hdf5Item)
-            self.assertEquals(model.rowCount(qt.QModelIndex()), 1)
-            # clean up
-            index = model.index(0, 0, qt.QModelIndex())
-            h5File = model.data(index, hdf5.Hdf5TreeModel.H5PY_OBJECT_ROLE)
-            h5File.close()
+            try:
+                model = hdf5.Hdf5TreeModel()
+                self.assertEquals(model.rowCount(qt.QModelIndex()), 0)
+                model.insertFileAsync(filename)
+                index = model.index(0, 0, qt.QModelIndex())
+                self.assertIsInstance(model.nodeFromIndex(index), hdf5.Hdf5LoadingItem.Hdf5LoadingItem)
+                self.waitForPendingOperations(model)
+                index = model.index(0, 0, qt.QModelIndex())
+                self.assertIsInstance(model.nodeFromIndex(index), hdf5.Hdf5Item.Hdf5Item)
+            finally:
+                model = None
 
     def testInsertObject(self):
         h5 = commonh5.File("/foo/bar/1.mock", "w")
@@ -206,9 +210,7 @@ class TestHdf5TreeModel(TestCaseQt):
             model.dropMimeData(mimeData, qt.Qt.CopyAction, 0, 0, qt.QModelIndex())
             self.assertEquals(model.rowCount(qt.QModelIndex()), 1)
             # after sync
-            time.sleep(0.1)
-            self.qapp.processEvents()
-            time.sleep(0.1)
+            self.waitForPendingOperations(model)
             index = model.index(0, 0, qt.QModelIndex())
             self.assertIsInstance(model.nodeFromIndex(index), hdf5.Hdf5Item.Hdf5Item)
             # clean up

@@ -109,7 +109,7 @@ def ticks(vMin, vMax, nbTicks=5):
     """Returns tick positions and labels using nice numbers algorithm.
 
     This enforces ticks to be within [vMin, vMax] range.
-    It returns at least 2 ticks.
+    It returns at least 1 tick (when vMin == vMax).
 
     :param float vMin: The min value on the axis
     :param float vMax: The max value on the axis
@@ -117,13 +117,19 @@ def ticks(vMin, vMax, nbTicks=5):
     :returns: tick positions and corresponding text labels
     :rtype: 2-tuple: list of float, list of string
     """
-    start, end, step, nfrac = niceNumbers(vMin, vMax, nbTicks)
-    positions = [t for t in _frange(start, end, step) if vMin <= t <= vMax]
+    assert vMin <= vMax
+    if vMin == vMax:
+        positions = [vMin]
+        nfrac = 0
 
-    # Makes sure there is at least 2 ticks
-    if len(positions) < 2:
-        positions = [vMin, vMax]
-        nfrac = numberOfDigits(vMax - vMin)
+    else:
+        start, end, step, nfrac = niceNumbers(vMin, vMax, nbTicks)
+        positions = [t for t in _frange(start, end, step) if vMin <= t <= vMax]
+
+        # Makes sure there is at least 2 ticks
+        if len(positions) < 2:
+            positions = [vMin, vMax]
+            nfrac = numberOfDigits(vMax - vMin)
 
     # Generate labels
     format_ = '%g' if nfrac == 0 else '%.{}f'.format(nfrac)

@@ -24,15 +24,23 @@
 #include <stdlib.h>
 
 #ifdef _GNU_SOURCE
-#include <xlocale.h>
-#include <locale.h>
+#  include <locale.h>
+#  ifdef __GLIBC__
+#    include <features.h>
+#    if !((__GLIBC__ > 2) || ((__GLIBC__ == 2) && (__GLIBC_MINOR__ > 25)))
+#      /* strtod_l has been moved to stdlib.h since glibc 2.26 */
+#      include <xlocale.h>
+#    endif
+#  else 
+#    include <xlocale.h>
+#  endif
 #else
-#ifdef PYMCA_POSIX
-#else
-#ifdef SPECFILE_POSIX
-#include <locale.h>
-#endif
-#endif
+#  ifdef PYMCA_POSIX
+#  else
+#    ifdef SPECFILE_POSIX
+#      include <locale.h>
+#    endif
+#  endif
 #endif
 
 #include <string.h>

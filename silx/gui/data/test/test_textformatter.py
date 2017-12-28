@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "27/09/2017"
+__date__ = "12/12/2017"
 
 import unittest
 import shutil
@@ -90,6 +90,17 @@ class TestTextFormatter(TestCaseQt):
         formatter.setImaginaryUnit("z")
         result = formatter.toString("toto")
         self.assertEquals(result, '"toto"')
+
+    def test_numpy_void(self):
+        formatter = TextFormatter()
+        result = formatter.toString(numpy.void(b"\xFF"))
+        self.assertEquals(result, 'b"\\xFF"')
+
+    def test_char_cp1252(self):
+        # degree character in cp1252
+        formatter = TextFormatter()
+        result = formatter.toString(numpy.bytes_(b"\xB0"))
+        self.assertEquals(result, u'"\u00B0"')
 
 
 class TestTextFormatterWithH5py(TestCaseQt):

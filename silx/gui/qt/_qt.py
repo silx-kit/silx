@@ -29,18 +29,18 @@
 - `PySide <http://www.pyside.org>`_.
 
 If a Qt binding is already loaded, it will use it, otherwise the different
-Qt bindings are tried in this order: PyQt4, PySide, PyQt5.
+Qt bindings are tried in this order: PySide2, PyQt4, PySide, PyQt5.
 
 The name of the loaded Qt binding is stored in the BINDING variable.
 
 For an alternative solution providing a structured namespace,
 see `qtpy <https://pypi.python.org/pypi/QtPy/>`_ which
-provides the namespace of PyQt5 over PyQt4 and PySide.
+provides the namespace of PyQt5 over PyQt4, PySide and PySide2.
 """
 
-__authors__ = ["V.A. Sole - ESRF Data Analysis"]
+__authors__ = ["V.A. Sole"]
 __license__ = "MIT"
-__date__ = "17/01/2017"
+__date__ = "11/10/2017"
 
 
 import logging
@@ -52,10 +52,10 @@ _logger = logging.getLogger(__name__)
 
 
 BINDING = None
-"""The name of the Qt binding in use: 'PyQt5', 'PyQt4' or 'PySide'."""
+"""The name of the Qt binding in use: PyQt5, 'PyQt4, PySide2 or PySide."""
 
 QtBinding = None  # noqa
-"""The Qt binding module in use: PyQt5, PyQt4 or PySide."""
+"""The Qt binding module in use: PyQt5, PyQt4, PySide2 or PySide."""
 
 HAS_SVG = False
 """True if Qt provides support for Scalable Vector Graphics (QtSVG)."""
@@ -64,7 +64,10 @@ HAS_OPENGL = False
 """True if Qt provides support for OpenGL (QtOpenGL)."""
 
 # First check for an already loaded wrapper
-if 'PySide.QtCore' in sys.modules:
+if 'PySide2.QtCore' in sys.modules:
+    BINDING = 'PySide2'
+
+elif 'PySide.QtCore' in sys.modules:
     BINDING = 'PySide'
 
 elif 'PyQt5.QtCore' in sys.modules:
@@ -83,8 +86,13 @@ else:  # Then try Qt bindings
             try:
                 import PyQt5  # noqa
             except ImportError:
-                raise ImportError(
-                    'No Qt wrapper found. Install PyQt4, PyQt5 or PySide.')
+                try:
+                    import PySide2  # noqa
+                except ImportError:
+                    raise ImportError(
+                        'No Qt wrapper found. Install PyQt4, PyQt5 or PySide2.')
+                else:
+                    BINDING = 'PySide2'
             else:
                 BINDING = 'PyQt5'
         else:
@@ -201,8 +209,42 @@ elif BINDING == 'PyQt5':
 
     Slot = pyqtSlot
 
+elif BINDING == 'PySide2':
+    _logger.debug('Using PySide2 bindings')
+    _logger.warning(
+        'Using PySide2 Qt binding: PySide2 support in silx is experimental!')
+
+    import PySide2 as QtBinding  # noqa
+
+    from PySide2.QtCore import *  # noqa
+    from PySide2.QtGui import *  # noqa
+    from PySide2.QtWidgets import *  # noqa
+    from PySide2.QtPrintSupport import *  # noqa
+
+    try:
+        from PySide2.QtOpenGL import *  # noqa
+    except ImportError:
+        _logger.info("PySide2.QtOpenGL not available")
+        HAS_OPENGL = False
+    else:
+        HAS_OPENGL = True
+
+    try:
+        from PySide2.QtSvg import *  # noqa
+    except ImportError:
+        _logger.info("PySide2.QtSvg not available")
+        HAS_SVG = False
+    else:
+        HAS_SVG = True
+
+    # Import loadUi wrapper for PySide2
+    # TODO from ._pyside_dynamic import loadUi  # noqa
+
+    pyqtSignal = Signal
+
 else:
-    raise ImportError('No Qt wrapper found. Install PyQt4, PyQt5 or PySide')
+    raise ImportError('No Qt wrapper found. Install PyQt4, PyQt5, PySide2')
+
 
 # provide a exception handler but not implement it by default
 def exceptionHandler(type_, value, trace):

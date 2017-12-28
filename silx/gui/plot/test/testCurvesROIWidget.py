@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,9 +24,9 @@
 # ###########################################################################*/
 """Basic tests for CurvesROIWidget"""
 
-__authors__ = ["T. Vincent"]
+__authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "15/05/2017"
+__date__ = "16/11/2017"
 
 
 import logging
@@ -104,6 +104,19 @@ class TestCurvesROIWidget(TestCaseQt):
             self.widget.roiWidget.load(self.tmpFile)
 
             del self.tmpFile
+
+    def testMiddleMarker(self):
+        """Test with middle marker enabled"""
+        self.widget.roiWidget.setMiddleROIMarkerFlag(True)
+
+        # Add a ROI
+        self.mouseClick(self.widget.roiWidget.addButton, qt.Qt.LeftButton)
+
+        xleftMarker = self.plot._getMarker(legend='ROI min').getXPosition()
+        xMiddleMarker = self.plot._getMarker(legend='ROI middle').getXPosition()
+        xRightMarker = self.plot._getMarker(legend='ROI max').getXPosition()
+        self.assertAlmostEqual(xMiddleMarker,
+                               xleftMarker + (xRightMarker - xleftMarker) / 2.)
 
     def testCalculation(self):
         x = numpy.arange(100.)
