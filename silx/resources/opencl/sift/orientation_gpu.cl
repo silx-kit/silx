@@ -132,14 +132,14 @@ kernel void orientation_assignment(
     hist2[lid0] = 0.0f;
     if (lid0 <36) hist[lid0] = 0.0f;
 
-    int    row = (int) (raw_kp.row + 0.5),
-        col = (int) (raw_kp.col + 0.5);
+    int    row = (int) (raw_kp.row + 0.5f),
+        col = (int) (raw_kp.col + 0.5f);
 
     /* Look at pixels within 3 sigma around the point and sum their
       Gaussian weighted gradient magnitudes into the histogram. */
 
     float sigma = OriSigma * raw_kp.scale;
-    int radius = (int) (sigma * 3.0);
+    int radius = (int) (sigma * 3.0f);
     int rmin = MAX(0,row - radius);
     int cmin = MAX(0,col - radius);
     int rmax = MIN(row + radius,grad_height - 2);
