@@ -87,11 +87,11 @@ kernel void orientation_assignment(
     //memset
     for (i=0; i<36; i++) hist[i] = 0.0f;
 
-    int row = (int) (raw_kp.row + 0.5),
-        col = (int) (raw_kp.col + 0.5);
+    int row = (int) (raw_kp.row + 0.5f),
+        col = (int) (raw_kp.col + 0.5f);
 
     float sigma = OriSigma * raw_kp.scale;
-    int    radius = (int) (sigma * 3.0);
+    int    radius = (int) (sigma * 3.0f);
     int rmin = max(0,row - radius);
     int cmin = max(0,col - radius);
     int rmax = min(row + radius,grad_height - 2);

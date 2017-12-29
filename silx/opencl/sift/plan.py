@@ -86,19 +86,19 @@ class SiftPlan(OpenclProcessing):
     This SIFT algorithm is patented: U.S. Patent 6,711,293:
     "Method and apparatus for identifying scale invariant features in an image and use of same for locating an object in an image",
     """
-    kernels = {"convolution": 1024,  # key: name value max local workgroup size
-               "preprocess": 1024,
-               "algebra": 1024,
-               "image": 1024,
-               "gaussian": 1024,
-               "reductions": 1024,
-               "orientation_cpu": 1,
-               "orientation_gpu": 128,
-               "keypoints_gpu1": (8, 4, 4),
-               "keypoints_gpu2": (8, 8, 8),
-               "keypoints_cpu": 1,
-               "memset": 128, }
-#               "keypoints":128}
+    kernels_max_wg_size = {"convolution": 1024, # key: name value max local workgroup size
+                           "preprocess": 1024,
+                           "algebra": 1024,
+                           "image": 1024,
+                           "gaussian": 1024,
+                           "reductions": 1024,
+                           "orientation_cpu": 1,
+                           "orientation_gpu": 128,
+                           "keypoints_gpu1": (8, 4, 4),
+                           "keypoints_gpu2": (8, 8, 8),
+                           "keypoints_cpu": 1,
+                           "memset": 128, }
+#                          "keypoints":128}
 
     converter = {numpy.dtype(numpy.uint8): "u8_to_float",
                  numpy.dtype(numpy.uint16): "u16_to_float",
@@ -173,7 +173,7 @@ class SiftPlan(OpenclProcessing):
         self._calc_scales()
         self.LOW_END = 0
         self._calc_workgroups()
-        self._compile_kernels()
+        self.compile_kernels()
         self._allocate_buffers()
         self.cnt = numpy.empty(1, dtype=numpy.int32)
         if (self.devicetype == "CPU"):
@@ -217,7 +217,7 @@ class SiftPlan(OpenclProcessing):
         memory += self.kpsize * size_of_float * 4 * 2  # those are array of float4 to register keypoints, we need two of them
         memory += self.kpsize * 128  # stores the descriptors: 128 unsigned chars
         memory += 4  # keypoint index Counter
-        wg_float = min(self.block_size, numpy.sqrt(self.shape[0] * self.shape[1]))
+        wg_float = min(block_size, numpy.sqrt(self.shape[0] * self.shape[1]))
         self.red_size = nextpower(wg_float)
         memory += 4 * 2 * self.red_size  # temporary storage for reduction
 
@@ -231,7 +231,7 @@ class SiftPlan(OpenclProcessing):
             logger.debug("pre-Allocating %s float for init blur" % size)
             memory += size * size_of_float
         prevSigma = self._init_sigma
-        for i in range(par.Scales + 2):
+        for _ in range(par.Scales + 2):
             increase = prevSigma * math.sqrt(self.sigmaRatio ** 2 - 1.0)
             size = kernel_size(increase, True)
             logger.debug("pre-Allocating %s float for blur sigma: %s" % (size, increase))
@@ -269,7 +269,7 @@ class SiftPlan(OpenclProcessing):
 
         self.allocate_buffers(buffers, use_array=True)
 
-        self.cl_mem["255"].fill([255.0])
+        self.cl_mem["255"].fill(255.0)
         ########################################################################
         # Allocate space for gaussian kernels
         ########################################################################
@@ -300,7 +300,7 @@ class SiftPlan(OpenclProcessing):
         wg_size = nextpower(size)
 
         logger.info("Allocating %s float for blur sigma: %s. wg=%s max_wg=%s", size, sigma, wg_size, self.block_size)
-        wg1 = self.kernels["gaussian.gaussian"]
+        wg1 = self.check_workgroup_size("gaussian")
         if wg1 >= wg_size:
             gaussian_gpu = pyopencl.array.empty(self.queue, size, dtype=numpy.float32)
             evt = self.programs["gaussian"].gaussian(self.queue, (wg_size,), (wg_size,),
@@ -328,50 +328,31 @@ class SiftPlan(OpenclProcessing):
         # self.compile_kernels
 
         to_compile = OrderedDict([("sift", "sift")])
-        for kernel, wg_size in list(self.__class__kernels.items()):
+        for kernel in list(self.kernels_max_wg_size.keys()):
             if "_" in kernel:
                 base = kernel.split("_")[0]
                 if base in to_compile:
                     continue
                 # else select the kernel:
                 if self.device.type == "GPU":
-                    if base + "_gpu" in self.kernel:
+                    if base + "_gpu" in self.kernels_max_wg_size:
                         to_compile[base] = base + "_gpu"
-                    elif base + "_gpu2" in self.kernel:
+                    elif base + "_gpu2" in self.kernels_max_wg_size:
                         to_compile[base] = base + "_gpu2"
                 else:
                     to_compile[base] = base + "_cpu"
             else:
                 to_compile[kernel] = kernel
-            try:
-                OpenclProcessing.compile_kernels(self,
-                                                 [os.path.join("sift", kernel) for kernel in to_compile.values()],
-                                                 compile_options="-D WORKGROUP_SIZE=%s" % self.block_size)
-            except Exception as err:
-                logger.error("error while compiling sift: %s", err)
-
-
-
-#             if isinstance(wg_size, tuple):
-#                 wg_size = self.block_size
-#             try:
-#                 program = pyopencl.Program(self.ctx, kernel_src).build()
-#             except pyopencl.MemoryError as error:
-#                 raise MemoryError(error)
-#             except pyopencl.RuntimeError as error:
-#                 if kernel == "keypoints_gpu2":
-#                     logger.warning("Failed compiling kernel '%s' with workgroup size %s: %s: use low_end alternative", kernel, wg_size, error)
-#                     self.LOW_END += 1
-#                 elif kernel == "keypoints_gpu1":
-#                     logger.warning("Failed compiling kernel '%s' with workgroup size %s: %s: use CPU alternative", kernel, wg_size, error)
-#                     self.LOW_END += 1
-#                 else:
-#                     logger.error("Failed compiling kernel '%s' with workgroup size %s: %s", kernel, wg_size, error)
-#                     raise error
-#             self.programs[kernel] = program
-#             for one_function in program.all_kernels():
-#                 workgroup_size = kernel_workgroup_size(program, one_function)
-#                 self.kernels[kernel + "." + one_function.function_name] = workgroup_size
+        print(to_compile)
+        try:
+            OpenclProcessing.compile_kernels(self,
+                                             [os.path.join("sift", kernel)
+                                              for kernel in to_compile.values()],
+                                             compile_options="-D WORKGROUP_SIZE=%s" % self.block_size)
+        except Exception as err:
+            logger.error("error while compiling sift: %s", err)
+        else:
+            print(self.kernels)
 
     def _free_kernels(self):
         """free all kernels
@@ -397,16 +378,16 @@ class SiftPlan(OpenclProcessing):
         self.block_size = min(self.block_size,
                               self.device.max_work_group_size)
 
-        self.kernels = {}
-        for k, v in self.__class__.kernels.items():
+        self.kernels_wg = {}
+        for k, v in self.kernels_max_wg_size.items():
             if isinstance(v, int):
-                self.kernels[k] = min(v, self.block_size)
+                self.kernels_wg[k] = min(v, self.block_size)
             else:  # probably a list
                 prod = 1
                 for i in v:
                     prod *= i
                 if prod <= self.block_size:
-                    self.kernels[k] = v
+                    self.kernels_wg[k] = v
                 # else it is not possible to run this kernel.
                 # If the kernel is not present in the dict, it should not be used.
 
@@ -481,8 +462,8 @@ class SiftPlan(OpenclProcessing):
             else:
                 raise RuntimeError("invalid input format error (%s)" % (str(self.dtype)))
 
-            wg1 = self.kernels["reductions.max_min_global_stage1"]
-            wg2 = self.kernels["reductions.max_min_global_stage2"]
+            wg1 = self.kernels_wg["reductions.max_min_global_stage1"]
+            wg2 = self.kernels_wg["reductions.max_min_global_stage2"]
             if min(wg1, wg2) < self.red_size:
                 # common bug on OSX when running on CPU
                 logger.info("Unable to use MinMax Reduction: stage1 wg: %s; stage2 wg: %s < max_work_group_size: %s, expected: %s",
@@ -666,7 +647,7 @@ class SiftPlan(OpenclProcessing):
                 else:
                     file_to_use = "orientation_gpu"
 
-                wgsize2 = self.kernels[file_to_use],
+                wgsize2 = self.kernels_wg[file_to_use],
                 procsize = int(newcnt * wgsize2[0]),
                 evt = self.programs[file_to_use].orientation_assignment(self.queue, procsize, wgsize2,
                                                                         self.cl_mem["Kp_1"].data,  # __global keypoint* keypoints,
@@ -683,7 +664,7 @@ class SiftPlan(OpenclProcessing):
                 evt_cp = pyopencl.enqueue_copy(self.queue, self.cnt, self.cl_mem["cnt"].data)
                 newcnt = self.cnt[0]  # do not forget to update numbers of keypoints, modified above !
 
-                for i_not_used in range(3):
+                for _ in range(3):
                     # up to 3 attempts
                     if (not self.USE_CPU) and (self.LOW_END == 0) and ("keypoints_gpu2" in self.kernels):
                         file_to_use = "keypoints_gpu2"

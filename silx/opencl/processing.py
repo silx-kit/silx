@@ -41,7 +41,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "11/10/2017"
+__date__ = "29/12/2017"
 __status__ = "stable"
 
 
@@ -150,8 +150,8 @@ class OpenclProcessing(object):
 
         :param buffers: a list of BufferDescriptions, leave to None for
                         paramatrized buffers.
-        :param use_array: allocate memory as pyopencl.array.Array 
-                            instead of pyopencl.Buffer 
+        :param use_array: allocate memory as pyopencl.array.Array
+                            instead of pyopencl.Buffer
         
         Note that an OpenCL context also requires some memory, as well
         as Event and other OpenCL functionalities which cannot and are
@@ -209,8 +209,9 @@ class OpenclProcessing(object):
         self.cl_mem.update(mem)
 
     def check_workgroup_size(self, kernel_name):
+        "Calculate the maximum workgroup size from given kernel after compilation"
         kernel = self.kernels.get_kernel(kernel_name)
-        self.compiletime_workgroup_size = kernel_workgroup_size(self.program, kernel)
+        return kernel_workgroup_size(self.program, kernel)
 
     def free_buffers(self):
         """free all device.memory allocated on the device

@@ -30,7 +30,7 @@
 
 /*
     guess_keypoint: amplitude, row, column, scale
-	actual_keypoint column, row, scale, angle
+	actual_keypoint: column, row, scale, angle
 */
 
 
