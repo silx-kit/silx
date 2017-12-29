@@ -34,7 +34,7 @@
 
 
 #ifndef WORKGROUP_SIZE
-	#define WORKGROUP_SIZE 64
+    #define WORKGROUP_SIZE 64
 #endif
 
 
@@ -59,57 +59,57 @@
 
 
 kernel void matching(
-	global featured_keypoint* keypoints1,
-	global featured_keypoint* keypoints2,
-	global int2* matchings,
-	global int* counter,
-	int max_nb_match,
-	float ratio_th,
-	int size1,
-	int size2)
+                    global featured_keypoint* keypoints1,
+                    global featured_keypoint* keypoints2,
+                    global int2* matchings,
+                    global int* counter,
+                    int max_nb_match,
+                    float ratio_th,
+                    int size1,
+                    int size2)
 {
-	int gid0 = get_global_id(0);
-	if (!(0 <= gid0 && gid0 < size1))
-		return;
+     int gid0 = get_global_id(0);
+    if (!(0 <= gid0 && gid0 < size1))
+        return;
 
-	float dist1 = MAXFLOAT, dist2 = MAXFLOAT; 
-	int current_min = 0;
-	int old;
+    float dist1 = MAXFLOAT, dist2 = MAXFLOAT; 
+    int current_min = 0;
+    int old;
 
-	//pre-fetch
-	unsigned char desc1[128];
-	for (int i = 0; i<128; i++)
-		desc1[i] = ((keypoints1[gid0]).desc)[i];
+    //pre-fetch
+    unsigned char desc1[128];
+    for (int i = 0; i<128; i++)
+        desc1[i] = ((keypoints1[gid0]).desc)[i];
 
-	//each thread gid0 makes a loop on the second list
-	for (int i = 0; i<size2; i++) {
+    //each thread gid0 makes a loop on the second list
+    for (int i = 0; i<size2; i++) {
 
-		//L1 distance between desc1[gid0] and desc2[i]
-		int dist = 0;
-		for (int j=0; j<128; j++) { //1 thread handles 4 values (uint4) = 
-			unsigned char dval1 = desc1[j], dval2 = ((keypoints2[i]).desc)[j];
-			dist += ((dval1 > dval2) ? (dval1 - dval2) : (-dval1 + dval2));
+        //L1 distance between desc1[gid0] and desc2[i]
+        int dist = 0;
+        for (int j=0; j<128; j++) { //1 thread handles 4 values (uint4) = 
+            unsigned char dval1 = desc1[j], dval2 = ((keypoints2[i]).desc)[j];
+            dist += ((dval1 > dval2) ? (dval1 - dval2) : (-dval1 + dval2));
 
-		}
-		
-		if (dist < dist1) { //candidate better than the first
-			dist2 = dist1;
-			dist1 = dist;
-			current_min = i;
-		}
-		else if (dist < dist2) { //candidate better than the second (but not the first)
-			dist2 = dist;
-		}
-		
-	}//end "i loop"
+        }
+        
+        if (dist < dist1) { //candidate better than the first
+            dist2 = dist1;
+            dist1 = dist;
+            current_min = i;
+        }
+        else if (dist < dist2) { //candidate better than the second (but not the first)
+            dist2 = dist;
+        }
+        
+    }//end "i loop"
 
-	if (dist2 != 0 && dist1/dist2 < ratio_th) {
-		int2 pair = 0;
-		pair.s0 = gid0;
-		pair.s1 = current_min;
-		old = atomic_inc(counter);
-		if (old < max_nb_match) matchings[old] = pair;
-	}
+    if (dist2 != 0 && dist1/dist2 < ratio_th) {
+        int2 pair = 0;
+        pair.s0 = gid0;
+        pair.s1 = current_min;
+        old = atomic_inc(counter);
+        if (old < max_nb_match) matchings[old] = pair;
+    }
 }
 
 
@@ -138,72 +138,72 @@ kernel void matching(
 
 
 kernel void matching_valid(
-	global featured_keypoint* keypoints1,
-	global featured_keypoint* keypoints2,
-	global char* valid,
-	int roi_width,
-	int roi_height,
-	global int2* matchings,
-	global int* counter,
-	int max_nb_match,
-	float ratio_th,
-	int size1,
-	int size2)
+                            global featured_keypoint* keypoints1,
+                            global featured_keypoint* keypoints2,
+                            global char* valid,
+                            int roi_width,
+                            int roi_height,
+                            global int2* matchings,
+                            global int* counter,
+                            int max_nb_match,
+                            float ratio_th,
+                            int size1,
+                            int size2)
 {
-	int gid0 = get_global_id(0);
-	if (!(0 <= gid0 && gid0 < size1))
-		return;
+    int gid0 = get_global_id(0);
+    if (!(0 <= gid0 && gid0 < size1))
+        return;
 
-	float dist1 = MAXFLOAT, dist2 = MAXFLOAT; 
-	int current_min = 0;
-	int old;
+    float dist1 = MAXFLOAT, dist2 = MAXFLOAT; 
+    int current_min = 0;
+    int old;
 
-	actual_keypoint kp = keypoints1[gid0].kp;
-	int c = kp.col, r = kp.row;
-	//processing only valid keypoints
-	if (r < roi_height && c < roi_width && valid[r*roi_width+c] == 0) return;
+    actual_keypoint kp = keypoints1[gid0].keypoint;
+    int c = kp.col, r = kp.row;
+    //processing only valid keypoints
+    if (r < roi_height && c < roi_width && valid[r*roi_width+c] == 0) return;
 
-	//pre-fetch
-	unsigned char desc1[128];
-	for (int i = 0; i<128; i++)
-		desc1[i] = ((keypoints1[gid0]).desc)[i];
+    //pre-fetch
+    unsigned char desc1[128];
+    for (int i = 0; i<128; i++)
+        desc1[i] = ((keypoints1[gid0]).desc)[i];
 
-	//each thread gid0 makes a loop on the second list
-	for (int i = 0; i<size2; i++)
-	{
+    //each thread gid0 makes a loop on the second list
+    for (int i = 0; i<size2; i++)
+    {
 
-		//L1 distance between desc1[gid0] and desc2[i]
-		int dist = 0;
-		for (int j=0; j<128; j++) 
-		{ //1 thread handles 4 values
-			kp = keypoints2[i].kp;
-			c = kp.col, r = kp.row;
-			if (r < roi_height && c < roi_width && valid[r*roi_width+c] != 0) 
-			{
-				unsigned char dval1 = desc1[j], dval2 = ((keypoints2[i]).desc)[j];
-				dist += ((dval1 > dval2) ? (dval1 - dval2) : (-dval1 + dval2));
-			}
-		}
-		
-		if (dist < dist1) 
-		{ //candidate better than the first
-			dist2 = dist1;
-			dist1 = dist;
-			current_min = i;
-		}
-		else if (dist < dist2) 
-		{ //candidate better than the second (but not the first)
-			dist2 = dist;
-		}
-		
-	}//end "i loop"
+        //L1 distance between desc1[gid0] and desc2[i]
+        int dist = 0;
+        for (int j=0; j<128; j++) 
+        { //1 thread handles 4 values
+            kp = keypoints2[i].keypoint;
+            c = kp.col, r = kp.row;
+            if (r < roi_height && c < roi_width && valid[r*roi_width+c] != 0) 
+            {
+                unsigned char dval1 = desc1[j], dval2 = ((keypoints2[i]).desc)[j];
+                dist += ((dval1 > dval2) ? (dval1 - dval2) : (-dval1 + dval2));
+            }
+        }
+        
+        if (dist < dist1) 
+        { //candidate better than the first
+            dist2 = dist1;
+            dist1 = dist;
+            current_min = i;
+        }
+        else if (dist < dist2) 
+        { //candidate better than the second (but not the first)
+            dist2 = dist;
+        }
+        
+    }//end "i loop"
 
-	if ((dist2 != 0) && (dist1/dist2 < ratio_th)) 
-	{
-		int2 pair = 0;
-		pair.s0 = gid0;
-		pair.s1 = current_min;
-		old = atomic_inc(counter);
-		if (old < max_nb_match) matchings[old] = pair;
-	}
+    if ((dist2 != 0) && (dist1/dist2 < ratio_th)) 
+    {
+        int2 pair = 0;
+        pair.s0 = gid0;
+        pair.s1 = current_min;
+        old = atomic_inc(counter);
+        if (old < max_nb_match) matchings[old] = pair;
+    }
 }
