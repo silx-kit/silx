@@ -195,13 +195,16 @@ class BuildMan(Command):
 
         env = dict((str(k), str(v)) for k, v in os.environ.items())
         env["PYTHONPATH"] = os.pathsep.join(path)
-        if not os.path.isdir("build/man"):
-            os.makedirs("build/man")
+
         import subprocess
-        import tempfile
-        import stat
+
+        status = subprocess.call(["mkdir", "-p", "build/man"])
+        if status != 0:
+            raise RuntimeError("Fail to create build/man directory")
 
         try:
+            import tempfile
+            import stat
             script_name = None
 
             # help2man expect a single executable file to extract the help
@@ -716,6 +719,7 @@ def get_project_configuration(dry_run):
             'gui/icons/*.gif',
             'gui/icons/*/*.png',
             'opencl/*.cl',
+            'opencl/image/*.cl',
             'opencl/sift/*.cl',
             'opencl/codec/*.cl',
             'gui/colormaps/*.npy'],
@@ -750,7 +754,7 @@ def get_project_configuration(dry_run):
 
     setup_kwargs.update(name=PROJECT,
                         version=get_version(),
-                        url="http://www.silx.org/",
+                        url="https://github.com/silx-kit/silx",
                         author="data analysis unit",
                         author_email="silx@esrf.fr",
                         classifiers=classifiers,

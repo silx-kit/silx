@@ -62,6 +62,7 @@ import math
 import logging
 import gc
 import numpy
+from collections import OrderedDict
 from .param import par
 from silx.opencl import ocl, pyopencl, kernel_workgroup_size
 from silx.opencl.utils import get_opencl_code, nextpower
@@ -120,7 +121,7 @@ class SiftPlan(OpenclProcessing):
     def __init__(self, shape=None, dtype=None, template=None,
                  PIX_PER_KP=None, init_sigma=None,
                  ctx=None, devicetype="all", platformid=None, deviceid=None,
-                 block_size=None, profile=False):
+                 block_size=None, memory=None, profile=False):
         """
         Constructor of the class
 
@@ -152,6 +153,7 @@ class SiftPlan(OpenclProcessing):
             self.PIX_PER_KP = int(PIX_PER_KP)
 
         self.kpsize = None
+
         if init_sigma is None:
             init_sigma = par.InitSigma
         # no test on the values, just make sure it is a float
@@ -215,7 +217,7 @@ class SiftPlan(OpenclProcessing):
         memory += self.kpsize * size_of_float * 4 * 2  # those are array of float4 to register keypoints, we need two of them
         memory += self.kpsize * 128  # stores the descriptors: 128 unsigned chars
         memory += 4  # keypoint index Counter
-        wg_float = min(block_size, numpy.sqrt(self.shape[0] * self.shape[1]))
+        wg_float = min(self.block_size, numpy.sqrt(self.shape[0] * self.shape[1]))
         self.red_size = nextpower(wg_float)
         memory += 4 * 2 * self.red_size  # temporary storage for reduction
 
@@ -319,32 +321,57 @@ class SiftPlan(OpenclProcessing):
         self.cl_mem[name] = gaussian_gpu
         return gaussian_gpu
 
-    def _compile_kernels(self):
+    def compile_kernels(self):
         """Call the OpenCL compiler
         """
-        common_src = get_opencl_code(os.path.join("sift", "sift"))
-        for kernel, wg_size in list(self.kernels.items()):
-            kernel_src = common_src + get_opencl_code(os.path.join("sift", kernel))
-            if isinstance(wg_size, tuple):
-                wg_size = self.block_size
-            try:
-                program = pyopencl.Program(self.ctx, kernel_src).build('-D WORKGROUP_SIZE=%s' % wg_size)
-            except pyopencl.MemoryError as error:
-                raise MemoryError(error)
-            except pyopencl.RuntimeError as error:
-                if kernel == "keypoints_gpu2":
-                    logger.warning("Failed compiling kernel '%s' with workgroup size %s: %s: use low_end alternative", kernel, wg_size, error)
-                    self.LOW_END += 1
-                elif kernel == "keypoints_gpu1":
-                    logger.warning("Failed compiling kernel '%s' with workgroup size %s: %s: use CPU alternative", kernel, wg_size, error)
-                    self.LOW_END += 1
+
+        # self.compile_kernels
+
+        to_compile = OrderedDict([("sift", "sift")])
+        for kernel, wg_size in list(self.__class__kernels.items()):
+            if "_" in kernel:
+                base = kernel.split("_")[0]
+                if base in to_compile:
+                    continue
+                # else select the kernel:
+                if self.device.type == "GPU":
+                    if base + "_gpu" in self.kernel:
+                        to_compile[base] = base + "_gpu"
+                    elif base + "_gpu2" in self.kernel:
+                        to_compile[base] = base + "_gpu2"
                 else:
-                    logger.error("Failed compiling kernel '%s' with workgroup size %s: %s", kernel, wg_size, error)
-                    raise error
-            self.programs[kernel] = program
-            for one_function in program.all_kernels():
-                workgroup_size = kernel_workgroup_size(program, one_function)
-                self.kernels[kernel + "." + one_function.function_name] = workgroup_size
+                    to_compile[base] = base + "_cpu"
+            else:
+                to_compile[kernel] = kernel
+            try:
+                OpenclProcessing.compile_kernels(self,
+                                                 [os.path.join("sift", kernel) for kernel in to_compile.values()],
+                                                 compile_options="-D WORKGROUP_SIZE=%s" % self.block_size)
+            except Exception as err:
+                logger.error("error while compiling sift: %s", err)
+
+
+
+#             if isinstance(wg_size, tuple):
+#                 wg_size = self.block_size
+#             try:
+#                 program = pyopencl.Program(self.ctx, kernel_src).build()
+#             except pyopencl.MemoryError as error:
+#                 raise MemoryError(error)
+#             except pyopencl.RuntimeError as error:
+#                 if kernel == "keypoints_gpu2":
+#                     logger.warning("Failed compiling kernel '%s' with workgroup size %s: %s: use low_end alternative", kernel, wg_size, error)
+#                     self.LOW_END += 1
+#                 elif kernel == "keypoints_gpu1":
+#                     logger.warning("Failed compiling kernel '%s' with workgroup size %s: %s: use CPU alternative", kernel, wg_size, error)
+#                     self.LOW_END += 1
+#                 else:
+#                     logger.error("Failed compiling kernel '%s' with workgroup size %s: %s", kernel, wg_size, error)
+#                     raise error
+#             self.programs[kernel] = program
+#             for one_function in program.all_kernels():
+#                 workgroup_size = kernel_workgroup_size(program, one_function)
+#                 self.kernels[kernel + "." + one_function.function_name] = workgroup_size
 
     def _free_kernels(self):
         """free all kernels
@@ -368,7 +395,7 @@ class SiftPlan(OpenclProcessing):
             self.block_size = max_work_item_sizes[0]
         # MacOSX driver on CPU usually reports bad workgroup size: this is addressed in ocl
         self.block_size = min(self.block_size,
-                                      ocl.platforms[self.device[0]].devices[self.device[1]].max_work_group_size)
+                              self.device.max_work_group_size)
 
         self.kernels = {}
         for k, v in self.__class__.kernels.items():

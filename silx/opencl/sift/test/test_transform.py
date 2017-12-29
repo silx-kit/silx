@@ -37,7 +37,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "15/03/2017"
+__date__ = "09/10/2017"
 
 
 import os
@@ -62,9 +62,10 @@ if ocl:
 # for Python implementation of tested functions
 # from .test_image_functions import
 # from .test_image_setup import
-from ..utils import calc_size, get_opencl_code, matching_correction
+from ..utils import calc_size, get_opencl_code
 from ..plan import SiftPlan
 from ..match import MatchPlan
+from ...alignment import matching_correction
 logger = logging.getLogger(__name__)
 
 
@@ -134,10 +135,10 @@ class TestTransform(unittest.TestCase):
         mode = numpy.int32(1)
 
         # computing keypoints matching with SIFT
-        sift_plan = SiftPlan(template=self.image, max_workgroup_size=self.maxwg)
+        sift_plan = SiftPlan(template=self.image, block_size=self.maxwg)
         kp1 = sift_plan.keypoints(self.image)
         kp2 = sift_plan.keypoints(image_transformed)  # image2 and image must have the same size
-        match_plan = MatchPlan() # cls.ctx
+        match_plan = MatchPlan()  # cls.ctx
         matching = match_plan.match(kp2, kp1)
 
         # Retrieve the linear transformation from the matching pairs
