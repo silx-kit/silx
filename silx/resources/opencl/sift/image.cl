@@ -135,15 +135,11 @@ kernel void compute_gradient_orientation(
  * :param width: integer number of columns of a DOG.
  * :param height: integer number of lines of a DOG
 
-*/
-
-
-/*
 TODO:
 -check fabs(val) outside this kernel ? It would avoid the "if"
 -confirm usage of fabs instead of fabsf
 -confirm the need to return -atan2() rather than atan2 ; to be coherent with python
-
+-use OriHistThresh instead of the harcoded value = 0.8
 */
 
 
@@ -180,7 +176,7 @@ kernel void local_maxmin(
 		The following condition is part of the keypoints refinement: we eliminate the low-contrast points
 		NOTE: "fabsf" instead of "fabs" should be used, for "fabs" if for doubles. Used "fabs" to be coherent with python
 		*/
-		if (fabs(val) > (0.8 * peak_thresh)) {
+		if (fabs(val) > (0.8f * peak_thresh)) {
 
 			int c,r,pos;
 			int ismax = 0, ismin = 0;
@@ -208,13 +204,14 @@ kernel void local_maxmin(
 
 			pos = gid1*width+gid0;
 
-			float H00 = DOGS[index_dog+(gid1-1)*width+gid0] - 2.0 * DOGS[index_dog+pos] + DOGS[index_dog+(gid1+1)*width+gid0],
-			H11 = DOGS[index_dog+pos-1] - 2.0 * DOGS[index_dog+pos] + DOGS[index_dog+pos+1],
+			float H00 = DOGS[index_dog+(gid1-1)*width+gid0] - 2.0f * DOGS[index_dog+pos] + DOGS[index_dog+(gid1+1)*width+gid0],
+			H11 = DOGS[index_dog+pos-1] - 2.0f * DOGS[index_dog+pos] + DOGS[index_dog+pos+1],
 			H01 = ( (DOGS[index_dog+(gid1+1)*width+gid0+1]
 					- DOGS[index_dog+(gid1+1)*width+gid0-1])
-					- (DOGS[index_dog+(gid1-1)*width+gid0+1] - DOGS[index_dog+(gid1-1)*width+gid0-1])) / 4.0;
+					- (DOGS[index_dog+(gid1-1)*width+gid0+1] - DOGS[index_dog+(gid1-1)*width+gid0-1])) / 4.0f;
 
-			float det = H00 * H11 - H01 * H01, trace = H00 + H11;
+			float det = H00 * H11 - H01 * H01, 
+				trace = H00 + H11;
 
 			/*
 			   If (trace^2)/det < thresh, the Keypoint is OK.
@@ -273,6 +270,9 @@ kernel void local_maxmin(
  * :param InitSigma: float "par.InitSigma" in SIFT (1.6 by default)
  * :param width: integer number of columns of the DoG
  * :param height: integer number of lines of the DoG
+
+TODO: replace hard-coded 3.0f with par.Scales
+
  */
 
 
@@ -306,9 +306,11 @@ kernel void interp_keypoint(
 				H00, H11, H22, H01, H02, H12, H10, H20, H21,
 				K00, K11, K22, K01, K02, K12, K10, K20, K21,
 				solution0, solution1, solution2, det, peakval;
-			int pos = r*width+c;
-			int loop = 1, movesRemain = 5;
-			int newr = r, newc = c;
+			int pos = r*width+c,
+			    loop = 1, 
+				movesRemain = 5,
+			    newr = r, 
+			    newc = c;
 
 			//this loop replaces the recursive "InterpKeyPoint"
 			while (loop == 1) {
