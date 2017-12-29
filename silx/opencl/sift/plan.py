@@ -53,7 +53,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "27/09/2017"
+__date__ = "29/12/2017"
 __status__ = "production"
 
 import os
@@ -152,15 +152,15 @@ class SiftPlan(OpenclProcessing):
             self.PIX_PER_KP = int(PIX_PER_KP)
 
         self.kpsize = None
+        if init_sigma is None:
+            init_sigma = par.InitSigma
+        # no test on the values, just make sure it is a float
         self._init_sigma = float(init_sigma)
-        memory = self._calc_memory()
+        memory = self._calc_memory(block_size)
         OpenclProcessing.__init__(self, ctx=ctx, devicetype=devicetype,
                                   platformid=platformid, deviceid=deviceid,
                                   block_size=block_size, profile=profile,
                                   memory=memory)
-        if init_sigma is None:
-            init_sigma = par.InitSigma
-        # no test on the values, just make sure it is a float
 
         self.scales = []  # in XY order
         self.procsize = []  # same as  procsize but with dimension in (X,Y) not (slow, fast)
@@ -192,10 +192,12 @@ class SiftPlan(OpenclProcessing):
         self.scales.pop()
         self.octave_max = len(self.scales)
 
-    def _calc_memory(self):
+    def _calc_memory(self, block_size=None):
         """
         Estimates the memory footprint of all buffer to ensure it fits on the device
         """
+        block_size = int(block_size) if block_size else 4096 # upper limit
+
         # Just the context + kernel takes about 75MB on the GPU
         memory = 75 * 2 ** 20
         size_of_float = numpy.dtype(numpy.float32).itemsize
@@ -213,7 +215,7 @@ class SiftPlan(OpenclProcessing):
         memory += self.kpsize * size_of_float * 4 * 2  # those are array of float4 to register keypoints, we need two of them
         memory += self.kpsize * 128  # stores the descriptors: 128 unsigned chars
         memory += 4  # keypoint index Counter
-        wg_float = min(self.block_size, numpy.sqrt(self.shape[0] * self.shape[1]))
+        wg_float = min(block_size, numpy.sqrt(self.shape[0] * self.shape[1]))
         self.red_size = nextpower(wg_float)
         memory += 4 * 2 * self.red_size  # temporary storage for reduction
 
