@@ -47,7 +47,7 @@ from silx.opencl import ocl
 from silx.opencl.codec import byte_offset
 try:
     import fabio
-except:
+except ImportError:
     fabio = None
 try:
     import pyopencl
@@ -61,7 +61,8 @@ logger = logging.getLogger(__name__)
                      "PyOpenCl or fabio is missing")
 class TestByteOffset(unittest.TestCase):
 
-    def _create_test_data(self, shape, nexcept, lam=200):
+    @staticmethod
+    def _create_test_data(shape, nexcept, lam=200):
         """Create test (image, compressed stream) pair.
 
         :param shape: Shape of test image
@@ -172,7 +173,6 @@ class TestByteOffset(unittest.TestCase):
         compressed_stream = compressed_array.get().tostring()
         self.assertEqual(raw, compressed_stream)
 
-
     def test_encode_to_bytes(self):
         """Test byte offset compression to bytes"""
         ref, raw = self._create_test_data(shape=(2713, 2719), nexcept=2729)
@@ -189,9 +189,9 @@ class TestByteOffset(unittest.TestCase):
 
 
 def suite():
-    testSuite = unittest.TestSuite()
-    testSuite.addTest(TestByteOffset("test_decompress"))
-    testSuite.addTest(TestByteOffset("test_many_decompress"))
-    testSuite.addTest(TestByteOffset("test_encode"))
-    testSuite.addTest(TestByteOffset("test_encode_to_bytes"))
-    return testSuite
+    test_suite = unittest.TestSuite()
+    test_suite.addTest(TestByteOffset("test_decompress"))
+    test_suite.addTest(TestByteOffset("test_many_decompress"))
+    test_suite.addTest(TestByteOffset("test_encode"))
+    test_suite.addTest(TestByteOffset("test_encode_to_bytes"))
+    return test_suite
