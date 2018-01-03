@@ -56,21 +56,33 @@ logger = logging.getLogger(__name__)
 @unittest.skipUnless(ocl and fabio, "PyOpenCl or fabio is missing")
 class TestByteOffset(unittest.TestCase):
 
-    def test_decompress(self):
+    def _create_test_data(self, shape, nexcept, lam=200):
+        """Create test (image, compressed stream) pair.
+
+        :param shape: Shape of test image
+        :param int nexcept: Number of exceptions in the image
+        :param lam: Expectation of interval argument for numpy.random.poisson
+        :return: (reference image array, compressed stream)
         """
-        tests the byte offset decompression on GPU
-        """
-        import pyopencl
-        shape = (2713, 2719)
         size = numpy.prod(shape)
-        nexcept = 2729
-        ref = numpy.random.poisson(200, numpy.prod(shape))
+        ref = numpy.random.poisson(lam, numpy.prod(shape))
         exception_loc = numpy.random.randint(0, size, size=nexcept)
         exception_value = numpy.random.randint(0, 1000000, size=nexcept)
         ref[exception_loc] = exception_value
         ref.shape = shape
 
         raw = fabio.compression.compByteOffset(ref)
+        return ref, raw
+
+    def test_decompress(self):
+        """
+        tests the byte offset decompression on GPU
+        """
+        import pyopencl
+
+        ref, raw = self._create_test_data(shape=(2713, 2719), nexcept=2729)
+        size = numpy.prod(ref.shape)
+
         try:
             bo = byte_offset.ByteOffset(len(raw), size, profile=True)
         except (RuntimeError, pyopencl.RuntimeError) as err:
@@ -101,12 +113,11 @@ class TestByteOffset(unittest.TestCase):
         is not leaking in memory 
         """
         import pyopencl
+
         shape = (991, 997)
         size = numpy.prod(shape)
-        nexcept = 2729
-        ref = numpy.random.poisson(100, numpy.prod(shape))
-        ref.shape = shape
-        raw = fabio.compression.compByteOffset(ref)
+        ref, raw = self._create_test_data(shape=shape, nexcept=0, lam=100)
+
         try:
             bo = byte_offset.ByteOffset(len(raw), size, profile=False)
         except (RuntimeError, pyopencl.RuntimeError) as err:
@@ -129,12 +140,8 @@ class TestByteOffset(unittest.TestCase):
                      1000.0 * (t2 - t1))
 
         for i in range(ntest):
-            ref = numpy.random.poisson(200, numpy.prod(shape))
-            exception_loc = numpy.random.randint(0, size, size=nexcept)
-            exception_value = numpy.random.randint(0, 1000000, size=nexcept)
-            ref[exception_loc] = exception_value
-            ref.shape = shape
-            raw = fabio.compression.compByteOffset(ref)
+            ref, raw = self._create_test_data(shape=shape, nexcept=2729, lam=200)
+
             t0 = time.time()
             res_cy = fabio.compression.decByteOffset(raw)
             t1 = time.time()
@@ -153,16 +160,9 @@ class TestByteOffset(unittest.TestCase):
         """Test byte offset compression"""
         import pyopencl
 
-        shape = (2713, 2719)
-        size = numpy.prod(shape)
-        nexcept = 2729
-        ref = numpy.random.poisson(200, numpy.prod(shape))
-        exception_loc = numpy.random.randint(0, size, size=nexcept)
-        exception_value = numpy.random.randint(0, 1000000, size=nexcept)
-        ref[exception_loc] = exception_value
-        ref.shape = shape
+        ref, raw = self._create_test_data(shape=(2713, 2719), nexcept=2729)
+        size = numpy.prod(ref.shape)
 
-        raw = fabio.compression.compByteOffset(ref)
         try:
             bo = byte_offset.ByteOffset(len(raw), size, profile=True)
         except (RuntimeError, pyopencl.RuntimeError) as err:
