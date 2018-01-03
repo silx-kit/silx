@@ -320,7 +320,7 @@ class ByteOffset(OpenclProcessing):
         d_size = pyopencl.array.zeros(self.queue, (1,), dtype=numpy.int32)
 
         self.kernels.compression_scan(d_data, d_compressed, d_size)
-        byte_count = d_size.get()[0]
+        byte_count = int(d_size.get()[0])
 
         if out is None:
             out = pyopencl.array.empty(
