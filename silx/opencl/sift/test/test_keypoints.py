@@ -40,7 +40,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "25/09/2017"
+__date__ = "03/01/2018"
 
 import os
 import unittest
@@ -142,13 +142,10 @@ class test_keypoints(ParameterisedTestCase):
                     logger.warning("Failed to compile kernel '%s': aborting" % kernel_file)
                     self.abort = True
                     return
-            elif kernel_file.startswith("keypoint"):
+            elif kernel_file.startswith("descriptor"):
                 self.wg_keypoint = self.param[kernel_file]
                 kernel_src = kernel_base + get_opencl_code(os.path.join("sift", kernel_file))
-                prod_wg = 1
-                for i in self.wg_keypoint:
-                    prod_wg *= i
-
+                prod_wg = numpy.prod(self.wg_keypoint)
                 try:
                     self.program_keypoint = pyopencl.Program(self.ctx, kernel_src).build()
                 except:
@@ -176,10 +173,10 @@ class test_keypoints(ParameterisedTestCase):
         updated_nb_keypoints = compact_cnt
         logger.info("Number of keypoints before orientation assignment : %s", updated_nb_keypoints)
 
-
         # Prepare kernel call
         wg = self.wg_orient
-        max_wg = kernel_workgroup_size(self.program_orient, "orientation_assignment")
+        kernel = self.program_orient.all_kernels()[0]
+        max_wg = kernel_workgroup_size(self.program_orient, kernel)
         if max_wg < wg[0]:
             logger.warning("test_orientation: Skipping test of WG=%s when maximum for this kernel is %s ", wg, max_wg)
             return
@@ -209,13 +206,17 @@ class test_keypoints(ParameterisedTestCase):
 
         # Call the kernel
         t0 = time.time()
-        k1 = self.program_orient.orientation_assignment(self.queue, shape, wg, *kargs)
+        k1 = kernel(self.queue, shape, wg, *kargs)
         res = gpu_keypoints.get()
         cnt = counter.get()
         t1 = time.time()
 
         # Reference Python implemenattion
-        ref, updated_nb_keypoints = my_orientation(keypoints, nb_keypoints, keypoints_start, keypoints_end, grad, ori, octsize, orisigma)
+        ref, updated_nb_keypoints = my_orientation(keypoints,
+                                                   nb_keypoints,
+                                                   keypoints_start,
+                                                   keypoints_end, grad, ori,
+                                                   octsize, orisigma)
         t2 = time.time()
 
         # sort to compare added keypoints
@@ -256,7 +257,9 @@ class test_keypoints(ParameterisedTestCase):
             shape = keypoints.shape[0] * wg[0],
         else:
             shape = keypoints.shape[0] * wg[0], wg[1], wg[2]
-        max_wg = kernel_workgroup_size(self.program_keypoint, "descriptor")
+        kernel = self.program_keypoint.all_kernels()[0]
+        # kernel_name = kernel.name
+        max_wg = kernel_workgroup_size(self.program_keypoint, kernel)
         if max_wg < wg[0]:
             logger.warning("test_descriptor: Skipping test of WG=%s when maximum for this kernel is %s ", wg, max_wg)
             return
@@ -281,7 +284,7 @@ class test_keypoints(ParameterisedTestCase):
 
         # Call the kernel
         t0 = time.time()
-        k1 = self.program_keypoint.descriptor(self.queue, shape, wg, *kargs)
+        k1 = kernel(self.queue, shape, wg, *kargs)
         try:
             res = gpu_descriptors.get()
         except (pyopencl.LogicError, RuntimeError) as error:
@@ -290,7 +293,12 @@ class test_keypoints(ParameterisedTestCase):
         t1 = time.time()
 
         # Reference Python implementation
-        ref = my_descriptor(keypoints_o, grad, ori, octsize, keypoints_start, keypoints_end)
+        ref = my_descriptor(keypoints_o,
+                            grad,
+                            ori,
+                            octsize,
+                            keypoints_start,
+                            keypoints_end)
         ref_sort = ref[numpy.argsort(keypoints[keypoints_start: keypoints_end, 1])]
         t2 = time.time()
 
@@ -308,9 +316,9 @@ class test_keypoints(ParameterisedTestCase):
 
 def suite():
     testSuite = unittest.TestSuite()
-    TESTCASES = [{"orientation_gpu": (128,), "keypoints_gpu2": (8, 8, 8)},
-                 {"orientation_cpu": (1,), "keypoints_cpu": (1,)},
-                 {"orientation_gpu": (128,), "keypoints_gpu1": (4, 4, 8)},
+    TESTCASES = [{"orientation_gpu": (128,), "descriptor_gpu2": (8, 8, 8)},
+                 {"orientation_cpu": (1,), "descriptor_cpu": (1,)},
+                 {"orientation_gpu": (128,), "descriptor_gpu1": (4, 4, 8)},
                  ]
     for param in TESTCASES:
         testSuite.addTest(ParameterisedTestCase.parameterise(
