@@ -328,14 +328,22 @@ class ColormapAction(PlotAction):
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
 
-    def _createDialog(self, parent):
+    def setColorDialog(self, colorDialog):
+        """Set a specific color dialog instead of using the default dialog."""
+        assert(colorDialog is not None)
+        assert(self._dialog is None)
+        self._dialog = colorDialog
+        self._dialog.visibleChanged.connect(self._dialogVisibleChanged)
+        self.setChecked(self._dialog.isVisible())
+
+    @staticmethod
+    def _createDialog(parent):
         """Create the dialog if not already existing
 
         :parent QWidget parent: Parent of the new colormap
         :rtype: ColormapDialog
         """
         dialog = ColormapDialog(parent=parent)
-        dialog.finished.connect(self._setUnChecked)
         dialog.setModal(False)
         return dialog
 
@@ -343,17 +351,18 @@ class ColormapAction(PlotAction):
         """Create a cmap dialog and update active image and default cmap."""
         if self._dialog is None:
             self._dialog = self._createDialog(self.plot)
-            self._updateColormap()
+            self._dialog.visibleChanged.connect(self._dialogVisibleChanged)
             self.plot.sigActiveImageChanged.connect(self._updateColormap)
 
         # Run the dialog listening to colormap change
         if checked is True:
             self._dialog.show()
+            self._updateColormap()
         else:
             self._dialog.hide()
 
-    def _setUnChecked(self):
-        self.setChecked(False)
+    def _dialogVisibleChanged(self, isVisible):
+        self.setChecked(isVisible)
 
     def _updateColormap(self):
         image = self.plot.getActiveImage()

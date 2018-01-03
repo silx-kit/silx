@@ -224,6 +224,9 @@ class ColormapDialog(qt.QDialog):
     :param str title: The QDialog title
     """
 
+    visibleChanged = qt.Signal(bool)
+    """This event is sent when the dialog visibility change"""
+
     def __init__(self, parent=None, title="Colormap Dialog"):
         qt.QDialog.__init__(self, parent)
         self.setWindowTitle(title)
@@ -371,6 +374,14 @@ class ColormapDialog(qt.QDialog):
 
         vLayout.setSizeConstraint(qt.QLayout.SetMinimumSize)
         self.setFixedSize(self.sizeHint())
+
+    def showEvent(self, event):
+        self.visibleChanged.emit(True)
+        super(ColormapDialog, self).showEvent(event)
+
+    def hideEvent(self, event):
+        self.visibleChanged.emit(False)
+        super(ColormapDialog, self).hideEvent(event)
 
     def close(self):
         self.accept()
