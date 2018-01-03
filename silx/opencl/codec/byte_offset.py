@@ -302,22 +302,26 @@ class ByteOffset(OpenclProcessing):
     def encode(self, data, out=None):
         """Compresses data to CBF.
 
-        :param numpy.ndarray data: The data as a numpy array of int32.
+        :param data: The data to compress as a numpy array
+                     (or a pyopencl Array) of int32.
+        :type data: Union[numpy.ndarray, pyopencl.array.Array]
         :param pyopencl.array out: pyopencl array in which to place the result.
         :return: The compressed data as a pyopencl array.
         :rtype: pyopencl.array
         """
-        # TODO also support pyopencl array as input
         # TODO reuse buffers? and use those of decompression
-
-        data = numpy.ascontiguousarray(data, dtype=numpy.int32).ravel()
-        size = data.size
 
         events = []
         with self.sem:
-            d_data = pyopencl.array.to_device(self.queue, data)
+            if isinstance(data, pyopencl.array.Array):
+                d_data = data  # Uses provided array
+
+            else:  # Copy data to device
+                data = numpy.ascontiguousarray(data, dtype=numpy.int32).ravel()
+                d_data = pyopencl.array.to_device(self.queue, data)
+
             d_compressed = pyopencl.array.empty(
-                self.queue, shape=(size * 7,), dtype=numpy.int8)
+                self.queue, shape=(d_data.size * 7,), dtype=numpy.int8)
             d_size = pyopencl.array.zeros(self.queue, (1,), dtype=numpy.int32)
 
             evt = self.kernels.compression_scan(d_data, d_compressed, d_size)
@@ -331,7 +335,7 @@ class ByteOffset(OpenclProcessing):
             evt = pyopencl.enqueue_copy_buffer(
                 self.queue, d_compressed.data, out.data, byte_count=byte_count)
             events.append(
-                EventDescription("copy device buffers: internal -> out", evt))
+                EventDescription("copy D -> D: internal -> out", evt))
 
             if self.profile:
                 self.events += events
@@ -354,7 +358,9 @@ class ByteOffset(OpenclProcessing):
 
         >>> compressed = byte_offset_codec.encode_to_bytes(image)
 
-        :param numpy.ndarray data: The data as a numpy array of int32.
+        :param data: The data to compress as a numpy array
+                     (or a pyopencl Array) of int32.
+        :type data: Union[numpy.ndarray, pyopencl.array.Array]
         :return: The compressed data as bytes.
         :rtype: bytes
         """

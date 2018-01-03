@@ -169,9 +169,16 @@ class TestByteOffset(unittest.TestCase):
             logger.warning(err)
             raise err
 
+        t0 = time.time()
         compressed_array = bo.encode(ref)
+        t1 = time.time()
+
         compressed_stream = compressed_array.get().tostring()
         self.assertEqual(raw, compressed_stream)
+
+        logger.debug("Global execution time: OpenCL: %.3fms.",
+                     1000.0 * (t1 - t0))
+        bo.log_profile()
 
     def test_encode_to_bytes(self):
         """Test byte offset compression to bytes"""
@@ -184,9 +191,45 @@ class TestByteOffset(unittest.TestCase):
             logger.warning(err)
             raise err
 
+        t0 = time.time()
+        res_fabio = fabio.compression.compByteOffset(ref)
+        t1 = time.time()
         compressed_stream = bo.encode_to_bytes(ref)
+        t2 = time.time()
+
         self.assertEqual(raw, compressed_stream)
 
+        logger.debug("Global execution time: fabio %.3fms, OpenCL: %.3fms.",
+                     1000.0 * (t1 - t0),
+                     1000.0 * (t2 - t1))
+        bo.log_profile()
+
+    def test_encode_to_bytes_from_array(self):
+        """Test byte offset compression to bytes from a pyopencl array.
+        """
+        ref, raw = self._create_test_data(shape=(2713, 2719), nexcept=2729)
+
+        try:
+            bo = byte_offset.ByteOffset(len(raw), ref.size, profile=True)
+        except (RuntimeError, pyopencl.RuntimeError) as err:
+            logger.warning(err)
+            raise err
+
+        d_ref = pyopencl.array.to_device(
+            bo.queue, ref.astype(numpy.int32).ravel())
+
+        t0 = time.time()
+        res_fabio = fabio.compression.compByteOffset(ref)
+        t1 = time.time()
+        compressed_stream = bo.encode_to_bytes(d_ref)
+        t2 = time.time()
+
+        self.assertEqual(raw, compressed_stream)
+
+        logger.debug("Global execution time: fabio %.3fms, OpenCL: %.3fms.",
+                     1000.0 * (t1 - t0),
+                     1000.0 * (t2 - t1))
+        bo.log_profile()
 
 def suite():
     test_suite = unittest.TestSuite()
@@ -194,4 +237,5 @@ def suite():
     test_suite.addTest(TestByteOffset("test_many_decompress"))
     test_suite.addTest(TestByteOffset("test_encode"))
     test_suite.addTest(TestByteOffset("test_encode_to_bytes"))
+    test_suite.addTest(TestByteOffset("test_encode_to_bytes_from_array"))
     return test_suite
