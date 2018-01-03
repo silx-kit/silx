@@ -297,7 +297,7 @@ class ByteOffset(OpenclProcessing):
         return knl
 
     def encode(self, data, out=None):
-        """This function compress provided data to CBF.
+        """Compresses data to CBF.
 
         :param numpy.ndarray data: The data as a numpy array of int32.
         :param pyopencl.array out: pyopencl array in which to place the result.
@@ -305,7 +305,6 @@ class ByteOffset(OpenclProcessing):
         :rtype: pyopencl.array
         """
         # TODO also support pyopencl array as input
-        # TODO as_bytes argument
         # TODO record a maximum number of events
         # TODO use semaphore
         # TODO reuse buffers? and use those of decompression
@@ -329,3 +328,13 @@ class ByteOffset(OpenclProcessing):
         pyopencl.enqueue_copy_buffer(
             self.queue, d_compressed.data, out.data, byte_count=byte_count)
         return out
+
+    def encode_to_bytes(self, data):
+        """Compresses data to CBF and returns compressed data as bytes.
+
+        :param numpy.ndarray data: The data as a numpy array of int32.
+        :return: The compressed data as bytes.
+        :rtype: bytes
+        """
+        compressed_array = self.encode(data)
+        return compressed_array.get().tostring()

@@ -157,7 +157,7 @@ class TestByteOffset(unittest.TestCase):
                          1000.0 * (t1 - t0),
                          1000.0 * (t2 - t1))
 
-    def test_compress(self):
+    def test_encode(self):
         """Test byte offset compression"""
         ref, raw = self._create_test_data(shape=(2713, 2719), nexcept=2729)
         size = numpy.prod(ref.shape)
@@ -166,13 +166,25 @@ class TestByteOffset(unittest.TestCase):
             bo = byte_offset.ByteOffset(len(raw), size, profile=True)
         except (RuntimeError, pyopencl.RuntimeError) as err:
             logger.warning(err)
-            if sys.platform == "darwin":
-                raise unittest.SkipTest("Byte-offset decompression is known to be buggy on MacOS-CPU")
-            else:
-                raise err
+            raise err
 
         compressed_array = bo.encode(ref)
         compressed_stream = compressed_array.get().tostring()
+        self.assertEqual(raw, compressed_stream)
+
+
+    def test_encode_to_bytes(self):
+        """Test byte offset compression to bytes"""
+        ref, raw = self._create_test_data(shape=(2713, 2719), nexcept=2729)
+        size = numpy.prod(ref.shape)
+
+        try:
+            bo = byte_offset.ByteOffset(len(raw), size, profile=True)
+        except (RuntimeError, pyopencl.RuntimeError) as err:
+            logger.warning(err)
+            raise err
+
+        compressed_stream = bo.encode_to_bytes(ref)
         self.assertEqual(raw, compressed_stream)
 
 
@@ -180,5 +192,6 @@ def suite():
     testSuite = unittest.TestSuite()
     testSuite.addTest(TestByteOffset("test_decompress"))
     testSuite.addTest(TestByteOffset("test_many_decompress"))
-    testSuite.addTest(TestByteOffset("test_compress"))
+    testSuite.addTest(TestByteOffset("test_encode"))
+    testSuite.addTest(TestByteOffset("test_encode_to_bytes"))
     return testSuite
