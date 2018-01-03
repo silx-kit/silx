@@ -1,9 +1,9 @@
 /*
  *   Project: SIFT: An algorithm for image alignement
- *            Kernel for gaussian signal generation.
+ *            gaussian.cl: Kernel for gaussian signal generation.
  *
  *
- *   Copyright (C) 2013-7 European Synchrotron Radiation Facility
+ *   Copyright (C) 2013-8 European Synchrotron Radiation Facility
  *                           Grenoble, France
  *
  *   Principal authors: J. Kieffer (kieffer@esrf.fr)
@@ -56,8 +56,8 @@ kernel void gaussian(global     float     *data,
     int lid = get_local_id(0);
 //    int wd = get_work_dim(0); DEFINE WG are compile time
     //allocate a shared memory of size floats
-    __local float gaus[WORKGROUP_SIZE];
-    __local float sum[WORKGROUP_SIZE];    
+    local float gaus[WORKGROUP_SIZE];
+    local float sum[WORKGROUP_SIZE];    
 
     if(lid < SIZE){
         float x = ((float)lid - ((float)SIZE - 1.0f)/2.0f) / sigma;
@@ -132,3 +132,30 @@ kernel void gaussian(global     float     *data,
         data[lid] = gaus[lid] / sum[0];
     }
 }
+/**
+ * \brief gaussian: Initialize a vector with a gaussian function.
+ *
+ * Same as previous except that there is no synchronization: use the sum of the integral 
+ *
+ * :param data:        Float pointer to global memory storing the vector.
+ * :param sigma:    width of the gaussian
+ * :param size:     size of the function
+ *
+**/
+
+kernel void
+gaussian_nosync(global     float   *data,
+                const      float   sigma,
+                const      int     SIZE)
+{
+    int gid=get_global_id(0);
+    if(gid < SIZE){
+        float x = ((float)gid - ((float)SIZE - 1.0f)/2.0f) / sigma;
+        float y = exp(-x * x / 2.0f);
+        data[gid] = y / sigma / sqrt(2.0f * M_PI_F);
+    }
+}
+
+
+
+

@@ -4,7 +4,7 @@
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2013-2017  European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2013-2018  European Synchrotron Radiation Facility, Grenoble, France
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -27,10 +27,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-"""
-Test suite for keypoint matching kernels
-
-
+"""Test suite for keypoint matching kernels
 """
 
 from __future__ import division, print_function
@@ -39,7 +36,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013-2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "25/09/2017"
+__date__ = "02/01/2018"
 
 import os
 import unittest
@@ -104,7 +101,8 @@ class TestMatching(unittest.TestCase):
         else:
             self.use_cpu = False
         kernel = ("matching_gpu.cl" if not(self.use_cpu) else "matching_cpu.cl")
-        kernel_src = os.linesep.join((get_opencl_code(os.path.join("sift", i)) for i in ("sift", kernel)))
+        kernel_src = os.linesep.join((get_opencl_code(os.path.join("sift", i))
+                                      for i in ("sift", kernel)))
         self.program = pyopencl.Program(self.ctx, kernel_src).build()  # .build('-D WORKGROUP_SIZE=%s' % wg_size)
         self.wg = (1, 128)
 

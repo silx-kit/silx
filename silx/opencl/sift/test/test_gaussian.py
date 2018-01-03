@@ -4,7 +4,7 @@
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2013-2017  European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2013-2018  European Synchrotron Radiation Facility, Grenoble, France
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -37,7 +37,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "15/05/2017"
+__date__ = "02/01/2018"
 
 import os
 import time
@@ -136,7 +136,7 @@ class TestGaussian(unittest.TestCase):
             size = int(1 + 8 * sigma)
         g_gpu = pyopencl.array.empty(cls.queue, size, dtype=numpy.float32, order="C")
         t0 = time.time()
-        evt1 = cls.kernels["preprocess"].gaussian(cls.queue, (size,), (1,),
+        evt1 = cls.kernels["gaussian"].gaussian_nosync(cls.queue, (size,), (1,),
                                                   g_gpu.data,  # __global     float     *data,
                                                   numpy.float32(sigma),  # const        float     sigma,
                                                   numpy.int32(size))  # const        int     SIZE

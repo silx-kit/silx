@@ -1,9 +1,9 @@
 /*
  *   Project: SIFT: An algorithm for image alignement
- *            Kernel for image pre-processing: Normalization, ...
+ *            preproces.cl: Kernels for image pre-processing, Normalization, ...
  *
  *
- *   Copyright (C) 2013-2017 European Synchrotron Radiation Facility
+ *   Copyright (C) 2013-2018 European Synchrotron Radiation Facility
  *                           Grenoble, France
  *
  *   Principal authors: J. Kieffer (kieffer@esrf.fr)
@@ -335,29 +335,6 @@ bin(        const    __global     float     *image_in,
     };//end if in IMAGE
 };//end kernel
 
-/**
- * \brief gaussian: Initialize a vector with a gaussian function.
- *
- *
- * :param data:        Float pointer to global memory storing the vector.
- * :param sigma:    width of the gaussian
- * :param size:     size of the function
- *
-**/
-
-__kernel void
-gaussian(            __global     float     *data,
-            const                 float     sigma,
-            const                 int     SIZE
-)
-{
-    int gid=get_global_id(0);
-    if(gid < SIZE){
-        float x = ((float)gid - ((float)SIZE - 1.0f)/2.0f) / sigma;
-        float y = exp(-x * x / 2.0f);
-        data[gid] = y / sigma / sqrt(2.0f * M_PI_F);
-    }
-}
 
 /**
  * \brief divide_cst: divide a vector by a constant.
@@ -380,6 +357,4 @@ divide_cst(    __global     float     *data,
         data[gid] = data[gid] / value[0];
     }
 }
-
-
 

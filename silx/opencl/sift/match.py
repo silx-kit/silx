@@ -39,7 +39,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "25/09/2017"
+__date__ = "02/01/2018"
 __status__ = "production"
 
 
@@ -250,7 +250,7 @@ class MatchPlan(OpenclProcessing):
 
 def match_py(nkp1, nkp2, raw_results=False):
     """Pure numpy implementation of match:
-    
+
     :param nkp1, nkp2: Numpy record array of keypoints with descriptors
     :param raw_results: return the indices of valid indexes instead of 
     :return: (2,n) 2D array of matching keypoints. 

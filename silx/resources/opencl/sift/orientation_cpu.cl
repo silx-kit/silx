@@ -61,7 +61,7 @@
  */
 
 
-kernel void orientation_assignment(
+kernel void orientation_cpu(
     global unified_keypoint* keypoints,
     global float* grad,
     global float* ori,
