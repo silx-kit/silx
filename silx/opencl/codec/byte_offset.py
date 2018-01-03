@@ -309,7 +309,6 @@ class ByteOffset(OpenclProcessing):
         """
         # TODO also support pyopencl array as input
         # TODO reuse buffers? and use those of decompression
-        # TODO write test + sample code
 
         data = numpy.ascontiguousarray(data, dtype=numpy.int32).ravel()
         size = data.size
@@ -341,6 +340,19 @@ class ByteOffset(OpenclProcessing):
 
     def encode_to_bytes(self, data):
         """Compresses data to CBF and returns compressed data as bytes.
+
+        Usage:
+
+        Provided an image (`image`) stored as a numpy array of int32,
+        first, create a byte offset compression/decompression object:
+
+        >>> from silx.opencl.codec.byte_offset import ByteOffset
+        >>> byte_offset_codec = ByteOffset(
+        ...     raw_size=image.size//3, dec_size=image.size)
+
+        Then, compress an image into bytes:
+
+        >>> compressed = byte_offset_codec.encode_to_bytes(image)
 
         :param numpy.ndarray data: The data as a numpy array of int32.
         :return: The compressed data as bytes.
