@@ -306,27 +306,28 @@ class ByteOffset(OpenclProcessing):
         """
         # TODO also support pyopencl array as input
         # TODO record a maximum number of events
-        # TODO use semaphore
         # TODO reuse buffers? and use those of decompression
         # TODO write test + sample code
 
         data = numpy.ascontiguousarray(data, dtype=numpy.int32).ravel()
         size = data.size
 
-        d_data = pyopencl.array.to_device(self.queue, data)
-        d_compressed = pyopencl.array.empty(
-            self.queue, shape=(size * 7,), dtype=numpy.int8)
-        d_size = pyopencl.array.zeros(self.queue, (1,), dtype=numpy.int32)
+        with self.sem:
+            d_data = pyopencl.array.to_device(self.queue, data)
+            d_compressed = pyopencl.array.empty(
+                self.queue, shape=(size * 7,), dtype=numpy.int8)
+            d_size = pyopencl.array.zeros(self.queue, (1,), dtype=numpy.int32)
 
-        self.kernels.compression_scan(d_data, d_compressed, d_size)
-        byte_count = int(d_size.get()[0])
+            self.kernels.compression_scan(d_data, d_compressed, d_size)
+            byte_count = int(d_size.get()[0])
 
-        if out is None:
-            out = pyopencl.array.empty(
-                self.queue, shape=(byte_count,), dtype=numpy.int8)
+            if out is None:
+                out = pyopencl.array.empty(
+                    self.queue, shape=(byte_count,), dtype=numpy.int8)
 
-        pyopencl.enqueue_copy_buffer(
-            self.queue, d_compressed.data, out.data, byte_count=byte_count)
+            pyopencl.enqueue_copy_buffer(
+                self.queue, d_compressed.data, out.data, byte_count=byte_count)
+
         return out
 
     def encode_to_bytes(self, data):
