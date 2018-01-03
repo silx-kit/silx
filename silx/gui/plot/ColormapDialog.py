@@ -63,7 +63,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "H. Payno"]
 __license__ = "MIT"
-__date__ = "15/12/2017"
+__date__ = "03/01/2018"
 
 
 import logging
@@ -98,6 +98,7 @@ class _BoundaryWidget(qt.QWidget):
         self.sigValueChanged = self._autoCB.toggled
         self.textEdited = self._numVal.textEdited
         self.editingFinished = self._numVal.editingFinished
+        self._dataValue = None
 
     def isAutoChecked(self):
         return self._autoCB.isChecked()
@@ -106,12 +107,29 @@ class _BoundaryWidget(qt.QWidget):
         return None if self._autoCB.isChecked() else self._numVal.value()
 
     def getFiniteValue(self):
-        return self._numVal.value()
+        if not self._autoCB.isChecked():
+            return self._numVal.value()
+        elif self._dataValue is None:
+            return self._numVal.value()
+        else:
+            return self._dataValue
+
+    def _updateDisplayedText(self):
+        # if dataValue is finite
+        if self._autoCB.isChecked() and self._dataValue is not None:
+            old = self._numVal.blockSignals(True)
+            self._numVal.setValue(self._dataValue)
+            self._numVal.blockSignals(old)
+
+    def setDataValue(self, dataValue):
+        self._dataValue = dataValue
+        self._updateDisplayedText()
 
     def setValue(self, value, isAuto=False):
         self._autoCB.setChecked(isAuto or value is None)
         if value is not None:
             self._numVal.setValue(value)
+        self._updateDisplayedText()
 
 
 class _ColormapNameCombox(qt.QComboBox):
@@ -165,6 +183,11 @@ class ColormapDialog(qt.QDialog):
 
         self._histogramData = None
         self._minMaxWasEdited = False
+        self._initialRange = None
+
+        self._dataRange = None
+        """If defined 3-tuple containing information from a data:
+        minimum, positive minimum, maximum"""
 
         # Make the GUI
         vLayout = qt.QVBoxLayout(self)
@@ -272,7 +295,8 @@ class ColormapDialog(qt.QDialog):
 
         :param bool updateMarkers: True to update markers, False otherwith
         """
-        if not (hasattr(self, '_colormap') and self._colormap()):
+        colormap = self.getColormap()
+        if colormap is None:
             if self._plot.isVisibleTo(self):
                 self._plot.setVisible(False)
                 self.setFixedSize(self.layout().minimumSize())
@@ -282,20 +306,21 @@ class ColormapDialog(qt.QDialog):
             self._plot.setVisible(True)
             self.setFixedSize(self.layout().minimumSize())
 
-        dataMin, dataMax = self._colormap().getColormapRange()
-        marge = (abs(dataMax) + abs(dataMin)) / 6.0
-        minmd = dataMin - marge
-        maxpd = dataMax + marge
+        mindata, maxdata = self._minValue.getFiniteValue(), self._maxValue.getFiniteValue()
+        if mindata > maxdata:
+            # avoid a full collapse
+            mindata, maxdata = maxdata, mindata
+        minimum = mindata
+        maximum = maxdata
+        if self._initialRange is not None:
+            minimum = min(mindata, self._initialRange[0])
+            maximum = max(maxdata, self._initialRange[1])
+        if not updateMarkers:
+            self._initialRange = minimum, maximum
 
-        start, end = self._minValue.getFiniteValue(), self._maxValue.getFiniteValue()
-
-        if start <= end:
-            x = [minmd, start, end, maxpd]
-            y = [0, 0, 1, 1]
-
-        else:
-            x = [minmd, end, start, maxpd]
-            y = [1, 1, 0, 0]
+        marge = abs(maximum - minimum) / 6.0
+        x = [minimum - marge, mindata, maxdata, maximum + marge]
+        y = [0, 0, 1, 1]
 
         self._plot.addCurve(x, y,
                             legend="ConstrainedCurve",
@@ -309,7 +334,7 @@ class ColormapDialog(qt.QDialog):
                 self._minValue.getFiniteValue(),
                 legend='Min',
                 text='Min',
-                draggable=self._minValue.getValue() is not None,
+                draggable=not self._minValue.isAutoChecked(),
                 color='blue',
                 constraint=self._plotMinMarkerConstraint)
 
@@ -317,7 +342,7 @@ class ColormapDialog(qt.QDialog):
                 self._maxValue.getFiniteValue(),
                 legend='Max',
                 text='Max',
-                draggable=self._maxValue.getValue() is not None,
+                draggable=not self._maxValue.isAutoChecked(),
                 color='blue',
                 constraint=self._plotMaxMarkerConstraint)
 
@@ -343,6 +368,7 @@ class ColormapDialog(qt.QDialog):
             # This will recreate the markers while interacting...
             # It might break if marker interaction is changed
             if event['event'] == 'markerMoved':
+                self._initialRange = None
                 self._updateMinMax()
             else:
                 self._plotUpdate(updateMarkers=False)
@@ -395,6 +421,8 @@ class ColormapDialog(qt.QDialog):
         """Return the colormap description as a :class:`.Colormap`.
 
         """
+        if not hasattr(self, "_colormap"):
+            return None
         return self._colormap()
 
     def resetColormap(self):
@@ -409,6 +437,19 @@ class ColormapDialog(qt.QDialog):
             self._colormap()._setFromDict(self._colormapStoredState)
             self._ignoreColormapChange = False
             self._applyColormap()
+
+    def setDataRange(self, minimum, positiveMin, maximum):
+        """Set the range of data to use for the range of the histogram area.
+
+        :param float minimum: The minimum of the data
+        :param float positiveMin: The positive minimum of the data
+        :param float maximum: The maximum of the data
+        """
+        self._dataRange = minimum, positiveMin, maximum
+        # FIXME Take care of the log
+        self._minValue.setDataValue(minimum)
+        self._maxValue.setDataValue(maximum)
+        self._plotUpdate()
 
     def accept(self):
         self.storeCurrentState()
