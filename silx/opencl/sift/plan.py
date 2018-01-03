@@ -636,24 +636,24 @@ class SiftPlan(OpenclProcessing):
             if newcnt and newcnt > last_start:  # launch kernel only if neededwgsize = (128,)
 
                 if self.USE_CPU:
-                    file_to_use = "orientation_cpu"
-#                    logger.info("Computing orientation with CPU-optimized kernels")
+                    orientation = self.kernels.get_kernel("orientation_cpu")
+                    wg = self.kernels_max_wg_size["orientation_cpu"]
                 else:
-                    file_to_use = "orientation_gpu"
-
-                wgsize2 = self.kernels_wg[file_to_use],
-                procsize = int(newcnt * wgsize2[0]),
-                evt = self.kernels.get_kernel("orientation_assignment")(self.queue, procsize, wgsize2,
-                                                                        self.cl_mem["Kp_1"].data,  # __global keypoint* keypoints,
-                                                                        self.cl_mem["tmp"].data,  # __global float* grad,
-                                                                        self.cl_mem["ori"].data,  # __global float* ori,
-                                                                        self.cl_mem["cnt"].data,  # __global int* counter,
-                                                                        octsize,  # int octsize,
-                                                                        numpy.float32(par.OriSigma),  # float OriSigma, //WARNING: (1.5), it is not "InitSigma (=1.6)"
-                                                                        kpsize32,  # int max of nb_keypoints,
-                                                                        numpy.int32(last_start),  # int keypoints_start,
-                                                                        newcnt,  # int keypoints_end,
-                                                                        *self.scales[octave])  # int grad_width, int grad_height)
+                    orientation = self.kernels.get_kernel("orientation_gpu")
+                    wg = self.kernels_max_wg_size["orientation_gpu"]
+                wgsize2 = (wg,)
+                procsize = (int(newcnt * wg),)
+                evt = orientation(self.queue, procsize, wgsize2,
+                                 self.cl_mem["Kp_1"].data, # __global keypoint* keypoints,
+                                 self.cl_mem["tmp"].data, # __global float* grad,
+                                 self.cl_mem["ori"].data, # __global float* ori,
+                                 self.cl_mem["cnt"].data, # __global int* counter,
+                                 octsize, # int octsize,
+                                 numpy.float32(par.OriSigma), # float OriSigma, //WARNING: (1.5), it is not "InitSigma (=1.6)"
+                                 kpsize32, # int max of nb_keypoints,
+                                 numpy.int32(last_start), # int keypoints_start,
+                                 newcnt, # int keypoints_end,
+                                 *self.scales[octave]) # int grad_width, int grad_height)
                 # newcnt = self.cl_mem["cnt"].get()[0] #do not forget to update numbers of keypoints, modified above !
                 evt_cp = pyopencl.enqueue_copy(self.queue, self.cnt, self.cl_mem["cnt"].data)
                 newcnt = self.cnt[0]  # do not forget to update numbers of keypoints, modified above !
@@ -663,7 +663,7 @@ class SiftPlan(OpenclProcessing):
                     if self.USE_CPU or (self.LOW_END > 1):
                         logger.info("Computing descriptors with CPU optimized kernels")
                         descriptor = self.kernels.get_kernel("descriptor_cpu")
-                        wg = self.kernels_wg["keypoints_cpu"]
+                        wg = self.kernels_wg["descriptor_cpu"]
                         wgsize2 = (wg,)
                         procsize2 = (int(newcnt * wg),)
                     else:
@@ -672,7 +672,7 @@ class SiftPlan(OpenclProcessing):
                             descriptor = self.kernels.get_kernel("descriptor_gpu1")
                             wgsize2 = self.kernels_wg["keypoints_gpu1"]
                             procsize2 = (int(newcnt * wgsize2[0]), wgsize2[1], wgsize2[2])
-                            if self.kernels_wg["keypoints_gpu1"] < numpy.prod(wgsize2):
+                            if self.kernels_wg["descriptor_gpu1"] < numpy.prod(wgsize2):
                                 # will fail anyway:
                                 self.LOW_END += 1
                                 continue
@@ -680,7 +680,7 @@ class SiftPlan(OpenclProcessing):
                             logger.info("Computing descriptors with newer-GPU optimized kernels")
                             wgsize2 = self.kernels_wg["keypoints_gpu2"]
                             procsize2 = (int(newcnt * wgsize2[0]), wgsize2[1], wgsize2[2])
-                            if self.kernels_max_wg_size["keypoints_gpu2"] < numpy.prod(wgsize2):
+                            if self.kernels_max_wg_size["descriptor_gpu2"] < numpy.prod(wgsize2):
                                 # will fail anyway:
                                 self.LOW_END += 1
                                 continue
@@ -775,7 +775,7 @@ class SiftPlan(OpenclProcessing):
         """
         Todo: implement directly in OpenCL instead of relying on pyOpenCL
         """
-        wg_size = self.kernels_max_wg_size["memset"],
+        wg_size = self.kernels_wg["memset_float"],
         evt1 = self.kernels.get_kernel("memset_float")(self.queue, calc_size((4 * self.kpsize,), wg_size), wg_size,
                                                        self.cl_mem["Kp_1"].data,
                                                        numpy.float32(-1),
