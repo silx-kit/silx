@@ -49,11 +49,16 @@ try:
     import fabio
 except:
     fabio = None
+try:
+    import pyopencl
+except ImportError:
+    pyopencl = None
 import unittest
 logger = logging.getLogger(__name__)
 
 
-@unittest.skipUnless(ocl and fabio, "PyOpenCl or fabio is missing")
+@unittest.skipUnless(ocl and fabio and pyopencl,
+                     "PyOpenCl or fabio is missing")
 class TestByteOffset(unittest.TestCase):
 
     def _create_test_data(self, shape, nexcept, lam=200):
@@ -78,8 +83,6 @@ class TestByteOffset(unittest.TestCase):
         """
         tests the byte offset decompression on GPU
         """
-        import pyopencl
-
         ref, raw = self._create_test_data(shape=(2713, 2719), nexcept=2729)
         size = numpy.prod(ref.shape)
 
@@ -112,8 +115,6 @@ class TestByteOffset(unittest.TestCase):
         tests the byte offset decompression on GPU, many images to ensure there 
         is not leaking in memory 
         """
-        import pyopencl
-
         shape = (991, 997)
         size = numpy.prod(shape)
         ref, raw = self._create_test_data(shape=shape, nexcept=0, lam=100)
@@ -158,8 +159,6 @@ class TestByteOffset(unittest.TestCase):
 
     def test_compress(self):
         """Test byte offset compression"""
-        import pyopencl
-
         ref, raw = self._create_test_data(shape=(2713, 2719), nexcept=2729)
         size = numpy.prod(ref.shape)
 
