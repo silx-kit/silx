@@ -44,8 +44,10 @@ import os
 import numpy
 from ..common import ocl, pyopencl
 from ..processing import BufferDescription, EventDescription, OpenclProcessing
+
 import logging
 logger = logging.getLogger(__name__)
+
 if pyopencl:
     import pyopencl.version
     if pyopencl.version.VERSION < (2016, 0):
@@ -58,7 +60,8 @@ else:
 
 
 class ByteOffset(OpenclProcessing):
-    "Perform the byte offset decompression on the GPU"
+    """Perform the byte offset decompression on the GPU"""
+
     def __init__(self, raw_size, dec_size, ctx=None, devicetype="all",
                  platformid=None, deviceid=None,
                  block_size=None, profile=False):
@@ -95,7 +98,7 @@ class ByteOffset(OpenclProcessing):
                                  self._init_compression_scan())
 
     def _init_double_scan(self):
-        "generates a double scan on indexes and values in one operation"
+        """"generates a double scan on indexes and values in one operation"""
         arguments = "__global int *value", "__global int *index"
         int2 = pyopencl.tools.get_or_register_dtype("int2")
         input_expr = "index[i]>0 ? (int2)(0, 0) : (int2)(value[i], 1)"
