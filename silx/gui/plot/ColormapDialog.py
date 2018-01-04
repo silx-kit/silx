@@ -485,13 +485,11 @@ class ColormapDialog(qt.QDialog):
         """Update the min and max of the data according to the data range and
         the histogram preset."""
         colormap = self.getColormap()
-        if colormap is None:
-            return
 
         minimum = float("+inf")
         maximum = float("-inf")
 
-        if colormap.getNormalization() == colormap.LOGARITHM:
+        if colormap is not None and colormap.getNormalization() == colormap.LOGARITHM:
             # find a range in the positive part of the data
             if self._dataRange is not None:
                 minimum = min(minimum, self._dataRange[1])
