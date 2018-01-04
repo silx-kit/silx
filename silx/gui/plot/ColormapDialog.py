@@ -511,7 +511,8 @@ class ColormapDialog(qt.QDialog):
             self._minMaxWasEdited = False
 
             # Fix start value
-            if self._minValue.getValue() > self._maxValue.getValue():
+            if self._maxValue.getValue() is not None and \
+                        self._minValue.getValue() > self._maxValue.getValue():
                 self._minValue.setValue(self._maxValue.getValue())
             self._updateMinMax()
 
@@ -525,7 +526,8 @@ class ColormapDialog(qt.QDialog):
             self._minMaxWasEdited = False
 
             # Fix end value
-            if self._minValue.getValue() > self._maxValue.getValue():
+            if self._minValue.getValue() is not None and \
+                        self._minValue.getValue() > self._maxValue.getValue():
                 self._maxValue.setValue(self._minValue.getValue())
             self._updateMinMax()
 
