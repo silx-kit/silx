@@ -416,22 +416,18 @@ class ColormapDialog(qt.QDialog):
         """
         if hist is None or bin_edges is None:
             self._histogramData = None
-            self._plot.remove(legend='Histogram', kind='curve')
+            self._plot.remove(legend='Histogram', kind='histogram')
         else:
             hist = numpy.array(hist, copy=True)
             bin_edges = numpy.array(bin_edges, copy=True)
             self._histogramData = hist, bin_edges
-
-            # For now, draw the histogram as a curve
-            # using bin centers and normalised counts
-            bins_center = 0.5 * (bin_edges[:-1] + bin_edges[1:])
             norm_hist = hist / max(hist)
-            self._plot.addCurve(bins_center, norm_hist,
-                                legend="Histogram",
-                                color='gray',
-                                symbol='',
-                                linestyle='-',
-                                fill=True)
+            self._plot.addHistogram(norm_hist,
+                                    bin_edges,
+                                    legend="Histogram",
+                                    color='gray',
+                                    align='center',
+                                    fill=True)
 
             # Update the data range
             colormap = self.getColormap()
