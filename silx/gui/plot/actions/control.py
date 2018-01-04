@@ -359,7 +359,9 @@ class ColormapAction(PlotAction):
             colormap = image.getColormap()
 
         self._dialog.setHistogram()
-        self._dialog.setColormap(colormap=colormap)
+        # avoid setting multiple time the same colormap to be able to reset it
+        if colormap is not self._dialog.getColormap():
+            self._dialog.setColormap(colormap=colormap)
 
 
 class KeepAspectRatioAction(PlotAction):
