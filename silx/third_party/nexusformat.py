@@ -1,10 +1,7 @@
-# coding: ascii
-#
-# JK: Numpy.distutils which imports this does not handle utf-8 in version<1.12
-#
+# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,27 +22,28 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+"""Wrapper module for the `nexusformat` library.
 
-__authors__ = ["Valentin Valls"]
+Uses a local silx copy of `nexusformat` if it exists.
+Else it expects to find the library installed in the Python path.
+
+It should be used like that:
+
+.. code-block::
+
+    from silx.third_party import nexusformat
+
+"""
+
+from __future__ import absolute_import
+
+__authors__ = ["Pierre Knobel"]
 __license__ = "MIT"
-__date__ = "07/11/2017"
+__date__ = "04/01/2018"
 
-import os
-from numpy.distutils.misc_util import Configuration
-
-
-def configuration(parent_package='', top_path=None):
-    config = Configuration('third_party', parent_package, top_path)
-    # includes _local only if it is available
-    local_path = os.path.join(top_path, parent_package, "third_party", "_local")
-    if os.path.exists(local_path):
-        config.add_subpackage('_local')
-        config.add_subpackage('_local.scipy_spatial')
-        config.add_subpackage('_local.nexusformat')
-        config.add_subpackage('_local.nexusformat.nexus')
-    return config
-
-
-if __name__ == "__main__":
-    from numpy.distutils.core import setup
-    setup(configuration=configuration)
+try:
+    # try to import our local version of six
+    from ._local.nexusformat import nexus  # noqa
+except ImportError:
+    # else try to import it from the python path
+    from nexusformat import nexus  # noqa
