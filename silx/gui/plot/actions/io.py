@@ -49,6 +49,7 @@ import numpy
 from silx.gui import qt
 from silx.third_party.EdfFile import EdfFile
 from silx.third_party.TiffIO import TiffIO
+from silx.third_party.nexusformat import nexus
 from silx.gui._utils import convertArrayToQImage
 if sys.version_info[0] == 3:
     from io import BytesIO
@@ -94,7 +95,10 @@ class SaveAction(PlotAction):
 
     CURVE_FILTER_NPY = 'Curve as NumPy binary file (*.npy)'
 
-    CURVE_FILTERS = list(CURVE_FILTERS_TXT.keys()) + [CURVE_FILTER_NPY]
+    CURVE_FILTER_NXDATA = 'Curve as NXdata (*.nx *.nxs *.h5 *.hdf)'
+
+    CURVE_FILTERS = list(CURVE_FILTERS_TXT.keys()) + [CURVE_FILTER_NPY,
+                                                      CURVE_FILTER_NXDATA]
 
     ALL_CURVES_FILTERS = ("All curves as SpecFile (*.dat)", )
 
@@ -183,7 +187,7 @@ class SaveAction(PlotAction):
             csvdelim = filter_['delimiter']
             autoheader = filter_['header']
         else:
-            # .npy
+            # .npy or nxdata
             fmt, csvdelim, autoheader = ("", "", False)
 
         # If curve has no associated label, get the default from the plot
@@ -193,6 +197,18 @@ class SaveAction(PlotAction):
         ylabel = curve.getYLabel()
         if ylabel is None:
             ylabel = self.plot.getYAxis().getLabel()
+
+        if nameFilter == self.CURVE_FILTER_NXDATA:
+            return self._saveCurveAsNXdata(
+                filename,
+                curve.getXData(copy=False),
+                curve.getYData(copy=False),
+                xlabel,
+                ylabel,
+                curve.getXErrorData(copy=True),
+                curve.getYErrorData(copy=False)
+            )
+
 
         try:
             save1D(filename,
@@ -206,6 +222,47 @@ class SaveAction(PlotAction):
             return False
 
         return True
+
+    def _saveCurveAsNXdata(self, filename, x, y,
+                           xlabel, ylabel,
+                           xerror, yerror):
+        # todo: ask for entry name and nxdata name
+        # todo: put plot title somewhere, maybe dataset title or NXdata attr @title
+
+        signal_attrs = {}
+        if ylabel not in [None, "", "Y", "y"]:
+            signal_attrs["long_name"] = ylabel
+
+        axis_attrs = {}
+        if xlabel not in [None, "", "X", "x"]:
+            axis_attrs["long_name"] = xlabel
+
+        signal = nexus.NXfield(y, name="y", attrs=signal_attrs)
+        axis = nexus.NXfield(x, name="x", attrs=axis_attrs)
+        if yerror is not None:
+            errors = nexus.NXfield(yerror, name="errors")
+        else:
+            errors = None
+        if xerror is not None:
+            xerror = nexus.NXfield(xerror,
+                                   name="x_errors")
+
+        data1D = nexus.NXdata(signal, [axis],
+                              errors=errors,
+                              x_errors=xerror)
+                              # name=?)   # TODO
+        data1D.save(filename,
+                    format="w")    # todo: define format depending on whether the file exists
+
+        # todo: define entry and root names when creating file from scratch
+        #     entry = NXentry(data1D, name=?)
+        #     root = NXroot(entry, name=?)
+        #     root.save(filename, format="?")
+
+        # todo: write into existing entry
+        #     existing_file = nxload(filename, 'rw')
+        #     existing_file["/entry/data"] = data1D
+        #     existing_file.save()
 
     def _saveCurves(self, filename, nameFilter):
         """Save all curves from the plot.
