@@ -63,7 +63,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "H. Payno"]
 __license__ = "MIT"
-__date__ = "03/01/2018"
+__date__ = "04/01/2018"
 
 
 import logging
@@ -306,20 +306,33 @@ class ColormapDialog(qt.QDialog):
             self._plot.setVisible(True)
             self.setFixedSize(self.layout().minimumSize())
 
-        mindata, maxdata = self._minValue.getFiniteValue(), self._maxValue.getFiniteValue()
-        if mindata > maxdata:
+        minData, maxData = self._minValue.getFiniteValue(), self._maxValue.getFiniteValue()
+        if minData > maxData:
             # avoid a full collapse
-            mindata, maxdata = maxdata, mindata
-        minimum = mindata
-        maximum = maxdata
-        if self._initialRange is not None:
-            minimum = min(mindata, self._initialRange[0])
-            maximum = max(maxdata, self._initialRange[1])
-        if not updateMarkers:
-            self._initialRange = minimum, maximum
+            minData, maxData = maxData, minData
+        minimum = minData
+        maximum = maxData
+        if self._histogramData is not None:
+            minHisto = self._histogramData[1][0]
+            maxHisto = self._histogramData[1][-1]
+            minimum = min(minimum, minHisto)
+            maximum = max(maximum, maxHisto)
 
         marge = abs(maximum - minimum) / 6.0
-        x = [minimum - marge, mindata, maxdata, maximum + marge]
+        if marge < 0.0001:
+            # Smaller that the QLineEdit precision
+            marge = 0.0001
+
+        minView, maxView = minimum - marge, maximum + marge
+
+        if updateMarkers:
+            # Save the state in we are not moving the markers
+            self._initialRange = minView, maxView
+        elif self._initialRange is not None:
+            minView = min(minView, self._initialRange[0])
+            maxView = max(maxView, self._initialRange[1])
+
+        x = [minView, minData, maxData, maxView]
         y = [0, 0, 1, 1]
 
         self._plot.addCurve(x, y,
