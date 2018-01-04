@@ -333,7 +333,7 @@ class ColormapAction(PlotAction):
         """Create a cmap dialog and update active image and default cmap."""
         # Create the dialog if not already existing
         if self._dialog is None:
-            self._dialog = ColormapDialog()
+            self._dialog = ColormapDialog(self.plot)
             self._dialog.finished.connect(self._setUnChecked)
             self._dialog.setModal(False)
             self._updateColormap()
