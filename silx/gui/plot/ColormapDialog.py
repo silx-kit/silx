@@ -314,6 +314,13 @@ class ColormapDialog(qt.QDialog):
             minData, maxData = maxData, minData
         minimum = minData
         maximum = maxData
+
+        if self._dataRange is not None:
+            minRange = self._dataRange[0]
+            maxRange = self._dataRange[2]
+            minimum = min(minimum, minRange)
+            maximum = max(maximum, maxRange)
+
         if self._histogramData is not None:
             minHisto = self._histogramData[1][0]
             maxHisto = self._histogramData[1][-1]
@@ -455,14 +462,26 @@ class ColormapDialog(qt.QDialog):
             self._ignoreColormapChange = False
             self._applyColormap()
 
-    def setDataRange(self, minimum, positiveMin, maximum):
+    def setDataRange(self, minimum=None, positiveMin=None, maximum=None):
         """Set the range of data to use for the range of the histogram area.
 
         :param float minimum: The minimum of the data
         :param float positiveMin: The positive minimum of the data
         :param float maximum: The maximum of the data
         """
-        self._dataRange = minimum, positiveMin, maximum
+        if minimum is None or positiveMin is None or maximum is None:
+            self._dataRange = None
+            self._plot.remove(legend='Range', kind='histogram')
+        else:
+            hist = numpy.array([1])
+            bin_edges = numpy.array([minimum, maximum])
+            self._plot.addHistogram(hist,
+                                    bin_edges,
+                                    legend="Range",
+                                    color='gray',
+                                    align='center',
+                                    fill=True)
+            self._dataRange = minimum, positiveMin, maximum
         # FIXME Take care of the log
         self._minValue.setDataValue(minimum)
         self._maxValue.setDataValue(maximum)
