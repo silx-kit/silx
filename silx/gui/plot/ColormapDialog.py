@@ -171,6 +171,8 @@ class ColormapDialog(qt.QDialog):
         qt.QDialog.__init__(self, parent)
         self.setWindowTitle(title)
 
+        self._colormap = None
+
         self._ignoreColormapChange = False
         """Used as a semaphore to avoid editing the colormap object when we are
         only attempt to display it.
@@ -425,7 +427,8 @@ class ColormapDialog(qt.QDialog):
                                 fill=True)
 
             # Update the data range
-            if hasattr(self, '_colormap') and self._colormap():
+            colormap = self.getColormap()
+            if colormap is not None:
                 self._ignoreColormapChange = True
                 self._colormap().setVRange(bin_edges[0], bin_edges[-1])
                 self._ignoreColormapChange = False
@@ -434,7 +437,7 @@ class ColormapDialog(qt.QDialog):
         """Return the colormap description as a :class:`.Colormap`.
 
         """
-        if not hasattr(self, "_colormap"):
+        if self._colormap is None:
             return None
         return self._colormap()
 
@@ -445,9 +448,10 @@ class ColormapDialog(qt.QDialog):
         ..note :: the colormap reference state is the state when set or the
                   state when validated
         """
-        if self._colormap():
+        colormap = self.getColormap()
+        if colormap is not None:
             self._ignoreColormapChange = True
-            self._colormap()._setFromDict(self._colormapStoredState)
+            colormap._setFromDict(self._colormapStoredState)
             self._ignoreColormapChange = False
             self._applyColormap()
 
@@ -489,8 +493,9 @@ class ColormapDialog(qt.QDialog):
         if self._ignoreColormapChange is True:
             return
 
-        if hasattr(self, '_colormap') and self._colormap():
-            self._colormap().sigChanged.disconnect(self._applyColormap)
+        oldColormap = self.getColormap()
+        if oldColormap is not None:
+            oldColormap.sigChanged.disconnect(self._applyColormap)
         self._colormap = weakref.ref(colormap)
         self._colormap().sigChanged.connect(self._applyColormap)
         self.storeCurrentState()
