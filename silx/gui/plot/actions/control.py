@@ -389,6 +389,7 @@ class ColormapAction(PlotAction):
             # set dialog from default info
             colormap = self.plot.getDefaultColormap()
             # Reset histogram and range if any
+            self._dialog.setDataRange()
             self._dialog.setHistogram()
 
         # avoid setting multiple time the same colormap to be able to reset it
