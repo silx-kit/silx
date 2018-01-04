@@ -359,7 +359,7 @@ class ColormapAction(PlotAction):
 
             data = image.getData(copy=False)
             if data is None or len(data) == 0:
-                dataRange = None
+                self._dialog.setDataRange()
             else:
                 dataRange = min_max(data, min_positive=True, finite=True)
                 if dataRange.minimum is None:
@@ -372,14 +372,14 @@ class ColormapAction(PlotAction):
                         min_positive = float('nan')
                     dataRange = dataRange.minimum, min_positive, dataRange.maximum
 
-            if dataRange is None or len(dataRange) != 3:
-                qt.QMessageBox.warning(
-                    None, "No Data",
-                    "Image data does not contain any real value")
-                minimum, posMin, maximum = 1., 1., 10.
-            else:
-                minimum, posMin, maximum = dataRange
-            self._dialog.setDataRange(minimum, posMin, maximum)
+                if dataRange is None or len(dataRange) != 3:
+                    qt.QMessageBox.warning(
+                        None, "No Data",
+                        "Image data does not contain any real value")
+                    minimum, posMin, maximum = 1., 1., 10.
+                else:
+                    minimum, posMin, maximum = dataRange
+                self._dialog.setDataRange(minimum, posMin, maximum)
             # The histogram should be done in a worker thread
             # hist, bin_edges = numpy.histogram(data, bins=256)
             # self._dialog.setHistogram(hist, bin_edges)
