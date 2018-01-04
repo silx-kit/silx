@@ -435,6 +435,7 @@ class ColormapDialog(qt.QDialog):
                 self._ignoreColormapChange = True
                 self._colormap().setVRange(bin_edges[0], bin_edges[-1])
                 self._ignoreColormapChange = False
+        self._updateMinMaxData()
 
     def getColormap(self):
         """Return the colormap description as a :class:`.Colormap`.
@@ -478,7 +479,41 @@ class ColormapDialog(qt.QDialog):
                                     align='center',
                                     fill=True)
             self._dataRange = minimum, positiveMin, maximum
-        # FIXME Take care of the log
+        self._updateMinMaxData()
+
+    def _updateMinMaxData(self):
+        """Update the min and max of the data according to the data range and
+        the histogram preset."""
+        colormap = self.getColormap()
+        if colormap is None:
+            return
+
+        minimum = float("+inf")
+        maximum = float("-inf")
+
+        if colormap.getNormalization() == colormap.LOGARITHM:
+            # find a range in the positive part of the data
+            if self._dataRange is not None:
+                minimum = min(minimum, self._dataRange[1])
+                maximum = max(maximum, self._dataRange[2])
+            if self._histogramData is not None:
+                positives = list(filter(lambda x: x > 0, self._histogramData[1]))
+                if len(positives) > 0:
+                    minimum = min(minimum, positives[0])
+                    maximum = max(maximum, positives[-1])
+        else:
+            if self._dataRange is not None:
+                minimum = min(minimum, self._dataRange[0])
+                maximum = max(maximum, self._dataRange[2])
+            if self._histogramData is not None:
+                minimum = min(minimum, self._histogramData[1][0])
+                maximum = max(maximum, self._histogramData[1][-1])
+
+        if not numpy.isfinite(minimum):
+            minimum = None
+        if not numpy.isfinite(maximum):
+            maximum = None
+
         self._minValue.setDataValue(minimum)
         self._maxValue.setDataValue(maximum)
         self._plotUpdate()
@@ -627,3 +662,4 @@ class ColormapDialog(qt.QDialog):
             norm = Colormap.LOGARITHM if isLog is True else Colormap.LINEAR
             self._colormap().setNormalization(norm)
             self._ignoreColormapChange = False
+        self._updateMinMaxData()
