@@ -123,6 +123,9 @@ class SaveAction(PlotAction):
                      IMAGE_FILTER_RGB_TIFF,
                      IMAGE_FILTER_NXDATA)
 
+    SCATTER_FILTER_NXDATA = 'Scatter as NXdata (*.nx *.nxs *.h5 *.hdf)'
+    SCATTER_FILTERS = (SCATTER_FILTER_NXDATA, )
+
     def __init__(self, plot, parent=None):
         super(SaveAction, self).__init__(
             plot, icon='document-save', text='Save as...',
@@ -265,8 +268,9 @@ class SaveAction(PlotAction):
             assert len(axes_errors) == len(axes_names), \
                 "Mismatch between number of axes_errors and axes_names"
             for i, axis_errors in enumerate(axes_errors):
-                dsname = axes_names[i] + "_errors"
-                data[dsname] = nexus.NXfield(axis_errors)
+                if axis_errors is not None:
+                    dsname = axes_names[i] + "_errors"
+                    data[dsname] = nexus.NXfield(axis_errors)
 
         if title:
             # not in NXdata spec, but implemented by nexpy
@@ -386,14 +390,14 @@ class SaveAction(PlotAction):
             ylabel = image.getYLabel() or self.plot.getGraphYLabel()
             interpretation = "image" if len(data.shape) == 2 else "rgba-image"
 
-            self._saveAsNXdata(filename,
-                               signal=data,
-                               axes=[yaxis, xaxis],
-                               signal_name="image",
-                               axes_names=["y", "x"],
-                               axes_long_names=[ylabel, xlabel],
-                               title=self.plot.getGraphTitle(),
-                               interpretation=interpretation)
+            return self._saveAsNXdata(filename,
+                                      signal=data,
+                                      axes=[yaxis, xaxis],
+                                      signal_name="image",
+                                      axes_names=["y", "x"],
+                                      axes_long_names=[ylabel, xlabel],
+                                      title=self.plot.getGraphTitle(),
+                                      interpretation=interpretation)
 
         elif nameFilter in (self.IMAGE_FILTER_ASCII,
                             self.IMAGE_FILTER_CSV_COMMA,
@@ -444,6 +448,44 @@ class SaveAction(PlotAction):
 
         return False
 
+    def _saveScatter(self, filename, nameFilter):
+        """Save an image from the plot.
+
+        :param str filename: The name of the file to write
+        :param str nameFilter: The selected name filter
+        :return: False if format is not supported or save failed,
+                 True otherwise.
+        """
+        if nameFilter not in self.SCATTER_FILTERS:
+            return False
+
+        if nameFilter == self.SCATTER_FILTER_NXDATA:
+            scatter = self.plot.getScatter()
+            # TODO: we could get all scatters and concatenate their (x, y, values)
+            x = scatter.getXData()
+            y = scatter.getYData()
+            z = scatter.getValueData()
+
+            xerror = scatter.getXErrorData()
+            yerror = scatter.getYErrorData()
+            if isinstance(float, xerror):
+                xerror *= numpy.ones(x.shape, dtype=numpy.float32)
+            if isinstance(float, yerror):
+                yerror *= numpy.ones(x.shape, dtype=numpy.float32)
+            # TODO: support x and yerror as 2D arrays (positive/negative errors)
+
+            return self._saveAsNXdata(
+                filename,
+                signal=z,
+                axes=[y, x],  # fixme: or is it x, y??
+                signal_name="values",
+                axes_names=["y", "x"],     # fixme: or is it x, y??
+                signal_long_name=ylabel,
+                axes_long_names=[xlabel],
+                axes_errors=[yerror, xerror],
+                title=self.plot.getGraphTitle())
+
+
     def _actionTriggered(self, checked=False):
         """Handle save action."""
         # Set-up filters
@@ -459,6 +501,11 @@ class SaveAction(PlotAction):
             filters.extend(self.CURVE_FILTERS)
         if len(self.plot.getAllCurves()) > 1:
             filters.extend(self.ALL_CURVES_FILTERS)
+
+        # Add scatter filters if there is a scatter
+        # todo: CSV
+        if self.plot.getScatter() is not None:
+            filters.extend(self.SCATTER_FILTERS)
 
         filters.extend(self.SNAPSHOT_FILTERS)
 
@@ -493,6 +540,8 @@ class SaveAction(PlotAction):
             return self._saveCurves(filename, nameFilter)
         elif nameFilter in self.IMAGE_FILTERS:
             return self._saveImage(filename, nameFilter)
+        elif nameFilter in self.SCATTER_FILTERS:
+            return self._saveScatter(filename, nameFilter)
         else:
             _logger.warning('Unsupported file filter: %s', nameFilter)
             return False
