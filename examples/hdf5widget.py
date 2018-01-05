@@ -329,6 +329,18 @@ def get_hdf5_with_nxdata():
     ds.attrs["long_name"] = "Calibrated Y"
     g2d0.create_dataset("columns_coordinates", data=0.5+0.02*numpy.arange(6))
 
+    g2d4 = g2d.create_group("RGBA_image")
+    g2d4.attrs["NX_class"] = "NXdata"
+    g2d4.attrs["signal"] = "image"
+    g2d4.attrs["axes"] = b"rows_calib", b"columns_coordinates"
+    rgba_image = numpy.linspace(0, 1, num=7*8*3).reshape((7, 8, 3))
+    rgba_image[:, :, 1] = 1 - rgba_image[:, :, 1]      # invert G channel to add some color
+    ds = g2d4.create_dataset("image", data=rgba_image)
+    ds.attrs["interpretation"] = "rgba-image"
+    ds = g2d4.create_dataset("rows_calib", data=(10, 5))
+    ds.attrs["long_name"] = "Calibrated Y"
+    g2d4.create_dataset("columns_coordinates", data=0.5+0.02*numpy.arange(8))
+
     g2d1 = g2d.create_group("2D_irregular_data")
     g2d1.attrs["NX_class"] = "NXdata"
     g2d1.attrs["signal"] = "data"

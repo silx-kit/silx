@@ -231,13 +231,15 @@ class SaveAction(PlotAction):
                       signal_name="y", axes_names=("x",),
                       signal_long_name=None, axes_long_names=None,
                       signal_errors=None, axes_errors=None,
-                      title=None):
+                      title=None, interpretation=None):
         assert len(axes) == len(axes_names), \
             "Mismatch between number of axes and axes_names"
         # todo: ask for entry name and nxdata name
         signal_attrs = {}
         if signal_long_name:
             signal_attrs["long_name"] = signal_long_name
+        if interpretation:
+            signal_attrs["interpretation"] = interpretation
         signal_field = nexus.NXfield(signal, name=signal_name,
                                      attrs=signal_attrs)
 
@@ -269,6 +271,7 @@ class SaveAction(PlotAction):
         if title:
             # not in NXdata spec, but implemented by nexpy
             data["title"] = title
+
         data.save(filename,
                   mode="w")    # todo: define mode depending on whether the file exists
         return True
@@ -381,6 +384,7 @@ class SaveAction(PlotAction):
             yaxis = yorigin + yscale * numpy.arange(data.shape[0])
             xlabel = image.getXLabel() or self.plot.getGraphXLabel()
             ylabel = image.getYLabel() or self.plot.getGraphYLabel()
+            interpretation = "image" if len(data.shape) == 2 else "rgba-image"
 
             self._saveAsNXdata(filename,
                                signal=data,
@@ -388,7 +392,8 @@ class SaveAction(PlotAction):
                                signal_name="image",
                                axes_names=["y", "x"],
                                axes_long_names=[ylabel, xlabel],
-                               title=self.plot.getGraphTitle())
+                               title=self.plot.getGraphTitle(),
+                               interpretation=interpretation)
 
         elif nameFilter in (self.IMAGE_FILTER_ASCII,
                             self.IMAGE_FILTER_CSV_COMMA,

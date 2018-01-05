@@ -1112,11 +1112,12 @@ class _NXdataImageView(DataView):
         y_axis, x_axis = nxd.axes[-2:]
         y_label, x_label = nxd.axes_names[-2:]
         title = nxd.title or signal_name
+        isRgba = nxd.interpretation == "rgba-image"
 
         self.getWidget().setImageData(
                      nxd.signal, x_axis=x_axis, y_axis=y_axis,
                      signal_name=signal_name, xlabel=x_label, ylabel=y_label,
-                     title=title)
+                     title=title, isRgba=isRgba)
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
@@ -1126,7 +1127,7 @@ class _NXdataImageView(DataView):
             if nxd.signal_is_2d:
                 if nxd.interpretation not in ["scalar", "spectrum", "scaler"]:
                     return 100
-            if nxd.interpretation == "image":
+            if nxd.interpretation in ["image", "rgba-image"]:
                 return 100
         return DataView.UNSUPPORTED
 
@@ -1174,7 +1175,8 @@ class _NXdataStackView(DataView):
             nxd = nxdata.get_NXdata_in_group(data)
             if nxd.signal_ndim >= 3:
                 if nxd.interpretation not in ["scalar", "scaler",
-                                              "spectrum", "image"]:
+                                              "spectrum", "image",
+                                              "rgba-image"]:
                     return 100
 
         return DataView.UNSUPPORTED

@@ -39,7 +39,7 @@ _logger = logging.getLogger(__name__)
 _INTERPDIM = {"scalar": 0,
               "spectrum": 1,
               "image": 2,
-              # "rgba-image": 3, "hsla-image": 3, "cmyk-image": 3, # TODO
+              "rgba-image": 3,  # "hsla-image": 3, "cmyk-image": 3, # TODO
               "vertex": 1}  # 3D scatter: 1D signal + 3 axes (x, y, z) of same legth
 """Number of signal dimensions associated to each possible @interpretation
 attribute.
@@ -129,7 +129,7 @@ def is_valid_nxdata(group):   # noqa
             axes_names = [axes_names]
 
         if 1 < ndim < len(axes_names):
-            # ndim = 1 and several axes could be a scatter
+            # ndim = 1 with several axes could be a scatter
             _nxdata_warning(
                 "More @axes defined than there are " +
                 "signal dimensions: " +
@@ -151,8 +151,20 @@ def is_valid_nxdata(group):   # noqa
                 _nxdata_warning("Unrecognized @interpretation=" + interpretation +
                                 " for data with wrong number of defined @axes.")
                 return False
+            if interpretation == "rgba-image":
+                if ndim != 3 or group[signal_name].shape[-1] not in [3, 4]:
+                    _nxdata_warning(
+                        "Inconsistent RGBA Image. Expected 3 dimensions with " +
+                        "last one of length 3 or 4. Got ndim=%d " % ndim +
+                        "with last dimension of length %d." % group[signal_name].shape[-1])
+                    return False
+                if len(axes_names) != 2:
+                    _nxdata_warning(
+                        "Inconsistent number of axes for RGBA Image. Expected "
+                        "3, but got %d." % ndim)
+                    return False
 
-            if len(axes_names) != _INTERPDIM[interpretation]:
+            elif len(axes_names) != _INTERPDIM[interpretation]:
                 _nxdata_warning(
                     "%d-D signal with @interpretation=%s " % (ndim, interpretation) +
                     "must define %d or %d axes." % (ndim, _INTERPDIM[interpretation]))
@@ -386,7 +398,7 @@ class NXdata(object):
         interpretation is returned anyway.
         """
         allowed_interpretations = [None, "scalar", "spectrum", "image",
-                                   # "rgba-image", "hsla-image", "cmyk-image"  # TODO
+                                   "rgba-image",  #"hsla-image", "cmyk-image"
                                    "vertex"]
 
         interpretation = get_attr_as_string(self.signal, "interpretation")
@@ -514,12 +526,19 @@ class NXdata(object):
             if self.is_scatter and ndims == 1:
                 # case of a 1D signal with arbitrary number of axes
                 return list(axes_dataset_names)
-            # @axes may only define 1 or 2 axes if @interpretation=spectrum/image.
-            # Use the existing names for the last few dims, and prepend with Nones.
-            assert len(axes_dataset_names) == _INTERPDIM[self.interpretation]
-            all_dimensions_names = [None] * (ndims - _INTERPDIM[self.interpretation])
-            for axis_name in axes_dataset_names:
-                all_dimensions_names.append(axis_name)
+            if self.interpretation != "rgba-image":
+                # @axes may only define 1 or 2 axes if @interpretation=spectrum/image.
+                # Use the existing names for the last few dims, and prepend with Nones.
+                assert len(axes_dataset_names) == _INTERPDIM[self.interpretation]
+                all_dimensions_names = [None] * (ndims - _INTERPDIM[self.interpretation])
+                for axis_name in axes_dataset_names:
+                    all_dimensions_names.append(axis_name)
+            else:
+                # 2 axes applying to the first two dimensions.
+                # The 3rd signal dimension is expected to contain 3(4) RGB(A) values.
+                assert len(axes_dataset_names) == 2
+                all_dimensions_names = [axn for axn in axes_dataset_names]
+                all_dimensions_names.append(None)
             return all_dimensions_names
 
         return list(axes_dataset_names)
