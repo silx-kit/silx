@@ -82,6 +82,9 @@ from silx.gui import icons
 _logger = logging.getLogger(__name__)
 
 
+_colormapIconPreview = {}
+
+
 class _BoundaryWidget(qt.QWidget):
     """Widget to edit a boundary of the colormap (vmin, vmax)"""
     sigValueChanged = qt.Signal(object)
@@ -146,7 +149,48 @@ class _ColormapNameCombox(qt.QComboBox):
         for colormapName in preferredColormaps():
             index = self.count()
             self.addItem(str.title(colormapName))
+            self.setItemIcon(index, self.getIconPreview(colormapName))
             self.setItemData(index, colormapName, role=self.ORIGINAL_NAME)
+
+    def getIconPreview(self, colormapName):
+        """Return an icon preview from a LUT name.
+
+        This icons are cached into a global structure.
+
+        :param str colormapName: str
+        :rtype: qt.QIcon
+        """
+        if colormapName not in _colormapIconPreview:
+            icon = self.createIconPreview(colormapName)
+            _colormapIconPreview[colormapName] = icon
+        return _colormapIconPreview[colormapName]
+
+    def createIconPreview(self, colormapName):
+        """Create and return an icon preview from a LUT name.
+
+        This icons are cached into a global structure.
+
+        :param str colormapName: Name of the LUT
+        :rtype: qt.QIcon
+        """
+        colormap = Colormap(colormapName)
+        size = 32
+        lut = colormap.getNColors(size)
+        if lut is None or len(lut) == 0:
+            return qt.QIcon()
+
+        pixmap = qt.QPixmap(size, size)
+        painter = qt.QPainter(pixmap)
+        for i in range(size):
+            rgb = lut[i]
+            r, g, b = rgb[0], rgb[1], rgb[2]
+            painter.setPen(qt.QColor(r, g, b))
+            painter.drawPoint(qt.QPoint(i, 0))
+
+        painter.drawPixmap(0, 1, size, size - 1, pixmap, 0, 0, size, 1)
+        painter.end()
+
+        return qt.QIcon(pixmap)
 
     def getCurrentName(self):
         return self.itemData(self.currentIndex(), self.ORIGINAL_NAME)
