@@ -206,9 +206,9 @@ class SaveAction(PlotAction):
                 xlabel,
                 ylabel,
                 curve.getXErrorData(copy=True),
-                curve.getYErrorData(copy=False)
+                curve.getYErrorData(copy=False),
+                self.plot.getGraphTitle()
             )
-
 
         try:
             save1D(filename,
@@ -225,10 +225,9 @@ class SaveAction(PlotAction):
 
     def _saveCurveAsNXdata(self, filename, x, y,
                            xlabel, ylabel,
-                           xerror, yerror):
+                           xerror, yerror,
+                           title):
         # todo: ask for entry name and nxdata name
-        # todo: put plot title somewhere, maybe dataset title or NXdata attr @title
-
         signal_attrs = {}
         if ylabel not in [None, "", "Y", "y"]:
             signal_attrs["long_name"] = ylabel
@@ -250,19 +249,21 @@ class SaveAction(PlotAction):
         data1D = nexus.NXdata(signal, [axis],
                               errors=errors,
                               x_errors=xerror)
-                              # name=?)   # TODO
+        if title:
+            # not in NXdata spec, but implemented by nexpy
+            data1D["title"] = title
         data1D.save(filename,
-                    format="w")    # todo: define format depending on whether the file exists
+                    mode="w")    # todo: define format depending on whether the file exists
 
-        # todo: define entry and root names when creating file from scratch
+        # todo: define entry (and root?) names when creating file from scratch
         #     entry = NXentry(data1D, name=?)
         #     root = NXroot(entry, name=?)
-        #     root.save(filename, format="?")
+        #     root.save(filename, mode="?")
 
         # todo: write into existing entry
         #     existing_file = nxload(filename, 'rw')
         #     existing_file["/entry/data"] = data1D
-        #     existing_file.save()
+        #     existing_file.save()    # fixme: does not appear to work in current nexpy
 
     def _saveCurves(self, filename, nameFilter):
         """Save all curves from the plot.
