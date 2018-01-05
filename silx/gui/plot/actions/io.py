@@ -95,7 +95,10 @@ class SaveAction(PlotAction):
 
     CURVE_FILTER_NPY = 'Curve as NumPy binary file (*.npy)'
 
-    CURVE_FILTERS = list(CURVE_FILTERS_TXT.keys()) + [CURVE_FILTER_NPY]
+    CURVE_FILTER_NXDATA = 'Curve as NXdata (*.nx *.nxs *.h5 *.hdf)'
+
+    CURVE_FILTERS = list(CURVE_FILTERS_TXT.keys()) + [CURVE_FILTER_NPY,
+                                                      CURVE_FILTER_NXDATA]
 
     ALL_CURVES_FILTERS = ("All curves as SpecFile (*.dat)", )
 
@@ -108,7 +111,7 @@ class SaveAction(PlotAction):
     IMAGE_FILTER_CSV_TAB = 'Image data as tab-separated CSV (*.csv)'
     IMAGE_FILTER_RGB_PNG = 'Image as PNG (*.png)'
     IMAGE_FILTER_RGB_TIFF = 'Image as TIFF (*.tif)'
-    IMAGE_FILTER_NXDATA = 'Curve as NXdata (*.nx *.nxs *.h5 *.hdf)'
+    IMAGE_FILTER_NXDATA = 'Image as NXdata (*.nx *.nxs *.h5 *.hdf)'
     IMAGE_FILTERS = (IMAGE_FILTER_EDF,
                      IMAGE_FILTER_TIFF,
                      IMAGE_FILTER_NUMPY,
@@ -370,6 +373,22 @@ class SaveAction(PlotAction):
                 self._errorMessage('Save failed\n')
                 return False
             return True
+
+        elif nameFilter == self.IMAGE_FILTER_NXDATA:
+            xorigin, yorigin = image.getOrigin()
+            xscale, yscale = image.getScale()
+            xaxis = xorigin + xscale * numpy.arange(data.shape[1])
+            yaxis = yorigin + yscale * numpy.arange(data.shape[0])
+            xlabel = image.getXLabel() or self.plot.getGraphXLabel()
+            ylabel = image.getYLabel() or self.plot.getGraphYLabel()
+
+            self._saveAsNXdata(filename,
+                               signal=data,
+                               axes=[yaxis, xaxis],
+                               signal_name="image",
+                               axes_names=["y", "x"],
+                               axes_long_names=[ylabel, xlabel],
+                               title=self.plot.getGraphTitle())
 
         elif nameFilter in (self.IMAGE_FILTER_ASCII,
                             self.IMAGE_FILTER_CSV_COMMA,
