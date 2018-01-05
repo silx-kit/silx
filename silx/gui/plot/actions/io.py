@@ -95,10 +95,7 @@ class SaveAction(PlotAction):
 
     CURVE_FILTER_NPY = 'Curve as NumPy binary file (*.npy)'
 
-    CURVE_FILTER_NXDATA = 'Curve as NXdata (*.nx *.nxs *.h5 *.hdf)'
-
-    CURVE_FILTERS = list(CURVE_FILTERS_TXT.keys()) + [CURVE_FILTER_NPY,
-                                                      CURVE_FILTER_NXDATA]
+    CURVE_FILTERS = list(CURVE_FILTERS_TXT.keys()) + [CURVE_FILTER_NPY]
 
     ALL_CURVES_FILTERS = ("All curves as SpecFile (*.dat)", )
 
@@ -111,6 +108,7 @@ class SaveAction(PlotAction):
     IMAGE_FILTER_CSV_TAB = 'Image data as tab-separated CSV (*.csv)'
     IMAGE_FILTER_RGB_PNG = 'Image as PNG (*.png)'
     IMAGE_FILTER_RGB_TIFF = 'Image as TIFF (*.tif)'
+    IMAGE_FILTER_NXDATA = 'Curve as NXdata (*.nx *.nxs *.h5 *.hdf)'
     IMAGE_FILTERS = (IMAGE_FILTER_EDF,
                      IMAGE_FILTER_TIFF,
                      IMAGE_FILTER_NUMPY,
@@ -119,7 +117,8 @@ class SaveAction(PlotAction):
                      IMAGE_FILTER_CSV_SEMICOLON,
                      IMAGE_FILTER_CSV_TAB,
                      IMAGE_FILTER_RGB_PNG,
-                     IMAGE_FILTER_RGB_TIFF)
+                     IMAGE_FILTER_RGB_TIFF,
+                     IMAGE_FILTER_NXDATA)
 
     def __init__(self, plot, parent=None):
         super(SaveAction, self).__init__(
@@ -199,16 +198,17 @@ class SaveAction(PlotAction):
             ylabel = self.plot.getYAxis().getLabel()
 
         if nameFilter == self.CURVE_FILTER_NXDATA:
-            return self._saveCurveAsNXdata(
+            return self._saveAsNXdata(
                 filename,
-                curve.getXData(copy=False),
-                curve.getYData(copy=False),
-                xlabel,
-                ylabel,
-                curve.getXErrorData(copy=True),
-                curve.getYErrorData(copy=False),
-                self.plot.getGraphTitle()
-            )
+                signal=curve.getYData(copy=False),
+                axes=[curve.getXData(copy=False)],
+                signal_name="y",
+                axes_names=["x"],
+                signal_long_name=ylabel,
+                axes_long_names=[xlabel],
+                signal_errors=curve.getYErrorData(copy=False),
+                axes_errors=[curve.getXErrorData(copy=True)],
+                title=self.plot.getGraphTitle())
 
         try:
             save1D(filename,
@@ -223,37 +223,52 @@ class SaveAction(PlotAction):
 
         return True
 
-    def _saveCurveAsNXdata(self, filename, x, y,
-                           xlabel, ylabel,
-                           xerror, yerror,
-                           title):
+    @staticmethod
+    def _saveAsNXdata(filename, signal, axes,
+                      signal_name="y", axes_names=("x",),
+                      signal_long_name=None, axes_long_names=None,
+                      signal_errors=None, axes_errors=None,
+                      title=None):
+        assert len(axes) == len(axes_names), \
+            "Mismatch between number of axes and axes_names"
         # todo: ask for entry name and nxdata name
         signal_attrs = {}
-        if ylabel not in [None, "", "Y", "y"]:
-            signal_attrs["long_name"] = ylabel
+        if signal_long_name:
+            signal_attrs["long_name"] = signal_long_name
+        signal_field = nexus.NXfield(signal, name=signal_name,
+                                     attrs=signal_attrs)
 
-        axis_attrs = {}
-        if xlabel not in [None, "", "X", "x"]:
-            axis_attrs["long_name"] = xlabel
+        axes_fields = []
+        for i, axis in enumerate(axes):
+            axis_attrs = {}
+            if axes_long_names is not None:
+                axis_attrs["long_name"] = axes_long_names[i]
+            axes_fields.append(nexus.NXfield(axis, name=axes_names[i],
+                                             attrs=axis_attrs))
 
-        signal = nexus.NXfield(y, name="y", attrs=signal_attrs)
-        axis = nexus.NXfield(x, name="x", attrs=axis_attrs)
-        if yerror is not None:
-            errors = nexus.NXfield(yerror, name="errors")
+        if signal_errors is not None:
+            errors_field = nexus.NXfield(signal_errors, name="errors")
         else:
-            errors = None
-        if xerror is not None:
-            xerror = nexus.NXfield(xerror,
-                                   name="x_errors")
+            errors_field = None
 
-        data1D = nexus.NXdata(signal, [axis],
-                              errors=errors,
-                              x_errors=xerror)
+        data = nexus.NXdata(signal_field, axes_fields,
+                            errors=errors_field)
+
+        if axes_errors is not None:
+            assert hasattr(axes_errors, "len"), \
+                "axes_errors must be a sequence"
+            assert len(axes_errors) == len(axes_names), \
+                "Mismatch between number of axes_errors and axes_names"
+            for i, axis_errors in enumerate(axes_errors):
+                dsname = axes_names[i] + "_errors"
+                data[dsname] = nexus.NXfield(axis_errors)
+
         if title:
             # not in NXdata spec, but implemented by nexpy
-            data1D["title"] = title
-        data1D.save(filename,
-                    mode="w")    # todo: define format depending on whether the file exists
+            data["title"] = title
+        data.save(filename,
+                  mode="w")    # todo: define mode depending on whether the file exists
+        return True
 
         # todo: define entry (and root?) names when creating file from scratch
         #     entry = NXentry(data1D, name=?)
