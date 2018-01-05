@@ -63,7 +63,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "H. Payno"]
 __license__ = "MIT"
-__date__ = "04/01/2018"
+__date__ = "05/01/2018"
 
 
 import logging
@@ -75,6 +75,7 @@ from .Colormap import Colormap, preferredColormaps
 from . import PlotWidget
 from silx.gui.widgets.FloatEdit import FloatEdit
 import weakref
+from silx.math.combo import min_max
 
 _logger = logging.getLogger(__name__)
 
@@ -172,6 +173,7 @@ class ColormapDialog(qt.QDialog):
         self.setWindowTitle(title)
 
         self._colormap = None
+        self._data = None
 
         self._ignoreColormapChange = False
         """Used as a semaphore to avoid editing the colormap object when we are
@@ -394,6 +396,79 @@ class ColormapDialog(qt.QDialog):
                 self._updateMinMax()
             else:
                 self._plotUpdate(updateMarkers=False)
+
+    @staticmethod
+    def computeDataRange(data):
+        """Compute the data range as used by :meth:`setDataRange`.
+
+        :param data: The data to process
+        :rtype: Tuple(float, float, float)
+        """
+        if data is None or len(data) == 0:
+            return None, None, None
+
+        dataRange = min_max(data, min_positive=True, finite=True)
+        if dataRange.minimum is None:
+            # Only non-finite data
+            dataRange = None
+
+        if dataRange is not None:
+            min_positive = dataRange.min_positive
+            if min_positive is None:
+                min_positive = float('nan')
+            dataRange = dataRange.minimum, min_positive, dataRange.maximum
+
+        if dataRange is None or len(dataRange) != 3:
+            qt.QMessageBox.warning(
+                None, "No Data",
+                "Image data does not contain any real value")
+            dataRange = 1., 1., 10.
+
+        return dataRange
+
+    @staticmethod
+    def computeHistogram(data):
+        """Compute the data histogram as used by :meth:`setHistogram`.
+
+        :param data: The data to process
+        :rtype: Tuple(List(float),List(float)
+        """
+        hist, bin_edges = numpy.histogram(data, bins=256)
+        return hist, bin_edges
+
+    def setData(self, data):
+        """Store the data as a weakref.
+
+        According to the state of the dialog, the data will be used to display
+        the data range or the histogram of the data using :meth:`setDataRange`
+        and :meth:`setHistogram`
+        """
+        if data is None:
+            self.setDataRange()
+            self.setHistogram()
+            self._data = None
+            return
+
+        if self._data is not None and self._data() is data:
+            return
+
+        self._data = weakref.ref(data, self._dataAboutToFinalize)
+
+        # The histogram should be done in a worker thread
+        displayAsHisto = False
+        if displayAsHisto:
+            result = self.computeHistogram(data)
+            self.setHistogram(*result)
+            self.setDataRange()
+        else:
+            result = self.computeDataRange(data)
+            self.setHistogram()
+            self.setDataRange(*result)
+
+    def _dataAboutToFinalize(self, weakrefData):
+        """Callback when the data weakref is about to be finalized."""
+        if self._data is weakrefData:
+            self.setData(None)
 
     def getHistogram(self):
         """Returns the counts and bin edges of the displayed histogram.
