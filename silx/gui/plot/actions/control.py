@@ -50,7 +50,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "27/06/2017"
+__date__ = "04/01/2018"
 
 from . import PlotAction
 import logging
@@ -60,6 +60,7 @@ from silx.gui.plot.ColormapDialog import ColormapDialog
 from silx.gui.plot._utils import applyZoomToPlot as _applyZoomToPlot
 from silx.gui import qt
 from silx.gui import icons
+from silx.math.combo import min_max
 
 _logger = logging.getLogger(__name__)
 
@@ -350,15 +351,47 @@ class ColormapAction(PlotAction):
 
     def _updateColormap(self):
         image = self.plot.getActiveImage()
-        if not isinstance(image, items.ColormapMixIn):
+        if isinstance(image, items.ColormapMixIn):
+            # Set dialog from active image
+            colormap = image.getColormap()
+            # Reset histogram and range if any
+            self._dialog.setHistogram()
+
+            data = image.getData(copy=False)
+            if data is None or len(data) == 0:
+                self._dialog.setDataRange()
+            else:
+                dataRange = min_max(data, min_positive=True, finite=True)
+                if dataRange.minimum is None:
+                    # Only non-finite data
+                    dataRange = None
+
+                if dataRange is not None:
+                    min_positive = dataRange.min_positive
+                    if min_positive is None:
+                        min_positive = float('nan')
+                    dataRange = dataRange.minimum, min_positive, dataRange.maximum
+
+                if dataRange is None or len(dataRange) != 3:
+                    qt.QMessageBox.warning(
+                        None, "No Data",
+                        "Image data does not contain any real value")
+                    minimum, posMin, maximum = 1., 1., 10.
+                else:
+                    minimum, posMin, maximum = dataRange
+                self._dialog.setDataRange(minimum, posMin, maximum)
+            # The histogram should be done in a worker thread
+            # hist, bin_edges = numpy.histogram(data, bins=256)
+            # self._dialog.setHistogram(hist, bin_edges)
+
+        else:
             # No active image or active image is RGBA,
             # set dialog from default info
             colormap = self.plot.getDefaultColormap()
-        else:
-            # Set dialog from active image
-            colormap = image.getColormap()
+            # Reset histogram and range if any
+            self._dialog.setDataRange()
+            self._dialog.setHistogram()
 
-        self._dialog.setHistogram()
         # avoid setting multiple time the same colormap to be able to reset it
         if colormap is not self._dialog.getColormap():
             self._dialog.setColormap(colormap=colormap)
