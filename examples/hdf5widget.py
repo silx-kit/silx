@@ -294,6 +294,7 @@ def get_hdf5_with_nxdata():
     g1d0.create_dataset("count", data=numpy.arange(10))
     g1d0.create_dataset("energy_calib", data=(10, 5))     # 10 * idx + 5
     g1d0.create_dataset("energy_errors", data=3.14*numpy.random.rand(10))
+    g1d0.create_dataset("title", data="Title example provided as dataset")
 
     g1d1 = g1d.create_group("2D_spectra")
     g1d1.attrs["NX_class"] = "NXdata"
@@ -322,6 +323,7 @@ def get_hdf5_with_nxdata():
     g2d0.attrs["NX_class"] = "NXdata"
     g2d0.attrs["signal"] = "image"
     g2d0.attrs["axes"] = b"rows_calib", b"columns_coordinates"
+    g2d0.attrs["title"] = "Title example provided as group attr"
     g2d0.create_dataset("image", data=numpy.arange(4*6).reshape((4, 6)))
     ds = g2d0.create_dataset("rows_calib", data=(10, 5))
     ds.attrs["long_name"] = "Calibrated Y"

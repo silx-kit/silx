@@ -1005,7 +1005,7 @@ class _NXdataCurveView(DataView):
         data = self.normalizeData(data)
         nxd = nxdata.get_NXdata_in_group(data)
         signal_name = nxd.signal_name
-        group_name = data.name
+        # group_name = data.name
         if nxd.axes_dataset_names[-1] is not None:
             x_errors = nxd.get_axis_errors(nxd.axes_dataset_names[-1])
         else:
@@ -1014,7 +1014,7 @@ class _NXdataCurveView(DataView):
         self.getWidget().setCurveData(nxd.signal, nxd.axes[-1],
                                       yerror=nxd.errors, xerror=x_errors,
                                       ylabel=signal_name, xlabel=nxd.axes_names[-1],
-                                      title="NXdata group " + group_name)
+                                      title=nxd.title or signal_name)
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
@@ -1053,8 +1053,8 @@ class _NXdataXYVScatterView(DataView):
         data = self.normalizeData(data)
         nxd = nxdata.get_NXdata_in_group(data)
         signal_name = nxd.signal_name
-        # signal_errors = nx.errors   # not supported
-        group_name = data.name
+        # signal_errors = nx.errors
+        # group_name = data.name
         x_axis, y_axis = nxd.axes[-2:]
 
         x_label, y_label = nxd.axes_names[-2:]
@@ -1068,11 +1068,12 @@ class _NXdataXYVScatterView(DataView):
         else:
             y_errors = None
 
+        title = nxd.title or signal_name
+
         self.getWidget().setCurveData(y_axis, x_axis, values=nxd.signal,
                                       yerror=y_errors, xerror=x_errors,
                                       ylabel=y_label, xlabel=x_label,
-                                      title="NXdata group " + group_name +
-                                            ", coloured by " + signal_name)
+                                      title=title)
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
@@ -1107,14 +1108,15 @@ class _NXdataImageView(DataView):
         data = self.normalizeData(data)
         nxd = nxdata.get_NXdata_in_group(data)
         signal_name = nxd.signal_name
-        group_name = data.name
+        # group_name = data.name
         y_axis, x_axis = nxd.axes[-2:]
         y_label, x_label = nxd.axes_names[-2:]
+        title = nxd.title or signal_name
 
         self.getWidget().setImageData(
                      nxd.signal, x_axis=x_axis, y_axis=y_axis,
                      signal_name=signal_name, xlabel=x_label, ylabel=y_label,
-                     title="NXdata group %s: %s" % (group_name, signal_name))
+                     title=title)
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
@@ -1151,16 +1153,17 @@ class _NXdataStackView(DataView):
         data = self.normalizeData(data)
         nxd = nxdata.get_NXdata_in_group(data)
         signal_name = nxd.signal_name
-        group_name = data.name
+        # group_name = data.name
         z_axis, y_axis, x_axis = nxd.axes[-3:]
         z_label, y_label, x_label = nxd.axes_names[-3:]
+        title = nxd.title or signal_name
 
         widget = self.getWidget()
         widget.setStackData(
                      nxd.signal, x_axis=x_axis, y_axis=y_axis, z_axis=z_axis,
                      signal_name=signal_name,
                      xlabel=x_label, ylabel=y_label, zlabel=z_label,
-                     title="NXdata group %s: %s" % (group_name, signal_name))
+                     title=title)
         # Override the colormap, while setStack overwrite it
         widget.getStackView().setColormap(self.defaultColormap())
 

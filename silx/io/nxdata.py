@@ -524,6 +524,29 @@ class NXdata(object):
 
         return list(axes_dataset_names)
 
+    @property
+    def title(self):
+        """Plot title. If not found, returns an empty string.
+
+        This attribute does not appear in the NXdata specification, but it is
+        implemented in *nexpy* as a dataset named "title" inside the NXdata
+        group. This dataset is expected to contain text.
+
+        Because the *nexpy* approach could cause a conflict if the signal
+        dataset or an axis dataset happened to be called "title", we also
+        support providing the title as an attribute of the NXdata group.
+        """
+        title = self.group.get("title")
+        data_dataset_names = [self.signal_name] + self.axes_dataset_names
+        if (title is not None and is_dataset(title) and
+                "title" not in data_dataset_names):
+            return str(title[()])
+
+        title = self.group.attrs.get("title")
+        if title is None:
+            return ""
+        return str(title)
+
     def get_axis_errors(self, axis_name):
         """Return errors (uncertainties) associated with an axis.
 
