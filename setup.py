@@ -206,6 +206,46 @@ class BuildMan(Command):
             function_name = elements[1].strip()
             yield target_name, module_name, function_name
 
+    def run_targeted_script(self, target_name, script_name, env, log_output=False):
+        """Execute targeted script using --help and --version to help checking
+        errors. help2man is not very helpful to do it for us.
+
+        :return: True is both return code are equal to 0
+        :rtype: bool
+        """
+        import subprocess
+
+        if log_output:
+            extra_args = {}
+        else:
+            try:
+                # Python 3
+                from subprocess import DEVNULL
+            except ImportError:
+                # Python 2
+                import os
+                DEVNULL = open(os.devnull, 'wb')
+            extra_args = {'stdout': DEVNULL, 'stderr': DEVNULL}
+
+        succeeded = True
+        command_line = [sys.executable, script_name, "--help"]
+        if log_output:
+            logger.info("See the following execution of: %s", " ".join(command_line))
+        p = subprocess.Popen(command_line, env=env, **extra_args)
+        status = p.wait()
+        if log_output:
+            logger.info("Return code: %s", status)
+        succeeded = succeeded and status == 0
+        command_line = [sys.executable, script_name, "--version"]
+        if log_output:
+            logger.info("See the following execution of: %s", " ".join(command_line))
+        p = subprocess.Popen(command_line, env=env, **extra_args)
+        status = p.wait()
+        if log_output:
+            logger.info("Return code: %s", status)
+        succeeded = succeeded and status == 0
+        return succeeded
+
     def run(self):
         build = self.get_finalized_command('build')
         path = sys.path
@@ -246,10 +286,19 @@ class BuildMan(Command):
                     # Before Python 3.4, ArgParser --version was using
                     # stderr to print the version
                     command_line.append("--no-discard-stderr")
+                    # Then we dont know if the documentation will contains
+                    # durtty things
+                    succeeded = self.run_targeted_script(target_name, script_name, env, False)
+                    if not succeeded:
+                        logger.info("Error while generating man file for target '%s'.", target_name)
+                        self.run_targeted_script(target_name, script_name, env, True)
+                        raise RuntimeError("Fail to generate '%s' man documentation" % target_name)
 
                 p = subprocess.Popen(command_line, env=env)
                 status = p.wait()
                 if status != 0:
+                    logger.info("Error while generating man file for target '%s'.", target_name)
+                    self.run_targeted_script(target_name, script_name, env, True)
                     raise RuntimeError("Fail to generate '%s' man documentation" % target_name)
             finally:
                 # clean up the script
