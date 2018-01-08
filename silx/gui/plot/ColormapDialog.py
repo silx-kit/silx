@@ -101,7 +101,7 @@ class _BoundaryWidget(qt.QWidget):
         self.layout().addWidget(self._autoCB)
         self._autoCB.setChecked(False)
 
-        self._autoCB.toggled.connect(self._numVal.setDisabled)
+        self._autoCB.toggled.connect(self._autoToggled)
         self.sigValueChanged = self._autoCB.toggled
         self.textEdited = self._numVal.textEdited
         self.editingFinished = self._numVal.editingFinished
@@ -120,6 +120,10 @@ class _BoundaryWidget(qt.QWidget):
             return self._numVal.value()
         else:
             return self._dataValue
+
+    def _autoToggled(self, enabled):
+        self._numVal.setEnabled(not enabled)
+        self._updateDisplayedText()
 
     def _updateDisplayedText(self):
         # if dataValue is finite
