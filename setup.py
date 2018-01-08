@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "16/10/2017"
+__date__ = "08/01/2018"
 __license__ = "MIT"
 
 
@@ -188,6 +188,24 @@ class BuildMan(Command):
     def finalize_options(self):
         pass
 
+    def entry_points_iterator(self):
+        """Iterate other entry points available on the project."""
+        entry_points = self.distribution.entry_points
+        console_scripts = entry_points.get('console_scripts', [])
+        gui_scripts = entry_points.get('gui_scripts', [])
+        scripts = []
+        scripts.extend(console_scripts)
+        scripts.extend(gui_scripts)
+        for script in scripts:
+            # Remove ending extra dependencies
+            script = script.split("[")[0]
+            elements = script.split("=")
+            target_name = elements[0].strip()
+            elements = elements[1].split(":")
+            module_name = elements[0].strip()
+            function_name = elements[1].strip()
+            yield target_name, module_name, function_name
+
     def run(self):
         build = self.get_finalized_command('build')
         path = sys.path
@@ -200,34 +218,43 @@ class BuildMan(Command):
         import subprocess
         import tempfile
         import stat
+        script_name = None
 
-        try:
-            script_name = None
-
+        entry_points = self.entry_points_iterator()
+        for target_name, module_name, function_name in entry_points:
+            logger.info("Build man for entry-point target '%s'" % target_name)
             # help2man expect a single executable file to extract the help
             # we create it, execute it, and delete it at the end
 
-            # create a launcher using the right python interpreter
-            script_fid, script_name = tempfile.mkstemp(prefix="%s_" % PROJECT, text=True)
-            script = os.fdopen(script_fid, 'wt')
-            script.write("#!%s\n" % sys.executable)
-            script.write("import runpy\n")
-            script.write("runpy.run_module('%s', run_name='__main__')\n" % PROJECT)
-            script.close()
+            py3 = sys.version_info >= (3, 0)
+            try:
+                # create a launcher using the right python interpreter
+                script_fid, script_name = tempfile.mkstemp(prefix="%s_" % target_name, text=True)
+                script = os.fdopen(script_fid, 'wt')
+                script.write("#!%s\n" % sys.executable)
+                script.write("import %s as app\n" % module_name)
+                script.write("app.%s()\n" % function_name)
+                script.close()
+                # make it executable
+                mode = os.stat(script_name).st_mode
+                os.chmod(script_name, mode + stat.S_IEXEC)
 
-            # make it executable
-            mode = os.stat(script_name).st_mode
-            os.chmod(script_name, mode + stat.S_IEXEC)
+                # execute help2man
+                man_file = "build/man/%s.1" % target_name
+                command_line = ["help2man", script_name, "-o", man_file]
+                if not py3:
+                    # Before Python 3.4, ArgParser --version was using
+                    # stderr to print the version
+                    command_line.append("--no-discard-stderr")
 
-            # execute help2man
-            p = subprocess.Popen(["help2man", script_name, "-o", "build/man/silx.1"], env=env)
-            status = p.wait()
-            if status != 0:
-                raise RuntimeError("Fail to generate man documentation")
-        finally:
-            # clean up the script
-            if script_name is not None:
-                os.remove(script_name)
+                p = subprocess.Popen(command_line, env=env)
+                status = p.wait()
+                if status != 0:
+                    raise RuntimeError("Fail to generate '%s' man documentation" % target_name)
+            finally:
+                # clean up the script
+                if script_name is not None:
+                    os.remove(script_name)
 
 
 if sphinx is not None:
