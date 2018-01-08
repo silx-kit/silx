@@ -327,6 +327,7 @@ class ColormapAction(PlotAction):
             tooltip="Change colormap",
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
+        self.plot.sigActiveImageChanged.connect(self._updateColormap)
 
     def setColorDialog(self, colorDialog):
         """Set a specific color dialog instead of using the default dialog."""
@@ -352,7 +353,6 @@ class ColormapAction(PlotAction):
         if self._dialog is None:
             self._dialog = self._createDialog(self.plot)
             self._dialog.visibleChanged.connect(self._dialogVisibleChanged)
-            self.plot.sigActiveImageChanged.connect(self._updateColormap)
 
         # Run the dialog listening to colormap change
         if checked is True:
