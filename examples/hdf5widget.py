@@ -380,10 +380,12 @@ def get_hdf5_with_nxdata():
     gd1.attrs["NX_class"] = "NXdata"
     gd1.attrs["signal"] = "values"
     gd1.attrs["axes"] = b"x", b"y"
+    gd1.attrs["title"] = "x, y, values scatter with asymmetric y_errors"
     gd1.create_dataset("values", data=3.14*numpy.random.rand(128))
     gd1.create_dataset("y", data=numpy.random.rand(128))
-    gd1.create_dataset("y_errors", data=0.02*numpy.random.rand(128))
-    gd1.create_dataset("x", data=numpy.random.rand(128))
+    y_errors = [0.03*numpy.random.rand(128), 0.04*numpy.random.rand(128)]
+    gd1.create_dataset("y_errors", data=y_errors)
+    gd1.create_dataset("x", data=2*numpy.random.rand(128))
     gd1.create_dataset("x_errors", data=0.02*numpy.random.rand(128))
 
     # NDIM > 3
