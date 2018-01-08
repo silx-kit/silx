@@ -63,7 +63,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "H. Payno"]
 __license__ = "MIT"
-__date__ = "05/01/2018"
+__date__ = "08/01/2018"
 
 
 import logging
@@ -544,6 +544,9 @@ class ColormapDialog(qt.QDialog):
             _data = (_data[:, :, 0] * 0.299 +
                      _data[:, :, 1] * 0.587 +
                      _data[:, :, 2] * 0.114)
+
+        if len(_data) == 0:
+            return None, None
 
         xmin, xmax = min_max(_data, min_positive=False, finite=True)
         nbins = min(256, int(numpy.sqrt(_data.size)))
