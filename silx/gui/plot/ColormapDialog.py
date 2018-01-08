@@ -203,6 +203,7 @@ class _ColormapNameCombox(qt.QComboBox):
         if index < 0:
             index = self.count()
             self.addItem(str.title(name))
+            self.setItemIcon(index, self.getIconPreview(name))
             self.setItemData(index, name, role=self.ORIGINAL_NAME)
         self.setCurrentIndex(index)
 
