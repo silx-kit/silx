@@ -586,7 +586,7 @@ class Hdf5TreeViewExample(qt.QMainWindow):
                 hasDataset = True
                 break
 
-        if len(menu.children()):
+        if not menu.isEmpty():
             menu.addSeparator()
 
         if hasDataset:
@@ -602,7 +602,7 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         selectedObjects = event.source().selectedH5Nodes()
         menu = event.menu()
 
-        if len(menu.children()):
+        if not menu.isEmpty():
             menu.addSeparator()
 
         for obj in selectedObjects:

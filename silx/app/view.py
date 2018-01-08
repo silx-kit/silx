@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "30/11/2017"
+__date__ = "05/01/2018"
 
 import sys
 import os
@@ -202,7 +202,7 @@ class Viewer(qt.QMainWindow):
         selectedObjects = event.source().selectedH5Nodes(ignoreBrokenLinks=False)
         menu = event.menu()
 
-        if len(menu.children()):
+        if not menu.isEmpty():
             menu.addSeparator()
 
         # Import it here to be sure to use the right logging level

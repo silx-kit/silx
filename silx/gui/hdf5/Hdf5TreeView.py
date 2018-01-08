@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "05/12/2017"
+__date__ = "05/01/2018"
 
 
 import logging
@@ -119,7 +119,7 @@ class Hdf5TreeView(qt.QTreeView):
                 _logger.error("Error while calling callback", exc_info=True)
                 pass
 
-        if len(menu.children()) > 0:
+        if not menu.isEmpty():
             for action in actions:
                 menu.addAction(action)
             menu.popup(self.viewport().mapToGlobal(pos))
