@@ -128,6 +128,9 @@ class ColormapDialogExample(qt.QMainWindow):
         button = qt.QPushButton("Set shepp logan phantom")
         button.clicked.connect(self.setSheppLoganPhantom)
         layout.addWidget(button)
+        button = qt.QPushButton("Set data with non finite")
+        button.clicked.connect(self.setDataWithNonFinite)
+        layout.addWidget(button)
 
         layout.addStretch()
 
@@ -214,6 +217,21 @@ class ColormapDialogExample(qt.QMainWindow):
             from scipy import ndimage
             data = ndimage.gaussian_filter(data, sigma=20)
         data = numpy.random.poisson(data)
+        self.data = data
+        for dialog in self.colorDialogs:
+            dialog.setData(data)
+
+    def setDataWithNonFinite(self):
+        from silx.image import phantomgenerator
+        data = phantomgenerator.PhantomGenerator.get2DPhantomSheppLogan(256)
+        data = data * 1000
+        if scipy is not None:
+            from scipy import ndimage
+            data = ndimage.gaussian_filter(data, sigma=20)
+        data = numpy.random.poisson(data)
+        data[10] = float("nan")
+        data[50] = float("+inf")
+        data[100] = float("-inf")
         self.data = data
         for dialog in self.colorDialogs:
             dialog.setData(data)
