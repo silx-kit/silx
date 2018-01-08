@@ -42,6 +42,7 @@ __date__ = "27/06/2017"
 from . import PlotAction
 from silx.io.utils import save1D, savespec
 import logging
+import os
 import os.path
 import sys
 from collections import OrderedDict
@@ -280,9 +281,13 @@ class SaveAction(PlotAction):
             # not in NXdata spec, but implemented by nexpy
             data["title"] = title
 
-        if os.path.isfile(filename):
-            nxfile = nexus.NXFile(filename, "rw")
-            root = nxfile.readfile()
+        if os.path.isfile(filename) and os.access(filename, os.W_OK):
+            try:
+                nxfile = nexus.NXFile(filename, "rw")
+                root = nxfile.readfile()
+            except IOError:
+                _logger.error("Could not read existing file %s", filename)
+                return False
 
             all_entries = root.NXentry
             if all_entries:
@@ -295,7 +300,6 @@ class SaveAction(PlotAction):
                     nxdata_group_name = "data%d" % i
                     i += 0
                 first_entry[nxdata_group_name] = data
-
             else:
                 # create an entry and add data to it
                 nxentry_group_name = "entry0"
@@ -307,6 +311,14 @@ class SaveAction(PlotAction):
 
             nxfile.writefile(root)
             nxfile.close()
+        elif os.path.exists(filename):
+            errmsg = "Cannot write/append to existing path %s"
+            if not os.path.isfile(filename):
+                _logger.error(" (not a file)")
+            elif not os.access(filename, os.W_OK):
+                _logger.error(" (no permission to write)")
+            _logger.error(errmsg, filename)
+            return False
         else:
             # New file: let nexus.NXdata build the file
             data.save(filename,
