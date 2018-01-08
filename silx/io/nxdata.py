@@ -29,9 +29,12 @@ See http://download.nexusformat.org/sphinx/classes/base_classes/NXdata.html
 
 """
 import logging
+import os
+import os.path
 import numpy
 from .utils import is_dataset, is_group, is_file
 from silx.third_party import six
+from silx.third_party.nexusformat import nexus
 
 _logger = logging.getLogger(__name__)
 
@@ -747,3 +750,116 @@ def get_NXdata_in_group(group):
         return None
 
     return NXdata(default_data)
+
+
+def save_NXdata(filename, signal, axes,
+                signal_name="y", axes_names=("x",),
+                signal_long_name=None, axes_long_names=None,
+                signal_errors=None, axes_errors=None,
+                title=None, interpretation=None):
+    """
+
+    :param str filename:
+    :param numpy.ndarray signal: Signal array.
+    :param list(numpy.ndarray) axes: List of axes arrays.
+    :param str signal_name: Name of signal dataset, in output file
+    :param list(str) axes_names: List of dataset names for axes, in
+        output file
+    :param str signal_long_name: *@long_name* attribute for signal, or None.
+    :param list(str or None) axes_long_names: None, or list of long names
+        for axes
+    :param numpy.ndarray signal_errors: Array of errors associated with the
+        signal
+    :param list(numpy.ndarray or None) axes_errors: List of arrays of errors
+        associated with each axis
+    :param str title: Graph title (saved as a "title" dataset) or None.
+    :param str interpretation: *@interpretation* attribute ("spectrum",
+        "image", "rgba-image" or None). Only needed in cases of ambiguous
+        dimensionality, e.g. a 3D array which represents a RGBA image
+        rather than a stack.
+    :return: True if save was succesful, else False.
+    """
+    assert len(axes) == len(axes_names), \
+        "Mismatch between number of axes and axes_names"
+    # todo: ask for entry name and nxdata name
+    signal_attrs = {}
+    if signal_long_name:
+        signal_attrs["long_name"] = signal_long_name
+    if interpretation:
+        signal_attrs["interpretation"] = interpretation
+    signal_field = nexus.NXfield(signal, name=signal_name,
+                                 attrs=signal_attrs)
+
+    axes_fields = []
+    for i, axis in enumerate(axes):
+        axis_attrs = {}
+        if axes_long_names is not None:
+            axis_attrs["long_name"] = axes_long_names[i]
+        axes_fields.append(nexus.NXfield(axis, name=axes_names[i],
+                                         attrs=axis_attrs))
+
+    if signal_errors is not None:
+        errors_field = nexus.NXfield(signal_errors, name="errors")
+    else:
+        errors_field = None
+
+    data = nexus.NXdata(signal_field, axes_fields,
+                        errors=errors_field)
+
+    if axes_errors is not None:
+        assert isinstance(axes_errors, (list, tuple)), \
+            "axes_errors must be a list or a tuple"
+        assert len(axes_errors) == len(axes_names), \
+            "Mismatch between number of axes_errors and axes_names"
+        for i, axis_errors in enumerate(axes_errors):
+            if axis_errors is not None:
+                dsname = axes_names[i] + "_errors"
+                data[dsname] = nexus.NXfield(axis_errors)
+
+    if title:
+        # not in NXdata spec, but implemented by nexpy
+        data["title"] = title
+
+    if os.path.isfile(filename) and os.access(filename, os.W_OK):
+        try:
+            nxfile = nexus.NXFile(filename, "rw")
+            root = nxfile.readfile()
+        except IOError:
+            _logger.error("Could not read existing file %s", filename)
+            return False
+
+        all_entries = root.NXentry
+        if all_entries:
+            # add data to existing first entry       TODO: allow user to select any existing entry
+            first_entry = all_entries[0]
+            # find an available name for the NXdata group
+            nxdata_group_name = "data0"
+            i = 1
+            while nxdata_group_name in first_entry:
+                nxdata_group_name = "data%d" % i
+                i += 0
+            first_entry[nxdata_group_name] = data
+        else:
+            # create an entry and add data to it
+            nxentry_group_name = "entry0"
+            i = 1
+            while nxentry_group_name in root:
+                nxentry_group_name = "entry%d" % i
+                i += 0
+            root[nxentry_group_name] = nexus.NXentry(data0=data)
+
+        nxfile.writefile(root)
+        nxfile.close()
+    elif os.path.exists(filename):
+        errmsg = "Cannot write/append to existing path %s"
+        if not os.path.isfile(filename):
+            _logger.error(" (not a file)")
+        elif not os.access(filename, os.W_OK):
+            _logger.error(" (no permission to write)")
+        _logger.error(errmsg, filename)
+        return False
+    else:
+        # New file: let nexus.NXdata build the file
+        data.save(filename,
+                  mode="w")
+    return True
