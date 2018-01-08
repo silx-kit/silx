@@ -378,6 +378,7 @@ class ColormapDialog(qt.QDialog):
 
         vLayout.setSizeConstraint(qt.QLayout.SetMinimumSize)
         self.setFixedSize(self.sizeHint())
+        self._applyColormap()
 
     def showEvent(self, event):
         self.visibleChanged.emit(True)
@@ -634,6 +635,11 @@ class ColormapDialog(qt.QDialog):
             self.setHistogram(*result)
             self.setDataRange()
 
+    def _colormapAboutToFinalize(self, weakrefColormap):
+        """Callback when the data weakref is about to be finalized."""
+        if self._colormap is weakrefColormap:
+            self.setColormap(None)
+
     def _dataAboutToFinalize(self, weakrefData):
         """Callback when the data weakref is about to be finalized."""
         if self._data is weakrefData:
@@ -772,6 +778,8 @@ class ColormapDialog(qt.QDialog):
         colormap = self.getColormap()
         if colormap is not None:
             self._colormapStoredState = colormap._toDict()
+        else:
+            self._colormapStoredState = None
 
     def reject(self):
         self.resetColormap()
@@ -782,7 +790,7 @@ class ColormapDialog(qt.QDialog):
 
         :param :class:`Colormap` colormap: the colormap to edit
         """
-        assert isinstance(colormap, Colormap)
+        assert colormap is None or isinstance(colormap, Colormap)
         if self._ignoreColormapChange is True:
             return
 
@@ -791,8 +799,12 @@ class ColormapDialog(qt.QDialog):
             return
         if oldColormap is not None:
             oldColormap.sigChanged.disconnect(self._applyColormap)
-        self._colormap = weakref.ref(colormap)
-        self._colormap().sigChanged.connect(self._applyColormap)
+
+        if colormap is not None:
+            colormap.sigChanged.connect(self._applyColormap)
+            colormap = weakref.ref(colormap, self._colormapAboutToFinalize)
+
+        self._colormap = colormap
         self.storeCurrentState()
         self._applyColormap()
 
@@ -801,6 +813,7 @@ class ColormapDialog(qt.QDialog):
             return
 
         colormap = self.getColormap()
+        self.setEnabled(colormap is not None)
         if colormap is not None:
             self._ignoreColormapChange = True
 
@@ -820,7 +833,8 @@ class ColormapDialog(qt.QDialog):
             self._maxValue.setValue(vmax or dataRange[1], isAuto=vmax is None)
 
             self._ignoreColormapChange = False
-            self._plotUpdate()
+
+        self._plotUpdate()
 
     def _updateMinMax(self):
         if self._ignoreColormapChange is True:
