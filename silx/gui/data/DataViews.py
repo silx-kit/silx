@@ -1108,11 +1108,15 @@ class _NXdataImageView(DataView):
         data = self.normalizeData(data)
         nxd = nxdata.get_NXdata_in_group(data)
         signal_name = nxd.signal_name
-        # group_name = data.name
-        y_axis, x_axis = nxd.axes[-2:]
-        y_label, x_label = nxd.axes_names[-2:]
         title = nxd.title or signal_name
         isRgba = nxd.interpretation == "rgba-image"
+        if not isRgba:
+            # group_name = data.name
+            y_axis, x_axis = nxd.axes[-2:]
+            y_label, x_label = nxd.axes_names[-2:]
+        else:
+            y_axis, x_axis = nxd.axes[:2]
+            y_label, x_label = nxd.axes_names[:2]
 
         self.getWidget().setImageData(
                      nxd.signal, x_axis=x_axis, y_axis=y_axis,
