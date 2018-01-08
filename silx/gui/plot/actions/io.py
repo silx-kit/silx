@@ -263,8 +263,8 @@ class SaveAction(PlotAction):
                             errors=errors_field)
 
         if axes_errors is not None:
-            assert hasattr(axes_errors, "len"), \
-                "axes_errors must be a sequence"
+            assert isinstance(axes_errors, (list, tuple)), \
+                "axes_errors must be a list or a tuple"
             assert len(axes_errors) == len(axes_names), \
                 "Mismatch between number of axes_errors and axes_names"
             for i, axis_errors in enumerate(axes_errors):
@@ -461,30 +461,31 @@ class SaveAction(PlotAction):
 
         if nameFilter == self.SCATTER_FILTER_NXDATA:
             scatter = self.plot.getScatter()
-            # TODO: we could get all scatters and concatenate their (x, y, values)
-            x = scatter.getXData()
-            y = scatter.getYData()
-            z = scatter.getValueData()
+            # TODO: we could get all scatters on this plot and concatenate their (x, y, values)
+            x = scatter.getXData(copy=False)
+            y = scatter.getYData(copy=False)
+            z = scatter.getValueData(copy=False)
 
-            xerror = scatter.getXErrorData()
-            yerror = scatter.getYErrorData()
-            if isinstance(float, xerror):
-                xerror *= numpy.ones(x.shape, dtype=numpy.float32)
-            if isinstance(float, yerror):
-                yerror *= numpy.ones(x.shape, dtype=numpy.float32)
-            # TODO: support x and yerror as 2D arrays (positive/negative errors)
+            xerror = scatter.getXErrorData(copy=False)
+            if isinstance(xerror, float):
+                xerror = xerror * numpy.ones(x.shape, dtype=numpy.float32)
+
+            yerror = scatter.getYErrorData(copy=False)
+            if isinstance(yerror, float):
+                yerror = yerror * numpy.ones(x.shape, dtype=numpy.float32)
+
+            xlabel = scatter.getXLabel() or self.plot.getGraphXLabel()
+            ylabel = scatter.getYLabel() or self.plot.getGraphYLabel()
 
             return self._saveAsNXdata(
                 filename,
                 signal=z,
-                axes=[y, x],  # fixme: or is it x, y??
+                axes=[x, y],
                 signal_name="values",
-                axes_names=["y", "x"],     # fixme: or is it x, y??
-                signal_long_name=ylabel,
-                axes_long_names=[xlabel],
-                axes_errors=[yerror, xerror],
+                axes_names=["x", "y"],
+                axes_long_names=[xlabel, ylabel],
+                axes_errors=[xerror, yerror],
                 title=self.plot.getGraphTitle())
-
 
     def _actionTriggered(self, checked=False):
         """Handle save action."""
