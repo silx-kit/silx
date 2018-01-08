@@ -825,8 +825,10 @@ class ColormapDialog(qt.QDialog):
 
         vmin = self._minValue.getValue()
         vmax = self._maxValue.getValue()
-        if self._colormap():
-            self._colormap().setVRange(vmin, vmax)
+        self._ignoreColormapChange = True
+        colormap = self._colormap()
+        if colormap is not None:
+            colormap.setVRange(vmin, vmax)
         self._ignoreColormapChange = False
         self._plotUpdate()
 
