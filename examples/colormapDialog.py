@@ -27,12 +27,17 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "04/01/2018"
+__date__ = "05/01/2018"
 
 import functools
+import numpy
+
+try:
+    import scipy
+except ImportError:
+    scipy = None
 
 from silx.gui import qt
-
 from silx.gui.plot.ColormapDialog import ColormapDialog
 from silx.gui.plot.Colormap import Colormap
 from silx.gui.plot.ColorBar import ColorBarWidget
@@ -112,6 +117,15 @@ class ColormapDialogExample(qt.QMainWindow):
         button.clicked.connect(self.setNegativeRange)
         layout.addWidget(button)
 
+        layout.addSpacing(10)
+
+        button = qt.QPushButton("Set no data")
+        button.clicked.connect(self.setNoData)
+        layout.addWidget(button)
+        button = qt.QPushButton("Set shepp logan phantom")
+        button.clicked.connect(self.setSheppLoganPhantom)
+        layout.addWidget(button)
+
         layout.addStretch()
 
     def createColorDialog(self):
@@ -179,6 +193,22 @@ class ColormapDialogExample(qt.QMainWindow):
     def setNegativeRange(self):
         for dialog in self.colorDialogs:
             dialog.setDataRange(-10, float("nan"), -1)
+
+    def setNoData(self):
+        for dialog in self.colorDialogs:
+            dialog.setData(None)
+
+    def setSheppLoganPhantom(self):
+        from silx.image import phantomgenerator
+        data = phantomgenerator.PhantomGenerator.get2DPhantomSheppLogan(256)
+        data = data * 1000
+        if scipy is not None:
+            from scipy import ndimage
+            data = ndimage.gaussian_filter(data, sigma=20)
+        data = numpy.random.poisson(data)
+        self.data = data
+        for dialog in self.colorDialogs:
+            dialog.setData(data)
 
 
 def main():
