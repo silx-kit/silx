@@ -42,6 +42,7 @@ __date__ = "27/06/2017"
 from . import PlotAction
 from silx.io.utils import save1D, savespec
 import logging
+import os.path
 import sys
 from collections import OrderedDict
 import traceback
@@ -279,8 +280,37 @@ class SaveAction(PlotAction):
             # not in NXdata spec, but implemented by nexpy
             data["title"] = title
 
-        data.save(filename,
-                  mode="w")    # todo: define mode depending on whether the file exists
+        if os.path.isfile(filename):
+            nxfile = nexus.NXFile(filename, "rw")
+            root = nxfile.readfile()
+
+            all_entries = root.NXentry
+            if all_entries:
+                # add data to existing first entry       TODO: allow user to select any existing entry
+                first_entry = all_entries[0]
+                # find an available name for the NXdata group
+                nxdata_group_name = "data0"
+                i = 1
+                while nxdata_group_name in first_entry:
+                    nxdata_group_name = "data%d" % i
+                    i += 0
+                first_entry[nxdata_group_name] = data
+
+            else:
+                # create an entry and add data to it
+                nxentry_group_name = "entry0"
+                i = 1
+                while nxentry_group_name in root:
+                    nxentry_group_name = "entry%d" % i
+                    i += 0
+                root[nxentry_group_name] = nexus.NXentry(data0=data)
+
+            nxfile.writefile(root)
+            nxfile.close()
+        else:
+            # New file: let nexus.NXdata build the file
+            data.save(filename,
+                      mode="w")
         return True
 
         # todo: define entry (and root?) names when creating file from scratch
