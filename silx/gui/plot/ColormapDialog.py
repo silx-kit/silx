@@ -697,7 +697,7 @@ class ColormapDialog(qt.QDialog):
                   state when validated
         """
         colormap = self.getColormap()
-        if colormap is not None:
+        if colormap is not None and self._colormapStoredState is not None:
             self._ignoreColormapChange = True
             colormap._setFromDict(self._colormapStoredState)
             self._ignoreColormapChange = False
@@ -769,8 +769,9 @@ class ColormapDialog(qt.QDialog):
         save the current value sof the colormap if the user want to undo is
         modifications
         """
-        if self._colormap():
-            self._colormapStoredState = self._colormap()._toDict()
+        colormap = self.getColormap()
+        if colormap is not None:
+            self._colormapStoredState = colormap._toDict()
 
     def reject(self):
         self.resetColormap()
@@ -798,21 +799,23 @@ class ColormapDialog(qt.QDialog):
     def _applyColormap(self):
         if self._ignoreColormapChange is True:
             return
-        if self._colormap():
+
+        colormap = self.getColormap()
+        if colormap is not None:
             self._ignoreColormapChange = True
 
-            if self._colormap().getName() is not None:
-                name = self._colormap().getName()
+            if colormap.getName() is not None:
+                name = colormap.getName()
                 self._comboBoxColormap.setCurrentName(name)
 
-            assert self._colormap().getNormalization() in Colormap.NORMALIZATIONS
+            assert colormap.getNormalization() in Colormap.NORMALIZATIONS
             self._normButtonLinear.setChecked(
-                self._colormap().getNormalization() == Colormap.LINEAR)
+                colormap.getNormalization() == Colormap.LINEAR)
             self._normButtonLog.setChecked(
-                self._colormap().getNormalization() == Colormap.LOGARITHM)
-            vmin = self._colormap().getVMin()
-            vmax = self._colormap().getVMax()
-            dataRange = self._colormap().getColormapRange()
+                colormap.getNormalization() == Colormap.LOGARITHM)
+            vmin = colormap.getVMin()
+            vmax = colormap.getVMax()
+            dataRange = colormap.getColormapRange()
             self._minValue.setValue(vmin or dataRange[0], isAuto=vmin is None)
             self._maxValue.setValue(vmax or dataRange[1], isAuto=vmax is None)
 
