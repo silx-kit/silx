@@ -41,7 +41,7 @@ from .core import (Points, LabelsMixIn, ColorMixIn, YAxisMixIn,
 _logger = logging.getLogger(__name__)
 
 
-class Curve(Points, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixIn):
+class Curve(Points, ColorMixIn, YAxisMixIn, FillMixIn, LineMixIn):
     """Description of a curve"""
 
     _DEFAULT_Z_LAYER = 1
