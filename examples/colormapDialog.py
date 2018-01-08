@@ -27,7 +27,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "05/01/2018"
+__date__ = "08/01/2018"
 
 import functools
 import numpy
@@ -77,6 +77,9 @@ class ColormapDialogExample(qt.QMainWindow):
 
         layout.addSpacing(10)
 
+        button = qt.QPushButton("Set no colormap")
+        button.clicked.connect(self.setNoColormap)
+        layout.addWidget(button)
         button = qt.QPushButton("Set colormap 1")
         button.clicked.connect(self.setColormap1)
         layout.addWidget(button)
@@ -136,6 +139,11 @@ class ColormapDialogExample(qt.QMainWindow):
 
     def removeColorDialog(self, dialog):
         self.colorDialogs.remove(dialog)
+
+    def setNoColormap(self):
+        self.colorBar.setColormap(None)
+        for dialog in self.colorDialogs:
+            dialog.setColormap(None)
 
     def setColormap1(self):
         self.colorBar.setColormap(self.colormap1)
