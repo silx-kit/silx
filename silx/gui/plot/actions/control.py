@@ -50,7 +50,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "05/01/2018"
+__date__ = "08/01/2018"
 
 from . import PlotAction
 import logging
@@ -365,6 +365,8 @@ class ColormapAction(PlotAction):
         self.setChecked(isVisible)
 
     def _updateColormap(self):
+        if self._dialog is None:
+            return
         image = self.plot.getActiveImage()
         if isinstance(image, items.ColormapMixIn):
             # Set dialog from active image
