@@ -60,6 +60,9 @@ else:
 _logger = logging.getLogger(__name__)
 
 
+_NEXUS_HDF5_EXT = "*.nx5 *.nxs *.hdf *.hdf5 *.cxi *.h5"
+
+
 class SaveAction(PlotAction):
     """QAction for saving Plot content.
 
@@ -95,7 +98,7 @@ class SaveAction(PlotAction):
 
     CURVE_FILTER_NPY = 'Curve as NumPy binary file (*.npy)'
 
-    CURVE_FILTER_NXDATA = 'Curve as NXdata (*.nx *.nxs *.h5 *.hdf)'
+    CURVE_FILTER_NXDATA = 'Curve as NXdata (%s)' % _NEXUS_HDF5_EXT
 
     CURVE_FILTERS = list(CURVE_FILTERS_TXT.keys()) + [CURVE_FILTER_NPY,
                                                       CURVE_FILTER_NXDATA]
@@ -111,7 +114,7 @@ class SaveAction(PlotAction):
     IMAGE_FILTER_CSV_TAB = 'Image data as tab-separated CSV (*.csv)'
     IMAGE_FILTER_RGB_PNG = 'Image as PNG (*.png)'
     IMAGE_FILTER_RGB_TIFF = 'Image as TIFF (*.tif)'
-    IMAGE_FILTER_NXDATA = 'Image as NXdata (*.nx *.nxs *.h5 *.hdf)'
+    IMAGE_FILTER_NXDATA = 'Image as NXdata (%s)' % _NEXUS_HDF5_EXT
     IMAGE_FILTERS = (IMAGE_FILTER_EDF,
                      IMAGE_FILTER_TIFF,
                      IMAGE_FILTER_NUMPY,
@@ -123,7 +126,7 @@ class SaveAction(PlotAction):
                      IMAGE_FILTER_RGB_TIFF,
                      IMAGE_FILTER_NXDATA)
 
-    SCATTER_FILTER_NXDATA = 'Scatter as NXdata (*.nx *.nxs *.h5 *.hdf)'
+    SCATTER_FILTER_NXDATA = 'Scatter as NXdata (%s)' % _NEXUS_HDF5_EXT
     SCATTER_FILTERS = (SCATTER_FILTER_NXDATA, )
 
     def __init__(self, plot, parent=None):
