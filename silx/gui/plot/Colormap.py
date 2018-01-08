@@ -29,7 +29,7 @@ from __future__ import absolute_import
 
 __authors__ = ["T. Vincent", "H.Payno"]
 __license__ = "MIT"
-__date__ = "29/11/2017"
+__date__ = "08/01/2018"
 
 from silx.gui import qt
 import copy as copy_mdl
@@ -310,6 +310,9 @@ class Colormap(qt.QObject):
                 err = "Can't set vmin and vmax because vmin >= vmax " \
                       "vmin = %s, vmax = %s" % (vmin, vmax)
                 raise ValueError(err)
+
+        if self._vmin == vmin and self._vmax == vmax:
+            return
 
         self._vmin = vmin
         self._vmax = vmax
