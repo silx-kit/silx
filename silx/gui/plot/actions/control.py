@@ -379,9 +379,7 @@ class ColormapAction(PlotAction):
             # Reset histogram and range if any
             self._dialog.setData(None)
 
-        # avoid setting multiple time the same colormap to be able to reset it
-        if colormap is not self._dialog.getColormap():
-            self._dialog.setColormap(colormap=colormap)
+        self._dialog.setColormap(colormap)
 
 
 class KeepAspectRatioAction(PlotAction):
