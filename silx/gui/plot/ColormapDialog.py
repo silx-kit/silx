@@ -78,6 +78,7 @@ import weakref
 from silx.math.combo import min_max
 from silx.third_party import enum
 from silx.gui import icons
+from silx.math.histogram import Histogramnd
 
 _logger = logging.getLogger(__name__)
 
@@ -536,8 +537,28 @@ class ColormapDialog(qt.QDialog):
         :param data: The data to process
         :rtype: Tuple(List(float),List(float)
         """
-        hist, bin_edges = numpy.histogram(data, bins=256)
-        return hist, bin_edges
+        _data = data
+        if _data.ndim == 3:  # RGB(A) images
+            _logger.info('Converting current image from RGB(A) to grayscale\
+                in order to compute the intensity distribution')
+            _data = (_data[:, :, 0] * 0.299 +
+                     _data[:, :, 1] * 0.587 +
+                     _data[:, :, 2] * 0.114)
+
+        xmin, xmax = min_max(_data, min_positive=False, finite=True)
+        nbins = min(256, int(numpy.sqrt(_data.size)))
+        data_range = xmin, xmax
+
+        # bad hack: get 256 bins in the case we have a B&W
+        if numpy.issubdtype(_data.dtype, numpy.integer):
+            if nbins > xmax - xmin:
+                nbins = xmax - xmin
+
+        nbins = max(2, nbins)
+        _data = _data.ravel().astype(numpy.float32)
+
+        histogram = Histogramnd(_data, n_bins=nbins, histo_range=data_range)
+        return histogram.histo, histogram.edges[0]
 
     def _getData(self):
         if self._data is None:
