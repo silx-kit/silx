@@ -416,8 +416,8 @@ class SaveAction(PlotAction):
             if isinstance(yerror, float):
                 yerror = yerror * numpy.ones(x.shape, dtype=numpy.float32)
 
-            xlabel = scatter.getXLabel() or self.plot.getGraphXLabel()
-            ylabel = scatter.getYLabel() or self.plot.getGraphYLabel()
+            xlabel = self.plot.getGraphXLabel()
+            ylabel = self.plot.getGraphYLabel()
 
             return save_NXdata(
                 filename,
