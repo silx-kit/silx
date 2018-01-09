@@ -10,7 +10,7 @@ example: ./bootstrap.py ipython
 __authors__ = ["Frédéric-Emmanuel Picca", "Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
-__date__ = "21/04/2017"
+__date__ = "08/01/2018"
 
 
 import sys
@@ -192,8 +192,14 @@ cwd = os.getcwd()
 os.chdir(home)
 build = subprocess.Popen([sys.executable, "setup.py", "build"],
                          shell=False, cwd=os.path.dirname(os.path.abspath(__file__)))
-logger.info("Build process ended with rc= %s", build.wait())
+build_rc = build.wait()
 os.chdir(cwd)
+
+if build_rc == 0:
+    logger.info("Build process ended.")
+else:
+    logger.error("Build process ended with rc=%s", build_rc)
+    sys.exit(-1)
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:

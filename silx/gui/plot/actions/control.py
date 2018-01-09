@@ -50,11 +50,10 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "27/06/2017"
+__date__ = "05/01/2018"
 
 from . import PlotAction
 import logging
-import numpy
 from silx.gui.plot import items
 from silx.gui.plot.ColormapDialog import ColormapDialog
 from silx.gui.plot._utils import applyZoomToPlot as _applyZoomToPlot
@@ -333,7 +332,7 @@ class ColormapAction(PlotAction):
         """Create a cmap dialog and update active image and default cmap."""
         # Create the dialog if not already existing
         if self._dialog is None:
-            self._dialog = ColormapDialog()
+            self._dialog = ColormapDialog(self.plot)
             self._dialog.finished.connect(self._setUnChecked)
             self._dialog.setModal(False)
             self._updateColormap()
@@ -350,16 +349,22 @@ class ColormapAction(PlotAction):
 
     def _updateColormap(self):
         image = self.plot.getActiveImage()
-        if not isinstance(image, items.ColormapMixIn):
+        if isinstance(image, items.ColormapMixIn):
+            # Set dialog from active image
+            colormap = image.getColormap()
+            data = image.getData(copy=False)
+            # Set histogram and range if any
+            self._dialog.setData(data)
+        else:
             # No active image or active image is RGBA,
             # set dialog from default info
             colormap = self.plot.getDefaultColormap()
-        else:
-            # Set dialog from active image
-            colormap = image.getColormap()
+            # Reset histogram and range if any
+            self._dialog.setData(None)
 
-        self._dialog.setHistogram()
-        self._dialog.setColormap(colormap=colormap)
+        # avoid setting multiple time the same colormap to be able to reset it
+        if colormap is not self._dialog.getColormap():
+            self._dialog.setColormap(colormap=colormap)
 
 
 class KeepAspectRatioAction(PlotAction):

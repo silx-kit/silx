@@ -28,7 +28,7 @@ package `silx.gui.hdf5` package.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "08/12/2017"
+__date__ = "20/12/2017"
 
 
 import logging
@@ -211,7 +211,7 @@ class H5Node(object):
         :rtype:
             :class:`h5py.File`, :class:`h5py.Group` or :class:`h5py.Dataset`
         """
-        type_ = self.h5Class
+        type_ = self.h5type
         return silx.io.utils.h5type_to_h5py_class(type_)
 
     @property

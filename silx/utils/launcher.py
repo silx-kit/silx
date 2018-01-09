@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -41,7 +41,7 @@ import logging
 _logger = logging.getLogger(__name__)
 
 
-class LauncherCommand():
+class LauncherCommand(object):
     """Description of a command"""
 
     def __init__(self, name, description=None, module_name=None, function=None):

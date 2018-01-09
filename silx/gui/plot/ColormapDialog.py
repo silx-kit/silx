@@ -63,7 +63,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "H. Payno"]
 __license__ = "MIT"
-__date__ = "15/12/2017"
+__date__ = "08/01/2018"
 
 
 import logging
@@ -75,8 +75,15 @@ from .Colormap import Colormap, preferredColormaps
 from . import PlotWidget
 from silx.gui.widgets.FloatEdit import FloatEdit
 import weakref
+from silx.math.combo import min_max
+from silx.third_party import enum
+from silx.gui import icons
+from silx.math.histogram import Histogramnd
 
 _logger = logging.getLogger(__name__)
+
+
+_colormapIconPreview = {}
 
 
 class _BoundaryWidget(qt.QWidget):
@@ -98,6 +105,7 @@ class _BoundaryWidget(qt.QWidget):
         self.sigValueChanged = self._autoCB.toggled
         self.textEdited = self._numVal.textEdited
         self.editingFinished = self._numVal.editingFinished
+        self._dataValue = None
 
     def isAutoChecked(self):
         return self._autoCB.isChecked()
@@ -106,12 +114,29 @@ class _BoundaryWidget(qt.QWidget):
         return None if self._autoCB.isChecked() else self._numVal.value()
 
     def getFiniteValue(self):
-        return self._numVal.value()
+        if not self._autoCB.isChecked():
+            return self._numVal.value()
+        elif self._dataValue is None:
+            return self._numVal.value()
+        else:
+            return self._dataValue
+
+    def _updateDisplayedText(self):
+        # if dataValue is finite
+        if self._autoCB.isChecked() and self._dataValue is not None:
+            old = self._numVal.blockSignals(True)
+            self._numVal.setValue(self._dataValue)
+            self._numVal.blockSignals(old)
+
+    def setDataValue(self, dataValue):
+        self._dataValue = dataValue
+        self._updateDisplayedText()
 
     def setValue(self, value, isAuto=False):
         self._autoCB.setChecked(isAuto or value is None)
         if value is not None:
             self._numVal.setValue(value)
+        self._updateDisplayedText()
 
 
 class _ColormapNameCombox(qt.QComboBox):
@@ -125,7 +150,48 @@ class _ColormapNameCombox(qt.QComboBox):
         for colormapName in preferredColormaps():
             index = self.count()
             self.addItem(str.title(colormapName))
+            self.setItemIcon(index, self.getIconPreview(colormapName))
             self.setItemData(index, colormapName, role=self.ORIGINAL_NAME)
+
+    def getIconPreview(self, colormapName):
+        """Return an icon preview from a LUT name.
+
+        This icons are cached into a global structure.
+
+        :param str colormapName: str
+        :rtype: qt.QIcon
+        """
+        if colormapName not in _colormapIconPreview:
+            icon = self.createIconPreview(colormapName)
+            _colormapIconPreview[colormapName] = icon
+        return _colormapIconPreview[colormapName]
+
+    def createIconPreview(self, colormapName):
+        """Create and return an icon preview from a LUT name.
+
+        This icons are cached into a global structure.
+
+        :param str colormapName: Name of the LUT
+        :rtype: qt.QIcon
+        """
+        colormap = Colormap(colormapName)
+        size = 32
+        lut = colormap.getNColors(size)
+        if lut is None or len(lut) == 0:
+            return qt.QIcon()
+
+        pixmap = qt.QPixmap(size, size)
+        painter = qt.QPainter(pixmap)
+        for i in range(size):
+            rgb = lut[i]
+            r, g, b = rgb[0], rgb[1], rgb[2]
+            painter.setPen(qt.QColor(r, g, b))
+            painter.drawPoint(qt.QPoint(i, 0))
+
+        painter.drawPixmap(0, 1, size, size - 1, pixmap, 0, 0, size, 1)
+        painter.end()
+
+        return qt.QIcon(pixmap)
 
     def getCurrentName(self):
         return self.itemData(self.currentIndex(), self.ORIGINAL_NAME)
@@ -138,8 +204,17 @@ class _ColormapNameCombox(qt.QComboBox):
         if index < 0:
             index = self.count()
             self.addItem(str.title(name))
+            self.setItemIcon(index, self.getIconPreview(name))
             self.setItemData(index, name, role=self.ORIGINAL_NAME)
         self.setCurrentIndex(index)
+
+
+@enum.unique
+class _DataInPlotMode(enum.Enum):
+    """Enum for each mode of display of the data in the plot."""
+    NONE = 'none'
+    RANGE = 'range'
+    HISTOGRAM = 'histogram'
 
 
 class ColormapDialog(qt.QDialog):
@@ -153,6 +228,10 @@ class ColormapDialog(qt.QDialog):
         qt.QDialog.__init__(self, parent)
         self.setWindowTitle(title)
 
+        self._colormap = None
+        self._data = None
+        self._dataInPlotMode = _DataInPlotMode.RANGE
+
         self._ignoreColormapChange = False
         """Used as a semaphore to avoid editing the colormap object when we are
         only attempt to display it.
@@ -165,6 +244,11 @@ class ColormapDialog(qt.QDialog):
 
         self._histogramData = None
         self._minMaxWasEdited = False
+        self._initialRange = None
+
+        self._dataRange = None
+        """If defined 3-tuple containing information from a data:
+        minimum, positive minimum, maximum"""
 
         # Make the GUI
         vLayout = qt.QVBoxLayout(self)
@@ -215,8 +299,53 @@ class ColormapDialog(qt.QDialog):
         formLayout.addRow('\tMax:', self._maxValue)
 
         # Add plot for histogram
+        self._plotToolbar = qt.QToolBar(self)
+        self._plotToolbar.setFloatable(False)
+        self._plotToolbar.setMovable(False)
+        self._plotToolbar.setIconSize(qt.QSize(8, 8))
+        self._plotToolbar.setStyleSheet("QToolBar { border: 0px }")
+        self._plotToolbar.setOrientation(qt.Qt.Vertical)
+
+        group = qt.QActionGroup(self._plotToolbar)
+        group.setExclusive(True)
+
+        action = qt.QAction("Nothing", self)
+        action.setToolTip("No range nor histogram are displayed. No extra computation have to be done.")
+        action.setIcon(icons.getQIcon('colormap-none'))
+        action.setCheckable(True)
+        action.setData(_DataInPlotMode.NONE)
+        action.setChecked(action.data() == self._dataInPlotMode)
+        self._plotToolbar.addAction(action)
+        group.addAction(action)
+        action = qt.QAction("Data range", self)
+        action.setToolTip("Display the data range within the colormap range. A fast data processing have to be done.")
+        action.setIcon(icons.getQIcon('colormap-range'))
+        action.setCheckable(True)
+        action.setData(_DataInPlotMode.RANGE)
+        action.setChecked(action.data() == self._dataInPlotMode)
+        self._plotToolbar.addAction(action)
+        group.addAction(action)
+        action = qt.QAction("Histogram", self)
+        action.setToolTip("Display the data histogram within the colormap range. A slow data processing have to be done. ")
+        action.setIcon(icons.getQIcon('colormap-histogram'))
+        action.setCheckable(True)
+        action.setData(_DataInPlotMode.HISTOGRAM)
+        action.setChecked(action.data() == self._dataInPlotMode)
+        self._plotToolbar.addAction(action)
+        group.addAction(action)
+        group.triggered.connect(self._displayDataInPlotModeChanged)
+
+        self._plotBox = qt.QWidget(self)
         self._plotInit()
-        vLayout.addWidget(self._plot)
+
+        plotBoxLayout = qt.QHBoxLayout()
+        plotBoxLayout.setContentsMargins(0, 0, 0, 0)
+        plotBoxLayout.setSpacing(2)
+        plotBoxLayout.addWidget(self._plotToolbar)
+        plotBoxLayout.addWidget(self._plot)
+        plotBoxLayout.setSizeConstraint(qt.QLayout.SetMinimumSize)
+        self._plotBox.setLayout(plotBoxLayout)
+        vLayout.addWidget(self._plotBox)
 
         # define modal buttons
         types = qt.QDialogButtonBox.Ok | qt.QDialogButtonBox.Cancel
@@ -234,14 +363,14 @@ class ColormapDialog(qt.QDialog):
         self._buttonsNonModal.button(qt.QDialogButtonBox.Close).clicked.connect(self.accept)
         self._buttonsNonModal.button(qt.QDialogButtonBox.Reset).clicked.connect(self.resetColormap)
 
-        # colormap window can not be resized
-        self.setFixedSize(vLayout.minimumSize())
-
         # Set the colormap to default values
         self.setColormap(Colormap(name='gray', normalization='linear',
                          vmin=None, vmax=None))
 
         self.setModal(self.isModal())
+
+        vLayout.setSizeConstraint(qt.QLayout.SetMinimumSize)
+        self.setFixedSize(self.sizeHint())
 
     def close(self):
         self.accept()
@@ -263,39 +392,63 @@ class ColormapDialog(qt.QDialog):
         self._plot.setActiveCurveHandling(False)
         self._plot.setMinimumSize(qt.QSize(250, 200))
         self._plot.sigPlotSignal.connect(self._plotSlot)
-        self._plot.hide()
 
         self._plotUpdate()
+
+    def sizeHint(self):
+        return self.layout().minimumSize()
 
     def _plotUpdate(self, updateMarkers=True):
         """Update the plot content
 
         :param bool updateMarkers: True to update markers, False otherwith
         """
-        if not (hasattr(self, '_colormap') and self._colormap()):
-            if self._plot.isVisibleTo(self):
-                self._plot.setVisible(False)
-                self.setFixedSize(self.layout().minimumSize())
+        colormap = self.getColormap()
+        if colormap is None:
+            if self._plotBox.isVisibleTo(self):
+                self._plotBox.setVisible(False)
+                self.setFixedSize(self.sizeHint())
             return
 
-        if not self._plot.isVisibleTo(self):
-            self._plot.setVisible(True)
-            self.setFixedSize(self.layout().minimumSize())
+        if not self._plotBox.isVisibleTo(self):
+            self._plotBox.setVisible(True)
+            self.setFixedSize(self.sizeHint())
 
-        dataMin, dataMax = self._colormap().getColormapRange()
-        marge = (abs(dataMax) + abs(dataMin)) / 6.0
-        minmd = dataMin - marge
-        maxpd = dataMax + marge
+        minData, maxData = self._minValue.getFiniteValue(), self._maxValue.getFiniteValue()
+        if minData > maxData:
+            # avoid a full collapse
+            minData, maxData = maxData, minData
+        minimum = minData
+        maximum = maxData
 
-        start, end = self._minValue.getFiniteValue(), self._maxValue.getFiniteValue()
+        if self._dataRange is not None:
+            minRange = self._dataRange[0]
+            maxRange = self._dataRange[2]
+            minimum = min(minimum, minRange)
+            maximum = max(maximum, maxRange)
 
-        if start <= end:
-            x = [minmd, start, end, maxpd]
-            y = [0, 0, 1, 1]
+        if self._histogramData is not None:
+            minHisto = self._histogramData[1][0]
+            maxHisto = self._histogramData[1][-1]
+            minimum = min(minimum, minHisto)
+            maximum = max(maximum, maxHisto)
 
-        else:
-            x = [minmd, end, start, maxpd]
-            y = [1, 1, 0, 0]
+        marge = abs(maximum - minimum) / 6.0
+        if marge < 0.0001:
+            # Smaller that the QLineEdit precision
+            marge = 0.0001
+
+        minView, maxView = minimum - marge, maximum + marge
+
+        if updateMarkers:
+            # Save the state in we are not moving the markers
+            self._initialRange = minView, maxView
+        elif self._initialRange is not None:
+            minView = min(minView, self._initialRange[0])
+            maxView = max(maxView, self._initialRange[1])
+
+        x = [minView, minData, maxData, maxView]
+        y = [0, 0, 1, 1]
 
         self._plot.addCurve(x, y,
                             legend="ConstrainedCurve",
@@ -309,7 +462,7 @@ class ColormapDialog(qt.QDialog):
                 self._minValue.getFiniteValue(),
                 legend='Min',
                 text='Min',
-                draggable=self._minValue.getValue() is not None,
+                draggable=not self._minValue.isAutoChecked(),
                 color='blue',
                 constraint=self._plotMinMarkerConstraint)
 
@@ -317,7 +470,7 @@ class ColormapDialog(qt.QDialog):
                 self._maxValue.getFiniteValue(),
                 legend='Max',
                 text='Max',
-                draggable=self._maxValue.getValue() is not None,
+                draggable=not self._maxValue.isAutoChecked(),
                 color='blue',
                 constraint=self._plotMaxMarkerConstraint)
 
@@ -343,9 +496,133 @@ class ColormapDialog(qt.QDialog):
             # This will recreate the markers while interacting...
             # It might break if marker interaction is changed
             if event['event'] == 'markerMoved':
+                self._initialRange = None
                 self._updateMinMax()
             else:
                 self._plotUpdate(updateMarkers=False)
+
+    @staticmethod
+    def computeDataRange(data):
+        """Compute the data range as used by :meth:`setDataRange`.
+
+        :param data: The data to process
+        :rtype: Tuple(float, float, float)
+        """
+        if data is None or len(data) == 0:
+            return None, None, None
+
+        dataRange = min_max(data, min_positive=True, finite=True)
+        if dataRange.minimum is None:
+            # Only non-finite data
+            dataRange = None
+
+        if dataRange is not None:
+            min_positive = dataRange.min_positive
+            if min_positive is None:
+                min_positive = float('nan')
+            dataRange = dataRange.minimum, min_positive, dataRange.maximum
+
+        if dataRange is None or len(dataRange) != 3:
+            qt.QMessageBox.warning(
+                None, "No Data",
+                "Image data does not contain any real value")
+            dataRange = 1., 1., 10.
+
+        return dataRange
+
+    @staticmethod
+    def computeHistogram(data):
+        """Compute the data histogram as used by :meth:`setHistogram`.
+
+        :param data: The data to process
+        :rtype: Tuple(List(float),List(float)
+        """
+        _data = data
+        if _data.ndim == 3:  # RGB(A) images
+            _logger.info('Converting current image from RGB(A) to grayscale\
+                in order to compute the intensity distribution')
+            _data = (_data[:, :, 0] * 0.299 +
+                     _data[:, :, 1] * 0.587 +
+                     _data[:, :, 2] * 0.114)
+
+        if len(_data) == 0:
+            return None, None
+
+        xmin, xmax = min_max(_data, min_positive=False, finite=True)
+        nbins = min(256, int(numpy.sqrt(_data.size)))
+        data_range = xmin, xmax
+
+        # bad hack: get 256 bins in the case we have a B&W
+        if numpy.issubdtype(_data.dtype, numpy.integer):
+            if nbins > xmax - xmin:
+                nbins = xmax - xmin
+
+        nbins = max(2, nbins)
+        _data = _data.ravel().astype(numpy.float32)
+
+        histogram = Histogramnd(_data, n_bins=nbins, histo_range=data_range)
+        return histogram.histo, histogram.edges[0]
+
+    def _getData(self):
+        if self._data is None:
+            return None
+        return self._data()
+
+    def setData(self, data):
+        """Store the data as a weakref.
+
+        According to the state of the dialog, the data will be used to display
+        the data range or the histogram of the data using :meth:`setDataRange`
+        and :meth:`setHistogram`
+        """
+        oldData = self._getData()
+        if oldData is data:
+            return
+
+        if data is None:
+            self.setDataRange()
+            self.setHistogram()
+            self._data = None
+            return
+
+        self._data = weakref.ref(data, self._dataAboutToFinalize)
+
+        self._updateDataInPlot()
+
+    def _setDataInPlotMode(self, mode):
+        if self._dataInPlotMode == mode:
+            return
+        self._dataInPlotMode = mode
+        self._updateDataInPlot()
+
+    def _displayDataInPlotModeChanged(self, action):
+        mode = action.data()
+        self._setDataInPlotMode(mode)
+
+    def _updateDataInPlot(self):
+        data = self._getData()
+        if data is None:
+            return
+
+        mode = self._dataInPlotMode
+
+        if mode == _DataInPlotMode.NONE:
+            self.setHistogram()
+            self.setDataRange()
+        elif mode == _DataInPlotMode.RANGE:
+            result = self.computeDataRange(data)
+            self.setHistogram()
+            self.setDataRange(*result)
+        elif mode == _DataInPlotMode.HISTOGRAM:
+            # The histogram should be done in a worker thread
+            result = self.computeHistogram(data)
+            self.setHistogram(*result)
+            self.setDataRange()
+
+    def _dataAboutToFinalize(self, weakrefData):
+        """Callback when the data weakref is about to be finalized."""
+        if self._data is weakrefData:
+            self.setData(None)
 
     def getHistogram(self):
         """Returns the counts and bin edges of the displayed histogram.
@@ -368,33 +645,33 @@ class ColormapDialog(qt.QDialog):
         """
         if hist is None or bin_edges is None:
             self._histogramData = None
-            self._plot.remove(legend='Histogram', kind='curve')
+            self._plot.remove(legend='Histogram', kind='histogram')
         else:
             hist = numpy.array(hist, copy=True)
             bin_edges = numpy.array(bin_edges, copy=True)
             self._histogramData = hist, bin_edges
-
-            # For now, draw the histogram as a curve
-            # using bin centers and normalised counts
-            bins_center = 0.5 * (bin_edges[:-1] + bin_edges[1:])
             norm_hist = hist / max(hist)
-            self._plot.addCurve(bins_center, norm_hist,
-                                legend="Histogram",
-                                color='gray',
-                                symbol='',
-                                linestyle='-',
-                                fill=True)
+            self._plot.addHistogram(norm_hist,
+                                    bin_edges,
+                                    legend="Histogram",
+                                    color='gray',
+                                    align='center',
+                                    fill=True)
 
             # Update the data range
-            if hasattr(self, '_colormap') and self._colormap():
+            colormap = self.getColormap()
+            if colormap is not None:
                 self._ignoreColormapChange = True
                 self._colormap().setVRange(bin_edges[0], bin_edges[-1])
                 self._ignoreColormapChange = False
+        self._updateMinMaxData()
 
     def getColormap(self):
         """Return the colormap description as a :class:`.Colormap`.
 
         """
+        if self._colormap is None:
+            return None
         return self._colormap()
 
     def resetColormap(self):
@@ -404,11 +681,69 @@ class ColormapDialog(qt.QDialog):
         ..note :: the colormap reference state is the state when set or the
                   state when validated
         """
-        if self._colormap():
+        colormap = self.getColormap()
+        if colormap is not None:
             self._ignoreColormapChange = True
-            self._colormap()._setFromDict(self._colormapStoredState)
+            colormap._setFromDict(self._colormapStoredState)
             self._ignoreColormapChange = False
             self._applyColormap()
+
+    def setDataRange(self, minimum=None, positiveMin=None, maximum=None):
+        """Set the range of data to use for the range of the histogram area.
+
+        :param float minimum: The minimum of the data
+        :param float positiveMin: The positive minimum of the data
+        :param float maximum: The maximum of the data
+        """
+        if minimum is None or positiveMin is None or maximum is None:
+            self._dataRange = None
+            self._plot.remove(legend='Range', kind='histogram')
+        else:
+            hist = numpy.array([1])
+            bin_edges = numpy.array([minimum, maximum])
+            self._plot.addHistogram(hist,
+                                    bin_edges,
+                                    legend="Range",
+                                    color='gray',
+                                    align='center',
+                                    fill=True)
+            self._dataRange = minimum, positiveMin, maximum
+        self._updateMinMaxData()
+
+    def _updateMinMaxData(self):
+        """Update the min and max of the data according to the data range and
+        the histogram preset."""
+        colormap = self.getColormap()
+
+        minimum = float("+inf")
+        maximum = float("-inf")
+
+        if colormap is not None and colormap.getNormalization() == colormap.LOGARITHM:
+            # find a range in the positive part of the data
+            if self._dataRange is not None:
+                minimum = min(minimum, self._dataRange[1])
+                maximum = max(maximum, self._dataRange[2])
+            if self._histogramData is not None:
+                positives = list(filter(lambda x: x > 0, self._histogramData[1]))
+                if len(positives) > 0:
+                    minimum = min(minimum, positives[0])
+                    maximum = max(maximum, positives[-1])
+        else:
+            if self._dataRange is not None:
+                minimum = min(minimum, self._dataRange[0])
+                maximum = max(maximum, self._dataRange[2])
+            if self._histogramData is not None:
+                minimum = min(minimum, self._histogramData[1][0])
+                maximum = max(maximum, self._histogramData[1][-1])
+
+        if not numpy.isfinite(minimum):
+            minimum = None
+        if not numpy.isfinite(maximum):
+            maximum = None
+
+        self._minValue.setDataValue(minimum)
+        self._maxValue.setDataValue(maximum)
+        self._plotUpdate()
 
     def accept(self):
         self.storeCurrentState()
@@ -435,8 +770,9 @@ class ColormapDialog(qt.QDialog):
         if self._ignoreColormapChange is True:
             return
 
-        if hasattr(self, '_colormap') and self._colormap():
-            self._colormap().sigChanged.disconnect(self._applyColormap)
+        oldColormap = self.getColormap()
+        if oldColormap is not None:
+            oldColormap.sigChanged.disconnect(self._applyColormap)
         self._colormap = weakref.ref(colormap)
         self._colormap().sigChanged.connect(self._applyColormap)
         self.storeCurrentState()
@@ -511,7 +847,8 @@ class ColormapDialog(qt.QDialog):
             self._minMaxWasEdited = False
 
             # Fix start value
-            if self._minValue.getValue() > self._maxValue.getValue():
+            if self._maxValue.getValue() is not None and \
+                        self._minValue.getValue() > self._maxValue.getValue():
                 self._minValue.setValue(self._maxValue.getValue())
             self._updateMinMax()
 
@@ -525,7 +862,8 @@ class ColormapDialog(qt.QDialog):
             self._minMaxWasEdited = False
 
             # Fix end value
-            if self._minValue.getValue() > self._maxValue.getValue():
+            if self._minValue.getValue() is not None and \
+                        self._minValue.getValue() > self._maxValue.getValue():
                 self._maxValue.setValue(self._minValue.getValue())
             self._updateMinMax()
 
@@ -551,3 +889,4 @@ class ColormapDialog(qt.QDialog):
             norm = Colormap.LOGARITHM if isLog is True else Colormap.LINEAR
             self._colormap().setNormalization(norm)
             self._ignoreColormapChange = False
+        self._updateMinMaxData()
