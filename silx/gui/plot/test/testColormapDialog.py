@@ -289,7 +289,7 @@ class TestColormapAction(TestCaseQt):
                                   normalization='log')
         self.defaultColormap = self.plot.getDefaultColormap()
 
-        self.plot.getColormapAction()._actionTriggered()
+        self.plot.getColormapAction()._actionTriggered(checked=True)
         self.colormapDialog = self.plot.getColormapAction()._dialog
         self.colormapDialog.setAttribute(qt.Qt.WA_DeleteOnClose)
 
@@ -326,10 +326,10 @@ class TestColormapAction(TestCaseQt):
         self.assertTrue(self.colormapDialog.getColormap() is self.defaultColormap)
 
     def testShowHideColormapDialog(self):
+        self.plot.getColormapAction()._actionTriggered(checked=False)
         self.assertFalse(self.plot.getColormapAction().isChecked())
-        self.plot.getColormapAction()._actionTriggered()
-        # _qapp.processEvents()
-        # self.assertTrue(self.plot.getColormapAction().isChecked())
+        self.plot.getColormapAction()._actionTriggered(checked=True)
+        self.assertTrue(self.plot.getColormapAction().isChecked())
         self.plot.addImage(data=numpy.random.rand(10, 10), legend='img1',
                            replace=False, origin=(0, 0),
                            colormap=self.colormap1)
