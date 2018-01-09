@@ -69,16 +69,8 @@ class LauncherCommand(object):
             module = importlib.import_module(self.module_name)
             return module
         except ImportError as e:
-            if "No module name" in e.args[0]:
-                msg = "Error while reaching module '%s'"
-                _logger.debug(msg, self.module_name, exc_info=True)
-                missing_module = e.args[0].split("'")[1]
-                msg = "Module '%s' is not installed but is mandatory."\
-                    + " You can install it using \"pip install %s\"."
-                _logger.error(msg, missing_module, missing_module)
-            else:
-                msg = "Error while reaching module '%s'"
-                _logger.error(msg, self.module_name, exc_info=True)
+            msg = "Error while reaching module '%s'"
+            _logger.error(msg, self.module_name, exc_info=True)
             return None
 
     def get_function(self):
