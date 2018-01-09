@@ -713,7 +713,7 @@ class AlphaMixIn(ItemMixInBase):
             self._updated(ItemChangedType.ALPHA)
 
 
-class Points(Item, SymbolMixIn, AlphaMixIn, LabelsMixIn):
+class Points(Item, SymbolMixIn, AlphaMixIn):
     """Base class for :class:`Curve` and :class:`Scatter`"""
     # note: _logFilterData must be overloaded if you overload
     #       getData to change its signature
