@@ -336,8 +336,9 @@ def main(argv):
 
     if os.path.isfile(output_name):
         if options.mode == "w-":
-            _logger.error("Output file %s exists and mode is 'w-'"
-                          " (write, file must not exist). Aborting.",
+            _logger.error("Output file %s exists and mode is 'w-' (default)."
+                          " Aborting. To append data to an existing file, "
+                          "use 'a' or 'r+'.",
                           output_name)
             return -1
         elif not os.access(output_name, os.W_OK):
