@@ -45,10 +45,7 @@ import unittest
 import time
 import logging
 import numpy
-try:
-    from silx.third_party import six
-except ImportError:
-    import six
+from silx.third_party import six
 try:
     import scipy
 except ImportError:
