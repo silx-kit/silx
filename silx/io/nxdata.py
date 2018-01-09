@@ -67,6 +67,7 @@ def get_attr_as_string(item, attr_name, default=None):
 
     :param item: Group or dataset
     :param attr_name: Attribute name
+    :param default: Value to be returned if attribute is not found.
     :return: item.attrs[attr_name]
     """
     attr = item.attrs.get(attr_name, default)
@@ -401,7 +402,7 @@ class NXdata(object):
         interpretation is returned anyway.
         """
         allowed_interpretations = [None, "scalar", "spectrum", "image",
-                                   "rgba-image",  #"hsla-image", "cmyk-image"
+                                   "rgba-image",  # "hsla-image", "cmyk-image"
                                    "vertex"]
 
         interpretation = get_attr_as_string(self.signal, "interpretation")
@@ -756,10 +757,18 @@ def save_NXdata(filename, signal, axes,
                 signal_name="y", axes_names=("x",),
                 signal_long_name=None, axes_long_names=None,
                 signal_errors=None, axes_errors=None,
-                title=None, interpretation=None):
-    """
+                title=None, interpretation=None,
+                nxentry_name="entry", nxdata_name=None):
+    """Write data to an NXdata group.
 
-    :param str filename:
+    .. note::
+
+        No consistency checks are made regarding the dimensionality of the
+        signal and number of axes. The user is responsible for providing
+        meaningful data, that can be interpreted by visualization software.
+
+    :param str filename: Path to output file. If the file does not
+        exists, it is created.
     :param numpy.ndarray signal: Signal array.
     :param list(numpy.ndarray) axes: List of axes arrays.
     :param str signal_name: Name of signal dataset, in output file
@@ -774,14 +783,26 @@ def save_NXdata(filename, signal, axes,
         associated with each axis
     :param str title: Graph title (saved as a "title" dataset) or None.
     :param str interpretation: *@interpretation* attribute ("spectrum",
-        "image", "rgba-image" or None). Only needed in cases of ambiguous
-        dimensionality, e.g. a 3D array which represents a RGBA image
-        rather than a stack.
-    :return: True if save was succesful, else False.
+        "image", "rgba-image" or None). This is only needed in cases of
+        ambiguous dimensionality, e.g. a 3D array which represents a RGBA
+        image rather than a stack.
+    :param str nxentry_name: Name of NXentry group located at the root of
+        HDF5 file. The Nexus format specification requires for NXdata groups
+        be part of a NXentry group. By default, "/entry" is used.
+        The specified group should have attribute *@NX_class=NXentry*, in
+        order for the created nexus file to be valid.
+    :param str nxdata_name: Name of NXdata group. If omitted (None), the
+        function creates a new group using the first available name ("data0",
+        or "data1"...).
+        Overwriting an existing group (or dataset) is not supported, you must
+        delete it yourself prior to calling this function if this is what you
+        want.
+    :return: True if save was successful, else False.
     """
     assert len(axes) == len(axes_names), \
         "Mismatch between number of axes and axes_names"
-    # todo: ask for entry name and nxdata name
+
+    # Create NXdata group
     signal_attrs = {}
     if signal_long_name:
         signal_attrs["long_name"] = signal_long_name
@@ -820,46 +841,53 @@ def save_NXdata(filename, signal, axes,
         # not in NXdata spec, but implemented by nexpy
         data["title"] = title
 
-    if os.path.isfile(filename) and os.access(filename, os.W_OK):
-        try:
-            nxfile = nexus.NXFile(filename, "rw")
-            root = nxfile.readfile()
-        except IOError:
-            _logger.error("Could not read existing file %s", filename)
-            return False
-
-        all_entries = root.NXentry
-        if all_entries:
-            # add data to existing first entry       TODO: allow user to select any existing entry
-            first_entry = all_entries[0]
-            # find an available name for the NXdata group
-            nxdata_group_name = "data0"
-            i = 1
-            while nxdata_group_name in first_entry:
-                nxdata_group_name = "data%d" % i
-                i += 0
-            first_entry[nxdata_group_name] = data
-        else:
-            # create an entry and add data to it
-            nxentry_group_name = "entry0"
-            i = 1
-            while nxentry_group_name in root:
-                nxentry_group_name = "entry%d" % i
-                i += 0
-            root[nxentry_group_name] = nexus.NXentry(data0=data)
-
-        nxfile.writefile(root)
-        nxfile.close()
-    elif os.path.exists(filename):
+    # Add NXdata to the correct place in the file
+    if os.path.exists(filename):
         errmsg = "Cannot write/append to existing path %s"
         if not os.path.isfile(filename):
-            _logger.error(" (not a file)")
-        elif not os.access(filename, os.W_OK):
-            _logger.error(" (no permission to write)")
-        _logger.error(errmsg, filename)
-        return False
+            errmsg += " (not a file)"
+            _logger.error(errmsg, filename)
+            return False
+        if not os.access(filename, os.W_OK):
+            errmsg += " (no permission to write)"
+            _logger.error(errmsg, filename)
+            return False
+        mode = "rw"
     else:
-        # New file: let nexus.NXdata build the file
-        data.save(filename,
-                  mode="w")
+        mode = "w"
+
+    try:
+        nxfile = nexus.NXFile(filename, mode)
+        root = nxfile.readfile()
+    except IOError:
+        _logger.error("Could not read file %s", filename)
+        return False
+
+    if nxentry_name in root:
+        entry = root[nxentry_name]
+    else:
+        entry = nexus.NXentry()
+        # entry will be added later to root, after adding data to it
+
+    if nxdata_name is not None:
+        if nxdata_name in entry:
+            _logger.error("Cannot assign an NXdata group to an existing group or dataset")
+            return False
+    else:
+        # no name specified, take one that is available
+        nxdata_name = "data0"
+        i = 1
+        while nxdata_name in entry:
+            _logger.warning("%s item already exists in NXentry group," +
+                            " trying %s", nxdata_name, "data%d" % i)
+            nxdata_name = "data%d" % i
+            i += 1
+
+    entry[nxdata_name] = data
+    if nxentry_name not in root:
+        root[nxentry_name] = entry
+
+    nxfile.writefile(root)
+    nxfile.close()
+
     return True
