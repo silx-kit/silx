@@ -26,7 +26,7 @@
 This package implements the SceneWidget model
 """
 
-from __future__ import absolute_import
+from __future__ import absolute_import, division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -44,56 +44,60 @@ from silx.third_party import six
 from ...utils.weakref import WeakMethodProxy
 from .._utils import convertArrayToQImage
 from ..plot.Colormap import preferredColormaps
-from .. import qt
+from .. import qt, icons
 from . import items
+from .items.volume import Isosurface
 
 
-class BaseRowNode(qt.QObject):
-    """Base class for node of the tree model representing a row.
+class BaseRow(qt.QObject):
+    """Base class for rows of the tree model.
 
     The root node parent MUST be set to the QAbstractItemModel it belongs to.
     By default item is enabled.
 
-    :param children: Iterable of BaseRowNode to start with (not signaled)
+    :param children: Iterable of BaseRow to start with (not signaled)
     """
 
     def __init__(self, children=()):
-        super(BaseRowNode, self).__init__()
+        super(BaseRow, self).__init__()
         self.__children = []
-        for child in children:
-            print('add child', child)
-            assert isinstance(child, BaseRowNode)
-            child.setParent(self)
-            self.__children.append(child)
+        for row in children:
+            assert isinstance(row, BaseRow)
+            row.setParent(self)
+            self.__children.append(row)
         self.__flags = collections.defaultdict(lambda: qt.Qt.ItemIsEnabled)
 
     def model(self):
-        """Return the model this node belongs to.
+        """Return the model this node belongs to or None if not in a model.
 
-        :rtype: QAbstractItemModel
+        :rtype: Union[QAbstractItemModel, None]
         """
         parent = self.parent()
-        if isinstance(parent, BaseRowNode):
+        if isinstance(parent, BaseRow):
             return self.parent().model()
+        elif parent is None:
+            return None
         else:
             assert isinstance(parent, qt.QAbstractItemModel)
             return parent
 
     def index(self, column=0):
-        """Return corresponding index in the model.
+        """Return corresponding index in the model or None if not in a model.
 
         :param int column: The column to make the index for
-        :rtype: QModelIndex
+        :rtype: Union[QModelIndex, None]
         """
         parent = self.parent()
         model = self.model()
 
-        if parent is model:  # Root node
+        if model is None:  # Not in a model
+            return None
+        elif parent is model:  # Root node
             return qt.QModelIndex()
         else:
-            parentIndex = parent.index()
+            index = parent.index()
             row = parent.children().index(self)
-            return model.index(row, column, parentIndex)
+            return model.index(row, column, index)
 
     def columnCount(self):
         """Returns number of columns (default: 2)
@@ -114,49 +118,56 @@ class BaseRowNode(qt.QObject):
 
         :rtype: int
         """
-        return len(self.children())
+        return len(self.__children)
 
-    def addRowNode(self, node, row=None):
+    def addRow(self, row, index=None):
         """Add a node to the children
 
-        :param Node node: The node to add
+        :param BaseRow row: The node to add
         :param int index: The index at which to insert it or
                           None to append
         """
-        if row is None:
-            row = self.rowCount()
-        assert row <= self.rowCount()
+        if index is None:
+            index = self.rowCount()
+        assert index <= self.rowCount()
 
-        parent = self.index()
         model = self.model()
-        model.beginInsertRows(parent, row, row)
 
-        self.__children.insert(row, node)
-        node.setParent(self)
+        if model is not None:
+            parent = self.index()
+            model.beginInsertRows(parent, index, index)
 
-        model.endInsertRows()
+        self.__children.insert(index, row)
+        row.setParent(self)
 
-    def removeRowNode(self, rowOrNode):
-        """Remove a node from the children list.
+        if model is not None:
+            model.endInsertRows()
+
+    def removeRow(self, row):
+        """Remove a row from the children list.
 
         It removes either a node or a row index.
 
-        :param rowOrNode: Node or row number to remove
+        :param row: BaseRow object or index of row to remove
+        :type row: Union[BaseRow, int]
         """
-        if isinstance(rowOrNode, Node):
-            row = self.__children.index(rowOrNode)
+        if isinstance(row, BaseRow):
+            row = self.__children.index(row)
         else:
-            row = rowOrNode
+            row = int(row)
         assert row < self.rowCount()
 
         model = self.model()
-        parent = self.index()
-        model.beginRemoveRows(parent, row, row)
+
+        if model is not None:
+            index = self.index()
+            model.beginRemoveRows(index, row, row)
 
         node = self.__children.pop(row)
         node.setParent(None)
 
-        model.endRemoveRows()
+        if model is not None:
+            model.endRemoveRows()
 
     def data(self, column, role):
         """Returns data for given column and role
@@ -187,44 +198,43 @@ class BaseRowNode(qt.QObject):
         :param flags: Item flags
         """
         if column is None:
-            self.__flags = collections.defaultdict(lambda : flags)
+            self.__flags = collections.defaultdict(lambda: flags)
         else:
             self.__flags[column] = flags
 
     def flags(self, column):
         """Returns flags for given column
 
-        :rtype: int"""
+        :rtype: int
+        """
         return self.__flags[column]
 
 
-class StaticRowNode(BaseRowNode):
+class StaticRow(BaseRow):
     """Row with static data.
 
     :param tuple display: List of data for DisplayRole for each column
     :param dict roles: Optional mapping of roles to list of data.
-    :param children: Iterable of BaseRowNode to start with (not signaled)
+    :param children: Iterable of BaseRow to start with (not signaled)
     """
 
     def __init__(self, display=('', None), roles=None, children=()):
-        super(StaticRowNode, self).__init__(children)
+        super(StaticRow, self).__init__(children)
         self._dataByRoles = {} if roles is None else roles
         self._dataByRoles[qt.Qt.DisplayRole] = display
 
-        self.setFlags(qt.Qt.ItemIsEnabled)
-
     def data(self, column, role):
         if role in self._dataByRoles:
-            dataRow = self._dataByRoles[role]
-            if column < len(dataRow):
-                return dataRow[column]
-        return super(StaticRowNode, self).data(column, role)
+            data = self._dataByRoles[role]
+            if column < len(data):
+                return data[column]
+        return super(StaticRow, self).data(column, role)
 
     def columnCount(self):
         return len(self._dataByRoles[qt.Qt.DisplayRole])
 
 
-class ProxyRowNode(BaseRowNode):
+class ProxyRow(BaseRow):
     """Provides a node to proxy a data accessible through functions.
 
     Warning: Only weak reference are kept on fget and fset.
@@ -236,13 +246,14 @@ class ProxyRowNode(BaseRowNode):
     :param notify:
         An optional signal emitted when data has changed.
     """
+    # TODO missing argument doc
 
     def __init__(self, name='',
                  fget=None, fset=None, notify=None,
                  toModelData=None, fromModelData=None,
                  editorHint=None):
 
-        super(ProxyRowNode, self).__init__()
+        super(ProxyRow, self).__init__()
         self.__name = name
         self.__editorHint = editorHint
 
@@ -250,7 +261,7 @@ class ProxyRowNode(BaseRowNode):
         self._fget = WeakMethodProxy(fget)
         self._fset = WeakMethodProxy(fset) if fset is not None else None
         if fset is not None:
-            self.setFlags(qt.Qt.ItemIsEditable, 1)
+            self.setFlags(self.flags(1) | qt.Qt.ItemIsEditable, 1)
         self._toModelData = toModelData
         self._fromModelData = fromModelData
 
@@ -260,7 +271,8 @@ class ProxyRowNode(BaseRowNode):
     def _notified(self, *args, **kwargs):
         index = self.index(column=1)
         model = self.model()
-        model.dataChanged.emit(index, index)
+        if model is not None:
+            model.dataChanged.emit(index, index)
 
     def data(self, column, role):
         if column == 0:
@@ -270,12 +282,13 @@ class ProxyRowNode(BaseRowNode):
         elif column == 1:
             if role == qt.Qt.UserRole:  # EditorHint
                 return self.__editorHint
-            elif role in (qt.Qt.DisplayRole, qt.Qt.EditRole):
+            elif role in (qt.Qt.DisplayRole, qt.Qt.EditRole):  # TODO edit role only if editable
                 data = self._fget()
                 if self._toModelData is not None:
-                    return self._toModelData(data)
+                    data = self._toModelData(data)
+                return data
 
-        return super(ProxyRowNode, self).data(column, role)
+        return super(ProxyRow, self).data(column, role)
 
     def setData(self, column, value, role):
         if role == qt.Qt.EditRole and self._fset is not None:
@@ -284,10 +297,10 @@ class ProxyRowNode(BaseRowNode):
             self._fset(value)
             return True
 
-        return super(ProxyRowNode, self).setData(column, value, role)
+        return super(ProxyRow, self).setData(column, value, role)
 
 
-class ColorProxyRowNode(ProxyRowNode):
+class ColorProxyRow(ProxyRow):
 
     def data(self, column, role):
         if column == 1:  # Show color as decoration, not text
@@ -295,211 +308,7 @@ class ColorProxyRowNode(ProxyRowNode):
                 return None
             if role == qt.Qt.DecorationRole:
                 role = qt.Qt.DisplayRole
-        return super(ProxyRowNode, self).data(column, role)
-
-
-class Node(qt.QObject):
-    """Base class for tree model nodes.
-
-    The base node provides a static data and has no children.
-
-    :param parent: The parent Node in the tree model
-    :param str name: The name of the node (available in column 0).
-    :param data: The value of this node (available in column 1).
-    :param editorHint: For EditorHint role
-    """
-
-    def __init__(self, parent, name='', data=None, editorHint=None):
-        super(Node, self).__init__(parent)
-        self.__name = name
-        self.__data = data
-        self._editorHint = editorHint  # TODO support callable
-        self.__children = ()
-
-    def __repr__(self):
-        return ('<' + self.__class__.__name__ +
-                '("' + self.name() + '") at ' +
-                hex(id(self)) + '>')
-
-    def model(self):
-        """Returns the model this node belongs to.
-
-        :rtype: QAbstractItemModel
-        """
-        parent = self.parent()
-        if isinstance(parent, Node):
-            return self.parent().model()
-        else:
-            assert isinstance(parent, qt.QAbstractItemModel)
-            return parent
-
-    def index(self, column=0):
-        """Return corresponding index in the model.
-
-        :param int column: The column to make the index for
-        :rtype: QModelIndex
-        """
-        parent = self.parent()
-        model = self.model()
-
-        if parent is model:  # Root node
-            return qt.QModelIndex()
-        else:
-            parentIndex = parent.index()
-            row = parent.getChildren().index(self)
-            return model.index(row, column, parentIndex)
-
-    def setChildren(self, children):
-        """Set the children of this node.
-
-        :param iterable children: List of children node (default no children)
-        """
-        self.__children = tuple(children)
-
-    def getChildren(self):
-        """Returns the children of this node.
-
-        :rtype: tuple of Node or Item3D
-        """
-        return self.__children
-
-    def name(self):
-        """Returns the name associated with this node.
-
-        :rtype: str
-        """
-        return self.__name
-
-    def supportedRoles(self):
-        """Returns supported model roles.
-
-        :rtype: tuple
-        """
-        return qt.Qt.DisplayRole, qt.Qt.EditRole, qt.Qt.UserRole
-
-    def data(self, role):
-        """Returns the data associated with this node.
-
-        :param role: The model role
-        """
-        if role == qt.Qt.UserRole:
-            return self._editorHint
-        else:
-            return self._data(role)
-
-    def _data(self, role):
-        """Override in subclass to return edit/display role data"""
-        return self.__data
-
-    def setData(self, data, role):
-        """Set the data of this node.
-
-        This is not implemented in the base class.
-
-        :param data: The data to set
-        :param role: The role to set
-        :return: True if successfully set, False otherwise
-        :rtype: bool
-        """
-        return False
-
-    def isEditable(self):
-        """Returns True if the data of this node is editable.
-
-        The base class always returns False.
-        If the returned value is False, :meth:`setData` should no be called.
-
-        :rtype: bool
-        """
-        return False
-
-    def isEnabled(self):
-        """Returns True is this node is enabled
-
-        The base class always returns True.
-
-        :rtype: bool
-        """
-        return True
-
-    def isCheckable(self):
-        """Returns True if the name of this node is checkable.
-
-        The base class always returns False.
-
-        :rtype: bool
-        """
-        return False
-
-
-# TODO remove async?
-class ProxyNode(Node):
-    """Provides a node to proxy a data accessible through functions.
-
-    Warning: Only weak reference are kept on fget and fset.
-
-    :param Node parent: The parent node in the tree hierarchy
-    :param str name: The name of this node
-    :param callable fget: A callable returning the data
-    :param callable fset:
-        An optional callable setting the data with data as a single argument.
-    :param notify:
-        An optional signal emitted when data has changed.
-    :param bool async: True to set the data asynchronously (Default: False).
-    """
-
-    _asyncSignal = qt.Signal(object)
-    """Signal used internally to set data asynchronously.
-
-    There is an issue with mutable data...
-    """
-
-    def __init__(self, parent, name='',
-                 fget=None, fset=None, notify=None,
-                 async=False, toModelData=None, fromModelData=None, editorHint=None):
-
-        super(ProxyNode, self).__init__(parent, name=name, editorHint=editorHint)
-        assert fget is not None
-        self._fget = WeakMethodProxy(fget)
-        self._fset = WeakMethodProxy(fset) if fset is not None else None
-        self._toModelData = toModelData
-        self._fromModelData = fromModelData
-
-        if notify is not None:
-            notify.connect(self._notified)  # TODO support sigItemChanged flags
-
-        self._async = bool(async)
-        if self._async:
-            self._asyncSignal.connect(self._setData, qt.Qt.QueuedConnection)
-
-    def _notified(self, *args, **kwargs):
-        index = self.index(column=1)
-        model = self.model()
-        model.dataChanged.emit(index, index)
-
-    def _data(self, role):
-        data = self._fget()
-        if self._toModelData is not None:
-            data = self._toModelData(data)
-        return data
-
-    def _setData(self, data):
-        if self._fromModelData is not None:
-            data = self._fromModelData(data)
-        self._fset(data)
-
-    def setData(self, data, role):
-        if not self.isEditable() or role != qt.Qt.EditRole:
-            return False
-
-        if not self._async:
-            self._setData(data)
-        else:
-            self._asyncSignal.emit(data)
-        return True
-
-    def isEditable(self):
-        return self._fset is not None
+        return super(ColorProxyRow, self).data(column, role)
 
 
 class _DirectionalLightProxy(qt.QObject):
@@ -586,154 +395,141 @@ class _DirectionalLightProxy(qt.QObject):
         self._light.direction = x, y, z
 
 
-class DirectionalLightNode(Node):
-    """Node for :class:`SceneWidget` light direction setting."""
+class Settings(StaticRow):
+    """Subtree for :class:`SceneWidget` style parameters.
 
-    def __init__(self, parent, light):
-        super(DirectionalLightNode, self).__init__(
-            parent, name='Light Direction')
+    :param SceneWidget sceneWidget: The widget to control
+    """
 
-        self._lightProxy = _DirectionalLightProxy(light)
+    def __init__(self, sceneWidget):
+        background = ColorProxyRow(
+            name='Background',
+            fget=sceneWidget.getBackgroundColor,
+            fset=sceneWidget.setBackgroundColor)
 
-        azimuthNode = ProxyNode(
-            self,
+        foreground = ColorProxyRow(
+            name='Foreground',
+            fget=sceneWidget.getForegroundColor,
+            fset=sceneWidget.setForegroundColor)
+
+        highlight = ColorProxyRow(
+            name='Highlight',
+            fget=sceneWidget.getHighlightColor,
+            fset=sceneWidget.setHighlightColor)
+
+        boundingBox = ProxyRow(
+            name='Bounding Box',
+            fget=sceneWidget.isBoundingBoxVisible,
+            fset=sceneWidget.setBoundingBoxVisible)
+
+        axesIndicator = ProxyRow(
+            name='Axes Indicator',
+            fget=sceneWidget.isOrientationIndicatorVisible,
+            fset=sceneWidget.setOrientationIndicatorVisible)
+
+        # Light direction
+
+        self._lightProxy = _DirectionalLightProxy(sceneWidget.viewport.light)
+
+        azimuthNode = ProxyRow(
             name='Azimuth',
             fget=self._lightProxy.getAzimuthAngle,
             fset=self._lightProxy.setAzimuthAngle,
             notify=self._lightProxy.sigAzimuthAngleChanged,
             editorHint=(-90, 90))
 
-        altitudeNode = ProxyNode(
-            self,
+        altitudeNode = ProxyRow(
             name='Altitude',
             fget=self._lightProxy.getAltitudeAngle,
             fset=self._lightProxy.setAltitudeAngle,
             notify=self._lightProxy.sigAltitudeAngleChanged,
             editorHint=(-90, 90))
 
-        self.setChildren((azimuthNode, altitudeNode))
+        lightDirection = StaticRow(('Light Direction', None),
+                                   children=(azimuthNode, altitudeNode))
+
+        # Settings row
+        children = (background, foreground, highlight,
+                    boundingBox, axesIndicator, lightDirection)
+        super(Settings, self).__init__(('Settings', None), children=children)
 
 
-class ColorProxyNode(ProxyNode):
-    def supportedRoles(self):
-        return super(ColorProxyNode, self).supportedRoles() + (qt.Qt.DecorationRole,)
+class Item3DRow(StaticRow):
+    """Represents an :class:`Item3D` with checkable visibility"""
 
-
-class Style(Node):
-    """Node for :class:`SceneWidget` style settings."""
-    def __init__(self, parent, sceneWidget):
-        super(Style, self).__init__(
-            parent, name='Style')
-
-        bgColor = ColorProxyNode(
-            self,
-            name='Background',
-            fget=sceneWidget.getBackgroundColor,
-            fset=sceneWidget.setBackgroundColor)
-
-        fgColor = ColorProxyNode(
-            self,
-            name='Foreground',
-            fget=sceneWidget.getForegroundColor,
-            fset=sceneWidget.setForegroundColor)
-
-        highlightColor = ColorProxyNode(
-            self,
-            name='Highlight',
-            fget=sceneWidget.getHighlightColor,
-            fset=sceneWidget.setHighlightColor)
-
-        boundingBox = ProxyNode(
-            self,
-            name='Bounding Box',
-            fget=sceneWidget.isBoundingBoxVisible,
-            fset=sceneWidget.setBoundingBoxVisible)
-
-        axesIndicator = ProxyNode(
-            self,
-            name='Axes Indicator',
-            fget=sceneWidget.isOrientationIndicatorVisible,
-            fset=sceneWidget.setOrientationIndicatorVisible)
-
-        lightDirection = DirectionalLightNode(
-            self,
-            sceneWidget.viewport.light)
-
-        self.setChildren((bgColor,
-                          fgColor,
-                          highlightColor,
-                          boundingBox,
-                          axesIndicator,
-                          lightDirection))
-
-
-class Item3DNode(Node):
-
-    def __init__(self, parent, item, name=None):
+    def __init__(self, item, name=None):
         if name is None:
-            name = item.__class__.__name__
-        super(Item3DNode, self).__init__(parent, name=name, data=None)
+            name = item.getLabel()
+        super(Item3DRow, self).__init__((name, None))
+
+        self.setFlags(
+            self.flags(0) | qt.Qt.ItemIsUserCheckable,
+            0)
 
         self._item = weakref.ref(item)
         item.sigItemChanged.connect(self._itemChanged)
 
     def _itemChanged(self, event):
         if event == items.ItemChangedType.VISIBLE:
-            index = self.index(column=1)
             model = self.model()
-            model.dataChanged.emit(index, index)
+            if model is not None:
+                index = self.index(column=1)
+                model.dataChanged.emit(index, index)
 
     def item(self):
         return self._item()
 
-    def _data(self, role):
-        if role == qt.Qt.CheckStateRole:
+    def data(self, column, role):
+        if column == 0 and role == qt.Qt.CheckStateRole:
             item = self.item()
             if item is not None and item.isVisible():
                 return qt.Qt.Checked
             else:
                 return qt.Qt.Unchecked
+        elif column == 0 and role == qt.Qt.DecorationRole:
+            return icons.getQIcon('item-3dim')
         else:
-            return super(Item3DNode, self)._data(role)
+            return super(Item3DRow, self).data(column, role)
 
-    def setData(self, data, role):
-        if role == qt.Qt.CheckStateRole:
+    def setData(self, column, value, role):
+        if column == 0 and role == qt.Qt.CheckStateRole:
             item = self.item()
             if item is not None:
-                item.setVisible(data == qt.Qt.Checked)
+                item.setVisible(value == qt.Qt.Checked)
                 return True
             else:
                 return False
-        return super(Item3DNode, self).setData(data, role)
-
-    def isEditable(self):
-        return True
-
-    def isCheckable(self):
-        return True
+        return super(Item3DRow, self).setData(column, value, role)
 
 
-class AngleNode(ProxyNode):
+class AngleDegreeRow(ProxyRow):
+    """ProxyNode patching display of column 1 to add degree"""
     def __init__(self, *args, **kwargs):
-        super(AngleNode, self).__init__(*args, **kwargs)
+        super(AngleDegreeRow, self).__init__(*args, **kwargs)
 
-    def _data(self, role):
-        data = super(AngleNode, self)._data(role)
-        return (u'%g°' % data) if role == qt.Qt.DisplayRole else data
+    def data(self, column, role):
+        if column == 1 and role == qt.Qt.DisplayRole:
+            return u'%g°' % super(AngleDegreeRow, self).data(column, role)
+        else:
+            return super(AngleDegreeRow, self).data(column, role)
 
 
-class DataItem3DNode(Item3DNode):
+class DataItem3DTransformRow(StaticRow):
+    """Represents :class:`DataItem3D` transform parameters"""
 
     _ROTATION_CENTER_OPTIONS = 'Origin', 'Lower', 'Center', 'Upper'
 
-    def __init__(self, parent, item):
-        super(DataItem3DNode, self).__init__(
-            parent, item, item.getLabel())
+    def __init__(self, item):
+        super(DataItem3DTransformRow, self).__init__(('Transform', None))
+        self._item = weakref.ref(item)
 
-        self._transform = Node(self, name='Transforms')
+        translation = ProxyRow(name='Translation',
+                               fget=item.getTranslation,
+                               fset=self._setTranslation,
+                               notify=item.sigItemChanged,
+                               toModelData=lambda data: qt.QVector3D(*data))
+        self.addRow(translation)
 
-        self._rotate = Node(self._transform, name='Rotation')
-        self._rotateCenter = Node(self._rotate, name='Center')
         # Here to keep a reference
         self._xCenterToModelData = functools.partial(
             self._centerToModelData, index=0)
@@ -747,60 +543,55 @@ class DataItem3DNode(Item3DNode):
             self._centerToModelData, index=2)
         self._zSetCenter = functools.partial(self._setCenter, index=2)
 
-        self._rotateCenter.setChildren((
-            ProxyNode(self._rotateCenter,
-                      name='X axis',
-                      fget=item.getRotationCenter,
-                      fset=self._xSetCenter,
-                      notify=item.sigItemChanged,
-                      toModelData=self._xCenterToModelData,
-                      editorHint=self._ROTATION_CENTER_OPTIONS),
-            ProxyNode(self._rotateCenter,
-                      name='Y axis',
-                      fget=item.getRotationCenter,
-                      fset=self._ySetCenter,
-                      notify=item.sigItemChanged,
-                      toModelData=self._yCenterToModelData,
-                      editorHint=self._ROTATION_CENTER_OPTIONS),
-            ProxyNode(self._rotateCenter,
-                      name='Z axis',
-                      fget=item.getRotationCenter,
-                      fset=self._zSetCenter,
-                      notify=item.sigItemChanged,
-                      toModelData=self._zCenterToModelData,
-                      editorHint=self._ROTATION_CENTER_OPTIONS),
-        ))
-        self._rotate.setChildren((
-            AngleNode(self._rotate,
-                      name='Angle',
-                      fget=item.getRotation,
-                      fset=self._setAngle,
-                      notify=item.sigItemChanged,  # TODO
-                      toModelData=lambda data: data[0]),
-            ProxyNode(self._rotate,
-                      name='Axis',
-                      fget=item.getRotation,
-                      fset=self._setAxis,
-                      notify=item.sigItemChanged,  # TODO
-                      toModelData=lambda data: qt.QVector3D(*data[1])),
-            self._rotateCenter
-        ))
-        self._transform.setChildren((
-            ProxyNode(self._transform,
-                      name='Translation',
-                      fget=item.getTranslation,
-                      fset=self._setTranslation,
-                      notify=item.sigItemChanged,  # TODO
-                      toModelData=lambda data: qt.QVector3D(*data)),
-            self._rotate,
-            ProxyNode(self._transform,
-                      name='Scale',
-                      fget=item.getScale,
-                      fset=self._setScale,
-                      notify=item.sigItemChanged,  # TODO
-                      toModelData=lambda data: qt.QVector3D(*data)),
-        ))
-        self.setChildren(())
+        rotateCenter = StaticRow(
+            ('Center', None),
+            children=(
+                ProxyRow(name='X axis',
+                         fget=item.getRotationCenter,
+                         fset=self._xSetCenter,
+                         notify=item.sigItemChanged,
+                         toModelData=self._xCenterToModelData,
+                         editorHint=self._ROTATION_CENTER_OPTIONS),
+                ProxyRow(name='Y axis',
+                         fget=item.getRotationCenter,
+                         fset=self._ySetCenter,
+                         notify=item.sigItemChanged,
+                         toModelData=self._yCenterToModelData,
+                         editorHint=self._ROTATION_CENTER_OPTIONS),
+                ProxyRow(name='Z axis',
+                         fget=item.getRotationCenter,
+                         fset=self._zSetCenter,
+                         notify=item.sigItemChanged,
+                         toModelData=self._zCenterToModelData,
+                         editorHint=self._ROTATION_CENTER_OPTIONS),
+            ))
+
+        rotate = StaticRow(
+            ('Rotation', None),
+            children=(
+                AngleDegreeRow(name='Angle',
+                               fget=item.getRotation,
+                               fset=self._setAngle,
+                               notify=item.sigItemChanged,
+                               toModelData=lambda data: data[0]),
+                ProxyRow(name='Axis',
+                         fget=item.getRotation,
+                         fset=self._setAxis,
+                         notify=item.sigItemChanged,
+                         toModelData=lambda data: qt.QVector3D(*data[1])),
+                rotateCenter
+            ))
+        self.addRow(rotate)
+
+        scale = ProxyRow(name='Scale',
+                         fget=item.getScale,
+                         fset=self._setScale,
+                         notify=item.sigItemChanged,
+                         toModelData=lambda data: qt.QVector3D(*data))
+        self.addRow(scale)
+
+    def item(self):
+        return self._item()
 
     @staticmethod
     def _centerToModelData(center, index):
@@ -848,31 +639,56 @@ class DataItem3DNode(Item3DNode):
         if item is not None:
             item.setScale(scale.x(), scale.y(), scale.z())
 
-    def setChildren(self, children):
-        super(DataItem3DNode, self).setChildren(
-            (self._transform,) + tuple(children))
+
+class GroupItemRow(Item3DRow):
+
+    def __init__(self, item, name=None):
+        super(GroupItemRow, self).__init__(item, name)
+        self.addRow(DataItem3DTransformRow(item))
+
+        item.sigItemAdded.connect(self._itemAdded)
+        item.sigItemRemoved.connect(self._itemRemoved)
+
+        for child in item.getItems():
+            self.addRow(nodeFromItem(child))
+
+    def _itemAdded(self, item):
+        group = self.item()
+        if group is None:
+            return
+
+        row = group.getItems().index(item)
+        self.addRow(nodeFromItem(item), row + 1)
+
+    def _itemRemoved(self, item):
+        group = self.item()
+        if group is None:
+            return
+
+        # Find item
+        for row in self.children():
+            if row.item() is item:
+                self.removeRow(row)
+                break  # Got it
+        else:
+            raise RuntimeError("Model does not correspond to scene content")
 
 
-class InterpolationNode(ProxyNode):
-    def __init__(self, parent, item):
-         super(InterpolationNode, self).__init__(
-             parent,
+class InterpolationRow(ProxyRow):
+
+    def __init__(self, item):
+         super(InterpolationRow, self).__init__(
              name='Interpolation',
              fget=item.getInterpolation,
              fset=item.setInterpolation,
-             notify=item.sigItemChanged,  # TODO
+             notify=item.sigItemChanged,
              editorHint=item.INTERPOLATION_MODES)
 
-class ImageRgbaNode(DataItem3DNode):
-     def __init__(self, parent, item):
-         super(ImageRgbaNode, self).__init__(parent, item)
-         self._interpolation = InterpolationNode(self, item)
-         self.setChildren((self._interpolation,))
 
+class _RangeProxyRow(ProxyRow):
 
-class _RangeProxyNode(ProxyNode):
     def __init__(self, *args, **kwargs):
-        super(_RangeProxyNode, self).__init__(*args, **kwargs)
+        super(_RangeProxyRow, self).__init__(*args, **kwargs)
 
     def _notified(self, *args, **kwargs):
         topLeft = self.index(column=0)
@@ -880,21 +696,26 @@ class _RangeProxyNode(ProxyNode):
         model = self.model()
         model.dataChanged.emit(topLeft, bottomRight)
 
-    def isEnabled(self):
+    def flags(self, column):
+        flags = super(_RangeProxyRow, self).flags(column)
+
         parent = self.parent()
-        item = parent.item()
-        if item is not None:
-            colormap = item.getColormap()
-            return not colormap.isAutoscale()
-        return False
+        if parent is not None:
+            item = parent.item()
+            if item is not None:
+                colormap = item.getColormap()
+                if colormap.isAutoscale():
+                    # Remove item is enabled flag
+                    flags = qt.Qt.ItemFlags(flags) & ~qt.Qt.ItemIsEnabled
+        return flags
 
 
-class ColormapNode(Node):
+class ColormapRow(StaticRow):
 
     _sigColormapChanged = qt.Signal()
 
-    def __init__(self, parent, item):
-        super(ColormapNode, self).__init__(parent, name='Colormap')
+    def __init__(self, item):
+        super(ColormapRow, self).__init__(('Colormap', None))
         self._item = weakref.ref(item)
         item.sigItemChanged.connect(self._itemChanged)
 
@@ -904,41 +725,33 @@ class ColormapNode(Node):
         self._colormapImage = None
         self._dataRange = None
 
-        self._name = ProxyNode(
-            self,
+        self.addRow(ProxyRow(
             name='Name',
             fget=self._getName,
             fset=self._setName,
             notify=self._sigColormapChanged,
-            editorHint=preferredColormaps())
-        self._normalization = ProxyNode(
-            self,
+            editorHint=preferredColormaps()))
+        self.addRow(ProxyRow(
             name='Normalization',
             fget=self._getNormalization,
             fset=self._setNormalization,
             notify=self._sigColormapChanged,
-            editorHint=self._colormap.NORMALIZATIONS)
-        self._autoscale = ProxyNode(
-            self,
+            editorHint=self._colormap.NORMALIZATIONS))
+        self.addRow(ProxyRow(
             name='Autoscale',
             fget=self._isAutoscale,
             fset=self._setAutoscale,
-            notify=self._sigColormapChanged)
-        self._vmin = _RangeProxyNode(
-            self,
+            notify=self._sigColormapChanged))
+        self.addRow(_RangeProxyRow(
             name='Min.',
             fget=self._getVMin,
             fset=self._setVMin,
-            notify=self._sigColormapChanged)
-        self._vmax = _RangeProxyNode(
-            self,
+            notify=self._sigColormapChanged))
+        self.addRow(_RangeProxyRow(
             name='Max.',
             fget=self._getVMax,
             fset=self._setVMax,
-            notify=self._sigColormapChanged)
-
-        self.setChildren((self._name, self._normalization,
-                          self._autoscale, self._vmin, self._vmax))
+            notify=self._sigColormapChanged))
 
         self._sigColormapChanged.connect(self._updateColormapImage)
 
@@ -956,15 +769,15 @@ class ColormapNode(Node):
             index = self.index(column=1)
             self.model().dataChanged.emit(index, index)
 
-    def _data(self, role):
-        if self._colormapImage is None:
-            image = numpy.zeros((16, 130, 3), dtype=numpy.uint8)
-            image[1:-1, 1:-1] = self._colormap.getNColors(image.shape[1] - 2)[:, :3]
-            self._colormapImage = convertArrayToQImage(image)
-        return self._colormapImage
+    def data(self, column, role):
+        if column == 1 and role == qt.Qt.DecorationRole:
+            if self._colormapImage is None:
+                image = numpy.zeros((16, 130, 3), dtype=numpy.uint8)
+                image[1:-1, 1:-1] = self._colormap.getNColors(image.shape[1] - 2)[:, :3]
+                self._colormapImage = convertArrayToQImage(image)
+            return self._colormapImage
 
-    def supportedRoles(self):
-        return super(ColormapNode, self).supportedRoles() + (qt.Qt.DecorationRole,)
+        return super(ColormapRow, self).data(column, role)
 
     def _getDataRange(self):
         if self._dataRange is None:
@@ -1030,397 +843,394 @@ class ColormapNode(Node):
             self._sigColormapChanged.emit()
 
 
-class ImageDataNode(DataItem3DNode):
-     def __init__(self, parent, item):
-         super(ImageDataNode, self).__init__(parent, item)
-         self._colormap = ColormapNode(self, item)
-         self._interpolation = InterpolationNode(self, item)
-         self.setChildren((self._colormap, self._interpolation))
-
-
-class SymbolNode(ProxyNode):
-    def __init__(self, parent, item):
+class SymbolRow(ProxyRow):
+    def __init__(self, item):
         names = [item.getSymbolName(s) for s in item.getSupportedSymbols()]
-        super(SymbolNode, self).__init__(
-             parent,
+        super(SymbolRow, self).__init__(
              name='Marker',
              fget=item.getSymbolName,
              fset=item.setSymbol,
-             notify=item.sigItemChanged,  # TODO
+             notify=item.sigItemChanged,
              editorHint=names)
 
 
-class SymbolSizeNode(ProxyNode):
-    def __init__(self, parent, item):
-         super(SymbolSizeNode, self).__init__(
-             parent,
+class SymbolSizeRow(ProxyRow):
+    def __init__(self, item):
+         super(SymbolSizeRow, self).__init__(
              name='Marker size',
              fget=item.getSymbolSize,
              fset=item.setSymbolSize,
-             notify=item.sigItemChanged,  # TODO
+             notify=item.sigItemChanged,
              editorHint=(1, 50))  # TODO link with OpenGL max point size
 
 
-class Scatter3DNode(DataItem3DNode):
-     def __init__(self, parent, item):
-         super(Scatter3DNode, self).__init__(parent, item)
-         self._symbol = SymbolNode(self, item)
-         self._symbolSize = SymbolSizeNode(self, item)
-         self._colormap = ColormapNode(self, item)
-         self.setChildren((self._symbol, self._symbolSize, self._colormap))
-
-
-class Scatter2DNode(DataItem3DNode):
-     def __init__(self, parent, item):
-         super(Scatter2DNode, self).__init__(parent, item)
-         self._symbol = SymbolNode(self, item)
-         self._symbolSize = SymbolSizeNode(self, item)
-         self._colormap = ColormapNode(self, item)
-
-         self._visualization = ProxyNode(
-             self,
-             name='Mode',
-             fget=item.getVisualization,
-             fset=item.setVisualization,
-             notify=item.sigItemChanged,  # TODO
-             editorHint=[m.title() for m in item.supportedVisualizations()],
-             toModelData=lambda data: data.title(),
-             fromModelData=lambda data: data.lower())
-
-         self._heightMap = ProxyNode(
-             self,
-             name='Height map',
-             fget=item.isHeightMap,
-             fset=item.setHeightMap,
-             notify=item.sigItemChanged)  # TODO
-
-         self._lineWidth = ProxyNode(
-             self,
-             name='Line width',
-             fget=item.getLineWidth,
-             fset=item.setLineWidth,
-             notify=item.sigItemChanged,  # TODO
-             editorHint=(1, 10))  # TODO link with OpenGL max line width
-
-         # TODO enable/disable symbol, symbol size, linewidth
-
-         self.setChildren((self._visualization, self._heightMap,
-                           self._colormap,
-                           self._symbol, self._symbolSize,
-                           self._lineWidth))
-
-
-class PlaneNode(ProxyNode):
-    def __init__(self, parent, item):
-        super(PlaneNode, self).__init__(
-            parent,
+class PlaneRow(ProxyRow):
+    def __init__(self, item):
+        super(PlaneRow, self).__init__(
             name='Equation',
             fget=item.getParameters,
             fset=item.setParameters,
-            notify=item.sigItemChanged,  # TODO
+            notify=item.sigItemChanged,
             toModelData=lambda data: qt.QVector4D(*data),
             fromModelData=lambda data: (data.x(), data.y(), data.z(), data.w()))
         self._item = weakref.ref(item)
 
-    def _data(self, role):
-        if role == qt.Qt.DisplayRole:
+    def data(self, column, role):
+        if column == 1 and role == qt.Qt.DisplayRole:
             item = self._item()
             if item is not None:
                 params = item.getParameters()
                 return ('%gx %+gy %+gz %+g = 0' %
                         (params[0], params[1], params[2], params[3]))
-        return super(PlaneNode, self)._data(role)
+        return super(PlaneRow, self).data(column, role)
 
 
-class ClipPlaneNode(Item3DNode):
+def initScatter2DNode(node, item):
+    """Specific node init for Scatter2D to set order of parameters"""
+    node.addRow(ProxyRow(
+        name='Mode',
+        fget=item.getVisualization,
+        fset=item.setVisualization,
+        notify=item.sigItemChanged,
+        editorHint=[m.title() for m in item.supportedVisualizations()],
+        toModelData=lambda data: data.title(),
+        fromModelData=lambda data: data.lower()))
 
-     def __init__(self, parent, item):
-         super(ClipPlaneNode, self).__init__(parent, item)
-         self._plane = PlaneNode(self, item)
-         self.setChildren((self._plane,))
+    node.addRow(ProxyRow(
+        name='Height map',
+        fget=item.isHeightMap,
+        fset=item.setHeightMap,
+        notify=item.sigItemChanged))
+
+    node.addRow(ColormapRow(item))
+
+    node.addRow(SymbolRow(item))
+    node.addRow(SymbolSizeRow(item))
+
+    node.addRow(ProxyRow(
+        name='Line width',
+        fget=item.getLineWidth,
+        fset=item.setLineWidth,
+        notify=item.sigItemChanged,
+        editorHint=(1, 10)))  # TODO link with OpenGL max line width
 
 
-class CutPlaneNode(Item3DNode):
+class RemoveIsosurfaceRow(BaseRow):
 
-     def __init__(self, parent, item):
-         super(CutPlaneNode, self).__init__(parent, item)
-         self._plane = PlaneNode(self, item)
-         self._colormap = ColormapNode(self, item)
-         self._interpolation = InterpolationNode(self, item)
-         self.setChildren((self._plane, self._colormap, self._interpolation))
+    def __init__(self, isosurface):
+        super(RemoveIsosurfaceRow, self).__init__()
+        self._isosurface = weakref.ref(isosurface)
+
+        self._editor = qt.QWidget()
+        layout = qt.QHBoxLayout(self._editor)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+
+        removeBtn = qt.QToolButton()
+        removeBtn.setText('Delete')
+        removeBtn.setToolButtonStyle(qt.Qt.ToolButtonTextOnly)
+        layout.addWidget(removeBtn)
+        removeBtn.clicked.connect(self._removeClicked)
+
+        layout.addStretch(1)
+
+    def isosurface(self):
+        return self._isosurface()
+
+    def data(self, column, role):
+        if column == 0 and role == qt.Qt.UserRole:  # editor hint
+            return self._editor
+
+        return super(RemoveIsosurfaceRow, self).data(column, role)
+
+    def flags(self, column):
+        flags = super(RemoveIsosurfaceRow, self).flags(column)
+        if column == 0:
+            flags |= qt.Qt.ItemIsEditable
+        return flags
+
+    def _removeClicked(self):
+        isosurface = self.isosurface()
+        if isosurface is not None:
+            scalarField3D = isosurface.parent()
+            if scalarField3D is not None:
+                scalarField3D.removeIsosurface(isosurface)
 
 
-class IsoSurfaceNode(Item3DNode):
+class IsosurfaceRow(Item3DRow):
 
-    def __init__(self, parent, item):
-        super(IsoSurfaceNode, self).__init__(parent, item)
-        self._level = ProxyNode(
-            self,
+    _LEVEL_SLIDER_RANGE = 0, 1000
+
+    def __init__(self, item):
+        super(IsosurfaceRow, self).__init__(item, name=item.getLevel())
+
+        self.setFlags(self.flags(1) | qt.Qt.ItemIsEditable, 1)
+
+        item.sigItemChanged.connect(self._levelChanged)
+
+        self.addRow(ProxyRow(
             name='Level',
-            fget=item.getLevel,
-            fset=item.setLevel,
-            notify=item.sigItemChanged)  # TODO
-        self._color = ColorProxyNode(
-            self,
+            fget=self._getValueForLevelSlider,
+            fset=self._setLevelFromSliderValue,
+            notify=item.sigItemChanged,
+            editorHint=self._LEVEL_SLIDER_RANGE))
+
+        self.addRow(ColorProxyRow(
             name='Color',
-            fget=item.getColor,
-            fset=item.setColor,
-            notify=item.sigItemChanged)  # TODO
-        self.setChildren((self._level, self._color))
+            fget=self._rgbColor,
+            fset=self._setRgbColor,
+            notify=item.sigItemChanged))
 
-        # TODO level slider, opacity slider
+        self.addRow(ProxyRow(
+            name='Opacity',
+            fget=self._opacity,
+            fset=self._setOpacity,
+            notify=item.sigItemChanged,
+            editorHint=(0, 255)))
 
+        self.addRow(RemoveIsosurfaceRow(item))
 
-class AddRemoveIso(Node):
-
-    def __init__(self, parent, item):
-        super(AddRemoveIso, self).__init__(
-            parent, name='', editorHint='add_remove_iso')
-        self.item = weakref.ref(item)
-
-    def isEditable(self):
-        return True
-
-
-class IsoSurfacesNode(Node):
-
-    def __init__(self, parent, item):
-        super(IsoSurfacesNode, self).__init__(parent, name='Isosurfaces')
-        self._item = weakref.ref(item)
-
-        isosurfaces = []
-        for iso in item.getIsosurfaces():
-            isosurfaces.append(IsoSurfaceNode(self, iso))
-        isosurfaces.append(AddRemoveIso(self, item))
-        self.setChildren(isosurfaces)
-
-        item.sigIsosurfaceAdded.connect(self._isosurfaceAdded)
-        item.sigIsosurfaceRemoved.connect(self._isosurfaceRemoved)
-
-    def item(self):
-        return self._item()
-
-    # TODO merge with GroupItemNode implementation
-    def _isosurfaceAdded(self, iso):
+    def _getValueForLevelSlider(self):
         item = self.item()
-        if item is None:
+        if item is not None:
+            scalarField3D = item.parent()
+            if scalarField3D is not None:
+                dataRange = scalarField3D.getDataRange()
+                if dataRange is not None:
+                    dataMin, dataMax = dataRange[0], dataRange[-1]
+                    offset = (item.getLevel() - dataMin) / (dataMax - dataMin)
+
+                    sliderMin, sliderMax = self._LEVEL_SLIDER_RANGE
+                    value = sliderMin + (sliderMax - sliderMin) * offset
+                    return value
+        return 0
+
+    def _setLevelFromSliderValue(self, value):
+        item = self.item()
+        if item is not None:
+            scalarField3D = item.parent()
+            if scalarField3D is not None:
+                dataRange = scalarField3D.getDataRange()
+                if dataRange is not None:
+                    sliderMin, sliderMax = self._LEVEL_SLIDER_RANGE
+                    offset = (value - sliderMin) / (sliderMax - sliderMin)
+
+                    dataMin, dataMax = dataRange[0], dataRange[-1]
+                    level = dataMin + (dataMax - dataMin) * offset
+                    item.setLevel(level)
+
+    def _rgbColor(self):
+         item = self.item()
+         if item is None:
+             return None
+         else:
+             color = item.getColor()
+             color.setAlpha(255)
+             return color
+
+    def _setRgbColor(self, color):
+        item = self.item()
+        if item is not None:
+            color.setAlpha(item.getColor().alpha())
+            item.setColor(color)
+
+    def _opacity(self):
+        item = self.item()
+        return 255 if item is None else item.getColor().alpha()
+
+    def _setOpacity(self, opacity):
+        item = self.item()
+        if item is not None:
+            color = item.getColor()
+            color.setAlpha(opacity)
+            item.setColor(color)
+
+    def _levelChanged(self, event):
+        if event == items.Item3DChangedType.ISO_LEVEL:
+            model = self.model()
+            if model is not None:
+                index = self.index(column=1)
+                model.dataChanged.emit(index, index)
+
+    def data(self, column, role):
+        if column == 0:  # Show color as decoration, not text
+            if role == qt.Qt.DisplayRole:
+                return None
+            elif role == qt.Qt.DecorationRole:
+                return self._rgbColor()
+
+        elif column == 1 and role in (qt.Qt.DisplayRole, qt.Qt.EditRole):
+                item = self.item()
+                return None if item is None else item.getLevel()
+
+        return super(IsosurfaceRow, self).data(column, role)
+
+    def setData(self, column, value, role):
+        if column == 1 and role == qt.Qt.EditRole:
+            item = self.item()
+            if item is not None:
+                item.setLevel(value)
+            return True
+
+        return super(IsosurfaceRow, self).setData(column, value, role)
+
+
+class AddIsosurfaceRow(BaseRow):
+
+    def __init__(self, scalarField3D):
+        super(AddIsosurfaceRow, self).__init__()
+        self._scalarField3D = weakref.ref(scalarField3D)
+
+        self._editor = qt.QWidget()
+        layout = qt.QHBoxLayout(self._editor)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+
+        addBtn = qt.QToolButton()
+        addBtn.setText('+')
+        addBtn.setToolButtonStyle(qt.Qt.ToolButtonTextOnly)
+        layout.addWidget(addBtn)
+        addBtn.clicked.connect(self._addClicked)
+
+        layout.addStretch(1)
+
+    def scalarField3D(self):
+        return self._scalarField3D()
+
+    def data(self, column, role):
+        if column == 0 and role == qt.Qt.UserRole:  # editor hint
+            return self._editor
+
+        return super(AddIsosurfaceRow, self).data(column, role)
+
+    def flags(self, column):
+        flags = super(AddIsosurfaceRow, self).flags(column)
+        if column == 0:
+            flags |= qt.Qt.ItemIsEditable
+        return flags
+
+    def _addClicked(self):
+        scalarField3D = self.scalarField3D()
+        if scalarField3D is not None:
+            dataRange = scalarField3D.getDataRange()
+            if dataRange is None:
+                dataRange = 0., 1.
+
+            scalarField3D.addIsosurface(
+                numpy.mean((dataRange[0], dataRange[-1])),
+                '#0000FF')
+
+
+class ScalarField3DIsoSurfacesRow(StaticRow):
+
+    def __init__(self, scalarField3D):
+        super(ScalarField3DIsoSurfacesRow, self).__init__(
+            ('Isosurfaces', None))
+        self._scalarField3D = weakref.ref(scalarField3D)
+
+        scalarField3D.sigIsosurfaceAdded.connect(self._isosurfaceAdded)
+        scalarField3D.sigIsosurfaceRemoved.connect(self._isosurfaceRemoved)
+
+        for item in scalarField3D.getIsosurfaces():
+            self.addRow(nodeFromItem(item))
+
+        self.addRow(AddIsosurfaceRow(scalarField3D))
+
+    def scalarField3D(self):
+        return self._scalarField3D()
+
+    def _isosurfaceAdded(self, item):
+        scalarField3D = self.scalarField3D()
+        if scalarField3D is None:
             return
 
-        parent = self.index()
-        row = item.getIsosurfaces().index(iso)
-        model = self.model()
+        row = scalarField3D.getIsosurfaces().index(item)
+        self.addRow(nodeFromItem(item), row)
 
-        model.beginInsertRows(parent, row, row)
-
-        # Update content node children
-        children = list(self.getChildren())
-
-        children.insert(row, IsoSurfaceNode(self, iso))
-        self.setChildren(children)
-
-        model.endInsertRows()
-
-    def _isosurfaceRemoved(self, iso):
-        item = self.item()
-        if item is None:
+    def _isosurfaceRemoved(self, item):
+        scalarField3D = self.scalarField3D()
+        if scalarField3D is None:
             return
 
-        parent = self.index()
         # Find item
-        for row, node in enumerate(self.getChildren()):
-            if node.item() is iso:
+        for row in self.children():
+            if row.item() is item:
+                self.removeRow(row)
                 break  # Got it
         else:
             raise RuntimeError("Model does not correspond to scene content")
-        model = self.model()
-        model.beginRemoveRows(parent, row, row)
-
-         # Update content node children
-        children = list(self.getChildren())
-        children.pop(row)
-        self.setChildren(children)
-
-        model.endRemoveRows()
 
 
-class ScalarField3DNode(DataItem3DNode):
-
-      def __init__(self, parent, item):
-          super(ScalarField3DNode, self).__init__(parent, item)
-          self._cutPlane = CutPlaneNode(self, item.getCutPlanes()[0])
-          self._isosurfaces = IsoSurfacesNode(self, item)
-          self.setChildren((self._cutPlane, self._isosurfaces))
+def initScalarField3DNode(node, item):
+    """Specific node init for ScalarField3D"""
+    node.addRow(nodeFromItem(item.getCutPlanes()[0]))  # Add cut plane
+    node.addRow(ScalarField3DIsoSurfacesRow(item))
 
 
-# TODO merge with items to have a simpler implementation?
-def nodeFromItem(parent, item):
-    """Create :class:`Node` corresponding to item
+NODE_SPECIFIC_INIT = [  # class, init(node, item)
+    (items.Scatter2D, initScatter2DNode),
+    (items.ScalarField3D, initScalarField3DNode),
+]
+"""List of specific node init for different item class"""
 
-    :param Node parent: The parent of the new node
+
+def nodeFromItem(item, name=None):
+    """Create :class:`Item3DRow` subclass corresponding to item
+
     :param Item3D item: The item fow which to create the node
-    :rtype: Node
+    :param str name: The name of the subtree for this item (optional)
+    :rtype: Item3DRow
     """
+    assert isinstance(item, items.Item3D)
+
+    # Item with specific model row class
     if isinstance(item, items.GroupItem):
-        return GroupItemNode(parent, item)
-    elif isinstance(item, items.ImageRgba):
-        return ImageRgbaNode(parent, item)
-    elif isinstance(item, items.ImageData):
-        return ImageDataNode(parent, item)
-    elif isinstance(item, items.Scatter3D):
-        return Scatter3DNode(parent, item)
-    elif isinstance(item, items.Scatter2D):
-        return Scatter2DNode(parent, item)
-    elif isinstance(item, items.ClipPlane):
-        return ClipPlaneNode(parent, item)
-    elif isinstance(item, items.ScalarField3D):
-        return ScalarField3DNode(parent, item)
-    elif isinstance(item, items.DataItem3D):
-        return DataItem3DNode(parent, item)
-    elif isinstance(item, items.Item3D):
-        return Item3DNode(parent, item)
-    else:
-        raise RuntimeError("Cannot create node from item")
+        return GroupItemRow(item)
+    elif isinstance(item, Isosurface):
+        return IsosurfaceRow(item)
+
+    # Create Item3DRow and populate it
+    node = Item3DRow(item, name)
+
+    if isinstance(item, items.DataItem3D):
+        node.addRow(DataItem3DTransformRow(item))
+
+    # Specific extra init
+    for cls, specificInit in NODE_SPECIFIC_INIT:
+        if isinstance(item, cls):
+            specificInit(node, item)
+            break
+
+    else:  # Generic case: handle mixins
+        for cls in item.__class__.__mro__:
+            if cls is items.ColormapMixIn:
+                node.addRow(ColormapRow(item))
+
+            elif cls is items.InterpolationMixIn:
+                node.addRow(InterpolationRow(item))
+
+            elif cls is items.SymbolMixIn:
+                node.addRow(SymbolRow(item))
+                node.addRow(SymbolSizeRow(item))
+
+            elif cls is items.PlaneMixIn:
+                node.addRow(PlaneRow(item))
+
+    return node
 
 
-# TODO improve management of children (move it in content node?)
-class GroupItemNode(DataItem3DNode):
-
-    def __init__(self, parent, group):
-        super(GroupItemNode, self).__init__(parent, group)
-        group.sigItemAdded.connect(self._itemAdded)
-        group.sigItemRemoved.connect(self._itemRemoved)
-
-        self._content = Node(self, name='Content')
-        self._createContentChildren()
-        self.setChildren((self._content,))
-
-    def _createContentChildren(self):
-        children = []
-
-        group = self.item()
-        if group is not None:
-            for item in group.getItems():
-                children.append(nodeFromItem(self._content, item))
-
-        self._content.setChildren(children)
-
-    def _itemAdded(self, item):
-        group = self.item()
-        if group is None:
-            return
-
-        parent = self._content.index()
-        row = group.getItems().index(item)
-        model = self.model()
-
-        model.beginInsertRows(parent, row, row)
-
-        # Update content node children
-        children = list(self._content.getChildren())
-
-        children.insert(row, nodeFromItem(self._content, item))
-        self._content.setChildren(children)
-
-        model.endInsertRows()
-
-    def _itemRemoved(self, item):
-        group = self.item()
-        if group is None:
-            return
-
-        parent = self._content.index()
-        # Find item
-        for row, node in enumerate(self._content.getChildren()):
-            if node.item() is item:
-                break  # Got it
-        else:
-            raise RuntimeError("Model does not correspond to scene content")
-        model = self.model()
-        model.beginRemoveRows(parent, row, row)
-
-         # Update content node children
-        children = list(self._content.getChildren())
-        children.pop(row)
-        self._content.setChildren(children)
-
-        model.endRemoveRows()
-
-
-class Style(Node):
-    """Node for :class:`SceneWidget` style settings."""
-    def __init__(self, parent, sceneWidget):
-        super(Style, self).__init__(
-            parent, name='Style')
-
-        bgColor = ColorProxyNode(
-            self,
-            name='Background',
-            fget=sceneWidget.getBackgroundColor,
-            fset=sceneWidget.setBackgroundColor)
-
-        fgColor = ColorProxyNode(
-            self,
-            name='Foreground',
-            fget=sceneWidget.getForegroundColor,
-            fset=sceneWidget.setForegroundColor)
-
-        highlightColor = ColorProxyNode(
-            self,
-            name='Highlight',
-            fget=sceneWidget.getHighlightColor,
-            fset=sceneWidget.setHighlightColor)
-
-        boundingBox = ProxyNode(
-            self,
-            name='Bounding Box',
-            fget=sceneWidget.isBoundingBoxVisible,
-            fset=sceneWidget.setBoundingBoxVisible)
-
-        axesIndicator = ProxyNode(
-            self,
-            name='Axes Indicator',
-            fget=sceneWidget.isOrientationIndicatorVisible,
-            fset=sceneWidget.setOrientationIndicatorVisible)
-
-        lightDirection = DirectionalLightNode(
-            self,
-            sceneWidget.viewport.light)
-
-        self.setChildren((bgColor,
-                          fgColor,
-                          highlightColor,
-                          boundingBox,
-                          axesIndicator,
-                          lightDirection))
-
-
-class Root(BaseRowNode):
+class Root(BaseRow):
     """Root node of :class:`SceneWidget` parameters.
 
     It has two children:
-    - Style
+    - Settings
     - Scene group
     """
 
     def __init__(self, model, sceneWidget):
-        style = StaticRowNode(('Style', None))
-
-        super(Root, self).__init__(children=[style])
-        self.setParent(model)  # Needed for root node
+        super(Root, self).__init__()
         self._sceneWidget = weakref.ref(sceneWidget)
-
-        bgColor = ColorProxyRowNode(
-            name='Background',
-            fget=sceneWidget.getBackgroundColor,
-            fset=sceneWidget.setBackgroundColor)
-
-        style.addRowNode(bgColor)
-
-        fgColor = ColorProxyRowNode(
-            name='Foreground',
-            fget=sceneWidget.getForegroundColor,
-            fset=sceneWidget.setForegroundColor)
-        style.addRowNode(fgColor)
+        self.setParent(model)  # Needed for Root
 
     def children(self):
         sceneWidget = self._sceneWidget()
@@ -1437,10 +1247,12 @@ class SceneModel(qt.QAbstractItemModel):
     """
 
     def __init__(self, parent):
-        self._root = None
-        super(SceneModel, self).__init__(parent)
         self._sceneWidget = weakref.ref(parent)
+
+        super(SceneModel, self).__init__(parent)
         self._root = Root(self, parent)
+        self._root.addRow(Settings(parent))
+        self._root.addRow(nodeFromItem(parent.getSceneGroup(), name='Data'))
 
     def sceneWidget(self):
         """Returns the :class:`SceneWidget` this model represents.

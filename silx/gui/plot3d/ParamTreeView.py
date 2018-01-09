@@ -165,7 +165,7 @@ class Slider(qt.QSlider):
 
     def __init__(self, parent=None):
         qt.QSlider.__init__(self, parent)
-        self.setTracking(True)
+        self.setTracking(False)
         self.setOrientation(qt.Qt.Horizontal)
         self.setSingleStep(1)
         self.setRange(0, 255)
@@ -242,25 +242,9 @@ class ParameterTreeDelegate(qt.QStyledItemDelegate):
         data = index.data(qt.Qt.EditRole)
         editorHint = index.data(qt.Qt.UserRole)
 
-        if editorHint == 'add_remove_iso':
-            editor = qt.QWidget(parent)
-            layout = qt.QHBoxLayout(editor)
-            layout.setContentsMargins(0, 0, 0, 0)
-            layout.setSpacing(0)
-
-            addBtn = qt.QToolButton()
-            addBtn.setText('+')
-            addBtn.setToolButtonStyle(qt.Qt.ToolButtonTextOnly)
-            layout.addWidget(addBtn)
-            # addBtn.clicked.connect(self.__addIsoClicked)
-
-            removeBtn = qt.QToolButton()
-            removeBtn.setText('-')
-            removeBtn.setToolButtonStyle(qt.Qt.ToolButtonTextOnly)
-            layout.addWidget(removeBtn)
-            # removeBtn.clicked.connect(self.__removeIsoClicked)
-
-            layout.addStretch(1)
+        if isinstance(editorHint, qt.QWidget):
+            editor = editorHint
+            editor.setParent(parent)
 
         elif isinstance(data, (int, float)) and editorHint is not None:
             # Use a slider
@@ -373,7 +357,7 @@ class ParamTreeView(qt.QTreeView):
             data = index.data(qt.Qt.EditRole)
             editorHint = index.data(qt.Qt.UserRole)
             if (isinstance(data, bool) or
-                    editorHint == 'add_remove_iso' or
+                    isinstance(editorHint, qt.QWidget) or
                     (isinstance(data, (float, int)) and editorHint)):
                 self.openPersistentEditor(index)
 
@@ -397,9 +381,6 @@ class ParamTreeView(qt.QTreeView):
 
     def _expanded(self, index):
         name = index.data(qt.Qt.DisplayRole)
-        if name in ('Data', 'Group'):
-            contentIndex = self.model().index(1, 0, index)
-            self.setExpanded(contentIndex, True)
-        elif name == 'Transforms':
+        if name == 'Transform':
             rotateIndex = self.model().index(1, 0, index)
             self.setExpanded(rotateIndex, True)
