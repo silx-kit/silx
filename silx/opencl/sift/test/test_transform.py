@@ -37,7 +37,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "09/10/2017"
+__date__ = "09/01/2018"
 
 
 import os
@@ -62,10 +62,9 @@ if ocl:
 # for Python implementation of tested functions
 # from .test_image_functions import
 # from .test_image_setup import
-from ..utils import calc_size, get_opencl_code
+from ..utils import calc_size, get_opencl_code, matching_correction
 from ..plan import SiftPlan
 from ..match import MatchPlan
-from ...alignment import matching_correction
 logger = logging.getLogger(__name__)
 
 

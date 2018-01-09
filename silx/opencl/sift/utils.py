@@ -4,7 +4,7 @@
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2013-2017  European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2013-2018  European Synchrotron Radiation Facility, Grenoble, France
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -34,7 +34,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "2013-06-13"
+__date__ = "2018-01-09"
 __status__ = "beta"
 
 from math import ceil
@@ -108,3 +108,46 @@ def bin2RGB(img):
     else:
         return out
 
+
+def matching_correction(matching):
+    '''
+    Given the matching between two list of keypoints,
+    return the linear transformation to correct kp2 with respect to kp1
+    '''
+    N = matching.shape[0]
+    # solving normals equations for least square fit
+    #
+    # We correct for linear transformations, mapping points (x, y)
+    # to points (x', y') :
+    #
+    #   x' = a*x + b*y + c
+    #   y' = d*x + e*y + f
+    #
+    # where the parameters a, ..., f  determine the linear transformation.
+    # The equivalent matrix form is
+    #
+    #   x1  y1  1   0   0   0           a       x1'
+    #   0   0   0   x1  y1  1           b       y1'
+    #   x2  y2  1   0   0   0     x     c   =   x2'
+    #   0   0   0   x2  y2  1           d       y2'
+    #       . . . . . .                 e       .
+    #                                   f       .
+    X = numpy.zeros((2 * N, 6))
+    X[::2, 2:] = 1, 0, 0, 0
+    X[::2, 0] = matching.x[:, 0]
+    X[::2, 1] = matching.y[:, 0]
+    X[1::2, 0:3] = 0, 0, 0
+    X[1::2, 3] = matching.x[:, 0]
+    X[1::2, 4] = matching.y[:, 0]
+    X[1::2, 5] = 1
+    y = numpy.zeros((2 * N, 1))
+    y[::2, 0] = matching.x[:, 1]
+    y[1::2, 0] = matching.y[:, 1]
+
+    # A = numpy.dot(X.transpose(), X)
+    # sol = numpy.dot(numpy.linalg.inv(A), numpy.dot(X.transpose(), y))
+    # sol = numpy.dot(numpy.linalg.pinv(X),y) #pseudo-inverse is slower but numerically stable
+    # MSE = numpy.linalg.norm(y - numpy.dot(X,sol))**2/N #Mean Squared Error, if needed
+
+    sol, sqmse, rnk, svals = numpy.linalg.lstsq(X, y)
+    return sol

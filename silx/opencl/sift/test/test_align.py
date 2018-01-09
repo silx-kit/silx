@@ -37,9 +37,8 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013-2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "09/10/2017"
+__date__ = "09/01/2018"
 
-import os
 import unittest
 import logging
 import numpy
@@ -56,7 +55,7 @@ if ocl:
     import pyopencl
     import pyopencl.array
 
-from ...alignment import LinearAlign
+from ..alignment import LinearAlign
 logger = logging.getLogger(__name__)
 PRINT_KEYPOINTS = False
 
@@ -67,9 +66,12 @@ class TestLinalign(unittest.TestCase):
         super(TestLinalign, cls).setUpClass()
         if ocl:
             cls.ctx = ocl.create_context()
+            print(cls.ctx, logger.getEffectiveLevel() <= logging.INFO)
+
             if logger.getEffectiveLevel() <= logging.INFO:
                 cls.PROFILE = True
-                cls.queue = pyopencl.CommandQueue(cls.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
+                cls.queue = pyopencl.CommandQueue(cls.ctx,
+                                                  properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
             else:
                 cls.PROFILE = False
                 cls.queue = pyopencl.CommandQueue(cls.ctx)
@@ -89,14 +91,10 @@ class TestLinalign(unittest.TestCase):
         else:
             self.lena = scipy.misc.lena().astype(numpy.float32)
 
-
         self.shape = self.lena.shape
         self.extra = (10, 11)
-#        self.img = scipy.ndimage.shift(self.lena, (7, 5))
-#        self.img = scipy.ndimage.rotate(self.lena, -20, reshape=False, order=3)
-#        self.img = scipy.ndimage.shift(scipy.ndimage.rotate(self.lena, 20, reshape=False, order=3), (7, 5))
         self.img = scipy.ndimage.affine_transform(self.lena, [[1.1, -0.1], [0.05, 0.9]], [7, 5])
-        self.align = LinearAlign(self.lena, context=self.ctx)
+        self.align = LinearAlign(self.lena, ctx=self.ctx)
 
     def tearDown(self):
         self.img = self.lena = None
@@ -110,7 +108,7 @@ class TestLinalign(unittest.TestCase):
         self.align.log_profile()
         out = out["result"]
 
-        if self.PROFILE and out is not None:
+        if self.PROFILE and (out is not None):
 
             delta = (out - self.lena)[100:400, 100:400]
             logger.info({"min":delta.min(), "max:":delta.max(), "mean":delta.mean(), "std:":delta.std()})
