@@ -165,15 +165,15 @@ def main(argv):
     parser.add_argument(
         '--begin',
         help='First file index, or first file indices to be considered. '
-             'This argument must be '
-             'used with --file-pattern. Provide as many start indices as '
+             'This argument only makes sense when used together with '
+             '--file-pattern. Provide as many start indices as '
              'are indices in the file pattern, separated by commas. For '
              'instance: "--filepattern toto_%%d.edf --begin 100", or '
              ' "--filepattern toto_%%d_%%04d_%%02d.edf --begin 100,2000,5".')
     parser.add_argument(
         '--end',
         help='Last file index, or last file indices to be considered. '
-             'The same rules as with argument --begin apply.'
+             'The same rules as with argument --begin apply. '
              'Example: "--filepattern toto_%%d_%%d.edf --end 199,1999"')
     parser.add_argument(
         '--no-root-group',
