@@ -384,6 +384,11 @@ class ColormapDialog(qt.QDialog):
         self.visibleChanged.emit(True)
         super(ColormapDialog, self).showEvent(event)
 
+    def closeEvent(self, event):
+        if not self.isModal():
+            self.accept()
+        super(ColormapDialog, self).closeEvent(event)
+
     def hideEvent(self, event):
         self.visibleChanged.emit(False)
         super(ColormapDialog, self).hideEvent(event)
