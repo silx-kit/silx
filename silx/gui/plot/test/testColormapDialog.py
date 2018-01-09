@@ -289,7 +289,7 @@ class TestColormapAction(TestCaseQt):
                                   normalization='log')
         self.defaultColormap = self.plot.getDefaultColormap()
 
-        self.plot.getColormapAction()._actionTriggered()
+        self.plot.getColormapAction()._actionTriggered(checked=True)
         self.colormapDialog = self.plot.getColormapAction()._dialog
         self.colormapDialog.setAttribute(qt.Qt.WA_DeleteOnClose)
 
