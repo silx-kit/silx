@@ -67,14 +67,14 @@ Options
                         output dataset (in modes "r+" or "a").
   --min-size MIN_SIZE   Minimum number of elements required to be in a dataset
                         to apply compression or chunking (default 500).
-  --chunks [CHUNKS]     Chunk shape. Provide an argument that evaluates as a
+  --chunks <CHUNKS>     Chunk shape. Provide an argument that evaluates as a
                         python tuple (e.g. "(1024, 768)"). If this option is
                         provided without specifying an argument, the h5py
                         library will guess a chunk for you. Note that if you
                         specify an explicit chunking shape, it will be applied
                         identically to all datasets with a large enough size
                         (see --min-size).
-  --compression [COMPRESSION]
+  --compression <COMPRESSION>
                         Compression filter. By default, the datasets in the
                         output file are not compressed. If this option is
                         specified without argument, the GZIP compression is
