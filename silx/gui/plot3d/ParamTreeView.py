@@ -264,6 +264,8 @@ class ParameterTreeDelegate(qt.QStyledItemDelegate):
                 text = '(x: %g; y: %g; z: %g)' % (data.x(), data.y(), data.z())
             elif isinstance(data, qt.QVector4D):
                 text = '(%g; %g; %g; %g)' % (data.x(), data.y(), data.z(), data.w())
+            else:
+                text = ''
 
             self.initStyleOption(option, index)
             option.text = text
@@ -275,18 +277,19 @@ class ParameterTreeDelegate(qt.QStyledItemDelegate):
             super(ParameterTreeDelegate, self).paint(painter, option, index)
 
     def _commit(self, *args):
+        """Commit data to the model from editors"""
         sender = self.sender()
         self.commitData.emit(sender)
 
     def editorEvent(self, event, model, option, index):
         """See :meth:`QStyledItemDelegate.editorEvent`"""
-        if (event.type() == qt.QEvent.MouseButtonDblClick and
+        if (event.type() == qt.QEvent.MouseButtonPress and
                 isinstance(index.data(qt.Qt.EditRole), qt.QColor)):
             initialColor = index.data(qt.Qt.EditRole)
 
             def callback(color):
-                model = index.model()
-                model.setData(index, color, qt.Qt.EditRole)
+                theModel = index.model()
+                theModel.setData(index, color, qt.Qt.EditRole)
 
             dialog = qt.QColorDialog(self.parent())
             # dialog.setOption(qt.QColorDialog.ShowAlphaChannel, True)
