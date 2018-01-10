@@ -921,8 +921,9 @@ class RemoveIsosurfaceRow(BaseRow):
         super(RemoveIsosurfaceRow, self).__init__()
         self._isosurface = weakref.ref(isosurface)
 
-        self._editor = qt.QWidget()
-        layout = qt.QHBoxLayout(self._editor)
+    def createEditor(self):
+        editor = qt.QWidget()
+        layout = qt.QHBoxLayout(editor)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
@@ -933,13 +934,14 @@ class RemoveIsosurfaceRow(BaseRow):
         removeBtn.clicked.connect(self._removeClicked)
 
         layout.addStretch(1)
+        return editor
 
     def isosurface(self):
         return self._isosurface()
 
     def data(self, column, role):
         if column == 0 and role == qt.Qt.UserRole:  # editor hint
-            return self._editor
+            return self.createEditor
 
         return super(RemoveIsosurfaceRow, self).data(column, role)
 
@@ -1081,8 +1083,9 @@ class AddIsosurfaceRow(BaseRow):
         super(AddIsosurfaceRow, self).__init__()
         self._scalarField3D = weakref.ref(scalarField3D)
 
-        self._editor = qt.QWidget()
-        layout = qt.QHBoxLayout(self._editor)
+    def createEditor(self):
+        editor = qt.QWidget()
+        layout = qt.QHBoxLayout(editor)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
@@ -1093,13 +1096,14 @@ class AddIsosurfaceRow(BaseRow):
         addBtn.clicked.connect(self._addClicked)
 
         layout.addStretch(1)
+        return editor
 
     def scalarField3D(self):
         return self._scalarField3D()
 
     def data(self, column, role):
         if column == 0 and role == qt.Qt.UserRole:  # editor hint
-            return self._editor
+            return self.createEditor
 
         return super(AddIsosurfaceRow, self).data(column, role)
 
