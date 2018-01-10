@@ -449,14 +449,15 @@ def main(argv):
                               input_name)
                 return -1
 
-        for hdf5_path_for_file, input_group in h5paths_and_groups:
-            with h5py.File(output_name, mode=options.mode) as h5f:
+        with h5py.File(output_name, mode=options.mode) as h5f:
+            for hdf5_path_for_file, input_group in h5paths_and_groups:
                 write_to_h5(input_group, h5f,
                             h5path=hdf5_path_for_file,
                             overwrite_data=options.overwrite_data,
                             create_dataset_args=create_dataset_args,
                             min_size=options.min_size)
 
+    with h5py.File(output_name, mode="r+") as h5f:
         # append the convert command to the creator attribute, for NeXus files
         creator = h5f.attrs.get("creator", b"").decode()
         convert_command = " ".join(argv)
