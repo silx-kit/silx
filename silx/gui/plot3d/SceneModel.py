@@ -752,12 +752,15 @@ class InterpolationRow(ProxyRow):
     """
 
     def __init__(self, item):
+        modes = [mode.title() for mode in item.INTERPOLATION_MODES]
         super(InterpolationRow, self).__init__(
             name='Interpolation',
             fget=item.getInterpolation,
             fset=item.setInterpolation,
             notify=item.sigItemChanged,
-            editorHint=item.INTERPOLATION_MODES)
+            toModelData=lambda mode: mode.title(),
+            fromModelData=lambda mode: mode.lower(),
+            editorHint=modes)
 
 
 class _RangeProxyRow(ProxyRow):
@@ -809,18 +812,25 @@ class ColormapRow(StaticRow):
         self._colormapImage = None
         self._dataRange = None
 
+        self._colormapsMapping = {}
+        for cmap in preferredColormaps():
+            self._colormapsMapping[cmap.title()] = cmap
+
         self.addRow(ProxyRow(
             name='Name',
             fget=self._getName,
             fset=self._setName,
             notify=self._sigColormapChanged,
-            editorHint=preferredColormaps()))
+            editorHint=list(self._colormapsMapping.keys())))
+
+        norms = [norm.title() for norm in self._colormap.NORMALIZATIONS]
         self.addRow(ProxyRow(
             name='Normalization',
             fget=self._getNormalization,
             fset=self._setNormalization,
             notify=self._sigColormapChanged,
-            editorHint=self._colormap.NORMALIZATIONS))
+            editorHint=norms))
+
         self.addRow(ProxyRow(
             name='Autoscale',
             fget=self._isAutoscale,
@@ -841,19 +851,21 @@ class ColormapRow(StaticRow):
 
     def _getName(self):
         """Proxy for :meth:`Colormap.getName`"""
-        return self._colormap.getName()
+        return self._colormap.getName().title()
 
     def _setName(self, name):
         """Proxy for :meth:`Colormap.setName`"""
+        # Convert back from titled to name if possible
+        name = self._colormapsMapping.get(name, name)
         self._colormap.setName(name)
 
     def _getNormalization(self):
         """Proxy for :meth:`Colormap.getNormalization`"""
-        return self._colormap.getNormalization()
+        return self._colormap.getNormalization().title()
 
     def _setNormalization(self, normalization):
         """Proxy for :meth:`Colormap.setNormalization`"""
-        return self._colormap.setNormalization(normalization)
+        return self._colormap.setNormalization(normalization.lower())
 
     def _isAutoscale(self):
         """Proxy for :meth:`Colormap.isAutoscale`"""
