@@ -432,7 +432,8 @@ class ParamTreeView(qt.QTreeView):
 
         self.expanded.connect(self._expanded)
 
-        self.setEditTriggers(qt.QAbstractItemView.CurrentChanged)
+        self.setEditTriggers(qt.QAbstractItemView.CurrentChanged |
+                             qt.QAbstractItemView.DoubleClicked)
 
     def _openEditorForIndex(self, index):
         """Check if it has to open a persistent editor for a specific cell.
