@@ -434,13 +434,14 @@ def main(argv):
 
     else:
         # single file or unrelated files
-        input_groups = []
+        h5paths_and_groups = []
         for input_name in options.input_files:
             hdf5_path_for_file = hdf5_path
             if not options.no_root_group:
                 hdf5_path_for_file = hdf5_path.rstrip("/") + "/" + os.path.basename(input_name)
             try:
-                input_groups.append(silx.io.open(input_name))
+                h5paths_and_groups.append((hdf5_path_for_file,
+                                           silx.io.open(input_name)))
             except IOError:
                 _logger.error("Cannot read file %s. If this is a file format "
                               "supported by the fabio library, you can try to"
@@ -448,7 +449,7 @@ def main(argv):
                               input_name)
                 return -1
 
-        for input_group in input_groups:
+        for hdf5_path_for_file, input_group in h5paths_and_groups:
             with h5py.File(output_name, mode=options.mode) as h5f:
                 write_to_h5(input_group, h5f,
                             h5path=hdf5_path_for_file,
