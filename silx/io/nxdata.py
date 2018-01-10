@@ -34,7 +34,11 @@ import os.path
 import numpy
 from .utils import is_dataset, is_group, is_file
 from silx.third_party import six
-from silx.third_party.nexusformat import nexus
+
+try:
+    import h5py
+except ImportError:
+    h5py = None
 
 _logger = logging.getLogger(__name__)
 
@@ -786,11 +790,15 @@ def save_NXdata(filename, signal, axes,
         "image", "rgba-image" or None). This is only needed in cases of
         ambiguous dimensionality, e.g. a 3D array which represents a RGBA
         image rather than a stack.
-    :param str nxentry_name: Name of NXentry group located at the root of
-        HDF5 file. The Nexus format specification requires for NXdata groups
-        be part of a NXentry group. By default, "/entry" is used.
-        The specified group should have attribute *@NX_class=NXentry*, in
-        order for the created nexus file to be valid.
+    :param str nxentry_name: Name of group in which the NXdata group
+        is created. By default, "/entry" is used.
+
+        .. note::
+
+            The Nexus format specification requires for NXdata groups
+            be part of a NXentry group.
+            The specified group should have attribute *@NX_class=NXentry*, in
+            order for the created file to be nexus compliant.
     :param str nxdata_name: Name of NXdata group. If omitted (None), the
         function creates a new group using the first available name ("data0",
         or "data1"...).
@@ -799,49 +807,14 @@ def save_NXdata(filename, signal, axes,
         want.
     :return: True if save was successful, else False.
     """
+    if h5py is None:
+        raise ImportError("h5py could not be imported, but is required by "
+                          "save_NXdata function")
+
     assert len(axes) == len(axes_names), \
         "Mismatch between number of axes and axes_names"
 
-    # Create NXdata group
-    signal_attrs = {}
-    if signal_long_name:
-        signal_attrs["long_name"] = signal_long_name
-    if interpretation:
-        signal_attrs["interpretation"] = interpretation
-    signal_field = nexus.NXfield(signal, name=signal_name,
-                                 attrs=signal_attrs)
-
-    axes_fields = []
-    for i, axis in enumerate(axes):
-        axis_attrs = {}
-        if axes_long_names is not None:
-            axis_attrs["long_name"] = axes_long_names[i]
-        axes_fields.append(nexus.NXfield(axis, name=axes_names[i],
-                                         attrs=axis_attrs))
-
-    if signal_errors is not None:
-        errors_field = nexus.NXfield(signal_errors, name="errors")
-    else:
-        errors_field = None
-
-    data = nexus.NXdata(signal_field, axes_fields,
-                        errors=errors_field)
-
-    if axes_errors is not None:
-        assert isinstance(axes_errors, (list, tuple)), \
-            "axes_errors must be a list or a tuple"
-        assert len(axes_errors) == len(axes_names), \
-            "Mismatch between number of axes_errors and axes_names"
-        for i, axis_errors in enumerate(axes_errors):
-            if axis_errors is not None:
-                dsname = axes_names[i] + "_errors"
-                data[dsname] = nexus.NXfield(axis_errors)
-
-    if title:
-        # not in NXdata spec, but implemented by nexpy
-        data["title"] = title
-
-    # Add NXdata to the correct place in the file
+    # Open file in
     if os.path.exists(filename):
         errmsg = "Cannot write/append to existing path %s"
         if not os.path.isfile(filename):
@@ -852,42 +825,70 @@ def save_NXdata(filename, signal, axes,
             errmsg += " (no permission to write)"
             _logger.error(errmsg, filename)
             return False
-        mode = "rw"
+        mode = "r+"
     else:
-        mode = "w"
+        mode = "w-"
 
-    try:
-        nxfile = nexus.NXFile(filename, mode)
-        root = nxfile.readfile()
-    except IOError:
-        _logger.error("Could not read file %s", filename)
-        return False
+    with h5py.File(filename, mode=mode) as h5f:
+        # get or create entry
+        if nxentry_name is not None:
+            entry = h5f.require_group(nxentry_name)
+        else:
+            # write NXdata into the root of the file (invalid nexus!)
+            entry = h5f
 
-    if nxentry_name in root:
-        entry = root[nxentry_name]
-    else:
-        entry = nexus.NXentry()
-        # entry will be added later to root, after adding data to it
+        # Create NXdata group
+        if nxdata_name is not None:
+            if nxdata_name in entry:
+                _logger.error("Cannot assign an NXdata group to an existing"
+                              " group or dataset")
+                return False
+        else:
+            # no name specified, take one that is available
+            nxdata_name = "data0"
+            i = 1
+            while nxdata_name in entry:
+                _logger.info("%s item already exists in NXentry group," +
+                             " trying %s", nxdata_name, "data%d" % i)
+                nxdata_name = "data%d" % i
+                i += 1
 
-    if nxdata_name is not None:
-        if nxdata_name in entry:
-            _logger.error("Cannot assign an NXdata group to an existing group or dataset")
-            return False
-    else:
-        # no name specified, take one that is available
-        nxdata_name = "data0"
-        i = 1
-        while nxdata_name in entry:
-            _logger.warning("%s item already exists in NXentry group," +
-                            " trying %s", nxdata_name, "data%d" % i)
-            nxdata_name = "data%d" % i
-            i += 1
+        data_group = entry.create_group(nxdata_name)
+        data_group.attrs["NX_class"] = "NXdata"
+        data_group.attrs["signal"] = signal_name
+        data_group.attrs["axes"] = axes_names
+        if title:
+            # not in NXdata spec, but implemented by nexpy
+            data_group["title"] = title
+            # better way imho
+            data_group.attrs["title"] = title
 
-    entry[nxdata_name] = data
-    if nxentry_name not in root:
-        root[nxentry_name] = entry
+        signal_dataset = data_group.create_dataset(signal_name,
+                                                   data=signal)
+        if signal_long_name:
+            signal_dataset.attrs["long_name"] = signal_long_name
+        if interpretation:
+            signal_dataset.attrs["interpretation"] = interpretation
 
-    nxfile.writefile(root)
-    nxfile.close()
+        for i, axis_array in enumerate(axes):
+            axis_dataset = data_group.create_dataset(axes_names[i],
+                                                     data=axis_array)
+            if axes_long_names is not None:
+                axis_dataset.attrs["long_name"] = axes_long_names[i]
+
+        if signal_errors is not None:
+            data_group.create_dataset("errors",
+                                      data=signal_errors)
+
+        if axes_errors is not None:
+            assert isinstance(axes_errors, (list, tuple)), \
+                "axes_errors must be a list or a tuple of ndarray or None"
+            assert len(axes_errors) == len(axes_names), \
+                "Mismatch between number of axes_errors and axes_names"
+            for i, axis_errors in enumerate(axes_errors):
+                if axis_errors is not None:
+                    dsname = axes_names[i] + "_errors"
+                    data_group.create_dataset(dsname,
+                                              data=axis_errors)
 
     return True
