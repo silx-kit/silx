@@ -315,8 +315,8 @@ class PlotWindow(PlotWidget):
                 custom_banner=banner,
                 parent=self)
             self.addTabbedDockWidget(self._consoleDockWidget)
-            self._consoleDockWidget.setVisible(True)
-            self._consoleDockWidget.visibilityChanged.connect(
+            #self._consoleDockWidget.setVisible(True)
+            self._consoleDockWidget.toggleViewAction().toggled.connect(
                 self.getConsoleAction().setChecked)
 
         self._consoleDockWidget.setVisible(isChecked)
