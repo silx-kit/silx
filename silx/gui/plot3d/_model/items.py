@@ -714,7 +714,7 @@ class SymbolSizeRow(ProxyRow):
             fget=item.getSymbolSize,
             fset=item.setSymbolSize,
             notify=item.sigItemChanged,
-            editorHint=(1, 50))  # TODO link with OpenGL max point size
+            editorHint=(1, 20))  # TODO link with OpenGL max point size
 
 
 class PlaneRow(ProxyRow):
