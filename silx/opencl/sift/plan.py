@@ -54,7 +54,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "03/01/2018"
+__date__ = "11/01/2018"
 __status__ = "production"
 
 import os
@@ -127,6 +127,8 @@ class SiftPlan(OpenclProcessing):
         :param PIX_PER_KP: number of keypoint pre-allocated: 1 for 10 pixel
         :param block_size: set to 1 under macosX on CPU
         :param context: provide an external context
+        :param init_sigma: blurring width, you should have good reasons to modify 
+                            the 1.6 default value...
         """
         self.kernels_max_wg_size = self.__class__.kernels_max_wg_size.copy()
         if template is not None:
@@ -165,7 +167,7 @@ class SiftPlan(OpenclProcessing):
         self.octave_max = None
         self.red_size = None
         self._calc_scales()
-        self.LOW_END = 0
+        self.LOW_END = 1
         self._calc_workgroups()
         self.compile_kernels()
         self._allocate_buffers()
@@ -192,7 +194,7 @@ class SiftPlan(OpenclProcessing):
         """
         Estimates the memory footprint of all buffer to ensure it fits on the device
         """
-        block_size = int(block_size) if block_size else 4096 # upper limit
+        block_size = int(block_size) if block_size else 4096  # upper limit
 
         # Just the context + kernel takes about 75MB on the GPU
         memory = 75 * 2 ** 20
@@ -289,6 +291,8 @@ class SiftPlan(OpenclProcessing):
         gaussian = numpy.exp(-(x / sigma) ** 2 / 2.0).astype(numpy.float32)
         gaussian /= gaussian.sum(dtype=numpy.float32)
         """
+        pyopencl.enqueue_barrier(self.queue).wait()
+        print("init_gaussian with: ", sigma)
         name = "gaussian_%s" % sigma
         size = kernel_size(sigma, True)
         wg_size = nextpower(size)
@@ -296,11 +300,16 @@ class SiftPlan(OpenclProcessing):
         logger.info("Allocating %s float for blur sigma: %s. wg=%s max_wg=%s", size, sigma, wg_size, self.block_size)
         wg1 = self.kernels_wg["gaussian"]
         if wg1 >= wg_size:
+            print(wg1, wg_size, size)
             gaussian_gpu = pyopencl.array.empty(self.queue, size, dtype=numpy.float32)
-            evt = self.kernels.get_kernel("gaussian")(self.queue, (wg_size,), (wg_size,),
-                                                      gaussian_gpu.data, # __global     float     *data,
-                                                      numpy.float32(sigma), # const        float     sigma,
-                                                      numpy.int32(size)) # const        int     SIZE
+            pyopencl.enqueue_barrier(self.queue).wait()
+            kernel = self.kernels.get_kernel("gaussian")
+            print(kernel)
+            evt = kernel(self.queue, (wg_size,), (wg_size,),
+                         gaussian_gpu.data,
+                         numpy.float32(sigma),  # const        float     sigma,
+                         numpy.int32(size))  # const        int     SIZE
+            pyopencl.enqueue_barrier(self.queue).wait()
             if self.profile:
                 self.events.append(("gaussian %s" % sigma, evt))
         else:
@@ -559,7 +568,7 @@ class SiftPlan(OpenclProcessing):
                                                                *self.scales[octave])
 
         if self.profile:
-            self.events += [("Blur sigma %s octave %s" % (sigma, octave), k1), 
+            self.events += [("Blur sigma %s octave %s" % (sigma, octave), k1),
                             ("Blur sigma %s octave %s" % (sigma, octave), k2)]
 
     def _one_octave(self, octave):
@@ -625,17 +634,17 @@ class SiftPlan(OpenclProcessing):
 
             newcnt = self._compact(last_start)
             evt = self.kernels.get_kernel("compute_gradient_orientation")(self.queue, self.procsize[octave], self.wgsize[octave],
-                                                                          self.cl_mem["scale_%s" % (scale)].data, # __global float* igray,
-                                                                          self.cl_mem["tmp"].data, # __global float *grad,
-                                                                          self.cl_mem["ori"].data, # __global float *ori,
-                                                                          *self.scales[octave]) # int width,int height
+                                                                          self.cl_mem["scale_%s" % (scale)].data,  # __global float* igray,
+                                                                          self.cl_mem["tmp"].data,  # __global float *grad,
+                                                                          self.cl_mem["ori"].data,  # __global float *ori,
+                                                                          *self.scales[octave])  # int width,int height
             if self.profile:
                 self.events.append(("compute_gradient_orientation %s %s" % (octave, scale), evt))
 
 #           Orientation assignement: 1D kernel, rather heavy kernel
             if newcnt and newcnt > last_start:  # launch kernel only if neededwgsize = (128,)
 
-                if self.USE_CPU:
+                if 1:  # self.USE_CPU:
                     orientation = self.kernels.get_kernel("orientation_cpu")
                     wg = self.kernels_max_wg_size["orientation_cpu"]
                 else:
@@ -644,16 +653,16 @@ class SiftPlan(OpenclProcessing):
                 wgsize2 = (wg,)
                 procsize = (int(newcnt * wg),)
                 evt = orientation(self.queue, procsize, wgsize2,
-                                 self.cl_mem["Kp_1"].data, # __global keypoint* keypoints,
-                                 self.cl_mem["tmp"].data, # __global float* grad,
-                                 self.cl_mem["ori"].data, # __global float* ori,
-                                 self.cl_mem["cnt"].data, # __global int* counter,
-                                 octsize, # int octsize,
-                                 numpy.float32(par.OriSigma), # float OriSigma, //WARNING: (1.5), it is not "InitSigma (=1.6)"
-                                 kpsize32, # int max of nb_keypoints,
-                                 numpy.int32(last_start), # int keypoints_start,
-                                 newcnt, # int keypoints_end,
-                                 *self.scales[octave]) # int grad_width, int grad_height)
+                                  self.cl_mem["Kp_1"].data,  # __global keypoint* keypoints,
+                                  self.cl_mem["tmp"].data,  # __global float* grad,
+                                  self.cl_mem["ori"].data,  # __global float* ori,
+                                  self.cl_mem["cnt"].data,  # __global int* counter,
+                                  octsize,  # int octsize,
+                                  numpy.float32(par.OriSigma),  # float OriSigma, //WARNING: (1.5), it is not "InitSigma (=1.6)"
+                                  kpsize32,  # int max of nb_keypoints,
+                                  numpy.int32(last_start),  # int keypoints_start,
+                                  newcnt,  # int keypoints_end,
+                                  *self.scales[octave])  # int grad_width, int grad_height)
                 # newcnt = self.cl_mem["cnt"].get()[0] #do not forget to update numbers of keypoints, modified above !
                 evt_cp = pyopencl.enqueue_copy(self.queue, self.cnt, self.cl_mem["cnt"].data)
                 newcnt = self.cnt[0]  # do not forget to update numbers of keypoints, modified above !
@@ -670,7 +679,7 @@ class SiftPlan(OpenclProcessing):
                         if self.LOW_END:
                             logger.info("Computing descriptors with older-GPU optimized kernels")
                             descriptor = self.kernels.get_kernel("descriptor_gpu1")
-                            wgsize2 = self.kernels_wg["keypoints_gpu1"]
+                            wgsize2 = self.kernels_max_wg_size["descriptor_gpu1"]
                             procsize2 = (int(newcnt * wgsize2[0]), wgsize2[1], wgsize2[2])
                             if self.kernels_wg["descriptor_gpu1"] < numpy.prod(wgsize2):
                                 # will fail anyway:
@@ -678,22 +687,26 @@ class SiftPlan(OpenclProcessing):
                                 continue
                         else:
                             logger.info("Computing descriptors with newer-GPU optimized kernels")
-                            wgsize2 = self.kernels_wg["keypoints_gpu2"]
+                            wgsize2 = self.kernels_max_wg_size["descriptor_gpu2"]
                             procsize2 = (int(newcnt * wgsize2[0]), wgsize2[1], wgsize2[2])
-                            if self.kernels_max_wg_size["descriptor_gpu2"] < numpy.prod(wgsize2):
+                            descriptor = self.kernels.get_kernel("descriptor_gpu1")
+                            if self.kernels_wg["descriptor_gpu2"] < numpy.prod(wgsize2):
                                 # will fail anyway:
                                 self.LOW_END += 1
                                 continue
                     try:
+                        print("call %s" % descriptor)
+                        print(procsize2, wgsize2)
                         evt2 = descriptor(self.queue, procsize2, wgsize2,
-                                          self.cl_mem["Kp_1"].data, # __global keypoint* keypoints,
-                                          self.cl_mem["descriptors"].data, # ___global unsigned char *descriptors
-                                          self.cl_mem["tmp"].data, # __global float* grad,
-                                          self.cl_mem["ori"].data, # __global float* ori,
-                                          octsize, # int octsize,
-                                          numpy.int32(last_start), # int keypoints_start,
-                                          self.cl_mem["cnt"].data, # int* keypoints_end,
-                                          *self.scales[octave]) # int grad_width, int grad_height)
+                                          self.cl_mem["Kp_1"].data,  # __global keypoint* keypoints,
+                                          self.cl_mem["descriptors"].data,  # ___global unsigned char *descriptors
+                                          self.cl_mem["tmp"].data,  # __global float* grad,
+                                          self.cl_mem["ori"].data,  # __global float* ori,
+                                          octsize,  # int octsize,
+                                          numpy.int32(last_start),  # int keypoints_start,
+                                          self.cl_mem["cnt"].data,  # int* keypoints_end,
+                                          *self.scales[octave])  # int grad_width, int grad_height)
+                        evt2.wait()
                     except pyopencl.RuntimeError as error:
                         self.LOW_END += 1
                         logger.error("Descriptor failed with %s. Switching to lower_end mode" % error)
@@ -701,10 +714,14 @@ class SiftPlan(OpenclProcessing):
                     else:
                         break
                 if self.profile:
+                    evt.wait()
+                    evt_cp.wait()
+                    evt2.wait()
                     self.events += [("orientation_assignment %s %s" % (octave, scale), evt),
                                     ("copy cnt D->H", evt_cp),
                                     ("descriptors %s %s" % (octave, scale), evt2)]
 
+                    print(self.cl_mem["cnt"])
             evt_cp = pyopencl.enqueue_copy(self.queue, self.cnt, self.cl_mem["cnt"].data)
             last_start = self.cnt[0]
             if self.profile:
