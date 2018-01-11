@@ -417,3 +417,14 @@ class GroupItem(DataItem3D):
         """Remove all item from the group."""
         for item in self.getItems():
             self.removeItem(item)
+
+    def visit(self):
+        """Generator visiting the group content.
+
+        It traverses the group sub-tree in a top-down left-to-right way.
+        """
+        for child in self.getItems():
+            yield child
+            if hasattr(child, 'visit'):
+                for item in child.visit():
+                    yield item
