@@ -295,7 +295,7 @@ class ParameterTreeDelegate(qt.QStyledItemDelegate):
             # dialog.setOption(qt.QColorDialog.ShowAlphaChannel, True)
             if sys.platform == 'darwin':
                 # Use of native color dialog on macos might cause problems
-                self.setOption(qt.QColorDialog.DontUseNativeDialog, True)
+                dialog.setOption(qt.QColorDialog.DontUseNativeDialog, True)
             dialog.setCurrentColor(initialColor)
             dialog.currentColorChanged.connect(callback)
             if dialog.exec_() == qt.QDialog.Rejected:
