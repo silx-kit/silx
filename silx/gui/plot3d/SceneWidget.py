@@ -38,7 +38,7 @@ from ..plot.Colors import rgba
 from .Plot3DWidget import Plot3DWidget
 from .scene import axes
 from . import items
-from .SceneModel import SceneModel
+from ._model import SceneModel
 
 
 __all__ = ['items', 'SceneWidget']
