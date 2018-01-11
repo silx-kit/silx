@@ -396,7 +396,9 @@ class ParameterTreeDelegate(qt.QStyledItemDelegate):
                             signature = notifySignal.signature()
                         else:
                             signature = bytes(notifySignal.methodSignature())
-                        signature = signature.decode('ascii')
+
+                        if hasattr(signature, 'decode'):  # For PySide with python3
+                            signature = signature.decode('ascii')
                         signalName = signature.split('(')[0]
 
                         signal = getattr(editor, signalName)
