@@ -458,11 +458,12 @@ def main(argv):
                             min_size=options.min_size)
 
     with h5py.File(output_name, mode="r+") as h5f:
-        # append the convert command to the creator attribute, for NeXus files
-        creator = h5f.attrs.get("creator", b"").decode()
-        convert_command = " ".join(argv)
-        if convert_command not in creator:
+        # append "silx convert" to the creator attribute, for NeXus files
+        previous_creator = h5f.attrs.get("creator", b"").decode()
+        creator = "silx convert (v%s)" % silx.version
+        # only if it not already there
+        if creator not in previous_creator:
             h5f.attrs["creator"] = \
-                numpy.string_(creator + "; convert command: %s" % " ".join(argv))
+                numpy.string_(previous_creator + "; " + creator)
 
     return 0
