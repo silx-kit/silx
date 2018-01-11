@@ -255,9 +255,24 @@ class ParameterTreeDelegate(qt.QStyledItemDelegate):
     def __init__(self, parent=None):
         super(ParameterTreeDelegate, self).__init__(parent)
 
+    def _fixVariant(self, data):
+        """Fix PyQt4 zero vectors being stored as QPyNullVariant.
+
+        :param data: Data retrieved from the model
+        :return: Corresponding object
+        """
+        if qt.BINDING == 'PyQt4' and isinstance(data, qt.QPyNullVariant):
+            typeName = data.typeName()
+            if typeName == 'QVector3D':
+                data = qt.QVector3D()
+            elif typeName == 'QVector4D':
+                data = qt.QVector4D()
+        return data
+
     def paint(self, painter, option, index):
         """See :meth:`QStyledItemDelegate.paint`"""
         data = index.data(qt.Qt.DisplayRole)
+        data = self._fixVariant(data)
 
         if isinstance(data, (qt.QVector3D, qt.QVector4D)):
             if isinstance(data, qt.QVector3D):
@@ -340,6 +355,7 @@ class ParameterTreeDelegate(qt.QStyledItemDelegate):
     def createEditor(self, parent, option, index):
         """See :meth:`QStyledItemDelegate.createEditor`"""
         data = index.data(qt.Qt.EditRole)
+        data = self._fixVariant(data)
         editorHint = index.data(qt.Qt.UserRole)
 
         if callable(editorHint):
