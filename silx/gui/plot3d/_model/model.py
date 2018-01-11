@@ -74,7 +74,7 @@ class SceneModel(qt.QAbstractItemModel):
         super(SceneModel, self).__init__(parent)
         self._root = Root(self, parent)
         self._root.addRow(Settings(parent))
-        self._root.addRow(nodeFromItem(parent.getSceneGroup(), name='Data'))
+        self._root.addRow(nodeFromItem(parent.getSceneGroup()))
 
     def sceneWidget(self):
         """Returns the :class:`SceneWidget` this model represents.

@@ -1114,11 +1114,10 @@ NODE_SPECIFIC_INIT = [  # class, init(node, item)
 """List of specific node init for different item class"""
 
 
-def nodeFromItem(item, name=None):
+def nodeFromItem(item):
     """Create :class:`Item3DRow` subclass corresponding to item
 
     :param Item3D item: The item fow which to create the node
-    :param str name: The name of the subtree for this item (optional)
     :rtype: Item3DRow
     """
     assert isinstance(item, items.Item3D)
@@ -1130,7 +1129,7 @@ def nodeFromItem(item, name=None):
         return IsosurfaceRow(item)
 
     # Create Item3DRow and populate it
-    node = Item3DRow(item, name)
+    node = Item3DRow(item)
 
     if isinstance(item, items.DataItem3D):
         node.addRow(DataItem3DTransformRow(item))
