@@ -267,11 +267,41 @@ class ParameterTreeDelegate(qt.QStyledItemDelegate):
             else:
                 text = ''
 
-            self.initStyleOption(option, index)
-            option.text = text
-            widget = option.widget
-            style = qt.QApplication.style() if not widget else widget.style()
-            style.drawControl(qt.QStyle.CE_ItemViewItem, option, painter, widget)
+            painter.save()
+            painter.setRenderHint(qt.QPainter.Antialiasing, True)
+
+            # Select palette color group
+            colorGroup = qt.QPalette.Inactive
+            if option.state & qt.QStyle.State_Active:
+                colorGroup = qt.QPalette.Active
+            if not option.state & qt.QStyle.State_Enabled:
+                colorGroup = qt.QPalette.Disabled
+
+            # Draw background if selected
+            if option.state & qt.QStyle.State_Selected:
+                brush = option.palette.brush(colorGroup,
+                                             qt.QPalette.Highlight)
+                painter.fillRect(option.rect, brush)
+
+            # Draw text
+            if option.state & qt.QStyle.State_Selected:
+                colorRole = qt.QPalette.HighlightedText
+            else:
+                colorRole = qt.QPalette.WindowText
+            color = option.palette.color(colorGroup, colorRole)
+            painter.setPen(qt.QPen(color))
+            painter.drawText(option.rect, qt.Qt.AlignLeft, text)
+
+            painter.restore()
+
+            # The following commented code does the same as QPainter based code
+            # but it does not work with PySide
+            # self.initStyleOption(option, index)
+            # option.text = text
+            # widget = option.widget
+            # style = qt.QApplication.style() if not widget else widget.style()
+            # style.drawControl(qt.QStyle.CE_ItemViewItem, option, painter, widget)
+
 
         else:
             super(ParameterTreeDelegate, self).paint(painter, option, index)
