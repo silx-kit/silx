@@ -327,8 +327,13 @@ class ParameterTreeDelegate(qt.QStyledItemDelegate):
         elif isinstance(data, six.string_types) and editorHint is not None:
             # Use a combo box
             editor = qt.QComboBox(parent)
+            if data not in editorHint:
+                editor.addItem(data)
             editor.addItems(editorHint)
-            editor.setCurrentText(data)
+
+            index = editor.findText(data)
+            editor.setCurrentIndex(index)
+
             editor.currentIndexChanged.connect(self._commit)
 
         else:
