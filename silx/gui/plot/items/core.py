@@ -455,6 +455,14 @@ class SymbolMixIn(ItemMixInBase):
         """
         return tuple(cls._SUPPORTED_SYMBOLS.keys())
 
+    @classmethod
+    def getSupportedSymbolNames(cls):
+        """Returns the list of supported symbol human-readable names.
+
+        :rtype: tuple of str
+        """
+        return tuple(cls._SUPPORTED_SYMBOLS.values())
+
     def getSymbolName(self, symbol=None):
         """Returns human-readable name for a symbol.
 
