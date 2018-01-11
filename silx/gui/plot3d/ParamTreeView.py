@@ -216,7 +216,6 @@ class IntSliderEditor(qt.QSlider):
 
     def __init__(self, parent=None):
         super(IntSliderEditor, self).__init__(parent)
-        self.setTracking(False)
         self.setOrientation(qt.Qt.Horizontal)
         self.setSingleStep(1)
         self.setRange(0, 255)
@@ -368,7 +367,7 @@ class ParameterTreeDelegate(qt.QStyledItemDelegate):
             editor = IntSliderEditor(parent)
             range_ = editorHint
             editor.setRange(*range_)
-            editor.valueChanged.connect(self._commit)
+            editor.sliderReleased.connect(self._commit)
 
         elif isinstance(data, six.string_types) and editorHint is not None:
             # Use a combo box
