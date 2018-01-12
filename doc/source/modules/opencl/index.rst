@@ -1,8 +1,8 @@
 
 .. py:module:: silx.opencl
 
-:mod:`silx.opencl`: OpenCL
-===========================
+:mod:`silx.opencl`: OpenCL-based features
+=========================================
 
 
 .. toctree::

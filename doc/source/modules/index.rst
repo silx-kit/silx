@@ -8,6 +8,7 @@ API Reference
    io/index.rst
    image/index.rst
    math/index.rst
+   opencl/index.rst
    resources.rst
    utils/index.rst
    test/index.rst
