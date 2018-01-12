@@ -113,6 +113,25 @@ class _TestOptions(object):
             if sys.platform == "win32" and qt.qVersion() == "5.9.2":
                 self.SKIP_TEST_FOR_ISSUE_936 = True
 
+    def add_parser_argument(self, parser):
+        """Add extrat arguments to the test argument parser
+
+        :param ArgumentParser parser: An argument parser
+        """
+
+        parser.add_argument("-x", "--no-gui", dest="gui", default=True,
+                            action="store_false",
+                            help="Disable the test of the graphical use interface")
+        parser.add_argument("-g", "--no-opengl", dest="opengl", default=True,
+                            action="store_false",
+                            help="Disable tests using OpenGL")
+        parser.add_argument("-o", "--no-opencl", dest="opencl", default=True,
+                            action="store_false",
+                            help="Disable the test of the OpenCL part")
+        parser.add_argument("-l", "--low-mem", dest="low_mem", default=False,
+                            action="store_true",
+                            help="Disable test with large memory consumption (>100Mbyte")
+
 
 test_options = _TestOptions()
 """Singleton providing configuration information for all the tests"""

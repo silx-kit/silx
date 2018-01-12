@@ -352,19 +352,7 @@ parser.add_argument("-v", "--verbose", default=0,
                          "including debug messages and test help strings.")
 parser.add_argument("--qt-binding", dest="qt_binding", default=None,
                     help="Force using a Qt binding, from 'PyQt4', 'PyQt5', or 'PySide'")
-parser.add_argument("-x", "--no-gui", dest="gui", default=True,
-                    action="store_false",
-                    help="Disable the test of the graphical use interface")
-parser.add_argument("-g", "--no-opengl", dest="opengl", default=True,
-                    action="store_false",
-                    help="Disable tests using OpenGL")
-parser.add_argument("-o", "--no-opencl", dest="opencl", default=True,
-                    action="store_false",
-                    help="Disable the test of the OpenCL part")
-parser.add_argument("-l", "--low-mem", dest="low_mem", default=False,
-                    action="store_true",
-                    help="Disable test with large memory consumption (>100Mbyte")
-
+test_options.add_parser_argument(parser)
 
 default_test_name = "%s.test.suite" % PROJECT_NAME
 parser.add_argument("test_name", nargs='*',

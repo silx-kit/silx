@@ -90,6 +90,8 @@ def main(argv):
     :param argv: Command line arguments
     :returns: exit status
     """
+    from silx.test import utils
+
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("-v", "--verbose", default=0,
                         action="count", dest="verbose",
@@ -98,18 +100,7 @@ def main(argv):
                              "including debug messages and test help strings.")
     parser.add_argument("--qt-binding", dest="qt_binding", default=None,
                         help="Force using a Qt binding, from 'PyQt4', 'PyQt5', or 'PySide'")
-    parser.add_argument("-x", "--no-gui", dest="gui", default=True,
-                        action="store_false",
-                        help="Disable the test of the graphical use interface")
-    parser.add_argument("-g", "--no-opengl", dest="opengl", default=True,
-                        action="store_false",
-                        help="Disable tests using OpenGL")
-    parser.add_argument("-o", "--no-opencl", dest="opencl", default=True,
-                        action="store_false",
-                        help="Disable the test of the OpenCL part")
-    parser.add_argument("-l", "--low-mem", dest="low_mem", default=False,
-                        action="store_true",
-                        help="Disable test with large memory consumption (>100Mbyte")
+    utils.test_options.add_parser_argument(parser)
 
     options = parser.parse_args(argv[1:])
 
@@ -140,7 +131,7 @@ def main(argv):
         else:
             raise ValueError("Qt binding '%s' is unknown" % options.qt_binding)
 
-    from silx.test import utils
+    # Configure test options
     utils.test_options.configure(options)
 
     # Run the tests
