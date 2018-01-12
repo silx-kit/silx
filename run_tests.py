@@ -352,7 +352,8 @@ parser.add_argument("-v", "--verbose", default=0,
                          "including debug messages and test help strings.")
 parser.add_argument("--qt-binding", dest="qt_binding", default=None,
                     help="Force using a Qt binding, from 'PyQt4', 'PyQt5', or 'PySide'")
-test_options.add_parser_argument(parser)
+if test_options is not None:
+    test_options.add_parser_argument(parser)
 
 default_test_name = "%s.test.suite" % PROJECT_NAME
 parser.add_argument("test_name", nargs='*',
@@ -440,6 +441,8 @@ test_suite = unittest.TestSuite()
 if test_options is not None:
     # Configure the test options according to the command lines and the the environment
     test_options.configure(options)
+else:
+    logger.warning("No test options available.")
 
 
 if not options.test_name:
