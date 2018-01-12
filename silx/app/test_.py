@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "20/11/2017"
+__date__ = "12/01/2018"
 
 import sys
 import argparse
@@ -141,7 +141,7 @@ def main(argv):
             raise ValueError("Qt binding '%s' is unknown" % options.qt_binding)
 
     from silx.test import utils
-    utils.configure_test_options(options)
+    utils.test_options.configure(options)
 
     # Run the tests
     runnerArgs = {}

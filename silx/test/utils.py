@@ -34,7 +34,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "20/11/2017"
+__date__ = "12/01/2018"
 
 
 import os
@@ -57,64 +57,65 @@ utilstest = ExternalResources(project="silx",
 "This is the instance to be used. Singleton-like feature provided by module"
 
 
-class TestOptions(object):
+class _TestOptions(object):
 
-    WITH_QT_TEST = True
-    """Qt tests are included"""
+    def __init__(self):
+        self.WITH_QT_TEST = True
+        """Qt tests are included"""
 
-    WITH_QT_TEST_REASON = ""
-    """Reason for Qt tests are disabled if any"""
+        self.WITH_QT_TEST_REASON = ""
+        """Reason for Qt tests are disabled if any"""
 
-    WITH_OPENCL_TEST = True
-    """OpenCL tests are included"""
+        self.WITH_OPENCL_TEST = True
+        """OpenCL tests are included"""
 
-    WITH_GL_TEST = True
-    """OpenGL tests are included"""
+        self.WITH_GL_TEST = True
+        """OpenGL tests are included"""
 
-    WITH_GL_TEST_REASON = ""
-    """Reason for OpenGL tests are disabled if any"""
+        self.WITH_GL_TEST_REASON = ""
+        """Reason for OpenGL tests are disabled if any"""
 
-    TEST_LOW_MEM = False
-    """Skip tests using too much memory"""
+        self.TEST_LOW_MEM = False
+        """Skip tests using too much memory"""
+
+    def configure(self, parsed_options):
+        """Configure the TestOptions class from the command line arguments and the
+        environment variables
+        """
+        if not parsed_options.gui:
+            self.WITH_QT_TEST = False
+            self.WITH_QT_TEST_REASON = "Skipped by command line"
+        elif os.environ.get('WITH_QT_TEST', 'True') == 'False':
+            self.WITH_QT_TEST = False
+            self.WITH_QT_TEST_REASON = "Skipped by WITH_QT_TEST env var"
+        elif sys.platform.startswith('linux') and not os.environ.get('DISPLAY', ''):
+            self.WITH_QT_TEST = False
+            self.WITH_QT_TEST_REASON = "DISPLAY env variable not set"
+
+        if not parsed_options.opencl or os.environ.get('SILX_OPENCL', 'True') == 'False':
+            self.WITH_OPENCL_TEST = False
+            # That's an easy way to skip OpenCL tests
+            # It disable the use of OpenCL on the full silx project
+            os.environ['SILX_OPENCL'] = "False"
+
+        if not parsed_options.opengl:
+            self.WITH_GL_TEST = False
+            self.WITH_GL_TEST_REASON = "Skipped by command line"
+        elif os.environ.get('WITH_GL_TEST', 'True') == 'False':
+            self.WITH_GL_TEST = False
+            self.WITH_GL_TEST_REASON = "Skipped by WITH_GL_TEST env var"
+
+        if parsed_options.low_mem or os.environ.get('SILX_TEST_LOW_MEM', 'True') == 'False':
+            self.TEST_LOW_MEM = True
+
+        if self.WITH_QT_TEST:
+            from silx.gui import qt
+            if sys.platform == "win32" and qt.qVersion() == "5.9.2":
+                self.SKIP_TEST_FOR_ISSUE_936 = True
 
 
-test_options = TestOptions
-
-
-def configure_test_options(parsed_options):
-    """Configure the TestOptions class from the command line arguments and the
-    environment variables
-    """
-    if not parsed_options.gui:
-        test_options.WITH_QT_TEST = False
-        test_options.WITH_QT_TEST_REASON = "Skipped by command line"
-    elif os.environ.get('WITH_QT_TEST', 'True') == 'False':
-        test_options.WITH_QT_TEST = False
-        test_options.WITH_QT_TEST_REASON = "Skipped by WITH_QT_TEST env var"
-    elif sys.platform.startswith('linux') and not os.environ.get('DISPLAY', ''):
-        test_options.WITH_QT_TEST = False
-        test_options.WITH_QT_TEST_REASON = "DISPLAY env variable not set"
-
-    if not parsed_options.opencl or os.environ.get('SILX_OPENCL', 'True') == 'False':
-        test_options.WITH_OPENCL_TEST = False
-        # That's an easy way to skip OpenCL tests
-        # It disable the use of OpenCL on the full silx project
-        os.environ['SILX_OPENCL'] = "False"
-
-    if not parsed_options.opengl:
-        test_options.WITH_GL_TEST = False
-        test_options.WITH_GL_TEST_REASON = "Skipped by command line"
-    elif os.environ.get('WITH_GL_TEST', 'True') == 'False':
-        test_options.WITH_GL_TEST = False
-        test_options.WITH_GL_TEST_REASON = "Skipped by WITH_GL_TEST env var"
-
-    if parsed_options.low_mem or os.environ.get('SILX_TEST_LOW_MEM', 'True') == 'False':
-        test_options.TEST_LOW_MEM = True
-
-    if test_options.WITH_QT_TEST:
-        from silx.gui import qt
-        if sys.platform == "win32" and qt.qVersion() == "5.9.2":
-            test_options.SKIP_TEST_FOR_ISSUE_936 = True
+test_options = _TestOptions()
+"""Singleton providing configuration information for all the tests"""
 
 
 # Parametric Test Base Class ##################################################
