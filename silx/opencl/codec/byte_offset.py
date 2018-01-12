@@ -317,7 +317,6 @@ class ByteOffset(OpenclProcessing):
         :rtype: pyopencl.array
         :raises ValueError: if out array is not large enough
         """
-        # TODO reuse buffers? and use those of decompression
 
         events = []
         with self.sem:
@@ -326,19 +325,46 @@ class ByteOffset(OpenclProcessing):
 
             else:  # Copy data to device
                 data = numpy.ascontiguousarray(data, dtype=numpy.int32).ravel()
-                d_data = pyopencl.array.to_device(self.queue, data)
 
-            d_compressed = pyopencl.array.empty(
-                self.queue, shape=(d_data.size * 7,), dtype=numpy.int8)
-            d_size = pyopencl.array.zeros(self.queue, (1,), dtype=numpy.int32)
+                # Make sure data array exists and is large enough
+                if ("data_input" not in self.cl_mem or
+                        self.cl_mem["data_input"].size < data.size):
+                    logger.info("increase data input buffer size to %s", data.size)
+                    self.cl_mem.update({
+                        "data_input": pyopencl.array.empty(self.queue,
+                                                           data.size,
+                                                           dtype=numpy.int32)})
+                d_data = self.cl_mem["data_input"]
+
+                evt = pyopencl.enqueue_copy(
+                    self.queue, d_data.data, data, is_blocking=False)
+                events.append(EventDescription("copy data H -> D", evt))
+
+            # Make sure compressed array exists and is large enough
+            compressed_size = d_data.size * 7
+            if ("compressed" not in self.cl_mem or
+                    self.cl_mem["compressed"].size < compressed_size):
+                logger.info("increase compressed buffer size to %s", compressed_size)
+                self.cl_mem.update({
+                    "compressed": pyopencl.array.empty(self.queue,
+                                                       compressed_size,
+                                                       dtype=numpy.int8)})
+            d_compressed = self.cl_mem["compressed"]
+            d_size = self.cl_mem["counter"]  # Shared with decompression
 
             evt = self.kernels.compression_scan(d_data, d_compressed, d_size)
             events.append(EventDescription("compression scan", evt))
             byte_count = int(d_size.get()[0])
 
             if out is None:
-                out = pyopencl.array.empty(
-                    self.queue, shape=(byte_count,), dtype=numpy.int8)
+                # Create out array from a sub-region of the compressed buffer
+                out = pyopencl.array.Array(
+                    self.queue,
+                    shape=(byte_count,),
+                    dtype=numpy.int8,
+                    allocator=functools.partial(
+                        d_compressed.base_data.get_sub_region,
+                        d_compressed.offset))
 
             elif out.size < byte_count:
                 raise ValueError(
@@ -354,10 +380,10 @@ class ByteOffset(OpenclProcessing):
                     allocator=functools.partial(out.base_data.get_sub_region,
                                                 out.offset))
 
-            evt = pyopencl.enqueue_copy_buffer(
-                self.queue, d_compressed.data, out.data, byte_count=byte_count)
-            events.append(
-                EventDescription("copy D -> D: internal -> out", evt))
+                evt = pyopencl.enqueue_copy_buffer(
+                    self.queue, d_compressed.data, out.data, byte_count=byte_count)
+                events.append(
+                    EventDescription("copy D -> D: internal -> out", evt))
 
             if self.profile:
                 self.events += events
