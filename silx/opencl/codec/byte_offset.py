@@ -40,6 +40,8 @@ __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 __date__ = "24/10/2017"
 __status__ = "production"
 
+
+import functools
 import os
 import numpy
 from ..common import ocl, pyopencl
@@ -300,14 +302,20 @@ class ByteOffset(OpenclProcessing):
         return knl
 
     def encode(self, data, out=None):
-        """Compresses data to CBF.
+        """Compress data to CBF.
 
         :param data: The data to compress as a numpy array
                      (or a pyopencl Array) of int32.
         :type data: Union[numpy.ndarray, pyopencl.array.Array]
-        :param pyopencl.array out: pyopencl array in which to place the result.
+        :param pyopencl.array out:
+            pyopencl array of int8 in which to store the result.
+            The array should be large enough to store the compressed data.
         :return: The compressed data as a pyopencl array.
+                 If out is provided, this array shares the backing buffer,
+                 but has the exact size of the compressed data and the queue
+                 of the ByteOffset instance.
         :rtype: pyopencl.array
+        :raises ValueError: if out array is not large enough
         """
         # TODO reuse buffers? and use those of decompression
 
@@ -331,10 +339,20 @@ class ByteOffset(OpenclProcessing):
             if out is None:
                 out = pyopencl.array.empty(
                     self.queue, shape=(byte_count,), dtype=numpy.int8)
+
             elif out.size < byte_count:
                 raise ValueError(
                     "Provided output buffer is not large enough: "
                     "requires %d bytes, got %d" % (byte_count, out.size))
+
+            else:  # out.size >= byte_count
+                # Create an array with a sub-region of out and this class queue
+                out = pyopencl.array.Array(
+                    self.queue,
+                    shape=(byte_count,),
+                    dtype=numpy.int8,
+                    allocator=functools.partial(out.base_data.get_sub_region,
+                                                out.offset))
 
             evt = pyopencl.enqueue_copy_buffer(
                 self.queue, d_compressed.data, out.data, byte_count=byte_count)

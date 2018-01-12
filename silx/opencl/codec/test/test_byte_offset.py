@@ -181,7 +181,7 @@ class TestByteOffset(unittest.TestCase):
         bo.log_profile()
 
     def test_encode_to_array(self):
-        """Test byte offset compression with too small array"""
+        """Test byte offset compression while providing an out array"""
 
         ref, raw = self._create_test_data(shape=(2713, 2719), nexcept=2729)
         size = numpy.prod(ref.shape)
@@ -191,10 +191,25 @@ class TestByteOffset(unittest.TestCase):
         except (RuntimeError, pyopencl.RuntimeError) as err:
             logger.warning(err)
             raise err
-        # Test buffer not large enough
+
+        # Test with out buffer too small
         out = pyopencl.array.empty(bo.queue, (10,), numpy.int8)
         with self.assertRaises(ValueError):
             bo.encode(ref, out)
+
+        # Test with out buffer too big
+        out = pyopencl.array.empty(bo.queue, (len(raw) + 10,), numpy.int8)
+
+        compressed_array = bo.encode(ref, out)
+
+        # Get size from returned array
+        compressed_size = compressed_array.size
+        self.assertEqual(compressed_size, len(raw))
+
+        # Get data from out array, read it from bo object queue
+        out_bo_queue = out.with_queue(bo.queue)
+        compressed_stream = out_bo_queue.get().tostring()[:compressed_size]
+        self.assertEqual(raw, compressed_stream)
 
     def test_encode_to_bytes(self):
         """Test byte offset compression to bytes"""
