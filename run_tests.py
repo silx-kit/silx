@@ -283,6 +283,11 @@ def build_project(name, root_dir):
 
 def import_project_module():
     """Import project module, from the system of from the project directory"""
+    # Prevent importing from source directory
+    if (os.path.dirname(os.path.abspath(__file__)) == os.path.abspath(sys.path[0])):
+        removed_from_sys_path = sys.path.pop(0)
+        logger.info("Patched sys.path, removed: '%s'", removed_from_sys_path)
+
     if "--installed" in sys.argv:
         try:
             module = importer(PROJECT_NAME)
@@ -412,13 +417,6 @@ if options.qt_binding:
         import PySide2.QtCore  # noqa
     else:
         raise ValueError("Qt binding '%s' is unknown" % options.qt_binding)
-
-# Prevent importing from source directory
-if (os.path.dirname(os.path.abspath(__file__)) ==
-        os.path.abspath(sys.path[0])):
-    removed_from_sys_path = sys.path.pop(0)
-    logger.info("Patched sys.path, removed: '%s'", removed_from_sys_path)
-
 
 # Run the tests
 runnerArgs = {}
