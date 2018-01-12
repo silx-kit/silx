@@ -161,10 +161,9 @@ class TestByteOffset(unittest.TestCase):
     def test_encode(self):
         """Test byte offset compression"""
         ref, raw = self._create_test_data(shape=(2713, 2719), nexcept=2729)
-        size = numpy.prod(ref.shape)
 
         try:
-            bo = byte_offset.ByteOffset(len(raw), size, profile=True)
+            bo = byte_offset.ByteOffset(len(raw), ref.size, profile=True)
         except (RuntimeError, pyopencl.RuntimeError) as err:
             logger.warning(err)
             raise err
@@ -184,10 +183,9 @@ class TestByteOffset(unittest.TestCase):
         """Test byte offset compression while providing an out array"""
 
         ref, raw = self._create_test_data(shape=(2713, 2719), nexcept=2729)
-        size = numpy.prod(ref.shape)
 
         try:
-            bo = byte_offset.ByteOffset(len(raw), size, profile=True)
+            bo = byte_offset.ByteOffset(len(raw), ref.size, profile=True)
         except (RuntimeError, pyopencl.RuntimeError) as err:
             logger.warning(err)
             raise err
@@ -214,10 +212,9 @@ class TestByteOffset(unittest.TestCase):
     def test_encode_to_bytes(self):
         """Test byte offset compression to bytes"""
         ref, raw = self._create_test_data(shape=(2713, 2719), nexcept=2729)
-        size = numpy.prod(ref.shape)
 
         try:
-            bo = byte_offset.ByteOffset(len(raw), size, profile=True)
+            bo = byte_offset.ByteOffset(len(raw), ref.size, profile=True)
         except (RuntimeError, pyopencl.RuntimeError) as err:
             logger.warning(err)
             raise err
@@ -262,6 +259,52 @@ class TestByteOffset(unittest.TestCase):
                      1000.0 * (t2 - t1))
         bo.log_profile()
 
+    def test_many_encode(self, ntest=10):
+        """Test byte offset compression with many image"""
+        shape = (991, 997)
+        ref, raw = self._create_test_data(shape=shape, nexcept=0, lam=100)
+
+        try:
+            bo = byte_offset.ByteOffset(len(raw), ref.size, profile=False)
+        except (RuntimeError, pyopencl.RuntimeError) as err:
+            logger.warning(err)
+            raise err
+
+        bo_durations = []
+
+        t0 = time.time()
+        res_fabio = fabio.compression.compByteOffset(ref)
+        t1 = time.time()
+        compressed_stream = bo.encode_to_bytes(ref)
+        t2 = time.time()
+        bo_durations.append(1000.0 * (t2 - t1))
+
+        self.assertEqual(raw, compressed_stream)
+        logger.debug("Global execution time: fabio %.3fms, OpenCL: %.3fms.",
+                     1000.0 * (t1 - t0),
+                     1000.0 * (t2 - t1))
+
+        for i in range(ntest):
+            ref, raw = self._create_test_data(shape=shape, nexcept=2729, lam=200)
+
+            t0 = time.time()
+            res_fabio = fabio.compression.compByteOffset(ref)
+            t1 = time.time()
+            compressed_stream = bo.encode_to_bytes(ref)
+            t2 = time.time()
+            bo_durations.append(1000.0 * (t2 - t1))
+
+            self.assertEqual(raw, compressed_stream)
+            logger.debug("Global execution time: fabio %.3fms, OpenCL: %.3fms.",
+                         1000.0 * (t1 - t0),
+                         1000.0 * (t2 - t1))
+
+        logger.debug("OpenCL execution time: Mean: %fms, Min: %fms, Max: %fms",
+                     numpy.mean(bo_durations),
+                     numpy.min(bo_durations),
+                     numpy.max(bo_durations))
+
+
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(TestByteOffset("test_decompress"))
@@ -270,4 +313,5 @@ def suite():
     test_suite.addTest(TestByteOffset("test_encode_to_array"))
     test_suite.addTest(TestByteOffset("test_encode_to_bytes"))
     test_suite.addTest(TestByteOffset("test_encode_to_bytes_from_array"))
+    test_suite.addTest(TestByteOffset("test_many_encode"))
     return test_suite
