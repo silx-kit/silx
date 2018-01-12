@@ -4,7 +4,7 @@
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2013-2017  European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2013-2018  European Synchrotron Radiation Facility, Grenoble, France
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -331,6 +331,10 @@ class ByteOffset(OpenclProcessing):
             if out is None:
                 out = pyopencl.array.empty(
                     self.queue, shape=(byte_count,), dtype=numpy.int8)
+            elif out.size < byte_count:
+                raise ValueError(
+                    "Provided output buffer is not large enough: "
+                    "requires %d bytes, got %d" % (byte_count, out.size))
 
             evt = pyopencl.enqueue_copy_buffer(
                 self.queue, d_compressed.data, out.data, byte_count=byte_count)

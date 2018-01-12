@@ -4,7 +4,7 @@
 #    Project: Byte-offset decompression in OpenCL
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2013-2017  European Synchrotron Radiation Facility,
+#    Copyright (C) 2013-2018  European Synchrotron Radiation Facility,
 #                             Grenoble, France
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -180,6 +180,22 @@ class TestByteOffset(unittest.TestCase):
                      1000.0 * (t1 - t0))
         bo.log_profile()
 
+    def test_encode_to_array(self):
+        """Test byte offset compression with too small array"""
+
+        ref, raw = self._create_test_data(shape=(2713, 2719), nexcept=2729)
+        size = numpy.prod(ref.shape)
+
+        try:
+            bo = byte_offset.ByteOffset(len(raw), size, profile=True)
+        except (RuntimeError, pyopencl.RuntimeError) as err:
+            logger.warning(err)
+            raise err
+        # Test buffer not large enough
+        out = pyopencl.array.empty(bo.queue, (10,), numpy.int8)
+        with self.assertRaises(ValueError):
+            bo.encode(ref, out)
+
     def test_encode_to_bytes(self):
         """Test byte offset compression to bytes"""
         ref, raw = self._create_test_data(shape=(2713, 2719), nexcept=2729)
@@ -236,6 +252,7 @@ def suite():
     test_suite.addTest(TestByteOffset("test_decompress"))
     test_suite.addTest(TestByteOffset("test_many_decompress"))
     test_suite.addTest(TestByteOffset("test_encode"))
+    test_suite.addTest(TestByteOffset("test_encode_to_array"))
     test_suite.addTest(TestByteOffset("test_encode_to_bytes"))
     test_suite.addTest(TestByteOffset("test_encode_to_bytes_from_array"))
     return test_suite
