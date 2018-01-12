@@ -53,10 +53,10 @@
 
 
 kernel void max_min_global_stage1(
-        global const float *data,
-        global float2 *out,
-        unsigned int SIZE,
-        local volatile float2 ldata){
+        global const   float  *data,
+        global         float2 *out,
+        unsigned       int     SIZE,
+        local volatile float2 *ldata){
 
     unsigned int group_size =  get_local_size(0);
     unsigned int lid = get_local_id(0);
@@ -103,10 +103,10 @@ kernel void max_min_global_stage1(
 **/
 
 kernel void max_min_global_stage2(
-        global const float2 *data2,
-        global float *maximum,
-        global float *minimum,
-        local volatile float2 ldata)
+        global const   float2 *data2,
+        global         float  *maximum,
+        global         float  *minimum,
+        local volatile float2 *ldata)
 {
     unsigned int lid = get_local_id(0);
     unsigned int group_size =  get_local_size(0);

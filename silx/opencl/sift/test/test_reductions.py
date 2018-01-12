@@ -37,7 +37,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "15/03/2017"
+__date__ = "12/01/2018"
 
 import os
 import unittest
@@ -127,8 +127,15 @@ class TestReduction(unittest.TestCase):
         nmin = data.min()
         nmax = data.max()
         t0 = time.time()
-        k1 = self.program.max_min_global_stage1(self.queue, (size,), (wg,), inp_gpu.data, max_min_gpu.data, numpy.uint32(data.size))
-        k2 = self.program.max_min_global_stage2(self.queue, (wg,), (wg,), max_min_gpu.data, max_gpu.data, min_gpu.data)
+        k1 = self.program.max_min_global_stage1(self.queue, (size,), (wg,),
+                                                inp_gpu.data, max_min_gpu.data,
+                                                numpy.uint32(data.size),
+                                                pyopencl.LocalMemory(8 * wg))
+        k2 = self.program.max_min_global_stage2(self.queue, (wg,), (wg,),
+                                                max_min_gpu.data,
+                                                max_gpu.data,
+                                                min_gpu.data,
+                                                pyopencl.LocalMemory(8 * wg))
         k2.wait()
         t1 = time.time()
         min_res = min_gpu.get()

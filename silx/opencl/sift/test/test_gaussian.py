@@ -37,7 +37,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "02/01/2018"
+__date__ = "12/01/2018"
 
 import os
 import time
@@ -137,9 +137,9 @@ class TestGaussian(unittest.TestCase):
         g_gpu = pyopencl.array.empty(cls.queue, size, dtype=numpy.float32, order="C")
         t0 = time.time()
         evt1 = cls.kernels["gaussian"].gaussian_nosync(cls.queue, (size,), (1,),
-                                                  g_gpu.data,  # __global     float     *data,
-                                                  numpy.float32(sigma),  # const        float     sigma,
-                                                  numpy.int32(size))  # const        int     SIZE
+                                                       g_gpu.data, # __global     float     *data,
+                                                       numpy.float32(sigma), # const        float     sigma,
+                                                       numpy.int32(size)) # const        int     SIZE
         sum_data = pyopencl.array.sum(g_gpu, dtype=numpy.dtype(numpy.float32), queue=cls.queue)
         evt2 = cls.kernels["preprocess"].divide_cst(cls.queue, (size,), (1,),
                                                     g_gpu.data,  # __global     float     *data,
@@ -168,7 +168,9 @@ class TestGaussian(unittest.TestCase):
         evt = cls.kernels["gaussian"].gaussian(cls.queue, (64,), (64,),
                                                g_gpu.data,  # __global     float     *data,
                                                numpy.float32(sigma),  # const        float     sigma,
-                                               numpy.int32(size))  # const        int     SIZE
+                                               numpy.int32(size), # const        int     SIZE
+                                               pyopencl.LocalMemory(64 * 4),
+                                               pyopencl.LocalMemory(64 * 4),)
         g = g_gpu.get()
         if cls.PROFILE:
             logger.info("execution time: %.3fms; Kernel took %.3fms", 1e3 * (time.time() - t0), 1e-6 * (evt.profile.end - evt.profile.start))

@@ -37,7 +37,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "15/03/2017"
+__date__ = "12/01/2018"
 
 import os
 import time
@@ -203,11 +203,13 @@ class TestPreproc(unittest.TestCase):
         k2 = self.reduction.max_min_global_stage1(self.queue, (self.red_size * self.red_size,), (self.red_size,),
                                                   self.gpudata.data,
                                                   self.buffers_max_min.data,
-                                                  (self.IMAGE_W * self.IMAGE_H))
+                                                  (self.IMAGE_W * self.IMAGE_H),
+                                                  pyopencl.LocalMemory(8 * self.red_size))
         k3 = self.reduction.max_min_global_stage2(self.queue, (self.red_size,), (self.red_size,),
                                                   self.buffers_max_min.data,
                                                   self.buffers_max.data,
-                                                  self.buffers_min.data)
+                                                  self.buffers_min.data,
+                                                  pyopencl.LocalMemory(8 * self.red_size))
 #        print self.buffers_max.get(), self.buffers_min.get(), self.input.min(), self.input.max()
         k4 = self.program.normalizes(self.queue, self.shape, self.wg,
                                      self.gpudata.data,
@@ -247,11 +249,13 @@ class TestPreproc(unittest.TestCase):
         k2 = self.reduction.max_min_global_stage1(self.queue, (self.red_size * self.red_size,), (self.red_size,),
                                                   self.gpudata.data,
                                                   self.buffers_max_min.data,
-                                                  (self.IMAGE_W * self.IMAGE_H))
+                                                  (self.IMAGE_W * self.IMAGE_H),
+                                                  pyopencl.LocalMemory(8 * self.red_size))
         k3 = self.reduction.max_min_global_stage2(self.queue, (self.red_size,), (self.red_size,),
                                                   self.buffers_max_min.data,
                                                   self.buffers_max.data,
-                                                  self.buffers_min.data)
+                                                  self.buffers_min.data,
+                                                  pyopencl.LocalMemory(8 * self.red_size))
         k4 = self.program.normalizes(self.queue, self.shape, self.wg,
                                      self.gpudata.data,
                                      self.buffers_min.data,
@@ -289,11 +293,13 @@ class TestPreproc(unittest.TestCase):
         k2 = self.reduction.max_min_global_stage1(self.queue, (self.red_size * self.red_size,), (self.red_size,),
                                                   self.gpudata.data,
                                                   self.buffers_max_min.data,
-                                                  (self.IMAGE_W * self.IMAGE_H))
+                                                  (self.IMAGE_W * self.IMAGE_H),
+                                                  pyopencl.LocalMemory(8 * self.red_size))
         k3 = self.reduction.max_min_global_stage2(self.queue, (self.red_size,), (self.red_size,),
                                                   self.buffers_max_min.data,
                                                   self.buffers_max.data,
-                                                  self.buffers_min.data)
+                                                  self.buffers_min.data,
+                                                  pyopencl.LocalMemory(8 * self.red_size))
         k4 = self.program.normalizes(self.queue, self.shape, self.wg,
                                      self.gpudata.data,
                                      self.buffers_min.data,
@@ -331,11 +337,13 @@ class TestPreproc(unittest.TestCase):
         k2 = self.reduction.max_min_global_stage1(self.queue, (self.red_size * self.red_size,), (self.red_size,),
                                                   self.gpudata.data,
                                                   self.buffers_max_min.data,
-                                                  (self.IMAGE_W * self.IMAGE_H))
+                                                  (self.IMAGE_W * self.IMAGE_H),
+                                                  pyopencl.LocalMemory(8 * self.red_size))
         k3 = self.reduction.max_min_global_stage2(self.queue, (self.red_size,), (self.red_size,),
                                                   self.buffers_max_min.data,
                                                   self.buffers_max.data,
-                                                  self.buffers_min.data)
+                                                  self.buffers_min.data,
+                                                  pyopencl.LocalMemory(8 * self.red_size))
         k4 = self.program.normalizes(self.queue, self.shape, self.wg,
                                      self.gpudata.data,
                                      self.buffers_min.data,
@@ -373,11 +381,13 @@ class TestPreproc(unittest.TestCase):
         k2 = self.reduction.max_min_global_stage1(self.queue, (self.red_size * self.red_size,), (self.red_size,),
                                                   self.gpudata.data,
                                                   self.buffers_max_min.data,
-                                                  (self.IMAGE_W * self.IMAGE_H))
+                                                  (self.IMAGE_W * self.IMAGE_H),
+                                                  pyopencl.LocalMemory(8 * self.red_size))
         k3 = self.reduction.max_min_global_stage2(self.queue, (self.red_size,), (self.red_size,),
                                                   self.buffers_max_min.data,
                                                   self.buffers_max.data,
-                                                  self.buffers_min.data)
+                                                  self.buffers_min.data,
+                                                  pyopencl.LocalMemory(8 * self.red_size))
         k4 = self.program.normalizes(self.queue, self.shape, self.wg,
                                      self.gpudata.data,
                                      self.buffers_min.data,
@@ -415,11 +425,13 @@ class TestPreproc(unittest.TestCase):
         k2 = self.reduction.max_min_global_stage1(self.queue, (self.red_size * self.red_size,), (self.red_size,),
                                                   self.gpudata.data,
                                                   self.buffers_max_min.data,
-                                                  (self.IMAGE_W * self.IMAGE_H))
+                                                  (self.IMAGE_W * self.IMAGE_H),
+                                                  pyopencl.LocalMemory(8 * self.red_size))
         k3 = self.reduction.max_min_global_stage2(self.queue, (self.red_size,), (self.red_size,),
                                                   self.buffers_max_min.data,
                                                   self.buffers_max.data,
-                                                  self.buffers_min.data)
+                                                  self.buffers_min.data,
+                                                  pyopencl.LocalMemory(8 * self.red_size))
         k4 = self.program.normalizes(self.queue, self.shape, self.wg,
                                      self.gpudata.data,
                                      self.buffers_min.data,
@@ -459,11 +471,13 @@ class TestPreproc(unittest.TestCase):
         k2 = self.reduction.max_min_global_stage1(self.queue, (self.red_size * self.red_size,), (self.red_size,),
                                                   self.gpudata.data,
                                                   self.buffers_max_min.data,
-                                                  (self.IMAGE_W * self.IMAGE_H))
+                                                  (self.IMAGE_W * self.IMAGE_H),
+                                                  pyopencl.LocalMemory(8 * self.red_size))
         k3 = self.reduction.max_min_global_stage2(self.queue, (self.red_size,), (self.red_size,),
                                                   self.buffers_max_min.data,
                                                   self.buffers_max.data,
-                                                  self.buffers_min.data)
+                                                  self.buffers_min.data,
+                                                  pyopencl.LocalMemory(8 * self.red_size))
         k4 = self.program.normalizes(self.queue, self.shape, self.wg,
                                      self.gpudata.data,
                                      self.buffers_min.data,
