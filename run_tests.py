@@ -281,7 +281,49 @@ def build_project(name, root_dir):
     return home
 
 
+def import_project_module():
+    """Import project module, from the system of from the project directory"""
+    if "--installed" in sys.argv:
+        try:
+            module = importer(PROJECT_NAME)
+        except ImportError:
+            raise ImportError(
+                "%s not installed: Cannot run tests on installed version" %
+                PROJECT_NAME)
+    else:  # Use built source
+        build_dir = build_project(PROJECT_NAME, PROJECT_DIR)
+
+        sys.path.insert(0, build_dir)
+        logger.warning("Patched sys.path, added: '%s'", build_dir)
+        module = importer(PROJECT_NAME)
+    return module
+
+
+def get_test_options(project_module):
+    """Returns the test options if available, else None"""
+    module_name = project_module.__name__ + '.test.utils'
+    logger.info('Import %s', module_name)
+    try:
+        test_utils = importer(module_name)
+    except ImportError:
+        logger.warning("No module named '%s'. No test options available.", module_name)
+        return None
+
+    test_options = getattr(test_utils, "test_options", None)
+    return test_options
+
+
 from argparse import ArgumentParser
+
+
+project_module = import_project_module()
+PROJECT_VERSION = getattr(project_module, 'version', '')
+PROJECT_PATH = project_module.__path__[0]
+
+test_options = get_test_options(project_module)
+"""Contains extra configuration for the tests."""
+
+
 epilog = """Environment variables:
 WITH_QT_TEST=False to disable graphical tests
 SILX_OPENCL=False to disable OpenCL tests
@@ -389,26 +431,6 @@ if (os.path.dirname(os.path.abspath(__file__)) ==
     logger.info("Patched sys.path, removed: '%s'", removed_from_sys_path)
 
 
-# import module
-if options.installed:  # Use installed version
-    try:
-        module = importer(PROJECT_NAME)
-    except:
-        raise ImportError(
-            "%s not installed: Cannot run tests on installed version" %
-            PROJECT_NAME)
-else:  # Use built source
-    build_dir = build_project(PROJECT_NAME, PROJECT_DIR)
-
-    sys.path.insert(0, build_dir)
-    logger.warning("Patched sys.path, added: '%s'", build_dir)
-    module = importer(PROJECT_NAME)
-
-
-PROJECT_VERSION = getattr(module, 'version', '')
-PROJECT_PATH = module.__path__[0]
-
-
 # Run the tests
 runnerArgs = {}
 runnerArgs["verbosity"] = test_verbosity
@@ -425,13 +447,12 @@ logger.warning("Test %s %s from %s",
 test_module_name = PROJECT_NAME + '.test'
 logger.info('Import %s', test_module_name)
 test_module = importer(test_module_name)
-
-test_utils_module_name = PROJECT_NAME + '.test.utils'
-logger.info('Import %s', test_utils_module_name)
-test_utils = importer(test_utils_module_name)
-test_utils.test_options.configure(options)
-
 test_suite = unittest.TestSuite()
+
+if test_options is not None:
+    # Configure the test options according to the command lines and the the environment
+    test_options.configure(options)
+
 
 if not options.test_name:
     # Do not use test loader to avoid cryptic exception
