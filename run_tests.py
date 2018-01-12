@@ -42,6 +42,7 @@ import subprocess
 import sys
 import time
 import unittest
+from argparse import ArgumentParser
 
 
 class StreamHandlerUnittestReady(logging.StreamHandler):
@@ -130,11 +131,6 @@ def get_project_name(root_dir):
     name, _stderr_data = p.communicate()
     logger.debug("subprocess ended with rc= %s", p.returncode)
     return name.split()[-1].decode('ascii')
-
-
-PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_NAME = get_project_name(PROJECT_DIR)
-logger.info("Project name: %s", PROJECT_NAME)
 
 
 class TextTestResultWithSkipList(unittest.TextTestResult):
@@ -281,7 +277,7 @@ def build_project(name, root_dir):
     return home
 
 
-def import_project_module():
+def import_project_module(project_name, project_dir):
     """Import project module, from the system of from the project directory"""
     # Prevent importing from source directory
     if (os.path.dirname(os.path.abspath(__file__)) == os.path.abspath(sys.path[0])):
@@ -290,17 +286,17 @@ def import_project_module():
 
     if "--installed" in sys.argv:
         try:
-            module = importer(PROJECT_NAME)
+            module = importer(project_name)
         except ImportError:
             raise ImportError(
                 "%s not installed: Cannot run tests on installed version" %
                 PROJECT_NAME)
     else:  # Use built source
-        build_dir = build_project(PROJECT_NAME, PROJECT_DIR)
+        build_dir = build_project(project_name, project_dir)
 
         sys.path.insert(0, build_dir)
         logger.warning("Patched sys.path, added: '%s'", build_dir)
-        module = importer(PROJECT_NAME)
+        module = importer(project_name)
     return module
 
 
@@ -318,10 +314,11 @@ def get_test_options(project_module):
     return test_options
 
 
-from argparse import ArgumentParser
+PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_NAME = get_project_name(PROJECT_DIR)
+logger.info("Project name: %s", PROJECT_NAME)
 
-
-project_module = import_project_module()
+project_module = import_project_module(PROJECT_NAME, PROJECT_DIR)
 PROJECT_VERSION = getattr(project_module, 'version', '')
 PROJECT_PATH = project_module.__path__[0]
 
