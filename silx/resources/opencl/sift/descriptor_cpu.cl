@@ -47,11 +47,6 @@ typedef struct actual_keypoint
     float col, row, scale, angle;
 } actual_keypoint;
 */
-#ifndef WORKGROUP_SIZE
-	#define WORKGROUP_SIZE 128
-#endif
-
-
 
 /*
 **
@@ -67,10 +62,11 @@ typedef struct actual_keypoint
  * :param grad_width: integer number of columns of the gradient
  * :param grad_height: integer num of lines of the gradient
  *
+ * Group size: It is important to have a workgroup size of 1
+ * There is some shared memory used but it is to save registers.
+ *
  *
  */
-
-
 
 kernel void descriptor_cpu(
         global actual_keypoint* keypoints,
@@ -84,16 +80,24 @@ kernel void descriptor_cpu(
         int grad_width,
         int grad_height)
 {
+	int groupid = get_group_id(0);
+    if ((groupid < keypoints_start) || (groupid >= *keypoints_end))
+    {
+        return;
+    }
+    actual_keypoint kp = keypoints[groupid];
+    if ((kp.row <= 0.0f) || (kp.col <= 0.0f))
+    {
+        return;
+    }
 
-	int gid0 = get_global_id(0);
-	actual_keypoint kp = keypoints[gid0];
-	if (!(keypoints_start <= gid0 && gid0 < *keypoints_end && kp.col >=0.0f && kp.row >=0.0f))
-		return;
-		
-	int i, j;
+    int i, j;
 	
 	local volatile float tmp_descriptors[128];
-	for (i=0; i<128; i++) tmp_descriptors[i] = 0.0f;
+	for (i=0; i<128; i++)
+	{
+	    tmp_descriptors[i] = 0.0f;
+	}
 
 	float rx, cx,
 	      col = kp.col/octsize,
@@ -106,12 +110,15 @@ kernel void descriptor_cpu(
 	    icol = (int) (col + 0.5f),
 	    iradius = (int) ((1.414f * spacing * 2.5f) + 0.5f);
 
-	for (i = -iradius; i <= iradius; i++) { 
-		for (j = -iradius; j <= iradius; j++) { 
+	for (i = -iradius; i <= iradius; i++)
+	{
+		for (j = -iradius; j <= iradius; j++)
+		{
 			 rx = ((cosine * i - sine * j) - (row - irow)) / spacing + 1.5f;
 			 cx = ((sine * i + cosine * j) - (col - icol)) / spacing + 1.5f;
 			if ((rx > -1.0f && rx < 4.0f && cx > -1.0f && cx < 4.0f
-				 && (irow +i) >= 0  && (irow +i) < grad_height && (icol+j) >= 0 && (icol+j) < grad_width)) {
+				 && (irow +i) >= 0  && (irow +i) < grad_height && (icol+j) >= 0 && (icol+j) < grad_width))
+			{
 				float mag = grad[(int)(icol+j) + (int)(irow+i)*grad_width]
 							 * exp(- 0.125f*((rx - 1.5f) * (rx - 1.5f) + (cx - 1.5f) * (cx - 1.5f)) );
 				float ori = orim[(int)(icol+j)+(int)(irow+i)*grad_width] -  angle;
@@ -129,25 +136,29 @@ kernel void descriptor_cpu(
 				float rfrac = rx - ri,	
 					cfrac = cx - ci,
 					ofrac = oval - oi;
-				if ((ri >= -1  &&  ri < 4  && oi >=  0  &&  oi <= 8  && rfrac >= 0.0f  &&  rfrac <= 1.0f)) {
-					for (int r = 0; r < 2; r++) {
+				if ((ri >= -1  &&  ri < 4  && oi >=  0  &&  oi <= 8  && rfrac >= 0.0f  &&  rfrac <= 1.0f))
+				{
+					for (int r = 0; r < 2; r++)
+					{
 						rindex = ri + r; 
 						if ((rindex >=0 && rindex < 4)) {
 							float rweight = (float) (mag * (float) ((r == 0) ? 1.0f - rfrac : rfrac));
 
-							for (int c = 0; c < 2; c++) {
+							for (int c = 0; c < 2; c++)
+							{
 								cindex = ci + c;
-								if ((cindex >=0 && cindex < 4)) {
+								if ((cindex >=0 && cindex < 4))
+								{
 									cweight = rweight * ((c == 0) ? 1.0f - cfrac : cfrac);
-									for (orr = 0; orr < 2; orr++) {
+									for (orr = 0; orr < 2; orr++)
+									{
 										oindex = oi + orr;
-										if (oindex >= 8) {  /* Orientation wraps around at PI. */
+										if (oindex >= 8)
+										{  /* Orientation wraps around at PI. */
 											oindex = 0;
 										}
 										tmp_descriptors[(rindex*4 + cindex)*8+oindex] 
 											+= cweight * ((orr == 0) ? 1.0f - ofrac : ofrac); //1.0f;
-										
-										
 									} //end "for orr"
 								} //end "valid cindex"
 							} //end "for c"
@@ -156,7 +167,6 @@ kernel void descriptor_cpu(
 				}
 			} //end "sample in boundaries"
 		}
-		
 	} //end "i loop"
 
 
@@ -177,18 +187,20 @@ kernel void descriptor_cpu(
 
 
 	//Threshold to 0.2 of the norm, for invariance to illumination
-	bool changed = false;
+	int changed = 0;
 	norm = 0;
 	for (i = 0; i < 128; i++) {
-		if (tmp_descriptors[i] > 0.2f) {
+		if (tmp_descriptors[i] > 0.2f)
+		{
 			tmp_descriptors[i] = 0.2f;
-			changed = true;
+			changed = 1;
 		}
 		norm += tmp_descriptors[i]*tmp_descriptors[i];
 	}
 
 	//if values have been changed, we have to normalize again...
-	if (changed == true) {
+	if (changed)
+	{
 		norm = rsqrt(norm);
 		for (i=0; i < 128; i++)
 			tmp_descriptors[i] *= norm;
@@ -196,9 +208,10 @@ kernel void descriptor_cpu(
 
 	//finally, cast to integer
 	int intval;
-	for (i = 0; i < 128; i++) {
+	for (i = 0; i < 128; i++)
+	{
 		intval =  (int)(512.0f * tmp_descriptors[i]);
-		descriptors[128*gid0+i] = (uchar) min(255, intval);
+		descriptors[128*groupid+i] = (uchar) min(255, intval);
 	}
 }
 

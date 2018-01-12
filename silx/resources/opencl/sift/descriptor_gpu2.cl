@@ -109,18 +109,20 @@ kernel void descriptor_gpu2(
 	int grad_width,
 	int grad_height)
 {
-
 	int lid0 = get_local_id(0); //[0,8[
 	int lid1 = get_local_id(1); //[0,8[
 	int lid2 = get_local_id(2); //[0,8[
-	int wgs0 = get_local_size(0); // assume 8
-	int wgs1 = get_local_size(1); // assume 8
-	int wgs2 = get_local_size(2); // assume 8
-	int lid = (lid0*wgs1+lid1)*wgs0+lid0; //[0,512[ but we will use only up to 128
+	int lid = (lid0*get_local_size(1)+lid1)*get_local_size(0)+lid0; //[0,512[ but we will use only up to 128
 	int groupid = get_group_id(0);
-	actual_keypoint kp = keypoints[groupid];
-	if (!(keypoints_start <= groupid && groupid < *keypoints_end && kp.row >=0.0f))
-		return;
+	if ((groupid < keypoints_start) || (groupid >= *keypoints_end))
+	{
+	    return;
+	}
+    actual_keypoint kp = keypoints[groupid];
+    if ((kp.row <= 0.0f) || (kp.col <= 0.0f))
+    {
+        return;
+    }
 
 	int i,j,j2;
 	
@@ -153,9 +155,11 @@ kernel void descriptor_gpu2(
 	{
 		histogram[lid] = 0.0f;
 		hist2[lid] = 0.0f;
-	}
-	for (i=imin; i < imax; i++) {
-		for (j2=jmin/8; j2 < jmax/8; j2++) {	
+	}//end "if lid < 128"
+	for (i=imin; i < imax; i++)
+	{
+		for (j2=jmin/8; j2 < jmax/8; j2++)
+		{
 			j=j2*8+lid0;
 			rx = ((cosine * i - sine * j) - (row - irow)) / spacing + 1.5f;
 			cx = ((sine * i + cosine * j) - (col - icol)) / spacing + 1.5f;
@@ -165,9 +169,15 @@ kernel void descriptor_gpu2(
 
 				float mag = grad[icol+j + (irow+i)*grad_width]
 							 * exp(- 0.125f*((rx - 1.5f) * (rx - 1.5f) + (cx - 1.5f) * (cx - 1.5f)) );
-				float ori = orim[icol+j+(irow+i)*grad_width] -  kp.angle;
-				while (ori > 2.0f*M_PI_F) ori -= 2.0f*M_PI_F;
-				while (ori < 0.0f) ori += 2.0f*M_PI_F;
+				float ori = orim[icol+j+(irow+i)*grad_width] - kp.angle;
+				while (ori > 2.0f*M_PI_F)
+				{
+				    ori -= 2.0f*M_PI_F;
+				}
+				while (ori < 0.0f)
+				    {
+				    ori += 2.0f*M_PI_F;
+				    }
 				int	orr, rindex, cindex, oindex;
 				float	rweight, cweight;
 				float oval = 4.0f*ori*M_1_PI_F;
@@ -179,19 +189,26 @@ kernel void descriptor_gpu2(
 				float rfrac = rx - ri,
 					cfrac = cx - ci,
 					ofrac = oval - oi;
-				if ((ri >= -1  &&  ri < 4  && oi >=  0  &&  oi <= 8  && rfrac >= 0.0f  &&  rfrac <= 1.0f)) {
-					for (int r = 0; r < 2; r++) {
+				if ((ri >= -1  &&  ri < 4  && oi >=  0  &&  oi <= 8  && rfrac >= 0.0f  &&  rfrac <= 1.0f))
+				{
+					for (int r = 0; r < 2; r++)
+					{
 						rindex = ri + r;
-						if ((rindex >=0 && rindex < 4)) {
+						if ((rindex >=0 && rindex < 4))
+						{
 							rweight = mag * ((r == 0) ? 1.0f - rfrac : rfrac);
 
-							for (int c = 0; c < 2; c++) {
+							for (int c = 0; c < 2; c++)
+							{
 								cindex = ci + c;
-								if ((cindex >=0 && cindex < 4)) {
+								if ((cindex >=0 && cindex < 4))
+								{
 									cweight = rweight * ((c == 0) ? 1.0f - cfrac : cfrac);
-									for (orr = 0; orr < 2; orr++) {
+									for (orr = 0; orr < 2; orr++)
+									{
 										oindex = oi + orr;
-										if (oindex >= 8) {  /* Orientation wraps around at PI. */
+										if (oindex >= 8)
+										{  /* Orientation wraps around at PI. */
 											oindex = 0;
 										}
 										int bin = (rindex*4 + cindex)*8+oindex; //value in [0,128[
@@ -228,7 +245,7 @@ kernel void descriptor_gpu2(
 	    histogram[lid]
 	                += (float) ((hist3[lid*8]+hist3[lid*8+1]+hist3[lid*8+2]+hist3[lid*8+3]
 	                    +hist3[lid*8+4]+hist3[lid*8+5]+hist3[lid*8+6]+hist3[lid*8+7])*0.00001f);
-	}
+	}//end "if lid < 128"
 
 	barrier(CLK_LOCAL_MEM_FENCE);
 
@@ -237,7 +254,7 @@ kernel void descriptor_gpu2(
 	{
 	    float tmp =  histogram[lid];
 	    hist2[lid] = tmp*tmp;
-	}
+	}//end "if lid < 128"
 	
 	/*
 	 	Normalization and thre work shared by the 16 threads (8 values per thread)
@@ -292,7 +309,7 @@ kernel void descriptor_gpu2(
 			histogram[lid] = 0.2f;
 			atomic_inc(changed);
 		}
-	}
+	} //end "if lid < 128"
 	barrier(CLK_LOCAL_MEM_FENCE);
 
     //if values have changed, we have to re-normalize
@@ -340,11 +357,11 @@ kernel void descriptor_gpu2(
 			histogram[lid] *= hist2[0];
 		}
 		barrier(CLK_LOCAL_MEM_FENCE);
-    }
+    } //end if changed
     //finally, cast to integer for 128 values
     if (lid < 128)
     {
 		int intval =  (int)(512.0f * histogram[lid]);
 		descriptors[128*groupid+lid] = (uchar) min(255, intval);
 	} //end "if lid < 128"
-}
+} //end kernel

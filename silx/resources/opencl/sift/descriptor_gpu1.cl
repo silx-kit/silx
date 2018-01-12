@@ -112,11 +112,18 @@ kernel void descriptor_gpu1(
 	int lid0 = get_local_id(0); //[0,8[
 	int lid1 = get_local_id(1); //[0,4[
 	int lid2 = get_local_id(2); //[0,4[
-	int lid = (lid0*4+lid1)*4+lid2; //[0,128[
+	int lid = (lid2*get_local_size(1)+lid1)*get_local_size(0)+lid0; //[0,128[
 	int groupid = get_group_id(0);
-	actual_keypoint kp = keypoints[groupid];
-	if (!(keypoints_start <= groupid && groupid < *keypoints_end && kp.row >=0.0f))
-		return;
+
+	if ((groupid < keypoints_start) || (groupid >= *keypoints_end))
+    {
+        return;
+    }
+    actual_keypoint kp = keypoints[groupid];
+    if ((kp.row <= 0.0f) || (kp.col <= 0.0f))
+    {
+        return;
+    }
 		
 	int i, j, j2;
 	
@@ -141,16 +148,22 @@ kernel void descriptor_gpu1(
 	//memset
 	histogram[lid] = 0.0f;
 	for (i=0; i < 8; i++)
+	{
 	    hist2[lid*8+i] = 0.0f;
+	}
+
 	
-	for (i=imin; i < imax; i++) {
-		for (j2=jmin/8; j2 < jmax/8; j2++) {	
+	for (i=imin; i < imax; i++)
+	{
+		for (j2=jmin/8; j2 < jmax/8; j2++)
+		{
 			j=j2*8+lid0;
 			
 			rx = ((cosine * i - sine * j) - (row - irow)) / spacing + 1.5f;
 			cx = ((sine * i + cosine * j) - (col - icol)) / spacing + 1.5f;
 			if ((rx > -1.0f && rx < 4.0f && cx > -1.0f && cx < 4.0f
-				 && (irow +i) >= 0  && (irow +i) < grad_height && (icol+j) >= 0 && (icol+j) < grad_width)) {
+				 && (irow +i) >= 0  && (irow +i) < grad_height && (icol+j) >= 0 && (icol+j) < grad_width))
+			{
 				
 				float mag = grad[icol+j + (irow+i)*grad_width]
 							 * exp(- 0.125f*((rx - 1.5f) * (rx - 1.5f) + (cx - 1.5f) * (cx - 1.5f)) );
@@ -169,19 +182,26 @@ kernel void descriptor_gpu1(
 				float rfrac = rx - ri,	
 					cfrac = cx - ci,
 					ofrac = oval - oi;
-				if ((ri >= -1  &&  ri < 4  && oi >=  0  &&  oi <= 8  && rfrac >= 0.0f  &&  rfrac <= 1.0f)) {
-					for (int r = 0; r < 2; r++) {
+				if ((ri >= -1  &&  ri < 4  && oi >=  0  &&  oi <= 8  && rfrac >= 0.0f  &&  rfrac <= 1.0f))
+				{
+					for (int r = 0; r < 2; r++)
+					{
 						rindex = ri + r; 
-						if ((rindex >=0 && rindex < 4)) {
+						if ((rindex >=0 && rindex < 4))
+						{
 							rweight = mag * ((r == 0) ? 1.0f - rfrac : rfrac);
 
-							for (int c = 0; c < 2; c++) {
+							for (int c = 0; c < 2; c++)
+							{
 								cindex = ci + c;
-								if ((cindex >=0 && cindex < 4)) {
+								if ((cindex >=0 && cindex < 4))
+								{
 									cweight = rweight * ((c == 0) ? 1.0f - cfrac : cfrac);
-									for (orr = 0; orr < 2; orr++) {
+									for (orr = 0; orr < 2; orr++)
+									{
 										oindex = oi + orr;
-										if (oindex >= 8) {  /* Orientation wraps around at PI. */
+										if (oindex >= 8)
+										{  /* Orientation wraps around at PI. */
 											oindex = 0;
 										}
 										int bin = (rindex*4 + cindex)*8+oindex; //value in [0,128[
@@ -257,13 +277,15 @@ kernel void descriptor_gpu1(
 	//Threshold to 0.2 of the norm, for invariance to illumination
 	__local int changed[1];
 	if (lid == 0) changed[0] = 0;
-	if (histogram[lid] > 0.2f) {
+	if (histogram[lid] > 0.2f)
+	{
 		histogram[lid] = 0.2f;
 		atomic_inc(changed);
 	}
 	barrier(CLK_LOCAL_MEM_FENCE);
 	//if values have changed, we have to re-normalize
-	if (changed[0]) { 
+	if (changed[0])
+	{
 		hist2[lid] = histogram[lid]*histogram[lid];
 		if (lid < 64) {
 			hist2[lid] += hist2[lid+64];
