@@ -468,54 +468,195 @@ class InterpolationRow(ProxyRow):
             editorHint=modes)
 
 
-class _RangeProxyRow(ProxyRow):
-    """ProxyRow for colormap min and max
+class _ColormapBaseRowMixIn(qt.QObject):
+    """Mixin class for colormap model row
 
-    It disable editing when colormap is autoscale.
-    """
-
-    def __init__(self, *args, **kwargs):
-        super(_RangeProxyRow, self).__init__(*args, **kwargs)
-
-    def _notified(self, *args, **kwargs):
-        topLeft = self.index(column=0)
-        bottomRight = self.index(column=1)
-        model = self.model()
-        model.dataChanged.emit(topLeft, bottomRight)
-
-    def flags(self, column):
-        flags = super(_RangeProxyRow, self).flags(column)
-
-        parent = self.parent()
-        if parent is not None:
-            item = parent.item()
-            if item is not None:
-                colormap = item.getColormap()
-                if colormap.isAutoscale():
-                    # Remove item is enabled flag
-                    flags = qt.Qt.ItemFlags(flags) & ~qt.Qt.ItemIsEnabled
-        return flags
-
-
-class ColormapRow(StaticRow):
-    """Represents :class:`ColormapMixIn` property.
-
-    :param Item3D item: Scene item with colormap property
+    This class handle synchronization and signals from the item and the colormap
     """
 
     _sigColormapChanged = qt.Signal()
     """Signal used internally to notify colormap (or data) update"""
 
     def __init__(self, item):
-        super(ColormapRow, self).__init__(('Colormap', None))
+        self._dataRange = None
         self._item = weakref.ref(item)
-        item.sigItemChanged.connect(self._itemChanged)
-
         self._colormap = item.getColormap()
-        self._colormap.sigChanged.connect(self._sigColormapChanged)
+
+        qt.QObject.__init__(self)
+
+        self._colormap.sigChanged.connect(self._colormapChanged)
+        item.sigItemChanged.connect(self._itemChanged)
+        self._sigColormapChanged.connect(self._modelUpdated)
+
+    def item(self):
+        """Returns the :class:`ColormapMixIn` item or None"""
+        return self._item()
+
+    def _getColormapRange(self):
+        """Returns the range of the colormap for the current data.
+
+        :return: Colormap range (min, max)
+        """
+        if self._dataRange is None:
+            item = self.item()
+            if item is not None and self._colormap is not None:
+                if hasattr(item, 'getDataRange'):
+                    data = item.getDataRange()
+                else:
+                    data = item.getData(copy=False)
+
+                self._dataRange = self._colormap.getColormapRange(data)
+
+            else:  # Fallback
+                self._dataRange = 1, 100
+        return self._dataRange
+
+    def _modelUpdated(self, *args, **kwargs):
+        """Emit dataChanged in the model"""
+        topLeft = self.index(column=0)
+        bottomRight = self.index(column=1)
+        model = self.model()
+        if model is not None:
+            model.dataChanged.emit(topLeft, bottomRight)
+
+    def _colormapChanged(self):
+        self._sigColormapChanged.emit()
+
+    def _itemChanged(self, event):
+        """Handle change of colormap or data in the item.
+
+        :param ItemChangedType event:
+        """
+        if event == items.ItemChangedType.COLORMAP:
+            self._sigColormapChanged.emit()
+            if self._colormap is not None:
+                self._colormap.sigChanged.disconnect(self._colormapChanged)
+
+            item = self.item()
+            if item is not None:
+                self._colormap = item.getColormap()
+                self._colormap.sigChanged.connect(self._colormapChanged)
+            else:
+                self._colormap = None
+
+        elif event == items.ItemChangedType.DATA:
+            self._dataRange = None
+            self._sigColormapChanged.emit()
+
+
+class _ColormapBoundRow(_ColormapBaseRowMixIn, ProxyRow):
+    """ProxyRow for colormap min or max
+
+    :param ColormapMixIn item: The item to handle
+    :param str name: Name of the raw
+    :param int index: 0 for Min and 1 of Max
+    """
+
+    def __init__(self, item, name, index):
+        self._index = index
+        self._name = name
+        _ColormapBaseRowMixIn.__init__(self, item)
+        ProxyRow.__init__(
+            self,
+            name=name,
+            fget=self._getBound,
+            fset=self._setBound)
+
+    def _getRawBound(self):
+        """Proxy to get raw colormap bound
+
+        :rtype: float or None
+        """
+        if self._colormap is None:
+            return None
+        elif self._index == 0:
+            return self._colormap.getVMin()
+        else:  # self._index == 1
+            return self._colormap.getVMax()
+
+    def _getBound(self):
+        """Proxy to get colormap effective bound value
+
+        :rtype: float
+        """
+        if self._colormap is not None:
+            bound = self._getRawBound()
+
+            if bound is None:
+                bound = self._getColormapRange()[self._index]
+            return bound
+        else:
+            return 1.  # Fallback
+
+    def _setBound(self, value):
+        """Proxy to set colormap bound.
+
+        :param float value:
+        """
+        if self._colormap is not None:
+            if self._index == 0:
+                min_ = value
+                max_ = self._colormap.getVMax()
+            else:  # self._index == 1
+                min_ = self._colormap.getVMin()
+                max_ = value
+
+            if max_ is not None and min_ is not None and min_ > max_:
+                min_, max_ = max_, min_
+            self._colormap.setVRange(min_, max_)
+
+    def flags(self, column):
+        if column == 0:
+            return qt.Qt.ItemIsEnabled | qt.Qt.ItemIsUserCheckable
+
+        elif column == 1:
+            if self._getRawBound() is not None:
+                flags = qt.Qt.ItemIsEditable | qt.Qt.ItemIsEnabled
+            else:
+                flags = qt.Qt.NoItemFlags  # Disabled if autoscale
+            return flags
+
+        else:  # Never event
+            return super(_ColormapBoundRow, self).flags(column)
+
+    def data(self, column, role):
+        if role == qt.Qt.ToolTipRole:
+            return 'Colormap %s bound:\n' \
+                   'Check to set variable manually, ' \
+                   'uncheck for autoscale' % self._name.lower()
+
+        elif column == 0 and role == qt.Qt.CheckStateRole:
+            if self._getRawBound() is None:
+                return qt.Qt.Unchecked
+            else:
+                return qt.Qt.Checked
+
+        else:
+            return super(_ColormapBoundRow, self).data(column, role)
+
+    def setData(self, column, value, role):
+        if column == 0 and role == qt.Qt.CheckStateRole:
+            if self._colormap is not None:
+                bound = self._getBound() if value == qt.Qt.Checked else None
+                self._setBound(bound)
+                return True
+            else:
+                return False
+
+        return super(_ColormapBoundRow, self).setData(column, value, role)
+
+
+class ColormapRow(_ColormapBaseRowMixIn, StaticRow):
+    """Represents :class:`ColormapMixIn` property.
+
+    :param Item3D item: Scene item with colormap property
+    """
+
+    def __init__(self, item):
+        _ColormapBaseRowMixIn.__init__(self, item)
+        StaticRow.__init__(self, ('Colormap', None))
 
         self._colormapImage = None
-        self._dataRange = None
 
         self._colormapsMapping = {}
         for cmap in preferredColormaps():
@@ -536,52 +677,45 @@ class ColormapRow(StaticRow):
             notify=self._sigColormapChanged,
             editorHint=norms))
 
-        self.addRow(ProxyRow(
-            name='Autoscale',
-            fget=self._isAutoscale,
-            fset=self._setAutoscale,
-            notify=self._sigColormapChanged))
-        self.addRow(_RangeProxyRow(
-            name='Min.',
-            fget=self._getVMin,
-            fset=self._setVMin,
-            notify=self._sigColormapChanged))
-        self.addRow(_RangeProxyRow(
-            name='Max.',
-            fget=self._getVMax,
-            fset=self._setVMax,
-            notify=self._sigColormapChanged))
+        self.addRow(_ColormapBoundRow(item, name='Min.', index=0))
+        self.addRow(_ColormapBoundRow(item, name='Max.', index=1))
 
         self._sigColormapChanged.connect(self._updateColormapImage)
 
     def _getName(self):
         """Proxy for :meth:`Colormap.getName`"""
-        return self._colormap.getName().title()
+        if self._colormap is not None:
+            return self._colormap.getName().title()
+        else:
+            return ''
 
     def _setName(self, name):
         """Proxy for :meth:`Colormap.setName`"""
         # Convert back from titled to name if possible
-        name = self._colormapsMapping.get(name, name)
-        self._colormap.setName(name)
+        if self._colormap is not None:
+            name = self._colormapsMapping.get(name, name)
+            self._colormap.setName(name)
 
     def _getNormalization(self):
         """Proxy for :meth:`Colormap.getNormalization`"""
-        return self._colormap.getNormalization().title()
+        if self._colormap is not None:
+            return self._colormap.getNormalization().title()
+        else:
+            return ''
 
     def _setNormalization(self, normalization):
         """Proxy for :meth:`Colormap.setNormalization`"""
-        return self._colormap.setNormalization(normalization.lower())
-
-    def _isAutoscale(self):
-        """Proxy for :meth:`Colormap.isAutoscale`"""
-        return self._colormap.isAutoscale()
+        if self._colormap is not None:
+            return self._colormap.setNormalization(normalization.lower())
 
     def _updateColormapImage(self, *args, **kwargs):
         """Notify colormap update to update the image in the tree"""
         if self._colormapImage is not None:
             self._colormapImage = None
-            index = self.index(column=1)
-            self.model().dataChanged.emit(index, index)
+            model = self.model()
+            if model is not None:
+                index = self.index(column=1)
+                model.dataChanged.emit(index, index)
 
     def data(self, column, role):
         if column == 1 and role == qt.Qt.DecorationRole:
@@ -592,98 +726,6 @@ class ColormapRow(StaticRow):
             return self._colormapImage
 
         return super(ColormapRow, self).data(column, role)
-
-    def _getColormapRange(self):
-        """Returns the range of the colormap for the current data.
-
-        :return: Colormap range (min, max)
-        """
-        if self._dataRange is None:
-            item = self.item()
-            if item is not None:
-                if hasattr(item, 'getDataRange'):
-                    data = item.getDataRange()
-                else:
-                    data = item.getData(copy=False)
-                self._dataRange = item.getColormap().getColormapRange(data)
-            else:  # Fallback
-                self._dataRange = 1, 100
-        return self._dataRange
-
-    def _getVMin(self):
-        """Proxy to get colormap min value
-
-        :rtype: float
-        """
-        min_ = self._colormap.getVMin()
-        if min_ is None:
-            min_ = self._getColormapRange()[0]
-        return min_
-
-    def _setVMin(self, min_):
-        """Proxy to set colormap min.
-
-        :param float min_:
-        """
-        max_ = self._colormap.getVMax()
-        if max_ is not None and min_ > max_:
-            min_, max_ = max_, min_
-        self._colormap.setVRange(min_, max_)
-
-    def _getVMax(self):
-        """Proxy to get colormap max value
-
-        :rtype: float
-        """
-        max_ = self._colormap.getVMax()
-        if max_ is None:
-            max_ = self._getColormapRange()[1]
-        return max_
-
-    def _setVMax(self, max_):
-        """Proxy to set colormap max.
-
-        :param float max_:
-        """
-        min_ = self._colormap.getVMin()
-        if min_ is not None and min_ > max_:
-            min_, max_ = max_, min_
-        self._colormap.setVRange(min_, max_)
-
-    def _setAutoscale(self, autoscale):
-        """Proxy to set autscale
-
-        :param bool autoscale:
-        """
-        item = self.item()
-        if item is not None:
-            colormap = item.getColormap()
-            if autoscale:
-                vmin, vmax = None, None
-            else:
-                vmin, vmax = self._getColormapRange()
-            colormap.setVRange(vmin, vmax)
-
-    def item(self):
-        """Returns the :class:`ColormapMixIn` item or None"""
-        return self._item()
-
-    def _itemChanged(self, event):
-        """Handle change of colormap or data in the item.
-
-        :param ItemChangedType event:
-        """
-        if event == items.ItemChangedType.COLORMAP:
-            self._sigColormapChanged.emit()
-            self._colormap.sigChanged.disconnect(self._sigColormapChanged)
-            item = self.item()
-            if item is not None:
-                colormap = item.getColormap()
-                colormap.sigChanged.connect(self._sigColormapChanged)
-
-        elif event == items.ItemChangedType.DATA:
-            self._dataRange = None
-            self._sigColormapChanged.emit()
 
 
 class SymbolRow(ProxyRow):
