@@ -716,7 +716,7 @@ class sdist_debian(sdist):
     Tailor made sdist for debian
     * remove auto-generated doc
     * remove cython generated .c files
-    * remove cython generated .c files
+    * remove cython generated .cpp files
     * remove .bat files
     * include .l man files
     """
