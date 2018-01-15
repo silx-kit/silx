@@ -631,3 +631,54 @@ class NXdata(object):
     def is_unsupported_scatter(self):
         """True if this is a scatter with a signal and more than 2 axes."""
         return self.is_scatter and len(self.axes) > 2
+
+
+def is_NXentry_with_default_NXdata(group):
+    """Return True if group is a valid NXentry defining a valid default
+    NXdata."""
+    if not is_group(group):
+        return False
+
+    nx_class = group.attrs.get("NX_class")
+    if nx_class != "NXentry":
+        return False
+
+    default_nxdata_name = group.attrs.get("default")
+    if default_nxdata_name is None or default_nxdata_name not in group:
+        return False
+
+    default_nxdata_group = group.get(default_nxdata_name)
+
+    if not is_group(default_nxdata_group):
+        return False
+
+    if not is_valid_nxdata(default_nxdata_group):
+        return False
+
+    return True
+
+
+def get_NXdata_in_group(group):
+    """Return a :class:`NXdata` corresponding to the default NXdata group in a
+    group.
+
+    This function can find the NXdata if group is already a NXdata or
+    if it is an NXentry defining a default NXdata.
+
+    Return None if group is not a NXdata and is also not an NXentry defining
+    a NXdata.
+
+    :param group: NXdata group or NXentry group defining an @default NXdata
+        group. Or None.
+    :return: :class:`NXdata` or None
+    :raise TypeError if group is not a h5py-like group
+    """
+    if not is_group(group):
+        raise TypeError("Provided parameter is not a h5py-like group")
+
+    if is_NXentry_with_default_NXdata(group):
+        return NXdata(group[group.attrs["default"]])
+    if is_valid_nxdata(group):
+        return NXdata(group)
+
+    return None
