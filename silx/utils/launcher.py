@@ -68,7 +68,7 @@ class LauncherCommand(object):
         try:
             module = importlib.import_module(self.module_name)
             return module
-        except ImportError as e:
+        except ImportError:
             msg = "Error while reaching module '%s'"
             _logger.error(msg, self.module_name, exc_info=True)
             return None
