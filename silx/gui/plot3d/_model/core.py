@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -56,6 +56,7 @@ class BaseRow(qt.QObject):
             row.setParent(self)
             self.__children.append(row)
         self.__flags = collections.defaultdict(lambda: qt.Qt.ItemIsEnabled)
+        self.__tooltip = None
 
     def model(self):
         """Return the model this node belongs to or None if not in a model.
@@ -166,7 +167,10 @@ class BaseRow(qt.QObject):
         :param int role: The role to get
         :return: Corresponding data (Default: None)
         """
-        return None
+        if role == qt.Qt.ToolTipRole and self.__tooltip is not None:
+            return self.__tooltip
+        else:
+            return None
 
     def setData(self, column, value, role):
         """Set data for given column and role
@@ -178,6 +182,15 @@ class BaseRow(qt.QObject):
         :rtype: bool
         """
         return False
+
+    def setToolTip(self, tooltip):
+        """Set the tooltip of the whole row.
+
+        If None there is no tooltip.
+
+        :param Union[str, None] tooltip:
+        """
+        self.__tooltip = tooltip
 
     def setFlags(self, flags, column=None):
         """Set the static flags to return.

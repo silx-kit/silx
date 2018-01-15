@@ -554,13 +554,16 @@ class _ColormapBoundRow(_ColormapBaseRowMixIn, ProxyRow):
 
     def __init__(self, item, name, index):
         self._index = index
-        self._name = name
         _ColormapBaseRowMixIn.__init__(self, item)
         ProxyRow.__init__(
             self,
             name=name,
             fget=self._getBound,
             fset=self._setBound)
+
+        self.setToolTip('Colormap %s bound:\n'
+                        'Check to set bound manually, '
+                        'uncheck for autoscale' % name.lower())
 
     def _getRawBound(self):
         """Proxy to get raw colormap bound
@@ -620,12 +623,7 @@ class _ColormapBoundRow(_ColormapBaseRowMixIn, ProxyRow):
             return super(_ColormapBoundRow, self).flags(column)
 
     def data(self, column, role):
-        if role == qt.Qt.ToolTipRole:
-            return 'Colormap %s bound:\n' \
-                   'Check to set variable manually, ' \
-                   'uncheck for autoscale' % self._name.lower()
-
-        elif column == 0 and role == qt.Qt.CheckStateRole:
+        if column == 0 and role == qt.Qt.CheckStateRole:
             if self._getRawBound() is None:
                 return qt.Qt.Unchecked
             else:
