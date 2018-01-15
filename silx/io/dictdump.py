@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -306,7 +306,7 @@ def h5todict(h5file, path="/", exclude_names=None):
         fabioh5 file.
     :param str path: Name of HDF5 group to use as dictionary root level,
         to read only a sub-group in the file
-    :param list[str] exclude_names: Groups and datasets whose name contains
+    :param List[str] exclude_names: Groups and datasets whose name contains
         a string in this list will be ignored. Default is None (ignore nothing)
     :return: Nested dictionary
     """

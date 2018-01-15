@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -81,8 +81,8 @@ def supported_extensions(flat_formats=True):
 
     :param bool flat_formats: If true, also include flat formats like npy or
         edf (while the expected module is available)
-    :returns: A dictionary indexed by file description and containg a set of
-        extensions (an extension is a string like "*.ext").
+    :returns: A dictionary indexed by file description and containing a set of
+        extensions (an extension is a string like "\*.ext").
     :rtype: Dict[str, Set[str]]
     """
     formats = {}

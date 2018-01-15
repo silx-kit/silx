@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -425,7 +425,7 @@ class NXdata(object):
             the output will be a numpy array resulting from slicing that
             axis (*axis[first_good:last_good + 1]*).
 
-        :rtype: list[Dataset or 1D array or None]
+        :rtype: List[Dataset or 1D array or None]
         """
         if self._axes is not None:
             # use cache
