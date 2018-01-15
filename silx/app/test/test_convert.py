@@ -163,6 +163,7 @@ class TestConvertCommand(unittest.TestCase):
             self.assertIn("silx convert (v%s)" % silx.version, creator)
 
         # delete input file
+        gc.collect()  # necessary to free spec file on Windows
         os.unlink(specname)
         os.unlink(h5name)
         os.rmdir(tempdir)
