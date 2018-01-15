@@ -247,6 +247,56 @@ class Item3DRow(StaticRow):
         return super(Item3DRow, self).setData(column, value, role)
 
 
+class MatrixProxyRow(ProxyRow):
+    """Proxy for a row of a DataItem3D 3x3 matrix transform
+
+    :param DataItem3D item:
+    :param int index: Matrix row index
+    """
+
+    def __init__(self, item, index):
+        self._item = weakref.ref(item)
+        self._index = index
+
+        super(MatrixProxyRow, self).__init__(
+            name='',
+            fget=self._getMatrixRow,
+            fset=self._setMatrixRow,
+            notify=item.sigItemChanged)
+
+    def _getMatrixRow(self):
+        """Returns the matrix row.
+
+        :rtype: QVector3D
+        """
+        item = self._item()
+        if item is not None:
+            matrix = item.getMatrix()
+            return qt.QVector3D(*matrix[self._index, :])
+        else:
+            return None
+
+    def _setMatrixRow(self, row):
+        """Set the row of the matrix
+
+        :param QVector3D row: Row values to set
+        """
+        item = self._item()
+        if item is not None:
+            matrix = item.getMatrix()
+            matrix[self._index, :] = row.x(), row.y(), row.z()
+            item.setMatrix(matrix)
+
+    def data(self, column, role):
+        data = super(MatrixProxyRow, self).data(column, role)
+
+        if column == 1 and role == qt.Qt.DisplayRole:
+            # Convert QVector3D to text
+            data = "%g; %g; %g" % (data.x(), data.y(), data.z())
+
+        return data
+
+
 class DataItem3DTransformRow(StaticRow):
     """Represents :class:`DataItem3D` transform parameters
 
@@ -267,16 +317,8 @@ class DataItem3DTransformRow(StaticRow):
         self.addRow(translation)
 
         # Here to keep a reference
-        self._xCenterToModelData = functools.partial(
-            self._centerToModelData, index=0)
         self._xSetCenter = functools.partial(self._setCenter, index=0)
-        # Here to keep a reference
-        self._yCenterToModelData = functools.partial(
-            self._centerToModelData, index=1)
         self._ySetCenter = functools.partial(self._setCenter, index=1)
-        # Here to keep a reference
-        self._zCenterToModelData = functools.partial(
-            self._centerToModelData, index=2)
         self._zSetCenter = functools.partial(self._setCenter, index=2)
 
         rotateCenter = StaticRow(
@@ -286,19 +328,22 @@ class DataItem3DTransformRow(StaticRow):
                          fget=item.getRotationCenter,
                          fset=self._xSetCenter,
                          notify=item.sigItemChanged,
-                         toModelData=self._xCenterToModelData,
+                         toModelData=functools.partial(
+                             self._centerToModelData, index=0),
                          editorHint=self._ROTATION_CENTER_OPTIONS),
                 ProxyRow(name='Y axis',
                          fget=item.getRotationCenter,
                          fset=self._ySetCenter,
                          notify=item.sigItemChanged,
-                         toModelData=self._yCenterToModelData,
+                         toModelData=functools.partial(
+                             self._centerToModelData, index=1),
                          editorHint=self._ROTATION_CENTER_OPTIONS),
                 ProxyRow(name='Z axis',
                          fget=item.getRotationCenter,
                          fset=self._zSetCenter,
                          notify=item.sigItemChanged,
-                         toModelData=self._zCenterToModelData,
+                         toModelData=functools.partial(
+                             self._centerToModelData, index=2),
                          editorHint=self._ROTATION_CENTER_OPTIONS),
             ))
 
@@ -325,6 +370,13 @@ class DataItem3DTransformRow(StaticRow):
                          notify=item.sigItemChanged,
                          toModelData=lambda data: qt.QVector3D(*data))
         self.addRow(scale)
+
+        matrix = StaticRow(
+            ('Matrix', None),
+            children=(MatrixProxyRow(item, 0),
+                      MatrixProxyRow(item, 1),
+                      MatrixProxyRow(item, 2)))
+        self.addRow(matrix)
 
     def item(self):
         """Returns the :class:`Item3D` item or None"""
