@@ -88,7 +88,7 @@ class TestByteOffset(unittest.TestCase):
         size = numpy.prod(ref.shape)
 
         try:
-            bo = byte_offset.ByteOffset(len(raw), size, profile=True)
+            bo = byte_offset.ByteOffset(dec_size=size, profile=True)
         except (RuntimeError, pyopencl.RuntimeError) as err:
             logger.warning(err)
             if sys.platform == "darwin":
@@ -185,7 +185,7 @@ class TestByteOffset(unittest.TestCase):
         ref, raw = self._create_test_data(shape=(2713, 2719), nexcept=2729)
 
         try:
-            bo = byte_offset.ByteOffset(len(raw), ref.size, profile=True)
+            bo = byte_offset.ByteOffset(profile=True)
         except (RuntimeError, pyopencl.RuntimeError) as err:
             logger.warning(err)
             raise err
@@ -214,7 +214,7 @@ class TestByteOffset(unittest.TestCase):
         ref, raw = self._create_test_data(shape=(2713, 2719), nexcept=2729)
 
         try:
-            bo = byte_offset.ByteOffset(len(raw), ref.size, profile=True)
+            bo = byte_offset.ByteOffset(profile=True)
         except (RuntimeError, pyopencl.RuntimeError) as err:
             logger.warning(err)
             raise err
@@ -238,7 +238,7 @@ class TestByteOffset(unittest.TestCase):
         ref, raw = self._create_test_data(shape=(2713, 2719), nexcept=2729)
 
         try:
-            bo = byte_offset.ByteOffset(len(raw), ref.size, profile=True)
+            bo = byte_offset.ByteOffset(profile=True)
         except (RuntimeError, pyopencl.RuntimeError) as err:
             logger.warning(err)
             raise err
@@ -265,7 +265,7 @@ class TestByteOffset(unittest.TestCase):
         ref, raw = self._create_test_data(shape=shape, nexcept=0, lam=100)
 
         try:
-            bo = byte_offset.ByteOffset(len(raw), ref.size, profile=False)
+            bo = byte_offset.ByteOffset(profile=False)
         except (RuntimeError, pyopencl.RuntimeError) as err:
             logger.warning(err)
             raise err

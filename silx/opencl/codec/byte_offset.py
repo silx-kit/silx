@@ -67,12 +67,15 @@ class ByteOffset(OpenclProcessing):
         See :class:`OpenclProcessing` for optional arguments description.
 
         :param int raw_size:
-            Size of the raw stream, can be (slightly) larger than the array
+            Size of the raw stream for decompression.
+            It can be (slightly) larger than the array.
         :param int dec_size:
-            Size of the output array (mandatory)
+            Size of the decompression output array
+           (mandatory for decompression)
         """
 
-    def __init__(self, raw_size, dec_size, ctx=None, devicetype="all",
+    def __init__(self, raw_size=None, dec_size=None,
+                 ctx=None, devicetype="all",
                  platformid=None, deviceid=None,
                  block_size=None, profile=False):
         OpenclProcessing.__init__(self, ctx=ctx, devicetype=devicetype,
@@ -81,19 +84,33 @@ class ByteOffset(OpenclProcessing):
         if self.block_size is None:
             self.block_size = min(self.device.max_work_group_size, 128)
         wg = self.block_size
-        self.raw_size = int(raw_size)
-        self.dec_size = numpy.int32(dec_size)
-        self.padded_raw_size = int((self.raw_size + wg - 1) & ~(wg - 1))
-        buffers = [
-                    BufferDescription("raw", self.padded_raw_size, numpy.int8, None),
-                    BufferDescription("mask", self.padded_raw_size, numpy.int32, None),
-                    BufferDescription("values", self.padded_raw_size, numpy.int32, None),
-                    BufferDescription("exceptions", self.padded_raw_size, numpy.int32, None),
-                    BufferDescription("counter", 1, numpy.int32, None),
-                    BufferDescription("data_float", self.dec_size, numpy.float32, None),
-                    BufferDescription("data_int", self.dec_size, numpy.int32, None),
-                   ]
+
+        buffers = [BufferDescription("counter", 1, numpy.int32, None)]
+
+        if raw_size is None:
+            self.raw_size = -1
+            self.padded_raw_size = -1
+        else:
+            self.raw_size = int(raw_size)
+            self.padded_raw_size = int((self.raw_size + wg - 1) & ~(wg - 1))
+            buffers += [
+                BufferDescription("raw", self.padded_raw_size, numpy.int8, None),
+                BufferDescription("mask", self.padded_raw_size, numpy.int32, None),
+                BufferDescription("values", self.padded_raw_size, numpy.int32, None),
+                BufferDescription("exceptions", self.padded_raw_size, numpy.int32, None)
+            ]
+
+        if dec_size is None:
+            self.dec_size = None
+        else:
+            self.dec_size = numpy.int32(dec_size)
+            buffers += [
+                BufferDescription("data_float", self.dec_size, numpy.float32, None),
+                BufferDescription("data_int", self.dec_size, numpy.int32, None)
+            ]
+
         self.allocate_buffers(buffers, use_array=True)
+
         self.compile_kernels([os.path.join("codec", "byte_offset")])
         self.kernels.__setattr__("scan", self._init_double_scan())
         self.kernels.__setattr__("compression_scan",
@@ -136,6 +153,9 @@ class ByteOffset(OpenclProcessing):
         :return: The decompressed image as an pyopencl array.
         :rtype: pyopencl.array
         """
+        assert self.dec_size is not None, \
+            "dec_size is a mandatory ByteOffset init argument for decompression"
+
         events = []
         with self.sem:
             len_raw = numpy.int32(len(raw))
@@ -399,8 +419,7 @@ class ByteOffset(OpenclProcessing):
         first, create a byte offset compression/decompression object:
 
         >>> from silx.opencl.codec.byte_offset import ByteOffset
-        >>> byte_offset_codec = ByteOffset(
-        ...     raw_size=image.size//3, dec_size=image.size)
+        >>> byte_offset_codec = ByteOffset()
 
         Then, compress an image into bytes:
 
