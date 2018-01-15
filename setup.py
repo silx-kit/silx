@@ -35,7 +35,7 @@ import platform
 import shutil
 import logging
 import glob
-# io import have to be here also to fix a bug on Debian 7 with python2.7
+# io import has to be here also to fix a bug on Debian 7 with python2.7
 # Without this, the system io module is not loaded from numpy.distutils.
 # The silx.io module seems to be loaded instead.
 import io
