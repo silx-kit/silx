@@ -28,7 +28,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 """
-Contains classes CBF byte offset decompression
+This module provides a class for CBF byte offset compression/decompression.
 """
 
 from __future__ import division, print_function, with_statement
@@ -62,19 +62,19 @@ else:
 
 
 class ByteOffset(OpenclProcessing):
-    """Perform the byte offset decompression on the GPU"""
+    """Perform the byte offset compression/decompression on the GPU
+
+        See :class:`OpenclProcessing` for optional arguments description.
+
+        :param int raw_size:
+            Size of the raw stream, can be (slightly) larger than the array
+        :param int dec_size:
+            Size of the output array (mandatory)
+        """
 
     def __init__(self, raw_size, dec_size, ctx=None, devicetype="all",
                  platformid=None, deviceid=None,
                  block_size=None, profile=False):
-        """Constructor of the Byte Offset decompressor.
-
-        See :class:`OpenclProcessing` for optional arguments description.
-
-        :param raw_size: size of the raw stream, can be (slightly) larger than the array
-        :param dec_size: size of the output array (mandatory)
-        """
-
         OpenclProcessing.__init__(self, ctx=ctx, devicetype=devicetype,
                                   platformid=platformid, deviceid=deviceid,
                                   block_size=block_size, profile=profile)
