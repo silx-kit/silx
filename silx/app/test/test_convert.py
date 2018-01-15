@@ -142,6 +142,7 @@ class TestConvertCommand(unittest.TestCase):
 
         # convert it
         h5name = os.path.join(tempdir, "output.h5")
+        assert not os.path.isfile(h5name)
         command_list = ["convert", "-m", "w",
                         "--no-root-group", specname, "-o", h5name]
         result = convert.main(command_list)
@@ -159,12 +160,9 @@ class TestConvertCommand(unittest.TestCase):
             creator = h5f.attrs.get("creator")
             self.assertIsNotNone(creator, "No creator attribute in NXroot group")
             creator = creator.decode()  # make sure we can compare creator with native string
-            self.assertTrue(creator.startswith("silx %s" % silx.version))
-            command = " ".join(command_list)
-            self.assertTrue(creator.endswith(command))
+            self.assertIn("silx convert (v%s)" % silx.version, creator)
 
         # delete input file
-        gc.collect()  # necessary to free spec file on Windows
         os.unlink(specname)
         os.unlink(h5name)
         os.rmdir(tempdir)
