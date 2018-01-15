@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -50,7 +50,8 @@ class _SetViewpointAction(Plot3DAction):
 
     :param parent: See :class:`QAction`
     :param str face: The name of the predefined viewpoint
-    :param Plot3DWidget plot3d: Plot3DWidget the action is associated with
+    :param ~silx.gui.plot3d.Plot3DWidget.Plot3DWidget plot3d:
+        Plot3DWidget the action is associated with
     """
     def __init__(self, parent, face, plot3d=None):
         super(_SetViewpointAction, self).__init__(parent, plot3d)
@@ -75,7 +76,8 @@ class FrontViewpointAction(_SetViewpointAction):
     """QAction to set Plot3DWidget viewpoint to look from the front
 
     :param parent: See :class:`QAction`
-    :param Plot3DWidget plot3d: Plot3DWidget the action is associated with
+    :param ~silx.gui.plot3d.Plot3DWidget.Plot3DWidget plot3d:
+        Plot3DWidget the action is associated with
     """
     def __init__(self, parent, plot3d=None):
         super(FrontViewpointAction, self).__init__(parent, 'front', plot3d)
@@ -89,7 +91,8 @@ class BackViewpointAction(_SetViewpointAction):
     """QAction to set Plot3DWidget viewpoint to look from the back
 
     :param parent: See :class:`QAction`
-    :param Plot3DWidget plot3d: Plot3DWidget the action is associated with
+    :param ~silx.gui.plot3d.Plot3DWidget.Plot3DWidget plot3d:
+        Plot3DWidget the action is associated with
     """
     def __init__(self, parent, plot3d=None):
         super(BackViewpointAction, self).__init__(parent, 'back', plot3d)
@@ -103,7 +106,8 @@ class LeftViewpointAction(_SetViewpointAction):
     """QAction to set Plot3DWidget viewpoint to look from the left
 
     :param parent: See :class:`QAction`
-    :param Plot3DWidget plot3d: Plot3DWidget the action is associated with
+    :param ~silx.gui.plot3d.Plot3DWidget.Plot3DWidget plot3d:
+        Plot3DWidget the action is associated with
     """
     def __init__(self, parent, plot3d=None):
         super(LeftViewpointAction, self).__init__(parent, 'left', plot3d)
@@ -117,7 +121,8 @@ class RightViewpointAction(_SetViewpointAction):
     """QAction to set Plot3DWidget viewpoint to look from the right
 
     :param parent: See :class:`QAction`
-    :param Plot3DWidget plot3d: Plot3DWidget the action is associated with
+    :param ~silx.gui.plot3d.Plot3DWidget.Plot3DWidget plot3d:
+        Plot3DWidget the action is associated with
     """
     def __init__(self, parent, plot3d=None):
         super(RightViewpointAction, self).__init__(parent, 'right', plot3d)
@@ -131,7 +136,8 @@ class TopViewpointAction(_SetViewpointAction):
     """QAction to set Plot3DWidget viewpoint to look from the top
 
     :param parent: See :class:`QAction`
-    :param Plot3DWidget plot3d: Plot3DWidget the action is associated with
+    :param ~silx.gui.plot3d.Plot3DWidget.Plot3DWidget plot3d:
+        Plot3DWidget the action is associated with
     """
     def __init__(self, parent, plot3d=None):
         super(TopViewpointAction, self).__init__(parent, 'top', plot3d)
@@ -145,7 +151,8 @@ class BottomViewpointAction(_SetViewpointAction):
     """QAction to set Plot3DWidget viewpoint to look from the bottom
 
     :param parent: See :class:`QAction`
-    :param Plot3DWidget plot3d: Plot3DWidget the action is associated with
+    :param ~silx.gui.plot3d.Plot3DWidget.Plot3DWidget plot3d:
+        Plot3DWidget the action is associated with
     """
     def __init__(self, parent, plot3d=None):
         super(BottomViewpointAction, self).__init__(parent, 'bottom', plot3d)
@@ -159,7 +166,8 @@ class SideViewpointAction(_SetViewpointAction):
     """QAction to set Plot3DWidget viewpoint to look from the side
 
     :param parent: See :class:`QAction`
-    :param Plot3DWidget plot3d: Plot3DWidget the action is associated with
+    :param ~silx.gui.plot3d.Plot3DWidget.Plot3DWidget plot3d:
+        Plot3DWidget the action is associated with
     """
     def __init__(self, parent, plot3d=None):
         super(SideViewpointAction, self).__init__(parent, 'side', plot3d)
@@ -173,7 +181,8 @@ class RotateViewpoint(Plot3DAction):
     """QAction to rotate the scene of a Plot3DWidget
 
     :param parent: See :class:`QAction`
-    :param Plot3DWidget plot3d: Plot3DWidget the action is associated with
+    :param ~silx.gui.plot3d.Plot3DWidget.Plot3DWidget plot3d:
+        Plot3DWidget the action is associated with
     """
 
     _TIMEOUT_MS = 50

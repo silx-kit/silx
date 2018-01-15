@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -294,7 +294,8 @@ class SelectedRegion(object):
 class CutPlane(qt.QObject):
     """Class representing a cutting plane
 
-    :param ScalarFieldView sfView: Widget in which the cut plane is applied.
+    :param ~silx.gui.plot3d.ScalarFieldView.ScalarFieldView sfView:
+        Widget in which the cut plane is applied.
     """
 
     sigVisibilityChanged = qt.Signal(bool)
@@ -513,7 +514,7 @@ class CutPlane(qt.QObject):
         """Returns the colormap set by :meth:`setColormap`.
 
         :return: The colormap
-        :rtype: Colormap
+        :rtype: ~silx.gui.plot.Colormap.Colormap
         """
         return self._colormap
 
@@ -530,7 +531,7 @@ class CutPlane(qt.QObject):
         :param name: Name of the colormap in
             'gray', 'reversed gray', 'temperature', 'red', 'green', 'blue'.
             Or Colormap object.
-        :type name: str or Colormap
+        :type name: str or ~silx.gui.plot.Colormap.Colormap
         :param str norm: Colormap mapping: 'linear' or 'log'.
         :param float vmin: The minimum value of the range or None for autoscale
         :param float vmax: The maximum value of the range or None for autoscale

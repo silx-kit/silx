@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -757,8 +757,9 @@ class _Projection(Transform):
     :param float near: Distance to the near plane.
     :param float far: Distance to the far plane.
     :param bool checkDepthExtent: Toggle checks near > 0 and far > near.
-    :param size: Viewport's size used to compute the aspect ratio.
-    :type size: 2-tuple of float (width, height).
+    :param size:
+        Viewport's size used to compute the aspect ratio (width, height).
+    :type size: 2-tuple of float
     """
 
     def __init__(self, near, far, checkDepthExtent=False, size=(1., 1.)):
@@ -833,8 +834,9 @@ class Orthographic(_Projection):
     :param float top: Coord of the top clipping plane.
     :param float near: Distance to the near plane.
     :param float far: Distance to the far plane.
-    :param size: Viewport's size used to compute the aspect ratio.
-    :type size: 2-tuple of float (width, height).
+    :param size:
+        Viewport's size used to compute the aspect ratio (width, height).
+    :type size: 2-tuple of float
     """
 
     def __init__(self, left=0., right=1., bottom=1., top=0., near=-1., far=1.,
@@ -923,8 +925,9 @@ class Ortho2DWidget(_Projection):
 
     :param float near: Z coordinate of the near clipping plane.
     :param float far: Z coordinante of the far clipping plane.
-    :param size: Viewport's size used to compute the aspect ratio.
-    :type size: 2-tuple of float (width, height).
+    :param size:
+        Viewport's size used to compute the aspect ratio (width, height).
+    :type size: 2-tuple of float
     """
 
     def __init__(self, near=-1., far=1., size=(1., 1.)):
@@ -942,8 +945,9 @@ class Perspective(_Projection):
     :param float fovy: Vertical field-of-view in degrees.
     :param float near: The near clipping plane Z coord (stricly positive).
     :param float far: The far clipping plane Z coord (> near).
-    :param size: Viewport's size used to compute the aspect ratio.
-    :type size: 2-tuple of float (width, height).
+    :param size:
+        Viewport's size used to compute the aspect ratio (width, height).
+    :type size: 2-tuple of float
     """
 
     def __init__(self, fovy=90., near=0.1, far=1., size=(1., 1.)):

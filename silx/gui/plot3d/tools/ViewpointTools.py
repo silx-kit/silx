@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,6 @@ class ViewpointToolButton(qt.QToolButton):
     """A toolbutton with a drop-down list of ways to reset the viewpoint.
 
     :param parent: See :class:`QToolButton`
-    :param Plot3DWiddget plot3D: The widget to control
     """
 
     def __init__(self, parent=None):
@@ -67,7 +66,8 @@ class ViewpointToolButton(qt.QToolButton):
     def setPlot3DWidget(self, widget):
         """Set the Plot3DWidget this toolbar is associated with
 
-        :param Plot3DWidget widget: The widget to control
+        :param ~silx.gui.plot3d.Plot3DWidget.Plot3DWidget widget:
+            The widget to control
         """
         self._plot3DRef = None if widget is None else weakref.ref(widget)
 
@@ -79,6 +79,6 @@ class ViewpointToolButton(qt.QToolButton):
 
         If no widget is associated, it returns None.
 
-        :rtype: qt.QWidget
+        :rtype: ~silx.gui.plot3d.Plot3DWidget.Plot3DWidget or None
         """
         return None if self._plot3DRef is None else self._plot3DRef()

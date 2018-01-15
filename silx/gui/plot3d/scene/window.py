@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -326,7 +326,8 @@ class Window(event.Notifier):
         """Returns the raster of the scene as an RGB numpy array
 
         :returns: OpenGL scene RGB bitmap
-        :rtype: numpy.ndarray of uint8 of dimension (height, width, 3)
+                  as an array of dimension (height, width, 3)
+        :rtype: numpy.ndarray of uint8
         """
         height, width = self.shape
         image = numpy.empty((height, width, 3), dtype=numpy.uint8)
