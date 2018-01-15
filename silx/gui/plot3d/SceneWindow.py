@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -68,9 +68,9 @@ class SceneWindow(qt.QMainWindow):
             self.addActions(toolbar.actions())
 
     def getSceneWidget(self):
-        """Returns the :class:`SceneWidget` of this window.
+        """Returns the SceneWidget of this window.
 
-        :rtype: SceneWidget
+        :rtype: ~silx.gui.plot3d.SceneWidget.SceneWidget
         """
         return self._sceneWidget
 

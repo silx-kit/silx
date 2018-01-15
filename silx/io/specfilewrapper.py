@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*#########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -332,7 +332,7 @@ class scandata(Scan):  # noqa
             lines.
             If ``key`` does not match any header line, return empty list.
         :return: List of scan header lines
-        :rtype: list[str]
+        :rtype: List[str]
         """
         if key.strip() == "":
             return self.scan_header

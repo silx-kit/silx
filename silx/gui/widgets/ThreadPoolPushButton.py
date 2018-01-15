@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -214,7 +214,7 @@ class ThreadPoolPushButton(WaitingPushButton):
         """Create a QRunnable from a callable object.
 
         :param callable function: A callable Python object.
-        :param list args: List of arguments to call the function.
+        :param List args: List of arguments to call the function.
         :param dict kwargs: Dictionary of arguments used to call the function.
         :rtpye: qt.QRunnable
         """
@@ -230,7 +230,7 @@ class ThreadPoolPushButton(WaitingPushButton):
         WARNING: The callable will be called in a separate thread.
 
         :param callable function: A callable Python object
-        :param list args: List of arguments to call the function.
+        :param List args: List of arguments to call the function.
         :param dict kwargs: Dictionary of arguments used to call the function.
         """
         self.__callable = function

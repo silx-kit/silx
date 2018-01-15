@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -406,7 +406,7 @@ class ColormapMixIn(ItemMixInBase):
     def setColormap(self, colormap):
         """Set the colormap of this image
 
-        :param Colormap colormap: colormap description
+        :param silx.gui.plot.Colormap.Colormap colormap: colormap description
         """
         if isinstance(colormap, dict):
             colormap = Colormap._fromDict(colormap)

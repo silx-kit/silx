@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -44,7 +44,8 @@ class Plot3DAction(qt.QAction):
     """QAction associated to a Plot3DWidget
 
     :param parent: See :class:`QAction`
-    :param Plot3DWidget plot3d: Plot3DWidget the action is associated with
+    :param ~silx.gui.plot3d.Plot3DWidget.Plot3DWidget plot3d:
+        Plot3DWidget the action is associated with
     """
 
     def __init__(self, parent, plot3d=None):
@@ -55,7 +56,8 @@ class Plot3DAction(qt.QAction):
     def setPlot3DWidget(self, widget):
         """Set the Plot3DWidget this action is associated with
 
-        :param Plot3DWidget widget: The Plot3DWidget to use
+        :param ~silx.gui.plot3d.Plot3DWidget.Plot3DWidget widget:
+            The Plot3DWidget to use
         """
         self._plot3d = None if widget is None else weakref.ref(widget)
 
@@ -64,6 +66,6 @@ class Plot3DAction(qt.QAction):
 
         If no widget is associated, it returns None.
 
-        :rtype: qt.QWidget
+        :rtype: QWidget
         """
         return None if self._plot3d is None else self._plot3d()

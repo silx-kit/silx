@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -821,7 +821,7 @@ class PlotWidget(qt.QMainWindow):
         :param colormap: Description of the :class:`.Colormap` to use
                                   (or None).
                                   This is ignored if data is a RGB(A) image.
-        :type colormap: Colormap or dict (old API )
+        :type colormap: Union[silx.gui.plot.Colormap.Colormap, dict]
         :param pixmap: Pixmap representation of the data (if any)
         :type pixmap: (nrows, ncolumns, RGBA) ubyte array or None (default)
         :param str xlabel: X axis label to show when this curve is active,
@@ -964,8 +964,8 @@ class PlotWidget(qt.QMainWindow):
         :param numpy.ndarray y: The data corresponding to the y coordinates
         :param numpy.ndarray value: The data value associated with each point
         :param str legend: The legend to be associated to the scatter (or None)
-        :param Colormap colormap: The :class:`.Colormap`. to be used for the
-                                  scatter (or None)
+        :param silx.gui.plot.Colormap.Colormap colormap:
+            The :class:`.Colormap`. to be used for the scatter (or None)
         :param info: User-defined information associated to the curve
         :param str symbol: Symbol to be drawn at each (x, y) position::
 
@@ -2264,9 +2264,10 @@ class PlotWidget(qt.QMainWindow):
         It only affects future calls to :meth:`addImage` without the colormap
         parameter.
 
-        :param Colormap colormap: The description of the default colormap, or
-                            None to set the :class:`.Colormap` to a linear
-                            autoscale gray colormap.
+        :param silx.gui.plot.Colormap.Colormap colormap:
+            The description of the default colormap, or
+            None to set the :class:`.Colormap` to a linear
+            autoscale gray colormap.
         """
         if colormap is None:
             colormap = Colormap(name='gray',

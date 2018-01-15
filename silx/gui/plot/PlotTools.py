@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -83,10 +83,10 @@ class PositionInfo(qt.QWidget):
     >>> plot.show()  # To display the PlotWindow with the position widget
 
     :param plot: The PlotWidget this widget is displaying data coords from.
-    :param converters: List of name to display and conversion function from
-                       (x, y) in data coords to displayed value.
-                       If None, the default, it displays X and Y.
-    :type converters: Iterable of 2-tuple (str, function)
+    :param converters:
+        List of 2-tuple: name to display and conversion function from (x, y)
+        in data coords to displayed value.
+        If None, the default, it displays X and Y.
     :param parent: Parent widget
     """
 

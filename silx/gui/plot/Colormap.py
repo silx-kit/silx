@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -393,7 +393,7 @@ class Colormap(qt.QObject):
     def copy(self):
         """Return a copy of the Colormap.
 
-        :rtype: Colormap
+        :rtype: silx.gui.plot.Colormap.Colormap
         """
         return Colormap(name=self._name,
                         colors=copy_mdl.copy(self._colors),

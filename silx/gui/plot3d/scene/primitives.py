@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -331,8 +331,8 @@ class Geometry(core.Elem):
         Attributes name are taken in the given order to compute the
         (x, y, z) the bounding box, e.g.::
 
-        geometry.boundsAttributeNames = 'position'
-        geometry.boundsAttributeNames = 'x', 'y', 'z'
+          geometry.boundsAttributeNames = 'position'
+          geometry.boundsAttributeNames = 'x', 'y', 'z'
         """
         return self.__boundsAttributeNames
 

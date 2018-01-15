@@ -14,14 +14,14 @@ For sample code using :class:`SceneWidget`, see ``plot3dSceneWindow.py`` in :ref
 .. currentmodule:: silx.gui.plot3d.SceneWidget
 
 :class:`SceneWidget`
-------------------
+--------------------
 
 .. autoclass:: SceneWidget
    :show-inheritance:
    :members:
 
 :class:`SceneWidget` items
-------------------------
+--------------------------
 
 .. toctree::
    :maxdepth: 2

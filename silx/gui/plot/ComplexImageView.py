@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -589,14 +589,14 @@ class ComplexImageView(qt.QWidget):
         WARNING: This colormap is not used when displaying both
         amplitude and phase.
 
-        :param Colormap colormap: The colormap
+        :param silx.gui.plot.Colormap.Colormap colormap: The colormap
         """
         self._plotImage.setColormap(colormap)
 
     def getColormap(self):
         """Returns the colormap used to display the data.
 
-        :rtype: Colormap
+        :rtype: silx.gui.plot.Colormap.Colormap
         """
         # Returns internal colormap and bypass forcing colormap
         return items.ImageData.getColormap(self._plotImage)
