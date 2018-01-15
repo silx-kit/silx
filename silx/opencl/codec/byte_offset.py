@@ -71,7 +71,7 @@ class ByteOffset(OpenclProcessing):
             It can be (slightly) larger than the array.
         :param int dec_size:
             Size of the decompression output array
-           (mandatory for decompression)
+            (mandatory for decompression)
         """
 
     def __init__(self, raw_size=None, dec_size=None,
