@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -137,7 +137,7 @@ class DataViewer(qt.QFrame):
         overwriten to provide a different set of viewers.
 
         :param QWidget parent: QWidget parent of the views
-        :rtype: list[silx.gui.data.DataViews.DataView]
+        :rtype: List[silx.gui.data.DataViews.DataView]
         """
         viewClasses = [
             DataViews._EmptyView,
@@ -377,7 +377,7 @@ class DataViewer(qt.QFrame):
         on rendering.
 
         :param object data: data which will be displayed
-        :param list[view] available: List of available views, from highest
+        :param List[view] available: List of available views, from highest
             priority to lowest.
         :rtype: DataView
         """
@@ -391,7 +391,7 @@ class DataViewer(qt.QFrame):
         views.
 
         :param object data: data which will be displayed
-        :param list[view] available: List of available views, from highest
+        :param List[view] available: List of available views, from highest
             priority to lowest.
         :rtype: DataView
         """

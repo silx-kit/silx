@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -133,7 +133,7 @@ class _Axis(qt.QWidget):
     def setAxisNames(self, axesNames):
         """Set the available list of names for the axis.
 
-        :param list[str] axesNames: List of available names
+        :param List[str] axesNames: List of available names
         """
         self.__axes.clear()
         previous = self.__axes.blockSignals(True)
@@ -146,7 +146,7 @@ class _Axis(qt.QWidget):
     def setCustomAxis(self, axesNames):
         """Set the available list of named axis which can be set to a value.
 
-        :param list[str] axesNames: List of customable axis names
+        :param List[str] axesNames: List of customable axis names
         """
         self.__customAxisNames = set(axesNames)
         self.__updateSliderVisibility()
@@ -258,7 +258,7 @@ class NumpyAxesSelector(qt.QWidget):
         The size of the list will constrain the dimension of the resulting
         array.
 
-        :param list[str] axesNames: List of distinct strings identifying axis names
+        :param List[str] axesNames: List of distinct strings identifying axis names
         """
         self.__axisNames = list(axesNames)
         assert len(set(self.__axisNames)) == len(self.__axisNames),\
@@ -280,7 +280,7 @@ class NumpyAxesSelector(qt.QWidget):
     def setCustomAxis(self, axesNames):
         """Set the available list of named axis which can be set to a value.
 
-        :param list[str] axesNames: List of customable axis names
+        :param List[str] axesNames: List of customable axis names
         """
         self.__customAxisNames = set(axesNames)
         for axis in self.__axis:
