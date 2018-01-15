@@ -1,7 +1,7 @@
 .. currentmodule:: silx.gui.plot3d
 
 :mod:`items`: SceneWidget items
-=============================
+===============================
 
 The following classes are items that describes the content of a :class:`SceneWidget`:
 

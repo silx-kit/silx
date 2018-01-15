@@ -166,6 +166,11 @@ The :class:`PlotWidget` provides the following Qt signals:
 .. autoattribute:: PlotWidget.sigActiveScatterChanged
 .. autoattribute:: PlotWidget.sigInteractiveModeChanged
 
+.. toctree::
+   :hidden:
+
+   plotsignal.rst
+
 .. PlotWidget public API that is not documented:
    Could be added:
    - addItem
