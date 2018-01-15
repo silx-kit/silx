@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -44,7 +44,7 @@ from ..._utils import convertArrayToQImage
 from ...plot.Colormap import preferredColormaps
 from ... import qt, icons
 from .. import items
-from ..items.volume import Isosurface
+from ..items.volume import Isosurface, CutPlane
 
 
 from .core import AngleDegreeRow, BaseRow, ColorProxyRow, ProxyRow, StaticRow
@@ -1107,9 +1107,29 @@ def initScalarField3DNode(node, item):
     node.addRow(ScalarField3DIsoSurfacesRow(item))
 
 
+def initScalarField3DCutPlaneNode(node, item):
+    """Specific node init for ScalarField3D CutPlane
+
+    :param Item3DRow node: The model node to setup
+    :param CutPlane item: The CutPlane the node is representing
+    """
+    node.addRow(PlaneRow(item))
+
+    node.addRow(ColormapRow(item))
+
+    node.addRow(ProxyRow(
+        name='Values<=Min',
+        fget=item.getDisplayValuesBelowMin,
+        fset=item.setDisplayValuesBelowMin,
+        notify=item.sigItemChanged))
+
+    node.addRow(InterpolationRow(item))
+
+
 NODE_SPECIFIC_INIT = [  # class, init(node, item)
     (items.Scatter2D, initScatter2DNode),
     (items.ScalarField3D, initScalarField3DNode),
+    (CutPlane, initScalarField3DCutPlaneNode),
 ]
 """List of specific node init for different item class"""
 
