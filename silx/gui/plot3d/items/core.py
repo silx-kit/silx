@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -329,8 +329,8 @@ class DataItem3D(Item3D):
 
         if matrix is not None:
             matrix = numpy.array(matrix, dtype=numpy.float32)
-            assert matrix.shape in ((3, 3), (4, 4))
-            matrix4x4[:matrix.shape[0], :matrix.shape[1]] = matrix
+            assert matrix.shape == (3, 3)
+            matrix4x4[:3, :3] = matrix
 
         if not numpy.all(numpy.equal(matrix4x4, self._matrix.getMatrix())):
             self._matrix.setMatrix(matrix4x4)
@@ -339,9 +339,9 @@ class DataItem3D(Item3D):
     def getMatrix(self):
         """Returns the matrix set by :meth:`setMatrix`
 
-        :return: 4x4 matrix
+        :return: 3x3 matrix
         :rtype: numpy.ndarray"""
-        return self._matrix.getMatrix(copy=True)
+        return self._matrix.getMatrix(copy=True)[:3, :3]
 
 
 class GroupItem(DataItem3D):
