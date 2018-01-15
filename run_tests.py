@@ -32,7 +32,7 @@ Test coverage dependencies: coverage, lxml.
 """
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "03/08/2017"
+__date__ = "15/01/2018"
 __license__ = "MIT"
 
 import distutils.util
@@ -90,10 +90,16 @@ except ImportError:
 
 try:
     import importlib
-except:
-    importer = __import__
-else:
     importer = importlib.import_module
+except ImportError:
+    def importer(name):
+        module = __import__(name)
+        # returns the leaf module, instead of the root module
+        subnames = name.split(".")
+        subnames.pop(0)
+        for subname in subnames:
+            module = getattr(module, subname)
+            return module
 
 
 try:
