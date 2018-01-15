@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -49,7 +49,8 @@ class Texture(object):
     :type data: numpy.ndarray or None
     :param format_: Input data format if different from internalFormat
     :param shape: If data is None, shape of the texture
-    :type shape: 2 or 3-tuple of int (height, width) or (depth, height, width)
+                  (height, width) or (depth, height, width)
+    :type shape: List[int]
     :param int texUnit: The texture unit to use
     :param minFilter: OpenGL texture minimization filter (default: GL_NEAREST)
     :param magFilter: OpenGL texture magnification filter (default: GL_LINEAR)
@@ -258,7 +259,7 @@ class Texture(object):
         :param format_: The OpenGL format of the data
         :param data: The data to use to update the texture
         :param offset: The offset in the texture where to copy the data
-        :type offset: 2 or 3-tuple of int
+        :type offset: List[int]
         :param int texUnit:
             The texture unit to use (default: the one provided at init)
         """
