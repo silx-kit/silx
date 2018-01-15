@@ -550,7 +550,7 @@ class SpecH5(commonh5.File, SpecH5Group):
         attrs = {"NX_class": "NXroot",
                  "file_time": datetime.datetime.now().isoformat(),
                  "file_name": filename,
-                 "creator": "silx %s" % silx_version}
+                 "creator": "silx spech5 %s" % silx_version}
         commonh5.File.__init__(self, filename, attrs=attrs)
         assert self.attrs["NX_class"] == "NXroot"
 
