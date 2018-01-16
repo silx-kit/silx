@@ -1155,6 +1155,97 @@ class ScalarField3DIsoSurfacesRow(StaticRow):
             raise RuntimeError("Model does not correspond to scene content")
 
 
+class Scatter2DPropertyMixInRow(object):
+    """Mix-in class that enable/disable row according to Scatter2D mode.
+
+    :param Scatter2D item:
+    :param str propertyName: Name of the Scatter2D property of this row
+    """
+
+    def __init__(self, item, propertyName):
+        assert propertyName in ('lineWidth', 'symbol', 'symbolSize')
+        self.__propertyName = propertyName
+
+        self.__isEnabled = item.isPropertyEnabled(propertyName)
+        self.__updateFlags()
+
+        item.sigItemChanged.connect(self.__itemChanged)
+
+    def data(self, column, role):
+        if column == 1 and not self.__isEnabled:
+            # Discard data and editorHint if disabled
+            return None
+        else:
+            return super(Scatter2DPropertyMixInRow, self).data(column, role)
+
+    def __updateFlags(self):
+        """Update model flags"""
+        if self.__isEnabled:
+            self.setFlags(qt.Qt.ItemIsEnabled, 0)
+            self.setFlags(qt.Qt.ItemIsEnabled | qt.Qt.ItemIsEditable, 1)
+        else:
+            self.setFlags(qt.Qt.NoItemFlags)
+
+    def __itemChanged(self, event):
+        """Set flags to enable/disable the row"""
+        if event == items.Item3DChangedType.VISUALIZATION_MODE:
+            item = self.sender()
+            self.__isEnabled = item.isPropertyEnabled(self.__propertyName)
+            self.__updateFlags()
+
+            # Notify model
+            model = self.model()
+            if model is not None:
+                begin = self.index(column=0)
+                end = self.index(column=1)
+                model.dataChanged.emit(begin, end)
+
+
+class Scatter2DSymbolRow(Scatter2DPropertyMixInRow, SymbolRow):
+    """Specific class for Scatter2D symbol.
+
+    It is enabled/disabled according to visualization mode.
+
+    :param Scatter2D item:
+    """
+
+    def __init__(self, item):
+        SymbolRow.__init__(self, item)
+        Scatter2DPropertyMixInRow.__init__(self, item, 'symbol')
+
+
+class Scatter2DSymbolSizeRow(Scatter2DPropertyMixInRow, SymbolSizeRow):
+    """Specific class for Scatter2D symbol size.
+
+    It is enabled/disabled according to visualization mode.
+
+    :param Scatter2D item:
+    """
+
+    def __init__(self, item):
+        SymbolSizeRow.__init__(self, item)
+        Scatter2DPropertyMixInRow.__init__(self, item, 'symbolSize')
+
+
+class Scatter2DLineWidth(Scatter2DPropertyMixInRow, ProxyRow):
+    """Specific class for Scatter2D symbol size.
+
+    It is enabled/disabled according to visualization mode.
+
+    :param Scatter2D item:
+    """
+
+    def __init__(self, item):
+        # TODO link editorHint with OpenGL max line width
+        ProxyRow.__init__(self,
+                          name='Line width',
+                          fget=item.getLineWidth,
+                          fset=item.setLineWidth,
+                          notify=item.sigItemChanged,
+                          editorHint=(1, 10))
+        Scatter2DPropertyMixInRow.__init__(self, item, 'lineWidth')
+
+
 def initScatter2DNode(node, item):
     """Specific node init for Scatter2D to set order of parameters
 
@@ -1178,15 +1269,10 @@ def initScatter2DNode(node, item):
 
     node.addRow(ColormapRow(item))
 
-    node.addRow(SymbolRow(item))
-    node.addRow(SymbolSizeRow(item))
+    node.addRow(Scatter2DSymbolRow(item))
+    node.addRow(Scatter2DSymbolSizeRow(item))
 
-    node.addRow(ProxyRow(
-        name='Line width',
-        fget=item.getLineWidth,
-        fset=item.setLineWidth,
-        notify=item.sigItemChanged,
-        editorHint=(1, 10)))  # TODO link with OpenGL max line width
+    node.addRow(Scatter2DLineWidth(item))
 
 
 def initScalarField3DNode(node, item):
