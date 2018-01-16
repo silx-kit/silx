@@ -41,7 +41,7 @@ from silx.gui.plot.actions.control import ColormapAction
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "03/01/2018"
+__date__ = "16/01/2018"
 
 _logger = logging.getLogger(__name__)
 
@@ -214,6 +214,13 @@ class DataView(object):
         if DataView._defaultColorDialog is None:
             DataView._defaultColorDialog = ColormapAction._createDialog(qt.QApplication.instance().activeWindow())
         return DataView._defaultColorDialog
+
+    @staticmethod
+    def _cleanUpCache():
+        """Clean up the cache. Needed for tests"""
+        DataView._defaultColormap = None
+        DataView._defaultColorDialog = None
+        print("_cleanUpCache")
 
     def icon(self):
         """Returns the default icon"""
