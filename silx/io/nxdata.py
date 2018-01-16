@@ -125,7 +125,7 @@ def is_valid_nxdata(group):   # noqa
 
     if "axes" in group.attrs:
         axes_names = get_attr_as_string(group, "axes")
-        if isinstance(axes_names, str):
+        if isinstance(axes_names, (six.text_type, six.binary_type)):
             axes_names = [axes_names]
 
         if 1 < ndim < len(axes_names):
@@ -177,6 +177,7 @@ def is_valid_nxdata(group):   # noqa
             signal_size *= dim
         polynomial_axes_names = []
         for i, axis_name in enumerate(axes_names):
+
             if axis_name == ".":
                 continue
             if axis_name not in group or not is_dataset(group[axis_name]):
@@ -500,7 +501,7 @@ class NXdata(object):
             else:
                 return [None] * ndims
 
-        if isinstance(axes_dataset_names, str):
+        if isinstance(axes_dataset_names, (six.text_type, six.binary_type)):
             axes_dataset_names = [axes_dataset_names]
 
         for i, axis_name in enumerate(axes_dataset_names):
