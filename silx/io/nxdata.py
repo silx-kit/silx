@@ -639,8 +639,7 @@ def is_NXentry_with_default_NXdata(group):
     if not is_group(group):
         return False
 
-    nx_class = group.attrs.get("NX_class")
-    if nx_class != "NXentry":
+    if group.attrs.get("NX_class") != "NXentry":
         return False
 
     default_nxdata_name = group.attrs.get("default")
@@ -652,33 +651,52 @@ def is_NXentry_with_default_NXdata(group):
     if not is_group(default_nxdata_group):
         return False
 
-    if not is_valid_nxdata(default_nxdata_group):
+    return is_valid_nxdata(default_nxdata_group)
+
+
+def is_NXroot_with_default_NXdata(group):
+    """Return True if group is a valid NXroot defining a default NXentry
+    defining a valid default NXdata."""
+    if not is_group(group):
         return False
 
-    return True
+    if group.attrs.get("NX_class") != "NXroot":
+        return False
+
+    default_nxentry_name = group.attrs.get("default")
+    if default_nxentry_name is None or default_nxentry_name not in group:
+        return False
+
+    default_nxentry_group = group.get(default_nxentry_name)
+    return is_NXentry_with_default_NXdata(default_nxentry_group)
 
 
 def get_NXdata_in_group(group):
     """Return a :class:`NXdata` corresponding to the default NXdata group in a
     group.
 
-    This function can find the NXdata if group is already a NXdata or
-    if it is an NXentry defining a default NXdata.
+    This function can find the NXdata if the group is already a NXdata, or
+    if it is a NXentry defining a default NXdata, or if it is a NXroot
+    defining such a default valid NXentry.
 
-    Return None if group is not a NXdata and is also not an NXentry defining
-    a NXdata.
+    Return None if no valid NXdata could be found.
 
-    :param group: NXdata group or NXentry group defining an @default NXdata
-        group. Or None.
-    :return: :class:`NXdata` or None
+    :param group: h5py-like group following the Nexus specification
+        (NXdata, NXentry or NXroot).
+    :return: :class:`NXdata` object or None
     :raise TypeError if group is not a h5py-like group
     """
     if not is_group(group):
         raise TypeError("Provided parameter is not a h5py-like group")
 
-    if is_NXentry_with_default_NXdata(group):
-        return NXdata(group[group.attrs["default"]])
-    if is_valid_nxdata(group):
-        return NXdata(group)
+    if is_NXroot_with_default_NXdata(group):
+        default_entry = group[group.attrs["default"]]
+        default_data = default_entry[default_entry.attrs["default"]]
+    elif is_NXentry_with_default_NXdata(group):
+        default_data = group[group.attrs["default"]]
+    elif is_valid_nxdata(group):
+        default_data = group
+    else:
+        return None
 
-    return None
+    return NXdata(default_data)
