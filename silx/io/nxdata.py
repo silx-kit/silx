@@ -856,7 +856,9 @@ def save_NXdata(filename, signal, axes,
         data_group = entry.create_group(nxdata_name)
         data_group.attrs["NX_class"] = "NXdata"
         data_group.attrs["signal"] = signal_name
-        data_group.attrs["axes"] = axes_names
+        data_group.attrs["axes"] = numpy.array(
+                axes_names,
+                dtype=h5py.special_dtype(vlen=six.text_type))      # variable length UTF-8
         if title:
             # not in NXdata spec, but implemented by nexpy
             data_group["title"] = title
