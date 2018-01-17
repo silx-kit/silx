@@ -39,7 +39,7 @@ from __future__ import division
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
 
-__date__ = "24/05/2017"
+__date__ = "03/01/2018"
 
 from . import PlotAction
 from silx.gui.widgets.MedianFilterDialog import MedianFilterDialog
@@ -67,7 +67,7 @@ class MedianFilterAction(PlotAction):
         self._originalImage = None
         self._legend = None
         self._filteredImage = None
-        self._popup = MedianFilterDialog(parent=None)
+        self._popup = MedianFilterDialog(parent=plot)
         self._popup.sigFilterOptChanged.connect(self._updateFilter)
         self.plot.sigActiveImageChanged.connect(self._updateActiveImage)
         self._updateActiveImage()
