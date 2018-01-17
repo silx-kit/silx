@@ -26,7 +26,7 @@
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "12/09/2017"
+__date__ = "17/01/2018"
 
 
 import os
@@ -43,7 +43,7 @@ except ImportError:
 
 import silx
 from .. import convert
-from silx.test import utils
+from silx.utils import testutils
 
 
 
@@ -103,9 +103,9 @@ class TestConvertCommand(unittest.TestCase):
             result = e.args[0]
         self.assertEqual(result, 0)
 
-    @utils.test_logging(convert._logger.name, error=1)
+    @testutils.test_logging(convert._logger.name, error=1)
     def testH5pyNotInstalled(self):
-        with utils.EnsureImportError("h5py"):
+        with testutils.EnsureImportError("h5py"):
             result = convert.main(["convert", "foo.spec", "bar.edf"])
             # we explicitly return -1 if h5py is not imported
             self.assertNotEqual(result, 0)
@@ -121,7 +121,7 @@ class TestConvertCommand(unittest.TestCase):
         self.assertNotEqual(result, 0)
 
     @unittest.skipIf(h5py is None, "h5py is required to test convert")
-    @utils.test_logging(convert._logger.name, error=3)
+    @testutils.test_logging(convert._logger.name, error=3)
     # one error log per missing file + one "Aborted" error log
     def testWrongFiles(self):
         result = convert.main(["convert", "foo.spec", "bar.edf"])

@@ -31,7 +31,7 @@ import unittest
 import datetime
 from functools import partial
 
-from silx.test import utils
+from silx.utils import testutils
 
 from .. import spech5
 from ..spech5 import (SpecH5, SpecH5Group,
@@ -45,7 +45,7 @@ except ImportError:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "26/07/2017"
+__date__ = "17/01/2018"
 
 sftext = """#F /tmp/sf.dat
 #E 1455180875
@@ -581,7 +581,7 @@ class TestSpecH5(unittest.TestCase):
         with self.assertRaises(KeyError):
             uc = self.sfh5["/1001.1/sample/unit_cell"]
 
-    @utils.test_logging(spech5.logger1.name, warning=2)
+    @testutils.test_logging(spech5.logger1.name, warning=2)
     def testOpenFileDescriptor(self):
         """Open a SpecH5 file from a file descriptor"""
         with io.open(self.sfh5.filename) as f:
