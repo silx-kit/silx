@@ -32,7 +32,7 @@ from __future__ import absolute_import
 
 __authors__ = ["Vincent Favre-Nicolin", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "02/10/2017"
+__date__ = "17/01/2018"
 
 
 import logging
@@ -46,6 +46,8 @@ from silx.gui.widgets.FloatEdit import FloatEdit
 
 _logger = logging.getLogger(__name__)
 
+
+_AMPLITUDE_COLORMAP = Colormap()
 
 _PHASE_COLORMAP = Colormap(
     name='hsv',
@@ -124,10 +126,10 @@ class _ImageComplexData(items.ImageData):
         self._readOnlyColormap = False
         self._mode = 'absolute'
         self._colormaps = {  # Default colormaps for all modes
-            'absolute': Colormap(),
+            'absolute': _AMPLITUDE_COLORMAP,
             'phase': _PHASE_COLORMAP.copy(),
-            'real': Colormap(),
-            'imaginary': Colormap(),
+            'real': _AMPLITUDE_COLORMAP,
+            'imaginary': _AMPLITUDE_COLORMAP,
             'amplitude_phase': _PHASE_COLORMAP.copy(),
             'log10_amplitude_phase': _PHASE_COLORMAP.copy(),
         }
