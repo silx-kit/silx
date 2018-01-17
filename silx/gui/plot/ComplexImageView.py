@@ -134,19 +134,15 @@ class _ImageComplexData(items.ImageData):
 
     def __init__(self):
         super(_ImageComplexData, self).__init__()
-        self._readOnlyColormap = False
         self._mode = Mode.ABSOLUTE
         self._colormaps = {  # Default colormaps for all modes
             Mode.ABSOLUTE: _AMPLITUDE_COLORMAP,
-            Mode.PHASE: _PHASE_COLORMAP.copy(),
+            Mode.PHASE: _PHASE_COLORMAP,
             Mode.REAL: _AMPLITUDE_COLORMAP,
             Mode.IMAGINARY: _AMPLITUDE_COLORMAP,
-            Mode.AMPLITUDE_PHASE: _PHASE_COLORMAP.copy(),
-            Mode.LOG10_AMPLITUDE_PHASE: _PHASE_COLORMAP.copy(),
+            Mode.AMPLITUDE_PHASE: _PHASE_COLORMAP,
+            Mode.LOG10_AMPLITUDE_PHASE: _PHASE_COLORMAP,
         }
-
-    _READ_ONLY_MODES = Mode.AMPLITUDE_PHASE, Mode.LOG10_AMPLITUDE_PHASE
-    """Modes that requires a read-only colormap."""
 
     def setVisualizationMode(self, mode):
         """Set the visualization mode to use.
@@ -171,10 +167,6 @@ class _ImageComplexData(items.ImageData):
         """
         return self._mode
 
-    def _isReadOnlyColormap(self):
-        """Returns True if colormap should not be modified."""
-        return self.getVisualizationMode() in self._READ_ONLY_MODES
-
     def setColormap(self, colormap, mode=None):
         """
         Set the colormap for this specific mode.
@@ -184,16 +176,11 @@ class _ImageComplexData(items.ImageData):
         """
         if mode is not None:
             self._colormaps[mode] = colormap
-            if self._mode == mode:
-                super(_ImageComplexData, self).setColormap(colormap)
-        elif not self._isReadOnlyColormap():
+        if mode is None or self._mode == mode:
             super(_ImageComplexData, self).setColormap(colormap)
 
     def getColormap(self):
-        if self._isReadOnlyColormap():
-            return _PHASE_COLORMAP.copy()
-        else:
-            return super(_ImageComplexData, self).getColormap()
+        return super(_ImageComplexData, self).getColormap()
 
 
 # Widgets
@@ -480,9 +467,6 @@ class ComplexImageView(qt.QWidget):
         """Update the image in the plot"""
 
         mode = self.getVisualizationMode()
-
-        self.getPlot().getColormapAction().setDisabled(
-            mode in (Mode.AMPLITUDE_PHASE, Mode.LOG10_AMPLITUDE_PHASE))
 
         self._plotImage.setVisualizationMode(mode)
 
