@@ -175,8 +175,18 @@ class _ImageComplexData(items.ImageData):
         """Returns True if colormap should not be modified."""
         return self.getVisualizationMode() in self._READ_ONLY_MODES
 
-    def setColormap(self, colormap):
-        if not self._isReadOnlyColormap():
+    def setColormap(self, colormap, mode=None):
+        """
+        Set the colormap for this specific mode.
+
+        :param silx.gui.plot.Colormap.Colormap colormap: The colormap
+        :param Mode mode: If specified, set the colormap of this specific mode
+        """
+        if mode is not None:
+            self._colormaps[mode] = colormap
+            if self._mode == mode:
+                super(_ImageComplexData, self).setColormap(colormap)
+        elif not self._isReadOnlyColormap():
             super(_ImageComplexData, self).setColormap(colormap)
 
     def getColormap(self):
@@ -391,6 +401,9 @@ class ComplexImageView(qt.QWidget):
     :param parent: See :class:`QMainWindow`
     """
 
+    Mode = Mode
+    """Also expose the modes inside the class"""
+
     sigDataChanged = qt.Signal()
     """Signal emitted when data has changed."""
 
@@ -594,15 +607,16 @@ class ComplexImageView(qt.QWidget):
 
     # Image item proxy
 
-    def setColormap(self, colormap):
+    def setColormap(self, colormap, mode=None):
         """Set the colormap to use for amplitude, phase, real or imaginary.
 
         WARNING: This colormap is not used when displaying both
         amplitude and phase.
 
         :param silx.gui.plot.Colormap.Colormap colormap: The colormap
+        :param Mode mode: If specified, set the colormap of this specific mode
         """
-        self._plotImage.setColormap(colormap)
+        self._plotImage.setColormap(colormap, mode)
 
     def getColormap(self):
         """Returns the colormap used to display the data.
