@@ -30,7 +30,7 @@ See http://download.nexusformat.org/sphinx/classes/base_classes/NXdata.html
 """
 import logging
 import numpy
-from .utils import is_dataset, is_group
+from .utils import is_dataset, is_group, is_file
 from silx.third_party import six
 
 _logger = logging.getLogger(__name__)
@@ -661,7 +661,11 @@ def is_NXroot_with_default_NXdata(group):
     if not is_group(group):
         return False
 
-    if group.attrs.get("NX_class") != "NXroot":
+    # A NXroot is supposed to be at the root of a data file, and @NX_class
+    # is therefore optional. We accept groups that are not located at the root
+    # if they have @NX_class=NXroot (use case: several nexus files archived
+    # in a single HDF5 file)
+    if group.attrs.get("NX_class") != "NXroot" and not is_file(group):
         return False
 
     default_nxentry_name = group.attrs.get("default")
