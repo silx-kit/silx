@@ -107,7 +107,6 @@ kernel void descriptor_gpu1(
     int lid1 = get_local_id(1); //[0,4[
     int lid2 = get_local_id(2); //[0,4[
     int lid = (lid2*get_local_size(1)+lid1)*get_local_size(0)+lid0; //[0,128[
-    //int lid = (lid0*4+lid1)*4+lid2; //[0,128[
     int groupid = get_group_id(0);
 
     if ((groupid < keypoints_start) || (groupid >= *keypoints_end))
