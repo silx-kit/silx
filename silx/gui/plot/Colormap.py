@@ -271,8 +271,6 @@ class Colormap(qt.QObject):
         
         :param bool editable: is the colormap editable 
         """
-        if self.isEditable() is False:
-            raise NotEditableError('Colormap is not editable')
         assert type(editable) is bool
         self._editable = editable
         self.sigChanged.emit()
