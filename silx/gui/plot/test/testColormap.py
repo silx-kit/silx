@@ -135,14 +135,11 @@ class TestDictAPI(unittest.TestCase):
             'autoscale': False
         }
         with self.assertRaises(ValueError):
-            colormapObject = Colormap._fromDict(clm_dict)
+            Colormap._fromDict(clm_dict)
 
 
 class TestObjectAPI(ParametricTestCase):
     """Test the new Object API of the colormap"""
-    def setUp(self):
-        signalHasBeenEmitting = False
-
     def testVMinVMax(self):
         """Test getter and setter associated to vmin and vmax values"""
         vmin = 1.0
@@ -289,7 +286,6 @@ class TestObjectAPI(ParametricTestCase):
         self.assertTrue(numpy.all(numpy.equal(
             colors,
             ((0, 0, 0, 255), (255, 255, 255, 255)))))
-
 
 
 class TestPreferredColormaps(unittest.TestCase):
