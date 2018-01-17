@@ -99,7 +99,7 @@ class DataInfo(object):
         self.isComplex = False
         self.isBoolean = False
         self.isRecord = False
-        self.isNXdata = False
+        self.hasNXdata = False
         self.shape = tuple()
         self.dim = 0
         self.size = 0
@@ -107,9 +107,10 @@ class DataInfo(object):
         if data is None:
             return
 
-        if silx.io.is_group(data) and nxdata.is_valid_nxdata(data):
-            self.isNXdata = True
-            nxd = nxdata.NXdata(data)
+        if silx.io.is_group(data):
+            nxd = nxdata.get_NXdata_in_group(data)
+            if nxd is not None:
+                self.hasNXdata = True
 
         if isinstance(data, numpy.ndarray):
             self.isArray = True
@@ -123,7 +124,7 @@ class DataInfo(object):
                 self.interpretation = get_attr_as_string(data, "interpretation")
             else:
                 self.interpretation = None
-        elif self.isNXdata:
+        elif self.hasNXdata:
             self.interpretation = nxd.interpretation
         else:
             self.interpretation = None
@@ -136,7 +137,7 @@ class DataInfo(object):
             self.isRecord = data.dtype.fields is not None
             self.isComplex = numpy.issubdtype(data.dtype, numpy.complex)
             self.isBoolean = numpy.issubdtype(data.dtype, numpy.bool_)
-        elif self.isNXdata:
+        elif self.hasNXdata:
             self.isNumeric = numpy.issubdtype(nxd.signal.dtype,
                                               numpy.number)
             self.isComplex = numpy.issubdtype(nxd.signal.dtype, numpy.complex)
@@ -149,7 +150,7 @@ class DataInfo(object):
 
         if hasattr(data, "shape"):
             self.shape = data.shape
-        elif self.isNXdata:
+        elif self.hasNXdata:
             self.shape = nxd.signal.shape
         else:
             self.shape = tuple()
@@ -962,14 +963,17 @@ class _NXdataScalarView(DataView):
 
     def setData(self, data):
         data = self.normalizeData(data)
-        signal = NXdata(data).signal
+        # data could be a NXdata or an NXentry
+        nxd = nxdata.get_NXdata_in_group(data)
+        signal = nxd.signal
         self.getWidget().setArrayData(signal,
                                       labels=True)
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
-        if info.isNXdata:
-            nxd = NXdata(data)
+
+        if info.hasNXdata:
+            nxd = nxdata.get_NXdata_in_group(data)
             if nxd.signal_is_0d or nxd.interpretation in ["scalar", "scaler"]:
                 return 100
         return DataView.UNSUPPORTED
@@ -999,7 +1003,7 @@ class _NXdataCurveView(DataView):
 
     def setData(self, data):
         data = self.normalizeData(data)
-        nxd = NXdata(data)
+        nxd = nxdata.get_NXdata_in_group(data)
         signal_name = nxd.signal_name
         group_name = data.name
         if nxd.axes_dataset_names[-1] is not None:
@@ -1014,12 +1018,13 @@ class _NXdataCurveView(DataView):
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
-        if info.isNXdata:
-            nxd = NXdata(data)
+        if info.hasNXdata:
+            nxd = nxdata.get_NXdata_in_group(data)
             if nxd.is_x_y_value_scatter or nxd.is_unsupported_scatter:
                 return DataView.UNSUPPORTED
+
             if nxd.signal_is_1d and \
-                    not nxd.interpretation in ["scalar", "scaler"]:
+                    nxd.interpretation not in ["scalar", "scaler"]:
                 return 100
             if nxd.interpretation == "spectrum":
                 return 100
@@ -1046,7 +1051,7 @@ class _NXdataXYVScatterView(DataView):
 
     def setData(self, data):
         data = self.normalizeData(data)
-        nxd = NXdata(data)
+        nxd = nxdata.get_NXdata_in_group(data)
         signal_name = nxd.signal_name
         # signal_errors = nx.errors   # not supported
         group_name = data.name
@@ -1071,9 +1076,10 @@ class _NXdataXYVScatterView(DataView):
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
-        if info.isNXdata:
-            if NXdata(data).is_x_y_value_scatter:
+        if info.hasNXdata:
+            if nxdata.get_NXdata_in_group(data).is_x_y_value_scatter:
                 return 100
+
         return DataView.UNSUPPORTED
 
 
@@ -1099,7 +1105,7 @@ class _NXdataImageView(DataView):
 
     def setData(self, data):
         data = self.normalizeData(data)
-        nxd = NXdata(data)
+        nxd = nxdata.get_NXdata_in_group(data)
         signal_name = nxd.signal_name
         group_name = data.name
         y_axis, x_axis = nxd.axes[-2:]
@@ -1112,8 +1118,9 @@ class _NXdataImageView(DataView):
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
-        if info.isNXdata:
-            nxd = NXdata(data)
+
+        if info.hasNXdata:
+            nxd = nxdata.get_NXdata_in_group(data)
             if nxd.signal_is_2d:
                 if nxd.interpretation not in ["scalar", "spectrum", "scaler"]:
                     return 100
@@ -1142,7 +1149,7 @@ class _NXdataStackView(DataView):
 
     def setData(self, data):
         data = self.normalizeData(data)
-        nxd = NXdata(data)
+        nxd = nxdata.get_NXdata_in_group(data)
         signal_name = nxd.signal_name
         group_name = data.name
         z_axis, y_axis, x_axis = nxd.axes[-3:]
@@ -1159,12 +1166,14 @@ class _NXdataStackView(DataView):
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
-        if info.isNXdata:
-            nxd = NXdata(data)
+
+        if info.hasNXdata:
+            nxd = nxdata.get_NXdata_in_group(data)
             if nxd.signal_ndim >= 3:
                 if nxd.interpretation not in ["scalar", "scaler",
                                               "spectrum", "image"]:
                     return 100
+
         return DataView.UNSUPPORTED
 
 

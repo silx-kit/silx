@@ -30,7 +30,7 @@ See http://download.nexusformat.org/sphinx/classes/base_classes/NXdata.html
 """
 import logging
 import numpy
-from .utils import is_dataset, is_group
+from .utils import is_dataset, is_group, is_file
 from silx.third_party import six
 
 _logger = logging.getLogger(__name__)
@@ -125,7 +125,7 @@ def is_valid_nxdata(group):   # noqa
 
     if "axes" in group.attrs:
         axes_names = get_attr_as_string(group, "axes")
-        if isinstance(axes_names, str):
+        if isinstance(axes_names, (six.text_type, six.binary_type)):
             axes_names = [axes_names]
 
         if 1 < ndim < len(axes_names):
@@ -177,6 +177,7 @@ def is_valid_nxdata(group):   # noqa
             signal_size *= dim
         polynomial_axes_names = []
         for i, axis_name in enumerate(axes_names):
+
             if axis_name == ".":
                 continue
             if axis_name not in group or not is_dataset(group[axis_name]):
@@ -500,7 +501,7 @@ class NXdata(object):
             else:
                 return [None] * ndims
 
-        if isinstance(axes_dataset_names, str):
+        if isinstance(axes_dataset_names, (six.text_type, six.binary_type)):
             axes_dataset_names = [axes_dataset_names]
 
         for i, axis_name in enumerate(axes_dataset_names):
@@ -631,3 +632,76 @@ class NXdata(object):
     def is_unsupported_scatter(self):
         """True if this is a scatter with a signal and more than 2 axes."""
         return self.is_scatter and len(self.axes) > 2
+
+
+def is_NXentry_with_default_NXdata(group):
+    """Return True if group is a valid NXentry defining a valid default
+    NXdata."""
+    if not is_group(group):
+        return False
+
+    if group.attrs.get("NX_class") != "NXentry":
+        return False
+
+    default_nxdata_name = group.attrs.get("default")
+    if default_nxdata_name is None or default_nxdata_name not in group:
+        return False
+
+    default_nxdata_group = group.get(default_nxdata_name)
+
+    if not is_group(default_nxdata_group):
+        return False
+
+    return is_valid_nxdata(default_nxdata_group)
+
+
+def is_NXroot_with_default_NXdata(group):
+    """Return True if group is a valid NXroot defining a default NXentry
+    defining a valid default NXdata."""
+    if not is_group(group):
+        return False
+
+    # A NXroot is supposed to be at the root of a data file, and @NX_class
+    # is therefore optional. We accept groups that are not located at the root
+    # if they have @NX_class=NXroot (use case: several nexus files archived
+    # in a single HDF5 file)
+    if group.attrs.get("NX_class") != "NXroot" and not is_file(group):
+        return False
+
+    default_nxentry_name = group.attrs.get("default")
+    if default_nxentry_name is None or default_nxentry_name not in group:
+        return False
+
+    default_nxentry_group = group.get(default_nxentry_name)
+    return is_NXentry_with_default_NXdata(default_nxentry_group)
+
+
+def get_NXdata_in_group(group):
+    """Return a :class:`NXdata` corresponding to the default NXdata group in a
+    group.
+
+    This function can find the NXdata if the group is already a NXdata, or
+    if it is a NXentry defining a default NXdata, or if it is a NXroot
+    defining such a default valid NXentry.
+
+    Return None if no valid NXdata could be found.
+
+    :param group: h5py-like group following the Nexus specification
+        (NXdata, NXentry or NXroot).
+    :return: :class:`NXdata` object or None
+    :raise TypeError if group is not a h5py-like group
+    """
+    if not is_group(group):
+        raise TypeError("Provided parameter is not a h5py-like group")
+
+    if is_NXroot_with_default_NXdata(group):
+        default_entry = group[group.attrs["default"]]
+        default_data = default_entry[default_entry.attrs["default"]]
+    elif is_NXentry_with_default_NXdata(group):
+        default_data = group[group.attrs["default"]]
+    elif is_valid_nxdata(group):
+        default_data = group
+    else:
+        return None
+
+    return NXdata(default_data)
