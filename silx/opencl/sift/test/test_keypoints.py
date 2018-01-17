@@ -40,7 +40,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "03/01/2018"
+__date__ = "17/01/2018"
 
 import os
 import unittest
@@ -203,6 +203,10 @@ class test_keypoints(ParameterisedTestCase):
             grad_width,
             grad_height
         ]
+        if not self.USE_CPU:
+            kargs += [pyopencl.LocalMemory(36 * 4),
+                      pyopencl.LocalMemory(128 * 4),
+                      pyopencl.LocalMemory(128 * 4)]
 
         # Call the kernel
         t0 = time.time()
@@ -314,14 +318,68 @@ class test_keypoints(ParameterisedTestCase):
             logger.info("Descriptors computation took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
 
 
+@unittest.skipUnless(ocl, "opencl missing")
+class TestFeature(unittest.TestCase):
+    """Test a simple image with all possible path"""
+
+    def test_keypoints(self):
+        shape = 32, 32
+        img = numpy.zeros(shape, dtype=numpy.uint8)
+        img[:16, :15] = 255
+        # results calculated by sift from feature
+        xkp = 11.82945061
+        ykp = 12.82944393
+        sigma = 2.12008238,
+        orientations = numpy.array([-2.81852078, -1.78396046])
+        keypoints = numpy.array(
+             [[0, 0, 0, 0, 0, 0, 0, 0, 0, 14, 12, 0, 0, 0, 0, 0,
+               0, 48, 67, 0, 0, 0, 0, 0, 0, 55, 79, 0, 0, 0, 0, 0,
+               12, 7, 0, 0, 0, 0, 0, 0, 100, 140, 65, 0, 0, 0, 0, 8,
+               21, 140, 140, 0, 0, 0, 0, 1, 0, 122, 140, 0, 0, 0, 0, 0,
+               19, 0, 0, 0, 0, 0, 0, 6, 140, 43, 4, 0, 0, 0, 0, 131,
+               140, 51, 28, 0, 0, 0, 0, 74, 1, 7, 10, 0, 0, 0, 0, 0,
+               2, 0, 0, 0, 0, 0, 0, 1, 140, 0, 0, 0, 0, 0, 0, 107,
+               140, 0, 0, 0, 0, 0, 0, 132, 5, 0, 0, 0, 0, 0, 0, 3],
+              [6, 2, 0, 0, 0, 0, 0, 0, 152, 83, 0, 0, 0, 0, 0, 0,
+               152, 63, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
+               24, 5, 0, 0, 0, 0, 0, 0, 152, 94, 0, 0, 0, 0, 4, 38,
+               152, 42, 0, 0, 0, 0, 38, 43, 0, 0, 0, 0, 0, 0, 21, 8,
+               14, 0, 0, 0, 0, 0, 0, 6, 119, 6, 0, 0, 0, 0, 77, 152,
+               23, 1, 0, 0, 0, 0, 152, 152, 0, 0, 0, 0, 0, 0, 152, 100,
+               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16, 14,
+               0, 0, 0, 0, 0, 0, 74, 29, 0, 0, 0, 0, 0, 0, 94, 35]
+              ])
+        epsilon = 5e-5
+
+        def check_kp(kp, config=None):
+            self.assertEqual(len(kp), 2, "two keypoints in this image")
+            self.assertEqual(len(kp), 2, "two keypoints in this image")
+            for i, k in enumerate(kp):
+                self.assertLessEqual(abs(k[0] - xkp), epsilon, "x_coordinate matches for kp %i" % i)
+                self.assertLessEqual(abs(k[1] - ykp), epsilon, "y_coordinate matches for kp %i" % i)
+                self.assertLessEqual(abs(k[2] - sigma), epsilon, "sigma matches for kp %i" % i)
+                self.assertLessEqual((abs(k[3] - orientations).min()), 0.03, "one orientation matches for %i" % i)
+                idx = (abs(k[3] - orientations).argmin())
+                l1 = abs(k[4] - keypoints[idx]).sum()
+                if l1 > 100:
+                    logger.warning("error is not neglectable %s\n%s\%s", l1, k[4], keypoints[idx])
+                self.assertLessEqual(l1, 500, "keypoint matches %i matches:\n%s\ngot:\n%s\nexpected:\n%s" % (i, l1, k[4], keypoints[idx]))
+
+        from silx.opencl.sift import SiftPlan
+        sp = SiftPlan(template=img, profile=True)
+        kp = sp(img)
+        sp.log_profile()
+        check_kp(kp)
+
+
 def suite():
     testSuite = unittest.TestSuite()
     TESTCASES = [{"orientation_gpu": (128,), "descriptor_gpu2": (8, 8, 8)},
                  {"orientation_cpu": (1,), "descriptor_cpu": (1,)},
-                 {"orientation_gpu": (128,), "descriptor_gpu1": (4, 4, 8)},
+                 {"orientation_gpu": (128,), "descriptor_gpu1": (8, 4, 4)},
                  ]
     for param in TESTCASES:
         testSuite.addTest(ParameterisedTestCase.parameterise(
                 test_keypoints, param))
-
+    testSuite.addTest(TestFeature("test_keypoints"))
     return testSuite

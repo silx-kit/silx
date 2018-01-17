@@ -89,6 +89,7 @@ typedef struct actual_keypoint
  * :param grad_height: integer num of lines of the gradient
 
 
+TODO: one day use compile time parameters
 -par.MagFactor = 3 //"1.5 sigma"
 -OriSize  = 8 //number of bins in the local histogram
 -par.IndexSigma  = 1.0
@@ -112,7 +113,8 @@ kernel void descriptor_gpu2(
 	int lid0 = get_local_id(0); //[0,8[
 	int lid1 = get_local_id(1); //[0,8[
 	int lid2 = get_local_id(2); //[0,8[
-	int lid = (lid0*get_local_size(1)+lid1)*get_local_size(0)+lid0; //[0,512[ but we will use only up to 128
+	//int lid = (lid2*get_local_size(1)+lid1)*get_local_size(0)+lid0; //[0,512[ but we will use only up to 128
+	int lid = (lid0*8+lid1)*8+lid2; //[0,512[ to limit to [0,128[
 	int groupid = get_group_id(0);
 	if ((groupid < keypoints_start) || (groupid >= *keypoints_end))
 	{

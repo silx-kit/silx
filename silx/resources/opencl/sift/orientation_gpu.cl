@@ -48,9 +48,6 @@
 
 #define MIN(i,j) ( (i)<(j) ? (i):(j) )
 #define MAX(i,j) ( (i)<(j) ? (j):(i) )
-#ifndef WORKGROUP_SIZE
-    #define WORKGROUP_SIZE 128
-#endif
 
 
 
@@ -106,14 +103,18 @@ kernel void orientation_gpu(
     int keypoints_start,
     int keypoints_end,
     int grad_width,
-    int grad_height)
+    int grad_height,
+    local float* hist, //size 36
+    local volatile float* hist2, //size 128
+    local volatile int* pos) //size 128
 {
     int lid0 = get_local_id(0);
     int groupid = get_group_id(0);
 
-//    Process only valid points
     if ((groupid< keypoints_start) || (groupid >= keypoints_end))
+    {   //    Process only valid points
         return;
+    }
     guess_keypoint raw_kp = keypoints[groupid].raw;
     if (raw_kp.row < 0.0f )
         return;
@@ -122,17 +123,17 @@ kernel void orientation_gpu(
     int old;
     float distsq, gval, angle, interp=0.0;
     float hist_prev, hist_curr, hist_next;
-    local volatile float hist[36];
-    local volatile float hist2[WORKGROUP_SIZE];
-    local volatile int pos[WORKGROUP_SIZE];
     float ONE_3 = 1.0f / 3.0f;
     float ONE_18 = 1.0f / 18.0f;
     //memset for "pos" and "hist2"
     pos[lid0] = -1;
     hist2[lid0] = 0.0f;
-    if (lid0 <36) hist[lid0] = 0.0f;
+    if (lid0 <36)
+    {
+        hist[lid0] = 0.0f;
+    }
 
-    int    row = (int) (raw_kp.row + 0.5f),
+    int row = (int) (raw_kp.row + 0.5f),
         col = (int) (raw_kp.col + 0.5f);
 
     /* Look at pixels within 3 sigma around the point and sum their
@@ -180,16 +181,13 @@ kernel void orientation_gpu(
         //We are missing atomic operations on floats in OpenCL...
         if (lid0 == 0)
         { //this has to be done here ! if not, pos[] is erased !
-            for (i=0; i < WORKGROUP_SIZE; i++)
+            for (i=0; i < 128; i++)
                 if (pos[i] != -1) hist[pos[i]] += hist2[i];
         }
         barrier(CLK_LOCAL_MEM_FENCE);
     }
 
-
-
 //        Apply smoothing 6 times for accurate Gaussian approximation
-
 
     for (j=0; j<6; j++)
     {
@@ -282,7 +280,8 @@ kernel void orientation_gpu(
         }
     }
     barrier(CLK_LOCAL_MEM_FENCE);
-    if (lid0==0){
+    if (lid0==0)
+    {
         if (hist2[1]>hist2[0])
         {
             hist2[0]=hist2[1];
@@ -344,7 +343,6 @@ kernel void orientation_gpu(
         We can create new keypoints of same (x,y,sigma) but a different angle.
         For every local peak in histogram, every peak of value >= 80% of maxval generates a new keypoint
     */
-//    return;
     if (lid0 < 36 && lid0 != argmax)
     {
         i = lid0;
