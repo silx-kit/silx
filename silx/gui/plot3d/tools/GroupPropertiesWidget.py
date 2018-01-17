@@ -30,10 +30,11 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "11/01/2018"
 
-from silx.gui import qt
-from silx.gui.plot.ColormapDialog import ColormapDialog
+from ....gui import qt
+from ....gui.plot.Colormap import Colormap
+from ....gui.plot.ColormapDialog import ColormapDialog
 
-from silx.gui.plot3d.items import SymbolMixIn, ColormapMixIn
+from ..items import SymbolMixIn, ColormapMixIn
 
 
 class GroupPropertiesWidget(qt.QWidget):
@@ -119,6 +120,7 @@ class GroupPropertiesWidget(qt.QWidget):
         layout.addRow('Line Width', lineWidthLayout)
 
         self._colormapDialog = None  # To store dialog
+        self._colormap = Colormap()
 
     def getGroup(self):
         """Returns the :class:`GroupItem` this widget is attached to.
@@ -144,6 +146,7 @@ class GroupPropertiesWidget(qt.QWidget):
 
         if self._colormapDialog is None:
             self._colormapDialog = ColormapDialog(self)
+            self._colormapDialog.setColormap(self._colormap)
 
         previousColormap = self._colormapDialog.getColormap()
         if self._colormapDialog.exec_():
@@ -161,7 +164,7 @@ class GroupPropertiesWidget(qt.QWidget):
                     itemCmap.setVRange(colormap.getVMin(), colormap.getVMax())
         else:
             # Reset colormap
-            self._colormapDialog.setColormap(**previousColormap._toDict())
+            self._colormapDialog.setColormap(previousColormap)
 
     def _markerButtonClicked(self, checked=False):
         """Handle marker set button clicked"""
