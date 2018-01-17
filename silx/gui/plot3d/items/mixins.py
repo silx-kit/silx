@@ -29,6 +29,8 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "15/11/2017"
 
+
+import collections
 import numpy
 
 from silx.math.combo import min_max
@@ -172,7 +174,17 @@ class SymbolMixIn(_SymbolMixIn):
 
     _DEFAULT_SYMBOL = 'o'
     _DEFAULT_SYMBOL_SIZE = 7.0
-    _SUPPORTED_SYMBOLS = 'd', 'o', 's', '+', 'x', '*', '_', '|', '.', ','
+    _SUPPORTED_SYMBOLS = collections.OrderedDict((
+        ('o', 'Circle'),
+        ('d', 'Diamond'),
+        ('s', 'Square'),
+        ('+', 'Plus'),
+        ('x', 'Cross'),
+        ('*', 'Star'),
+        ('|', 'Vertical Line'),
+        ('_', 'Horizontal Line'),
+        ('.', 'Point'),
+        (',', 'Pixel')))
 
     def _getSceneSymbol(self):
         """Returns a symbol name and size suitable for scene primitives.
@@ -268,6 +280,16 @@ class PlaneMixIn(ItemMixInBase):
         :rtype: numpy.ndarray
         """
         return self.__plane.plane.parameters
+
+    def setParameters(self, parameters):
+        """Set the plane equation parameters: a*x + b*y + c*z + d = 0
+
+        Warning: The plane might not intersect the bounding box of the data.
+        The given parameters will be normalized.
+
+        :param parameters: (a, b, c, d) equation parameters
+        """
+        self.__plane.plane.parameters = parameters
 
     # Border stroke
 
