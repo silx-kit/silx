@@ -37,7 +37,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "09/01/2018"
+__date__ = "17/01/2018"
 __status__ = "production"
 
 import os
@@ -82,7 +82,7 @@ def transform_pts(matrix, offset, x, y):
 class LinearAlign(OpenclProcessing):
     """Align images on a reference image based on an afine transformation (bi-linear + offset)
     """
-    kernels = {"transform": 128}
+    kernel_files = {"transform": 128}
 
     def __init__(self, image, mask=None, extra=0, init_sigma=None,
                  ctx=None, devicetype="all", platformid=None, deviceid=None,
@@ -126,10 +126,10 @@ class LinearAlign(OpenclProcessing):
                              block_size=self.block_size, init_sigma=init_sigma)
         self.ref_kp = self.sift.keypoints(image)
         # TODO: move to SIFT
-        if self.ROI is not None:
+        if self.mask is not None:
             kpx = numpy.round(self.ref_kp.x).astype(numpy.int32)
             kpy = numpy.round(self.ref_kp.y).astype(numpy.int32)
-            masked = self.ROI[(kpy, kpx)].astype(bool)
+            masked = self.mask[(kpy, kpx)].astype(bool)
             logger.warning("Reducing keypoint list from %i to %i because of the ROI" % (self.ref_kp.size, masked.sum()))
             self.ref_kp = self.ref_kp[masked]
         self.match = MatchPlan(ctx=self.ctx, profile=self.profile, block_size=self.block_size)
@@ -137,8 +137,8 @@ class LinearAlign(OpenclProcessing):
         self.cl_mem["ref_kp_gpu"] = pyopencl.array.to_device(self.match.queue, self.ref_kp)
         # TODO optimize match so that the keypoint2 can be optional
         self.fill_value = 0
-#        print self.ctx.devices[0]
-        self._compile_kernels()
+        self.wg = {}
+        self.compile_kernels()
         self._allocate_buffers()
         self.sem = Semaphore()
         self.relative_transfo = None
@@ -178,20 +178,30 @@ class LinearAlign(OpenclProcessing):
                 except pyopencl.LogicError:
                     logger.error("Error while freeing buffer %s" % buffer_name)
 
-    def _compile_kernels(self):
+    def compile_kernels(self):
         """
         Call the OpenCL compiler
         """
-        for kernel in list(self.kernels.keys()):
-            kernel_src = get_opencl_code(os.path.join("sift", kernel))
-            try:
-                program = pyopencl.Program(self.ctx, kernel_src).build()
-            except pyopencl.MemoryError as error:
-                raise MemoryError(error)
-            self.program = program
-            for one_function in program.all_kernels():
-                workgroup_size = kernel_workgroup_size(program, one_function)
-                self.kernels[kernel + "." + one_function.function_name] = workgroup_size
+        kernel_src = [os.path.join("sift", kernel) for kernel in self.kernel_files]
+        OpenclProcessing.compile_kernels(self, kernel_src)
+        if self.block_size is None:
+             bs = min(self.kernel_files["transform"],
+                      min(self.check_workgroup_size(kn) for kn in self.kernels.get_kernels()))
+        else:
+            bs = min(self.kernel_files["transform"], self.block_size,
+                     min(self.check_workgroup_size(kn) for kn in self.kernels.get_kernels()))
+        if bs > 32:
+            wgm = (32, bs // 32)
+            wgr = (8, bs // 32, 4)
+        elif bs > 4:
+            wgm = (bs // 4, 4)
+            wgr = (bs // 4, 1, 4)
+        else:
+            wgm = (1, 1)
+            wgr = (1, 1, 1)
+
+        self.wg["transform_rgb"] = wgr
+        self.wg["transform"] = wgm
 
     def _free_kernels(self):
         """
@@ -276,10 +286,10 @@ class LinearAlign(OpenclProcessing):
                     matrix[1, 0], matrix[1, 1] = transform_matrix[1], transform_matrix[0]
             if relative:  # update stable part to perform a relative alignment
                 self.ref_kp = kp
-                if self.ROI is not None:
+                if self.mask is not None:
                     kpx = numpy.round(self.ref_kp.x).astype(numpy.int32)
                     kpy = numpy.round(self.ref_kp.y).astype(numpy.int32)
-                    masked = self.ROI[(kpy, kpx)].astype(bool)
+                    masked = self.mask[(kpy, kpx)].astype(bool)
                     logger.warning("Reducing keypoint list from %i to %i because of the ROI" % (self.ref_kp.size, masked.sum()))
                     self.ref_kp = self.ref_kp[masked]
                 self.cl_mem["ref_kp_gpu"] = pyopencl.array.to_device(self.match.queue, self.ref_kp)
@@ -301,11 +311,13 @@ class LinearAlign(OpenclProcessing):
 
             if self.RGB:
                 shape = (4, self.shape[1], self.shape[0])
-                transform = self.program.transform_RGB
+                kname = "transform_RGB"
+
             else:
                 shape = self.shape[1], self.shape[0]
-                transform = self.program.transform
-            ev = transform(self.queue, calc_size(shape, self.wg), self.wg,
+                kname = "transform"
+            transform = self.kernels.get_kernel(kname)
+            ev = transform(self.queue, calc_size(shape, self.wg[kname]), self.wg[kname],
                            self.cl_mem["input"].data,
                            self.cl_mem["output"].data,
                            self.cl_mem["matrix"].data,
@@ -314,10 +326,10 @@ class LinearAlign(OpenclProcessing):
                            numpy.int32(self.shape[0]),
                            numpy.int32(self.outshape[1]),
                            numpy.int32(self.outshape[0]),
-                           self.sift.buffers["min"].get()[0],
+                           self.sift.cl_mem["min"].get()[0],
                            numpy.int32(1))
             if self.profile:
-                self.events += [("transform", ev)]
+                self.events += [(kname, ev)]
             result = self.cl_mem["output"].get()
 
         if return_all:

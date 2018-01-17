@@ -39,7 +39,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "02/01/2018"
+__date__ = "17/01/2018"
 __status__ = "production"
 
 
@@ -77,19 +77,19 @@ class MatchPlan(OpenclProcessing):
                             ])
 
     def __init__(self, size=16384, devicetype="ALL", profile=False, device=None,
-                 max_workgroup_size=None, roi=None, context=None):
+                 block_size=None, roi=None, ctx=None):
         """Constructor of the class:
 
         :param size: size of the input keypoint-list alocated on the GPU.
         :param devicetype: can be CPU or GPU
         :param profile: set to true to activate profiling information collection
         :param device: 2-tuple of integer, see clinfo
-        :param max_workgroup_size: CPU on MacOS, limit to 1. None by default to use default ones (max=128).
+        :param block_size: CPU on MacOS, limit to 1. None by default to use default ones (max=128).
         :param roi: Region Of Interest: TODO
         :param context: Use an external context (discard devicetype and device options)
         """
-        OpenclProcessing.__init__(self, ctx=context, devicetype=devicetype,
-                                  block_size=max_workgroup_size, profile=profile)
+        OpenclProcessing.__init__(self, ctx=ctx, devicetype=devicetype,
+                                  block_size=block_size, profile=profile)
         self.kpsize = size
         self.octave_max = None
         self.red_size = None
