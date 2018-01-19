@@ -824,9 +824,11 @@ class ColormapDialog(qt.QDialog):
     def _updateResetButton(self):
         resetButton = self._buttonsNonModal.button(
             qt.QDialogButtonBox.Reset)
-        sameColormap = self._colormap()._toDict() == self._colormapStoredState
-        resetButton.setEnabled(
-            self._colormap().isEditable() and not sameColormap)
+        rStateEnabled = False
+        if self._colormap() is not None and self._colormap().isEditable():
+            # can reset only in the case the colormap changed
+            rStateEnabled = self._colormap()._toDict() != self._colormapStoredState
+        resetButton.setEnabled(rStateEnabled)
 
     def _applyColormap(self):
         self._updateResetButton()
