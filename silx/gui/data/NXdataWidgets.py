@@ -261,11 +261,11 @@ class ArrayImagePlot(qt.QWidget):
                      x_axis=None, y_axis=None,
                      signal_name=None,
                      xlabel=None, ylabel=None,
-                     title=None):
+                     title=None, isRgba=False):
         """
 
         :param signal: n-D dataset, whose last 2 dimensions are used as the
-            image's values.
+            image's values, or 3D dataset interpreted as RGBA image.
         :param x_axis: 1-D dataset used as the image's x coordinates. If
             provided, its lengths must be equal to the length of the last
             dimension of ``signal``.
@@ -276,6 +276,7 @@ class ArrayImagePlot(qt.QWidget):
         :param xlabel: Label for X axis
         :param ylabel: Label for Y axis
         :param title: Graph title
+        :param isRgba: True if data is a 3D RGBA image
         """
         if self.__selector_is_connected:
             self._selector.selectionChanged.disconnect(self._updateImage)
@@ -289,7 +290,10 @@ class ArrayImagePlot(qt.QWidget):
         self.__y_axis_name = ylabel
 
         self._selector.setData(signal)
-        self._selector.setAxisNames(["Y", "X"])
+        if not isRgba:
+            self._selector.setAxisNames(["Y", "X"])
+        else:
+            self._selector.setAxisNames(["Y", "X", "RGB(A) channel"])
 
         if len(signal.shape) < 3:
             self.selectorDock.hide()
