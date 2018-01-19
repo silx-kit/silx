@@ -29,5 +29,5 @@ __license__ = "MIT"
 __date__ = "17/01/2018"
 
 
-class NotEditableError(AttributeError):
+class NotEditableError(Exception):
     """Exception emitted when try to access to a non editable attribute"""
