@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "06/09/2017"
+__date__ = "17/01/2018"
 
 
 import os
@@ -216,19 +216,6 @@ class TestExternalResources(unittest.TestCase):
         if self.utilstest.data_home:
             shutil.rmtree(self.utilstest.data_home)
         self.utilstest = None
-
-    def test_tempdir(self):
-        "test the temporary directory creation"
-        d = self.utilstest.tempdir
-        self.assertTrue(os.path.isdir(d))
-        self.assertEqual(d, self.utilstest.tempdir, 'tmpdir is stable')
-        self.utilstest.clean_up()
-        self.assertFalse(os.path.isdir(d))
-        e = self.utilstest.tempdir
-        self.assertTrue(os.path.isdir(e))
-        self.assertEqual(e, self.utilstest.tempdir, 'tmpdir is stable')
-        self.assertNotEqual(d, e, "tempdir changed")
-        self.utilstest.clean_up()
 
     def test_download(self):
         "test the download from silx.org"
