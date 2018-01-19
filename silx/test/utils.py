@@ -34,6 +34,7 @@ __date__ = "17/01/2018"
 
 
 import contextlib
+import os
 import numpy
 import shutil
 import tempfile
