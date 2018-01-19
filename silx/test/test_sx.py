@@ -24,16 +24,16 @@
 # ###########################################################################*/
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "05/12/2016"
+__date__ = "09/11/2017"
 
 
 import logging
 import os
 import sys
 import unittest
-
 import numpy
 
+from silx.test.utils import test_options
 
 _logger = logging.getLogger(__name__)
 
@@ -52,15 +52,14 @@ if sys.platform.startswith('linux') and not os.environ.get('DISPLAY', ''):
         suite.addTest(SkipSXTest())
         return suite
 
-elif os.environ.get('WITH_QT_TEST', 'True') == 'False':
+elif not test_options.WITH_QT_TEST:
     # Explicitly disabled tests
-    _logger.warning(
-        "silx.sx tests disabled (env. variable WITH_QT_TEST=False)")
+    msg = "silx.sx tests disabled %s" % test_options.WITH_QT_TEST_REASON
+    _logger.warning(msg)
 
     class SkipSXTest(unittest.TestCase):
         def runTest(self):
-            self.skipTest(
-                "silx.sx tests disabled (env. variable WITH_QT_TEST=False)")
+            self.skipTest(test_options.WITH_QT_TEST_REASON)
 
     def suite():
         suite = unittest.TestSuite()

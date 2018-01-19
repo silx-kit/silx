@@ -26,13 +26,13 @@
 
 
 It is possible to disable tests depending on Qt by setting
-:envvar:`WITH_QT_TEST` environment variable to 'False'.
+`silx.test.utils.test_options.WITH_QT_TEST = False`
 It will skip all tests from :mod:`silx.test.gui`.
 """
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "22/06/2017"
+__date__ = "09/11/2017"
 
 
 import logging

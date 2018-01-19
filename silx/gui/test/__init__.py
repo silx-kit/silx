@@ -31,6 +31,7 @@ import logging
 import os
 import sys
 import unittest
+from silx.test.utils import test_options
 
 
 _logger = logging.getLogger(__name__)
@@ -52,15 +53,14 @@ def suite():
         test_suite.addTest(SkipGUITest())
         return test_suite
 
-    elif os.environ.get('WITH_QT_TEST', 'True') == 'False':
+    elif not test_options.WITH_QT_TEST:
         # Explicitly disabled tests
-        _logger.warning(
-            "silx.gui tests disabled (env. variable WITH_QT_TEST=False)")
+        msg = "silx.gui tests disabled: %s" % test_options.WITH_QT_TEST_REASON
+        _logger.warning(msg)
 
         class SkipGUITest(unittest.TestCase):
             def runTest(self):
-                self.skipTest(
-                    "silx.gui tests disabled (env. variable WITH_QT_TEST=False)")
+                self.skipTest(test_options.WITH_QT_TEST_REASON)
 
         test_suite.addTest(SkipGUITest())
         return test_suite
