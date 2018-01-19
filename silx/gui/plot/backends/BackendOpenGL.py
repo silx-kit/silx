@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -892,11 +892,13 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         for item in self._items.values():
             shape2D = item.get('_shape2D')
             if shape2D is None:
+                closed = item['shape'] != 'polylines'
                 shape2D = Shape2D(tuple(zip(item['x'], item['y'])),
                                   fill=item['fill'],
                                   fillColor=item['color'],
                                   stroke=True,
-                                  strokeColor=item['color'])
+                                  strokeColor=item['color'],
+                                  strokeClosed=closed)
                 item['_shape2D'] = shape2D
 
             if ((isXLog and shape2D.xMin < FLOAT32_MINPOS) or
@@ -1078,7 +1080,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     def addItem(self, x, y, legend, shape, color, fill, overlay, z):
         # TODO handle overlay
-        if shape not in ('polygon', 'rectangle', 'line', 'vline', 'hline'):
+        if shape not in ('polygon', 'rectangle', 'line',
+                         'vline', 'hline', 'polylines'):
             raise NotImplementedError("Unsupported shape {0}".format(shape))
 
         x = numpy.array(x, copy=False)
@@ -1097,6 +1100,9 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         if self._plotFrame.yAxis.isLog and y.min() <= 0.:
             raise RuntimeError(
                 'Cannot add item with Y <= 0 with Y axis log scale')
+
+        # Ignore fill for polylines to mimic matplotlib
+        fill = fill if shape != 'polylines' else False
 
         self._items[legend] = {
             'shape': shape,
