@@ -30,7 +30,7 @@ from __future__ import division, print_function
 __authors__ = ["Pierre paleo"]
 __license__ = "MIT"
 __copyright__ = "2013-2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "05/10/2017"
+__date__ = "19/01/2018"
 
 
 import time
@@ -89,7 +89,7 @@ class TestFBP(unittest.TestCase):
             # ~ self.skipTest("Backprojection is not implemented on CPU for OS X yet")
         self.getfiles()
         self.fbp = backprojection.Backprojection(self.sino.shape, profile=True)
-        if self.fbp.compiletime_workgroup_size < 16:
+        if self.fbp.compiletime_workgroup_size < 16 * 16:
             self.skipTest("Current implementation of OpenCL backprojection is not supported on this platform yet")
 
     def tearDown(self):
