@@ -26,13 +26,13 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "01/09/2017"
+__date__ = "17/01/2018"
 
 
 import numpy
 import unittest
 
-from silx.test.utils import ParametricTestCase, TestLogging
+from silx.utils.testutils import ParametricTestCase, TestLogging
 from silx.gui.test.utils import (
     qWaitForWindowExposedAndActivate, TestCaseQt, getQToolButtonFromAction)
 from silx.gui import qt

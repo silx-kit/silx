@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -101,7 +101,7 @@ class _BoundaryWidget(qt.QWidget):
         self.layout().addWidget(self._autoCB)
         self._autoCB.setChecked(False)
 
-        self._autoCB.toggled.connect(self._numVal.setDisabled)
+        self._autoCB.toggled.connect(self._autoToggled)
         self.sigValueChanged = self._autoCB.toggled
         self.textEdited = self._numVal.textEdited
         self.editingFinished = self._numVal.editingFinished
@@ -120,6 +120,10 @@ class _BoundaryWidget(qt.QWidget):
             return self._numVal.value()
         else:
             return self._dataValue
+
+    def _autoToggled(self, enabled):
+        self._numVal.setEnabled(not enabled)
+        self._updateDisplayedText()
 
     def _updateDisplayedText(self):
         # if dataValue is finite
@@ -223,6 +227,9 @@ class ColormapDialog(qt.QDialog):
     :param parent: See :class:`QDialog`
     :param str title: The QDialog title
     """
+
+    visibleChanged = qt.Signal(bool)
+    """This event is sent when the dialog visibility change"""
 
     def __init__(self, parent=None, title="Colormap Dialog"):
         qt.QDialog.__init__(self, parent)
@@ -371,6 +378,20 @@ class ColormapDialog(qt.QDialog):
 
         vLayout.setSizeConstraint(qt.QLayout.SetMinimumSize)
         self.setFixedSize(self.sizeHint())
+        self._applyColormap()
+
+    def showEvent(self, event):
+        self.visibleChanged.emit(True)
+        super(ColormapDialog, self).showEvent(event)
+
+    def closeEvent(self, event):
+        if not self.isModal():
+            self.accept()
+        super(ColormapDialog, self).closeEvent(event)
+
+    def hideEvent(self, event):
+        self.visibleChanged.emit(False)
+        super(ColormapDialog, self).hideEvent(event)
 
     def close(self):
         self.accept()
@@ -381,6 +402,13 @@ class ColormapDialog(qt.QDialog):
         self._buttonsNonModal.setVisible(not modal)
         self._buttonsModal.setVisible(modal)
         qt.QDialog.setModal(self, modal)
+
+    def exec_(self):
+        wasModal = self.isModal()
+        self.setModal(True)
+        result = super(ColormapDialog, self).exec_()
+        self.setModal(wasModal)
+        return result
 
     def _plotInit(self):
         """Init the plot to display the range and the values"""
@@ -619,6 +647,11 @@ class ColormapDialog(qt.QDialog):
             self.setHistogram(*result)
             self.setDataRange()
 
+    def _colormapAboutToFinalize(self, weakrefColormap):
+        """Callback when the data weakref is about to be finalized."""
+        if self._colormap is weakrefColormap:
+            self.setColormap(None)
+
     def _dataAboutToFinalize(self, weakrefData):
         """Callback when the data weakref is about to be finalized."""
         if self._data is weakrefData:
@@ -682,7 +715,7 @@ class ColormapDialog(qt.QDialog):
                   state when validated
         """
         colormap = self.getColormap()
-        if colormap is not None:
+        if colormap is not None and self._colormapStoredState is not None:
             self._ignoreColormapChange = True
             colormap._setFromDict(self._colormapStoredState)
             self._ignoreColormapChange = False
@@ -754,8 +787,11 @@ class ColormapDialog(qt.QDialog):
         save the current value sof the colormap if the user want to undo is
         modifications
         """
-        if self._colormap():
-            self._colormapStoredState = self._colormap()._toDict()
+        colormap = self.getColormap()
+        if colormap is not None:
+            self._colormapStoredState = colormap._toDict()
+        else:
+            self._colormapStoredState = None
 
     def reject(self):
         self.resetColormap()
@@ -766,41 +802,51 @@ class ColormapDialog(qt.QDialog):
 
         :param :class:`Colormap` colormap: the colormap to edit
         """
-        assert isinstance(colormap, Colormap)
+        assert colormap is None or isinstance(colormap, Colormap)
         if self._ignoreColormapChange is True:
             return
 
         oldColormap = self.getColormap()
+        if oldColormap is colormap:
+            return
         if oldColormap is not None:
             oldColormap.sigChanged.disconnect(self._applyColormap)
-        self._colormap = weakref.ref(colormap)
-        self._colormap().sigChanged.connect(self._applyColormap)
+
+        if colormap is not None:
+            colormap.sigChanged.connect(self._applyColormap)
+            colormap = weakref.ref(colormap, self._colormapAboutToFinalize)
+
+        self._colormap = colormap
         self.storeCurrentState()
         self._applyColormap()
 
     def _applyColormap(self):
         if self._ignoreColormapChange is True:
             return
-        if self._colormap():
+
+        colormap = self.getColormap()
+        self.setEnabled(colormap is not None)
+        if colormap is not None:
             self._ignoreColormapChange = True
 
-            if self._colormap().getName() is not None:
-                name = self._colormap().getName()
+            if colormap.getName() is not None:
+                name = colormap.getName()
                 self._comboBoxColormap.setCurrentName(name)
 
-            assert self._colormap().getNormalization() in Colormap.NORMALIZATIONS
+            assert colormap.getNormalization() in Colormap.NORMALIZATIONS
             self._normButtonLinear.setChecked(
-                self._colormap().getNormalization() == Colormap.LINEAR)
+                colormap.getNormalization() == Colormap.LINEAR)
             self._normButtonLog.setChecked(
-                self._colormap().getNormalization() == Colormap.LOGARITHM)
-            vmin = self._colormap().getVMin()
-            vmax = self._colormap().getVMax()
-            dataRange = self._colormap().getColormapRange()
+                colormap.getNormalization() == Colormap.LOGARITHM)
+            vmin = colormap.getVMin()
+            vmax = colormap.getVMax()
+            dataRange = colormap.getColormapRange()
             self._minValue.setValue(vmin or dataRange[0], isAuto=vmin is None)
             self._maxValue.setValue(vmax or dataRange[1], isAuto=vmax is None)
 
             self._ignoreColormapChange = False
-            self._plotUpdate()
+
+        self._plotUpdate()
 
     def _updateMinMax(self):
         if self._ignoreColormapChange is True:
@@ -808,8 +854,10 @@ class ColormapDialog(qt.QDialog):
 
         vmin = self._minValue.getValue()
         vmax = self._maxValue.getValue()
-        if self._colormap():
-            self._colormap().setVRange(vmin, vmax)
+        self._ignoreColormapChange = True
+        colormap = self._colormap()
+        if colormap is not None:
+            colormap.setVRange(vmin, vmax)
         self._ignoreColormapChange = False
         self._plotUpdate()
 

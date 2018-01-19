@@ -165,15 +165,15 @@ def main(argv):
     parser.add_argument(
         '--begin',
         help='First file index, or first file indices to be considered. '
-             'This argument must be '
-             'used with --file-pattern. Provide as many start indices as '
+             'This argument only makes sense when used together with '
+             '--file-pattern. Provide as many start indices as '
              'are indices in the file pattern, separated by commas. For '
              'instance: "--filepattern toto_%%d.edf --begin 100", or '
              ' "--filepattern toto_%%d_%%04d_%%02d.edf --begin 100,2000,5".')
     parser.add_argument(
         '--end',
         help='Last file index, or last file indices to be considered. '
-             'The same rules as with argument --begin apply.'
+             'The same rules as with argument --begin apply. '
              'Example: "--filepattern toto_%%d_%%d.edf --end 199,1999"')
     parser.add_argument(
         '--no-root-group',
@@ -336,8 +336,9 @@ def main(argv):
 
     if os.path.isfile(output_name):
         if options.mode == "w-":
-            _logger.error("Output file %s exists and mode is 'w-'"
-                          " (write, file must not exist). Aborting.",
+            _logger.error("Output file %s exists and mode is 'w-' (default)."
+                          " Aborting. To append data to an existing file, "
+                          "use 'a' or 'r+'.",
                           output_name)
             return -1
         elif not os.access(output_name, os.W_OK):
@@ -458,11 +459,12 @@ def main(argv):
                             min_size=options.min_size)
 
     with h5py.File(output_name, mode="r+") as h5f:
-        # append the convert command to the creator attribute, for NeXus files
-        creator = h5f.attrs.get("creator", b"").decode()
-        convert_command = " ".join(argv)
-        if convert_command not in creator:
+        # append "silx convert" to the creator attribute, for NeXus files
+        previous_creator = h5f.attrs.get("creator", b"").decode()
+        creator = "silx convert (v%s)" % silx.version
+        # only if it not already there
+        if creator not in previous_creator:
             h5f.attrs["creator"] = \
-                numpy.string_(creator + "; convert command: %s" % " ".join(argv))
+                numpy.string_(previous_creator + "; " + creator)
 
     return 0

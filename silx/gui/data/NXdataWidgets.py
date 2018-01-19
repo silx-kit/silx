@@ -26,7 +26,7 @@
 """
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "23/10/2017"
+__date__ = "20/12/2017"
 
 import numpy
 
@@ -92,6 +92,13 @@ class ArrayCurvePlot(qt.QWidget):
         layout.addWidget(self._plot, 0, 0)
 
         self.setLayout(layout)
+
+    def getPlot(self):
+        """Returns the plot used for the display
+
+        :rtype: Plot1D
+        """
+        return self._plot
 
     def setCurveData(self, y, x=None, values=None,
                      yerror=None, xerror=None,
@@ -242,6 +249,13 @@ class ArrayImagePlot(qt.QWidget):
         self._plot.addTabbedDockWidget(self.selectorDock)
 
         self.setLayout(layout)
+
+    def getPlot(self):
+        """Returns the plot used for the display
+
+        :rtype: Plot2D
+        """
+        return self._plot
 
     def setImageData(self, signal,
                      x_axis=None, y_axis=None,
@@ -401,6 +415,13 @@ class ArrayStackPlot(qt.QWidget):
         layout.addWidget(self._selector)
 
         self.setLayout(layout)
+
+    def getStackView(self):
+        """Returns the plot used for the display
+
+        :rtype: StackView
+        """
+        return self._stack_view
 
     def setStackData(self, signal,
                      x_axis=None, y_axis=None, z_axis=None,

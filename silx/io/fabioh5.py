@@ -291,6 +291,9 @@ class FabioReader(object):
             list of file name or a :class:`fabio.file_series.file_series`
             instance
         """
+        self.__at_least_32bits = False
+        self.__signed_type = False
+
         self.__load(file_name, fabio_image, file_series)
         self.__counters = {}
         self.__positioners = {}
@@ -444,8 +447,15 @@ class FabioReader(object):
         """
         value = self.__get_dict(kind)[name]
         if not isinstance(value, numpy.ndarray):
+            if kind in [self.COUNTER, self.POSITIONER]:
+                # Force normalization for counters and positioners
+                old = self._set_vector_normalization(at_least_32bits=True, signed_type=True)
+            else:
+                old = None
             value = self._convert_metadata_vector(value)
             self.__get_dict(kind)[name] = value
+            if old is not None:
+                self._set_vector_normalization(*old)
         return value
 
     def _set_counter_value(self, frame_id, name, value):
@@ -508,6 +518,29 @@ class FabioReader(object):
         """Read a key from the metadata and cache it into this object."""
         self._set_measurement_value(frame_id, name, value)
 
+    def _set_vector_normalization(self, at_least_32bits, signed_type):
+        previous = self.__at_least_32bits, self.__signed_type
+        self.__at_least_32bits = at_least_32bits
+        self.__signed_type = signed_type
+        return previous
+
+    def _normalize_vector_type(self, dtype):
+        """Normalize the """
+        if self.__at_least_32bits:
+            if numpy.issubdtype(dtype, numpy.signedinteger):
+                dtype = numpy.result_type(dtype, numpy.uint32)
+            if numpy.issubdtype(dtype, numpy.unsignedinteger):
+                dtype = numpy.result_type(dtype, numpy.uint32)
+            elif numpy.issubdtype(dtype, numpy.floating):
+                dtype = numpy.result_type(dtype, numpy.float32)
+            elif numpy.issubdtype(dtype, numpy.complexfloating):
+                dtype = numpy.result_type(dtype, numpy.complex64)
+        if self.__signed_type:
+            if numpy.issubdtype(dtype, numpy.unsignedinteger):
+                signed = numpy.dtype("%s%i" % ('i', dtype.itemsize))
+                dtype = numpy.result_type(dtype, signed)
+        return dtype
+
     def _convert_metadata_vector(self, values):
         """Convert a list of numpy data into a numpy array with the better
         fitting type."""
@@ -537,6 +570,8 @@ class FabioReader(object):
             result = values
         else:
             result = converted
+
+        result_type = self._normalize_vector_type(result_type)
 
         if has_none:
             # Fix missing data according to the array type

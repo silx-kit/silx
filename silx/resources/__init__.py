@@ -56,7 +56,7 @@ of this modules to ensure access across different distribution schemes:
 
 __authors__ = ["V.A. Sole", "Thomas Vincent", "J. Kieffer"]
 __license__ = "MIT"
-__date__ = "06/09/2017"
+__date__ = "17/01/2018"
 
 
 import os
@@ -301,21 +301,12 @@ class ExternalResources(object):
         """
         self.project = project
         self._initialized = False
-        self._tempdir = None
         self.sem = threading.Semaphore()
         self.env_key = env_key or (self.project.upper() + "_DATA")
         self.url_base = url_base
         self.all_data = set()
         self.timeout = timeout
         self.data_home = None
-
-    def _initialize_tmpdir(self):
-        """Initialize the temporary directory"""
-        if not self._tempdir:
-            with self.sem:
-                if not self._tempdir:
-                    self._tempdir = tempfile.mkdtemp("_" + getpass.getuser(),
-                                                     self.project + "_")
 
     def _initialize_data(self):
         """Initialize for downloading test data"""
@@ -335,26 +326,8 @@ class ExternalResources(object):
                             self.all_data = set(json.load(f))
                     self._initialized = True
 
-    @property
-    def tempdir(self):
-        if not self._tempdir:
-            self._initialize_tmpdir()
-        return self._tempdir
-
     def clean_up(self):
-        """Removes the temporary directory (and all its content !)"""
-        with self.sem:
-            if not self._tempdir:
-                return
-            if not os.path.isdir(self._tempdir):
-                return
-            for root, dirs, files in os.walk(self._tempdir, topdown=False):
-                for name in files:
-                    os.remove(os.path.join(root, name))
-                for name in dirs:
-                    os.rmdir(os.path.join(root, name))
-            os.rmdir(self._tempdir)
-            self._tempdir = None
+        pass
 
     def getfile(self, filename):
         """Downloads the requested file from web-server available

@@ -25,7 +25,7 @@
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "10/02/2017"
+__date__ = "17/01/2018"
 
 from collections import OrderedDict
 import numpy
@@ -41,7 +41,7 @@ except ImportError:
 
 from collections import defaultdict
 
-from silx.test.utils import TestLogging
+from silx.utils.testutils import TestLogging
 
 from ..configdict import ConfigDict
 from ..dictdump import dicttoh5, dicttojson, dump

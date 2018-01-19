@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@ from __future__ import absolute_import, division, unicode_literals
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "05/10/2016"
+__date__ = "11/01/2018"
 
 import string
 import numpy
@@ -279,6 +279,7 @@ class CutPlane(PlaneInGroup):
             self._interpolation = interpolation
             if self._mesh is not None:
                 self._mesh.interpolation = interpolation
+            self.notify()
 
     def prepareGL2(self, ctx):
         if self.isValid:
@@ -293,7 +294,7 @@ class CutPlane(PlaneInGroup):
                                             mode='fan',
                                             colormap=self.colormap)
                 self._mesh.alpha = self._alpha
-                self._interpolation = self.interpolation
+                self._mesh.interpolation = self.interpolation
                 self._children.insert(0, self._mesh)
 
             if self._mesh is not None:

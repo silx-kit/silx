@@ -104,6 +104,15 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
             self._getPlane().colormap.displayValuesBelowMin = display
             self.sigItemChanged.emit(ItemChangedType.ALPHA)
 
+    def getDataRange(self):
+        """Return the range of the data as a 3-tuple of values.
+
+        positive min is NaN if no data is positive.
+
+        :return: (min, positive min, max) or None.
+        """
+        return self._dataRange
+
 
 class Isosurface(Item3D):
     """Class representing an iso-surface in a :class:`ScalarField3D` item.
@@ -433,3 +442,13 @@ class ScalarField3D(DataItem3D):
         sortedIso = sorted(self.getIsosurfaces(),
                            key=lambda isosurface: - isosurface.getLevel())
         self._isogroup.children = [iso._getScenePrimitive() for iso in sortedIso]
+
+    def visit(self):
+        """Generator visiting the ScalarField3D content.
+
+        It first access cut planes and then isosurface
+        """
+        for cutPlane in self.getCutPlanes():
+            yield cutPlane
+        for isosurface in self.getIsosurfaces():
+            yield isosurface

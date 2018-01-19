@@ -50,7 +50,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "05/01/2018"
+__date__ = "08/01/2018"
 
 from . import PlotAction
 import logging
@@ -327,27 +327,46 @@ class ColormapAction(PlotAction):
             tooltip="Change colormap",
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
+        self.plot.sigActiveImageChanged.connect(self._updateColormap)
+
+    def setColorDialog(self, colorDialog):
+        """Set a specific color dialog instead of using the default dialog."""
+        assert(colorDialog is not None)
+        assert(self._dialog is None)
+        self._dialog = colorDialog
+        self._dialog.visibleChanged.connect(self._dialogVisibleChanged)
+        self.setChecked(self._dialog.isVisible())
+
+    @staticmethod
+    def _createDialog(parent):
+        """Create the dialog if not already existing
+
+        :parent QWidget parent: Parent of the new colormap
+        :rtype: ColormapDialog
+        """
+        dialog = ColormapDialog(parent=parent)
+        dialog.setModal(False)
+        return dialog
 
     def _actionTriggered(self, checked=False):
         """Create a cmap dialog and update active image and default cmap."""
-        # Create the dialog if not already existing
         if self._dialog is None:
-            self._dialog = ColormapDialog(self.plot)
-            self._dialog.finished.connect(self._setUnChecked)
-            self._dialog.setModal(False)
-            self._updateColormap()
-            self.plot.sigActiveImageChanged.connect(self._updateColormap)
+            self._dialog = self._createDialog(self.plot)
+            self._dialog.visibleChanged.connect(self._dialogVisibleChanged)
 
         # Run the dialog listening to colormap change
         if checked is True:
             self._dialog.show()
+            self._updateColormap()
         else:
             self._dialog.hide()
 
-    def _setUnChecked(self):
-        self.setChecked(False)
+    def _dialogVisibleChanged(self, isVisible):
+        self.setChecked(isVisible)
 
     def _updateColormap(self):
+        if self._dialog is None:
+            return
         image = self.plot.getActiveImage()
         if isinstance(image, items.ColormapMixIn):
             # Set dialog from active image
@@ -362,9 +381,7 @@ class ColormapAction(PlotAction):
             # Reset histogram and range if any
             self._dialog.setData(None)
 
-        # avoid setting multiple time the same colormap to be able to reset it
-        if colormap is not self._dialog.getColormap():
-            self._dialog.setColormap(colormap=colormap)
+        self._dialog.setColormap(colormap)
 
 
 class KeepAspectRatioAction(PlotAction):

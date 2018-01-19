@@ -20,6 +20,7 @@ associated tools.
    description/index.rst
    tutorials.rst
    modules/index.rst
+   applications/index.rst
    changelog.rst
    license.rst
    virtualenv.rst
@@ -38,6 +39,9 @@ associated tools.
 
 :doc:`modules/index`
     Documentation of the packages included in *silx*
+
+:doc:`applications/index`
+    Documentation of the applications provided by *silx*
 
 :doc:`modules/gui/gallery`
     Widgets gallery and screenshots
