@@ -32,7 +32,7 @@ from __future__ import absolute_import
 
 __authors__ = ["Vincent Favre-Nicolin", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "17/01/2018"
+__date__ = "19/01/2018"
 
 
 import logging
@@ -56,6 +56,7 @@ _PHASE_COLORMAP = Colormap(
     vmin=-numpy.pi,
     vmax=numpy.pi)
 """Colormap to use for phase"""
+_PHASE_COLORMAP.setEditable(False)
 
 # Complex colormap functions
 
@@ -178,9 +179,6 @@ class _ImageComplexData(items.ImageData):
             self._colormaps[mode] = colormap
         if mode is None or self._mode == mode:
             super(_ImageComplexData, self).setColormap(colormap)
-
-    def getColormap(self):
-        return super(_ImageComplexData, self).getColormap()
 
 
 # Widgets

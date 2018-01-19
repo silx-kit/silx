@@ -27,7 +27,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "08/01/2018"
+__date__ = "19/01/2018"
 
 import functools
 import numpy
@@ -73,6 +73,15 @@ class ColormapDialogExample(qt.QMainWindow):
     def createOptions(self, layout):
         button = qt.QPushButton("Create a new dialog")
         button.clicked.connect(self.createColorDialog)
+        layout.addWidget(button)
+
+        layout.addSpacing(10)
+
+        button = qt.QPushButton("Set editable")
+        button.clicked.connect(self.setEditable)
+        layout.addWidget(button)
+        button = qt.QPushButton("Set non-editable")
+        button.clicked.connect(self.setNonEditable)
         layout.addWidget(button)
 
         layout.addSpacing(10)
@@ -157,6 +166,18 @@ class ColormapDialogExample(qt.QMainWindow):
         self.colorBar.setColormap(self.colormap2)
         for dialog in self.colorDialogs:
             dialog.setColormap(self.colormap2)
+
+    def setEditable(self):
+        for dialog in self.colorDialogs:
+            colormap = dialog.getColormap()
+            if colormap is not None:
+                colormap.setEditable(True)
+
+    def setNonEditable(self):
+        for dialog in self.colorDialogs:
+            colormap = dialog.getColormap()
+            if colormap is not None:
+                colormap.setEditable(False)
 
     def setNewColormap(self):
         self.colormap = Colormap("inferno")

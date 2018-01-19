@@ -63,7 +63,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "H. Payno"]
 __license__ = "MIT"
-__date__ = "08/01/2018"
+__date__ = "19/01/2018"
 
 
 import logging
@@ -696,13 +696,6 @@ class ColormapDialog(qt.QDialog):
                                     color='gray',
                                     align='center',
                                     fill=True)
-
-            # Update the data range
-            colormap = self.getColormap()
-            if colormap is not None:
-                self._ignoreColormapChange = True
-                self._colormap().setVRange(bin_edges[0], bin_edges[-1])
-                self._ignoreColormapChange = False
         self._updateMinMaxData()
 
     def getColormap(self):
@@ -829,12 +822,12 @@ class ColormapDialog(qt.QDialog):
         self._applyColormap()
 
     def _updateResetButton(self):
-        resetButton = self._buttonsNonModal.button(
-            qt.QDialogButtonBox.Reset)
+        resetButton = self._buttonsNonModal.button(qt.QDialogButtonBox.Reset)
         rStateEnabled = False
-        if self._colormap() is not None and self._colormap().isEditable():
+        colormap = self.getColormap()
+        if colormap is not None and colormap.isEditable():
             # can reset only in the case the colormap changed
-            rStateEnabled = self._colormap()._toDict() != self._colormapStoredState
+            rStateEnabled = colormap._toDict() != self._colormapStoredState
         resetButton.setEnabled(rStateEnabled)
 
     def _applyColormap(self):
@@ -843,8 +836,13 @@ class ColormapDialog(qt.QDialog):
             return
 
         colormap = self.getColormap()
-        self.setEnabled(colormap is not None)
-        if colormap is not None:
+        if colormap is None:
+            self._comboBoxColormap.setEnabled(False)
+            self._normButtonLinear.setEnabled(False)
+            self._normButtonLog.setEnabled(False)
+            self._minValue.setEnabled(False)
+            self._maxValue.setEnabled(False)
+        else:
             self._ignoreColormapChange = True
 
             if colormap.getName() is not None:
