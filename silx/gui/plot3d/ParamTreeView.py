@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -487,6 +487,8 @@ class ParamTreeView(qt.QTreeView):
         self.setEditTriggers(qt.QAbstractItemView.CurrentChanged |
                              qt.QAbstractItemView.DoubleClicked)
 
+        self.__persistentEditors = set()
+
     def _openEditorForIndex(self, index):
         """Check if it has to open a persistent editor for a specific cell.
 
@@ -499,6 +501,7 @@ class ParamTreeView(qt.QTreeView):
                     callable(editorHint) or
                     (isinstance(data, (float, int)) and editorHint)):
                 self.openPersistentEditor(index)
+                self.__persistentEditors.add(index)
 
     def _openEditors(self, parent=qt.QModelIndex()):
         """Open persistent editors in a subtree starting at parent.
@@ -533,3 +536,22 @@ class ParamTreeView(qt.QTreeView):
         if name == 'Transform':
             rotateIndex = self.model().index(1, 0, index)
             self.setExpanded(rotateIndex, True)
+
+    def dataChanged(self, topLeft, bottomRight, roles=()):
+        """Handle model dataChanged signal eventually closing editors"""
+        if not roles or qt.Qt.UserRole in roles:  # Check editorHint update
+            for row in range(topLeft.row(), bottomRight.row() + 1):
+                for column in range(topLeft.column(), bottomRight.column() + 1):
+                    index = topLeft.sibling(row, column)
+                    if index.isValid():
+                        if self._isPersistentEditorOpen(index):
+                            self.closePersistentEditor(index)
+                        self._openEditorForIndex(index)
+
+    def _isPersistentEditorOpen(self, index):
+        """Returns True if a persistent editor is opened for index
+
+        :param QModelIndex index:
+        :rtype: bool
+        """
+        return index in self.__persistentEditors

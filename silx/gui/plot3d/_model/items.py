@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -44,7 +44,7 @@ from ..._utils import convertArrayToQImage
 from ...plot.Colormap import preferredColormaps
 from ... import qt, icons
 from .. import items
-from ..items.volume import Isosurface
+from ..items.volume import Isosurface, CutPlane
 
 
 from .core import AngleDegreeRow, BaseRow, ColorProxyRow, ProxyRow, StaticRow
@@ -247,6 +247,56 @@ class Item3DRow(StaticRow):
         return super(Item3DRow, self).setData(column, value, role)
 
 
+class MatrixProxyRow(ProxyRow):
+    """Proxy for a row of a DataItem3D 3x3 matrix transform
+
+    :param DataItem3D item:
+    :param int index: Matrix row index
+    """
+
+    def __init__(self, item, index):
+        self._item = weakref.ref(item)
+        self._index = index
+
+        super(MatrixProxyRow, self).__init__(
+            name='',
+            fget=self._getMatrixRow,
+            fset=self._setMatrixRow,
+            notify=item.sigItemChanged)
+
+    def _getMatrixRow(self):
+        """Returns the matrix row.
+
+        :rtype: QVector3D
+        """
+        item = self._item()
+        if item is not None:
+            matrix = item.getMatrix()
+            return qt.QVector3D(*matrix[self._index, :])
+        else:
+            return None
+
+    def _setMatrixRow(self, row):
+        """Set the row of the matrix
+
+        :param QVector3D row: Row values to set
+        """
+        item = self._item()
+        if item is not None:
+            matrix = item.getMatrix()
+            matrix[self._index, :] = row.x(), row.y(), row.z()
+            item.setMatrix(matrix)
+
+    def data(self, column, role):
+        data = super(MatrixProxyRow, self).data(column, role)
+
+        if column == 1 and role == qt.Qt.DisplayRole:
+            # Convert QVector3D to text
+            data = "%g; %g; %g" % (data.x(), data.y(), data.z())
+
+        return data
+
+
 class DataItem3DTransformRow(StaticRow):
     """Represents :class:`DataItem3D` transform parameters
 
@@ -267,16 +317,8 @@ class DataItem3DTransformRow(StaticRow):
         self.addRow(translation)
 
         # Here to keep a reference
-        self._xCenterToModelData = functools.partial(
-            self._centerToModelData, index=0)
         self._xSetCenter = functools.partial(self._setCenter, index=0)
-        # Here to keep a reference
-        self._yCenterToModelData = functools.partial(
-            self._centerToModelData, index=1)
         self._ySetCenter = functools.partial(self._setCenter, index=1)
-        # Here to keep a reference
-        self._zCenterToModelData = functools.partial(
-            self._centerToModelData, index=2)
         self._zSetCenter = functools.partial(self._setCenter, index=2)
 
         rotateCenter = StaticRow(
@@ -286,19 +328,22 @@ class DataItem3DTransformRow(StaticRow):
                          fget=item.getRotationCenter,
                          fset=self._xSetCenter,
                          notify=item.sigItemChanged,
-                         toModelData=self._xCenterToModelData,
+                         toModelData=functools.partial(
+                             self._centerToModelData, index=0),
                          editorHint=self._ROTATION_CENTER_OPTIONS),
                 ProxyRow(name='Y axis',
                          fget=item.getRotationCenter,
                          fset=self._ySetCenter,
                          notify=item.sigItemChanged,
-                         toModelData=self._yCenterToModelData,
+                         toModelData=functools.partial(
+                             self._centerToModelData, index=1),
                          editorHint=self._ROTATION_CENTER_OPTIONS),
                 ProxyRow(name='Z axis',
                          fget=item.getRotationCenter,
                          fset=self._zSetCenter,
                          notify=item.sigItemChanged,
-                         toModelData=self._zCenterToModelData,
+                         toModelData=functools.partial(
+                             self._centerToModelData, index=2),
                          editorHint=self._ROTATION_CENTER_OPTIONS),
             ))
 
@@ -325,6 +370,13 @@ class DataItem3DTransformRow(StaticRow):
                          notify=item.sigItemChanged,
                          toModelData=lambda data: qt.QVector3D(*data))
         self.addRow(scale)
+
+        matrix = StaticRow(
+            ('Matrix', None),
+            children=(MatrixProxyRow(item, 0),
+                      MatrixProxyRow(item, 1),
+                      MatrixProxyRow(item, 2)))
+        self.addRow(matrix)
 
     def item(self):
         """Returns the :class:`Item3D` item or None"""
@@ -468,54 +520,193 @@ class InterpolationRow(ProxyRow):
             editorHint=modes)
 
 
-class _RangeProxyRow(ProxyRow):
-    """ProxyRow for colormap min and max
+class _ColormapBaseRowMixIn(qt.QObject):
+    """Mixin class for colormap model row
 
-    It disable editing when colormap is autoscale.
-    """
-
-    def __init__(self, *args, **kwargs):
-        super(_RangeProxyRow, self).__init__(*args, **kwargs)
-
-    def _notified(self, *args, **kwargs):
-        topLeft = self.index(column=0)
-        bottomRight = self.index(column=1)
-        model = self.model()
-        model.dataChanged.emit(topLeft, bottomRight)
-
-    def flags(self, column):
-        flags = super(_RangeProxyRow, self).flags(column)
-
-        parent = self.parent()
-        if parent is not None:
-            item = parent.item()
-            if item is not None:
-                colormap = item.getColormap()
-                if colormap.isAutoscale():
-                    # Remove item is enabled flag
-                    flags = qt.Qt.ItemFlags(flags) & ~qt.Qt.ItemIsEnabled
-        return flags
-
-
-class ColormapRow(StaticRow):
-    """Represents :class:`ColormapMixIn` property.
-
-    :param Item3D item: Scene item with colormap property
+    This class handle synchronization and signals from the item and the colormap
     """
 
     _sigColormapChanged = qt.Signal()
     """Signal used internally to notify colormap (or data) update"""
 
     def __init__(self, item):
-        super(ColormapRow, self).__init__(('Colormap', None))
+        self._dataRange = None
         self._item = weakref.ref(item)
-        item.sigItemChanged.connect(self._itemChanged)
-
         self._colormap = item.getColormap()
-        self._colormap.sigChanged.connect(self._sigColormapChanged)
+
+        qt.QObject.__init__(self)
+
+        self._colormap.sigChanged.connect(self._colormapChanged)
+        item.sigItemChanged.connect(self._itemChanged)
+        self._sigColormapChanged.connect(self._modelUpdated)
+
+    def item(self):
+        """Returns the :class:`ColormapMixIn` item or None"""
+        return self._item()
+
+    def _getColormapRange(self):
+        """Returns the range of the colormap for the current data.
+
+        :return: Colormap range (min, max)
+        """
+        if self._dataRange is None:
+            item = self.item()
+            if item is not None and self._colormap is not None:
+                if hasattr(item, 'getDataRange'):
+                    data = item.getDataRange()
+                else:
+                    data = item.getData(copy=False)
+
+                self._dataRange = self._colormap.getColormapRange(data)
+
+            else:  # Fallback
+                self._dataRange = 1, 100
+        return self._dataRange
+
+    def _modelUpdated(self, *args, **kwargs):
+        """Emit dataChanged in the model"""
+        topLeft = self.index(column=0)
+        bottomRight = self.index(column=1)
+        model = self.model()
+        if model is not None:
+            model.dataChanged.emit(topLeft, bottomRight)
+
+    def _colormapChanged(self):
+        self._sigColormapChanged.emit()
+
+    def _itemChanged(self, event):
+        """Handle change of colormap or data in the item.
+
+        :param ItemChangedType event:
+        """
+        if event == items.ItemChangedType.COLORMAP:
+            self._sigColormapChanged.emit()
+            if self._colormap is not None:
+                self._colormap.sigChanged.disconnect(self._colormapChanged)
+
+            item = self.item()
+            if item is not None:
+                self._colormap = item.getColormap()
+                self._colormap.sigChanged.connect(self._colormapChanged)
+            else:
+                self._colormap = None
+
+        elif event == items.ItemChangedType.DATA:
+            self._dataRange = None
+            self._sigColormapChanged.emit()
+
+
+class _ColormapBoundRow(_ColormapBaseRowMixIn, ProxyRow):
+    """ProxyRow for colormap min or max
+
+    :param ColormapMixIn item: The item to handle
+    :param str name: Name of the raw
+    :param int index: 0 for Min and 1 of Max
+    """
+
+    def __init__(self, item, name, index):
+        self._index = index
+        _ColormapBaseRowMixIn.__init__(self, item)
+        ProxyRow.__init__(
+            self,
+            name=name,
+            fget=self._getBound,
+            fset=self._setBound)
+
+        self.setToolTip('Colormap %s bound:\n'
+                        'Check to set bound manually, '
+                        'uncheck for autoscale' % name.lower())
+
+    def _getRawBound(self):
+        """Proxy to get raw colormap bound
+
+        :rtype: float or None
+        """
+        if self._colormap is None:
+            return None
+        elif self._index == 0:
+            return self._colormap.getVMin()
+        else:  # self._index == 1
+            return self._colormap.getVMax()
+
+    def _getBound(self):
+        """Proxy to get colormap effective bound value
+
+        :rtype: float
+        """
+        if self._colormap is not None:
+            bound = self._getRawBound()
+
+            if bound is None:
+                bound = self._getColormapRange()[self._index]
+            return bound
+        else:
+            return 1.  # Fallback
+
+    def _setBound(self, value):
+        """Proxy to set colormap bound.
+
+        :param float value:
+        """
+        if self._colormap is not None:
+            if self._index == 0:
+                min_ = value
+                max_ = self._colormap.getVMax()
+            else:  # self._index == 1
+                min_ = self._colormap.getVMin()
+                max_ = value
+
+            if max_ is not None and min_ is not None and min_ > max_:
+                min_, max_ = max_, min_
+            self._colormap.setVRange(min_, max_)
+
+    def flags(self, column):
+        if column == 0:
+            return qt.Qt.ItemIsEnabled | qt.Qt.ItemIsUserCheckable
+
+        elif column == 1:
+            if self._getRawBound() is not None:
+                flags = qt.Qt.ItemIsEditable | qt.Qt.ItemIsEnabled
+            else:
+                flags = qt.Qt.NoItemFlags  # Disabled if autoscale
+            return flags
+
+        else:  # Never event
+            return super(_ColormapBoundRow, self).flags(column)
+
+    def data(self, column, role):
+        if column == 0 and role == qt.Qt.CheckStateRole:
+            if self._getRawBound() is None:
+                return qt.Qt.Unchecked
+            else:
+                return qt.Qt.Checked
+
+        else:
+            return super(_ColormapBoundRow, self).data(column, role)
+
+    def setData(self, column, value, role):
+        if column == 0 and role == qt.Qt.CheckStateRole:
+            if self._colormap is not None:
+                bound = self._getBound() if value == qt.Qt.Checked else None
+                self._setBound(bound)
+                return True
+            else:
+                return False
+
+        return super(_ColormapBoundRow, self).setData(column, value, role)
+
+
+class ColormapRow(_ColormapBaseRowMixIn, StaticRow):
+    """Represents :class:`ColormapMixIn` property.
+
+    :param Item3D item: Scene item with colormap property
+    """
+
+    def __init__(self, item):
+        _ColormapBaseRowMixIn.__init__(self, item)
+        StaticRow.__init__(self, ('Colormap', None))
 
         self._colormapImage = None
-        self._dataRange = None
 
         self._colormapsMapping = {}
         for cmap in preferredColormaps():
@@ -536,52 +727,45 @@ class ColormapRow(StaticRow):
             notify=self._sigColormapChanged,
             editorHint=norms))
 
-        self.addRow(ProxyRow(
-            name='Autoscale',
-            fget=self._isAutoscale,
-            fset=self._setAutoscale,
-            notify=self._sigColormapChanged))
-        self.addRow(_RangeProxyRow(
-            name='Min.',
-            fget=self._getVMin,
-            fset=self._setVMin,
-            notify=self._sigColormapChanged))
-        self.addRow(_RangeProxyRow(
-            name='Max.',
-            fget=self._getVMax,
-            fset=self._setVMax,
-            notify=self._sigColormapChanged))
+        self.addRow(_ColormapBoundRow(item, name='Min.', index=0))
+        self.addRow(_ColormapBoundRow(item, name='Max.', index=1))
 
         self._sigColormapChanged.connect(self._updateColormapImage)
 
     def _getName(self):
         """Proxy for :meth:`Colormap.getName`"""
-        return self._colormap.getName().title()
+        if self._colormap is not None:
+            return self._colormap.getName().title()
+        else:
+            return ''
 
     def _setName(self, name):
         """Proxy for :meth:`Colormap.setName`"""
         # Convert back from titled to name if possible
-        name = self._colormapsMapping.get(name, name)
-        self._colormap.setName(name)
+        if self._colormap is not None:
+            name = self._colormapsMapping.get(name, name)
+            self._colormap.setName(name)
 
     def _getNormalization(self):
         """Proxy for :meth:`Colormap.getNormalization`"""
-        return self._colormap.getNormalization().title()
+        if self._colormap is not None:
+            return self._colormap.getNormalization().title()
+        else:
+            return ''
 
     def _setNormalization(self, normalization):
         """Proxy for :meth:`Colormap.setNormalization`"""
-        return self._colormap.setNormalization(normalization.lower())
-
-    def _isAutoscale(self):
-        """Proxy for :meth:`Colormap.isAutoscale`"""
-        return self._colormap.isAutoscale()
+        if self._colormap is not None:
+            return self._colormap.setNormalization(normalization.lower())
 
     def _updateColormapImage(self, *args, **kwargs):
         """Notify colormap update to update the image in the tree"""
         if self._colormapImage is not None:
             self._colormapImage = None
-            index = self.index(column=1)
-            self.model().dataChanged.emit(index, index)
+            model = self.model()
+            if model is not None:
+                index = self.index(column=1)
+                model.dataChanged.emit(index, index)
 
     def data(self, column, role):
         if column == 1 and role == qt.Qt.DecorationRole:
@@ -592,98 +776,6 @@ class ColormapRow(StaticRow):
             return self._colormapImage
 
         return super(ColormapRow, self).data(column, role)
-
-    def _getColormapRange(self):
-        """Returns the range of the colormap for the current data.
-
-        :return: Colormap range (min, max)
-        """
-        if self._dataRange is None:
-            item = self.item()
-            if item is not None:
-                if hasattr(item, 'getDataRange'):
-                    data = item.getDataRange()
-                else:
-                    data = item.getData(copy=False)
-                self._dataRange = item.getColormap().getColormapRange(data)
-            else:  # Fallback
-                self._dataRange = 1, 100
-        return self._dataRange
-
-    def _getVMin(self):
-        """Proxy to get colormap min value
-
-        :rtype: float
-        """
-        min_ = self._colormap.getVMin()
-        if min_ is None:
-            min_ = self._getColormapRange()[0]
-        return min_
-
-    def _setVMin(self, min_):
-        """Proxy to set colormap min.
-
-        :param float min_:
-        """
-        max_ = self._colormap.getVMax()
-        if max_ is not None and min_ > max_:
-            min_, max_ = max_, min_
-        self._colormap.setVRange(min_, max_)
-
-    def _getVMax(self):
-        """Proxy to get colormap max value
-
-        :rtype: float
-        """
-        max_ = self._colormap.getVMax()
-        if max_ is None:
-            max_ = self._getColormapRange()[1]
-        return max_
-
-    def _setVMax(self, max_):
-        """Proxy to set colormap max.
-
-        :param float max_:
-        """
-        min_ = self._colormap.getVMin()
-        if min_ is not None and min_ > max_:
-            min_, max_ = max_, min_
-        self._colormap.setVRange(min_, max_)
-
-    def _setAutoscale(self, autoscale):
-        """Proxy to set autscale
-
-        :param bool autoscale:
-        """
-        item = self.item()
-        if item is not None:
-            colormap = item.getColormap()
-            if autoscale:
-                vmin, vmax = None, None
-            else:
-                vmin, vmax = self._getColormapRange()
-            colormap.setVRange(vmin, vmax)
-
-    def item(self):
-        """Returns the :class:`ColormapMixIn` item or None"""
-        return self._item()
-
-    def _itemChanged(self, event):
-        """Handle change of colormap or data in the item.
-
-        :param ItemChangedType event:
-        """
-        if event == items.ItemChangedType.COLORMAP:
-            self._sigColormapChanged.emit()
-            self._colormap.sigChanged.disconnect(self._sigColormapChanged)
-            item = self.item()
-            if item is not None:
-                colormap = item.getColormap()
-                colormap.sigChanged.connect(self._sigColormapChanged)
-
-        elif event == items.ItemChangedType.DATA:
-            self._dataRange = None
-            self._sigColormapChanged.emit()
 
 
 class SymbolRow(ProxyRow):
@@ -1063,6 +1155,97 @@ class ScalarField3DIsoSurfacesRow(StaticRow):
             raise RuntimeError("Model does not correspond to scene content")
 
 
+class Scatter2DPropertyMixInRow(object):
+    """Mix-in class that enable/disable row according to Scatter2D mode.
+
+    :param Scatter2D item:
+    :param str propertyName: Name of the Scatter2D property of this row
+    """
+
+    def __init__(self, item, propertyName):
+        assert propertyName in ('lineWidth', 'symbol', 'symbolSize')
+        self.__propertyName = propertyName
+
+        self.__isEnabled = item.isPropertyEnabled(propertyName)
+        self.__updateFlags()
+
+        item.sigItemChanged.connect(self.__itemChanged)
+
+    def data(self, column, role):
+        if column == 1 and not self.__isEnabled:
+            # Discard data and editorHint if disabled
+            return None
+        else:
+            return super(Scatter2DPropertyMixInRow, self).data(column, role)
+
+    def __updateFlags(self):
+        """Update model flags"""
+        if self.__isEnabled:
+            self.setFlags(qt.Qt.ItemIsEnabled, 0)
+            self.setFlags(qt.Qt.ItemIsEnabled | qt.Qt.ItemIsEditable, 1)
+        else:
+            self.setFlags(qt.Qt.NoItemFlags)
+
+    def __itemChanged(self, event):
+        """Set flags to enable/disable the row"""
+        if event == items.Item3DChangedType.VISUALIZATION_MODE:
+            item = self.sender()
+            self.__isEnabled = item.isPropertyEnabled(self.__propertyName)
+            self.__updateFlags()
+
+            # Notify model
+            model = self.model()
+            if model is not None:
+                begin = self.index(column=0)
+                end = self.index(column=1)
+                model.dataChanged.emit(begin, end)
+
+
+class Scatter2DSymbolRow(Scatter2DPropertyMixInRow, SymbolRow):
+    """Specific class for Scatter2D symbol.
+
+    It is enabled/disabled according to visualization mode.
+
+    :param Scatter2D item:
+    """
+
+    def __init__(self, item):
+        SymbolRow.__init__(self, item)
+        Scatter2DPropertyMixInRow.__init__(self, item, 'symbol')
+
+
+class Scatter2DSymbolSizeRow(Scatter2DPropertyMixInRow, SymbolSizeRow):
+    """Specific class for Scatter2D symbol size.
+
+    It is enabled/disabled according to visualization mode.
+
+    :param Scatter2D item:
+    """
+
+    def __init__(self, item):
+        SymbolSizeRow.__init__(self, item)
+        Scatter2DPropertyMixInRow.__init__(self, item, 'symbolSize')
+
+
+class Scatter2DLineWidth(Scatter2DPropertyMixInRow, ProxyRow):
+    """Specific class for Scatter2D symbol size.
+
+    It is enabled/disabled according to visualization mode.
+
+    :param Scatter2D item:
+    """
+
+    def __init__(self, item):
+        # TODO link editorHint with OpenGL max line width
+        ProxyRow.__init__(self,
+                          name='Line width',
+                          fget=item.getLineWidth,
+                          fset=item.setLineWidth,
+                          notify=item.sigItemChanged,
+                          editorHint=(1, 10))
+        Scatter2DPropertyMixInRow.__init__(self, item, 'lineWidth')
+
+
 def initScatter2DNode(node, item):
     """Specific node init for Scatter2D to set order of parameters
 
@@ -1086,15 +1269,10 @@ def initScatter2DNode(node, item):
 
     node.addRow(ColormapRow(item))
 
-    node.addRow(SymbolRow(item))
-    node.addRow(SymbolSizeRow(item))
+    node.addRow(Scatter2DSymbolRow(item))
+    node.addRow(Scatter2DSymbolSizeRow(item))
 
-    node.addRow(ProxyRow(
-        name='Line width',
-        fget=item.getLineWidth,
-        fset=item.setLineWidth,
-        notify=item.sigItemChanged,
-        editorHint=(1, 10)))  # TODO link with OpenGL max line width
+    node.addRow(Scatter2DLineWidth(item))
 
 
 def initScalarField3DNode(node, item):
@@ -1107,9 +1285,29 @@ def initScalarField3DNode(node, item):
     node.addRow(ScalarField3DIsoSurfacesRow(item))
 
 
+def initScalarField3DCutPlaneNode(node, item):
+    """Specific node init for ScalarField3D CutPlane
+
+    :param Item3DRow node: The model node to setup
+    :param CutPlane item: The CutPlane the node is representing
+    """
+    node.addRow(PlaneRow(item))
+
+    node.addRow(ColormapRow(item))
+
+    node.addRow(ProxyRow(
+        name='Values<=Min',
+        fget=item.getDisplayValuesBelowMin,
+        fset=item.setDisplayValuesBelowMin,
+        notify=item.sigItemChanged))
+
+    node.addRow(InterpolationRow(item))
+
+
 NODE_SPECIFIC_INIT = [  # class, init(node, item)
     (items.Scatter2D, initScatter2DNode),
     (items.ScalarField3D, initScalarField3DNode),
+    (CutPlane, initScalarField3DCutPlaneNode),
 ]
 """List of specific node init for different item class"""
 
