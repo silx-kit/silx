@@ -92,7 +92,7 @@ def is_valid_nxdata(group):   # noqa
 
     :param group: h5py-like group
     :return: True if this NXdata group is valid.
-    :raise: TypeError if group is not a h5py group, a spech5 group,
+    :raise TypeError: if group is not a h5py group, a spech5 group,
         or a fabioh5 group
     """
     if not is_group(group):
