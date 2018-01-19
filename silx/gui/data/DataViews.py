@@ -1005,7 +1005,6 @@ class _NXdataCurveView(DataView):
         data = self.normalizeData(data)
         nxd = nxdata.get_NXdata_in_group(data)
         signal_name = nxd.signal_name
-        # group_name = data.name
         if nxd.axes_dataset_names[-1] is not None:
             x_errors = nxd.get_axis_errors(nxd.axes_dataset_names[-1])
         else:
@@ -1053,8 +1052,6 @@ class _NXdataXYVScatterView(DataView):
         data = self.normalizeData(data)
         nxd = nxdata.get_NXdata_in_group(data)
         signal_name = nxd.signal_name
-        # signal_errors = nx.errors
-        # group_name = data.name
         x_axis, y_axis = nxd.axes[-2:]
 
         x_label, y_label = nxd.axes_names[-2:]
@@ -1111,7 +1108,6 @@ class _NXdataImageView(DataView):
         title = nxd.title or signal_name
         isRgba = nxd.interpretation == "rgba-image"
         if not isRgba:
-            # group_name = data.name
             y_axis, x_axis = nxd.axes[-2:]
             y_label, x_label = nxd.axes_names[-2:]
         else:
@@ -1158,7 +1154,6 @@ class _NXdataStackView(DataView):
         data = self.normalizeData(data)
         nxd = nxdata.get_NXdata_in_group(data)
         signal_name = nxd.signal_name
-        # group_name = data.name
         z_axis, y_axis, x_axis = nxd.axes[-3:]
         z_label, y_label, x_label = nxd.axes_names[-3:]
         title = nxd.title or signal_name
