@@ -32,10 +32,11 @@ from __future__ import absolute_import
 
 __authors__ = ["Vincent Favre-Nicolin", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "02/10/2017"
+__date__ = "17/01/2018"
 
 
 import logging
+import collections
 import numpy
 
 from .. import qt, icons
@@ -43,9 +44,12 @@ from .PlotWindow import Plot2D
 from .Colormap import Colormap
 from . import items
 from silx.gui.widgets.FloatEdit import FloatEdit
+from silx.third_party import enum
 
 _logger = logging.getLogger(__name__)
 
+
+_AMPLITUDE_COLORMAP = Colormap()
 
 _PHASE_COLORMAP = Colormap(
     name='hsv',
@@ -110,6 +114,15 @@ def _complex2rgbalin(data, gamma=1.0, smax=None):
     return rgba
 
 
+class Mode(enum.Enum):
+    """Identify available display mode for complex"""
+    ABSOLUTE = 'absolute'
+    PHASE = 'phase'
+    REAL = 'real'
+    IMAGINARY = 'imaginary'
+    AMPLITUDE_PHASE = 'amplitude_phase'
+    LOG10_AMPLITUDE_PHASE = 'log10_amplitude_phase'
+
 # Dedicated plot item
 
 class _ImageComplexData(items.ImageData):
@@ -121,26 +134,22 @@ class _ImageComplexData(items.ImageData):
 
     def __init__(self):
         super(_ImageComplexData, self).__init__()
-        self._readOnlyColormap = False
-        self._mode = 'absolute'
+        self._mode = Mode.ABSOLUTE
         self._colormaps = {  # Default colormaps for all modes
-            'absolute': Colormap(),
-            'phase': _PHASE_COLORMAP.copy(),
-            'real': Colormap(),
-            'imaginary': Colormap(),
-            'amplitude_phase': _PHASE_COLORMAP.copy(),
-            'log10_amplitude_phase': _PHASE_COLORMAP.copy(),
+            Mode.ABSOLUTE: _AMPLITUDE_COLORMAP,
+            Mode.PHASE: _PHASE_COLORMAP,
+            Mode.REAL: _AMPLITUDE_COLORMAP,
+            Mode.IMAGINARY: _AMPLITUDE_COLORMAP,
+            Mode.AMPLITUDE_PHASE: _PHASE_COLORMAP,
+            Mode.LOG10_AMPLITUDE_PHASE: _PHASE_COLORMAP,
         }
-
-    _READ_ONLY_MODES = 'amplitude_phase', 'log10_amplitude_phase'
-    """Modes that requires a read-only colormap."""
 
     def setVisualizationMode(self, mode):
         """Set the visualization mode to use.
 
-        :param str mode:
+        :param Mode mode:
         """
-        mode = str(mode)
+        assert isinstance(mode, Mode)
         assert mode in self._colormaps
 
         if mode != self._mode:
@@ -152,22 +161,26 @@ class _ImageComplexData(items.ImageData):
             self.setColormap(self._colormaps[mode])
 
     def getVisualizationMode(self):
-        """Returns the visualization mode in use."""
+        """Returns the visualization mode in use.
+
+        :rtype: Mode
+        """
         return self._mode
 
-    def _isReadOnlyColormap(self):
-        """Returns True if colormap should not be modified."""
-        return self.getVisualizationMode() in self._READ_ONLY_MODES
+    def setColormap(self, colormap, mode=None):
+        """
+        Set the colormap for this specific mode.
 
-    def setColormap(self, colormap):
-        if not self._isReadOnlyColormap():
+        :param silx.gui.plot.Colormap.Colormap colormap: The colormap
+        :param Mode mode: If specified, set the colormap of this specific mode
+        """
+        if mode is not None:
+            self._colormaps[mode] = colormap
+        if mode is None or self._mode == mode:
             super(_ImageComplexData, self).setColormap(colormap)
 
     def getColormap(self):
-        if self._isReadOnlyColormap():
-            return _PHASE_COLORMAP.copy()
-        else:
-            return super(_ImageComplexData, self).getColormap()
+        return super(_ImageComplexData, self).getColormap()
 
 
 # Widgets
@@ -291,13 +304,14 @@ class _ComplexDataToolButton(qt.QToolButton):
     :param plot: The :class:`ComplexImageView` to control
     """
 
-    _MODES = [
-        ('absolute', 'math-amplitude', 'Amplitude'),
-        ('phase', 'math-phase', 'Phase'),
-        ('real', 'math-real', 'Real part'),
-        ('imaginary', 'math-imaginary', 'Imaginary part'),
-        ('amplitude_phase', 'math-phase-color', 'Amplitude and Phase'),
-        ('log10_amplitude_phase', 'math-phase-color-log', 'Log10(Amp.) and Phase')]
+    _MODES = collections.OrderedDict([
+        (Mode.ABSOLUTE, ('math-amplitude', 'Amplitude')),
+        (Mode.PHASE, ('math-phase', 'Phase')),
+        (Mode.REAL, ('math-real', 'Real part')),
+        (Mode.IMAGINARY, ('math-imaginary', 'Imaginary part')),
+        (Mode.AMPLITUDE_PHASE, ('math-phase-color', 'Amplitude and Phase')),
+        (Mode.LOG10_AMPLITUDE_PHASE, ('math-phase-color-log', 'Log10(Amp.) and Phase'))
+    ])
 
     _RANGE_DIALOG_TEXT = 'Set Amplitude Range...'
 
@@ -311,8 +325,10 @@ class _ComplexDataToolButton(qt.QToolButton):
         menu.triggered.connect(self._triggered)
         self.setMenu(menu)
 
-        for _, icon, text in self._MODES:
+        for mode, info in self._MODES.items():
+            icon, text = info
             action = qt.QAction(icons.getQIcon(icon), text, self)
+            action.setData(mode)
             action.setIconVisibleInMenu(True)
             menu.addAction(action)
 
@@ -328,13 +344,10 @@ class _ComplexDataToolButton(qt.QToolButton):
 
     def _modeChanged(self, mode):
         """Handle change of visualization modes"""
-        for actionMode, icon, text in self._MODES:
-            if actionMode == mode:
-                self.setIcon(icons.getQIcon(icon))
-                self.setToolTip('Display the ' + text.lower())
-                break
-
-        self._rangeDialogAction.setEnabled(mode == 'log10_amplitude_phase')
+        icon, text = self._MODES[mode]
+        self.setIcon(icons.getQIcon(icon))
+        self.setToolTip('Display the ' + text.lower())
+        self._rangeDialogAction.setEnabled(mode == Mode.LOG10_AMPLITUDE_PHASE)
 
     def _triggered(self, action):
         """Handle triggering of menu actions"""
@@ -360,9 +373,9 @@ class _ComplexDataToolButton(qt.QToolButton):
             dialog.sigRangeChanged.disconnect(self._rangeChanged)
 
         else:  # update mode
-            for mode, _, text in self._MODES:
-                if actionText == text:
-                    self._plot2DComplex.setVisualizationMode(mode)
+            mode = action.data()
+            if isinstance(mode, Mode):
+                self._plot2DComplex.setVisualizationMode(mode)
 
     def _rangeChanged(self, range_):
         """Handle updates of range in the dialog"""
@@ -375,10 +388,13 @@ class ComplexImageView(qt.QWidget):
     :param parent: See :class:`QMainWindow`
     """
 
+    Mode = Mode
+    """Also expose the modes inside the class"""
+
     sigDataChanged = qt.Signal()
     """Signal emitted when data has changed."""
 
-    sigVisualizationModeChanged = qt.Signal(str)
+    sigVisualizationModeChanged = qt.Signal(object)
     """Signal emitted when the visualization mode has changed.
 
     It provides the new visualization mode.
@@ -389,7 +405,7 @@ class ComplexImageView(qt.QWidget):
         if parent is None:
             self.setWindowTitle('ComplexImageView')
 
-        self._mode = 'absolute'
+        self._mode = Mode.ABSOLUTE
         self._amplitudeRangeInfo = None, 2
         self._data = numpy.zeros((0, 0), dtype=numpy.complex)
         self._displayedData = numpy.zeros((0, 0), dtype=numpy.float)
@@ -428,17 +444,17 @@ class ComplexImageView(qt.QWidget):
         :return: The data corresponding to the mode
         :rtype: 2D numpy.ndarray of float or RGBA image
         """
-        if mode == 'absolute':
+        if mode == Mode.ABSOLUTE:
             return numpy.absolute(data)
-        elif mode == 'phase':
+        elif mode == Mode.PHASE:
             return numpy.angle(data)
-        elif mode == 'real':
+        elif mode == Mode.REAL:
             return numpy.real(data)
-        elif mode == 'imaginary':
+        elif mode == Mode.IMAGINARY:
             return numpy.imag(data)
-        elif mode == 'amplitude_phase':
+        elif mode == Mode.AMPLITUDE_PHASE:
             return _complex2rgbalin(data)
-        elif mode == 'log10_amplitude_phase':
+        elif mode == Mode.LOG10_AMPLITUDE_PHASE:
             max_, delta = self._getAmplitudeRangeInfo()
             return _complex2rgbalog(data, dlogs=delta, smax=max_)
         else:
@@ -452,13 +468,10 @@ class ComplexImageView(qt.QWidget):
 
         mode = self.getVisualizationMode()
 
-        self.getPlot().getColormapAction().setDisabled(
-            mode in ('amplitude_phase', 'log10_amplitude_phase'))
-
         self._plotImage.setVisualizationMode(mode)
 
         image = self.getDisplayedData(copy=False)
-        if mode in ('amplitude_phase', 'log10_amplitude_phase'):
+        if mode in (Mode.AMPLITUDE_PHASE, Mode.LOG10_AMPLITUDE_PHASE):
             # Combined view
             absolute = numpy.absolute(self.getData(copy=False))
             self._plotImage.setData(
@@ -530,12 +543,7 @@ class ComplexImageView(qt.QWidget):
 
         :rtype: tuple of str
         """
-        return ('absolute',
-                'phase',
-                'real',
-                'imaginary',
-                'amplitude_phase',
-                'log10_amplitude_phase')
+        return tuple(Mode)
 
     def setVisualizationMode(self, mode):
         """Set the mode of visualization of the complex data.
@@ -545,7 +553,7 @@ class ComplexImageView(qt.QWidget):
 
         :param str mode: The mode to use.
         """
-        assert mode in self.getSupportedVisualizationModes()
+        assert mode in Mode
         if mode != self._mode:
             self._mode = mode
             self._displayedData = self._convertData(
@@ -556,7 +564,7 @@ class ComplexImageView(qt.QWidget):
     def getVisualizationMode(self):
         """Get the current visualization mode of the complex data.
 
-        :rtype: str
+        :rtype: Mode
         """
         return self._mode
 
@@ -569,7 +577,7 @@ class ComplexImageView(qt.QWidget):
         """
         self._amplitudeRangeInfo = max_, float(delta)
         mode = self.getVisualizationMode()
-        if mode == 'log10_amplitude_phase':
+        if mode == Mode.LOG10_AMPLITUDE_PHASE:
             self._displayedData = self._convertData(
                 self.getData(copy=False), mode)
             self._updatePlot()
@@ -583,15 +591,16 @@ class ComplexImageView(qt.QWidget):
 
     # Image item proxy
 
-    def setColormap(self, colormap):
+    def setColormap(self, colormap, mode=None):
         """Set the colormap to use for amplitude, phase, real or imaginary.
 
         WARNING: This colormap is not used when displaying both
         amplitude and phase.
 
         :param silx.gui.plot.Colormap.Colormap colormap: The colormap
+        :param Mode mode: If specified, set the colormap of this specific mode
         """
-        self._plotImage.setColormap(colormap)
+        self._plotImage.setColormap(colormap, mode)
 
     def getColormap(self):
         """Returns the colormap used to display the data.
