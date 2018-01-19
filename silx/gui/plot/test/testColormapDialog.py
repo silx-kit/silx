@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "05/12/2016"
+__date__ = "17/01/2018"
 
 
 import doctest
@@ -37,7 +37,7 @@ from silx.gui import qt
 from silx.gui.plot import ColormapDialog
 from silx.gui.test.utils import TestCaseQt
 from silx.gui.plot.Colormap import Colormap, preferredColormaps
-from silx.test.utils import ParametricTestCase
+from silx.utils.testutils import ParametricTestCase
 from silx.gui.plot.PlotWindow import PlotWindow
 
 import numpy.random

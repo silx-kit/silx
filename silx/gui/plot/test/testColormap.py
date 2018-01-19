@@ -29,11 +29,11 @@ from __future__ import absolute_import
 
 __authors__ = ["H.Payno"]
 __license__ = "MIT"
-__date__ = "05/12/2016"
+__date__ = "17/01/2018"
 
 import unittest
 import numpy
-from silx.test.utils import ParametricTestCase
+from silx.utils.testutils import ParametricTestCase
 from silx.gui.plot.Colormap import Colormap
 from silx.gui.plot.Colormap import preferredColormaps, setPreferredColormaps
 

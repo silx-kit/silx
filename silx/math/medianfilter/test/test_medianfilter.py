@@ -25,14 +25,14 @@
 
 __authors__ = ["H. Payno"]
 __license__ = "MIT"
-__date__ = "02/05/2017"
+__date__ = "17/01/2018"
 
 import unittest
 import numpy
 from silx.math.medianfilter import medfilt2d
 from silx.math.medianfilter.medianfilter import reflect, mirror
 from silx.math.medianfilter.medianfilter import MODES as silx_mf_modes
-from silx.test.utils import ParametricTestCase
+from silx.utils.testutils import ParametricTestCase
 try:
     import scipy
     import scipy.misc

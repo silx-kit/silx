@@ -25,7 +25,7 @@
 
 __authors__ = ["P. Knobel", "V.A. Sole"]
 __license__ = "MIT"
-__date__ = "03/08/2017"
+__date__ = "17/01/2018"
 
 
 import locale
@@ -36,7 +36,7 @@ import sys
 import tempfile
 import unittest
 
-from silx.test import utils
+from silx.utils import testutils
 
 from ..specfile import SpecFile, Scan
 from .. import specfile
@@ -369,7 +369,7 @@ class TestSpecFile(unittest.TestCase):
         self.assertEqual(self.scan25.mca.channels,
                          [])
 
-    @utils.test_logging(specfile._logger.name, warning=1)
+    @testutils.test_logging(specfile._logger.name, warning=1)
     def test_empty_scan(self):
         """Test reading a scan with no data points"""
         self.assertEqual(len(self.empty_scan.labels),

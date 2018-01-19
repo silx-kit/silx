@@ -27,14 +27,14 @@ from __future__ import division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "19/10/2017"
+__date__ = "17/01/2018"
 
 
 import unittest
 
 import numpy
 
-from silx.test.utils import ParametricTestCase
+from silx.utils.testutils import ParametricTestCase
 
 from silx.math.combo import min_max
 
