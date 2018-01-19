@@ -469,12 +469,14 @@ class SaveAction(PlotAction):
         dialog.close()
 
         # Forces the filename extension to match the chosen filter
-        extension = nameFilter.split()[-1][2:-1]
-        if "NXdata" not in nameFilter:
-            # for NXdata output, let nexusformat handle the extension
-            if (len(filename) <= len(extension) or
-                    filename[-len(extension):].lower() != extension.lower()):
-                filename += extension
+        if "NXdata" in nameFilter:
+            default_extension = ".h5"
+        else:
+            default_extension = nameFilter.split()[-1][2:-1]
+
+        if (len(filename) <= len(default_extension) or
+                filename[-len(default_extension):].lower() != default_extension.lower()):
+            filename += default_extension
 
         # Handle save
         if nameFilter in self.SNAPSHOT_FILTERS:
