@@ -689,7 +689,7 @@ def get_NXdata_in_group(group):
     :param group: h5py-like group following the Nexus specification
         (NXdata, NXentry or NXroot).
     :return: :class:`NXdata` object or None
-    :raise TypeError if group is not a h5py-like group
+    :raise: TypeError if group is not a h5py-like group
     """
     if not is_group(group):
         raise TypeError("Provided parameter is not a h5py-like group")
