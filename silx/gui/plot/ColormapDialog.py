@@ -257,6 +257,8 @@ class ColormapDialog(qt.QDialog):
         """If defined 3-tuple containing information from a data:
         minimum, positive minimum, maximum"""
 
+        self._colormapStoredState = None
+
         # Make the GUI
         vLayout = qt.QVBoxLayout(self)
 
@@ -486,19 +488,23 @@ class ColormapDialog(qt.QDialog):
                             resetzoom=False)
 
         if updateMarkers:
+            minDraggable = self._colormap().isEditable() and \
+                           not self._minValue.isAutoChecked()
             self._plot.addXMarker(
                 self._minValue.getFiniteValue(),
                 legend='Min',
                 text='Min',
-                draggable=not self._minValue.isAutoChecked(),
+                draggable=minDraggable,
                 color='blue',
                 constraint=self._plotMinMarkerConstraint)
 
+            maxDraggable = self._colormap().isEditable() and \
+                           not self._maxValue.isAutoChecked()
             self._plot.addXMarker(
                 self._maxValue.getFiniteValue(),
                 legend='Max',
                 text='Max',
-                draggable=not self._maxValue.isAutoChecked(),
+                draggable=maxDraggable,
                 color='blue',
                 constraint=self._plotMaxMarkerConstraint)
 
@@ -716,10 +722,11 @@ class ColormapDialog(qt.QDialog):
         """
         colormap = self.getColormap()
         if colormap is not None and self._colormapStoredState is not None:
-            self._ignoreColormapChange = True
-            colormap._setFromDict(self._colormapStoredState)
-            self._ignoreColormapChange = False
-            self._applyColormap()
+            if self._colormap()._toDict() != self._colormapStoredState:
+                self._ignoreColormapChange = True
+                colormap._setFromDict(self._colormapStoredState)
+                self._ignoreColormapChange = False
+                self._applyColormap()
 
     def setDataRange(self, minimum=None, positiveMin=None, maximum=None):
         """Set the range of data to use for the range of the histogram area.
@@ -818,9 +825,20 @@ class ColormapDialog(qt.QDialog):
 
         self._colormap = colormap
         self.storeCurrentState()
+        self._updateResetButton()
         self._applyColormap()
 
+    def _updateResetButton(self):
+        resetButton = self._buttonsNonModal.button(
+            qt.QDialogButtonBox.Reset)
+        rStateEnabled = False
+        if self._colormap() is not None and self._colormap().isEditable():
+            # can reset only in the case the colormap changed
+            rStateEnabled = self._colormap()._toDict() != self._colormapStoredState
+        resetButton.setEnabled(rStateEnabled)
+
     def _applyColormap(self):
+        self._updateResetButton()
         if self._ignoreColormapChange is True:
             return
 
@@ -832,6 +850,7 @@ class ColormapDialog(qt.QDialog):
             if colormap.getName() is not None:
                 name = colormap.getName()
                 self._comboBoxColormap.setCurrentName(name)
+                self._comboBoxColormap.setEnabled(self._colormap().isEditable())
 
             assert colormap.getNormalization() in Colormap.NORMALIZATIONS
             self._normButtonLinear.setChecked(
@@ -841,9 +860,12 @@ class ColormapDialog(qt.QDialog):
             vmin = colormap.getVMin()
             vmax = colormap.getVMax()
             dataRange = colormap.getColormapRange()
+            self._normButtonLinear.setEnabled(self._colormap().isEditable())
+            self._normButtonLog.setEnabled(self._colormap().isEditable())
             self._minValue.setValue(vmin or dataRange[0], isAuto=vmin is None)
             self._maxValue.setValue(vmax or dataRange[1], isAuto=vmax is None)
-
+            self._minValue.setEnabled(self._colormap().isEditable())
+            self._maxValue.setEnabled(self._colormap().isEditable())
             self._ignoreColormapChange = False
 
         self._plotUpdate()
@@ -860,6 +882,7 @@ class ColormapDialog(qt.QDialog):
             colormap.setVRange(vmin, vmax)
         self._ignoreColormapChange = False
         self._plotUpdate()
+        self._updateResetButton()
 
     def _updateName(self):
         if self._ignoreColormapChange is True:

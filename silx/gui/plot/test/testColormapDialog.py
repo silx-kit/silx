@@ -276,6 +276,35 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         cb.setCurrentIndex(index)
         self.assertTrue(cb.getCurrentName() == colormapName)
 
+    def testColormapEditableMode(self):
+        """Test that the colormapDialog is correctly updated when changing the
+        colormap editable status"""
+        colormap = Colormap(normalization='linear', vmin=1.0, vmax=10.0)
+        self.colormapDiag.setColormap(colormap)
+        for editable in (True, False):
+            with self.subTest(editable=editable):
+                colormap.setEditable(editable)
+                self.assertTrue(
+                    self.colormapDiag._comboBoxColormap.isEnabled() is editable)
+                self.assertTrue(
+                    self.colormapDiag._minValue.isEnabled() is editable)
+                self.assertTrue(
+                    self.colormapDiag._maxValue.isEnabled() is editable)
+                self.assertTrue(
+                    self.colormapDiag._normButtonLinear.isEnabled() is editable)
+                self.assertTrue(
+                    self.colormapDiag._normButtonLog.isEnabled() is editable)
+
+        # Make sure the reset button is also set to enable when edition mode is
+        # False
+        self.colormapDiag.setModal(False)
+        colormap.setEditable(True)
+        self.colormapDiag._normButtonLog.setChecked(True)
+        resetButton = self.colormapDiag._buttonsNonModal.button(qt.QDialogButtonBox.Reset)
+        self.assertTrue(resetButton.isEnabled())
+        colormap.setEditable(False)
+        self.assertFalse(resetButton.isEnabled())
+
 
 class TestColormapAction(TestCaseQt):
     def setUp(self):
