@@ -33,6 +33,7 @@ __license__ = "MIT"
 __date__ = "17/01/2018"
 
 
+import sys
 import contextlib
 import os
 import numpy
