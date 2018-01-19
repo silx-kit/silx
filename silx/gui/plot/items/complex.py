@@ -128,7 +128,8 @@ class ImageComplexData(ImageBase, ColormapMixIn):
         self._mode = self.Mode.ABSOLUTE
         self._amplitudeRangeInfo = None, 2
 
-        colormap = Colormap()
+        # Use default from ColormapMixIn
+        colormap = super(ImageComplexData, self).getColormap()
 
         phaseColormap = Colormap(
             name='hsv',
@@ -187,9 +188,16 @@ class ImageComplexData(ImageBase, ColormapMixIn):
 
         if mode != self._mode:
             self._mode = mode
-            # Update active colormap
+
+            self._updated(ItemChangedType.VISUALIZATION_MODE)
+
+            # Send data updated as value returned by getData has changed
+            self._updated(ItemChangedType.DATA)
+
+            # Update ColormapMixIn colormap
             colormap = self._colormaps[self._mode]
-            super(ImageComplexData, self).setColormap(colormap)
+            if colormap is not super(ImageComplexData, self).getColormap():
+                super(ImageComplexData, self).setColormap(colormap)
 
     def getVisualizationMode(self):
         """Returns the visualization mode in use.
@@ -230,8 +238,6 @@ class ImageComplexData(ImageBase, ColormapMixIn):
         if mode is self.getVisualizationMode():
             super(ImageComplexData, self).setColormap(colormap)
         else:
-            # Send data updated as value returned by getData has changed
-            self._updated(ItemChangedType.DATA)
             self._updated(ItemChangedType.COLORMAP)
 
     def getColormap(self, mode=None):
