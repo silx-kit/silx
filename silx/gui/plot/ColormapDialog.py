@@ -63,7 +63,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "H. Payno"]
 __license__ = "MIT"
-__date__ = "08/01/2018"
+__date__ = "19/01/2018"
 
 
 import logging
@@ -696,13 +696,6 @@ class ColormapDialog(qt.QDialog):
                                     color='gray',
                                     align='center',
                                     fill=True)
-
-            # Update the data range
-            colormap = self.getColormap()
-            if colormap is not None:
-                self._ignoreColormapChange = True
-                self._colormap().setVRange(bin_edges[0], bin_edges[-1])
-                self._ignoreColormapChange = False
         self._updateMinMaxData()
 
     def getColormap(self):
