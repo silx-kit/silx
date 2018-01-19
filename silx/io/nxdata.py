@@ -833,6 +833,9 @@ def save_NXdata(filename, signal, axes,
         # get or create entry
         if nxentry_name is not None:
             entry = h5f.require_group(nxentry_name)
+            if "default" not in h5f.attrs:
+                # NXroot@default attribute
+                h5f.attrs["default"] = nxentry_name
         else:
             # write NXdata into the root of the file (invalid nexus!)
             entry = h5f
@@ -892,5 +895,8 @@ def save_NXdata(filename, signal, axes,
                     dsname = axes_names[i] + "_errors"
                     data_group.create_dataset(dsname,
                                               data=axis_errors)
+        if "default" not in entry.attrs:
+            # NXentry@default attribute
+            entry.attrs["default"] = nxdata_name
 
     return True
