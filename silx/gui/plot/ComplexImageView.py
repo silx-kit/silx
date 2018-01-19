@@ -180,9 +180,6 @@ class _ImageComplexData(items.ImageData):
         if mode is None or self._mode == mode:
             super(_ImageComplexData, self).setColormap(colormap)
 
-    def getColormap(self):
-        return super(_ImageComplexData, self).getColormap()
-
 
 # Widgets
 
