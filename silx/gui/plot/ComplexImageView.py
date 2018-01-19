@@ -215,7 +215,7 @@ class _ComplexDataToolButton(qt.QToolButton):
         icon, text = self._MODES[mode]
         self.setIcon(icons.getQIcon(icon))
         self.setToolTip('Display the ' + text.lower())
-        self._rangeDialogAction.setEnabled(mode == Mode.LOG10_AMPLITUDE_PHASE)
+        self._rangeDialogAction.setEnabled(mode == ImageComplexData.Mode.LOG10_AMPLITUDE_PHASE)
 
     def _triggered(self, action):
         """Handle triggering of menu actions"""
@@ -242,7 +242,7 @@ class _ComplexDataToolButton(qt.QToolButton):
 
         else:  # update mode
             mode = action.data()
-            if isinstance(mode, Mode):
+            if isinstance(mode, ImageComplexData.Mode):
                 self._plot2DComplex.setVisualizationMode(mode)
 
     def _rangeChanged(self, range_):
