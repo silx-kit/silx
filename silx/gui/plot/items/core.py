@@ -115,6 +115,9 @@ class ItemChangedType(enum.Enum):
     OVERLAY = 'overlayChanged'
     """Item's overlay state changed flag."""
 
+    VISUALIZATION_MODE = 'visualizationModeChanged'
+    """Item's visualization mode changed flag."""
+
 
 class Item(qt.QObject):
     """Description of an item of the plot"""

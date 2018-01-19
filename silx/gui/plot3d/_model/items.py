@@ -1188,7 +1188,7 @@ class Scatter2DPropertyMixInRow(object):
 
     def __itemChanged(self, event):
         """Set flags to enable/disable the row"""
-        if event == items.Item3DChangedType.VISUALIZATION_MODE:
+        if event == items.ItemChangedType.VISUALIZATION_MODE:
             item = self.sender()
             self.__isEnabled = item.isPropertyEnabled(self.__propertyName)
             self.__updateFlags()

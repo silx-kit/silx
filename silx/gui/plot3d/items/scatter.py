@@ -222,7 +222,7 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
         if mode != self.getVisualization():
             self._visualizationMode = mode
             self._updateScene()
-            self._updated(Item3DChangedType.VISUALIZATION_MODE)
+            self._updated(ItemChangedType.VISUALIZATION_MODE)
 
     def getVisualization(self):
         """Returns the current visualization mode.
