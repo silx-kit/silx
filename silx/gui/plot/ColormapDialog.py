@@ -836,8 +836,13 @@ class ColormapDialog(qt.QDialog):
             return
 
         colormap = self.getColormap()
-        self.setEnabled(colormap is not None)
-        if colormap is not None:
+        if colormap is None:
+            self._comboBoxColormap.setEnabled(False)
+            self._normButtonLinear.setEnabled(False)
+            self._normButtonLog.setEnabled(False)
+            self._minValue.setEnabled(False)
+            self._maxValue.setEnabled(False)
+        else:
             self._ignoreColormapChange = True
 
             if colormap.getName() is not None:
