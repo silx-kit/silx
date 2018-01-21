@@ -4,7 +4,7 @@
 #    Project: Byte-offset decompression in OpenCL
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2013-2017  European Synchrotron Radiation Facility,
+#    Copyright (C) 2013-2018  European Synchrotron Radiation Facility,
 #                             Grenoble, France
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -47,32 +47,48 @@ from silx.opencl import ocl
 from silx.opencl.codec import byte_offset
 try:
     import fabio
-except:
+except ImportError:
     fabio = None
+try:
+    import pyopencl
+except ImportError:
+    pyopencl = None
 import unittest
 logger = logging.getLogger(__name__)
 
 
-@unittest.skipUnless(ocl and fabio, "PyOpenCl or fabio is missing")
+@unittest.skipUnless(ocl and fabio and pyopencl,
+                     "PyOpenCl or fabio is missing")
 class TestByteOffset(unittest.TestCase):
 
-    def test_decompress(self):
+    @staticmethod
+    def _create_test_data(shape, nexcept, lam=200):
+        """Create test (image, compressed stream) pair.
+
+        :param shape: Shape of test image
+        :param int nexcept: Number of exceptions in the image
+        :param lam: Expectation of interval argument for numpy.random.poisson
+        :return: (reference image array, compressed stream)
         """
-        tests the byte offset decompression on GPU
-        """
-        import pyopencl
-        shape = (2713, 2719)
         size = numpy.prod(shape)
-        nexcept = 2729
-        ref = numpy.random.poisson(200, numpy.prod(shape))
+        ref = numpy.random.poisson(lam, numpy.prod(shape))
         exception_loc = numpy.random.randint(0, size, size=nexcept)
         exception_value = numpy.random.randint(0, 1000000, size=nexcept)
         ref[exception_loc] = exception_value
         ref.shape = shape
 
         raw = fabio.compression.compByteOffset(ref)
+        return ref, raw
+
+    def test_decompress(self):
+        """
+        tests the byte offset decompression on GPU
+        """
+        ref, raw = self._create_test_data(shape=(2713, 2719), nexcept=2729)
+        size = numpy.prod(ref.shape)
+
         try:
-            bo = byte_offset.ByteOffset(len(raw), size, profile=True)
+            bo = byte_offset.ByteOffset(dec_size=size, profile=True)
         except (RuntimeError, pyopencl.RuntimeError) as err:
             logger.warning(err)
             if sys.platform == "darwin":
@@ -100,13 +116,10 @@ class TestByteOffset(unittest.TestCase):
         tests the byte offset decompression on GPU, many images to ensure there 
         is not leaking in memory 
         """
-        import pyopencl
         shape = (991, 997)
         size = numpy.prod(shape)
-        nexcept = 2729
-        ref = numpy.random.poisson(100, numpy.prod(shape))
-        ref.shape = shape
-        raw = fabio.compression.compByteOffset(ref)
+        ref, raw = self._create_test_data(shape=shape, nexcept=0, lam=100)
+
         try:
             bo = byte_offset.ByteOffset(len(raw), size, profile=False)
         except (RuntimeError, pyopencl.RuntimeError) as err:
@@ -129,12 +142,8 @@ class TestByteOffset(unittest.TestCase):
                      1000.0 * (t2 - t1))
 
         for i in range(ntest):
-            ref = numpy.random.poisson(200, numpy.prod(shape))
-            exception_loc = numpy.random.randint(0, size, size=nexcept)
-            exception_value = numpy.random.randint(0, 1000000, size=nexcept)
-            ref[exception_loc] = exception_value
-            ref.shape = shape
-            raw = fabio.compression.compByteOffset(ref)
+            ref, raw = self._create_test_data(shape=shape, nexcept=2729, lam=200)
+
             t0 = time.time()
             res_cy = fabio.compression.decByteOffset(raw)
             t1 = time.time()
@@ -149,9 +158,160 @@ class TestByteOffset(unittest.TestCase):
                          1000.0 * (t1 - t0),
                          1000.0 * (t2 - t1))
 
+    def test_encode(self):
+        """Test byte offset compression"""
+        ref, raw = self._create_test_data(shape=(2713, 2719), nexcept=2729)
+
+        try:
+            bo = byte_offset.ByteOffset(len(raw), ref.size, profile=True)
+        except (RuntimeError, pyopencl.RuntimeError) as err:
+            logger.warning(err)
+            raise err
+
+        t0 = time.time()
+        compressed_array = bo.encode(ref)
+        t1 = time.time()
+
+        compressed_stream = compressed_array.get().tostring()
+        self.assertEqual(raw, compressed_stream)
+
+        logger.debug("Global execution time: OpenCL: %.3fms.",
+                     1000.0 * (t1 - t0))
+        bo.log_profile()
+
+    def test_encode_to_array(self):
+        """Test byte offset compression while providing an out array"""
+
+        ref, raw = self._create_test_data(shape=(2713, 2719), nexcept=2729)
+
+        try:
+            bo = byte_offset.ByteOffset(profile=True)
+        except (RuntimeError, pyopencl.RuntimeError) as err:
+            logger.warning(err)
+            raise err
+
+        # Test with out buffer too small
+        out = pyopencl.array.empty(bo.queue, (10,), numpy.int8)
+        with self.assertRaises(ValueError):
+            bo.encode(ref, out)
+
+        # Test with out buffer too big
+        out = pyopencl.array.empty(bo.queue, (len(raw) + 10,), numpy.int8)
+
+        compressed_array = bo.encode(ref, out)
+
+        # Get size from returned array
+        compressed_size = compressed_array.size
+        self.assertEqual(compressed_size, len(raw))
+
+        # Get data from out array, read it from bo object queue
+        out_bo_queue = out.with_queue(bo.queue)
+        compressed_stream = out_bo_queue.get().tostring()[:compressed_size]
+        self.assertEqual(raw, compressed_stream)
+
+    def test_encode_to_bytes(self):
+        """Test byte offset compression to bytes"""
+        ref, raw = self._create_test_data(shape=(2713, 2719), nexcept=2729)
+
+        try:
+            bo = byte_offset.ByteOffset(profile=True)
+        except (RuntimeError, pyopencl.RuntimeError) as err:
+            logger.warning(err)
+            raise err
+
+        t0 = time.time()
+        res_fabio = fabio.compression.compByteOffset(ref)
+        t1 = time.time()
+        compressed_stream = bo.encode_to_bytes(ref)
+        t2 = time.time()
+
+        self.assertEqual(raw, compressed_stream)
+
+        logger.debug("Global execution time: fabio %.3fms, OpenCL: %.3fms.",
+                     1000.0 * (t1 - t0),
+                     1000.0 * (t2 - t1))
+        bo.log_profile()
+
+    def test_encode_to_bytes_from_array(self):
+        """Test byte offset compression to bytes from a pyopencl array.
+        """
+        ref, raw = self._create_test_data(shape=(2713, 2719), nexcept=2729)
+
+        try:
+            bo = byte_offset.ByteOffset(profile=True)
+        except (RuntimeError, pyopencl.RuntimeError) as err:
+            logger.warning(err)
+            raise err
+
+        d_ref = pyopencl.array.to_device(
+            bo.queue, ref.astype(numpy.int32).ravel())
+
+        t0 = time.time()
+        res_fabio = fabio.compression.compByteOffset(ref)
+        t1 = time.time()
+        compressed_stream = bo.encode_to_bytes(d_ref)
+        t2 = time.time()
+
+        self.assertEqual(raw, compressed_stream)
+
+        logger.debug("Global execution time: fabio %.3fms, OpenCL: %.3fms.",
+                     1000.0 * (t1 - t0),
+                     1000.0 * (t2 - t1))
+        bo.log_profile()
+
+    def test_many_encode(self, ntest=10):
+        """Test byte offset compression with many image"""
+        shape = (991, 997)
+        ref, raw = self._create_test_data(shape=shape, nexcept=0, lam=100)
+
+        try:
+            bo = byte_offset.ByteOffset(profile=False)
+        except (RuntimeError, pyopencl.RuntimeError) as err:
+            logger.warning(err)
+            raise err
+
+        bo_durations = []
+
+        t0 = time.time()
+        res_fabio = fabio.compression.compByteOffset(ref)
+        t1 = time.time()
+        compressed_stream = bo.encode_to_bytes(ref)
+        t2 = time.time()
+        bo_durations.append(1000.0 * (t2 - t1))
+
+        self.assertEqual(raw, compressed_stream)
+        logger.debug("Global execution time: fabio %.3fms, OpenCL: %.3fms.",
+                     1000.0 * (t1 - t0),
+                     1000.0 * (t2 - t1))
+
+        for i in range(ntest):
+            ref, raw = self._create_test_data(shape=shape, nexcept=2729, lam=200)
+
+            t0 = time.time()
+            res_fabio = fabio.compression.compByteOffset(ref)
+            t1 = time.time()
+            compressed_stream = bo.encode_to_bytes(ref)
+            t2 = time.time()
+            bo_durations.append(1000.0 * (t2 - t1))
+
+            self.assertEqual(raw, compressed_stream)
+            logger.debug("Global execution time: fabio %.3fms, OpenCL: %.3fms.",
+                         1000.0 * (t1 - t0),
+                         1000.0 * (t2 - t1))
+
+        logger.debug("OpenCL execution time: Mean: %fms, Min: %fms, Max: %fms",
+                     numpy.mean(bo_durations),
+                     numpy.min(bo_durations),
+                     numpy.max(bo_durations))
+
 
 def suite():
-    testSuite = unittest.TestSuite()
-    testSuite.addTest(TestByteOffset("test_decompress"))
-    testSuite.addTest(TestByteOffset("test_many_decompress"))
-    return testSuite
+    test_suite = unittest.TestSuite()
+    test_suite.addTest(TestByteOffset("test_decompress"))
+    test_suite.addTest(TestByteOffset("test_many_decompress"))
+    test_suite.addTest(TestByteOffset("test_encode"))
+    test_suite.addTest(TestByteOffset("test_encode_to_array"))
+    test_suite.addTest(TestByteOffset("test_encode_to_bytes"))
+    test_suite.addTest(TestByteOffset("test_encode_to_bytes_from_array"))
+    test_suite.addTest(TestByteOffset("test_many_encode"))
+    return test_suite

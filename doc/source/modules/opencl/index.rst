@@ -11,4 +11,5 @@
    sift/index.rst
    fbp.rst
    medfilt.rst
+   codec_cbf.rst
 
