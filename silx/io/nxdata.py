@@ -690,7 +690,7 @@ def is_NXentry_with_default_NXdata(group):
     if not is_group(group):
         return False
 
-    if group.attrs.get("NX_class") != "NXentry":
+    if get_attr_as_string(group, "NX_class") != "NXentry":
         return False
 
     default_nxdata_name = group.attrs.get("default")
@@ -715,7 +715,7 @@ def is_NXroot_with_default_NXdata(group):
     # is therefore optional. We accept groups that are not located at the root
     # if they have @NX_class=NXroot (use case: several nexus files archived
     # in a single HDF5 file)
-    if group.attrs.get("NX_class") != "NXroot" and not is_file(group):
+    if get_attr_as_string(group, "NX_class") != "NXroot" and not is_file(group):
         return False
 
     default_nxentry_name = group.attrs.get("default")
@@ -836,6 +836,7 @@ def save_NXdata(filename, signal, axes,
             if "default" not in h5f.attrs:
                 # NXroot@default attribute
                 h5f.attrs["default"] = nxentry_name
+                # TODO: add @NX_class: NXentry?
         else:
             # write NXdata into the root of the file (invalid nexus!)
             entry = h5f
