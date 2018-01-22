@@ -53,9 +53,6 @@ class Item3DChangedType(enum.Enum):
     TRANSFORM = 'transformChanged'
     """Item3D transform changed flag."""
 
-    VISUALIZATION_MODE = 'visualizationModeChanged'
-    """Item3D visualization mode changed flag."""
-
     HEIGHT_MAP = 'heightMapChanged'
     """Item3D height map changed flag."""
 
