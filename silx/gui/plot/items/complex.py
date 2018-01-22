@@ -340,11 +340,13 @@ class ImageComplexData(ImageBase, ColormapMixIn):
             mode = self.getVisualizationMode()
 
         colormap = self.getColormap(mode=mode)
-        data = self.getData(copy=False, mode=mode)
         if mode is self.Mode.AMPLITUDE_PHASE:
+            data = self.getComplexData(copy=False)
             return _complex2rgbalin(colormap, data)
         elif mode is self.Mode.LOG10_AMPLITUDE_PHASE:
+            data = self.getComplexData(copy=False)
             max_, delta = self._getAmplitudeRangeInfo()
             return _complex2rgbalog(colormap, data, dlogs=delta, smax=max_)
         else:
+            data = self.getData(copy=False, mode=mode)
             return colormap.applyToData(data)
