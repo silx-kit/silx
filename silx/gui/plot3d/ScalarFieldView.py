@@ -334,6 +334,8 @@ class CutPlane(qt.QObject):
         self._dataRange = None
         self._visible = False
 
+        self.__syncPlane = True
+
         # Plane stroke on the outer bounding box
         self._planeStroke = primitives.PlaneInGroup(normal=(0, 1, 0))
         self._planeStroke.visible = self._visible
@@ -345,6 +347,7 @@ class CutPlane(qt.QObject):
         self._dataPlane.strokeVisible = False
         self._dataPlane.alpha = 1.
         self._dataPlane.visible = self._visible
+        self._dataPlane.plane.addListener(self._planePositionChanged)
 
         self._colormap = Colormap(
             name='gray', normalization='linear', vmin=None, vmax=None)
@@ -366,17 +369,22 @@ class CutPlane(qt.QObject):
                 self._planeStroke.plane.point,
                 a_min=bounds[0], a_max=bounds[1])
 
-    def _syncPlanes(self):
-        """Makes sure both planes are coplanar"""
-        planeStrokeToDataPlane = transform.StaticTransformList([
-            self._dataPlane.objectToSceneTransform.inverse(),
-            self._planeStroke.objectToSceneTransform])
+    @staticmethod
+    def _syncPlanes(master, slave):
+        """Move slave PlaneInGroup so that it is coplanar with master.
 
-        point = planeStrokeToDataPlane.transformPoint(
-            self._planeStroke.plane.point)
-        normal = planeStrokeToDataPlane.transformNormal(
-            self._planeStroke.plane.normal)
-        self._dataPlane.plane.setPlane(point, normal)
+        :param PlaneInGroup master: Reference PlaneInGroup
+        :param PlaneInGroup slave: PlaneInGroup to align
+        """
+        masterToSlave = transform.StaticTransformList([
+            slave.objectToSceneTransform.inverse(),
+            master.objectToSceneTransform])
+
+        point = masterToSlave.transformPoint(
+            master.plane.point)
+        normal = masterToSlave.transformNormal(
+            master.plane.normal)
+        slave.plane.setPlane(point, normal)
 
     def _sfViewDataChanged(self):
         """Handle data change in the ScalarFieldView this plane belongs to"""
@@ -396,7 +404,8 @@ class CutPlane(qt.QObject):
     def _sfViewTransformChanged(self):
         """Handle transform changed in the ScalarFieldView"""
         self._keepPlaneInBBox()
-        self._syncPlanes()
+        self._syncPlanes(master=self._planeStroke,
+                         slave=self._dataPlane)
         self.sigPlaneChanged.emit()
 
     def _planeChanged(self, source, *args, **kwargs):
@@ -408,9 +417,22 @@ class CutPlane(qt.QObject):
 
     def _planePositionChanged(self, source, *args, **kwargs):
         """Handle update of cut plane position and normal"""
-        if self._planeStroke.visible:
-            self._syncPlanes()
-            self.sigPlaneChanged.emit()
+        if self.__syncPlane:
+            self.__syncPlane = False
+            if source is self._planeStroke.plane:
+                self._syncPlanes(master=self._planeStroke,
+                                 slave=self._dataPlane)
+            elif source is self._dataPlane.plane:
+                self._syncPlanes(master=self._dataPlane,
+                                 slave=self._planeStroke)
+            else:
+                _logger.error('Received an unknown object %s',
+                              str(source))
+
+            if self._planeStroke.visible or self._dataPlane.visible:
+                self.sigPlaneChanged.emit()
+
+            self.__syncPlane = True
 
     # Plane position
 
@@ -422,48 +444,55 @@ class CutPlane(qt.QObject):
         """Returns whether the cut plane is defined or not (bool)"""
         return self._planeStroke.isValid
 
-    def getNormal(self, coordinates='scene'):
+    def _plane(self, coordinates='array'):
+        """Returns the scene plane to set.
+
+        :param str coordinates: The coordinate system to use:
+            Either 'scene' or 'array' (default)
+        :rtype: Plane
+        :raise ValueError: If coordinates is not correct
+        """
+        if coordinates == 'scene':
+            return self._planeStroke.plane
+        elif coordinates == 'array':
+            return self._dataPlane.plane
+        else:
+             raise ValueError(
+                'Unsupported coordinates: %s' % str(coordinates))
+
+    def getNormal(self, coordinates='array'):
         """Returns the normal of the plane (as a unit vector)
 
         :param str coordinates: The coordinate system to use:
-            Either 'scene' (default) or 'array'
+            Either 'scene' or 'array' (default)
         :return: Normal (nx, ny, nz), vector is 0 if no plane is defined
         :rtype: numpy.ndarray
         :raise ValueError: If coordinates is not correct
         """
-        if coordinates == 'scene':
-            return self._planeStroke.plane.normal
-        elif coordinates == 'array':
-            return self._dataPlane.plane.normal
-        else:
-            raise ValueError(
-                'Unsupported coordinates: %s' % str(coordinates))
+        return self._plane(coordinates).normal
 
-    def setNormal(self, normal):
+    def setNormal(self, normal, coordinates='array'):
         """Set the normal of the plane.
 
         :param normal: 3-tuple of float: nx, ny, nz
+        :param str coordinates: The coordinate system to use:
+            Either 'scene' or 'array' (default)
+        :raise ValueError: If coordinates is not correct
         """
-        self._planeStroke.plane.normal = normal
+        self._plane(coordinates).normal = normal
 
-    def getPoint(self, coordinates='scene'):
+    def getPoint(self, coordinates='array'):
         """Returns a point on the plane.
 
         :param str coordinates: The coordinate system to use:
-            Either 'scene' (default) or 'array'
+            Either 'scene' or 'array' (default)
         :return: (x, y, z)
         :rtype: numpy.ndarray
         :raise ValueError: If coordinates is not correct
         """
-        if coordinates == 'scene':
-            return self._planeStroke.plane.point
-        elif coordinates == 'array':
-            return self._dataPlane.plane.point
-        else:
-            raise ValueError(
-                'Unsupported coordinates: %s' % str(coordinates))
+        return self._plane(coordinates).point
 
-    def setPoint(self, point, constraint=True):
+    def setPoint(self, point, constraint=True, coordinates='array'):
         """Set a point contained in the plane.
 
         Warning: The plane might not intersect the bounding box of the data.
@@ -473,29 +502,24 @@ class CutPlane(qt.QObject):
         :param bool constraint:
             True (default) to make sure the plane intersect data bounding box,
             False to set the plane without any constraint.
+        :raise ValueError: If coordinates is not correc
         """
-        self._planeStroke.plane.point = point
+        self._plane(coordinates).point = point
         if constraint:
             self._keepPlaneInBBox()
 
-    def getParameters(self, coordinates='scene'):
+    def getParameters(self, coordinates='array'):
         """Returns the plane equation parameters: a*x + b*y + c*z + d = 0
 
         :param str coordinates: The coordinate system to use:
-            Either 'scene' (default) or 'array'
+            Either 'scene' or 'array' (default)
         :return: Plane equation parameters: (a, b, c, d)
         :rtype: numpy.ndarray
         :raise ValueError: If coordinates is not correct
         """
-        if coordinates == 'scene':
-            return self._planeStroke.plane.parameters
-        elif coordinates == 'array':
-            return self._dataPlane.plane.parameters
-        else:
-            raise ValueError(
-                'Unsupported coordinates: %s' % str(coordinates))
+        return self._plane(coordinates).parameters
 
-    def setParameters(self, parameters, constraint=True):
+    def setParameters(self, parameters, constraint=True, coordinates='array'):
         """Set the plane equation parameters: a*x + b*y + c*z + d = 0
 
         Warning: The plane might not intersect the bounding box of the data.
@@ -505,8 +529,9 @@ class CutPlane(qt.QObject):
         :param bool constraint:
             True (default) to make sure the plane intersect data bounding box,
             False to set the plane without any constraint.
+        :raise ValueError: If coordinates is not correc
         """
-        self._planeStroke.plane.parameters = parameters
+        self._plane(coordinates).parameters = parameters
         if constraint:
             self._keepPlaneInBBox()
 

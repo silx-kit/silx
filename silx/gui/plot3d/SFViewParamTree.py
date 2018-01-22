@@ -1217,9 +1217,10 @@ class PlaneOrientationItem(SubjectItem):
         return [self.subject.getCutPlanes()[0].sigPlaneChanged]
 
     def _pullData(self):
-        currentNormal = self.subject.getCutPlanes()[0].getNormal()
+        currentNormal = self.subject.getCutPlanes()[0].getNormal(
+            coordinates='scene')
         for _, text, _, normal in self._PLANE_ACTIONS:
-            if numpy.array_equal(normal, currentNormal):
+            if numpy.allclose(normal, currentNormal):
                 return text
         return ''
 
@@ -1236,7 +1237,7 @@ class PlaneOrientationItem(SubjectItem):
     def __editorChanged(self, index):
         normal = self._PLANE_ACTIONS[index][3]
         plane = self.subject.getCutPlanes()[0]
-        plane.setNormal(normal)
+        plane.setNormal(normal, coordinates='scene')
         plane.moveToCenter()
 
     def setEditorData(self, editor):
