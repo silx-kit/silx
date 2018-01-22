@@ -850,13 +850,7 @@ class ScalarFieldView(Plot3DWindow):
         self._dataRange = None
 
         self._group = primitives.BoundedGroup()
-
-        self._dataBBoxGroup = primitives.GroupBBox()
-        self._dataBBoxGroup.children = [self._group]
-        self._dataBBoxGroup.axesVisible = False
-        self._dataBBoxGroup.strokeWidth = 1.
-        self._dataBBoxGroup.color = self._foregroundColor
-        self._dataBBoxGroup.transforms = [
+        self._group.transforms = [
             self._dataTranslate, self._dataTransform, self._dataScale]
 
         self._bbox = axes.LabelledAxes()
