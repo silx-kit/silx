@@ -153,7 +153,7 @@ def main(argv):
         help='Output file name (HDF5). An URI can be provided to write'
              ' the data into a specific group in the output file: '
              '/path/to/file::/path/to/group. '
-             'By default, the filename uses the current date and time:'
+             'If not provided, the filename defaults to a timestamp:'
              ' YYYYmmdd-HHMMSS.h5')
     parser.add_argument(
         '-m', '--mode',
@@ -176,13 +176,13 @@ def main(argv):
              'The same rules as with argument --begin apply. '
              'Example: "--filepattern toto_%%d_%%d.edf --end 199,1999"')
     parser.add_argument(
-        '--no-root-group',
+        '--add-root-group',
         action="store_true",
-        help='This option disables the default behavior of creating a '
-             'root group (entry) for each file to be converted. When '
-             'merging multiple input files, this can cause conflicts '
-             'when datasets have the same name (see --overwrite-data). '
-             'This option has no effect when using --file-pattern.')
+        help='This option causes each input file to be written to a '
+             'specific root group with the same name as the file. When '
+             'merging multiple input files, this can help preventing conflicts'
+             ' when datasets have the same name (see --overwrite-data). '
+             'This option is ignored when using --file-pattern.')
     parser.add_argument(
         '--overwrite-data',
         action="store_true",
@@ -229,7 +229,7 @@ def main(argv):
     parser.add_argument(
         '--shuffle',
         action="store_true",
-        help='Enables the byte shuffle filter, may improve the compression '
+        help='Enables the byte shuffle filter. This may improve the compression '
              'ratio for block oriented compressors like GZIP or LZF.')
     parser.add_argument(
         '--fletcher32',
@@ -438,7 +438,7 @@ def main(argv):
         h5paths_and_groups = []
         for input_name in options.input_files:
             hdf5_path_for_file = hdf5_path
-            if not options.no_root_group:
+            if options.add_root_group:
                 hdf5_path_for_file = hdf5_path.rstrip("/") + "/" + os.path.basename(input_name)
             try:
                 h5paths_and_groups.append((hdf5_path_for_file,
@@ -446,7 +446,8 @@ def main(argv):
             except IOError:
                 _logger.error("Cannot read file %s. If this is a file format "
                               "supported by the fabio library, you can try to"
-                              "install fabio (`pip install fabio`).",
+                              " install fabio (`pip install fabio`)."
+                              " Aborting conversion.",
                               input_name)
                 return -1
 
