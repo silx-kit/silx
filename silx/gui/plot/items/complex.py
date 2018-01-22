@@ -125,6 +125,7 @@ class ImageComplexData(ImageBase, ColormapMixIn):
         ImageBase.__init__(self)
         ColormapMixIn.__init__(self)
         self._data = numpy.zeros((0, 0), dtype=numpy.complex64)
+        self._dataByModesCache = {}
         self._mode = self.Mode.ABSOLUTE
         self._amplitudeRangeInfo = None, 2
 
@@ -268,6 +269,7 @@ class ImageComplexData(ImageBase, ColormapMixIn):
             data = numpy.array(data, dtype=numpy.complex64)
 
         self._data = data
+        self._dataByModesCache = {}
 
         # TODO hackish data range implementation
         if self.isVisible():
@@ -302,24 +304,28 @@ class ImageComplexData(ImageBase, ColormapMixIn):
         if mode is None:
             mode = self.getVisualizationMode()
 
-        complexData = self.getComplexData(copy=False)
-        if mode is self.Mode.PHASE:
-            data = numpy.angle(complexData)
-        elif mode is self.Mode.REAL:
-            data = numpy.real(complexData)
-        elif mode is self.Mode.IMAGINARY:
-            data = numpy.imag(complexData)
-        elif mode in (self.Mode.ABSOLUTE,
-                      self.Mode.LOG10_AMPLITUDE_PHASE,
-                      self.Mode.AMPLITUDE_PHASE):
-            data = numpy.absolute(complexData)
-        else:
-            _logger.error(
-                'Unsupported conversion mode: %s, fallback to absolute',
-                str(mode))
-            data = numpy.absolute(complexData)
+        if mode not in self._dataByModesCache:
+            # Compute data for mode and store it in cache
+            complexData = self.getComplexData(copy=False)
+            if mode is self.Mode.PHASE:
+                data = numpy.angle(complexData)
+            elif mode is self.Mode.REAL:
+                data = numpy.real(complexData)
+            elif mode is self.Mode.IMAGINARY:
+                data = numpy.imag(complexData)
+            elif mode in (self.Mode.ABSOLUTE,
+                          self.Mode.LOG10_AMPLITUDE_PHASE,
+                          self.Mode.AMPLITUDE_PHASE):
+                data = numpy.absolute(complexData)
+            else:
+                _logger.error(
+                    'Unsupported conversion mode: %s, fallback to absolute',
+                    str(mode))
+                data = numpy.absolute(complexData)
 
-        return data
+            self._dataByModesCache[mode] = data
+
+        return numpy.array(self._dataByModesCache[mode], copy=copy)
 
     def getRgbaImageData(self, copy=True, mode=None):
         """Get the displayed RGB(A) image for (current) mode
