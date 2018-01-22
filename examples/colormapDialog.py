@@ -27,7 +27,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "05/01/2018"
+__date__ = "19/01/2018"
 
 import functools
 import numpy
@@ -77,6 +77,18 @@ class ColormapDialogExample(qt.QMainWindow):
 
         layout.addSpacing(10)
 
+        button = qt.QPushButton("Set editable")
+        button.clicked.connect(self.setEditable)
+        layout.addWidget(button)
+        button = qt.QPushButton("Set non-editable")
+        button.clicked.connect(self.setNonEditable)
+        layout.addWidget(button)
+
+        layout.addSpacing(10)
+
+        button = qt.QPushButton("Set no colormap")
+        button.clicked.connect(self.setNoColormap)
+        layout.addWidget(button)
         button = qt.QPushButton("Set colormap 1")
         button.clicked.connect(self.setColormap1)
         layout.addWidget(button)
@@ -125,6 +137,9 @@ class ColormapDialogExample(qt.QMainWindow):
         button = qt.QPushButton("Set shepp logan phantom")
         button.clicked.connect(self.setSheppLoganPhantom)
         layout.addWidget(button)
+        button = qt.QPushButton("Set data with non finite")
+        button.clicked.connect(self.setDataWithNonFinite)
+        layout.addWidget(button)
 
         layout.addStretch()
 
@@ -137,6 +152,11 @@ class ColormapDialogExample(qt.QMainWindow):
     def removeColorDialog(self, dialog):
         self.colorDialogs.remove(dialog)
 
+    def setNoColormap(self):
+        self.colorBar.setColormap(None)
+        for dialog in self.colorDialogs:
+            dialog.setColormap(None)
+
     def setColormap1(self):
         self.colorBar.setColormap(self.colormap1)
         for dialog in self.colorDialogs:
@@ -146,6 +166,18 @@ class ColormapDialogExample(qt.QMainWindow):
         self.colorBar.setColormap(self.colormap2)
         for dialog in self.colorDialogs:
             dialog.setColormap(self.colormap2)
+
+    def setEditable(self):
+        for dialog in self.colorDialogs:
+            colormap = dialog.getColormap()
+            if colormap is not None:
+                colormap.setEditable(True)
+
+    def setNonEditable(self):
+        for dialog in self.colorDialogs:
+            colormap = dialog.getColormap()
+            if colormap is not None:
+                colormap.setEditable(False)
 
     def setNewColormap(self):
         self.colormap = Colormap("inferno")
@@ -206,6 +238,21 @@ class ColormapDialogExample(qt.QMainWindow):
             from scipy import ndimage
             data = ndimage.gaussian_filter(data, sigma=20)
         data = numpy.random.poisson(data)
+        self.data = data
+        for dialog in self.colorDialogs:
+            dialog.setData(data)
+
+    def setDataWithNonFinite(self):
+        from silx.image import phantomgenerator
+        data = phantomgenerator.PhantomGenerator.get2DPhantomSheppLogan(256)
+        data = data * 1000
+        if scipy is not None:
+            from scipy import ndimage
+            data = ndimage.gaussian_filter(data, sigma=20)
+        data = numpy.random.poisson(data)
+        data[10] = float("nan")
+        data[50] = float("+inf")
+        data[100] = float("-inf")
         self.data = data
         for dialog in self.colorDialogs:
             dialog.setData(data)

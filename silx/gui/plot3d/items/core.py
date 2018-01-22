@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,8 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "15/11/2017"
 
+from collections import defaultdict
+
 import numpy
 
 from silx.third_party import enum, six
@@ -51,14 +53,14 @@ class Item3DChangedType(enum.Enum):
     TRANSFORM = 'transformChanged'
     """Item3D transform changed flag."""
 
-    VISUALIZATION_MODE = 'visualizationModeChanged'
-    """Item3D visualization mode changed flag."""
-
     HEIGHT_MAP = 'heightMapChanged'
     """Item3D height map changed flag."""
 
     ISO_LEVEL = 'isoLevelChanged'
     """Isosurface level changed flag."""
+
+    LABEL = 'labelChanged'
+    """Item's label changed flag."""
 
 
 class Item3D(qt.QObject):
@@ -67,6 +69,9 @@ class Item3D(qt.QObject):
     :param parent: The View widget this item belongs to.
     :param primitive: An optional primitive to use as scene primitive
     """
+
+    _LABEL_INDICES = defaultdict(int)
+    """Store per class label indices"""
 
     sigItemChanged = qt.Signal(object)
     """Signal emitted when an item's property has changed.
@@ -84,6 +89,12 @@ class Item3D(qt.QObject):
 
         self._primitive = primitive
 
+        labelIndex = self._LABEL_INDICES[self.__class__]
+        self._label = six.text_type(self.__class__.__name__)
+        if labelIndex != 0:
+            self._label += u' %d' % labelIndex
+        self._LABEL_INDICES[self.__class__] += 1
+
     def _getScenePrimitive(self):
         """Return the group containing the item rendering"""
         return self._primitive
@@ -95,6 +106,25 @@ class Item3D(qt.QObject):
         """
         if event is not None:
             self.sigItemChanged.emit(event)
+
+    # Label
+
+    def getLabel(self):
+        """Returns the label associated to this item.
+
+        :rtype: str
+        """
+        return self._label
+
+    def setLabel(self, label):
+        """Set the label associated to this item.
+
+        :param str label:
+        """
+        label = six.text_type(label)
+        if label != self._label:
+            self._label = label
+            self._updated(Item3DChangedType.LABEL)
 
     # Visibility
 
@@ -117,7 +147,6 @@ class Item3D(qt.QObject):
             self._updated(ItemChangedType.VISIBLE)
 
 
-# TODO add anchor (i.e. center of rotation)
 # TODO add bounding box visible + color
 class DataItem3D(Item3D):
     """Base class representing a data item with transform in the scene.
@@ -271,7 +300,6 @@ class DataItem3D(Item3D):
 
         :param float angle: The rotation angle in degrees.
         :param axis: The (x, y, z) coordinates of the rotation axis.
-        :param center: The (x, y, z) coordinates of the center of rotation
         """
         axis = numpy.array(axis, dtype=numpy.float32)
         assert axis.ndim == 1
@@ -298,8 +326,8 @@ class DataItem3D(Item3D):
 
         if matrix is not None:
             matrix = numpy.array(matrix, dtype=numpy.float32)
-            assert matrix.shape in ((3, 3), (4, 4))
-            matrix4x4[:matrix.shape[0], :matrix.shape[1]] = matrix
+            assert matrix.shape == (3, 3)
+            matrix4x4[:3, :3] = matrix
 
         if not numpy.all(numpy.equal(matrix4x4, self._matrix.getMatrix())):
             self._matrix.setMatrix(matrix4x4)
@@ -308,9 +336,9 @@ class DataItem3D(Item3D):
     def getMatrix(self):
         """Returns the matrix set by :meth:`setMatrix`
 
-        :return: 4x4 matrix
+        :return: 3x3 matrix
         :rtype: numpy.ndarray"""
-        return self._matrix.getMatrix(copy=True)
+        return self._matrix.getMatrix(copy=True)[:3, :3]
 
 
 class GroupItem(DataItem3D):
@@ -386,3 +414,14 @@ class GroupItem(DataItem3D):
         """Remove all item from the group."""
         for item in self.getItems():
             self.removeItem(item)
+
+    def visit(self):
+        """Generator visiting the group content.
+
+        It traverses the group sub-tree in a top-down left-to-right way.
+        """
+        for child in self.getItems():
+            yield child
+            if hasattr(child, 'visit'):
+                for item in child.visit():
+                    yield item

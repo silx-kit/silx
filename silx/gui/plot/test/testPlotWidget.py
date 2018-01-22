@@ -26,17 +26,17 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "01/09/2017"
+__date__ = "17/01/2018"
 
 
 import unittest
 import logging
 import numpy
 
-from silx.test.utils import ParametricTestCase
+from silx.utils.testutils import ParametricTestCase
 from silx.gui.test.utils import SignalListener
 from silx.gui.test.utils import TestCaseQt
-from silx.test import utils
+from silx.utils import testutils
 from silx.utils import deprecation
 
 from silx.gui import qt
@@ -723,7 +723,7 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
                 if getter is not None:
                     self.assertEqual(getter(), expected)
 
-    @utils.test_logging(deprecation.depreclog.name, warning=2)
+    @testutils.test_logging(deprecation.depreclog.name, warning=2)
     def testOldPlotAxis_Logarithmic(self):
         """Test silx API prior to silx 0.6"""
         x = self.plot.getXAxis()
@@ -762,7 +762,7 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.assertEqual(self.plot.isYAxisLogarithmic(), False)
         self.assertEqual(listener.arguments(callIndex=-1), ("y", False))
 
-    @utils.test_logging(deprecation.depreclog.name, warning=2)
+    @testutils.test_logging(deprecation.depreclog.name, warning=2)
     def testOldPlotAxis_AutoScale(self):
         """Test silx API prior to silx 0.6"""
         x = self.plot.getXAxis()
@@ -801,7 +801,7 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.assertEqual(self.plot.isYAxisAutoScale(), True)
         self.assertEqual(listener.arguments(callIndex=-1), ("y", True))
 
-    @utils.test_logging(deprecation.depreclog.name, warning=1)
+    @testutils.test_logging(deprecation.depreclog.name, warning=1)
     def testOldPlotAxis_Inverted(self):
         """Test silx API prior to silx 0.6"""
         x = self.plot.getXAxis()

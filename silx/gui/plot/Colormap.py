@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@ from __future__ import absolute_import
 
 __authors__ = ["T. Vincent", "H.Payno"]
 __license__ = "MIT"
-__date__ = "29/11/2017"
+__date__ = "08/01/2018"
 
 from silx.gui import qt
 import copy as copy_mdl
@@ -37,6 +37,7 @@ import numpy
 from .matplotlib import Colormap as MPLColormap
 import logging
 from silx.math.combo import min_max
+from silx.utils.exceptions import NotEditableError
 
 _logger = logging.getLogger(__file__)
 
@@ -99,6 +100,7 @@ class Colormap(qt.QObject):
         self._normalization = str(normalization)
         self._vmin = float(vmin) if vmin is not None else None
         self._vmax = float(vmax) if vmax is not None else None
+        self._editable = True
 
     def isAutoscale(self):
         """Return True if both min and max are in autoscale mode"""
@@ -152,6 +154,8 @@ class Colormap(qt.QObject):
             'reversed gray', 'temperature', 'red', 'green', 'blue', 'jet',
             'viridis', 'magma', 'inferno', 'plasma'.
         """
+        if self.isEditable() is False:
+            raise NotEditableError('Colormap is not editable')
         assert name in self.getSupportedColormaps()
         self._name = str(name)
         self._colors = None
@@ -175,6 +179,8 @@ class Colormap(qt.QObject):
 
         .. warning: this will set the value of name to None
         """
+        if self.isEditable() is False:
+            raise NotEditableError('Colormap is not editable')
         self._setColors(colors)
         if len(colors) is 0:
             self._colors = None
@@ -195,6 +201,8 @@ class Colormap(qt.QObject):
 
         :param str norm: the norm to set
         """
+        if self.isEditable() is False:
+            raise NotEditableError('Colormap is not editable')
         self._normalization = str(norm)
         self.sigChanged.emit()
 
@@ -213,6 +221,8 @@ class Colormap(qt.QObject):
             (default)
             value)
         """
+        if self.isEditable() is False:
+            raise NotEditableError('Colormap is not editable')
         if vmin is not None:
             if self._vmax is not None and vmin > self._vmax:
                 err = "Can't set vmin because vmin >= vmax. " \
@@ -236,6 +246,8 @@ class Colormap(qt.QObject):
         :param float vmax: Upper bounds of the colormap or None for autoscale
             (default)
         """
+        if self.isEditable() is False:
+            raise NotEditableError('Colormap is not editable')
         if vmax is not None:
             if self._vmin is not None and vmax < self._vmin:
                 err = "Can't set vmax because vmax <= vmin. " \
@@ -243,6 +255,24 @@ class Colormap(qt.QObject):
                 raise ValueError(err)
 
         self._vmax = vmax
+        self.sigChanged.emit()
+
+    def isEditable(self):
+        """ Return if the colormap is editable or not
+        
+        :return: editable state of the colormap
+         :rtype: bool
+        """
+        return self._editable
+
+    def setEditable(self, editable):
+        """
+        Set the editable state of the colormap
+        
+        :param bool editable: is the colormap editable 
+        """
+        assert type(editable) is bool
+        self._editable = editable
         self.sigChanged.emit()
 
     def getColormapRange(self, data=None):
@@ -305,11 +335,16 @@ class Colormap(qt.QObject):
         :param vmax: Upper bounds of the colormap or None for autoscale
             (default)
         """
+        if self.isEditable() is False:
+            raise NotEditableError('Colormap is not editable')
         if vmin is not None and vmax is not None:
             if vmin > vmax:
                 err = "Can't set vmin and vmax because vmin >= vmax " \
                       "vmin = %s, vmax = %s" % (vmin, vmax)
                 raise ValueError(err)
+
+        if self._vmin == vmin and self._vmax == vmax:
+            return
 
         self._vmin = vmin
         self._vmax = vmax
@@ -352,6 +387,8 @@ class Colormap(qt.QObject):
 
         :param dict dic: the colormap as a dictionary
         """
+        if self.isEditable() is False:
+            raise NotEditableError('Colormap is not editable')
         name = dic['name'] if 'name' in dic else None
         colors = dic['colors'] if 'colors' in dic else None
         vmin = dic['vmin'] if 'vmin' in dic else None
@@ -393,7 +430,7 @@ class Colormap(qt.QObject):
     def copy(self):
         """Return a copy of the Colormap.
 
-        :rtype: Colormap
+        :rtype: silx.gui.plot.Colormap.Colormap
         """
         return Colormap(name=self._name,
                         colors=copy_mdl.copy(self._colors),
@@ -448,6 +485,8 @@ class Colormap(qt.QObject):
         :return: True if the restoration sussseed
         :rtype: bool
         """
+        if self.isEditable() is False:
+            raise NotEditableError('Colormap is not editable')
         stream = qt.QDataStream(byteArray, qt.QIODevice.ReadOnly)
 
         className = stream.readQString()

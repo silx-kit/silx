@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -325,7 +325,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         Returns an object that contains serialized items of data corresponding
         to the list of indexes specified.
 
-        :param list(qt.QModelIndex) indexes: List of indexes
+        :param List[qt.QModelIndex] indexes: List of indexes
         :rtype: qt.QMimeData
         """
         if not self.__fileMoveEnabled or len(indexes) == 0:

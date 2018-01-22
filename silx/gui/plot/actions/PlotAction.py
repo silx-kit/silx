@@ -32,10 +32,9 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "20/04/2017"
+__date__ = "03/01/2018"
 
 
-from collections import OrderedDict
 import weakref
 from silx.gui import icons
 from silx.gui import qt

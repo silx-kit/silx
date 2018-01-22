@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -114,6 +114,9 @@ class ItemChangedType(enum.Enum):
 
     OVERLAY = 'overlayChanged'
     """Item's overlay state changed flag."""
+
+    VISUALIZATION_MODE = 'visualizationModeChanged'
+    """Item's visualization mode changed flag."""
 
 
 class Item(qt.QObject):
@@ -406,7 +409,7 @@ class ColormapMixIn(ItemMixInBase):
     def setColormap(self, colormap):
         """Set the colormap of this image
 
-        :param Colormap colormap: colormap description
+        :param silx.gui.plot.Colormap.Colormap colormap: colormap description
         """
         if isinstance(colormap, dict):
             colormap = Colormap._fromDict(colormap)
@@ -454,6 +457,14 @@ class SymbolMixIn(ItemMixInBase):
         :rtype: tuple of str
         """
         return tuple(cls._SUPPORTED_SYMBOLS.keys())
+
+    @classmethod
+    def getSupportedSymbolNames(cls):
+        """Returns the list of supported symbol human-readable names.
+
+        :rtype: tuple of str
+        """
+        return tuple(cls._SUPPORTED_SYMBOLS.values())
 
     def getSymbolName(self, symbol=None):
         """Returns human-readable name for a symbol.

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -252,8 +252,9 @@ class Camera(transform.Transform):
     :param float fovy: Vertical field-of-view in degrees.
     :param float near: The near clipping plane Z coord (strictly positive).
     :param float far: The far clipping plane Z coord (> near).
-    :param size: Viewport's size used to compute the aspect ratio.
-    :type size: 2-tuple of float (width, height).
+    :param size:
+        Viewport's size used to compute the aspect ratio (width, height).
+    :type size: 2-tuple of float
     :param position: Coordinates of the point of view.
     :type position: numpy.ndarray-like of 3 float32.
     :param direction: Sight direction vector.

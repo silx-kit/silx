@@ -32,7 +32,7 @@ Test coverage dependencies: coverage, lxml.
 """
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "03/08/2017"
+__date__ = "15/01/2018"
 __license__ = "MIT"
 
 import distutils.util
@@ -42,6 +42,7 @@ import subprocess
 import sys
 import time
 import unittest
+from argparse import ArgumentParser
 
 
 class StreamHandlerUnittestReady(logging.StreamHandler):
@@ -90,10 +91,16 @@ except ImportError:
 
 try:
     import importlib
-except:
-    importer = __import__
-else:
     importer = importlib.import_module
+except ImportError:
+    def importer(name):
+        module = __import__(name)
+        # returns the leaf module, instead of the root module
+        subnames = name.split(".")
+        subnames.pop(0)
+        for subname in subnames:
+            module = getattr(module, subname)
+            return module
 
 
 try:
@@ -124,11 +131,6 @@ def get_project_name(root_dir):
     name, _stderr_data = p.communicate()
     logger.debug("subprocess ended with rc= %s", p.returncode)
     return name.split()[-1].decode('ascii')
-
-
-PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_NAME = get_project_name(PROJECT_DIR)
-logger.info("Project name: %s", PROJECT_NAME)
 
 
 class TextTestResultWithSkipList(unittest.TextTestResult):
@@ -275,7 +277,55 @@ def build_project(name, root_dir):
     return home
 
 
-from argparse import ArgumentParser
+def import_project_module(project_name, project_dir):
+    """Import project module, from the system of from the project directory"""
+    # Prevent importing from source directory
+    if (os.path.dirname(os.path.abspath(__file__)) == os.path.abspath(sys.path[0])):
+        removed_from_sys_path = sys.path.pop(0)
+        logger.info("Patched sys.path, removed: '%s'", removed_from_sys_path)
+
+    if "--installed" in sys.argv:
+        try:
+            module = importer(project_name)
+        except ImportError:
+            raise ImportError(
+                "%s not installed: Cannot run tests on installed version" %
+                PROJECT_NAME)
+    else:  # Use built source
+        build_dir = build_project(project_name, project_dir)
+
+        sys.path.insert(0, build_dir)
+        logger.warning("Patched sys.path, added: '%s'", build_dir)
+        module = importer(project_name)
+    return module
+
+
+def get_test_options(project_module):
+    """Returns the test options if available, else None"""
+    module_name = project_module.__name__ + '.test.utils'
+    logger.info('Import %s', module_name)
+    try:
+        test_utils = importer(module_name)
+    except ImportError:
+        logger.warning("No module named '%s'. No test options available.", module_name)
+        return None
+
+    test_options = getattr(test_utils, "test_options", None)
+    return test_options
+
+
+PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_NAME = get_project_name(PROJECT_DIR)
+logger.info("Project name: %s", PROJECT_NAME)
+
+project_module = import_project_module(PROJECT_NAME, PROJECT_DIR)
+PROJECT_VERSION = getattr(project_module, 'version', '')
+PROJECT_PATH = project_module.__path__[0]
+
+test_options = get_test_options(project_module)
+"""Contains extra configuration for the tests."""
+
+
 epilog = """Environment variables:
 WITH_QT_TEST=False to disable graphical tests
 SILX_OPENCL=False to disable OpenCL tests
@@ -302,20 +352,10 @@ parser.add_argument("-v", "--verbose", default=0,
                     help="Increase verbosity. Option -v prints additional " +
                          "INFO messages. Use -vv for full verbosity, " +
                          "including debug messages and test help strings.")
-parser.add_argument("-x", "--no-gui", dest="gui", default=True,
-                    action="store_false",
-                    help="Disable the test of the graphical use interface")
-parser.add_argument("-g", "--no-opengl", dest="opengl", default=True,
-                    action="store_false",
-                    help="Disable tests using OpenGL")
-parser.add_argument("-o", "--no-opencl", dest="opencl", default=True,
-                    action="store_false",
-                    help="Disable the test of the OpenCL part")
-parser.add_argument("-l", "--low-mem", dest="low_mem", default=False,
-                    action="store_true",
-                    help="Disable test with large memory consumption (>100Mbyte")
 parser.add_argument("--qt-binding", dest="qt_binding", default=None,
                     help="Force using a Qt binding, from 'PyQt4', 'PyQt5', or 'PySide'")
+if test_options is not None:
+    test_options.add_parser_argument(parser)
 
 default_test_name = "%s.test.suite" % PROJECT_NAME
 parser.add_argument("test_name", nargs='*',
@@ -337,18 +377,6 @@ elif options.verbose > 1:
     logger.info("Set log level: DEBUG")
     test_verbosity = 2
     use_buffer = False
-
-if not options.gui:
-    os.environ["WITH_QT_TEST"] = "False"
-
-if not options.opencl:
-    os.environ["SILX_OPENCL"] = "False"
-
-if not options.opengl:
-    os.environ["WITH_GL_TEST"] = "False"
-
-if options.low_mem:
-    os.environ["SILX_TEST_LOW_MEM"] = "True"
 
 if options.coverage:
     logger.info("Running test-coverage")
@@ -387,33 +415,6 @@ if options.qt_binding:
     else:
         raise ValueError("Qt binding '%s' is unknown" % options.qt_binding)
 
-# Prevent importing from source directory
-if (os.path.dirname(os.path.abspath(__file__)) ==
-        os.path.abspath(sys.path[0])):
-    removed_from_sys_path = sys.path.pop(0)
-    logger.info("Patched sys.path, removed: '%s'", removed_from_sys_path)
-
-
-# import module
-if options.installed:  # Use installed version
-    try:
-        module = importer(PROJECT_NAME)
-    except:
-        raise ImportError(
-            "%s not installed: Cannot run tests on installed version" %
-            PROJECT_NAME)
-else:  # Use built source
-    build_dir = build_project(PROJECT_NAME, PROJECT_DIR)
-
-    sys.path.insert(0, build_dir)
-    logger.warning("Patched sys.path, added: '%s'", build_dir)
-    module = importer(PROJECT_NAME)
-
-
-PROJECT_VERSION = getattr(module, 'version', '')
-PROJECT_PATH = module.__path__[0]
-
-
 # Run the tests
 runnerArgs = {}
 runnerArgs["verbosity"] = test_verbosity
@@ -430,8 +431,14 @@ logger.warning("Test %s %s from %s",
 test_module_name = PROJECT_NAME + '.test'
 logger.info('Import %s', test_module_name)
 test_module = importer(test_module_name)
-
 test_suite = unittest.TestSuite()
+
+if test_options is not None:
+    # Configure the test options according to the command lines and the the environment
+    test_options.configure(options)
+else:
+    logger.warning("No test options available.")
+
 
 if not options.test_name:
     # Do not use test loader to avoid cryptic exception

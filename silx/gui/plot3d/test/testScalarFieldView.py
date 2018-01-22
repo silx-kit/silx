@@ -25,7 +25,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "11/07/2017"
+__date__ = "17/01/2018"
 
 
 import logging
@@ -33,7 +33,7 @@ import unittest
 
 import numpy
 
-from silx.test.utils import ParametricTestCase
+from silx.utils.testutils import ParametricTestCase
 from silx.gui.test.utils import TestCaseQt
 from silx.gui import qt
 

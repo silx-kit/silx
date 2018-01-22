@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "05/12/2016"
+__date__ = "17/01/2018"
 
 
 import doctest
@@ -37,7 +37,7 @@ from silx.gui import qt
 from silx.gui.plot import ColormapDialog
 from silx.gui.test.utils import TestCaseQt
 from silx.gui.plot.Colormap import Colormap, preferredColormaps
-from silx.test.utils import ParametricTestCase
+from silx.utils.testutils import ParametricTestCase
 from silx.gui.plot.PlotWindow import PlotWindow
 
 import numpy.random
@@ -276,6 +276,35 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         cb.setCurrentIndex(index)
         self.assertTrue(cb.getCurrentName() == colormapName)
 
+    def testColormapEditableMode(self):
+        """Test that the colormapDialog is correctly updated when changing the
+        colormap editable status"""
+        colormap = Colormap(normalization='linear', vmin=1.0, vmax=10.0)
+        self.colormapDiag.setColormap(colormap)
+        for editable in (True, False):
+            with self.subTest(editable=editable):
+                colormap.setEditable(editable)
+                self.assertTrue(
+                    self.colormapDiag._comboBoxColormap.isEnabled() is editable)
+                self.assertTrue(
+                    self.colormapDiag._minValue.isEnabled() is editable)
+                self.assertTrue(
+                    self.colormapDiag._maxValue.isEnabled() is editable)
+                self.assertTrue(
+                    self.colormapDiag._normButtonLinear.isEnabled() is editable)
+                self.assertTrue(
+                    self.colormapDiag._normButtonLog.isEnabled() is editable)
+
+        # Make sure the reset button is also set to enable when edition mode is
+        # False
+        self.colormapDiag.setModal(False)
+        colormap.setEditable(True)
+        self.colormapDiag._normButtonLog.setChecked(True)
+        resetButton = self.colormapDiag._buttonsNonModal.button(qt.QDialogButtonBox.Reset)
+        self.assertTrue(resetButton.isEnabled())
+        colormap.setEditable(False)
+        self.assertFalse(resetButton.isEnabled())
+
 
 class TestColormapAction(TestCaseQt):
     def setUp(self):
@@ -289,7 +318,7 @@ class TestColormapAction(TestCaseQt):
                                   normalization='log')
         self.defaultColormap = self.plot.getDefaultColormap()
 
-        self.plot.getColormapAction()._actionTriggered()
+        self.plot.getColormapAction()._actionTriggered(checked=True)
         self.colormapDialog = self.plot.getColormapAction()._dialog
         self.colormapDialog.setAttribute(qt.Qt.WA_DeleteOnClose)
 
@@ -326,10 +355,10 @@ class TestColormapAction(TestCaseQt):
         self.assertTrue(self.colormapDialog.getColormap() is self.defaultColormap)
 
     def testShowHideColormapDialog(self):
+        self.plot.getColormapAction()._actionTriggered(checked=False)
         self.assertFalse(self.plot.getColormapAction().isChecked())
-        self.plot.getColormapAction()._actionTriggered()
-        # _qapp.processEvents()
-        # self.assertTrue(self.plot.getColormapAction().isChecked())
+        self.plot.getColormapAction()._actionTriggered(checked=True)
+        self.assertTrue(self.plot.getColormapAction().isChecked())
         self.plot.addImage(data=numpy.random.rand(10, 10), legend='img1',
                            replace=False, origin=(0, 0),
                            colormap=self.colormap1)

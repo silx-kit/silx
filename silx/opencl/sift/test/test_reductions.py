@@ -56,6 +56,7 @@ if ocl:
     import pyopencl, pyopencl.array
 
 from ..utils import get_opencl_code
+from silx.test.utils import test_options
 
 logger = logging.getLogger(__name__)
 
@@ -96,7 +97,7 @@ class TestReduction(unittest.TestCase):
     def test_max_min_rnd(self):
         self.test_max_min(numpy.random.randint(1000), -numpy.random.randint(1000))
 
-    @unittest.skipIf(os.environ.get("SILX_TEST_LOW_MEM") == "True", "low mem")
+    @unittest.skipIf(test_options.TEST_LOW_MEM, "low mem")
     def test_max_min_rnd_big(self):
         self.test_max_min(512, 0, (1980, 2560))
 

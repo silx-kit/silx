@@ -38,6 +38,7 @@ from ..plot.Colors import rgba
 from .Plot3DWidget import Plot3DWidget
 from .scene import axes
 from . import items
+from ._model import SceneModel
 
 
 __all__ = ['items', 'SceneWidget']
@@ -48,16 +49,28 @@ class SceneWidget(Plot3DWidget):
 
     def __init__(self, parent=None):
         super(SceneWidget, self).__init__(parent)
+        self._model = None
         self._items = []
 
         self._foregroundColor = 1., 1., 1., 1.
         self._highlightColor = 0.7, 0.7, 0., 1.
 
         self._sceneGroup = items.GroupItem(parent=self)
+        self._sceneGroup.setLabel('Data')
 
         self._bbox = axes.LabelledAxes()
         self._bbox.children = [self._sceneGroup._getScenePrimitive()]
         self.viewport.scene.children.append(self._bbox)
+
+    def model(self):
+        """Returns the model corresponding the scene of this widget
+
+        :rtype: SceneModel
+        """
+        if self._model is None:
+            # Lazy-loading of the model
+            self._model = SceneModel(parent=self)
+        return self._model
 
     def getSceneGroup(self):
         """Returns the root group of the scene

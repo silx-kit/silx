@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -720,7 +720,7 @@ class Group(Node):
     def __getitem__(self, name):
         """Return a child from his name.
 
-        :param name str: name of a member or a path throug members using '/'
+        :param str name: name of a member or a path throug members using '/'
             separator. A '/' as a prefix access to the root item of the tree.
         :rtype: Node
         """
@@ -817,7 +817,7 @@ class Group(Node):
         See the documentation for `h5py.Group.visit` for more help.
 
         :param func: Callable (function, method or callable object)
-        :type func: function
+        :type func: callable
         """
         origin_name = self.name
         return self._visit(func, origin_name, visit_links)
@@ -827,7 +827,7 @@ class Group(Node):
         See the documentation for `h5py.Group.visititems` for more help.
 
         :param func: Callable (function, method or callable object)
-        :type func: function
+        :type func: callable
         :param bool visit_links: If *False*, ignore links. If *True*,
             call `func(name)` for links and recurse into target groups.
         """

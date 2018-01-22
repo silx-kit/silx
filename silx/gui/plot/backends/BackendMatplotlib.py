@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -409,10 +409,13 @@ class BackendMatplotlib(BackendBase.BackendBase):
             self.ax.add_patch(item)
 
         elif shape in ('polygon', 'polylines'):
-            xView = xView.reshape(1, -1)
-            yView = yView.reshape(1, -1)
-            item = Polygon(numpy.vstack((xView, yView)).T,
-                           closed=(shape == 'polygon'),
+            points = numpy.array((xView, yView)).T
+            if shape == 'polygon':
+                closed = True
+            else:  # shape == 'polylines'
+                closed = numpy.all(numpy.equal(points[0], points[-1]))
+            item = Polygon(points,
+                           closed=closed,
                            fill=False,
                            label=legend,
                            color=color)

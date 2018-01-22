@@ -45,10 +45,7 @@ import unittest
 import time
 import logging
 import numpy
-try:
-    from silx.third_party import six
-except ImportError:
-    import six
+from silx.third_party import six
 try:
     import scipy
 except ImportError:
@@ -65,6 +62,7 @@ if ocl:
 from ..utils import calc_size, get_opencl_code, matching_correction
 from ..plan import SiftPlan
 from ..match import MatchPlan
+from silx.test.utils import test_options
 logger = logging.getLogger(__name__)
 
 
@@ -117,7 +115,7 @@ class TestTransform(unittest.TestCase):
         image_height, image_width = output_height, output_width
         return image, image_height, image_width
 
-    @unittest.skipIf(os.environ.get("SILX_TEST_LOW_MEM") == "True", "low mem")
+    @unittest.skipIf(test_options.TEST_LOW_MEM, "low mem")
     def test_transform(self):
         '''
         tests transform kernel

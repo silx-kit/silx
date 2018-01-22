@@ -32,7 +32,12 @@ import numpy
 import re
 import time
 
-import silx.io.fabioh5
+import silx.io
+
+try:
+    from silx.io import fabioh5
+except ImportError:
+    fabioh5 = None
 
 
 __authors__ = ["P. Knobel"]
@@ -160,15 +165,15 @@ def main(argv):
     parser.add_argument(
         '--begin',
         help='First file index, or first file indices to be considered. '
-             'This argument must be '
-             'used with --file-pattern. Provide as many start indices as '
+             'This argument only makes sense when used together with '
+             '--file-pattern. Provide as many start indices as '
              'are indices in the file pattern, separated by commas. For '
              'instance: "--filepattern toto_%%d.edf --begin 100", or '
              ' "--filepattern toto_%%d_%%04d_%%02d.edf --begin 100,2000,5".')
     parser.add_argument(
         '--end',
         help='Last file index, or last file indices to be considered. '
-             'The same rules as with argument --begin apply.'
+             'The same rules as with argument --begin apply. '
              'Example: "--filepattern toto_%%d_%%d.edf --end 199,1999"')
     parser.add_argument(
         '--no-root-group',
@@ -331,8 +336,9 @@ def main(argv):
 
     if os.path.isfile(output_name):
         if options.mode == "w-":
-            _logger.error("Output file %s exists and mode is 'w-'"
-                          " (write, file must not exist). Aborting.",
+            _logger.error("Output file %s exists and mode is 'w-' (default)."
+                          " Aborting. To append data to an existing file, "
+                          "use 'a' or 'r+'.",
                           output_name)
             return -1
         elif not os.access(output_name, os.W_OK):
@@ -402,36 +408,63 @@ def main(argv):
     if options.fletcher32:
         create_dataset_args["fletcher32"] = True
 
-    with h5py.File(output_name, mode=options.mode) as h5f:
-        if options.file_pattern is not None:
-            # File series
-            input_group = silx.io.fabioh5.File(file_series=options.input_files)
-            if hdf5_path != "/":
-                # we want to append only data and headers to an existing file
-                input_group = input_group["/scan_0/instrument/detector_0"]
+    if options.file_pattern is not None:
+        # File series
+        if fabioh5 is None:
+            # return a helpful error message if fabio is missing
+            try:
+                import fabio
+            except ImportError:
+                _logger.error("The fabio library is required to convert"
+                              " edf files. Please install it with 'pip "
+                              "install fabio` and try again.")
+            else:
+                # unexpected problem in silx.io.fabioh5
+                raise
+            return -1
+        input_group = fabioh5.File(file_series=options.input_files)
+        if hdf5_path != "/":
+            # we want to append only data and headers to an existing file
+            input_group = input_group["/scan_0/instrument/detector_0"]
+        with h5py.File(output_name, mode=options.mode) as h5f:
             write_to_h5(input_group, h5f,
                         h5path=hdf5_path,
                         overwrite_data=options.overwrite_data,
                         create_dataset_args=create_dataset_args,
                         min_size=options.min_size)
 
-        else:
-            # single file or unrelated files
-            for input_name in options.input_files:
-                hdf5_path_for_file = hdf5_path
-                if not options.no_root_group:
-                    hdf5_path_for_file = hdf5_path.rstrip("/") + "/" + os.path.basename(input_name)
-                write_to_h5(input_name, h5f,
+    else:
+        # single file or unrelated files
+        h5paths_and_groups = []
+        for input_name in options.input_files:
+            hdf5_path_for_file = hdf5_path
+            if not options.no_root_group:
+                hdf5_path_for_file = hdf5_path.rstrip("/") + "/" + os.path.basename(input_name)
+            try:
+                h5paths_and_groups.append((hdf5_path_for_file,
+                                           silx.io.open(input_name)))
+            except IOError:
+                _logger.error("Cannot read file %s. If this is a file format "
+                              "supported by the fabio library, you can try to"
+                              "install fabio (`pip install fabio`).",
+                              input_name)
+                return -1
+
+        with h5py.File(output_name, mode=options.mode) as h5f:
+            for hdf5_path_for_file, input_group in h5paths_and_groups:
+                write_to_h5(input_group, h5f,
                             h5path=hdf5_path_for_file,
                             overwrite_data=options.overwrite_data,
                             create_dataset_args=create_dataset_args,
                             min_size=options.min_size)
 
-        # append the convert command to the creator attribute, for NeXus files
-        creator = h5f.attrs.get("creator", b"").decode()
-        convert_command = " ".join(argv)
-        if convert_command not in creator:
+    with h5py.File(output_name, mode="r+") as h5f:
+        # append "silx convert" to the creator attribute, for NeXus files
+        previous_creator = h5f.attrs.get("creator", b"").decode()
+        creator = "silx convert (v%s)" % silx.version
+        # only if it not already there
+        if creator not in previous_creator:
             h5f.attrs["creator"] = \
-                numpy.string_(creator + "; convert command: %s" % " ".join(argv))
+                numpy.string_(previous_creator + "; " + creator)
 
     return 0

@@ -112,6 +112,7 @@ class PlotWindow(PlotWidget):
         self._legendsDockWidget = None
         self._curvesROIDockWidget = None
         self._maskToolsDockWidget = None
+        self._consoleDockWidget = None
 
         # Init actions
         self.group = qt.QActionGroup(self)
@@ -301,11 +302,11 @@ class PlotWindow(PlotWidget):
         """
         return bool(self.getMaskToolsDockWidget().setSelectionMask(mask))
 
-    def _toggleConsoleVisibility(self, is_checked=False):
+    def _toggleConsoleVisibility(self, isChecked=False):
         """Create IPythonDockWidget if needed,
         show it or hide it."""
         # create widget if needed (first call)
-        if not hasattr(self, '_consoleDockWidget'):
+        if self._consoleDockWidget is None:
             available_vars = {"plt": self}
             banner = "The variable 'plt' is available. Use the 'whos' "
             banner += "and 'help(plt)' commands for more information.\n\n"
@@ -314,10 +315,11 @@ class PlotWindow(PlotWidget):
                 custom_banner=banner,
                 parent=self)
             self.addTabbedDockWidget(self._consoleDockWidget)
-            self._consoleDockWidget.visibilityChanged.connect(
+            #self._consoleDockWidget.setVisible(True)
+            self._consoleDockWidget.toggleViewAction().toggled.connect(
                 self.getConsoleAction().setChecked)
 
-        self._consoleDockWidget.setVisible(is_checked)
+        self._consoleDockWidget.setVisible(isChecked)
 
     def _createToolBar(self, title, parent):
         """Create a QToolBar from the QAction of the PlotWindow.

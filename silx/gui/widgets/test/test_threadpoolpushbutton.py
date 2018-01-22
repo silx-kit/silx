@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "15/12/2016"
+__date__ = "17/01/2018"
 
 
 import unittest
@@ -35,7 +35,7 @@ from silx.gui import qt
 from silx.gui.test.utils import TestCaseQt
 from silx.gui.test.utils import SignalListener
 from silx.gui.widgets.ThreadPoolPushButton import ThreadPoolPushButton
-from silx.test.utils import TestLogging
+from silx.utils.testutils import TestLogging
 
 
 class TestThreadPoolPushButton(TestCaseQt):

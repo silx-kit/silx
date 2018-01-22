@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -103,6 +103,15 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
         if display != self.getDisplayValuesBelowMin():
             self._getPlane().colormap.displayValuesBelowMin = display
             self.sigItemChanged.emit(ItemChangedType.ALPHA)
+
+    def getDataRange(self):
+        """Return the range of the data as a 3-tuple of values.
+
+        positive min is NaN if no data is positive.
+
+        :return: (min, positive min, max) or None.
+        """
+        return self._dataRange
 
 
 class Isosurface(Item3D):
@@ -368,7 +377,7 @@ class ScalarField3D(DataItem3D):
     """
 
     def addIsosurface(self, level, color):
-        """Add an :class:`Isosurface` to this item.
+        """Add an isosurface to this item.
 
         :param level:
             The value at which to build the iso-surface or a callable
@@ -378,8 +387,8 @@ class ScalarField3D(DataItem3D):
         :type level: float or callable
         :param color: RGBA color of the isosurface
         :type color: str or array-like of 4 float in [0., 1.]
-        :return: Isosurface object describing this isosurface
-        :rtype: Isosurface
+        :return: isosurface object
+        :rtype: ~silx.gui.plot3d.items.volume.Isosurface
         """
         isosurface = Isosurface(parent=self)
         isosurface.setColor(color)
@@ -398,13 +407,15 @@ class ScalarField3D(DataItem3D):
         return isosurface
 
     def getIsosurfaces(self):
-        """Return an iterable of all :class:`Isosurface` instance of this item"""
+        """Return an iterable of all :class:`.Isosurface` instance of this item"""
         return tuple(self._isosurfaces)
 
     def removeIsosurface(self, isosurface):
         """Remove an iso-surface from this item.
 
-        :param Isosurface isosurface: The isosurface object to remove"""
+        :param ~silx.gui.plot3d.Plot3DWidget.Isosurface isosurface:
+            The isosurface object to remove
+        """
         if isosurface not in self.getIsosurfaces():
             _logger.warning(
                 "Try to remove isosurface that is not in the list: %s",
@@ -416,7 +427,7 @@ class ScalarField3D(DataItem3D):
             self.sigIsosurfaceRemoved.emit(isosurface)
 
     def clearIsosurfaces(self):
-        """Remove all :class:`Isosurface` instances from this item."""
+        """Remove all :class:`.Isosurface` instances from this item."""
         for isosurface in self.getIsosurfaces():
             self.removeIsosurface(isosurface)
 
@@ -431,3 +442,13 @@ class ScalarField3D(DataItem3D):
         sortedIso = sorted(self.getIsosurfaces(),
                            key=lambda isosurface: - isosurface.getLevel())
         self._isogroup.children = [iso._getScenePrimitive() for iso in sortedIso]
+
+    def visit(self):
+        """Generator visiting the ScalarField3D content.
+
+        It first access cut planes and then isosurface
+        """
+        for cutPlane in self.getCutPlanes():
+            yield cutPlane
+        for isosurface in self.getIsosurfaces():
+            yield isosurface

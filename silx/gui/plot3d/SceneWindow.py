@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -36,6 +36,9 @@ from silx.gui import qt
 
 from .SceneWidget import SceneWidget
 from .tools import OutputToolBar, InteractiveModeToolBar, ViewpointToolBar
+from silx.gui.plot3d.tools.GroupPropertiesWidget import GroupPropertiesWidget
+
+from .ParamTreeView import ParamTreeView
 
 # Imported here for convenience
 from . import items  # noqa
@@ -67,12 +70,39 @@ class SceneWindow(qt.QMainWindow):
             self.addToolBar(toolbar)
             self.addActions(toolbar.actions())
 
-    def getSceneWidget(self):
-        """Returns the :class:`SceneWidget` of this window.
+        self._paramTreeView = ParamTreeView()
+        self._paramTreeView.setModel(self._sceneWidget.model())
 
-        :rtype: SceneWidget
+        paramDock = qt.QDockWidget()
+        paramDock.setWindowTitle('Object parameters')
+        paramDock.setWidget(self._paramTreeView)
+        self.addDockWidget(qt.Qt.RightDockWidgetArea, paramDock)
+
+        self._sceneGroupResetWidget = GroupPropertiesWidget()
+        self._sceneGroupResetWidget.setGroup(
+            self._sceneWidget.getSceneGroup())
+
+        resetDock = qt.QDockWidget()
+        resetDock.setWindowTitle('Global parameters')
+        resetDock.setWidget(self._sceneGroupResetWidget)
+        self.addDockWidget(qt.Qt.RightDockWidgetArea, resetDock)
+        self.tabifyDockWidget(paramDock, resetDock)
+
+        paramDock.raise_()
+
+    def getSceneWidget(self):
+        """Returns the SceneWidget of this window.
+
+        :rtype: ~silx.gui.plot3d.SceneWidget.SceneWidget
         """
         return self._sceneWidget
+
+    def getParamTreeView(self):
+        """Returns the :class:`ParamTreeView` of this window.
+
+        :rtype: ParamTreeView
+        """
+        return self._paramTreeView
 
     def getInteractiveModeToolBar(self):
         """Returns the interactive mode toolbar.

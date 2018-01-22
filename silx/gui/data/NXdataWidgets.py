@@ -26,7 +26,7 @@
 """
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "23/10/2017"
+__date__ = "20/12/2017"
 
 import numpy
 
@@ -92,6 +92,13 @@ class ArrayCurvePlot(qt.QWidget):
         layout.addWidget(self._plot, 0, 0)
 
         self.setLayout(layout)
+
+    def getPlot(self):
+        """Returns the plot used for the display
+
+        :rtype: Plot1D
+        """
+        return self._plot
 
     def setCurveData(self, y, x=None, values=None,
                      yerror=None, xerror=None,
@@ -243,15 +250,22 @@ class ArrayImagePlot(qt.QWidget):
 
         self.setLayout(layout)
 
+    def getPlot(self):
+        """Returns the plot used for the display
+
+        :rtype: Plot2D
+        """
+        return self._plot
+
     def setImageData(self, signal,
                      x_axis=None, y_axis=None,
                      signal_name=None,
                      xlabel=None, ylabel=None,
-                     title=None):
+                     title=None, isRgba=False):
         """
 
         :param signal: n-D dataset, whose last 2 dimensions are used as the
-            image's values.
+            image's values, or 3D dataset interpreted as RGBA image.
         :param x_axis: 1-D dataset used as the image's x coordinates. If
             provided, its lengths must be equal to the length of the last
             dimension of ``signal``.
@@ -262,6 +276,7 @@ class ArrayImagePlot(qt.QWidget):
         :param xlabel: Label for X axis
         :param ylabel: Label for Y axis
         :param title: Graph title
+        :param isRgba: True if data is a 3D RGBA image
         """
         if self.__selector_is_connected:
             self._selector.selectionChanged.disconnect(self._updateImage)
@@ -275,7 +290,10 @@ class ArrayImagePlot(qt.QWidget):
         self.__y_axis_name = ylabel
 
         self._selector.setData(signal)
-        self._selector.setAxisNames(["Y", "X"])
+        if not isRgba:
+            self._selector.setAxisNames(["Y", "X"])
+        else:
+            self._selector.setAxisNames(["Y", "X", "RGB(A) channel"])
 
         if len(signal.shape) < 3:
             self.selectorDock.hide()
@@ -401,6 +419,13 @@ class ArrayStackPlot(qt.QWidget):
         layout.addWidget(self._selector)
 
         self.setLayout(layout)
+
+    def getStackView(self):
+        """Returns the plot used for the display
+
+        :rtype: StackView
+        """
+        return self._stack_view
 
     def setStackData(self, signal,
                      x_axis=None, y_axis=None, z_axis=None,

@@ -29,13 +29,14 @@ from __future__ import absolute_import
 
 __authors__ = ["H.Payno"]
 __license__ = "MIT"
-__date__ = "05/12/2016"
+__date__ = "17/01/2018"
 
 import unittest
 import numpy
-from silx.test.utils import ParametricTestCase
+from silx.utils.testutils import ParametricTestCase
 from silx.gui.plot.Colormap import Colormap
 from silx.gui.plot.Colormap import preferredColormaps, setPreferredColormaps
+from silx.utils.exceptions import NotEditableError
 
 
 class TestDictAPI(unittest.TestCase):
@@ -135,14 +136,11 @@ class TestDictAPI(unittest.TestCase):
             'autoscale': False
         }
         with self.assertRaises(ValueError):
-            colormapObject = Colormap._fromDict(clm_dict)
+            Colormap._fromDict(clm_dict)
 
 
 class TestObjectAPI(ParametricTestCase):
     """Test the new Object API of the colormap"""
-    def setUp(self):
-        signalHasBeenEmitting = False
-
     def testVMinVMax(self):
         """Test getter and setter associated to vmin and vmax values"""
         vmin = 1.0
@@ -290,6 +288,28 @@ class TestObjectAPI(ParametricTestCase):
             colors,
             ((0, 0, 0, 255), (255, 255, 255, 255)))))
 
+    def testEditableMode(self):
+        """Make sure the colormap will raise NotEditableError when try to 
+        change a colormap not editable"""
+        colormap = Colormap()
+        colormap.setEditable(False)
+        with self.assertRaises(NotEditableError):
+            colormap.setVRange(0., 1.)
+        with self.assertRaises(NotEditableError):
+            colormap.setVMin(1.)
+        with self.assertRaises(NotEditableError):
+            colormap.setVMax(1.)
+        with self.assertRaises(NotEditableError):
+            colormap.setNormalization(Colormap.LOGARITHM)
+        with self.assertRaises(NotEditableError):
+            colormap.setName('magma')
+        with self.assertRaises(NotEditableError):
+            colormap.setColormapLUT(numpy.array([0, 1]))
+        with self.assertRaises(NotEditableError):
+            colormap._setFromDict(colormap._toDict())
+        state = colormap.saveState()
+        with self.assertRaises(NotEditableError):
+            colormap.restoreState(state)
 
 
 class TestPreferredColormaps(unittest.TestCase):

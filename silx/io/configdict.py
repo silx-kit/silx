@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (C) 2004-2018 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF by the Software group.
@@ -382,7 +382,7 @@ class ConfigDict(OrderedDict):
             dictionary
         :param sections: If not ``None``, add only the content of the
             specified sections
-        :type sections: list
+        :type sections: List
         """
         filelist = self.__tolist(filelist)
         sections = self.__tolist(sections)

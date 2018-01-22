@@ -26,12 +26,12 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "03/04/2017"
+__date__ = "17/01/2018"
 
 
 import sys
 import unittest
-from silx.test.utils import ParametricTestCase
+from silx.utils.testutils import ParametricTestCase
 from .. import launcher
 
 
