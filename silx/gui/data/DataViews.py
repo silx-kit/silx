@@ -944,6 +944,47 @@ class _ImageView(CompositeDataView):
         self.addView(_Plot2dView(parent))
 
 
+class _InvalidNXdataView(DataView):
+    """DataView showing a simple label with an error message
+    to inform that a group with @NX_class=NXdata cannot be
+    interpreted by any NXDataview."""
+    def __init__(self, parent):
+        DataView.__init__(self, parent)
+
+    def createWidget(self, parent):
+        widget = qt.QLabel(parent)
+        widget.setStyleSheet("QLabel { color : red; }")
+        return widget
+
+    def axesNames(self, data, info):
+        return []
+
+    def clear(self):
+        self.getWidget().setText("")
+
+    def setData(self, data):
+        self.getWidget().setText(
+            "Group has @NX_class = NXdata, but could not be interpreted as"
+            " valid NXdata.")
+
+    def getDataPriority(self, data, info):
+        data = self.normalizeData(data)
+        if silx.io.is_group(data):
+            nxd = nxdata.get_NXdata_in_group(data)
+            nx_class = get_attr_as_string(data, "NX_class")
+
+            if nxd is None and nx_class == "NXdata":
+                # invalid: could not even be parsed by NXdata
+                return 100
+            is_scalar = nxd.signal_is_0d or nxd.interpretation in ["scalar", "scaler"]
+            if not (is_scalar or nxd.is_curve or nxd.is_x_y_value_scatter or
+                    nxd.is_image or nxd.is_stack):
+                # invalid: cannot be plotted by any widget
+                return 100
+
+        return DataView.UNSUPPORTED
+
+
 class _NXdataScalarView(DataView):
     """DataView using a table view for displaying NXdata scalars:
     0-D signal or n-D signal with *@interpretation=scalar*"""
@@ -1178,6 +1219,7 @@ class _NXdataView(CompositeDataView):
             label="NXdata",
             icon=icons.getQIcon("view-nexus"))
 
+        self.addView(_InvalidNXdataView(parent))
         self.addView(_NXdataScalarView(parent))
         self.addView(_NXdataCurveView(parent))
         self.addView(_NXdataXYVScatterView(parent))
