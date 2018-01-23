@@ -691,13 +691,14 @@ class NXdata(object):
         if self.signal_is_0d or self.interpretation not in [None, "spectrum"]:
             return False
         # the axis, if any, must be of the same length as the last dimension
-        # of the signal
-        if self.axes[-1] is not None and len(self.axes[-1]) != self.signal.shape[-1]:
+        # of the signal, or of length 2 (a + b *x scale)
+        if self.axes[-1] is not None and len(self.axes[-1]) not in [
+                self.signal.shape[-1], 2]:
             return False
         if self.interpretation is None:
             # We no longer test whether x values are monotonic
             # (in the past, in that case, we used to consider it a scatter)
-            return self.is_scatter and len(self.axes) == 1
+            return self.signal_is_1d
         # everything looks good
         return True
 
@@ -723,7 +724,7 @@ class NXdata(object):
             img_axes = self.axes[-2:]
             img_shape = self.signal.shape[-2:]
         for i, axis in enumerate(img_axes):
-            if axis is not None and len(axis) != img_shape[i]:
+            if axis is not None and len(axis) not in [img_shape[i], 2]:
                 return False
 
         return True
@@ -740,7 +741,7 @@ class NXdata(object):
             return False
         stack_shape = self.signal.shape[-3:]
         for i, axis in enumerate(self.axes[-3:]):
-            if axis is not None and len(axis) != stack_shape[i]:
+            if axis is not None and len(axis) not in [stack_shape[i], 2]:
                 return False
         return True
 
