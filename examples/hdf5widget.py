@@ -407,6 +407,10 @@ def get_hdf5_with_nxdata():
     gd1.create_dataset("hypercube",
                        data=numpy.arange(2*3*4*5*6).reshape((2, 3, 4, 5, 6)))
 
+    # invalid NXdata
+    g = h5.create_group("invalid")
+    g.attrs["NX_class"] = "NXdata"
+
     h5.close()
 
     _file_cache[ID] = tmp
