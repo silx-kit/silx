@@ -101,9 +101,7 @@ class TestAlgebra(unittest.TestCase):
     def setUp(self):
         kernel_src = os.linesep.join(get_opencl_code(os.path.join("sift", i)) for i in ("sift.cl", "algebra.cl"))
         self.program = pyopencl.Program(self.ctx, kernel_src).build()
-        self.wg = (32, 4)
-        if self.maxwg < self.wg[0] * self.wg[1]:
-            self.wg = (self.maxwg, 1)
+        self.wg_compact = kernel_workgroup_size(self.program, "compact")
 
     def tearDown(self):
         self.mat1 = None
@@ -124,11 +122,9 @@ class TestAlgebra(unittest.TestCase):
         gpu_mat1 = pyopencl.array.to_device(self.queue, mat1)
         gpu_mat2 = pyopencl.array.to_device(self.queue, mat2)
         gpu_out = pyopencl.array.empty(self.queue, mat1.shape, dtype=numpy.float32, order="C")
-        shape = calc_size((width, height), self.wg)
-
         t0 = time.time()
         try:
-            k1 = self.program.combine(self.queue, shape, None,
+            k1 = self.program.combine(self.queue, (width, height), None,
                                       gpu_mat1.data, coeff1, gpu_mat2.data, coeff2,
                                       gpu_out.data, numpy.int32(0),
                                       width, height)
@@ -153,8 +149,8 @@ class TestAlgebra(unittest.TestCase):
         nbkeypoints = 10000  # constant value
         keypoints = numpy.random.rand(nbkeypoints, 4).astype(numpy.float32)
         nb_ones = 0
-        for i in range(0, nbkeypoints):
-            if ((numpy.random.rand(1))[0] < 0.25):
+        for i in range(nbkeypoints):
+            if ((numpy.random.rand(1))[0] < 0.25): #discard about 1 out of 4
                 keypoints[i] = (-1, -1, i, -1)
                 nb_ones += 1
             else:
@@ -164,7 +160,7 @@ class TestAlgebra(unittest.TestCase):
         output = pyopencl.array.empty(self.queue, (nbkeypoints, 4), dtype=numpy.float32, order="C")
         output.fill(-1.0, self.queue)
         counter = pyopencl.array.zeros(self.queue, (1,), dtype=numpy.int32, order="C")
-        wg = max(self.wg),
+        wg = self.wg_compact,
         shape = calc_size((keypoints.shape[0],), wg)
         nbkeypoints = numpy.int32(nbkeypoints)
         startkeypoints = numpy.int32(0)

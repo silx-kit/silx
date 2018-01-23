@@ -183,26 +183,29 @@ class LinearAlign(OpenclProcessing):
         Call the OpenCL compiler
         """
         kernel_src = [os.path.join("sift", kernel) for kernel in self.kernel_files]
-        OpenclProcessing.compile_kernels(self, kernel_src)
-        if self.block_size is None:
-             bs = min(self.kernel_files["transform"],
-                      min(self.check_workgroup_size(kn) for kn in self.kernels.get_kernels()))
-        else:
-            bs = min(self.kernel_files["transform"], self.block_size,
-                     min(self.check_workgroup_size(kn) for kn in self.kernels.get_kernels()))
+        OpenclProcessing.compile_kernels(self, kernel_src)        
+        bs = min(self.kernel_files["transform"],
+                  min(self.check_workgroup_size(kn) for kn in self.kernels.get_kernels()))
+        if self.block_size is not None:
+            bs = min(self.block_size, bs)
+        device = self.ctx.devices[0]
+
         if bs > 32:
             wgm = (32, bs // 32)
-            wgr = (8, bs // 32, 4)
+            if bs >= 256:
+                wgr = (4, bs // 32, 8)
+            else:
+                wgr = (4, 8, bs // 32)
         elif bs > 4:
             wgm = (bs // 4, 4)
-            wgr = (bs // 4, 1, 4)
+            wgr = (4, bs // 4, 1)
         else:
-            wgm = (1, 1)
-            wgr = (1, 1, 1)
-
-        self.wg["transform_rgb"] = wgr
-        self.wg["transform"] = wgm
-
+            wgm = (bs, 1)
+            wgr = (bs, 1, 1)
+        size_per_dim = device.max_work_item_sizes
+        self.wg["transform_rgb"] = tuple(min(i,j) for i,j in zip(wgr, size_per_dim))
+        self.wg["transform"] = tuple(min(i,j) for i,j in zip(wgm, size_per_dim))
+        
     def _free_kernels(self):
         """
         free all kernels

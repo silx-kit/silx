@@ -753,8 +753,7 @@ class SiftPlan(OpenclProcessing):
         :param start: start compacting at this adress. Before just copy
         :type  start: numpy.int32
         """
-        wgsize = self.block_size,  # (max(self.wgsize[0]),) #TODO: optimize
-#         kpsize32 = numpy.int32(self.kpsize)
+        wgsize = self.kernels_wg["compact"],  
         cp0_evt = pyopencl.enqueue_copy(self.queue, self.cnt, self.cl_mem["cnt"].data)
         kp_counter = self.cnt[0]
         procsize = calc_size((self.kpsize,), wgsize)
