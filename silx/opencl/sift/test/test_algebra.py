@@ -124,7 +124,7 @@ class TestAlgebra(unittest.TestCase):
         gpu_out = pyopencl.array.empty(self.queue, mat1.shape, dtype=numpy.float32, order="C")
         t0 = time.time()
         try:
-            k1 = self.program.combine(self.queue, (width, height), None,
+            k1 = self.program.combine(self.queue, (int(width), int(height)), None,
                                       gpu_mat1.data, coeff1, gpu_mat2.data, coeff2,
                                       gpu_out.data, numpy.int32(0),
                                       width, height)
