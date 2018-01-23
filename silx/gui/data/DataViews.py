@@ -973,9 +973,15 @@ class _InvalidNXdataView(DataView):
             nxd = nxdata.get_NXdata_in_group(data)
             nx_class = get_attr_as_string(data, "NX_class")
 
-            if nxd is None and nx_class == "NXdata":
-                # invalid: could not even be parsed by NXdata
-                return 100
+            if nxd is None:
+                if nx_class == "NXdata":
+                    # invalid: could not even be parsed by NXdata
+                    return 100
+                else:
+                    # Not a NXdata group
+                    # TODO: NXentry and NXroot with @default
+                    return DataView.UNSUPPORTED
+
             is_scalar = nxd.signal_is_0d or nxd.interpretation in ["scalar", "scaler"]
             if not (is_scalar or nxd.is_curve or nxd.is_x_y_value_scatter or
                     nxd.is_image or nxd.is_stack):
@@ -1202,7 +1208,6 @@ class _NXdataStackView(DataView):
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
-
         if info.hasNXdata:
             if nxdata.get_NXdata_in_group(data).is_stack:
                 return 100
