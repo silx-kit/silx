@@ -26,12 +26,16 @@ Usage
 Options
 -------
 
+::
+
   input_files           Input files (EDF, TIFF, SPEC...). When specifying
                         multiple files, you cannot specify both fabio images
                         and SPEC files. Multiple SPEC files will simply be
                         concatenated, with one entry per scan. Multiple image
                         files will be merged into a single entry with a stack
                         of images.
+
+
   -h, --help            show this help message and exit
   --file-pattern FILE_PATTERN
                         File name pattern for loading a series of indexed
