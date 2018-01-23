@@ -683,6 +683,67 @@ class NXdata(object):
         """True if this is a scatter with a signal and more than 2 axes."""
         return self.is_scatter and len(self.axes) > 2
 
+    @property
+    def is_curve(self):
+        """This property is True if the signal is 1D or :attr:`interpretation` is
+        *"spectrum"*, and there is at most one axis with a consistent length.
+        """
+        if self.signal_is_0d or self.interpretation not in [None, "spectrum"]:
+            return False
+        # the axis, if any, must be of the same length as the last dimension
+        # of the signal
+        if self.axes[-1] is not None and len(self.axes[-1]) != self.signal.shape[-1]:
+            return False
+        if self.interpretation is None:
+            # We no longer test whether x values are monotonic
+            # (in the past, in that case, we used to consider it a scatter)
+            return self.is_scatter and len(self.axes) == 1
+        # everything looks good
+        return True
+
+    @property
+    def is_image(self):
+        """True if the signal is 2D, or 3D with last dimension of length 3 or 4
+        and interpretation *rgba-image*, or >2D with interpretation *image*.
+        The axes (if any) length must also be consistent with the signal shape.
+        """
+        if self.interpretation in ["scalar", "spectrum", "scaler"]:
+            return False
+        if self.signal_is_0d or self.signal_is_1d:
+            return False
+        if not self.signal_is_2d and \
+                        self.interpretation not in ["image", "rgba-image"]:
+            return False
+        if self.signal_is_3d and self.interpretation == "rgba-image":
+            if self.signal.shape[-1] not in [3, 4]:
+                return False
+            img_axes = self.axes[0:2]
+            img_shape = self.signal.shape[0:2]
+        else:
+            img_axes = self.axes[-2:]
+            img_shape = self.signal.shape[-2:]
+        for i, axis in enumerate(img_axes):
+            if axis is not None and len(axis) != img_shape[i]:
+                return False
+
+        return True
+
+    @property
+    def is_stack(self):
+        """True in the signal is at least 3D and interpretation is not
+        "scalar", "spectrum", "image" or "rgba-image".
+        The axes length must also be consistent with the last 3 dimensions
+        of the signal.
+        """
+        if self.signal_ndim < 3 or self.interpretation in [
+                "scalar", "scaler", "spectrum", "image", "rgba-image"]:
+            return False
+        stack_shape = self.signal.shape[-3:]
+        for i, axis in enumerate(self.axes[-3:]):
+            if axis is not None and len(axis) != stack_shape[i]:
+                return False
+        return True
+
 
 def is_NXentry_with_default_NXdata(group):
     """Return True if group is a valid NXentry defining a valid default

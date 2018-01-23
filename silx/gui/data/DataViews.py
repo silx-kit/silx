@@ -1020,14 +1020,7 @@ class _NXdataCurveView(DataView):
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
         if info.hasNXdata:
-            nxd = nxdata.get_NXdata_in_group(data)
-            if nxd.is_x_y_value_scatter or nxd.is_unsupported_scatter:
-                return DataView.UNSUPPORTED
-
-            if nxd.signal_is_1d and \
-                    nxd.interpretation not in ["scalar", "scaler"]:
-                return 100
-            if nxd.interpretation == "spectrum":
+            if nxdata.get_NXdata_in_group(data).is_curve:
                 return 100
         return DataView.UNSUPPORTED
 
@@ -1125,12 +1118,9 @@ class _NXdataImageView(DataView):
         data = self.normalizeData(data)
 
         if info.hasNXdata:
-            nxd = nxdata.get_NXdata_in_group(data)
-            if nxd.signal_is_2d:
-                if nxd.interpretation not in ["scalar", "spectrum", "scaler"]:
-                    return 100
-            if nxd.interpretation in ["image", "rgba-image"]:
+            if nxdata.get_NXdata_in_group(data).is_image:
                 return 100
+
         return DataView.UNSUPPORTED
 
 
@@ -1173,12 +1163,8 @@ class _NXdataStackView(DataView):
         data = self.normalizeData(data)
 
         if info.hasNXdata:
-            nxd = nxdata.get_NXdata_in_group(data)
-            if nxd.signal_ndim >= 3:
-                if nxd.interpretation not in ["scalar", "scaler",
-                                              "spectrum", "image",
-                                              "rgba-image"]:
-                    return 100
+            if nxdata.get_NXdata_in_group(data).is_stack:
+                return 100
 
         return DataView.UNSUPPORTED
 
