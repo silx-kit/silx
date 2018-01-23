@@ -33,6 +33,7 @@ import re
 import time
 
 import silx.io
+from silx.io.specfile import is_specfile
 
 try:
     from silx.io import fabioh5
@@ -126,6 +127,26 @@ def drop_indices_after_end(filenames, regex, end):
     return output_filenames
 
 
+def are_all_specfile(filenames):
+    """Return True if all files in a list are SPEC files.
+    :param List[str] filenames: list of filenames
+    """
+    for fname in filenames:
+        if not is_specfile(fname):
+            return False
+    return True
+
+
+def contains_specfile(filenames):
+    """Return True if any file in a list are SPEC files.
+    :param List[str] filenames: list of filenames
+    """
+    for fname in filenames:
+        if is_specfile(fname):
+            return True
+    return False
+
+
 def main(argv):
     """
     Main function to launch the converter as an application
@@ -137,11 +158,15 @@ def main(argv):
     parser.add_argument(
         'input_files',
         nargs="*",
-        help='Input files (EDF, SPEC).')
+        help='Input files (EDF, TIFF, SPEC...). When specifying multiple '
+             'files, you cannot specify both fabio images and SPEC files. '
+             'Multiple SPEC files will simply be concatenated, with one '
+             'entry per scan. Multiple image files will be merged into '
+             'a single entry with a stack of images.')
     # input_files and --filepattern are mutually exclusive
     parser.add_argument(
         '--file-pattern',
-        help='File name pattern for loading a series of indexed files '
+        help='File name pattern for loading a series of indexed image files '
              '(toto_%%04d.edf). This argument is incompatible with argument '
              'input_files. If an output URI with a HDF5 path is provided, '
              'only the content of the NXdetector group will be copied there. '
@@ -408,8 +433,10 @@ def main(argv):
     if options.fletcher32:
         create_dataset_args["fletcher32"] = True
 
-    if options.file_pattern is not None:
-        # File series
+    if (len(options.input_files) > 1 and
+            not contains_specfile(options.input_files)) or\
+            options.file_pattern is not None:
+        # File series -> stack of images
         if fabioh5 is None:
             # return a helpful error message if fabio is missing
             try:
@@ -433,8 +460,8 @@ def main(argv):
                         create_dataset_args=create_dataset_args,
                         min_size=options.min_size)
 
-    else:
-        # single file or unrelated files
+    elif len(options.input_files) == 1 or are_all_specfile(options.input_files):
+        # single file, or spec files
         h5paths_and_groups = []
         for input_name in options.input_files:
             hdf5_path_for_file = hdf5_path
@@ -458,6 +485,13 @@ def main(argv):
                             overwrite_data=options.overwrite_data,
                             create_dataset_args=create_dataset_args,
                             min_size=options.min_size)
+
+    else:
+        # multiple file, SPEC and fabio images mixed
+        _logger.error("Multiple files with incompatible formats specified. "
+                      "You can provide multiple SPEC files or multiple image "
+                      "files, but not both.")
+        return -1
 
     with h5py.File(output_name, mode="r+") as h5f:
         # append "silx convert" to the creator attribute, for NeXus files
