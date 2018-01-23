@@ -191,9 +191,9 @@ def main(argv):
         '--begin',
         help='First file index, or first file indices to be considered. '
              'This argument only makes sense when used together with '
-             '--file-pattern. Provide as many start indices as '
-             'are indices in the file pattern, separated by commas. For '
-             'instance: "--filepattern toto_%%d.edf --begin 100", or '
+             '--file-pattern. Provide as many start indices as there '
+             'are indices in the file pattern, separated by commas. '
+             'Examples: "--filepattern toto_%%d.edf --begin 100", '
              ' "--filepattern toto_%%d_%%04d_%%02d.edf --begin 100,2000,5".')
     parser.add_argument(
         '--end',
@@ -434,8 +434,8 @@ def main(argv):
         create_dataset_args["fletcher32"] = True
 
     if (len(options.input_files) > 1 and
-            not contains_specfile(options.input_files)) or\
-            options.file_pattern is not None:
+            not contains_specfile(options.input_files) and
+            not options.add_root_group) or options.file_pattern is not None:
         # File series -> stack of images
         if fabioh5 is None:
             # return a helpful error message if fabio is missing
@@ -460,7 +460,9 @@ def main(argv):
                         create_dataset_args=create_dataset_args,
                         min_size=options.min_size)
 
-    elif len(options.input_files) == 1 or are_all_specfile(options.input_files):
+    elif len(options.input_files) == 1 or \
+            are_all_specfile(options.input_files) or\
+            options.add_root_group:
         # single file, or spec files
         h5paths_and_groups = []
         for input_name in options.input_files:
