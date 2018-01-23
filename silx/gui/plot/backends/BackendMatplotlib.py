@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent, H. Payno"]
 __license__ = "MIT"
-__date__ = "16/08/2017"
+__date__ = "18/10/2017"
 
 
 import logging
@@ -56,6 +56,59 @@ from matplotlib.collections import PathCollection, LineCollection
 from ..matplotlib.ModestImage import ModestImage
 from . import BackendBase
 from .._utils import FLOAT32_MINPOS
+
+
+class _MarkerContainer(Container):
+    """Marker artists container supporting draw/remove and text position update
+
+    :param artists:
+        Iterable with either one Line2D or a Line2D and a Text.
+        The use of an iterable if enforced by Container being
+        a subclass of tuple that defines a specific __new__.
+    :param x: X coordinate of the marker (None for horizontal lines)
+    :param y: Y coordinate of the marker (None for vertical lines)
+    """
+
+    def __init__(self, artists, x, y):
+        self.line = artists[0]
+        self.text = artists[1] if len(artists) > 1 else None
+        self.x = x
+        self.y = y
+
+        Container.__init__(self, artists)
+
+    def draw(self, *args, **kwargs):
+        """artist-like draw to broadcast draw to line and text"""
+        self.line.draw(*args, **kwargs)
+        if self.text is not None:
+            self.text.draw(*args, **kwargs)
+
+    def updateMarkerText(self, xmin, xmax, ymin, ymax):
+        """Update marker text position and visibility according to plot limits
+
+        :param xmin: X axis lower limit
+        :param xmax: X axis upper limit
+        :param ymin: Y axis lower limit
+        :param ymax: Y axis upprt limit
+        """
+        if self.text is not None:
+            visible = ((self.x is None or xmin <= self.x <= xmax) and
+                       (self.y is None or ymin <= self.y <= ymax))
+            self.text.set_visible(visible)
+
+            if self.x is not None and self.y is None:  # vertical line
+                delta = abs(ymax - ymin)
+                if ymin > ymax:
+                    ymax = ymin
+                ymax -= 0.005 * delta
+                self.text.set_y(ymax)
+
+            if self.x is None and self.y is not None:  # Horizontal line
+                delta = abs(xmax - xmin)
+                if xmin > xmax:
+                    xmax = xmin
+                xmax -= 0.005 * delta
+                self.text.set_x(xmax)
 
 
 class BackendMatplotlib(BackendBase.BackendBase):
@@ -306,6 +359,14 @@ class BackendMatplotlib(BackendBase.BackendBase):
             ystep = 1 if scale[1] >= 0. else -1
             data = data[::ystep, ::xstep]
 
+        if matplotlib.__version__ < "2.1":
+            # matplotlib 1.4.2 do not support float128
+            dtype = data.dtype
+            if dtype.kind == "f" and dtype.itemsize >= 16:
+                _logger.warning("Your matplotlib version do not support "
+                                "float128. Data converted to floa64.")
+                data = data.astype(numpy.float64)
+
         image.set_data(data)
 
         self.ax.add_artist(image)
@@ -348,10 +409,13 @@ class BackendMatplotlib(BackendBase.BackendBase):
             self.ax.add_patch(item)
 
         elif shape in ('polygon', 'polylines'):
-            xView = xView.reshape(1, -1)
-            yView = yView.reshape(1, -1)
-            item = Polygon(numpy.vstack((xView, yView)).T,
-                           closed=(shape == 'polygon'),
+            points = numpy.array((xView, yView)).T
+            if shape == 'polygon':
+                closed = True
+            else:  # shape == 'polylines'
+                closed = numpy.all(numpy.equal(points[0], points[-1]))
+            item = Polygon(points,
+                           closed=closed,
                            fill=False,
                            label=legend,
                            color=color)
@@ -373,8 +437,13 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     def addMarker(self, x, y, legend, text, color,
                   selectable, draggable,
-                  symbol, constraint, overlay):
+                  symbol, constraint):
         legend = "__MARKER__" + legend
+
+        textArtist = None
+
+        xmin, xmax = self.getGraphXLimits()
+        ymin, ymax = self.getGraphYLimits(axis='left')
 
         if x is not None and y is not None:
             line = self.ax.plot(x, y, label=legend,
@@ -384,49 +453,35 @@ class BackendMatplotlib(BackendBase.BackendBase):
                                 markersize=10.)[-1]
 
             if text is not None:
-                xtmp, ytmp = self.ax.transData.transform_point((x, y))
-                inv = self.ax.transData.inverted()
-                xtmp, ytmp = inv.transform_point((xtmp, ytmp))
-
                 if symbol is None:
                     valign = 'baseline'
                 else:
                     valign = 'top'
                     text = "  " + text
 
-                line._infoText = self.ax.text(x, ytmp, text,
-                                              color=color,
-                                              horizontalalignment='left',
-                                              verticalalignment=valign)
+                textArtist = self.ax.text(x, y, text,
+                                          color=color,
+                                          horizontalalignment='left',
+                                          verticalalignment=valign)
 
         elif x is not None:
             line = self.ax.axvline(x, label=legend, color=color)
             if text is not None:
-                text = " " + text
-                ymin, ymax = self.getGraphYLimits(axis='left')
-                delta = abs(ymax - ymin)
-                if ymin > ymax:
-                    ymax = ymin
-                ymax -= 0.005 * delta
-                line._infoText = self.ax.text(x, ymax, text,
-                                              color=color,
-                                              horizontalalignment='left',
-                                              verticalalignment='top')
+                # Y position will be updated in updateMarkerText call
+                textArtist = self.ax.text(x, 1., " " + text,
+                                          color=color,
+                                          horizontalalignment='left',
+                                          verticalalignment='top')
 
         elif y is not None:
             line = self.ax.axhline(y, label=legend, color=color)
 
             if text is not None:
-                text = " " + text
-                xmin, xmax = self.getGraphXLimits()
-                delta = abs(xmax - xmin)
-                if xmin > xmax:
-                    xmax = xmin
-                xmax -= 0.005 * delta
-                line._infoText = self.ax.text(xmax, y, text,
-                                              color=color,
-                                              horizontalalignment='right',
-                                              verticalalignment='top')
+                # X position will be updated in updateMarkerText call
+                textArtist = self.ax.text(1., y, " " + text,
+                                          color=color,
+                                          horizontalalignment='right',
+                                          verticalalignment='top')
 
         else:
             raise RuntimeError('A marker must at least have one coordinate')
@@ -434,19 +489,29 @@ class BackendMatplotlib(BackendBase.BackendBase):
         if selectable or draggable:
             line.set_picker(5)
 
-        if overlay:
-            line.set_animated(True)
-            self._overlays.add(line)
+        # All markers are overlays
+        line.set_animated(True)
+        if textArtist is not None:
+            textArtist.set_animated(True)
 
-        return line
+        artists = [line] if textArtist is None else [line, textArtist]
+        container = _MarkerContainer(artists, x, y)
+        container.updateMarkerText(xmin, xmax, ymin, ymax)
+        self._overlays.add(container)
+
+        return container
+
+    def _updateMarkers(self):
+        xmin, xmax = self.ax.get_xbound()
+        ymin, ymax = self.ax.get_ybound()
+        for item in self._overlays:
+            if isinstance(item, _MarkerContainer):
+                item.updateMarkerText(xmin, xmax, ymin, ymax)
 
     # Remove methods
 
     def remove(self, item):
         # Warning: It also needs to remove extra stuff if added as for markers
-        if hasattr(item, "_infoText"):  # For markers text
-            item._infoText.remove()
-            item._infoText = None
         self._overlays.discard(item)
         try:
             item.remove()
@@ -554,6 +619,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
         else:
             self.ax.set_ylim(max(ymin, ymax), min(ymin, ymax))
 
+        self._updateMarkers()
+
     def getGraphXLimits(self):
         if self._dirtyLimits and self.isKeepDataAspectRatio():
             self.replot()  # makes sure we get the right limits
@@ -562,6 +629,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
     def setGraphXLimits(self, xmin, xmax):
         self._dirtyLimits = True
         self.ax.set_xlim(min(xmin, xmax), max(xmin, xmax))
+        self._updateMarkers()
 
     def getGraphYLimits(self, axis):
         assert axis in ('left', 'right')
@@ -599,19 +667,37 @@ class BackendMatplotlib(BackendBase.BackendBase):
         else:
             ax.set_ylim(ymax, ymin)
 
+        self._updateMarkers()
+
     # Graph axes
 
     def setXAxisLogarithmic(self, flag):
-        if matplotlib.__version__ >= "2.0.0":
-            self.ax.cla()
-            self.ax2.cla()
+        # Workaround for matplotlib 2.1.0 when one tries to set an axis
+        # to log scale with both limits <= 0
+        # In this case a draw with positive limits is needed first
+        if flag and matplotlib.__version__ >= '2.1.0':
+            xlim = self.ax.get_xlim()
+            if xlim[0] <= 0 and xlim[1] <= 0:
+                self.ax.set_xlim(1, 10)
+                self.draw()
+
         self.ax2.set_xscale('log' if flag else 'linear')
         self.ax.set_xscale('log' if flag else 'linear')
 
     def setYAxisLogarithmic(self, flag):
-        if matplotlib.__version__ >= "2.0.0":
-            self.ax.cla()
-            self.ax2.cla()
+        # Workaround for matplotlib 2.1.0 when one tries to set an axis
+        # to log scale with both limits <= 0
+        # In this case a draw with positive limits is needed first
+        if flag and matplotlib.__version__ >= '2.1.0':
+            redraw = False
+            for axis in (self.ax, self.ax2):
+                ylim = axis.get_ylim()
+                if ylim[0] <= 0 and ylim[1] <= 0:
+                    axis.set_ylim(1, 10)
+                    redraw = True
+            if redraw:
+                self.draw()
+
         self.ax2.set_yscale('log' if flag else 'linear')
         self.ax.set_yscale('log' if flag else 'linear')
 
@@ -703,6 +789,8 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
         BackendMatplotlib.__init__(self, plot, parent)
         FigureCanvasQTAgg.__init__(self, self.fig)
         self.setParent(parent)
+
+        self._limitsBeforeResize = None
 
         FigureCanvasQTAgg.setSizePolicy(
             self, qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
@@ -804,8 +892,12 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
     # replot control
 
     def resizeEvent(self, event):
+        # Store current limits
+        self._limitsBeforeResize = (
+            self.ax.get_xbound(), self.ax.get_ybound(), self.ax2.get_ybound())
+
         FigureCanvasQTAgg.resizeEvent(self, event)
-        if self._overlays or self._graphCursor:
+        if self.isKeepDataAspectRatio() or self._overlays or self._graphCursor:
             # This is needed with matplotlib 1.5.x and 2.0.x
             self._plot._setDirtyPlot()
 
@@ -829,12 +921,18 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
 
         This is directly called by matplotlib for widget resize.
         """
-        # Store previous limits
-        xLimits = self.ax.get_xbound()
-        yLimits = self.ax.get_ybound()
-        yRightLimits = self.ax2.get_ybound()
+        # Starting with mpl 2.1.0, toggling autoscale raises a ValueError
+        # in some situations. See #1081, #1136, #1163,
+        if matplotlib.__version__ >= "2.0.0":
+            try:
+                FigureCanvasQTAgg.draw(self)
+            except ValueError as err:
+                _logger.debug(
+                    "ValueError caught while calling FigureCanvasQTAgg.draw: "
+                    "'%s'", err)
+        else:
+            FigureCanvasQTAgg.draw(self)
 
-        FigureCanvasQTAgg.draw(self)
         if self._overlays or self._graphCursor:
             # Save background
             self._background = self.copy_from_bbox(self.fig.bbox)
@@ -842,12 +940,21 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
             self._background = None  # Reset background
 
         # Check if limits changed due to a resize of the widget
-        if xLimits != self.ax.get_xbound():
-            self._plot.getXAxis()._emitLimitsChanged()
-        if yLimits != self.ax.get_ybound():
-            self._plot.getYAxis(axis='left')._emitLimitsChanged()
-        if yRightLimits != self.ax2.get_ybound():
-            self._plot.getYAxis(axis='left')._emitLimitsChanged()
+        if self._limitsBeforeResize is not None:
+            xLimits, yLimits, yRightLimits = self._limitsBeforeResize
+            self._limitsBeforeResize = None
+
+            if (xLimits != self.ax.get_xbound() or
+                    yLimits != self.ax.get_ybound()):
+                self._updateMarkers()
+
+            if xLimits != self.ax.get_xbound():
+                self._plot.getXAxis()._emitLimitsChanged()
+            if yLimits != self.ax.get_ybound():
+                self._plot.getYAxis(axis='left')._emitLimitsChanged()
+            if yRightLimits != self.ax2.get_ybound():
+                self._plot.getYAxis(axis='right')._emitLimitsChanged()
+
 
         self._drawOverlays()
 

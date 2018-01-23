@@ -25,10 +25,9 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "04/08/2017"
+__date__ = "12/01/2018"
 
 import sys
-import os
 import argparse
 import logging
 import unittest
@@ -91,26 +90,17 @@ def main(argv):
     :param argv: Command line arguments
     :returns: exit status
     """
+    from silx.test import utils
+
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("-v", "--verbose", default=0,
                         action="count", dest="verbose",
                         help="Increase verbosity. Option -v prints additional " +
                              "INFO messages. Use -vv for full verbosity, " +
                              "including debug messages and test help strings.")
-    parser.add_argument("-x", "--no-gui", dest="gui", default=True,
-                        action="store_false",
-                        help="Disable the test of the graphical use interface")
-    parser.add_argument("-g", "--no-opengl", dest="opengl", default=True,
-                        action="store_false",
-                        help="Disable tests using OpenGL")
-    parser.add_argument("-o", "--no-opencl", dest="opencl", default=True,
-                        action="store_false",
-                        help="Disable the test of the OpenCL part")
-    parser.add_argument("-l", "--low-mem", dest="low_mem", default=False,
-                        action="store_true",
-                        help="Disable test with large memory consumption (>100Mbyte")
     parser.add_argument("--qt-binding", dest="qt_binding", default=None,
                         help="Force using a Qt binding, from 'PyQt4', 'PyQt5', or 'PySide'")
+    utils.test_options.add_parser_argument(parser)
 
     options = parser.parse_args(argv[1:])
 
@@ -127,18 +117,6 @@ def main(argv):
         test_verbosity = 2
         use_buffer = False
 
-    if not options.gui:
-        os.environ["WITH_QT_TEST"] = "False"
-
-    if not options.opencl:
-        os.environ["SILX_OPENCL"] = "False"
-
-    if not options.opengl:
-        os.environ["WITH_GL_TEST"] = "False"
-
-    if options.low_mem:
-        os.environ["SILX_TEST_LOW_MEM"] = "True"
-
     if options.qt_binding:
         binding = options.qt_binding.lower()
         if binding == "pyqt4":
@@ -152,6 +130,9 @@ def main(argv):
             import PySide.QtCore  # noqa
         else:
             raise ValueError("Qt binding '%s' is unknown" % options.qt_binding)
+
+    # Configure test options
+    utils.test_options.configure(options)
 
     # Run the tests
     runnerArgs = {}

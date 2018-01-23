@@ -28,13 +28,6 @@ environment:
         # Python 3.6
         - PYTHON_DIR: "C:\\Python36-x64"
           QT_BINDING: "PyQt5"
-          QT_PINNED_VERSION: "==5.8.2"
-          WITH_GL_TEST: True
-  
-        # Python 3.5
-        - PYTHON_DIR: "C:\\Python35-x64"
-          QT_BINDING: "PyQt5"
-          QT_PINNED_VERSION: "==5.8.2"
           WITH_GL_TEST: True
 
         # Python 2.7
@@ -91,7 +84,7 @@ before_test:
     - pip install --pre -r requirements.txt
 
     # Install selected Qt binding
-    - "pip install --pre --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ %QT_BINDING%%QT_PINNED_VERSION%"
+    - "pip install --pre --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ %QT_BINDING%"
 
     # Install the generated wheel package to test it
     # Make sure silx does not come from cache or pypi

@@ -36,8 +36,9 @@ import collections
 import datetime
 import logging
 import numbers
+import os
 
-import fabio
+import fabio.file_series
 import numpy
 
 from . import commonh5
@@ -51,6 +52,49 @@ except ImportError as e:
 
 
 _logger = logging.getLogger(__name__)
+
+
+_fabio_extensions = set([])
+
+
+def supported_extensions():
+    """Returns all extensions supported by fabio.
+
+    :returns: A set containing extensions like "*.edf".
+    :rtype: Set[str]
+    """
+    global _fabio_extensions
+    if len(_fabio_extensions) > 0:
+        return _fabio_extensions
+
+    formats = fabio.fabioformats.get_classes(reader=True)
+    all_extensions = set([])
+
+    for reader in formats:
+        if not hasattr(reader, "DESCRIPTION"):
+            continue
+        if not hasattr(reader, "DEFAULT_EXTENTIONS"):
+            continue
+
+        ext = reader.DEFAULT_EXTENTIONS
+        ext = ["*.%s" % e for e in ext]
+        all_extensions.update(ext)
+
+    _fabio_extensions = set(all_extensions)
+    return _fabio_extensions
+
+
+class _FileSeries(fabio.file_series.file_series):
+    """
+    .. note:: Overwrite a function to fix an issue in fabio.
+    """
+    def jump(self, num):
+        """
+        Goto a position in sequence
+        """
+        assert num < len(self) and num >= 0, "num out of range"
+        self._current = num
+        return self[self._current]
 
 
 class FrameData(commonh5.LazyLoadableDataset):
@@ -69,20 +113,17 @@ class FrameData(commonh5.LazyLoadableDataset):
 class RawHeaderData(commonh5.LazyLoadableDataset):
     """Lazy loadable raw header"""
 
-    def __init__(self, name, fabio_file, parent=None):
+    def __init__(self, name, fabio_reader, parent=None):
         commonh5.LazyLoadableDataset.__init__(self, name, parent)
-        self.__fabio_file = fabio_file
+        self.__fabio_reader = fabio_reader
 
     def _create_data(self):
         """Initialize hold data by merging all headers of each frames.
         """
         headers = []
         types = set([])
-        for frame in range(self.__fabio_file.nframes):
-            if self.__fabio_file.nframes == 1:
-                header = self.__fabio_file.header
-            else:
-                header = self.__fabio_file.getframe(frame).header
+        for fabio_frame in self.__fabio_reader.iter_frames():
+            header = fabio_frame.header
 
             data = []
             for key, value in header.items():
@@ -239,18 +280,99 @@ class FabioReader(object):
     COUNTER = 1
     POSITIONER = 2
 
-    def __init__(self, fabio_file):
-        self.__fabio_file = fabio_file
+    def __init__(self, file_name=None, fabio_image=None, file_series=None):
+        """
+        Constructor
+
+        :param str file_name: File name of the image file to read
+        :param fabio.fabioimage.FabioImage fabio_image: An already openned
+            :class:`fabio.fabioimage.FabioImage` instance.
+        :param Union[list[str],fabio.file_series.file_series] file_series: An
+            list of file name or a :class:`fabio.file_series.file_series`
+            instance
+        """
+        self.__at_least_32bits = False
+        self.__signed_type = False
+
+        self.__load(file_name, fabio_image, file_series)
         self.__counters = {}
         self.__positioners = {}
         self.__measurements = {}
         self.__key_filters = set([])
         self.__data = None
-        self.__frame_count = self.__fabio_file.nframes
-        self._read(self.__fabio_file)
+        self.__frame_count = self.frame_count()
+        self._read()
+
+    def __load(self, file_name=None, fabio_image=None, file_series=None):
+        if file_name is not None and fabio_image:
+            raise TypeError("Parameters file_name and fabio_image are mutually exclusive.")
+        if file_name is not None and fabio_image:
+            raise TypeError("Parameters fabio_image and file_series are mutually exclusive.")
+
+        self.__must_be_closed = False
+
+        if file_name is not None:
+            self.__fabio_file = fabio.open(file_name)
+            self.__must_be_closed = True
+        elif fabio_image is not None:
+            if isinstance(fabio_image, fabio.fabioimage.FabioImage):
+                self.__fabio_file = fabio_image
+            else:
+                raise TypeError("FabioImage expected but %s found.", fabio_image.__class__)
+        elif file_series is not None:
+            if isinstance(file_series, list):
+                self.__fabio_file = _FileSeries(file_series)
+            elif isinstance(file_series, fabio.file_series.file_series):
+                self.__fabio_file = file_series
+            else:
+                raise TypeError("file_series or list expected but %s found.", file_series.__class__)
+
+    def close(self):
+        """Close the object, and free up associated resources.
+
+        The associated FabioImage is closed only if the object was created from
+        a filename by this class itself.
+
+        After calling this method, attempts to use the object (and children)
+        may fail.
+        """
+        if self.__must_be_closed:
+            # It looks like there is no close on FabioImage
+            # self.__fabio_image.close()
+            pass
+        self.__fabio_image = None
 
     def fabio_file(self):
         return self.__fabio_file
+
+    def frame_count(self):
+        """Returns the number of frames available."""
+        if isinstance(self.__fabio_file, fabio.file_series.file_series):
+            return len(self.__fabio_file)
+        elif isinstance(self.__fabio_file, fabio.fabioimage.FabioImage):
+            return self.__fabio_file.nframes
+        else:
+            raise TypeError("Unsupported type %s", self.__fabio_file.__class__)
+
+    def iter_frames(self):
+        """Iter all the available frames.
+
+        A frame provides at least `data` and `header` attributes.
+        """
+        if isinstance(self.__fabio_file, fabio.file_series.file_series):
+            for file_number in range(len(self.__fabio_file)):
+                with self.__fabio_file.jump_image(file_number) as fabio_image:
+                    # return the first frame only
+                    assert(fabio_image.nframes == 1)
+                    yield fabio_image
+        elif isinstance(self.__fabio_file, fabio.fabioimage.FabioImage):
+            for frame_count in range(self.__fabio_file.nframes):
+                if self.__fabio_file.nframes == 1:
+                    yield self.__fabio_file
+                else:
+                    yield self.__fabio_file.getframe(frame_count)
+        else:
+            raise TypeError("Unsupported type %s", self.__fabio_file.__class__)
 
     def _create_data(self):
         """Initialize hold data by merging all frames into a single cube.
@@ -261,12 +383,8 @@ class FabioReader(object):
         The computation is cached into the class, and only done ones.
         """
         images = []
-        for frame in range(self.__fabio_file.nframes):
-            if self.__fabio_file.nframes == 1:
-                image = self.__fabio_file.data
-            else:
-                image = self.__fabio_file.getframe(frame).data
-            images.append(image)
+        for fabio_frame in self.iter_frames():
+            images.append(fabio_frame.data)
 
         # returns the data without extra dim in case of single frame
         if len(images) == 1:
@@ -329,8 +447,15 @@ class FabioReader(object):
         """
         value = self.__get_dict(kind)[name]
         if not isinstance(value, numpy.ndarray):
+            if kind in [self.COUNTER, self.POSITIONER]:
+                # Force normalization for counters and positioners
+                old = self._set_vector_normalization(at_least_32bits=True, signed_type=True)
+            else:
+                old = None
             value = self._convert_metadata_vector(value)
             self.__get_dict(kind)[name] = value
+            if old is not None:
+                self._set_vector_normalization(*old)
         return value
 
     def _set_counter_value(self, frame_id, name, value):
@@ -351,22 +476,25 @@ class FabioReader(object):
             self.__measurements[name] = [None] * self.__frame_count
         self.__measurements[name][frame_id] = value
 
-    def _read(self, fabio_file):
-        """Read all metadata from the fabio file and store it into this
-        object."""
-
+    def _enable_key_filters(self, fabio_file):
         self.__key_filters.clear()
         if hasattr(fabio_file, "RESERVED_HEADER_KEYS"):
             # Provided in fabio 0.5
             for key in fabio_file.RESERVED_HEADER_KEYS:
                 self.__key_filters.add(key.lower())
 
-        for frame in range(fabio_file.nframes):
-            if fabio_file.nframes == 1:
-                header = fabio_file.header
-            else:
-                header = fabio_file.getframe(frame).header
-            self._read_frame(frame, header)
+    def _read(self):
+        """Read all metadata from the fabio file and store it into this
+        object."""
+
+        file_series = isinstance(self.__fabio_file, fabio.file_series.file_series)
+        if not file_series:
+            self._enable_key_filters(self.__fabio_file)
+
+        for frame_id, fabio_frame in enumerate(self.iter_frames()):
+            if file_series:
+                self._enable_key_filters(fabio_frame)
+            self._read_frame(frame_id, fabio_frame.header)
 
     def _is_filtered_key(self, key):
         """
@@ -389,6 +517,29 @@ class FabioReader(object):
     def _read_key(self, frame_id, name, value):
         """Read a key from the metadata and cache it into this object."""
         self._set_measurement_value(frame_id, name, value)
+
+    def _set_vector_normalization(self, at_least_32bits, signed_type):
+        previous = self.__at_least_32bits, self.__signed_type
+        self.__at_least_32bits = at_least_32bits
+        self.__signed_type = signed_type
+        return previous
+
+    def _normalize_vector_type(self, dtype):
+        """Normalize the """
+        if self.__at_least_32bits:
+            if numpy.issubdtype(dtype, numpy.signedinteger):
+                dtype = numpy.result_type(dtype, numpy.uint32)
+            if numpy.issubdtype(dtype, numpy.unsignedinteger):
+                dtype = numpy.result_type(dtype, numpy.uint32)
+            elif numpy.issubdtype(dtype, numpy.floating):
+                dtype = numpy.result_type(dtype, numpy.float32)
+            elif numpy.issubdtype(dtype, numpy.complexfloating):
+                dtype = numpy.result_type(dtype, numpy.complex64)
+        if self.__signed_type:
+            if numpy.issubdtype(dtype, numpy.unsignedinteger):
+                signed = numpy.dtype("%s%i" % ('i', dtype.itemsize))
+                dtype = numpy.result_type(dtype, signed)
+        return dtype
 
     def _convert_metadata_vector(self, values):
         """Convert a list of numpy data into a numpy array with the better
@@ -419,6 +570,8 @@ class FabioReader(object):
             result = values
         else:
             result = converted
+
+        result_type = self._normalize_vector_type(result_type)
 
         if has_none:
             # Fix missing data according to the array type
@@ -558,8 +711,8 @@ class EdfFabioReader(FabioReader):
     motor_mne are parsed using a special way.
     """
 
-    def __init__(self, fabio_file):
-        FabioReader.__init__(self, fabio_file)
+    def __init__(self, file_name=None, fabio_image=None, file_series=None):
+        FabioReader.__init__(self, file_name, fabio_image, file_series)
         self.__unit_cell_abc = None
         self.__unit_cell_alphabetagamma = None
         self.__ub_matrix = None
@@ -622,17 +775,26 @@ class EdfFabioReader(FabioReader):
             else:
                 raise Exception("State unexpected (base_key: %s)" % base_key)
 
+    def _get_first_header(self):
+        """
+        ..note:: This function can be cached
+        """
+        fabio_file = self.fabio_file()
+        if isinstance(fabio_file, fabio.file_series.file_series):
+            return fabio_file.jump_image(0).header
+        return fabio_file.header
+
     def has_ub_matrix(self):
         """Returns true if a UB matrix is available.
 
         :rtype: bool
         """
-        header = self.fabio_file().header
+        header = self._get_first_header()
         expected_keys = set(["UB_mne", "UB_pos", "sample_mne", "sample_pos"])
         return expected_keys.issubset(header)
 
     def parse_ub_matrix(self):
-        header = self.fabio_file().header
+        header = self._get_first_header()
         ub_data = self._get_mnemonic_key("UB", header)
         s_data = self._get_mnemonic_key("sample", header)
         if len(ub_data) > 9:
@@ -690,26 +852,30 @@ class File(commonh5.File):
     """Class which handle a fabio image as a mimick of a h5py.File.
     """
 
-    def __init__(self, file_name=None, fabio_image=None):
-        self.__must_be_closed = False
-        if file_name is not None and fabio_image is not None:
-            raise TypeError("Parameters file_name and fabio_image are mutually exclusive.")
-        if file_name is not None:
-            self.__fabio_image = fabio.open(file_name)
-            self.__must_be_closed = True
-        elif fabio_image is not None:
-            self.__fabio_image = fabio_image
-            file_name = self.__fabio_image.filename
+    def __init__(self, file_name=None, fabio_image=None, file_series=None):
+        """
+        Constructor
+
+        :param str file_name: File name of the image file to read
+        :param fabio.fabioimage.FabioImage fabio_image: An already openned
+            :class:`fabio.fabioimage.FabioImage` instance.
+        :param Union[list[str],fabio.file_series.file_series] file_series: An
+            list of file name or a :class:`fabio.file_series.file_series`
+            instance
+        """
+        self.__fabio_reader = self.create_fabio_reader(file_name, fabio_image, file_series)
+        if fabio_image is not None:
+            file_name = fabio_image.filename
+
         attrs = {"NX_class": "NXroot",
                  "file_time": datetime.datetime.now().isoformat(),
                  "file_name": file_name,
                  "creator": "silx %s" % silx_version}
         commonh5.File.__init__(self, name=file_name, attrs=attrs)
-        self.__fabio_reader = self.create_fabio_reader(self.__fabio_image)
-        scan = self.create_scan_group(self.__fabio_image, self.__fabio_reader)
+        scan = self.create_scan_group(self.__fabio_reader)
         self.add_node(scan)
 
-    def create_scan_group(self, fabio_image, fabio_reader):
+    def create_scan_group(self, fabio_reader):
         """Factory to create the scan group.
 
         :param FabioImage fabio_image: A Fabio image
@@ -722,7 +888,7 @@ class File(commonh5.File):
         measurement = MeasurementGroup("measurement", fabio_reader, attrs={"NX_class": "NXcollection"})
         file_ = commonh5.Group("file", attrs={"NX_class": "NXcollection"})
         positioners = MetadataGroup("positioners", fabio_reader, FabioReader.POSITIONER, attrs={"NX_class": "NXpositioner"})
-        raw_header = RawHeaderData("scan_header", fabio_image, self)
+        raw_header = RawHeaderData("scan_header", fabio_reader, self)
         detector = DetectorGroup("detector_0", fabio_reader)
 
         scan.add_node(instrument)
@@ -738,26 +904,43 @@ class File(commonh5.File):
 
         return scan
 
-    def create_fabio_reader(self, fabio_file):
+    def create_fabio_reader(self, file_name, fabio_image, file_series):
         """Factory to create fabio reader.
 
         :rtype: FabioReader"""
-        if isinstance(fabio_file, fabio.edfimage.EdfImage):
-            metadata = EdfFabioReader(fabio_file)
+        use_edf_reader = False
+        first_file_name = None
+        first_image = None
+
+        if isinstance(file_series, list):
+            first_file_name = file_series[0]
+        elif isinstance(file_series, fabio.file_series.file_series):
+            first_image = file_series.first_image()
+        elif fabio_image is not None:
+            first_image = fabio_image
         else:
-            metadata = FabioReader(fabio_file)
-        return metadata
+            first_file_name = file_name
+
+        if first_file_name is not None:
+            _, ext = os.path.splitext(first_file_name)
+            ext = ext[1:]
+            use_edf_reader = ext in fabio.edfimage.EdfImage.DEFAULT_EXTENTIONS
+        elif first_image is not None:
+            use_edf_reader = isinstance(first_image, fabio.edfimage.EdfImage)
+        else:
+            assert(False)
+
+        if use_edf_reader:
+            reader = EdfFabioReader(file_name, fabio_image, file_series)
+        else:
+            reader = FabioReader(file_name, fabio_image, file_series)
+        return reader
 
     def close(self):
         """Close the object, and free up associated resources.
 
-        The associated FabioImage is closed anyway the object was created from
-        a filename or from a FabioImage.
-
-        After calling this method, attempts to use the object may fail.
+        After calling this method, attempts to use the object (and children)
+        may fail.
         """
-        if self.__must_be_closed:
-            # It looks like there is no close on FabioImage
-            # self.__fabio_image.close()
-            pass
-        self.__fabio_image = None
+        self.__fabio_reader.close()
+        self.__fabio_reader = None

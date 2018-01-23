@@ -27,11 +27,11 @@ from __future__ import absolute_import, division, unicode_literals
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "25/07/2016"
+__date__ = "17/01/2018"
 
 
 import unittest
-from silx.test.utils import ParametricTestCase
+from silx.utils.testutils import ParametricTestCase
 
 import numpy
 

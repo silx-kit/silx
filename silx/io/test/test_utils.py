@@ -33,6 +33,7 @@ import unittest
 import sys
 
 from .. import utils
+import silx.io.url
 
 try:
     import h5py
@@ -48,7 +49,7 @@ except ImportError:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "28/09/2017"
+__date__ = "11/12/2017"
 
 
 expected_spec1 = r"""#F .*
@@ -443,7 +444,7 @@ class TestNodes(unittest.TestCase):
 
         class Foo(object):
             def __init__(self):
-                self.h5py_class = h5py.File
+                self.h5_class = utils.H5Type.FILE
         obj = Foo()
         self.assertTrue(utils.is_file(obj))
         self.assertTrue(utils.is_group(obj))
@@ -455,7 +456,7 @@ class TestNodes(unittest.TestCase):
 
         class Foo(object):
             def __init__(self):
-                self.h5py_class = h5py.Group
+                self.h5_class = utils.H5Type.GROUP
         obj = Foo()
         self.assertFalse(utils.is_file(obj))
         self.assertTrue(utils.is_group(obj))
@@ -467,7 +468,7 @@ class TestNodes(unittest.TestCase):
 
         class Foo(object):
             def __init__(self):
-                self.h5py_class = h5py.Dataset
+                self.h5_class = utils.H5Type.DATASET
         obj = Foo()
         self.assertFalse(utils.is_file(obj))
         self.assertFalse(utils.is_group(obj))
@@ -491,11 +492,144 @@ class TestNodes(unittest.TestCase):
 
         class Foo(object):
             def __init__(self):
-                self.h5py_class = int
+                self.h5_class = int
         obj = Foo()
         self.assertFalse(utils.is_file(obj))
         self.assertFalse(utils.is_group(obj))
         self.assertFalse(utils.is_dataset(obj))
+
+
+class TestGetData(unittest.TestCase):
+    """Test `silx.io.utils.get_data` function."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp_directory = tempfile.mkdtemp()
+        cls.createResources(cls.tmp_directory)
+
+    @classmethod
+    def createResources(cls, directory):
+
+        if h5py is not None:
+            cls.h5_filename = os.path.join(directory, "test.h5")
+            h5 = h5py.File(cls.h5_filename, mode="w")
+            h5["group/group/scalar"] = 50
+            h5["group/group/array"] = [1, 2, 3, 4, 5]
+            h5["group/group/array2d"] = [[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]]
+            h5.close()
+
+        cls.spec_filename = os.path.join(directory, "test.dat")
+        utils.savespec(cls.spec_filename, [1], [1.1], xlabel="x", ylabel="y",
+                       fmt=["%d", "%.2f"], close_file=True, scan_number=1)
+
+        if fabio is not None:
+            cls.edf_filename = os.path.join(directory, "test.edf")
+            cls.edf_multiframe_filename = os.path.join(directory, "test_multi.edf")
+            header = fabio.fabioimage.OrderedDict()
+            header["integer"] = "10"
+            data = numpy.array([[10, 50], [50, 10]])
+            fabiofile = fabio.edfimage.EdfImage(data, header)
+            fabiofile.write(cls.edf_filename)
+            fabiofile.appendFrame(data=data, header=header)
+            fabiofile.write(cls.edf_multiframe_filename)
+
+        cls.txt_filename = os.path.join(directory, "test.txt")
+        f = io.open(cls.txt_filename, "w+t")
+        f.write(u"Kikoo")
+        f.close()
+
+        cls.missing_filename = os.path.join(directory, "test.missing")
+
+    @classmethod
+    def tearDownClass(cls):
+        if sys.platform == "win32" and fabio is not None:
+            # gc collect is needed to close a file descriptor
+            # opened by fabio and not released.
+            # https://github.com/silx-kit/fabio/issues/167
+            import gc
+            gc.collect()
+        shutil.rmtree(cls.tmp_directory)
+
+    def test_hdf5_scalar(self):
+        if h5py is None:
+            self.skipTest("H5py is missing")
+        url = "silx:%s::/group/group/scalar" % self.h5_filename
+        data = utils.get_data(url=url)
+        self.assertEqual(data, 50)
+
+    def test_hdf5_array(self):
+        if h5py is None:
+            self.skipTest("H5py is missing")
+        url = "silx:%s::/group/group/array" % self.h5_filename
+        data = utils.get_data(url=url)
+        self.assertEqual(data.shape, (5, ))
+        self.assertEqual(data[0], 1)
+
+    def test_hdf5_array_slice(self):
+        if h5py is None:
+            self.skipTest("H5py is missing")
+        url = "silx:%s::/group/group/array2d[1]" % self.h5_filename
+        data = utils.get_data(url=url)
+        self.assertEqual(data.shape, (5, ))
+        self.assertEqual(data[0], 6)
+
+    def test_hdf5_array_slice_out_of_range(self):
+        if h5py is None:
+            self.skipTest("H5py is missing")
+        url = "silx:%s::/group/group/array2d[5]" % self.h5_filename
+        self.assertRaises(ValueError, utils.get_data, url)
+
+    def test_edf_using_silx(self):
+        if h5py is None:
+            self.skipTest("H5py is missing")
+        if fabio is None:
+            self.skipTest("fabio is missing")
+        url = "silx:%s::/scan_0/instrument/detector_0/data" % self.edf_filename
+        data = utils.get_data(url=url)
+        self.assertEqual(data.shape, (2, 2))
+        self.assertEqual(data[0, 0], 10)
+
+    def test_fabio_frame(self):
+        if fabio is None:
+            self.skipTest("fabio is missing")
+        url = "fabio:%s::[1]" % self.edf_multiframe_filename
+        data = utils.get_data(url=url)
+        self.assertEqual(data.shape, (2, 2))
+        self.assertEqual(data[0, 0], 10)
+
+    def test_fabio_singleframe(self):
+        if fabio is None:
+            self.skipTest("fabio is missing")
+        url = "fabio:%s::[0]" % self.edf_filename
+        data = utils.get_data(url=url)
+        self.assertEqual(data.shape, (2, 2))
+        self.assertEqual(data[0, 0], 10)
+
+    def test_fabio_too_much_frames(self):
+        if fabio is None:
+            self.skipTest("fabio is missing")
+        url = "fabio:%s::[...]" % self.edf_multiframe_filename
+        self.assertRaises(ValueError, utils.get_data, url)
+
+    def test_fabio_no_frame(self):
+        if fabio is None:
+            self.skipTest("fabio is missing")
+        url = "fabio:%s::" % self.edf_filename
+        self.assertRaises(ValueError, utils.get_data, url)
+
+    def test_unsupported_scheme(self):
+        url = "foo:/foo/bar"
+        self.assertRaises(ValueError, utils.get_data, url)
+
+    def test_no_scheme(self):
+        if fabio is None:
+            self.skipTest("fabio is missing")
+        url = "%s::/group/group/array2d[5]" % self.h5_filename
+        self.assertRaises((ValueError, IOError), utils.get_data, url)
+
+    def test_file_not_exists(self):
+        url = "silx:/foo/bar"
+        self.assertRaises(IOError, utils.get_data, url)
 
 
 def suite():
@@ -505,6 +639,7 @@ def suite():
     test_suite.addTest(loadTests(TestH5Ls))
     test_suite.addTest(loadTests(TestOpen))
     test_suite.addTest(loadTests(TestNodes))
+    test_suite.addTest(loadTests(TestGetData))
     return test_suite
 
 

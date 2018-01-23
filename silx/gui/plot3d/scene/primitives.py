@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -47,6 +47,7 @@ from . import event
 from . import core
 from . import transform
 from . import utils
+from .function import Colormap
 
 _logger = logging.getLogger(__name__)
 
@@ -60,6 +61,7 @@ class Geometry(core.Elem):
                      lines, line_strip, loop, triangles, triangle_strip, fan
     :param indices: Array of vertex indices or None
     :param bool copy: True (default) to copy the data, False to use as is.
+    :param str attrib0: Name of the attribute that MUST be an array.
     :param attributes: Provide list of attributes as extra parameters.
     """
 
@@ -91,12 +93,21 @@ class Geometry(core.Elem):
 
     _TRIANGLE_MODES = 'triangles', 'triangle_strip', 'fan'
 
-    def __init__(self, mode, indices=None, copy=True, **attributes):
+    def __init__(self,
+                 mode,
+                 indices=None,
+                 copy=True,
+                 attrib0='position',
+                 **attributes):
         super(Geometry, self).__init__()
+
+        self._attrib0 = str(attrib0)
 
         self._vbos = {}  # Store current vbos
         self._unsyncAttributes = []  # Store attributes to copy to vbos
         self.__bounds = None  # Cache object's bounds
+        # Attribute names defining the object bounds
+        self.__boundsAttributeNames = (self._attrib0,)
 
         assert mode in self._MODES
         self._mode = mode
@@ -116,9 +127,16 @@ class Geometry(core.Elem):
             nbvertices = len(self._indices)
         else:
             nbvertices = self.nbVertices
-        assert nbvertices >= mincheck
-        if modulocheck != 0:
-            assert (nbvertices % modulocheck) == 0
+
+        if nbvertices != 0:
+            assert nbvertices >= mincheck
+            if modulocheck != 0:
+                assert (nbvertices % modulocheck) == 0
+
+    @property
+    def drawMode(self):
+        """Kind of primitive to render, in :attr:`_MODES` (str)"""
+        return self._mode
 
     @staticmethod
     def _glReadyArray(array, copy=True):
@@ -134,10 +152,19 @@ class Geometry(core.Elem):
         # Makes sure it is an array
         array = numpy.array(array, copy=False)
 
-        # Cast all float to float32
         dtype = None
-        if numpy.dtype(array.dtype).kind == 'f':
+        if array.dtype.kind == 'f' and array.dtype.itemsize != 4:
+            # Cast  to float32
+            _logger.info('Cast array to float32')
             dtype = numpy.float32
+        elif array.dtype.itemsize > 4:
+            # Cast (u)int64 to (u)int32
+            if array.dtype.kind == 'i':
+                _logger.info('Cast array to int32')
+                dtype = numpy.int32
+            elif array.dtype.kind == 'u':
+                _logger.info('Cast array to uint32')
+                dtype = numpy.uint32
 
         return numpy.array(array, dtype=dtype, order='C', copy=copy)
 
@@ -151,6 +178,11 @@ class Geometry(core.Elem):
             if len(array.shape) == 2:
                 return len(array)
         return None
+
+    @property
+    def attrib0(self):
+        """Attribute name that MUST be an array (str)"""
+        return self._attrib0
 
     def setAttribute(self, name, array, copy=True):
         """Set attribute with provided array.
@@ -169,29 +201,33 @@ class Geometry(core.Elem):
             array = self._glReadyArray(array, copy=copy)
 
             if name not in self._ATTR_INFO:
-                _logger.info('Not checking attibute %s dimensions', name)
+                _logger.info('Not checking attribute %s dimensions', name)
             else:
                 checks = self._ATTR_INFO[name]
 
-                if (len(array.shape) == 1 and checks['lastDim'] == (1,) and
+                if (array.ndim == 1 and checks['lastDim'] == (1,) and
                         len(array) > 1):
                     array = array.reshape((len(array), 1))
 
                 # Checks
-                assert len(array.shape) in checks['dims'], "Attr %s" % name
+                assert array.ndim in checks['dims'], "Attr %s" % name
                 assert array.shape[-1] in checks['lastDim'], "Attr %s" % name
+
+            # Makes sure attrib0 is considered as an array of values
+            if name == self.attrib0 and array.ndim == 1:
+                array.shape = 1, -1
 
             # Check length against another attribute array
             # Causes problems when updating
             # nbVertices = self.nbVertices
-            # if len(array.shape) == 2 and nbVertices is not None:
+            # if array.ndim == 2 and nbVertices is not None:
             #     assert len(array) == nbVertices
 
             self._attributes[name] = array
-            if len(array.shape) == 2:  # Store this in a VBO
+            if array.ndim == 2:  # Store this in a VBO
                 self._unsyncAttributes.append(name)
 
-            if name == 'position':  # Reset bounds
+            if name in self.boundsAttributeNames:  # Reset bounds
                 self.__bounds = None
 
         self.notify()
@@ -238,7 +274,7 @@ class Geometry(core.Elem):
                 array = self._attributes[name]
                 assert array is not None
 
-                if len(array.shape) == 1:
+                if array.ndim == 1:
                     assert len(array) in (1, 2, 3, 4)
                     gl.glDisableVertexAttribArray(attribute)
                     _glVertexAttribFunc = getattr(
@@ -273,6 +309,7 @@ class Geometry(core.Elem):
                 # This might be a costy check
                 assert indices.max() < self.nbVertices
             self._indices = indices
+        self.notify()
 
     def getIndices(self, copy=True):
         """Returns the numpy.ndarray corresponding to the indices.
@@ -287,16 +324,59 @@ class Geometry(core.Elem):
         else:
             return numpy.array(self._indices, copy=copy)
 
+    @property
+    def boundsAttributeNames(self):
+        """Tuple of attribute names defining the bounds of the object.
+
+        Attributes name are taken in the given order to compute the
+        (x, y, z) the bounding box, e.g.::
+
+          geometry.boundsAttributeNames = 'position'
+          geometry.boundsAttributeNames = 'x', 'y', 'z'
+        """
+        return self.__boundsAttributeNames
+
+    @boundsAttributeNames.setter
+    def boundsAttributeNames(self, names):
+        self.__boundsAttributeNames = tuple(str(name) for name in names)
+        self.__bounds = None
+        self.notify()
+
     def _bounds(self, dataBounds=False):
         if self.__bounds is None:
+            if len(self.boundsAttributeNames) == 0:
+                return None  # No bounds
+
             self.__bounds = numpy.zeros((2, 3), dtype=numpy.float32)
-            # Support vertex with to 2 to 4 coordinates
-            positions = self._attributes['position']
-            self.__bounds[0, :positions.shape[1]] = \
-                numpy.nanmin(positions, axis=0)[:3]
-            self.__bounds[1, :positions.shape[1]] = \
-                numpy.nanmax(positions, axis=0)[:3]
+
+            # Coordinates defined in one or more attributes
+            index = 0
+            for name in self.boundsAttributeNames:
+                if index == 3:
+                    _logger.error("Too many attributes defining bounds")
+                    break
+
+                attribute = self._attributes[name]
+                assert attribute.ndim in (1, 2)
+                if attribute.ndim == 1:  # Single value
+                    min_ = attribute
+                    max_ = attribute
+                else:  # Array of values, compute min/max
+                    min_ = numpy.nanmin(attribute, axis=0)
+                    max_ = numpy.nanmax(attribute, axis=0)
+
+                toCopy = min(len(min_), 3-index)
+                if toCopy != len(min_):
+                    _logger.error("Attribute defining bounds"
+                                  " has too many dimensions")
+
+                self.__bounds[0, index:index+toCopy] = min_[:toCopy]
+                self.__bounds[1, index:index+toCopy] = max_[:toCopy]
+
+                index += toCopy
+
             self.__bounds[numpy.isnan(self.__bounds)] = 0.  # Avoid NaNs
+
         return self.__bounds.copy()
 
     def prepareGL2(self, ctx):
@@ -616,6 +696,26 @@ class Box(core.PrivateGroup):
         self._size = None
         self.size = size
 
+    @classmethod
+    def getLineIndices(cls, copy=True):
+        """Returns 2D array of Box lines indices
+
+        :param copy: True (default) to get a copy,
+                     False to get internal array (Do not modify!)
+        :rtype: numpy.ndarray
+        """
+        return numpy.array(cls._lineIndices, copy=copy)
+
+    @classmethod
+    def getVertices(cls, copy=True):
+        """Returns 2D array of Box corner coordinates.
+
+        :param copy: True (default) to get a copy,
+                     False to get internal array (Do not modify!)
+        :rtype: numpy.ndarray
+        """
+        return numpy.array(cls._vertices, copy=copy)
+
     @property
     def size(self):
         """Size of the box (sx, sy, sz)"""
@@ -865,10 +965,11 @@ class PlaneInGroup(core.PrivateGroup):
             return cachevertices
 
         # Cache is not OK, rebuild it
-        boxvertices = bounds[0] + Box._vertices.copy()*(bounds[1] - bounds[0])
-        lineindices = Box._lineIndices
+        boxVertices = Box.getVertices(copy=True)
+        boxVertices = bounds[0] + boxVertices * (bounds[1] - bounds[0])
+        lineIndices = Box.getLineIndices(copy=False)
         vertices = utils.boxPlaneIntersect(
-            boxvertices, lineindices, self.plane.normal, self.plane.point)
+            boxVertices, lineIndices, self.plane.normal, self.plane.point)
 
         self._cache = bounds, vertices if len(vertices) != 0 else None
 
@@ -906,302 +1007,362 @@ class PlaneInGroup(core.PrivateGroup):
             super(PlaneInGroup, self).renderGL2(ctx)
 
 
+class BoundedGroup(core.Group):
+    """Group with data bounds"""
+
+    _shape = None  # To provide a default value without overriding __init__
+
+    @property
+    def shape(self):
+        """Data shape (depth, height, width) of this group or None"""
+        return self._shape
+
+    @shape.setter
+    def shape(self, shape):
+        if shape is None:
+            self._shape = None
+        else:
+            depth, height, width = shape
+            self._shape = float(depth), float(height), float(width)
+
+    @property
+    def size(self):
+        """Data size (width, height, depth) of this group or None"""
+        shape = self.shape
+        if shape is None:
+            return None
+        else:
+            return shape[2], shape[1], shape[0]
+
+    @size.setter
+    def size(self, size):
+        if size is None:
+            self.shape = None
+        else:
+            self.shape = size[2], size[1], size[0]
+
+    def _bounds(self, dataBounds=False):
+        if dataBounds and self.size is not None:
+            return numpy.array(((0., 0., 0.), self.size),
+                               dtype=numpy.float32)
+        else:
+            return super(BoundedGroup, self)._bounds(dataBounds)
+
+
 # Points ######################################################################
 
-_POINTS_ATTR_INFO = Geometry._ATTR_INFO.copy()
-_POINTS_ATTR_INFO.update(value={'dims': (1, 2), 'lastDim': (1,)},
-                         size={'dims': (1, 2), 'lastDim': (1,)},
-                         symbol={'dims': (1, 2), 'lastDim': (1,)})
+class _Points(Geometry):
+    """Base class to render a set of points."""
 
+    DIAMOND = 'd'
+    CIRCLE = 'o'
+    SQUARE = 's'
+    PLUS = '+'
+    X_MARKER = 'x'
+    ASTERISK = '*'
+    H_LINE = '_'
+    V_LINE = '|'
 
-class Points(Geometry):
-    """A set of data points with an associated value and size."""
-    _shaders = ("""
+    SUPPORTED_MARKERS = (DIAMOND, CIRCLE, SQUARE, PLUS,
+                         X_MARKER, ASTERISK, H_LINE, V_LINE)
+    """List of supported markers:
+
+    - 'd' diamond
+    - 'o' circle
+    - 's' square
+    - '+' cross
+    - 'x' x-cross
+    - '*' asterisk
+    - '_' horizontal line
+    - '|' vertical line
+    """
+
+    _MARKER_FUNCTIONS = {
+        DIAMOND: """
+        float alphaSymbol(vec2 coord, float size) {
+            vec2 centerCoord = abs(coord - vec2(0.5, 0.5));
+            float f = centerCoord.x + centerCoord.y;
+            return clamp(size * (0.5 - f), 0.0, 1.0);
+        }
+        """,
+        CIRCLE: """
+        float alphaSymbol(vec2 coord, float size) {
+            float radius = 0.5;
+            float r = distance(coord, vec2(0.5, 0.5));
+            return clamp(size * (radius - r), 0.0, 1.0);
+        }
+        """,
+        SQUARE: """
+        float alphaSymbol(vec2 coord, float size) {
+            return 1.0;
+        }
+        """,
+        PLUS: """
+        float alphaSymbol(vec2 coord, float size) {
+            vec2 d = abs(size * (coord - vec2(0.5, 0.5)));
+            if (min(d.x, d.y) < 0.5) {
+                return 1.0;
+            } else {
+                return 0.0;
+            }
+        }
+        """,
+        X_MARKER: """
+        float alphaSymbol(vec2 coord, float size) {
+            vec2 pos = floor(size * coord) + 0.5;
+            vec2 d_x = abs(pos.x + vec2(- pos.y, pos.y - size));
+            if (min(d_x.x, d_x.y) <= 0.5) {
+                return 1.0;
+            } else {
+                return 0.0;
+            }
+        }
+        """,
+        ASTERISK: """
+        float alphaSymbol(vec2 coord, float size) {
+            /* Combining +, x and circle */
+            vec2 d_plus = abs(size * (coord - vec2(0.5, 0.5)));
+            vec2 pos = floor(size * coord) + 0.5;
+            vec2 d_x = abs(pos.x + vec2(- pos.y, pos.y - size));
+            if (min(d_plus.x, d_plus.y) < 0.5) {
+                return 1.0;
+            } else if (min(d_x.x, d_x.y) <= 0.5) {
+                float r = distance(coord, vec2(0.5, 0.5));
+                return clamp(size * (0.5 - r), 0.0, 1.0);
+            } else {
+                return 0.0;
+            }
+        }
+        """,
+        H_LINE: """
+        float alphaSymbol(vec2 coord, float size) {
+            float dy = abs(size * (coord.y - 0.5));
+            if (dy < 0.5) {
+                return 1.0;
+            } else {
+                return 0.0;
+            }
+        }
+        """,
+        V_LINE: """
+        float alphaSymbol(vec2 coord, float size) {
+            float dx = abs(size * (coord.x - 0.5));
+            if (dx < 0.5) {
+                return 1.0;
+            } else {
+                return 0.0;
+            }
+        }
+        """
+    }
+
+    _shaders = (string.Template("""
     #version 120
 
-    attribute vec3 position;
-    attribute float symbol;
-    attribute float value;
+    attribute float x;
+    attribute float y;
+    attribute float z;
+    attribute $valueType value;
     attribute float size;
 
     uniform mat4 matrix;
     uniform mat4 transformMat;
 
-    uniform vec2 valRange;
-
     varying vec4 vCameraPosition;
-    varying float vSymbol;
-    varying float vNormValue;
+    varying $valueType vValue;
     varying float vSize;
 
     void main(void)
     {
-        vSymbol = symbol;
+        vValue = value;
 
-        vNormValue = clamp((value - valRange.x) / (valRange.y - valRange.x),
-                           0.0, 1.0);
-
-        bool isValueInRange = value >= valRange.x && value <= valRange.y;
-        if (isValueInRange) {
-            gl_Position = matrix * vec4(position, 1.0);
-        } else {
-            gl_Position = vec4(2.0, 0.0, 0.0, 1.0); /* Get clipped */
-        }
-        vCameraPosition = transformMat * vec4(position, 1.0);
+        vec4 positionVec4 = vec4(x, y, z, 1.0);
+        gl_Position = matrix * positionVec4;
+        vCameraPosition = transformMat * positionVec4;
 
         gl_PointSize = size;
         vSize = size;
     }
-    """,
+    """),
                 string.Template("""
     #version 120
 
     varying vec4 vCameraPosition;
     varying float vSize;
-    varying float vSymbol;
-    varying float vNormValue;
+    varying $valueType vValue;
+
+    $valueToColorDecl
 
     $clippingDecl
 
-    /* Circle */
-    #define SYMBOL_CIRCLE 1.0
-
-    float alphaCircle(vec2 coord, float size) {
-        float radius = 0.5;
-        float r = distance(coord, vec2(0.5, 0.5));
-        return clamp(size * (radius - r), 0.0, 1.0);
-    }
-
-    /* Half lines */
-    #define SYMBOL_H_LINE 2.0
-    #define LEFT 1.0
-    #define RIGHT 2.0
-    #define SYMBOL_V_LINE 3.0
-    #define UP 1.0
-    #define DOWN 2.0
-
-    float alphaLine(vec2 coord, float size, float direction)
-    {
-        vec2 delta = abs(size * (coord - 0.5));
-
-        if (direction == SYMBOL_H_LINE) {
-            return (delta.y < 0.5) ? 1.0 : 0.0;
-        }
-        else if (direction == SYMBOL_H_LINE + LEFT) {
-            return (coord.x <= 0.5 && delta.y < 0.5) ? 1.0 : 0.0;
-        }
-        else if (direction == SYMBOL_H_LINE + RIGHT) {
-            return (coord.x >= 0.5 && delta.y < 0.5) ? 1.0 : 0.0;
-        }
-        else if (direction == SYMBOL_V_LINE) {
-            return (delta.x < 0.5) ? 1.0 : 0.0;
-        }
-        else if (direction == SYMBOL_V_LINE + UP) {
-            return (coord.y <= 0.5 && delta.x < 0.5) ? 1.0 : 0.0;
-        }
-        else if (direction == SYMBOL_V_LINE + DOWN) {
-             return (coord.y >= 0.5 && delta.x < 0.5) ? 1.0 : 0.0;
-        }
-        return 1.0;
-    }
+    $alphaSymbolDecl
 
     void main(void)
     {
         $clippingCall(vCameraPosition);
 
-        gl_FragColor = vec4(0.5 * vNormValue + 0.5, 0.0, 0.0, 1.0);
-
-        float alpha = 1.0;
-        float symbol = floor(vSymbol);
-        if (1 == 1) { //symbol == SYMBOL_CIRCLE) {
-            alpha = alphaCircle(gl_PointCoord, vSize);
-        }
-        else if (symbol >= SYMBOL_H_LINE &&
-                 symbol <= (SYMBOL_V_LINE + DOWN)) {
-            alpha = alphaLine(gl_PointCoord, vSize, symbol);
-        }
+        float alpha = alphaSymbol(gl_PointCoord, vSize);
         if (alpha == 0.0) {
             discard;
         }
+
+        gl_FragColor = $valueToColorCall(vValue);
         gl_FragColor.a *= alpha;
     }
     """))
 
-    _ATTR_INFO = _POINTS_ATTR_INFO
+    _ATTR_INFO = {
+        'x': {'dims': (1, 2), 'lastDim': (1,)},
+        'y': {'dims': (1, 2), 'lastDim': (1,)},
+        'z': {'dims': (1, 2), 'lastDim': (1,)},
+        'size': {'dims': (1, 2), 'lastDim': (1,)},
+    }
 
-    # TODO Add colormap, light?
+    def __init__(self, x, y, z, value, size=1., indices=None):
+        super(_Points, self).__init__('points', indices,
+                                      x=x,
+                                      y=y,
+                                      z=z,
+                                      value=value,
+                                      size=size,
+                                      attrib0='x')
+        self.boundsAttributeNames = 'x', 'y', 'z'
+        self._marker = 'o'
 
-    def __init__(self, vertices, values=0., sizes=1., indices=None,
-                 symbols=0.,
-                 minValue=None, maxValue=None):
-        super(Points, self).__init__('points', indices,
-                                     position=vertices,
-                                     value=values,
-                                     size=sizes,
-                                     symbol=symbols)
+    @property
+    def marker(self):
+        """The marker symbol used to display the scatter plot (str)
 
-        values = self._attributes['value']
-        self._minValue = values.min() if minValue is None else minValue
-        self._maxValue = values.max() if maxValue is None else maxValue
+        See :attr:`SUPPORTED_MARKERS` for the list of supported marker string.
+        """
+        return self._marker
 
-    minValue = event.notifyProperty('_minValue')
-    maxValue = event.notifyProperty('_maxValue')
+    @marker.setter
+    def marker(self, marker):
+        marker = str(marker)
+        assert marker in self.SUPPORTED_MARKERS
+        if marker != self._marker:
+            self._marker = marker
+            self.notify()
+
+    def _shaderValueDefinition(self):
+        """Type definition, fragment shader declaration, fragment shader call
+        """
+        raise NotImplementedError(
+            "This method must be implemented in subclass")
+
+    def _renderGL2PreDrawHook(self, ctx, program):
+        """Override in subclass to run code before calling gl draw"""
+        pass
 
     def renderGL2(self, ctx):
-        fragment = self._shaders[1].substitute(
+        valueType, valueToColorDecl, valueToColorCall = \
+            self._shaderValueDefinition()
+        vertexShader = self._shaders[0].substitute(
+            valueType=valueType)
+        fragmentShader = self._shaders[1].substitute(
             clippingDecl=ctx.clipper.fragDecl,
-            clippingCall=ctx.clipper.fragCall)
-        prog = ctx.glCtx.prog(self._shaders[0], fragment)
-        prog.use()
+            clippingCall=ctx.clipper.fragCall,
+            valueType=valueType,
+            valueToColorDecl=valueToColorDecl,
+            valueToColorCall=valueToColorCall,
+            alphaSymbolDecl=self._MARKER_FUNCTIONS[self.marker])
+        program = ctx.glCtx.prog(vertexShader, fragmentShader,
+                                 attrib0=self.attrib0)
+        program.use()
 
         gl.glEnable(gl.GL_VERTEX_PROGRAM_POINT_SIZE)  # OpenGL 2
         gl.glEnable(gl.GL_POINT_SPRITE)  # OpenGL 2
         # gl.glEnable(gl.GL_PROGRAM_POINT_SIZE)
 
-        prog.setUniformMatrix('matrix', ctx.objectToNDC.matrix)
-        prog.setUniformMatrix('transformMat',
-                              ctx.objectToCamera.matrix,
-                              safe=True)
+        program.setUniformMatrix('matrix', ctx.objectToNDC.matrix)
+        program.setUniformMatrix('transformMat',
+                                 ctx.objectToCamera.matrix,
+                                 safe=True)
 
-        ctx.clipper.setupProgram(ctx, prog)
+        ctx.clipper.setupProgram(ctx, program)
 
-        gl.glUniform2f(prog.uniforms['valRange'], self.minValue, self.maxValue)
+        self._renderGL2PreDrawHook(ctx, program)
 
-        self._draw(prog)
+        self._draw(program)
 
 
-class ColorPoints(Geometry):
+class Points(_Points):
+    """A set of data points with an associated value and size."""
+
+    _ATTR_INFO = _Points._ATTR_INFO.copy()
+    _ATTR_INFO.update({'value': {'dims': (1, 2), 'lastDim': (1,)}})
+
+    def __init__(self, x, y, z, value=0., size=1.,
+                 indices=None, colormap=None):
+        super(Points, self).__init__(x=x,
+                                     y=y,
+                                     z=z,
+                                     indices=indices,
+                                     size=size,
+                                     value=value)
+
+        self._colormap = colormap or Colormap()  # Default colormap
+        self._colormap.addListener(self._cmapChanged)
+
+    @property
+    def colormap(self):
+        """The colormap used to render the image"""
+        return self._colormap
+
+    def _cmapChanged(self, source, *args, **kwargs):
+        """Broadcast colormap changes"""
+        self.notify(*args, **kwargs)
+
+    def _shaderValueDefinition(self):
+        """Type definition, fragment shader declaration, fragment shader call
+        """
+        return 'float', self.colormap.decl, self.colormap.call
+
+    def _renderGL2PreDrawHook(self, ctx, program):
+        """Set-up colormap before calling gl draw"""
+        self.colormap.setupProgram(ctx, program)
+
+
+class ColorPoints(_Points):
     """A set of points with an associated color and size."""
 
-    _shaders = ("""
-    #version 120
+    _ATTR_INFO = _Points._ATTR_INFO.copy()
+    _ATTR_INFO.update({'value': {'dims': (1, 2), 'lastDim': (4,)}})
 
-    attribute vec3 position;
-    attribute float symbol;
-    attribute vec4 color;
-    attribute float size;
+    def __init__(self, x, y, z, color=(1., 1., 1., 1.), size=1.,
+                 indices=None):
+        super(ColorPoints, self).__init__(x=x,
+                                          y=y,
+                                          z=z,
+                                          indices=indices,
+                                          size=size,
+                                          value=color)
 
-    uniform mat4 matrix;
-    uniform mat4 transformMat;
+    def _shaderValueDefinition(self):
+        """Type definition, fragment shader declaration, fragment shader call
+        """
+        return 'vec4', '', ''
 
-    varying vec4 vCameraPosition;
-    varying float vSymbol;
-    varying vec4 vColor;
-    varying float vSize;
+    def setColor(self, color, copy=True):
+        """Set colors
 
-    void main(void)
-    {
-        vCameraPosition = transformMat * vec4(position, 1.0);
-        vSymbol = symbol;
-        vColor = color;
-        gl_Position = matrix * vec4(position, 1.0);
-        gl_PointSize = size;
-        vSize = size;
-    }
-    """,
-                string.Template("""
-    #version 120
+        :param color: Single RGBA color or
+                      2D array of color of length number of points
+        :param bool copy: True to copy colors (default),
+                          False to use provided array (Do not modify!)
+        """
+        self.setAttribute('value', color, copy=copy)
 
-    varying vec4 vCameraPosition;
-    varying float vSize;
-    varying float vSymbol;
-    varying vec4 vColor;
+    def getColor(self, copy=True):
+        """Returns the color or array of colors of the points.
 
-    $clippingDecl
-
-    /* Circle */
-    #define SYMBOL_CIRCLE 1.0
-
-    float alphaCircle(vec2 coord, float size) {
-        float radius = 0.5;
-        float r = distance(coord, vec2(0.5, 0.5));
-        return clamp(size * (radius - r), 0.0, 1.0);
-    }
-
-    /* Half lines */
-    #define SYMBOL_H_LINE 2.0
-    #define LEFT 1.0
-    #define RIGHT 2.0
-    #define SYMBOL_V_LINE 3.0
-    #define UP 1.0
-    #define DOWN 2.0
-
-    float alphaLine(vec2 coord, float size, float direction)
-    {
-        vec2 delta = abs(size * (coord - 0.5));
-
-        if (direction == SYMBOL_H_LINE) {
-            return (delta.y < 0.5) ? 1.0 : 0.0;
-        }
-        else if (direction == SYMBOL_H_LINE + LEFT) {
-            return (coord.x <= 0.5 && delta.y < 0.5) ? 1.0 : 0.0;
-        }
-        else if (direction == SYMBOL_H_LINE + RIGHT) {
-            return (coord.x >= 0.5 && delta.y < 0.5) ? 1.0 : 0.0;
-        }
-        else if (direction == SYMBOL_V_LINE) {
-            return (delta.x < 0.5) ? 1.0 : 0.0;
-        }
-        else if (direction == SYMBOL_V_LINE + UP) {
-            return (coord.y <= 0.5 && delta.x < 0.5) ? 1.0 : 0.0;
-        }
-        else if (direction == SYMBOL_V_LINE + DOWN) {
-             return (coord.y >= 0.5 && delta.x < 0.5) ? 1.0 : 0.0;
-        }
-        return 1.0;
-    }
-
-    void main(void)
-    {
-        $clippingCall(vCameraPosition);
-
-        gl_FragColor = vColor;
-
-        float alpha = 1.0;
-        float symbol = floor(vSymbol);
-        if (1 == 1) { //symbol == SYMBOL_CIRCLE) {
-            alpha = alphaCircle(gl_PointCoord, vSize);
-        }
-        else if (symbol >= SYMBOL_H_LINE &&
-                 symbol <= (SYMBOL_V_LINE + DOWN)) {
-            alpha = alphaLine(gl_PointCoord, vSize, symbol);
-        }
-        if (alpha == 0.0) {
-            discard;
-        }
-        gl_FragColor.a *= alpha;
-    }
-    """))
-
-    _ATTR_INFO = _POINTS_ATTR_INFO
-
-    def __init__(self, vertices, colors=(1., 1., 1., 1.), sizes=1.,
-                 indices=None, symbols=0.):
-        super(ColorPoints, self).__init__('points', indices,
-                                          position=vertices,
-                                          color=colors,
-                                          size=sizes,
-                                          symbol=symbols)
-
-    def renderGL2(self, ctx):
-        fragment = self._shaders[1].substitute(
-            clippingDecl=ctx.clipper.fragDecl,
-            clippingCall=ctx.clipper.fragCall)
-        prog = ctx.glCtx.prog(self._shaders[0], fragment)
-        prog.use()
-
-        gl.glEnable(gl.GL_VERTEX_PROGRAM_POINT_SIZE)  # OpenGL 2
-        gl.glEnable(gl.GL_POINT_SPRITE)  # OpenGL 2
-        # gl.glEnable(gl.GL_PROGRAM_POINT_SIZE)
-
-        prog.setUniformMatrix('matrix', ctx.objectToNDC.matrix)
-        prog.setUniformMatrix('transformMat',
-                              ctx.objectToCamera.matrix,
-                              safe=True)
-
-        ctx.clipper.setupProgram(ctx, prog)
-
-        self._draw(prog)
+        :param copy: True to get a copy (default),
+                     False to return internal array (Do not modify!)
+        :return: Color or array of colors
+        :rtype: numpy.ndarray
+        """
+        return self.getAttribute('value', copy=copy)
 
 
 class GridPoints(Geometry):
@@ -1559,12 +1720,14 @@ class Mesh3D(Geometry):
                  colors,
                  normals=None,
                  mode='triangles',
-                 indices=None):
+                 indices=None,
+                 copy=True):
         assert mode in self._TRIANGLE_MODES
         super(Mesh3D, self).__init__(mode, indices,
                                      position=positions,
                                      normal=normals,
-                                     color=colors)
+                                     color=colors,
+                                     copy=copy)
 
         self._culling = None
 
@@ -1617,6 +1780,435 @@ class Mesh3D(Geometry):
 
         if self.culling is not None:
             gl.glDisable(gl.GL_CULL_FACE)
+
+
+class ColormapMesh3D(Geometry):
+    """A 3D mesh with color computed from a colormap"""
+
+    _shaders = ("""
+    attribute vec3 position;
+    attribute vec3 normal;
+    attribute float value;
+
+    uniform mat4 matrix;
+    uniform mat4 transformMat;
+    //uniform mat3 matrixInvTranspose;
+
+    varying vec4 vCameraPosition;
+    varying vec3 vPosition;
+    varying vec3 vNormal;
+    varying float vValue;
+
+    void main(void)
+    {
+        vCameraPosition = transformMat * vec4(position, 1.0);
+        //vNormal = matrixInvTranspose * normalize(normal);
+        vPosition = position;
+        vNormal = normal;
+        vValue = value;
+        gl_Position = matrix * vec4(position, 1.0);
+    }
+    """,
+                string.Template("""
+    varying vec4 vCameraPosition;
+    varying vec3 vPosition;
+    varying vec3 vNormal;
+    varying float vValue;
+
+    $colormapDecl
+    $clippingDecl
+    $lightingFunction
+
+    void main(void)
+    {
+        $clippingCall(vCameraPosition);
+
+        vec4 color = $colormapCall(vValue);
+        gl_FragColor = $lightingCall(color, vPosition, vNormal);
+    }
+    """))
+
+    def __init__(self,
+                 position,
+                 value,
+                 colormap=None,
+                 normal=None,
+                 mode='triangles',
+                 indices=None):
+        super(ColormapMesh3D, self).__init__(mode, indices,
+                                             position=position,
+                                             normal=normal,
+                                             value=value)
+
+        self._lineWidth = 1.0
+        self._lineSmooth = True
+        self._culling = None
+        self._colormap = colormap or Colormap()  # Default colormap
+        self._colormap.addListener(self._cmapChanged)
+
+    lineWidth = event.notifyProperty('_lineWidth', converter=float,
+                                     doc="Width of the line in pixels.")
+
+    lineSmooth = event.notifyProperty(
+        '_lineSmooth',
+        converter=bool,
+        doc="Smooth line rendering enabled (bool, default: True)")
+
+    @property
+    def culling(self):
+        """Face culling (str)
+
+        One of 'back', 'front' or None.
+        """
+        return self._culling
+
+    @culling.setter
+    def culling(self, culling):
+        assert culling in ('back', 'front', None)
+        if culling != self._culling:
+            self._culling = culling
+            self.notify()
+
+    @property
+    def colormap(self):
+        """The colormap used to render the image"""
+        return self._colormap
+
+    def _cmapChanged(self, source, *args, **kwargs):
+        """Broadcast colormap changes"""
+        self.notify(*args, **kwargs)
+
+    def renderGL2(self, ctx):
+        if 'normal' in self._attributes:
+            self._renderGL2(ctx)
+        else:  # Disable lighting
+            with self.viewport.light.turnOff():
+                self._renderGL2(ctx)
+
+    def _renderGL2(self, ctx):
+        fragment = self._shaders[1].substitute(
+            clippingDecl=ctx.clipper.fragDecl,
+            clippingCall=ctx.clipper.fragCall,
+            lightingFunction=ctx.viewport.light.fragmentDef,
+            lightingCall=ctx.viewport.light.fragmentCall,
+            colormapDecl=self.colormap.decl,
+            colormapCall=self.colormap.call)
+        program = ctx.glCtx.prog(self._shaders[0], fragment)
+        program.use()
+
+        ctx.viewport.light.setupProgram(ctx, program)
+        ctx.clipper.setupProgram(ctx, program)
+        self.colormap.setupProgram(ctx, program)
+
+        if self.culling is not None:
+            cullFace = gl.GL_FRONT if self.culling == 'front' else gl.GL_BACK
+            gl.glCullFace(cullFace)
+            gl.glEnable(gl.GL_CULL_FACE)
+
+        program.setUniformMatrix('matrix', ctx.objectToNDC.matrix)
+        program.setUniformMatrix('transformMat',
+                                 ctx.objectToCamera.matrix,
+                                 safe=True)
+
+        if self.drawMode in self._LINE_MODES:
+            gl.glLineWidth(self.lineWidth)
+            with gl.enabled(gl.GL_LINE_SMOOTH, self.lineSmooth):
+                self._draw(program)
+        else:
+            self._draw(program)
+
+        if self.culling is not None:
+            gl.glDisable(gl.GL_CULL_FACE)
+
+
+# ImageData ##################################################################
+
+class _Image(Geometry):
+    """Base class for ImageData and ImageRgba"""
+
+    _shaders = ("""
+    attribute vec2 position;
+
+    uniform mat4 matrix;
+    uniform mat4 transformMat;
+    uniform vec2 dataScale;
+
+    varying vec4 vCameraPosition;
+    varying vec3 vPosition;
+    varying vec3 vNormal;
+    varying vec2 vTexCoords;
+
+    void main(void)
+    {
+        vec4 positionVec4 = vec4(position, 0.0, 1.0);
+        vCameraPosition = transformMat * positionVec4;
+        vPosition = positionVec4.xyz;
+        vTexCoords = dataScale * position;
+        gl_Position = matrix * positionVec4;
+    }
+    """,
+                string.Template("""
+    varying vec4 vCameraPosition;
+    varying vec3 vPosition;
+    varying vec2 vTexCoords;
+    uniform sampler2D data;
+    uniform float alpha;
+
+    $imageDecl
+
+    $clippingDecl
+
+    $lightingFunction
+
+    void main(void)
+    {
+        vec4 color = imageColor(data, vTexCoords);
+        color.a = alpha;
+
+        $clippingCall(vCameraPosition);
+
+        vec3 normal = vec3(0.0, 0.0, 1.0);
+        gl_FragColor = $lightingCall(color, vPosition, normal);
+    }
+    """))
+
+    _UNIT_SQUARE = numpy.array(((0., 0.), (1., 0.), (0., 1.), (1., 1.)),
+                               dtype=numpy.float32)
+
+    def __init__(self, data, copy=True):
+        super(_Image, self).__init__(mode='triangle_strip',
+                                     position=self._UNIT_SQUARE)
+
+        self._texture = None
+        self._update_texture = True
+        self._update_texture_filter = False
+        self._data = None
+        self.setData(data, copy)
+        self._alpha = 1.
+        self._interpolation = 'linear'
+
+        self.isBackfaceVisible = True
+
+    def setData(self, data, copy=True):
+        assert isinstance(data, numpy.ndarray)
+
+        if copy:
+            data = numpy.array(data, copy=True)
+
+        self._data = data
+        self._update_texture = True
+        # By updating the position rather than always using a unit square
+        # we benefit from Geometry bounds handling
+        self.setAttribute('position', self._UNIT_SQUARE * self._data.shape[:2])
+        self.notify()
+
+    def getData(self, copy=True):
+        return numpy.array(self._data, copy=copy)
+
+    @property
+    def interpolation(self):
+        """The texture interpolation mode: 'linear' or 'nearest'"""
+        return self._interpolation
+
+    @interpolation.setter
+    def interpolation(self, interpolation):
+        assert interpolation in ('linear', 'nearest')
+        self._interpolation = interpolation
+        self._update_texture_filter = True
+        self.notify()
+
+    @property
+    def alpha(self):
+        """Transparency of the image, float in [0, 1]"""
+        return self._alpha
+
+    @alpha.setter
+    def alpha(self, alpha):
+        self._alpha = float(alpha)
+        self.notify()
+
+    def _textureFormat(self):
+        """Implement this method to provide texture internal format and format
+
+        :return: 2-tuple of gl flags (internalFormat, format)
+        """
+        raise NotImplementedError(
+            "This method must be implemented in a subclass")
+
+    def prepareGL2(self, ctx):
+        if self._texture is None or self._update_texture:
+            if self._texture is not None:
+                self._texture.discard()
+
+            if self.interpolation == 'nearest':
+                filter_ = gl.GL_NEAREST
+            else:
+                filter_ = gl.GL_LINEAR
+            self._update_texture = False
+            self._update_texture_filter = False
+            if self._data.size == 0:
+                self._texture = None
+            else:
+                internalFormat, format_ = self._textureFormat()
+                self._texture = _glutils.Texture(
+                    internalFormat,
+                    self._data,
+                    format_,
+                    minFilter=filter_,
+                    magFilter=filter_,
+                    wrap=gl.GL_CLAMP_TO_EDGE)
+
+        if self._update_texture_filter and self._texture is not None:
+            self._update_texture_filter = False
+            if self.interpolation == 'nearest':
+                filter_ = gl.GL_NEAREST
+            else:
+                filter_ = gl.GL_LINEAR
+            self._texture.minFilter = filter_
+            self._texture.magFilter = filter_
+
+        super(_Image, self).prepareGL2(ctx)
+
+    def renderGL2(self, ctx):
+        if self._texture is None:
+            return  # Nothing to render
+
+        with self.viewport.light.turnOff():
+            self._renderGL2(ctx)
+
+    def _renderGL2PreDrawHook(self, ctx, program):
+        """Override in subclass to run code before calling gl draw"""
+        pass
+
+    def _shaderImageColorDecl(self):
+        """Returns fragment shader imageColor function declaration"""
+        raise NotImplementedError(
+            "This method must be implemented in a subclass")
+
+    def _renderGL2(self, ctx):
+        fragment = self._shaders[1].substitute(
+            clippingDecl=ctx.clipper.fragDecl,
+            clippingCall=ctx.clipper.fragCall,
+            lightingFunction=ctx.viewport.light.fragmentDef,
+            lightingCall=ctx.viewport.light.fragmentCall,
+            imageDecl=self._shaderImageColorDecl()
+            )
+        program = ctx.glCtx.prog(self._shaders[0], fragment)
+        program.use()
+
+        ctx.viewport.light.setupProgram(ctx, program)
+
+        if not self.isBackfaceVisible:
+            gl.glCullFace(gl.GL_BACK)
+            gl.glEnable(gl.GL_CULL_FACE)
+
+        program.setUniformMatrix('matrix', ctx.objectToNDC.matrix)
+        program.setUniformMatrix('transformMat',
+                                 ctx.objectToCamera.matrix,
+                                 safe=True)
+        gl.glUniform1f(program.uniforms['alpha'], self._alpha)
+
+        shape = self._data.shape
+        gl.glUniform2f(program.uniforms['dataScale'], 1./shape[0], 1./shape[1])
+
+        gl.glUniform1i(program.uniforms['data'], self._texture.texUnit)
+
+        ctx.clipper.setupProgram(ctx, program)
+
+        self._texture.bind()
+
+        self._renderGL2PreDrawHook(ctx, program)
+
+        self._draw(program)
+
+        if not self.isBackfaceVisible:
+            gl.glDisable(gl.GL_CULL_FACE)
+
+
+class ImageData(_Image):
+    """Display a 2x2 data array with a texture."""
+
+    _imageDecl = string.Template("""
+    $colormapDecl
+
+    vec4 imageColor(sampler2D data, vec2 texCoords) {
+        float value = texture2D(data, texCoords).r;
+        vec4 color = $colormapCall(value);
+        return color;
+    }
+    """)
+
+    def __init__(self, data, copy=True, colormap=None):
+        super(ImageData, self).__init__(data, copy=copy)
+
+        self._colormap = colormap or Colormap()  # Default colormap
+        self._colormap.addListener(self._cmapChanged)
+
+    def setData(self, data, copy=True):
+        data = numpy.array(data, copy=copy, order='C', dtype=numpy.float32)
+        # TODO support (u)int8|16
+        assert data.ndim == 2
+
+        super(ImageData, self).setData(data, copy=False)
+
+    @property
+    def colormap(self):
+        """The colormap used to render the image"""
+        return self._colormap
+
+    def _cmapChanged(self, source, *args, **kwargs):
+        """Broadcast colormap changes"""
+        self.notify(*args, **kwargs)
+
+    def _textureFormat(self):
+        return gl.GL_R32F, gl.GL_RED
+
+    def _renderGL2PreDrawHook(self, ctx, program):
+        self.colormap.setupProgram(ctx, program)
+
+    def _shaderImageColorDecl(self):
+        return self._imageDecl.substitute(
+            colormapDecl=self.colormap.decl,
+            colormapCall=self.colormap.call)
+
+
+# ImageRgba ##################################################################
+
+class ImageRgba(_Image):
+    """Display a 2x2 RGBA image with a texture.
+
+    Supports images of float in [0, 1] and uint8.
+    """
+
+    _imageDecl = """
+    vec4 imageColor(sampler2D data, vec2 texCoords) {
+        vec4 color = texture2D(data, texCoords);
+        return color;
+    }
+    """
+
+    def __init__(self, data, copy=True):
+        super(ImageRgba, self).__init__(data, copy=copy)
+
+    def setData(self, data, copy=True):
+        data = numpy.array(data, copy=copy, order='C')
+        assert data.ndim == 3
+        assert data.shape[2] in (3, 4)
+        if data.dtype.kind == 'f':
+            if data.dtype != numpy.dtype(numpy.float32):
+                _logger.warning("Converting image data to float32")
+                data = numpy.array(data, dtype=numpy.float32, copy=False)
+        else:
+            assert data.dtype == numpy.dtype(numpy.uint8)
+
+        super(ImageRgba, self).setData(data, copy=False)
+
+    def _textureFormat(self):
+        format_ = gl.GL_RGBA if self._data.shape[2] == 4 else gl.GL_RGB
+        return format_, format_
+
+    def _shaderImageColorDecl(self):
+        return self._imageDecl
 
 
 # Group ######################################################################

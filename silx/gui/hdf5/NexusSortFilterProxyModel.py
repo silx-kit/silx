@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "16/06/2017"
+__date__ = "10/10/2017"
 
 
 import logging
@@ -33,14 +33,8 @@ import re
 import numpy
 from .. import qt
 from .Hdf5TreeModel import Hdf5TreeModel
+import silx.io.utils
 
-_logger = logging.getLogger(__name__)
-
-try:
-    import h5py
-except ImportError as e:
-    _logger.error("Module %s requires h5py", __name__)
-    raise e
 
 _logger = logging.getLogger(__name__)
 
@@ -86,8 +80,8 @@ class NexusSortFilterProxyModel(qt.QSortFilterProxyModel):
 
     def __isNXentry(self, node):
         """Returns true if the node is an NXentry"""
-        class_ = node.h5pyClass
-        if class_ is None or not issubclass(node.h5pyClass, h5py.Group):
+        class_ = node.h5Class
+        if class_ is None or class_ != silx.io.utils.H5Type.GROUP:
             return False
         nxClass = node.obj.attrs.get("NX_class", None)
         return nxClass == "NXentry"
@@ -100,7 +94,7 @@ class NexusSortFilterProxyModel(qt.QSortFilterProxyModel):
         `["aaa", 10, "bbb", 50, ".", 30]`.
 
         :param str name: A name
-        :rtype: list
+        :rtype: List
         """
         words = self.__split.findall(name)
         result = []
@@ -148,6 +142,6 @@ class NexusSortFilterProxyModel(qt.QSortFilterProxyModel):
             return left_time < right_time
         except KeyboardInterrupt:
             raise
-        except Exception as e:
+        except Exception:
             _logger.debug("Exception occurred", exc_info=True)
         return None

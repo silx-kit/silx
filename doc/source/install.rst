@@ -2,7 +2,7 @@
 Installation steps
 ==================
 
-*silx* supports `Python <https://www.python.org/>`_ versions 2.7, 3.4 and 3.5.
+*silx* supports `Python <https://www.python.org/>`_ versions 2.7, 3.4 or later.
 
 To install *silx* on Windows, read the `Windows instructions`_.
 
@@ -87,6 +87,15 @@ An Arch Linux (AUR) package is also available: https://aur.archlinux.org/package
 You can also choose to compile and install *silx* from it's sources:
 see `Installing from source`_.
 
+.. note::
+
+    The Debian packages `python-silx` and `python3-silx` will not install executables (`silx view`, `silx convert` ...).
+    So in order to access those applications you should use: `python* -m silx appX`.
+    For example to open the viewer:
+
+    .. code-block:: python
+
+        python -m silx view
 
 
 Installing a Debian package

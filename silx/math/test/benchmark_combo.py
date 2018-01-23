@@ -27,7 +27,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "15/05/2017"
+__date__ = "17/01/2018"
 
 
 import logging
@@ -37,7 +37,8 @@ import unittest
 
 import numpy
 
-from silx.test.utils import ParametricTestCase, temp_dir
+from silx.test.utils import temp_dir
+from silx.utils.testutils import ParametricTestCase
 
 from silx.math import combo
 

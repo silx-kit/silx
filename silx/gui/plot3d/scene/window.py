@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -124,18 +124,26 @@ class ContextGL2(Context):
 
     # programs
 
-    def prog(self, vertexShaderSrc, fragmentShaderSrc):
+    def prog(self, vertexShaderSrc, fragmentShaderSrc, attrib0='position'):
         """Cache program within context.
 
         WARNING: No clean-up.
+
+        :param str vertexShaderSrc: Vertex shader source code
+        :param str fragmentShaderSrc: Fragment shader source code
+        :param str attrib0:
+            Attribute's name to bind to position 0 (default: 'position').
+            On some platform, this attribute MUST be active and with an
+            array attached to it in order for the rendering to occur....
         """
         assert self.isCurrent
-        key = vertexShaderSrc, fragmentShaderSrc
-        prog = self._programs.get(key, None)
-        if prog is None:
-            prog = _glutils.Program(vertexShaderSrc, fragmentShaderSrc)
-            self._programs[key] = prog
-        return prog
+        key = vertexShaderSrc, fragmentShaderSrc, attrib0
+        program = self._programs.get(key, None)
+        if program is None:
+            program = _glutils.Program(
+                vertexShaderSrc, fragmentShaderSrc, attrib0=attrib0)
+            self._programs[key] = program
+        return program
 
     # VBOs
 
@@ -318,7 +326,8 @@ class Window(event.Notifier):
         """Returns the raster of the scene as an RGB numpy array
 
         :returns: OpenGL scene RGB bitmap
-        :rtype: numpy.ndarray of uint8 of dimension (height, width, 3)
+                  as an array of dimension (height, width, 3)
+        :rtype: numpy.ndarray of uint8
         """
         height, width = self.shape
         image = numpy.empty((height, width, 3), dtype=numpy.uint8)

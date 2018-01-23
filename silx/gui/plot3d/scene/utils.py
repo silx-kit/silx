@@ -184,6 +184,32 @@ def unindexArrays(mode, indices, *arrays):
     return tuple(numpy.ascontiguousarray(data[indices]) for data in arrays)
 
 
+def triangleStripToTriangles(strip):
+    """Convert a triangle strip to a set of triangles.
+
+    The order of the corners is inverted for odd triangles.
+
+    :param numpy.ndarray strip:
+        Array of triangle corners of shape (N, 3).
+        N must be at least 3.
+    :return: Equivalent triangles corner as an array of shape (N, 3, 3)
+    :rtype: numpy.ndarray
+    """
+    strip = numpy.array(strip).reshape(-1, 3)
+    assert len(strip) >= 3
+
+    triangles = numpy.empty((len(strip) - 2, 3, 3), dtype=strip.dtype)
+    triangles[0::2, 0] = strip[0:-2:2]
+    triangles[0::2, 1] = strip[1:-1:2]
+    triangles[0::2, 2] = strip[2::2]
+
+    triangles[1::2, 0] = strip[3::2]
+    triangles[1::2, 1] = strip[2:-1:2]
+    triangles[1::2, 2] = strip[1:-2:2]
+
+    return triangles
+
+
 def trianglesNormal(positions):
     """Return normal for each triangle.
 

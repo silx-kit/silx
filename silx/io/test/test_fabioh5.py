@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "04/10/2017"
+__date__ = "15/01/2018"
 
 import os
 import sys
@@ -356,6 +356,95 @@ class TestFabioH5(unittest.TestCase):
         self.assertIsInstance(data[...], numpy.ndarray)
 
 
+class TestFabioH5MultiFrames(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        if fabio is None:
+            raise unittest.SkipTest("fabio is needed")
+        if h5py is None:
+            raise unittest.SkipTest("h5py is needed")
+
+        names = ["A", "B", "C", "D"]
+        values = [["32000", "-10", "5.0", "1"],
+                  ["-32000", "-10", "5.0", "1"]]
+
+        fabio_file = None
+
+        for i in range(10):
+            header = {
+                "image_id": "%d" % i,
+                "integer": "-100",
+                "float": "1.0",
+                "string": "hi!",
+                "list_integer": "100 50 0",
+                "list_float": "1.0 2.0 3.5",
+                "string_looks_like_list": "2000 hi!",
+                "motor_mne": " ".join(names),
+                "motor_pos": " ".join(values[i % len(values)]),
+                "counter_mne": " ".join(names),
+                "counter_pos": " ".join(values[i % len(values)])
+            }
+            for iname, name in enumerate(names):
+                header[name] = values[i % len(values)][iname]
+
+            data = numpy.array([[i, 11], [12, 13], [14, 15]], dtype=numpy.int64)
+            if fabio_file is None:
+                fabio_file = fabio.edfimage.EdfImage(data=data, header=header)
+            else:
+                fabio_file.appendFrame(data=data, header=header)
+
+        cls.fabio_file = fabio_file
+        cls.fabioh5 = fabioh5.File(fabio_image=fabio_file)
+
+    def test_others(self):
+        others = self.fabioh5["/scan_0/instrument/detector_0/others"]
+        dataset = others["A"]
+        self.assertGreaterEqual(dataset.dtype.itemsize, 1)
+        self.assertEqual(dataset.dtype.kind, "i")
+        dataset = others["B"]
+        self.assertGreaterEqual(dataset.dtype.itemsize, 1)
+        self.assertEqual(dataset.dtype.kind, "i")
+        dataset = others["C"]
+        self.assertGreaterEqual(dataset.dtype.itemsize, 1)
+        self.assertEqual(dataset.dtype.kind, "f")
+        dataset = others["D"]
+        self.assertGreaterEqual(dataset.dtype.itemsize, 1)
+        self.assertEqual(dataset.dtype.kind, "u")
+
+    def test_positioners(self):
+        counters = self.fabioh5["/scan_0/instrument/positioners"]
+        # At least 32 bits, no unsigned values
+        dataset = counters["A"]
+        self.assertGreaterEqual(dataset.dtype.itemsize, 4)
+        self.assertEqual(dataset.dtype.kind, "i")
+        dataset = counters["B"]
+        self.assertGreaterEqual(dataset.dtype.itemsize, 4)
+        self.assertEqual(dataset.dtype.kind, "i")
+        dataset = counters["C"]
+        self.assertGreaterEqual(dataset.dtype.itemsize, 4)
+        self.assertEqual(dataset.dtype.kind, "f")
+        dataset = counters["D"]
+        self.assertGreaterEqual(dataset.dtype.itemsize, 4)
+        self.assertEqual(dataset.dtype.kind, "i")
+
+    def test_counters(self):
+        counters = self.fabioh5["/scan_0/measurement"]
+        # At least 32 bits, no unsigned values
+        dataset = counters["A"]
+        self.assertGreaterEqual(dataset.dtype.itemsize, 4)
+        self.assertEqual(dataset.dtype.kind, "i")
+        dataset = counters["B"]
+        self.assertGreaterEqual(dataset.dtype.itemsize, 4)
+        self.assertEqual(dataset.dtype.kind, "i")
+        dataset = counters["C"]
+        self.assertGreaterEqual(dataset.dtype.itemsize, 4)
+        self.assertEqual(dataset.dtype.kind, "f")
+        dataset = counters["D"]
+        self.assertGreaterEqual(dataset.dtype.itemsize, 4)
+        self.assertEqual(dataset.dtype.kind, "i")
+
+
 class TestFabioH5WithEdf(unittest.TestCase):
 
     @classmethod
@@ -406,11 +495,76 @@ class TestFabioH5WithEdf(unittest.TestCase):
         self.assertNotIn("/scan_0/instrument/detector_0/others/HeaderID", self.h5_image)
 
 
+class TestFabioH5WithFileSeries(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        if fabio is None:
+            raise unittest.SkipTest("fabio is needed")
+        if h5py is None:
+            raise unittest.SkipTest("h5py is needed")
+
+        cls.tmp_directory = tempfile.mkdtemp()
+
+        cls.edf_filenames = []
+
+        for i in range(10):
+            filename = os.path.join(cls.tmp_directory, "test_%04d.edf" % i)
+            cls.edf_filenames.append(filename)
+
+            header = {
+                "image_id": "%d" % i,
+                "integer": "-100",
+                "float": "1.0",
+                "string": "hi!",
+                "list_integer": "100 50 0",
+                "list_float": "1.0 2.0 3.5",
+                "string_looks_like_list": "2000 hi!",
+            }
+            data = numpy.array([[i, 11], [12, 13], [14, 15]], dtype=numpy.int64)
+            fabio_image = fabio.edfimage.edfimage(data, header)
+            fabio_image.write(filename)
+
+    @classmethod
+    def tearDownClass(cls):
+        if sys.platform == "win32" and fabio is not None:
+            # gc collect is needed to close a file descriptor
+            # opened by fabio and not released.
+            # https://github.com/silx-kit/fabio/issues/167
+            import gc
+            gc.collect()
+        shutil.rmtree(cls.tmp_directory)
+
+    def _testH5Image(self, h5_image):
+        # test data
+        dataset = h5_image["/scan_0/instrument/detector_0/data"]
+        self.assertEquals(dataset.h5py_class, h5py.Dataset)
+        self.assertTrue(isinstance(dataset[()], numpy.ndarray))
+        self.assertEquals(dataset.dtype.kind, "i")
+        self.assertEquals(dataset.shape, (10, 3, 2))
+        self.assertEquals(list(dataset[:, 0, 0]), list(range(10)))
+        self.assertEquals(dataset.attrs["interpretation"], "image")
+        # test metatdata
+        dataset = h5_image["/scan_0/instrument/detector_0/others/image_id"]
+        self.assertEquals(list(dataset[...]), list(range(10)))
+
+    def testFileList(self):
+        h5_image = fabioh5.File(file_series=self.edf_filenames)
+        self._testH5Image(h5_image)
+
+    def testFileSeries(self):
+        file_series = fabioh5._FileSeries(self.edf_filenames)
+        h5_image = fabioh5.File(file_series=file_series)
+        self._testH5Image(h5_image)
+
+
 def suite():
     loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
     test_suite = unittest.TestSuite()
     test_suite.addTest(loadTests(TestFabioH5))
+    test_suite.addTest(loadTests(TestFabioH5MultiFrames))
     test_suite.addTest(loadTests(TestFabioH5WithEdf))
+    test_suite.addTest(loadTests(TestFabioH5WithFileSeries))
     return test_suite
 
 

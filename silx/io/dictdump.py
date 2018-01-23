@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -225,6 +225,13 @@ def dicttoh5(treedict, h5file, h5path='/',
 
             elif treedict[key] is None or (isinstance(treedict[key], dict) and
                                            not len(treedict[key])):
+                if (h5path + key) in h5f:
+                    if overwrite_data is True:
+                        del h5f[h5path + key]
+                    else:
+                        logger.warning('key (%s) already exists. '
+                                       'Not overwriting.' % (h5path + key))
+                        continue
                 # Create empty group
                 h5f.create_group(h5path + key)
 
@@ -232,9 +239,25 @@ def dicttoh5(treedict, h5file, h5path='/',
                 ds = _prepare_hdf5_dataset(treedict[key])
                 # can't apply filters on scalars (datasets with shape == () )
                 if ds.shape == () or create_dataset_args is None:
+                    if h5path + key in h5f:
+                        if overwrite_data is True:
+                            del h5f[h5path + key]
+                        else:
+                            logger.warning('key (%s) already exists. '
+                                           'Not overwriting.' % (h5path + key))
+                            continue
+
                     h5f.create_dataset(h5path + key,
                                        data=ds)
                 else:
+                    if h5path + key in h5f:
+                        if overwrite_data is True:
+                            del h5f[h5path + key]
+                        else:
+                            logger.warning('key (%s) already exists. '
+                                           'Not overwriting.' % (h5path + key))
+                            continue
+
                     h5f.create_dataset(h5path + key,
                                        data=ds,
                                        **create_dataset_args)
@@ -283,7 +306,7 @@ def h5todict(h5file, path="/", exclude_names=None):
         fabioh5 file.
     :param str path: Name of HDF5 group to use as dictionary root level,
         to read only a sub-group in the file
-    :param list[str] exclude_names: Groups and datasets whose name contains
+    :param List[str] exclude_names: Groups and datasets whose name contains
         a string in this list will be ignored. Default is None (ignore nothing)
     :return: Nested dictionary
     """

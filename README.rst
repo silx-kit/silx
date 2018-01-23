@@ -53,7 +53,7 @@ Beside this, we provide a certain number of wheels (pre-compiled binary packages
 onto a pre-existing Python installation:
 
 - On Windows, binary wheels are available for Python 2.7, 3.5 and 3.6.
-- On MacOS, binary wheels are available for Python 2.7, 3.4, 3.5 and 3.6.
+- On MacOS, binary wheels are available for Python 2.7, 3.5 and 3.6.
 - On Linux, manylinux1 binary wheels are available for Python 2.7, 3.4, 3.5 and 3.6.
 
 Those builds are made from "up-date" systems at the time of the release, i.e. they use
@@ -140,12 +140,11 @@ See the `LICENSE <https://github.com/silx-kit/silx/blob/master/LICENSE>`_ and `c
 Citation
 --------
 
-silx releases can be cited by their DOI on Zenodo: |DOI:10.5281/zenodo.1003146|
+silx releases can be cited by their DOI on Zenodo: |zenodo DOI|
 
 .. |Travis Status| image:: https://travis-ci.org/silx-kit/silx.svg?branch=master
    :target: https://travis-ci.org/silx-kit/silx
 .. |Appveyor Status| image:: https://ci.appveyor.com/api/projects/status/qgox9ei0wxwfagrb/branch/master?svg=true
    :target: https://ci.appveyor.com/project/ESRF/silx
-.. |DOI:10.5281/zenodo.1000472| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.1000472.svg
-   :target: https://doi.org/10.5281/zenodo.1000472
-
+.. |zenodo DOI| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.591709.svg
+   :target: https://doi.org/10.5281/zenodo.591709

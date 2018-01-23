@@ -26,12 +26,12 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "11/09/2017"
+__date__ = "17/01/2018"
 
 
 import unittest
 from .. import deprecation
-from silx.test import utils
+from silx.utils import testutils
 
 
 class TestDeprecation(unittest.TestCase):
@@ -53,22 +53,22 @@ class TestDeprecation(unittest.TestCase):
     def deprecatedEveryTime(self):
         pass
 
-    @utils.test_logging(deprecation.depreclog.name, warning=1)
+    @testutils.test_logging(deprecation.depreclog.name, warning=1)
     def testAnnotationWithoutParam(self):
         self.deprecatedWithoutParam()
 
-    @utils.test_logging(deprecation.depreclog.name, warning=1)
+    @testutils.test_logging(deprecation.depreclog.name, warning=1)
     def testAnnotationWithParams(self):
         self.deprecatedWithParams()
 
-    @utils.test_logging(deprecation.depreclog.name, warning=3)
+    @testutils.test_logging(deprecation.depreclog.name, warning=3)
     def testLoggedEveryTime(self):
         """Logged everytime cause it is 3 different locations"""
         self.deprecatedOnlyOnce()
         self.deprecatedOnlyOnce()
         self.deprecatedOnlyOnce()
 
-    @utils.test_logging(deprecation.depreclog.name, warning=1)
+    @testutils.test_logging(deprecation.depreclog.name, warning=1)
     def testLoggedSingleTime(self):
         def log():
             self.deprecatedOnlyOnce()
@@ -76,18 +76,18 @@ class TestDeprecation(unittest.TestCase):
         log()
         log()
 
-    @utils.test_logging(deprecation.depreclog.name, warning=3)
+    @testutils.test_logging(deprecation.depreclog.name, warning=3)
     def testLoggedEveryTime2(self):
         self.deprecatedEveryTime()
         self.deprecatedEveryTime()
         self.deprecatedEveryTime()
 
-    @utils.test_logging(deprecation.depreclog.name, warning=1)
+    @testutils.test_logging(deprecation.depreclog.name, warning=1)
     def testWarning(self):
         deprecation.deprecated_warning(type_="t", name="n")
 
     def testBacktrace(self):
-        testLogging = utils.TestLogging(deprecation.depreclog.name)
+        testLogging = testutils.TestLogging(deprecation.depreclog.name)
         with testLogging:
             self.deprecatedEveryTime()
         message = testLogging.records[0].getMessage()

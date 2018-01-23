@@ -106,6 +106,10 @@ class TestConvertSpecHDF5(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        # gc collect is needed to close a file descriptor
+        # opened by fabio and not released.
+        # https://github.com/silx-kit/fabio/issues/167
+        gc.collect()
         os.unlink(cls.spec_fname)
 
     def setUp(self):
@@ -115,11 +119,9 @@ class TestConvertSpecHDF5(unittest.TestCase):
         self.h5f = h5py.File(self.h5_fname, "a")
 
     def tearDown(self):
-        del self.sfh5
         self.h5f.close()
-        del self.h5f
+        self.sfh5.close()
         os.unlink(self.h5_fname)
-        gc.collect()
 
     def testAppendToHDF5(self):
         write_to_h5(self.sfh5, self.h5f, h5path="/foo/bar/spam")

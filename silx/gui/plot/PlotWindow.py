@@ -29,7 +29,7 @@ The :class:`PlotWindow` is a subclass of :class:`.PlotWidget`.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "17/08/2017"
+__date__ = "22/11/2017"
 
 import collections
 import logging
@@ -112,6 +112,7 @@ class PlotWindow(PlotWidget):
         self._legendsDockWidget = None
         self._curvesROIDockWidget = None
         self._maskToolsDockWidget = None
+        self._consoleDockWidget = None
 
         # Init actions
         self.group = qt.QActionGroup(self)
@@ -301,11 +302,11 @@ class PlotWindow(PlotWidget):
         """
         return bool(self.getMaskToolsDockWidget().setSelectionMask(mask))
 
-    def _toggleConsoleVisibility(self, is_checked=False):
+    def _toggleConsoleVisibility(self, isChecked=False):
         """Create IPythonDockWidget if needed,
         show it or hide it."""
         # create widget if needed (first call)
-        if not hasattr(self, '_consoleDockWidget'):
+        if self._consoleDockWidget is None:
             available_vars = {"plt": self}
             banner = "The variable 'plt' is available. Use the 'whos' "
             banner += "and 'help(plt)' commands for more information.\n\n"
@@ -314,10 +315,11 @@ class PlotWindow(PlotWidget):
                 custom_banner=banner,
                 parent=self)
             self.addTabbedDockWidget(self._consoleDockWidget)
-            self._consoleDockWidget.visibilityChanged.connect(
+            #self._consoleDockWidget.setVisible(True)
+            self._consoleDockWidget.toggleViewAction().toggled.connect(
                 self.getConsoleAction().setChecked)
 
-        self._consoleDockWidget.setVisible(is_checked)
+        self._consoleDockWidget.setVisible(isChecked)
 
     def _createToolBar(self, title, parent):
         """Create a QToolBar from the QAction of the PlotWindow.
@@ -427,16 +429,22 @@ class PlotWindow(PlotWidget):
         return self._legendsDockWidget
 
     @property
-    @deprecated(replacement="getCurvesRoiDockWidget()", since_version="0.4.0")
+    @deprecated(replacement="getCurvesRoiWidget()", since_version="0.4.0")
     def curvesROIDockWidget(self):
         return self.getCurvesRoiDockWidget()
 
     def getCurvesRoiDockWidget(self):
-        """DockWidget with curves' ROI panel (lazy-loaded).
+        # Undocumented for a "soft deprecation" in version 0.7.0
+        # (still used internally for lazy loading)
+        if self._curvesROIDockWidget is None:
+            self._curvesROIDockWidget = CurvesROIDockWidget(
+                plot=self, name='Regions Of Interest')
+            self._curvesROIDockWidget.hide()
+            self.addTabbedDockWidget(self._curvesROIDockWidget)
+        return self._curvesROIDockWidget
 
-        The widget returned is a :class:`CurvesROIDockWidget`.
-        Its central widget is a :class:`CurvesROIWidget`
-        accessible as :attr:`CurvesROIDockWidget.roiWidget`.
+    def getCurvesRoiWidget(self):
+        """Return the :class:`CurvesROIWidget`.
 
         :class:`silx.gui.plot.CurvesROIWidget.CurvesROIWidget` offers a getter
         and a setter for the ROI data:
@@ -444,12 +452,7 @@ class PlotWindow(PlotWidget):
             - :meth:`CurvesROIWidget.getRois`
             - :meth:`CurvesROIWidget.setRois`
         """
-        if self._curvesROIDockWidget is None:
-            self._curvesROIDockWidget = CurvesROIDockWidget(
-                plot=self, name='Regions Of Interest')
-            self._curvesROIDockWidget.hide()
-            self.addTabbedDockWidget(self._curvesROIDockWidget)
-        return self._curvesROIDockWidget
+        return self.getCurvesRoiDockWidget().roiWidget
 
     @property
     @deprecated(replacement="getMaskToolsDockWidget()", since_version="0.4.0")

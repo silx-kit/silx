@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -48,7 +48,8 @@ class InteractiveModeAction(Plot3DAction):
 
     :param parent: See :class:`QAction`
     :param str interaction: The interactive mode this action controls
-    :param Plot3DWidget plot3d: Plot3DWidget the action is associated with
+    :param ~silx.gui.plot3d.Plot3DWidget.Plot3DWidget plot3d:
+        Plot3DWidget the action is associated with
     """
 
     def __init__(self, parent, interaction, plot3d=None):
@@ -100,7 +101,8 @@ class RotateArcballAction(InteractiveModeAction):
     """QAction to set arcball rotation interaction on a Plot3DWidget
 
     :param parent: See :class:`QAction`
-    :param Plot3DWidget plot3d: Plot3DWidget the action is associated with
+    :param ~silx.gui.plot3d.Plot3DWidget.Plot3DWidget plot3d:
+        Plot3DWidget the action is associated with
     """
 
     def __init__(self, parent, plot3d=None):
@@ -115,7 +117,8 @@ class PanAction(InteractiveModeAction):
     """QAction to set pan interaction on a Plot3DWidget
 
     :param parent: See :class:`QAction`
-    :param Plot3DWidget plot3d: Plot3DWidget the action is associated with
+    :param ~silx.gui.plot3d.Plot3DWidget.Plot3DWidget plot3d:
+        Plot3DWidget the action is associated with
     """
 
     def __init__(self, parent, plot3d=None):

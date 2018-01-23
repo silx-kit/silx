@@ -25,14 +25,9 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "11/10/2017"
+__date__ = "08/01/2018"
 __license__ = "MIT"
 
-
-# This import is here only to fix a bug on Debian 7 with python2.7
-# Without this, the system io module is not loaded from numpy.distutils
-# the silx.io module seems to be loaded instead
-import io
 
 import sys
 import os
@@ -40,6 +35,10 @@ import platform
 import shutil
 import logging
 import glob
+# io import has to be here also to fix a bug on Debian 7 with python2.7
+# Without this, the system io module is not loaded from numpy.distutils.
+# The silx.io module seems to be loaded instead.
+import io
 
 logging.basicConfig(level=logging.INFO)
 
@@ -188,6 +187,64 @@ class BuildMan(Command):
     def finalize_options(self):
         pass
 
+    def entry_points_iterator(self):
+        """Iterate other entry points available on the project."""
+        entry_points = self.distribution.entry_points
+        console_scripts = entry_points.get('console_scripts', [])
+        gui_scripts = entry_points.get('gui_scripts', [])
+        scripts = []
+        scripts.extend(console_scripts)
+        scripts.extend(gui_scripts)
+        for script in scripts:
+            # Remove ending extra dependencies
+            script = script.split("[")[0]
+            elements = script.split("=")
+            target_name = elements[0].strip()
+            elements = elements[1].split(":")
+            module_name = elements[0].strip()
+            function_name = elements[1].strip()
+            yield target_name, module_name, function_name
+
+    def run_targeted_script(self, target_name, script_name, env, log_output=False):
+        """Execute targeted script using --help and --version to help checking
+        errors. help2man is not very helpful to do it for us.
+
+        :return: True is both return code are equal to 0
+        :rtype: bool
+        """
+        import subprocess
+
+        if log_output:
+            extra_args = {}
+        else:
+            try:
+                # Python 3
+                from subprocess import DEVNULL
+            except ImportError:
+                # Python 2
+                import os
+                DEVNULL = open(os.devnull, 'wb')
+            extra_args = {'stdout': DEVNULL, 'stderr': DEVNULL}
+
+        succeeded = True
+        command_line = [sys.executable, script_name, "--help"]
+        if log_output:
+            logger.info("See the following execution of: %s", " ".join(command_line))
+        p = subprocess.Popen(command_line, env=env, **extra_args)
+        status = p.wait()
+        if log_output:
+            logger.info("Return code: %s", status)
+        succeeded = succeeded and status == 0
+        command_line = [sys.executable, script_name, "--version"]
+        if log_output:
+            logger.info("See the following execution of: %s", " ".join(command_line))
+        p = subprocess.Popen(command_line, env=env, **extra_args)
+        status = p.wait()
+        if log_output:
+            logger.info("Return code: %s", status)
+        succeeded = succeeded and status == 0
+        return succeeded
+
     def run(self):
         build = self.get_finalized_command('build')
         path = sys.path
@@ -195,42 +252,57 @@ class BuildMan(Command):
 
         env = dict((str(k), str(v)) for k, v in os.environ.items())
         env["PYTHONPATH"] = os.pathsep.join(path)
-
+        if not os.path.isdir("build/man"):
+            os.makedirs("build/man")
         import subprocess
+        import tempfile
+        import stat
+        script_name = None
 
-        status = subprocess.call(["mkdir", "-p", "build/man"])
-        if status != 0:
-            raise RuntimeError("Fail to create build/man directory")
-
-        try:
-            import tempfile
-            import stat
-            script_name = None
-
+        entry_points = self.entry_points_iterator()
+        for target_name, module_name, function_name in entry_points:
+            logger.info("Build man for entry-point target '%s'" % target_name)
             # help2man expect a single executable file to extract the help
             # we create it, execute it, and delete it at the end
 
-            # create a launcher using the right python interpreter
-            script_fid, script_name = tempfile.mkstemp(prefix="%s_" % PROJECT, text=True)
-            script = os.fdopen(script_fid, 'wt')
-            script.write("#!%s\n" % sys.executable)
-            script.write("import runpy\n")
-            script.write("runpy.run_module('%s', run_name='__main__')\n" % PROJECT)
-            script.close()
+            py3 = sys.version_info >= (3, 0)
+            try:
+                # create a launcher using the right python interpreter
+                script_fid, script_name = tempfile.mkstemp(prefix="%s_" % target_name, text=True)
+                script = os.fdopen(script_fid, 'wt')
+                script.write("#!%s\n" % sys.executable)
+                script.write("import %s as app\n" % module_name)
+                script.write("app.%s()\n" % function_name)
+                script.close()
+                # make it executable
+                mode = os.stat(script_name).st_mode
+                os.chmod(script_name, mode + stat.S_IEXEC)
 
-            # make it executable
-            mode = os.stat(script_name).st_mode
-            os.chmod(script_name, mode + stat.S_IEXEC)
+                # execute help2man
+                man_file = "build/man/%s.1" % target_name
+                command_line = ["help2man", script_name, "-o", man_file]
+                if not py3:
+                    # Before Python 3.4, ArgParser --version was using
+                    # stderr to print the version
+                    command_line.append("--no-discard-stderr")
+                    # Then we dont know if the documentation will contains
+                    # durtty things
+                    succeeded = self.run_targeted_script(target_name, script_name, env, False)
+                    if not succeeded:
+                        logger.info("Error while generating man file for target '%s'.", target_name)
+                        self.run_targeted_script(target_name, script_name, env, True)
+                        raise RuntimeError("Fail to generate '%s' man documentation" % target_name)
 
-            # execute help2man
-            p = subprocess.Popen(["help2man", script_name, "-o", "build/man/silx.1"], env=env)
-            status = p.wait()
-            if status != 0:
-                raise RuntimeError("Fail to generate man documentation")
-        finally:
-            # clean up the script
-            if script_name is not None:
-                os.remove(script_name)
+                p = subprocess.Popen(command_line, env=env)
+                status = p.wait()
+                if status != 0:
+                    logger.info("Error while generating man file for target '%s'.", target_name)
+                    self.run_targeted_script(target_name, script_name, env, True)
+                    raise RuntimeError("Fail to generate '%s' man documentation" % target_name)
+            finally:
+                # clean up the script
+                if script_name is not None:
+                    os.remove(script_name)
 
 
 if sphinx is not None:
@@ -643,7 +715,7 @@ class sdist_debian(sdist):
     Tailor made sdist for debian
     * remove auto-generated doc
     * remove cython generated .c files
-    * remove cython generated .c files
+    * remove cython generated .cpp files
     * remove .bat files
     * include .l man files
     """
@@ -721,6 +793,7 @@ def get_project_configuration(dry_run):
             'opencl/*.cl',
             'opencl/image/*.cl',
             'opencl/sift/*.cl',
+            'opencl/codec/*.cl',
             'gui/colormaps/*.npy'],
     }
 
@@ -753,7 +826,7 @@ def get_project_configuration(dry_run):
 
     setup_kwargs.update(name=PROJECT,
                         version=get_version(),
-                        url="https://github.com/silx-kit/silx",
+                        url="http://www.silx.org/",
                         author="data analysis unit",
                         author_email="silx@esrf.fr",
                         classifiers=classifiers,

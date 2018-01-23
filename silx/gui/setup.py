@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "04/05/2017"
+__date__ = "28/11/2017"
 
 
 from numpy.distutils.misc_util import Configuration
@@ -41,6 +41,7 @@ def configuration(parent_package='', top_path=None):
     config.add_subpackage('test')
     config.add_subpackage('plot3d')
     config.add_subpackage('data')
+    config.add_subpackage('dialog')
 
     return config
 

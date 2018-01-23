@@ -24,13 +24,14 @@
 # ###########################################################################*/
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "05/01/2017"
+__date__ = "28/11/2017"
 
 
 import logging
 import os
 import sys
 import unittest
+from silx.test.utils import test_options
 
 
 _logger = logging.getLogger(__name__)
@@ -52,15 +53,14 @@ def suite():
         test_suite.addTest(SkipGUITest())
         return test_suite
 
-    elif os.environ.get('WITH_QT_TEST', 'True') == 'False':
+    elif not test_options.WITH_QT_TEST:
         # Explicitly disabled tests
-        _logger.warning(
-            "silx.gui tests disabled (env. variable WITH_QT_TEST=False)")
+        msg = "silx.gui tests disabled: %s" % test_options.WITH_QT_TEST_REASON
+        _logger.warning(msg)
 
         class SkipGUITest(unittest.TestCase):
             def runTest(self):
-                self.skipTest(
-                    "silx.gui tests disabled (env. variable WITH_QT_TEST=False)")
+                self.skipTest(test_options.WITH_QT_TEST_REASON)
 
         test_suite.addTest(SkipGUITest())
         return test_suite
@@ -72,6 +72,7 @@ def suite():
     from ..hdf5 import test as test_hdf5
     from ..widgets import test as test_widgets
     from ..data import test as test_data
+    from ..dialog import test as test_dialog
     from . import test_qt
     # Console tests disabled due to corruption of python environment
     # (see issue #538 on github)
@@ -94,7 +95,6 @@ def suite():
 
         test_plot3d_suite = SkipPlot3DTest
 
-
     test_suite.addTest(test_qt.suite())
     test_suite.addTest(test_plot.suite())
     test_suite.addTest(test_fit.suite())
@@ -105,4 +105,5 @@ def suite():
     test_suite.addTest(test_data.suite())
     test_suite.addTest(test_utils.suite())
     test_suite.addTest(test_plot3d_suite())
+    test_suite.addTest(test_dialog.suite())
     return test_suite

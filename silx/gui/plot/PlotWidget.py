@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,151 +23,7 @@
 # ###########################################################################*/
 """Qt widget providing plot API for 1D and 2D data.
 
-Widget with plot API for 1D and 2D data.
-
 The :class:`PlotWidget` implements the plot API initially provided in PyMca.
-
-Plot Events
------------
-
-The :class:`PlotWidget` sends some event to the registered callback
-(See :meth:`PlotWidget.setCallback`).
-Those events are sent as a dictionary with a key 'event' describing the kind
-of event.
-
-Drawing events
-..............
-
-'drawingProgress' and 'drawingFinished' events are sent during drawing
-interaction (See :meth:`PlotWidget.setInteractiveMode`).
-
-- 'event': 'drawingProgress' or 'drawingFinished'
-- 'parameters': dict of parameters used by the drawing mode.
-                It has the following keys: 'shape', 'label', 'color'.
-                See :meth:`PlotWidget.setInteractiveMode`.
-- 'points': Points (x, y) in data coordinates of the drawn shape.
-            For 'hline' and 'vline', it is the 2 points defining the line.
-            For 'line' and 'rectangle', it is the coordinates of the start
-            drawing point and the latest drawing point.
-            For 'polygon', it is the coordinates of all points of the shape.
-- 'type': The type of drawing in 'line', 'hline', 'polygon', 'rectangle',
-          'vline'.
-- 'xdata' and 'ydata': X coords and Y coords of shape points in data
-                       coordinates (as in 'points').
-
-When the type is 'rectangle', the following additional keys are provided:
-
-- 'x' and 'y': The origin of the rectangle in data coordinates
-- 'widht' and 'height': The size of the rectangle in data coordinates
-
-
-Mouse events
-............
-
-'mouseMoved', 'mouseClicked' and 'mouseDoubleClicked' events are sent for
-mouse events.
-
-They provide the following keys:
-
-- 'event': 'mouseMoved', 'mouseClicked' or 'mouseDoubleClicked'
-- 'button': the mouse button that was pressed in 'left', 'middle', 'right'
-- 'x' and 'y': The mouse position in data coordinates
-- 'xpixel' and 'ypixel': The mouse position in pixels
-
-
-Marker events
-.............
-
-'hover', 'markerClicked', 'markerMoving' and 'markerMoved' events are
-sent during interaction with markers.
-
-'hover' is sent when the mouse cursor is over a marker.
-'markerClicker' is sent when the user click on a selectable marker.
-'markerMoving' and 'markerMoved' are sent when a draggable marker is moved.
-
-They provide the following keys:
-
-- 'event': 'hover', 'markerClicked', 'markerMoving' or 'markerMoved'
-- 'button': the mouse button that is pressed in 'left', 'middle', 'right'
-- 'draggable': True if the marker is draggable, False otherwise
-- 'label': The legend associated with the clicked image or curve
-- 'selectable': True if the marker is selectable, False otherwise
-- 'type': 'marker'
-- 'x' and 'y': The mouse position in data coordinates
-- 'xdata' and 'ydata': The marker position in data coordinates
-
-'markerClicked' and 'markerMoving' events have a 'xpixel' and a 'ypixel'
-additional keys, that provide the mouse position in pixels.
-
-
-Image and curve events
-......................
-
-'curveClicked' and 'imageClicked' events are sent when a selectable curve
-or image is clicked.
-
-Both share the following keys:
-
-- 'event': 'curveClicked' or 'imageClicked'
-- 'button': the mouse button that was pressed in 'left', 'middle', 'right'
-- 'label': The legend associated with the clicked image or curve
-- 'type': The type of item in 'curve', 'image'
-- 'x' and 'y': The clicked position in data coordinates
-- 'xpixel' and 'ypixel': The clicked position in pixels
-
-'curveClicked' events have a 'xdata' and a 'ydata' additional keys, that
-provide the coordinates of the picked points of the curve.
-There can be more than one point of the curve being picked, and if a line of
-the curve is picked, only the first point of the line is included in the list.
-
-'imageClicked' have a 'col' and a 'row' additional keys, that provide
-the column and row index in the image array that was clicked.
-
-
-Limits changed events
-.....................
-
-'limitsChanged' events are sent when the limits of the plot are changed.
-This can results from user interaction or API calls.
-
-It provides the following keys:
-
-- 'event': 'limitsChanged'
-- 'source': id of the widget that emitted this event.
-- 'xdata': Range of X in graph coordinates: (xMin, xMax).
-- 'ydata': Range of Y in graph coordinates: (yMin, yMax).
-- 'y2data': Range of right axis in graph coordinates (y2Min, y2Max) or None.
-
-Plot state change events
-........................
-
-The following events are emitted when the plot is modified.
-They provide the new state:
-
-- 'setGraphCursor' event with a 'state' key (bool)
-- 'setGraphGrid' event with a 'which' key (str), see :meth:`setGraphGrid`
-- 'setKeepDataAspectRatio' event with a 'state' key (bool)
-
-A 'contentChanged' event is triggered when the content of the plot is updated.
-It provides the following keys:
-
-- 'action': The change of the plot: 'add' or 'remove'
-- 'kind': The kind of primitive changed: 'curve', 'image', 'item' or 'marker'
-- 'legend': The legend of the primitive changed.
-
-'activeCurveChanged' and 'activeImageChanged' events with the following keys:
-
-- 'legend': Name (str) of the current active item or None if no active item.
-- 'previous': Name (str) of the previous active item or None if no item was
-              active. It is the same as 'legend' if 'updated' == True
-- 'updated': (bool) True if active item name did not changed,
-             but active item data or style was updated.
-
-'interactiveModeChanged' event with a 'source' key identifying the object
-setting the interactive mode.
-
-'defaultColormapChanged' event is triggered when the default colormap of
-the plot is updated.
 """
 
 from __future__ import division
@@ -175,7 +31,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "30/08/2017"
+__date__ = "18/10/2017"
 
 
 from collections import OrderedDict, namedtuple
@@ -264,7 +120,8 @@ class PlotWidget(qt.QMainWindow):
     """Signal for all events of the plot.
 
     The signal information is provided as a dict.
-    See :class:`PlotWidget` for documentation of the content of the dict.
+    See the :ref:`plot signal documentation page <plot_signal>` for
+    information about the content of the dict
     """
 
     sigSetKeepDataAspectRatio = qt.Signal(bool)
@@ -612,8 +469,7 @@ class PlotWidget(qt.QMainWindow):
 
         if (kind == 'curve' and not self.getAllCurves(just_legend=True,
                                                       withhidden=True)):
-            self._colorIndex = 0
-            self._styleIndex = 0
+            self._resetColorAndStyle()
 
         self.notify('contentChanged', action='remove',
                     kind=kind, legend=legend)
@@ -779,6 +635,9 @@ class PlotWidget(qt.QMainWindow):
 
         # Check if curve was previously active
         wasActive = self.getActiveCurve(just_legend=True) == legend
+
+        if replace:
+            self._resetColorAndStyle()
 
         # Create/Update curve object
         curve = self.getCurve(legend)
@@ -962,7 +821,7 @@ class PlotWidget(qt.QMainWindow):
         :param colormap: Description of the :class:`.Colormap` to use
                                   (or None).
                                   This is ignored if data is a RGB(A) image.
-        :type colormap: Colormap or dict (old API )
+        :type colormap: Union[silx.gui.plot.Colormap.Colormap, dict]
         :param pixmap: Pixmap representation of the data (if any)
         :type pixmap: (nrows, ncolumns, RGBA) ubyte array or None (default)
         :param str xlabel: X axis label to show when this curve is active,
@@ -1105,8 +964,8 @@ class PlotWidget(qt.QMainWindow):
         :param numpy.ndarray y: The data corresponding to the y coordinates
         :param numpy.ndarray value: The data value associated with each point
         :param str legend: The legend to be associated to the scatter (or None)
-        :param Colormap colormap: The :class:`.Colormap`. to be used for the
-                                  scatter (or None)
+        :param silx.gui.plot.Colormap.Colormap colormap:
+            The :class:`.Colormap`. to be used for the scatter (or None)
         :param info: User-defined information associated to the curve
         :param str symbol: Symbol to be drawn at each (x, y) position::
 
@@ -2319,7 +2178,7 @@ class PlotWidget(qt.QMainWindow):
         flag = bool(flag)
         self._backend.setKeepDataAspectRatio(flag=flag)
         self._setDirtyPlot()
-        self.resetZoom()
+        self._forceResetZoom()
         self.notify('setKeepDataAspectRatio', state=flag)
 
     def getGraphGrid(self):
@@ -2405,9 +2264,10 @@ class PlotWidget(qt.QMainWindow):
         It only affects future calls to :meth:`addImage` without the colormap
         parameter.
 
-        :param Colormap colormap: The description of the default colormap, or
-                            None to set the :class:`.Colormap` to a linear
-                            autoscale gray colormap.
+        :param silx.gui.plot.Colormap.Colormap colormap:
+            The description of the default colormap, or
+            None to set the :class:`.Colormap` to a linear
+            autoscale gray colormap.
         """
         if colormap is None:
             colormap = Colormap(name='gray',
@@ -2430,6 +2290,10 @@ class PlotWidget(qt.QMainWindow):
         'magma', 'inferno', 'plasma', 'viridis')
         """
         return Colormap.getSupportedColormaps()
+
+    def _resetColorAndStyle(self):
+        self._colorIndex = 0
+        self._styleIndex = 0
 
     def _getColorAndStyle(self):
         color = self.colorList[self._colorIndex]
@@ -2527,6 +2391,7 @@ class PlotWidget(qt.QMainWindow):
         if ddict['event'] in ["legendClicked", "curveClicked"]:
             if ddict['button'] == "left":
                 self.setActiveCurve(ddict['label'])
+                qt.QToolTip.showText(self.cursor().pos(), ddict['label'])
 
     def saveGraph(self, filename, fileFormat=None, dpi=None, **kw):
         """Save a snapshot of the plot.
@@ -2614,6 +2479,66 @@ class PlotWidget(qt.QMainWindow):
         self._backend.replot()
         self._dirty = False  # reset dirty flag
 
+    def _forceResetZoom(self, dataMargins=None):
+        """Reset the plot limits to the bounds of the data and redraw the plot.
+
+        This method forces a reset zoom and does not check axis autoscale.
+
+        Extra margins can be added around the data inside the plot area
+        (see :meth:`setDataMargins`).
+        Margins are given as one ratio of the data range per limit of the
+        data (xMin, xMax, yMin and yMax limits).
+        For log scale, extra margins are applied in log10 of the data.
+
+        :param dataMargins: Ratios of margins to add around the data inside
+                            the plot area for each side (default: no margins).
+        :type dataMargins: A 4-tuple of float as (xMin, xMax, yMin, yMax).
+        """
+        if dataMargins is None:
+            dataMargins = self._defaultDataMargins
+
+        # Get data range
+        ranges = self.getDataRange()
+        xmin, xmax = (1., 100.) if ranges.x is None else ranges.x
+        ymin, ymax = (1., 100.) if ranges.y is None else ranges.y
+        if ranges.yright is None:
+            ymin2, ymax2 = None, None
+        else:
+            ymin2, ymax2 = ranges.yright
+
+        # Add margins around data inside the plot area
+        newLimits = list(_utils.addMarginsToLimits(
+            dataMargins,
+            self._xAxis._isLogarithmic(),
+            self._yAxis._isLogarithmic(),
+            xmin, xmax, ymin, ymax, ymin2, ymax2))
+
+        if self.isKeepDataAspectRatio():
+            # Use limits with margins to keep ratio
+            xmin, xmax, ymin, ymax = newLimits[:4]
+
+            # Compute bbox wth figure aspect ratio
+            plotWidth, plotHeight = self.getPlotBoundsInPixels()[2:]
+            plotRatio = plotHeight / plotWidth
+
+            if plotRatio > 0.:
+                dataRatio = (ymax - ymin) / (xmax - xmin)
+                if dataRatio < plotRatio:
+                    # Increase y range
+                    ycenter = 0.5 * (ymax + ymin)
+                    yrange = (xmax - xmin) * plotRatio
+                    newLimits[2] = ycenter - 0.5 * yrange
+                    newLimits[3] = ycenter + 0.5 * yrange
+
+                elif dataRatio > plotRatio:
+                    # Increase x range
+                    xcenter = 0.5 * (xmax + xmin)
+                    xrange_ = (ymax - ymin) / plotRatio
+                    newLimits[0] = xcenter - 0.5 * xrange_
+                    newLimits[1] = xcenter + 0.5 * xrange_
+
+        self.setLimits(*newLimits)
+
     def resetZoom(self, dataMargins=None):
         """Reset the plot limits to the bounds of the data and redraw the plot.
 
@@ -2631,9 +2556,6 @@ class PlotWidget(qt.QMainWindow):
                             the plot area for each side (default: no margins).
         :type dataMargins: A 4-tuple of float as (xMin, xMax, yMin, yMax).
         """
-        if dataMargins is None:
-            dataMargins = self._defaultDataMargins
-
         xLimits = self._xAxis.getLimits()
         yLimits = self._yAxis.getLimits()
         y2Limits = self._yRightAxis.getLimits()
@@ -2641,52 +2563,19 @@ class PlotWidget(qt.QMainWindow):
         xAuto = self._xAxis.isAutoScale()
         yAuto = self._yAxis.isAutoScale()
 
+        # With log axes, autoscale if limits are <= 0
+        # This avoids issues with toggling log scale with matplotlib 2.1.0
+        if self._xAxis.getScale() == self._xAxis.LOGARITHMIC and xLimits[0] <= 0:
+            xAuto = True
+        if self._yAxis.getScale() == self._yAxis.LOGARITHMIC and (yLimits[0] <= 0 or y2Limits[0] <= 0):
+            yAuto = True
+
         if not xAuto and not yAuto:
             _logger.debug("Nothing to autoscale")
         else:  # Some axes to autoscale
+            self._forceResetZoom(dataMargins=dataMargins)
 
-            # Get data range
-            ranges = self.getDataRange()
-            xmin, xmax = (1., 100.) if ranges.x is None else ranges.x
-            ymin, ymax = (1., 100.) if ranges.y is None else ranges.y
-            if ranges.yright is None:
-                ymin2, ymax2 = None, None
-            else:
-                ymin2, ymax2 = ranges.yright
-
-            # Add margins around data inside the plot area
-            newLimits = list(_utils.addMarginsToLimits(
-                dataMargins,
-                self._xAxis._isLogarithmic(),
-                self._yAxis._isLogarithmic(),
-                xmin, xmax, ymin, ymax, ymin2, ymax2))
-
-            if self.isKeepDataAspectRatio():
-                # Use limits with margins to keep ratio
-                xmin, xmax, ymin, ymax = newLimits[:4]
-
-                # Compute bbox wth figure aspect ratio
-                plotWidth, plotHeight = self.getPlotBoundsInPixels()[2:]
-                plotRatio = plotHeight / plotWidth
-
-                if plotRatio > 0.:
-                    dataRatio = (ymax - ymin) / (xmax - xmin)
-                    if dataRatio < plotRatio:
-                        # Increase y range
-                        ycenter = 0.5 * (ymax + ymin)
-                        yrange = (xmax - xmin) * plotRatio
-                        newLimits[2] = ycenter - 0.5 * yrange
-                        newLimits[3] = ycenter + 0.5 * yrange
-
-                    elif dataRatio > plotRatio:
-                        # Increase x range
-                        xcenter = 0.5 * (xmax + xmin)
-                        xrange_ = (ymax - ymin) / plotRatio
-                        newLimits[0] = xcenter - 0.5 * xrange_
-                        newLimits[1] = xcenter + 0.5 * xrange_
-
-            self.setLimits(*newLimits)
-
+            # Restore limits for axis not in autoscale
             if not xAuto and yAuto:
                 self.setGraphXLimits(*xLimits)
             elif xAuto and not yAuto:
@@ -2695,8 +2584,6 @@ class PlotWidget(qt.QMainWindow):
                         y2Limits[0], y2Limits[1], axis='right')
                 if yLimits is not None:
                     self.setGraphYLimits(yLimits[0], yLimits[1], axis='left')
-
-        self._setDirtyPlot()
 
         if (xLimits != self._xAxis.getLimits() or
                 yLimits != self._yAxis.getLimits() or

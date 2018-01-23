@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "26/09/2017"
+__date__ = "10/10/2017"
 
 
 import logging
@@ -40,12 +40,6 @@ from ..hdf5.Hdf5Formatter import Hdf5Formatter
 
 _logger = logging.getLogger(__name__)
 
-try:
-    import h5py
-except ImportError as e:
-    _logger.error("Module %s requires h5py", __name__)
-    raise e
-
 _formatter = TextFormatter()
 _hdf5Formatter = Hdf5Formatter(textFormatter=_formatter)
 # FIXME: The formatter should be an attribute of the Hdf5Model
@@ -57,15 +51,15 @@ class Hdf5Item(Hdf5Node):
     tree structure.
     """
 
-    def __init__(self, text, obj, parent, key=None, h5pyClass=None, linkClass=None, populateAll=False):
+    def __init__(self, text, obj, parent, key=None, h5Class=None, linkClass=None, populateAll=False):
         """
         :param str text: text displayed
-        :param object obj: Pointer to h5py data. See the `obj` attribute.
+        :param object obj: Pointer to a h5py-link object. See the `obj` attribute.
         """
         self.__obj = obj
         self.__key = key
-        self.__h5pyClass = h5pyClass
-        self.__isBroken = obj is None and h5pyClass is None
+        self.__h5Class = h5Class
+        self.__isBroken = obj is None and h5Class is None
         self.__error = None
         self.__text = text
         self.__linkClass = linkClass
@@ -74,12 +68,26 @@ class Hdf5Item(Hdf5Node):
     @property
     def obj(self):
         if self.__key:
-            self.__initH5pyObject()
+            self.__initH5Object()
         return self.__obj
 
     @property
     def basename(self):
         return self.__text
+
+    @property
+    def h5Class(self):
+        """Returns the class of the stored object.
+
+        When the object is in lazy loading, this method should be able to
+        return the type of the futrue loaded object. It allows to delay the
+        real load of the object.
+
+        :rtype: silx.io.utils.H5Type
+        """
+        if self.__h5Class is None and self.obj is not None:
+            self.__h5Class = silx.io.utils.get_h5_class(self.obj)
+        return self.__h5Class
 
     @property
     def h5pyClass(self):
@@ -91,15 +99,14 @@ class Hdf5Item(Hdf5Node):
 
         :rtype: h5py.File or h5py.Dataset or h5py.Group
         """
-        if self.__h5pyClass is None and self.obj is not None:
-            self.__h5pyClass = silx.io.utils.get_h5py_class(self.obj)
-        return self.__h5pyClass
+        type_ = self.h5Class
+        return silx.io.utils.h5type_to_h5py_class(type_)
 
     @property
     def linkClass(self):
         """Returns the link class object of this node
 
-        :type: h5py.SoftLink or h5py.HardLink or h5py.ExternalLink or None
+        :rtype: H5Type
         """
         return self.__linkClass
 
@@ -109,16 +116,16 @@ class Hdf5Item(Hdf5Node):
 
         :rtype: bool
         """
-        if self.h5pyClass is None:
+        if self.h5Class is None:
             return False
-        return issubclass(self.h5pyClass, h5py.Group)
+        return self.h5Class in [silx.io.utils.H5Type.GROUP, silx.io.utils.H5Type.FILE]
 
     def isBrokenObj(self):
         """Returns true if the stored HDF5 object is broken.
 
-        The stored object is then an h5py link (external or not) which point
-        to nowhere (tbhe external file is not here, the expected dataset is
-        still not on the file...)
+        The stored object is then an h5py-like link (external or not) which
+        point  to nowhere (tbhe external file is not here, the expected
+        dataset is still not on the file...)
 
         :rtype: bool
         """
@@ -137,7 +144,7 @@ class Hdf5Item(Hdf5Node):
             return len(self.obj)
         return 0
 
-    def __initH5pyObject(self):
+    def __initH5Object(self):
         """Lazy load of the HDF5 node. It is reached from the parent node
         with the key of the node."""
         parent_obj = self.parent.obj
@@ -145,7 +152,9 @@ class Hdf5Item(Hdf5Node):
         try:
             obj = parent_obj.get(self.__key)
         except Exception as e:
-            _logger.debug("Internal h5py error", exc_info=True)
+            lib_name = self.obj.__class__.__module__.split(".")[0]
+            _logger.debug("Internal %s error", lib_name, exc_info=True)
+            _logger.debug("Backtrace", exc_info=True)
             try:
                 self.__obj = parent_obj.get(self.__key, getlink=True)
             except Exception:
@@ -168,9 +177,11 @@ class Hdf5Item(Hdf5Node):
                 if not hasattr(self.__obj, "file"):
                     self.__obj.file = parent_obj.file
 
-                if isinstance(self.__obj, h5py.ExternalLink):
+                class_ = silx.io.utils.get_h5_class(self.__obj)
+
+                if class_ == silx.io.utils.H5Type.EXTERNAL_LINK:
                     message = "External link broken. Path %s::%s does not exist" % (self.__obj.filename, self.__obj.path)
-                elif isinstance(self.__obj, h5py.SoftLink):
+                elif class_ == silx.io.utils.H5Type.SOFT_LINK:
                     message = "Soft link broken. Path %s does not exist" % (self.__obj.path)
                 else:
                     name = self.obj.__class__.__name__.split(".")[-1].capitalize()
@@ -204,14 +215,25 @@ class Hdf5Item(Hdf5Node):
                 try:
                     class_ = self.obj.get(name, getclass=True)
                     link = self.obj.get(name, getclass=True, getlink=True)
-                except Exception as e:
-                    _logger.warn("Internal h5py error", exc_info=True)
+                    link = silx.io.utils.get_h5_class(class_=link)
+                except Exception:
+                    lib_name = self.obj.__class__.__module__.split(".")[0]
+                    _logger.warning("Internal %s error", lib_name, exc_info=True)
+                    _logger.debug("Backtrace", exc_info=True)
                     class_ = None
                     try:
                         link = self.obj.get(name, getclass=True, getlink=True)
-                    except Exception as e:
-                        link = h5py.HardLink
-                item = Hdf5Item(text=name, obj=None, parent=self, key=name, h5pyClass=class_, linkClass=link)
+                        link = silx.io.utils.get_h5_class(class_=link)
+                    except Exception:
+                        _logger.debug("Backtrace", exc_info=True)
+                        link = silx.io.utils.H5Type.HARD_LINK
+
+                h5class = None
+                if class_ is not None:
+                    h5class = silx.io.utils.get_h5_class(class_=class_)
+                    if h5class is None:
+                        _logger.error("Class %s unsupported", class_)
+                item = Hdf5Item(text=name, obj=None, parent=self, key=name, h5Class=h5class, linkClass=link)
                 self.appendChild(item)
 
     def hasChildren(self):
@@ -234,16 +256,16 @@ class Hdf5Item(Hdf5Node):
         if self.__isBroken:
             icon = style.standardIcon(qt.QStyle.SP_MessageBoxCritical)
             return icon
-        class_ = self.h5pyClass
-        if issubclass(class_, h5py.File):
+        class_ = self.h5Class
+        if class_ == silx.io.utils.H5Type.FILE:
             return style.standardIcon(qt.QStyle.SP_FileIcon)
-        elif issubclass(class_, h5py.Group):
+        elif class_ == silx.io.utils.H5Type.GROUP:
             return style.standardIcon(qt.QStyle.SP_DirIcon)
-        elif issubclass(class_, h5py.SoftLink):
+        elif class_ == silx.io.utils.H5Type.SOFT_LINK:
             return style.standardIcon(qt.QStyle.SP_DirLinkIcon)
-        elif issubclass(class_, h5py.ExternalLink):
+        elif class_ == silx.io.utils.H5Type.EXTERNAL_LINK:
             return style.standardIcon(qt.QStyle.SP_FileLinkIcon)
-        elif issubclass(class_, h5py.Dataset):
+        elif class_ == silx.io.utils.H5Type.DATASET:
             if obj.shape is None:
                 name = "item-none"
             elif len(obj.shape) < 4:
@@ -262,28 +284,28 @@ class Hdf5Item(Hdf5Node):
         """
         attributeDict = collections.OrderedDict()
 
-        if issubclass(self.h5pyClass, h5py.Dataset):
+        if self.h5Class == silx.io.utils.H5Type.DATASET:
             attributeDict["#Title"] = "HDF5 Dataset"
             attributeDict["Name"] = self.basename
             attributeDict["Path"] = self.obj.name
             attributeDict["Shape"] = self._getFormatter().humanReadableShape(self.obj)
             attributeDict["Value"] = self._getFormatter().humanReadableValue(self.obj)
             attributeDict["Data type"] = self._getFormatter().humanReadableType(self.obj, full=True)
-        elif issubclass(self.h5pyClass, h5py.Group):
+        elif self.h5Class == silx.io.utils.H5Type.GROUP:
             attributeDict["#Title"] = "HDF5 Group"
             attributeDict["Name"] = self.basename
             attributeDict["Path"] = self.obj.name
-        elif issubclass(self.h5pyClass, h5py.File):
+        elif self.h5Class == silx.io.utils.H5Type.FILE:
             attributeDict["#Title"] = "HDF5 File"
             attributeDict["Name"] = self.basename
             attributeDict["Path"] = "/"
-        elif isinstance(self.obj, h5py.ExternalLink):
+        elif self.h5Class == silx.io.utils.H5Type.EXTERNAL_LINK:
             attributeDict["#Title"] = "HDF5 External Link"
             attributeDict["Name"] = self.basename
             attributeDict["Path"] = self.obj.name
             attributeDict["Linked path"] = self.obj.path
             attributeDict["Linked file"] = self.obj.filename
-        elif isinstance(self.obj, h5py.SoftLink):
+        elif self.h5Class == silx.io.utils.H5Type.SOFT_LINK:
             attributeDict["#Title"] = "HDF5 Soft Link"
             attributeDict["Name"] = self.basename
             attributeDict["Path"] = self.obj.name
@@ -331,8 +353,8 @@ class Hdf5Item(Hdf5Node):
         if role == qt.Qt.DisplayRole:
             if self.__error is not None:
                 return ""
-            class_ = self.h5pyClass
-            if issubclass(class_, h5py.Dataset):
+            class_ = self.h5Class
+            if class_ == silx.io.utils.H5Type.DATASET:
                 text = self._getFormatter().humanReadableType(self.obj)
             else:
                 text = ""
@@ -349,8 +371,8 @@ class Hdf5Item(Hdf5Node):
         if role == qt.Qt.DisplayRole:
             if self.__error is not None:
                 return ""
-            class_ = self.h5pyClass
-            if not issubclass(class_, h5py.Dataset):
+            class_ = self.h5Class
+            if class_ != silx.io.utils.H5Type.DATASET:
                 return ""
             return self._getFormatter().humanReadableShape(self.obj)
         return None
@@ -364,7 +386,7 @@ class Hdf5Item(Hdf5Node):
         if role == qt.Qt.DisplayRole:
             if self.__error is not None:
                 return ""
-            if not issubclass(self.h5pyClass, h5py.Dataset):
+            if self.h5Class != silx.io.utils.H5Type.DATASET:
                 return ""
             return self._getFormatter().humanReadableValue(self.obj)
         return None
@@ -387,7 +409,7 @@ class Hdf5Item(Hdf5Node):
         if role == qt.Qt.ToolTipRole:
             if self.__error is not None:
                 self.obj  # lazy loading of the object
-                self.__initH5pyObject()
+                self.__initH5Object()
                 return self.__error
             if "desc" in self.obj.attrs:
                 text = self.obj.attrs["desc"]
@@ -405,11 +427,11 @@ class Hdf5Item(Hdf5Node):
         if role == qt.Qt.DisplayRole:
             if self.isBrokenObj():
                 return ""
-            class_ = self.h5pyClass
+            class_ = self.obj.__class__
             text = class_.__name__.split(".")[-1]
             return text
         if role == qt.Qt.ToolTipRole:
-            class_ = self.h5pyClass
+            class_ = self.obj.__class__
             if class_ is None:
                 return ""
             return "Class name: %s" % self.__class__
@@ -430,11 +452,11 @@ class Hdf5Item(Hdf5Node):
             link = self.linkClass
             if link is None:
                 return ""
-            elif link is h5py.ExternalLink:
+            elif link == silx.io.utils.H5Type.EXTERNAL_LINK:
                 return "External"
-            elif link is h5py.SoftLink:
+            elif link == silx.io.utils.H5Type.SOFT_LINK:
                 return "Soft"
-            elif link is h5py.HardLink:
+            elif link == silx.io.utils.H5Type.HARD_LINK:
                 return ""
             else:
                 return link.__name__

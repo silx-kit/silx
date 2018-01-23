@@ -217,7 +217,7 @@ else:
                 _logger.error('_OpenGLWidget has no parent')
                 return
 
-            if qt.BINDING == 'PyQt5':
+            if qt.BINDING in ('PyQt5', 'PySide2'):
                 devicePixelRatio = self.window().windowHandle().devicePixelRatio()
 
                 if devicePixelRatio != self.getDevicePixelRatio():

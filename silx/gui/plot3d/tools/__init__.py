@@ -28,5 +28,7 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "08/09/2017"
 
-from .toolbars import InteractiveModeToolBar, OutputToolBar
-from .ViewpointTools import ViewpointToolBar, ViewpointToolButton
+from .toolbars import InteractiveModeToolBar  # noqa
+from .toolbars import OutputToolBar  # noqa
+from .toolbars import ViewpointToolBar  # noqa
+from .ViewpointTools import ViewpointToolButton  # noqa

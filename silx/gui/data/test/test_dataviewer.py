@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "22/08/2017"
+__date__ = "16/01/2018"
 
 import os
 import tempfile
@@ -207,6 +207,7 @@ class AbstractDataViewerTests(TestCaseQt):
         self.assertEquals(widget.displayedView().modeId(), DataViewer.RAW_MODE)
         widget.setDisplayMode(DataViewer.EMPTY_MODE)
         self.assertEquals(widget.displayedView().modeId(), DataViewer.EMPTY_MODE)
+        DataView._cleanUpCache()
 
     def test_create_default_views(self):
         widget = self.create_widget()
@@ -265,6 +266,7 @@ class TestDataView(TestCaseQt):
         dataViewClass = DataViews._Plot2dView
         widget = self.createDataViewWithData(dataViewClass, data[0])
         self.qWaitForWindowExposed(widget)
+        DataView._cleanUpCache()
 
     def testCubeWithComplex(self):
         self.skipTest("OpenGL widget not yet tested")
@@ -276,12 +278,14 @@ class TestDataView(TestCaseQt):
         dataViewClass = DataViews._Plot3dView
         widget = self.createDataViewWithData(dataViewClass, data)
         self.qWaitForWindowExposed(widget)
+        DataView._cleanUpCache()
 
     def testImageStackWithComplex(self):
         data = self.createComplexData()
         dataViewClass = DataViews._StackView
         widget = self.createDataViewWithData(dataViewClass, data)
         self.qWaitForWindowExposed(widget)
+        DataView._cleanUpCache()
 
 
 def suite():

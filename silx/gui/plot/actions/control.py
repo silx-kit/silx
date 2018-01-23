@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -50,11 +50,10 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "27/06/2017"
+__date__ = "08/01/2018"
 
 from . import PlotAction
 import logging
-import numpy
 from silx.gui.plot import items
 from silx.gui.plot.ColormapDialog import ColormapDialog
 from silx.gui.plot._utils import applyZoomToPlot as _applyZoomToPlot
@@ -327,67 +326,79 @@ class ColormapAction(PlotAction):
             plot, icon='colormap', text='Colormap',
             tooltip="Change colormap",
             triggered=self._actionTriggered,
-            checkable=False, parent=parent)
+            checkable=True, parent=parent)
+        self.plot.sigActiveImageChanged.connect(self._updateColormap)
+
+    def setColorDialog(self, colorDialog):
+        """Set a specific color dialog instead of using the default dialog."""
+        assert(colorDialog is not None)
+        assert(self._dialog is None)
+        self._dialog = colorDialog
+        self._dialog.visibleChanged.connect(self._dialogVisibleChanged)
+        self.setChecked(self._dialog.isVisible())
+
+    @staticmethod
+    def _createDialog(parent):
+        """Create the dialog if not already existing
+
+        :parent QWidget parent: Parent of the new colormap
+        :rtype: ColormapDialog
+        """
+        dialog = ColormapDialog(parent=parent)
+        dialog.setModal(False)
+        return dialog
 
     def _actionTriggered(self, checked=False):
         """Create a cmap dialog and update active image and default cmap."""
-        # Create the dialog if not already existing
         if self._dialog is None:
-            self._dialog = ColormapDialog()
+            self._dialog = self._createDialog(self.plot)
+            self._dialog.visibleChanged.connect(self._dialogVisibleChanged)
 
+        # Run the dialog listening to colormap change
+        if checked is True:
+            self._dialog.show()
+            self._updateColormap()
+        else:
+            self._dialog.hide()
+
+    def _dialogVisibleChanged(self, isVisible):
+        self.setChecked(isVisible)
+
+    def _updateColormap(self):
+        if self._dialog is None:
+            return
         image = self.plot.getActiveImage()
-        if not isinstance(image, items.ColormapMixIn):
+
+        if isinstance(image, items.ImageComplexData):
+            # Specific init for complex images
+            colormap = image.getColormap()
+
+            mode = image.getVisualizationMode()
+            if mode in (items.ImageComplexData.Mode.AMPLITUDE_PHASE,
+                        items.ImageComplexData.Mode.LOG10_AMPLITUDE_PHASE):
+                data = image.getData(
+                    copy=False, mode=items.ImageComplexData.Mode.PHASE)
+            else:
+                data = image.getData(copy=False)
+
+            # Set histogram and range if any
+            self._dialog.setData(data)
+
+        elif isinstance(image, items.ColormapMixIn):
+            # Set dialog from active image
+            colormap = image.getColormap()
+            data = image.getData(copy=False)
+            # Set histogram and range if any
+            self._dialog.setData(data)
+
+        else:
             # No active image or active image is RGBA,
             # set dialog from default info
             colormap = self.plot.getDefaultColormap()
+            # Reset histogram and range if any
+            self._dialog.setData(None)
 
-            self._dialog.setHistogram()  # Reset histogram and range if any
-
-        else:
-            # Set dialog from active image
-            colormap = image.getColormap()
-
-            data = image.getData(copy=False)
-
-            goodData = data[numpy.isfinite(data)]
-            if goodData.size > 0:
-                dataMin = goodData.min()
-                dataMax = goodData.max()
-            else:
-                qt.QMessageBox.warning(
-                    None, "No Data",
-                    "Image data does not contain any real value")
-                dataMin, dataMax = 1., 10.
-
-            self._dialog.setHistogram()  # Reset histogram if any
-            self._dialog.setDataRange(dataMin, dataMax)
-            # The histogram should be done in a worker thread
-            # hist, bin_edges = numpy.histogram(goodData, bins=256)
-            # self._dialog.setHistogram(hist, bin_edges)
-
-        self._dialog.setColormap(name=colormap.getName(),
-                                 normalization=colormap.getNormalization(),
-                                 autoscale=colormap.isAutoscale(),
-                                 vmin=colormap.getVMin(),
-                                 vmax=colormap.getVMax(),
-                                 colors=colormap.getColormapLUT())
-
-        # Run the dialog listening to colormap change
-        self._dialog.sigColormapChanged.connect(self._colormapChanged)
-        result = self._dialog.exec_()
-        self._dialog.sigColormapChanged.disconnect(self._colormapChanged)
-
-        if not result:  # Restore the previous colormap
-            self._colormapChanged(colormap)
-
-    def _colormapChanged(self, colormap):
-        # Update default colormap
-        self.plot.setDefaultColormap(colormap)
-
-        # Update active image colormap
-        activeImage = self.plot.getActiveImage()
-        if isinstance(activeImage, items.ColormapMixIn):
-            activeImage.setColormap(colormap)
+        self._dialog.setColormap(colormap)
 
 
 class KeepAspectRatioAction(PlotAction):

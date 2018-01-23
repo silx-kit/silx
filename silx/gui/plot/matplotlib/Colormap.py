@@ -168,70 +168,16 @@ def getScalarMappable(colormap, data=None):
             colors = colors.astype(numpy.float32) / 255.
         cmap = matplotlib.colors.ListedColormap(colors)
 
+    vmin, vmax = colormap.getColormapRange(data)
     if colormap.getNormalization().startswith('log'):
-        vmin, vmax = None, None
-        if not colormap.isAutoscale():
-            if colormap.getVMin() > 0.:
-                vmin = colormap.getVMin()
-            if colormap.getVMax() > 0.:
-                vmax = colormap.getVMax()
-
-            if vmin is None or vmax is None:
-                _logger.warning('Log colormap with negative bounds, ' +
-                                'changing bounds to positive ones.')
-            elif vmin > vmax:
-                _logger.warning('Colormap bounds are inverted.')
-                vmin, vmax = vmax, vmin
-
-        # Set unset/negative bounds to positive bounds
-        if vmin is None or vmax is None:
-            # Convert to numpy array
-            data = numpy.array(data if data is not None else [], copy=False)
-
-            if data.size > 0:
-                finiteData = data[numpy.isfinite(data)]
-                posData = finiteData[finiteData > 0]
-                if vmax is None:
-                    # 1. as an ultimate fallback
-                    vmax = posData.max() if posData.size > 0 else 1.
-                if vmin is None:
-                    vmin = posData.min() if posData.size > 0 else vmax
-                if vmin > vmax:
-                    vmin = vmax
-            else:
-                vmin, vmax = 1., 1.
-
         norm = matplotlib.colors.LogNorm(vmin, vmax)
-
     else:  # Linear normalization
-        if colormap.isAutoscale():
-            # Convert to numpy array
-            data = numpy.array(data if data is not None else [], copy=False)
-
-            if data.size == 0:
-                vmin, vmax = 1., 1.
-            else:
-                finiteData = data[numpy.isfinite(data)]
-                if finiteData.size > 0:
-                    vmin = finiteData.min()
-                    vmax = finiteData.max()
-                else:
-                    vmin, vmax = 1., 1.
-
-        else:
-            vmin = colormap.getVMin()
-            vmax = colormap.getVMax()
-            if vmin > vmax:
-                _logger.warning('Colormap bounds are inverted.')
-                vmin, vmax = vmax, vmin
-
         norm = matplotlib.colors.Normalize(vmin, vmax)
 
     return matplotlib.cm.ScalarMappable(norm=norm, cmap=cmap)
 
 
-def applyColormapToData(data,
-                        colormap):
+def applyColormapToData(data, colormap):
     """Apply a colormap to the data and returns the RGBA image
 
     This supports data of any dimensions (not only of dimension 2).

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -634,7 +634,7 @@ class PeriodicTable(qt.QWidget):
         objects.
 
         :return: Selected items
-        :rtype: list(PeriodicTableItem)
+        :rtype: List[PeriodicTableItem]
         """
         return [b.item for b in self._eltButtons.values() if b.isSelected()]
 
@@ -644,7 +644,7 @@ class PeriodicTable(qt.QWidget):
         This causes the sigSelectionChanged signal
         to be emitted, even if the selection didn't actually change.
 
-        :param list(str) symbols: List of symbols of elements to be selected
+        :param List[str] symbols: List of symbols of elements to be selected
             (e.g. *["Fe", "Hg", "Li"]*)
         """
         # accept list of PeriodicTableItems as input, because getSelection
@@ -813,7 +813,7 @@ class PeriodicList(qt.QTreeWidget):
         objects.
 
         :return: Selected elements
-        :rtype: list(PeriodicTableItem)"""
+        :rtype: List[PeriodicTableItem]"""
         return [_defaultTableItems[idx] for idx in range(len(self.tree_items))
                 if self.tree_items[idx].isSelected()]
 

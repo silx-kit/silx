@@ -294,6 +294,7 @@ def get_hdf5_with_nxdata():
     g1d0.create_dataset("count", data=numpy.arange(10))
     g1d0.create_dataset("energy_calib", data=(10, 5))     # 10 * idx + 5
     g1d0.create_dataset("energy_errors", data=3.14*numpy.random.rand(10))
+    g1d0.create_dataset("title", data="Title example provided as dataset")
 
     g1d1 = g1d.create_group("2D_spectra")
     g1d1.attrs["NX_class"] = "NXdata"
@@ -322,10 +323,23 @@ def get_hdf5_with_nxdata():
     g2d0.attrs["NX_class"] = "NXdata"
     g2d0.attrs["signal"] = "image"
     g2d0.attrs["axes"] = b"rows_calib", b"columns_coordinates"
+    g2d0.attrs["title"] = "Title example provided as group attr"
     g2d0.create_dataset("image", data=numpy.arange(4*6).reshape((4, 6)))
     ds = g2d0.create_dataset("rows_calib", data=(10, 5))
     ds.attrs["long_name"] = "Calibrated Y"
     g2d0.create_dataset("columns_coordinates", data=0.5+0.02*numpy.arange(6))
+
+    g2d4 = g2d.create_group("RGBA_image")
+    g2d4.attrs["NX_class"] = "NXdata"
+    g2d4.attrs["signal"] = "image"
+    g2d4.attrs["axes"] = b"rows_calib", b"columns_coordinates"
+    rgba_image = numpy.linspace(0, 1, num=7*8*3).reshape((7, 8, 3))
+    rgba_image[:, :, 1] = 1 - rgba_image[:, :, 1]      # invert G channel to add some color
+    ds = g2d4.create_dataset("image", data=rgba_image)
+    ds.attrs["interpretation"] = "rgba-image"
+    ds = g2d4.create_dataset("rows_calib", data=(10, 5))
+    ds.attrs["long_name"] = "Calibrated Y"
+    g2d4.create_dataset("columns_coordinates", data=0.5+0.02*numpy.arange(8))
 
     g2d1 = g2d.create_group("2D_irregular_data")
     g2d1.attrs["NX_class"] = "NXdata"
@@ -366,10 +380,13 @@ def get_hdf5_with_nxdata():
     gd1.attrs["NX_class"] = "NXdata"
     gd1.attrs["signal"] = "values"
     gd1.attrs["axes"] = b"x", b"y"
+    gd1.attrs["title"] = "x, y, values scatter with asymmetric y_errors"
     gd1.create_dataset("values", data=3.14*numpy.random.rand(128))
     gd1.create_dataset("y", data=numpy.random.rand(128))
-    gd1.create_dataset("y_errors", data=0.02*numpy.random.rand(128))
-    gd1.create_dataset("x", data=numpy.random.rand(128))
+    y_errors = [0.03*numpy.random.rand(128), 0.04*numpy.random.rand(128)]
+    gd1.create_dataset("y_errors", data=y_errors)
+    ds = gd1.create_dataset("x", data=2*numpy.random.rand(128))
+    ds.attrs["long_name"] = "horizontal axis"
     gd1.create_dataset("x_errors", data=0.02*numpy.random.rand(128))
 
     # NDIM > 3
@@ -586,7 +603,7 @@ class Hdf5TreeViewExample(qt.QMainWindow):
                 hasDataset = True
                 break
 
-        if len(menu.children()):
+        if not menu.isEmpty():
             menu.addSeparator()
 
         if hasDataset:
@@ -602,7 +619,7 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         selectedObjects = event.source().selectedH5Nodes()
         menu = event.menu()
 
-        if len(menu.children()):
+        if not menu.isEmpty():
             menu.addSeparator()
 
         for obj in selectedObjects:

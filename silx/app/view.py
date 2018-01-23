@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "02/10/2017"
+__date__ = "05/01/2018"
 
 import sys
 import os
@@ -37,6 +37,12 @@ _logger = logging.getLogger(__name__)
 """Module logger"""
 
 from silx.gui import qt
+import silx.io
+
+try:
+    import fabio
+except ImportError:
+    fabio = None
 
 
 class Viewer(qt.QMainWindow):
@@ -143,21 +149,23 @@ class Viewer(qt.QMainWindow):
         dialog.setModal(True)
 
         extensions = collections.OrderedDict()
-        # expect h5py
-        extensions["HDF5 files"] = "*.h5 *.hdf"
-        extensions["NeXus files"] = "*.nx *.nxs *.h5 *.hdf"
-        # no dependancy
-        extensions["NeXus layout from spec files"] = "*.dat *.spec *.mca"
-        extensions["Numpy binary files"] = "*.npz *.npy"
-        # expect fabio
-        extensions["NeXus layout from raster images"] = "*.edf *.tif *.tiff *.cbf *.mccd"
-        extensions["NeXus layout from EDF files"] = "*.edf"
-        extensions["NeXus layout from TIFF image files"] = "*.tif *.tiff"
-        extensions["NeXus layout from CBF files"] = "*.cbf"
-        extensions["NeXus layout from MarCCD image files"] = "*.mccd"
+        for description, ext in silx.io.supported_extensions().items():
+            extensions[description] = " ".join(sorted(list(ext)))
+
+        if fabio is not None:
+            extensions["NeXus layout from EDF files"] = "*.edf"
+            extensions["NeXus layout from TIFF image files"] = "*.tif *.tiff"
+            extensions["NeXus layout from CBF files"] = "*.cbf"
+            extensions["NeXus layout from MarCCD image files"] = "*.mccd"
+
+        all_supported_extensions = set()
+        for name, exts in extensions.items():
+            exts = exts.split(" ")
+            all_supported_extensions.update(exts)
+        all_supported_extensions = sorted(list(all_supported_extensions))
 
         filters = []
-        filters.append("All supported files (%s)" % " ".join(extensions.values()))
+        filters.append("All supported files (%s)" % " ".join(all_supported_extensions))
         for name, extension in extensions.items():
             filters.append("%s (%s)" % (name, extension))
         filters.append("All files (*)")
@@ -194,7 +202,7 @@ class Viewer(qt.QMainWindow):
         selectedObjects = event.source().selectedH5Nodes(ignoreBrokenLinks=False)
         menu = event.menu()
 
-        if len(menu.children()):
+        if not menu.isEmpty():
             menu.addSeparator()
 
         # Import it here to be sure to use the right logging level

@@ -24,13 +24,20 @@
 """Convert silx supported data files into HDF5 files"""
 
 import ast
-import sys
 import os
 import argparse
 from glob import glob
 import logging
 import numpy
-import silx
+import re
+import time
+
+import silx.io
+
+try:
+    from silx.io import fabioh5
+except ImportError:
+    fabioh5 = None
 
 
 __authors__ = ["P. Knobel"]
@@ -40,6 +47,83 @@ __date__ = "12/09/2017"
 
 _logger = logging.getLogger(__name__)
 """Module logger"""
+
+
+def c_format_string_to_re(pattern_string):
+    """
+
+    :param pattern_string: C style format string with integer patterns
+        (e.g. "%d", "%04d").
+        Not supported: fixed length padded with whitespaces (e.g "%4d", "%-4d")
+    :return: Equivalent regular expression (e.g. "\d+", "\d{4}")
+    """
+    # escape dots
+    pattern_string = pattern_string.replace(".", "\.")
+
+    # %d
+    pattern_string = pattern_string.replace("%d", "([-+]?\d+)")
+
+    # %0nd
+    for sub_pattern in re.findall("%0\d+d", pattern_string):
+        print(sub_pattern)
+        n = int(re.search("%0(\d+)d", sub_pattern).group(1))
+        if n == 1:
+            re_sub_pattern = "([+-]?\d)"
+        else:
+            re_sub_pattern = "([\d+-]\d{%d})" % (n - 1)
+        pattern_string = pattern_string.replace(sub_pattern, re_sub_pattern, 1)
+
+    return pattern_string
+
+
+def drop_indices_before_begin(filenames, regex, begin):
+    """
+
+    :param list(str) filenames: list of filenames
+    :param str regex: Regexp used to find indices in a filename
+    :param str begin: Comma separated list of begin indices
+    :return: List of filenames with only indices >= begin
+    """
+    begin_indices = list(map(int, begin.split(",")))
+    output_filenames = []
+    for fname in filenames:
+        m = re.match(regex, fname)
+        file_indices = list(map(int, m.groups()))
+        if len(file_indices) != len(begin_indices):
+            raise IOError("Number of indices found in filename "
+                          "does not match number of parsed end indices.")
+        good_indices = True
+        for i, fidx in enumerate(file_indices):
+            if fidx < begin_indices[i]:
+                good_indices = False
+        if good_indices:
+            output_filenames.append(fname)
+    return output_filenames
+
+
+def drop_indices_after_end(filenames, regex, end):
+    """
+
+    :param list(str) filenames: list of filenames
+    :param str regex: Regexp used to find indices in a filename
+    :param str end: Comma separated list of end indices
+    :return: List of filenames with only indices <= end
+    """
+    end_indices = list(map(int, end.split(",")))
+    output_filenames = []
+    for fname in filenames:
+        m = re.match(regex, fname)
+        file_indices = list(map(int, m.groups()))
+        if len(file_indices) != len(end_indices):
+            raise IOError("Number of indices found in filename "
+                          "does not match number of parsed end indices.")
+        good_indices = True
+        for i, fidx in enumerate(file_indices):
+            if fidx > end_indices[i]:
+                good_indices = False
+        if good_indices:
+            output_filenames.append(fname)
+    return output_filenames
 
 
 def main(argv):
@@ -52,15 +136,25 @@ def main(argv):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         'input_files',
-        nargs="+",
-        help='Input files (EDF, SPEC)')
+        nargs="*",
+        help='Input files (EDF, SPEC).')
+    # input_files and --filepattern are mutually exclusive
+    parser.add_argument(
+        '--file-pattern',
+        help='File name pattern for loading a series of indexed files '
+             '(toto_%%04d.edf). This argument is incompatible with argument '
+             'input_files. If an output URI with a HDF5 path is provided, '
+             'only the content of the NXdetector group will be copied there. '
+             'If no HDF5 path, or just "/", is given, a complete NXdata '
+             'structure will be created.')
     parser.add_argument(
         '-o', '--output-uri',
-        nargs="?",
-        help='Output file (HDF5). If omitted, it will be the '
-             'concatenated input file names, with a ".h5" suffix added.'
-             ' An URI can be provided to write the data into a specific '
-             'group in the output file: /path/to/file::/path/to/group')
+        default=time.strftime("%Y%m%d-%H%M%S") + '.h5',
+        help='Output file name (HDF5). An URI can be provided to write'
+             ' the data into a specific group in the output file: '
+             '/path/to/file::/path/to/group. '
+             'By default, the filename uses the current date and time:'
+             ' YYYYmmdd-HHMMSS.h5')
     parser.add_argument(
         '-m', '--mode',
         default="w-",
@@ -69,12 +163,26 @@ def main(argv):
              '"w-" (write, fail if file exists) or '
              '"a" (read/write if exists, create otherwise)')
     parser.add_argument(
+        '--begin',
+        help='First file index, or first file indices to be considered. '
+             'This argument only makes sense when used together with '
+             '--file-pattern. Provide as many start indices as '
+             'are indices in the file pattern, separated by commas. For '
+             'instance: "--filepattern toto_%%d.edf --begin 100", or '
+             ' "--filepattern toto_%%d_%%04d_%%02d.edf --begin 100,2000,5".')
+    parser.add_argument(
+        '--end',
+        help='Last file index, or last file indices to be considered. '
+             'The same rules as with argument --begin apply. '
+             'Example: "--filepattern toto_%%d_%%d.edf --end 199,1999"')
+    parser.add_argument(
         '--no-root-group',
         action="store_true",
         help='This option disables the default behavior of creating a '
              'root group (entry) for each file to be converted. When '
              'merging multiple input files, this can cause conflicts '
-             'when datasets have the same name (see --overwrite-data).')
+             'when datasets have the same name (see --overwrite-data). '
+             'This option has no effect when using --file-pattern.')
     parser.add_argument(
         '--overwrite-data',
         action="store_true",
@@ -135,22 +243,10 @@ def main(argv):
 
     options = parser.parse_args(argv[1:])
 
-    # some shells (windows) don't interpret wildcard characters (*, ?, [])
-    old_input_list = list(options.input_files)
-    options.input_files = []
-    for fname in old_input_list:
-        globbed_files = glob(fname)
-        if not globbed_files:
-            # no files found, keep the name as it is, to raise an error later
-            options.input_files += [fname]
-        else:
-            options.input_files += globbed_files
-        old_input_list = None
-
     if options.debug:
         logging.root.setLevel(logging.DEBUG)
 
-    # Import most of the things here to be sure to use the right logging level
+    # Import after parsing --debug
     try:
         # it should be loaded before h5py
         import hdf5plugin  # noqa
@@ -177,22 +273,72 @@ def main(argv):
             + " compressions. You can install it using \"pip install hdf5plugin\"."
         _logger.debug(message)
 
-    # Test that the output path is writeable
-    if options.output_uri is None:
-        input_basenames = [os.path.basename(name) for name in options.input_files]
-        output_name = ''.join(input_basenames) + ".h5"
-        _logger.info("No output file specified, using %s", output_name)
-        hdf5_path = "/"
-    else:
-        if "::" in options.output_uri:
-            output_name, hdf5_path = options.output_uri.split("::")
+    # Process input arguments (mutually exclusive arguments)
+    if bool(options.input_files) == bool(options.file_pattern is not None):
+        if not options.input_files:
+            message = "You must specify either input files (at least one), "
+            message += "or a file pattern."
         else:
-            output_name, hdf5_path = options.output_uri, "/"
+            message = "You cannot specify input files and a file pattern"
+            message += " at the same time."
+        _logger.error(message)
+        return -1
+    elif options.input_files:
+        # some shells (windows) don't interpret wildcard characters (*, ?, [])
+        old_input_list = list(options.input_files)
+        options.input_files = []
+        for fname in old_input_list:
+            globbed_files = glob(fname)
+            if not globbed_files:
+                # no files found, keep the name as it is, to raise an error later
+                options.input_files += [fname]
+            else:
+                options.input_files += globbed_files
+    else:
+        # File series
+        dirname = os.path.dirname(options.file_pattern)
+        file_pattern_re = c_format_string_to_re(options.file_pattern) + "$"
+        files_in_dir = glob(os.path.join(dirname, "*"))
+        _logger.debug("""
+            Processing file_pattern
+            dirname: %s
+            file_pattern_re: %s
+            files_in_dir: %s
+            """, dirname, file_pattern_re, files_in_dir)
+
+        options.input_files = sorted(list(filter(lambda name: re.match(file_pattern_re, name),
+                                                 files_in_dir)))
+        _logger.debug("options.input_files: %s", options.input_files)
+
+        if options.begin is not None:
+            options.input_files = drop_indices_before_begin(options.input_files,
+                                                            file_pattern_re,
+                                                            options.begin)
+            _logger.debug("options.input_files after applying --begin: %s",
+                          options.input_files)
+
+        if options.end is not None:
+            options.input_files = drop_indices_after_end(options.input_files,
+                                                         file_pattern_re,
+                                                         options.end)
+            _logger.debug("options.input_files after applying --end: %s",
+                          options.input_files)
+
+        if not options.input_files:
+            _logger.error("No file matching --file-pattern found.")
+            return -1
+
+    # Test that the output path is writeable
+    if "::" in options.output_uri:
+        output_name, hdf5_path = options.output_uri.split("::")
+    else:
+        output_name, hdf5_path = options.output_uri, "/"
 
     if os.path.isfile(output_name):
         if options.mode == "w-":
-            _logger.error("Output file %s exists and mode is 'w-'"
-                          " (write, file must not exist). Aborting.",
+            _logger.error("Output file %s exists and mode is 'w-' (default)."
+                          " Aborting. To append data to an existing file, "
+                          "use 'a' or 'r+'.",
                           output_name)
             return -1
         elif not os.access(output_name, os.W_OK):
@@ -262,22 +408,63 @@ def main(argv):
     if options.fletcher32:
         create_dataset_args["fletcher32"] = True
 
-    with h5py.File(output_name, mode=options.mode) as h5f:
-        for input_name in options.input_files:
-            hdf5_path_for_file = hdf5_path
-            if not options.no_root_group:
-                hdf5_path_for_file = hdf5_path.rstrip("/") + "/" + os.path.basename(input_name)
-            write_to_h5(input_name, h5f,
-                        h5path=hdf5_path_for_file,
+    if options.file_pattern is not None:
+        # File series
+        if fabioh5 is None:
+            # return a helpful error message if fabio is missing
+            try:
+                import fabio
+            except ImportError:
+                _logger.error("The fabio library is required to convert"
+                              " edf files. Please install it with 'pip "
+                              "install fabio` and try again.")
+            else:
+                # unexpected problem in silx.io.fabioh5
+                raise
+            return -1
+        input_group = fabioh5.File(file_series=options.input_files)
+        if hdf5_path != "/":
+            # we want to append only data and headers to an existing file
+            input_group = input_group["/scan_0/instrument/detector_0"]
+        with h5py.File(output_name, mode=options.mode) as h5f:
+            write_to_h5(input_group, h5f,
+                        h5path=hdf5_path,
                         overwrite_data=options.overwrite_data,
                         create_dataset_args=create_dataset_args,
                         min_size=options.min_size)
 
-            # append the convert command to the creator attribute, for NeXus files
-            creator = h5f[hdf5_path_for_file].attrs.get("creator", b"").decode()
-            convert_command = " ".join(argv)
-            if convert_command not in creator:
-                h5f[hdf5_path_for_file].attrs["creator"] = \
-                    numpy.string_(creator + "; convert command: %s" % " ".join(argv))
+    else:
+        # single file or unrelated files
+        h5paths_and_groups = []
+        for input_name in options.input_files:
+            hdf5_path_for_file = hdf5_path
+            if not options.no_root_group:
+                hdf5_path_for_file = hdf5_path.rstrip("/") + "/" + os.path.basename(input_name)
+            try:
+                h5paths_and_groups.append((hdf5_path_for_file,
+                                           silx.io.open(input_name)))
+            except IOError:
+                _logger.error("Cannot read file %s. If this is a file format "
+                              "supported by the fabio library, you can try to"
+                              "install fabio (`pip install fabio`).",
+                              input_name)
+                return -1
+
+        with h5py.File(output_name, mode=options.mode) as h5f:
+            for hdf5_path_for_file, input_group in h5paths_and_groups:
+                write_to_h5(input_group, h5f,
+                            h5path=hdf5_path_for_file,
+                            overwrite_data=options.overwrite_data,
+                            create_dataset_args=create_dataset_args,
+                            min_size=options.min_size)
+
+    with h5py.File(output_name, mode="r+") as h5f:
+        # append "silx convert" to the creator attribute, for NeXus files
+        previous_creator = h5f.attrs.get("creator", b"").decode()
+        creator = "silx convert (v%s)" % silx.version
+        # only if it not already there
+        if creator not in previous_creator:
+            h5f.attrs["creator"] = \
+                numpy.string_(previous_creator + "; " + creator)
 
     return 0

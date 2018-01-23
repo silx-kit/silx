@@ -26,7 +26,7 @@
 """
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "27/06/2017"
+__date__ = "20/12/2017"
 
 import numpy
 
@@ -89,13 +89,21 @@ class ArrayCurvePlot(qt.QWidget):
 
         layout = qt.QGridLayout()
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self._plot,  0, 0)
+        layout.addWidget(self._plot, 0, 0)
 
         self.setLayout(layout)
 
+    def getPlot(self):
+        """Returns the plot used for the display
+
+        :rtype: Plot1D
+        """
+        return self._plot
+
     def setCurveData(self, y, x=None, values=None,
                      yerror=None, xerror=None,
-                     ylabel=None, xlabel=None, title=None):
+                     ylabel=None, xlabel=None,
+                     title=None):
         """
 
         :param y: dataset to be represented by the y (vertical) axis.
@@ -127,7 +135,7 @@ class ArrayCurvePlot(qt.QWidget):
             self._selector.selectionChanged.disconnect(self._updateCurve)
             self.__selector_is_connected = False
         self._selector.setData(y)
-        self._selector.setAxisNames([ylabel or "Y"])
+        self._selector.setAxisNames(["Y"])
 
         if len(y.shape) < 2:
             self.selectorDock.hide()
@@ -175,18 +183,11 @@ class ArrayCurvePlot(qt.QWidget):
                                   xerror=self.__axis_errors,
                                   yerror=y_errors)
 
-        # x monotonically increasing or decreasiing: curve
-        elif numpy.all(numpy.diff(x) > 0) or numpy.all(numpy.diff(x) < 0):
+        else:
             self._plot.addCurve(x, y, legend=legend,
                                 xerror=self.__axis_errors,
                                 yerror=y_errors)
 
-        # scatter
-        else:
-            self._plot.addScatter(x, y, value=numpy.ones_like(y),
-                                  legend=legend,
-                                  xerror=self.__axis_errors,
-                                  yerror=y_errors)
         self._plot.resetZoom()
         self._plot.getXAxis().setLabel(self.__axis_name)
         self._plot.getYAxis().setLabel(self.__signal_name)
@@ -249,15 +250,22 @@ class ArrayImagePlot(qt.QWidget):
 
         self.setLayout(layout)
 
+    def getPlot(self):
+        """Returns the plot used for the display
+
+        :rtype: Plot2D
+        """
+        return self._plot
+
     def setImageData(self, signal,
                      x_axis=None, y_axis=None,
                      signal_name=None,
                      xlabel=None, ylabel=None,
-                     title=None):
+                     title=None, isRgba=False):
         """
 
         :param signal: n-D dataset, whose last 2 dimensions are used as the
-            image's values.
+            image's values, or 3D dataset interpreted as RGBA image.
         :param x_axis: 1-D dataset used as the image's x coordinates. If
             provided, its lengths must be equal to the length of the last
             dimension of ``signal``.
@@ -268,6 +276,7 @@ class ArrayImagePlot(qt.QWidget):
         :param xlabel: Label for X axis
         :param ylabel: Label for Y axis
         :param title: Graph title
+        :param isRgba: True if data is a 3D RGBA image
         """
         if self.__selector_is_connected:
             self._selector.selectionChanged.disconnect(self._updateImage)
@@ -281,7 +290,10 @@ class ArrayImagePlot(qt.QWidget):
         self.__y_axis_name = ylabel
 
         self._selector.setData(signal)
-        self._selector.setAxisNames([ylabel or "Y", xlabel or "X"])
+        if not isRgba:
+            self._selector.setAxisNames(["Y", "X"])
+        else:
+            self._selector.setAxisNames(["Y", "X", "RGB(A) channel"])
 
         if len(signal.shape) < 3:
             self.selectorDock.hide()
@@ -408,6 +420,13 @@ class ArrayStackPlot(qt.QWidget):
 
         self.setLayout(layout)
 
+    def getStackView(self):
+        """Returns the plot used for the display
+
+        :rtype: StackView
+        """
+        return self._stack_view
+
     def setStackData(self, signal,
                      x_axis=None, y_axis=None, z_axis=None,
                      signal_name=None,
@@ -446,7 +465,7 @@ class ArrayStackPlot(qt.QWidget):
         self.__z_axis_name = zlabel
 
         self._selector.setData(signal)
-        self._selector.setAxisNames([ylabel or "Y", xlabel or "X", zlabel or "Z"])
+        self._selector.setAxisNames(["Y", "X", "Z"])
 
         self._stack_view.setGraphTitle(title or "")
         # by default, the z axis is the image position (dimension not plotted)

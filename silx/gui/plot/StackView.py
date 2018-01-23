@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -652,7 +652,7 @@ class StackView(qt.QMainWindow):
         when the volume is rotated (when different axes are selected as the
         X and Y axes).
 
-        :param list(str) labels: 3 labels corresponding to the 3 dimensions
+        :param List[str] labels: 3 labels corresponding to the 3 dimensions
              of the data volumes.
         """
 

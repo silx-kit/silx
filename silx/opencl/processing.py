@@ -172,7 +172,6 @@ class OpenclProcessing(object):
             # check if enough memory is available on the device
             ualloc = 0
             for buf in buffers:
-                print(buf)
                 ualloc += numpy.dtype(buf.dtype).itemsize * numpy.prod(buf.size)
             logger.info("%.3fMB are needed on device: %s,  which has %.3fMB",
                         ualloc / 1.0e6, self.device, self.device.memory / 1.0e6)

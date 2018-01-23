@@ -606,7 +606,7 @@ class _Points2D(object):
         """,
             ASTERISK: """
         float alphaSymbol(vec2 coord, float size) {
-            /* Combining +, x and cirle */
+            /* Combining +, x and circle */
             vec2 d_plus = abs(size * (coord - vec2(0.5, 0.5)));
             vec2 pos = floor(size * coord) + 0.5;
             vec2 d_x = abs(pos.x + vec2(- pos.y, pos.y - size));

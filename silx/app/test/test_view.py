@@ -26,29 +26,20 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "29/09/2017"
+__date__ = "09/11/2017"
 
 
 import unittest
 import sys
-import os
+from silx.test.utils import test_options
 
 
-# TODO: factor this code with silx.gui.test
-with_qt = False
-if sys.platform.startswith('linux') and not os.environ.get('DISPLAY', ''):
-    reason = 'test disabled (DISPLAY env. variable not set)'
-    view = None
-    TestCaseQt = unittest.TestCase
-elif os.environ.get('WITH_QT_TEST', 'True') == 'False':
-    reason = "test disabled (env. variable WITH_QT_TEST=False)"
+if not test_options.WITH_QT_TEST:
     view = None
     TestCaseQt = unittest.TestCase
 else:
     from silx.gui.test.utils import TestCaseQt
     from .. import view
-    with_qt = True
-    reason = ""
 
 
 class QApplicationMock(object):
@@ -80,7 +71,7 @@ class ViewerMock(object):
         pass
 
 
-@unittest.skipUnless(with_qt, "Qt binding required for TestLauncher")
+@unittest.skipUnless(test_options.WITH_QT_TEST, test_options.WITH_QT_TEST_REASON)
 class TestLauncher(unittest.TestCase):
     """Test command line parsing"""
 
@@ -133,7 +124,7 @@ class TestLauncher(unittest.TestCase):
 class TestViewer(TestCaseQt):
     """Test for Viewer class"""
 
-    @unittest.skipUnless(with_qt, reason)
+    @unittest.skipUnless(test_options.WITH_QT_TEST, test_options.WITH_QT_TEST_REASON)
     def testConstruct(self):
         if view is not None:
             widget = view.Viewer()

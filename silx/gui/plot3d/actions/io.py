@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -54,7 +54,8 @@ class CopyAction(Plot3DAction):
     """QAction to provide copy of a Plot3DWidget
 
     :param parent: See :class:`QAction`
-    :param Plot3DWidget plot3d: Plot3DWidget the action is associated with
+    :param ~silx.gui.plot3d.Plot3DWidget.Plot3DWidget plot3d:
+        Plot3DWidget the action is associated with
     """
 
     def __init__(self, parent, plot3d=None):
@@ -81,7 +82,8 @@ class SaveAction(Plot3DAction):
     """QAction to provide save snapshot of a Plot3DWidget
 
     :param parent: See :class:`QAction`
-    :param Plot3DWidget plot3d: Plot3DWidget the action is associated with
+    :param ~silx.gui.plot3d.Plot3DWidget.Plot3DWidget plot3d:
+        Plot3DWidget the action is associated with
     """
 
     def __init__(self, parent, plot3d=None):
@@ -135,7 +137,8 @@ class PrintAction(Plot3DAction):
     """QAction to provide printing of a Plot3DWidget
 
     :param parent: See :class:`QAction`
-    :param Plot3DWidget plot3d: Plot3DWidget the action is associated with
+    :param ~silx.gui.plot3d.Plot3DWidget.Plot3DWidget plot3d:
+        Plot3DWidget the action is associated with
     """
 
     def __init__(self, parent, plot3d=None):
@@ -152,7 +155,7 @@ class PrintAction(Plot3DAction):
     def getPrinter(self):
         """Return the QPrinter instance used for printing.
 
-        :rtype: qt.QPrinter
+        :rtype: QPrinter
         """
         # TODO This is a hack to sync with silx plot PrintAction
         # This needs to be centralized
@@ -201,6 +204,8 @@ class VideoAction(Plot3DAction):
     The scene is rotated 360 degrees around a vertical axis.
 
     :param parent: Action parent see :class:`QAction`.
+    :param ~silx.gui.plot3d.Plot3DWidget.Plot3DWidget plot3d:
+        Plot3DWidget the action is associated with
     """
 
     PNG_SERIE_FILTER = 'Serie of PNG files (*.png)'

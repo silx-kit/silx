@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "22/09/2017"
+__date__ = "29/11/2017"
 
 
 import os
@@ -130,7 +130,6 @@ class LoadingItemRunnable(qt.QRunnable):
         item = Hdf5Item(text=text, obj=h5obj, parent=oldItem.parent, populateAll=True)
         return item
 
-    @qt.Slot()
     def run(self):
         """Process the file loading. The worker is used as holder
         of the data and the signal. The result is sent as a signal.
@@ -283,6 +282,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         self.__root.removeChildAtIndex(row)
         self.endRemoveRows()
         if newItem is not None:
+            rootIndex = qt.QModelIndex()
             self.__openedFiles.append(newItem.obj)
             self.beginInsertRows(rootIndex, row, row)
             self.__root.insertChild(row, newItem)
@@ -325,7 +325,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         Returns an object that contains serialized items of data corresponding
         to the list of indexes specified.
 
-        :param list(qt.QModelIndex) indexes: List of indexes
+        :param List[qt.QModelIndex] indexes: List of indexes
         :rtype: qt.QMimeData
         """
         if not self.__fileMoveEnabled or len(indexes) == 0:
@@ -587,6 +587,9 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             row = self.__root.childCount()
         self.insertNode(row, Hdf5Item(text=text, obj=h5pyObject, parent=self.__root))
 
+    def hasPendingOperations(self):
+        return len(self.__runnerSet) > 0
+
     def insertFileAsync(self, filename, row=-1):
         if not os.path.isfile(filename):
             raise IOError("Filename '%s' must be a file path" % filename)
@@ -599,9 +602,9 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         # start loading the real one
         runnable = LoadingItemRunnable(filename, item)
         runnable.itemReady.connect(self.__itemReady)
-        self.__runnerSet.add(runnable)
         runnable.runnerFinished.connect(self.__releaseRunner)
-        qt.QThreadPool.globalInstance().start(runnable)
+        self.__runnerSet.add(runnable)
+        qt.silxGlobalThreadPool().start(runnable)
 
     def __releaseRunner(self, runner):
         self.__runnerSet.remove(runner)
@@ -621,3 +624,75 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
 
     def appendFile(self, filename):
         self.insertFile(filename, -1)
+
+    def indexFromH5Object(self, h5Object):
+        """Returns a model index from an h5py-like object.
+
+        :param object h5Object: An h5py-like object
+        :rtype: qt.QModelIndex
+        """
+        if h5Object is None:
+            return qt.QModelIndex()
+
+        filename = h5Object.file.filename
+
+        # Seach for the right roots
+        rootIndices = []
+        for index in range(self.rowCount(qt.QModelIndex())):
+            index = self.index(index, 0, qt.QModelIndex())
+            obj = self.data(index, Hdf5TreeModel.H5PY_OBJECT_ROLE)
+            if obj.file.filename == filename:
+                # We can have many roots with different subtree of the same
+                # root
+                rootIndices.append(index)
+
+        if len(rootIndices) == 0:
+            # No root found
+            return qt.QModelIndex()
+
+        path = h5Object.name + "/"
+        path = path.replace("//", "/")
+
+        # Search for the right node
+        found = False
+        foundIndices = []
+        for _ in range(1000 * len(rootIndices)):
+            # Avoid too much iterations, in case of recurssive links
+            if len(foundIndices) == 0:
+                if len(rootIndices) == 0:
+                    # Nothing found
+                    break
+                # Start fron a new root
+                foundIndices.append(rootIndices.pop(0))
+
+                obj = self.data(index, Hdf5TreeModel.H5PY_OBJECT_ROLE)
+                p = obj.name + "/"
+                p = p.replace("//", "/")
+                if path == p:
+                    found = True
+                    break
+
+            parentIndex = foundIndices[-1]
+            for index in range(self.rowCount(parentIndex)):
+                index = self.index(index, 0, parentIndex)
+                obj = self.data(index, Hdf5TreeModel.H5PY_OBJECT_ROLE)
+
+                p = obj.name + "/"
+                p = p.replace("//", "/")
+                if path == p:
+                    foundIndices.append(index)
+                    found = True
+                    break
+                elif path.startswith(p):
+                    foundIndices.append(index)
+                    break
+            else:
+                # Nothing found, start again with another root
+                foundIndices = []
+
+            if found:
+                break
+
+        if found:
+            return foundIndices[-1]
+        return qt.QModelIndex()

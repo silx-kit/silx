@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "02/10/2017"
+__date__ = "16/10/2017"
 
 
 import logging
@@ -83,10 +83,10 @@ class PositionInfo(qt.QWidget):
     >>> plot.show()  # To display the PlotWindow with the position widget
 
     :param plot: The PlotWidget this widget is displaying data coords from.
-    :param converters: List of name to display and conversion function from
-                       (x, y) in data coords to displayed value.
-                       If None, the default, it displays X and Y.
-    :type converters: Iterable of 2-tuple (str, function)
+    :param converters:
+        List of 2-tuple: name to display and conversion function from (x, y)
+        in data coords to displayed value.
+        If None, the default, it displays X and Y.
     :param parent: Parent widget
     """
 
@@ -151,13 +151,16 @@ class PositionInfo(qt.QWidget):
         """
         if event['event'] == 'mouseMoved':
             x, y = event['x'], event['y']
-            self._updateStatusBar(x, y)
+            xPixel, yPixel = event['xpixel'], event['ypixel']
+            self._updateStatusBar(x, y, xPixel, yPixel)
 
-    def _updateStatusBar(self, x, y):
+    def _updateStatusBar(self, x, y, xPixel, yPixel):
         """Update information from the status bar using the definitions.
 
         :param float x: Position-x in data
         :param float y: Position-y in data
+        :param float xPixel: Position-x in pixels
+        :param float yPixel: Position-y in pixels
         """
         styleSheet = "color: rgb(0, 0, 0);"  # Default style
 
@@ -180,8 +183,6 @@ class PositionInfo(qt.QWidget):
                     closestInPixels = self.plot.dataToPixel(
                         xClosest, yClosest, axis=activeCurve.getYAxis())
                     if closestInPixels is not None:
-                        xPixel, yPixel = event['xpixel'], event['ypixel']
-
                         if (abs(closestInPixels[0] - xPixel) < 5 and
                                 abs(closestInPixels[1] - yPixel) < 5):
                             # Update label style sheet

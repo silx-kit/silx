@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -54,48 +54,6 @@ from .Plot3DWindow import Plot3DWindow
 from .tools import InteractiveModeToolBar
 
 _logger = logging.getLogger(__name__)
-
-
-class _BoundedGroup(scene.Group):
-    """Group with data bounds"""
-
-    _shape = None  # To provide a default value without overriding __init__
-
-    @property
-    def shape(self):
-        """Data shape (depth, height, width) of this group or None"""
-        return self._shape
-
-    @shape.setter
-    def shape(self, shape):
-        if shape is None:
-            self._shape = None
-        else:
-            depth, height, width = shape
-            self._shape = float(depth), float(height), float(width)
-
-    @property
-    def size(self):
-        """Data size (width, height, depth) of this group or None"""
-        shape = self.shape
-        if shape is None:
-            return None
-        else:
-            return shape[2], shape[1], shape[0]
-
-    @size.setter
-    def size(self, size):
-        if size is None:
-            self.shape = None
-        else:
-            self.shape = size[2], size[1], size[0]
-
-    def _bounds(self, dataBounds=False):
-        if dataBounds and self.size is not None:
-            return numpy.array(((0., 0., 0.), self.size),
-                               dtype=numpy.float32)
-        else:
-            return super(_BoundedGroup, self)._bounds(dataBounds)
 
 
 class Isosurface(qt.QObject):
@@ -336,7 +294,8 @@ class SelectedRegion(object):
 class CutPlane(qt.QObject):
     """Class representing a cutting plane
 
-    :param ScalarFieldView sfView: Widget in which the cut plane is applied.
+    :param ~silx.gui.plot3d.ScalarFieldView.ScalarFieldView sfView:
+        Widget in which the cut plane is applied.
     """
 
     sigVisibilityChanged = qt.Signal(bool)
@@ -555,7 +514,7 @@ class CutPlane(qt.QObject):
         """Returns the colormap set by :meth:`setColormap`.
 
         :return: The colormap
-        :rtype: Colormap
+        :rtype: ~silx.gui.plot.Colormap.Colormap
         """
         return self._colormap
 
@@ -572,7 +531,7 @@ class CutPlane(qt.QObject):
         :param name: Name of the colormap in
             'gray', 'reversed gray', 'temperature', 'red', 'green', 'blue'.
             Or Colormap object.
-        :type name: str or Colormap
+        :type name: str or ~silx.gui.plot.Colormap.Colormap
         :param str norm: Colormap mapping: 'linear' or 'log'.
         :param float vmin: The minimum value of the range or None for autoscale
         :param float vmax: The maximum value of the range or None for autoscale
@@ -609,14 +568,7 @@ class CutPlane(qt.QObject):
         colormap = self.getColormap()
         sceneCMap = self._plane.colormap
 
-        indices = numpy.linspace(0., 1., 256)
-        colormapDisp = Colormap(name=colormap.getName(),
-                                normalization=Colormap.LINEAR,
-                                vmin=None,
-                                vmax=None,
-                                colors=colormap.getColormapLUT())
-        colors = colormapDisp.applyToData(indices)
-        sceneCMap.colormap = colors
+        sceneCMap.colormap = colormap.getNColors()
 
         sceneCMap.norm = colormap.getNormalization()
         range_ = colormap.getColormapRange(data=self._dataRange)
@@ -776,7 +728,7 @@ class ScalarFieldView(Plot3DWindow):
         self._data = None
         self._dataRange = None
 
-        self._group = _BoundedGroup()
+        self._group = primitives.BoundedGroup()
         self._group.transforms = [self._dataTranslate, self._dataScale]
 
         self._selectionBox = primitives.Box()

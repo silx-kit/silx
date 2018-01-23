@@ -36,7 +36,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "28/06/2017"
+__date__ = "03/01/2018"
 
 from . import PlotAction
 import logging
@@ -111,7 +111,7 @@ class FitAction(PlotAction):
 
         if histo is None and curve is None:
             # ambiguous case, we need to ask which plot item to fit
-            isd = ItemsSelectionDialog(plot=self.plot)
+            isd = ItemsSelectionDialog(parent=self.plot, plot=self.plot)
             isd.setWindowTitle("Select item to be fitted")
             isd.setItemsSelectionMode(qt.QTableWidget.SingleSelection)
             isd.setAvailableKinds(["curve", "histogram"])

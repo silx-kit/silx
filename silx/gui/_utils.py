@@ -87,7 +87,7 @@ def convertQImageToArray(image):
         image = image.convertToFormat(qt.QImage.Format_RGB888)
 
     ptr = image.bits()
-    if qt.BINDING != 'PySide':
+    if qt.BINDING not in ('PySide', 'PySide2'):
         ptr.setsize(image.byteCount())
         if qt.BINDING == 'PyQt4' and sys.version_info[0] == 2:
             ptr = ptr.asstring()

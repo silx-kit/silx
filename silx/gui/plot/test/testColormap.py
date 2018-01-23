@@ -29,12 +29,14 @@ from __future__ import absolute_import
 
 __authors__ = ["H.Payno"]
 __license__ = "MIT"
-__date__ = "05/12/2016"
+__date__ = "17/01/2018"
 
 import unittest
 import numpy
-from silx.test.utils import ParametricTestCase
+from silx.utils.testutils import ParametricTestCase
 from silx.gui.plot.Colormap import Colormap
+from silx.gui.plot.Colormap import preferredColormaps, setPreferredColormaps
+from silx.utils.exceptions import NotEditableError
 
 
 class TestDictAPI(unittest.TestCase):
@@ -134,14 +136,11 @@ class TestDictAPI(unittest.TestCase):
             'autoscale': False
         }
         with self.assertRaises(ValueError):
-            colormapObject = Colormap._fromDict(clm_dict)
+            Colormap._fromDict(clm_dict)
 
 
 class TestObjectAPI(ParametricTestCase):
     """Test the new Object API of the colormap"""
-    def setUp(self):
-        signalHasBeenEmitting = False
-
     def testVMinVMax(self):
         """Test getter and setter associated to vmin and vmax values"""
         vmin = 1.0
@@ -277,10 +276,73 @@ class TestObjectAPI(ParametricTestCase):
                     self.assertEqual(image.shape[-1], 4)
                     self.assertEqual(image.shape[:-1], data.shape)
 
+    def testGetNColors(self):
+        """Test getNColors method"""
+        # specific LUT
+        colormap = Colormap(name=None,
+                            colors=((0, 0, 0), (1, 1, 1)),
+                            vmin=1000,
+                            vmax=2000)
+        colors = colormap.getNColors()
+        self.assertTrue(numpy.all(numpy.equal(
+            colors,
+            ((0, 0, 0, 255), (255, 255, 255, 255)))))
+
+    def testEditableMode(self):
+        """Make sure the colormap will raise NotEditableError when try to 
+        change a colormap not editable"""
+        colormap = Colormap()
+        colormap.setEditable(False)
+        with self.assertRaises(NotEditableError):
+            colormap.setVRange(0., 1.)
+        with self.assertRaises(NotEditableError):
+            colormap.setVMin(1.)
+        with self.assertRaises(NotEditableError):
+            colormap.setVMax(1.)
+        with self.assertRaises(NotEditableError):
+            colormap.setNormalization(Colormap.LOGARITHM)
+        with self.assertRaises(NotEditableError):
+            colormap.setName('magma')
+        with self.assertRaises(NotEditableError):
+            colormap.setColormapLUT(numpy.array([0, 1]))
+        with self.assertRaises(NotEditableError):
+            colormap._setFromDict(colormap._toDict())
+        state = colormap.saveState()
+        with self.assertRaises(NotEditableError):
+            colormap.restoreState(state)
+
+
+class TestPreferredColormaps(unittest.TestCase):
+    """Test get|setPreferredColormaps functions"""
+
+    def setUp(self):
+        # Save preferred colormaps
+        self._colormaps = preferredColormaps()
+
+    def tearDown(self):
+        # Restore saved preferred colormaps
+        setPreferredColormaps(self._colormaps)
+
+    def test(self):
+        colormaps = 'viridis', 'magma'
+
+        setPreferredColormaps(colormaps)
+        self.assertEqual(preferredColormaps(), colormaps)
+
+        with self.assertRaises(ValueError):
+            setPreferredColormaps(())
+
+        with self.assertRaises(ValueError):
+            setPreferredColormaps(('This is not a colormap',))
+
+        colormaps = 'red', 'green'
+        setPreferredColormaps(('This is not a colormap',) + colormaps)
+        self.assertEqual(preferredColormaps(), colormaps)
+
 
 def suite():
     test_suite = unittest.TestSuite()
-    for ui in (TestDictAPI, TestObjectAPI):
+    for ui in (TestDictAPI, TestObjectAPI, TestPreferredColormaps):
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(ui))
 

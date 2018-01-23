@@ -6,7 +6,7 @@ development of data assessment, reduction and analysis applications at synchrotr
 radiation facilities.
 It aims at providing reading/writing different file formats, data reduction routines
 and a set of Qt widgets to browse and visualize data.
-Silx can be cited by its DOIs referenced on `Zenodo <https://doi.org/10.5281/zenodo.1003146>`_.
+Silx can be cited by its DOIs referenced on `Zenodo <https://doi.org/10.5281/zenodo.591709>`_.
 
 The current version provides reading `SPEC <https://certif.com/spec.html>`_ file
 format, histogramming, fitting, curves and image plot widget with a set of
@@ -20,6 +20,7 @@ associated tools.
    description/index.rst
    tutorials.rst
    modules/index.rst
+   applications/index.rst
    changelog.rst
    license.rst
    virtualenv.rst
@@ -38,6 +39,9 @@ associated tools.
 
 :doc:`modules/index`
     Documentation of the packages included in *silx*
+
+:doc:`applications/index`
+    Documentation of the applications provided by *silx*
 
 :doc:`modules/gui/gallery`
     Widgets gallery and screenshots

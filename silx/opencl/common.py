@@ -34,7 +34,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "2012-2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "12/10/2017"
+__date__ = "16/10/2017"
 __status__ = "stable"
 __all__ = ["ocl", "pyopencl", "mf", "release_cl_buffers", "allocate_cl_buffers",
            "measure_workgroup_size", "kernel_workgroup_size"]
@@ -399,8 +399,8 @@ class OpenCL(object):
         # Nothing found
         return None
 
-    def create_context(self, devicetype="ALL", useFp64=False, platformid=None,
-                       deviceid=None, memory=None, cached=True):
+    def create_context(self, devicetype="ALL", memory=None, useFp64=False,
+                       platformid=None, deviceid=None, cached=True):
         """
         Choose a device and initiate a context.
 
@@ -410,10 +410,10 @@ class OpenCL(object):
         E.g.: If Nvidia driver is installed, GPU will succeed but CPU will fail.
               The AMD SDK kit is required for CPU via OpenCL.
         :param devicetype: string in ["cpu","gpu", "all", "acc"]
+        :param memory: select device with at least this amount of memory
         :param useFp64: boolean specifying if double precision will be used
         :param platformid: integer
         :param deviceid: integer
-        :param memory: minimum amunt of RAM of the device
         :param cached: True if we want to cache the context
         :return: OpenCL context on the selected device
         """
@@ -426,8 +426,8 @@ class OpenCL(object):
             platformid, deviceid = pyopencl_ctx
         else:
             if useFp64:
-                ids = ocl.select_device(type=devicetype, extensions=["cl_khr_int64_base_atomics"],
-                                        memory=memory)
+                ids = ocl.select_device(type=devicetype, memory=memory,
+                                        extensions=["cl_khr_int64_base_atomics"])
             else:
                 ids = ocl.select_device(dtype=devicetype, memory=memory)
             if ids:

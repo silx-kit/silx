@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@ from __future__ import absolute_import, division, unicode_literals
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "05/10/2016"
+__date__ = "11/01/2018"
 
 import string
 import numpy
@@ -53,6 +53,7 @@ class ColormapMesh3D(Geometry):
     uniform mat4 transformMat;
     //uniform mat3 matrixInvTranspose;
     uniform vec3 dataScale;
+    uniform vec3 texCoordsOffset;
 
     varying vec4 vCameraPosition;
     varying vec3 vPosition;
@@ -64,7 +65,7 @@ class ColormapMesh3D(Geometry):
         vCameraPosition = transformMat * vec4(position, 1.0);
         //vNormal = matrixInvTranspose * normalize(normal);
         vPosition = position;
-        vTexCoords = dataScale * position;
+        vTexCoords = dataScale * position + texCoordsOffset;
         vNormal = normal;
         gl_Position = matrix * vec4(position, 1.0);
     }
@@ -113,6 +114,8 @@ class ColormapMesh3D(Geometry):
                                              normal=normal)
 
         self.isBackfaceVisible = True
+        self.textureOffset = 0., 0., 0.
+        """Offset to add to texture coordinates"""
 
     def setData(self, data, copy=True):
         data = numpy.array(data, copy=copy, order='C')
@@ -209,6 +212,7 @@ class ColormapMesh3D(Geometry):
         shape = self._data.shape
         scales = 1./shape[2], 1./shape[1], 1./shape[0]
         gl.glUniform3f(program.uniforms['dataScale'], *scales)
+        gl.glUniform3f(program.uniforms['texCoordsOffset'], *self.textureOffset)
 
         gl.glUniform1i(program.uniforms['data'], self._texture.texUnit)
 
@@ -275,20 +279,12 @@ class CutPlane(PlaneInGroup):
             self._interpolation = interpolation
             if self._mesh is not None:
                 self._mesh.interpolation = interpolation
+            self.notify()
 
     def prepareGL2(self, ctx):
         if self.isValid:
 
             contourVertices = self.contourVertices
-
-            if (self.interpolation == 'nearest' and
-                    contourVertices is not None and len(contourVertices)):
-                # Avoid cut plane co-linear with array bin edges
-                for index, normal in enumerate(((1., 0., 0.), (0., 1., 0.), (0., 0., 1.))):
-                    if (numpy.all(numpy.equal(self.plane.normal, normal)) and
-                            int(self.plane.point[index]) == self.plane.point[index]):
-                        contourVertices += self.plane.normal * 0.01  # Add an offset
-                        break
 
             if self._mesh is None and self._data is not None:
                 self._mesh = ColormapMesh3D(contourVertices,
@@ -298,7 +294,7 @@ class CutPlane(PlaneInGroup):
                                             mode='fan',
                                             colormap=self.colormap)
                 self._mesh.alpha = self._alpha
-                self._interpolation = self.interpolation
+                self._mesh.interpolation = self.interpolation
                 self._children.insert(0, self._mesh)
 
             if self._mesh is not None:
@@ -309,6 +305,23 @@ class CutPlane(PlaneInGroup):
                     self._mesh.visible = True
                     self._mesh.setAttribute('normal', self.plane.normal)
                     self._mesh.setAttribute('position', contourVertices)
+
+            needTextureOffset = False
+            if self.interpolation == 'nearest':
+                # If cut plane is co-linear with array bin edges add texture offset
+                planePt = self.plane.point
+                for index, normal in enumerate(((1., 0., 0.),
+                                                (0., 1., 0.),
+                                                (0., 0., 1.))):
+                    if (numpy.all(numpy.equal(self.plane.normal, normal)) and
+                            int(planePt[index]) == planePt[index]):
+                        needTextureOffset = True
+                        break
+
+            if needTextureOffset:
+                self._mesh.textureOffset = self.plane.normal * 1e-6
+            else:
+                self._mesh.textureOffset = 0., 0., 0.
 
         super(CutPlane, self).prepareGL2(ctx)
 
@@ -348,10 +361,11 @@ class CutPlane(PlaneInGroup):
             return cachevertices
 
         # Cache is not OK, rebuild it
-        boxvertices = bounds[0] + Box._vertices.copy()*(bounds[1] - bounds[0])
-        lineindices = Box._lineIndices
+        boxVertices = Box.getVertices(copy=True)
+        boxVertices = bounds[0] + boxVertices * (bounds[1] - bounds[0])
+        lineIndices = Box.getLineIndices(copy=False)
         vertices = utils.boxPlaneIntersect(
-            boxvertices, lineindices, self.plane.normal, self.plane.point)
+            boxVertices, lineIndices, self.plane.normal, self.plane.point)
 
         self._cache = bounds, vertices if len(vertices) != 0 else None
 

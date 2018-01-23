@@ -25,9 +25,9 @@
 
 __authors__ = ["P. Knobel", "V.A. Sole"]
 __license__ = "MIT"
-__date__ = "03/08/2017"
+__date__ = "17/01/2018"
 
-import gc
+
 import locale
 import logging
 import numpy
@@ -36,7 +36,7 @@ import sys
 import tempfile
 import unittest
 
-from silx.test import utils
+from silx.utils import testutils
 
 from ..specfile import SpecFile, Scan
 from .. import specfile
@@ -177,16 +177,9 @@ class TestSpecFile(unittest.TestCase):
         self.scan1_no_fhdr_crash = self.sf_no_fhdr_crash[0]
 
     def tearDown(self):
-        del self.sf
-        del self.sf_no_fhdr
-        del self.scan1
-        del self.scan1_2
-        del self.scan25
-        del self.scan1_no_fhdr
-        del self.sf_no_fhdr_crash
-        del self.scan1_no_fhdr_crash
-        del self.empty_scan
-        gc.collect()
+        self.sf.close()
+        self.sf_no_fhdr.close()
+        self.sf_no_fhdr_crash.close()
 
     def test_open(self):
         self.assertIsInstance(self.sf, SpecFile)
@@ -376,7 +369,7 @@ class TestSpecFile(unittest.TestCase):
         self.assertEqual(self.scan25.mca.channels,
                          [])
 
-    @utils.test_logging(specfile._logger.name, warning=1)
+    @testutils.test_logging(specfile._logger.name, warning=1)
     def test_empty_scan(self):
         """Test reading a scan with no data points"""
         self.assertEqual(len(self.empty_scan.labels),
@@ -399,13 +392,12 @@ class TestSFLocale(unittest.TestCase):
     def tearDownClass(cls):
         os.unlink(cls.fname)
         locale.setlocale(locale.LC_NUMERIC, loc)  # restore saved locale
-        gc.collect()
 
     def crunch_data(self):
         self.sf3 = SpecFile(self.fname)
         self.assertAlmostEqual(self.sf3[0].data_line(1)[2],
                                1.56)
-        del self.sf3
+        self.sf3.close()
 
     @unittest.skipIf(not try_DE, "de_DE.utf8 locale not installed")
     def test_locale_de_DE(self):

@@ -30,7 +30,7 @@ import unittest
 import numpy
 import sys
 
-from silx.test import utils
+from silx.utils import testutils
 from silx.math.fit.leastsq import _logger as fitlogger
 
 
@@ -241,7 +241,7 @@ class Test_leastsq(unittest.TestCase):
                                                       fittedpar[i])
             self.assertTrue(test_condition, msg)
 
-    @utils.test_logging(fitlogger.name, warning=2)
+    @testutils.test_logging(fitlogger.name, warning=2)
     def testBadlyShapedData(self):
         parameters_actual = [10.5, 2, 1000.0, 20., 15]
         x = numpy.arange(10000.).reshape(1000, 10)
@@ -263,7 +263,7 @@ class Test_leastsq(unittest.TestCase):
                                                           fittedpar[i])
                 self.assertTrue(test_condition, msg)
 
-    @utils.test_logging(fitlogger.name, warning=3)
+    @testutils.test_logging(fitlogger.name, warning=3)
     def testDataWithNaN(self):
         parameters_actual = [10.5, 2, 1000.0, 20., 15]
         x = numpy.arange(10000.).reshape(1000, 10)

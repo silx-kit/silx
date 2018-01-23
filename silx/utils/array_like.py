@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -300,7 +300,7 @@ class ListOfImages(object):
         The returned object refers to
         the same images but with a different :attr:`transposition`.
 
-        :param list[int] transposition: List/tuple of dimension numbers in the
+        :param List[int] transposition: List/tuple of dimension numbers in the
             wanted order.
             If ``None`` (default), reverse the dimensions.
         :return: new :class:`ListOfImages` object
@@ -568,7 +568,7 @@ class DatasetView(object):
         The returned object refers to
         the same dataset but with a different :attr:`transposition`.
 
-        :param list[int] transposition: List of dimension numbers in the wanted order.
+        :param List[int] transposition: List of dimension numbers in the wanted order.
             If ``None`` (default), reverse the dimensions.
         :return: Transposed DatasetView
         """
