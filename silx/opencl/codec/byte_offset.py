@@ -44,6 +44,7 @@ __status__ = "production"
 import functools
 import os
 import numpy
+import unittest
 from ..common import ocl, pyopencl
 from ..processing import BufferDescription, EventDescription, OpenclProcessing
 
@@ -61,6 +62,7 @@ else:
     logger.warning("No PyOpenCL, no byte-offset, please see fabio")
 
 
+@unittest.skipUnless(ocl, "PyOpenCl is missing")
 class ByteOffset(OpenclProcessing):
     """Perform the byte offset compression/decompression on the GPU
 
