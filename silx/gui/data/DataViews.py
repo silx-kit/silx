@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -628,6 +628,7 @@ class _ComplexImageView(DataView):
         from silx.gui.plot.ComplexImageView import ComplexImageView
         widget = ComplexImageView(parent=parent)
         widget.setColormap(self.defaultColormap(), mode=ComplexImageView.Mode.ABSOLUTE)
+        widget.setColormap(self.defaultColormap(), mode=ComplexImageView.Mode.SQUARE_AMPLITUDE)
         widget.setColormap(self.defaultColormap(), mode=ComplexImageView.Mode.REAL)
         widget.setColormap(self.defaultColormap(), mode=ComplexImageView.Mode.IMAGINARY)
         widget.getPlot().getColormapAction().setColorDialog(self.defaultColorDialog())

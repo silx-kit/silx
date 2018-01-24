@@ -41,6 +41,12 @@ Available icons
      - close
    * - |colorbar|
      - colorbar
+   * - |colormap-histogram|
+     - colormap-histogram
+   * - |colormap-none|
+     - colormap-none
+   * - |colormap-range|
+     - colormap-range
    * - |colormap|
      - colormap
    * - |crop|
@@ -143,6 +149,8 @@ Available icons
      - math-sigma
    * - |math-smooth|
      - math-smooth
+   * - |math-square-amplitude|
+     - math-square-amplitude
    * - |math-substract|
      - math-substract
    * - |math-swap-sign|
@@ -281,6 +289,9 @@ Available icons
 .. |clipboard| image:: ../../../../silx/resources/gui/icons/clipboard.png
 .. |close| image:: ../../../../silx/resources/gui/icons/close.png
 .. |colorbar| image:: ../../../../silx/resources/gui/icons/colorbar.png
+.. |colormap-histogram| image:: ../../../../silx/resources/gui/icons/colormap-histogram.png
+.. |colormap-none| image:: ../../../../silx/resources/gui/icons/colormap-none.png
+.. |colormap-range| image:: ../../../../silx/resources/gui/icons/colormap-range.png
 .. |colormap| image:: ../../../../silx/resources/gui/icons/colormap.png
 .. |crop| image:: ../../../../silx/resources/gui/icons/crop.png
 .. |crosshair| image:: ../../../../silx/resources/gui/icons/crosshair.png
@@ -332,6 +343,7 @@ Available icons
 .. |math-real| image:: ../../../../silx/resources/gui/icons/math-real.png
 .. |math-sigma| image:: ../../../../silx/resources/gui/icons/math-sigma.png
 .. |math-smooth| image:: ../../../../silx/resources/gui/icons/math-smooth.png
+.. |math-square-amplitude| image:: ../../../../silx/resources/gui/icons/math-square-amplitude.png
 .. |math-substract| image:: ../../../../silx/resources/gui/icons/math-substract.png
 .. |math-swap-sign| image:: ../../../../silx/resources/gui/icons/math-swap-sign.png
 .. |math-ymin-to-zero| image:: ../../../../silx/resources/gui/icons/math-ymin-to-zero.png

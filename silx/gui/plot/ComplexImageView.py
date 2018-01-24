@@ -171,6 +171,8 @@ class _ComplexDataToolButton(qt.QToolButton):
 
     _MODES = collections.OrderedDict([
         (ImageComplexData.Mode.ABSOLUTE, ('math-amplitude', 'Amplitude')),
+        (ImageComplexData.Mode.SQUARE_AMPLITUDE,
+         ('math-square-amplitude', 'Square amplitude')),
         (ImageComplexData.Mode.PHASE, ('math-phase', 'Phase')),
         (ImageComplexData.Mode.REAL, ('math-real', 'Real part')),
         (ImageComplexData.Mode.IMAGINARY,

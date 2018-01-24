@@ -120,6 +120,7 @@ class ImageComplexData(ImageBase, ColormapMixIn):
         IMAGINARY = 'imaginary'
         AMPLITUDE_PHASE = 'amplitude_phase'
         LOG10_AMPLITUDE_PHASE = 'log10_amplitude_phase'
+        SQUARE_AMPLITUDE = 'square_amplitude'
 
     def __init__(self):
         ImageBase.__init__(self)
@@ -145,6 +146,7 @@ class ImageComplexData(ImageBase, ColormapMixIn):
             self.Mode.IMAGINARY: colormap,
             self.Mode.AMPLITUDE_PHASE: phaseColormap,
             self.Mode.LOG10_AMPLITUDE_PHASE: phaseColormap,
+            self.Mode.SQUARE_AMPLITUDE: colormap,
         }
 
     def _addBackendRenderer(self, backend):
@@ -317,6 +319,8 @@ class ImageComplexData(ImageBase, ColormapMixIn):
                           self.Mode.LOG10_AMPLITUDE_PHASE,
                           self.Mode.AMPLITUDE_PHASE):
                 data = numpy.absolute(complexData)
+            elif mode is self.Mode.SQUARE_AMPLITUDE:
+                data = numpy.absolute(complexData) ** 2
             else:
                 _logger.error(
                     'Unsupported conversion mode: %s, fallback to absolute',
