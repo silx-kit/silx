@@ -27,7 +27,7 @@ text."""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "27/09/2017"
+__date__ = "23/01/2018"
 
 import numpy
 from silx.third_party import six
@@ -153,7 +153,8 @@ class Hdf5Formatter(qt.QObject):
                 if not full:
                     return "compound"
                 else:
-                    compound = [d[0] for d in dtype.fields.values()]
+                    fields = sorted(dtype.fields.items(), key=lambda e: e[1][1])
+                    compound = [d[1][0] for d in fields]
                     compound = [self.humanReadableDType(d) for d in compound]
                     return "compound(%s)" % ", ".join(compound)
         elif numpy.issubdtype(dtype, numpy.integer):
