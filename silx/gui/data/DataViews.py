@@ -949,6 +949,94 @@ class _ImageView(CompositeDataView):
         self.addView(_Plot2dView(parent))
 
 
+class _InvalidNXdataView(DataView):
+    """DataView showing a simple label with an error message
+    to inform that a group with @NX_class=NXdata cannot be
+    interpreted by any NXDataview."""
+    def __init__(self, parent):
+        DataView.__init__(self, parent)
+        self._msg = "Group has @NX_class = NXdata, but could not be interpreted"
+        self._msg += " as valid NXdata."
+
+    def createWidget(self, parent):
+        widget = qt.QLabel(parent)
+        widget.setWordWrap(True)
+        widget.setStyleSheet("QLabel { color : red; }")
+        return widget
+
+    def axesNames(self, data, info):
+        return []
+
+    def clear(self):
+        self.getWidget().setText("")
+
+    def setData(self, data):
+        self.getWidget().setText(self._msg)
+
+    def getDataPriority(self, data, info):
+        data = self.normalizeData(data)
+        if silx.io.is_group(data):
+            nxd = nxdata.get_NXdata_in_group(data)
+            nx_class = get_attr_as_string(data, "NX_class")
+
+            if nxd is None:
+                if nx_class == "NXdata":
+                    # invalid: could not even be parsed by NXdata
+                    return 100
+                elif nx_class == "NXentry":
+                    if "default" not in data.attrs:
+                        # no link to NXdata, no problem
+                        return DataView.UNSUPPORTED
+                    self._msg = "NXentry group provides a @default attribute,"
+                    default_nxdata_name = data.attrs["default"]
+                    if default_nxdata_name not in data:
+                        self._msg += " but no corresponding NXdata group exists."
+                    elif get_attr_as_string(data[default_nxdata_name], "NX_class") != "NXdata":
+                        self._msg += " but the corresponding item is not a "
+                        self._msg += "NXdata group."
+                    else:
+                        self._msg += " but the corresponding NXdata seems to be"
+                        self._msg += " malformed."
+                    return 100
+                elif nx_class == "NXroot" or silx.io.is_file(data):
+                    if "default" not in data.attrs:
+                        # no link to NXentry, no problem
+                        return DataView.UNSUPPORTED
+                    default_entry_name = data.attrs["default"]
+                    if default_entry_name not in data:
+                        # this is a problem, but not NXdata related
+                        return DataView.UNSUPPORTED
+                    default_entry = data[default_entry_name]
+                    if "default" not in default_entry.attrs:
+                        # no NXdata specified, no problemo
+                        return DataView.UNSUPPORTED
+                    default_nxdata_name = default_entry.attrs["default"]
+                    self._msg = "NXroot group provides a @default attribute "
+                    self._msg += "pointing to a NXentry which defines its own "
+                    self._msg += "@default attribute, "
+                    if default_nxdata_name not in default_entry:
+                        self._msg += " but no corresponding NXdata group exists."
+                    elif get_attr_as_string(default_entry[default_nxdata_name],
+                                            "NX_class") != "NXdata":
+                        self._msg += " but the corresponding item is not a "
+                        self._msg += "NXdata group."
+                    else:
+                        self._msg += " but the corresponding NXdata seems to be"
+                        self._msg += " malformed."
+                    return 100
+                else:
+                    # Not pretending to be NXdata, no problem
+                    return DataView.UNSUPPORTED
+
+            is_scalar = nxd.signal_is_0d or nxd.interpretation in ["scalar", "scaler"]
+            if not (is_scalar or nxd.is_curve or nxd.is_x_y_value_scatter or
+                    nxd.is_image or nxd.is_stack):
+                # invalid: cannot be plotted by any widget
+                return 100
+
+        return DataView.UNSUPPORTED
+
+
 class _NXdataScalarView(DataView):
     """DataView using a table view for displaying NXdata scalars:
     0-D signal or n-D signal with *@interpretation=scalar*"""
@@ -1025,14 +1113,7 @@ class _NXdataCurveView(DataView):
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
         if info.hasNXdata:
-            nxd = nxdata.get_NXdata_in_group(data)
-            if nxd.is_x_y_value_scatter or nxd.is_unsupported_scatter:
-                return DataView.UNSUPPORTED
-
-            if nxd.signal_is_1d and \
-                    nxd.interpretation not in ["scalar", "scaler"]:
-                return 100
-            if nxd.interpretation == "spectrum":
+            if nxdata.get_NXdata_in_group(data).is_curve:
                 return 100
         return DataView.UNSUPPORTED
 
@@ -1130,12 +1211,9 @@ class _NXdataImageView(DataView):
         data = self.normalizeData(data)
 
         if info.hasNXdata:
-            nxd = nxdata.get_NXdata_in_group(data)
-            if nxd.signal_is_2d:
-                if nxd.interpretation not in ["scalar", "spectrum", "scaler"]:
-                    return 100
-            if nxd.interpretation in ["image", "rgba-image"]:
+            if nxdata.get_NXdata_in_group(data).is_image:
                 return 100
+
         return DataView.UNSUPPORTED
 
 
@@ -1176,14 +1254,9 @@ class _NXdataStackView(DataView):
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
-
         if info.hasNXdata:
-            nxd = nxdata.get_NXdata_in_group(data)
-            if nxd.signal_ndim >= 3:
-                if nxd.interpretation not in ["scalar", "scaler",
-                                              "spectrum", "image",
-                                              "rgba-image"]:
-                    return 100
+            if nxdata.get_NXdata_in_group(data).is_stack:
+                return 100
 
         return DataView.UNSUPPORTED
 
@@ -1197,6 +1270,7 @@ class _NXdataView(CompositeDataView):
             label="NXdata",
             icon=icons.getQIcon("view-nexus"))
 
+        self.addView(_InvalidNXdataView(parent))
         self.addView(_NXdataScalarView(parent))
         self.addView(_NXdataCurveView(parent))
         self.addView(_NXdataXYVScatterView(parent))
