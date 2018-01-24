@@ -97,8 +97,8 @@ before_test:
     - "pip list --format=columns"
 
     # Try to close popups
-    - "pip install --upgrade pynput"
-    - "python ./ci/close_popup.py"
+    #- "pip install --upgrade pynput"
+    #- "python ./ci/close_popup.py"
 
 test_script:
     # Run tests with selected Qt binding and without OpenCL
