@@ -66,7 +66,6 @@ def c_format_string_to_re(pattern_string):
 
     # %0nd
     for sub_pattern in re.findall("%0\d+d", pattern_string):
-        print(sub_pattern)
         n = int(re.search("%0(\d+)d", sub_pattern).group(1))
         if n == 1:
             re_sub_pattern = "([+-]?\d)"
@@ -384,7 +383,6 @@ def main(argv):
         if not options.input_files:
             _logger.error("No file matching --file-pattern found.")
             return -1
-
 
     # Test that the output path is writeable
     if "::" in options.output_uri:
