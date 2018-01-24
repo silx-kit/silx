@@ -59,8 +59,8 @@ def c_format_string_to_re(pattern_string):
     :return: Equivalent regular expression (e.g. "\d+", "\d{4}")
     """
     # escape dots and backslashes
-    pattern_string = pattern_string.replace(".", "\.")
     pattern_string = pattern_string.replace("\\", "\\\\")
+    pattern_string = pattern_string.replace(".", "\.")
 
     # %d
     pattern_string = pattern_string.replace("%d", "([-+]?\d+)")
