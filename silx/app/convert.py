@@ -80,7 +80,7 @@ def c_format_string_to_re(pattern_string):
 def drop_indices_before_begin(filenames, regex, begin):
     """
 
-    :param list(str) filenames: list of filenames
+    :param List[str] filenames: list of filenames
     :param str regex: Regexp used to find indices in a filename
     :param str begin: Comma separated list of begin indices
     :return: List of filenames with only indices >= begin
@@ -105,7 +105,7 @@ def drop_indices_before_begin(filenames, regex, begin):
 def drop_indices_after_end(filenames, regex, end):
     """
 
-    :param list(str) filenames: list of filenames
+    :param List[str] filenames: list of filenames
     :param str regex: Regexp used to find indices in a filename
     :param str end: Comma separated list of end indices
     :return: List of filenames with only indices <= end
@@ -125,6 +125,32 @@ def drop_indices_after_end(filenames, regex, end):
         if good_indices:
             output_filenames.append(fname)
     return output_filenames
+
+
+def are_files_missing_in_series(filenames, regex):
+    """Return True if any file is missing in a list of filenames
+    that are supposed to follow a pattern.
+
+    :param List[str] filenames: list of filenames
+    :param str regex: Regexp used to find indices in a filename
+    :return: boolean
+    :raises AssertionError: if a filename does not match the regexp
+    """
+    previous_indices = None
+    for fname in filenames:
+        m = re.match(regex, fname)
+        assert m is not None, \
+            "regex %s does not match filename %s" % (fname, regex)
+        new_indices = list(map(int, m.groups()))
+        if previous_indices is not None:
+            for old_idx, new_idx in zip(previous_indices, new_indices):
+                if (new_idx - old_idx) > 1:
+                    _logger.error("Index increment > 1 in file series: "
+                                  "previous idx %d, next idx %d",
+                                  old_idx, new_idx)
+                    return True
+        previous_indices = new_indices
+    return False
 
 
 def are_all_specfile(filenames):
@@ -318,7 +344,8 @@ def main(argv):
                 # no files found, keep the name as it is, to raise an error later
                 options.input_files += [fname]
             else:
-                options.input_files += globbed_files
+                # glob does not sort files, but the bash shell does
+                options.input_files += sorted(globbed_files)
     else:
         # File series
         dirname = os.path.dirname(options.file_pattern)
@@ -349,9 +376,15 @@ def main(argv):
             _logger.debug("options.input_files after applying --end: %s",
                           options.input_files)
 
+        if are_files_missing_in_series(options.input_files,
+                                       file_pattern_re):
+            _logger.error("File missing in the file series. Aborting.")
+            return -1
+
         if not options.input_files:
             _logger.error("No file matching --file-pattern found.")
             return -1
+
 
     # Test that the output path is writeable
     if "::" in options.output_uri:
