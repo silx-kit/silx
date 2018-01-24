@@ -230,23 +230,25 @@ class SelectedRegion(object):
 
     :param arrayRange: Range of the selection in the array
         ((zmin, zmax), (ymin, ymax), (xmin, xmax))
+    :param dataBBox: Bounding box of the selection in data coordinates
+        ((xmin, xmax), (ymin, ymax), (zmin, zmax))
     :param translation: Offset from array to data coordinates (ox, oy, oz)
     :param scale: Scale from array to data coordinates (sx, sy, sz)
     """
 
-    def __init__(self, arrayRange,
+    def __init__(self, arrayRange, dataBBox,
                  translation=(0., 0., 0.),
                  scale=(1., 1., 1.)):
         self._arrayRange = numpy.array(arrayRange, copy=True, dtype=numpy.int)
         assert self._arrayRange.shape == (3, 2)
         assert numpy.all(self._arrayRange[:, 1] >= self._arrayRange[:, 0])
+
+        self._dataRange = dataBBox
+
         self._translation = numpy.array(translation, dtype=numpy.float32)
         assert self._translation.shape == (3,)
         self._scale = numpy.array(scale, dtype=numpy.float32)
         assert self._scale.shape == (3,)
-
-        self._dataRange = (self._translation.reshape(3, -1) +
-                           self._arrayRange[::-1] * self._scale.reshape(3, -1))
 
     def getArrayRange(self):
         """Returns array ranges of the selection: 3x2 array of int
@@ -268,6 +270,10 @@ class SelectedRegion(object):
 
     def getDataRange(self):
         """Range in the data coordinates of the selection: 3x2 array of float
+
+        When the transform matrix is not the identity matrix
+        (e.g., rotation, skew) the returned range is that of the selected region
+        bounding box in data coordinates.
 
         :return: A numpy array with ((xmin, xmax), (ymin, ymax), (zmin, zmax))
         :rtype: numpy.ndarray
@@ -1447,7 +1453,9 @@ class ScalarFieldView(Plot3DWindow):
         if self._selectedRange is None:
             return None
         else:
-            return SelectedRegion(self._selectedRange,
+            dataBBox = self._group.transforms.transformBounds(
+                self._selectedRange[::-1].T).T
+            return SelectedRegion(self._selectedRange, dataBBox,
                                   translation=self.getTranslation(),
                                   scale=self.getScale())
 
