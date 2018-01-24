@@ -33,6 +33,7 @@ import re
 import time
 
 import silx.io
+from silx.io.specfile import is_specfile
 
 try:
     from silx.io import fabioh5
@@ -65,7 +66,6 @@ def c_format_string_to_re(pattern_string):
 
     # %0nd
     for sub_pattern in re.findall("%0\d+d", pattern_string):
-        print(sub_pattern)
         n = int(re.search("%0(\d+)d", sub_pattern).group(1))
         if n == 1:
             re_sub_pattern = "([+-]?\d)"
@@ -79,7 +79,7 @@ def c_format_string_to_re(pattern_string):
 def drop_indices_before_begin(filenames, regex, begin):
     """
 
-    :param list(str) filenames: list of filenames
+    :param List[str] filenames: list of filenames
     :param str regex: Regexp used to find indices in a filename
     :param str begin: Comma separated list of begin indices
     :return: List of filenames with only indices >= begin
@@ -104,7 +104,7 @@ def drop_indices_before_begin(filenames, regex, begin):
 def drop_indices_after_end(filenames, regex, end):
     """
 
-    :param list(str) filenames: list of filenames
+    :param List[str] filenames: list of filenames
     :param str regex: Regexp used to find indices in a filename
     :param str end: Comma separated list of end indices
     :return: List of filenames with only indices <= end
@@ -126,6 +126,52 @@ def drop_indices_after_end(filenames, regex, end):
     return output_filenames
 
 
+def are_files_missing_in_series(filenames, regex):
+    """Return True if any file is missing in a list of filenames
+    that are supposed to follow a pattern.
+
+    :param List[str] filenames: list of filenames
+    :param str regex: Regexp used to find indices in a filename
+    :return: boolean
+    :raises AssertionError: if a filename does not match the regexp
+    """
+    previous_indices = None
+    for fname in filenames:
+        m = re.match(regex, fname)
+        assert m is not None, \
+            "regex %s does not match filename %s" % (fname, regex)
+        new_indices = list(map(int, m.groups()))
+        if previous_indices is not None:
+            for old_idx, new_idx in zip(previous_indices, new_indices):
+                if (new_idx - old_idx) > 1:
+                    _logger.error("Index increment > 1 in file series: "
+                                  "previous idx %d, next idx %d",
+                                  old_idx, new_idx)
+                    return True
+        previous_indices = new_indices
+    return False
+
+
+def are_all_specfile(filenames):
+    """Return True if all files in a list are SPEC files.
+    :param List[str] filenames: list of filenames
+    """
+    for fname in filenames:
+        if not is_specfile(fname):
+            return False
+    return True
+
+
+def contains_specfile(filenames):
+    """Return True if any file in a list are SPEC files.
+    :param List[str] filenames: list of filenames
+    """
+    for fname in filenames:
+        if is_specfile(fname):
+            return True
+    return False
+
+
 def main(argv):
     """
     Main function to launch the converter as an application
@@ -137,11 +183,15 @@ def main(argv):
     parser.add_argument(
         'input_files',
         nargs="*",
-        help='Input files (EDF, SPEC).')
+        help='Input files (EDF, TIFF, SPEC...). When specifying multiple '
+             'files, you cannot specify both fabio images and SPEC files. '
+             'Multiple SPEC files will simply be concatenated, with one '
+             'entry per scan. Multiple image files will be merged into '
+             'a single entry with a stack of images.')
     # input_files and --filepattern are mutually exclusive
     parser.add_argument(
         '--file-pattern',
-        help='File name pattern for loading a series of indexed files '
+        help='File name pattern for loading a series of indexed image files '
              '(toto_%%04d.edf). This argument is incompatible with argument '
              'input_files. If an output URI with a HDF5 path is provided, '
              'only the content of the NXdetector group will be copied there. '
@@ -153,7 +203,7 @@ def main(argv):
         help='Output file name (HDF5). An URI can be provided to write'
              ' the data into a specific group in the output file: '
              '/path/to/file::/path/to/group. '
-             'By default, the filename uses the current date and time:'
+             'If not provided, the filename defaults to a timestamp:'
              ' YYYYmmdd-HHMMSS.h5')
     parser.add_argument(
         '-m', '--mode',
@@ -166,9 +216,9 @@ def main(argv):
         '--begin',
         help='First file index, or first file indices to be considered. '
              'This argument only makes sense when used together with '
-             '--file-pattern. Provide as many start indices as '
-             'are indices in the file pattern, separated by commas. For '
-             'instance: "--filepattern toto_%%d.edf --begin 100", or '
+             '--file-pattern. Provide as many start indices as there '
+             'are indices in the file pattern, separated by commas. '
+             'Examples: "--filepattern toto_%%d.edf --begin 100", '
              ' "--filepattern toto_%%d_%%04d_%%02d.edf --begin 100,2000,5".')
     parser.add_argument(
         '--end',
@@ -176,13 +226,13 @@ def main(argv):
              'The same rules as with argument --begin apply. '
              'Example: "--filepattern toto_%%d_%%d.edf --end 199,1999"')
     parser.add_argument(
-        '--no-root-group',
+        '--add-root-group',
         action="store_true",
-        help='This option disables the default behavior of creating a '
-             'root group (entry) for each file to be converted. When '
-             'merging multiple input files, this can cause conflicts '
-             'when datasets have the same name (see --overwrite-data). '
-             'This option has no effect when using --file-pattern.')
+        help='This option causes each input file to be written to a '
+             'specific root group with the same name as the file. When '
+             'merging multiple input files, this can help preventing conflicts'
+             ' when datasets have the same name (see --overwrite-data). '
+             'This option is ignored when using --file-pattern.')
     parser.add_argument(
         '--overwrite-data',
         action="store_true",
@@ -229,7 +279,7 @@ def main(argv):
     parser.add_argument(
         '--shuffle',
         action="store_true",
-        help='Enables the byte shuffle filter, may improve the compression '
+        help='Enables the byte shuffle filter. This may improve the compression '
              'ratio for block oriented compressors like GZIP or LZF.')
     parser.add_argument(
         '--fletcher32',
@@ -293,7 +343,8 @@ def main(argv):
                 # no files found, keep the name as it is, to raise an error later
                 options.input_files += [fname]
             else:
-                options.input_files += globbed_files
+                # glob does not sort files, but the bash shell does
+                options.input_files += sorted(globbed_files)
     else:
         # File series
         dirname = os.path.dirname(options.file_pattern)
@@ -323,6 +374,11 @@ def main(argv):
                                                          options.end)
             _logger.debug("options.input_files after applying --end: %s",
                           options.input_files)
+
+        if are_files_missing_in_series(options.input_files,
+                                       file_pattern_re):
+            _logger.error("File missing in the file series. Aborting.")
+            return -1
 
         if not options.input_files:
             _logger.error("No file matching --file-pattern found.")
@@ -408,8 +464,10 @@ def main(argv):
     if options.fletcher32:
         create_dataset_args["fletcher32"] = True
 
-    if options.file_pattern is not None:
-        # File series
+    if (len(options.input_files) > 1 and
+            not contains_specfile(options.input_files) and
+            not options.add_root_group) or options.file_pattern is not None:
+        # File series -> stack of images
         if fabioh5 is None:
             # return a helpful error message if fabio is missing
             try:
@@ -433,12 +491,14 @@ def main(argv):
                         create_dataset_args=create_dataset_args,
                         min_size=options.min_size)
 
-    else:
-        # single file or unrelated files
+    elif len(options.input_files) == 1 or \
+            are_all_specfile(options.input_files) or\
+            options.add_root_group:
+        # single file, or spec files
         h5paths_and_groups = []
         for input_name in options.input_files:
             hdf5_path_for_file = hdf5_path
-            if not options.no_root_group:
+            if options.add_root_group:
                 hdf5_path_for_file = hdf5_path.rstrip("/") + "/" + os.path.basename(input_name)
             try:
                 h5paths_and_groups.append((hdf5_path_for_file,
@@ -446,7 +506,8 @@ def main(argv):
             except IOError:
                 _logger.error("Cannot read file %s. If this is a file format "
                               "supported by the fabio library, you can try to"
-                              "install fabio (`pip install fabio`).",
+                              " install fabio (`pip install fabio`)."
+                              " Aborting conversion.",
                               input_name)
                 return -1
 
@@ -457,6 +518,13 @@ def main(argv):
                             overwrite_data=options.overwrite_data,
                             create_dataset_args=create_dataset_args,
                             min_size=options.min_size)
+
+    else:
+        # multiple file, SPEC and fabio images mixed
+        _logger.error("Multiple files with incompatible formats specified. "
+                      "You can provide multiple SPEC files or multiple image "
+                      "files, but not both.")
+        return -1
 
     with h5py.File(output_name, mode="r+") as h5f:
         # append "silx convert" to the creator attribute, for NeXus files
