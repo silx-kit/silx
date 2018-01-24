@@ -41,7 +41,7 @@ from silx.gui.plot.actions.control import ColormapAction
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "17/01/2018"
+__date__ = "23/01/2018"
 
 _logger = logging.getLogger(__name__)
 
@@ -783,7 +783,11 @@ class _ScalarView(DataView):
         d = self.normalizeData(data)
         if silx.io.is_dataset(d):
             d = d[()]
-        text = self.__formatter.toString(d, data.dtype)
+        dtype = None
+        if data is not None:
+            if hasattr(data, "dtype"):
+                dtype = data.dtype
+        text = self.__formatter.toString(d, dtype)
         self.getWidget().setText(text)
 
     def axesNames(self, data, info):
