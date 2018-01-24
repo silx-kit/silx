@@ -950,9 +950,12 @@ class _InvalidNXdataView(DataView):
     interpreted by any NXDataview."""
     def __init__(self, parent):
         DataView.__init__(self, parent)
+        self._msg = "Group has @NX_class = NXdata, but could not be interpreted"
+        self._msg += " as valid NXdata."
 
     def createWidget(self, parent):
         widget = qt.QLabel(parent)
+        widget.setWordWrap(True)
         widget.setStyleSheet("QLabel { color : red; }")
         return widget
 
@@ -963,9 +966,7 @@ class _InvalidNXdataView(DataView):
         self.getWidget().setText("")
 
     def setData(self, data):
-        self.getWidget().setText(
-            "Group has @NX_class = NXdata, but could not be interpreted as"
-            " valid NXdata.")
+        self.getWidget().setText(self._msg)
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
@@ -977,9 +978,49 @@ class _InvalidNXdataView(DataView):
                 if nx_class == "NXdata":
                     # invalid: could not even be parsed by NXdata
                     return 100
+                elif nx_class == "NXentry":
+                    if "default" not in data.attrs:
+                        # no link to NXdata, no problem
+                        return DataView.UNSUPPORTED
+                    self._msg = "NXentry group provides a @default attribute,"
+                    default_nxdata_name = data.attrs["default"]
+                    if default_nxdata_name not in data:
+                        self._msg += " but no corresponding NXdata group exists."
+                    elif get_attr_as_string(data[default_nxdata_name], "NX_class") != "NXdata":
+                        self._msg += " but the corresponding item is not a "
+                        self._msg += "NXdata group."
+                    else:
+                        self._msg += " but the corresponding NXdata seems to be"
+                        self._msg += " malformed."
+                    return 100
+                elif nx_class == "NXroot" or silx.io.is_file(data):
+                    if "default" not in data.attrs:
+                        # no link to NXentry, no problem
+                        return DataView.UNSUPPORTED
+                    default_entry_name = data.attrs["default"]
+                    if default_entry_name not in data:
+                        # this is a problem, but not NXdata related
+                        return DataView.UNSUPPORTED
+                    default_entry = data[default_entry_name]
+                    if "default" not in default_entry.attrs:
+                        # no NXdata specified, no problemo
+                        return DataView.UNSUPPORTED
+                    default_nxdata_name = default_entry.attrs["default"]
+                    self._msg = "NXroot group provides a @default attribute "
+                    self._msg += "pointing to a NXentry which defines its own "
+                    self._msg += "@default attribute, "
+                    if default_nxdata_name not in default_entry:
+                        self._msg += " but no corresponding NXdata group exists."
+                    elif get_attr_as_string(default_entry[default_nxdata_name],
+                                            "NX_class") != "NXdata":
+                        self._msg += " but the corresponding item is not a "
+                        self._msg += "NXdata group."
+                    else:
+                        self._msg += " but the corresponding NXdata seems to be"
+                        self._msg += " malformed."
+                    return 100
                 else:
-                    # Not a NXdata group
-                    # TODO: NXentry and NXroot with @default
+                    # Not pretending to be NXdata, no problem
                     return DataView.UNSUPPORTED
 
             is_scalar = nxd.signal_is_0d or nxd.interpretation in ["scalar", "scaler"]

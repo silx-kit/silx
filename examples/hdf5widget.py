@@ -371,6 +371,7 @@ def get_hdf5_with_nxdata():
     gd0.attrs["NX_class"] = "NXdata"
     gd0.attrs["signal"] = "y"
     gd0.attrs["axes"] = b"x",
+    gd0.attrs["title"] = "simple y = f(x) scatters cannot be distinguished from curves"
     gd0.create_dataset("y", data=numpy.random.rand(128) - 0.5)
     gd0.create_dataset("x", data=2*numpy.random.rand(128))
     gd0.create_dataset("x_errors", data=0.05*numpy.random.rand(128))
@@ -409,7 +410,19 @@ def get_hdf5_with_nxdata():
 
     # invalid NXdata
     g = h5.create_group("invalid")
-    g.attrs["NX_class"] = "NXdata"
+    g0 = g.create_group("invalid NXdata")
+    g0.attrs["NX_class"] = "NXdata"
+
+    g1 = g.create_group("invalid NXentry")
+    g1.attrs["NX_class"] = "NXentry"
+    g1.attrs["default"] = "missing NXdata group"
+
+    g2 = g.create_group("invalid NXroot")
+    g2.attrs["NX_class"] = "NXroot"
+    g2.attrs["default"] = "invalid NXentry in NXroot"
+    g20 = g2.create_group("invalid NXentry in NXroot")
+    g20.attrs["NX_class"] = "NXentry"
+    g20.attrs["default"] = "missing NXdata group"
 
     h5.close()
 
