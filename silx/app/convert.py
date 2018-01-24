@@ -58,8 +58,9 @@ def c_format_string_to_re(pattern_string):
         Not supported: fixed length padded with whitespaces (e.g "%4d", "%-4d")
     :return: Equivalent regular expression (e.g. "\d+", "\d{4}")
     """
-    # escape dots
+    # escape dots and backslashes
     pattern_string = pattern_string.replace(".", "\.")
+    pattern_string = pattern_string.replace("\\", "\\\\")
 
     # %d
     pattern_string = pattern_string.replace("%d", "([-+]?\d+)")
