@@ -665,7 +665,7 @@ class DataSetItem(qt.QStandardItem):
 
         self.setEditable(False)
 
-        klasses = [DataTypeItem, DataShapeItem, OffsetItem, ScaleItem]
+        klasses = [DataTypeItem, DataShapeItem, OffsetItem]
         for klass in klasses:
             titleItem = qt.QStandardItem(klass.itemName)
             titleItem.setEditable(False)
@@ -681,6 +681,10 @@ class DataSetItem(qt.QStandardItem):
             titleItem.setEditable(False)
             valueItem = MatrixItem(subject, row)
             matrixItem.appendRow([titleItem, valueItem])
+
+        titleItem = qt.QStandardItem(ScaleItem.itemName)
+        titleItem.setEditable(False)
+        self.appendRow([titleItem, ScaleItem(subject)])
 
 
 # Isosurface ##################################################################
