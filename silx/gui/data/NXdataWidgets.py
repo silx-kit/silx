@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -60,27 +60,20 @@ class ArrayCurvePlot(qt.QWidget):
         """
         super(ArrayCurvePlot, self).__init__(parent)
 
-        self.__signal = None
-        self.__signal_name = None
+        self.__signals = None
+        self.__signals_names = None
         self.__signal_errors = None
         self.__axis = None
         self.__axis_name = None
-        self.__axis_errors = None
+        self.__x_axis_errors = None
         self.__values = None
 
-        self.__first_curve_added = False
-
         self._plot = Plot1D(self)
-        self._plot.setDefaultColormap(   # for scatters
-                {"name": "viridis",
-                 "vmin": 0., "vmax": 1.,   # ignored (autoscale) but mandatory
-                 "normalization": "linear",
-                 "autoscale": True})
 
         self.selectorDock = qt.QDockWidget("Data selector", self._plot)
         # not closable
         self.selectorDock.setFeatures(qt.QDockWidget.DockWidgetMovable |
-                                qt.QDockWidget.DockWidgetFloatable)
+                                      qt.QDockWidget.DockWidgetFloatable)
         self._selector = NumpyAxesSelector(self.selectorDock)
         self._selector.setNamedAxesSelectorVisibility(False)
         self.__selector_is_connected = False
@@ -100,51 +93,46 @@ class ArrayCurvePlot(qt.QWidget):
         """
         return self._plot
 
-    def setCurveData(self, y, x=None, values=None,
-                     yerror=None, xerror=None,
-                     ylabel=None, xlabel=None,
-                     title=None):
+    def setCurvesData(self, ys, x=None,
+                      yerror=None, xerror=None,
+                      ylabels=None, xlabel=None, title=None):
         """
 
-        :param y: dataset to be represented by the y (vertical) axis.
-            For a scatter, this must be a 1D array and x and values must be
-            1-D arrays of the same size.
-            In other cases, it can be a n-D array whose last dimension must
+        :param List[ndarray] ys: List of arrays to be represented by the y (vertical) axis.
+            It can be multiple n-D array whose last dimension must
             have the same length as x (and values must be None)
-        :param x: 1-D dataset used as the curve's x values. If provided,
+        :param ndarray x: 1-D dataset used as the curve's x values. If provided,
             its lengths must be equal to the length of the last dimension of
             ``y`` (and equal to the length of ``value``, for a scatter plot).
-        :param values: Values, to be provided for a x-y-value scatter plot.
-            This will be used to compute the color map and assign colors
-            to the points.
-        :param yerror: 1-D dataset of errors for y, or None
-        :param xerror: 1-D dataset of errors for x, or None
-        :param ylabel: Label for Y axis
-        :param xlabel: Label for X axis
-        :param title: Graph title
+        :param ndarray yerror: Single array of errors for y (same shape), or None.
+            There can only be one array, and it applies to the first/main y
+            (no y errors for auxiliary_signals curves).
+        :param ndarray xerror: 1-D dataset of errors for x, or None
+        :param str ylabels: Labels for each curve's Y axis
+        :param str xlabel: Label for X axis
+        :param str title: Graph title
         """
-        self.__signal = y
-        self.__signal_name = ylabel or "Y"
+        self.__signals = ys
+        self.__signals_names = ylabels or (["Y"] * len(ys))
         self.__signal_errors = yerror
         self.__axis = x
         self.__axis_name = xlabel
-        self.__axis_errors = xerror
-        self.__values = values
+        self.__x_axis_errors = xerror
 
         if self.__selector_is_connected:
             self._selector.selectionChanged.disconnect(self._updateCurve)
             self.__selector_is_connected = False
-        self._selector.setData(y)
+        self._selector.setData(ys[0])
         self._selector.setAxisNames(["Y"])
 
-        if len(y.shape) < 2:
+        if len(ys[0].shape) < 2:
             self.selectorDock.hide()
         else:
             self.selectorDock.show()
 
         self._plot.setGraphTitle(title or "")
         self._plot.getXAxis().setLabel(self.__axis_name or "X")
-        self._plot.getYAxis().setLabel(self.__signal_name)
+        self._plot.getYAxis().setLabel(self.__signals_names[0])
         self._updateCurve()
 
         if not self.__selector_is_connected:
@@ -152,45 +140,136 @@ class ArrayCurvePlot(qt.QWidget):
             self.__selector_is_connected = True
 
     def _updateCurve(self):
-        y = self._selector.selectedData()
+        selection = self._selector.selection()
+        ys = [sig[selection] for sig in self.__signals]
+        y0 = ys[0]
+        len_y = len(y0)
         x = self.__axis
         if x is None:
-            x = numpy.arange(len(y))
+            x = numpy.arange(len_y)
         elif numpy.isscalar(x) or len(x) == 1:
             # constant axis
-            x = x * numpy.ones_like(y)
-        elif len(x) == 2 and len(y) != 2:
+            x = x * numpy.ones_like(y0)
+        elif len(x) == 2 and len_y != 2:
             # linear calibration a + b * x
-            x = x[0] + x[1] * numpy.arange(len(y))
-        legend = self.__signal_name + "["
-        for sl in self._selector.selection():
-            if sl == slice(None):
-                legend += ":, "
-            else:
-                legend += str(sl) + ", "
-        legend = legend[:-2] + "]"
-        if self.__signal_errors is not None:
-            y_errors = self.__signal_errors[self._selector.selection()]
-        else:
+            x = x[0] + x[1] * numpy.arange(len_y)
+
+        self._plot.remove(kind=("curve",))
+
+        for i in range(len(self.__signals)):
+            # store slicing info in legend
+            legend = self.__signals_names[i] + "["
+            for sl in self._selector.selection():
+                if sl == slice(None):
+                    legend += ":, "
+                else:
+                    legend += str(sl) + ", "
+            legend = legend[:-2] + "]"
+
+            # errors only supported for primary signal in NXdata
             y_errors = None
-
-        self._plot.remove(kind=("curve", "scatter"))
-
-        # values: x-y-v scatter
-        if self.__values is not None:
-            self._plot.addScatter(x, y, self.__values,
-                                  legend=legend,
-                                  xerror=self.__axis_errors,
-                                  yerror=y_errors)
-
-        else:
-            self._plot.addCurve(x, y, legend=legend,
-                                xerror=self.__axis_errors,
+            if i == 0 and self.__signal_errors is not None:
+                y_errors = self.__signal_errors[self._selector.selection()]
+            self._plot.addCurve(x, ys[i], legend=legend,
+                                xerror=self.__x_axis_errors,
                                 yerror=y_errors)
 
         self._plot.resetZoom()
         self._plot.getXAxis().setLabel(self.__axis_name)
-        self._plot.getYAxis().setLabel(self.__signal_name)
+        self._plot.getYAxis().setLabel(self.__signals_names)
+
+    def clear(self):
+        self._plot.clear()
+
+
+class XYVScatterPlot(qt.QWidget):
+    """
+    Widget for plotting one or more scatters
+    (with identical x, y coordinates).
+    """
+    def __init__(self, parent=None):
+        """
+
+        :param parent: Parent QWidget
+        """
+        super(XYVScatterPlot, self).__init__(parent)
+
+        self.__y_axis = None
+        self.__y_axis_name = None
+        self.__values = None
+
+        self.__x_axis = None
+        self.__x_axis_name = None
+        self.__x_axis_errors = None
+        self.__y_axis = None
+        self.__y_axis_name = None
+        self.__y_axis_errors = None
+
+        self._plot = Plot1D(self)
+        self._plot.setDefaultColormap(   # for scatters  # Fixme: colormap object
+                {"name": "viridis",
+                 "vmin": 0., "vmax": 1.,   # ignored (autoscale) but mandatory
+                 "normalization": "linear",
+                 "autoscale": True})
+
+        layout = qt.QGridLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(self._plot, 0, 0)
+
+        self.setLayout(layout)
+
+    def getPlot(self):
+        """Returns the plot used for the display
+
+        :rtype: Plot1D
+        """
+        return self._plot
+
+    def setScattersData(self, y, x, values,
+                        yerror=None, xerror=None,
+                        ylabel=None, xlabel=None, title=None):
+        """
+
+        :param ndarray y: 1D array  for y (vertical) coordinates.
+        :param ndarray x: 1D array for x coordinates.
+        :param List[ndarray] values: List of 1D arrays of values.
+            This will be used to compute the color map and assign colors
+            to the points. There should be as many arrays in the list as
+            scatters to be represented.
+        :param ndarray yerror: 1D array of errors for y (same shape), or None.
+        :param ndarray xerror: 1D array of errors for x, or None
+        :param str ylabel: Label for Y axis
+        :param str xlabel: Label for X axis
+        :param str title: Graph title
+        """
+        self.__y_axis = y
+        self.__x_axis = x
+        self.__x_axis_name = xlabel or "X"
+        self.__y_axis_name = ylabel or "Y"
+        self.__x_axis_errors = xerror
+        self.__y_axis_errors = yerror
+        self.__values = values
+
+        self._plot.setGraphTitle(title or "")
+        self._plot.getXAxis().setLabel(self.__x_axis_name)
+        self._plot.getYAxis().setLabel(self.__y_axis_name)
+        self._updateScatter()
+
+    def _updateScatter(self):
+
+        x = self.__x_axis
+        y = self.__y_axis
+
+        self._plot.remove(kind=("scatter", ))
+
+        for i in range(len(self.__values)):
+            self._plot.addScatter(x, y, self.__values[i],
+                                  legend="scatter%d" % i,
+                                  xerror=self.__x_axis_errors,
+                                  yerror=self.__y_axis_errors)
+        self._plot.resetZoom()
+        self._plot.getXAxis().setLabel(self.__x_axis_name)
+        self._plot.getYAxis().setLabel(self.__y_axis_name)
 
     def clear(self):
         self._plot.clear()
