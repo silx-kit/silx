@@ -339,27 +339,39 @@ class NXdata(object):
         In most instances, there will be only one signal.
         But a now deprecated NXdata specification enabled having several
         datasets with attributes `@signal=1, @signal=2...`."""
-        numbered_names = []
-        for dsname in self.group:
-            if dsname == self.signal_dataset_name:
-                # main signal, must be first in sorted list
-                numbered_names.append((float("-inf"), dsname))
-                continue
-            ds = self.group[dsname]
-            signal_attr = ds.attrs.get("signal")
-            if not is_dataset(ds):
-                _logger.warning("%s is not a dataset (%s)",
-                                dsname, type(ds))
-                continue
-            if signal_attr is not None:
-                try:
-                    signal_number = int(signal_attr)
-                except (ValueError, TypeError):
-                    _logger.warning("Could not interpret attr @signal=%s on dataset %s",
-                                    signal_attr, dsname)
+        signal_dataset_name = get_attr_as_string(self.group, "signal")
+        if signal_dataset_name is not None:
+            auxiliary_signals_names = get_attr_as_string(self.group, "auxiliary_signals")
+            signal_dataset_names = [signal_dataset_name, ]
+            if auxiliary_signals_names is not None:
+                if not isinstance(auxiliary_signals_names,
+                                  (tuple, list, numpy.ndarray)):
+                    auxiliary_signals_names = [auxiliary_signals_names]
+                signal_dataset_names += auxiliary_signals_names
+        else:
+            # old spec, @signal=1 (2, 3...) on dataset
+            numbered_names = []
+            for dsname in self.group:
+                if dsname == self.signal_dataset_name:
+                    # main signal, must be first in sorted list
+                    numbered_names.append((float("-inf"), dsname))
                     continue
-                numbered_names.append((signal_number, dsname))
-        return [a[1] for a in sorted(numbered_names)]
+                ds = self.group[dsname]
+                signal_attr = ds.attrs.get("signal")
+                if not is_dataset(ds):
+                    _logger.warning("%s is not a dataset (%s)",
+                                    dsname, type(ds))
+                    continue
+                if signal_attr is not None:
+                    try:
+                        signal_number = int(signal_attr)
+                    except (ValueError, TypeError):
+                        _logger.warning("Could not interpret attr @signal=%s on dataset %s",
+                                        signal_attr, dsname)
+                        continue
+                    numbered_names.append((signal_number, dsname))
+            signal_dataset_names = [a[1] for a in sorted(numbered_names)]
+        return signal_dataset_names
 
     @property
     def signal_names(self):
