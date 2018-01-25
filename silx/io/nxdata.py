@@ -108,7 +108,7 @@ def is_valid_nxdata(group):   # noqa
     if get_attr_as_string(group, "NX_class") != "NXdata":
         return False
     if "signal" not in group.attrs:
-        _logger.warning("NXdata group does not define a signal attr. "
+        _nxdata_warning("NXdata group does not define a signal attr. "
                         "Testing legacy specification.")
         signal_name = None
         for key in group:
@@ -119,15 +119,27 @@ def is_valid_nxdata(group):   # noqa
                     # This is the main (default) signal
                     break
         if signal_name is None:
-            _logger.warning("No dataset with a @signal=1 attr found")
+            _nxdata_warning("No dataset with a @signal=1 attr found")
             return False
     else:
         signal_name = get_attr_as_string(group, "signal")
 
     if signal_name not in group or not is_dataset(group[signal_name]):
-        _logger.warning(
+        _nxdata_warning(
             "Cannot find signal dataset '%s' in NXdata group" % signal_name)
         return False
+
+    auxiliary_signals_names = get_attr_as_string(group, "auxiliary_signals",
+                                                 default=[])
+    for asn in auxiliary_signals_names:
+        if asn not in group or not is_dataset(group[asn]):
+            _nxdata_warning(
+                "Cannot find auxiliary signal dataset '%s' in NXdata group" % asn)
+            return False
+        if group[signal_name].shape != group[asn].shape:
+            _nxdata_warning("Auxiliary signal dataset '%s' does not" % asn +
+                            " have the same shape as the main signal.")
+            return False
 
     ndim = len(group[signal_name].shape)
 
