@@ -282,7 +282,7 @@ class NXdata(object):
         """Main signal dataset in this NXdata group.
 
         In case more than one signal is present in this group,
-        the other ones can be found in :attr:`signals`.
+        the other ones can be found in :attr:`auxiliary_signals`.
         """
 
         self.signal_name = get_attr_as_string(self.signal, "long_name")
@@ -333,65 +333,69 @@ class NXdata(object):
         return signal_dataset_name
 
     @property
-    def signal_dataset_names(self):
-        """Sorted list of names of all the signal datasets.
+    def auxiliary_signals_dataset_names(self):
+        """Sorted list of names of the auxiliary signals datasets.
 
-        In most instances, there will be only one signal.
-        But a now deprecated NXdata specification enabled having several
-        datasets with attributes `@signal=1, @signal=2...`."""
+        These are the names provided by the *@auxiliary_signals* attribute
+        on the NXdata group.
+
+        In case the NXdata group does not specify a *@signal* attribute
+        but has a dataset with an attribute *@signal=1*,
+        we look for datasets with attributes *@signal=2, @signal=3...*
+        (deprecated NXdata specification)."""
         signal_dataset_name = get_attr_as_string(self.group, "signal")
         if signal_dataset_name is not None:
             auxiliary_signals_names = get_attr_as_string(self.group, "auxiliary_signals")
-            signal_dataset_names = [signal_dataset_name, ]
             if auxiliary_signals_names is not None:
                 if not isinstance(auxiliary_signals_names,
                                   (tuple, list, numpy.ndarray)):
-                    auxiliary_signals_names = [auxiliary_signals_names]
-                signal_dataset_names += auxiliary_signals_names
-        else:
-            # old spec, @signal=1 (2, 3...) on dataset
-            numbered_names = []
-            for dsname in self.group:
-                if dsname == self.signal_dataset_name:
-                    # main signal, must be first in sorted list
-                    numbered_names.append((float("-inf"), dsname))
+                    # tolerate a single string, but coerce into a list
+                    return [auxiliary_signals_names]
+                return list(auxiliary_signals_names)
+            return []
+
+        # try old spec, @signal=1 (2, 3...) on dataset
+        numbered_names = []
+        for dsname in self.group:
+            if dsname == self.signal_dataset_name:
+                # main signal, not auxiliary
+                continue
+            ds = self.group[dsname]
+            signal_attr = ds.attrs.get("signal")
+            if signal_attr is not None and not is_dataset(ds):
+                _logger.warning("Item %s with @signal=%s is not a dataset (%s)",
+                                dsname, signal_attr, type(ds))
+                continue
+            if signal_attr is not None:
+                try:
+                    signal_number = int(signal_attr)
+                except (ValueError, TypeError):
+                    _logger.warning("Could not parse attr @signal=%s on "
+                                    "dataset %s as an int",
+                                    signal_attr, dsname)
                     continue
-                ds = self.group[dsname]
-                signal_attr = ds.attrs.get("signal")
-                if not is_dataset(ds):
-                    _logger.warning("%s is not a dataset (%s)",
-                                    dsname, type(ds))
-                    continue
-                if signal_attr is not None:
-                    try:
-                        signal_number = int(signal_attr)
-                    except (ValueError, TypeError):
-                        _logger.warning("Could not interpret attr @signal=%s on dataset %s",
-                                        signal_attr, dsname)
-                        continue
-                    numbered_names.append((signal_number, dsname))
-            signal_dataset_names = [a[1] for a in sorted(numbered_names)]
-        return signal_dataset_names
+                numbered_names.append((signal_number, dsname))
+        return [a[1] for a in sorted(numbered_names)]
 
     @property
-    def signal_names(self):
-        """Similar to :attr:`signal_dataset_names`, but the @long_name
+    def auxiliary_signals_names(self):
+        """List of names of the auxiliary signals.
+
+        Similar to :attr:`auxiliary_signals_dataset_names`, but the @long_name
         is used when this attribute is present, instead of the dataset name.
         """
         signal_names = []
-        for sdn in self.signal_dataset_names:
-            if "long_name" in self.group[sdn].attrs:
-                signal_names.append(self.group[sdn].attrs["long_name"])
+        for asdn in self.auxiliary_signals_dataset_names:
+            if "long_name" in self.group[asdn].attrs:
+                signal_names.append(self.group[asdn].attrs["long_name"])
             else:
-                signal_names.append(sdn)
+                signal_names.append(asdn)
         return signal_names
 
     @property
-    def signals(self):
-        """Sorted list of all signal datasets.
-        See :attr:`signal_dataset_names`
-        for an explanation why there can be more than 1 signal."""
-        return [self.group[dsname] for dsname in self.signal_dataset_names]
+    def auxiliary_signals(self):
+        """List of all auxiliary signal datasets."""
+        return [self.group[dsname] for dsname in self.auxiliary_signals_dataset_names]
 
     @property
     def interpretation(self):
