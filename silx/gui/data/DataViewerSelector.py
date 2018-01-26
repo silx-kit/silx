@@ -58,7 +58,7 @@ class DataViewerSelector(qt.QWidget):
         self.setLayout(qt.QHBoxLayout())
         layout = self.layout()
         layout.setContentsMargins(0, 0, 0, 0)
-        self.__buttonLayout = qt.QHBoxLayout(self)
+        self.__buttonLayout = qt.QHBoxLayout()
         self.__buttonLayout.setContentsMargins(0, 0, 0, 0)
         layout.addLayout(self.__buttonLayout)
         layout.addStretch(1)
