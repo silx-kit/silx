@@ -33,6 +33,7 @@ import numpy
 from silx.gui import qt
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
 from silx.gui.plot import Plot1D, Plot2D, StackView
+from silx.gui.plot.Colormap import Colormap
 
 from silx.math.calibration import ArrayCalibration, NoCalibration, LinearCalibration
 
@@ -206,11 +207,9 @@ class XYVScatterPlot(qt.QWidget):
         self.__y_axis_errors = None
 
         self._plot = Plot1D(self)
-        self._plot.setDefaultColormap(   # for scatters  # Fixme: colormap object
-                {"name": "viridis",
-                 "vmin": 0., "vmax": 1.,   # ignored (autoscale) but mandatory
-                 "normalization": "linear",
-                 "autoscale": True})
+        self._plot.setDefaultColormap(Colormap(name="viridis",
+                                               vmin=None, vmax=None,
+                                               normalization=Colormap.LINEAR))
 
         layout = qt.QGridLayout()
         layout.setContentsMargins(0, 0, 0, 0)
@@ -306,11 +305,9 @@ class ArrayImagePlot(qt.QWidget):
         self.__y_axis_name = None
 
         self._plot = Plot2D(self)
-        self._plot.setDefaultColormap(
-                {"name": "viridis",
-                 "vmin": 0., "vmax": 1.,   # ignored (autoscale) but mandatory
-                 "normalization": "linear",
-                 "autoscale": True})
+        self._plot.setDefaultColormap(Colormap(name="viridis",
+                                               vmin=None, vmax=None,
+                                               normalization=Colormap.LINEAR))
 
         self.selectorDock = qt.QDockWidget("Data selector", self._plot)
         # not closable
