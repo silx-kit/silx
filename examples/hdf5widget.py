@@ -333,9 +333,13 @@ def get_hdf5_with_nxdata():
     g2d0 = g2d.create_group("2D_regular_image")
     g2d0.attrs["NX_class"] = "NXdata"
     g2d0.attrs["signal"] = "image"
+    g2d0.attrs["auxiliary_signals"] = "image2", "image3"
     g2d0.attrs["axes"] = str_attrs(["rows_calib", "columns_coordinates"])
     g2d0.attrs["title"] = "Title example provided as group attr"
     g2d0.create_dataset("image", data=numpy.arange(4*6).reshape((4, 6)))
+    g2d0.create_dataset("image2", data=1/(1.+numpy.arange(4*6).reshape((4, 6))))
+    ds = g2d0.create_dataset("image3", data=-numpy.arange(4*6).reshape((4, 6)))
+    ds.attrs["long_name"] = "3rd image (2nd auxiliary)"
     ds = g2d0.create_dataset("rows_calib", data=(10, 5))
     ds.attrs["long_name"] = "Calibrated Y"
     g2d0.create_dataset("columns_coordinates", data=0.5+0.02*numpy.arange(6))
@@ -343,10 +347,13 @@ def get_hdf5_with_nxdata():
     g2d4 = g2d.create_group("RGBA_image")
     g2d4.attrs["NX_class"] = "NXdata"
     g2d4.attrs["signal"] = "image"
+    g2d4.attrs["auxiliary_signals"] = "squared image"
     g2d4.attrs["axes"] = str_attrs(["rows_calib", "columns_coordinates"])
     rgba_image = numpy.linspace(0, 1, num=7*8*3).reshape((7, 8, 3))
     rgba_image[:, :, 1] = 1 - rgba_image[:, :, 1]      # invert G channel to add some color
     ds = g2d4.create_dataset("image", data=rgba_image)
+    ds.attrs["interpretation"] = "rgba-image"
+    ds = g2d4.create_dataset("squared image", data=rgba_image**2)
     ds.attrs["interpretation"] = "rgba-image"
     ds = g2d4.create_dataset("rows_calib", data=(10, 5))
     ds.attrs["long_name"] = "Calibrated Y"
