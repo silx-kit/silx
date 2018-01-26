@@ -1139,7 +1139,6 @@ class _NXdataXYVScatterView(DataView):
     def setData(self, data):
         data = self.normalizeData(data)
         nxd = nxdata.get_NXdata_in_group(data)
-        signals_names = [nxd.signal_name] + nxd.auxiliary_signals_names
         x_axis, y_axis = nxd.axes[-2:]
 
         x_label, y_label = nxd.axes_names[-2:]
@@ -1153,12 +1152,11 @@ class _NXdataXYVScatterView(DataView):
         else:
             y_errors = None
 
-        title = nxd.title or signals_names[0]
-
         self.getWidget().setScattersData(y_axis, x_axis, values=[nxd.signal] + nxd.auxiliary_signals,
                                          yerror=y_errors, xerror=x_errors,
                                          ylabel=y_label, xlabel=x_label,
-                                         title=title)   # TODO: title*s*
+                                         title=nxd.title,
+                                         scatter_titles=[nxd.signal_name] + nxd.auxiliary_signals_names)
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)

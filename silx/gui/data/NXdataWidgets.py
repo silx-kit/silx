@@ -34,6 +34,7 @@ from silx.gui import qt
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
 from silx.gui.plot import Plot1D, Plot2D, StackView
 from silx.gui.plot.Colormap import Colormap
+from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
 
 from silx.math.calibration import ArrayCalibration, NoCalibration, LinearCalibration
 
@@ -80,6 +81,8 @@ class ArrayCurvePlot(qt.QWidget):
         self.__selector_is_connected = False
         self.selectorDock.setWidget(self._selector)
         self._plot.addTabbedDockWidget(self.selectorDock)
+
+        self._plot.sigActiveCurveChanged.connect(self._setYLabelFromActiveLegend)
 
         layout = qt.QGridLayout()
         layout.setContentsMargins(0, 0, 0, 0)
@@ -132,8 +135,6 @@ class ArrayCurvePlot(qt.QWidget):
             self.selectorDock.show()
 
         self._plot.setGraphTitle(title or "")
-        self._plot.getXAxis().setLabel(self.__axis_name or "X")
-        self._plot.getYAxis().setLabel(self.__signals_names[0])
         self._updateCurve()
 
         if not self.__selector_is_connected:
@@ -158,14 +159,7 @@ class ArrayCurvePlot(qt.QWidget):
         self._plot.remove(kind=("curve",))
 
         for i in range(len(self.__signals)):
-            # store slicing info in legend
-            legend = self.__signals_names[i] + "["
-            for sl in self._selector.selection():
-                if sl == slice(None):
-                    legend += ":, "
-                else:
-                    legend += str(sl) + ", "
-            legend = legend[:-2] + "]"
+            legend = self.__signals_names[i]
 
             # errors only supported for primary signal in NXdata
             y_errors = None
@@ -174,10 +168,18 @@ class ArrayCurvePlot(qt.QWidget):
             self._plot.addCurve(x, ys[i], legend=legend,
                                 xerror=self.__x_axis_errors,
                                 yerror=y_errors)
+            if i == 0:
+                self._plot.setActiveCurve(legend)
 
         self._plot.resetZoom()
         self._plot.getXAxis().setLabel(self.__axis_name)
-        self._plot.getYAxis().setLabel(self.__signals_names)
+        self._plot.getYAxis().setLabel(self.__signals_names[0])
+
+    def _setYLabelFromActiveLegend(self, previous_legend, new_legend):
+        for ylabel in self.__signals_names:
+            if new_legend is not None and new_legend == ylabel:
+                self._plot.getYAxis().setLabel(ylabel)
+                break
 
     def clear(self):
         self._plot.clear()
@@ -196,8 +198,11 @@ class XYVScatterPlot(qt.QWidget):
         super(XYVScatterPlot, self).__init__(parent)
 
         self.__y_axis = None
+        """1D array"""
         self.__y_axis_name = None
         self.__values = None
+        """List of 1D arrays (for multiple scatters with identical
+        x, y coordinates)"""
 
         self.__x_axis = None
         self.__x_axis_name = None
@@ -211,11 +216,20 @@ class XYVScatterPlot(qt.QWidget):
                                                vmin=None, vmax=None,
                                                normalization=Colormap.LINEAR))
 
+        self._slider = HorizontalSliderWithBrowser(parent=self)
+        self._slider.setMinimum(0)
+        self._slider.setValue(0)
+        self._slider.valueChanged[int].connect(self._sliderIdxChanged)
+
         layout = qt.QGridLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self._plot, 0, 0)
+        layout.addWidget(self._slider, 1, 0)
 
         self.setLayout(layout)
+
+    def _sliderIdxChanged(self, value):
+        self._updateScatter()
 
     def getPlot(self):
         """Returns the plot used for the display
@@ -226,7 +240,8 @@ class XYVScatterPlot(qt.QWidget):
 
     def setScattersData(self, y, x, values,
                         yerror=None, xerror=None,
-                        ylabel=None, xlabel=None, title=None):
+                        ylabel=None, xlabel=None,
+                        title="", scatter_titles=None):
         """
 
         :param ndarray y: 1D array  for y (vertical) coordinates.
@@ -239,7 +254,8 @@ class XYVScatterPlot(qt.QWidget):
         :param ndarray xerror: 1D array of errors for x, or None
         :param str ylabel: Label for Y axis
         :param str xlabel: Label for X axis
-        :param str title: Graph title
+        :param str title: Main graph title
+        :param List[str] scatter_titles:  Subtitles (one per scatter)
         """
         self.__y_axis = y
         self.__x_axis = x
@@ -249,23 +265,38 @@ class XYVScatterPlot(qt.QWidget):
         self.__y_axis_errors = yerror
         self.__values = values
 
-        self._plot.setGraphTitle(title or "")
-        self._plot.getXAxis().setLabel(self.__x_axis_name)
-        self._plot.getYAxis().setLabel(self.__y_axis_name)
+        self.__graph_title = title or ""
+        self.__scatter_titles = scatter_titles
+
+        #self._slider.sigIndexChanged.disconnect(self._sliderIdxChanged)
+        self._slider.setMaximum(len(values) - 1)
+        if len(values) > 1:
+            self._slider.show()
+        else:
+            self._slider.hide()
+        self._slider.setValue(0)
+        #self._slider.sigIndexChanged.connect(self._sliderIdxChanged)
+
         self._updateScatter()
 
     def _updateScatter(self):
-
         x = self.__x_axis
         y = self.__y_axis
 
         self._plot.remove(kind=("scatter", ))
 
-        for i in range(len(self.__values)):
-            self._plot.addScatter(x, y, self.__values[i],
-                                  legend="scatter%d" % i,
-                                  xerror=self.__x_axis_errors,
-                                  yerror=self.__y_axis_errors)
+        idx = self._slider.value()
+
+        title = ""
+        if self.__graph_title:
+            title += self.__graph_title + "\n"  # main NXdata @title
+        title += self.__scatter_titles[idx]     # scatter dataset name
+
+        self._plot.setGraphTitle(title)
+        self._plot.addScatter(x, y, self.__values[idx],
+                              legend="scatter%d" % idx,
+                              xerror=self.__x_axis_errors,
+                              yerror=self.__y_axis_errors)
         self._plot.resetZoom()
         self._plot.getXAxis().setLabel(self.__x_axis_name)
         self._plot.getYAxis().setLabel(self.__y_axis_name)
