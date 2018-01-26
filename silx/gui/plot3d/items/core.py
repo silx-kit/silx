@@ -65,6 +65,9 @@ class Item3DChangedType(enum.Enum):
     BOUNDING_BOX_VISIBLE = 'boundingBoxVisibleChanged'
     """Item's bounding box visibility changed"""
 
+    ROOT_ITEM = 'rootItemChanged'
+    """Item's root changed flag."""
+
 
 class Item3D(qt.QObject):
     """Base class representing an item in the scene.
@@ -97,6 +100,45 @@ class Item3D(qt.QObject):
         if labelIndex != 0:
             self._label += u' %d' % labelIndex
         self._LABEL_INDICES[self.__class__] += 1
+
+    def event(self, event):
+        """Handle QEvents to handle change of parent."""
+        if event.type() == qt.QEvent.ParentAboutToChange:
+            parent = self.parent()
+            if isinstance(parent, Item3D):
+                parent.sigItemChanged.disconnect(self._parentItemChanged)
+
+        elif event.type() == qt.QEvent.ParentChange:
+            self.sigItemChanged.emit(Item3DChangedType.ROOT_ITEM)
+
+            parent = self.parent()
+            if isinstance(parent, Item3D):
+                parent.sigItemChanged.connect(self._parentItemChanged)
+
+        return super(Item3D, self).event(event)
+
+    def _parentItemChanged(self, event):
+        """Handle updates of the parent if it is an Item3D
+
+        :param Item3DChangedType event:
+        """
+        if event == Item3DChangedType.ROOT_ITEM:
+            self.sigItemChanged.emit(Item3DChangedType.ROOT_ITEM)
+
+    def root(self):
+        """Returns the root of the scene this item belongs to.
+
+        The root is the up-most Item3D in the scene tree hierarchy.
+
+        :rtype: Union[Item3D, None]
+        """
+        root = None
+        ancestor = self.parent()
+        while isinstance(ancestor, Item3D):
+            root = ancestor
+            ancestor = ancestor.parent()
+
+        return root
 
     def _getScenePrimitive(self):
         """Return the group containing the item rendering"""
