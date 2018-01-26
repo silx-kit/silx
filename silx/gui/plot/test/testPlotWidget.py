@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "17/01/2018"
+__date__ = "26/01/2018"
 
 
 import unittest
@@ -77,9 +77,9 @@ class TestPlotWidget(PlotWidgetTestCase, ParametricTestCase):
         self.assertEqual(self.plot.getYAxis().getLabel(), ylabel)
 
     def _checkLimits(self,
-                    expectedXLim=None,
-                    expectedYLim=None,
-                    expectedRatio=None):
+                     expectedXLim=None,
+                     expectedYLim=None,
+                     expectedRatio=None):
         """Assert that limits are as expected"""
         xlim = self.plot.getXAxis().getLimits()
         ylim = self.plot.getYAxis().getLimits()

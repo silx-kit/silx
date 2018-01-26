@@ -26,17 +26,15 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "01/09/2017"
+__date__ = "26/01/2018"
 
 
 import logging
-import contextlib
 
 from silx.gui.test.utils import TestCaseQt
 
 from silx.gui import qt
 from silx.gui.plot import PlotWidget
-from silx.gui.plot.backends.BackendMatplotlib import BackendMatplotlibQt
 
 
 logger = logging.getLogger(__name__)
@@ -81,4 +79,3 @@ class PlotWidgetTestCase(TestCaseQt):
         self.qapp.processEvents()
         self._waitForPlotClosed()
         super(PlotWidgetTestCase, self).tearDown()
-
