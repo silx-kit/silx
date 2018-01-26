@@ -529,3 +529,10 @@ class ParamTreeView(qt.QTreeView):
         :rtype: bool
         """
         return index in self.__persistentEditors
+
+    def selectionCommand(self, index, event=None):
+        """Filter out selection of not selectable items"""
+        if index.flags() & qt.Qt.ItemIsSelectable:
+            return super(ParamTreeView, self).selectionCommand(index, event)
+        else:
+            return qt.QItemSelectionModel.NoUpdate
