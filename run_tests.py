@@ -172,7 +172,8 @@ class ProfileTextTestResult(unittest.TextTestRunner.resultclass):
         else:
             memusage = 0
         self.logger.info("Time: %.3fs \t RAM: %.3f Mb\t%s",
-            time.time() - self.__time_start, memusage, test.id())
+                         time.time() - self.__time_start,
+                         memusage, test.id())
 
 
 def report_rst(cov, package, version="0.0.0", base=""):
@@ -397,10 +398,9 @@ if options.qt_binding:
         if sys.version < "3.0.0":
             try:
                 import sip
-
                 sip.setapi("QString", 2)
                 sip.setapi("QVariant", 2)
-            except:
+            except Exception:
                 logger.warning("Cannot set sip API")
         import PyQt4.QtCore  # noqa
     elif binding == "pyqt5":
