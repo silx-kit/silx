@@ -92,7 +92,7 @@ def _create_link(h5f, link_name, target_name,
                      target_name)
         del h5f[link_name]
     else:
-        _logger.warn(link_name + " already exist. Can't create link to " +
+        _logger.warn(link_name + " already exist. Cannot create link to " +
                      target_name)
         return None
 
@@ -211,7 +211,7 @@ class Hdf5Writer(object):
                     ds.attrs.create(key, numpy.string_(obj.attrs[key]))
 
             if not self.overwrite_data and member_initially_exists:
-                _logger.warn("Ignoring existing dataset: " + h5_name)
+                _logger.warn("Not overwriting existing dataset: " + h5_name)
 
         elif is_group(obj):
             if h5_name not in self._h5f:

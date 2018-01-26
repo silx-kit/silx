@@ -14,7 +14,7 @@ Usage
 ::
 
     silx convert [-h] [--file-pattern FILE_PATTERN] [-o OUTPUT_URI]
-                    [-m MODE] [--begin BEGIN] [--end END] [--no-root-group]
+                    [-m MODE] [--begin BEGIN] [--end END] [--add-root-group]
                     [--overwrite-data] [--min-size MIN_SIZE]
                     [--chunks [CHUNKS]] [--compression [COMPRESSION]]
                     [--compression-opts COMPRESSION_OPTS] [--shuffle]
@@ -22,23 +22,34 @@ Usage
                     [input_files [input_files ...]]
 
 
+
 Options
 -------
+
+::
+
+  input_files           Input files (EDF, TIFF, SPEC...). When specifying
+                        multiple files, you cannot specify both fabio images
+                        and SPEC files. Multiple SPEC files will simply be
+                        concatenated, with one entry per scan. Multiple image
+                        files will be merged into a single entry with a stack
+                        of images.
+
 
   -h, --help            show this help message and exit
   --file-pattern FILE_PATTERN
                         File name pattern for loading a series of indexed
-                        files (toto_%04d.edf). This argument is incompatible
-                        with argument input_files. If an output URI with a
-                        HDF5 path is provided, only the content of the
-                        NXdetector group will be copied there. If no HDF5
+                        image files (toto_%04d.edf). This argument is
+                        incompatible with argument input_files. If an output
+                        URI with a HDF5 path is provided, only the content of
+                        the NXdetector group will be copied there. If no HDF5
                         path, or just "/", is given, a complete NXdata
                         structure will be created.
   -o OUTPUT_URI, --output-uri OUTPUT_URI
                         Output file name (HDF5). An URI can be provided to
                         write the data into a specific group in the output
-                        file: /path/to/file::/path/to/group. By default, the
-                        filename uses the current date and time: YYYYmmdd-
+                        file: /path/to/file::/path/to/group. If not provided,
+                        the filename defaults to a timestamp: YYYYmmdd-
                         HHMMSS.h5
   -m MODE, --mode MODE  Write mode: "r+" (read/write, file must exist), "w"
                         (write, existing file is lost), "w-" (write, fail if
@@ -46,21 +57,20 @@ Options
                         otherwise)
   --begin BEGIN         First file index, or first file indices to be
                         considered. This argument only makes sense when used
-                        together with --file-pattern.
-                        Provide as many start indices as are indices
-                        in the file pattern, separated by commas. For
-                        instance: "--filepattern toto_%d.edf --begin 100", or
-                        "--filepattern toto_%d_%04d_%02d.edf --begin
-                        100,2000,5".
+                        together with --file-pattern. Provide as many start
+                        indices as there are indices in the file pattern, separated
+                        by commas. Examples: "--filepattern toto_%d.edf
+                        --begin 100", "--filepattern toto_%d_%04d_%02d.edf
+                        --begin 100,2000,5".
   --end END             Last file index, or last file indices to be
                         considered. The same rules as with argument --begin
                         apply. Example: "--filepattern toto_%d_%d.edf --end
                         199,1999"
-  --no-root-group       This option disables the default behavior of creating
-                        a root group (entry) for each file to be converted.
-                        When merging multiple input files, this can cause
-                        conflicts when datasets have the same name (see
-                        --overwrite-data). This option has no effect when
+  --add-root-group      This option causes each input file to be written to a
+                        specific root group with the same name as the file.
+                        When merging multiple input files, this can help
+                        preventing conflicts when datasets have the same name
+                        (see --overwrite-data). This option is ignored when
                         using --file-pattern.
   --overwrite-data      If the output path exists and an input dataset has the
                         same name as an existing output dataset, overwrite the
@@ -84,7 +94,7 @@ Options
                         Compression options. For "gzip", this may be an
                         integer from 0 to 9, with a default of 4. This is only
                         supported for GZIP.
-  --shuffle             Enables the byte shuffle filter, may improve the
+  --shuffle             Enables the byte shuffle filter. This may improve the
                         compression ratio for block oriented compressors like
                         GZIP or LZF.
   --fletcher32          Adds a checksum to each chunk to detect data
@@ -99,6 +109,10 @@ Examples of usage
 Simple single file conversion to new output file::
 
     silx convert 31oct98.dat -o 31oct98.h5
+
+Concatenation of all SPEC files in the current directory::
+
+    silx convert *.dat -o all_SPEC.h5
 
 Appending a file to an existing output file::
 

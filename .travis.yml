@@ -109,8 +109,11 @@ before_script:
           ldd $(python -c "import h5py;print(h5py.h5d.__file__)");
       fi
 
-    - "pip install --upgrade pynput"
-    - "python ci/close_popup.py"
+    - if [ "$TRAVIS_OS_NAME" == "osx" ];
+      then
+          pip install --upgrade pynput;
+          python ci/close_popup.py;
+      fi
 
 script:
     - echo "WITH_QT_TEST="$WITH_QT_TEST

@@ -43,16 +43,12 @@ import sys
 import time
 import logging
 import numpy
-from silx.opencl import ocl
+from silx.opencl.common import ocl, pyopencl
 from silx.opencl.codec import byte_offset
 try:
     import fabio
 except ImportError:
     fabio = None
-try:
-    import pyopencl
-except ImportError:
-    pyopencl = None
 import unittest
 logger = logging.getLogger(__name__)
 
