@@ -131,6 +131,8 @@ def is_valid_nxdata(group):   # noqa
 
     auxiliary_signals_names = get_attr_as_string(group, "auxiliary_signals",
                                                  default=[])
+    if isinstance(auxiliary_signals_names, (six.text_type, six.binary_type)):
+        auxiliary_signals_names = [auxiliary_signals_names]
     for asn in auxiliary_signals_names:
         if asn not in group or not is_dataset(group[asn]):
             _nxdata_warning(
