@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -63,7 +63,6 @@ _file_cache = {}
 
 
 def get_hdf5_with_all_types():
-    global _file_cache
     ID = "alltypes"
     if ID in _file_cache:
         return _file_cache[ID].name
@@ -105,7 +104,6 @@ def get_hdf5_with_all_types():
 
 
 def get_hdf5_with_all_links():
-    global _file_cache
     ID = "alllinks"
     if ID in _file_cache:
         return _file_cache[ID].name
@@ -138,7 +136,6 @@ def get_hdf5_with_all_links():
 
 
 def get_hdf5_with_1000_datasets():
-    global _file_cache
     ID = "dataset1000"
     if ID in _file_cache:
         return _file_cache[ID].name
@@ -157,7 +154,6 @@ def get_hdf5_with_1000_datasets():
 
 
 def get_hdf5_with_10000_datasets():
-    global _file_cache
     ID = "dataset10000"
     if ID in _file_cache:
         return _file_cache[ID].name
@@ -176,7 +172,6 @@ def get_hdf5_with_10000_datasets():
 
 
 def get_hdf5_with_100000_datasets():
-    global _file_cache
     ID = "dataset100000"
     if ID in _file_cache:
         return _file_cache[ID].name
@@ -195,7 +190,6 @@ def get_hdf5_with_100000_datasets():
 
 
 def get_hdf5_with_recursive_links():
-    global _file_cache
     ID = "recursive_links"
     if ID in _file_cache:
         return _file_cache[ID].name
@@ -222,7 +216,6 @@ def get_hdf5_with_recursive_links():
 
 
 def get_hdf5_with_external_recursive_links():
-    global _file_cache
     ID = "external_recursive_links"
     if ID in _file_cache:
         return _file_cache[ID][0].name
@@ -254,7 +247,6 @@ def get_hdf5_with_external_recursive_links():
 
 
 def get_hdf5_with_nxdata():
-    global _file_cache
     ID = "nxdata"
     if ID in _file_cache:
         return _file_cache[ID].name
@@ -431,7 +423,6 @@ def get_hdf5_with_nxdata():
 
 
 def get_edf_with_all_types():
-    global _file_cache
     ID = "alltypesedf"
     if ID in _file_cache:
         return _file_cache[ID].name
@@ -456,7 +447,6 @@ def get_edf_with_all_types():
 
 
 def get_edf_with_100000_frames():
-    global _file_cache
     ID = "frame100000"
     if ID in _file_cache:
         return _file_cache[ID].name

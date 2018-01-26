@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -666,8 +666,6 @@ class _GraphicsResizeRectItem(qt.QGraphicsRectItem):
 def main():
     """
     """
-    import sys
-
     if len(sys.argv) < 2:
         print("give an image file as parameter please.")
         sys.exit(1)

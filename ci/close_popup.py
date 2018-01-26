@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -104,14 +104,14 @@ class CheckPopup(object):
 
         :param qt.QImage image: Image of the screen
         """
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def clickPosition(self):
         """Return the x,y coord defined to close the popup
 
         :rtype: tuple(int, int)
         """
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def isMostlySameColor(self, color1, color2):
         """
