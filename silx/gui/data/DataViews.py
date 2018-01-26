@@ -1190,20 +1190,19 @@ class _NXdataImageView(DataView):
     def setData(self, data):
         data = self.normalizeData(data)
         nxd = nxdata.get_NXdata_in_group(data)
-        signal_name = nxd.signal_name
-        title = nxd.title or signal_name
         isRgba = nxd.interpretation == "rgba-image"
-        if not isRgba:
-            y_axis, x_axis = nxd.axes[-2:]
-            y_label, x_label = nxd.axes_names[-2:]
-        else:
-            y_axis, x_axis = nxd.axes[:2]
-            y_label, x_label = nxd.axes_names[:2]
+
+        # last two axes are Y & X
+        img_slicing = slice(-2, None) if not isRgba else slice(-3, -1)
+        y_axis, x_axis = nxd.axes[img_slicing]
+        y_label, x_label = nxd.axes_names[img_slicing]
 
         self.getWidget().setImageData(
-                     nxd.signal, x_axis=x_axis, y_axis=y_axis,
-                     signal_name=signal_name, xlabel=x_label, ylabel=y_label,
-                     title=title, isRgba=isRgba)
+            [nxd.signal] + nxd.auxiliary_signals,
+            x_axis=x_axis, y_axis=y_axis,
+            signals_names=[nxd.signal_name] + nxd.auxiliary_signals_names,
+            xlabel=x_label, ylabel=y_label,
+            title=nxd.title, isRgba=isRgba)
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)

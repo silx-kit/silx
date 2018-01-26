@@ -220,6 +220,7 @@ class XYVScatterPlot(qt.QWidget):
         self._slider.setMinimum(0)
         self._slider.setValue(0)
         self._slider.valueChanged[int].connect(self._sliderIdxChanged)
+        self._slider.setToolTip("Select auxiliary signals")
 
         layout = qt.QGridLayout()
         layout.setContentsMargins(0, 0, 0, 0)
@@ -268,14 +269,14 @@ class XYVScatterPlot(qt.QWidget):
         self.__graph_title = title or ""
         self.__scatter_titles = scatter_titles
 
-        #self._slider.sigIndexChanged.disconnect(self._sliderIdxChanged)
+        self._slider.valueChanged[int].disconnect(self._sliderIdxChanged)
         self._slider.setMaximum(len(values) - 1)
         if len(values) > 1:
             self._slider.show()
         else:
             self._slider.hide()
         self._slider.setValue(0)
-        #self._slider.sigIndexChanged.connect(self._sliderIdxChanged)
+        self._slider.valueChanged[int].connect(self._sliderIdxChanged)
 
         self._updateScatter()
 
@@ -328,8 +329,8 @@ class ArrayImagePlot(qt.QWidget):
         """
         super(ArrayImagePlot, self).__init__(parent)
 
-        self.__signal = None
-        self.__signal_name = None
+        self.__signals = None
+        self.__signals_names = None
         self.__x_axis = None
         self.__x_axis_name = None
         self.__y_axis = None
@@ -344,18 +345,26 @@ class ArrayImagePlot(qt.QWidget):
         # not closable
         self.selectorDock.setFeatures(qt.QDockWidget.DockWidgetMovable |
                                       qt.QDockWidget.DockWidgetFloatable)
-        self._legend = qt.QLabel(self)
         self._selector = NumpyAxesSelector(self.selectorDock)
         self._selector.setNamedAxesSelectorVisibility(False)
-        self.__selector_is_connected = False
+        self._selector.selectionChanged.connect(self._updateImage)
+
+        self._auxSigSlider = HorizontalSliderWithBrowser(parent=self)
+        self._auxSigSlider.setMinimum(0)
+        self._auxSigSlider.setValue(0)
+        self._auxSigSlider.valueChanged[int].connect(self._sliderIdxChanged)
+        self._auxSigSlider.setToolTip("Select auxiliary signals")
 
         layout = qt.QVBoxLayout()
         layout.addWidget(self._plot)
-        layout.addWidget(self._legend)
+        layout.addWidget(self._auxSigSlider)
         self.selectorDock.setWidget(self._selector)
         self._plot.addTabbedDockWidget(self.selectorDock)
 
         self.setLayout(layout)
+
+    def _sliderIdxChanged(self, value):
+        self._updateImage()
 
     def getPlot(self):
         """Returns the plot used for the display
@@ -364,70 +373,72 @@ class ArrayImagePlot(qt.QWidget):
         """
         return self._plot
 
-    def setImageData(self, signal,
+    def setImageData(self, signals,
                      x_axis=None, y_axis=None,
-                     signal_name=None,
+                     signals_names=None,
                      xlabel=None, ylabel=None,
                      title=None, isRgba=False):
         """
 
-        :param signal: n-D dataset, whose last 2 dimensions are used as the
-            image's values, or 3D dataset interpreted as RGBA image.
+        :param signals: list of n-D datasets, whose last 2 dimensions are used as the
+            image's values, or list of 3D datasets interpreted as RGBA image.
         :param x_axis: 1-D dataset used as the image's x coordinates. If
             provided, its lengths must be equal to the length of the last
             dimension of ``signal``.
         :param y_axis: 1-D dataset used as the image's y. If provided,
             its lengths must be equal to the length of the 2nd to last
             dimension of ``signal``.
-        :param signal_name: Label used in the legend
+        :param signals_names: Names for each image, used as subtitle and legend.
         :param xlabel: Label for X axis
         :param ylabel: Label for Y axis
         :param title: Graph title
         :param isRgba: True if data is a 3D RGBA image
         """
-        if self.__selector_is_connected:
-            self._selector.selectionChanged.disconnect(self._updateImage)
-            self.__selector_is_connected = False
+        self._selector.selectionChanged.disconnect(self._updateImage)
+        self._auxSigSlider.valueChanged.disconnect(self._sliderIdxChanged)
 
-        self.__signal = signal
-        self.__signal_name = signal_name or ""
+        self.__signals = signals
+        self.__signals_names = signals_names
         self.__x_axis = x_axis
         self.__x_axis_name = xlabel
         self.__y_axis = y_axis
         self.__y_axis_name = ylabel
+        self.__title = title
 
-        self._selector.setData(signal)
+        self._selector.setData(signals[0])
         if not isRgba:
             self._selector.setAxisNames(["Y", "X"])
+            img_ndim = 2
         else:
             self._selector.setAxisNames(["Y", "X", "RGB(A) channel"])
+            img_ndim = 3
 
-        if len(signal.shape) < 3:
+        if len(signals[0].shape) <= img_ndim:
             self.selectorDock.hide()
         else:
             self.selectorDock.show()
 
-        self._plot.setGraphTitle(title or "")
-        self._plot.getXAxis().setLabel(self.__x_axis_name or "X")
-        self._plot.getYAxis().setLabel(self.__y_axis_name or "Y")
+        self._auxSigSlider.setMaximum(len(signals) - 1)
+        if len(signals) > 1:
+            self._auxSigSlider.show()
+        else:
+            self._auxSigSlider.hide()
+        self._auxSigSlider.setValue(0)
 
         self._updateImage()
 
-        if not self.__selector_is_connected:
-            self._selector.selectionChanged.connect(self._updateImage)
-            self.__selector_is_connected = True
+        self._selector.selectionChanged.connect(self._updateImage)
+        self._auxSigSlider.valueChanged.connect(self._sliderIdxChanged)
 
     def _updateImage(self):
-        legend = self.__signal_name + "["
-        for sl in self._selector.selection():
-            if sl == slice(None):
-                legend += ":, "
-            else:
-                legend += str(sl) + ", "
-        legend = legend[:-2] + "]"
-        self._legend.setText("Displayed data: " + legend)
+        selection = self._selector.selection()
+        auxSigIdx = self._auxSigSlider.value()
 
-        img = self._selector.selectedData()
+        legend = self.__signals_names[auxSigIdx]
+
+        images = [img[selection] for img in self.__signals]
+        image = images[auxSigIdx]
+
         x_axis = self.__x_axis
         y_axis = self.__y_axis
 
@@ -437,25 +448,25 @@ class ArrayImagePlot(qt.QWidget):
         else:
             if x_axis is None:
                 # no calibration
-                x_axis = numpy.arange(img.shape[-1])
+                x_axis = numpy.arange(image.shape[1])
             elif numpy.isscalar(x_axis) or len(x_axis) == 1:
                 # constant axis
-                x_axis = x_axis * numpy.ones((img.shape[-1], ))
+                x_axis = x_axis * numpy.ones((image.shape[1], ))
             elif len(x_axis) == 2:
                 # linear calibration
-                x_axis = x_axis[0] * numpy.arange(img.shape[-1]) + x_axis[1]
+                x_axis = x_axis[0] * numpy.arange(image.shape[1]) + x_axis[1]
 
             if y_axis is None:
-                y_axis = numpy.arange(img.shape[-2])
+                y_axis = numpy.arange(image.shape[0])
             elif numpy.isscalar(y_axis) or len(y_axis) == 1:
-                y_axis = y_axis * numpy.ones((img.shape[-2], ))
+                y_axis = y_axis * numpy.ones((image.shape[0], ))
             elif len(y_axis) == 2:
-                y_axis = y_axis[0] * numpy.arange(img.shape[-2]) + y_axis[1]
+                y_axis = y_axis[0] * numpy.arange(image.shape[0]) + y_axis[1]
 
             xcalib = ArrayCalibration(x_axis)
             ycalib = ArrayCalibration(y_axis)
 
-        self._plot.remove(kind=("scatter", "image"))
+        self._plot.remove(kind=("scatter", "image",))
         if xcalib.is_affine() and ycalib.is_affine():
             # regular image
             xorigin, xscale = xcalib(0), xcalib.get_slope()
@@ -463,14 +474,21 @@ class ArrayImagePlot(qt.QWidget):
             origin = (xorigin, yorigin)
             scale = (xscale, yscale)
 
-            self._plot.addImage(img, legend=legend,
+            self._plot.addImage(image, legend=legend,
                                 origin=origin, scale=scale)
         else:
             scatterx, scattery = numpy.meshgrid(x_axis, y_axis)
+            # fixme: i don't think this can handle "irregular" RGBA images
             self._plot.addScatter(numpy.ravel(scatterx),
                                   numpy.ravel(scattery),
-                                  numpy.ravel(img),
+                                  numpy.ravel(image),
                                   legend=legend)
+
+        title = ""
+        if self.__title:
+            title += self.__title + "\n"
+        title += self.__signals_names[auxSigIdx]
+        self._plot.setGraphTitle(title)
         self._plot.getXAxis().setLabel(self.__x_axis_name)
         self._plot.getYAxis().setLabel(self.__y_axis_name)
         self._plot.resetZoom()
