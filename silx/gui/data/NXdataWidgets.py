@@ -405,13 +405,15 @@ class ArrayImagePlot(qt.QWidget):
         self.__y_axis_name = ylabel
         self.__title = title
 
-        self._selector.setData(signals[0])
+        self._selector.clear()
         if not isRgba:
             self._selector.setAxisNames(["Y", "X"])
             img_ndim = 2
         else:
             self._selector.setAxisNames(["Y", "X", "RGB(A) channel"])
             img_ndim = 3
+        self._selector.setData(signals[0])
+
 
         if len(signals[0].shape) <= img_ndim:
             self.selectorDock.hide()
