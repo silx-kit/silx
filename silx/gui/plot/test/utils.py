@@ -26,17 +26,15 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "01/09/2017"
+__date__ = "26/01/2018"
 
 
 import logging
-import contextlib
 
 from silx.gui.test.utils import TestCaseQt
 
 from silx.gui import qt
 from silx.gui.plot import PlotWidget
-from silx.gui.plot.backends.BackendMatplotlib import BackendMatplotlibQt
 
 
 logger = logging.getLogger(__name__)
@@ -47,6 +45,8 @@ class PlotWidgetTestCase(TestCaseQt):
 
     plot attribute is the PlotWidget created for the test.
     """
+
+    __screenshot_already_taken = False
 
     def __init__(self, methodName='runTest'):
         TestCaseQt.__init__(self, methodName=methodName)
@@ -78,7 +78,16 @@ class PlotWidgetTestCase(TestCaseQt):
             logger.error("Plot is still alive")
 
     def tearDown(self):
+        if not self._currentTestSucceeded():
+            # MPL is the only widget which uses the real system mouse.
+            # In case of a the windows is outside of the screen, minimzed,
+            # overlapped by a system popup, the MPL widget will not receive the
+            # mouse event.
+            # Taking a screenshot help debuging this cases in the continuous
+            # integration environement.
+            if not PlotWidgetTestCase.__screenshot_already_taken:
+                PlotWidgetTestCase.__screenshot_already_taken = True
+                self.logScreenShot()
         self.qapp.processEvents()
         self._waitForPlotClosed()
         super(PlotWidgetTestCase, self).tearDown()
-
