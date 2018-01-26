@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "27/09/2016"
+__date__ = "27/01/2018"
 
 try:
     import h5py
@@ -114,9 +114,11 @@ class TestNXdata(unittest.TestCase):
         g2d0 = g2d.create_group("2D_regular_image")
         g2d0.attrs["NX_class"] = "NXdata"
         g2d0.attrs["signal"] = "image"
+        g2d0.attrs["auxiliary_signals"] = "image2"
         g2d0.attrs["axes"] = numpy.array(["rows_calib", "columns_coordinates"],
                                          dtype=text_dtype)
         g2d0.create_dataset("image", data=numpy.arange(4 * 6).reshape((4, 6)))
+        g2d0.create_dataset("image2", data=numpy.arange(4 * 6).reshape((4, 6)))
         ds = g2d0.create_dataset("rows_calib", data=(10, 5))
         ds.attrs["long_name"] = "Calibrated Y"
         g2d0.create_dataset("columns_coordinates", data=0.5 + 0.02 * numpy.arange(6))
@@ -288,6 +290,8 @@ class TestNXdata(unittest.TestCase):
         self.assertIsNone(nxd.errors)
         self.assertFalse(nxd.is_scatter or nxd.is_x_y_value_scatter)
         self.assertIsNone(nxd.interpretation)
+        self.assertEqual(len(nxd.auxiliary_signals), 1)
+        self.assertEqual(nxd.auxiliary_signals_names, ["image2"])
 
         nxd = nxdata.NXdata(self.h5f["images/2D_irregular_data"])
         self.assertTrue(nxd.signal_is_2d)
