@@ -87,8 +87,10 @@ class TestScatterMaskToolsWidget(PlotWidgetTestCase, ParametricTestCase):
         pos0 = xCenter, yCenter
         pos1 = xCenter + offset, yCenter + offset
 
+        self.mouseMove(plot, pos=(0, 0))
         self.mouseMove(plot, pos=pos0)
         self.mousePress(plot, qt.Qt.LeftButton, pos=pos0)
+        self.mouseMove(plot, pos=(0, 0))
         self.mouseMove(plot, pos=pos1)
         self.mouseRelease(plot, qt.Qt.LeftButton, pos=pos1)
 
@@ -198,7 +200,7 @@ class TestScatterMaskToolsWidget(PlotWidgetTestCase, ParametricTestCase):
         self.assertIsNot(toolButton, None)
         self.mouseClick(toolButton, qt.Qt.LeftButton)
 
-        self.maskWidget.pencilSpinBox.setValue(10)
+        self.maskWidget.pencilSpinBox.setValue(30)
         self.qapp.processEvents()
 
         # mask

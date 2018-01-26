@@ -139,11 +139,9 @@ class TestCaseQt(unittest.TestCase):
             # Makes sure a QApplication exists and do it once for all
             _qapp = qt.QApplication.instance() or qt.QApplication([])
 
-            # Create/delate a QWidget to make sure init of QDesktopWidget
-            _dummyWidget = qt.QWidget()
-            _dummyWidget.setAttribute(qt.Qt.WA_DeleteOnClose)
-            _dummyWidget.show()
-            _dummyWidget.close()
+            # Makes sure QDesktopWidget is init
+            # Otherwise it happens randomly during the tests
+            cls._desktopWidget = _qapp.desktop()
             _qapp.processEvents()
 
     @classmethod
