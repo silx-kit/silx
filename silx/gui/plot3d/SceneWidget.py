@@ -31,16 +31,177 @@ __license__ = "MIT"
 __date__ = "26/10/2017"
 
 import numpy
+import weakref
 
 from .. import qt
 from ..plot.Colors import rgba
 
 from .Plot3DWidget import Plot3DWidget
 from . import items
-from ._model import SceneModel
+from ._model import SceneModel, visitQAbstractItemModel
+from ._model.items import Item3DRow
 
 
 __all__ = ['items', 'SceneWidget']
+
+
+class SceneSelection(qt.QObject):
+    """Object managing a :class:`SceneWidget` selection
+
+    :param QObject parent:
+    """
+
+    NO_SELECTION = 0
+    """Flag for no item selected"""
+
+    sigCurrentChanged = qt.Signal(object, object)
+    """This signal is emitted whenever the current item changes.
+
+    It provides the current and previous items.
+    Either of those can be :attr:`NO_SELECTION`.
+    """
+
+    def __init__(self, parent=None):
+        super(SceneSelection, self).__init__(parent)
+        self.__current = None  # Store weakref to current item
+        self.__selectionModel = None  # Store sync selection model
+        self.__syncInProgress = False  # True during model synchronization
+
+    def getCurrentItem(self):
+        """Returns the current item in the scene or None.
+
+        :rtype: Union[~silx.gui.plot3d.items.Item3D, None]
+        """
+        return None if self.__current is None else self.__current()
+
+    def setCurrentItem(self, item):
+        """Set the current item in the scene.
+
+        :param Union[Item3D, None] item:
+            The new item to select or None to clear the selection.
+        :raise ValueError: If the item is not the widget's scene
+        """
+        previous = self.getCurrentItem()
+        if previous is not None:
+            previous.sigItemChanged.disconnect(self.__currentChanged)
+
+        if item is None:
+            self.__current = None
+
+        elif isinstance(item, items.Item3D):
+            parent = self.parent()
+            assert isinstance(parent, SceneWidget)
+
+            sceneGroup = parent.getSceneGroup()
+            if item is sceneGroup or item.root() is sceneGroup:
+                item.sigItemChanged.connect(self.__currentChanged)
+                self.__current = weakref.ref(item)
+            else:
+                raise ValueError(
+                    'Item is not in this SceneWidget: %s' % str(item))
+
+        else:
+            raise ValueError(
+                'Not an Item3D: %s' % str(item))
+
+        current = self.getCurrentItem()
+        if current is not previous:
+            self.sigCurrentChanged.emit(current, previous)
+            self.__updateSelectionModel()
+
+    def __currentChanged(self, event):
+        """Handle updates of the selected item"""
+        if event == items.Item3DChangedType.ROOT_ITEM:
+            item = self.sender()
+            if item.root() != self.getSceneGroup():
+                self.setSelectedItem(None)
+
+    # Synchronization with QItemSelectionModel
+
+    def _getSyncSelectionModel(self):
+        """Returns the QItemSelectionModel this selection is synchronized with.
+
+        :rtype: Union[QItemSelectionModel, None]
+        """
+        return self.__selectionModel
+
+    def _setSyncSelectionModel(self, selectionModel):
+        """Synchronizes this selection object with a selection model.
+
+        :param Union[QItemSelectionModel, None] selectionModel:
+        :raise ValueError: If the selection model does not correspond
+                           to the same :class:`SceneWidget`
+        """
+        if (not isinstance(selectionModel, qt.QItemSelectionModel) or
+                not isinstance(selectionModel.model(), SceneModel) or
+                selectionModel.model().sceneWidget() is not self.parent()):
+            raise ValueError("Expecting a QItemSelectionModel "
+                             "attached to the same SceneWidget")
+
+        # Disconnect from previous selection model
+        previousSelectionModel = self._getSyncSelectionModel()
+        if previousSelectionModel is not None:
+            previousSelectionModel.selectionChanged.disconnect(
+                self.__selectionModelSelectionChanged)
+
+        self.__selectionModel = selectionModel
+
+        if selectionModel is not None:
+            # Connect to new selection model
+            selectionModel.selectionChanged.connect(
+                self.__selectionModelSelectionChanged)
+            self.__updateSelectionModel()
+
+    def __selectionModelSelectionChanged(self, selected, deselected):
+        """Handle QItemSelectionModel selection updates.
+
+        :param QItemSelection selected:
+        :param QItemSelection deselected:
+        """
+        if self.__syncInProgress:
+            return
+
+        indices = selected.indexes()
+        if not indices:
+            item = None
+
+        else:  # Select the first selected item
+            index = indices[0]
+            itemRow = index.internalPointer()
+            if isinstance(itemRow, Item3DRow):
+                item = itemRow.item()
+            else:
+                item = None
+
+        self.setCurrentItem(item)
+
+    def __updateSelectionModel(self):
+        """Sync selection model when current item has been updated"""
+        selectionModel = self._getSyncSelectionModel()
+        if selectionModel is None:
+            return
+
+        currentItem = self.getCurrentItem()
+
+        if currentItem is None:
+            selectionModel.clear()
+
+        else:
+            # visit the model to find selectable index corresponding to item
+            model = selectionModel.model()
+            for index in visitQAbstractItemModel(model):
+                itemRow = index.internalPointer()
+                if (isinstance(itemRow, Item3DRow) and
+                        itemRow.item() is currentItem and
+                        index.flags() & qt.Qt.ItemIsSelectable):
+                    # This is the item we are looking for: select it in the model
+                    self.__syncInProgress = True
+                    selectionModel.select(
+                        index, qt.QItemSelectionModel.Clear |
+                               qt.QItemSelectionModel.Select |
+                               qt.QItemSelectionModel.Current)
+                    self.__syncInProgress = False
+                    break
 
 
 class SceneWidget(Plot3DWidget):
@@ -48,7 +209,8 @@ class SceneWidget(Plot3DWidget):
 
     def __init__(self, parent=None):
         super(SceneWidget, self).__init__(parent)
-        self._model = None
+        self._model = None  # Store lazy-loaded model
+        self._selection = None  # Store lazy-loaded SceneSelection
         self._items = []
 
         self._textColor = 1., 1., 1., 1.
@@ -69,6 +231,16 @@ class SceneWidget(Plot3DWidget):
             # Lazy-loading of the model
             self._model = SceneModel(parent=self)
         return self._model
+
+    def selection(self):
+        """Returns the object managing selection in the scene
+
+        :rtype: SceneSelection
+        """
+        if self._selection is None:
+            # Lazy-loading of the SceneSelection
+            self._selection = SceneSelection(parent=self)
+        return self._selection
 
     def getSceneGroup(self):
         """Returns the root group of the scene

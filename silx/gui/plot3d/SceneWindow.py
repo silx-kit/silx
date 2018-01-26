@@ -73,6 +73,10 @@ class SceneWindow(qt.QMainWindow):
         self._paramTreeView = ParamTreeView()
         self._paramTreeView.setModel(self._sceneWidget.model())
 
+        selectionModel = self._paramTreeView.selectionModel()
+        self._sceneWidget.selection()._setSyncSelectionModel(
+            selectionModel)
+
         paramDock = qt.QDockWidget()
         paramDock.setWindowTitle('Object parameters')
         paramDock.setWidget(self._paramTreeView)
