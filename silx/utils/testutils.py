@@ -32,7 +32,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "17/01/2018"
+__date__ = "26/01/2018"
 
 
 import contextlib
@@ -75,6 +75,31 @@ else:
                     [msg for msg in (short_desc, self._subtest_msg) if msg])
 
             return short_desc if short_desc else None
+
+
+def parameterize(test_case_class, *args, **kwargs):
+    """Create a suite containing all tests taken from the given
+    subclass, passing them the parameters.
+
+    .. code-block:: python
+
+        class TestParameterizedCase(unittest.TestCase):
+            def __init__(self, methodName='runTest', foo=None):
+                unittest.TestCase.__init__(self, methodName)
+                self.foo = foo
+
+        def suite():
+            testSuite = unittest.TestSuite()
+            testSuite.addTest(parameterize(TestParameterizedCase, foo=10))
+            testSuite.addTest(parameterize(TestParameterizedCase, foo=50))
+            return testSuite
+    """
+    test_loader = unittest.TestLoader()
+    test_names = test_loader.getTestCaseNames(test_case_class)
+    suite = unittest.TestSuite()
+    for name in test_names:
+        suite.addTest(test_case_class(name, *args, **kwargs))
+    return suite
 
 
 class TestLogging(logging.Handler):
