@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -103,7 +103,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         colormapDiag2.close()
 
     def testGUIModalOk(self):
-        """Make sure the colormap is modify if go through accept"""
+        """Make sure the colormap is modified if gone through accept"""
         assert self.colormap.isAutoscale() is False
         self.colormapDiag.setModal(True)
         self.colormapDiag.show()
@@ -115,10 +115,10 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
             widget=self.colormapDiag._buttonsModal.button(qt.QDialogButtonBox.Ok),
             button=qt.Qt.LeftButton
         )
-        self.assertTrue(self.colormap.isAutoscale() is True)
+        self.assertTrue(self.colormap.getVMin() is None)
 
     def testGUIModalCancel(self):
-        """Make sure the colormap is modify if go through reject"""
+        """Make sure the colormap is not modified if gone through reject"""
         assert self.colormap.isAutoscale() is False
         self.colormapDiag.setModal(True)
         self.colormapDiag.show()
