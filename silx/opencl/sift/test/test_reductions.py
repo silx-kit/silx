@@ -37,7 +37,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "12/01/2018"
+__date__ = "29/01/2018"
 
 import os
 import unittest
@@ -115,7 +115,7 @@ class TestReduction(unittest.TestCase):
         wg_float = min(512.0, numpy.sqrt(data.size))
         wg = 2 ** (int(math.ceil(math.log(wg_float, 2))))
         if self.maxwg < wg:
-            logger.info("Skip test_max_min as wg=% < red_size=%s", self.maxwg, wg)
+            logger.info("Skip test_max_min as wg=%s < red_size=%s", self.maxwg, wg)
             return
 
         size = wg * wg
