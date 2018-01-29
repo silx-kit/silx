@@ -40,7 +40,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "26/01/2018"
+__date__ = "29/01/2018"
 
 import os
 import unittest
@@ -99,10 +99,6 @@ class TestKeypoints(unittest.TestCase):
         cls.ctx = None
         cls.queue = None
 
-
-
-@unittest.skipUnless(ocl and scipy, "opencl or scipy missing")
-class test_keypoints(ParameterisedTestCase):
     def setUp(self):
         self.abort = False
         if scipy and ocl is None:
@@ -131,7 +127,7 @@ class test_keypoints(ParameterisedTestCase):
         for i in self.wg_orient:
             prod_wg *= i
 
-        kernel_src = get_opencl_code(os.path.join("sift", self.orientation_script))
+        kernel_src = kernel_base + get_opencl_code(os.path.join("sift", self.orientation_script))
         try:
             self.program_orient = pyopencl.Program(self.ctx, kernel_src).build()
         except Exception:
@@ -144,7 +140,7 @@ class test_keypoints(ParameterisedTestCase):
             self.abort = True
 
         self.wg_keypoint = self.keypoint_param
-        kernel_src = get_opencl_code(os.path.join("sift", self.keypoint_script))
+        kernel_src = kernel_base + get_opencl_code(os.path.join("sift", self.keypoint_script))
         prod_wg = 1
         for i in self.wg_keypoint:
             prod_wg *= i
