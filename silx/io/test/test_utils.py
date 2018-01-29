@@ -49,7 +49,7 @@ except ImportError:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "11/12/2017"
+__date__ = "29/01/2018"
 
 
 expected_spec1 = r"""#F .*
@@ -553,14 +553,14 @@ class TestGetData(unittest.TestCase):
     def test_hdf5_scalar(self):
         if h5py is None:
             self.skipTest("H5py is missing")
-        url = "silx:%s::/group/group/scalar" % self.h5_filename
+        url = "silx:%s?/group/group/scalar" % self.h5_filename
         data = utils.get_data(url=url)
         self.assertEqual(data, 50)
 
     def test_hdf5_array(self):
         if h5py is None:
             self.skipTest("H5py is missing")
-        url = "silx:%s::/group/group/array" % self.h5_filename
+        url = "silx:%s?/group/group/array" % self.h5_filename
         data = utils.get_data(url=url)
         self.assertEqual(data.shape, (5, ))
         self.assertEqual(data[0], 1)
@@ -568,7 +568,7 @@ class TestGetData(unittest.TestCase):
     def test_hdf5_array_slice(self):
         if h5py is None:
             self.skipTest("H5py is missing")
-        url = "silx:%s::/group/group/array2d[1]" % self.h5_filename
+        url = "silx:%s?path=/group/group/array2d&slice=1" % self.h5_filename
         data = utils.get_data(url=url)
         self.assertEqual(data.shape, (5, ))
         self.assertEqual(data[0], 6)
@@ -576,7 +576,7 @@ class TestGetData(unittest.TestCase):
     def test_hdf5_array_slice_out_of_range(self):
         if h5py is None:
             self.skipTest("H5py is missing")
-        url = "silx:%s::/group/group/array2d[5]" % self.h5_filename
+        url = "silx:%s?path=/group/group/array2d&slice=5" % self.h5_filename
         self.assertRaises(ValueError, utils.get_data, url)
 
     def test_edf_using_silx(self):
@@ -584,7 +584,7 @@ class TestGetData(unittest.TestCase):
             self.skipTest("H5py is missing")
         if fabio is None:
             self.skipTest("fabio is missing")
-        url = "silx:%s::/scan_0/instrument/detector_0/data" % self.edf_filename
+        url = "silx:%s?/scan_0/instrument/detector_0/data" % self.edf_filename
         data = utils.get_data(url=url)
         self.assertEqual(data.shape, (2, 2))
         self.assertEqual(data[0, 0], 10)
@@ -592,7 +592,7 @@ class TestGetData(unittest.TestCase):
     def test_fabio_frame(self):
         if fabio is None:
             self.skipTest("fabio is missing")
-        url = "fabio:%s::[1]" % self.edf_multiframe_filename
+        url = "fabio:%s?slice=1" % self.edf_multiframe_filename
         data = utils.get_data(url=url)
         self.assertEqual(data.shape, (2, 2))
         self.assertEqual(data[0, 0], 10)
@@ -600,7 +600,7 @@ class TestGetData(unittest.TestCase):
     def test_fabio_singleframe(self):
         if fabio is None:
             self.skipTest("fabio is missing")
-        url = "fabio:%s::[0]" % self.edf_filename
+        url = "fabio:%s?slice=0" % self.edf_filename
         data = utils.get_data(url=url)
         self.assertEqual(data.shape, (2, 2))
         self.assertEqual(data[0, 0], 10)
@@ -608,13 +608,13 @@ class TestGetData(unittest.TestCase):
     def test_fabio_too_much_frames(self):
         if fabio is None:
             self.skipTest("fabio is missing")
-        url = "fabio:%s::[...]" % self.edf_multiframe_filename
+        url = "fabio:%s?slice=..." % self.edf_multiframe_filename
         self.assertRaises(ValueError, utils.get_data, url)
 
     def test_fabio_no_frame(self):
         if fabio is None:
             self.skipTest("fabio is missing")
-        url = "fabio:%s::" % self.edf_filename
+        url = "fabio:%s?" % self.edf_filename
         self.assertRaises(ValueError, utils.get_data, url)
 
     def test_unsupported_scheme(self):
@@ -624,7 +624,7 @@ class TestGetData(unittest.TestCase):
     def test_no_scheme(self):
         if fabio is None:
             self.skipTest("fabio is missing")
-        url = "%s::/group/group/array2d[5]" % self.h5_filename
+        url = "%s?path=/group/group/array2d&slice=5" % self.h5_filename
         self.assertRaises((ValueError, IOError), utils.get_data, url)
 
     def test_file_not_exists(self):

@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "11/12/2017"
+__date__ = "29/01/2018"
 
 
 import unittest
@@ -43,27 +43,32 @@ class TestDataUrl(unittest.TestCase):
         self.assertEqual(url.data_slice(), expected[5])
 
     def test_fabio_absolute(self):
-        url = DataUrl("fabio:///data/image.edf::[2]")
+        url = DataUrl("fabio:///data/image.edf?slice=2")
         expected = [True, True, "fabio", "/data/image.edf", None, (2, )]
         self.assertUrl(url, expected)
 
     def test_fabio_absolute_windows(self):
-        url = DataUrl("fabio:///C:/data/image.edf::[2]")
+        url = DataUrl("fabio:///C:/data/image.edf?slice=2")
         expected = [True, True, "fabio", "C:/data/image.edf", None, (2, )]
         self.assertUrl(url, expected)
 
     def test_silx_absolute(self):
-        url = DataUrl("silx:///data/image.h5::/data/dataset[1,5]")
+        url = DataUrl("silx:///data/image.h5?path=/data/dataset&slice=1,5")
+        expected = [True, True, "silx", "/data/image.h5", "/data/dataset", (1, 5)]
+        self.assertUrl(url, expected)
+
+    def test_commandline_shell_separator(self):
+        url = DataUrl("silx:///data/image.h5::path=/data/dataset&slice=1,5")
         expected = [True, True, "silx", "/data/image.h5", "/data/dataset", (1, 5)]
         self.assertUrl(url, expected)
 
     def test_silx_absolute2(self):
-        url = DataUrl("silx:///data/image.edf::/scan_0/detector/data")
+        url = DataUrl("silx:///data/image.edf?/scan_0/detector/data")
         expected = [True, True, "silx", "/data/image.edf", "/scan_0/detector/data", None]
         self.assertUrl(url, expected)
 
     def test_silx_absolute_windows(self):
-        url = DataUrl("silx:///C:/data/image.h5::/scan_0/detector/data")
+        url = DataUrl("silx:///C:/data/image.h5?/scan_0/detector/data")
         expected = [True, True, "silx", "C:/data/image.h5", "/scan_0/detector/data", None]
         self.assertUrl(url, expected)
 
@@ -113,22 +118,22 @@ class TestDataUrl(unittest.TestCase):
         self.assertUrl(url, expected)
 
     def test_absolute_with_path(self):
-        url = DataUrl("/foo/foobar.h5::/foo/bar")
+        url = DataUrl("/foo/foobar.h5?/foo/bar")
         expected = [True, True, None, "/foo/foobar.h5", "/foo/bar", None]
         self.assertUrl(url, expected)
 
     def test_windows_file_data_slice(self):
-        url = DataUrl("C:/foo/foobar.h5::/foo/bar[5,1]")
+        url = DataUrl("C:/foo/foobar.h5?path=/foo/bar&slice=5,1")
         expected = [True, True, None, "C:/foo/foobar.h5", "/foo/bar", (5, 1)]
         self.assertUrl(url, expected)
 
     def test_scheme_file_data_slice(self):
-        url = DataUrl("silx:/foo/foobar.h5::/foo/bar[5,1]")
+        url = DataUrl("silx:/foo/foobar.h5?path=/foo/bar&slice=5,1")
         expected = [True, True, "silx", "/foo/foobar.h5", "/foo/bar", (5, 1)]
         self.assertUrl(url, expected)
 
     def test_scheme_windows_file_data_slice(self):
-        url = DataUrl("silx:C:/foo/foobar.h5::/foo/bar[5,1]")
+        url = DataUrl("silx:C:/foo/foobar.h5?path=/foo/bar&slice=5,1")
         expected = [True, True, "silx", "C:/foo/foobar.h5", "/foo/bar", (5, 1)]
         self.assertUrl(url, expected)
 
@@ -138,55 +143,55 @@ class TestDataUrl(unittest.TestCase):
         self.assertUrl(url, expected)
 
     def test_unknown_scheme(self):
-        url = DataUrl("foo:/foo/foobar.h5::/foo/bar[5,1]")
+        url = DataUrl("foo:/foo/foobar.h5?path=/foo/bar&slice=5,1")
         expected = [False, True, "foo", "/foo/foobar.h5", "/foo/bar", (5, 1)]
         self.assertUrl(url, expected)
 
     def test_slice(self):
-        url = DataUrl("/a.h5::/b[5,1]")
+        url = DataUrl("/a.h5?path=/b&slice=5,1")
         expected = [True, True, None, "/a.h5", "/b", (5, 1)]
         self.assertUrl(url, expected)
 
     def test_slice_ellipsis(self):
-        url = DataUrl("/a.h5::/b[...]")
+        url = DataUrl("/a.h5?path=/b&slice=...")
         expected = [True, True, None, "/a.h5", "/b", (Ellipsis, )]
         self.assertUrl(url, expected)
 
     def test_slice_slicing(self):
-        url = DataUrl("/a.h5::/b[:]")
+        url = DataUrl("/a.h5?path=/b&slice=:")
         expected = [True, True, None, "/a.h5", "/b", (slice(None), )]
         self.assertUrl(url, expected)
 
     def test_slice_missing_element(self):
-        url = DataUrl("/a.h5::/b[5,,1]")
-        expected = [False, True, None, "/a.h5", "/b", None]
-        self.assertUrl(url, expected)
-
-    def test_slice_non_termination(self):
-        url = DataUrl("/a.h5::/b[5")
+        url = DataUrl("/a.h5?path=/b&slice=5,,1")
         expected = [False, True, None, "/a.h5", "/b", None]
         self.assertUrl(url, expected)
 
     def test_slice_no_elements(self):
-        url = DataUrl("/a.h5::/b[]")
+        url = DataUrl("/a.h5?path=/b&slice=")
         expected = [False, True, None, "/a.h5", "/b", None]
         self.assertUrl(url, expected)
 
     def test_create_relative_url(self):
         url = DataUrl(scheme="silx", file_path="./foo.h5", data_path="/", data_slice=(5, 1))
-        self.assertEqual(url.path(), "silx:./foo.h5::/[5,1]")
+        self.assertFalse(url.is_absolute())
+        url2 = DataUrl(url.path())
+        self.assertEqual(url, url2)
 
     def test_create_absolute_url(self):
         url = DataUrl(scheme="silx", file_path="/foo.h5", data_path="/", data_slice=(5, 1))
-        self.assertEqual(url.path(), "silx:///foo.h5::/[5,1]")
+        url2 = DataUrl(url.path())
+        self.assertEqual(url, url2)
 
     def test_create_absolute_windows_url(self):
         url = DataUrl(scheme="silx", file_path="C:/foo.h5", data_path="/", data_slice=(5, 1))
-        self.assertEqual(url.path(), "silx:///C:/foo.h5::/[5,1]")
+        url2 = DataUrl(url.path())
+        self.assertEqual(url, url2)
 
     def test_create_slice_url(self):
         url = DataUrl(scheme="silx", file_path="/foo.h5", data_path="/", data_slice=(5, 1, Ellipsis, slice(None)))
-        self.assertEqual(url.path(), "silx:///foo.h5::/[5,1,...,:]")
+        url2 = DataUrl(url.path())
+        self.assertEqual(url, url2)
 
     def test_wrong_url(self):
         url = DataUrl(scheme="silx", file_path="/foo.h5", data_slice=(5, 1))
