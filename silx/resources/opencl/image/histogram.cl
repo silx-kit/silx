@@ -56,6 +56,7 @@ Grid information:
 
 Assumes:
     hist and local_hist have size hist_size
+    edges has size hist_size+2
     tmp_hist has size hist_size*num_groups
     processed is of size one and initially set to 0
 
@@ -81,6 +82,7 @@ kernel void histogram(global float *data,
                       float maxi,
                       int map_operation,
                       global int *hist,
+                      global float *edges,
                       int hist_size,
                       global int *tmp_hist,
                       global int *processed,
@@ -115,7 +117,7 @@ kernel void histogram(global float *data,
         if (address < stop)
         {
             float value = data[address];
-            if (!isnan(value))
+            if ((!isnan(value)) && (value>=mini) && (value<=maxi))
             {
                 float vvalue = (preprocess(value, map_operation)-vmini)*vscale;
                 int idx = clamp((int) vvalue, 0, hist_size - 1);
@@ -162,9 +164,15 @@ kernel void histogram(global float *data,
                     lsum += tmp_hist[hist_size * k + j];
                 }
                 hist[j] = lsum;
+                edges[j] = vmini + j/vscale;
             }
         }
         // Finally reset the counter
-        processed[0] = 0;
+        if (lid == 0)
+        {
+            processed[0] = 0;
+            edges[hist_size] = vmini + hist_size/vscale;;
+        }
+
     }
 }

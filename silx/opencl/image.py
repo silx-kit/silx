@@ -105,7 +105,8 @@ class ImageProcessing(OpenclProcessing):
         else:
             img_shape = self.shape + (self.ncolors,)
 
-        buffers = [BufferDescription("image1_d", img_shape, numpy.float32, None),
+        buffers = [BufferDescription("image0_d", img_shape, numpy.float32, None),
+                   BufferDescription("image1_d", img_shape, numpy.float32, None),
                    BufferDescription("image2_d", img_shape, numpy.float32, None),
                    BufferDescription("max_min_d", 2, numpy.float32, None),
                    BufferDescription("cnt_d", 1, numpy.int32, None), ]
@@ -195,7 +196,7 @@ class ImageProcessing(OpenclProcessing):
         events = []
         with self.sem:
             input_array, output_array = self._get_in_out_buffers(img, copy, out)
-            if img.dtype.itemsize > 4:
+            if (img.dtype.itemsize > 4) or (img.dtype == numpy.float32):
                 # copy device -> device, already there as float32
                 ev = pyopencl.enqueue_copy(self.queue, output_array.data, input_array.data)
                 events.append(EventDescription("copy D->D ", ev))
@@ -277,21 +278,26 @@ class ImageProcessing(OpenclProcessing):
             output_array.finish()
             return output_array
 
-    def histogram(self, img=None, nbins=256, mini=None, maxi=None,
+    def histogram(self, img=None, nbins=255, range=None,
                   log_scale=False, copy=True, out=None):
-        """ Perform the histogram on an image.
+        """Compute the histogram of a set of data.
         
         :param img: input image. If None, use the one already on the device
         :param nbins: number of bins
-        :param mini: lower bound of the first bin
-        :param maxi: upper bouns of the last bin
-        :param log_scale: perform the binning in lograrithmic scale
+        :param range: the lower and upper range of the bins.  If not provided, 
+                    range is simply ``(a.min(), a.max())``.  Values outside the 
+                    range are ignored. The first element of the range must be 
+                    less than or equal to the second.
+        :param log_scale: perform the binning in lograrithmic scale. 
+                         Open to extension
         :param copy: unset to directly use the input buffer without copy
         :param out: use a provided array for offering the result 
+        :return: histogram (size=nbins), edges (size=nbins+1)
+        API similar to numpy  
         """
         assert img.shape == self.buffer_shape
 
-        input_array = self.to_float(img, copy=copy, out=self.cl_mem["image1_d"])
+        input_array = self.to_float(img, copy=copy, out=self.cl_mem["image0_d"])
         events = []
         with self.sem:
             input_array, output_array = self._get_in_out_buffers(input_array, copy=False,
@@ -299,7 +305,7 @@ class ImageProcessing(OpenclProcessing):
                                                                  out_dtype=numpy.int32,
                                                                  out_size=nbins)
 
-            if (mini is None) or (maxi is None):
+            if range is None:
                 # measure actually the bounds
                 size = numpy.int32(numpy.prod(self.shape))
                 if self.wg_red == 1:
@@ -327,17 +333,10 @@ class ImageProcessing(OpenclProcessing):
 
                     events += [EventDescription("max_min_stage1", k1),
                                EventDescription("max_min_stage2", k2)]
-                if (mini is None) and (maxi is None):
-                    maxi, mini = self.cl_mem["max_min_d"].get()
-                elif mini is None:
-                    mini = self.cl_mem["max_min_d"].get()[1]
-                    maxi = numpy.float32(maxi)
-                elif maxi is None:
-                    mini = numpy.float32(mini)
-                    maxi = self.cl_mem["max_min_d"].get()[0]
+                maxi, mini = self.cl_mem["max_min_d"].get()
             else:
-                mini = numpy.float32(mini)
-                maxi = numpy.float32(maxi)
+                mini = numpy.float32(min(range))
+                maxi = numpy.float32(max(range))
             device = self.ctx.devices[0]
             nb_engines = device.max_compute_units
             wg = min(device.max_work_group_size, 1 << (int(ceil(log(nbins, 2)))))
@@ -347,6 +346,13 @@ class ImageProcessing(OpenclProcessing):
                 tmp_array = self.cl_mem[name] = pyopencl.array.empty(self.queue, (tmp_size,), numpy.int32)
             else:
                 tmp_array = self.cl_mem[name]
+
+            edge_name = "tmp_float32_%s_d" % (nbins + 1)
+            if edge_name not in self.cl_mem:
+                edges_array = self.cl_mem[edge_name] = pyopencl.array.empty(self.queue, (nbins + 1,), numpy.float32)
+            else:
+                edges_array = self.cl_mem[edge_name]
+
             shared = pyopencl.LocalMemory(numpy.dtype(numpy.int32).itemsize * nbins)
 
             # Handle log-scale
@@ -362,6 +368,7 @@ class ImageProcessing(OpenclProcessing):
                                          maxi,
                                          map_operation,
                                          output_array.data,
+                                         edges_array.data,
                                          numpy.int32(nbins),
                                          tmp_array.data,
                                          self.cl_mem["cnt_d"].data,
@@ -373,7 +380,7 @@ class ImageProcessing(OpenclProcessing):
 
         if out is None:
             res = output_array.get()
-            return res
+            return res, edges_array.get()
         else:
             output_array.finish()
-            return output_array
+            return output_array, edges_array

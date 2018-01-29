@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "12/10/2017"
+__date__ = "29/01/2018"
 
 import logging
 import numpy
@@ -106,11 +106,30 @@ class TestImage(unittest.TestCase):
         ref2 = 200 * norm - 100
         self.assertLess(abs(res2 - ref2).max(), 3e-5, "content")
 
+    @unittest.skipUnless(ocl, "pyopencl is missing")
+    def test_histogram(self):
+        """
+        Test on a greyscaled image ... of Lena :)
+        """
+        lena_bw = (0.2126 * self.data[:, :, 0] +
+                   0.7152 * self.data[:, :, 1] +
+                   0.0722 * self.data[:, :, 2]).astype("int32")
+        ref = numpy.histogram(lena_bw, 255)
+        ip = ImageProcessing(ctx=self.ctx, template=lena_bw, profile=True)
+        res = ip.histogram(lena_bw, 255)
+        ip.log_profile()
+        delta = (ref[0] - res[0])
+        deltap = (ref[1] - res[1])
+        self.assertEqual(delta.sum(), 0, "errors are self-compensated")
+        self.assertLessEqual(abs(delta).max(), 1, "errors are small")
+        self.assertLessEqual(abs(deltap).max(), 1e-5, "errors on position are small")
+
 
 def suite():
     testSuite = unittest.TestSuite()
     testSuite.addTest(TestImage("test_cast"))
     testSuite.addTest(TestImage("test_normalize"))
+    testSuite.addTest(TestImage("test_histogram"))
     return testSuite
 
 
