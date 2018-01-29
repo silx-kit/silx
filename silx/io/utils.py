@@ -594,26 +594,6 @@ def open(filename):  # pylint:disable=redefined-builtin
         return proxy
 
 
-@deprecated
-def load(filename):
-    """
-    Load a file as an `h5py.File`-like object.
-
-    Format supported:
-    - h5 files, if `h5py` module is installed
-    - Spec files if `SpecFile` module is installed
-
-    .. deprecated:: 0.4
-        Use :meth:`open`, or :meth:`silx.io.open`. Will be removed in
-        Silx 0.5.
-
-    :param str filename: A filename
-    :raises: IOError if the file can't be loaded as an h5py.File like object
-    :rtype: h5py.File
-    """
-    return open(filename)
-
-
 def _get_classes_type():
     """Returns a mapping between Python classes and HDF5 concepts.
 
