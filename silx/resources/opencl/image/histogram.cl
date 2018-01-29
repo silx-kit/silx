@@ -115,9 +115,12 @@ kernel void histogram(global float *data,
         if (address < stop)
         {
             float value = data[address];
-            float vvalue = preprocess(value, map_operation)-vmini)*vscale
-            int idx = clamp((int) vvalue, 0, hist_size - 1);
-            atomic_inc(&local_hist[idx]);
+            if (!isnan(value))
+            {
+                float vvalue = preprocess(value, map_operation)-vmini)*vscale
+                int idx = clamp((int) vvalue, 0, hist_size - 1);
+                atomic_inc(&local_hist[idx]);
+            }
         }
     }
     barrier(CLK_LOCAL_MEM_FENCE);
