@@ -411,6 +411,30 @@ class TestOpen(unittest.TestCase):
         # load it
         self.assertRaises(IOError, utils.open, self.missing_filename)
 
+    def test_silx_scheme(self):
+        if h5py is None:
+            self.skipTest("H5py is missing")
+        url = silx.io.url.DataUrl(scheme="silx", file_path=self.h5_filename, data_path="/")
+        with utils.open(url.path()) as f:
+            self.assertIsNotNone(f)
+            self.assertTrue(silx.io.utils.is_file(f))
+
+    def test_fabio_scheme(self):
+        if h5py is None:
+            self.skipTest("H5py is missing")
+        if fabio is None:
+            self.skipTest("Fabio is missing")
+        url = silx.io.url.DataUrl(scheme="fabio", file_path=self.edf_filename)
+        self.assertRaises(IOError, utils.open, url.path())
+
+    def test_bad_url(self):
+        url = silx.io.url.DataUrl(scheme="sil", file_path=self.h5_filename)
+        self.assertRaises(IOError, utils.open, url.path())
+
+    def test_sliced_url(self):
+        url = silx.io.url.DataUrl(file_path=self.h5_filename, data_slice=(5,))
+        self.assertRaises(IOError, utils.open, url.path())
+
 
 class TestNodes(unittest.TestCase):
     """Test `silx.io.utils.is_` functions."""
