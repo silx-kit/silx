@@ -32,7 +32,7 @@ Test coverage dependencies: coverage, lxml.
 """
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "26/01/2018"
+__date__ = "29/01/2018"
 __license__ = "MIT"
 
 import distutils.util
@@ -42,6 +42,7 @@ import subprocess
 import sys
 import time
 import unittest
+import collections
 from argparse import ArgumentParser
 
 
@@ -144,7 +145,7 @@ class TextTestResultWithSkipList(unittest.TextTestResult):
         self.printGroupedList("SKIPPED", self.skipped)
 
     def printGroupedList(self, flavour, errors):
-        grouped = {}
+        grouped = collections.OrderedDict()
 
         for test, err in errors:
             if err in grouped:
