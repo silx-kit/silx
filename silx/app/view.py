@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "05/01/2018"
+__date__ = "29/01/2018"
 
 import sys
 import os
@@ -37,12 +37,6 @@ _logger = logging.getLogger(__name__)
 """Module logger"""
 
 from silx.gui import qt
-import silx.io
-
-try:
-    import fabio
-except ImportError:
-    fabio = None
 
 
 class Viewer(qt.QMainWindow):
@@ -148,10 +142,14 @@ class Viewer(qt.QMainWindow):
         dialog.setWindowTitle("Open")
         dialog.setModal(True)
 
+        # NOTE: hdf5plugin have to be loaded before
+        import silx.io
         extensions = collections.OrderedDict()
         for description, ext in silx.io.supported_extensions().items():
             extensions[description] = " ".join(sorted(list(ext)))
 
+        # NOTE: hdf5plugin have to be loaded before
+        import fabio
         if fabio is not None:
             extensions["NeXus layout from EDF files"] = "*.edf"
             extensions["NeXus layout from TIFF image files"] = "*.tif *.tiff"

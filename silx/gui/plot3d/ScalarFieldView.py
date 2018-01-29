@@ -230,23 +230,25 @@ class SelectedRegion(object):
 
     :param arrayRange: Range of the selection in the array
         ((zmin, zmax), (ymin, ymax), (xmin, xmax))
+    :param dataBBox: Bounding box of the selection in data coordinates
+        ((xmin, xmax), (ymin, ymax), (zmin, zmax))
     :param translation: Offset from array to data coordinates (ox, oy, oz)
     :param scale: Scale from array to data coordinates (sx, sy, sz)
     """
 
-    def __init__(self, arrayRange,
+    def __init__(self, arrayRange, dataBBox,
                  translation=(0., 0., 0.),
                  scale=(1., 1., 1.)):
         self._arrayRange = numpy.array(arrayRange, copy=True, dtype=numpy.int)
         assert self._arrayRange.shape == (3, 2)
         assert numpy.all(self._arrayRange[:, 1] >= self._arrayRange[:, 0])
+
+        self._dataRange = dataBBox
+
         self._translation = numpy.array(translation, dtype=numpy.float32)
         assert self._translation.shape == (3,)
         self._scale = numpy.array(scale, dtype=numpy.float32)
         assert self._scale.shape == (3,)
-
-        self._dataRange = (self._translation.reshape(3, -1) +
-                           self._arrayRange[::-1] * self._scale.reshape(3, -1))
 
     def getArrayRange(self):
         """Returns array ranges of the selection: 3x2 array of int
@@ -268,6 +270,10 @@ class SelectedRegion(object):
 
     def getDataRange(self):
         """Range in the data coordinates of the selection: 3x2 array of float
+
+        When the transform matrix is not the identity matrix
+        (e.g., rotation, skew) the returned range is the one of the selected
+        region bounding box in data coordinates.
 
         :return: A numpy array with ((xmin, xmax), (ymin, ymax), (zmin, zmax))
         :rtype: numpy.ndarray
@@ -332,12 +338,22 @@ class CutPlane(qt.QObject):
         super(CutPlane, self).__init__(parent=sfView)
 
         self._dataRange = None
+        self._visible = False
 
-        self._plane = cutplane.CutPlane(normal=(0, 1, 0))
-        self._plane.alpha = 1.
-        self._plane.visible = self._visible = False
-        self._plane.addListener(self._planeChanged)
-        self._plane.plane.addListener(self._planePositionChanged)
+        self.__syncPlane = True
+
+        # Plane stroke on the outer bounding box
+        self._planeStroke = primitives.PlaneInGroup(normal=(0, 1, 0))
+        self._planeStroke.visible = self._visible
+        self._planeStroke.addListener(self._planeChanged)
+        self._planeStroke.plane.addListener(self._planePositionChanged)
+
+        # Plane with texture on the data bounding box
+        self._dataPlane = cutplane.CutPlane(normal=(0, 1, 0))
+        self._dataPlane.strokeVisible = False
+        self._dataPlane.alpha = 1.
+        self._dataPlane.visible = self._visible
+        self._dataPlane.plane.addListener(self._planePositionChanged)
 
         self._colormap = Colormap(
             name='gray', normalization='linear', vmin=None, vmax=None)
@@ -345,14 +361,40 @@ class CutPlane(qt.QObject):
         self._updateSceneColormap()
 
         sfView.sigDataChanged.connect(self._sfViewDataChanged)
+        sfView.sigTransformChanged.connect(self._sfViewTransformChanged)
 
-    def _get3DPrimitive(self):
-        """Return the cut plane scene node"""
-        return self._plane
+    def _get3DPrimitives(self):
+        """Return the cut plane scene node."""
+        return self._planeStroke, self._dataPlane
+
+    def _keepPlaneInBBox(self):
+        """Makes sure the plane intersect its parent bounding box if any"""
+        bounds = self._planeStroke.parent.bounds(dataBounds=True)
+        if bounds is not None:
+            self._planeStroke.plane.point = numpy.clip(
+                self._planeStroke.plane.point,
+                a_min=bounds[0], a_max=bounds[1])
+
+    @staticmethod
+    def _syncPlanes(master, slave):
+        """Move slave PlaneInGroup so that it is coplanar with master.
+
+        :param PlaneInGroup master: Reference PlaneInGroup
+        :param PlaneInGroup slave: PlaneInGroup to align
+        """
+        masterToSlave = transform.StaticTransformList([
+            slave.objectToSceneTransform.inverse(),
+            master.objectToSceneTransform])
+
+        point = masterToSlave.transformPoint(
+            master.plane.point)
+        normal = masterToSlave.transformNormal(
+            master.plane.normal)
+        slave.plane.setPlane(point, normal)
 
     def _sfViewDataChanged(self):
         """Handle data change in the ScalarFieldView this plane belongs to"""
-        self._plane.setData(self.sender().getData(), copy=False)
+        self._dataPlane.setData(self.sender().getData(), copy=False)
 
         # Store data range info as 3-tuple of values
         self._dataRange = self.sender().getDataRange()
@@ -363,6 +405,15 @@ class CutPlane(qt.QObject):
         if self.getColormap().isAutoscale():
             self._updateSceneColormap()
 
+        self._keepPlaneInBBox()
+
+    def _sfViewTransformChanged(self):
+        """Handle transform changed in the ScalarFieldView"""
+        self._keepPlaneInBBox()
+        self._syncPlanes(master=self._planeStroke,
+                         slave=self._dataPlane)
+        self.sigPlaneChanged.emit()
+
     def _planeChanged(self, source, *args, **kwargs):
         """Handle events from the plane primitive"""
         # Using _visible for now, until scene as more info in events
@@ -372,68 +423,144 @@ class CutPlane(qt.QObject):
 
     def _planePositionChanged(self, source, *args, **kwargs):
         """Handle update of cut plane position and normal"""
-        if self._plane.visible:
-            self.sigPlaneChanged.emit()
+        if self.__syncPlane:
+            self.__syncPlane = False
+            if source is self._planeStroke.plane:
+                self._syncPlanes(master=self._planeStroke,
+                                 slave=self._dataPlane)
+            elif source is self._dataPlane.plane:
+                self._syncPlanes(master=self._dataPlane,
+                                 slave=self._planeStroke)
+            else:
+                _logger.error('Received an unknown object %s',
+                              str(source))
+
+            if self._planeStroke.visible or self._dataPlane.visible:
+                self.sigPlaneChanged.emit()
+
+            self.__syncPlane = True
 
     # Plane position
 
     def moveToCenter(self):
         """Move cut plane to center of data set"""
-        self._plane.moveToCenter()
+        self._planeStroke.moveToCenter()
 
     def isValid(self):
         """Returns whether the cut plane is defined or not (bool)"""
-        return self._plane.isValid
+        return self._planeStroke.isValid
 
-    def getNormal(self):
+    def _plane(self, coordinates='array'):
+        """Returns the scene plane to set.
+
+        :param str coordinates: The coordinate system to use:
+            Either 'scene' or 'array' (default)
+        :rtype: Plane
+        :raise ValueError: If coordinates is not correct
+        """
+        if coordinates == 'scene':
+            return self._planeStroke.plane
+        elif coordinates == 'array':
+            return self._dataPlane.plane
+        else:
+             raise ValueError(
+                'Unsupported coordinates: %s' % str(coordinates))
+
+    def getNormal(self, coordinates='array'):
         """Returns the normal of the plane (as a unit vector)
 
+        :param str coordinates: The coordinate system to use:
+            Either 'scene' or 'array' (default)
         :return: Normal (nx, ny, nz), vector is 0 if no plane is defined
         :rtype: numpy.ndarray
+        :raise ValueError: If coordinates is not correct
         """
-        return self._plane.plane.normal
+        return self._plane(coordinates).normal
 
-    def setNormal(self, normal):
-        """Set the normal of the plane
+    def setNormal(self, normal, coordinates='array'):
+        """Set the normal of the plane.
 
         :param normal: 3-tuple of float: nx, ny, nz
+        :param str coordinates: The coordinate system to use:
+            Either 'scene' or 'array' (default)
+        :raise ValueError: If coordinates is not correct
         """
-        self._plane.plane.normal = normal
+        self._plane(coordinates).normal = normal
 
-    def getPoint(self):
-        """Returns a point on the plane
+    def getPoint(self, coordinates='array'):
+        """Returns a point on the plane.
 
+        :param str coordinates: The coordinate system to use:
+            Either 'scene' or 'array' (default)
         :return: (x, y, z)
         :rtype: numpy.ndarray
+        :raise ValueError: If coordinates is not correct
         """
-        return self._plane.plane.point
+        return self._plane(coordinates).point
 
-    def getParameters(self):
+    def setPoint(self, point, constraint=True, coordinates='array'):
+        """Set a point contained in the plane.
+
+        Warning: The plane might not intersect the bounding box of the data.
+
+        :param point: (x, y, z) position
+        :type point: 3-tuple of float
+        :param bool constraint:
+            True (default) to make sure the plane intersect data bounding box,
+            False to set the plane without any constraint.
+        :raise ValueError: If coordinates is not correc
+        """
+        self._plane(coordinates).point = point
+        if constraint:
+            self._keepPlaneInBBox()
+
+    def getParameters(self, coordinates='array'):
         """Returns the plane equation parameters: a*x + b*y + c*z + d = 0
 
+        :param str coordinates: The coordinate system to use:
+            Either 'scene' or 'array' (default)
         :return: Plane equation parameters: (a, b, c, d)
         :rtype: numpy.ndarray
+        :raise ValueError: If coordinates is not correct
         """
-        return self._plane.plane.parameters
+        return self._plane(coordinates).parameters
+
+    def setParameters(self, parameters, constraint=True, coordinates='array'):
+        """Set the plane equation parameters: a*x + b*y + c*z + d = 0
+
+        Warning: The plane might not intersect the bounding box of the data.
+
+        :param parameters: (a, b, c, d) plane equation parameters.
+        :type parameters: 4-tuple of float
+        :param bool constraint:
+            True (default) to make sure the plane intersect data bounding box,
+            False to set the plane without any constraint.
+        :raise ValueError: If coordinates is not correc
+        """
+        self._plane(coordinates).parameters = parameters
+        if constraint:
+            self._keepPlaneInBBox()
 
     # Visibility
 
     def isVisible(self):
         """Returns True if the plane is visible, False otherwise"""
-        return self._plane.visible
+        return self._planeStroke.visible
 
     def setVisible(self, visible):
         """Set the visibility of the plane
 
         :param bool visible: True to make plane visible
         """
-        self._plane.visible = visible
+        visible = bool(visible)
+        self._planeStroke.visible = visible
+        self._dataPlane.visible = visible
 
     # Border stroke
 
     def getStrokeColor(self):
         """Returns the color of the plane border (QColor)"""
-        return qt.QColor.fromRgbF(*self._plane.color)
+        return qt.QColor.fromRgbF(*self._planeStroke.color)
 
     def setStrokeColor(self, color):
         """Set the color of the plane border.
@@ -442,7 +569,9 @@ class CutPlane(qt.QObject):
         :type color:
             QColor, str or array-like of 3 or 4 float in [0., 1.] or uint8
         """
-        self._plane.color = rgba(color)
+        color = rgba(color)
+        self._planeStroke.color = color
+        self._dataPlane.color = color
 
     # Data
 
@@ -466,7 +595,7 @@ class CutPlane(qt.QObject):
         :return: 'nearest' or 'linear'
         :rtype: str
         """
-        return self._plane.interpolation
+        return self._dataPlane.interpolation
 
     def setInterpolation(self, interpolation):
         """Set the interpolation used to display to cut plane
@@ -476,7 +605,7 @@ class CutPlane(qt.QObject):
         :param str interpolation: 'nearest' or 'linear'
         """
         if interpolation != self.getInterpolation():
-            self._plane.interpolation = interpolation
+            self._dataPlane.interpolation = interpolation
             self.sigInterpolationChanged.emit(interpolation)
 
     # Colormap
@@ -497,7 +626,7 @@ class CutPlane(qt.QObject):
 
         :rtype: bool
         """
-        return self._plane.colormap.displayValuesBelowMin
+        return self._dataPlane.colormap.displayValuesBelowMin
 
     def setDisplayValuesBelowMin(self, display):
         """Set whether to display values <= colormap min.
@@ -507,7 +636,7 @@ class CutPlane(qt.QObject):
         """
         display = bool(display)
         if display != self.getDisplayValuesBelowMin():
-            self._plane.colormap.displayValuesBelowMin = display
+            self._dataPlane.colormap.displayValuesBelowMin = display
             self.sigTransparencyChanged.emit()
 
     def getColormap(self):
@@ -561,12 +690,12 @@ class CutPlane(qt.QObject):
 
         :return: 2-tuple of float
         """
-        return self._plane.colormap.range_
+        return self._dataPlane.colormap.range_
 
     def _updateSceneColormap(self):
         """Synchronizes scene's colormap with Colormap object"""
         colormap = self.getColormap()
-        sceneCMap = self._plane.colormap
+        sceneCMap = self._dataPlane.colormap
 
         sceneCMap.colormap = colormap.getNColors()
 
@@ -590,14 +719,14 @@ class _CutPlaneImage(object):
     def __init__(self, cutPlane):
         # Init attributes with default values
         self._isValid = False
-        self._data = numpy.array([])
+        self._data = numpy.zeros((0, 0), dtype=numpy.float32)
+        self._index = 0
         self._xLabel = ''
         self._yLabel = ''
         self._normalLabel = ''
-        self._scale = 1., 1.
-        self._translation = 0., 0.
-        self._index = 0
-        self._position = 0.
+        self._scale = float('nan'), float('nan')
+        self._translation = float('nan'), float('nan')
+        self._position = float('nan')
 
         sfView = cutPlane.parent()
         if not sfView or not cutPlane.isValid():
@@ -609,19 +738,30 @@ class _CutPlaneImage(object):
             _logger.info("No data available")
             return
 
-        normal = cutPlane.getNormal()
-        point = numpy.array(cutPlane.getPoint(), dtype=numpy.int)
+        normal = cutPlane.getNormal(coordinates='array')
+        point = cutPlane.getPoint(coordinates='array')
 
-        if numpy.all(numpy.equal(normal, (1., 0., 0.))):
-            index = max(0, min(point[0], data.shape[2] - 1))
+        if numpy.linalg.norm(numpy.cross(normal, (1., 0., 0.))) < 0.0017:
+            if not 0 <= point[0] <= data.shape[2]:
+                _logger.info("Plane outside dataset")
+                return
+            index = max(0, min(int(point[0]), data.shape[2] - 1))
             slice_ = data[:, :, index]
             xAxisIndex, yAxisIndex, normalAxisIndex = 1, 2, 0  # y, z, x
-        elif numpy.all(numpy.equal(normal, (0., 1., 0.))):
-            index = max(0, min(point[1], data.shape[1] - 1))
+
+        elif numpy.linalg.norm(numpy.cross(normal, (0., 1., 0.))) < 0.0017:
+            if not 0 <= point[1] <= data.shape[1]:
+                _logger.info("Plane outside dataset")
+                return
+            index = max(0, min(int(point[1]), data.shape[1] - 1))
             slice_ = numpy.transpose(data[:, index, :])
             xAxisIndex, yAxisIndex, normalAxisIndex = 2, 0, 1  # z, x, y
-        elif numpy.all(numpy.equal(normal, (0., 0., 1.))):
-            index = max(0, min(point[2], data.shape[0] - 1))
+
+        elif numpy.linalg.norm(numpy.cross(normal, (0., 0., 1.))) < 0.0017:
+            if not 0 <= point[2] <= data.shape[0]:
+                _logger.info("Plane outside dataset")
+                return
+            index = max(0, min(int(point[2]), data.shape[0] - 1))
             slice_ = data[index, :, :]
             xAxisIndex, yAxisIndex, normalAxisIndex = 0, 1, 2  # x, y, z
         else:
@@ -633,21 +773,25 @@ class _CutPlaneImage(object):
 
         self._isValid = True
         self._data = numpy.array(slice_, copy=True)
-
-        labels = sfView.getAxesLabels()
-        scale = sfView.getScale()
-        translation = sfView.getTranslation()
-
-        self._xLabel = labels[xAxisIndex]
-        self._yLabel = labels[yAxisIndex]
-        self._normalLabel = labels[normalAxisIndex]
-
-        self._scale = scale[xAxisIndex], scale[yAxisIndex]
-        self._translation = translation[xAxisIndex], translation[yAxisIndex]
-
         self._index = index
-        self._position = float(index * scale[normalAxisIndex] +
-                               translation[normalAxisIndex])
+
+        # Only store extra information when no transform matrix is set
+        # Otherwise this information can be meaningless
+        if numpy.all(numpy.equal(sfView.getTransformMatrix(),
+                                 numpy.identity(3, dtype=numpy.float32))):
+            labels = sfView.getAxesLabels()
+            self._xLabel = labels[xAxisIndex]
+            self._yLabel = labels[yAxisIndex]
+            self._normalLabel = labels[normalAxisIndex]
+
+            scale = sfView.getScale()
+            self._scale = scale[xAxisIndex], scale[yAxisIndex]
+
+            translation = sfView.getTranslation()
+            self._translation = translation[xAxisIndex], translation[yAxisIndex]
+
+            self._position = float(index * scale[normalAxisIndex] +
+                                   translation[normalAxisIndex])
 
     def isValid(self):
         """Returns True if the cut plane image is defined (bool)"""
@@ -703,6 +847,13 @@ class ScalarFieldView(Plot3DWindow):
     sigDataChanged = qt.Signal()
     """Signal emitted when the scalar data field has changed."""
 
+    sigTransformChanged = qt.Signal()
+    """Signal emitted when the transformation has changed.
+
+    It is emitted by :meth:`setTranslation`, :meth:`setTransformMatrix`,
+    :meth:`setScale`.
+    """
+
     sigSelectedRegionChanged = qt.Signal(object)
     """Signal emitted when the selected region has changed.
 
@@ -721,6 +872,7 @@ class ScalarFieldView(Plot3DWindow):
         # Transformations
         self._dataScale = transform.Scale()
         self._dataTranslate = transform.Translate()
+        self._dataTransform = transform.Matrix()   # default to identity
 
         self._foregroundColor = 1., 1., 1., 1.
         self._highlightColor = 0.7, 0.7, 0., 1.
@@ -729,7 +881,12 @@ class ScalarFieldView(Plot3DWindow):
         self._dataRange = None
 
         self._group = primitives.BoundedGroup()
-        self._group.transforms = [self._dataTranslate, self._dataScale]
+        self._group.transforms = [
+            self._dataTranslate, self._dataTransform, self._dataScale]
+
+        self._bbox = axes.LabelledAxes()
+        self._bbox.children = [self._group]
+        self.getPlot3DWidget().viewport.scene.children.append(self._bbox)
 
         self._selectionBox = primitives.Box()
         self._selectionBox.strokeSmooth = False
@@ -742,7 +899,9 @@ class ScalarFieldView(Plot3DWindow):
         self._cutPlane = CutPlane(sfView=self)
         self._cutPlane.sigVisibilityChanged.connect(
             self._planeVisibilityChanged)
-        self._group.children.append(self._cutPlane._get3DPrimitive())
+        planeStroke, dataPlane = self._cutPlane._get3DPrimitives()
+        self._bbox.children.append(planeStroke)
+        self._group.children.append(dataPlane)
 
         self._isogroup = primitives.GroupDepthOffset()
         self._isogroup.transforms = [
@@ -756,10 +915,6 @@ class ScalarFieldView(Plot3DWindow):
             transform.Translate(0.5, 0.5, 0.5)
         ]
         self._group.children.append(self._isogroup)
-
-        self._bbox = axes.LabelledAxes()
-        self._bbox.children = [self._group]
-        self.getPlot3DWidget().viewport.scene.children.append(self._bbox)
 
         self._initPanPlaneAction()
 
@@ -953,7 +1108,7 @@ class ScalarFieldView(Plot3DWindow):
             self.getPlot3DWidget().eventHandler = \
                 interaction.PanPlaneZoomOnWheelControl(
                     self.getPlot3DWidget().viewport,
-                    self._cutPlane._get3DPrimitive(),
+                    self._cutPlane._get3DPrimitives()[0],
                     mode='position',
                     scaleTransform=sceneScale)
         else:
@@ -1061,6 +1216,7 @@ class ScalarFieldView(Plot3DWindow):
         scale = numpy.array((sx, sy, sz), dtype=numpy.float32)
         if not numpy.all(numpy.equal(scale, self.getScale())):
             self._dataScale.scale = scale
+            self.sigTransformChanged.emit()
             self.centerScene()  # Reset viewpoint
 
     def getScale(self):
@@ -1078,12 +1234,35 @@ class ScalarFieldView(Plot3DWindow):
         translation = numpy.array((x, y, z), dtype=numpy.float32)
         if not numpy.all(numpy.equal(translation, self.getTranslation())):
             self._dataTranslate.translation = translation
+            self.sigTransformChanged.emit()
             self.centerScene()  # Reset viewpoint
 
     def getTranslation(self):
         """Returns the offset set by :meth:`setTranslation` as a numpy.ndarray.
         """
         return self._dataTranslate.translation
+
+    def setTransformMatrix(self, matrix3x3):
+        """Set the transform matrix applied to the data.
+
+        :param numpy.ndarray matrix: 3x3 transform matrix
+        """
+        matrix3x3 = numpy.array(matrix3x3, copy=True, dtype=numpy.float32)
+        if not numpy.all(numpy.equal(matrix3x3, self.getTransformMatrix())):
+            matrix = numpy.identity(4, dtype=numpy.float32)
+            matrix[:3, :3] = matrix3x3
+            self._dataTransform.setMatrix(matrix)
+            self.sigTransformChanged.emit()
+            self.centerScene()  # Reset viewpoint
+
+    def getTransformMatrix(self):
+        """Returns the transform matrix applied to the data.
+
+        See :meth:`setTransformMatrix`.
+
+        :rtype: numpy.ndarray
+        """
+        return self._dataTransform.getMatrix()[:3, :3]
 
     # Axes labels
 
@@ -1099,7 +1278,8 @@ class ScalarFieldView(Plot3DWindow):
 
         :param bool visible: True to show axes, False to hide
         """
-        self._bbox.boxVisible = bool(visible)
+        visible = bool(visible)
+        self._bbox.boxVisible = visible
 
     def setAxesLabels(self, xlabel=None, ylabel=None, zlabel=None):
         """Set the text labels of the axes.
@@ -1273,7 +1453,9 @@ class ScalarFieldView(Plot3DWindow):
         if self._selectedRange is None:
             return None
         else:
-            return SelectedRegion(self._selectedRange,
+            dataBBox = self._group.transforms.transformBounds(
+                self._selectedRange[::-1].T).T
+            return SelectedRegion(self._selectedRange, dataBBox,
                                   translation=self.getTranslation(),
                                   scale=self.getScale())
 

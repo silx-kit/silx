@@ -104,7 +104,7 @@ class Colormap(qt.QObject):
 
     def isAutoscale(self):
         """Return True if both min and max are in autoscale mode"""
-        return self._vmin is None or self._vmax is None
+        return self._vmin is None and self._vmax is None
 
     def getName(self):
         """Return the name of the colormap

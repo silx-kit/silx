@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,8 @@ import numpy
 from silx.gui import qt
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
 from silx.gui.plot import Plot1D, Plot2D, StackView
+from silx.gui.plot.Colormap import Colormap
+from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
 
 from silx.math.calibration import ArrayCalibration, NoCalibration, LinearCalibration
 
@@ -60,32 +62,27 @@ class ArrayCurvePlot(qt.QWidget):
         """
         super(ArrayCurvePlot, self).__init__(parent)
 
-        self.__signal = None
-        self.__signal_name = None
+        self.__signals = None
+        self.__signals_names = None
         self.__signal_errors = None
         self.__axis = None
         self.__axis_name = None
-        self.__axis_errors = None
+        self.__x_axis_errors = None
         self.__values = None
 
-        self.__first_curve_added = False
-
         self._plot = Plot1D(self)
-        self._plot.setDefaultColormap(   # for scatters
-                {"name": "viridis",
-                 "vmin": 0., "vmax": 1.,   # ignored (autoscale) but mandatory
-                 "normalization": "linear",
-                 "autoscale": True})
 
         self.selectorDock = qt.QDockWidget("Data selector", self._plot)
         # not closable
         self.selectorDock.setFeatures(qt.QDockWidget.DockWidgetMovable |
-                                qt.QDockWidget.DockWidgetFloatable)
+                                      qt.QDockWidget.DockWidgetFloatable)
         self._selector = NumpyAxesSelector(self.selectorDock)
         self._selector.setNamedAxesSelectorVisibility(False)
         self.__selector_is_connected = False
         self.selectorDock.setWidget(self._selector)
         self._plot.addTabbedDockWidget(self.selectorDock)
+
+        self._plot.sigActiveCurveChanged.connect(self._setYLabelFromActiveLegend)
 
         layout = qt.QGridLayout()
         layout.setContentsMargins(0, 0, 0, 0)
@@ -100,51 +97,44 @@ class ArrayCurvePlot(qt.QWidget):
         """
         return self._plot
 
-    def setCurveData(self, y, x=None, values=None,
-                     yerror=None, xerror=None,
-                     ylabel=None, xlabel=None,
-                     title=None):
+    def setCurvesData(self, ys, x=None,
+                      yerror=None, xerror=None,
+                      ylabels=None, xlabel=None, title=None):
         """
 
-        :param y: dataset to be represented by the y (vertical) axis.
-            For a scatter, this must be a 1D array and x and values must be
-            1-D arrays of the same size.
-            In other cases, it can be a n-D array whose last dimension must
+        :param List[ndarray] ys: List of arrays to be represented by the y (vertical) axis.
+            It can be multiple n-D array whose last dimension must
             have the same length as x (and values must be None)
-        :param x: 1-D dataset used as the curve's x values. If provided,
+        :param ndarray x: 1-D dataset used as the curve's x values. If provided,
             its lengths must be equal to the length of the last dimension of
             ``y`` (and equal to the length of ``value``, for a scatter plot).
-        :param values: Values, to be provided for a x-y-value scatter plot.
-            This will be used to compute the color map and assign colors
-            to the points.
-        :param yerror: 1-D dataset of errors for y, or None
-        :param xerror: 1-D dataset of errors for x, or None
-        :param ylabel: Label for Y axis
-        :param xlabel: Label for X axis
-        :param title: Graph title
+        :param ndarray yerror: Single array of errors for y (same shape), or None.
+            There can only be one array, and it applies to the first/main y
+            (no y errors for auxiliary_signals curves).
+        :param ndarray xerror: 1-D dataset of errors for x, or None
+        :param str ylabels: Labels for each curve's Y axis
+        :param str xlabel: Label for X axis
+        :param str title: Graph title
         """
-        self.__signal = y
-        self.__signal_name = ylabel or "Y"
+        self.__signals = ys
+        self.__signals_names = ylabels or (["Y"] * len(ys))
         self.__signal_errors = yerror
         self.__axis = x
         self.__axis_name = xlabel
-        self.__axis_errors = xerror
-        self.__values = values
+        self.__x_axis_errors = xerror
 
         if self.__selector_is_connected:
             self._selector.selectionChanged.disconnect(self._updateCurve)
             self.__selector_is_connected = False
-        self._selector.setData(y)
+        self._selector.setData(ys[0])
         self._selector.setAxisNames(["Y"])
 
-        if len(y.shape) < 2:
+        if len(ys[0].shape) < 2:
             self.selectorDock.hide()
         else:
             self.selectorDock.show()
 
         self._plot.setGraphTitle(title or "")
-        self._plot.getXAxis().setLabel(self.__axis_name or "X")
-        self._plot.getYAxis().setLabel(self.__signal_name)
         self._updateCurve()
 
         if not self.__selector_is_connected:
@@ -152,45 +142,165 @@ class ArrayCurvePlot(qt.QWidget):
             self.__selector_is_connected = True
 
     def _updateCurve(self):
-        y = self._selector.selectedData()
+        selection = self._selector.selection()
+        ys = [sig[selection] for sig in self.__signals]
+        y0 = ys[0]
+        len_y = len(y0)
         x = self.__axis
         if x is None:
-            x = numpy.arange(len(y))
+            x = numpy.arange(len_y)
         elif numpy.isscalar(x) or len(x) == 1:
             # constant axis
-            x = x * numpy.ones_like(y)
-        elif len(x) == 2 and len(y) != 2:
+            x = x * numpy.ones_like(y0)
+        elif len(x) == 2 and len_y != 2:
             # linear calibration a + b * x
-            x = x[0] + x[1] * numpy.arange(len(y))
-        legend = self.__signal_name + "["
-        for sl in self._selector.selection():
-            if sl == slice(None):
-                legend += ":, "
-            else:
-                legend += str(sl) + ", "
-        legend = legend[:-2] + "]"
-        if self.__signal_errors is not None:
-            y_errors = self.__signal_errors[self._selector.selection()]
-        else:
+            x = x[0] + x[1] * numpy.arange(len_y)
+
+        self._plot.remove(kind=("curve",))
+
+        for i in range(len(self.__signals)):
+            legend = self.__signals_names[i]
+
+            # errors only supported for primary signal in NXdata
             y_errors = None
-
-        self._plot.remove(kind=("curve", "scatter"))
-
-        # values: x-y-v scatter
-        if self.__values is not None:
-            self._plot.addScatter(x, y, self.__values,
-                                  legend=legend,
-                                  xerror=self.__axis_errors,
-                                  yerror=y_errors)
-
-        else:
-            self._plot.addCurve(x, y, legend=legend,
-                                xerror=self.__axis_errors,
+            if i == 0 and self.__signal_errors is not None:
+                y_errors = self.__signal_errors[self._selector.selection()]
+            self._plot.addCurve(x, ys[i], legend=legend,
+                                xerror=self.__x_axis_errors,
                                 yerror=y_errors)
+            if i == 0:
+                self._plot.setActiveCurve(legend)
 
         self._plot.resetZoom()
         self._plot.getXAxis().setLabel(self.__axis_name)
-        self._plot.getYAxis().setLabel(self.__signal_name)
+        self._plot.getYAxis().setLabel(self.__signals_names[0])
+
+    def _setYLabelFromActiveLegend(self, previous_legend, new_legend):
+        for ylabel in self.__signals_names:
+            if new_legend is not None and new_legend == ylabel:
+                self._plot.getYAxis().setLabel(ylabel)
+                break
+
+    def clear(self):
+        self._plot.clear()
+
+
+class XYVScatterPlot(qt.QWidget):
+    """
+    Widget for plotting one or more scatters
+    (with identical x, y coordinates).
+    """
+    def __init__(self, parent=None):
+        """
+
+        :param parent: Parent QWidget
+        """
+        super(XYVScatterPlot, self).__init__(parent)
+
+        self.__y_axis = None
+        """1D array"""
+        self.__y_axis_name = None
+        self.__values = None
+        """List of 1D arrays (for multiple scatters with identical
+        x, y coordinates)"""
+
+        self.__x_axis = None
+        self.__x_axis_name = None
+        self.__x_axis_errors = None
+        self.__y_axis = None
+        self.__y_axis_name = None
+        self.__y_axis_errors = None
+
+        self._plot = Plot1D(self)
+        self._plot.setDefaultColormap(Colormap(name="viridis",
+                                               vmin=None, vmax=None,
+                                               normalization=Colormap.LINEAR))
+
+        self._slider = HorizontalSliderWithBrowser(parent=self)
+        self._slider.setMinimum(0)
+        self._slider.setValue(0)
+        self._slider.valueChanged[int].connect(self._sliderIdxChanged)
+        self._slider.setToolTip("Select auxiliary signals")
+
+        layout = qt.QGridLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(self._plot, 0, 0)
+        layout.addWidget(self._slider, 1, 0)
+
+        self.setLayout(layout)
+
+    def _sliderIdxChanged(self, value):
+        self._updateScatter()
+
+    def getPlot(self):
+        """Returns the plot used for the display
+
+        :rtype: Plot1D
+        """
+        return self._plot
+
+    def setScattersData(self, y, x, values,
+                        yerror=None, xerror=None,
+                        ylabel=None, xlabel=None,
+                        title="", scatter_titles=None):
+        """
+
+        :param ndarray y: 1D array  for y (vertical) coordinates.
+        :param ndarray x: 1D array for x coordinates.
+        :param List[ndarray] values: List of 1D arrays of values.
+            This will be used to compute the color map and assign colors
+            to the points. There should be as many arrays in the list as
+            scatters to be represented.
+        :param ndarray yerror: 1D array of errors for y (same shape), or None.
+        :param ndarray xerror: 1D array of errors for x, or None
+        :param str ylabel: Label for Y axis
+        :param str xlabel: Label for X axis
+        :param str title: Main graph title
+        :param List[str] scatter_titles:  Subtitles (one per scatter)
+        """
+        self.__y_axis = y
+        self.__x_axis = x
+        self.__x_axis_name = xlabel or "X"
+        self.__y_axis_name = ylabel or "Y"
+        self.__x_axis_errors = xerror
+        self.__y_axis_errors = yerror
+        self.__values = values
+
+        self.__graph_title = title or ""
+        self.__scatter_titles = scatter_titles
+
+        self._slider.valueChanged[int].disconnect(self._sliderIdxChanged)
+        self._slider.setMaximum(len(values) - 1)
+        if len(values) > 1:
+            self._slider.show()
+        else:
+            self._slider.hide()
+        self._slider.setValue(0)
+        self._slider.valueChanged[int].connect(self._sliderIdxChanged)
+
+        self._updateScatter()
+
+    def _updateScatter(self):
+        x = self.__x_axis
+        y = self.__y_axis
+
+        self._plot.remove(kind=("scatter", ))
+
+        idx = self._slider.value()
+
+        title = ""
+        if self.__graph_title:
+            title += self.__graph_title + "\n"  # main NXdata @title
+        title += self.__scatter_titles[idx]     # scatter dataset name
+
+        self._plot.setGraphTitle(title)
+        self._plot.addScatter(x, y, self.__values[idx],
+                              legend="scatter%d" % idx,
+                              xerror=self.__x_axis_errors,
+                              yerror=self.__y_axis_errors)
+        self._plot.resetZoom()
+        self._plot.getXAxis().setLabel(self.__x_axis_name)
+        self._plot.getYAxis().setLabel(self.__y_axis_name)
 
     def clear(self):
         self._plot.clear()
@@ -219,36 +329,42 @@ class ArrayImagePlot(qt.QWidget):
         """
         super(ArrayImagePlot, self).__init__(parent)
 
-        self.__signal = None
-        self.__signal_name = None
+        self.__signals = None
+        self.__signals_names = None
         self.__x_axis = None
         self.__x_axis_name = None
         self.__y_axis = None
         self.__y_axis_name = None
 
         self._plot = Plot2D(self)
-        self._plot.setDefaultColormap(
-                {"name": "viridis",
-                 "vmin": 0., "vmax": 1.,   # ignored (autoscale) but mandatory
-                 "normalization": "linear",
-                 "autoscale": True})
+        self._plot.setDefaultColormap(Colormap(name="viridis",
+                                               vmin=None, vmax=None,
+                                               normalization=Colormap.LINEAR))
 
         self.selectorDock = qt.QDockWidget("Data selector", self._plot)
         # not closable
         self.selectorDock.setFeatures(qt.QDockWidget.DockWidgetMovable |
                                       qt.QDockWidget.DockWidgetFloatable)
-        self._legend = qt.QLabel(self)
         self._selector = NumpyAxesSelector(self.selectorDock)
         self._selector.setNamedAxesSelectorVisibility(False)
-        self.__selector_is_connected = False
+        self._selector.selectionChanged.connect(self._updateImage)
+
+        self._auxSigSlider = HorizontalSliderWithBrowser(parent=self)
+        self._auxSigSlider.setMinimum(0)
+        self._auxSigSlider.setValue(0)
+        self._auxSigSlider.valueChanged[int].connect(self._sliderIdxChanged)
+        self._auxSigSlider.setToolTip("Select auxiliary signals")
 
         layout = qt.QVBoxLayout()
         layout.addWidget(self._plot)
-        layout.addWidget(self._legend)
+        layout.addWidget(self._auxSigSlider)
         self.selectorDock.setWidget(self._selector)
         self._plot.addTabbedDockWidget(self.selectorDock)
 
         self.setLayout(layout)
+
+    def _sliderIdxChanged(self, value):
+        self._updateImage()
 
     def getPlot(self):
         """Returns the plot used for the display
@@ -257,70 +373,74 @@ class ArrayImagePlot(qt.QWidget):
         """
         return self._plot
 
-    def setImageData(self, signal,
+    def setImageData(self, signals,
                      x_axis=None, y_axis=None,
-                     signal_name=None,
+                     signals_names=None,
                      xlabel=None, ylabel=None,
                      title=None, isRgba=False):
         """
 
-        :param signal: n-D dataset, whose last 2 dimensions are used as the
-            image's values, or 3D dataset interpreted as RGBA image.
+        :param signals: list of n-D datasets, whose last 2 dimensions are used as the
+            image's values, or list of 3D datasets interpreted as RGBA image.
         :param x_axis: 1-D dataset used as the image's x coordinates. If
             provided, its lengths must be equal to the length of the last
             dimension of ``signal``.
         :param y_axis: 1-D dataset used as the image's y. If provided,
             its lengths must be equal to the length of the 2nd to last
             dimension of ``signal``.
-        :param signal_name: Label used in the legend
+        :param signals_names: Names for each image, used as subtitle and legend.
         :param xlabel: Label for X axis
         :param ylabel: Label for Y axis
         :param title: Graph title
         :param isRgba: True if data is a 3D RGBA image
         """
-        if self.__selector_is_connected:
-            self._selector.selectionChanged.disconnect(self._updateImage)
-            self.__selector_is_connected = False
+        self._selector.selectionChanged.disconnect(self._updateImage)
+        self._auxSigSlider.valueChanged.disconnect(self._sliderIdxChanged)
 
-        self.__signal = signal
-        self.__signal_name = signal_name or ""
+        self.__signals = signals
+        self.__signals_names = signals_names
         self.__x_axis = x_axis
         self.__x_axis_name = xlabel
         self.__y_axis = y_axis
         self.__y_axis_name = ylabel
+        self.__title = title
 
-        self._selector.setData(signal)
+        self._selector.clear()
         if not isRgba:
             self._selector.setAxisNames(["Y", "X"])
+            img_ndim = 2
         else:
             self._selector.setAxisNames(["Y", "X", "RGB(A) channel"])
+            img_ndim = 3
+        self._selector.setData(signals[0])
 
-        if len(signal.shape) < 3:
+
+        if len(signals[0].shape) <= img_ndim:
             self.selectorDock.hide()
         else:
             self.selectorDock.show()
 
-        self._plot.setGraphTitle(title or "")
-        self._plot.getXAxis().setLabel(self.__x_axis_name or "X")
-        self._plot.getYAxis().setLabel(self.__y_axis_name or "Y")
+        self._auxSigSlider.setMaximum(len(signals) - 1)
+        if len(signals) > 1:
+            self._auxSigSlider.show()
+        else:
+            self._auxSigSlider.hide()
+        self._auxSigSlider.setValue(0)
 
         self._updateImage()
 
-        if not self.__selector_is_connected:
-            self._selector.selectionChanged.connect(self._updateImage)
-            self.__selector_is_connected = True
+        self._selector.selectionChanged.connect(self._updateImage)
+        self._auxSigSlider.valueChanged.connect(self._sliderIdxChanged)
 
     def _updateImage(self):
-        legend = self.__signal_name + "["
-        for sl in self._selector.selection():
-            if sl == slice(None):
-                legend += ":, "
-            else:
-                legend += str(sl) + ", "
-        legend = legend[:-2] + "]"
-        self._legend.setText("Displayed data: " + legend)
+        selection = self._selector.selection()
+        auxSigIdx = self._auxSigSlider.value()
 
-        img = self._selector.selectedData()
+        legend = self.__signals_names[auxSigIdx]
+
+        images = [img[selection] for img in self.__signals]
+        image = images[auxSigIdx]
+
         x_axis = self.__x_axis
         y_axis = self.__y_axis
 
@@ -330,25 +450,25 @@ class ArrayImagePlot(qt.QWidget):
         else:
             if x_axis is None:
                 # no calibration
-                x_axis = numpy.arange(img.shape[-1])
+                x_axis = numpy.arange(image.shape[1])
             elif numpy.isscalar(x_axis) or len(x_axis) == 1:
                 # constant axis
-                x_axis = x_axis * numpy.ones((img.shape[-1], ))
+                x_axis = x_axis * numpy.ones((image.shape[1], ))
             elif len(x_axis) == 2:
                 # linear calibration
-                x_axis = x_axis[0] * numpy.arange(img.shape[-1]) + x_axis[1]
+                x_axis = x_axis[0] * numpy.arange(image.shape[1]) + x_axis[1]
 
             if y_axis is None:
-                y_axis = numpy.arange(img.shape[-2])
+                y_axis = numpy.arange(image.shape[0])
             elif numpy.isscalar(y_axis) or len(y_axis) == 1:
-                y_axis = y_axis * numpy.ones((img.shape[-2], ))
+                y_axis = y_axis * numpy.ones((image.shape[0], ))
             elif len(y_axis) == 2:
-                y_axis = y_axis[0] * numpy.arange(img.shape[-2]) + y_axis[1]
+                y_axis = y_axis[0] * numpy.arange(image.shape[0]) + y_axis[1]
 
             xcalib = ArrayCalibration(x_axis)
             ycalib = ArrayCalibration(y_axis)
 
-        self._plot.remove(kind=("scatter", "image"))
+        self._plot.remove(kind=("scatter", "image",))
         if xcalib.is_affine() and ycalib.is_affine():
             # regular image
             xorigin, xscale = xcalib(0), xcalib.get_slope()
@@ -356,14 +476,21 @@ class ArrayImagePlot(qt.QWidget):
             origin = (xorigin, yorigin)
             scale = (xscale, yscale)
 
-            self._plot.addImage(img, legend=legend,
+            self._plot.addImage(image, legend=legend,
                                 origin=origin, scale=scale)
         else:
             scatterx, scattery = numpy.meshgrid(x_axis, y_axis)
+            # fixme: i don't think this can handle "irregular" RGBA images
             self._plot.addScatter(numpy.ravel(scatterx),
                                   numpy.ravel(scattery),
-                                  numpy.ravel(img),
+                                  numpy.ravel(image),
                                   legend=legend)
+
+        title = ""
+        if self.__title:
+            title += self.__title + "\n"
+        title += self.__signals_names[auxSigIdx]
+        self._plot.setGraphTitle(title)
         self._plot.getXAxis().setLabel(self.__x_axis_name)
         self._plot.getYAxis().setLabel(self.__y_axis_name)
         self._plot.resetZoom()

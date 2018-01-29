@@ -32,7 +32,7 @@ Test coverage dependencies: coverage, lxml.
 """
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "15/01/2018"
+__date__ = "29/01/2018"
 __license__ = "MIT"
 
 import distutils.util
@@ -42,6 +42,7 @@ import subprocess
 import sys
 import time
 import unittest
+import collections
 from argparse import ArgumentParser
 
 
@@ -141,7 +142,23 @@ class TextTestResultWithSkipList(unittest.TextTestResult):
     def printErrors(self):
         unittest.TextTestResult.printErrors(self)
         # Print skipped tests at the end
-        self.printErrorList("SKIPPED", self.skipped)
+        self.printGroupedList("SKIPPED", self.skipped)
+
+    def printGroupedList(self, flavour, errors):
+        grouped = collections.OrderedDict()
+
+        for test, err in errors:
+            if err in grouped:
+                grouped[err] = grouped[err] + [test]
+            else:
+                grouped[err] = [test]
+
+        for err, tests in grouped.items():
+            self.stream.writeln(self.separator1)
+            for test in tests:
+                self.stream.writeln("%s: %s" % (flavour, self.getDescription(test)))
+            self.stream.writeln(self.separator2)
+            self.stream.writeln("%s" % err)
 
 
 class ProfileTextTestResult(unittest.TextTestRunner.resultclass):
@@ -172,7 +189,8 @@ class ProfileTextTestResult(unittest.TextTestRunner.resultclass):
         else:
             memusage = 0
         self.logger.info("Time: %.3fs \t RAM: %.3f Mb\t%s",
-            time.time() - self.__time_start, memusage, test.id())
+                         time.time() - self.__time_start,
+                         memusage, test.id())
 
 
 def report_rst(cov, package, version="0.0.0", base=""):
@@ -397,10 +415,9 @@ if options.qt_binding:
         if sys.version < "3.0.0":
             try:
                 import sip
-
                 sip.setapi("QString", 2)
                 sip.setapi("QVariant", 2)
-            except:
+            except Exception:
                 logger.warning("Cannot set sip API")
         import PyQt4.QtCore  # noqa
     elif binding == "pyqt5":

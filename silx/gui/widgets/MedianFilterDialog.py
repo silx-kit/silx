@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,13 @@ __authors__ = ["H. Payno"]
 __license__ = "MIT"
 __date__ = "14/02/2017"
 
+
+import logging
+
 from silx.gui import qt
+
+
+_logger = logging.getLogger(__name__)
 
 class MedianFilterDialog(qt.QDialog):
     """QDialog window featuring a :class:`BackgroundWidget`"""
@@ -69,6 +75,6 @@ class MedianFilterDialog(qt.QDialog):
     def _filterOptionChanged(self):
         """Call back used when the filter values are changed"""
         if self._filterWidth.value()%2 == 0:
-            logging.warning('median filter only accept odd values')
+            _logger.warning('median filter only accept odd values')
         else:
             self.sigFilterOptChanged.emit(self._filterWidth.value(), self._filterOption.isChecked())

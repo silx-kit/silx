@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -101,7 +101,7 @@ class MedianFilterAction(PlotAction):
         self.plot.sigActiveImageChanged.connect(self._updateActiveImage)
 
     def _computeFilteredImage(self, kernelWidth, conditional):
-        raise NotImplemented('MedianFilterAction is a an abstract class')
+        raise NotImplementedError('MedianFilterAction is a an abstract class')
 
     def getFilteredImage(self):
         """

@@ -35,7 +35,7 @@ from silx.gui import qt, icons
 from silx.gui.data.TextFormatter import TextFormatter
 from silx.io import nxdata
 from silx.gui.hdf5 import H5Node
-from silx.io.nxdata import NXdata, get_attr_as_string
+from silx.io.nxdata import get_attr_as_string
 from silx.gui.plot.Colormap import Colormap
 from silx.gui.plot.actions.control import ColormapAction
 
@@ -1099,16 +1099,28 @@ class _NXdataCurveView(DataView):
     def setData(self, data):
         data = self.normalizeData(data)
         nxd = nxdata.get_NXdata_in_group(data)
-        signal_name = nxd.signal_name
+        signals_names = [nxd.signal_name] + nxd.auxiliary_signals_names
         if nxd.axes_dataset_names[-1] is not None:
             x_errors = nxd.get_axis_errors(nxd.axes_dataset_names[-1])
         else:
             x_errors = None
 
-        self.getWidget().setCurveData(nxd.signal, nxd.axes[-1],
-                                      yerror=nxd.errors, xerror=x_errors,
-                                      ylabel=signal_name, xlabel=nxd.axes_names[-1],
-                                      title=nxd.title or signal_name)
+        # this fix is necessary until the next release of PyMca (5.2.3 or 5.3.0)
+        # see https://github.com/vasole/pymca/issues/144 and https://github.com/vasole/pymca/pull/145
+        if not hasattr(self.getWidget(), "setCurvesData") and \
+                hasattr(self.getWidget(), "setCurveData"):
+            _logger.warning("Using deprecated ArrayCurvePlot API, "
+                            "without support of auxiliary signals")
+            self.getWidget().setCurveData(nxd.signal, nxd.axes[-1],
+                                          yerror=nxd.errors, xerror=x_errors,
+                                          ylabel=nxd.signal_name, xlabel=nxd.axes_names[-1],
+                                          title=nxd.title or nxd.signal_name)
+            return
+
+        self.getWidget().setCurvesData([nxd.signal] + nxd.auxiliary_signals, nxd.axes[-1],
+                                       yerror=nxd.errors, xerror=x_errors,
+                                       ylabels=signals_names, xlabel=nxd.axes_names[-1],
+                                       title=nxd.title or signals_names[0])
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
@@ -1125,8 +1137,8 @@ class _NXdataXYVScatterView(DataView):
         DataView.__init__(self, parent)
 
     def createWidget(self, parent):
-        from silx.gui.data.NXdataWidgets import ArrayCurvePlot
-        widget = ArrayCurvePlot(parent)
+        from silx.gui.data.NXdataWidgets import XYVScatterPlot
+        widget = XYVScatterPlot(parent)
         return widget
 
     def axesNames(self, data, info):
@@ -1139,7 +1151,6 @@ class _NXdataXYVScatterView(DataView):
     def setData(self, data):
         data = self.normalizeData(data)
         nxd = nxdata.get_NXdata_in_group(data)
-        signal_name = nxd.signal_name
         x_axis, y_axis = nxd.axes[-2:]
 
         x_label, y_label = nxd.axes_names[-2:]
@@ -1153,12 +1164,11 @@ class _NXdataXYVScatterView(DataView):
         else:
             y_errors = None
 
-        title = nxd.title or signal_name
-
-        self.getWidget().setCurveData(y_axis, x_axis, values=nxd.signal,
-                                      yerror=y_errors, xerror=x_errors,
-                                      ylabel=y_label, xlabel=x_label,
-                                      title=title)
+        self.getWidget().setScattersData(y_axis, x_axis, values=[nxd.signal] + nxd.auxiliary_signals,
+                                         yerror=y_errors, xerror=x_errors,
+                                         ylabel=y_label, xlabel=x_label,
+                                         title=nxd.title,
+                                         scatter_titles=[nxd.signal_name] + nxd.auxiliary_signals_names)
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
@@ -1192,20 +1202,19 @@ class _NXdataImageView(DataView):
     def setData(self, data):
         data = self.normalizeData(data)
         nxd = nxdata.get_NXdata_in_group(data)
-        signal_name = nxd.signal_name
-        title = nxd.title or signal_name
         isRgba = nxd.interpretation == "rgba-image"
-        if not isRgba:
-            y_axis, x_axis = nxd.axes[-2:]
-            y_label, x_label = nxd.axes_names[-2:]
-        else:
-            y_axis, x_axis = nxd.axes[:2]
-            y_label, x_label = nxd.axes_names[:2]
+
+        # last two axes are Y & X
+        img_slicing = slice(-2, None) if not isRgba else slice(-3, -1)
+        y_axis, x_axis = nxd.axes[img_slicing]
+        y_label, x_label = nxd.axes_names[img_slicing]
 
         self.getWidget().setImageData(
-                     nxd.signal, x_axis=x_axis, y_axis=y_axis,
-                     signal_name=signal_name, xlabel=x_label, ylabel=y_label,
-                     title=title, isRgba=isRgba)
+            [nxd.signal] + nxd.auxiliary_signals,
+            x_axis=x_axis, y_axis=y_axis,
+            signals_names=[nxd.signal_name] + nxd.auxiliary_signals_names,
+            xlabel=x_label, ylabel=y_label,
+            title=nxd.title, isRgba=isRgba)
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)

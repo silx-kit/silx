@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "16/01/2017"
+__date__ = "29/01/2018"
 
 import numpy
 import functools
@@ -423,6 +423,14 @@ class NumpyAxesSelector(qt.QWidget):
         # with a h5py dataset, it create a copy
         # TODO we can reuse the same memory in case of a copy
         view = self.__data[self.__selection]
+
+        if set(self.__axisNames) - set(axisNames) != set([]):
+            # Not all the expected axis are there
+            if self.__selectedData is not None:
+                self.__selectedData = None
+                self.__selection = tuple()
+                self.selectionChanged.emit()
+            return
 
         # order axis as expected
         source = []

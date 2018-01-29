@@ -229,8 +229,6 @@ class HorizontalSliderWithBrowser(qt.QAbstractSlider):
 
     :param QWidget parent: Optional parent widget
     """
-    sigIndexChanged = qt.pyqtSignal(object)
-
     def __init__(self, parent=None):
         qt.QAbstractSlider.__init__(self, parent)
         self.setOrientation(qt.Qt.Horizontal)

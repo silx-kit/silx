@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF by the Software group.
@@ -689,7 +689,7 @@ class EdfFile(object):
         if len(Position) != self.Images[Index].NumDim:
             raise ValueError("EdfFile: coordinate with wrong dimension ")
 
-        size_pixel = self.__GetSizeNumpyType__(self.__GetDefaultNumpyType__(self.Images[Index].DataType), index=Index)
+        size_pixel = self.__GetSizeNumpyType__(self.__GetDefaultNumpyType__(self.Images[Index].DataType, index=Index))
         offset = Position[0] * size_pixel
         if self.Images[Index].NumDim > 1:
             size_row = size_pixel * self.Images[Index].Dim1
