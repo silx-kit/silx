@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "15/12/2016"
+__date__ = "29/01/2018"
 
 import os
 import tempfile
@@ -66,6 +66,20 @@ class TestNumpyAxesSelector(TestCaseQt):
 
         widget = NumpyAxesSelector()
         widget.setAxisNames(["x", "y", "z"])
+        widget.setData(data)
+        result = widget.selectedData()
+        self.assertTrue(numpy.array_equal(result, expectedResult))
+
+    def test_output_moredim(self):
+        data = numpy.arange(3 * 3 * 3 * 3)
+        data.shape = 3, 3, 3, 3
+        expectedResult = data
+
+        widget = NumpyAxesSelector()
+        widget.setAxisNames(["x", "y", "z", "boum"])
+        widget.setData(data[0])
+        result = widget.selectedData()
+        self.assertEqual(result, None)
         widget.setData(data)
         result = widget.selectedData()
         self.assertTrue(numpy.array_equal(result, expectedResult))
