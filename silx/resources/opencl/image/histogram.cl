@@ -62,7 +62,7 @@ Assumes:
 */
 
 
-static float preprocess(value, code)
+static float preprocess(float value, int code)
 {
     //This function can be modified to have more scales
     if (code!=0)
@@ -108,7 +108,7 @@ kernel void histogram(global float *data,
     int start = bloc_size * engine_id;
     int stop = min(start + bloc_size, data_size);
     float vmini = preprocess(mini, map_operation);
-    float vscale = (float)hist_size/(preprocess(maxi, map_operation) -vmini)
+    float vscale = (float)hist_size/(preprocess(maxi, map_operation) -vmini);
     for (int i = start; i<stop; i+=ws)
     {
         int address = i + lid;
@@ -117,7 +117,7 @@ kernel void histogram(global float *data,
             float value = data[address];
             if (!isnan(value))
             {
-                float vvalue = preprocess(value, map_operation)-vmini)*vscale
+                float vvalue = (preprocess(value, map_operation)-vmini)*vscale;
                 int idx = clamp((int) vvalue, 0, hist_size - 1);
                 atomic_inc(&local_hist[idx]);
             }
