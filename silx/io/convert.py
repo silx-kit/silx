@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -52,7 +52,6 @@ longest string. Shorter strings are right-padded with blank spaces.
     to install it if you don't already have it.
 """
 
-import numpy
 import logging
 
 import silx.io
@@ -60,7 +59,7 @@ from silx.io import is_dataset, is_group, is_softlink
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "14/09/2017"
+__date__ = "29/01/2018"
 
 _logger = logging.getLogger(__name__)
 
@@ -168,7 +167,7 @@ class Hdf5Writer(object):
         for key in infile.attrs:
             if self.overwrite_data or key not in root_grp.attrs:
                 root_grp.attrs.create(key,
-                                      numpy.string_(infile.attrs[key]))
+                                      infile.attrs[key])
 
         # Handle links at the end, when their targets are created
         for link_name, target_name in self._links:
@@ -208,7 +207,7 @@ class Hdf5Writer(object):
             # add HDF5 attributes
             for key in obj.attrs:
                 if self.overwrite_data or key not in ds.attrs:
-                    ds.attrs.create(key, numpy.string_(obj.attrs[key]))
+                    ds.attrs.create(key, obj.attrs[key])
 
             if not self.overwrite_data and member_initially_exists:
                 _logger.warn("Not overwriting existing dataset: " + h5_name)
@@ -223,7 +222,7 @@ class Hdf5Writer(object):
             # add HDF5 attributes
             for key in obj.attrs:
                 if self.overwrite_data or key not in grp.attrs:
-                    grp.attrs.create(key, numpy.string_(obj.attrs[key]))
+                    grp.attrs.create(key, obj.attrs[key])
 
 
 def _is_commonh5_group(grp):
