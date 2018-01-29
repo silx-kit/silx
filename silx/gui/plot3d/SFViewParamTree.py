@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -604,7 +604,7 @@ class DataChangedItem(SubjectItem):
     def getSignals(self):
         subject = self.subject
         if subject:
-            return subject.sigDataChanged
+            return subject.sigDataChanged, subject.sigTransformChanged
         return None
 
     def _init(self):
@@ -646,6 +646,17 @@ class ScaleItem(DataChangedItem):
         return ((scale is not None) and str(scale)) or 'N/A'
 
 
+class MatrixItem(DataChangedItem):
+
+    def __init__(self, subject, row, *args):
+        self.__row = row
+        super(MatrixItem, self).__init__(subject, *args)
+
+    def _pullData(self):
+        matrix = self.subject.getTransformMatrix()
+        return str(matrix[self.__row])
+
+
 class DataSetItem(qt.QStandardItem):
 
     def __init__(self, subject, *args):
@@ -654,11 +665,26 @@ class DataSetItem(qt.QStandardItem):
 
         self.setEditable(False)
 
-        klasses = [DataTypeItem, DataShapeItem, OffsetItem, ScaleItem]
+        klasses = [DataTypeItem, DataShapeItem, OffsetItem]
         for klass in klasses:
             titleItem = qt.QStandardItem(klass.itemName)
             titleItem.setEditable(False)
             self.appendRow([titleItem, klass(subject)])
+
+        matrixItem = qt.QStandardItem('matrix')
+        matrixItem.setEditable(False)
+        valueItem = qt.QStandardItem()
+        self.appendRow([matrixItem, valueItem])
+
+        for row in range(3):
+            titleItem = qt.QStandardItem()
+            titleItem.setEditable(False)
+            valueItem = MatrixItem(subject, row)
+            matrixItem.appendRow([titleItem, valueItem])
+
+        titleItem = qt.QStandardItem(ScaleItem.itemName)
+        titleItem.setEditable(False)
+        self.appendRow([titleItem, ScaleItem(subject)])
 
 
 # Isosurface ##################################################################
@@ -1195,9 +1221,10 @@ class PlaneOrientationItem(SubjectItem):
         return [self.subject.getCutPlanes()[0].sigPlaneChanged]
 
     def _pullData(self):
-        currentNormal = self.subject.getCutPlanes()[0].getNormal()
+        currentNormal = self.subject.getCutPlanes()[0].getNormal(
+            coordinates='scene')
         for _, text, _, normal in self._PLANE_ACTIONS:
-            if numpy.array_equal(normal, currentNormal):
+            if numpy.allclose(normal, currentNormal):
                 return text
         return ''
 
@@ -1214,7 +1241,7 @@ class PlaneOrientationItem(SubjectItem):
     def __editorChanged(self, index):
         normal = self._PLANE_ACTIONS[index][3]
         plane = self.subject.getCutPlanes()[0]
-        plane.setNormal(normal)
+        plane.setNormal(normal, coordinates='scene')
         plane.moveToCenter()
 
     def setEditorData(self, editor):
