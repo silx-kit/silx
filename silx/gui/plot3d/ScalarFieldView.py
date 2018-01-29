@@ -272,8 +272,8 @@ class SelectedRegion(object):
         """Range in the data coordinates of the selection: 3x2 array of float
 
         When the transform matrix is not the identity matrix
-        (e.g., rotation, skew) the returned range is that of the selected region
-        bounding box in data coordinates.
+        (e.g., rotation, skew) the returned range is the one of the selected
+        region bounding box in data coordinates.
 
         :return: A numpy array with ((xmin, xmax), (ymin, ymax), (zmin, zmax))
         :rtype: numpy.ndarray
