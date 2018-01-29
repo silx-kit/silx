@@ -6,8 +6,7 @@ Section: science
 Priority: extra
 Build-Depends: cython,
                cython3,
-               libstdc++-4.9-dev,
-               libstdc++6,
+               libstdc++-4.9-dev|libstdc++6,
                debhelper (>=9.20150101+deb8u2),
                dh-python,
                python-all-dev,

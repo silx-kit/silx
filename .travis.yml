@@ -29,18 +29,9 @@ matrix:
 
         - language: generic
           os: osx
-          osx_image: xcode7.3
           env:
               - BUILD_COMMAND=bdist_wheel
               - WITH_QT_TEST=True
-              - PYTHON_VERSION=2
-
-        - language: generic
-          os: osx
-          env:
-              - BUILD_COMMAND=bdist_wheel
-              - WITH_QT_TEST=True
-              - PYTHON_VERSION=3
 
 cache:
     apt: true
@@ -109,8 +100,11 @@ before_script:
           ldd $(python -c "import h5py;print(h5py.h5d.__file__)");
       fi
 
-    - "pip install --upgrade pynput"
-    - "python ci/close_popup.py"
+    - if [ "$TRAVIS_OS_NAME" == "osx" ];
+      then
+          pip install --upgrade pynput;
+          python ci/close_popup.py;
+      fi
 
 script:
     - echo "WITH_QT_TEST="$WITH_QT_TEST

@@ -540,3 +540,19 @@ class Plane(event.Notifier):
     def move(self, step):
         """Move the plane of step along the normal."""
         self.point += step * self.normal
+
+    def segmentIntersection(self, s0, s1):
+        """Compute the plane intersection with segment [s0, s1].
+
+        :param s0: First end of the segment
+        :type s0: 1D numpy.ndarray-like of length 3
+        :param s1: Second end of the segment
+        :type s1: 1D numpy.ndarray-like of length 3
+        :return: The intersection points. The number of points goes
+                 from 0 (no intersection) to 2 (segment in the plane)
+        :rtype: list of 1D numpy.ndarray
+        """
+        if not self.isPlane:
+            return []
+        else:
+            return segmentPlaneIntersect(s0, s1, self.normal, self.point)

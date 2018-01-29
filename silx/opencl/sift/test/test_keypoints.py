@@ -40,7 +40,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "17/01/2018"
+__date__ = "26/01/2018"
 
 import os
 import unittest
@@ -55,25 +55,30 @@ else:
     import scipy.misc
     import scipy.ndimage
 
+from silx.utils.testutils import parameterize
 # for Python implementation of tested functions
 from .test_image_functions import my_compact, my_orientation, keypoints_compare, my_descriptor, descriptors_compare
 from .test_image_setup import orientation_setup, descriptor_setup
-from silx.opencl import ocl, kernel_workgroup_size
-if ocl:
-    import pyopencl, pyopencl.array
-from ..utils import calc_size, get_opencl_code
+from silx.opencl import ocl, pyopencl, kernel_workgroup_size
+from ..utils import get_opencl_code
 logger = logging.getLogger(__name__)
 
 
-class ParameterisedTestCase(unittest.TestCase):
-    """ TestCase classes that want to be parameterised should
-        inherit from this class.
-        From Eli Bendersky's website
-        http://eli.thegreenplace.net/2011/08/02/python-unit-testing-parametrized-test-cases/
-    """
+@unittest.skipUnless(ocl and scipy, "opencl or scipy missing")
+class TestKeypoints(unittest.TestCase):
+
+    def __init__(self, methodName='runTest',
+                 orientation_script=None, orientation_param=None,
+                 keypoint_script=None, keypoint_param=None):
+        super(TestKeypoints, self).__init__(methodName)
+        self.orientation_script = orientation_script
+        self.orientation_param = orientation_param
+        self.keypoint_script = keypoint_script
+        self.keypoint_param = keypoint_param
+
     @classmethod
     def setUpClass(cls):
-        super(ParameterisedTestCase, cls).setUpClass()
+        super(TestKeypoints, cls).setUpClass()
         if ocl:
             cls.ctx = ocl.create_context()
             if logger.getEffectiveLevel() <= logging.INFO:
@@ -86,29 +91,14 @@ class ParameterisedTestCase(unittest.TestCase):
             device_id = device.platform.get_devices().index(device)
             platform_id = pyopencl.get_platforms().index(device.platform)
             cls.maxwg = ocl.platforms[platform_id].devices[device_id].max_work_group_size
-#             logger.warning("max_work_group_size: %s on (%s, %s)", cls.maxwg, platform_id, device_id)
+            # logger.warning("max_work_group_size: %s on (%s, %s)", cls.maxwg, platform_id, device_id)
 
     @classmethod
     def tearDownClass(cls):
-        super(ParameterisedTestCase, cls).tearDownClass()
+        super(TestKeypoints, cls).tearDownClass()
         cls.ctx = None
         cls.queue = None
 
-    def __init__(self, methodName='runTest', param=None):
-        super(ParameterisedTestCase, self).__init__(methodName)
-        self.param = param
-
-    @staticmethod
-    def parameterise(testcase_klass, param=None):
-        """ Create a suite containing all tests taken from the given
-            subclass, passing them the parameter 'param'.
-        """
-        testloader = unittest.TestLoader()
-        testnames = testloader.getTestCaseNames(testcase_klass)
-        suite = unittest.TestSuite()
-        for name in testnames:
-            suite.addTest(testcase_klass(name, param=param))
-        return suite
 
 
 @unittest.skipUnless(ocl and scipy, "opencl or scipy missing")
@@ -119,42 +109,56 @@ class test_keypoints(ParameterisedTestCase):
             return
         try:
             self.testdata = scipy.misc.ascent()
-        except:
+        except Exception:
             # for very old versions of scipy
             self.testdata = scipy.misc.lena()
-
         kernel_base = get_opencl_code(os.path.join("sift", "sift"))
-        for kernel_file in self.param:
-            if "cpu" in kernel_file:
-                self.USE_CPU = True
-            else:
-                self.USE_CPU = False
-            if kernel_file.startswith("orient"):
-                self.wg_orient = self.param[kernel_file]
-                prod_wg = 1
-                for i in self.wg_orient:
-                    prod_wg *= i
+        if self.orientation_script is None:
+            self.skipTest("Uninitialized parametric class")
 
-                kernel_src = kernel_base + get_opencl_code(os.path.join("sift", kernel_file))
-                try:
-                    self.program_orient = pyopencl.Program(self.ctx, kernel_src).build()
-                except:
-                    logger.warning("Failed to compile kernel '%s': aborting" % kernel_file)
-                    self.abort = True
-                    return
-            elif kernel_file.startswith("descriptor"):
-                self.wg_keypoint = self.param[kernel_file]
-                kernel_src = kernel_base + get_opencl_code(os.path.join("sift", kernel_file))
-                prod_wg = numpy.prod(self.wg_keypoint)
-                try:
-                    self.program_keypoint = pyopencl.Program(self.ctx, kernel_src).build()
-                except:
-                    logger.warning("Failed to compile kernel '%s': aborting" % kernel_file)
-                    self.abort = True
-                    return
-            if prod_wg > self.maxwg:
-                logger.warning("max_work_group_size: %s %s needed", self.maxwg, prod_wg)
-                self.abort = True
+        if "cpu" in self.orientation_script:
+            self.USE_CPU = True
+        else:
+            self.USE_CPU = False
+
+        if self.USE_CPU:
+            assert("cpu" in self.keypoint_script)
+        else:
+            assert("gpu" in self.keypoint_script)
+
+        self.wg_orient = self.orientation_param
+        prod_wg = 1
+        for i in self.wg_orient:
+            prod_wg *= i
+
+        kernel_src = get_opencl_code(os.path.join("sift", self.orientation_script))
+        try:
+            self.program_orient = pyopencl.Program(self.ctx, kernel_src).build()
+        except Exception:
+            logger.warning("Failed to compile kernel '%s': aborting" % self.orientation_script)
+            self.abort = True
+            return
+
+        if prod_wg > self.maxwg:
+            logger.warning("max_work_group_size: %s %s needed", self.maxwg, prod_wg)
+            self.abort = True
+
+        self.wg_keypoint = self.keypoint_param
+        kernel_src = get_opencl_code(os.path.join("sift", self.keypoint_script))
+        prod_wg = 1
+        for i in self.wg_keypoint:
+            prod_wg *= i
+
+        try:
+            self.program_keypoint = pyopencl.Program(self.ctx, kernel_src).build()
+        except Exception:
+            logger.warning("Failed to compile kernel '%s': aborting" % self.keypoint_script)
+            self.abort = True
+            return
+
+        if prod_wg > self.maxwg:
+            logger.warning("max_work_group_size: %s %s needed", self.maxwg, prod_wg)
+            self.abort = True
 
     def tearDown(self):
         self.mat = None
@@ -317,7 +321,6 @@ class test_keypoints(ParameterisedTestCase):
             logger.info("Global execution time: CPU %.3fms, GPU: %.3fms.", 1000.0 * (t2 - t1), 1000.0 * (t1 - t0))
             logger.info("Descriptors computation took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
 
-
 @unittest.skipUnless(ocl, "opencl missing")
 class TestFeature(unittest.TestCase):
     """Test a simple image with all possible path"""
@@ -374,12 +377,8 @@ class TestFeature(unittest.TestCase):
 
 def suite():
     testSuite = unittest.TestSuite()
-    TESTCASES = [{"orientation_gpu": (128,), "descriptor_gpu2": (8, 8, 8)},
-                 {"orientation_cpu": (1,), "descriptor_cpu": (1,)},
-                 {"orientation_gpu": (128,), "descriptor_gpu1": (8, 4, 4)},
-                 ]
-    for param in TESTCASES:
-        testSuite.addTest(ParameterisedTestCase.parameterise(
-                test_keypoints, param))
+    testSuite.addTest(parameterize(TestKeypoints, "orientation_gpu", (128,), "descriptor_gpu2", (8, 8, 8)))
+    testSuite.addTest(parameterize(TestKeypoints, "orientation_cpu", (1,), "descriptor_cpu", (1,)))
+    testSuite.addTest(parameterize(TestKeypoints, "orientation_gpu", (128,), "descriptor_gpu1", (8, 4, 4)))
     testSuite.addTest(TestFeature("test_keypoints"))
     return testSuite

@@ -108,7 +108,7 @@ def is_valid_nxdata(group):   # noqa
     if get_attr_as_string(group, "NX_class") != "NXdata":
         return False
     if "signal" not in group.attrs:
-        _logger.warning("NXdata group does not define a signal attr. "
+        _nxdata_warning("NXdata group does not define a signal attr. "
                         "Testing legacy specification.")
         signal_name = None
         for key in group:
@@ -119,15 +119,29 @@ def is_valid_nxdata(group):   # noqa
                     # This is the main (default) signal
                     break
         if signal_name is None:
-            _logger.warning("No dataset with a @signal=1 attr found")
+            _nxdata_warning("No dataset with a @signal=1 attr found")
             return False
     else:
         signal_name = get_attr_as_string(group, "signal")
 
     if signal_name not in group or not is_dataset(group[signal_name]):
-        _logger.warning(
+        _nxdata_warning(
             "Cannot find signal dataset '%s' in NXdata group" % signal_name)
         return False
+
+    auxiliary_signals_names = get_attr_as_string(group, "auxiliary_signals",
+                                                 default=[])
+    if isinstance(auxiliary_signals_names, (six.text_type, six.binary_type)):
+        auxiliary_signals_names = [auxiliary_signals_names]
+    for asn in auxiliary_signals_names:
+        if asn not in group or not is_dataset(group[asn]):
+            _nxdata_warning(
+                "Cannot find auxiliary signal dataset '%s' in NXdata group" % asn)
+            return False
+        if group[signal_name].shape != group[asn].shape:
+            _nxdata_warning("Auxiliary signal dataset '%s' does not" % asn +
+                            " have the same shape as the main signal.")
+            return False
 
     ndim = len(group[signal_name].shape)
 
@@ -282,7 +296,7 @@ class NXdata(object):
         """Main signal dataset in this NXdata group.
 
         In case more than one signal is present in this group,
-        the other ones can be found in :attr:`signals`.
+        the other ones can be found in :attr:`auxiliary_signals`.
         """
 
         self.signal_name = get_attr_as_string(self.signal, "long_name")
@@ -333,53 +347,69 @@ class NXdata(object):
         return signal_dataset_name
 
     @property
-    def signal_dataset_names(self):
-        """Sorted list of names of all the signal datasets.
+    def auxiliary_signals_dataset_names(self):
+        """Sorted list of names of the auxiliary signals datasets.
 
-        In most instances, there will be only one signal.
-        But a now deprecated NXdata specification enabled having several
-        datasets with attributes `@signal=1, @signal=2...`."""
+        These are the names provided by the *@auxiliary_signals* attribute
+        on the NXdata group.
+
+        In case the NXdata group does not specify a *@signal* attribute
+        but has a dataset with an attribute *@signal=1*,
+        we look for datasets with attributes *@signal=2, @signal=3...*
+        (deprecated NXdata specification)."""
+        signal_dataset_name = get_attr_as_string(self.group, "signal")
+        if signal_dataset_name is not None:
+            auxiliary_signals_names = get_attr_as_string(self.group, "auxiliary_signals")
+            if auxiliary_signals_names is not None:
+                if not isinstance(auxiliary_signals_names,
+                                  (tuple, list, numpy.ndarray)):
+                    # tolerate a single string, but coerce into a list
+                    return [auxiliary_signals_names]
+                return list(auxiliary_signals_names)
+            return []
+
+        # try old spec, @signal=1 (2, 3...) on dataset
         numbered_names = []
         for dsname in self.group:
             if dsname == self.signal_dataset_name:
-                # main signal, must be first in sorted list
-                numbered_names.append((float("-inf"), dsname))
+                # main signal, not auxiliary
                 continue
             ds = self.group[dsname]
             signal_attr = ds.attrs.get("signal")
-            if not is_dataset(ds):
-                _logger.warning("%s is not a dataset (%s)",
-                                dsname, type(ds))
+            if signal_attr is not None and not is_dataset(ds):
+                _logger.warning("Item %s with @signal=%s is not a dataset (%s)",
+                                dsname, signal_attr, type(ds))
                 continue
             if signal_attr is not None:
                 try:
                     signal_number = int(signal_attr)
                 except (ValueError, TypeError):
-                    _logger.warning("Could not interpret attr @signal=%s on dataset %s",
+                    _logger.warning("Could not parse attr @signal=%s on "
+                                    "dataset %s as an int",
                                     signal_attr, dsname)
                     continue
                 numbered_names.append((signal_number, dsname))
         return [a[1] for a in sorted(numbered_names)]
 
     @property
-    def signal_names(self):
-        """Similar to :attr:`signal_dataset_names`, but the @long_name
+    def auxiliary_signals_names(self):
+        """List of names of the auxiliary signals.
+
+        Similar to :attr:`auxiliary_signals_dataset_names`, but the @long_name
         is used when this attribute is present, instead of the dataset name.
         """
         signal_names = []
-        for sdn in self.signal_dataset_names:
-            if "long_name" in self.group[sdn].attrs:
-                signal_names.append(self.group[sdn].attrs["long_name"])
+        for asdn in self.auxiliary_signals_dataset_names:
+            if "long_name" in self.group[asdn].attrs:
+                signal_names.append(self.group[asdn].attrs["long_name"])
             else:
-                signal_names.append(sdn)
+                signal_names.append(asdn)
         return signal_names
 
     @property
-    def signals(self):
-        """Sorted list of all signal datasets.
-        See :attr:`signal_dataset_names`
-        for an explanation why there can be more than 1 signal."""
-        return [self.group[dsname] for dsname in self.signal_dataset_names]
+    def auxiliary_signals(self):
+        """List of all auxiliary signal datasets."""
+        return [self.group[dsname] for dsname in self.auxiliary_signals_dataset_names]
 
     @property
     def interpretation(self):
@@ -683,6 +713,68 @@ class NXdata(object):
         """True if this is a scatter with a signal and more than 2 axes."""
         return self.is_scatter and len(self.axes) > 2
 
+    @property
+    def is_curve(self):
+        """This property is True if the signal is 1D or :attr:`interpretation` is
+        *"spectrum"*, and there is at most one axis with a consistent length.
+        """
+        if self.signal_is_0d or self.interpretation not in [None, "spectrum"]:
+            return False
+        # the axis, if any, must be of the same length as the last dimension
+        # of the signal, or of length 2 (a + b *x scale)
+        if self.axes[-1] is not None and len(self.axes[-1]) not in [
+                self.signal.shape[-1], 2]:
+            return False
+        if self.interpretation is None:
+            # We no longer test whether x values are monotonic
+            # (in the past, in that case, we used to consider it a scatter)
+            return self.signal_is_1d
+        # everything looks good
+        return True
+
+    @property
+    def is_image(self):
+        """True if the signal is 2D, or 3D with last dimension of length 3 or 4
+        and interpretation *rgba-image*, or >2D with interpretation *image*.
+        The axes (if any) length must also be consistent with the signal shape.
+        """
+        if self.interpretation in ["scalar", "spectrum", "scaler"]:
+            return False
+        if self.signal_is_0d or self.signal_is_1d:
+            return False
+        if not self.signal_is_2d and \
+                        self.interpretation not in ["image", "rgba-image"]:
+            return False
+        if self.signal_is_3d and self.interpretation == "rgba-image":
+            if self.signal.shape[-1] not in [3, 4]:
+                return False
+            img_axes = self.axes[0:2]
+            img_shape = self.signal.shape[0:2]
+        else:
+            img_axes = self.axes[-2:]
+            img_shape = self.signal.shape[-2:]
+        for i, axis in enumerate(img_axes):
+            if axis is not None and len(axis) not in [img_shape[i], 2]:
+                return False
+
+        return True
+
+    @property
+    def is_stack(self):
+        """True in the signal is at least 3D and interpretation is not
+        "scalar", "spectrum", "image" or "rgba-image".
+        The axes length must also be consistent with the last 3 dimensions
+        of the signal.
+        """
+        if self.signal_ndim < 3 or self.interpretation in [
+                "scalar", "scaler", "spectrum", "image", "rgba-image"]:
+            return False
+        stack_shape = self.signal.shape[-3:]
+        for i, axis in enumerate(self.axes[-3:]):
+            if axis is not None and len(axis) not in [stack_shape[i], 2]:
+                return False
+        return True
+
 
 def is_NXentry_with_default_NXdata(group):
     """Return True if group is a valid NXentry defining a valid default
@@ -690,7 +782,7 @@ def is_NXentry_with_default_NXdata(group):
     if not is_group(group):
         return False
 
-    if group.attrs.get("NX_class") != "NXentry":
+    if get_attr_as_string(group, "NX_class") != "NXentry":
         return False
 
     default_nxdata_name = group.attrs.get("default")
@@ -715,7 +807,7 @@ def is_NXroot_with_default_NXdata(group):
     # is therefore optional. We accept groups that are not located at the root
     # if they have @NX_class=NXroot (use case: several nexus files archived
     # in a single HDF5 file)
-    if group.attrs.get("NX_class") != "NXroot" and not is_file(group):
+    if get_attr_as_string(group, "NX_class") != "NXroot" and not is_file(group):
         return False
 
     default_nxentry_name = group.attrs.get("default")
@@ -836,6 +928,7 @@ def save_NXdata(filename, signal, axes,
             if "default" not in h5f.attrs:
                 # NXroot@default attribute
                 h5f.attrs["default"] = nxentry_name
+                # TODO: add @NX_class: NXentry?
         else:
             # write NXdata into the root of the file (invalid nexus!)
             entry = h5f

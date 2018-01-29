@@ -317,7 +317,7 @@ class Transform(event.Notifier):
     def transformPoint(self, point, direct=True, perspectiveDivide=False):
         """Apply the transform to a point.
 
-        If len(point) == 3, apply persective divide if possible.
+        If len(point) == 3, apply perspective divide if possible.
 
         :param point: Array-like vector of 3 or 4 coordinates.
         :param bool direct: Whether to apply the direct (True, the default)

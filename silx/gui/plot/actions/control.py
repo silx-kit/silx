@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -368,12 +368,29 @@ class ColormapAction(PlotAction):
         if self._dialog is None:
             return
         image = self.plot.getActiveImage()
-        if isinstance(image, items.ColormapMixIn):
+
+        if isinstance(image, items.ImageComplexData):
+            # Specific init for complex images
+            colormap = image.getColormap()
+
+            mode = image.getVisualizationMode()
+            if mode in (items.ImageComplexData.Mode.AMPLITUDE_PHASE,
+                        items.ImageComplexData.Mode.LOG10_AMPLITUDE_PHASE):
+                data = image.getData(
+                    copy=False, mode=items.ImageComplexData.Mode.PHASE)
+            else:
+                data = image.getData(copy=False)
+
+            # Set histogram and range if any
+            self._dialog.setData(data)
+
+        elif isinstance(image, items.ColormapMixIn):
             # Set dialog from active image
             colormap = image.getColormap()
             data = image.getData(copy=False)
             # Set histogram and range if any
             self._dialog.setData(data)
+
         else:
             # No active image or active image is RGBA,
             # set dialog from default info

@@ -144,7 +144,7 @@ class TestConvertCommand(unittest.TestCase):
         h5name = os.path.join(tempdir, "output.h5")
         assert not os.path.isfile(h5name)
         command_list = ["convert", "-m", "w",
-                        "--no-root-group", specname, "-o", h5name]
+                        specname, "-o", h5name]
         result = convert.main(command_list)
 
         self.assertEqual(result, 0)

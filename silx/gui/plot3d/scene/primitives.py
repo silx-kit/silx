@@ -888,6 +888,7 @@ class PlaneInGroup(core.PrivateGroup):
         self._color = None
         self.color = 1., 1., 1., 1.  # Set _color
         self._width = 2.
+        self._strokeVisible = True
 
         self._plane = utils.Plane(point, normal)
         self._plane.addListener(self._planeChanged)
@@ -924,6 +925,17 @@ class PlaneInGroup(core.PrivateGroup):
         self._width = float(width)
         if self._outline is not None:
             self._outline.width = self._width  # Sync width
+
+    @property
+    def strokeVisible(self):
+        """Whether surrounding stroke is visible or not (bool)."""
+        return self._strokeVisible
+
+    @strokeVisible.setter
+    def strokeVisible(self, visible):
+        self._strokeVisible = bool(visible)
+        if self._outline is not None:
+            self._outline.visible = self._strokeVisible
 
     # Plane access
 
@@ -995,6 +1007,7 @@ class PlaneInGroup(core.PrivateGroup):
                                       mode='loop',
                                       colors=self.color)
                 self._outline.width = self._width
+                self._outline.visible = self._strokeVisible
                 self._children.append(self._outline)
 
             # Update vertices, TODO only when necessary
@@ -2310,11 +2323,25 @@ class GroupBBox(core.PrivateGroup):
         self._boxTransforms = transform.TransformList(
             (transform.Translate(), transform.Scale()))
 
+        # Using 1 of 3 primitives to render axes and/or bounding box
+        # To avoid z-fighting between axes and bounding box
         self._boxWithAxes = BoxWithAxes(color)
         self._boxWithAxes.smooth = False
         self._boxWithAxes.transforms = self._boxTransforms
 
-        self._children = [self._boxWithAxes, self._group]
+        self._box = Box(stroke=color, fill=(1., 1., 1., 0.))
+        self._box.strokeSmooth = False
+        self._box.transforms = self._boxTransforms
+        self._box.visible = False
+
+        self._axes = Axes()
+        self._axes.smooth = False
+        self._axes.transforms = self._boxTransforms
+        self._axes.visible = False
+
+        self.strokeWidth = 2.
+
+        self._children = [self._boxWithAxes, self._box, self._axes, self._group]
 
     def _updateBoxAndAxes(self):
         """Update bbox and axes position and size according to children."""
@@ -2346,16 +2373,61 @@ class GroupBBox(core.PrivateGroup):
     def children(self, iterable):
         self._group.children = iterable
 
-    # Give access to box color
+    # Give access to box color and stroke width
 
     @property
     def color(self):
         """The RGBA color to use for the box: 4 float in [0, 1]"""
-        return self._boxWithAxes.color
+        return self._box.strokeColor
 
     @color.setter
     def color(self, color):
+        self._box.strokeColor = color
         self._boxWithAxes.color = color
+
+    @property
+    def strokeWidth(self):
+        """The width of the stroke lines in pixels (float)"""
+        return self._box.strokeWidth
+
+    @strokeWidth.setter
+    def strokeWidth(self, width):
+        width = float(width)
+        self._box.strokeWidth = width
+        self._boxWithAxes.width = width
+        self._axes.width = width
+
+    # Toggle axes visibility
+
+    def _updateBoxAndAxesVisibility(self, axesVisible, boxVisible):
+        """Update visible flags of box and axes primitives accordingly.
+
+        :param bool axesVisible: True to display axes
+        :param bool boxVisible: True to display bounding box
+        """
+        self._boxWithAxes.visible = boxVisible and axesVisible
+        self._box.visible = boxVisible and not axesVisible
+        self._axes.visible = not boxVisible and axesVisible
+
+    @property
+    def axesVisible(self):
+        """Whether axes are displayed or not (bool)"""
+        return self._boxWithAxes.visible or self._axes.visible
+
+    @axesVisible.setter
+    def axesVisible(self, visible):
+        self._updateBoxAndAxesVisibility(axesVisible=bool(visible),
+                                         boxVisible=self.boxVisible)
+
+    @property
+    def boxVisible(self):
+        """Whether bounding box is displayed or not (bool)"""
+        return self._boxWithAxes.visible or self._box.visible
+
+    @boxVisible.setter
+    def boxVisible(self, visible):
+        self._updateBoxAndAxesVisibility(axesVisible=self.axesVisible,
+                                         boxVisible=bool(visible))
 
 
 # Clipping Plane ##############################################################
