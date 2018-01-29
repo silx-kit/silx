@@ -112,14 +112,14 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.colormapDiag._minValue.setValue(None)
         self.assertTrue(self.colormap.getVMin() is None)
         self.colormapDiag._maxValue.setValue(None)
-        self.assertTrue(self.colormap.getVMax() is None)
-        self.assertTrue(self.colormap.isAutoscale() is True)
         self.mouseClick(
             widget=self.colormapDiag._buttonsModal.button(qt.QDialogButtonBox.Ok),
             button=qt.Qt.LeftButton
         )
         self.assertTrue(self.colormap.getVMin() is None)
-
+        self.assertTrue(self.colormap.getVMax() is None)
+        self.assertTrue(self.colormap.isAutoscale() is True)
+     
     def testGUIModalCancel(self):
         """Make sure the colormap is not modified if gone through reject"""
         assert self.colormap.isAutoscale() is False
