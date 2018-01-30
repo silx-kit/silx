@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -157,20 +157,30 @@ You can test for existence of data or groups::
     >>> "spam" in sfh5["1.1"]
     False
 
-Strings are stored encoded as ``numpy.string_``, as recommended by
-`the h5py documentation <http://docs.h5py.org/en/latest/strings.html>`_.
-This ensures maximum compatibility with third party software libraries,
-when saving a :class:`SpecH5` to a HDF5 file using :mod:`silx.io.spectoh5`.
+.. note::
 
-The type ``numpy.string_`` is a byte-string format. The consequence of this
-is that you should decode strings before using them in **Python 3**::
+    Text used to be stored with a dtype ``numpy.string_`` in silx versions
+    prior to *0.7.0*. The type ``numpy.string_`` is a byte-string format.
+    The consequence of this is that you had to decode strings before using
+    them in **Python 3**::
 
-    >>> from silx.io.spech5 import SpecH5
-    >>> sfh5 = SpecH5("31oct98.dat")
-    >>> sfh5["/68.1/title"]
-    b'68  ascan  tx3 -28.5 -24.5  20 0.5'
-    >>> sfh5["/68.1/title"].decode()
-    '68  ascan  tx3 -28.5 -24.5  20 0.5'
+        >>> from silx.io.spech5 import SpecH5
+        >>> sfh5 = SpecH5("31oct98.dat")
+        >>> sfh5["/68.1/title"]
+        b'68  ascan  tx3 -28.5 -24.5  20 0.5'
+        >>> sfh5["/68.1/title"].decode()
+        '68  ascan  tx3 -28.5 -24.5  20 0.5'
+
+    From silx version *0.7.0* onwards, text is now stored as unicode. This
+    corresponds to the default text type in python 3, and to the *unicode*
+    type in Python 2.
+
+    To be on the safe side, you can test for the presence of a *decode*
+    attribute, to ensure that you always work with unicode text::
+
+        >>> title = sfh5["/68.1/title"]
+        >>> if hasattr(title, "decode"):
+        ...     title = title.decode()
 
 """
 
@@ -178,28 +188,32 @@ import datetime
 import logging
 import numpy
 import re
-import sys
 import io
+import h5py
 
 from silx import version as silx_version
 from .specfile import SpecFile
 from . import commonh5
+from silx.third_party import six
 
 __authors__ = ["P. Knobel", "D. Naudet"]
 __license__ = "MIT"
-__date__ = "23/08/2017"
+__date__ = "29/01/2018"
 
 logger1 = logging.getLogger(__name__)
 
-try:
-    import h5py
-except ImportError:
-    h5py = None
-    logger1.debug("Module h5py optional.", exc_info=True)
+
+text_dtype = h5py.special_dtype(vlen=six.text_type)
 
 
-string_types = (basestring,) if sys.version_info[0] == 2 else (str,)  # noqa
-integer_types = (int, long,) if sys.version_info[0] == 2 else (int,)  # noqa
+def to_h5py_utf8(str_list):
+    """Convert a string or a list of strings to a numpy array of
+    unicode strings that can be written to HDF5 as utf-8.
+
+    This ensures that the type will be consistent between python 2 and
+    python 3, if attributes or datasets are saved to an HDF5 file.
+    """
+    return numpy.array(str_list, dtype=text_dtype)
 
 
 def _get_number_of_mca_analysers(scan):
@@ -457,10 +471,9 @@ class SpecH5NodeDataset(commonh5.Dataset, SpecH5Dataset):
     def __init__(self, name, data, parent=None, attrs=None):
         # get proper value types, to inherit from numpy
         # attributes (dtype, shape, size)
-        if isinstance(data, string_types):
-            # use bytes for maximum compatibility
-            # (see http://docs.h5py.org/en/latest/strings.html)
-            value = numpy.string_(data)
+        if isinstance(data, six.string_types):
+            # use unicode (utf-8 when saved to HDF5 output)
+            value = to_h5py_utf8(data)
         elif isinstance(data, float):
             # use 32 bits for float scalars
             value = numpy.float32(data)
@@ -472,7 +485,8 @@ class SpecH5NodeDataset(commonh5.Dataset, SpecH5Dataset):
             data_kind = array.dtype.kind
 
             if data_kind in ["S", "U"]:
-                value = numpy.asarray(array, dtype=numpy.string_)
+                value = numpy.asarray(array,
+                                      dtype=text_dtype)
             elif data_kind in ["f"]:
                 value = numpy.asarray(array, dtype=numpy.float32)
             else:
@@ -547,12 +561,12 @@ class SpecH5(commonh5.File, SpecH5Group):
 
         self._sf = SpecFile(filename)
 
-        attrs = {"NX_class": "NXroot",
-                 "file_time": datetime.datetime.now().isoformat(),
-                 "file_name": filename,
-                 "creator": "silx spech5 %s" % silx_version}
+        attrs = {"NX_class": to_h5py_utf8("NXroot"),
+                 "file_time": to_h5py_utf8(
+                         datetime.datetime.now().isoformat()),
+                 "file_name": to_h5py_utf8(filename),
+                 "creator": to_h5py_utf8("silx spech5 %s" % silx_version)}
         commonh5.File.__init__(self, filename, attrs=attrs)
-        assert self.attrs["NX_class"] == "NXroot"
 
         for scan_key in self._sf.keys():
             scan = self._sf[scan_key]
@@ -573,11 +587,12 @@ class ScanGroup(commonh5.Group, SpecH5Group):
         :param scan: specfile.Scan object
         """
         commonh5.Group.__init__(self, scan_key, parent=parent,
-                                attrs={"NX_class": "NXentry"})
+                                attrs={"NX_class": to_h5py_utf8("NXentry")})
 
-        self.add_node(SpecH5NodeDataset(name="title",
-                                        data=scan.scan_header_dict["S"],
-                                        parent=self))
+        self.add_node(SpecH5NodeDataset(
+                name="title",
+                data=to_h5py_utf8(scan.scan_header_dict["S"]),
+                parent=self))
 
         if "D" in scan.scan_header_dict:
             try:
@@ -603,7 +618,7 @@ class ScanGroup(commonh5.Group, SpecH5Group):
                          scan_key)
             start_time_str = ""
         self.add_node(SpecH5NodeDataset(name="start_time",
-                                        data=start_time_str,
+                                        data=to_h5py_utf8(start_time_str),
                                         parent=self))
 
         self.add_node(InstrumentGroup(parent=self, scan=scan))
@@ -620,7 +635,7 @@ class InstrumentGroup(commonh5.Group, SpecH5Group):
         :param scan: specfile.Scan object
         """
         commonh5.Group.__init__(self, name="instrument", parent=parent,
-                                attrs={"NX_class": "NXinstrument"})
+                                attrs={"NX_class": to_h5py_utf8("NXinstrument")})
 
         self.add_node(InstrumentSpecfileGroup(parent=self, scan=scan))
         self.add_node(PositionersGroup(parent=self, scan=scan))
@@ -635,21 +650,24 @@ class InstrumentGroup(commonh5.Group, SpecH5Group):
 class InstrumentSpecfileGroup(commonh5.Group, SpecH5Group):
     def __init__(self, parent, scan):
         commonh5.Group.__init__(self, name="specfile", parent=parent,
-                                attrs={"NX_class": "NXcollection"})
-        self.add_node(SpecH5NodeDataset(name="file_header",
-                                        data="\n".join(scan.file_header),
-                                        parent=self,
-                                        attrs={}))
-        self.add_node(SpecH5NodeDataset(name="scan_header",
-                                        data="\n".join(scan.scan_header),
-                                        parent=self,
-                                        attrs={}))
+                                attrs={"NX_class": to_h5py_utf8("NXcollection")})
+        self.add_node(SpecH5NodeDataset(
+                name="file_header",
+                data=to_h5py_utf8(
+                        "\n".join(scan.file_header)),
+                parent=self,
+                attrs={}))
+        self.add_node(SpecH5NodeDataset(
+                name="scan_header",
+                data=to_h5py_utf8("\n".join(scan.scan_header)),
+                parent=self,
+                attrs={}))
 
 
 class PositionersGroup(commonh5.Group, SpecH5Group):
     def __init__(self, parent, scan):
         commonh5.Group.__init__(self, name="positioners", parent=parent,
-                                attrs={"NX_class": "NXcollection"})
+                                attrs={"NX_class": to_h5py_utf8("NXcollection")})
         for motor_name in scan.motor_names:
             safe_motor_name = motor_name.replace("/", "%")
             if motor_name in scan.labels and scan.data.shape[0] > 0:
@@ -668,7 +686,7 @@ class InstrumentMcaGroup(commonh5.Group, SpecH5Group):
     def __init__(self, parent, analyser_index, scan):
         name = "mca_%d" % analyser_index
         commonh5.Group.__init__(self, name=name, parent=parent,
-                                attrs={"NX_class": "NXdetector"})
+                                attrs={"NX_class": to_h5py_utf8("NXdetector")})
 
         self.add_node(McaDataDataset(parent=self,
                                      analyser_index=analyser_index,
@@ -707,7 +725,7 @@ class McaDataDataset(SpecH5LazyNodeDataset):
     def __init__(self, parent, analyser_index, scan):
         commonh5.LazyLoadableDataset.__init__(
             self, name="data", parent=parent,
-            attrs={"interpretation": "spectrum", })
+            attrs={"interpretation": to_h5py_utf8("spectrum"),})
         self._scan = scan
         self._analyser_index = analyser_index
         self._shape = None
@@ -741,7 +759,7 @@ class McaDataDataset(SpecH5LazyNodeDataset):
     def __getitem__(self, item):
         # optimization for fetching a single spectrum if data not already loaded
         if not self._is_initialized:
-            if isinstance(item, integer_types):
+            if isinstance(item, six.integer_types):
                 if item < 0:
                     # negative indexing
                     item += len(self)
@@ -750,7 +768,7 @@ class McaDataDataset(SpecH5LazyNodeDataset):
             # accessing a slice or element of a single spectrum [i, j:k]
             try:
                 spectrum_idx, channel_idx_or_slice = item
-                assert isinstance(spectrum_idx, integer_types)
+                assert isinstance(spectrum_idx, six.integer_types)
             except (ValueError, TypeError, AssertionError):
                 pass
             else:
@@ -770,7 +788,7 @@ class MeasurementGroup(commonh5.Group, SpecH5Group):
         :param scan: specfile.Scan object
         """
         commonh5.Group.__init__(self, name="measurement", parent=parent,
-                                attrs={"NX_class": "NXcollection", })
+                                attrs={"NX_class": to_h5py_utf8("NXcollection"),})
         for label in scan.labels:
             safe_label = label.replace("/", "%")
             self.add_node(SpecH5NodeDataset(name=safe_label,
@@ -805,23 +823,23 @@ class SampleGroup(commonh5.Group, SpecH5Group):
         :param scan: specfile.Scan object
         """
         commonh5.Group.__init__(self, name="sample", parent=parent,
-                                attrs={"NX_class": "NXsample", })
+                                attrs={"NX_class": to_h5py_utf8("NXsample"),})
 
         if _unit_cell_in_scan(scan):
             self.add_node(SpecH5NodeDataset(name="unit_cell",
                                             data=_parse_unit_cell(scan.scan_header_dict["G1"]),
                                             parent=self,
-                                            attrs={"interpretation": "scalar"}))
+                                            attrs={"interpretation": to_h5py_utf8("scalar")}))
             self.add_node(SpecH5NodeDataset(name="unit_cell_abc",
                                             data=_parse_unit_cell(scan.scan_header_dict["G1"])[0, 0:3],
                                             parent=self,
-                                            attrs={"interpretation": "scalar"}))
+                                            attrs={"interpretation": to_h5py_utf8("scalar")}))
             self.add_node(SpecH5NodeDataset(name="unit_cell_alphabetagamma",
                                             data=_parse_unit_cell(scan.scan_header_dict["G1"])[0, 3:6],
                                             parent=self,
-                                            attrs={"interpretation": "scalar"}))
+                                            attrs={"interpretation": to_h5py_utf8("scalar")}))
         if _ub_matrix_in_scan(scan):
             self.add_node(SpecH5NodeDataset(name="ub_matrix",
                                             data=_parse_UB_matrix(scan.scan_header_dict["G3"]),
                                             parent=self,
-                                            attrs={"interpretation": "scalar"}))
+                                            attrs={"interpretation": to_h5py_utf8("scalar")}))
