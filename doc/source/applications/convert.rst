@@ -8,6 +8,13 @@ Purpose
 The *silx convert* command is provided to help with archiving legacy file
 formats into HDF5 files.
 
+You can refer to following tutorials for additional information
+about the output format:
+
+ - :doc:`../Tutorials/io`
+ - :doc:`../Tutorials/convert`
+ - :doc:`../Tutorials/specfile_to_hdf5`
+
 Usage
 -----
 
