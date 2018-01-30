@@ -46,7 +46,7 @@ in the *silx convert* application.
 
 
 Using the convert application
-*****************************
++++++++++++++++++++++++++++++
 
 .. versionadded:: 0.6
 
@@ -60,6 +60,9 @@ Type ``silx convert --help`` in a terminal to see all available options.
 
     The complete documentation for the *silx convert* command is available here:
     :doc:`../applications/convert`.
+
+Converting single files
+***********************
 
 The simplest command to convert a single SPEC file to an HDF5 file would be::
 

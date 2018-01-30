@@ -11,6 +11,7 @@ Tutorials and cookbooks:
    modules/gui/designer.rst
    Tutorials/Sift/sift.rst
    Tutorials/io.rst
+   Tutorials/convert.rst
    Tutorials/specfile_to_hdf5.rst
    modules/gui/hdf5/getting_started.rst
    Tutorials/fit.rst
