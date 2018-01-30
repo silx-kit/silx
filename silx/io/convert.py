@@ -52,9 +52,11 @@ Text strings are written to the HDF5 datasets as variable-length utf-8.
 """
 
 import logging
+import numpy
 
 import silx.io
 from silx.io import is_dataset, is_group, is_softlink
+from silx.third_party import six
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
@@ -100,6 +102,22 @@ def _create_link(h5f, link_name, target_name,
         h5f[link_name] = h5py.SoftLink(target_name)
     else:
         raise ValueError("link_type  must be 'hard' or 'soft'")
+
+
+def _attr_utf8(attr_value):
+    """If attr_value is bytes, make sure we output utf-8
+
+    :param attr_value: String (possibly bytes if PY2)
+    :return: Attr ready to be written by h5py as utf8
+    """
+    if isinstance(attr_value, six.binary_type):
+        out_attr_value = numpy.array(
+            attr_value,
+            dtype=h5py.special_dtype(vlen=six.text_type))
+    else:
+        out_attr_value = attr_value
+
+    return out_attr_value
 
 
 class Hdf5Writer(object):
@@ -166,7 +184,7 @@ class Hdf5Writer(object):
         for key in infile.attrs:
             if self.overwrite_data or key not in root_grp.attrs:
                 root_grp.attrs.create(key,
-                                      infile.attrs[key])
+                                      _attr_utf8(infile.attrs[key]))
 
         # Handle links at the end, when their targets are created
         for link_name, target_name in self._links:
@@ -206,7 +224,8 @@ class Hdf5Writer(object):
             # add HDF5 attributes
             for key in obj.attrs:
                 if self.overwrite_data or key not in ds.attrs:
-                    ds.attrs.create(key, obj.attrs[key])
+                    ds.attrs.create(key,
+                                    _attr_utf8(obj.attrs[key]))
 
             if not self.overwrite_data and member_initially_exists:
                 _logger.warn("Not overwriting existing dataset: " + h5_name)
@@ -221,7 +240,8 @@ class Hdf5Writer(object):
             # add HDF5 attributes
             for key in obj.attrs:
                 if self.overwrite_data or key not in grp.attrs:
-                    grp.attrs.create(key, obj.attrs[key])
+                    grp.attrs.create(key,
+                                     _attr_utf8(obj.attrs[key]))
 
 
 def _is_commonh5_group(grp):
