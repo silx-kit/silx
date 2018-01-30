@@ -299,65 +299,7 @@ Files and groups can be treated as iterators, which allows looping through them.
     A :class:`SpecH5` object is also returned when you open a SPEC file
     with :meth:`silx.io.open`. See :doc:`io` for additional information.
 
-
 Converting SPEC data to HDF5
 ++++++++++++++++++++++++++++
 
-Using the convert module
-************************
-
-The *silx* module :mod:`silx.io.convert` can be used to convert a SPEC file into a
-HDF5 file with the same structure as the one exposed by the :mod:`spech5` module.
-
-.. code-block:: python
-
-    from silx.io.convert import convert
-
-    convert("/home/pierre/myspecfile.dat", "myfile.h5")
-
-
-You can then read the file with any HDF5 reader.
-
-
-The function :func:`silx.io.convert.convert` is a simplified version of a
-more flexible function :func:`silx.io.convert.write_to_h5`.
-
-The latter allows you to write scans into a specific HDF5 group in the output directory.
-You can also decide whether you want to overwrite an existing file, or append data to it.
-You can specify whether existing data with the same name as input data should be overwritten
-or ignored.
-
-This allows you to repeatedly transfer new content of a SPEC file to an existing HDF5 file, in between
-two scans.
-
-The following script is an example of a command line interface to :func:`write_to_h5`.
-
-.. literalinclude:: ../../../examples/writetoh5.py
-   :lines: 44-
-
-Using the convert application
-*****************************
-
-.. versionadded:: 0.6
-
-*silx* also provides a ``silx convert`` command line application, which allows you to
-perform standard conversions without having to write your own program.
-
-Type ``silx convert --help`` in a terminal to see all available options.
-
-The simplest command to convert a single SPEC file to an HDF5 file would be::
-
-    silx convert myspecfile.dat
-
-As no output name is supplied, the input file name is reused but the extension is
-modified from *.dat* to *.h5*.
-
-The following example allows you to append the content of a SPEC file to an
-existing HDF5 file::
-
-    silx convert myspecfile.dat -m a -o myhdf5file.h5
-
-You could write the file into a specific group of the HDF5 file by providing
-the complete URI in the format ``file_path::group_path``. For instance::
-
-    silx convert myspecfile.dat -m a -o archive.h5::/2017-09-20/SPEC
+See :doc:`convert`.
