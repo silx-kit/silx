@@ -83,3 +83,22 @@ You could write the file into a specific group of the HDF5 file by providing
 the complete URI in the format ``file_path::group_path``. For instance::
 
     silx convert myspecfile.dat -m a -o archive.h5::/2017-09-20/SPEC
+
+
+Merging a stack of images
+*************************
+
+*silx convert* can merge a stack of image files. It support series of single
+frame files, and is based on `fabio.file_series <http://www.silx.org/doc/fabio/dev/api/modules.html?highlight=series#fabio.file_series.file_series>`_.
+All frames must have the same shape.
+
+The following command merges all files matching a pattern::
+
+    silx convert --file-pattern ch09__mca_0005_0000_%d.edf -o ch09__mca_0005_0000_multiframe.edf
+
+The data in the output file is presented as a 3D array.
+
+It is possible to provide multiple indices in the file name pattern, and specify a
+range for each index::
+
+    silx convert --file-pattern ch09__mca_0005_%04d_%04d.edf --begin 0,1 --end 0,54
