@@ -293,6 +293,13 @@ Files and groups can be treated as iterators, which allows looping through them.
         print("Found labels in scan " + scan_group.name + " :")
         print(", ".join(dataset_names))
 
+
+.. note::
+
+    A :class:`SpecH5` object is also returned when you open a SPEC file
+    with :meth:`silx.io.open`. See :doc:`io` for additional information.
+
+
 Converting SPEC data to HDF5
 ++++++++++++++++++++++++++++
 
