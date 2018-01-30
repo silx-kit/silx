@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2017 European Synchrotron Radiation Facility
+# Copyright (C) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,7 @@ import time
 
 import silx.io
 from silx.io.specfile import is_specfile
+from silx.third_party import six
 
 try:
     from silx.io import fabioh5
@@ -529,11 +530,16 @@ def main(argv):
 
     with h5py.File(output_name, mode="r+") as h5f:
         # append "silx convert" to the creator attribute, for NeXus files
-        previous_creator = h5f.attrs.get("creator", b"").decode()
+        previous_creator = h5f.attrs.get("creator", u"")
         creator = "silx convert (v%s)" % silx.version
         # only if it not already there
         if creator not in previous_creator:
-            h5f.attrs["creator"] = \
-                numpy.string_(previous_creator + "; " + creator)
+            if not previous_creator:
+                new_creator = creator
+            else:
+                new_creator = previous_creator + "; " + creator
+            h5f.attrs["creator"] = numpy.array(
+                    new_creator,
+                    dtype=h5py.special_dtype(vlen=six.text_type))
 
     return 0
