@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -869,8 +869,9 @@ class File(commonh5.File):
 
         attrs = {"NX_class": "NXroot",
                  "file_time": datetime.datetime.now().isoformat(),
-                 "file_name": file_name,
                  "creator": "silx %s" % silx_version}
+        if file_name is not None:
+            attrs["file_name"] = file_name
         commonh5.File.__init__(self, name=file_name, attrs=attrs)
         scan = self.create_scan_group(self.__fabio_reader)
         self.add_node(scan)
