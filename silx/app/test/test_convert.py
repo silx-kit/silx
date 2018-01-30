@@ -153,14 +153,14 @@ class TestConvertCommand(unittest.TestCase):
         with h5py.File(h5name, "r") as h5f:
             title12 = h5f["/1.2/title"][()]
             if sys.version < '3.0':
-                title12 = title12.encode("ascii")
+                title12 = title12.encode("utf-8")
             self.assertEqual(title12,
                              "1 aaaaaa")
 
             creator = h5f.attrs.get("creator")
             self.assertIsNotNone(creator, "No creator attribute in NXroot group")
             if sys.version < '3.0':
-                creator = creator.encode("ascii")
+                creator = creator.encode("utf-8")
             self.assertIn("silx convert (v%s)" % silx.version, creator)
 
         # delete input file
