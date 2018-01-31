@@ -32,8 +32,36 @@ images. All plots have their axes synchronized.
 
 from .. import qt
 from . import Plot2D
+from .Colormap import Colormap
 
 from silx.third_party import six
+from silx.gui.plot.utils.axis import SyncAxes
+from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
+
+
+class PlotWithSlider(qt.QWidget):
+    #                                value row  col
+    sigSliderValueChanged = qt.Signal(int, int, int)
+
+    def __init__(self, parent=None, row=0, col=0):
+        qt.QWidget.__init__(self, parent)
+
+        self.row = row
+        self.col = col
+
+        self.plot = Plot2D(self)
+        self.slider = HorizontalSliderWithBrowser(self)
+        self.slider.setMinimum(-1)      # -1 is for displaying no image. Do we need this?
+        self.slider.valueChanged.connect(self._emitSliderValueChanged)
+
+        layout = qt.QVBoxLayout()
+        self.setLayout(layout)
+
+        layout.addWidget(self.slider)
+        layout.addWidget(self.plot)
+
+    def _emitSliderValueChanged(self, value):
+        self.sigSliderValueChanged.emit(value, self.row, self.col)
 
 
 class GridImageWidget(qt.QWidget):
@@ -45,6 +73,11 @@ class GridImageWidget(qt.QWidget):
         self._maxNPlots = 100
         self._plots = {}
         """:class:`Plot2D` indexed by 2-tuples (row, col)"""
+        self._xAxesSynchro = None
+        self._yAxesSynchro = None
+        self._data = []
+        """List of 2D arrays or 3D array"""
+        # self._defaultColormap = Colormap()    # in case we want a common colormap
 
         self.gridLayout = qt.QGridLayout()
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
@@ -94,10 +127,17 @@ class GridImageWidget(qt.QWidget):
         """Show or hide the plots according to the current grid shape.
         Instantiate new plots if necessary."""
         # instantiate new plots as needed
+        areNewPlotsAdded = False
         for r in range(self._nrows):
             for c in range(self._ncols):
                 if (r, c) not in self._plots:
-                    self._plots[(r, c)] = self._instantiateNewPlot()
+                    areNewPlotsAdded = True
+                    self._plots[(r, c)] = self._instantiateNewPlot(r, c)
+                    self.gridLayout.addWidget(self._plots[(r, c)],
+                                              r, c)
+                    self._plots[(r, c)].slider.setMaximum(self._nframes - 1)
+                    # self._plots.plot.setDefaultColormap(self._defaultColormap) # FIXME: do we want to synchronize colormap?
+                    self._plots[(r, c)].sigSliderValueChanged.connect(self._onSliderValueChanged)
 
         # show or hide plots as needed
         for idx in self._plots:
@@ -107,5 +147,75 @@ class GridImageWidget(qt.QWidget):
             else:
                 self._plots[idx].hide()
 
-    def _instantiateNewPlot(self):
-        return Plot2D(self)    # Fixme: composite widget with plot, slider, axis synchronized...
+        # synchronize all axes
+        if areNewPlotsAdded:
+            self._yAxesSynchro = SyncAxes([plt.plot.getYAxis() for plt in self._plots])
+            self._xAxesSynchro = SyncAxes([plt.plot.getXAxis() for plt in self._plots])
+
+    def _instantiateNewPlot(self, row, col):
+        plot = PlotWithSlider(self, row, col)
+        return plot
+
+    @property
+    def _nframes(self):
+        """Number of frames (images) in the current data"""
+        # 3D array
+        if hasattr(self._data, "shape"):
+            return self._data.shape[0]
+        # list of 2D arrays
+        return len(self._data)
+
+    @property
+    def _nplots(self):
+        """Number of visible plots in the grid"""
+        return self._nrows * self._ncols
+
+    def _onSliderValueChanged(self, value, row, col):
+        """Plot the requested image, if any data is loaded."""
+        assert (row, col) in self._plots
+        assert self._plots[(row, col)].isVisible()
+        if value == -1:
+            self._plots[(row, col)].plot.clear()    # do we want this behavior?
+        elif self._nframes:
+            assert value < self._nframes
+            self._plots[(row, col)].plot.addImage(self._data[value])
+
+    def setFrames(self, data):
+        """
+
+        :param data: List of 2D arrays of identical size, or 3D array
+            (first dimension is the frame index)
+        """
+        self.clear()
+        if hasattr(data, "shape"):
+            assert len(data.shape) == 3, "Array must be 3D"
+        else:
+            assert hasattr(data, "__len__"), "Not a list of 2D arrays"
+            for array in data:
+                assert hasattr(array, "shape"), "Not an array"
+                assert len(array.shape) == 2, "Array is not 2D"
+        self._data = data
+        self._updateGrid()
+        self._initPlots()
+
+    def _initPlots(self):
+        """Update plots after setting the data:
+        plot an image on all visible plots (if there are enough images).
+        """
+        for r, c in self._plots:
+            plotIdx = r * self._ncols + c
+            if r < self._nrows and c < self._ncols:
+                if plotIdx < self._nframes:
+                    self._plots[(r, c)].slider.setValue(plotIdx)
+                    # this should emit a slider.valueChanged signal and
+                    # trigger plotting (in self._onSliderValueChanged)
+
+                else:
+                    self._plots[(r, c)].slider.setValue(0)
+                    self._plots[(r, c)].plot.clear()
+
+    def clear(self):
+        """Clear all plots and set all slider values to 0"""
+        for (r, c) in self._plots:
+            self._plots[(r, c)].slider.setValue(0)
+            self._plots[(r, c)].plot.clear()
