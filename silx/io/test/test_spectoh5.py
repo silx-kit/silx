@@ -144,7 +144,7 @@ class TestConvertSpecHDF5(unittest.TestCase):
         """Test the value of a dataset"""
         title12 = self.h5f["/1.2/title"].value
         self.assertEqual(title12,
-                         u"1 aaaaaa")
+                         u"aaaaaa")
 
     def testAttrs(self):
         # Test root group (file) attributes
