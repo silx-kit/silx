@@ -25,7 +25,7 @@
 
 __authors__ = ["P. Knobel", "V. Valls"]
 __license__ = "MIT"
-__date__ = "19/12/2017"
+__date__ = "29/01/2018"
 
 import numpy
 import os.path
@@ -432,7 +432,7 @@ def h5ls(h5group, lvl=0):
     return h5repr
 
 
-def _open(filename):
+def _open_local_file(filename):
     """
     Load a file as an `h5py.File`-like object.
 
@@ -448,19 +448,6 @@ def _open(filename):
     :raises: IOError if the file can't be loaded as an h5py.File like object
     :rtype: h5py.File
     """
-    if "://" in filename:
-        uri = six.moves.urllib.parse.urlparse(filename)
-        if uri.netloc == '' or uri.scheme in ['', 'file']:
-            filename = uri.path
-        else:
-            if h5pyd is None:
-                raise IOError("URI '%s' unsupported. Try to install h5pyd." % filename)
-            path = uri.path
-            endpoint = "%s://%s" % (uri.scheme, uri.netloc)
-            if path.startswith("/"):
-                path = path[1:]
-            return h5pyd.File(path, 'r', endpoint=endpoint)
-
     if not os.path.isfile(filename):
         raise IOError("Filename '%s' must be a file path" % filename)
 
@@ -571,44 +558,40 @@ def open(filename):  # pylint:disable=redefined-builtin
     :raises: IOError if the file can't be loaded or path can't be found
     :rtype: h5py-like node
     """
-    if "::" in filename:
-        filename, h5_path = filename.split("::")
+    url = silx.io.url.DataUrl(filename)
+
+    if url.scheme() in [None, "file", "silx"]:
+        # That's a local file
+        if not url.is_valid():
+            raise IOError("URL '%s' is not valid" % filename)
+        h5_file = _open_local_file(url.file_path())
+    elif url.scheme() in ["fabio"]:
+        raise IOError("URL '%s' containing fabio scheme is not supported" % filename)
     else:
-        filename, h5_path = filename, "/"
+        # That's maybe an URL supported by h5pyd
+        uri = six.moves.urllib.parse.urlparse(filename)
+        if h5pyd is None:
+            raise IOError("URL '%s' unsupported. Try to install h5pyd." % filename)
+        path = uri.path
+        endpoint = "%s://%s" % (uri.scheme, uri.netloc)
+        if path.startswith("/"):
+            path = path[1:]
+        return h5pyd.File(path, 'r', endpoint=endpoint)
 
-    h5_file = _open(filename)
+    if url.data_slice():
+        raise IOError("URL '%s' containing slicing is not supported" % filename)
 
-    if h5_path in ["/", ""]:
-        # Short cut
+    if url.data_path() in [None, "/", ""]:
+        # The full file is requested
         return h5_file
-
-    if h5_path not in h5_file:
-        msg = "File '%s' do not contains path '%s'." % (filename, h5_path)
-        raise IOError(msg)
-
-    node = h5_file[h5_path]
-    proxy = _MainNode(node, h5_file)
-    return proxy
-
-
-@deprecated
-def load(filename):
-    """
-    Load a file as an `h5py.File`-like object.
-
-    Format supported:
-    - h5 files, if `h5py` module is installed
-    - Spec files if `SpecFile` module is installed
-
-    .. deprecated:: 0.4
-        Use :meth:`open`, or :meth:`silx.io.open`. Will be removed in
-        Silx 0.5.
-
-    :param str filename: A filename
-    :raises: IOError if the file can't be loaded as an h5py.File like object
-    :rtype: h5py.File
-    """
-    return open(filename)
+    else:
+        # Only a children is requested
+        if url.data_path() not in h5_file:
+            msg = "File '%s' does not contain path '%s'." % (filename, url.data_path())
+            raise IOError(msg)
+        node = h5_file[url.data_path()]
+        proxy = _MainNode(node, h5_file)
+        return proxy
 
 
 def _get_classes_type():
