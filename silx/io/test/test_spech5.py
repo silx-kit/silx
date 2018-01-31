@@ -354,19 +354,19 @@ class TestSpecH5(unittest.TestCase):
         scan_header = self.sfh5["/1.2/instrument/specfile/scan_header"]
 
         # File header has 10 lines
-        self.assertEqual(len(file_header.split("\n")), 10)
+        self.assertEqual(len(file_header), 10)
         # 1.2 has 9 scan & mca header lines
-        self.assertEqual(len(scan_header.split("\n")), 9)
+        self.assertEqual(len(scan_header), 9)
 
         # line 4 of file header
         self.assertEqual(
-                file_header.split("\n")[3],
+                file_header[3],
                 u"#C imaging  User = opid17")
         # line 4 of scan header
         scan_header = self.sfh5["25.1/instrument/specfile/scan_header"]
 
         self.assertEqual(
-                scan_header.split("\n")[3],
+                scan_header[3],
                 u"#P1 4.74255 6.197579 2.238283")
 
     def testLinks(self):
