@@ -57,8 +57,8 @@ class PlotWithSlider(qt.QWidget):
         layout = qt.QVBoxLayout()
         self.setLayout(layout)
 
-        layout.addWidget(self.slider)
         layout.addWidget(self.plot)
+        layout.addWidget(self.slider)
 
     def _emitSliderValueChanged(self, value):
         self.sigSliderValueChanged.emit(value, self.row, self.col)
@@ -135,7 +135,6 @@ class GridImageWidget(qt.QWidget):
                     self._plots[(r, c)] = self._instantiateNewPlot(r, c)
                     self.gridLayout.addWidget(self._plots[(r, c)],
                                               r, c)
-                    self._plots[(r, c)].slider.setMaximum(self._nframes - 1)
                     # self._plots.plot.setDefaultColormap(self._defaultColormap) # FIXME: do we want to synchronize colormap?
                     self._plots[(r, c)].sigSliderValueChanged.connect(self._onSliderValueChanged)
 
@@ -149,8 +148,8 @@ class GridImageWidget(qt.QWidget):
 
         # synchronize all axes
         if areNewPlotsAdded:
-            self._yAxesSynchro = SyncAxes([plt.plot.getYAxis() for plt in self._plots])
-            self._xAxesSynchro = SyncAxes([plt.plot.getXAxis() for plt in self._plots])
+            self._yAxesSynchro = SyncAxes([plt.plot.getYAxis() for plt in self._plots.values()])
+            self._xAxesSynchro = SyncAxes([plt.plot.getXAxis() for plt in self._plots.values()])
 
     def _instantiateNewPlot(self, row, col):
         plot = PlotWithSlider(self, row, col)
@@ -173,11 +172,11 @@ class GridImageWidget(qt.QWidget):
     def _onSliderValueChanged(self, value, row, col):
         """Plot the requested image, if any data is loaded."""
         assert (row, col) in self._plots
-        assert self._plots[(row, col)].isVisible()
         if value == -1:
             self._plots[(row, col)].plot.clear()    # do we want this behavior?
         elif self._nframes:
             assert value < self._nframes
+            print ("adding image frame %d to (%d, %d)" % (value, row, col))
             self._plots[(row, col)].plot.addImage(self._data[value])
 
     def setFrames(self, data):
@@ -206,10 +205,14 @@ class GridImageWidget(qt.QWidget):
             plotIdx = r * self._ncols + c
             if r < self._nrows and c < self._ncols:
                 if plotIdx < self._nframes:
-                    self._plots[(r, c)].slider.setValue(plotIdx)
+                    self._plots[(r, c)].slider.setMaximum(self._nframes - 1)
+                    oldValue = self._plots[(r, c)].slider.value()
                     # this should emit a slider.valueChanged signal and
                     # trigger plotting (in self._onSliderValueChanged)
-
+                    self._plots[(r, c)].slider.setValue(plotIdx)
+                    if oldValue == plotIdx:
+                        # value not changed, we must plot
+                        self._plots[(r, c)].plot.addImage(self._data[plotIdx])
                 else:
                     self._plots[(r, c)].slider.setValue(0)
                     self._plots[(r, c)].plot.clear()
