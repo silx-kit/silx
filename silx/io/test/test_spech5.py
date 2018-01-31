@@ -479,7 +479,7 @@ class TestSpecH5(unittest.TestCase):
 
     def testTitle(self):
         self.assertEqual(self.sfh5["/25.1/title"],
-                         u"25  ascan  c3th 1.33245 1.52245  40 0.15")
+                         u"ascan  c3th 1.33245 1.52245  40 0.15")
 
     def testValues(self):
         group = self.sfh5["/25.1"]

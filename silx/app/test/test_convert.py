@@ -155,7 +155,7 @@ class TestConvertCommand(unittest.TestCase):
             if sys.version < '3.0':
                 title12 = title12.encode("utf-8")
             self.assertEqual(title12,
-                             "1 aaaaaa")
+                             "aaaaaa")
 
             creator = h5f.attrs.get("creator")
             self.assertIsNotNone(creator, "No creator attribute in NXroot group")

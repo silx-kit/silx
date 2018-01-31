@@ -589,10 +589,12 @@ class ScanGroup(commonh5.Group, SpecH5Group):
         commonh5.Group.__init__(self, scan_key, parent=parent,
                                 attrs={"NX_class": to_h5py_utf8("NXentry")})
 
-        self.add_node(SpecH5NodeDataset(
-                name="title",
-                data=to_h5py_utf8(scan.scan_header_dict["S"]),
-                parent=self))
+        # take title in #S after stripping away scan number and spaces
+        s_hdr_line = scan.scan_header_dict["S"]
+        title = s_hdr_line.lstrip("0123456789").lstrip()
+        self.add_node(SpecH5NodeDataset(name="title",
+                                        data=to_h5py_utf8(title),
+                                        parent=self))
 
         if "D" in scan.scan_header_dict:
             try:
