@@ -28,7 +28,7 @@ This module contains utilitaries used by other dialog modules.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "08/12/2017"
+__date__ = "01/02/2018"
 
 try:
     import fabio
@@ -136,10 +136,10 @@ class FileTypeComboBox(qt.QComboBox):
         for reader in formats:
             if not hasattr(reader, "DESCRIPTION"):
                 continue
-            if not hasattr(reader, "DEFAULT_EXTENTIONS"):
+            if not hasattr(reader, "DEFAULT_EXTENSIONS"):
                 continue
 
-            ext = reader.DEFAULT_EXTENTIONS
+            ext = reader.DEFAULT_EXTENSIONS
             ext = ["*.%s" % e for e in ext]
             allExtensions.update(ext)
             if ext == []:

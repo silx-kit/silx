@@ -71,12 +71,10 @@ def supported_extensions():
     all_extensions = set([])
 
     for reader in formats:
-        if not hasattr(reader, "DESCRIPTION"):
-            continue
-        if not hasattr(reader, "DEFAULT_EXTENTIONS"):
+        if not hasattr(reader, "DEFAULT_EXTENSIONS"):
             continue
 
-        ext = reader.DEFAULT_EXTENTIONS
+        ext = reader.DEFAULT_EXTENSIONS
         ext = ["*.%s" % e for e in ext]
         all_extensions.update(ext)
 
@@ -925,7 +923,7 @@ class File(commonh5.File):
         if first_file_name is not None:
             _, ext = os.path.splitext(first_file_name)
             ext = ext[1:]
-            use_edf_reader = ext in fabio.edfimage.EdfImage.DEFAULT_EXTENTIONS
+            use_edf_reader = ext in fabio.edfimage.EdfImage.DEFAULT_EXTENSIONS
         elif first_image is not None:
             use_edf_reader = isinstance(first_image, fabio.edfimage.EdfImage)
         else:
