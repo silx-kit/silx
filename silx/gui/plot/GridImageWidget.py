@@ -57,6 +57,7 @@ class PlotWithSlider(qt.QWidget):
                 self._emitSliderValueChanged)
 
         layout = qt.QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
         layout.addWidget(self.plot)
