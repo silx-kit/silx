@@ -7,7 +7,7 @@ from silx.gui.plot.GridImageWidget import GridImageWidget
 
 app = qt.QApplication(sys.argv)
 
-giw = GridImageWidget()
+giw = GridImageWidget(backend="opengl")
 giw.setNCols(3)
 giw.setNRows(2)
 

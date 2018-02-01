@@ -43,13 +43,13 @@ class PlotWithSlider(qt.QWidget):
     #                                value row  col
     sigSliderValueChanged = qt.Signal(int, int, int)
 
-    def __init__(self, parent=None, row=0, col=0):
+    def __init__(self, parent=None, row=0, col=0, backend=None):
         qt.QWidget.__init__(self, parent)
 
         self.row = row
         self.col = col
 
-        self.plot = Plot2D(self)
+        self.plot = Plot2D(parent=self, backend=backend)
         self.slider = HorizontalSliderWithBrowser(self)
         self.slider.setMinimum(-1)      # -1 is for displaying no image. Do we need this?
         self.slider.valueChanged.connect(self._emitSliderValueChanged)
@@ -65,9 +65,10 @@ class PlotWithSlider(qt.QWidget):
 
 
 class GridImageWidget(qt.QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, backend=None):
         qt.QWidget.__init__(self, parent)
 
+        self._backend = backend
         self._nrows = 2
         self._ncols = 2
         self._maxNPlots = 100
@@ -152,7 +153,7 @@ class GridImageWidget(qt.QWidget):
             self._xAxesSynchro = SyncAxes([plt.plot.getXAxis() for plt in self._plots.values()])
 
     def _instantiateNewPlot(self, row, col):
-        plot = PlotWithSlider(self, row, col)
+        plot = PlotWithSlider(self, row, col, backend=self._backend)
         return plot
 
     @property
@@ -176,7 +177,6 @@ class GridImageWidget(qt.QWidget):
             self._plots[(row, col)].plot.clear()    # do we want this behavior?
         elif self._nframes:
             assert value < self._nframes
-            print ("adding image frame %d to (%d, %d)" % (value, row, col))
             self._plots[(row, col)].plot.addImage(self._data[value])
 
     def setFrames(self, data):
