@@ -72,12 +72,13 @@ install:
     - ls dist
 
 before_script:
-    # Start X Virtual Framebuffer useful for GUI testing
-    # Doc: https://docs.travis-ci.com/user/gui-and-headless-browsers/#Using-xvfb-to-Run-Tests-That-Require-a-GUI
+    # Start X server with dummy video dirver
+    # Use this instead of Xvfb to have RANDR extension
+    # Otherwise there is a bug with Qt5.10.0
     - if [ "$TRAVIS_OS_NAME" == "linux" ];
       then
           export DISPLAY=:99.0;
-          sh -e /etc/init.d/xvfb start;
+          Xorg -noreset +extension GLX +extension RANDR +extension RENDER -logfile ./99.log -config ./ci/travis-xorg.conf :99 &
           sleep 3;
       fi
 
