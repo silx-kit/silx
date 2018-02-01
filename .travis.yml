@@ -26,6 +26,12 @@ matrix:
           env:
               - BUILD_COMMAND=sdist
               - WITH_QT_TEST=True
+              
+        - python: 3.6
+          os: linux
+          env:
+              - BUILD_COMMAND=sdist
+              - WITH_QT_TEST=True
 
         - language: generic
           os: osx
