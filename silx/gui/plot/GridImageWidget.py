@@ -29,10 +29,11 @@ images. All plots have their axes synchronized.
 :meth:`GridImageWidget.setImages`
 
 """
+import contextlib
 
 from .. import qt
 from . import Plot2D
-from .Colormap import Colormap
+# from .Colormap import Colormap
 
 from silx.third_party import six
 from silx.gui.plot.utils.axis import SyncAxes
@@ -42,6 +43,7 @@ from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
 class PlotWithSlider(qt.QWidget):
     #                                value row  col
     sigSliderValueChanged = qt.Signal(int, int, int)
+    sigKeepAspectRatioChanged = qt.Signal(bool, int, int)
 
     def __init__(self, parent=None, row=0, col=0, backend=None):
         qt.QWidget.__init__(self, parent)
@@ -50,9 +52,12 @@ class PlotWithSlider(qt.QWidget):
         self.col = col
 
         self.plot = Plot2D(parent=self, backend=backend)
+        self.plot.sigSetKeepDataAspectRatio.connect(
+                self._emitPlotKeepAspectRatio)
         self.slider = HorizontalSliderWithBrowser(self)
         self.slider.setMinimum(-1)      # -1 is for displaying no image. Do we need this?
-        self.slider.valueChanged.connect(self._emitSliderValueChanged)
+        self.slider.valueChanged.connect(
+                self._emitSliderValueChanged)
 
         layout = qt.QVBoxLayout()
         self.setLayout(layout)
@@ -62,6 +67,10 @@ class PlotWithSlider(qt.QWidget):
 
     def _emitSliderValueChanged(self, value):
         self.sigSliderValueChanged.emit(value, self.row, self.col)
+
+    def _emitPlotKeepAspectRatio(self, isKeepAspectRatio):
+        self.sigKeepAspectRatioChanged.emit(isKeepAspectRatio,
+                                            self.row, self.col)
 
 
 class GridImageWidget(qt.QWidget):
@@ -137,7 +146,10 @@ class GridImageWidget(qt.QWidget):
                     self.gridLayout.addWidget(self._plots[(r, c)],
                                               r, c)
                     # self._plots.plot.setDefaultColormap(self._defaultColormap) # FIXME: do we want to synchronize colormap?
-                    self._plots[(r, c)].sigSliderValueChanged.connect(self._onSliderValueChanged)
+                    self._plots[(r, c)].sigSliderValueChanged.connect(
+                            self._onSliderValueChanged)
+                    self._plots[(r, c)].sigKeepAspectRatioChanged.connect(
+                            self._onKeepAspectRatioChanged)
 
         # show or hide plots as needed
         for idx in self._plots:
@@ -178,6 +190,25 @@ class GridImageWidget(qt.QWidget):
         elif self._nframes:
             assert value < self._nframes
             self._plots[(row, col)].plot.addImage(self._data[value])
+
+    def _onKeepAspectRatioChanged(self, isKeepAspectRatio, row, col):
+        """If any plot changes its keepAspectRatio policy,
+        apply it to all other plots."""
+        print("received sigKeepAspectRatioChanged from plot %d, %d" % (row, col))
+        with self._disconnectAllAspectRatioSignals():
+            for r, c in self._plots:
+                self._plots[(r, c)].plot.setKeepDataAspectRatio(isKeepAspectRatio)
+
+    @contextlib.contextmanager
+    def _disconnectAllAspectRatioSignals(self):
+        for r, c in self._plots:
+            self._plots[(r, c)].sigKeepAspectRatioChanged.disconnect(
+                self._onKeepAspectRatioChanged)
+        yield
+        for r, c in self._plots:
+            self._plots[(r, c)].sigKeepAspectRatioChanged.connect(
+                self._onKeepAspectRatioChanged)
+        #qt.QApplication.instance().processEvents()
 
     def setFrames(self, data):
         """
