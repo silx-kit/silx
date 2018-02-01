@@ -135,7 +135,7 @@ class TestConvertCommand(unittest.TestCase):
         # write a temporary SPEC file
         specname = os.path.join(tempdir, "input.dat")
         with io.open(specname, "wb") as fd:
-            if sys.version < '3.0':
+            if sys.version_info < (3, ):
                 fd.write(sftext)
             else:
                 fd.write(bytes(sftext, 'ascii'))
@@ -152,14 +152,14 @@ class TestConvertCommand(unittest.TestCase):
 
         with h5py.File(h5name, "r") as h5f:
             title12 = h5f["/1.2/title"][()]
-            if sys.version < '3.0':
+            if sys.version_info < (3, ):
                 title12 = title12.encode("utf-8")
             self.assertEqual(title12,
                              "aaaaaa")
 
             creator = h5f.attrs.get("creator")
             self.assertIsNotNone(creator, "No creator attribute in NXroot group")
-            if sys.version < '3.0':
+            if sys.version_info < (3, ):
                 creator = creator.encode("utf-8")
             self.assertIn("silx convert (v%s)" % silx.version, creator)
 

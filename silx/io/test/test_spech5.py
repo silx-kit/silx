@@ -215,7 +215,7 @@ class TestSpecH5(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         fd, cls.fname = tempfile.mkstemp()
-        if sys.version < '3.0':
+        if sys.version_info < (3, ):
             os.write(fd, sftext)
         else:
             os.write(fd, bytes(sftext, 'ascii'))
@@ -611,7 +611,7 @@ class TestSpecH5MultiMca(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         fd, cls.fname = tempfile.mkstemp(text=False)
-        if sys.version < '3.0':
+        if sys.version_info < (3, ):
             os.write(fd, sftext_multi_mca_headers)
         else:
             os.write(fd, bytes(sftext_multi_mca_headers, 'ascii'))
@@ -741,7 +741,7 @@ class TestSpecH5NoDataCols(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         fd, cls.fname = tempfile.mkstemp()
-        if sys.version < '3.0':
+        if sys.version_info < (3, ):
             os.write(fd, sftext_no_cols)
         else:
             os.write(fd, bytes(sftext_no_cols, 'ascii'))
@@ -812,7 +812,7 @@ class TestSpecH5SlashInLabels(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         fd, cls.fname = tempfile.mkstemp()
-        if sys.version < '3.0':
+        if sys.version_info < (3, ):
             os.write(fd, sf_text_slash)
         else:
             os.write(fd, bytes(sf_text_slash, 'ascii'))
