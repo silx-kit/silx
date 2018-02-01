@@ -55,7 +55,7 @@ class PlotWithSlider(qt.QWidget):
         self.plot.sigSetKeepDataAspectRatio.connect(
                 self._emitPlotKeepAspectRatio)
         self.slider = HorizontalSliderWithBrowser(self)
-        self.slider.setMinimum(-1)      # -1 is for displaying no image. Do we need this?
+        self.slider.setMinimum(0)
         self.slider.valueChanged.connect(
                 self._emitSliderValueChanged)
 
@@ -87,7 +87,6 @@ class GridImageWidget(qt.QWidget):
         self._yAxesSynchro = None
         self._data = []
         """List of 2D arrays or 3D array"""
-        # self._defaultColormap = Colormap()    # in case we want a common colormap
 
         self.gridLayout = qt.QGridLayout()
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
@@ -145,7 +144,6 @@ class GridImageWidget(qt.QWidget):
                     self._plots[(r, c)] = self._instantiateNewPlot(r, c)
                     self.gridLayout.addWidget(self._plots[(r, c)],
                                               r, c)
-                    # self._plots.plot.setDefaultColormap(self._defaultColormap) # FIXME: do we want to synchronize colormap?
                     self._plots[(r, c)].sigSliderValueChanged.connect(
                             self._onSliderValueChanged)
                     self._plots[(r, c)].sigKeepAspectRatioChanged.connect(
@@ -185,16 +183,12 @@ class GridImageWidget(qt.QWidget):
     def _onSliderValueChanged(self, value, row, col):
         """Plot the requested image, if any data is loaded."""
         assert (row, col) in self._plots
-        if value == -1:
-            self._plots[(row, col)].plot.clear()    # do we want this behavior?
-        elif self._nframes:
-            assert value < self._nframes
-            self._plots[(row, col)].plot.addImage(self._data[value])
+        assert value < self._nframes
+        self._plots[(row, col)].plot.addImage(self._data[value])
 
     def _onKeepAspectRatioChanged(self, isKeepAspectRatio, row, col):
         """If any plot changes its keepAspectRatio policy,
         apply it to all other plots."""
-        print("received sigKeepAspectRatioChanged from plot %d, %d" % (row, col))
         with self._disconnectAllAspectRatioSignals():
             for r, c in self._plots:
                 self._plots[(r, c)].plot.setKeepDataAspectRatio(isKeepAspectRatio)
