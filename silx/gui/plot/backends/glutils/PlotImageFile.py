@@ -93,7 +93,7 @@ def saveImageToFile(data, fileNameOrObj, fileFormat):
     assert fileFormat in ('png', 'ppm', 'svg', 'tiff')
 
     if not hasattr(fileNameOrObj, 'write'):
-        if sys.version < "3.0":
+        if sys.version_info < (3, ):
             fileObj = open(fileNameOrObj, "wb")
         else:
             if fileFormat in ('png', 'ppm', 'tiff'):

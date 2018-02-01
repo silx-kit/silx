@@ -104,7 +104,7 @@ else:  # Then try Qt bindings
 if BINDING == 'PyQt4':
     _logger.debug('Using PyQt4 bindings')
 
-    if sys.version < "3.0.0":
+    if sys.version_info < (3, ):
         try:
             import sip
 

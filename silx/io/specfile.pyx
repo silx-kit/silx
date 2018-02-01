@@ -614,7 +614,7 @@ class Scan(object):
 
 def _string_to_char_star(string_):
     """Convert a string to ASCII encoded bytes when using python3"""
-    if sys.version.startswith("3") and not isinstance(string_, bytes):
+    if sys.version_info[0] >= 3 and not isinstance(string_, bytes):
         return bytes(string_, "ascii")
     return string_
 
