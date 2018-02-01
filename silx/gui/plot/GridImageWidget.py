@@ -187,7 +187,9 @@ class GridImageWidget(qt.QWidget):
         """Plot the requested image, if any data is loaded."""
         assert value < self._nframes
         row, col = self._plotCoords[plotId]
-        self._plots[(row, col)].plot.addImage(self._data[value])
+        self._plots[(row, col)].plot.addImage(self._data[value],
+                                              resetzoom=False,
+                                              replace=True)
 
     def _onKeepAspectRatioChanged(self, isKeepAspectRatio, plotId):
         """If any plot changes its keepAspectRatio policy,
@@ -239,7 +241,9 @@ class GridImageWidget(qt.QWidget):
                     self._plots[(r, c)].slider.setValue(plotIdx)
                     if oldValue == plotIdx:
                         # value not changed, we must plot
-                        self._plots[(r, c)].plot.addImage(self._data[plotIdx])
+                        self._plots[(r, c)].plot.addImage(self._data[plotIdx],
+                                                          resetzoom=True,
+                                                          replace=True)
                 else:
                     self._plots[(r, c)].slider.setValue(0)
                     self._plots[(r, c)].plot.clear()
