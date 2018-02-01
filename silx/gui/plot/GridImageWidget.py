@@ -51,6 +51,7 @@ class PlotWithSlider(qt.QWidget):
         self.plot = Plot2D(parent=self, backend=backend)
         self.plot.sigSetKeepDataAspectRatio.connect(
                 self._emitPlotKeepAspectRatio)
+        self.plot.getColorBarWidget().setVisible(False)
         self.slider = HorizontalSliderWithBrowser(self)
         self.slider.setMinimum(0)
         self.slider.valueChanged.connect(
